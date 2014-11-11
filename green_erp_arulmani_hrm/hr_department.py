@@ -15,7 +15,6 @@ class hr_department(osv.osv):
         'primary_auditor_id': fields.many2one('hr.employee', 'Primary Time Auditor'),
         'secondary_auditor_id':  fields.many2one('hr.employee', 'Sec. Time Auditor'),
         'section_ids': fields.many2many('arul.hr.section', 'department_section_rel', 'department_id', 'section_id', 'Sections'),
-        'resource_budgets_ids': fields.many2many('arul.hr.resource.budgets', 'department_resource_budgets_rel', 'department_id', 'resource_budgets_id', 'Designation & Resource Budgets'),
         'designation_id': fields.many2one('arul.hr.designation', 'Designation'),
         'number': fields.integer('No.of Persons'),
     }
@@ -29,6 +28,8 @@ class hr_department(osv.osv):
     _constraints = [
         (_check_department_id, 'Identical Data', ['code', 'name']),
     ]
+    
+
     
 hr_department()
 
@@ -51,17 +52,7 @@ class arul_hr_section(osv.osv):
     
 arul_hr_section()
 
-# class arul_hr_resource_budgets(osv.osv):
-#     _name = 'arul.hr.resource.budgets'
-#     _columns = {
-#                 
-#         'designation_id': fields.many2one('arul.hr.designation', 'Designation'),
-#         'number': fields.integer('No.of Persons'),
-#         
-#     }
-#     
-#     
-# arul_hr_resource_budgets()
+
 
 class arul_hr_designation(osv.osv):
     _name = 'arul.hr.designation'
