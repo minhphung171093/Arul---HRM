@@ -2,6 +2,8 @@
 <openerp>
     <data>
     	
+    	
+    	
     	<record id="view_arul_employee_category_tree_vew" model="ir.ui.view">
 			<field name="name">arul.employee.category.tree</field>
 			<field name="model">arul.employee.category</field>
