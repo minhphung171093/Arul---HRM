@@ -191,6 +191,34 @@
         <menuitem action="action_arul_employee_action_type_form"
             id="menu_action_arul_employee_action_type_form"
             parent="menu_employee" sequence="4"/> 
+            
+            <record id="view_arul_hr_employee_action_history" model="ir.ui.view">
+            <field name="name">view.arul.hr.employee.action.history</field>
+            <field name="model">hr.employee</field>
+            <field name="inherit_id" ref="hr.view_employee_form"/>
+            <field name="arch" type="xml">
+                  <xpath expr="//page[@string='HR Settings']" position="after">
+                    <page string = 'Action History'>
+                    	<field name="action_history_line" nolabel='1'>
+                    	<tree editable='top'>
+                    		<field name ="employee_id"/>
+                    		<field name ="action"/>
+                    		<field name ="cction_type"/>
+                    		<field name ="action_date"/>
+                    		<field name ="created_date"/>
+                    		<field name ="created_uid"/>
+                    		<field name ="reason"/>
+                    		<field name ="period_from"/>
+                    		<field name ="period_to"/>
+                    		<field name ="department_from"/>
+                    		<field name ="department_to"/>
+                    	</tree>
+                    	</field>
+                    </page>
+                    
+                </xpath>
+            </field>
+        </record>  
     </data>
     
 </openerp>
