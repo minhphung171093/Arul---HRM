@@ -33,6 +33,7 @@
         'res_company_view.xml',
         'hr_employee_view.xml',
         'hr_department_view.xml',
+        'hr_payroll_view.xml',
     ],
     'css' : [
     ],
