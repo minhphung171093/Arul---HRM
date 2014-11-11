@@ -92,7 +92,7 @@ class arul_employee_actions(osv.osv):
         'name':fields.char('Name', size=64, required = True),
         'code':fields.char('Code',size=64,required = True),
         'active':fields.boolean('Active'),
-        'action_type_ids':fields.many2many('arul.employee.action_type','actions_action_type_ref','actions_id','action_type_id','Action Type'),
+        'action_type_ids':fields.many2many('arul.employee.action.type','actions_action_type_ref','actions_id','action_type_id','Action Type'),
               }
     _defaults={
             'active':True,
@@ -110,7 +110,7 @@ class arul_employee_actions(osv.osv):
 arul_employee_actions()
 
 class arul_employee_action_type(osv.osv):
-    _name="arul.employee.action_type"
+    _name="arul.employee.action.type"
     _columns={
         'name':fields.char('Name', size=64, required = True),
         'code':fields.char('Code',size=64,required = True),
@@ -125,8 +125,6 @@ class arul_employee_action_type(osv.osv):
     _constraints = [
         (_check_code, 'Identical Data', ['code']),
     ]
-<<<<<<< HEAD
+
 arul_employee_action_type()
-=======
-arul_employee_sub_category()
->>>>>>> 77c3eedce7c10f68e4d04212787ebf34461b3297
+
