@@ -14,7 +14,7 @@ class arul_hr_employee_action_history(osv.osv):
         'cction_type': fields.selection([('resignation','Resignation'),('termination','Termination'),('normal_retirement','Normal Retirement'),('volunteer_retirement','Volunteer Retirement'),('death','Death')],'Action type'),
         'action_date': fields.date('Action Date'),
         'created_date': fields.datetime('Created Date'),
-        'created_uid': fields.many2one('res_users','Created By'),
+        'created_uid': fields.many2one('res.users','Created By'),
         'period_from': fields.date('Period From'),
         'period_to': fields.date('Period to'),
         'reason': fields.char('Reason',size=1024),
