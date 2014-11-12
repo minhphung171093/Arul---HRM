@@ -1,0 +1,251 @@
+<?xml version="1.0" encoding="utf-8"?>
+<openerp>
+    <data>
+    	
+    	<record id="vsis_view_employee_form" model="ir.ui.view">
+            <field name="name">vsis.hr.employee.form</field>
+            <field name="model">hr.employee</field>
+            <field name="inherit_id" ref="hr.view_employee_form"/>
+            <field name="arch" type="xml">
+            	<xpath expr="//group[@name='active_group']" position="replace">
+            		<group string="Active" name="active_group" invisible="1">
+                        <field name="active" invisible="1"/>
+                    </group>
+	        	</xpath>
+	        	<xpath expr="//field[@name='coach_id']" position="replace">
+                        <field name="coach_id" invisible="1"/>
+	        	</xpath> 
+	        	<xpath expr="//field[@name='address_home_id']" position="replace">
+                        <field name="address_home_id" invisible="1"/>
+                        <label for="street" string="Contact Address"/>
+                        <div>	
+	                    	<field name="street" placeholder="Street..."/>
+	                        <field name="street2"/>
+	                        <field name="city" placeholder="City" />
+	                        <div class="address_format">
+	                        	<field name="country_id" style="width: 45%%" placeholder="Country" options="{'create': false, 'create_edit': false}"/>
+	                            <field name="state_id" style="width: 50%%"  domain="[('country_id', '=', country_id)]" options="{'create': false, 'create_edit': false}" placeholder="State"/>
+	                        </div>
+	                        <field name="zip" placeholder="ZIP" style="width: 34%%"/>
+	                    </div>
+                        <field name="is_different_permanent_address"/>
+                        <label for="permanent_street" string="Permanent Address" attrs="{'invisible': [('is_different_permanent_address', '=', False)]}"/>
+                        <div attrs="{'invisible': [('is_different_permanent_address', '=', False)]}">
+                            <field name="permanent_street" placeholder="Street..." attrs="{'invisible': [('is_different_permanent_address', '=', False)]}"/>
+                            <field name="permanent_street2" attrs="{'invisible': [('is_different_permanent_address', '=', False)]}"/>
+                            <field name="permanent_city" placeholder="City" attrs="{'invisible': [('is_different_permanent_address', '=', False)]}"/>
+                            <div class="address_format" attrs="{'invisible': [('is_different_permanent_address', '=', False)]}">
+                                <field name="permanent_country_id" options="{'create': false, 'create_edit': false}" style="width: 45%%" placeholder="Country" class="oe_no_button" attrs="{'invisible': [('is_different_permanent_address', '=', False)]}"/>
+                                <field name="permanent_state_id" options="{'create': false, 'create_edit': false}" class="oe_no_button" placeholder="State" style="width: 50%%"  on_change="onchange_permanent_state_id(permanent_state_id)" attrs="{'invisible': [('is_different_permanent_address', '=', False)]}"/>
+                            </div>
+                            <field name="permanent_zip" placeholder="ZIP" style="width: 20%%" attrs="{'invisible': [('is_different_permanent_address', '=', False)]}"/>
+                        </div>
+	        	</xpath> 
+	        	<xpath expr="//field[@name='user_id']" position="replace">
+                        <field name="user_id" invisible="1"/>
+                        <field name="employee_category_id"/>
+                        <field name="employee_sub_category_id"/>
+                        <field name="employee_grade_id"/>
+	        	</xpath> 
+            	<xpath expr="//div[@class='oe_title']" position="replace">
+                	<div class="oe_title">
+                		<label for="employee_id" class="oe_edit_only"/>
+            			<field name="employee_id" />
+                    	<label for="name" string="Employee" class="oe_edit_only"/>
+                        <h1>   
+                        	<field name="name" class="oe_inline" placeholder="Fist Name ..."/>          
+           					<label string=" "/>
+           					<field name="last_name" class="oe_inline" placeholder="Last Name ..."/>
+                        </h1>  
+                        <label for="category_ids" class="oe_edit_only"/>
+                        <field name="category_ids" widget="many2many_tags" placeholder="e.g. Part Time"/>
+                        <group>
+	                        <field name="employee_active"/>
+	                    </group>
+                    </div>
+                </xpath>
+                        
+            	<xpath expr="//form/sheet/notebook/page[@string='Public Information']/group/group[@string='Position']" position="after">
+                  	<group>
+	                    <field name="plant_id" />
+	                    <field name="date_of_joining" />
+	                    <field name="date_of_resignation" />
+	                </group>
+                </xpath>
+                <xpath expr="//form/sheet/notebook/page[@string='Personal Information']/group/group[@string='Birth']" position="after">
+                  	<group >
+	                    <field name="age_in_years" />
+	                    <field name="caste" />
+	                    <field name="religion_id" />
+	                    <field name="blood_group" />
+	                    <field name="physically_challenged" />
+	                </group>
+                </xpath>
+                <xpath expr="//form/sheet/notebook/page[@string='Personal Information']" position="after">
+                  	<page string="Identities">
+                        <field name="identities_ids" nolabel='1'>
+                        	<tree string="Identities">
+                        		<field name="name"/>
+                        		<field name="identity_given"/>
+	                    		<field name="identify_number" />
+		                		<field name="datas" filename="datas_fname" />
+	                        	<field name="datas_fname" invisible="1" class="oe_inline oe_right"/>
+                            </tree>
+                            <form string="Identities"  version="7.0">
+                            	<sheet>
+		                        	<group>
+			                        	<field name="name"/>
+			                        </group>
+			                        <group>
+				                    	<field name="identity_given"/>
+			                    		<field name="identify_number" />
+				                		<field name="datas" filename="datas_fname" />
+	                        			<field name="datas_fname" invisible="1" class="oe_inline oe_right"/>
+				                    </group>
+	                        	</sheet>		                        		
+		                	</form>
+                        </field>
+                    </page>
+                    <page string="Qualification" autofocus="autofocus">
+                        <field name="qualification_ids" nolabel='1'>
+                        	<tree string="Qualification">
+                        		<field name="name"/>
+                        		<field name="institution"/>
+                        		<field name="board_university" />
+                        		<field name="year_of_passing"/>
+                        		<field name="percentage"/>
+                        		<field name="datas" filename="datas_fname"/>
+                            	<field name="datas_fname" invisible="1" class="oe_inline oe_right"/>
+                            </tree>
+                            <form string="Qualification" version="7.0">
+                            	<sheet>
+		                        	<group>
+			                        	<field name="name"/>
+			                        </group>
+			                        <group>
+				                    	<field name="institution"/>
+				                		<field name="board_university" />
+				                		<field name="year_of_passing"/>
+				                		<field name="percentage"/>
+				                		<field name="datas" filename="datas_fname" />
+	                        			<field name="datas_fname" invisible="1" class="oe_inline oe_right"/>
+				                    </group>
+	                        	</sheet>		                        		
+		                	</form>
+                        </field>
+                    </page>  
+                    <page string="Experience Summary" autofocus="autofocus">
+                        <field name="experience_ids" nolabel='1'>
+                        	<tree string="Experience Summary" editable='top'>
+                        		<field name="company_ornganization"/>
+                        		<field name="last_held_designation"/>
+                        		<field name="joining_date" />
+                        		<field name="relieving_date"/>
+                        		<field name="last_drawn_salary"/>
+                            </tree>
+                        </field>
+                    </page>
+                    <page string="Family Details" autofocus="autofocus">
+                        <field name="family_ids" nolabel='1'>
+                        	<tree string="Family Details" editable='top'>
+                        		<field name="name"/>
+                        		<field name="relation_type"/>
+                        		<field name="date_of_birth" />
+                        		<field name="qualification"/>
+                        		<field name="phone"/>
+                        		<field name="mobile"/>
+                        		<field name="email"/>
+                        		<field name="emergency_contact"/>
+                            </tree>
+                        </field>
+                    </page> 
+                    <page string="Statutory Details" autofocus="autofocus">
+                        <field name="statutory_ids" nolabel='1'>
+                        	<tree string="Statutory Details" editable='top'>
+                        		<field name="name"/>
+                        		<field name="epf_nominee"/>
+                        		<field name="esi_no" />
+                        		<field name="eis_nominee"/>
+                        		<field name="gratuity_no"/>
+                        		<field name="gratuity_nominee"/>
+                        		<field name="pan_no"/>
+                            </tree>
+                        </field>
+                    </page>                                                   
+                </xpath>
+                <xpath expr="//form/sheet/notebook/page[@string='HR Settings']" position="after">
+                  	<page string="Pay Structure">
+	                  	<group >
+		                  	<group >
+			                    <field name="basic" />
+			                    <field name="conveyance" />
+			                    <field name="lunch_allowance" />
+			                    <field name="special_allowance" />
+			                    <field name="gross" />
+			                    <field name="mra" />
+			                    <field name="ctc" />
+			                </group>
+			                <group >
+			                    <field name="hra" />
+			                    <field name="education_allowance" />
+			                    <field name="admin_allowance" />
+			                    <field name="other_allowance" />
+			                    <field name="lta" />
+			                    <field name="bonus" />
+			                </group>
+		                </group>
+	                </page>
+                </xpath>
+            </field>
+        </record>
+        
+        <record id="vsis_view_employee_form_portal" model="ir.ui.view">
+            <field name="name">vsis_portal_hr_employees_form</field>
+            <field name="model">hr.employee</field>
+            <field name="inherit_id" ref="portal_hr_employees.view_employee_form"/>
+            <field name="arch" type="xml">
+                <xpath expr="//field[@name='visibility']" position="replace">
+                    <field name="visibility" invisible="1"/>
+                </xpath>
+            </field>
+        </record>
+        
+        <record id="vsis_hr_hr_employee_view_form2" model="ir.ui.view">
+            <field name="name">vsis.hr.employee.view.form2</field>
+            <field name="model">hr.employee</field>
+            <field name="inherit_id" ref="hr_contract.hr_hr_employee_view_form2"/>
+            <field name="arch" type="xml">
+                <data>
+                    <field name="place_of_birth" position="after">
+                        <field name="date_of_wedding"/>
+                    </field>
+                </data>
+            </field>
+        </record>
+        
+        <record model="ir.ui.view" id="hr_kanban_view_employees_inherit">
+	        <field name="name">HR - Employess Kanban</field>
+	        <field name="model">hr.employee</field>
+	        <field name="inherit_id" ref="hr.hr_kanban_view_employees"/>
+	        <field name="arch" type="xml">
+	        	<xpath expr="//field[@name='name']" position="after">
+	        		<field name="last_name"/>
+	        	</xpath>   
+	        </field>
+	    </record> 
+	    
+	    <record model="ir.ui.view" id="vsis_view_employee_tree">
+	        <field name="name">vsis.hr.employee.tree</field>
+	        <field name="model">hr.employee</field>
+	        <field name="inherit_id" ref="hr.view_employee_tree"/>
+	        <field name="arch" type="xml">
+	        	<xpath expr="//field[@name='name']" position="after">
+	        		<field name="last_name"/>
+	        	</xpath>   
+	        </field>
+	    </record>            
+            
+        
+    </data>
+    
+</openerp>

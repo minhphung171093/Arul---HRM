@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="utf-8"?>
+<openerp>
+    <data noupdate="1">
+		<record id="seq_crm_specification_name" model="ir.sequence.type">
+            <field name="name">Specification</field>
+            <field name="code">crm.specification</field>
+        </record>
+        
+        <record id="seq_crm_specification_name_item" model="ir.sequence">
+            <field name="name">Specification</field>
+            <field name="code">crm.specification</field>
+            <field name="prefix">VVT/CUS/SPEC/</field>
+            <field name="padding">4</field>
+        </record>
+        
+        <record id="seq_crm_sample_request_name" model="ir.sequence.type">
+            <field name="name">Sample Request</field>
+            <field name="code">crm.sample.request</field>
+        </record>
+        
+        <record id="seq_crm_sample_request_name_item" model="ir.sequence">
+            <field name="name">Sample Request</field>
+            <field name="code">crm.sample.request</field>
+            <field name="prefix">SR-</field>
+            <field name="padding">7</field>
+        </record>
+        <record id="seq_crm_sample_sending_name" model="ir.sequence.type">
+            <field name="name">Sample Sending</field>
+            <field name="code">crm.sample.sending</field>
+        </record>
+        
+        <record id="seq_crm_sample_sending_name_item" model="ir.sequence">
+            <field name="name">Sample Sending</field>
+            <field name="code">crm.sample.sending</field>
+            <field name="prefix">VVT/TSTR/</field>
+            <field name="padding">4</field>
+        </record>
+        <record id="seq_crm_sample_invoice_name" model="ir.sequence.type">
+            <field name="name">Sample Invoice</field>
+            <field name="code">crm.sample.invoice</field>
+        </record>
+        
+        <record id="seq_crm_sample_invoice_name_item" model="ir.sequence">
+            <field name="name">Sample Invoice</field>
+            <field name="code">crm.sample.invoice</field>
+            <field name="prefix">VVT/SAMPLE/</field>
+            <field name="padding">4</field>
+        </record>
+	</data>
+</openerp>

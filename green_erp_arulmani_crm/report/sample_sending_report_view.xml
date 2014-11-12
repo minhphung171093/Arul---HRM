@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<openerp>
+    <data>
+		<!-- Create Sale report -->
+    	<record id="sample_sending_report" model="ir.actions.report.xml">
+	        <field name="name">sample_sending_report</field>
+	        <field name="type">ir.actions.report.xml</field>
+	        <field name="model">crm.sample.sending</field>
+	        <field name="report_name">sample_sending_report</field>
+	        <field name="report_type">aeroo</field>
+	        <field name="in_format">oo-odt</field>
+	        <field name="out_format" model="report.mimetypes" search="[('code','=','oo-odt'),('compatible_types','=','oo-odt')]"/>
+	        <field name="parser_loc">green_erp_arulmani_crm/report/sample_sending_report.py</field>
+	        <field name="report_rml">green_erp_arulmani_crm/report/sample_sending_report.odt</field>
+	        <field name="parser_state">loc</field>
+	        <field name="tml_source">file</field>
+	        <field name="attachment_use" eval="0"/>
+    	</record>		    
+		
+		<report 
+			auto="True" 
+			menu="True"
+			id="sample_sending_report" 
+			model="crm.sample.sending" 
+			name="sample_sending_report"
+	        string="Print Trade Sample Test Report"
+	        rml="green_erp_arulmani_crm/report/sample_sending_report.odt"/>	
+    </data>
+</openerp>

@@ -1,114 +1,38 @@
 <?xml version="1.0" encoding="utf-8"?>
 <openerp>
     <data>
-    	
-    	
-    	
-    	<record id="view_arul_employee_category_tree_vew" model="ir.ui.view">
-			<field name="name">arul.employee.category.tree</field>
-			<field name="model">arul.employee.category</field>
-			<field name="arch" type="xml">
-				<tree string="Employee Category">
-				
-					<field name="code"/>
-					<field name="name"/>
-					<field name="active"/>
-					
-				</tree>
-			</field>
-		</record>
-		
-		<record id="view_arul_employee_category_form_vew" model="ir.ui.view">
-            <field name="name">arul.employee.category.form</field>
-            <field name="model">arul.employee.category</field>
+
+		<record id="arul_hr_employees_form" model="ir.ui.view">
+            <field name="name">arul_hr_employees_form</field>
+            <field name="model">hr.employee</field>
+            <field name="inherit_id" ref="hr.view_employee_form"/>
             <field name="arch" type="xml">
-                <form string="Employee Category" version="7.0">    
-                	<sheet>
-                	
-	                    <group>
-	                    	<field name="code"/>
-	                    	<field name="name"/>
-	                    	<field name="active"/>
-	               	  	</group>
-	               	  	<group string = "Sub Category">
-	                    <group >
-	                    	<field name="sub_category_ids" nolabel='1'/>
-	                    </group>
-	                    </group>
-                	</sheet>
-                </form>
+                <xpath expr="//field[@name='department_id']" position="after">
+                    <field name="section_id"/>
+                </xpath>
             </field>
-        </record>     
-		
-		<record id="action_arul_employee_category_form" model="ir.actions.act_window">
-         	
-            <field name="name">Employee Category</field>
-            <field name="type">ir.actions.act_window</field>
-            <field name="res_model">arul.employee.category</field>
-            <field name="view_type">form</field>
-            <field name="view_mode">tree,form</field>
-            <field name="view_id" ref="view_arul_employee_category_tree_vew"/>
         </record>
-        
-         <menuitem id="arul_hrm" name="Arul HRM" sequence="0"/>
-        <menuitem id="menu_employee" name="Employee Category" parent="arul_hrm" sequence="0"/>
-      
-        
-        <menuitem action="action_arul_employee_category_form"
-            id="menu_action_arul_employee_category_form"
-            parent="menu_employee" sequence="1"/>
-            
-            <record id="view_arul_employee_sub_category_tree_vew" model="ir.ui.view">
-			<field name="name">arul.employee.sub.category.tree</field>
-			<field name="model">arul.employee.sub.category</field>
-			<field name="arch" type="xml">
-				<tree string="Employee Sub Category">
-				
-					<field name="code"/>
-					<field name="name"/>
-					
-				</tree>
-			</field>
-		</record>
 		
-		<record id="view_arul_employee_sub_category_form_vew" model="ir.ui.view">
-            <field name="name">arul.employee.sub.category.form</field>
-            <field name="model">arul.employee.sub.category</field>
+		<record id="arul_vsis_view_employee_form_portal" model="ir.ui.view">
+            <field name="name">arul_vsis_view_employee_form_portal</field>
+            <field name="model">hr.employee</field>
+            <field name="inherit_id" ref="green_erp_arulmani_crm.vsis_view_employee_form_portal"/>
             <field name="arch" type="xml">
-                <form string="Employee Sub Category" version="7.0">    
-                	<sheet>
-                	
-	                    <group>
-	                    	<field name="code"/>
-	                    	<field name="name"/>
-	               	  	</group>
-                	</sheet>
-                </form>
+                <xpath expr="//field[@name='employee_grade_id']" position="after">
+                    <field name="payroll_area_id"/>
+                    <field name="payroll_sub_area_id"/>
+                </xpath>
             </field>
-        </record>    
-        <record id="action_arul_employee_sub_category_form" model="ir.actions.act_window">
-         	
-            <field name="name">Employee Sub Category</field>
-            <field name="type">ir.actions.act_window</field>
-            <field name="res_model">arul.employee.sub.category</field>
-            <field name="view_type">form</field>
-            <field name="view_mode">tree,form</field>
-            <field name="view_id" ref="view_arul_employee_sub_category_tree_vew"/>
-        </record> 
-        <menuitem action="action_arul_employee_sub_category_form"
-            id="menu_action_arul_employee_sub_category_form"
-            parent="menu_employee" sequence="2"/>
-           
-            <record id="view_arul_employee_actions_tree_vew" model="ir.ui.view">
+        </record>
+		
+        <record id="view_arul_employee_actions_tree_vew" model="ir.ui.view">
 			<field name="name">arul.employee.actions.tree</field>
 			<field name="model">arul.employee.actions</field>
 			<field name="arch" type="xml">
 				<tree string="Employee Actions">
-				
 					<field name="code"/>
 					<field name="name"/>
 					<field name="active"/>
-					
 				</tree>
 			</field>
 		</record>
@@ -119,16 +43,15 @@
             <field name="arch" type="xml">
                 <form string="Employee Actions" version="7.0">    
                 	<sheet>
-                	
 	                    <group>
 	                    	<field name="code"/>
 	                    	<field name="name"/>
 	                    	<field name="active"/>
 	               	  	</group>
 	               	  	<group string = "Action Type">
-	                    <group >
-	                    	<field name="action_type_ids" nolabel='1'/>
-	                    </group>
+		                    <group >
+		                    	<field name="action_type_ids" nolabel='1'/>
+		                    </group>
 	                    </group>
                 	</sheet>
                 </form>
@@ -136,7 +59,6 @@
         </record>     
 		
 		<record id="action_arul_employee_actions_form" model="ir.actions.act_window">
-         	
             <field name="name">Action</field>
             <field name="type">ir.actions.act_window</field>
             <field name="res_model">arul.employee.actions</field>
@@ -145,21 +67,17 @@
             <field name="view_id" ref="view_arul_employee_actions_tree_vew"/>
         </record>
         
-      
-        
         <menuitem action="action_arul_employee_actions_form"
             id="menu_action_arul_employee_actions_form"
-            parent="menu_employee" sequence="3"/>
+            parent="hr.menu_hr_configuration" sequence="3"/>
             
-            <record id="view_arul_employee_action_type_tree_vew" model="ir.ui.view">
+        <record id="view_arul_employee_action_type_tree_vew" model="ir.ui.view">
 			<field name="name">arul.employee.action.type.tree</field>
 			<field name="model">arul.employee.action.type</field>
 			<field name="arch" type="xml">
 				<tree string="Action Type">
-				
 					<field name="code"/>
 					<field name="name"/>
-					
 				</tree>
 			</field>
 		</record>
@@ -170,7 +88,6 @@
             <field name="arch" type="xml">
                 <form string="Action Type" version="7.0">    
                 	<sheet>
-                	
 	                    <group>
 	                    	<field name="code"/>
 	                    	<field name="name"/>
@@ -179,8 +96,8 @@
                 </form>
             </field>
         </record>    
+        
         <record id="action_arul_employee_action_type_form" model="ir.actions.act_window">
-         	
             <field name="name">Action Type</field>
             <field name="type">ir.actions.act_window</field>
             <field name="res_model">arul.employee.action.type</field>
@@ -188,35 +105,37 @@
             <field name="view_mode">tree,form</field>
             <field name="view_id" ref="view_arul_employee_action_type_tree_vew"/>
         </record> 
+        
         <menuitem action="action_arul_employee_action_type_form"
             id="menu_action_arul_employee_action_type_form"
-            parent="menu_employee" sequence="4"/> 
+            parent="hr.menu_hr_configuration" sequence="4"/> 
             
-            <record id="view_arul_hr_employee_action_history" model="ir.ui.view">
+        <record id="view_arul_hr_employee_action_history" model="ir.ui.view">
             <field name="name">view.arul.hr.employee.action.history</field>
             <field name="model">hr.employee</field>
             <field name="inherit_id" ref="hr.view_employee_form"/>
             <field name="arch" type="xml">
-                  <xpath expr="//page[@string='HR Settings']" position="after">
+          		<xpath expr="//page[@string='HR Settings']" position="after">
                     <page string = 'Action History'>
                     	<field name="action_history_line" nolabel='1'>
-                    	<tree editable='top'>
-                    		<field name ="employee_id"/>
-                    		<field name ="action"/>
-                    		<field name ="action_type"/>
-                    		<field name ="action_date"/>
-                    		<field name ="created_date"/>
-                    		<field name ="created_uid"/>
-                    		<field name ="reason"/>
-                    		<field name ="period_from"/>
-                    		<field name ="period_to"/>
-                    		<field name ="department_from"/>
-                    		<field name ="department_to"/>
-                    	</tree>
+	                    	<tree editable='top'>
+	                    		<field name ="employee_id"/>
+	                    		<field name ="action_id"/>
+	                    		<field name ="action_type_id"/>
+	                    		<field name ="action_date"/>
+	                    		<field name ="created_date"/>
+	                    		<field name ="created_uid"/>
+	                    		<field name ="reason"/>
+	                    		<field name ="period_from"/>
+	                    		<field name ="period_to"/>
+	                    		<field name ="department_from_id"/>
+	                    		<field name ="department_to_id"/>
+	                    		<field name ="designation_from_id"/>
+	                    		<field name ="designation_to_id"/>
+	                    	</tree>
                     	</field>
                     </page>
-                    
-                </xpath>
+            	</xpath>
             </field>
         </record>  
         
@@ -225,17 +144,17 @@
 			<field name="model">arul.hr.employee.action.history</field>
 			<field name="arch" type="xml">
 				<tree string="Employee Promotion Action">
-					<field name="action"/>
+					<field name="action_id"/>
 					<field name ="employee_id"/>
-					<field name ="employee_category"/>
-					<field name ="department_from"/>
-					<field name ="designation_from"/>
+					<field name ="employee_category_id"/>
+					<field name ="department_from_id"/>
+					<field name ="designation_from_id"/>
 					<field name ="action_date" string="Date Of Promotion"/>
 					<field name ="period_from"/>
-					<field name="action_type"/>
-					<field name ="sub_category"/>
-					<field name ="department_to"/>
-					<field name ="designation_to"/>
+					<field name="action_type_id"/>
+					<field name ="sub_category_id"/>
+					<field name ="department_to_id"/>
+					<field name ="designation_to_id"/>
 					<field name ="period_to"/>
 					<field name ="note"/>
 					
@@ -249,28 +168,25 @@
             <field name="arch" type="xml">
                 <form string="Employee Promotion Action" version="7.0">    
                 	<sheet>
-                	
-	                 <group>
-						<group>
-							<field name="action" domain="[('action','=','promotion')]"/>
+		                 <group col='4' colspan='2'>
+							<field name="action_id" domain="[('name','=','Promotion')]" widget="selection"/>
+							<field name="action_type_id" domain="[('name','in',['Good Performance','Vacancy'])]" widget="selection"/>
 							<field name ="employee_id"/>
-							<field name ="employee_category"/>
-							<field name ="department_from"/>
-							<field name ="designation_from"/>
+							<newline/>
+							<field name ="employee_category_id"/>
+							<field name ="sub_category_id"/>
+							<field name ="department_from_id"/>
+							<field name ="department_to_id"/>
+							<field name ="designation_from_id"/>
+							<field name ="designation_to_id"/>
 							<field name ="action_date" string="Date Of Promotion"/>
+							<newline/>
 							<field name ="period_from"/>
-						</group>
-						<group>
-							<field name="action_type" domain="[('action_type','=','good_performance'),('action_type','=','vacancy')]"/>
-							<field name ="sub_category"/>
-							<field name ="department_to"/>
-							<field name ="designation_to"/>
 							<field name ="period_to"/>
 						</group>
-					</group>
-					<group>
-						<field name ="note"/>
-					</group>
+						<group>
+							<field name ="note"/>
+						</group>
                 	</sheet>
                 </form>
             </field>
@@ -288,8 +204,7 @@
          <menuitem action="action_arul_hr_employee_action_history_form"
             id="menu_action_arul_hr_employee_action_history_form"
             parent="menu_employee" sequence="5"/> 
-            
-               
+
     </data>
     
 </openerp>

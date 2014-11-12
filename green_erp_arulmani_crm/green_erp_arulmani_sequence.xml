@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="utf-8"?>
+<openerp>
+    <data noupdate="1">
+
+        <record id="seq_crm_lead_name" model="ir.sequence.type">
+            <field name="name">Lead</field>
+            <field name="code">crm.lead</field>
+        </record>
+        
+        <record id="seq_crm_lead_name_item" model="ir.sequence">
+            <field name="name">Lead</field>
+            <field name="code">crm.lead</field>
+            <field name="prefix">LEAD/%(month)s%(y)s/</field>
+            <field name="padding">3</field>
+        </record>
+        
+        <record id="seq_crm_lead_code" model="ir.sequence.type">
+            <field name="name">Lead Code</field>
+            <field name="code">lead.code</field>
+        </record>
+        
+        <record id="seq_crm_lead_code_item" model="ir.sequence">
+            <field name="name">Lead Code</field>
+            <field name="code">lead.code</field>
+            <field name="prefix">L</field>
+            <field name="padding">5</field>
+        </record>
+        
+        <record id="seq_hr_employee_id_code" model="ir.sequence.type">
+            <field name="name">Employee ID</field>
+            <field name="code">hr.employee.id</field>
+        </record>
+        
+        <record id="seq_hr_employee_id_item" model="ir.sequence">
+            <field name="name">Employee ID</field>
+            <field name="code">hr.employee.id</field>
+            <field name="prefix"></field>
+            <field name="padding">8</field>
+            <field name="number_next_actual">10000000</field>
+            <field name="implementation">no_gap</field>
+        </record>
+
+    </data>
+</openerp>

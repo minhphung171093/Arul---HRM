@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="utf-8"?>
+<openerp>
+    <data>
+    
+        <record id="view_list_employee_report" model="ir.ui.view">
+            <field name="name">list.employee.report</field>
+            <field name="model">list.employee.report</field>
+            <field name="arch" type="xml">
+                <form string="List Employee" version="7.0">
+                	<separator colspan="4" string="Employees"/>
+                    <group colspan="4" col="4" >
+	                    <field name="employee_ids" nolabel='1' colspan='4'>
+	                    	<tree>
+	                    		<field name='name'/>
+	                    		<field name='department_id'/>
+	                    		<field name='work_email'/>
+	                    	</tree>
+	                    </field>
+                    </group>
+                    <footer>
+                        <button name="print_report" string="Print" type="object" class="oe_highlight" context="{'type':'appointments'}"/>
+                        or
+                        <button string="Cancel" class="oe_link" special="cancel"/>
+                    </footer>
+                </form>
+            </field>
+        </record>
+        
+        <record id="action_list_employee_report" model="ir.actions.act_window">
+            <field name="name">List Employee</field>
+            <field name="type">ir.actions.act_window</field>
+            <field name="res_model">list.employee.report</field>
+            <field name="view_type">form</field>
+            <field name="view_mode">form</field>
+            <field name="view_id" ref="view_list_employee_report"/>
+            <field name="target">new</field>
+        </record>
+        <menuitem id="menu_list_employee_report" name="List Employee Report" action="action_list_employee_report" parent="hr.menu_hr_main" sequence="22"/>
+        
+    </data>
+</openerp>
+

@@ -1,0 +1,260 @@
+<?xml version="1.0" encoding="utf-8"?>
+<openerp>
+    <data>
+    
+		 
+        <record id="vsis_view_order_form" model="ir.ui.view">
+            <field name="name">vsis.sale.order.form</field>
+            <field name="model">sale.order</field>
+            <field name="inherit_id" ref="sale.view_order_form"/>
+            <field name="arch" type="xml">
+                <xpath expr="//form[@string='Sales Order']"  position="replace">
+                	<form string="Sales Order" create="false" version="7.0">
+	                    <header>
+	                        <button name="invoice_recreate" states="invoice_except" string="Recreate Invoice" groups="base.group_user"/>
+	                        <button name="invoice_corrected" states="invoice_except" string="Ignore Exception" groups="base.group_user"/>
+	                        <button name="action_quotation_send" string="Send by Email" type="object" states="draft" class="oe_highlight" groups="base.group_user"/>
+	                        <button name="action_quotation_send" string="Send by Email" type="object" states="sent,progress,manual" groups="base.group_user"/>
+	                        <button name="print_quotation" string="Print" type="object" states="draft,cancel" class="oe_highlight" groups="base.group_user"/>
+	                        <button name="print_quotation" string="Print" type="object" states="sent,progress,manual" groups="base.group_user"/>
+	                        <button name="action_button_view_partner" attrs="{'invisible': [('state', '=', 'cancel')]}" string="Confirm Quote" type="object"/>
+	                        <button name="action_button_confirm" states="draft" string="Confirm Sale" type="object" groups="base.group_user"/>
+	                        <button name="action_button_confirm" states="sent" string="Confirm Sale" class="oe_highlight" type="object" groups="base.group_user"/>
+	                        <button name="action_view_invoice" string="View Invoice" type="object" class="oe_highlight"
+	                            attrs="{'invisible': [('invoice_exists', '=', False)]}" groups="base.group_user"/>
+	                        <button name="%(sale.action_view_sale_advance_payment_inv)d" string="Create Invoice"
+	                            type="action" states="manual" class="oe_highlight" groups="base.group_user"/>
+	                        <button name="sale.copy_quotation" states="cancel" string="New Copy of Quotation" type="object"/>
+	                        <button name="sale.cancel" states="draft,sent" string="Cancel Quotation" groups="base.group_user"/>
+	                        <button name="action_cancel" states="manual,progress" string="Cancel Order" type="object" groups="base.group_user"/>
+	                        <button name="sale.invoice_cancel" states="invoice_except" string="Cancel Order" groups="base.group_user"/>
+	                        <field name="state" widget="statusbar" statusbar_visible="draft,sent,progress,done" statusbar_colors='{"invoice_except":"red","waiting_date":"blue"}'/>
+	                	</header>	
+	                	<sheet>
+                    	<h1>
+	                        <label string="Quotation " attrs="{'invisible': [('state','not in',('draft','sent'))]}"/>
+	                        <label string="Sales Order " attrs="{'invisible': [('state','in',('draft','sent'))]}"/>
+	                        <field name="name" class="oe_inline" readonly="1"/>
+                    	</h1>
+                    	<group>
+	                        <group>
+	                        	<field name="partner_id" on_change="onchange_partner_id(partner_id, context)" domain="[('customer','=',True)]" context="{'search_default_customer':1, 'show_address': 1}" options='{"always_reload": True}' invisible="1"/>
+	                            <field name="lead_id" on_change="onchange_lead_id(lead_id, context)" widget="selection"/>
+								<field name="quotation_type" on_change="onchange_quotation_type(quotation_type, context)"/>
+								<field name="currency_id"/>
+								<field name="bank_account_id" widget="selection"/>
+								<field name="incoterm" widget="selection"/>
+	                        </group>
+	                        <group>
+	                            <field name="date_order"/>
+	                            <field name="shop_id" groups="base.group_no_one" on_change="onchange_shop_id(shop_id, context)" widget="selection"/>
+	                            <field name="client_order_ref"/>
+	                            <field domain="[('type','=','sale')]" name="pricelist_id" groups="product.group_sale_pricelist" on_change="onchange_pricelist_id(pricelist_id,order_line)"/>
+	                            <field name="commission_type_id"/>
+	                            <field name="commission_rate"/>
+	                        </group>
+                    	</group>
+                    	<group col="2">
+                    			<field name="picking_details" />
+                    			<field name="description" />
+                    	</group>
+                    	<notebook>
+	                        <page string="Order Lines">
+	                            <field name="order_line">
+	                                <form string="Sales Order Lines" version="7.0">
+											<header groups="base.group_user">
+												<field name="state" widget="statusbar" statusbar_visible="draft,confirmed,done" statusbar_colors='{"exception":"red","cancel":"red"}'/>
+											</header>
+											<group>
+												<group>
+													<field name="product_id"
+														context="{'partner_id':parent.partner_id, 'quantity':product_uom_qty, 'pricelist':parent.pricelist_id, 'shop':parent.shop_id, 'uom':product_uom}"
+														groups="base.group_user"
+														on_change="product_id_change(parent.pricelist_id, product_id, product_uom_qty, False, product_uos_qty, False, name, parent.partner_id, False, True, parent.date_order, False, parent.fiscal_position, False, context)"/>
+													<label for="product_uom_qty"/>
+													<div>
+														<field
+															context="{'partner_id':parent.partner_id, 'quantity':product_uom_qty, 'pricelist':parent.pricelist_id, 'shop':parent.shop_id, 'uom':product_uom}"
+															name="product_uom_qty" class="oe_inline"
+															on_change="product_id_change(parent.pricelist_id, product_id, product_uom_qty, product_uom, product_uos_qty, product_uos, name, parent.partner_id, False, False, parent.date_order, False, parent.fiscal_position, True, context)" />
+														<field name="product_uom" groups="product.group_uom" class="oe_inline oe_no_button"
+						
+															on_change="product_uom_change(parent.pricelist_id,product_id,product_uom_qty,product_uom,product_uos_qty,product_uos,name,parent.partner_id, False, False, parent.date_order, context)"/>
+													</div>
+													<label for="product_uos_qty" groups="product.group_uos"/>
+													<div groups="product.group_uos">
+														<field name="product_uos_qty" class="oe_inline" />
+														<field name="product_uos" options='{"no_open": True}' class="oe_inline"/>
+													</div>
+													<field name="price_unit" />
+													<field name="ex_duty" domain="[('type_tax_use','=','excise_duty')]" />
+													<field name="price_subtotal"/>
+													<label for="discount" groups="sale.group_discount_per_so_line"/>
+													<div name="discount" groups="sale.group_discount_per_so_line">
+														<field name="discount" class="oe_inline" /> %%
+													</div>
+												</group>
+												<group>
+													<field name="tax_id" widget="many2many_tags" domain="[('parent_id','=',False),('type_tax_use','&lt;&gt;','purchase')]" invisible="1"/>
+													<field name="sub_tax" domain="[('type_tax_use','=','sale')]" />
+													<field name="tax" />
+													<field name="tax_amt"/>
+													<field name="type"/>
+													<field name="th_weight"/>
+													<field name="address_allotment_id"/>
+												</group>
+											</group>
+											<label for="name"/>
+											<field name="name"/>
+											<div groups="base.group_no_one">
+												<label for="invoice_lines"/>
+												<field name="invoice_lines"/>
+											</div>
+									</form>
+	                                <tree string="Sales Order Lines" editable="bottom">
+										<field name="sequence" widget="handle"/>
+										<field name="state" invisible="1"/>
+										<field name="th_weight" invisible="1"/>
+										<field name="product_id" widget="selection"
+											context="{'partner_id':parent.partner_id, 'quantity':product_uom_qty, 'pricelist':parent.pricelist_id, 'shop':parent.shop_id, 'uom':product_uom}"
+											groups="base.group_user" 
+											on_change="product_id_change(parent.pricelist_id, product_id, product_uom_qty, False, product_uos_qty, False, name, parent.partner_id, False, True, parent.date_order, False, parent.fiscal_position, False, context)"/>
+										<field name="name"/>
+										<field name="application_id" widget="selection"/>
+										<field name="product_uom_qty"                        
+											context="{'partner_id':parent.partner_id, 'quantity':product_uom_qty, 'pricelist':parent.pricelist_id, 'shop':parent.shop_id, 'uom':product_uom}"
+											on_change="product_id_change(parent.pricelist_id, product_id, product_uom_qty, product_uom, product_uos_qty, product_uos, name, parent.partner_id, False, False, parent.date_order, False, parent.fiscal_position, True, context)"/>
+										<field name="price_unit" />
+										<field name="ex_duty" domain="[('type_tax_use','=','excise_duty')]" widget="selection" />
+										<field name="price_subtotal"/>
+										<field name="product_uom"
+											on_change="product_uom_change(parent.pricelist_id, product_id, product_uom_qty, product_uom, product_uos_qty, product_uos, name, parent.partner_id, False, False, parent.date_order, context)"
+											groups="product.group_uom" options='{"no_open": True}' invisible="1"/>
+										<field name="product_uos_qty" groups="product.group_uos" invisible="1" />
+										<field name="product_uos" string="UoS" groups="product.group_uos" invisible="1"/>
+										<field name="sub_tax" domain="[('type_tax_use','=','sale')]" widget="selection" />
+										<field name="tax" />
+										<field name="tax_id" widget="many2many_tags" domain="[('parent_id','=',False),('type_tax_use','&lt;&gt;','purchase')]" invisible="1"/>
+										<field name="tax_amt"/>
+										<field name="discount" groups="sale.group_discount_per_so_line" invisible="1"/>
+									</tree>
+	                            </field>
+	                            <group class="oe_subtotal_footer oe_right" colspan="2" name="sale_total">
+	                                <field name="amount_untaxed" widget='monetary' options="{'currency_field': 'currency_id'}"/>
+	                                <field name="amount_tax" widget='monetary' options="{'currency_field': 'currency_id'}"/>
+	                                <field name="commission_amount" widget='monetary' options="{'currency_field': 'currency_id'}" />
+	                                <div class="oe_subtotal_footer_separator oe_inline">
+	                                    <label for="amount_total" />
+	                                    <button name="button_dummy"
+	                                        states="draft,sent" string="(update)" type="object" class="oe_edit_only oe_link"/>
+	                                </div>
+	                                <field name="amount_total" nolabel="1" class="oe_subtotal_footer_separator" widget='monetary' options="{'currency_field': 'currency_id'}"/>
+	                            </group>
+	                            <div class="oe_clear"/>
+	                            <field name="note" class="oe_inline" placeholder="Terms and conditions..."/>
+	                        </page>
+	                        <page string="Other Information" groups="base.group_user">
+	                            <group>
+	                                <group name="sales_person" groups="base.group_user">
+	                                    <field name="user_id"/>
+	                                    <field groups="base.group_no_one" name="origin"/>
+	                                </group>
+	                                <group name="sale_pay">
+	                                    <field name="payment_term" widget="selection"/>
+	                                    <field name="fiscal_position" widget="selection"/>
+	                                    <field name="company_id" widget="selection" groups="base.group_multi_company"/>
+	                                </group>
+	                                <group>
+	                                    <field name="invoiced"/>
+	                                    <field name="invoice_exists" invisible="1"/>
+	                                </group>
+	                            </group>
+	                        </page>
+	                    </notebook>
+	                </sheet>
+	                <div class="oe_chatter">
+	                    <field name="message_follower_ids" widget="mail_followers" groups="base.group_user"/>
+	                    <field name="message_ids" widget="mail_thread"/>
+	                </div>
+
+				</form>
+                </xpath>
+                
+            </field>
+        </record> 
+        
+        <record id="vsis_view_quotation_tree" model="ir.ui.view">
+            <field name="name">vsis.sale.order.tree</field>
+            <field name="model">sale.order</field>
+            <field name="inherit_id" ref="sale.view_quotation_tree"/>
+            <field name="priority">4</field>
+            <field name="arch" type="xml">
+            	<xpath expr="//tree[@string='Quotation']"  position="replace">
+	                <tree string="Quotation" create="false" fonts="bold:message_unread==True" colors="grey:state=='cancel';blue:state in ('waiting_date','manual');red:state in ('invoice_except','shipping_except')">
+	                    <field name="message_unread" invisible="1"/>
+	                    <field name="name" string="Quotation Number"/>
+	                    <field name="date_order"/>
+	                    <field name="partner_id"/>
+	                    <field name="user_id"/>
+	                    <field name="amount_total" sum="Total Tax Included"/>
+	                    <field name="state"/>
+	                </tree>
+	            </xpath>
+            </field>
+        </record>
+        
+        <record id="vsis_view_order_tree" model="ir.ui.view">
+            <field name="name">vsis.sale.order.tree</field>
+            <field name="model">sale.order</field>
+            <field name="inherit_id" ref="sale.view_order_tree"/>
+            <field name="priority">2</field>
+            <field name="arch" type="xml">
+            	<xpath expr="//tree[@string='Sales Orders']"  position="replace">
+	                <tree string="Sales Orders" create ="false" fonts="bold:message_unread==True" colors="grey:state=='cancel';blue:state in ('waiting_date','manual');red:state in ('invoice_except','shipping_except')">
+	                    <field name="message_unread" invisible="1"/>
+	                    <field name="name" string="Order Number"/>
+	                    <field name="date_order"/>
+	                    <field name="partner_id"/>
+	                    <field name="user_id"/>
+	                    <field name="amount_total" sum="Total Tax Included"/>
+	                    <field name="state"/>
+	                </tree>
+	            </xpath>
+            </field>
+        </record>
+        
+        <!--<record id="vsis_view_sale_inco_terms_tree" model="ir.ui.view">
+            <field name="name">vsis.sale.inco.terms.tree</field>
+            <field name="model">sale.inco.terms</field>
+            <field name="arch" type="xml">
+                <tree string="Incoterms Master">
+                    <field name="code"/>
+                    <field colspan="4" name="name"/>
+                </tree>
+            </field>
+        </record>
+        <record id="vsis_sale_inco_terms_form" model="ir.ui.view">
+            <field name="name">vsis.sale.inco.terms.form</field>
+            <field name="model">sale.inco.terms</field>
+            <field name="arch" type="xml">
+                <form string="Incoterms Master" version="7.0">
+                    <group>
+                        <field name="name"/>
+                        <field name="code"/>
+                    </group>
+                </form>
+            </field>
+        </record>
+        <record id="vsis_action_sale_inco_terms_tree" model="ir.actions.act_window">
+            <field name="name">Incoterms Master</field>
+            <field name="res_model">sale.inco.terms</field>
+            <field name="type">ir.actions.act_window</field>
+            <field name="view_type">form</field>
+            <field name="view_mode">tree,form</field>
+        </record>
+
+        <menuitem action="vsis_action_sale_inco_terms_tree" id="vsis_menu_action_sale_inco_terms_open" parent="base.menu_sales" sequence="106"/>-->
+        
+        
+    </data>
+</openerp>
