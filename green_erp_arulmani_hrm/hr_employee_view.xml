@@ -97,8 +97,8 @@
                     	<field name="action_history_line" nolabel='1'>
 	                    	<tree editable='top'>
 	                    		<field name ="employee_id"/>
-	                    		<field name ="action"/>
-	                    		<field name ="action_type"/>
+	                    		<field name ="action_id"/>
+	                    		<field name ="action_type_id"/>
 	                    		<field name ="action_date"/>
 	                    		<field name ="created_date"/>
 	                    		<field name ="created_uid"/>
@@ -121,14 +121,14 @@
 			<field name="model">arul.hr.employee.action.history</field>
 			<field name="arch" type="xml">
 				<tree string="Employee Promotion Action">
-					<field name="action"/>
+					<field name="action_id"/>
 					<field name ="employee_id"/>
 					<field name ="employee_category_id"/>
 					<field name ="department_from_id"/>
 					<field name ="designation_from_id"/>
 					<field name ="action_date" string="Date Of Promotion"/>
 					<field name ="period_from"/>
-					<field name="action_type"/>
+					<field name="action_type_id"/>
 					<field name ="sub_category_id"/>
 					<field name ="department_to_id"/>
 					<field name ="designation_to_id"/>
@@ -148,7 +148,7 @@
                 	
 	                 <group>
 						<group>
-							<field name="action" domain="[('action','=','1')]"/>
+							<field name="action_id" domain="[('name','=','Promotion')]" widget="selection"/>
 							<field name ="employee_id"/>
 							<field name ="employee_category_id"/>
 							<field name ="department_from_id"/>
@@ -157,7 +157,7 @@
 							<field name ="period_from"/>
 						</group>
 						<group>
-							<field name="action_type" domain="[('action_type','=','good_performance'),('action_type','=','vacancy')]"/>
+							<field name="action_type_id" domain="[('name','in',['Good Performance','Vacancy'])]" widget="selection"/>
 							<field name ="sub_category_id"/>
 							<field name ="department_to_id"/>
 							<field name ="designation_to_id"/>

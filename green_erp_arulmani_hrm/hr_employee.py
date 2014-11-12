@@ -6,12 +6,40 @@ import time
 from openerp.tools import DEFAULT_SERVER_DATE_FORMAT, DEFAULT_SERVER_DATETIME_FORMAT, DATETIME_FORMATS_MAP, float_compare
 from datetime import datetime
 
+class arul_action(osv.osv):
+    _name = 'arul.action'
+    _columns = {
+        'name': fields.char('Name',size=1024, required=True),
+    }
+    
+    def init(self, cr):
+        for key in ['Leaving','Promotion']:
+            arul_ids = self.search(cr, 1, [('name','=',key)])
+            if not arul_ids:
+                self.create(cr, 1, {'name': key})
+    
+arul_action()
+
+class arul_action_type(osv.osv):
+    _name = 'arul.action.type'
+    _columns = {
+        'name': fields.char('Name',size=1024, required=True),
+    }
+    
+    def init(self, cr):
+        for key in ['Resignation','Termination','Normal Retirement','Volunteer Retirement','Death','Good Performance','Vacancy']:
+            arul_ids = self.search(cr, 1, [('name','=',key)])
+            if not arul_ids:
+                self.create(cr, 1, {'name': key})
+    
+arul_action_type()
+
 class arul_hr_employee_action_history(osv.osv):
     _name = 'arul.hr.employee.action.history'
     _columns = {
         'employee_id': fields.many2one('hr.employee','Employee ID',required = True),
-        'action': fields.selection([('leaving','Leaving'),('promotion','Promotion')],'Action',required = True ),
-        'action_type': fields.selection([('resignation','Resignation'),('termination','Termination'),('normal_retirement','Normal Retirement'),('volunteer_retirement','Volunteer Retirement'),('death','Death'),('good_performance','Good Performance'),('vacancy','Vacancy')],'Action type',required = True),
+        'action_id': fields.many2one('arul.action','Action', required=True),
+        'action_type_id': fields.many2one('arul.action.type','Action type', required=True),
         'action_date': fields.date('Action Date'),
         'created_date': fields.datetime('Created Date'),
         'created_uid': fields.many2one('res.users','Created By'),
