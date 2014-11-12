@@ -22,6 +22,9 @@
                     <field name="payroll_area_id"/>
                     <field name="payroll_sub_area_id"/>
                 </xpath>
+                <xpath expr="//field[@name='date_of_resignation']" position="after">
+                    <field name="time_record"/>
+                </xpath>
             </field>
         </record>
 		
@@ -119,7 +122,7 @@
                     <page string = 'Action History'>
                     	<field name="action_history_line" nolabel='1'>
 	                    	<tree editable='top'>
-	                    		<field name ="employee_id"/>
+	                    		<field name ="employee_id" string="Emp.ID"/>
 	                    		<field name ="action_id"/>
 	                    		<field name ="action_type_id"/>
 	                    		<field name ="action_date"/>
@@ -128,10 +131,10 @@
 	                    		<field name ="reason"/>
 	                    		<field name ="period_from"/>
 	                    		<field name ="period_to"/>
-	                    		<field name ="department_from_id"/>
-	                    		<field name ="department_to_id"/>
-	                    		<field name ="designation_from_id"/>
-	                    		<field name ="designation_to_id"/>
+	                    		<field name ="department_from_id" string="Dept.From"/>
+	                    		<field name ="department_to_id" string="Dept.To"/>
+	                    		<field name ="designation_from_id" string="Dest.From"/>
+	                    		<field name ="designation_to_id" string="Dest.To"/>
 	                    	</tree>
                     	</field>
                     </page>
