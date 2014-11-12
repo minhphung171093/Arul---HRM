@@ -2,32 +2,6 @@
 <openerp>
     <data>
 
-		<record id="arul_hr_employees_form" model="ir.ui.view">
-            <field name="name">arul_hr_employees_form</field>
-            <field name="model">hr.employee</field>
-            <field name="inherit_id" ref="hr.view_employee_form"/>
-            <field name="arch" type="xml">
-                <xpath expr="//field[@name='department_id']" position="after">
-                    <field name="section_id"/>
-                </xpath>
-            </field>
-        </record>
-		
-		<record id="arul_vsis_view_employee_form_portal" model="ir.ui.view">
-            <field name="name">arul_vsis_view_employee_form_portal</field>
-            <field name="model">hr.employee</field>
-            <field name="inherit_id" ref="green_erp_arulmani_crm.vsis_view_employee_form_portal"/>
-            <field name="arch" type="xml">
-                <xpath expr="//field[@name='employee_grade_id']" position="after">
-                    <field name="payroll_area_id"/>
-                    <field name="payroll_sub_area_id"/>
-                </xpath>
-                <xpath expr="//field[@name='date_of_resignation']" position="after">
-                    <field name="time_record"/>
-                </xpath>
-            </field>
-        </record>
-		
 		<record id="view_arul_employee_category_tree_vew" model="ir.ui.view">
 			<field name="name">vsis.employee.category.tree</field>
 			<field name="model">vsis.hr.employee.category</field>
@@ -443,6 +417,32 @@
          <menuitem action="action_arul_hr_employee_compensation_review_action_form"
             id="menu_action_arul_hr_employee_compensation_review_action_form"
             parent="hr.menu_hr_main" sequence="27"/> 
+
+		<record id="arul_hr_employees_form" model="ir.ui.view">
+            <field name="name">arul_hr_employees_form</field>
+            <field name="model">hr.employee</field>
+            <field name="inherit_id" ref="hr.view_employee_form"/>
+            <field name="arch" type="xml">
+                <xpath expr="//field[@name='department_id']" position="after">
+                    <field name="section_id"/>
+                </xpath>
+            </field>
+        </record>
+		
+		<record id="arul_vsis_view_employee_form_portal" model="ir.ui.view">
+            <field name="name">arul_vsis_view_employee_form_portal</field>
+            <field name="model">hr.employee</field>
+            <field name="inherit_id" ref="green_erp_arulmani_crm.vsis_view_employee_form_portal"/>
+            <field name="arch" type="xml">
+                <xpath expr="//field[@name='employee_grade_id']" position="after">
+                    <field name="payroll_area_id"/>
+                    <field name="payroll_sub_area_id"/>
+                </xpath>
+                <xpath expr="//field[@name='date_of_resignation']" position="after">
+                    <field name="time_record"/>
+                </xpath>
+            </field>
+        </record>
 
     </data>
     
