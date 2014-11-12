@@ -13,7 +13,7 @@ class arul_action(osv.osv):
     }
     
     def init(self, cr):
-        for key in ['Leaving','Promotion','Re Hiring']:
+        for key in ['Leaving','Promotion','Re Hiring','Compensation Review']:
             arul_ids = self.search(cr, 1, [('name','=',key)])
             if not arul_ids:
                 self.create(cr, 1, {'name': key})
@@ -27,12 +27,26 @@ class arul_action_type(osv.osv):
     }
     
     def init(self, cr):
-        for key in ['Resignation','Termination','Normal Retirement','Volunteer Retirement','Death','Good Performance','Vacancy','New Hire', 'Expansion','Vacancy Fill Up']:
+        for key in ['Resignation','Termination','Normal Retirement','Volunteer Retirement','Death','Good Performance','Vacancy','New Hire', 'Expansion','Vacancy Fill Up','Change of Pay' ,'Revision of Salary', 'Increment','Promotion']:
             arul_ids = self.search(cr, 1, [('name','=',key)])
             if not arul_ids:
                 self.create(cr, 1, {'name': key})
     
 arul_action_type()
+
+class arul_reason(osv.osv):
+    _name = 'arul.season'
+    _columns = {
+        'name': fields.char('Name',size=1024, required=True),
+    }
+    
+    def init(self, cr):
+        for key in ['Completion of Trainee']:
+            arul_ids = self.search(cr, 1, [('name','=',key)])
+            if not arul_ids:
+                self.create(cr, 1, {'name': key})
+    
+arul_reason()
 
 class arul_hr_employee_action_history(osv.osv):
     _name = 'arul.hr.employee.action.history'
@@ -45,7 +59,7 @@ class arul_hr_employee_action_history(osv.osv):
         'created_uid': fields.many2one('res.users','Created By'),
         'period_from': fields.date('Period From'),
         'period_to': fields.date('Period to'),
-        'reason': fields.char('Reason',size=1024),
+        'reason': fields.many2one('arul.season','Reason'),
         'note': fields.text('Note'),
         'department_from_id': fields.many2one('hr.department','Department From'),
         'department_to_id': fields.many2one('hr.department','Department To'),
