@@ -128,7 +128,7 @@
 	                    		<field name ="action_date"/>
 	                    		<field name ="created_date"/>
 	                    		<field name ="created_uid"/>
-	                    		<field name ="reason"/>
+	                    		<field name ="reason_id"/>
 	                    		<field name ="period_from"/>
 	                    		<field name ="period_to"/>
 	                    		<field name ="department_from_id" string="Dept.From"/>
@@ -300,7 +300,7 @@
 					<field name ="period_from"/>
 					<field name="action_type_id"/>
 					<field name ="sub_category_id"/>
-					<field name ="reason"/>
+					<field name ="reason_id"/>
 					<field name ="period_to"/>
 					<field name ="note"/>
 					
@@ -322,6 +322,7 @@
 							<field name ="employee_category_id"/>
 							<field name ="sub_category_id"/>
 							<field name ="action_date" string="Date Of Review Action"/>
+							<field name ="reason_id" domain="[('name','in', ['Completion of Trainee'])]" widget="selection"/>
 							<newline/>
 							<field name ="period_from"/>
 							<field name ="period_to"/>
