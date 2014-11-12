@@ -17,6 +17,8 @@ class arul_hr_employee_action_history(osv.osv):
         'created_uid': fields.many2one('res.users','Created By'),
         'period_from': fields.date('Period From'),
         'period_to': fields.date('Period to'),
+        'valid_from':fields.date('Valid From'),
+        'valid_to':fields.date('Valid To'),
         'reason': fields.char('Reason',size=1024),
         'note': fields.text('Note'),
         'department_from': fields.many2one('hr.department','Department From'),

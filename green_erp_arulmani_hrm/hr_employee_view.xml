@@ -287,7 +287,9 @@
         </record>  
          <menuitem action="action_arul_hr_employee_action_history_form"
             id="menu_action_arul_hr_employee_action_history_form"
-            parent="menu_employee" sequence="5"/>    
+            parent="menu_employee" sequence="5"/> 
+            
+               
     </data>
     
 </openerp>
