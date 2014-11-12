@@ -9,9 +9,9 @@ from datetime import datetime
 class arul_hr_employee_action_history(osv.osv):
     _name = 'arul.hr.employee.action.history'
     _columns = {
-        'employee_id': fields.many2one('hr.employee','Employee ID'),
-        'action': fields.selection([('leaving','Leaving')],'Action'),
-        'cction_type': fields.selection([('resignation','Resignation'),('termination','Termination'),('normal_retirement','Normal Retirement'),('volunteer_retirement','Volunteer Retirement'),('death','Death')],'Action type'),
+        'employee_id': fields.many2one('hr.employee','Employee ID',required = True),
+        'action': fields.selection([('leaving','Leaving'),('promotion','Promotion')],'Action',required = True ),
+        'action_type': fields.selection([('resignation','Resignation'),('termination','Termination'),('normal_retirement','Normal Retirement'),('volunteer_retirement','Volunteer Retirement'),('death','Death'),('good_performance','Good Performance'),('vacancy','Vacancy')],'Action type',required = True),
         'action_date': fields.date('Action Date'),
         'created_date': fields.datetime('Created Date'),
         'created_uid': fields.many2one('res.users','Created By'),
@@ -19,10 +19,12 @@ class arul_hr_employee_action_history(osv.osv):
         'period_to': fields.date('Period to'),
         'reason': fields.char('Reason',size=1024),
         'note': fields.text('Note'),
-        'department_from': fields.many2one('hr.department','Department From'),
-        'department_to': fields.many2one('hr.department','Department To'),
-#         Designation from
-#         Designation To
+        'department_from_id': fields.many2one('hr.department','Department From'),
+        'department_to_id': fields.many2one('hr.department','Department To'),
+        'designation_from_id':fields.many2one('arul.hr.designation','Designation From'),
+        'designation_to_id':fields.many2one('arul.hr.designation','Designation To'),
+        'employee_category_id':fields.many2one('vsis.hr.employee.category','Employee Category'),
+        'sub_category_id':fields.many2one('hr.employee.sub.category','Sub Category'),
 #         Document upload
         'current_month_salary': fields.boolean('Current Month Salary (Y/N)'),
         'pl_encashment': fields.boolean('PL Encashment (Y/N)'),
@@ -38,7 +40,7 @@ arul_hr_employee_action_history()
 class hr_employee(osv.osv):
     _inherit = 'hr.employee'
     _columns = {
-        'action_history_line': fields.one2many('arul.hr.employee.action.history','employee_id','Action History Line'),
+        'action_history_line': fields.one2many('arul.hr.employee.action.history','employee_id','Action History Line',readonly=True),
     }
     
 hr_employee()

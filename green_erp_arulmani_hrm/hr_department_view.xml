@@ -20,15 +20,15 @@
                     
                     <page string = 'Sections'>
                     
-                    <field name = "section_ids" nolabel='1'/>
+                    <field name = "section_ids" />
                     
                     </page>
                     
                     <page string = 'Designation and Resource Budgets'>
                     
                     <group>
-                    <field name = "designation_id" nolabel='1'/>
-                    <field name = "number" nolabel='1'/>
+                    <field name = "designation_id"/>
+                    <field name = "number" />
                     </group>
                     
                     </page>

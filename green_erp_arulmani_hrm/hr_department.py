@@ -29,6 +29,8 @@ class hr_department(osv.osv):
         (_check_department_id, 'Identical Data', ['code', 'name']),
     ]
     
+
+    
 hr_department()
 
 class arul_hr_section(osv.osv):
@@ -50,17 +52,7 @@ class arul_hr_section(osv.osv):
     
 arul_hr_section()
 
-# class arul_hr_resource_budgets(osv.osv):
-#     _name = 'arul.hr.resource.budgets'
-#     _columns = {
-#                 
-#         'designation_id': fields.many2one('arul.hr.designation', 'Designation'),
-#         'number': fields.integer('No.of Persons'),
-#         
-#     }
-#     
-#     
-# arul_hr_resource_budgets()
+
 
 class arul_hr_designation(osv.osv):
     _name = 'arul.hr.designation'
