@@ -13,7 +13,7 @@ class arul_action(osv.osv):
     }
     
     def init(self, cr):
-        for key in ['Leaving','Promotion']:
+        for key in ['Leaving','Promotion','Re Hiring']:
             arul_ids = self.search(cr, 1, [('name','=',key)])
             if not arul_ids:
                 self.create(cr, 1, {'name': key})
@@ -27,7 +27,7 @@ class arul_action_type(osv.osv):
     }
     
     def init(self, cr):
-        for key in ['Resignation','Termination','Normal Retirement','Volunteer Retirement','Death','Good Performance','Vacancy']:
+        for key in ['Resignation','Termination','Normal Retirement','Volunteer Retirement','Death','Good Performance','Vacancy','New Hire', 'Expansion','Vacancy Fill Up']:
             arul_ids = self.search(cr, 1, [('name','=',key)])
             if not arul_ids:
                 self.create(cr, 1, {'name': key})
@@ -45,8 +45,6 @@ class arul_hr_employee_action_history(osv.osv):
         'created_uid': fields.many2one('res.users','Created By'),
         'period_from': fields.date('Period From'),
         'period_to': fields.date('Period to'),
-        'valid_from':fields.date('Valid From'),
-        'valid_to':fields.date('Valid To'),
         'reason': fields.char('Reason',size=1024),
         'note': fields.text('Note'),
         'department_from_id': fields.many2one('hr.department','Department From'),
