@@ -69,6 +69,9 @@ class hr_employee(osv.osv):
     _inherit = 'hr.employee'
     _columns = {
         'action_history_line': fields.one2many('arul.hr.employee.action.history','employee_id','Action History Line',readonly=True),
+        'section_id': fields.many2one('arul.hr.section','Section'),
+        'payroll_area_id': fields.many2one('arul.hr.payroll.area','Payroll Area'),
+        'payroll_sub_area_id': fields.many2one('arul.hr.payroll.sub.area','Payroll Sub Area'),
     }
     
 hr_employee()

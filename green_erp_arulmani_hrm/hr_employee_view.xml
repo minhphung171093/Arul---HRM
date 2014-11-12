@@ -2,6 +2,29 @@
 <openerp>
     <data>
 
+		<record id="arul_hr_employees_form" model="ir.ui.view">
+            <field name="name">arul_hr_employees_form</field>
+            <field name="model">hr.employee</field>
+            <field name="inherit_id" ref="hr.view_employee_form"/>
+            <field name="arch" type="xml">
+                <xpath expr="//field[@name='department_id']" position="after">
+                    <field name="section_id"/>
+                </xpath>
+            </field>
+        </record>
+		
+		<record id="arul_vsis_view_employee_form_portal" model="ir.ui.view">
+            <field name="name">arul_vsis_view_employee_form_portal</field>
+            <field name="model">hr.employee</field>
+            <field name="inherit_id" ref="green_erp_arulmani_crm.vsis_view_employee_form_portal"/>
+            <field name="arch" type="xml">
+                <xpath expr="//field[@name='employee_grade_id']" position="after">
+                    <field name="payroll_area_id"/>
+                    <field name="payroll_sub_area_id"/>
+                </xpath>
+            </field>
+        </record>
+		
         <record id="view_arul_employee_actions_tree_vew" model="ir.ui.view">
 			<field name="name">arul.employee.actions.tree</field>
 			<field name="model">arul.employee.actions</field>
@@ -46,7 +69,7 @@
         
         <menuitem action="action_arul_employee_actions_form"
             id="menu_action_arul_employee_actions_form"
-            parent="payroll_area" sequence="3"/>
+            parent="hr.menu_hr_configuration" sequence="3"/>
             
         <record id="view_arul_employee_action_type_tree_vew" model="ir.ui.view">
 			<field name="name">arul.employee.action.type.tree</field>
@@ -85,7 +108,7 @@
         
         <menuitem action="action_arul_employee_action_type_form"
             id="menu_action_arul_employee_action_type_form"
-            parent="payroll_area" sequence="4"/> 
+            parent="hr.menu_hr_configuration" sequence="4"/> 
             
         <record id="view_arul_hr_employee_action_history" model="ir.ui.view">
             <field name="name">view.arul.hr.employee.action.history</field>
@@ -145,28 +168,25 @@
             <field name="arch" type="xml">
                 <form string="Employee Promotion Action" version="7.0">    
                 	<sheet>
-                	
-	                 <group>
-						<group>
+		                 <group col='4' colspan='2'>
 							<field name="action_id" domain="[('name','=','Promotion')]" widget="selection"/>
-							<field name ="employee_id"/>
-							<field name ="employee_category_id"/>
-							<field name ="department_from_id"/>
-							<field name ="designation_from_id"/>
-							<field name ="action_date" string="Date Of Promotion"/>
-							<field name ="period_from"/>
-						</group>
-						<group>
 							<field name="action_type_id" domain="[('name','in',['Good Performance','Vacancy'])]" widget="selection"/>
+							<field name ="employee_id"/>
+							<newline/>
+							<field name ="employee_category_id"/>
 							<field name ="sub_category_id"/>
+							<field name ="department_from_id"/>
 							<field name ="department_to_id"/>
+							<field name ="designation_from_id"/>
 							<field name ="designation_to_id"/>
+							<field name ="action_date" string="Date Of Promotion"/>
+							<newline/>
+							<field name ="period_from"/>
 							<field name ="period_to"/>
 						</group>
-					</group>
-					<group>
-						<field name ="note"/>
-					</group>
+						<group>
+							<field name ="note"/>
+						</group>
                 	</sheet>
                 </form>
             </field>
@@ -183,7 +203,7 @@
         </record>  
          <menuitem action="action_arul_hr_employee_action_history_form"
             id="menu_action_arul_hr_employee_action_history_form"
-            parent="payroll_area" sequence="5"/>    
+            parent="hr.menu_hr_main" sequence="25"/>    
     </data>
     
 </openerp>
