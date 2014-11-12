@@ -6,6 +6,13 @@ import time
 from openerp.tools import DEFAULT_SERVER_DATE_FORMAT, DEFAULT_SERVER_DATETIME_FORMAT, DATETIME_FORMATS_MAP, float_compare
 from datetime import datetime
 
+class hr_employee_category(osv.osv):
+    _inherit = "vsis.hr.employee.category"
+    _columns = {
+        'sub_category_ids' : fields.many2many('hr.employee.sub.category','category_sub_category_ref','category_id','sub_category_id','Sub Category'),
+    }
+hr_employee_category()
+
 class arul_action(osv.osv):
     _name = 'arul.action'
     _columns = {

@@ -2,31 +2,90 @@
 <openerp>
     <data>
 
-		<record id="arul_hr_employees_form" model="ir.ui.view">
-            <field name="name">arul_hr_employees_form</field>
-            <field name="model">hr.employee</field>
-            <field name="inherit_id" ref="hr.view_employee_form"/>
-            <field name="arch" type="xml">
-                <xpath expr="//field[@name='department_id']" position="after">
-                    <field name="section_id"/>
-                </xpath>
-            </field>
-        </record>
+		<record id="view_arul_employee_category_tree_vew" model="ir.ui.view">
+			<field name="name">vsis.employee.category.tree</field>
+			<field name="model">vsis.hr.employee.category</field>
+			<field name="arch" type="xml">
+				<tree string="Employee Category">
+					<field name="code"/>
+					<field name="name"/>
+					<field name="active"/>
+				</tree>
+			</field>
+		</record>
 		
-		<record id="arul_vsis_view_employee_form_portal" model="ir.ui.view">
-            <field name="name">arul_vsis_view_employee_form_portal</field>
-            <field name="model">hr.employee</field>
-            <field name="inherit_id" ref="green_erp_arulmani_crm.vsis_view_employee_form_portal"/>
+		<record id="view_arul_employee_category_form_vew" model="ir.ui.view">
+            <field name="name">arul.employee.category.form</field>
+            <field name="model">vsis.hr.employee.category</field>
             <field name="arch" type="xml">
-                <xpath expr="//field[@name='employee_grade_id']" position="after">
-                    <field name="payroll_area_id"/>
-                    <field name="payroll_sub_area_id"/>
-                </xpath>
-                <xpath expr="//field[@name='date_of_resignation']" position="after">
-                    <field name="time_record"/>
-                </xpath>
+                <form string="Employee Category" version="7.0">    
+                	<sheet>
+	                    <group>
+	                    	<field name="code"/>
+	                    	<field name="name"/>
+	                    	<field name="active"/>
+	               	  	</group>
+	               	  	<group string = "Sub Category">
+		                    <group >
+		                    	<field name="sub_category_ids" nolabel='1'/>
+		                    </group>
+	                    </group>
+                	</sheet>
+                </form>
             </field>
+        </record>     
+		
+		<record id="action_arul_employee_category_form" model="ir.actions.act_window">
+            <field name="name">Employee Category</field>
+            <field name="type">ir.actions.act_window</field>
+            <field name="res_model">vsis.hr.employee.category</field>
+            <field name="view_type">form</field>
+            <field name="view_mode">tree,form</field>
+            <field name="view_id" ref="view_arul_employee_category_tree_vew"/>
         </record>
+        
+        <menuitem action="action_arul_employee_category_form"
+            id="menu_action_arul_employee_category_form"
+            parent="hr.menu_hr_main" sequence="24"/>
+		
+		<record id="view_arul_employee_sub_category_tree_vew" model="ir.ui.view">
+			<field name="name">vsis.employee.sub.category.tree</field>
+			<field name="model">hr.employee.sub.category</field>
+			<field name="arch" type="xml">
+				<tree string="Employee Sub Category">
+					<field name="code"/>
+					<field name="name"/>
+				</tree>
+			</field>
+		</record>
+		
+		<record id="view_arul_employee_sub_category_form_vew" model="ir.ui.view">
+            <field name="name">arul.employee.category.form</field>
+            <field name="model">hr.employee.sub.category</field>
+            <field name="arch" type="xml">
+                <form string="Employee Sub Category" version="7.0">    
+                	<sheet>
+	                    <group>
+	                    	<field name="code"/>
+	                    	<field name="name"/>
+	               	  	</group>
+                	</sheet>
+                </form>
+            </field>
+        </record>     
+		
+		<record id="action_arul_employee_sub_category_form" model="ir.actions.act_window">
+            <field name="name">Employee Sub Category</field>
+            <field name="type">ir.actions.act_window</field>
+            <field name="res_model">hr.employee.sub.category</field>
+            <field name="view_type">form</field>
+            <field name="view_mode">tree,form</field>
+            <field name="view_id" ref="view_arul_employee_sub_category_tree_vew"/>
+        </record>
+        
+        <menuitem action="action_arul_employee_sub_category_form"
+            id="menu_action_arul_employee_sub_category_form"
+            parent="hr.menu_hr_configuration" sequence="4"/>
 		
         <record id="view_arul_employee_actions_tree_vew" model="ir.ui.view">
 			<field name="name">arul.employee.actions.tree</field>
@@ -429,6 +488,32 @@
          <menuitem action="action_arul_hr_employee_contracts_action_form"
             id="menu_action_arul_hr_employee_contracts_action_form"
             parent="hr.menu_hr_main" sequence="28"/>
+
+		<record id="arul_hr_employees_form" model="ir.ui.view">
+            <field name="name">arul_hr_employees_form</field>
+            <field name="model">hr.employee</field>
+            <field name="inherit_id" ref="hr.view_employee_form"/>
+            <field name="arch" type="xml">
+                <xpath expr="//field[@name='department_id']" position="after">
+                    <field name="section_id"/>
+                </xpath>
+            </field>
+        </record>
+		
+		<record id="arul_vsis_view_employee_form_portal" model="ir.ui.view">
+            <field name="name">arul_vsis_view_employee_form_portal</field>
+            <field name="model">hr.employee</field>
+            <field name="inherit_id" ref="green_erp_arulmani_crm.vsis_view_employee_form_portal"/>
+            <field name="arch" type="xml">
+                <xpath expr="//field[@name='employee_grade_id']" position="after">
+                    <field name="payroll_area_id"/>
+                    <field name="payroll_sub_area_id"/>
+                </xpath>
+                <xpath expr="//field[@name='date_of_resignation']" position="after">
+                    <field name="time_record"/>
+                </xpath>
+            </field>
+        </record>
 
     </data>
     
