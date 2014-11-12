@@ -72,8 +72,8 @@ class hr_employee(osv.osv):
         'section_id': fields.many2one('arul.hr.section','Section'),
         'payroll_area_id': fields.many2one('arul.hr.payroll.area','Payroll Area'),
         'payroll_sub_area_id': fields.many2one('arul.hr.payroll.sub.area','Payroll Sub Area'),
+        'time_record': fields.char('Time Record ID', size=1024),
     }
-    
 hr_employee()
 
 class arul_employee_actions(osv.osv):
