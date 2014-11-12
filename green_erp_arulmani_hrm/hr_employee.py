@@ -84,6 +84,14 @@ class arul_hr_employee_action_history(osv.osv):
         'pf_settlement': fields.boolean('PF Settlement (Y/N)'),
     }
     
+    def onchange_rehiring_employee_id(self, cr, uid, ids,employee_id=False, context=None):
+        vals = {}
+        if employee_id:
+            emp = self.pool.get('hr.employee').browse(cr, uid, employee_id)
+            vals = {'employee_category_id':emp.employee_category_id.id,
+                    'sub_category_id':emp.employee_sub_category_id.id}
+        return {'value': vals}
+    
 arul_hr_employee_action_history()
 
 class hr_employee(osv.osv):
@@ -95,6 +103,24 @@ class hr_employee(osv.osv):
         'payroll_sub_area_id': fields.many2one('arul.hr.payroll.sub.area','Payroll Sub Area'),
         'time_record': fields.char('Time Record ID', size=1024),
     }
+    def search(self, cr, uid, args, offset=0, limit=None, order=None, context=None, count=False):
+        if context is None:
+            context = {}
+        if context.get('search_contract_employee'):
+            
+            sql = '''
+                
+                select employee_id from hr_contract group by employee_id
+                    
+            '''
+            cr.execute(sql)
+            employee_ids = [row[0] for row in cr.fetchall()]
+            args += [('id','in',employee_ids)]
+        return super(hr_employee, self).search(cr, uid, args, offset, limit, order, context, count)
+    
+    def name_search(self, cr, user, name, args=None, operator='ilike', context=None, limit=100):
+        ids = self.search(cr, user, args, context=context, limit=limit)
+        return self.name_get(cr, user, ids, context=context)
 hr_employee()
 
 class arul_employee_actions(osv.osv):
