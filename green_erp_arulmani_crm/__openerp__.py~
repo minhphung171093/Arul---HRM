@@ -20,25 +20,23 @@
 ##############################################################################
 
 {
-    'name': 'VVTi_TPT_HRM',
+    'name': 'GreenERP ArulManiCRM',
     'version': '1.0',
     'category': 'GreenERP',
     'sequence': 14,
-    'author': 'Tenth Planet',
-    'website' : 'http://www. tenthplanet.in',
-    'depends': ['green_erp_arulmani_crm'],
+    'author': 'nguyentoanit@gmail.com',
+    'website' : 'http://www.incomtech.com.vn',
+    'depends': ['base','crm','sale','hr','hr_contract'],
     'data': [
-        'security/green_erp_arulmani_hrm_security.xml',
         'security/ir.model.access.csv',
-        'hr_employee_view.xml',
-        'hr_department_view.xml',
-        'hr_payroll_view.xml',
-        'menu_view.xml',
+        'green_erp_arulmani_crm_view.xml',
+        'green_erp_arulmani_hr_view.xml',
+        'green_erp_arulmani_sequence.xml',
+        'security/green_erp_arulmani_crm_security.xml',
     ],
     'css' : [
+        "static/src/css/base.css",
     ],
-    'qweb': [
-     ],
     'installable': True,
     'auto_install': False,
     'application': True,

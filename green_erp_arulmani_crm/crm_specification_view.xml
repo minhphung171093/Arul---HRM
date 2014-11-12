@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="utf-8"?>
+<openerp>
+    <data>
+        <!-- Attachment -->
+        <record id="vsis_view_crm_specification_form" model="ir.ui.view">
+            <field name="model">crm.specification</field>
+            <field name="arch" type="xml">
+                <form string="QC Test Request" version="7.0" delete="false">
+                   <sheet>
+                   		<group>
+                        	<field name="name" />
+                    		<field name="lead_id" context="{'specification_lead':True,'lead_id':lead_id}" options="{'create': false, 'create_edit': false}" on_change="onchange_lead_id(lead_id, context)" attrs="{'readonly':[('states','in',('qc_test_completed','sample_received','sample_request','sample_acceptance','sample_matched','sample_mismatched','cancelled'))]}" />
+                    		<field name="test_based_on" attrs="{'readonly':[('states','in',('qc_test_completed','sample_received','sample_request','sample_acceptance','sample_matched','sample_mismatched','cancelled'))]}"/>
+                    		<field name="subject" attrs="{'readonly':[('states','in',('qc_test_completed','sample_received','sample_request','sample_acceptance','sample_matched','sample_mismatched','cancelled'))]}"/>
+                    		<field name="description" attrs="{'readonly':[('states','in',('qc_test_completed','sample_received','sample_request','sample_acceptance','sample_matched','sample_mismatched','cancelled'))]}"/>
+	                		<field name="datas" filename="datas_fname" attrs="{'readonly':[('states','in',('qc_test_completed','sample_received','sample_request','sample_acceptance','sample_matched','sample_mismatched','cancelled'))]}" />
+	                        <field name="datas_fname" invisible="1" class="oe_inline oe_right"/>
+	                        <field name="states" invisible="1"/>
+	                    </group>
+	                    <notebook>
+		                    <page string="Product Line" autofocus="autofocus">
+	                            <field name="specification_line" nolabel='1' attrs="{'readonly':[('states','in',('qc_test_completed','sample_received','sample_request','sample_acceptance','sample_matched','sample_mismatched','cancelled'))]}">
+	                            	<tree string="Product Line" editable='top'>
+	                            		<field name="product_id" on_change="onchange_product_id(product_id)"/>
+	                            		<field name="product_type"/>
+	                            		<field name="application_id" widget="selection"/>
+	                            		<field name="quantity" />
+	                            		<field name="uom_id" />
+	                                </tree>
+	                            </field>
+	                        </page>
+                       </notebook>
+                  </sheet>
+                </form>
+            </field>
+        </record>
+        <record id="vsis_view_crm_specification_tree" model="ir.ui.view">
+            <field name="model">crm.specification</field>
+            <field name="arch" type="xml">
+                <tree string="QC Test Request" delete="false">
+                    <field name="name"/>
+            		<field name="lead_id"/>
+            		<field name="test_based_on" />
+            		<field name="subject" />
+            		<field name="description" />
+            		<field name="datas" filename="datas_fname" />
+                </tree>
+            </field>
+        </record>
+        <record id="vsis_view_crm_specification_search" model="ir.ui.view">
+            <field name="model">crm.specification</field>
+            <field name="arch" type="xml">
+                <search string="QC Test Request">
+                    <field name="name" filter_domain="['|', ('name','ilike',self), ('datas_fname','ilike',self)]" string="QC Test Request"/>
+                </search>
+            </field>
+        </record>
+        <record id="vsis_action_specification" model="ir.actions.act_window">
+            <field name="name">QC Test Request</field>
+            <field name="type">ir.actions.act_window</field>
+            <field name="res_model">crm.specification</field>
+            <field name="view_type">form</field>
+            <field name="view_id" eval="False"/>
+            <field name="search_view_id" ref="vsis_view_crm_specification_search"/>
+        </record>
+        <menuitem action="vsis_action_specification" id="vsis_menu_specification" groups="group_sample_user" parent="base.menu_sales" sequence="100"/>
+
+    </data>
+</openerp>

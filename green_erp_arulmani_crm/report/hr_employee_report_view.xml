@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<openerp>
+    <data>
+		<!-- Create Sale report -->
+    	<record id="list_employee_report" model="ir.actions.report.xml">
+	        <field name="name">list_employee_report</field>
+	        <field name="type">ir.actions.report.xml</field>
+	        <field name="model">list.employee.report</field>
+	        <field name="report_name">list_employee_report</field>
+	        <field name="report_type">aeroo</field>
+	        <field name="in_format">oo-ods</field>
+	        <field name="out_format" model="report.mimetypes" search="[('code','=','oo-ods'),('compatible_types','=','oo-ods')]"/>
+	        <field name="parser_loc">green_erp_arulmani_crm/report/hr_employee_report.py</field>
+	        <field name="report_rml">green_erp_arulmani_crm/report/hr_employee_report.ods</field>
+	        <field name="parser_state">loc</field>
+	        <field name="tml_source">file</field>
+	        <field name="attachment_use" eval="0"/>
+    	</record>		    
+		
+		<report 
+			auto="True" 
+			menu="True"
+			id="list_employee_report" 
+			model="list.employee.report" 
+			name="list_employee_report"
+	        string="List Employee Report "
+	        rml="green_erp_arulmani_crm/report/hr_employee_report.ods"/>	
+    </data>
+</openerp>

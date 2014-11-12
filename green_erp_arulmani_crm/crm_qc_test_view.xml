@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="utf-8"?>
+<openerp>
+    <data>
+        <!-- Attachment -->
+        <record id="vsis_view_crm_qc_test_form" model="ir.ui.view">
+            <field name="model">crm.qc.test</field>
+            <field name="arch" type="xml">
+                <form string="QC Test Results" version="7.0">
+                   <sheet>
+                   		<group>
+                        	<field name="name" context="{'qc_test_request':True,'name':name}" options="{'create': false, 'create_edit': false}" on_change="onchange_name(name, context)"/>
+                    		<field name="test_result" />
+                    		<field name="remarks" />
+	                    </group>
+	                    <notebook>
+		                    <page string="Product Line" autofocus="autofocus">
+	                            <field name="qc_test_line" nolabel='1' >
+	                            	<tree string="Product Line" editable='top'>
+	                            		<field name="product_id" on_change="onchange_product_id(product_id)" options="{'create': false, 'create_edit': false}"/>
+	                            		<field name="product_type"/>
+	                            		<field name="application_id" options="{'create': false, 'create_edit': false}"/>
+	                            		<field name="quantity" />
+	                            		<field name="uom_id" options="{'create': false, 'create_edit': false}"/>
+	                                </tree>
+	                            </field>
+	                            <field name="test_detail" >
+	                            	<tree string="Test Details" editable='top'>
+	                            		<field name="name"/>
+	                            		<field name="required_spec" />
+	                            		<field name="available_spec" />
+	                            		<field name="uom_id" options="{'create': false, 'create_edit': false}"/>
+	                                </tree>
+	                            </field>
+	                        </page>
+                       </notebook>
+                  </sheet>
+                </form>
+            </field>
+        </record>
+        <record id="vsis_view_crm_qc_test_tree" model="ir.ui.view">
+            <field name="model">crm.qc.test</field>
+            <field name="arch" type="xml">
+                <tree string="QC Test Results">
+                    <field name="name"/>
+            		<field name="test_result"/>
+            		<field name="remarks" />
+                </tree>
+            </field>
+        </record>
+        <record id="vsis_view_crm_qc_test_search" model="ir.ui.view">
+            <field name="model">crm.qc.test</field>
+            <field name="arch" type="xml">
+                <search string="QC Test Results">
+                    <field name="name" filter_domain="[('name','ilike',self)]" string="QC Test"/>
+                </search>
+            </field>
+        </record>
+        <record id="vsis_action_crm_qc_test" model="ir.actions.act_window">
+            <field name="name">QC Test Results</field>
+            <field name="type">ir.actions.act_window</field>
+            <field name="res_model">crm.qc.test</field>
+            <field name="view_type">form</field>
+            <field name="view_id" eval="False"/>
+            <field name="search_view_id" ref="vsis_view_crm_qc_test_search"/>
+        </record>
+        <menuitem action="vsis_action_crm_qc_test" id="vsis_menu_qc_test" parent="base.menu_sales" sequence="101"/>
+
+    </data>
+</openerp>
