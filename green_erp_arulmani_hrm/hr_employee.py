@@ -20,7 +20,7 @@ class arul_action(osv.osv):
     }
     
     def init(self, cr):
-        for key in ['Leaving','Promotion','Re Hiring','Compensation Review','Contracts']:
+        for key in ['Leaving','Promotion','Re Hiring','Compensation Review','Contracts','Hiring']:
             arul_ids = self.search(cr, 1, [('name','=',key)])
             if not arul_ids:
                 self.create(cr, 1, {'name': key})
@@ -58,7 +58,7 @@ arul_reason()
 class arul_hr_employee_action_history(osv.osv):
     _name = 'arul.hr.employee.action.history'
     _columns = {
-        'employee_id': fields.many2one('hr.employee','Employee ID',required = True),
+        'employee_id': fields.many2one('hr.employee','Employee ID',required = False),
         'action_id': fields.many2one('arul.action','Action', required=True),
         'action_type_id': fields.many2one('arul.action.type','Action type', required=True),
         'action_date': fields.date('Action Date'),
@@ -93,6 +93,7 @@ class arul_hr_employee_action_history(osv.osv):
             vals = {'employee_category_id':emp.employee_category_id.id,
                     'sub_category_id':emp.employee_sub_category_id.id}
         return {'value': vals}
+<<<<<<< HEAD
     def onchange_leaving_employee_id(self, cr, uid, ids,employee_id=False, context=None):
         vals = {}
         if employee_id:
@@ -100,6 +101,30 @@ class arul_hr_employee_action_history(osv.osv):
             vals = {'employee_category_id':emp.employee_category_id.id,
                     'sub_category_id':emp.employee_sub_category_id.id}
         return {'value': vals}
+=======
+    
+    def create_hiring_employee(self, cr, uid, ids, context=None):
+        ir_model_data = self.pool.get('ir.model.data')
+        try:
+            compose_form_id = ir_model_data.get_object_reference(cr, uid, 'hr', 'view_employee_form')[1]
+        except ValueError:
+            compose_form_id = False
+        ctx = dict(context)
+        ctx.update({
+            'create_hiring_employee': ids,
+            })
+        return {
+            'type': 'ir.actions.act_window',
+            'view_type': 'form',
+            'view_mode': 'form',
+            'res_model': 'hr.employee',
+            'views': [(compose_form_id, 'form')],
+            'view_id': compose_form_id,
+            'target': 'current',
+            'context': ctx,
+        }
+    
+>>>>>>> 353bc2229bb77edabf6a0428beb87ca023015c91
 arul_hr_employee_action_history()
 
 class hr_employee(osv.osv):
@@ -129,6 +154,14 @@ class hr_employee(osv.osv):
     def name_search(self, cr, user, name, args=None, operator='ilike', context=None, limit=100):
         ids = self.search(cr, user, args, context=context, limit=limit)
         return self.name_get(cr, user, ids, context=context)
+    
+    def create(self, cr, uid, vals, context=None):
+        new_id = super(hr_employee, self).create(cr, uid, vals, context)
+        if context.get('create_hiring_employee'):
+            for line_id in context.get('create_hiring_employee'):
+                self.pool.get('arul.hr.employee.action.history').write(cr, uid, line_id, {'employee_id': new_id})
+        return new_id
+    
 hr_employee()
 
 class arul_employee_actions(osv.osv):
