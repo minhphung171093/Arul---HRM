@@ -77,6 +77,7 @@ class arul_hr_employee_action_history(osv.osv):
         'sub_category_id':fields.many2one('hr.employee.sub.category','Sub Category'),
         'payroll_area_id':fields.many2one('arul.hr.payroll.area','Payroll Area'),
         'payroll_sub_area_id':fields.many2one('arul.hr.payroll.area','Payroll Sub Area'),
+        'approve_rehiring': fields.boolean('Approve Rehiring'),
 #         Document upload
         'current_month_salary': fields.boolean('Current Month Salary (Y/N)'),
         'pl_encashment': fields.boolean('PL Encashment (Y/N)'),
@@ -134,7 +135,11 @@ class arul_hr_employee_action_history(osv.osv):
             action_history = self.browse(cr, uid, new_id)
             self.pool.get('hr.employee').write(cr, uid, [action_history.employee_id.id], {'employee_active': False})
         return new_id
-
+    def approve_employee_rehiring(self, cr, uid, ids, context=None):
+        for line in self.browse(cr, uid, ids):
+            self.pool.get('hr.employee').write(cr, uid, [line.employee_id.id], {'employee_active': True})
+            self.write(cr, uid, [line.id],{'approve_rehiring': True})
+        return True
     
 arul_hr_employee_action_history()
 

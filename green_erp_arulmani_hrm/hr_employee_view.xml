@@ -293,7 +293,7 @@
 					<field name ="sub_category_id"/>
 					<field name ="period_to" string="Valid To"/>
 					<field name ="note"/>
-					
+					<field name ="approve_rehiring" invisible='1'/>
 				</tree>
 			</field>
 		</record>
@@ -302,7 +302,11 @@
             <field name="name">arul.hr.employee.rehiring.history.form</field>
             <field name="model">arul.hr.employee.action.history</field>
             <field name="arch" type="xml">
-                <form string="Employee Rehiring" version="7.0">    
+                <form string="Employee Rehiring" version="7.0"> 
+                    <header>
+	                    <button name="approve_employee_rehiring" attrs="{'invisible':[('approve_rehiring','=',True)]}" string="Approve" type="object" class="oe_highlight" groups="base.group_hr_manager"/>
+	                    <field name ="approve_rehiring" invisible='1'/>
+	                </header>
                 	<sheet>
 		                 <group col='4' colspan='2'>
 							<field name="action_id" domain="[('name','=','Re Hiring')]" widget="selection"/>
