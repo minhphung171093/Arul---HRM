@@ -514,6 +514,82 @@
                 </xpath>
             </field>
         </record>
+        
+        <record id="view_arul_hr_employee_transfer_action_tree_vew" model="ir.ui.view">
+			<field name="name">arul.hr.employee.transfer.action.tree</field>
+			<field name="model">arul.hr.employee.action.history</field>
+			<field name="arch" type="xml">
+				<tree string="Employee Transfer Action">
+					<field name="action_id"/>
+					<field name ="action_type_id"/>
+					<field name ="employee_id"/>
+					<field name ="employee_category_id"/>
+					<field name ="sub_category_id"/>
+					<field name="department_from_id"/>
+					<field name ="department_to_id"/>
+					<field name ="designation_from_id"/>
+					<field name ="designation_to_id"/>
+					<field name ="action_date" string = "Date of Transfer"/>
+					<field name ="period_from"/>
+					<field name ="period_to"/>
+					<field name ="note"/>
+				</tree>
+			</field>
+		</record>
+		
+		<record id="view_arul_hr_employee_transfer_action_form_vew" model="ir.ui.view">
+            <field name="name">arul.hr.employee.transfer.action.form</field>
+            <field name="model">arul.hr.employee.action.history</field>
+            <field name="arch" type="xml">
+                <form string="Employee Transfer Action" version="7.0">    
+                	<sheet>
+		                 <group col='4' colspan='2'>
+							<field name="action_id" domain="[('name','=','Transfer')]" widget="selection"/>
+							<field name="action_type_id" domain="[('name','in',['Performance', 'Men Power Shortage'])]" widget="selection"/>
+							<field name ="employee_id" required = "1" domain="[('employee_active','=',1)]" on_change="onchange_rehiring_employee_id(employee_id)"/>
+							<newline/>
+							<field name ="employee_category_id"/>
+							<field name ="sub_category_id"/>
+							<field name ="department_from_id"/>
+							<field name ="department_to_id"/>
+							<field name ="designation_from_id"/>
+							<field name ="designation_to_id"/>
+							<field name ="action_date" string = "Date of Transfer"/>
+							<newline/>
+							<field name ="period_from"/>
+							<field name ="period_to"/>
+						</group>
+						<group>
+							<field name ="note"/>
+						</group>
+                	</sheet>
+                </form>
+            </field>
+        </record>
+        
+         <record id="action_arul_hr_employee_transfer_action_form" model="ir.actions.act_window">
+            <field name="name">Employee Transfer</field>
+            <field name="type">ir.actions.act_window</field>
+            <field name="res_model">arul.hr.employee.action.history</field>
+            <field name="view_type">form</field>
+            <field name="view_mode">tree,form</field>
+            <field name="view_id" ref="view_arul_hr_employee_transfer_action_tree_vew"/>
+        </record>
+        <record id="action_arul_hr_employee_transfer_action_form1" model="ir.actions.act_window.view">
+            <field eval="1" name="sequence"/>
+            <field name="view_mode">tree</field>
+            <field name="view_id" ref="view_arul_hr_employee_transfer_action_tree_vew"/>
+            <field name="act_window_id" ref="action_arul_hr_employee_transfer_action_form"/>
+        </record>
+        <record id="action_arul_hr_employee_contracts_action_form2" model="ir.actions.act_window.view">
+            <field eval="2" name="sequence"/>
+            <field name="view_mode">form</field>
+            <field name="view_id" ref="view_arul_hr_employee_transfer_action_form_vew"/>
+            <field name="act_window_id" ref="action_arul_hr_employee_transfer_action_form"/>
+        </record>
+         <menuitem action="action_arul_hr_employee_transfer_action_form"
+            id="menu_action_arul_hr_employee_transfer_action_form"
+            parent="hr.menu_hr_main" sequence="28"/>
 
     </data>
     
