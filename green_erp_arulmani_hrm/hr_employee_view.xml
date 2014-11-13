@@ -645,6 +645,7 @@
             <field name="res_model">arul.hr.employee.action.history</field>
             <field name="view_type">form</field>
             <field name="view_mode">tree,form</field>
+             <field name="domain">[('action_id.name','=','Leaving')]</field>
             <field name="context">{'create_leaving_employee':1}</field>
             <field name="view_id" ref="view_arul_hr_employee_leaving_action_tree_vew"/>
         </record>
