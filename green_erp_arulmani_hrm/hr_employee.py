@@ -76,6 +76,7 @@ class arul_hr_employee_action_history(osv.osv):
         'sub_category_id':fields.many2one('hr.employee.sub.category','Sub Category'),
         'payroll_area_id':fields.many2one('arul.hr.payroll.area','Payroll Area'),
         'payroll_sub_area_id':fields.many2one('arul.hr.payroll.area','Payroll Sub Area'),
+        'approve_rehiring': fields.boolean('Approve Rehiring'),
 #         Document upload
         'current_month_salary': fields.boolean('Current Month Salary (Y/N)'),
         'pl_encashment': fields.boolean('PL Encashment (Y/N)'),
@@ -133,7 +134,11 @@ class arul_hr_employee_action_history(osv.osv):
             action_history = self.browse(cr, uid, new_id)
             self.pool.get('hr.employee').write(cr, uid, [action_history.employee_id.id], {'employee_active': False})
         return new_id
-
+    def approve_employee_rehiring(self, cr, uid, ids, context=None):
+        for line in self.browse(cr, uid, ids):
+            self.pool.get('hr.employee').write(cr, uid, [line.employee_id.id], {'employee_active': True})
+            self.write(cr, uid, [line.id],{'approve_rehiring': True})
+        return True
     
 arul_hr_employee_action_history()
 
@@ -164,6 +169,18 @@ class hr_employee(osv.osv):
     def name_search(self, cr, user, name, args=None, operator='ilike', context=None, limit=100):
         ids = self.search(cr, user, args, context=context, limit=limit)
         return self.name_get(cr, user, ids, context=context)
+    def onchange_department_id(self, cr, uid, ids,department_id=False, context=None):
+        section_ids = []
+        if department_id:
+            dept = self.pool.get('hr.department').browse(cr, uid, department_id)
+            section_ids = [x.id for x in dept.section_ids]
+        return {'value': {'section_id': False}, 'domain':{'section_id':[('id','in',section_ids)]}}
+    def onchange_employee_category_id(self, cr, uid, ids,employee_category_id=False, context=None):
+        emp_sub_cat = []
+        if employee_category_id:
+            emp_cat = self.pool.get('vsis.hr.employee.category').browse(cr, uid, employee_category_id)
+            emp_sub_cat = [x.id for x in emp_cat.sub_category_ids]
+        return {'value': {'employee_sub_category_id': False }, 'domain':{'employee_sub_category_id':[('id','in',emp_sub_cat)]}}
     
     def create(self, cr, uid, vals, context=None):
         new_id = super(hr_employee, self).create(cr, uid, vals, context)
@@ -173,7 +190,7 @@ class hr_employee(osv.osv):
         return new_id
     
 hr_employee()
-
+    
 class arul_employee_actions(osv.osv):
     _name="arul.employee.actions"
     _columns={

@@ -293,7 +293,7 @@
 					<field name ="sub_category_id"/>
 					<field name ="period_to" string="Valid To"/>
 					<field name ="note"/>
-					
+					<field name ="approve_rehiring" invisible='1'/>
 				</tree>
 			</field>
 		</record>
@@ -302,7 +302,11 @@
             <field name="name">arul.hr.employee.rehiring.history.form</field>
             <field name="model">arul.hr.employee.action.history</field>
             <field name="arch" type="xml">
-                <form string="Employee Rehiring" version="7.0">    
+                <form string="Employee Rehiring" version="7.0"> 
+                    <header>
+	                    <button name="approve_employee_rehiring" attrs="{'invisible':[('approve_rehiring','=',True)]}" string="Approve" type="object" class="oe_highlight" groups="base.group_hr_manager"/>
+	                    <field name ="approve_rehiring" invisible='1'/>
+	                </header>
                 	<sheet>
 		                 <group col='4' colspan='2'>
 							<field name="action_id" domain="[('name','=','Re Hiring')]" widget="selection"/>
@@ -577,6 +581,12 @@
             <field name="model">hr.employee</field>
             <field name="inherit_id" ref="green_erp_arulmani_crm.vsis_view_employee_form_portal"/>
             <field name="arch" type="xml">
+            	<xpath expr="//field[@name='department_id']" position="replace">
+                    <field name="department_id" on_change="onchange_department_id(department_id)"/>
+                </xpath>
+                <xpath expr="//field[@name='employee_category_id']" position="replace">
+                    <field name="employee_category_id" on_change="onchange_employee_category_id(employee_category_id)"/>
+                </xpath>
                 <xpath expr="//field[@name='employee_grade_id']" position="after">
                     <field name="payroll_area_id"/>
                     <field name="payroll_sub_area_id"/>
