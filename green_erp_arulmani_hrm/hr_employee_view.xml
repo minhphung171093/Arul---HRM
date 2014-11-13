@@ -185,8 +185,8 @@
 	                    		<field name ="action_id"/>
 	                    		<field name ="action_type_id"/>
 	                    		<field name ="action_date"/>
-	                    		<field name ="created_date"/>
-	                    		<field name ="created_uid"/>
+	                    		<field name ="create_date"/>
+	                    		<field name ="create_uid"/>
 	                    		<field name ="reason_id"/>
 	                    		<field name ="period_from"/>
 	                    		<field name ="period_to"/>
