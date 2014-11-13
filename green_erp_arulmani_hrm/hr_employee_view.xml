@@ -592,8 +592,8 @@
 					<field name ="employee_id"/>
 					<field name ="employee_category_id"/>
 					<field name ="sub_category_id"/>
-					<field name ="payrol_area_id"/>
-					<field name ="payrol_sub_area_id"/>
+					<field name ="payroll_area_id"/>
+					<field name ="payroll_sub_area_id"/>
 					<field name ="action_date" string="Date Of Leaving"/>
 					<field name ="note"/>
 					<field name ="current_month_salary"/>
@@ -615,12 +615,12 @@
 		                 <group col='4' colspan='2'>
 							<field name="action_id" domain="[('name','=','Leaving')]" widget="selection"/>
 							<field name="action_type_id" domain="[('name','in',['Resignation','Termination','Normal Retirement','Volunteer Retirement','Death'])]" widget="selection"/>
-							<field name ="employee_id" domain="[('employee_active','=',1)]" on_change="onchange_rehiring_employee_id(employee_id)"/>
+							<field name ="employee_id" required = '1' domain="[('employee_active','=',1)]" on_change="onchange_leaving_employee_id(employee_id)"/>
 							<newline/>
 							<field name ="employee_category_id"/>
 							<field name ="sub_category_id"/>
-							<field name ="payrol_area_id"/>
-							<field name ="payrol_sub_area_id"/>
+							<field name ="payroll_area_id"/>
+							<field name ="payroll_sub_area_id"/>
 							<field name ="action_date" string="Date Of Leaving"/>
 							<newline/>
 						</group>
@@ -645,7 +645,7 @@
             <field name="res_model">arul.hr.employee.action.history</field>
             <field name="view_type">form</field>
             <field name="view_mode">tree,form</field>
-            <field name="context">{'create_employee_leaving':1}</field>
+            <field name="context">{'create_leaving_employee':1}</field>
             <field name="view_id" ref="view_arul_hr_employee_leaving_action_tree_vew"/>
         </record>
         <record id="action_arul_hr_employee_leaving_action_form1" model="ir.actions.act_window.view">
