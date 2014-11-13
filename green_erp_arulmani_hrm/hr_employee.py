@@ -21,7 +21,6 @@ class arul_action(osv.osv):
     }
     
     def init(self, cr):
-
         for key in ['Leaving','Promotion','Re Hiring','Compensation Review','Contracts','Hiring','Transfer','Disciplinary']:
             arul_ids = self.search(cr, 1, [('name','=',key)])
             if not arul_ids:
@@ -109,6 +108,7 @@ class arul_hr_employee_action_history(osv.osv):
         'sub_category_id':fields.many2one('hr.employee.sub.category','Sub Category'),
         'payroll_area_id':fields.many2one('arul.hr.payroll.area','Payroll Area'),
         'payroll_sub_area_id':fields.many2one('arul.hr.payroll.area','Payroll Sub Area'),
+        'approve_rehiring': fields.boolean('Approve Rehiring'),
 #         Document upload
         'datas_fname': fields.char('File Name',size=256),
         'datas': fields.function(_data_get, fnct_inv=_data_set, string='Upload/View Specification', type="binary", nodrop=True),
@@ -171,6 +171,12 @@ class arul_hr_employee_action_history(osv.osv):
             action_history = self.browse(cr, uid, new_id)
             self.pool.get('hr.employee').write(cr, uid, [action_history.employee_id.id], {'employee_active': False})
         return new_id
+    def approve_employee_rehiring(self, cr, uid, ids, context=None):
+        for line in self.browse(cr, uid, ids):
+            self.pool.get('hr.employee').write(cr, uid, [line.employee_id.id], {'employee_active': True})
+            self.write(cr, uid, [line.id],{'approve_rehiring': True})
+        return True
+    
 arul_hr_employee_action_history()
 
 class hr_employee(osv.osv):
@@ -200,7 +206,10 @@ class hr_employee(osv.osv):
     def name_search(self, cr, user, name, args=None, operator='ilike', context=None, limit=100):
         ids = self.search(cr, user, args, context=context, limit=limit)
         return self.name_get(cr, user, ids, context=context)
+<<<<<<< HEAD
 
+=======
+>>>>>>> d5a7a1a81515532c721e2ab0e65d03179cd450b9
     def onchange_department_id(self, cr, uid, ids,department_id=False, context=None):
         section_ids = []
         if department_id:
@@ -220,6 +229,10 @@ class hr_employee(osv.osv):
             for line_id in context.get('create_hiring_employee'):
                 self.pool.get('arul.hr.employee.action.history').write(cr, uid, [line_id], {'employee_id': new_id})
         return new_id
+<<<<<<< HEAD
+=======
+    
+>>>>>>> d5a7a1a81515532c721e2ab0e65d03179cd450b9
 hr_employee()
     
 class arul_employee_actions(osv.osv):
