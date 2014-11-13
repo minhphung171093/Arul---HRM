@@ -20,7 +20,8 @@ class arul_action(osv.osv):
     }
     
     def init(self, cr):
-        for key in ['Leaving','Promotion','Re Hiring','Compensation Review','Contracts','Transfer']:
+
+        for key in ['Leaving','Promotion','Re Hiring','Compensation Review','Contracts','Hiring','Transfer']:
             arul_ids = self.search(cr, 1, [('name','=',key)])
             if not arul_ids:
                 self.create(cr, 1, {'name': key})
@@ -58,12 +59,12 @@ arul_reason()
 class arul_hr_employee_action_history(osv.osv):
     _name = 'arul.hr.employee.action.history'
     _columns = {
-        'employee_id': fields.many2one('hr.employee','Employee ID',required = True),
+        'employee_id': fields.many2one('hr.employee','Employee ID',required = False),
         'action_id': fields.many2one('arul.action','Action', required=True),
         'action_type_id': fields.many2one('arul.action.type','Action type', required=True),
         'action_date': fields.date('Action Date'),
-        'created_date': fields.datetime('Created Date'),
-        'created_uid': fields.many2one('res.users','Created By'),
+        'create_date': fields.datetime('Created Date'),
+        'create_uid': fields.many2one('res.users','Created By'),
         'period_from': fields.date('Period From'),
         'period_to': fields.date('Period to'),
         'reason_id': fields.many2one('arul.season','Reason'),
@@ -74,6 +75,8 @@ class arul_hr_employee_action_history(osv.osv):
         'designation_to_id':fields.many2one('arul.hr.designation','Designation To'),
         'employee_category_id':fields.many2one('vsis.hr.employee.category','Employee Category'),
         'sub_category_id':fields.many2one('hr.employee.sub.category','Sub Category'),
+        'payroll_area_id':fields.many2one('arul.hr.payroll.area','Payroll Area'),
+        'payroll_sub_area_id':fields.many2one('arul.hr.payroll.area','Payroll Sub Area'),
 #         Document upload
         'current_month_salary': fields.boolean('Current Month Salary (Y/N)'),
         'pl_encashment': fields.boolean('PL Encashment (Y/N)'),
@@ -91,6 +94,46 @@ class arul_hr_employee_action_history(osv.osv):
             vals = {'employee_category_id':emp.employee_category_id.id,
                     'sub_category_id':emp.employee_sub_category_id.id}
         return {'value': vals}
+
+
+
+    def onchange_leaving_employee_id(self, cr, uid, ids,employee_id=False, context=None):
+        vals = {}
+        if employee_id:
+            emp = self.pool.get('hr.employee').browse(cr, uid, employee_id)
+            vals = {'employee_category_id':emp.employee_category_id.id,
+                    'sub_category_id':emp.employee_sub_category_id.id,
+                    'payroll_area_id':emp.payroll_area_id.id,
+                    'payroll_sub_area_id':emp.payroll_sub_area_id.id}
+        return {'value': vals}
+    
+    def create_hiring_employee(self, cr, uid, ids, context=None):
+        ir_model_data = self.pool.get('ir.model.data')
+        try:
+            compose_form_id = ir_model_data.get_object_reference(cr, uid, 'hr', 'view_employee_form')[1]
+        except ValueError:
+            compose_form_id = False
+        ctx = dict(context)
+        ctx.update({
+            'create_hiring_employee': ids,
+            })
+        return {
+            'type': 'ir.actions.act_window',
+            'view_type': 'form',
+            'view_mode': 'form',
+            'res_model': 'hr.employee',
+            'views': [(compose_form_id, 'form')],
+            'view_id': compose_form_id,
+            'target': 'current',
+            'context': ctx,
+        }
+        
+    def create(self, cr, uid, vals, context=None):
+        new_id = super(arul_hr_employee_action_history, self).create(cr, uid, vals, context)
+        if context.get('create_leaving_employee'):
+            action_history = self.browse(cr, uid, new_id)
+            self.pool.get('hr.employee').write(cr, uid, [action_history.employee_id.id], {'employee_active': False})
+        return new_id
 
     
 arul_hr_employee_action_history()
@@ -122,6 +165,14 @@ class hr_employee(osv.osv):
     def name_search(self, cr, user, name, args=None, operator='ilike', context=None, limit=100):
         ids = self.search(cr, user, args, context=context, limit=limit)
         return self.name_get(cr, user, ids, context=context)
+    
+    def create(self, cr, uid, vals, context=None):
+        new_id = super(hr_employee, self).create(cr, uid, vals, context)
+        if context.get('create_hiring_employee'):
+            for line_id in context.get('create_hiring_employee'):
+                self.pool.get('arul.hr.employee.action.history').write(cr, uid, [line_id], {'employee_id': new_id})
+        return new_id
+    
 hr_employee()
 
 class arul_employee_actions(osv.osv):
