@@ -835,10 +835,6 @@
         </record>
         <menuitem action="vsis_action_sample_sending" id="vsis_menu_sample_sending" parent="base.menu_sales" sequence="103"/>
         
-        
-        
-        
-        
     </data>
     
 </openerp>
