@@ -20,7 +20,8 @@ class arul_action(osv.osv):
     }
     
     def init(self, cr):
-        for key in ['Leaving','Promotion','Re Hiring','Compensation Review','Contracts','Hiring']:
+
+        for key in ['Leaving','Promotion','Re Hiring','Compensation Review','Contracts','Hiring','Transfer']:
             arul_ids = self.search(cr, 1, [('name','=',key)])
             if not arul_ids:
                 self.create(cr, 1, {'name': key})
@@ -34,7 +35,7 @@ class arul_action_type(osv.osv):
     }
     
     def init(self, cr):
-        for key in ['Resignation','Termination','Normal Retirement','Volunteer Retirement','Death','Good Performance','Vacancy','New Hire', 'Expansion','Vacancy Fill Up','Change of Pay' ,'Revision of Salary', 'Increment','Promotion','Probation', 'Confirmation','Extension of Trainee','Extension of Probation']:
+        for key in ['Resignation','Termination','Normal Retirement','Volunteer Retirement','Death','Good Performance','Vacancy','New Hire', 'Expansion','Vacancy Fill Up','Change of Pay' ,'Revision of Salary', 'Increment','Promotion','Probation', 'Confirmation','Extension of Trainee','Extension of Probation','Performance','Men Power Shortage']:
             arul_ids = self.search(cr, 1, [('name','=',key)])
             if not arul_ids:
                 self.create(cr, 1, {'name': key})
@@ -93,6 +94,9 @@ class arul_hr_employee_action_history(osv.osv):
             vals = {'employee_category_id':emp.employee_category_id.id,
                     'sub_category_id':emp.employee_sub_category_id.id}
         return {'value': vals}
+
+
+
     def onchange_leaving_employee_id(self, cr, uid, ids,employee_id=False, context=None):
         vals = {}
         if employee_id:
@@ -130,6 +134,7 @@ class arul_hr_employee_action_history(osv.osv):
             action_history = self.browse(cr, uid, new_id)
             self.pool.get('hr.employee').write(cr, uid, [action_history.employee_id.id], {'employee_active': False})
         return new_id
+
     
 arul_hr_employee_action_history()
 
