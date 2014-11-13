@@ -121,8 +121,20 @@ class hr_employee(osv.osv):
     def name_search(self, cr, user, name, args=None, operator='ilike', context=None, limit=100):
         ids = self.search(cr, user, args, context=context, limit=limit)
         return self.name_get(cr, user, ids, context=context)
+    def onchange_department_id(self, cr, uid, ids,department_id=False, context=None):
+        section_ids = []
+        if department_id:
+            dept = self.pool.get('hr.department').browse(cr, uid, department_id)
+            section_ids = [x.id for x in dept.section_ids]
+        return {'value': {'section_id': False}, 'domain':{'section_id':[('id','in',section_ids)]}}
+    def onchange_employee_category_id(self, cr, uid, ids,employee_category_id=False, context=None):
+        emp_sub_cat = []
+        if employee_category_id:
+            emp_cat = self.pool.get('vsis.hr.employee.category').browse(cr, uid, employee_category_id)
+            emp_sub_cat = [x.id for x in emp_cat.sub_category_ids]
+        return {'value': {'employee_sub_category_id': False }, 'domain':{'employee_sub_category_id':[('id','in',emp_sub_cat)]}}
 hr_employee()
-
+    
 class arul_employee_actions(osv.osv):
     _name="arul.employee.actions"
     _columns={
