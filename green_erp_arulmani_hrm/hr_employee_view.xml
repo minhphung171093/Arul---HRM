@@ -581,6 +581,88 @@
                 </xpath>
             </field>
         </record>
+        
+        <record id="view_arul_hr_employee_leaving_action_tree_vew" model="ir.ui.view">
+			<field name="name">arul.hr.employee.leaving.action.tree</field>
+			<field name="model">arul.hr.employee.action.history</field>
+			<field name="arch" type="xml">
+				<tree string="Employee Leaving Action">
+					<field name="action_id"/>
+					<field name="action_type_id"/>
+					<field name ="employee_id"/>
+					<field name ="employee_category_id"/>
+					<field name ="sub_category_id"/>
+					<field name ="payroll_area_id"/>
+					<field name ="payroll_sub_area_id"/>
+					<field name ="action_date" string="Date Of Leaving"/>
+					<field name ="note"/>
+					<field name ="current_month_salary"/>
+					<field name ="c_off"/>
+					<field name ="medical_reimbursement"/>
+					<field name ="bonus"/>
+					<field name ="pf_settlement"/>
+					
+				</tree>
+			</field>
+		</record>
+		
+		<record id="view_arul_hr_employee_leaving_action_form_vew" model="ir.ui.view">
+            <field name="name">arul.hr.employee.leaving.action.form</field>
+            <field name="model">arul.hr.employee.action.history</field>
+            <field name="arch" type="xml">
+                <form string="Employee Leaving Action" version="7.0">    
+                	<sheet>
+		                 <group col='4' colspan='2'>
+							<field name="action_id" domain="[('name','=','Leaving')]" widget="selection"/>
+							<field name="action_type_id" domain="[('name','in',['Resignation','Termination','Normal Retirement','Volunteer Retirement','Death'])]" widget="selection"/>
+							<field name ="employee_id" required = '1' domain="[('employee_active','=',1)]" on_change="onchange_leaving_employee_id(employee_id)"/>
+							<newline/>
+							<field name ="employee_category_id"/>
+							<field name ="sub_category_id"/>
+							<field name ="payroll_area_id"/>
+							<field name ="payroll_sub_area_id"/>
+							<field name ="action_date" string="Date Of Leaving"/>
+							<newline/>
+						</group>
+						<group>
+							<field name ="note"/>
+						</group>
+						<group>
+							<field name ="current_month_salary"/>
+							<field name ="c_off"/>
+							<field name ="medical_reimbursement"/>
+							<field name ="bonus"/>
+							<field name ="pf_settlement"/>
+						</group>
+                	</sheet>
+                </form>
+            </field>
+        </record>
+        
+        <record id="action_arul_hr_employee_leaving_action_form" model="ir.actions.act_window">
+            <field name="name">Employee Leaving</field>
+            <field name="type">ir.actions.act_window</field>
+            <field name="res_model">arul.hr.employee.action.history</field>
+            <field name="view_type">form</field>
+            <field name="view_mode">tree,form</field>
+            <field name="context">{'create_leaving_employee':1}</field>
+            <field name="view_id" ref="view_arul_hr_employee_leaving_action_tree_vew"/>
+        </record>
+        <record id="action_arul_hr_employee_leaving_action_form1" model="ir.actions.act_window.view">
+            <field eval="1" name="sequence"/>
+            <field name="view_mode">tree</field>
+            <field name="view_id" ref="view_arul_hr_employee_leaving_action_tree_vew"/>
+            <field name="act_window_id" ref="action_arul_hr_employee_leaving_action_form"/>
+        </record>
+        <record id="action_arul_hr_employee_leaving_action_form2" model="ir.actions.act_window.view">
+            <field eval="2" name="sequence"/>
+            <field name="view_mode">form</field>
+            <field name="view_id" ref="view_arul_hr_employee_leaving_action_form_vew"/>
+            <field name="act_window_id" ref="action_arul_hr_employee_leaving_action_form"/>
+        </record>
+         <menuitem action="action_arul_hr_employee_leaving_action_form"
+            id="menu_action_arul_hr_employee_leaving_action_form"
+            parent="hr.menu_hr_main" sequence="29"/>
 
     </data>
     

@@ -74,6 +74,8 @@ class arul_hr_employee_action_history(osv.osv):
         'designation_to_id':fields.many2one('arul.hr.designation','Designation To'),
         'employee_category_id':fields.many2one('vsis.hr.employee.category','Employee Category'),
         'sub_category_id':fields.many2one('hr.employee.sub.category','Sub Category'),
+        'payroll_area_id':fields.many2one('arul.hr.payroll.area','Payroll Area'),
+        'payroll_sub_area_id':fields.many2one('arul.hr.payroll.area','Payroll Sub Area'),
 #         Document upload
         'current_month_salary': fields.boolean('Current Month Salary (Y/N)'),
         'pl_encashment': fields.boolean('PL Encashment (Y/N)'),
@@ -90,6 +92,15 @@ class arul_hr_employee_action_history(osv.osv):
             emp = self.pool.get('hr.employee').browse(cr, uid, employee_id)
             vals = {'employee_category_id':emp.employee_category_id.id,
                     'sub_category_id':emp.employee_sub_category_id.id}
+        return {'value': vals}
+    def onchange_leaving_employee_id(self, cr, uid, ids,employee_id=False, context=None):
+        vals = {}
+        if employee_id:
+            emp = self.pool.get('hr.employee').browse(cr, uid, employee_id)
+            vals = {'employee_category_id':emp.employee_category_id.id,
+                    'sub_category_id':emp.employee_sub_category_id.id,
+                    'payroll_area_id':emp.payroll_area_id.id,
+                    'payroll_sub_area_id':emp.payroll_sub_area_id.id}
         return {'value': vals}
     
     def create_hiring_employee(self, cr, uid, ids, context=None):
@@ -112,6 +123,13 @@ class arul_hr_employee_action_history(osv.osv):
             'target': 'current',
             'context': ctx,
         }
+        
+    def create(self, cr, uid, vals, context=None):
+        new_id = super(arul_hr_employee_action_history, self).create(cr, uid, vals, context)
+        if context.get('create_leaving_employee'):
+            action_history = self.browse(cr, uid, new_id)
+            self.pool.get('hr.employee').write(cr, uid, [action_history.employee_id.id], {'employee_active': False})
+        return new_id
     
 arul_hr_employee_action_history()
 
@@ -147,7 +165,7 @@ class hr_employee(osv.osv):
         new_id = super(hr_employee, self).create(cr, uid, vals, context)
         if context.get('create_hiring_employee'):
             for line_id in context.get('create_hiring_employee'):
-                self.pool.get('arul.hr.employee.action.history').write(cr, uid, line_id, {'employee_id': new_id})
+                self.pool.get('arul.hr.employee.action.history').write(cr, uid, [line_id], {'employee_id': new_id})
         return new_id
     
 hr_employee()
