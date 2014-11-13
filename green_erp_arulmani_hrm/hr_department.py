@@ -19,16 +19,25 @@ class hr_department(osv.osv):
         'number': fields.integer('No.of Persons'),
     }
     
-    def _check_department_id(self, cr, uid, ids, context=None):
+    def _check_code(self, cr, uid, ids, context=None):
         for department in self.browse(cr, uid, ids, context=context):
-            department_ids = self.search(cr, uid, [('id','!=',department.id),('code','=',department.code), ('name','=',department.name)])
+            department_ids = self.search(cr, uid, [('id','!=',department.id),('code','=',department.code)])
             if department_ids:  
                 return False
         return True
-    _constraints = [
-        (_check_department_id, 'Identical Data', ['code', 'name']),
-    ]
+   
     
+    def _check_designation_id(self, cr, uid, ids, context=None):
+        for department in self.browse(cr, uid, ids, context=context):
+            department_ids = self.search(cr, uid, [('id','!=',department.id),('designation_id','=',department.designation_id.id)])
+            if department_ids:  
+                return False
+        return True
+    
+    _constraints = [
+        (_check_code, 'Identical Data', ['code']),
+        (_check_designation_id, 'Identical Data', ['designation_id']),
+    ]
 
     
 hr_department()
