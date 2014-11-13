@@ -20,7 +20,6 @@ class arul_action(osv.osv):
     }
     
     def init(self, cr):
-
         for key in ['Leaving','Promotion','Re Hiring','Compensation Review','Contracts','Hiring','Transfer']:
             arul_ids = self.search(cr, 1, [('name','=',key)])
             if not arul_ids:
