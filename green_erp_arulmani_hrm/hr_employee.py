@@ -3,6 +3,7 @@ from openerp import tools
 from openerp.osv import osv, fields
 from openerp.tools.translate import _
 import time
+from openerp import SUPERUSER_ID
 from openerp.tools import DEFAULT_SERVER_DATE_FORMAT, DEFAULT_SERVER_DATETIME_FORMAT, DATETIME_FORMATS_MAP, float_compare
 from datetime import datetime
 
@@ -21,7 +22,7 @@ class arul_action(osv.osv):
     
     def init(self, cr):
 
-        for key in ['Leaving','Promotion','Re Hiring','Compensation Review','Contracts','Hiring','Transfer']:
+        for key in ['Leaving','Promotion','Re Hiring','Compensation Review','Contracts','Hiring','Transfer','Disciplinary']:
             arul_ids = self.search(cr, 1, [('name','=',key)])
             if not arul_ids:
                 self.create(cr, 1, {'name': key})
@@ -35,7 +36,7 @@ class arul_action_type(osv.osv):
     }
     
     def init(self, cr):
-        for key in ['Resignation','Termination','Normal Retirement','Volunteer Retirement','Death','Good Performance','Vacancy','New Hire', 'Expansion','Vacancy Fill Up','Change of Pay' ,'Revision of Salary', 'Increment','Promotion','Probation', 'Confirmation','Extension of Trainee','Extension of Probation','Performance','Men Power Shortage']:
+        for key in ['Resignation','Termination','Normal Retirement','Volunteer Retirement','Death','Good Performance','Vacancy','New Hire', 'Expansion','Vacancy Fill Up','Change of Pay' ,'Revision of Salary', 'Increment','Promotion','Probation', 'Confirmation','Extension of Trainee','Extension of Probation','Performance','Men Power Shortage','Memo','Suspension','Stoppage of Salary']:
             arul_ids = self.search(cr, 1, [('name','=',key)])
             if not arul_ids:
                 self.create(cr, 1, {'name': key})
@@ -58,6 +59,37 @@ arul_reason()
 
 class arul_hr_employee_action_history(osv.osv):
     _name = 'arul.hr.employee.action.history'
+    def _data_get(self, cr, uid, ids, name, arg, context=None):
+        if context is None:
+            context = {}
+        result = {}
+        location = self.pool.get('ir.config_parameter').get_param(cr, uid, 'hr_identities_attachment.location')
+        bin_size = context.get('bin_size')
+        for attach in self.browse(cr, uid, ids, context=context):
+            if location and attach.store_fname:
+                result[attach.id] = self._file_read(cr, uid, location, attach.store_fname, bin_size)
+            else:
+                result[attach.id] = attach.db_datas
+        return result
+
+    def _data_set(self, cr, uid, id, name, value, arg, context=None):
+        # We dont handle setting data to null
+        if not value:
+            return True
+        if context is None:
+            context = {}
+        location = self.pool.get('ir.config_parameter').get_param(cr, uid, 'hr_identities_attachment.location')
+        file_size = len(value.decode('base64'))
+        if location:
+            attach = self.browse(cr, uid, id, context=context)
+            if attach.store_fname:
+                self._file_delete(cr, uid, location, attach.store_fname)
+            fname = self._file_write(cr, uid, location, value)
+            # SUPERUSER_ID as probably don't have write access, trigger during create
+            super(arul_hr_employee_action_history, self).write(cr, SUPERUSER_ID, [id], {'store_fname': fname, 'file_size': file_size}, context=context)
+        else:
+            super(arul_hr_employee_action_history, self).write(cr, SUPERUSER_ID, [id], {'db_datas': value, 'file_size': file_size}, context=context)
+        return True
     _columns = {
         'employee_id': fields.many2one('hr.employee','Employee ID',required = False),
         'action_id': fields.many2one('arul.action','Action', required=True),
@@ -78,6 +110,11 @@ class arul_hr_employee_action_history(osv.osv):
         'payroll_area_id':fields.many2one('arul.hr.payroll.area','Payroll Area'),
         'payroll_sub_area_id':fields.many2one('arul.hr.payroll.area','Payroll Sub Area'),
 #         Document upload
+        'datas_fname': fields.char('File Name',size=256),
+        'datas': fields.function(_data_get, fnct_inv=_data_set, string='Upload/View Specification', type="binary", nodrop=True),
+        'store_fname': fields.char('Stored Filename', size=256),
+        'db_datas': fields.binary('Database Data'),
+        'file_size': fields.integer('File Size'),
         'current_month_salary': fields.boolean('Current Month Salary (Y/N)'),
         'pl_encashment': fields.boolean('PL Encashment (Y/N)'),
         'c_off': fields.boolean('C-Off (Y/N)'),
@@ -134,8 +171,6 @@ class arul_hr_employee_action_history(osv.osv):
             action_history = self.browse(cr, uid, new_id)
             self.pool.get('hr.employee').write(cr, uid, [action_history.employee_id.id], {'employee_active': False})
         return new_id
-
-    
 arul_hr_employee_action_history()
 
 class hr_employee(osv.osv):
@@ -165,7 +200,7 @@ class hr_employee(osv.osv):
     def name_search(self, cr, user, name, args=None, operator='ilike', context=None, limit=100):
         ids = self.search(cr, user, args, context=context, limit=limit)
         return self.name_get(cr, user, ids, context=context)
-<<<<<<< HEAD
+
     def onchange_department_id(self, cr, uid, ids,department_id=False, context=None):
         section_ids = []
         if department_id:
@@ -178,7 +213,6 @@ class hr_employee(osv.osv):
             emp_cat = self.pool.get('vsis.hr.employee.category').browse(cr, uid, employee_category_id)
             emp_sub_cat = [x.id for x in emp_cat.sub_category_ids]
         return {'value': {'employee_sub_category_id': False }, 'domain':{'employee_sub_category_id':[('id','in',emp_sub_cat)]}}
-=======
     
     def create(self, cr, uid, vals, context=None):
         new_id = super(hr_employee, self).create(cr, uid, vals, context)
@@ -186,8 +220,6 @@ class hr_employee(osv.osv):
             for line_id in context.get('create_hiring_employee'):
                 self.pool.get('arul.hr.employee.action.history').write(cr, uid, [line_id], {'employee_id': new_id})
         return new_id
-    
->>>>>>> ed542ccbd29818aded4ed978fd882590f8dd6be0
 hr_employee()
     
 class arul_employee_actions(osv.osv):
