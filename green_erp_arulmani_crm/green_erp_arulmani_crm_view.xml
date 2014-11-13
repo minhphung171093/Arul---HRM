@@ -1,0 +1,844 @@
+<?xml version="1.0" encoding="utf-8"?>
+<openerp>
+    <data>
+    
+    	<report auto="False" menu="False" id="account.account_overdue" model="res.partner" name="account.overdue" rml="account/report/account_print_overdue.rml" string="Overdue Payments"/>
+        
+        
+        <record id="vsis_view_crm_case_leads_filter" model="ir.ui.view">
+		        <field name="name">VSIS CRM - Leads Search</field>
+		        <field name="model">crm.lead</field>
+		        <field name="inherit_id" ref="crm.view_crm_case_leads_filter"/>
+		        <field name="arch" type="xml">
+		        	<xpath expr="//search/group[@string='Group By...']" position="replace">
+			        	<group expand="0" string="Group By...">
+			        		<filter string="Subjects" icon="terp-go-today" domain="[]" context="{'group_by':'name'}"/>
+	                        <filter string="Contact Name" icon="terp-go-today" domain="[]" context="{'group_by':'contact_name'}"/>
+	                        <filter string="Stages" icon="terp-go-today" domain="[]" context="{'group_by':'status'}"/>
+	                    </group>
+                    </xpath>
+                    <xpath expr="//field[@name='user_id']" position="after">
+                		<field name="lead_code" />
+                		<field name="customer_code" />
+                		<field name="product_id" />
+                    </xpath>
+		        </field>
+        </record>
+        
+        <record model="ir.ui.view" id="vsis_crm_case_tree_view_leads">
+            <field name="name">Vsis Leads</field>
+            <field name="model">crm.lead</field>
+             <field name="inherit_id" ref="crm.crm_case_tree_view_leads"/>
+            <field name="arch" type="xml">
+                <xpath expr="//tree[@string='Leads']" position="replace">
+	                <tree string="Leads" fonts="bold:message_unread==True" colors="grey:state in ('cancel', 'done')">
+	                    <field name="create_date"/>
+	                    <field name="lead_code"/>
+	                    <field name="partner_name" string="Company Name"/>
+	                    <field name="name"/>
+	                    <field name="contact_name" string="First Name"/>
+	                    <field name="contact_last_name" string="Last Name"/>
+	                    <field name="email_from"/>
+	                    <field name="phone" />
+	                    <field name="product_id" />
+	                    <field name="status"/>
+	                    <field name="date_deadline" invisible="1"/>
+	                    <field name="country_id" invisible="context.get('invisible_country', True)"/>
+	                    <field name="stage_id" invisible="1"/>
+	                    <field name="user_id" invisible="1"/>
+	                    <field name="partner_id" invisible="1"/>
+	                    <field name="section_id" invisible="context.get('invisible_section', True)"/>
+	                    <field name="state" invisible="1"/>
+	                    <field name="type_id" invisible="1"/>
+	                    <field name="referred" invisible="1"/>
+	                    <field name="channel_id" invisible="1"/>
+	                    <field name="message_unread" invisible="1"/>
+	                </tree>
+                </xpath>
+            </field>
+        </record>
+        
+        
+        <record id="crm_case_form_view_leads_inherit" model="ir.ui.view">
+            <field name="name">crm.lead.view.form.inherit</field>
+            <field name="model">crm.lead</field>
+            <field name="inherit_id" ref="crm.crm_case_form_view_leads"/>
+            <field name="arch" type="xml">
+                <data>
+                	<xpath expr="//button[@name='case_cancel']" position="replace">
+                		<button name="%(action_crm_make_cancel)d" attrs="{'invisible':[('status','=','cancelled')]}" string="Cancel Case" type="action" />
+                    </xpath>
+                    
+                    <xpath expr="//button[@name='case_reset']" position="replace">
+                		<button name="case_reset" string="Reset" type="object"
+                            states="cancel" invisible="1"/>
+                    </xpath>
+                    
+                	<xpath expr="//button[@name='%(crm.action_crm_lead2opportunity_partner)d']" position="replace">
+                		<button name="apply_convert_to_oppotunities" string="Convert to Opportunity" type="object"
+                             attrs="{'invisible':['|',('type','!=','lead'),('status','!=','new')]}"  help="Convert to Opportunity" class="oe_highlight"/>
+                        <button name="case_mark_won" string="Mark Won" type="object"
+                                attrs="{'invisible':['|',('type','!=','opportunity'),('status','=','cancelled')]}" class="oe_highlight"/>
+                        <button name="case_mark_lost" string="Mark Lost" type="object"
+                                attrs="{'invisible':['|',('type','!=','opportunity'),('status','=','cancelled')]}" class="oe_highlight"/>
+                        <button attrs="{'invisible':['|','|','|','|',('type','=','lead'),('status','=','quotation'),('status','=','cancelled'),('status','=','closed'),('quotation_status','=',True)]}" 
+                    			string="Convert to Quotation" name="create_quotation" type="object" class="oe_highlight"/>
+                    </xpath>
+                    
+                	<xpath expr="//field[@name='stage_id']" position="replace">
+                        <field name="stage_id" invisible="1" widget="statusbar" clickable="True"
+                            domain="['&amp;', '|', ('case_default', '=', True), ('section_ids', '=', section_id), '|', ('type', '=', type), ('type', '=', 'both')]"
+                            on_change="onchange_stage_id(stage_id)"/>
+                    </xpath>
+                    
+                	<xpath expr="//field[@name='partner_name']" position="before">
+                        <field name="lead_code"/>
+                        <field name="constitution"/>
+                    </xpath>
+                    
+                    <xpath expr="//form/sheet/group/group/div" position="replace">
+	                    <div>	
+	                    	<field name="street" placeholder="Street..."/>
+	                        <field name="street2"/>
+	                        <field name="city" placeholder="City" />
+	                        <div class="address_format">
+	                        	<field name="country_id" style="width: 45%%" placeholder="Country" options="{'create': false, 'create_edit': false}"/>
+	                            <field name="state_id" on_change="onchange_state(state_id)" style="width: 53%%"  domain="[('country_id', '=', country_id)]" options="{'create': false, 'create_edit': false}" placeholder="State"/>
+	                        </div>
+	                        <field name="zip" placeholder="ZIP" style="width: 34%%"/>
+	                    </div>
+                    </xpath>
+                    
+                    <!--<xpath expr="//field[@name='state_id']" position="replace">
+                        <field name="state_id" widget="selection" on_change="onchange_state(state_id)" options='{"no_open": True}' placeholder="State" style="width: 24%%"/>
+                    </xpath>
+                    
+                    <xpath expr="//field[@name='country_id']" position="replace">
+                        <field name="country_id" widget="selection" placeholder="Country" options='{"no_open": True}'/>
+                    </xpath>-->
+                    
+                    <xpath expr="//button[@name='case_escalate']" position="replace">
+                        <button name="case_escalate" string="Escalate" type="object" attrs="{'invisible': ['|', ('section_id','=',False), ('state', 'not in', ['draft','open','pending'])]}" invisible="1"/>
+                    </xpath>
+                    
+                    <xpath expr="//field[@name='partner_id']" position="replace">
+                        <field name="partner_id" invisible ="1"/>
+                        <field name="quotation_status" invisible ="1"/>
+                    </xpath>
+                    <xpath expr="//label[@for='contact_name']" position="before">
+                    	<field name="from_existing_customer"/>
+                        <field name="customer_code"/>
+                        <field name="partner_id" string="Customer" attrs="{'readonly':[('from_existing_customer','=',False)]}"
+                                on_change="on_change_partner(partner_id)"
+                                options='{"create_name_field": "name"}'
+                                context="{'default_name': contact_name, 'default_street': street, 'default_city': city, 'default_state_id': state_id, 'default_zip': zip, 'default_country_id': country_id, 'default_function': function, 'default_phone': phone, 'default_mobile': mobile, 'default_fax': fax, 'default_email': email_from, 'default_user_id': user_id, 'default_section_id': section_id}"/>
+                    </xpath>
+                     <xpath expr="//field[@name='contact_name']" position="replace">
+                        <field name="contact_name" placeholder="First Name..."/>
+                        <field name="contact_last_name" placeholder="Last Name..."/>                        
+                    </xpath>
+                    
+                    <xpath expr="//field[@name='title']" position="replace">
+                        <field name="title" placeholder="Title" invisible="1" domain="[('domain', '=', 'contact')]" class="oe_inline" options='{"no_open": True}'/>
+                    </xpath>
+                    <xpath expr="//field[@name='type']" position="after">
+                        
+                        <field name="customer_expected_price"/>
+                        <field name="expected_revenue"/>
+                        <field name="competitor_name"/>
+                        <field name="basic_price"/>
+                        <field name="landed_price"/>
+                        <field name="create_date"/>
+                        <field name="status"/>
+                    </xpath>
+                    
+                    <xpath expr="//field[@name='user_id']" position="replace">
+                    	<field name="lead_zone"/>
+                    	<field name="employee_id" widget="selection" on_change="onchange_employee_id(employee_id, context)" />
+                        <field name="user_id" on_change="on_change_user(user_id, context)" invisible="1"/>
+                    </xpath>
+                    
+                    <xpath expr="//field[@name='section_id']" position="replace">
+                        <field name="section_id" widget="selection"/>
+                    </xpath>
+                    
+                    <xpath expr="//field[@name='categ_ids']" position="replace">
+                    	<field name="categ_ids"
+                    			string="Grade"
+                                widget="many2many_tags"
+                                domain="[('object_id.model','=','crm.lead')]"
+                                context="{'object_name': 'crm.lead'}"
+                            invisible='1'/>
+                        
+                        <field name="lead_source_id" widget="selection"/>
+                    	<field name="probability"/>
+                        <field name="rating"/>
+                        <field name="lead_type"/>
+                        <field name="lead_group"/>
+                        <field name="currency_id" widget="selection"/>
+                    </xpath>
+                    
+                    <xpath expr="//page[@string='Internal Notes']" position="after">
+                    	<page string="Contacts" autofocus="autofocus">
+                            <field name="contact_line" mode="kanban" context="{'default_crm_lead_id': active_id, 'default_street': street, 'default_street2': street2, 'default_city': city, 'default_state_id': state_id, 'default_zip': zip, 'default_country_id': country_id, 'default_customer': True}">
+                                <kanban>
+                                    <field name="color"/>
+                                    <field name="last_name"/>
+                                    <field name="name"/>
+                                    <field name="title"/>
+                                    <field name="email"/>
+                                    <field name="parent_id"/>
+                                    <field name="is_company"/>
+                                    <field name="function"/>
+                                    <field name="phone"/>
+                                    <field name="street"/>
+                                    <field name="street2"/>
+                                    <field name="zip"/>
+                                    <field name="city"/>
+                                    <field name="country_id"/>
+                                    <field name="mobile"/>
+                                    <field name="fax"/>
+                                    <field name="state_id"/>
+                                    <field name="has_image"/>
+                                    <templates>
+                                        <t t-name="kanban-box">
+                                            <t t-set="color" t-value="kanban_color(record.color.raw_value)"/>
+                                            <div t-att-class="color + (record.title.raw_value == 1 ? ' oe_kanban_color_alert' : '')" style="position: relative">
+                                                <a t-if="! read_only_mode" type="delete" style="position: absolute; right: 0; padding: 4px; diplay: inline-block">X</a>
+                                                <div class="oe_module_vignette">
+                                                <a type="open">
+                                                    <t t-if="record.has_image.raw_value === true">
+                                                        <img t-att-src="kanban_image('res.partner', 'image', record.id.value, {'preview_image': 'image_small'})" class="oe_avatar oe_kanban_avatar_smallbox"/>
+                                                    </t>
+                                                    <t t-if="record.image and record.image.raw_value !== false">
+                                                        <img t-att-src="'data:image/png;base64,'+record.image.raw_value" class="oe_avatar oe_kanban_avatar_smallbox"/>
+                                                    </t>
+                                                    <t t-if="record.has_image.raw_value === false and (!record.image or record.image.raw_value === false)">
+                                                        <t t-if="record.is_company.raw_value === true">
+                                                            <img t-att-src='_s + "/base/static/src/img/company_image.png"' class="oe_kanban_image oe_kanban_avatar_smallbox"/>
+                                                        </t>
+                                                        <t t-if="record.is_company.raw_value === false">
+                                                            <img t-att-src='_s + "/base/static/src/img/avatar.png"' class="oe_kanban_image oe_kanban_avatar_smallbox"/>
+                                                        </t>
+                                                    </t>
+                                                </a>
+                                                    <div class="oe_module_desc">
+                                                        <div class="oe_kanban_box_content oe_kanban_color_bglight oe_kanban_color_border">
+                                                            <table class="oe_kanban_table">
+                                                                <tr>
+                                                                    <td class="oe_kanban_title1" align="left" valign="middle">
+                                                                        <h4><a type="open"><field name="name"/>  <field name="last_name"/></a></h4>
+                                                                        <i><div t-if="record.function.raw_value">
+                                                                            <field name="function"/></div></i>
+                                                                        <div><a t-if="record.email.raw_value" title="Mail" t-att-href="'mailto:'+record.email.value">
+                                                                            <field name="email"/>
+                                                                        </a></div>
+                                                                        <div t-if="record.phone.raw_value">Phone: <field name="phone"/></div>
+                                                                        <div t-if="record.mobile.raw_value">Mobile: <field name="mobile"/></div>
+                                                                        <div t-if="record.fax.raw_value">Fax: <field name="fax"/></div>
+                                                                    </td>
+                                                                </tr>
+                                                            </table>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </t>
+                                    </templates>
+                                </kanban>
+                                <form string="Contact" version="7.0">
+                                    <sheet>
+                                        <field name="image" widget='image' class="oe_avatar oe_left" options='{"preview_image": "image_medium"}'/>
+                                        <div class="oe_title"> 
+                                            <label for="name" class="oe_edit_only"/>
+                                            <field name="is_company" invisible="1" on_change="onchange_type(is_company)" class="oe_inline"/> <label for="is_company" invisible="1" string="Is a Company?"/>
+                                            <h1>
+	                                            <field name="name" class="oe_inline" placeholder="First Name ..." />
+					           					<label string=" "/>
+					           					<field name="last_name" class="oe_inline" placeholder="Last Name ..." />
+				           					</h1>
+                                            <label for="gender" class="oe_edit_only"/>
+                                            <field name="gender" style="width: 30%%"/>
+                                        </div>
+                                        <group>
+                                        	<field name="category_id" widget="many2many_tags" placeholder="Tags..."/>
+                                            <field name="function" placeholder="e.g. Sales Director"/>
+                                            <field name="email"/>
+                                            <field name="phone"/>
+                                            <field name="mobile"/>
+                                        </group>
+                                        <div>
+                                            <field name="use_parent_address"/><label for="use_parent_address"/>
+                                        </div>
+                                        <group>
+                                            <label for="type"/>
+                                            <div name="div_type">
+                                                <field class="oe_inline" name="type"/>
+                                            </div>
+                                            <label for="street" string="Address" attrs="{'invisible': [('use_parent_address','=', True)]}"/>
+                                            <div attrs="{'invisible': [('use_parent_address','=', True)]}" name="div_address">
+                                                <field name="street" placeholder="Street..."/>
+                                                <field name="street2"/>
+                                                <div class="address_format">
+                                                    <field name="city" placeholder="City" style="width: 40%%"/>
+                                                    <field name="state_id" class="oe_no_button" placeholder="State" style="width: 37%%" options='{"no_open": True}' on_change="onchange_state(state_id)"/>
+                                                    <field name="zip" placeholder="ZIP" style="width: 20%%"/>
+                                                </div>
+                                                <field name="country_id" placeholder="Country" class="oe_no_button" options='{"no_open": True}'/>
+                                            </div>
+                                        </group>
+                                        <field name="customer" invisible="True"/>
+                                    </sheet>
+                                </form>
+                            </field>
+                        </page>
+                        <page string="Customer Locations" autofocus="autofocus">
+                            <field name="customer_address_line">
+                            	<tree string="Customer Locations">
+                            		<field name="street" />
+                            		<field name="street2" />
+                            		<field name="zip" />
+                            		<field name="city" />
+                            		<field name="state_id" />
+                            		<field name="country_id" />
+                                </tree>
+                                <form string="Customer Locations" version="7.0">
+                                    <sheet>
+                                    	<group>
+				                            <label for="street" string="Address"/>
+				                            <div>
+				                                <field name="street" placeholder="Street..."/>
+				                                <field name="street2"/>
+				                                <div class="address_format">
+				                                    <field name="city" placeholder="City" style="width: 40%%"/>
+				                                    <field name="state_id" class="oe_no_button" placeholder="State" style="width: 37%%" options='{"no_open": True}'/>
+				                                    <field name="zip" placeholder="ZIP" style="width: 20%%"/>
+				                                </div>
+				                                <field name="country_id" placeholder="Country" class="oe_no_button" options='{"no_open": True}'/>
+				                            </div>
+                                    	</group>
+                                    </sheet>
+                                </form>
+                            </field>
+                        </page>
+                        <page string="Product Line" autofocus="autofocus">
+                            <field name="lead_line" nolabel='1'>
+                            	<tree string="Product Line" editable='top'>
+                            		<field name="product_id" widget="selection" on_change="onchange_product_id(product_id)"/>
+                            		<field name="product_type" />
+                            		<field name="application_id" widget="selection"/>
+                            		<field name="month" on_change="onchange_month(month)"/>
+                            		<field name="year" on_change="onchange_year(year)"/>
+                            		<field name="uom_id" widget="selection"/>
+                                </tree>
+                            </field>
+                        </page>
+                        <page string="History" autofocus="autofocus">
+                            <field name="history_ids" nolabel='1'>
+                            	<tree string="History" editable='top'>
+                            		<field name="date"/>
+                            		<field name="status"/>
+                                </tree>
+                            </field>
+                        </page>
+                    </xpath>
+                </data>
+            </field>
+        </record>
+        
+        <record model="ir.ui.view" id="vsis_crm_case_form_view_oppor_2">
+            <field name="name">Vsis CRM - Opportunities - Quote Inherit</field>
+            <field name="model">crm.lead</field>
+            <field name="inherit_id" ref="sale_crm.crm_case_form_view_oppor"/>
+            <field name="arch" type="xml">
+                <data>
+                    <xpath expr="/form/header/button[@string='Convert to Quotation']" position="replace">
+                    		<button attrs="{'invisible':['|','|','|','|',('type','=','lead'),('status','=','quotation'),('status','=','cancelled'),('status','=','closed'),('quotation_status','=',True)]}"
+                    			string="Convert to Quotation" name="create_quotation" type="object" class="oe_highlight"/>
+                    </xpath>
+                </data>
+            </field>
+        </record>
+        
+        <record id="vsis_crm_case_form_view_oppor_inherit" model="ir.ui.view">
+            <field name="name">crm.lead.view.form.inherit</field>
+            <field name="model">crm.lead</field>
+            <field name="inherit_id" ref="crm.crm_case_form_view_oppor"/>
+            <field name="arch" type="xml">
+                <data>
+                	<xpath expr="//form[@string='Opportunities']" position="replace">
+                	<form string="Opportunities" create="false" version="7.0">
+						<header>
+							<button name="case_mark_won" string="Mark Won" type="object"
+									states="draft,open,pending" class="oe_highlight"/>
+							<button name="case_mark_lost" string="Mark Lost" type="object"
+									states="draft,open" class="oe_highlight"/>
+							<button name="%(action_crm_make_cancel)d" attrs="{'invisible':[('status','=','cancelled')]}" string="Cancel Case" type="action"/>
+						</header>
+						<sheet>
+							<div class="oe_right oe_button_box">
+								<button string="Schedule/Log Call"
+									name="%(crm.opportunity2phonecall_act)d"
+									type="action"/>
+								<button string="Meeting"
+									name="action_makeMeeting"
+									type="object"
+									context="{'search_default_attendee_id': active_id, 'default_attendee_id' : active_id}"/>
+							</div>
+							<div class="oe_title">
+								<label for="name" class="oe_edit_only"/>
+								<h1><field name="name" attrs="{'readonly':[('status','=','cancelled')]}"/></h1>
+								<label for="planned_revenue" class="oe_edit_only"/>
+								<h2>
+									<field name="company_currency" invisible="1"/>
+									<field name="planned_revenue" attrs="{'readonly':[('status','=','cancelled')]}" class="oe_inline" widget='monetary' options="{'currency_field': 'company_currency'}"/>
+									<span class="oe_grey"> at </span>
+									<field name="probability" attrs="{'readonly':[('status','=','cancelled')]}" class="oe_inline" widget="integer"/>%%
+								</h2>
+							</div>
+							<group>
+								<group>
+									<field name="lead_code" String="Lead"/>				
+								</group>
+								<group>
+									<label for="title_action"/>
+									<div>
+										<field name="date_action" attrs="{'readonly':[('status','=','cancelled')]}" nolabel="1"/> <label string="-" attrs="{'invisible': ['|', ('date_action', '=', False), ('title_action', '=', False)]}"/>
+										<field name="title_action" attrs="{'readonly':[('status','=','cancelled')]}" class="oe_inline" nolabel="1" placeholder="e.g. Call for proposal"/>
+									</div>
+									<field name="date_deadline" attrs="{'readonly':[('status','=','cancelled')]}"/>
+								</group>
+							</group>
+							<notebook colspan="4">
+							<page string="Internal Notes">
+								<field name="description" attrs="{'readonly':[('status','=','cancelled')]}"/>
+							</page>
+							<page string="Lead">
+								<group>
+									<group>
+										<!--<field name="lead_code"/>-->
+										<field name="constitution" attrs="{'readonly':[('status','=','cancelled')]}"/>
+										<field name="partner_name" attrs="{'readonly':[('status','=','cancelled')]}"/>
+										<label for="street" string="Address"/>
+										<div>	
+					                    	<field name="street" placeholder="Street..."/>
+					                        <field name="street2"/>
+					                        <field name="city" placeholder="City" />
+					                        <div class="address_format">
+					                        	<field name="country_id" style="width: 45%%" placeholder="Country" options="{'create': false, 'create_edit': false}"/>
+					                            <field name="state_id" on_change="onchange_state(state_id)" style="width: 53%%"  domain="[('country_id', '=', country_id)]" options="{'create': false, 'create_edit': false}" placeholder="State"/>
+					                        </div>
+					                        <field name="zip" placeholder="ZIP" style="width: 34%%"/>
+					                    </div>
+									</group>
+									
+									<group>
+										<field name="customer_code" attrs="{'readonly':[('status','=','cancelled')]}"/>
+										<label for="contact_name" attrs="{'readonly':[('status','=','cancelled')]}"/>
+										<div>
+											<field name="contact_name" placeholder="First Name..." attrs="{'readonly':[('status','=','cancelled')]}"/>
+											<field name="contact_last_name" placeholder="Last Name..." attrs="{'readonly':[('status','=','cancelled')]}"/> 
+											<field name="title" invisible="1" placeholder="Title" domain="[('domain', '=', 'contact')]" options='{"no_open": True}' class="oe_inline" attrs="{'readonly':[('status','=','cancelled')]}"/>
+										</div>
+										<field name="email_from" attrs="{'readonly':[('status','=','cancelled')]}" string="Email" widget="email"/>
+										<field name="phone" attrs="{'readonly':[('status','=','cancelled')]}"/>
+										<field name="function" attrs="{'readonly':[('status','=','cancelled')]}"/>
+										<field name="mobile" attrs="{'readonly':[('status','=','cancelled')]}"/>
+										<field name="fax" attrs="{'readonly':[('status','=','cancelled')]}"/>
+									</group>
+									
+									<group>
+										<field name="lead_zone" attrs="{'readonly':[('status','=','cancelled')]}"/>
+										<field name="user_id" widget="selection" on_change="on_change_user(user_id, context)" attrs="{'readonly':[('status','=','cancelled')]}"/>
+										<label for="section_id" />
+										<div>
+											<field name="section_id" widget="selection" attrs="{'readonly':[('status','=','cancelled')]}"/>
+											<button name="case_escalate" invisible="1" string="Escalate" type="object" class="oe_link" attrs="{'invisible': ['|', ('section_id','=',False), ('state', 'not in', ['draft','open','pending'])]}"/>
+										</div>
+										<field name="customer_expected_price" attrs="{'readonly':[('status','=','cancelled')]}"/>
+										<field name="expected_revenue" attrs="{'readonly':[('status','=','cancelled')]}"/>
+										<field name="competitor_name" attrs="{'readonly':[('status','=','cancelled')]}"/>
+										<field name="basic_price" attrs="{'readonly':[('status','=','cancelled')]}"/>
+										<field name="landed_price" attrs="{'readonly':[('status','=','cancelled')]}"/>
+										<field name="create_date" />
+										<field name="status" />
+										<field name="quotation_status" invisible ="1"/>
+									</group>
+									
+									<group>
+										<field name="priority" attrs="{'readonly':[('status','=','cancelled')]}"/>
+										<field name="lead_source_id" widget="selection" attrs="{'readonly':[('status','=','cancelled')]}"/>
+										<field name="probability" attrs="{'readonly':[('status','=','cancelled')]}"/>
+										<field name="rating" attrs="{'readonly':[('status','=','cancelled')]}"/>
+										<field name="lead_type" attrs="{'readonly':[('status','=','cancelled')]}"/>
+										<field name="lead_group" attrs="{'readonly':[('status','=','cancelled')]}"/>
+										<field name="currency_id" widget="selection" attrs="{'readonly':[('status','=','cancelled')]}"/>
+									</group>
+									
+									<group string="Mailings" name="mailings">
+										<field name="opt_out"/>
+									</group>
+									<group string="Misc">
+										<field name="active" attrs="{'readonly':[('status','=','cancelled')]}"/>
+										<field name="day_open" groups="base.group_no_one" attrs="{'readonly':[('status','=','cancelled')]}"/>
+										<field name="day_close" groups="base.group_no_one" attrs="{'readonly':[('status','=','cancelled')]}"/>
+										<field name="referred" attrs="{'readonly':[('status','=','cancelled')]}"/>
+										<field name="state" invisible="1"/>
+										<field name="type" invisible="1"/>
+									</group>
+									<group string="References">
+										<field name="ref" attrs="{'readonly':[('status','=','cancelled')]}"/>
+										<field name="ref2" attrs="{'readonly':[('status','=','cancelled')]}"/>
+									</group>
+								</group>
+							</page>
+							<page string="Product Line" autofocus="autofocus">
+								<field name="lead_line" nolabel='1' attrs="{'readonly':[('status','=','cancelled')]}">
+									<tree string="Product Line" editable='top'>
+										<field name="product_id" widget="selection" on_change="onchange_product_id(product_id)"/>
+										<field name="product_type" />
+	                            		<field name="application_id" widget="selection"/>
+	                            		<field name="month" on_change="onchange_month(month)"/>
+	                            		<field name="year" on_change="onchange_year(year)"/>
+	                            		<field name="uom_id" widget="selection"/>
+									</tree>
+								</field>
+							</page>
+							<page string="History" autofocus="autofocus">
+								<field name="history_ids" nolabel='1'>
+									<tree string="History" editable='top'>
+										<field name="date"/>
+										<field name="status"/>
+									</tree>
+								</field>
+							</page>
+							<page string="Fund Raising" groups="crm.group_fund_raising">
+								<group>
+									<field name="payment_mode" widget="selection" attrs="{'readonly':[('status','=','cancelled')]}"/>
+									<field name="planned_cost" attrs="{'readonly':[('status','=','cancelled')]}"/>
+								</group>
+							</page>
+							</notebook>
+						</sheet>
+						<div class="oe_chatter">
+							<field name="message_follower_ids" widget="mail_followers"/>
+							<field name="message_ids" widget="mail_thread"/>
+						</div>
+					</form>
+                	
+			        </xpath>
+                </data>
+            </field>
+        </record>
+        <record model="ir.ui.view" id="vsis_crm_case_tree_view_oppor">
+            <field name="name">Vsis Opportunities Tree</field>
+            <field name="model">crm.lead</field>
+            <field name="inherit_id" ref="crm.crm_case_tree_view_oppor"/>
+            <field name="arch" type="xml">
+            	<xpath expr="//tree[@string='Opportunities']" position="replace">
+	                <tree string="Opportunities" create="false" fonts="bold:message_unread==True" colors="gray:state in ('cancel', 'done');red:date_deadline and (date_deadline &lt; current_date)">
+	                    <field name="date_deadline" invisible="1"/>
+	                    <field name="create_date"/>
+	                    <field name="name" string="Opportunity"/>
+	                    <field name="partner_id" string="Customer"/>
+	                    <field name="country_id" invisible="context.get('invisible_country', True)"/>
+	                    <field name="date_action"/>
+	                    <field name="title_action"/>
+	                    <field name="channel_id" invisible="1"/>
+	                    <field name="type_id" invisible="1"/>
+	                    <field name="stage_id"/>
+	                    <field name="planned_revenue" sum="Expected Revenues"/>
+	                    <field name="probability" avg="Avg. of Probability"/>
+	                    <field name="section_id" invisible="context.get('invisible_section', True)"/>
+	                    <field name="user_id"/>
+	                    <field name="referred" invisible="1"/>
+	                    <field name="priority" invisible="1"/>
+	                    <field name="message_unread" invisible="1"/>
+	                    <field name="state" invisible="1"/>
+	                </tree>
+	           </xpath>
+            </field>
+        </record>
+        
+        <record model="ir.ui.view" id="crm.crm_case_kanban_view_leads">
+            <field name="name">CRM - Leads Kanban</field>
+            <field name="model">crm.lead</field>
+            <field name="arch" type="xml">
+                <kanban default_group_by="stage_id" create="false" edit="false">
+                    <field name="state" groups="base.group_no_one"/>
+                    <field name="stage_id"/>
+                    <field name="color"/>
+                    <field name="priority"/>
+                    <field name="planned_revenue" sum="Expected Revenues"/>
+                    <field name="user_email"/>
+                    <field name="user_id"/>
+                    <field name="partner_address_email"/>
+                    <field name="message_summary"/>
+                    <field name="message_unread"/>
+                    <templates>
+                        <field name="date_deadline"/>
+                        <t t-name="kanban-box">
+                            <div t-attf-class="oe_kanban_color_#{kanban_getcolor(record.color.raw_value)} oe_kanban_card oe_kanban_global_click">
+                                <div class="oe_dropdown_toggle oe_dropdown_kanban">
+                                    <span class="oe_e">í</span>
+                                    <ul class="oe_dropdown_menu">
+                                        <t t-if="widget.view.is_action_enabled('edit')"><li><a type="edit">Edit...</a></li></t>
+                                        <t t-if="widget.view.is_action_enabled('delete')"><li><a type="delete">Delete</a></li></t>
+                                        <li><a name="%(mail.action_email_compose_message_wizard)d" type="action">Send Email</a></li>
+                                        <li><a name="%(crm.opportunity2phonecall_act)d" type="action">Schedule/Log Call</a></li>
+                                        <li><a name="crm.action_makeMeeting" type="object">Schedule Meeting</a></li>
+                                        <li><ul class="oe_kanban_colorpicker" data-field="color"/></li>
+                                    </ul>
+                                </div>
+                                <div class="oe_kanban_content">
+                                    <div>
+                                        <b><field name="name"/></b>
+                                        <t t-if="record.planned_revenue.raw_value">
+                                            - <b><t t-esc="record.planned_revenue.value"/>
+                                            <field name="company_currency"/></b>
+                                        </t>
+                                    </div>
+                                    <div>
+                                        <field name="partner_id"/>
+                                    </div>
+                                    <div style="padding-left: 0.5em">
+                                        <t t-if="record.date_deadline.raw_value and record.date_deadline.raw_value lt (new Date())" t-set="red">oe_kanban_text_red</t>
+                                        <span t-attf-class="#{red || ''}"><field name="date_action"/></span>
+                                        <t t-if="record.date_action.raw_value"> : </t>
+                                        <field name="title_action"/>
+                                    </div>
+                                    <div class="oe_kanban_bottom_right">
+                                        <a t-if="record.priority.raw_value == 1" type="object" name="set_normal_priority" class="oe_e oe_star_on">7</a>
+                                        <a t-if="record.priority.raw_value != 1" type="object" name="set_high_priority" class="oe_e oe_star_off">7</a>
+                                        <img t-att-src="kanban_image('res.users', 'image_small', record.user_id.raw_value)" t-att-title="record.user_id.value" width="24" height="24" class="oe_kanban_avatar" t-if="record.user_id.value"/>
+                                    </div>
+                                    <div class="oe_kanban_footer_left">
+                                        <t t-raw="record.message_summary.raw_value"/>
+                                    </div>
+                                </div>
+                                <div class="oe_clear"></div>
+                            </div>
+                        </t>
+                    </templates>
+                </kanban>
+            </field>
+        </record>
+        
+        <record model="ir.actions.act_window" id="crm.crm_case_category_act_leads_all">
+	        <field name="name">Leads</field>
+	        <field name="res_model">crm.lead</field>
+	        <field name="view_mode">tree,form</field>
+	        <field name="domain">['|',('status','!=','cancelled'),('status','=','closed')]</field>
+	        <field name="view_id" ref="vsis_crm_case_tree_view_leads"/>
+	        <field name="search_view_id" ref="vsis_view_crm_case_leads_filter"/>
+	         <field name="context">{
+	                 'default_type':'lead',
+	                 'stage_type':'lead',
+	             }
+	         </field>
+	        <field name="help" type="html">
+	          <p class="oe_view_nocontent_create">
+	            Click to create an unqualified lead.
+	          </p><p>
+	            Use leads if you need a qualification step before creating an
+	            opportunity or a customer. It can be a business card you received,
+	            a contact form filled in your website, or a file of unqualified
+	            prospects you import, etc.
+	          </p><p>
+	            Once qualified, the lead can be converted into a business
+	            opportunity and/or a new customer in your address book.
+	          </p>
+        </field>
+    </record>
+    	
+    	<record model="ir.actions.act_window" id="crm.crm_case_category_act_oppor11">
+        <field name="name">Opportunities</field>
+        <field name="res_model">crm.lead</field>
+        <field name="view_mode">kanban,tree,graph,form,calendar</field>
+        <field name="domain">['|',('type','=','opportunity'),('status','=','cancelled')]</field>
+        <field name="context">{'stage_type': 'opportunity', 'default_type': 'opportunity', 'default_user_id': uid}</field>
+        <field name="view_id" ref="vsis_crm_case_tree_view_oppor"/>
+        <field name="search_view_id" ref="crm.view_crm_case_opportunities_filter"/>
+        <field name="help" type="html">
+          <p class="oe_view_nocontent_create">
+          Click to create a new opportunity.
+          </p><p>
+          OpenERP helps you keep track of your sales pipeline to follow
+          up potential sales and better forecast your future revenues.
+          </p><p>
+          You will be able to plan meetings and phone calls from
+          opportunities, convert them into quotations, attach related
+          documents, track all discussions, and much more.
+          </p>
+        </field>
+    </record>
+        
+        
+        
+        <record model="ir.ui.view" id="crm_sample_request_tree_view">
+            <field name="name">crm.sample.request.tree</field>
+            <field name="model">crm.sample.request</field>
+            <field name="arch" type="xml">
+                <tree string="Sample Request">
+                    <field name="name"/>
+                    <field name="lead_id" widget="selection"/>
+                    <field name="subject"/>
+                    <field name="description"/>
+                    <field name="sample_required"/>
+                </tree>
+            </field>
+        </record>
+        
+        <record id="crm_sample_request_form_view" model="ir.ui.view" >
+            <field name="name">crm.sample.request.form</field>
+            <field name="model">crm.sample.request</field>
+            <field name="type">form</field>
+            <field name="arch" type="xml">
+                <form version="7.0" string="Sample Request">
+                	<sheet>
+                        <group>
+                        	<field name="name"/>
+                        	<field name="lead_id" context="{'sample_request_lead':True,'lead_id':lead_id}" options="{'create': false, 'create_edit': false}" on_change="onchange_lead_id(lead_id, context)"/>
+		                    <field name="subject"/>
+		                    <field name="description"/>
+		                    <field name="sample_required"/>
+                        </group>
+                        <notebook>
+		                    <page string="Product Line" autofocus="autofocus">
+	                            <field name="sample_request_line" nolabel='1'>
+	                            	<tree string="Product Line" editable='top'>
+	                            		<field name="product_id" widget="selection" on_change="onchange_product_id(product_id)"/>
+	                            		<field name="product_type"/>
+	                            		<field name="application_id" widget="selection"/>
+	                            		<field name="quantity" />
+	                            		<field name="uom_id" widget="selection"/>
+	                                </tree>
+	                            </field>
+	                        </page>
+                       </notebook>
+            		</sheet>
+                </form>
+            </field>
+        </record>
+        
+        <record id="vsis_view_crm_sample_request_search" model="ir.ui.view">
+            <field name="model">crm.sample.request</field>
+            <field name="arch" type="xml">
+                <search string="Sample Request">
+                    <field name="name" filter_domain="[('name','ilike',self)]" string="Sample Request"/>
+                </search>
+            </field>
+        </record>
+        
+        
+        <record id="vsis_action_sample_request" model="ir.actions.act_window">
+            <field name="name">Sample Request</field>
+            <field name="type">ir.actions.act_window</field>
+            <field name="res_model">crm.sample.request</field>
+            <field name="view_type">form</field>
+            <field name="view_id" eval="False"/>
+            <field name="search_view_id" ref="vsis_view_crm_sample_request_search"/>
+        </record>
+        <menuitem action="vsis_action_sample_request" id="vsis_menu_sample_request" parent="base.menu_sales" sequence="102"/>
+        
+        <record model="ir.ui.view" id="crm_sample_sending_tree_view">
+            <field name="name">crm.sample.sending.tree</field>
+            <field name="model">crm.sample.sending</field>
+            <field name="arch" type="xml">
+                <tree string="Sample Sending">
+                    <field name="name"/>
+                    <field name="sample_request_id"/>
+                    <field name="lead_id" />
+                    <field name="application_id" />
+                    <field name="odour"/>
+                    <field name="texture"/>
+                    <field name="color_in_oil"/>
+                    <field name="reducing_power"/>
+                    <field name="volatile_matter"/>
+                    <field name="purity_as_tio2"/>
+                    <field name="matter_soluble"/>
+                    <field name="residue"/>
+                    <field name="ph_of_pigment_slurry"/>
+                    <field name="oil_absorption"/>
+                </tree>
+            </field>
+        </record>
+        
+        <record id="crm_sample_sending_form_view" model="ir.ui.view" >
+            <field name="name">crm.sample.sending.form</field>
+            <field name="model">crm.sample.sending</field>
+            <field name="type">form</field>
+            <field name="arch" type="xml">
+                <form version="7.0" string="Sample Rending">
+                	<sheet>
+                		<group>
+	                        <group>
+	                        	<field name="name"/>
+	                        	<field name="lead_id" readonly="1" widget="selection"/>
+			                    <field name="application_id" widget="selection"/>
+			                    <field name="texture"/>
+	                        </group>
+	                        <group>
+	                        	<field name="sample_request_id" context="{'sample_sending_request':True,'sample_request_id':sample_request_id}" options="{'create': false, 'create_edit': false}" on_change="onchange_sample_request_id(sample_request_id,context)"/>
+	                        	<field name="odour"/>
+	                        </group>
+	                    </group>
+	                    <group>
+	                        <group>
+	                        	<field name="purity_as_tio2"/>
+	                        	<field name="residue"/>
+			                    <field name="oil_absorption"/>
+			                    <field name="reducing_power"/>
+	                        </group>
+	                        <group>
+	                        	<field name="volatile_matter"/>
+	                        	<field name="matter_soluble"/>
+			                    <field name="ph_of_pigment_slurry"/>
+			                    <field name="color_in_oil"/>
+	                        </group>
+	                    </group>
+                        <notebook>
+		                    <page string="Product Line" autofocus="autofocus">
+	                            <field name="sample_sending_line" nolabel='1'>
+	                            	<tree string="Product Line" editable='top'>
+	                            		<field name="product_id" widget="selection" on_change="onchange_product_id(product_id)"/>
+	                            		<field name="product_type"/>
+	                            		<field name="application_id" widget="selection"/>
+	                            		<field name="quantity" />
+	                            		<field name="uom_id" widget="selection"/>
+	                                </tree>
+	                            </field>
+	                        </page>
+                       </notebook>
+            		</sheet>
+                </form>
+            </field>
+        </record>
+        
+        <record id="vsis_view_crm_sample_sending_search" model="ir.ui.view">
+            <field name="model">crm.sample.sending</field>
+            <field name="arch" type="xml">
+                <search string="Sample Sending">
+                    <field name="name" filter_domain="[('name','ilike',self)]" string="Sample Sending"/>
+                </search>
+            </field>
+        </record>
+        
+        
+        <record id="vsis_action_sample_sending" model="ir.actions.act_window">
+            <field name="name">Sample Sending</field>
+            <field name="type">ir.actions.act_window</field>
+            <field name="res_model">crm.sample.sending</field>
+            <field name="view_type">form</field>
+            <field name="view_id" eval="False"/>
+            <field name="search_view_id" ref="vsis_view_crm_sample_sending_search"/>
+        </record>
+        <menuitem action="vsis_action_sample_sending" id="vsis_menu_sample_sending" parent="base.menu_sales" sequence="103"/>
+        
+        
+        
+        
+        
+    </data>
+    
+</openerp>

@@ -1,0 +1,33 @@
+<openerp>
+   <data>
+
+        <!-- crm make sale's view -->
+
+       <record id="view_crm_make_cancel" model="ir.ui.view">
+          <field name="name">crm.make.cancel.form</field>
+          <field name="model">crm.make.cancel</field>
+          <field name="arch" type="xml">
+            <form string="Cancelled"  version="7.0">
+            	<group>
+            		<h1>Do you want to cancel?</h1>
+            	</group>
+                <footer>
+                    <button name="makecancel" string="Yes" type="object" class="oe_highlight"/>
+                    or
+                    <button string="No" class="oe_highlight" special="cancel" />
+                </footer>
+            </form>
+          </field>
+       </record>
+
+       <record id="action_crm_make_cancel" model="ir.actions.act_window">
+          <field name="name">Cancelled</field>
+          <field name="type">ir.actions.act_window</field>
+          <field name="res_model">crm.make.cancel</field>
+          <field name="view_type">form</field>
+          <field name="view_mode">form</field>
+          <field name="target">new</field>
+       </record>
+
+   </data>
+</openerp>

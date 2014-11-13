@@ -1,40 +1,34 @@
 <?xml version="1.0" encoding="utf-8"?>
 <openerp>
     <data>
-    <record id="view_arul_hr_payroll_area_tree_vew" model="ir.ui.view">
+    
+    	<record id="view_arul_hr_payroll_area_tree_vew" model="ir.ui.view">
 			<field name="name">arul.hr.payroll.area.tree</field>
 			<field name="model">arul.hr.payroll.area</field>
 			<field name="arch" type="xml">
 				<tree string="Payroll Area">
-				
 					<field name="code"/>
 					<field name="name"/>
-					
 				</tree>
 			</field>
 		</record>
-		
-	
 		
 		<record id="view_arul_hr_payroll_area_form_vew" model="ir.ui.view">
             <field name="name">arul.hr.payroll.area.form</field>
             <field name="model">arul.hr.payroll.area</field>
             <field name="arch" type="xml">
-            <form string="Payroll Area" version="7.0">   
-            	<sheet>
-                
-	                <group>    
-	                <field name="code"/>
-					<field name="name"/>
-	                </group>   	
-	            
-	         </sheet>
-	         </form>
-	     	 </field>
-          </record>
+	            <form string="Payroll Area" version="7.0">   
+	            	<sheet>
+		                <group>    
+			                <field name="code"/>
+							<field name="name"/>
+		                </group>   	
+		         	</sheet>
+		         </form>
+			</field>
+		</record>
           
-          <record id="action_arul_hr_payroll_area_form" model="ir.actions.act_window">
-         	
+		<record id="action_arul_hr_payroll_area_form" model="ir.actions.act_window">
             <field name="name">Payroll Area</field>
             <field name="type">ir.actions.act_window</field>
             <field name="res_model">arul.hr.payroll.area</field>
@@ -43,24 +37,17 @@
             <field name="view_id" ref="view_arul_hr_payroll_area_tree_vew"/>
         </record>
         
-        
-        <menuitem id="arul_hr" name="Arul" sequence="0" />
-        <menuitem id="payroll_area" name="Payroll Area" parent="arul_hr" sequence="0"/>
-        
         <menuitem action="action_arul_hr_payroll_area_form"
             id="menu_action_arul_hr_payroll_area_form"
-            parent="payroll_area" sequence="1"/>
-         
+            parent="hr.menu_hr_configuration" sequence="20"/>
          
          <record id="view_arul_hr_payroll_sub_area_tree_vew" model="ir.ui.view">
 			<field name="name">arul.hr.payroll.sub.area.tree</field>
 			<field name="model">arul.hr.payroll.sub.area</field>
 			<field name="arch" type="xml">
 				<tree string="Payroll Sub Area">
-				
 					<field name="code"/>
 					<field name="name"/>
-					
 				</tree>
 			</field>
 		</record>    
@@ -69,21 +56,18 @@
             <field name="name">arul.hr.payroll.sub.area.form</field>
             <field name="model">arul.hr.payroll.sub.area</field>
             <field name="arch" type="xml">
-            <form string="Payroll Sub Area" version="7.0">   
-            	<sheet>
-                
-	                <group>    
-	                <field name="code"/>
-					<field name="name"/>
-	                </group>   	
-	            
-	         </sheet>
-	         </form>
+	            <form string="Payroll Sub Area" version="7.0">   
+	            	<sheet>
+		                <group>    
+			                <field name="code"/>
+							<field name="name"/>
+		                </group>   	
+		         	</sheet>
+		         </form>
 	     	 </field>
           </record>
                 
-          <record id="action_arul_hr_payroll_sub_area_form" model="ir.actions.act_window">
-         	
+		<record id="action_arul_hr_payroll_sub_area_form" model="ir.actions.act_window">
             <field name="name">Payroll Sub Area</field>
             <field name="type">ir.actions.act_window</field>
             <field name="res_model">arul.hr.payroll.sub.area</field>
@@ -94,7 +78,7 @@
         
        <menuitem action="action_arul_hr_payroll_sub_area_form"
             id="menu_action_arul_hr_payroll_sub_area_form"
-            parent="payroll_area" sequence="2"/>
+            parent="hr.menu_hr_configuration" sequence="2"/>
        
     </data>
     
