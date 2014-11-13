@@ -1,0 +1,114 @@
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+access_crm_specification_user,crm.specification for user,green_erp_arulmani_crm.model_crm_specification,group_sample_user,True,True,True,False
+access_crm_sample_invoice_user,crm.sample.invoice for user,green_erp_arulmani_crm.model_crm_sample_invoice,group_sample_user,True,True,True,False
+access_crm_sample_sending_user,crm.sample.sending for user,green_erp_arulmani_crm.model_crm_sample_sending,group_sample_user,True,False,False,False
+access_crm_sample_request_user,crm.sample.request for user,green_erp_arulmani_crm.model_crm_sample_request,group_sample_user,True,True,True,False
+access_crm_qc_test_user,crm.qc.test for user,green_erp_arulmani_crm.model_crm_qc_test,group_sample_user,True,False,False,False
+access_crm_sample_invoice_line_user,crm.sample.invoice.line for user,green_erp_arulmani_crm.model_crm_sample_invoice_line,group_sample_user,True,True,True,True
+access_crm_sample_sending_line_user,crm.sample.sending.line for user,green_erp_arulmani_crm.model_crm_sample_sending_line,group_sample_user,True,True,True,True
+access_crm_sample_request_line_user,crm.sample.request.line for user,green_erp_arulmani_crm.model_crm_sample_request_line,group_sample_user,True,True,True,True
+access_crm_qc_test_detail_user,crm.qc.test.detail for user,green_erp_arulmani_crm.model_crm_qc_test_detail,group_sample_user,True,True,True,True
+access_crm_qc_test_line_user,crm.qc.test.line for user,green_erp_arulmani_crm.model_crm_qc_test_line,group_sample_user,True,True,True,True
+access_crm_user_1,crm.specification.line for user,green_erp_arulmani_crm.model_crm_specification_line,group_sample_user,True,True,True,True
+access_crm_user_2,crm.lead.line for user,green_erp_arulmani_crm.model_crm_lead_line,group_sample_user,True,True,True,True
+access_crm_user_3,Lead/Opportunity for user,crm.model_crm_lead,group_sample_user,True,True,True,False
+access_crm_user_4,crm.lead.history for user,green_erp_arulmani_crm.model_crm_lead_history,group_sample_user,True,True,True,True
+access_crm_user_5,crm.lead.line for user,green_erp_arulmani_crm.model_crm_lead_line,group_sample_user,True,True,True,True
+access_crm_user_6,Sales Order for user,green_erp_arulmani_crm.model_sale_order,group_sample_user,True,True,True,False
+access_crm_user_7,crm.application for user,green_erp_arulmani_crm.model_crm_application,group_sample_user,True,True,True,True
+access_crm_user_8,Currency for user,account.model_res_currency,group_sample_user,True,True,True,False
+access_crm_user_9,Product Unit of Measure for user,product.model_product_uom,group_sample_user,True,True,True,False
+access_crm_user_10,Country for user,base.model_res_country,group_sample_user,True,True,True,False
+access_crm_user_11,Country state for user,base.model_res_country_state,group_sample_user,True,True,True,False
+access_crm_user_12,Channels for user,crm.model_crm_case_channel,group_sample_user,True,True,True,False
+access_crm_user_13,Payment Term for user,account.model_account_payment_term,group_sample_user,True,True,True,False
+access_crm_user_14,Incoterms for user,stock.model_stock_incoterms,group_sample_user,True,True,True,False
+access_crm_user_15,Tax Code for user,account.model_account_tax_code,group_sample_user,True,True,True,False
+access_crm_user_16,Tax for user,account.model_account_tax,group_sample_user,True,True,True,False
+access_crm_user_17,Application for user,base.model_ir_module_category,group_sample_user,True,True,True,False
+access_crm_user_18,Bank Accounts for user,account.model_res_partner_bank,group_sample_user,True,True,True,False
+access_crm_user_19,Bank for user,base.model_res_bank,group_sample_user,True,True,True,False
+access_crm_user_20,crm.leadsource for user,green_erp_arulmani_crm.model_crm_leadsource,group_sample_user,True,True,True,True
+access_crm_user_21,Companies for user,account.model_res_company,group_sample_user,True,True,False,False
+access_crm_user_22,Category of Case for user,crm.model_crm_case_categ,group_sample_user,True,True,True,False
+access_crm_user_23,mail.message for user,base_calendar.model_mail_message,group_sample_user,True,True,True,True
+access_crm_user_24,Notifications for user,mail.model_mail_notification,group_sample_user,True,True,True,False
+access_crm_user_25,Stage of case for user,crm.model_crm_case_stage,group_sample_user,True,True,True,False
+access_crm_user_26,Employee for user,green_erp_arulmani_crm.model_hr_employee,group_sample_user,True,False,False,False
+access_crm_user_27,Event alarm information for user,base_calendar.model_calendar_alarm,group_sample_user,True,True,True,False
+access_crm_user_28,Attendee information for user,base_calendar.model_calendar_attendee,group_sample_user,True,True,True,False
+access_crm_user_29,Report Mime-Types gor user,report_aeroo.model_report_mimetypes,group_sample_user,True,True,True,False
+access_crm_user_30,Partner for user,account.model_res_partner,group_sample_user,True,False,False,False
+access_crm_user_31,crm.specification for user,green_erp_arulmani_crm.model_crm_specification,group_sample_user,True,True,True,False
+access_crm_user_32,crm.sample.invoice for user,green_erp_arulmani_crm.model_crm_sample_invoice,group_sample_user,True,True,True,False
+access_crm_user_33,crm.sample.sending for user,green_erp_arulmani_crm.model_crm_sample_sending,group_sample_user,True,False,False,False
+access_crm_user_34,crm.sample.request for user,green_erp_arulmani_crm.model_crm_sample_request,group_sample_user,True,True,True,False
+access_crm_user_35,crm.qc.test for user,green_erp_arulmani_crm.model_crm_qc_test,group_sample_user,True,False,False,False
+access_crm_user_36,crm.sample.invoice.line for user,green_erp_arulmani_crm.model_crm_sample_invoice_line,group_sample_user,True,True,True,True
+access_crm_user_37,crm.sample.sending.line for user,green_erp_arulmani_crm.model_crm_sample_sending_line,group_sample_user,True,True,True,True
+access_crm_user_38,crm.sample.request.line for user,green_erp_arulmani_crm.model_crm_sample_request_line,group_sample_user,True,True,True,True
+access_crm_user_39,crm.qc.test.detail for user,green_erp_arulmani_crm.model_crm_qc_test_detail,group_sample_user,True,True,True,True
+access_crm_user_40,crm.qc.test.line for user,green_erp_arulmani_crm.model_crm_qc_test_line,group_sample_user,True,True,True,True
+access_crm_user_41,crm.specification.line for user,green_erp_arulmani_crm.model_crm_specification_line,group_sample_user,True,True,True,True
+access_crm_user_42,crm.lead.line for user,green_erp_arulmani_crm.model_crm_lead_line,group_sample_user,True,True,True,True
+access_crm_user_43,Lead/Opportunity for user,crm.model_crm_lead,group_sample_user,True,True,True,False
+access_crm_user_44,crm.lead.history for user,green_erp_arulmani_crm.model_crm_lead_history,group_sample_user,True,True,True,True
+access_crm_user_45,crm.lead.line for user,green_erp_arulmani_crm.model_crm_lead_line,group_sample_user,True,True,True,True
+access_crm_user_46,Sales Order for user,green_erp_arulmani_crm.model_sale_order,group_sample_user,True,True,True,False
+access_crm_user_47,crm.application for user,green_erp_arulmani_crm.model_crm_application,group_sample_user,True,True,True,True
+access_crm_user_48,Currency for user,account.model_res_currency,group_sample_user,True,True,True,False
+access_crm_user_49,Product Unit of Measure for user,product.model_product_uom,group_sample_user,True,True,True,False
+access_crm_user_50,Country for user,base.model_res_country,group_sample_user,True,True,True,False
+access_crm_user_51,Country state for user,base.model_res_country_state,group_sample_user,True,True,True,False
+access_crm_user_52,Channels for user,crm.model_crm_case_channel,group_sample_user,True,True,True,False
+access_crm_user_53,Payment Term for user,account.model_account_payment_term,group_sample_user,True,True,True,False
+access_crm_user_54,Incoterms for user,stock.model_stock_incoterms,group_sample_user,True,True,True,False
+access_crm_user_55,Tax Code for user,account.model_account_tax_code,group_sample_user,True,True,True,False
+access_crm_user_56,Tax for user,account.model_account_tax,group_sample_user,True,True,True,False
+access_crm_user_57,Application for user,base.model_ir_module_category,group_sample_user,True,True,True,False
+access_crm_user_58,Bank Accounts for user,account.model_res_partner_bank,group_sample_user,True,True,True,False
+access_crm_user_59,Bank for user,base.model_res_bank,group_sample_user,True,True,True,False
+access_crm_user_60,crm.leadsource for user,green_erp_arulmani_crm.model_crm_leadsource,group_sample_user,True,True,True,True
+access_crm_user_61,Companies for user,account.model_res_company,group_sample_user,True,True,False,False
+access_crm_user_62,Category of Case for user,crm.model_crm_case_categ,group_sample_user,True,True,True,False
+access_crm_user_63,mail.message for user,base_calendar.model_mail_message,group_sample_user,True,True,True,True
+access_crm_user_64,Notifications for user,mail.model_mail_notification,group_sample_user,True,True,True,False
+access_crm_user_65,Stage of case for user,crm.model_crm_case_stage,group_sample_user,True,True,True,False
+access_crm_user_66,Employee for user,green_erp_arulmani_crm.model_hr_employee,group_sample_user,True,False,False,False
+access_crm_user_67,Event alarm information for user,base_calendar.model_calendar_alarm,group_sample_user,True,True,True,False
+access_crm_user_68,Attendee information for user,base_calendar.model_calendar_attendee,group_sample_user,True,True,True,False
+access_crm_user_69,Report Mime-Types gor user,report_aeroo.model_report_mimetypes,group_sample_user,True,True,True,False
+access_crm_user_70,Partner for user,account.model_res_partner,group_sample_user,True,False,False,False
+access_crm_user_71,customer_address,model_customer_address,group_sample_user,True,True,True,False
+access_crm_user_72,crm.sample.sending.line for qc user,green_erp_arulmani_crm.model_crm_sample_sending_line,group_qc_user,True,True,True,True
+access_crm_user_73,crm.sample.sending for qc user,green_erp_arulmani_crm.model_crm_sample_sending,group_qc_user,True,True,True,True
+access_crm_user_74,crm.sample.request.line for qc user,green_erp_arulmani_crm.model_crm_sample_request_line,group_qc_user,True,False,False,False
+access_crm_user_75,crm.sample.request for qc user,green_erp_arulmani_crm.model_crm_sample_request,group_qc_user,True,False,False,False
+access_crm_user_76,crm.qc.test.detail for qc user,green_erp_arulmani_crm.model_crm_qc_test_detail,group_qc_user,True,True,True,True
+access_crm_user_77,crm.qc.test.line for qc user,green_erp_arulmani_crm.model_crm_qc_test_line,group_qc_user,True,True,True,True
+access_crm_user_78,crm.qc.test for qc user,green_erp_arulmani_crm.model_crm_qc_test,group_qc_user,True,True,True,True
+access_crm_user_81,crm.lead.history for qc user,green_erp_arulmani_crm.model_crm_lead_history,group_qc_user,True,True,True,False
+access_crm_user_82,crm.application for qc user,green_erp_arulmani_crm.model_crm_application,group_qc_user,True,True,True,False
+access_crm_user_83,crm.specification.line for qc user,green_erp_arulmani_crm.model_crm_specification_line,group_qc_user,True,False,False,False
+access_crm_user_84,crm.specification for qc user,green_erp_arulmani_crm.model_crm_specification,group_qc_user,True,False,False,False
+access_crm_user_85,Product Unit of Measure for qc user,product.model_product_uom,group_qc_user,True,True,False,False
+access_crm_user_86,Product for qc user,green_erp_arulmani_crm.model_product_product,group_qc_user,True,False,False,False
+access_crm_user_87,Lead/Opportunity for qc user,crm.model_crm_lead,group_qc_user,True,True,False,False
+access_crm_user_88,crm.lead.line for qc user,green_erp_arulmani_crm.model_crm_lead_line,group_qc_user,True,True,False,False
+access_crm_user_89,Report Mime-Types for qc user,report_aeroo.model_report_mimetypes,group_qc_user,True,True,True,True
+access_crm_user_90,crm.sample.sending.line for qc user,green_erp_arulmani_crm.model_crm_sample_sending_line,group_qc_user,True,True,True,True
+access_crm_user_91,crm.sample.sending for qc user,green_erp_arulmani_crm.model_crm_sample_sending,group_qc_user,True,True,True,True
+access_crm_user_92,crm.sample.request.line for qc user,green_erp_arulmani_crm.model_crm_sample_request_line,group_qc_user,True,False,False,False
+access_crm_user_93,crm.sample.request for qc user,green_erp_arulmani_crm.model_crm_sample_request,group_qc_user,True,False,False,False
+access_crm_user_94,crm.qc.test.detail for qc user,green_erp_arulmani_crm.model_crm_qc_test_detail,group_qc_user,True,True,True,True
+access_crm_user_95,crm.qc.test.line for qc user,green_erp_arulmani_crm.model_crm_qc_test_line,group_qc_user,True,True,True,True
+access_crm_user_96,crm.qc.test for qc user,green_erp_arulmani_crm.model_crm_qc_test,group_qc_user,True,True,True,True
+access_crm_user_99,crm.lead.history for qc user,green_erp_arulmani_crm.model_crm_lead_history,group_qc_user,True,True,True,False
+access_crm_user_100,crm.application for qc user,green_erp_arulmani_crm.model_crm_application,group_qc_user,True,True,True,False
+access_crm_user_101,crm.specification.line for qc user,green_erp_arulmani_crm.model_crm_specification_line,group_qc_user,True,False,False,False
+access_crm_user_102,crm.specification for qc user,green_erp_arulmani_crm.model_crm_specification,group_qc_user,True,False,False,False
+access_crm_user_103,Product Unit of Measure for qc user,product.model_product_uom,group_qc_user,True,True,False,False
+access_crm_user_104,Product for qc user,green_erp_arulmani_crm.model_product_product,group_qc_user,True,False,False,False
+access_crm_user_105,Lead/Opportunity for qc user,crm.model_crm_lead,group_qc_user,True,True,False,False
+access_crm_user_106,crm.lead.line for qc user,green_erp_arulmani_crm.model_crm_lead_line,group_qc_user,True,True,False,False
+access_crm_user_107,Report Mime-Types for qc user,report_aeroo.model_report_mimetypes,group_qc_user,True,True,True,True

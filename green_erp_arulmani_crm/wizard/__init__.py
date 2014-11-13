@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 ##############################################################################
-#
+#    
 #    OpenERP, Open Source Management Solution
 #    Copyright (C) 2004-2010 Tiny SPRL (<http://tiny.be>).
 #
@@ -15,32 +15,13 @@
 #    GNU Affero General Public License for more details.
 #
 #    You should have received a copy of the GNU Affero General Public License
-#    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+#    along with this program.  If not, see <http://www.gnu.org/licenses/>.     
 #
 ##############################################################################
 
-{
-    'name': 'VVTi_TPT_HRM',
-    'version': '1.0',
-    'category': 'GreenERP',
-    'sequence': 14,
-    'author': 'Tenth Planet',
-    'website' : 'http://www. tenthplanet.in',
-    'depends': ['green_erp_arulmani_crm'],
-    'data': [
-        'security/green_erp_arulmani_hrm_security.xml',
-        'security/ir.model.access.csv',
-        'hr_employee_view.xml',
-        'hr_department_view.xml',
-        'hr_payroll_view.xml',
-        'menu_view.xml',
-    ],
-    'css' : [
-    ],
-    'qweb': [
-     ],
-    'installable': True,
-    'auto_install': False,
-    'application': True,
-}
+# import crm_make_sale
+import crm_make_cancel
+import hr_employee_report
+
 # vim:expandtab:smartindent:tabstop=4:softtabstop=4:shiftwidth=4:
+

@@ -1,0 +1,1098 @@
+<?xml version="1.0" encoding="utf-8"?>
+<openerp>
+    <data>
+    
+    	<record id="vsis_view_company_form" model="ir.ui.view">
+            <field name="name">vsis.res.company.form</field>
+            <field name="model">res.company</field>
+            <field name="inherit_id" ref="base.view_company_form"/>
+            <field name="arch" type="xml">
+            		<xpath expr="//label[@for='name']" position="before">
+                        <label for="company_code" class="oe_edit_only"/>
+                        <h1>
+                            <field name="company_code" class="oe_inline"/>
+                        </h1>
+                    </xpath>
+                    <xpath expr="//form/sheet/notebook/page[@string='General Information']/group/group/div" position="replace">
+	                    <div>	
+	                    	<field name="street" placeholder="Street..."/>
+	                        <field name="street2"/>
+	                        <field name="city" placeholder="City" />
+	                        <div class="address_format">
+	                        	<field name="country_id" style="width: 45%%" on_change="on_change_country(country_id)" placeholder="Country" options="{'create': false, 'create_edit': false}"/>
+	                            <field name="state_id" style="width: 53%%"  domain="[('country_id', '=', country_id)]" options="{'create': false, 'create_edit': false}" placeholder="State"/>
+	                        </div>
+	                        <field name="zip" placeholder="ZIP" style="width: 34%%"/>
+	                    </div>
+                    </xpath>
+                    <xpath expr="//field[@name='company_registry']" position="after">
+                		<label for="factory_street" string="Reg.Office Address"/>
+                        <div>
+                            <field name="factory_street" placeholder="Street..."/>
+                            <field name="factory_street2"/>
+                            <field name="factory_city" placeholder="City" />
+                            <div class="address_format">
+                            	<field name="factory_country_id" style="width: 45%%" placeholder="Country" options="{'create': false, 'create_edit': false}"/>
+                                <field name="factory_state_id" style="width: 53%%" domain="[('country_id', '=', factory_country_id)]" options="{'create': false, 'create_edit': false}" placeholder="State"/>
+                            </div>
+                            <field name="factory_zip" placeholder="ZIP" style="width: 34%%"/>
+                        </div>
+        			</xpath>
+    		</field>
+        </record>
+        
+        <record id="vsis_view_company_tree" model="ir.ui.view">
+            <field name="name">vsis.res.company.tree</field>
+            <field name="model">res.company</field>
+            <field name="inherit_id" ref="base.view_company_tree"/>
+            <field name="field_parent">child_ids</field>
+            <field name="arch" type="xml">
+                    <field name="name" position="before">
+                    	<field name="company_code" />
+                    </field>
+            </field>
+        </record>
+        
+        <record id="vsis_view_partner_form_inherit" model="ir.ui.view">
+            <field name="name">res.partner.view.form.inherit</field>
+            <field name="model">res.partner</field>
+            <field name="inherit_id" ref="base.view_partner_form"/>
+            <field name="arch" type="xml">
+                <data>
+                
+                	<xpath expr="//field[@name='country_id']" position="replace">
+                        <field name="zip" invisible="1" placeholder="ZIP" style="width: 25%%" attrs="{'readonly': [('use_parent_address','=',True)]}"/>
+                    </xpath>
+                    
+                	<xpath expr="//field[@name='city']" position="replace">
+                        <field name="country_id" style="width: 45%%" attrs="{'readonly': [('use_parent_address','=',True)]}" placeholder="Country" options="{'create': false, 'create_edit': false}"/>
+                    </xpath>
+                    
+                	<xpath expr="//field[@name='state_id']" position="replace">
+                        <field name="state_id" style="width: 53%%" on_change="onchange_state(state_id)" attrs="{'readonly': [('use_parent_address','=',True)]}"  domain="[('country_id', '=', country_id)]" options="{'create': false, 'create_edit': false}" placeholder="State"/>
+                    </xpath>
+                    
+                    <xpath expr="//field[@name='street2']" position="after">
+                        <field name="city" placeholder="City" attrs="{'readonly': [('use_parent_address','=',True)]}"/>
+                    </xpath>
+                    
+                    <xpath expr="//field[@name='name']" position="replace">
+                		<field name="name" placeholder="First Name ..."/>
+                		<field name="last_name" placeholder="Last Name ..."/>
+                    </xpath>
+                    
+                	<xpath expr="//field[@name='user_id']" position="replace">
+                    	<field name="employee_id" on_change="onchange_employee_id(employee_id, context)" widget="selection" />
+                        <field name="user_id" invisible="1"/>
+                    </xpath>
+                    
+                    <xpath expr="//field[@name='website']" position="after">
+                        <field name="customer_code"/>
+                        <field name="arulmani_type"/>
+                        <field name="zone"/>
+                        <field name="excise_duty"/>
+                        <field name="distribution_channel"/>
+                        <field name="currency_id" widget="selection"/>
+                        <field name="sales_organization_code_id" widget="selection"/>
+                        <field name="division_code_id" widget="selection"/>
+                        <field name="tax_category_id" widget="selection"/> 
+                        <field name="tax_number_1_id" widget="selection"/> 
+                        <field name="credit_control_area_id" widget="selection"/> 
+                        <field name="shipping_conditions_id" widget="selection"/> 
+                        <field name="cust_pric_procedure_id" widget="selection"/> 
+                        <field name="customer_group_id" widget="selection"/> 
+                        <field name="order_probability_id" widget="selection"/> 
+                         <field name="reconciliation_acct_id" widget="selection"/> 
+                        
+                    </xpath>
+                    
+                    <xpath expr="//form/sheet/notebook/page/group/group/field[@name='ref']" position="replace">
+                    	<field name="ref" invisible="1"/>
+                    </xpath>
+                    
+                    <xpath expr="//field[@name='title']" position="after">
+                        <field name="pan_tin"/>
+                        <field name="sin"/>
+                        <field name="cst"/>
+                        <field name="language_id" widget="selection"/>
+                        <field name="customer_account_group_id" widget="selection"/>
+                        <field name="sort_key_id" widget="selection"/>
+                        <field name="tax_classification_id" widget="selection"/>
+                        <field name="tax_number_2_id" widget="selection"/>
+                        <field name="credit_limit_used"/>
+                        <field name="account_assign_group_id" widget="selection"/> 
+                        <field name="customer_statistics_group_id" widget="selection"/>
+                        <field name="price_group_id" widget="selection"/> 
+                        <field name="inco_terms_id" widget="selection"/> 
+                        <field name="sychronized"/> 
+                        
+                    </xpath>
+                    
+                    <xpath expr="//field[@name='credit_limit']" position="after">
+                        <field name="credit_exposure"/>
+                        <field name="vat"/>
+                    </xpath>
+                    
+                    <xpath expr="//field[@name='category_id']" position="replace">
+			            <field name="category_id" widget="many2many_tags" placeholder="Customer Class" style="width: 70%%"/>
+			        </xpath>
+			        
+			        <!--<xpath expr="//page[@string='Sales &amp; Purchases']" position="replace">
+			            attribute name="string">Sales Team</attribute>
+			        </xpath>-->
+			        
+                </data>
+            </field>
+        </record>
+        
+        <record model="ir.ui.view" id="res_partner_view_buttons_inherit">
+            <field name="name">res.partner.view.buttons</field>
+            <field name="model">res.partner</field>
+            <field name="inherit_id" ref="crm.res_partner_view_buttons" />
+            <field name="priority" eval="10"/>
+            <field name="arch" type="xml">
+                <xpath expr="//button[@string='Meetings']" position="replace">
+                    <button type="action"
+                        string="Meetings"
+                        attrs="{'invisible':[('name','=',False)]}"
+                        name="%(base_calendar.action_crm_meeting)d"
+                        context="{'search_default_partner_ids': active_id, 'default_partner_ids' : [active_id]}"/>
+                </xpath>
+                <xpath expr="//button[@string='Calls']" position="replace">
+                    <button type="action" string="Calls" 
+                        name="%(crm.crm_case_categ_phone_incoming0)d"
+                        attrs="{'invisible':[('name','=',False)]}" 
+                        context="{'search_default_partner_id': active_id, 'default_duration': 1.0}" />
+                </xpath>
+                <xpath expr="//button[@string='Opportunities']" position="replace">
+                    <button type="action" string="Opportunities" attrs="{'invisible': ['|',('customer', '=', False),('name','=',False)]}"
+                        name="%(crm.crm_case_category_act_oppor11)d" context="{'search_default_partner_id': active_id}"/>
+                </xpath>
+                
+            </field>
+        </record>
+    	
+    	<record id="res_partner_view_buttons_sale_inherit" model="ir.ui.view">
+            <field name="name">res.partner.view.buttons</field>
+            <field name="model">res.partner</field>
+            <field name="inherit_id" ref="sale.res_partner_view_buttons" />
+            <field name="priority" eval="20"/>
+            <field name="arch" type="xml">
+                <xpath expr="//button[@string='Quotations and Sales']" position="replace">
+                    <button name="%(sale.act_res_partner_2_sale_order)d" type="action"
+                        string="Quotations and Sales"
+                        attrs="{'invisible': ['|',('customer', '=', False),('name','=',False)]}"
+                        groups="base.group_sale_salesman"/>
+                </xpath>
+            </field>
+        </record>
+        
+        <record id="vsis_view_partner_tree" model="ir.ui.view">
+            <field name="name">vsis.res.partner.tree</field>
+            <field name="model">res.partner</field>
+            <field name="inherit_id" ref="base.view_partner_tree"/>
+            <field eval="8" name="priority"/>
+            <field name="arch" type="xml">
+            	<xpath expr="//field[@name='name']" position="before">
+                		<field name="last_name" />
+                    </xpath>
+            </field>
+        </record>
+        
+        <record id="base.action_partner_form" model="ir.actions.act_window">
+            <field name="name">Customers</field>
+            <field name="type">ir.actions.act_window</field>
+            <field name="res_model">res.partner</field>
+            <field name="view_type">form</field>
+            <field name="view_mode">kanban,tree,form</field>
+            <field name="domain">[('is_company','=',True)]</field>
+            <field name="context">{"search_default_customer":1}</field>
+            <field name="search_view_id" ref="base.view_res_partner_filter"/>
+            <field name="help" type="html">
+              <p class="oe_view_nocontent_create">
+                Click to add a contact in your address book.
+              </p><p>
+                OpenERP helps you easily track all activities related to
+                a customer; discussions, history of business opportunities,
+                documents, etc.
+              </p>
+            </field>
+        </record>
+        
+    	<record id="crm_case_categ-view_inherit" model="ir.ui.view">
+            <field name="name">crm.case.categ.form.inherit</field>
+            <field name="model">crm.case.categ</field>
+            <field name="inherit_id" ref="crm.crm_case_categ-view"/>
+            <field name="arch" type="xml">
+             <xpath expr="//field[@name='section_id']" position="replace">
+                  <field name="section_id" invisible='1'/>
+                    </xpath>
+            </field>
+        </record>
+        
+        <record id="crm_case_categ_tree-view_inherit" model="ir.ui.view">
+            <field name="name">crm.case.categ.form.inherit</field>
+            <field name="model">crm.case.categ</field>
+            <field name="inherit_id" ref="crm.crm_case_categ_tree-view"/>
+            <field name="arch" type="xml">
+             <xpath expr="//field[@name='section_id']" position="replace">
+                  <field name="section_id" invisible='1'/>
+                    </xpath>
+            </field>
+        </record>
+        
+    
+    	<record id="vsis_product_normal_form_view" model="ir.ui.view">
+	            <field name="name">vsis.product.normal.form</field>
+	            <field name="model">product.product</field>
+	            <field name="inherit_id" ref="product.product_normal_form_view"/>
+	            <field name="arch" type="xml">
+		             <field name="default_code" position="replace">
+		             	<field name="default_code" string ="Product Code"/>
+		             </field>
+	            </field>
+        </record>
+    
+    	<record model="ir.ui.view" id="crm_leadsource_tree_view">
+            <field name="name">crm.leadsource.tree</field>
+            <field name="model">crm.leadsource</field>
+            <field name="arch" type="xml">
+                <tree string="Lead Source" editable='top'>
+                    <field name="name"/>
+                </tree>
+            </field>
+        </record>
+        
+        <record id="action_crm_leadsource_tree_view" model="ir.actions.act_window">
+            <field name="name">Lead Source</field>
+            <field name="res_model">crm.leadsource</field>
+            <field name="view_type">form</field>
+            <field name="view_id" ref="crm_leadsource_tree_view"/>
+        </record>
+        
+        <record model="ir.ui.view" id="crm_application_tree_view">
+            <field name="name">crm.application.tree</field>
+            <field name="model">crm.application</field>
+            <field name="arch" type="xml">
+                <tree string="Application">
+                    <field name="name"/>
+                    <field name="code"/>
+                </tree>
+            </field>
+        </record>
+        
+        <record id="crm_application_form_view" model="ir.ui.view" >
+            <field name="name">crm.application.form</field>
+            <field name="model">crm.application</field>
+            <field name="type">form</field>
+            <field name="arch" type="xml">
+                <form version="7.0" string="Application">
+                	<sheet>
+                		<group>
+	                        <field name="name"/>
+                    		<field name="code"/>
+                    	</group>
+            		</sheet>
+                </form>
+            </field>
+        </record>
+        
+        <record id="vsis_view_crm_application_search" model="ir.ui.view">
+            <field name="model">crm.application</field>
+            <field name="arch" type="xml">
+                <search string="Application">
+                    <field name="name" filter_domain="[('name','ilike',self)]" string="Application"/>
+                </search>
+            </field>
+        </record>
+        
+        
+        <record id="vsis_action_crm_application" model="ir.actions.act_window">
+            <field name="name">Application Master</field>
+            <field name="type">ir.actions.act_window</field>
+            <field name="res_model">crm.application</field>
+            <field name="view_type">form</field>
+            <field name="view_id" eval="False"/>
+            <field name="search_view_id" ref="vsis_view_crm_application_search"/>
+        </record>
+        
+		<record id="vsis_view_partner_bank_form" model="ir.ui.view">
+            <field name="name">vsis.res.partner.bank.form</field>
+            <field name="model">res.partner.bank</field>
+            <field name="inherit_id" ref="base.view_partner_bank_form"/>
+            <field name="arch" type="xml">
+            
+            	<xpath expr="//form/group/group/div" position="replace">
+                    <div>
+                    	<field name="owner_name" placeholder="Name"/>	
+                    	<field name="street" placeholder="Street..."/>
+                        <field name="city" placeholder="City" />
+                        <div class="address_format">
+                        	<field name="country_id" style="width: 45%%" placeholder="Country" options="{'create': false, 'create_edit': false}"/>
+                            <field name="state_id"  style="width: 53%%"  domain="[('country_id', '=', country_id)]" options="{'create': false, 'create_edit': false}" placeholder="State"/>
+                        </div>
+                        <field name="zip" placeholder="ZIP" style="width: 34%%"/>
+                    </div>
+                </xpath>
+                
+            	<xpath expr="//label[@for='street']" position="replace">
+                  	<label for="factory_street" string="Regd. Office Address"/>
+                </xpath>
+                <xpath expr="//field[@name='bank_bic']" position="replace">
+                  	<field name="bank_bic" string="Bank IFSC Code"/>
+                  	<label for="factory_street" string="Factory Address"/>
+                    <div>	
+                    	<field name="factory_street" placeholder="Street..."/>
+                        <field name="factory_city" placeholder="City" />
+                        <div class="address_format">
+                        	<field name="factory_country_id" style="width: 45%%" placeholder="Country" options="{'create': false, 'create_edit': false}"/>
+                            <field name="factory_state_id" style="width: 53%%"  domain="[('country_id', '=', factory_country_id)]" options="{'create': false, 'create_edit': false}" placeholder="State"/>
+                        </div>
+                        <field name="factory_zip" placeholder="ZIP" style="width: 34%%"/>
+                    </div>
+                </xpath>
+            </field>
+        </record>
+        
+        <record id="vsis_view_res_bank_form" model="ir.ui.view">
+            <field name="name">vsis.res.bank.form</field>
+            <field name="model">res.bank</field>
+            <field name="inherit_id" ref="base.view_res_bank_form"/>
+            <field name="arch" type="xml">
+            	<xpath expr="//field[@name='bic']" position="replace">
+                  	<field name="bic" string="Bank IFSC Code"/>
+                </xpath>
+                <xpath expr="//form/sheet/group/group[@string='Address']/div" position="replace">
+                    <div>	
+                    	<field name="street" placeholder="Street..."/>
+                        <field name="city" placeholder="City" />
+                        <div class="address_format">
+                        	<field name="country" style="width: 45%%" placeholder="Country" options="{'create': false, 'create_edit': false}"/>
+                            <field name="state"  style="width: 53%%"  domain="[('country', '=', country)]" options="{'create': false, 'create_edit': false}" placeholder="State"/>
+                        </div>
+                        <field name="zip" placeholder="ZIP" style="width: 34%%"/>
+                    </div>
+                </xpath>
+                
+            </field>
+        </record>
+        
+        <record id="vsis_view_payment_term_form" model="ir.ui.view">
+            <field name="name">vsis.account.payment.term.form</field>
+            <field name="model">account.payment.term</field>
+            <field name="inherit_id" ref="account.view_payment_term_form"/>
+            <field name="arch" type="xml">
+            	<field name="name" position="before">
+            		<field name="code"/>
+            	</field>
+            </field>
+        </record>
+        
+        <record id="vsis_crm_case_channel_view_tree" model="ir.ui.view">
+            <field name="name">vsis.crm.case.channel.tree</field>
+            <field name="model">crm.case.channel</field>
+            <field name="inherit_id" ref="crm.crm_case_channel_view_tree"/>
+            <field name="arch" type="xml">
+                <field name="name" position="before">
+                	<field name="code"/>
+                </field>
+            </field>
+        </record>
+        
+        <record id="vsis_crm_case_channel_view_form" model="ir.ui.view">
+            <field name="name">vsis.crm.case.channel.form</field>
+            <field name="model">crm.case.channel</field>
+            <field name="inherit_id" ref="crm.crm_case_channel_view_form"/>
+            <field name="arch" type="xml">
+                <field name="name" position="before">
+                	<field name="code"/>
+                </field>
+            </field>
+        </record>
+        
+        <!--<record model="ir.ui.view" id="res_language_tree_view">
+            <field name="name">res.language.tree</field>
+            <field name="model">res.language</field>
+            <field name="arch" type="xml">
+                <tree string="Language">
+                    <field name="code"/>
+                    <field name="name"/>
+                </tree>
+            </field>
+        </record>
+        
+        <record id="res_language_form_view" model="ir.ui.view" >
+            <field name="name">res.language.form</field>
+            <field name="model">res.language</field>
+            <field name="type">form</field>
+            <field name="arch" type="xml">
+                <form version="7.0" string="Language">
+                	<sheet>
+                		<group>
+	                        <field name="name"/>
+                    		<field name="code"/>
+                    	</group>
+            		</sheet>
+                </form>
+            </field>
+        </record>
+        
+        <record id="vsis_action_res_language" model="ir.actions.act_window">
+            <field name="name">Language Master</field>
+            <field name="type">ir.actions.act_window</field>
+            <field name="res_model">res.language</field>
+            <field name="view_type">form</field>
+            <field name="view_id" ref="res_language_tree_view"/>
+            <field name="search_view_id" eval="False"/>
+        </record>-->
+        
+        <record model="ir.ui.view" id="sales_organization_code_tree_view">
+            <field name="name">sales.organization.code.tree</field>
+            <field name="model">sales.organization.code</field>
+            <field name="arch" type="xml">
+                <tree string="Sales Organization Code">
+                    <field name="name"/>
+                </tree>
+            </field>
+        </record>
+        
+        <record id="sales_organization_code_form_view" model="ir.ui.view" >
+            <field name="name">sales.organization.code.form</field>
+            <field name="model">sales.organization.code</field>
+            <field name="type">form</field>
+            <field name="arch" type="xml">
+                <form version="7.0" string="Sales Organization Code">
+                	<sheet>
+                		<group>
+	                        <field name="name"/>
+                    	</group>
+            		</sheet>
+                </form>
+            </field>
+        </record>
+        
+        <record id="vsis_action_sales_organization_code" model="ir.actions.act_window">
+            <field name="name">Sales Organization Code Master</field>
+            <field name="type">ir.actions.act_window</field>
+            <field name="res_model">sales.organization.code</field>
+            <field name="view_type">form</field>
+            <field name="view_id" ref="sales_organization_code_tree_view"/>
+            <field name="search_view_id" eval="False"/>
+        </record>
+        
+        <record model="ir.ui.view" id="customer_account_group_tree_view">
+            <field name="name">customer.account.group.tree</field>
+            <field name="model">customer.account.group</field>
+            <field name="arch" type="xml">
+                <tree string="Customer Account Group">
+                    <field name="code"/>
+                    <field name="name"/>
+                </tree>
+            </field>
+        </record>
+        
+        <record id="customer_account_group_form_view" model="ir.ui.view" >
+            <field name="name">customer.account.group.form</field>
+            <field name="model">customer.account.group</field>
+            <field name="type">form</field>
+            <field name="arch" type="xml">
+                <form version="7.0" string="Customer Account Group">
+                	<sheet>
+                		<group>
+                			<field name="code"/>
+	                        <field name="name"/>
+                    	</group>
+            		</sheet>
+                </form>
+            </field>
+        </record>
+        
+        <record id="vsis_action_customer_account_group" model="ir.actions.act_window">
+            <field name="name">Customer Account Group Master</field>
+            <field name="type">ir.actions.act_window</field>
+            <field name="res_model">customer.account.group</field>
+            <field name="view_type">form</field>
+            <field name="view_id" ref="customer_account_group_tree_view"/>
+            <field name="search_view_id" eval="False"/>
+        </record>
+        
+        <record model="ir.ui.view" id="sort_key_tree_view">
+            <field name="name">sort.key.tree</field>
+            <field name="model">sort.key</field>
+            <field name="arch" type="xml">
+                <tree string="Sort Key">
+                    <field name="code"/>
+                    <field name="name"/>
+                </tree>
+            </field>
+        </record>
+        
+        <record id="sort_key_form_view" model="ir.ui.view" >
+            <field name="name">sort.key.form</field>
+            <field name="model">sort.key</field>
+            <field name="type">form</field>
+            <field name="arch" type="xml">
+                <form version="7.0" string="Sort Key">
+                	<sheet>
+                		<group>
+                			<field name="code"/>
+	                        <field name="name"/>
+                    	</group>
+            		</sheet>
+                </form>
+            </field>
+        </record>
+        
+        <record id="vsis_action_sort_key" model="ir.actions.act_window">
+            <field name="name">Sort Key Master</field>
+            <field name="type">ir.actions.act_window</field>
+            <field name="res_model">sort.key</field>
+            <field name="view_type">form</field>
+            <field name="view_id" ref="sort_key_tree_view"/>
+            <field name="search_view_id" eval="False"/>
+        </record>
+       
+        <record model="ir.ui.view" id="tax_classification_tree_view">
+            <field name="name">tax.classification.tree</field>
+            <field name="model">tax.classification</field>
+            <field name="arch" type="xml">
+                <tree string="Tax Classification">
+                    <field name="code"/>
+                    <field name="name"/>
+                </tree>
+            </field>
+        </record>
+        
+        <record id="tax_classification_form_view" model="ir.ui.view" >
+            <field name="name">tax.classification.form</field>
+            <field name="model">tax.classification</field>
+            <field name="type">form</field>
+            <field name="arch" type="xml">
+                <form version="7.0" string="Tax Classification">
+                	<sheet>
+                		<group>
+                			<field name="code"/>
+	                        <field name="name"/>
+                    	</group>
+            		</sheet>
+                </form>
+            </field>
+        </record>
+        
+        <record id="vsis_action_tax_classification" model="ir.actions.act_window">
+            <field name="name">Tax Classification Master</field>
+            <field name="type">ir.actions.act_window</field>
+            <field name="res_model">tax.classification</field>
+            <field name="view_type">form</field>
+            <field name="view_id" ref="tax_classification_tree_view"/>
+            <field name="search_view_id" eval="False"/>
+        </record> 
+        
+        <record model="ir.ui.view" id="tax_number_2_tree_view">
+            <field name="name">tax.number.2.tree</field>
+            <field name="model">tax.number.2</field>
+            <field name="arch" type="xml">
+                <tree string="Tax Number 2">
+                    <field name="code"/>
+                    <field name="name"/>
+                </tree>
+            </field>
+        </record>
+        
+        <record id="tax_number_2_form_view" model="ir.ui.view" >
+            <field name="name">tax.number.2.form</field>
+            <field name="model">tax.number.2</field>
+            <field name="type">form</field>
+            <field name="arch" type="xml">
+                <form version="7.0" string="Tax Number 2">
+                	<sheet>
+                		<group>
+                			<field name="code"/>
+	                        <field name="name"/>
+                    	</group>
+            		</sheet>
+                </form>
+            </field>
+        </record>
+        
+        <record id="vsis_action_tax_number_2" model="ir.actions.act_window">
+            <field name="name">Tax Number 2 Master</field>
+            <field name="type">ir.actions.act_window</field>
+            <field name="res_model">tax.number.2</field>
+            <field name="view_type">form</field>
+            <field name="view_id" ref="tax_number_2_tree_view"/>
+            <field name="search_view_id" eval="False"/>
+        </record> 
+        
+        
+        <record model="ir.ui.view" id="account_assign_group_tree_view">
+            <field name="name">account.assign.group.tree</field>
+            <field name="model">account.assign.group</field>
+            <field name="arch" type="xml">
+                <tree string="Account Assign Group">
+                    <field name="name"/>
+                    <field name="description"/>
+                </tree>
+            </field>
+        </record>
+        
+        <record id="account_assign_group_form_view" model="ir.ui.view" >
+            <field name="name">account.assign.group.form</field>
+            <field name="model">account.assign.group</field>
+            <field name="type">form</field>
+            <field name="arch" type="xml">
+                <form version="7.0" string="Account Assign Group">
+                	<sheet>
+                		<group>
+                			<field name="name"/>
+	                        <field name="description"/>
+                    	</group>
+            		</sheet>
+                </form>
+            </field>
+        </record>
+        
+        <record id="vsis_action_account_assign_group" model="ir.actions.act_window">
+            <field name="name">Account Assign Group Master</field>
+            <field name="type">ir.actions.act_window</field>
+            <field name="res_model">account.assign.group</field>
+            <field name="view_type">form</field>
+            <field name="view_id" ref="account_assign_group_tree_view"/>
+            <field name="search_view_id" eval="False"/>
+        </record> 
+        
+        <record model="ir.ui.view" id="customer_statistics_group_tree_view">
+            <field name="name">customer.statistics.group.tree</field>
+            <field name="model">customer.statistics.group</field>
+            <field name="arch" type="xml">
+                <tree string="Customer Statistics Group">
+                    <field name="name"/>
+                    <field name="description"/>
+                </tree>
+            </field>
+        </record>
+        
+        <record id="customer_statistics_group_form_view" model="ir.ui.view" >
+            <field name="name">customer.statistics.group.form</field>
+            <field name="model">customer.statistics.group</field>
+            <field name="type">form</field>
+            <field name="arch" type="xml">
+                <form version="7.0" string="Customer Statistics Group">
+                	<sheet>
+                		<group>
+                			<field name="name"/>
+                    		<field name="description"/>
+                    	</group>
+            		</sheet>
+                </form>
+            </field>
+        </record>
+        
+        <record id="vsis_action_customer_statistics_group" model="ir.actions.act_window">
+            <field name="name">Customer Statistics Group Master</field>
+            <field name="type">ir.actions.act_window</field>
+            <field name="res_model">customer.statistics.group</field>
+            <field name="view_type">form</field>
+            <field name="view_id" ref="customer_statistics_group_tree_view"/>
+            <field name="search_view_id" eval="False"/>
+        </record> 
+        
+        <record model="ir.ui.view" id="price_group_tree_view">
+            <field name="name">price.group.tree</field>
+            <field name="model">price.group</field>
+            <field name="arch" type="xml">
+                <tree string="Price Group">
+                    <field name="code"/>
+                    <field name="name"/>
+                </tree>
+            </field>
+        </record>
+        
+        <record id="price_group_form_view" model="ir.ui.view" >
+            <field name="name">price.group.form</field>
+            <field name="model">price.group</field>
+            <field name="type">form</field>
+            <field name="arch" type="xml">
+                <form version="7.0" string="Price Group">
+                	<sheet>
+                		<group>
+                			<field name="code"/>
+	                        <field name="name"/>
+                    	</group>
+            		</sheet>
+                </form>
+            </field>
+        </record>
+        
+        <record id="vsis_action_price_group" model="ir.actions.act_window">
+            <field name="name">Price Group Master</field>
+            <field name="type">ir.actions.act_window</field>
+            <field name="res_model">price.group</field>
+            <field name="view_type">form</field>
+            <field name="view_id" ref="price_group_tree_view"/>
+            <field name="search_view_id" eval="False"/>
+        </record> 
+        
+        <!--<record model="ir.ui.view" id="inco_terms_tree_view">
+            <field name="name">inco.terms.tree</field>
+            <field name="model">inco.terms</field>
+            <field name="arch" type="xml">
+                <tree string="Inco Terms">
+                    <field name="code"/>
+                    <field name="name"/>
+                </tree>
+            </field>
+        </record>
+        
+        <record id="inco_terms_form_view" model="ir.ui.view" >
+            <field name="name">inco.terms.form</field>
+            <field name="model">inco.terms</field>
+            <field name="type">form</field>
+            <field name="arch" type="xml">
+                <form version="7.0" string="Inco Terms">
+                	<sheet>
+                		<group>
+                			<field name="code"/>
+	                        <field name="name"/>
+                    	</group>
+            		</sheet>
+                </form>
+            </field>
+        </record>
+        
+        <record id="vsis_action_inco_terms" model="ir.actions.act_window">
+            <field name="name">Inco Terms Master</field>
+            <field name="type">ir.actions.act_window</field>
+            <field name="res_model">inco.terms</field>
+            <field name="view_type">form</field>
+            <field name="view_id" ref="inco_terms_tree_view"/>
+            <field name="search_view_id" eval="False"/>
+        </record> -->
+        
+        <record model="ir.ui.view" id="division_code_tree_view">
+            <field name="name">division.code.tree</field>
+            <field name="model">division.code</field>
+            <field name="arch" type="xml">
+                <tree string="Division Code">
+                    <field name="code"/>
+                </tree>
+            </field>
+        </record>
+        
+        <record id="division_code_form_view" model="ir.ui.view" >
+            <field name="name">division.code.form</field>
+            <field name="model">division.code</field>
+            <field name="type">form</field>
+            <field name="arch" type="xml">
+                <form version="7.0" string="Division Code">
+                	<sheet>
+                		<group>
+                			<field name="code"/>
+                    	</group>
+            		</sheet>
+                </form>
+            </field>
+        </record>
+        
+        <record id="vsis_action_division_code" model="ir.actions.act_window">
+            <field name="name">Division Code Master</field>
+            <field name="type">ir.actions.act_window</field>
+            <field name="res_model">division.code</field>
+            <field name="view_type">form</field>
+            <field name="view_id" ref="division_code_tree_view"/>
+            <field name="search_view_id" eval="False"/>
+        </record>  
+        
+        <record model="ir.ui.view" id="tax_category_tree_view">
+            <field name="name">tax.category.tree</field>
+            <field name="model">tax.category</field>
+            <field name="arch" type="xml">
+                <tree string="Tax Category">
+                    <field name="code"/>
+                    <field name="name"/>
+                </tree>
+            </field>
+        </record>
+        
+        <record id="tax_category_form_view" model="ir.ui.view" >
+            <field name="name">tax.category.form</field>
+            <field name="model">tax.category</field>
+            <field name="type">form</field>
+            <field name="arch" type="xml">
+                <form version="7.0" string="Tax Category">
+                	<sheet>
+                		<group>
+                			<field name="code"/>
+	                        <field name="name"/>
+                    	</group>
+            		</sheet>
+                </form>
+            </field>
+        </record>
+        
+        <record id="vsis_action_tax_category" model="ir.actions.act_window">
+            <field name="name">Tax Category Master</field>
+            <field name="type">ir.actions.act_window</field>
+            <field name="res_model">tax.category</field>
+            <field name="view_type">form</field>
+            <field name="view_id" ref="tax_category_tree_view"/>
+            <field name="search_view_id" eval="False"/>
+        </record> 
+        
+        <record model="ir.ui.view" id="tax_number_1_tree_view">
+            <field name="name">tax.number.1.tree</field>
+            <field name="model">tax.number.1</field>
+            <field name="arch" type="xml">
+                <tree string="Tax Number 1">
+                    <field name="code"/>
+                    <field name="name"/>
+                </tree>
+            </field>
+        </record>
+        
+        <record id="tax_number_1_form_view" model="ir.ui.view" >
+            <field name="name">tax.number.1.form</field>
+            <field name="model">tax.number.1</field>
+            <field name="type">form</field>
+            <field name="arch" type="xml">
+                <form version="7.0" string="Tax Number 1">
+                	<sheet>
+                		<group>
+                			<field name="code"/>
+	                        <field name="name"/>
+                    	</group>
+            		</sheet>
+                </form>
+            </field>
+        </record>
+        
+        <record id="vsis_action_tax_number_1" model="ir.actions.act_window">
+            <field name="name">Tax Number 1 Master</field>
+            <field name="type">ir.actions.act_window</field>
+            <field name="res_model">tax.number.1</field>
+            <field name="view_type">form</field>
+            <field name="view_id" ref="tax_number_1_tree_view"/>
+            <field name="search_view_id" eval="False"/>
+        </record> 
+        
+        <record model="ir.ui.view" id="credit_control_area_tree_view">
+            <field name="name">credit.control.area.tree</field>
+            <field name="model">credit.control.area</field>
+            <field name="arch" type="xml">
+                <tree string="Credit Control Area">
+                    <field name="code"/>
+                    <field name="name"/>
+                </tree>
+            </field>
+        </record>
+        
+        <record id="credit_control_area_form_view" model="ir.ui.view" >
+            <field name="name">credit.control.area.form</field>
+            <field name="model">credit.control.area</field>
+            <field name="type">form</field>
+            <field name="arch" type="xml">
+                <form version="7.0" string="Credit Control Area">
+                	<sheet>
+                		<group>
+                			<field name="code"/>
+	                        <field name="name"/>
+                    	</group>
+            		</sheet>
+                </form>
+            </field>
+        </record>
+        
+        <record id="vsis_action_credit_control_area" model="ir.actions.act_window">
+            <field name="name">Credit Control Area Master</field>
+            <field name="type">ir.actions.act_window</field>
+            <field name="res_model">credit.control.area</field>
+            <field name="view_type">form</field>
+            <field name="view_id" ref="credit_control_area_tree_view"/>
+            <field name="search_view_id" eval="False"/>
+        </record> 
+        
+        <record model="ir.ui.view" id="shipping_conditions_tree_view">
+            <field name="name">shipping.conditions.tree</field>
+            <field name="model">shipping.conditions</field>
+            <field name="arch" type="xml">
+                <tree string="Shipping Conditions">
+                    <field name="name"/>
+                    <field name="description"/>
+                </tree>
+            </field>
+        </record>
+        
+        <record id="shipping_conditions_form_view" model="ir.ui.view" >
+            <field name="name">shipping.conditions.form</field>
+            <field name="model">shipping.conditions</field>
+            <field name="type">form</field>
+            <field name="arch" type="xml">
+                <form version="7.0" string="Shipping Conditions">
+                	<sheet>
+                		<group>
+                			<field name="name"/>
+	                        <field name="description"/>
+                    	</group>
+            		</sheet>
+                </form>
+            </field>
+        </record>
+        
+        <record id="vsis_action_shipping_conditions" model="ir.actions.act_window">
+            <field name="name">Shipping Conditions Master</field>
+            <field name="type">ir.actions.act_window</field>
+            <field name="res_model">shipping.conditions</field>
+            <field name="view_type">form</field>
+            <field name="view_id" ref="shipping_conditions_tree_view"/>
+            <field name="search_view_id" eval="False"/>
+        </record> 
+        
+        <record model="ir.ui.view" id="cust_pric_procedure_tree_view">
+            <field name="name">cust.pric.procedure.tree</field>
+            <field name="model">cust.pric.procedure</field>
+            <field name="arch" type="xml">
+                <tree string="Cust Pric Procedure">
+                    <field name="code"/>
+                    <field name="name"/>
+                </tree>
+            </field>
+        </record>
+        
+        <record id="cust_pric_procedure_form_view" model="ir.ui.view" >
+            <field name="name">cust.pric.procedure.form</field>
+            <field name="model">cust.pric.procedure</field>
+            <field name="type">form</field>
+            <field name="arch" type="xml">
+                <form version="7.0" string="Cust Pric Procedure">
+                	<sheet>
+                		<group>
+                			<field name="code"/>
+	                        <field name="name"/>
+                    	</group>
+            		</sheet>
+                </form>
+            </field>
+        </record>
+        
+        <record id="vsis_action_cust_pric_procedure" model="ir.actions.act_window">
+            <field name="name">Cust Pric Procedure Master</field>
+            <field name="type">ir.actions.act_window</field>
+            <field name="res_model">cust.pric.procedure</field>
+            <field name="view_type">form</field>
+            <field name="view_id" ref="cust_pric_procedure_tree_view"/>
+            <field name="search_view_id" eval="False"/>
+        </record> 
+        
+        <record model="ir.ui.view" id="customer_group_tree_view">
+            <field name="name">customer.group.tree</field>
+            <field name="model">customer.group</field>
+            <field name="arch" type="xml">
+                <tree string="Customer Group">
+                    <field name="code"/>
+                    <field name="name"/>
+                </tree>
+            </field>
+        </record>
+        
+        <record id="customer_group_form_view" model="ir.ui.view" >
+            <field name="name">customer.group.form</field>
+            <field name="model">customer.group</field>
+            <field name="type">form</field>
+            <field name="arch" type="xml">
+                <form version="7.0" string="Customer Group">
+                	<sheet>
+                		<group>
+                			<field name="code"/>
+	                        <field name="name"/>
+                    	</group>
+            		</sheet>
+                </form>
+            </field>
+        </record>
+        
+        <record id="vsis_action_customer_group" model="ir.actions.act_window">
+            <field name="name">Customer Group Master</field>
+            <field name="type">ir.actions.act_window</field>
+            <field name="res_model">customer.group</field>
+            <field name="view_type">form</field>
+            <field name="view_id" ref="customer_group_tree_view"/>
+            <field name="search_view_id" eval="False"/>
+        </record> 
+        
+        <record model="ir.ui.view" id="order_probability_tree_view">
+            <field name="name">order.probability.tree</field>
+            <field name="model">order.probability</field>
+            <field name="arch" type="xml">
+                <tree string="Order Probability">
+                    <field name="from"/>
+                    <field name="to"/>                 
+                    <field name="name"/>
+                </tree>
+            </field>
+        </record>
+        
+        <record id="order_probability_form_view" model="ir.ui.view" >
+            <field name="name">order.probability.form</field>
+            <field name="model">order.probability</field>
+            <field name="type">form</field>
+            <field name="arch" type="xml">
+                <form version="7.0" string="Order Probability">
+                	<sheet>
+                		<group>
+                			<field name="from"/>
+                    		<field name="to"/>                 
+                    		<field name="name"/>
+                    	</group>
+            		</sheet>
+                </form>
+            </field>
+        </record>
+        
+        <record id="vsis_action_order_probability" model="ir.actions.act_window">
+            <field name="name">Order Probability Master</field>
+            <field name="type">ir.actions.act_window</field>
+            <field name="res_model">order.probability</field>
+            <field name="view_type">form</field>
+            <field name="view_id" ref="order_probability_tree_view"/>
+            <field name="search_view_id" eval="False"/>
+        </record> 
+        
+        <record model="ir.ui.view" id="reconciliation_acct_tree_view">
+            <field name="name">reconciliation.acct.tree</field>
+            <field name="model">reconciliation.acct</field>
+            <field name="arch" type="xml">
+                <tree string="Reconciliation Acct">
+                    <field name="name"/>
+                    <field name="code"/>
+                    <field name="description"/>
+                </tree>
+            </field>
+        </record>
+        
+        <record id="reconciliation_acct_form_view" model="ir.ui.view" >
+            <field name="name">reconciliation.acct.form</field>
+            <field name="model">reconciliation.acct</field>
+            <field name="type">form</field>
+            <field name="arch" type="xml">
+                <form version="7.0" string="Reconciliation Acct">
+                	<sheet>
+                		<group>
+                			<field name="code"/>
+	                        <field name="name"/>
+	                        <field name="description"/>
+                    	</group>
+            		</sheet>
+                </form>
+            </field>
+        </record>
+        
+        <record id="vsis_action_reconciliation_acct" model="ir.actions.act_window">
+            <field name="name">Reconciliation Acct Master</field>
+            <field name="type">ir.actions.act_window</field>
+            <field name="res_model">reconciliation.acct</field>
+            <field name="view_type">form</field>
+            <field name="view_id" ref="reconciliation_acct_tree_view"/>
+            <field name="search_view_id" eval="False"/>
+        </record> 
+    </data>
+</openerp>

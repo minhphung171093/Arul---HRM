@@ -19,28 +19,23 @@
 #
 ##############################################################################
 
-{
-    'name': 'VVTi_TPT_HRM',
-    'version': '1.0',
-    'category': 'GreenERP',
-    'sequence': 14,
-    'author': 'Tenth Planet',
-    'website' : 'http://www. tenthplanet.in',
-    'depends': ['green_erp_arulmani_crm'],
-    'data': [
-        'security/green_erp_arulmani_hrm_security.xml',
-        'security/ir.model.access.csv',
-        'hr_employee_view.xml',
-        'hr_department_view.xml',
-        'hr_payroll_view.xml',
-        'menu_view.xml',
-    ],
-    'css' : [
-    ],
-    'qweb': [
-     ],
-    'installable': True,
-    'auto_install': False,
-    'application': True,
-}
+from openerp.osv import fields, osv
+from openerp.tools.translate import _
+
+
+class crm_make_cancel(osv.osv_memory):
+    _name = "crm.make.cancel"
+    
+    def makecancel(self, cr, uid, ids, context=None):
+        if context is None:
+            context = {}
+        lead_obj = self.pool.get('crm.lead')
+        data = context and context.get('active_ids', []) or []
+        for make in lead_obj.browse(cr, uid, data, context=context):
+            self.pool.get('crm.lead').case_cancel(cr, uid, [make.id], context=context)
+            self.pool.get('crm.lead').write(cr, uid, make.id, {'probability' : 0.0,'status':'cancelled','type':'lead'}, context=context)
+            self.pool.get('crm.lead.history').create(cr, uid,{'lead_id':make.id,'status':'cancelled'}, context=context)
+        return True    
+crm_make_cancel()
+
 # vim:expandtab:smartindent:tabstop=4:softtabstop=4:shiftwidth=4:

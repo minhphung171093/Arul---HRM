@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="utf-8"?>
+<openerp>
+    <data>
+        <!-- Attachment -->
+        <record id="vsis_view_identities_attachment_form" model="ir.ui.view">
+            <field name="model">hr.identities.attachment</field>
+            <field name="arch" type="xml">
+                <form string="Identities Attachments" create="false" edit="false" version="7.0">
+                   <sheet>
+                   		<group>
+                        	<field name="name"/>
+                        </group>
+                        <group>
+                    		<field name="identity_given"/>
+                    		<field name="identify_number" />
+	                		<field name="datas" filename="datas_fname" />
+	                        <field name="datas_fname" class="oe_inline oe_right"/>
+	                    </group>
+                  </sheet>
+                </form>
+            </field>
+        </record>
+        <record id="vsis_view_identities_attachment_tree" model="ir.ui.view">
+            <field name="model">hr.identities.attachment</field>
+            <field name="arch" type="xml">
+                <tree string="Identities Attachments" create="false" >
+                    <field name="name"/>
+            		<field name="identity_given"/>
+            		<field name="identify_number" />
+            		<field name="datas" filename="datas_fname" />
+                </tree>
+            </field>
+        </record>
+        <record id="vsis_view_identities_attachment_search" model="ir.ui.view">
+            <field name="model">hr.identities.attachment</field>
+            <field name="arch" type="xml">
+                <search string="Attachments">
+                    <field name="name" filter_domain="['|', ('name','ilike',self), ('datas_fname','ilike',self)]" string="Attachment"/>
+                </search>
+            </field>
+        </record>
+        <record id="vsis_action_identities_attachment" model="ir.actions.act_window">
+            <field name="name">Identities Attachments</field>
+            <field name="type">ir.actions.act_window</field>
+            <field name="res_model">hr.identities.attachment</field>
+            <field name="view_type">form</field>
+            <field name="view_id" eval="False"/>
+            <field name="search_view_id" ref="vsis_view_attachment_search"/>
+        </record>
+        <menuitem action="vsis_action_identities_attachment" id="vsis_menu_action_identities_attachment" parent="hr.menu_hr_main"/>
+
+    </data>
+</openerp>

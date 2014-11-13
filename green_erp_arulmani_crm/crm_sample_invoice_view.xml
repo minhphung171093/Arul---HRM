@@ -1,0 +1,90 @@
+<?xml version="1.0" encoding="utf-8"?>
+<openerp>
+    <data>
+        <!-- Attachment -->
+        <record id="vsis_view_crm_sample_invoice_form" model="ir.ui.view">
+            <field name="model">crm.sample.invoice</field>
+            <field name="arch" type="xml">
+                <form string="Sample Invoice" version="7.0">
+                   <sheet>
+                   		<group>
+	                   		<group>
+	                        	<field name="name"/>
+	                        	<field name="sample_sending_id" context="{'sample_invoice_sending':True,'sample_sending_id':sample_sending_id}" options="{'create': false, 'create_edit': false}" on_change="onchange_sample_sending_id(sample_sending_id, context)"/>
+	                    		<field name="lead_id" domain="[('type','=','opportunity')]" on_change="onchange_lead_id(lead_id, context)" widget="selection"/>
+	                    		<field name="consignee" />
+	                    		<field name="acceptance_status" />
+	                    		<field name="contact_id" domain="[('crm_lead_id', '=', lead_id)]" options="{'create': false, 'create_edit': false}"/>
+		                    </group>
+		                    <group>
+	                        	<field name="invoice_date" />
+	                        	<field name="invoice_type"/>
+	                    		<field name="currency_id" widget="selection" />
+	                    		<label for="street" string="Consignee Address"/>
+		                        <div>	
+			                    	<field name="street" placeholder="Street..."/>
+			                        <field name="street2"/>
+			                        <field name="city" placeholder="City" />
+			                        <div class="address_format">
+			                        	<field name="country_id" style="width: 45%%" placeholder="Country" options="{'create': false, 'create_edit': false}"/>
+			                            <field name="state_id" style="width: 53%%"  domain="[('country_id', '=', country_id)]" options="{'create': false, 'create_edit': false}" placeholder="State"/>
+			                        </div>
+			                        <field name="zip" placeholder="ZIP" style="width: 34%%"/>
+			                    </div>
+		                        <field name="amount_total" />
+		                    </group>
+	                    </group>
+	                    <notebook>
+		                    <page string="Product Line" autofocus="autofocus">
+	                            <field name="sample_invoice_line" nolabel='1' >
+	                            	<tree string="Product Line" editable='top'>
+	                            		<field name="product_id" widget="selection" on_change="onchange_product_id(product_id)"/>
+	                            		<field name="description"/>
+	                            		<field name="quantity" on_change="onchange_show_amount(quantity,rate_per_kg)"/>
+	                            		<field name="rate_per_kg" on_change="onchange_show_amount(quantity,rate_per_kg)"/>
+	                            		<field name="uom_id" widget="selection"/>
+	                            		<field name="amount" />
+	                                </tree>
+	                            </field>
+	                        </page>
+                       </notebook>
+                  </sheet>
+                </form>
+            </field>
+        </record>
+        <record id="vsis_view_crm_sample_invoice_tree" model="ir.ui.view">
+            <field name="model">crm.sample.invoice</field>
+            <field name="arch" type="xml">
+                <tree string="Sample Invoice" delete="false">
+                    <field name="name"/>
+                	<field name="sample_sending_id"/>
+            		<field name="lead_id" />
+            		<field name="consignee" />
+            		<field name="acceptance_status" />
+            		<field name="contact_id" />
+	            	<field name="invoice_date"/>
+	            	<field name="invoice_type"/>
+	            	<field name="amount_total" />
+                </tree>
+            </field>
+        </record>
+        <record id="vsis_view_crm_sample_invoice_search" model="ir.ui.view">
+            <field name="model">crm.sample.invoice</field>
+            <field name="arch" type="xml">
+                <search string="Sample Invoice">
+                    <field name="name" filter_domain="['|', ('name','ilike',self), ('datas_fname','ilike',self)]" string="Sample Invoice"/>
+                </search>
+            </field>
+        </record>
+        <record id="vsis_action_sample_invoice" model="ir.actions.act_window">
+            <field name="name">Sample Invoice</field>
+            <field name="type">ir.actions.act_window</field>
+            <field name="res_model">crm.sample.invoice</field>
+            <field name="view_type">form</field>
+            <field name="view_id" eval="False"/>
+            <field name="search_view_id" ref="vsis_view_crm_sample_invoice_search"/>
+        </record>
+        <menuitem action="vsis_action_sample_invoice" id="vsis_menu_sample_invoice" parent="base.menu_sales" sequence="104"/>
+
+    </data>
+</openerp>
