@@ -34,6 +34,7 @@
         'hr_department_view.xml',
         'hr_payroll_view.xml',
         'menu_view.xml',
+        'hr_leave_types_view.xml',
     ],
     'css' : [
     ],
