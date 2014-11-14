@@ -201,6 +201,84 @@
             </field>
         </record>  
         
+        
+		<record id="view_arul_hr_employee_transfer_action_tree_vew" model="ir.ui.view">
+			<field name="name">arul.hr.employee.transfer.action.tree</field>
+			<field name="model">arul.hr.employee.action.history</field>
+			<field name="arch" type="xml">
+				<tree string="Employee Transfer Action">
+					<field name="action_id"/>
+					<field name ="action_type_id"/>
+					<field name ="employee_id"/>
+					<field name ="employee_category_id"/>
+					<field name ="sub_category_id"/>
+					<field name="department_from_id"/>
+					<field name ="department_to_id"/>
+					<field name ="designation_from_id"/>
+					<field name ="designation_to_id"/>
+					<field name ="action_date" string = "Date of Transfer"/>
+					<field name ="period_from"/>
+					<field name ="period_to"/>
+					<field name ="note"/>
+				</tree>
+			</field>
+		</record>
+
+		<record id="view_arul_hr_employee_transfer_action_form_vew" model="ir.ui.view">
+            <field name="name">arul.hr.employee.transfer.action.form</field>
+            <field name="model">arul.hr.employee.action.history</field>
+            <field name="arch" type="xml">
+                <form string="Employee Transfer Action" version="7.0">    
+                	<sheet>
+		                 <group col='4' colspan='2'>
+							<field name="action_id" domain="[('name','=','Transfer')]" widget="selection"/>
+							<field name="action_type_id" domain="[('name','in',['Performance', 'Men Power Shortage'])]" widget="selection"/>
+							<field name ="employee_id" required = "1" domain="[('employee_active','=',1)]" on_change="onchange_rehiring_employee_id(employee_id)"/>
+							<newline/>
+							<field name ="employee_category_id"/>
+							<field name ="sub_category_id"/>
+							<field name ="department_from_id"/>
+							<field name ="department_to_id"/>
+							<field name ="designation_from_id"/>
+							<field name ="designation_to_id"/>
+							<field name ="action_date" string = "Date of Transfer"/>
+							<newline/>
+							<field name ="period_from"/>
+							<field name ="period_to"/>
+						</group>
+						<group>
+							<field name ="note"/>
+						</group>
+					</sheet>
+				</form>
+			</field>
+		</record>
+
+         <record id="action_arul_hr_employee_transfer_action_form" model="ir.actions.act_window">
+            <field name="name">Employee Transfer</field>
+			<field name="type">ir.actions.act_window</field>
+            <field name="res_model">arul.hr.employee.action.history</field>
+            <field name="view_type">form</field>
+            <field name="view_mode">tree,form</field>
+            <field name="domain">[('action_id.name','=','Transfer')]</field>
+            <field name="view_id" ref="view_arul_hr_employee_transfer_action_form_vew"/>
+        </record>
+        <record id="action_arul_hr_employee_transfer_action_form1" model="ir.actions.act_window.view">
+            <field eval="0" name="sequence"/>
+            <field name="view_mode">tree</field>
+            <field name="view_id" ref="view_arul_hr_employee_transfer_action_tree_vew"/>
+            <field name="act_window_id" ref="action_arul_hr_employee_transfer_action_form"/>
+        </record>
+        <record id="action_arul_hr_employee_contracts_action_form2" model="ir.actions.act_window.view">
+            <field eval="1" name="sequence"/>
+            <field name="view_mode">form</field>
+            <field name="view_id" ref="view_arul_hr_employee_transfer_action_form_vew"/>
+            <field name="act_window_id" ref="action_arul_hr_employee_transfer_action_form"/>
+        </record>
+         <menuitem action="action_arul_hr_employee_transfer_action_form"
+            id="menu_action_arul_hr_employee_transfer_action_form"
+            parent="hr.menu_hr_main" sequence="28"/>
+        
         <record id="view_arul_hr_employee_action_history_tree_vew" model="ir.ui.view">
 			<field name="name">arul.hr.employee.action.history.tree</field>
 			<field name="model">arul.hr.employee.action.history</field>
@@ -233,7 +311,7 @@
 		                 <group col='4' colspan='2'>
 							<field name="action_id" domain="[('name','=','Promotion')]" widget="selection"/>
 							<field name="action_type_id" domain="[('name','in',['Good Performance','Vacancy'])]" widget="selection"/>
-							<field name ="employee_id" required='1'/>
+							<field name ="employee_id" required='1' context="{'search_promotion_employee':True, 'employee_id':employee_id}"/>
 							<newline/>
 							<field name ="employee_category_id"/>
 							<field name ="sub_category_id"/>
@@ -264,13 +342,13 @@
             <field name="view_id" ref="view_arul_hr_employee_action_history_tree_vew"/>
         </record>
         <record id="action_arul_hr_employee_action_history_form1" model="ir.actions.act_window.view">
-            <field eval="1" name="sequence"/>
+            <field eval="2" name="sequence"/>
             <field name="view_mode">tree</field>
             <field name="view_id" ref="view_arul_hr_employee_action_history_tree_vew"/>
             <field name="act_window_id" ref="action_arul_hr_employee_action_history_form"/>
         </record>
         <record id="action_arul_hr_employee_action_history_form2" model="ir.actions.act_window.view">
-            <field eval="2" name="sequence"/>
+            <field eval="3" name="sequence"/>
             <field name="view_mode">form</field>
             <field name="view_id" ref="view_arul_hr_employee_action_history_form_vew"/>
             <field name="act_window_id" ref="action_arul_hr_employee_action_history_form"/>
@@ -338,13 +416,13 @@
             <field name="view_id" ref="view_arul_hr_employee_rehiring_history_tree_vew"/>
         </record>
         <record id="action_arul_hr_employee_rehiring_history_form1" model="ir.actions.act_window.view">
-            <field eval="1" name="sequence"/>
+            <field eval="4" name="sequence"/>
             <field name="view_mode">tree</field>
             <field name="view_id" ref="view_arul_hr_employee_rehiring_history_tree_vew"/>
             <field name="act_window_id" ref="action_arul_hr_employee_rehiring_history_form"/>
         </record>
         <record id="action_arul_hr_employee_rehiring_history_form2" model="ir.actions.act_window.view">
-            <field eval="2" name="sequence"/>
+            <field eval="5" name="sequence"/>
             <field name="view_mode">form</field>
             <field name="view_id" ref="view_arul_hr_employee_rehiring_history_form_vew"/>
             <field name="act_window_id" ref="action_arul_hr_employee_rehiring_history_form"/>
@@ -382,7 +460,7 @@
 		                 <group col='4' colspan='2'>
 							<field name="action_id" domain="[('name','=','Compensation Review')]" widget="selection"/>
 							<field name="action_type_id" domain="[('name','in',['Change of Pay' ,'Revision of Salary', 'Increment','Promotion'])]" widget="selection"/>
-							<field name ="employee_id" required='1'/>
+							<field name ="employee_id" domain="[('employee_active','=',1)]" required='1'/>
 							<newline/>
 							<field name ="employee_category_id"/>
 							<field name ="sub_category_id"/>
@@ -410,13 +488,13 @@
             <field name="view_id" ref="view_arul_hr_employee_compensation_review_action_tree_vew"/>
         </record>
         <record id="view_arul_hr_employee_compensation_review_action_form_vew1" model="ir.actions.act_window.view">
-            <field eval="1" name="sequence"/>
+            <field eval="6" name="sequence"/>
             <field name="view_mode">tree</field>
             <field name="view_id" ref="view_arul_hr_employee_compensation_review_action_tree_vew"/>
             <field name="act_window_id" ref="action_arul_hr_employee_compensation_review_action_form"/>
         </record>
         <record id="view_arul_hr_employee_compensation_review_action_form_vew2" model="ir.actions.act_window.view">
-            <field eval="2" name="sequence"/>
+            <field eval="7" name="sequence"/>
             <field name="view_mode">form</field>
             <field name="view_id" ref="view_arul_hr_employee_compensation_review_action_form_vew"/>
             <field name="act_window_id" ref="action_arul_hr_employee_compensation_review_action_form"/>
@@ -454,7 +532,7 @@
 		                 <group col='4' colspan='2'>
 							<field name="action_id" domain="[('name','=','Contracts')]" widget="selection"/>
 							<field name="action_type_id" domain="[('name','in',['Probation', 'Confirmation','Extension of Trainee','Extension of Probation'])]" widget="selection"/>
-							<field name ="employee_id" required='1' context="{'search_contract_employee':True}"/>
+							<field name ="employee_id" required='1' context="{'search_contract_employee':True, 'employee_id':employee_id}"/>
 							<newline/>
 							<field name ="employee_category_id"/>
 							<field name ="sub_category_id"/>
@@ -479,16 +557,16 @@
             <field name="view_type">form</field>
             <field name="view_mode">tree,form</field>
             <field name="domain">[('action_id.name','=','Contracts')]</field>
-            <field name="view_id" ref="view_arul_hr_employee_contracts_action_tree_vew"/>
+            <field name="view_id" ref="view_arul_hr_employee_contracts_action_form_vew"/>
         </record>
         <record id="action_arul_hr_employee_contracts_action_form1" model="ir.actions.act_window.view">
-            <field eval="1" name="sequence"/>
+            <field eval="8" name="sequence"/>
             <field name="view_mode">tree</field>
             <field name="view_id" ref="view_arul_hr_employee_contracts_action_tree_vew"/>
             <field name="act_window_id" ref="action_arul_hr_employee_contracts_action_form"/>
         </record>
         <record id="action_arul_hr_employee_contracts_action_form2" model="ir.actions.act_window.view">
-            <field eval="2" name="sequence"/>
+            <field eval="9" name="sequence"/>
             <field name="view_mode">form</field>
             <field name="view_id" ref="view_arul_hr_employee_contracts_action_form_vew"/>
             <field name="act_window_id" ref="action_arul_hr_employee_contracts_action_form"/>
@@ -550,13 +628,13 @@
             <field name="view_id" ref="view_arul_hr_employee_hiring_action_tree_vew"/>
         </record>
         <record id="action_arul_hr_employee_hiring_action_form1" model="ir.actions.act_window.view">
-            <field eval="1" name="sequence"/>
+            <field eval="10" name="sequence"/>
             <field name="view_mode">tree</field>
             <field name="view_id" ref="view_arul_hr_employee_hiring_action_tree_vew"/>
             <field name="act_window_id" ref="action_arul_hr_employee_hiring_action_form"/>
         </record>
         <record id="action_arul_hr_employee_hiring_action_form2" model="ir.actions.act_window.view">
-            <field eval="2" name="sequence"/>
+            <field eval="11" name="sequence"/>
             <field name="view_mode">form</field>
             <field name="view_id" ref="view_arul_hr_employee_hiring_action_form_vew"/>
             <field name="act_window_id" ref="action_arul_hr_employee_hiring_action_form"/>
@@ -611,11 +689,6 @@
 					<field name ="payroll_sub_area_id"/>
 					<field name ="action_date" string="Date Of Leaving"/>
 					<field name ="note"/>
-					<field name ="current_month_salary"/>
-					<field name ="c_off"/>
-					<field name ="medical_reimbursement"/>
-					<field name ="bonus"/>
-					<field name ="pf_settlement"/>
 				</tree>
 			</field>
 		</record>
@@ -667,13 +740,13 @@
             <field name="view_id" ref="view_arul_hr_employee_leaving_action_tree_vew"/>
         </record>
         <record id="action_arul_hr_employee_leaving_action_form1" model="ir.actions.act_window.view">
-            <field eval="1" name="sequence"/>
+            <field eval="12" name="sequence"/>
             <field name="view_mode">tree</field>
             <field name="view_id" ref="view_arul_hr_employee_leaving_action_tree_vew"/>
             <field name="act_window_id" ref="action_arul_hr_employee_leaving_action_form"/>
         </record>
         <record id="action_arul_hr_employee_leaving_action_form2" model="ir.actions.act_window.view">
-            <field eval="2" name="sequence"/>
+            <field eval="13" name="sequence"/>
             <field name="view_mode">form</field>
             <field name="view_id" ref="view_arul_hr_employee_leaving_action_form_vew"/>
             <field name="act_window_id" ref="action_arul_hr_employee_leaving_action_form"/>
@@ -681,22 +754,18 @@
 		<menuitem action="action_arul_hr_employee_leaving_action_form"
             id="menu_action_arul_hr_employee_leaving_action_form"
             parent="hr.menu_hr_main" sequence="29"/>
-		
-		<record id="view_arul_hr_employee_transfer_action_tree_vew" model="ir.ui.view">
-			<field name="name">arul.hr.employee.transfer.action.tree</field>
+
+		<record id="view_arul_hr_employee_disciplinary_action_tree_vew" model="ir.ui.view">
+			<field name="name">arul.hr.employee.disciplinary.action.tree</field>
 			<field name="model">arul.hr.employee.action.history</field>
 			<field name="arch" type="xml">
-				<tree string="Employee Transfer Action">
+				<tree string="Employee Disciplinary Action">
 					<field name="action_id"/>
 					<field name ="action_type_id"/>
 					<field name ="employee_id"/>
 					<field name ="employee_category_id"/>
 					<field name ="sub_category_id"/>
-					<field name="department_from_id"/>
-					<field name ="department_to_id"/>
-					<field name ="designation_from_id"/>
-					<field name ="designation_to_id"/>
-					<field name ="action_date" string = "Date of Transfer"/>
+					<field name ="action_date" string = "Date of Disciplinary"/>
 					<field name ="period_from"/>
 					<field name ="period_to"/>
 					<field name ="note"/>
@@ -704,24 +773,25 @@
 			</field>
 		</record>
 
-		<record id="view_arul_hr_employee_transfer_action_form_vew" model="ir.ui.view">
-            <field name="name">arul.hr.employee.transfer.action.form</field>
+		<record id="view_arul_hr_employee_disciplinary_action_form_vew" model="ir.ui.view">
+            <field name="name">arul.hr.employee.disciplinary.action.form</field>
             <field name="model">arul.hr.employee.action.history</field>
             <field name="arch" type="xml">
-                <form string="Employee Transfer Action" version="7.0">    
+                <form string="Employee Disciplinary Action" version="7.0">    
                 	<sheet>
 		                 <group col='4' colspan='2'>
-							<field name="action_id" domain="[('name','=','Transfer')]" widget="selection"/>
-							<field name="action_type_id" domain="[('name','in',['Performance', 'Men Power Shortage'])]" widget="selection"/>
-							<field name ="employee_id" required = "1" domain="[('employee_active','=',1)]" on_change="onchange_rehiring_employee_id(employee_id)"/>
+							<field name="action_id" domain="[('name','=','Disciplinary')]" widget="selection"/>
+							<field name="action_type_id" domain="[('name','in',['Memo', 'Suspension', 'Stoppage of Salary', 'Termination'])]" widget="selection"/>
+							<field name ="employee_id" required = "1" context="{'search_disciplinary_employee':True, 'employee_id':employee_id}"/>
 							<newline/>
 							<field name ="employee_category_id"/>
 							<field name ="sub_category_id"/>
-							<field name ="department_from_id"/>
-							<field name ="department_to_id"/>
-							<field name ="designation_from_id"/>
-							<field name ="designation_to_id"/>
-							<field name ="action_date" string = "Date of Transfer"/>
+							<field name ="action_date" string = "Date of Disciplinary"/>
+							<label for="datas" string="Document upload"/>
+							<div>
+								<field name="datas" filename="datas_fname"/>
+	                        	<field name="datas_fname" invisible="1" class="oe_inline oe_right"/>
+	                        </div>
 							<newline/>
 							<field name ="period_from"/>
 							<field name ="period_to"/>
@@ -734,31 +804,30 @@
 			</field>
 		</record>
 
-         <record id="action_arul_hr_employee_transfer_action_form" model="ir.actions.act_window">
-            <field name="name">Employee Transfer</field>
+        <record id="action_arul_hr_employee_disciplinary_action_form" model="ir.actions.act_window">
+            <field name="name">Employee Disciplinary</field>
 			<field name="type">ir.actions.act_window</field>
             <field name="res_model">arul.hr.employee.action.history</field>
             <field name="view_type">form</field>
             <field name="view_mode">tree,form</field>
-            <field name="domain">[('action_id.name','=','Transfer')]</field>
-            <field name="view_id" ref="view_arul_hr_employee_transfer_action_tree_vew"/>
+            <field name="domain">[('action_id.name','=','Disciplinary')]</field>
+            <field name="view_id" ref="view_arul_hr_employee_disciplinary_action_tree_vew"/>
         </record>
-        <record id="action_arul_hr_employee_transfer_action_form1" model="ir.actions.act_window.view">
-            <field eval="1" name="sequence"/>
+        <record id="action_arul_hr_employee_disciplinary_action_form1" model="ir.actions.act_window.view">
+            <field eval="14" name="sequence"/>
             <field name="view_mode">tree</field>
-            <field name="view_id" ref="view_arul_hr_employee_transfer_action_tree_vew"/>
-            <field name="act_window_id" ref="action_arul_hr_employee_transfer_action_form"/>
+            <field name="view_id" ref="view_arul_hr_employee_disciplinary_action_tree_vew"/>
+            <field name="act_window_id" ref="action_arul_hr_employee_disciplinary_action_form"/>
         </record>
         <record id="action_arul_hr_employee_contracts_action_form2" model="ir.actions.act_window.view">
-            <field eval="2" name="sequence"/>
+            <field eval="15" name="sequence"/>
             <field name="view_mode">form</field>
-            <field name="view_id" ref="view_arul_hr_employee_transfer_action_form_vew"/>
-            <field name="act_window_id" ref="action_arul_hr_employee_transfer_action_form"/>
+            <field name="view_id" ref="view_arul_hr_employee_disciplinary_action_form_vew"/>
+            <field name="act_window_id" ref="action_arul_hr_employee_disciplinary_action_form"/>
         </record>
-         <menuitem action="action_arul_hr_employee_transfer_action_form"
-            id="menu_action_arul_hr_employee_transfer_action_form"
-            parent="hr.menu_hr_main" sequence="28"/>
-
+         <menuitem action="action_arul_hr_employee_disciplinary_action_form"
+            id="menu_action_arul_hr_employee_disciplinary_action_form"
+            parent="hr.menu_hr_main" sequence="29"/>
     </data>
     
 </openerp>
