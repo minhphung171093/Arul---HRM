@@ -2,4 +2,4 @@
 import hr_employee
 import hr_department
 import hr_payroll
-import hr_leave_types
+import hr_holiday
