@@ -41,6 +41,7 @@
         <menuitem action="action_arul_hr_holiday_special_form"
             id="menu_action_arul_hr_holiday_special_form"
             parent="menu_hr_leave_management" sequence="0"/>
+
             
         <record id="view_arul_hr_leave_master_tree_vew" model="ir.ui.view">
 			<field name="name">arul.hr.leave.master.tree</field>
@@ -56,7 +57,8 @@
 				</tree>
 			</field>
 		</record>
-		
+
+
 		<record id="view_arul_hr_leave_master_form_vew" model="ir.ui.view">
             <field name="name">arul.hr.leave.master.form</field>
             <field name="model">arul.hr.leave.master</field>
@@ -66,7 +68,7 @@
 	                    <group col='4' colspan='2'>
 	                    	<field name="leave_type_id"/>
 	                    	<newline/>
-							<field name="employee_category_id"/>
+							<field name="employee_category_id" on_change="onchange_employee_category_id(employee_category_id)" />
 							<field name="employee_sub_category_id"/>
 							<field name="maximum_limit"/>
 							<field name="carryforward_nextyear"/>
@@ -85,11 +87,56 @@
             <field name="view_mode">tree,form</field>
             <field name="view_id" ref="view_arul_hr_leave_master_tree_vew"/>
         </record>
-		
-		<menuitem id="menu_hr_leave_master" parent="hr.menu_hr_root" name="Leave Management" sequence="25"/>
+        
+        <menuitem id="menu_hr_leave_master" parent="hr.menu_hr_root" name="Leave Management" sequence="25"/>
         <menuitem action="action_arul_hr_leave_master_form"
             id="menu_action_arul_hr_leave_master_form"
             parent="menu_hr_leave_management" sequence="1"/>
+            
+        
+        <record id="view_arul_hr_leave_types_tree_vew" model="ir.ui.view">
+			<field name="name">arul.hr.leave.types.tree</field>
+			<field name="model">arul.hr.leave.types</field>
+			<field name="arch" type="xml">
+				<tree string="Leave Types">
+					<field name="code"/>
+					<field name="name"/>
+				</tree>
+			</field>
+		</record>
+		
+
+		<record id="view_arul_hr_leave_types_form_vew" model="ir.ui.view">
+            <field name="name">arul.hr.leave.types.form</field>
+            <field name="model">arul.hr.leave.types</field>
+            <field name="arch" type="xml">
+	            <form string="Leave Types" version="7.0">   
+	            	<sheet>
+		                <group>    
+			                <field name="code"/>
+							<field name="name"/>
+		                </group>   	
+		         	</sheet>
+		         </form>
+			</field>
+		</record>
+          
+		<record id="action_arul_hr_leave_types_form" model="ir.actions.act_window">
+            <field name="name">Leave Types</field>
+            <field name="type">ir.actions.act_window</field>
+            <field name="res_model">arul.hr.leave.types</field>
+            <field name="view_type">form</field>
+            <field name="view_mode">tree,form</field>
+            <field name="view_id" ref="view_arul_hr_leave_types_tree_vew"/>
+        </record>
+        
+		<menuitem id="menu_hr_leave_master" parent="hr.menu_hr_root" name="Leave Management" sequence="25"/>
+        <menuitem action="action_arul_hr_leave_types_form"
+            id="menu_action_arul_hr_leave_types_form"
+            parent="menu_hr_leave_management" sequence="20"/>
+
+		
+		
             
 	</data>
 </openerp>

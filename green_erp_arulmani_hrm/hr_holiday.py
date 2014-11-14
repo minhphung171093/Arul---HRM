@@ -15,6 +15,7 @@ class arul_hr_holiday_special(osv.osv):
     }
 arul_hr_holiday_special()
 
+
 class arul_hr_leave_master(osv.osv):
     _name = "arul.hr.leave.master"
     _columns = {
@@ -25,5 +26,31 @@ class arul_hr_leave_master(osv.osv):
         'carryforward_nextyear': fields.boolean('Is Carry Forward for Next Year'),
         'condition': fields.selection([('yes', 'Yes'),('no', 'No')], 'Eligible per Annum'),
     }
+    def onchange_employee_category_id(self, cr, uid, ids,employee_category_id=False, context=None):
+        emp_sub_cat = []
+        if employee_category_id:
+            emp_cat = self.pool.get('vsis.hr.employee.category').browse(cr, uid, employee_category_id)
+            emp_sub_cat = [x.id for x in emp_cat.sub_category_ids]
+        return {'value': {'employee_sub_category_id': False }, 'domain':{'employee_sub_category_id':[('id','in',emp_sub_cat)]}}
+    
 arul_hr_leave_master()
+
+
+class arul_hr_leave_types(osv.osv):
+    _name='arul.hr.leave.types'
+    _columns={
+              'code':fields.char('Code',size=256,required = True),
+              'name':fields.char('Name',size=256,required =True)
+              }
+    def _check_code(self, cr, uid, ids, context=None):
+        for leave in self.browse(cr, uid, ids, context=context):
+            leave_ids = self.search(cr, uid, [('id','!=',leave.id),('code','=',leave.code)])
+            if leave_ids:  
+                return False
+        return True
+
+    _constraints = [
+        (_check_code, 'Identical Data', ['code']),
+    ]
+arul_hr_leave_types()
 

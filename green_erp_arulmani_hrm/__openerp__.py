@@ -35,6 +35,8 @@
         'hr_payroll_view.xml',
         'hr_holiday_view.xml',
         'menu_view.xml',
+        'hr_demo_leave_types.xml',
+        
     ],
     'css' : [
     ],
