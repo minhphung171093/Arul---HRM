@@ -33,6 +33,7 @@
         'hr_employee_view.xml',
         'hr_department_view.xml',
         'hr_payroll_view.xml',
+        'hr_holiday_view.xml',
         'menu_view.xml',
     ],
     'css' : [
