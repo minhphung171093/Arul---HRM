@@ -81,9 +81,13 @@ class arul_hr_capture_work_shift(osv.osv):
             if ((time.start_time > 24 or time.start_time < 0) or (time.end_time > 24 or time.end_time < 0)):
                 raise osv.except_osv(_('Warning!'),_('Input Wrong Time!'))
                 return False
+            if (time.start_time > time.end_time):
+                raise osv.except_osv(_('Warning!'),_('Shift Start Time is earlier than Shift End Time'))
+                return False
             return True       
     _constraints = [
         (_check_time, _(''), ['start_time', 'end_time']),
-    ]
+    ]   
+
 arul_hr_capture_work_shift()
 
