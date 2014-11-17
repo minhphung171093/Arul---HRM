@@ -24,7 +24,7 @@ class arul_hr_leave_master(osv.osv):
         'employee_sub_category_id' : fields.many2one('hr.employee.sub.category', 'Employee Sub Category'),
         'maximum_limit': fields.integer('Maximum Limit Applicable'),
         'carryforward_nextyear': fields.boolean('Is Carry Forward for Next Year'),
-        'condition': fields.selection([('yes', 'Yes'),('no', 'No')], 'Eligible per Annum'),
+        'condition': fields.text('Eligible per Annum'),
     }
     def onchange_employee_category_id(self, cr, uid, ids,employee_category_id=False, context=None):
         emp_sub_cat = []
@@ -53,4 +53,37 @@ class arul_hr_leave_types(osv.osv):
         (_check_code, 'Identical Data', ['code']),
     ]
 arul_hr_leave_types()
+
+class arul_hr_capture_work_shift(osv.osv):
+    _name='arul.hr.capture.work.shift'
+    
+    def _time_total(self, cr, uid, ids, field_name, arg, context=None):
+        res = {}
+        for time in self.browse(cr, uid, ids, context=context):
+            res[time.id] = {
+                'time_total': 0.0,
+            }
+            time_total = time.end_time - time.start_time
+            res[time.id]['time_total'] = time_total 
+        return res
+    
+    _columns={
+              'code':fields.char('Code',size=1024),
+              'name':fields.char('Name',size=1024),
+              'description':fields.text('Description'),
+              'start_time': fields.float('Shift Start Time'),
+              'end_time': fields.float('Shift End Time'),
+              'time_total': fields.function(_time_total, string='Shift Total Hours', multi='sums', help="The total amount."),
+              'allowance': fields.text('Shift Allowance'),
+              }
+    def _check_time(self, cr, uid, ids, context=None): 
+        for time in self.browse(cr, uid, ids, context = context):
+            if ((time.start_time > 24 or time.start_time < 0) or (time.end_time > 24 or time.end_time < 0)):
+                raise osv.except_osv(_('Warning!'),_('Input Wrong Time!'))
+                return False
+            return True       
+    _constraints = [
+        (_check_time, _(''), ['start_time', 'end_time']),
+    ]
+arul_hr_capture_work_shift()
 

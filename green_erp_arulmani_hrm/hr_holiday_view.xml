@@ -88,7 +88,7 @@
             <field name="view_id" ref="view_arul_hr_leave_master_tree_vew"/>
         </record>
         
-        <menuitem id="menu_hr_leave_master" parent="hr.menu_hr_root" name="Leave Management" sequence="25"/>
+        
         <menuitem action="action_arul_hr_leave_master_form"
             id="menu_action_arul_hr_leave_master_form"
             parent="menu_hr_leave_management" sequence="1"/>
@@ -130,12 +130,61 @@
             <field name="view_id" ref="view_arul_hr_leave_types_tree_vew"/>
         </record>
         
-		<menuitem id="menu_hr_leave_master" parent="hr.menu_hr_root" name="Leave Management" sequence="25"/>
         <menuitem action="action_arul_hr_leave_types_form"
             id="menu_action_arul_hr_leave_types_form"
             parent="menu_hr_leave_management" sequence="20"/>
 
+		<record id="view_arul_hr_capture_work_shift_tree_vew" model="ir.ui.view">
+			<field name="name">arul.hr.capture.work.shift.tree</field>
+			<field name="model">arul.hr.capture.work.shift</field>
+			<field name="arch" type="xml">
+				<tree string="Capture Work Shift">
+					<field name="code"/>
+					<field name="name"/>
+					<field name="description"/>
+					<field name="start_time" widget="float_time"/>
+					<field name="end_time" widget="float_time"/>
+					<field name="time_total" widget="float_time"/>
+					<field name="allowance"/>
+				</tree>
+			</field>
+		</record>
 		
+
+		<record id="view_arul_hr_capture_work_shift_form_vew" model="ir.ui.view">
+            <field name="name">arul.hr.capture.work.shift.form</field>
+            <field name="model">arul.hr.capture.work.shift</field>
+            <field name="arch" type="xml">
+	            <form string="Capture Work Shift" version="7.0">   
+	            	<sheet>
+		                <group>    
+			                <field name="code"/>
+							<field name="name"/>
+							<field name="description"/>
+						</group>
+						<group col='4' colspan='2'>
+							<field name="start_time" widget="float_time"/>
+							<field name="end_time" widget="float_time"/>
+							<field name="time_total" widget="float_time"/>
+							<field name="allowance"/>
+		                </group>   	
+		         	</sheet>
+		         </form>
+			</field>
+		</record>
+          
+		<record id="action_arul_hr_capture_work_shift_form" model="ir.actions.act_window">
+            <field name="name">Capture Work Shift</field>
+            <field name="type">ir.actions.act_window</field>
+            <field name="res_model">arul.hr.capture.work.shift</field>
+            <field name="view_type">form</field>
+            <field name="view_mode">tree,form</field>
+            <field name="view_id" ref="view_arul_hr_capture_work_shift_tree_vew"/>
+        </record>
+        
+        <menuitem action="action_arul_hr_capture_work_shift_form"
+            id="menu_action_arul_hr_capture_work_shift_form"
+            parent="menu_hr_leave_management" sequence="20"/>
 		
             
 	</data>
