@@ -185,6 +185,62 @@
         <menuitem action="action_arul_hr_capture_work_shift_form"
             id="menu_action_arul_hr_capture_work_shift_form"
             parent="menu_hr_leave_management" sequence="20"/>
+
+		<record id="view_arul_hr_employee_leave_details_tree_vew" model="ir.ui.view">
+			<field name="name">arul.hr.employee.leave.details.tree</field>
+			<field name="model">arul.hr.employee.leave.details</field>
+			<field name="arch" type="xml">
+				<tree string="Employee Leave Details">
+					<field name="employee_id"/>
+					<field name="leave_type_id"/>
+					<field name="date_from"/>
+					<field name="date_to" />
+					<field name="days_total"/>
+					<field name="haft_day_leave"/>
+					<field name="reason"/>
+				</tree>
+			</field>
+		</record>
+		
+		<record id="view_arul_hr_employee_leave_details_form_vew" model="ir.ui.view">
+            <field name="name">arul.hr.employee.leave.details.form</field>
+            <field name="model">arul.hr.employee.leave.details</field>
+            <field name="arch" type="xml">
+	            <form string="Employee Leave Details" version="7.0">   
+	            	<sheet>
+		                <group col='4' colspan='2'>    
+			                <field name="employee_id"/>
+			                <newline/>
+			                <field name="leave_type_id"/>
+			                <newline/>
+							<field name="date_from"/>
+							<field name="date_to"/>
+							<field name="days_total"/>
+							<field name="haft_day_leave"/>
+						</group>
+						<group >
+							<field name="reason"/>
+		                </group>
+		                <group >
+							 <button string="Process leave request" name="validate"  type="workflow" class="oe_highlight"/>		                	
+		                </group>   	
+		         	</sheet>
+		         </form>
+			</field>
+		</record>
+		
+		<record id="action_arul_hr_employee_leave_details_form" model="ir.actions.act_window">
+            <field name="name">Employee Leave Details</field>
+            <field name="type">ir.actions.act_window</field>
+            <field name="res_model">arul.hr.employee.leave.details</field>
+            <field name="view_type">form</field>
+            <field name="view_mode">tree,form</field>
+            <field name="view_id" ref="view_arul_hr_employee_leave_details_tree_vew"/>
+        </record>
+        
+        <menuitem action="action_arul_hr_employee_leave_details_form"
+            id="menu_action_arul_hr_employee_leave_details_form"
+            parent="menu_hr_leave_management" sequence="22"/>	
 		
         <record id="view_arul_hr_audit_shift_time_tree_vew" model="ir.ui.view">
 			<field name="name">arul.hr.audit.shift.time.tree</field>
@@ -225,12 +281,12 @@
 							<field name="out_time" widget="float_time"/>
 							<field name="total_hours" widget="float_time"/>
 							<field name="approval"/>
-		                </group>   	
+						</group>   	
 		         	</sheet>
 		         </form>
 			</field>
 		</record>
-          
+
 		<record id="action_arul_hr_audit_shift_time_form" model="ir.actions.act_window">
             <field name="name">Audit Shift Time</field>
             <field name="type">ir.actions.act_window</field>
@@ -243,6 +299,7 @@
         <menuitem action="action_arul_hr_audit_shift_time_form"
             id="menu_action_arul_hr_audit_shift_time_form"
             parent="menu_hr_leave_management" sequence="20"/> 
+	
             
 	</data>
 </openerp>

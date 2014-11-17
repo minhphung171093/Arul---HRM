@@ -142,5 +142,39 @@ class arul_hr_audit_shift_time(osv.osv):
         return True   
 arul_hr_audit_shift_time()
 
+class arul_hr_employee_leave_details(osv.osv):
+    _name='arul.hr.employee.leave.details'
+
+    def days_total(self, cr, uid, ids, field_name, arg, context=None):
+        res = {}
+        for date in self.browse(cr, uid, ids, context=context):
+            DATETIME_FORMAT = "%Y-%m-%d"
+            from_dt = datetime.strptime(date.date_from, DATETIME_FORMAT)
+            to_dt = datetime.strptime(date.date_to, DATETIME_FORMAT)
+            timedelta = to_dt - from_dt
+            res[date.id] = {
+                'days_total': timedelta.days
+            }
+        return res
+    
+    _columns={
+              'employee_id':fields.many2one('hr.employee','Employee'),
+              'leave_type_id':fields.many2one('arul.hr.leave.types','Leave Type',required=True),
+              'date_from':fields.date('Date From'),
+              'date_to': fields.date('To Date'),
+              'days_total': fields.function(days_total, string='Leave Total', multi='sums', help="The total amount.",required=True),
+              'haft_day_leave': fields.boolean('Is haft day leave ?'),
+              'reason':fields.text('Reason')
+              }
+    def _check_days(self, cr, uid, ids, context=None): 
+        for days in self.browse(cr, uid, ids, context = context):
+            if ((days.date_from > days.date_to)):
+                raise osv.except_osv(_('Warning!'),_('The start date must be anterior to the end date.'))
+                return False
+            return True       
+    _constraints = [
+        (_check_days, _(''), ['date_from', 'date_to']),
+    ]
+arul_hr_employee_leave_details()
 
 
