@@ -825,9 +825,52 @@
             <field name="view_id" ref="view_arul_hr_employee_disciplinary_action_form_vew"/>
             <field name="act_window_id" ref="action_arul_hr_employee_disciplinary_action_form"/>
         </record>
-         <menuitem action="action_arul_hr_employee_disciplinary_action_form"
+        <menuitem action="action_arul_hr_employee_disciplinary_action_form"
             id="menu_action_arul_hr_employee_disciplinary_action_form"
             parent="hr.menu_hr_main" sequence="29"/>
+            
+        <record id="food_subsidy_tree_view" model="ir.ui.view">
+			<field name="name">food.subsidy.tree</field>
+			<field name="model">food.subsidy</field>
+			<field name="arch" type="xml">
+				<tree string="Food Subsidy Master">
+					<field name ="food_category"/>
+                	<field name ="food_price"/>
+                	<field name ="employer_con"/>
+                	<field name ="employee_con"/>
+				</tree>
+			</field>
+		</record>
+
+		<record id="food_subsidy_form_view" model="ir.ui.view">
+            <field name="name">food.subsidy.form</field>
+            <field name="model">food.subsidy</field>
+            <field name="arch" type="xml">
+                <form string="Food Subsidy Master" version="7.0">  
+                	<sheet>  
+                		<group>
+                		<field name ="food_category" style="width: 40%%"/>
+                		<field name ="food_price"/>
+                		<field name ="employer_con"/>
+                		<field name ="employee_con"/>
+                		</group>
+                	</sheet>
+				</form>
+			</field>
+		</record>
+
+        <record id="action_food_subsidy_form" model="ir.actions.act_window">
+            <field name="name">Food Subsidy</field>
+			<field name="type">ir.actions.act_window</field>
+            <field name="res_model">food.subsidy</field>
+            <field name="view_type">form</field>
+            <field name="view_mode">tree,form</field>
+            <field name="view_id" ref="food_subsidy_tree_view"/>
+        </record>
+        
+        <menuitem action="action_food_subsidy_form"
+            id="menu_action_food_subsidy_form"
+            parent="hr.menu_hr_configuration" sequence="4"/>
+            
     </data>
-    
 </openerp>

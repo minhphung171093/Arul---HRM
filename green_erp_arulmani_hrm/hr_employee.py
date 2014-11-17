@@ -304,5 +304,60 @@ class arul_employee_action_type(osv.osv):
 
 arul_employee_action_type()
 
+class food_subsidy(osv.osv):
+    _name = "food.subsidy"
+    
+    def _amount_all(self, cr, uid, ids, field_name, arg, context=None):
+        res = {}
+        for price in self.browse(cr, uid, ids, context=context):
+            res[price.id] = {
+                'employer_con': price.food_price*0.75,
+                'employee_con': price.food_price*0.25,
+            }
+        return res
+    
+    _columns = {
+        'food_category':fields.selection([('break_fast','Break Fast'),('lunch','Lunch'),('dinner','Dinner'),('midnight_tiffin','Midnight Tiffin')],'Food Category',required=True),
+        'food_price': fields.float('Food Price (Rs.)',degits=(16,2)),
+        'employer_con': fields.function(_amount_all,degits=(16,2), string='Employer Contribution (Rs.)',
+            store={
+                'food.subsidy': (lambda self, cr, uid, ids, c={}: ids, ['food_price'], 10),
+            },
+            multi='sums'),
+        'employee_con': fields.function(_amount_all,degits=(16,2), string='Employee Contribution (Rs.)',
+            store={
+                'food.subsidy': (lambda self, cr, uid, ids, c={}: ids, ['food_price'], 10),
+            },
+            multi='sums'),
+    }
+food_subsidy()
+
+class meals_deduction(osv.osv):
+    _name = "meals.deduction"
+    
+    _columns = {
+        'meals_date':fields.date('Meals Arrangement Date'),
+        'meals_for':fields.selection([('employees','Employees'),('others','Others')],'Meals Arrangement For',required=True),
+        'meals_details_ids': fields.one2many('meals.details','meals_id','Meals Deduction Details'),
+    }
+meals_deduction()
+
+class meals_details(osv.osv):
+    _name = "meals.details"
+    _description = "Meals Deduction"
+    _columns = {
+        'emp_code' : fields.char('Emp. Code', size=128),
+        'emp_name' : fields.char('Name', size=128),
+        'break_fast' : fields.boolean('Break Fast'),
+        'lunch' : fields.boolean('Lunch'),
+        'dinner' : fields.boolean('Dinner'),
+        'midnight_tiffin' : fields.boolean('Midnight Tiffin'),
+        'employer_amt': fields.float('Employer Amt',degits=(16,2)),
+        'employee_amt': fields.float('Employee Amt',degits=(16,2)),
+        'free_cost' : fields.boolean('Free Of Cost'),
+        'meals_id': fields.many2one('hr.employee','Employee'),
+    }
+meals_details()
+
 # vim:expandtab:smartindent:tabstop=4:softtabstop=4:shiftwidth=4:
 
