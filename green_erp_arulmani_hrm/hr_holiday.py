@@ -68,14 +68,21 @@ class arul_hr_capture_work_shift(osv.osv):
         return res
     
     _columns={
-              'code':fields.char('Code',size=1024),
-              'name':fields.char('Name',size=1024),
+              'code':fields.char('Code',size=1024, required = True),
+              'name':fields.char('Name',size=1024, required = True),
               'description':fields.text('Description'),
               'start_time': fields.float('Shift Start Time'),
               'end_time': fields.float('Shift End Time'),
               'time_total': fields.function(_time_total, string='Shift Total Hours', multi='sums', help="The total amount."),
               'allowance': fields.text('Shift Allowance'),
               }
+    def _check_code(self, cr, uid, ids, context=None):
+        for shift in self.browse(cr, uid, ids, context=context):
+            shift_ids = self.search(cr, uid, [('id','!=',shift.id),('code','=',shift.code)])
+            if shift_ids:  
+                return False
+        return True
+    
     def _check_time(self, cr, uid, ids, context=None): 
         for time in self.browse(cr, uid, ids, context = context):
             if ((time.start_time > 24 or time.start_time < 0) or (time.end_time > 24 or time.end_time < 0)):
