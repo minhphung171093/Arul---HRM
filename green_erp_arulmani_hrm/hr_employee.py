@@ -30,6 +30,34 @@ arul_reason()
 
 class arul_hr_employee_action_history(osv.osv):
     _name = 'arul.hr.employee.action.history'
+    
+    def default_get(self, cr, uid, fields, context=None):
+        if context is None:
+            context = {}
+        res = super(arul_hr_employee_action_history, self).default_get(cr, uid, fields, context=context)
+        if context.get('action_default_disciplinary'):
+            action_ids = self.pool.get('arul.employee.actions').search(cr, uid, [('name','=','Disciplinary')])
+        elif context.get('action_default_leaving'):
+            action_ids = self.pool.get('arul.employee.actions').search(cr, uid, [('name','=','Leaving')])
+        elif context.get('action_default_hiring'):
+            action_ids = self.pool.get('arul.employee.actions').search(cr, uid, [('name','=','Hiring')])
+        elif context.get('action_default_contracts'):
+            action_ids = self.pool.get('arul.employee.actions').search(cr, uid, [('name','=','Contracts')])
+        elif context.get('action_default_compensation_review'):
+            action_ids = self.pool.get('arul.employee.actions').search(cr, uid, [('name','=','Compensation Review')])
+        elif context.get('action_default_rehiring'):
+            action_ids = self.pool.get('arul.employee.actions').search(cr, uid, [('name','=','Re Hiring')])
+        elif context.get('action_default_promotion'):
+            action_ids = self.pool.get('arul.employee.actions').search(cr, uid, [('name','=','Promotion')])
+        elif context.get('action_default_transfer'):
+            action_ids = self.pool.get('arul.employee.actions').search(cr, uid, [('name','=','Transfer')])
+        else:
+            action_ids = []
+        if action_ids:
+            res.update({'action_id': action_ids[0]})
+        
+        return res
+    
     def _data_get(self, cr, uid, ids, name, arg, context=None):
         if context is None:
             context = {}
@@ -109,6 +137,13 @@ class arul_hr_employee_action_history(osv.osv):
                 name = record['action_id'][1]
             res.append((record['id'], name))
         return res
+    
+    def onchange_action_id(self, cr, uid, ids,action_id=False, context=None):
+        action_type_ids = []
+        if action_id:
+            action = self.pool.get('arul.employee.actions').browse(cr, uid, action_id)
+            action_type_ids = [x.id for x in action.action_type_ids]
+        return {'value': {'action_type_id': False}, 'domain':{'action_type_id':[('id','in',action_type_ids)]}}
     
     def onchange_rehiring_employee_id(self, cr, uid, ids,employee_id=False, context=None):
         vals = {}
@@ -272,13 +307,6 @@ class arul_employee_actions(osv.osv):
     _defaults={
             'active':True,
                }
-    
-    def init(self, cr):
-        for key in ['Leaving','Promotion','Re Hiring','Compensation Review','Contracts','Hiring','Transfer','Disciplinary']:
-            arul_ids = self.search(cr, 1, [('name','=',key)])
-            if not arul_ids:
-                self.create(cr, 1, {'name':key,'code':key})
-    
     def _check_code(self, cr, uid, ids, context=None):
         for employee in self.browse(cr, uid, ids, context=context):
             employee_ids = self.search(cr, uid, [('id','!=',employee.id),('code','=',employee.code)])
@@ -304,12 +332,6 @@ class arul_employee_action_type(osv.osv):
                 return False
         return True
     
-    def init(self, cr):
-        for key in ['Resignation','Termination','Normal Retirement','Volunteer Retirement','Death','Good Performance','Vacancy','New Hire', 'Expansion','Vacancy Fill up','Change of Pay' ,'Revision of Salary', 'Increment','Promotion','Probation', 'Confirmation','Extension of Trainee','Extension of Probation','Performance','Men Power Shortage','Memo','Suspension','Stoppage of Salary']:
-            arul_ids = self.search(cr, 1, [('name','=',key)])
-            if not arul_ids:
-                self.create(cr, 1, {'name': key,'code': key})
-                
     _constraints = [
         (_check_code, 'Identical Data', ['code']),
     ]
