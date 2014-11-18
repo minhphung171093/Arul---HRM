@@ -28,12 +28,15 @@
     'website' : 'http://www. tenthplanet.in',
     'depends': ['green_erp_arulmani_crm'],
     'data': [
-        'security/green_erp_arulmani_hrm_security.xml',
-        'security/ir.model.access.csv',
+#         'security/green_erp_arulmani_hrm_security.xml',
+#         'security/ir.model.access.csv',
         'hr_employee_view.xml',
         'hr_department_view.xml',
         'hr_payroll_view.xml',
+        'hr_holiday_view.xml',
         'menu_view.xml',
+        'hr_demo_leave_types.xml',
+        
     ],
     'css' : [
     ],

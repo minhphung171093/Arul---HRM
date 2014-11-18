@@ -338,7 +338,8 @@ class meals_deduction(osv.osv):
     _columns = {
         'meals_date':fields.date('Meals Arrangement Date'),
         'meals_for':fields.selection([('employees','Employees'),('others','Others')],'Meals Arrangement For',required=True),
-        'meals_details_ids': fields.one2many('meals.details','meals_id','Meals Deduction Details'),
+        'meals_details_emp_ids': fields.one2many('meals.details','meals_id','Meals Deduction Details'),
+        'meals_details_order_ids': fields.one2many('meals.details','meals_id','Meals Deduction Details'),
     }
 meals_deduction()
 

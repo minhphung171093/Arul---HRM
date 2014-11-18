@@ -28,8 +28,8 @@
     'website' : 'http://www. tenthplanet.in',
     'depends': ['base','crm','sale','hr','hr_contract','sale_crm','account','stock','sale_stock','web_m2x_options','report_aeroo','report_aeroo_ooo'],
     'data': [
-        'security/green_erp_arulmani_crm_security.xml',
-        'security/ir.model.access.csv',
+#         'security/green_erp_arulmani_crm_security.xml',
+#         'security/ir.model.access.csv',
         'wizard/crm_make_cancel_view.xml',
         'green_erp_arulmani_crm_view.xml',
         'green_erp_arulmani_hr_view.xml',

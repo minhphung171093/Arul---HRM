@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="utf-8"?>
+<openerp>
+    <data noupdate="1">
+    
+      <record id="leave_types_1" model="arul.hr.leave.types">
+          <field name="name">Casual Leave</field>
+          <field name="code">CL</field>
+      </record>
+      
+      <record id="leave_types_2" model="arul.hr.leave.types">
+          <field name="name">Sick Leave</field>
+          <field name="code">SL</field>
+      </record>
+      
+      <record id="leave_types_3" model="arul.hr.leave.types">
+          <field name="name">Privilege Leave</field>
+          <field name="code">PL</field>
+      </record>
+      
+      <record id="leave_types_4" model="arul.hr.leave.types">
+          <field name="name">Compensatory Off</field>
+          <field name="code">C.Off</field>
+      </record>
+      
+      <record id="leave_types_5" model="arul.hr.leave.types">
+          <field name="name">ESI Leave</field>
+          <field name="code">ESI</field>
+      </record>
+      
+      <record id="leave_types_6" model="arul.hr.leave.types">
+          <field name="name">LOP</field>
+          <field name="code">LOP</field>
+      </record>
+
+
+    </data>
+</openerp>
