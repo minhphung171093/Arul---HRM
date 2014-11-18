@@ -335,6 +335,17 @@ food_subsidy()
 class meals_deduction(osv.osv):
     _name = "meals.deduction"
     
+#     def load_food_sub(self, cr, uid, ids, meal_code = False, context=None):
+#         employer_amount = 0
+#         employee_amount = 0
+#         food_subsidy_obj = self.pool.get('food.subsidy')
+#         food_subsidy_ids = food_subsidy_obj.search(self.cr, self.uid, [('food_category','=',meal_code)])
+#         res = {
+#                 'employer_amount': food_subsidy_ids.employer_con,
+#                 'employee_amount': food_subsidy_ids.employee_con,
+#             }
+#         return res
+    
     _columns = {
         'meals_date':fields.date('Meals Arrangement Date'),
         'meals_for':fields.selection([('employees','Employees'),('others','Others')],'Meals Arrangement For',required=True),
@@ -358,6 +369,41 @@ class meals_details(osv.osv):
         'free_cost' : fields.boolean('Free Of Cost'),
         'meals_id': fields.many2one('hr.employee','Employee'),
     }
+    
+    def onchange_checkbox(self, cr, uid, ids, bre, lun, din, mid, free, context=None):
+        employer_amount = 0
+        employee_amount = 0
+        food_subsidy_obj = self.pool.get('food.subsidy')
+        if bre : 
+            food_subsidy_ids = food_subsidy_obj.search(cr, uid, [('food_category','=','break_fast')])
+            for meal in food_subsidy_obj.browse(cr, uid, food_subsidy_ids):
+                employer_amount += meal.employer_con
+                employee_amount += meal.employee_con
+        if lun : 
+            food_subsidy_ids = food_subsidy_obj.search(cr, uid, [('food_category','=','lunch')])
+            for meal in food_subsidy_obj.browse(cr, uid, food_subsidy_ids):
+                employer_amount += meal.employer_con
+                employee_amount += meal.employee_con
+        if din : 
+            food_subsidy_ids = food_subsidy_obj.search(cr, uid, [('food_category','=','dinner')])
+            for meal in food_subsidy_obj.browse(cr, uid, food_subsidy_ids):
+                employer_amount += meal.employer_con
+                employee_amount += meal.employee_con
+        if mid : 
+            food_subsidy_ids = food_subsidy_obj.search(cr, uid, [('food_category','=','midnight_tiffin')])
+            for meal in food_subsidy_obj.browse(cr, uid, food_subsidy_ids):
+                employer_amount += meal.employer_con
+                employee_amount += meal.employee_con
+        if free : 
+            employer_amount += employee_amount
+            employee_amount = 0
+            
+        res = {
+            'employer_amt': employer_amount,
+            'employee_amt': employee_amount,
+        }        
+        return {'value':res}
+    
 meals_details()
 
 # vim:expandtab:smartindent:tabstop=4:softtabstop=4:shiftwidth=4:
