@@ -10,10 +10,8 @@
                     <field name = "code"/>
                 </xpath>
                 <xpath expr="//field[@name='parent_id']" position="after">
-                    <field name = "primary_auditor_id"/>
-                </xpath>
-                <xpath expr="//field[@name='manager_id']" position="after">
-                    <field name = "secondary_auditor_id"/>
+                    <field name = "primary_auditor_id" options="{'create': false, 'create_edit': false}"/>
+                    <field name = "secondary_auditor_id" options="{'create': false, 'create_edit': false}"/>
                 </xpath>
                 <xpath expr="//sheet/group[@col='4']" position="after">
                     <notebook>
@@ -27,7 +25,7 @@
                     <page string = 'Designation and Resource Budgets'>
                     
                     <group>
-                    <field name = "designation_id"/>
+                    <field name = "designation_id" options="{'create': false, 'create_edit': false}"/>
                     <field name = "number" />
                     </group>
                     

@@ -29,7 +29,7 @@ class hr_department(osv.osv):
     
     def _check_designation_id(self, cr, uid, ids, context=None):
         for department in self.browse(cr, uid, ids, context=context):
-            department_ids = self.search(cr, uid, [('id','!=',department.id),('designation_id','=',department.designation_id.id)])
+            department_ids = self.search(cr, uid, [('id','!=',department.id),('designation_id','!=',False),('designation_id','=',department.designation_id.id)])
             if department_ids:  
                 return False
         return True

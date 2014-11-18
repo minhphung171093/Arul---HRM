@@ -35,7 +35,7 @@ _logger = logging.getLogger(__name__)
 class res_company(osv.osv):
     _inherit = "res.company"
     _columns = {
-                'company_code': fields.char('Company Code', size=64),  
+                'company_code': fields.char('Company Code', size=1000),  
                 'factory_street': fields.char('Street', size=128),
                 'factory_street2': fields.char('Street2', size=128),
                 'factory_zip': fields.char('Zip', change_default=True, size=24),

@@ -66,10 +66,10 @@
                 <form string="Leave Master" version="7.0">    
                 	<sheet>
 	                    <group col='4' colspan='2'>
-	                    	<field name="leave_type_id"/>
+	                    	<field name="leave_type_id" options="{'create': false, 'create_edit': false}"/>
 	                    	<newline/>
-							<field name="employee_category_id" on_change="onchange_employee_category_id(employee_category_id)" />
-							<field name="employee_sub_category_id"/>
+							<field name="employee_category_id" options="{'create': false, 'create_edit': false}" on_change="onchange_employee_category_id(employee_category_id)" />
+							<field name="employee_sub_category_id" options="{'create': false, 'create_edit': false}"/>
 							<field name="maximum_limit"/>
 							<field name="carryforward_nextyear"/>
 							<field name="condition"/>
@@ -240,7 +240,62 @@
         
         <menuitem action="action_arul_hr_employee_leave_details_form"
             id="menu_action_arul_hr_employee_leave_details_form"
-            parent="menu_hr_leave_management" sequence="22"/>	
+            parent="menu_hr_leave_management" sequence="22"/>
+            
+		<record id="view_arul_hr_permission_onduty_tree_vew" model="ir.ui.view">
+			<field name="name">arul.hr.permission.onduty.tree</field>
+			<field name="model">arul.hr.permission.onduty</field>
+			<field name="arch" type="xml">
+				<tree string="Permission and On Duty">
+					<field name="employee_id"/>
+					<field name="non_availability_type_id"/>
+					<field name="date"/>
+					<field name="start_time" widget="float_time"/>
+					<field name="end_time" widget="float_time"/>
+					<field name="time_total" widget="float_time"/>
+					<field name="reason"/>
+				</tree>
+			</field>
+		</record>
+		
+		
+
+		<record id="view_arul_hr_permission_onduty_form_vew" model="ir.ui.view">
+            <field name="name">arul.hr.permission.onduty.form</field>
+            <field name="model">arul.hr.permission.onduty</field>
+            <field name="arch" type="xml">
+	            <form string="Permission and On Duty" version="7.0">   
+	            	<sheet>
+		                <group col='4' colspan='2'>    
+			                <field name="employee_id"/>
+			                <newline/>
+							<field name="non_availability_type_id" domain="[('name','in',['Permission', 'On Duty'])]" widget="selection"/>
+							<newline/>
+							<field name="date"/>
+							<field name="duty_location"/>
+							<field name="start_time" widget="float_time"/>
+							<field name="end_time" widget="float_time"/>
+							<field name="time_total" widget="float_time"/>
+						</group>
+						<group>
+							<field name="reason"/>
+						</group>
+					</sheet>
+		         </form>
+			</field>
+		</record>
+		<record id="action_arul_hr_permission_onduty_form" model="ir.actions.act_window">
+            <field name="name">Permission and On Duty</field>
+            <field name="type">ir.actions.act_window</field>
+            <field name="res_model">arul.hr.permission.onduty</field>
+            <field name="view_type">form</field>
+            <field name="view_mode">tree,form</field>
+            <field name="view_id" ref="view_arul_hr_permission_onduty_tree_vew"/>
+        </record>
+        
+        <menuitem action="action_arul_hr_permission_onduty_form"
+            id="menu_action_arul_hr_permission_onduty_form"
+            parent="menu_hr_leave_management" sequence="23"/>
 		
         <record id="view_arul_hr_audit_shift_time_tree_vew" model="ir.ui.view">
 			<field name="name">arul.hr.audit.shift.time.tree</field>
@@ -258,7 +313,6 @@
 				</tree>
 			</field>
 		</record>
-		
 
 		<record id="view_arul_hr_audit_shift_time_form_vew" model="ir.ui.view">
             <field name="name">arul.hr.audit.shift.time.form</field>
@@ -286,7 +340,6 @@
 		         </form>
 			</field>
 		</record>
-
 		<record id="action_arul_hr_audit_shift_time_form" model="ir.actions.act_window">
             <field name="name">Audit Shift Time</field>
             <field name="type">ir.actions.act_window</field>
@@ -300,6 +353,88 @@
             id="menu_action_arul_hr_audit_shift_time_form"
             parent="menu_hr_leave_management" sequence="20"/> 
 	
+		
+          
+
+		<record id="view_arul_hr_employee_attendence_details_tree_vew" model="ir.ui.view">
+			<field name="name">arul.hr.employee.attendence.details.tree</field>
+			<field name="model">arul.hr.employee.attendence.details</field>
+			<field name="arch" type="xml">
+				<tree string="Employee Attendence Details">
+						<field name="employee_id"/>
+						<field name="employee_category_id"/>
+						<field name="sub_category_id"/>
+						<field name="designation_id"/>
+						<field name="department_id"/>
+				</tree>
+			</field>
+		</record>
+		
+
+		<record id="view_arul_hr_employee_attendence_details_form_vew" model="ir.ui.view">
+            <field name="name">arul.hr.employee.attendence.details.form</field>
+            <field name="model">arul.hr.employee.attendence.details</field>
+            <field name="arch" type="xml">
+	            <form string="Employee Attendence Details" version="7.0">   
+	            	<sheet>
+		                <group col='4' colspan='2'>    
+			                <field name="employee_id" context="{'search_employee_id':True}"  on_change="onchange_attendence_datails_employee_id(employee_id)"/>
+			                <newline/>
+							<field name="employee_category_id"/>
+							<field name="sub_category_id"/>
+							<field name="designation_id" />
+							<field name="department_id" on_change="onchange_designation_id(department_id)"/>
+						</group>
+						<notebook>
+							<page string = "Permission and On Duty Details">
+								<field name="permission_onduty_details_line" nolabel='1'>
+									<tree editable='top'>
+										
+										<field name="non_availability_type_id"/>
+										<field name="date"/>
+										<field name="duty_location"/>
+										<field name="start_time"/>
+										<field name="end_time"/>
+										<field name="time_total"/>
+										<field name="reason"/>
+									</tree>
+								</field>
+							</page>
+							<page string = "Punch In/Punch Out Details">
+								<field name="punch_in_out_line" nolabel='1'>
+									<tree editable='top'>
+										
+										<field name="work_date"/>
+										<field name="planned_work_shift_id"/>
+										<field name="actual_work_shift_id"/>
+										<field name="in_time" string="Punch In Time"/>
+										<field name="out_time" string="Punch Out Time"/>
+										<field name="total_hours"/>
+										<field name="approval"/>
+									</tree>
+								</field>
+							</page>
+							
+						</notebook>
+						
+		         	</sheet>
+		         </form>
+			</field>
+		</record>
+          
+		<record id="action_arul_hr_employee_attendence_details_form" model="ir.actions.act_window">
+            <field name="name">Employee Attendence Details</field>
+            <field name="type">ir.actions.act_window</field>
+            <field name="res_model">arul.hr.employee.attendence.details</field>
+            <field name="view_type">form</field>
+            <field name="view_mode">tree,form</field>
+            <field name="view_id" ref="view_arul_hr_employee_attendence_details_tree_vew"/>
+        </record>
+        
+        <menuitem action="action_arul_hr_employee_attendence_details_form"
+            id="menu_action_arul_hr_employee_attendence_details_form"
+            parent="menu_hr_leave_management" sequence="24"/>
+          		
             
 	</data>
 </openerp>

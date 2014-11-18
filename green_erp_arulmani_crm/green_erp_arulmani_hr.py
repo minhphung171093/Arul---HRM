@@ -19,10 +19,13 @@ class hr_employee(osv.osv):
             return []
         if isinstance(ids, (long, int)):
             ids = [ids]
-        reads = self.read(cr, uid, ids, ['name','last_name'], context=context)
+        reads = self.read(cr, uid, ids, ['employee_id','name','last_name'], context=context)
         res = []
         for record in reads:
-            name = record['name']+ ' ' + (record['last_name'] and record['last_name'] or'')  
+            if record['employee_id']:
+                name = '['+record['employee_id']+']'+record['name']+ ' ' + (record['last_name'] and record['last_name'] or'')
+            else:
+                name = record['name']+ ' ' + (record['last_name'] and record['last_name'] or'') 
             res.append((record['id'], name))
         return res
   
