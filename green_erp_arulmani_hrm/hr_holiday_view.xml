@@ -66,10 +66,10 @@
                 <form string="Leave Master" version="7.0">    
                 	<sheet>
 	                    <group col='4' colspan='2'>
-	                    	<field name="leave_type_id"/>
+	                    	<field name="leave_type_id" options="{'create': false, 'create_edit': false}"/>
 	                    	<newline/>
-							<field name="employee_category_id" on_change="onchange_employee_category_id(employee_category_id)" />
-							<field name="employee_sub_category_id"/>
+							<field name="employee_category_id" options="{'create': false, 'create_edit': false}" on_change="onchange_employee_category_id(employee_category_id)" />
+							<field name="employee_sub_category_id" options="{'create': false, 'create_edit': false}"/>
 							<field name="maximum_limit"/>
 							<field name="carryforward_nextyear"/>
 							<field name="condition"/>

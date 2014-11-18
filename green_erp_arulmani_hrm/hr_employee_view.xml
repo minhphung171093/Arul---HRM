@@ -85,7 +85,7 @@
         
         <menuitem action="action_arul_employee_sub_category_form"
             id="menu_action_arul_employee_sub_category_form"
-            parent="hr.menu_hr_configuration" sequence="4"/>
+            parent="hr.menu_hr_main" sequence="24"/>
 		
         <record id="view_arul_employee_actions_tree_vew" model="ir.ui.view">
 			<field name="name">arul.employee.actions.tree</field>
@@ -187,13 +187,23 @@
 	                    		<field name ="action_date"/>
 	                    		<field name ="create_date"/>
 	                    		<field name ="create_uid"/>
-	                    		<field name ="reason_id"/>
 	                    		<field name ="period_from"/>
 	                    		<field name ="period_to"/>
+	                    		<field name ="reason_id"/>
+	                    		<field name ="note"/>
+	                    		<field name="datas" filename="datas_fname" string="Document upload"/>
+	                        	<field name="datas_fname" invisible="1" class="oe_inline oe_right"/>
 	                    		<field name ="department_from_id" string="Dept.From"/>
 	                    		<field name ="department_to_id" string="Dept.To"/>
 	                    		<field name ="designation_from_id" string="Dest.From"/>
 	                    		<field name ="designation_to_id" string="Dest.To"/>
+	                    		<field name ="current_month_salary"/>
+	                    		<field name ="pl_encashment"/>
+	                    		<field name ="c_off"/>
+	                    		<field name ="bonus"/>
+	                    		<field name ="medical_reimbursement"/>
+	                    		<field name ="gratuity"/>
+	                    		<field name ="pf_settlement"/>
 	                    	</tree>
                     	</field>
                     </page>
@@ -233,14 +243,14 @@
 		                 <group col='4' colspan='2'>
 							<field name="action_id" domain="[('name','=','Transfer')]" widget="selection"/>
 							<field name="action_type_id" domain="[('name','in',['Performance', 'Men Power Shortage'])]" widget="selection"/>
-							<field name ="employee_id" required = "1" domain="[('employee_active','=',1)]" on_change="onchange_rehiring_employee_id(employee_id)"/>
+							<field name ="employee_id" options="{'create': false, 'create_edit': false}" required = "1" domain="[('employee_active','=',1)]" on_change="onchange_rehiring_employee_id(employee_id)"/>
 							<newline/>
-							<field name ="employee_category_id"/>
-							<field name ="sub_category_id"/>
-							<field name ="department_from_id"/>
-							<field name ="department_to_id"/>
-							<field name ="designation_from_id"/>
-							<field name ="designation_to_id"/>
+							<field name ="employee_category_id" options="{'create': false, 'create_edit': false}"/>
+							<field name ="sub_category_id" options="{'create': false, 'create_edit': false}"/>
+							<field name ="department_from_id" options="{'create': false, 'create_edit': false}"/>
+							<field name ="department_to_id" options="{'create': false, 'create_edit': false}"/>
+							<field name ="designation_from_id" options="{'create': false, 'create_edit': false}"/>
+							<field name ="designation_to_id" options="{'create': false, 'create_edit': false}"/>
 							<field name ="action_date" string = "Date of Transfer"/>
 							<newline/>
 							<field name ="period_from"/>
@@ -311,14 +321,14 @@
 		                 <group col='4' colspan='2'>
 							<field name="action_id" domain="[('name','=','Promotion')]" widget="selection"/>
 							<field name="action_type_id" domain="[('name','in',['Good Performance','Vacancy'])]" widget="selection"/>
-							<field name ="employee_id" required='1' context="{'search_promotion_employee':True, 'employee_id':employee_id}"/>
+							<field name ="employee_id" options="{'create': false, 'create_edit': false}" required='1' on_change="onchange_promotion_employee_id(employee_id)" context="{'search_promotion_employee':True, 'employee_id':employee_id}"/>
 							<newline/>
-							<field name ="employee_category_id"/>
-							<field name ="sub_category_id"/>
-							<field name ="department_from_id"/>
-							<field name ="department_to_id"/>
-							<field name ="designation_from_id"/>
-							<field name ="designation_to_id"/>
+							<field name ="employee_category_id" options="{'create': false, 'create_edit': false}"/>
+							<field name ="sub_category_id" options="{'create': false, 'create_edit': false}"/>
+							<field name ="department_from_id" options="{'create': false, 'create_edit': false}"/>
+							<field name ="department_to_id" options="{'create': false, 'create_edit': false}"/>
+							<field name ="designation_from_id" options="{'create': false, 'create_edit': false}"/>
+							<field name ="designation_to_id" options="{'create': false, 'create_edit': false}"/>
 							<field name ="action_date" string="Date Of Promotion"/>
 							<newline/>
 							<field name ="period_from"/>
@@ -388,11 +398,11 @@
                 	<sheet>
 		                 <group col='4' colspan='2'>
 							<field name="action_id" domain="[('name','=','Re Hiring')]" widget="selection"/>
-							<field name="action_type_id" domain="[('name','in',['New Hire', 'Expansion','Vacancy Fill Up'])]" widget="selection"/>
-							<field name ="employee_id" required='1' domain="[('employee_active','=',0)]" on_change="onchange_rehiring_employee_id(employee_id)"/>
+							<field name="action_type_id" domain="[('name','in',['New Hire', 'Expansion','Vacancy Fill up'])]" widget="selection"/>
+							<field name ="employee_id" options="{'create': false, 'create_edit': false}" required='1' domain="[('employee_active','=',0)]" on_change="onchange_rehiring_employee_id(employee_id)"/>
 							<newline/>
-							<field name ="employee_category_id"/>
-							<field name ="sub_category_id"/>
+							<field name ="employee_category_id" options="{'create': false, 'create_edit': false}"/>
+							<field name ="sub_category_id" options="{'create': false, 'create_edit': false}"/>
 							<field name ="action_date" string="Date Of Rehiring"/>
 							<newline/>
 							<field name ="period_from" string="Valid From"/>
@@ -460,10 +470,10 @@
 		                 <group col='4' colspan='2'>
 							<field name="action_id" domain="[('name','=','Compensation Review')]" widget="selection"/>
 							<field name="action_type_id" domain="[('name','in',['Change of Pay' ,'Revision of Salary', 'Increment','Promotion'])]" widget="selection"/>
-							<field name ="employee_id" domain="[('employee_active','=',1)]" required='1'/>
+							<field name ="employee_id" options="{'create': false, 'create_edit': false}" domain="[('employee_active','=',1)]" required='1'/>
 							<newline/>
-							<field name ="employee_category_id"/>
-							<field name ="sub_category_id"/>
+							<field name ="employee_category_id" options="{'create': false, 'create_edit': false}"/>
+							<field name ="sub_category_id" options="{'create': false, 'create_edit': false}"/>
 							<field name ="action_date" string="Date Of Review Action"/>
 							<field name ="reason_id" domain="[('name','in', ['Completion of Trainee'])]" widget="selection"/>
 							<newline/>
@@ -532,10 +542,10 @@
 		                 <group col='4' colspan='2'>
 							<field name="action_id" domain="[('name','=','Contracts')]" widget="selection"/>
 							<field name="action_type_id" domain="[('name','in',['Probation', 'Confirmation','Extension of Trainee','Extension of Probation'])]" widget="selection"/>
-							<field name ="employee_id" required='1' context="{'search_contract_employee':True, 'employee_id':employee_id}"/>
+							<field name ="employee_id" options="{'create': false, 'create_edit': false}" required='1' context="{'search_contract_employee':True, 'employee_id':employee_id}"/>
 							<newline/>
-							<field name ="employee_category_id"/>
-							<field name ="sub_category_id"/>
+							<field name ="employee_category_id" options="{'create': false, 'create_edit': false}"/>
+							<field name ="sub_category_id" options="{'create': false, 'create_edit': false}"/>
 							<field name ="action_date" string="Date Of Contracts"/>
 							<field name ="reason_id" domain="[('name','in', ['Good Performance', 'Successful completion of Trainee','Successful completion of Probation'])]" widget="selection"/>
 							<newline/>
@@ -606,6 +616,10 @@
 							<field name="action_type_id" domain="[('name','in',['New Hire', 'Expansion','Vacancy Fill up'])]" widget="selection"/>
 							<field name ="action_date" string="Date Of Hiring"/>
 							<newline/>
+							<field name ="employee_category_id" options="{'create': false, 'create_edit': false}"/>
+							<field name ="sub_category_id" options="{'create': false, 'create_edit': false}"/>
+							<field name ="payroll_area_id" options="{'create': false, 'create_edit': false}"/>
+							<field name ="payroll_sub_area_id" options="{'create': false, 'create_edit': false}"/>
 							<field name ="period_from" string="Valid From"/>
 							<field name ="period_to" string="Valid To"/>
 							<field name ="employee_id" invisible='0' readonly='1'/>
@@ -702,12 +716,12 @@
 		                 <group col='4' colspan='2'>
 							<field name="action_id" domain="[('name','=','Leaving')]" widget="selection"/>
 							<field name="action_type_id" domain="[('name','in',['Resignation','Termination','Normal Retirement','Volunteer Retirement','Death'])]" widget="selection"/>
-							<field name ="employee_id" required = '1' domain="[('employee_active','=',1)]" on_change="onchange_leaving_employee_id(employee_id)"/>
+							<field name ="employee_id" options="{'create': false, 'create_edit': false}" required = '1' domain="[('employee_active','=',1)]" on_change="onchange_leaving_employee_id(employee_id)"/>
 							<newline/>
-							<field name ="employee_category_id"/>
-							<field name ="sub_category_id"/>
-							<field name ="payroll_area_id"/>
-							<field name ="payroll_sub_area_id"/>
+							<field name ="employee_category_id" options="{'create': false, 'create_edit': false}"/>
+							<field name ="sub_category_id" options="{'create': false, 'create_edit': false}"/>
+							<field name ="payroll_area_id" options="{'create': false, 'create_edit': false}"/>
+							<field name ="payroll_sub_area_id" options="{'create': false, 'create_edit': false}"/>
 							<field name ="action_date" string="Date Of Leaving"/>
 							<newline/>
 
@@ -782,12 +796,12 @@
 		                 <group col='4' colspan='2'>
 							<field name="action_id" domain="[('name','=','Disciplinary')]" widget="selection"/>
 							<field name="action_type_id" domain="[('name','in',['Memo', 'Suspension', 'Stoppage of Salary', 'Termination'])]" widget="selection"/>
-							<field name ="employee_id" required = "1" context="{'search_disciplinary_employee':True, 'employee_id':employee_id}"/>
+							<field name ="employee_id" options="{'create': false, 'create_edit': false}" required = "1" context="{'search_disciplinary_employee':True, 'employee_id':employee_id}"/>
 							<newline/>
-							<field name ="employee_category_id"/>
-							<field name ="sub_category_id"/>
+							<field name ="employee_category_id" options="{'create': false, 'create_edit': false}"/>
+							<field name ="sub_category_id" options="{'create': false, 'create_edit': false}"/>
 							<field name ="action_date" string = "Date of Disciplinary"/>
-							<label for="datas" string="Document upload"/>
+							<label for="datas" string="Data Upload Field"/>
 							<div>
 								<field name="datas" filename="datas_fname"/>
 	                        	<field name="datas_fname" invisible="1" class="oe_inline oe_right"/>

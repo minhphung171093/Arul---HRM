@@ -14,34 +14,6 @@ class hr_employee_category(osv.osv):
     }
 hr_employee_category()
 
-class arul_action(osv.osv):
-    _name = 'arul.action'
-    _columns = {
-        'name': fields.char('Name',size=1024, required=True),
-    }
-    
-    def init(self, cr):
-        for key in ['Leaving','Promotion','Re Hiring','Compensation Review','Contracts','Hiring','Transfer','Disciplinary']:
-            arul_ids = self.search(cr, 1, [('name','=',key)])
-            if not arul_ids:
-                self.create(cr, 1, {'name': key})
-    
-arul_action()
-
-class arul_action_type(osv.osv):
-    _name = 'arul.action.type'
-    _columns = {
-        'name': fields.char('Name',size=1024, required=True),
-    }
-    
-    def init(self, cr):
-        for key in ['Resignation','Termination','Normal Retirement','Volunteer Retirement','Death','Good Performance','Vacancy','New Hire', 'Expansion','Vacancy Fill Up','Change of Pay' ,'Revision of Salary', 'Increment','Promotion','Probation', 'Confirmation','Extension of Trainee','Extension of Probation','Performance','Men Power Shortage','Memo','Suspension','Stoppage of Salary']:
-            arul_ids = self.search(cr, 1, [('name','=',key)])
-            if not arul_ids:
-                self.create(cr, 1, {'name': key})
-    
-arul_action_type()
-
 class arul_reason(osv.osv):
     _name = 'arul.season'
     _columns = {
@@ -91,8 +63,8 @@ class arul_hr_employee_action_history(osv.osv):
         return True
     _columns = {
         'employee_id': fields.many2one('hr.employee','Employee ID',required = False),
-        'action_id': fields.many2one('arul.action','Action', required=True),
-        'action_type_id': fields.many2one('arul.action.type','Action type', required=True),
+        'action_id': fields.many2one('arul.employee.actions','Action', required=True),
+        'action_type_id': fields.many2one('arul.employee.action.type','Action type', required=True),
         'action_date': fields.date('Action Date'),
         'create_date': fields.datetime('Created Date'),
         'create_uid': fields.many2one('res.users','Created By'),
@@ -107,7 +79,7 @@ class arul_hr_employee_action_history(osv.osv):
         'employee_category_id':fields.many2one('vsis.hr.employee.category','Employee Category'),
         'sub_category_id':fields.many2one('hr.employee.sub.category','Sub Category'),
         'payroll_area_id':fields.many2one('arul.hr.payroll.area','Payroll Area'),
-        'payroll_sub_area_id':fields.many2one('arul.hr.payroll.area','Payroll Sub Area'),
+        'payroll_sub_area_id':fields.many2one('arul.hr.payroll.sub.area','Payroll Sub Area'),
         'approve_rehiring': fields.boolean('Approve Rehiring'),
 #         Document upload
         'datas_fname': fields.char('File Name',size=256),
@@ -124,6 +96,20 @@ class arul_hr_employee_action_history(osv.osv):
         'pf_settlement': fields.boolean('PF Settlement (Y/N)'),
     }
     
+    def name_get(self, cr, uid, ids, context=None):
+        res = []
+        if not ids:
+            return res
+        reads = self.read(cr, uid, ids, ['action_id','employee_id'], context)
+  
+        for record in reads:
+            if record['action_id'][1] != 'Hiring':
+                name = record['action_id'][1] + '-' + record['employee_id'][1]
+            else:
+                name = record['action_id'][1]
+            res.append((record['id'], name))
+        return res
+    
     def onchange_rehiring_employee_id(self, cr, uid, ids,employee_id=False, context=None):
         vals = {}
         if employee_id:
@@ -132,7 +118,15 @@ class arul_hr_employee_action_history(osv.osv):
                     'sub_category_id':emp.employee_sub_category_id.id}
         return {'value': vals}
 
-
+    def onchange_promotion_employee_id(self, cr, uid, ids,employee_id=False, context=None):
+        vals = {}
+        if employee_id:
+            emp = self.pool.get('hr.employee').browse(cr, uid, employee_id)
+            vals = {'employee_category_id':emp.employee_category_id.id,
+                    'sub_category_id':emp.employee_sub_category_id.id,
+                    'department_from_id':emp.department_id.id,
+                    'designation_from_id':emp.department_id.designation_id.id,}
+        return {'value': vals}
 
     def onchange_leaving_employee_id(self, cr, uid, ids,employee_id=False, context=None):
         vals = {}
@@ -151,8 +145,13 @@ class arul_hr_employee_action_history(osv.osv):
         except ValueError:
             compose_form_id = False
         ctx = dict(context)
+        hiring = self.browse(cr, uid, ids[0])
         ctx.update({
             'create_hiring_employee': ids,
+            'default_employee_category_id': hiring.employee_category_id.id,
+            'default_employee_sub_category_id': hiring.sub_category_id.id,
+            'default_payroll_area_id': hiring.payroll_area_id.id,
+            'default_payroll_sub_area_id': hiring.payroll_sub_area_id.id,
             })
         return {
             'type': 'ir.actions.act_window',
@@ -273,9 +272,16 @@ class arul_employee_actions(osv.osv):
     _defaults={
             'active':True,
                }
+    
+    def init(self, cr):
+        for key in ['Leaving','Promotion','Re Hiring','Compensation Review','Contracts','Hiring','Transfer','Disciplinary']:
+            arul_ids = self.search(cr, 1, [('name','=',key)])
+            if not arul_ids:
+                self.create(cr, 1, {'name':key,'code':key})
+    
     def _check_code(self, cr, uid, ids, context=None):
         for employee in self.browse(cr, uid, ids, context=context):
-            employee_ids = self.search(cr, uid, [('id','!=',employee.id),('name','=',employee.code)])
+            employee_ids = self.search(cr, uid, [('id','!=',employee.id),('code','=',employee.code)])
             if employee_ids:  
                 return False
         return True
@@ -293,11 +299,17 @@ class arul_employee_action_type(osv.osv):
               }
     def _check_code(self, cr, uid, ids, context=None):
         for employee in self.browse(cr, uid, ids, context=context):
-            employee_ids = self.search(cr, uid, [('id','!=',employee.id),('name','=',employee.code)])
+            employee_ids = self.search(cr, uid, [('id','!=',employee.id),('code','=',employee.code)])
             if employee_ids:  
                 return False
         return True
-
+    
+    def init(self, cr):
+        for key in ['Resignation','Termination','Normal Retirement','Volunteer Retirement','Death','Good Performance','Vacancy','New Hire', 'Expansion','Vacancy Fill up','Change of Pay' ,'Revision of Salary', 'Increment','Promotion','Probation', 'Confirmation','Extension of Trainee','Extension of Probation','Performance','Men Power Shortage','Memo','Suspension','Stoppage of Salary']:
+            arul_ids = self.search(cr, 1, [('name','=',key)])
+            if not arul_ids:
+                self.create(cr, 1, {'name': key,'code': key})
+                
     _constraints = [
         (_check_code, 'Identical Data', ['code']),
     ]
