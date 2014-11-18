@@ -119,6 +119,7 @@ class arul_hr_audit_shift_time(osv.osv):
               'out_time': fields.float('Out Time'),
               'total_hours': fields.function(_time_total, string='Total Hours', multi='sums', help="The total amount."),
               'approval': fields.boolean('Select for Approval', readonly = True),
+              'punch_in_out_id':fields.many2one('arul.hr.employee.attendence.details','Punch in/out')
               }
     def _check_time(self, cr, uid, ids, context=None): 
         for time in self.browse(cr, uid, ids, context = context):
@@ -176,5 +177,103 @@ class arul_hr_employee_leave_details(osv.osv):
         (_check_days, _(''), ['date_from', 'date_to']),
     ]
 arul_hr_employee_leave_details()
+
+class arul_permission_onduty(osv.osv):
+    _name = 'arul.permission.onduty'
+    _columns = {
+        'name': fields.char('Name',size=1024, required=True),
+    }
+    
+    def init(self, cr):
+        for key in ['Permission','On Duty']:
+            arul_ids = self.search(cr, 1, [('name','=',key)])
+            if not arul_ids:
+                self.create(cr, 1, {'name': key})
+    
+arul_permission_onduty()
+
+class arul_hr_permission_onduty(osv.osv):
+    _name='arul.hr.permission.onduty'
+    def _time_total(self, cr, uid, ids, field_name, arg, context=None):
+        res = {}
+        for time in self.browse(cr, uid, ids, context=context):
+            res[time.id] = {
+                'time_total': 0.0,
+            }
+            time_total = time.end_time - time.start_time
+            res[time.id]['time_total'] = time_total 
+        return res
+
+    _columns={
+        'employee_id':fields.many2one('hr.employee','Employee'),
+        'non_availability_type_id':fields.many2one('arul.permission.onduty','Non Availability Type',required = True),
+        'date':fields.date('Date'),
+        'duty_location':fields.char('On Duty Location', size = 1024),
+        'start_time': fields.float('Start Time'),
+        'end_time': fields.float('End Time'),
+        'time_total': fields.function(_time_total, string='Total Hours', multi='sums', help="The total amount."),
+        'reason':fields.text('Reason'),
+        'detail_id':fields.many2one('arul.hr.employee.attendence.details','Detail'),
+        
+              }
+    def _check_time(self, cr, uid, ids, context=None): 
+        for time in self.browse(cr, uid, ids, context = context):
+            if ((time.start_time > 24 or time.start_time < 0) or (time.end_time > 24 or time.end_time < 0)):
+                raise osv.except_osv(_('Warning!'),_('Input Wrong Time!'))
+                return False
+            if (time.start_time > time.end_time):
+                raise osv.except_osv(_('Warning!'),_('Start Time is earlier than End Time'))
+                return False
+            return True       
+    _constraints = [
+        (_check_time, _(''), ['start_time', 'end_time']),
+        ]
+   
+arul_hr_permission_onduty()
+
+class arul_hr_employee_attendence_details(osv.osv):
+    _name='arul.hr.employee.attendence.details'
+    _columns={
+        'employee_id':fields.many2one('hr.employee','Employee'),
+        'employee_category_id':fields.many2one('vsis.hr.employee.category','Employee Category'),
+        'sub_category_id':fields.many2one('hr.employee.sub.category','Sub Category'),
+        'designation_id': fields.many2one('arul.hr.designation', 'Designation'),
+        'department_id':fields.many2one('hr.department', 'Department'),
+        'permission_onduty_details_line':fields.one2many('arul.hr.permission.onduty','detail_id','Permission On duty Details',readonly=True),
+        'punch_in_out_line':fields.one2many('arul.hr.audit.shift.time','punch_in_out_id','Punch in/Punch out Details',readonly=True)
+              }
+    def onchange_attendence_datails_employee_id(self, cr, uid, ids,employee_id=False, context=None):
+        vals = {}
+        if employee_id:
+            emp = self.pool.get('hr.employee').browse(cr, uid, employee_id)
+            vals = {'employee_category_id':emp.employee_category_id.id,
+                    'sub_category_id':emp.employee_sub_category_id.id,
+                    'department_id':emp.department_id.id,
+                    }
+        return {'value': vals}
+    def onchange_designation_id(self, cr, uid, ids,department_id=False, context=None):
+        vals = {}
+        if department_id:
+            emp = self.pool.get('hr.department').browse(cr, uid, department_id)
+            vals = {'designation_id':emp.designation_id.id,
+                   }
+        return {'value': vals}
+#     def search(self, cr, uid, args, offset=0, limit=None, order=None, context=None, count=False):
+#         if context is None:
+#             context = {}
+#         if context.get('search_employee_id'):
+#             
+#             sql = '''
+#                 
+#                 select employee_id from arul.hr.permission.onduty
+#                     
+#             '''
+#             cr.execute(sql)
+#             employee_id_ids = [row[0] for row in cr.fetchall()]
+#             args += [('id','in',employee_id_ids)]
+#         return super(hr.employee, self).search(cr, uid, args, offset, limit, order, context, count)
+
+arul_hr_employee_attendence_details()
+
 
 
