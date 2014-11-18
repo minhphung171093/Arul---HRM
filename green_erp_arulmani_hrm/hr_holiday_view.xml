@@ -202,7 +202,6 @@
 			</field>
 		</record>
 		
-
 		<record id="view_arul_hr_employee_leave_details_form_vew" model="ir.ui.view">
             <field name="name">arul.hr.employee.leave.details.form</field>
             <field name="model">arul.hr.employee.leave.details</field>
@@ -229,8 +228,7 @@
 		         </form>
 			</field>
 		</record>
-          
-
+		
 		<record id="action_arul_hr_employee_leave_details_form" model="ir.actions.act_window">
             <field name="name">Employee Leave Details</field>
             <field name="type">ir.actions.act_window</field>
@@ -242,7 +240,66 @@
         
         <menuitem action="action_arul_hr_employee_leave_details_form"
             id="menu_action_arul_hr_employee_leave_details_form"
-            parent="menu_hr_leave_management" sequence="22"/>		
+            parent="menu_hr_leave_management" sequence="22"/>	
+		
+        <record id="view_arul_hr_audit_shift_time_tree_vew" model="ir.ui.view">
+			<field name="name">arul.hr.audit.shift.time.tree</field>
+			<field name="model">arul.hr.audit.shift.time</field>
+			<field name="arch" type="xml">
+				<tree string="Audit Shift Time">
+					<field name="employee_id"/>
+					<field name="work_date"/>
+					<field name="planned_work_shift_id"/>
+					<field name="actual_work_shift_id"/>
+					<field name="in_time" widget="float_time"/>
+					<field name="out_time" widget="float_time"/>
+					<field name="total_hours" widget="float_time"/>
+					<field name="approval"/>
+				</tree>
+			</field>
+		</record>
+		
+
+		<record id="view_arul_hr_audit_shift_time_form_vew" model="ir.ui.view">
+            <field name="name">arul.hr.audit.shift.time.form</field>
+            <field name="model">arul.hr.audit.shift.time</field>
+            <field name="arch" type="xml">
+	            <form string="Audit Shift Time" version="7.0">
+	            	<header>
+	                    <button name="approve_shift_time" attrs="{'invisible':[('approval','=',True)]}" string="Approve" type="object" class="oe_highlight" groups="base.group_hr_manager"/>
+	                    <button name="reject_shift_time" attrs="{'invisible':[('approval','=',False)]}" string="Reject" type="object" class="oe_highlight" groups="base.group_hr_manager"/>
+	                </header>   
+	            	<sheet>
+		                <group>    
+			                <field name="employee_id"/>
+							<field name="work_date"/>
+							<field name="planned_work_shift_id"/>
+							<field name="actual_work_shift_id"/>
+						</group>
+						<group col='4' colspan='2'>
+							<field name="in_time" widget="float_time"/>
+							<field name="out_time" widget="float_time"/>
+							<field name="total_hours" widget="float_time"/>
+							<field name="approval"/>
+						</group>   	
+		         	</sheet>
+		         </form>
+			</field>
+		</record>
+
+		<record id="action_arul_hr_audit_shift_time_form" model="ir.actions.act_window">
+            <field name="name">Audit Shift Time</field>
+            <field name="type">ir.actions.act_window</field>
+            <field name="res_model">arul.hr.audit.shift.time</field>
+            <field name="view_type">form</field>
+            <field name="view_mode">tree,form</field>
+            <field name="view_id" ref="view_arul_hr_audit_shift_time_tree_vew"/>
+        </record>
+        
+        <menuitem action="action_arul_hr_audit_shift_time_form"
+            id="menu_action_arul_hr_audit_shift_time_form"
+            parent="menu_hr_leave_management" sequence="20"/> 
+	
             
 	</data>
 </openerp>

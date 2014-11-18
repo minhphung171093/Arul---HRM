@@ -35,7 +35,6 @@ class arul_hr_leave_master(osv.osv):
     
 arul_hr_leave_master()
 
-
 class arul_hr_leave_types(osv.osv):
     _name='arul.hr.leave.types'
     _columns={
@@ -97,6 +96,51 @@ class arul_hr_capture_work_shift(osv.osv):
     ]   
 
 arul_hr_capture_work_shift()
+
+class arul_hr_audit_shift_time(osv.osv):
+    _name='arul.hr.audit.shift.time'
+    
+    def _time_total(self, cr, uid, ids, field_name, arg, context=None):
+        res = {}
+        for time in self.browse(cr, uid, ids, context=context):
+            res[time.id] = {
+                'total_hours': 0.0,
+            }
+            time_total = time.out_time - time.in_time
+            res[time.id]['total_hours'] = time_total 
+        return res
+    
+    _columns={
+              'employee_id':fields.many2one('hr.employee','Employee ID', required = True),
+              'work_date':fields.date('Work Date'),
+              'planned_work_shift_id':fields.many2one('arul.hr.capture.work.shift','Planned Work Shift'),
+              'actual_work_shift_id':fields.many2one('arul.hr.capture.work.shift','Actual Work Shift'),
+              'in_time': fields.float('In Time'),
+              'out_time': fields.float('Out Time'),
+              'total_hours': fields.function(_time_total, string='Total Hours', multi='sums', help="The total amount."),
+              'approval': fields.boolean('Select for Approval', readonly = True),
+              }
+    def _check_time(self, cr, uid, ids, context=None): 
+        for time in self.browse(cr, uid, ids, context = context):
+            if ((time.in_time > 24 or time.in_time < 0) or (time.out_time > 24 or time.out_time < 0)):
+                raise osv.except_osv(_('Warning!'),_('Input Wrong Time!'))
+                return False
+            if (time.in_time > time.out_time):
+                raise osv.except_osv(_('Warning!'),_('In Time is earlier than Out Time'))
+                return False
+            return True       
+    _constraints = [
+        (_check_time, _(''), ['in_time', 'out_time']),
+    ]
+    def approve_shift_time(self, cr, uid, ids, context=None):
+        for line in self.browse(cr, uid, ids):
+            self.write(cr, uid, [line.id],{'approval': True})
+        return True
+    def reject_shift_time(self, cr, uid, ids, context=None):
+        for line in self.browse(cr, uid, ids):
+            self.write(cr, uid, [line.id],{'approval': False})
+        return True   
+arul_hr_audit_shift_time()
 
 class arul_hr_employee_leave_details(osv.osv):
     _name='arul.hr.employee.leave.details'
