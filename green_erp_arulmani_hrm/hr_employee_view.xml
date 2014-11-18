@@ -825,9 +825,119 @@
             <field name="view_id" ref="view_arul_hr_employee_disciplinary_action_form_vew"/>
             <field name="act_window_id" ref="action_arul_hr_employee_disciplinary_action_form"/>
         </record>
-         <menuitem action="action_arul_hr_employee_disciplinary_action_form"
+        <menuitem action="action_arul_hr_employee_disciplinary_action_form"
             id="menu_action_arul_hr_employee_disciplinary_action_form"
             parent="hr.menu_hr_main" sequence="29"/>
+            
+        <record id="food_subsidy_tree_view" model="ir.ui.view">
+			<field name="name">food.subsidy.tree</field>
+			<field name="model">food.subsidy</field>
+			<field name="arch" type="xml">
+				<tree string="Food Subsidy Master">
+					<field name ="food_category"/>
+                	<field name ="food_price"/>
+                	<field name ="employer_con"/>
+                	<field name ="employee_con"/>
+				</tree>
+			</field>
+		</record>
+
+		<record id="food_subsidy_form_view" model="ir.ui.view">
+            <field name="name">food.subsidy.form</field>
+            <field name="model">food.subsidy</field>
+            <field name="arch" type="xml">
+                <form string="Food Subsidy Master" version="7.0">  
+                	<sheet>  
+                		<group>
+                		<field name ="food_category" style="width: 40%%"/>
+                		<field name ="food_price"/>
+                		<field name ="employer_con"/>
+                		<field name ="employee_con"/>
+                		</group>
+                	</sheet>
+				</form>
+			</field>
+		</record>
+
+        <record id="action_food_subsidy_form" model="ir.actions.act_window">
+            <field name="name">Food Subsidy</field>
+			<field name="type">ir.actions.act_window</field>
+            <field name="res_model">food.subsidy</field>
+            <field name="view_type">form</field>
+            <field name="view_mode">tree,form</field>
+            <field name="view_id" ref="food_subsidy_tree_view"/>
+        </record>
+        
+        <menuitem action="action_food_subsidy_form"
+            id="menu_action_food_subsidy_form"
+            parent="hr.menu_hr_configuration" sequence="4"/>
+        
+        <record id="meals_deduction_tree_view" model="ir.ui.view">
+			<field name="name">meals.deduction.tree</field>
+			<field name="model">meals.deduction</field>
+			<field name="arch" type="xml">
+				<tree string="Meals Deduction Master">
+					<field name ="meals_date"/>
+                	<field name ="meals_for"/>
+				</tree>
+			</field>
+		</record>
+
+		<record id="meals_deduction_form_view" model="ir.ui.view">
+            <field name="name">meals.deduction.form</field>
+            <field name="model">meals.deduction</field>
+            <field name="arch" type="xml">
+                <form string="Meals Deduction Master" version="7.0">  
+                	<sheet>  
+                		<group>
+                			<field name ="meals_date"/>
+                			<field name ="meals_for" style="width:40%%"/>
+                		</group>
+                		<notebook>
+                			<page string="Meals Deduction">
+                				<field name ="meals_details_emp_ids" nolabel="1" attrs="{'invisible':[('meals_for','!=','employees')]}">
+                					<tree editable="top">
+                						<field name ="emp_code" invisible="0" readonly="1"/>
+                						<field name ="emp_name" readonly="1"/>
+                						<field name ="break_fast"/>
+                						<field name ="lunch"/>
+                						<field name ="dinner"/>
+                						<field name ="midnight_tiffin"/>
+                						<field name ="employer_amt" readonly="1"/>
+                						<field name ="employee_amt" eadonly="1"/>
+                						<field name ="free_cost"/>
+                					</tree>
+                				</field>
+                				<field name ="meals_details_order_ids" nolabel="1"  attrs="{'invisible':[('meals_for','!=','others')]}">
+                					<tree editable="top">
+                						<field name ="emp_name" readonly="0"/>
+                						<field name ="break_fast"/>
+                						<field name ="lunch"/>
+                						<field name ="dinner"/>
+                						<field name ="midnight_tiffin"/>
+                						<field name ="employer_amt" readonly="0"/>
+                						<field name ="employee_amt" readonly="1"/>
+                						<field name ="free_cost"/>
+                					</tree>
+                				</field>
+                			</page>
+                		</notebook>
+                	</sheet>
+				</form>
+			</field>
+		</record>
+
+        <record id="action_meals_deduction_form" model="ir.actions.act_window">
+            <field name="name">Meals Deduction</field>
+			<field name="type">ir.actions.act_window</field>
+            <field name="res_model">meals.deduction</field>
+            <field name="view_type">form</field>
+            <field name="view_mode">tree,form</field>
+            <field name="view_id" ref="meals_deduction_tree_view"/>
+        </record>
+        
+        <menuitem action="action_meals_deduction_form"
+            id="menu_action_meals_deduction_form"
+            parent="hr.menu_hr_main" sequence="31"/>  
     </data>
-    
 </openerp>
