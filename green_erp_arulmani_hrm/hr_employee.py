@@ -368,18 +368,18 @@ food_subsidy()
 
 class meals_deduction(osv.osv):
     _name = "meals.deduction"
-    
-#     def load_food_sub(self, cr, uid, ids, meal_code = False, context=None):
-#         employer_amount = 0
-#         employee_amount = 0
-#         food_subsidy_obj = self.pool.get('food.subsidy')
-#         food_subsidy_ids = food_subsidy_obj.search(self.cr, self.uid, [('food_category','=',meal_code)])
-#         res = {
-#                 'employer_amount': food_subsidy_ids.employer_con,
-#                 'employee_amount': food_subsidy_ids.employee_con,
-#             }
-#         return res
-    
+
+    def onchange_date(self, cr, uid, ids, date, meals_for, context=None):
+        vals = {}
+        emp_obj = self.pool.get('hr.employee')
+        emp_ids = emp_obj.search(cr, uid, [])
+        emp_vals = []
+        if meals_for == 'employees':
+            for emp_id in emp_ids:
+                emp_vals.append({'emp_id':emp_id})
+        vals = {'meals_details_emp_ids':emp_vals}
+        return {'value': vals}
+   
     _columns = {
         'meals_date':fields.date('Meals Arrangement Date'),
         'meals_for':fields.selection([('employees','Employees'),('others','Others')],'Meals Arrangement For',required=True),
@@ -392,8 +392,9 @@ class meals_details(osv.osv):
     _name = "meals.details"
     _description = "Meals Deduction"
     _columns = {
-        'emp_code' : fields.char('Emp. Code', size=128),
+#         'emp_code' : fields.char('Emp. Code', size=128),
         'emp_name' : fields.char('Name', size=128),
+        'emp_id': fields.many2one('hr.employee', 'Emp. Code', select="1"),
         'break_fast' : fields.boolean('Break Fast'),
         'lunch' : fields.boolean('Lunch'),
         'dinner' : fields.boolean('Dinner'),
@@ -403,7 +404,6 @@ class meals_details(osv.osv):
         'free_cost' : fields.boolean('Free Of Cost'),
         'meals_id': fields.many2one('hr.employee','Employee'),
     }
-    
     def onchange_checkbox(self, cr, uid, ids, bre, lun, din, mid, free, context=None):
         employer_amount = 0
         employee_amount = 0
@@ -440,5 +440,25 @@ class meals_details(osv.osv):
     
 meals_details()
 
+class employee_leave(osv.osv):
+    _name = "employee.leave"
+    _columns = {
+        'employee_id': fields.many2one('hr.employee', 'Employee', required=True),        
+        'year': fields.char('Year',size=128),
+        'emp_leave_details_ids': fields.one2many('employee.leave.detail','emp_id','Employee Leave Details'),
+    }
+employee_leave()
+
+class employee_leave_detail(osv.osv):
+    _name = "employee.leave.detail"
+    _description = "Employee Leave Details"
+    _columns = {
+        'emp_id': fields.many2one('hr.employee', 'Employee'),
+        'leave_type_id' : fields.many2one('arul.hr.leave.types', 'Leave Types'),
+        'total_day': fields.float('Total Day',degits=(16,2)),
+        'total_taken': fields.float('Total Taken',degits=(16,2)),
+    }
+    
+employee_leave_detail()
 # vim:expandtab:smartindent:tabstop=4:softtabstop=4:shiftwidth=4:
 
