@@ -1,0 +1,168 @@
+<?xml version="1.0" encoding="utf-8"?>
+<openerp>
+    <data noupdate="1">
+    
+		<record id="action_types_1" model="arul.employee.action.type">
+			<field name="name">Resignation</field>
+			<field name="code">Resignation</field>
+		</record>
+	
+		<record id="action_types_2" model="arul.employee.action.type">
+			<field name="name">Termination</field>
+			<field name="code">Termination</field>
+		</record>
+		
+		<record id="action_types_3" model="arul.employee.action.type">
+			<field name="name">Normal Retirement</field>
+			<field name="code">Normal Retirement</field>
+		</record>
+		
+		<record id="action_types_4" model="arul.employee.action.type">
+			<field name="name">Volunteer Retirement</field>
+			<field name="code">Volunteer Retirement</field>
+		</record>
+		
+		<record id="action_types_5" model="arul.employee.action.type">
+			<field name="name">Death</field>
+			<field name="code">Death</field>
+		</record>
+		
+		<record id="action_types_6" model="arul.employee.action.type">
+			<field name="name">Good Performance</field>
+			<field name="code">Good Performance</field>
+		</record>
+		
+		<record id="action_types_7" model="arul.employee.action.type">
+			<field name="name">Vacancy</field>
+			<field name="code">Vacancy</field>
+		</record>
+		
+		<record id="action_types_8" model="arul.employee.action.type">
+			<field name="name">New Hire</field>
+			<field name="code">New Hire</field>
+		</record>
+		
+		<record id="action_types_9" model="arul.employee.action.type">
+			<field name="name">Expansion</field>
+			<field name="code">Expansion</field>
+		</record>
+		
+		<record id="action_types_10" model="arul.employee.action.type">
+			<field name="name">Vacancy Fill up</field>
+			<field name="code">Vacancy Fill up</field>
+		</record>
+		
+		<record id="action_types_11" model="arul.employee.action.type">
+			<field name="name">Change of Pay</field>
+			<field name="code">Change of Pay</field>
+		</record>
+		
+		<record id="action_types_12" model="arul.employee.action.type">
+			<field name="name">Revision of Salary</field>
+			<field name="code">Revision of Salary</field>
+		</record>
+		
+		<record id="action_types_13" model="arul.employee.action.type">
+			<field name="name">Increment</field>
+			<field name="code">Increment</field>
+		</record>
+		
+		<record id="action_types_14" model="arul.employee.action.type">
+			<field name="name">Promotion</field>
+			<field name="code">Promotion</field>
+		</record>
+		
+		<record id="action_types_15" model="arul.employee.action.type">
+			<field name="name">Probation</field>
+			<field name="code">Probation</field>
+		</record>
+		
+		<record id="action_types_16" model="arul.employee.action.type">
+			<field name="name">Confirmation</field>
+			<field name="code">Confirmation</field>
+		</record>
+		
+		<record id="action_types_17" model="arul.employee.action.type">
+			<field name="name">Extension of Trainee</field>
+			<field name="code">Extension of Trainee</field>
+		</record>
+		
+		<record id="action_types_18" model="arul.employee.action.type">
+			<field name="name">Extension of Probation</field>
+			<field name="code">Extension of Probation</field>
+		</record>
+		
+		<record id="action_types_19" model="arul.employee.action.type">
+			<field name="name">Performance</field>
+			<field name="code">Performance</field>
+		</record>
+		
+		<record id="action_types_20" model="arul.employee.action.type">
+			<field name="name">Men Power Shortage</field>
+			<field name="code">Men Power Shortage</field>
+		</record>
+		
+		<record id="action_types_21" model="arul.employee.action.type">
+			<field name="name">Memo</field>
+			<field name="code">Memo</field>
+		</record>
+		
+		<record id="action_types_22" model="arul.employee.action.type">
+			<field name="name">Suspension</field>
+			<field name="code">Suspension</field>
+		</record>
+		
+		<record id="action_types_23" model="arul.employee.action.type">
+			<field name="name">Stoppage of Salary</field>
+			<field name="code">Stoppage of Salary</field>
+		</record>
+		
+		<record id="action_1" model="arul.employee.actions">
+			<field name="name">Leaving</field>
+			<field name="code">Leaving</field>
+			<field name="action_type_ids" eval="[(4, ref('action_types_1')),(4, ref('action_types_2')),(4, ref('action_types_3')),(4, ref('action_types_4')),(4, ref('action_types_5'))]"/>
+		</record>
+		
+		<record id="action_2" model="arul.employee.actions">
+			<field name="name">Promotion</field>
+			<field name="code">Promotion</field>
+			<field name="action_type_ids" eval="[(4, ref('action_types_6')),(4, ref('action_types_7'))]"/>
+		</record>
+		
+		<record id="action_3" model="arul.employee.actions">
+			<field name="name">Re Hiring</field>
+			<field name="code">Re Hiring</field>
+			<field name="action_type_ids" eval="[(4, ref('action_types_8')),(4, ref('action_types_9')),(4, ref('action_types_10'))]"/>
+		</record>
+		
+		<record id="action_4" model="arul.employee.actions">
+			<field name="name">Compensation Review</field>
+			<field name="code">Compensation Review</field>
+			<field name="action_type_ids" eval="[(4, ref('action_types_11')),(4, ref('action_types_12')),(4, ref('action_types_13')),(4, ref('action_types_14'))]"/>
+		</record>
+		
+		<record id="action_5" model="arul.employee.actions">
+			<field name="name">Contracts</field>
+			<field name="code">Contracts</field>
+			<field name="action_type_ids" eval="[(4, ref('action_types_15')),(4, ref('action_types_16')),(4, ref('action_types_17')),(4, ref('action_types_18'))]"/>
+		</record>
+		
+		<record id="action_6" model="arul.employee.actions">
+			<field name="name">Hiring</field>
+			<field name="code">Hiring</field>
+			<field name="action_type_ids" eval="[(4, ref('action_types_8')),(4, ref('action_types_9')),(4, ref('action_types_10'))]"/>
+		</record>
+		
+		<record id="action_7" model="arul.employee.actions">
+			<field name="name">Transfer</field>
+			<field name="code">Transfer</field>
+			<field name="action_type_ids" eval="[(4, ref('action_types_19')),(4, ref('action_types_20'))]"/>
+		</record>
+		
+		<record id="action_8" model="arul.employee.actions">
+			<field name="name">Disciplinary</field>
+			<field name="code">Disciplinary</field>
+			<field name="action_type_ids" eval="[(4, ref('action_types_21')),(4, ref('action_types_22')),(4, ref('action_types_23')),(4, ref('action_types_2'))]"/>
+		</record>
+    </data>
+</openerp>
