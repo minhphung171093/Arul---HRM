@@ -17,6 +17,7 @@ class hr_department(osv.osv):
         'section_ids': fields.many2many('arul.hr.section', 'department_section_rel', 'department_id', 'section_id', 'Sections'),
         'designation_id': fields.many2one('arul.hr.designation', 'Designation'),
         'number': fields.integer('No.of Persons'),
+        'resource_budget': fields.integer('Resource Budget'),
     }
     
     def _check_code(self, cr, uid, ids, context=None):

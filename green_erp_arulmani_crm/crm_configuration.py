@@ -43,7 +43,16 @@ class res_company(osv.osv):
                 'factory_state_id': fields.many2one("res.country.state", 'State'),
                 'factory_country_id': fields.many2one('res.country', 'Country'),              
                 }
+    def _check_code(self, cr, uid, ids, context=None):
+        for company in self.browse(cr, uid, ids, context=context):
+            company_ids = self.search(cr, uid, [('id','!=',company.id),('company_code','=',company.company_code)])
+            if company_ids:  
+                return False
+        return True
     
+    _constraints = [
+        (_check_code, 'Identical Data', ['code']),
+    ]
 res_company()    
 
 class res_partner(osv.osv):
@@ -107,6 +116,7 @@ class res_partner(osv.osv):
         'customer_code': fields.char('Customer Code', size=64, select=1),
 #         'is_company': fields.function(_get_is_company, type='boolean', size=5, string='Is a company',store=True, invisible=True),
         'currency_id': fields.many2one('res.currency','Currency'),
+        'create_uid': fields.many2one('res.users','Create by'),
         'language_id': fields.many2one('res.lang','Language'),
         'sales_organization_code_id': fields.many2one('sales.organization.code','Sales Organization Code'),
         'customer_account_group_id': fields.many2one('customer.account.group','Customer Account Group'),
