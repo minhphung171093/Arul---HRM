@@ -368,7 +368,18 @@ food_subsidy()
 
 class meals_deduction(osv.osv):
     _name = "meals.deduction"
-    
+
+    def onchange_date(self, cr, uid, ids, date, meals_for, context=None):
+        vals = {}
+        emp_obj = self.pool.get('hr.employee')
+        emp_ids = emp_obj.search(cr, uid, [])
+        emp_vals = []
+        if meals_for == 'employees':
+            for emp_id in emp_ids:
+                emp_vals.append({'emp_id':emp_id})
+        vals = {'meals_details_emp_ids':emp_vals}
+        return {'value': vals}
+   
     _columns = {
         'meals_date':fields.date('Meals Arrangement Date'),
         'meals_for':fields.selection([('employees','Employees'),('others','Others')],'Meals Arrangement For',required=True),
@@ -381,8 +392,9 @@ class meals_details(osv.osv):
     _name = "meals.details"
     _description = "Meals Deduction"
     _columns = {
-        'emp_code' : fields.char('Emp. Code', size=128),
+#         'emp_code' : fields.char('Emp. Code', size=128),
         'emp_name' : fields.char('Name', size=128),
+        'emp_id': fields.many2one('hr.employee', 'Emp. Code', select="1"),
         'break_fast' : fields.boolean('Break Fast'),
         'lunch' : fields.boolean('Lunch'),
         'dinner' : fields.boolean('Dinner'),
@@ -392,7 +404,61 @@ class meals_details(osv.osv):
         'free_cost' : fields.boolean('Free Of Cost'),
         'meals_id': fields.many2one('hr.employee','Employee'),
     }
+    def onchange_checkbox(self, cr, uid, ids, bre, lun, din, mid, free, context=None):
+        employer_amount = 0
+        employee_amount = 0
+        food_subsidy_obj = self.pool.get('food.subsidy')
+        if bre : 
+            food_subsidy_ids = food_subsidy_obj.search(cr, uid, [('food_category','=','break_fast')])
+            for meal in food_subsidy_obj.browse(cr, uid, food_subsidy_ids):
+                employer_amount += meal.employer_con
+                employee_amount += meal.employee_con
+        if lun : 
+            food_subsidy_ids = food_subsidy_obj.search(cr, uid, [('food_category','=','lunch')])
+            for meal in food_subsidy_obj.browse(cr, uid, food_subsidy_ids):
+                employer_amount += meal.employer_con
+                employee_amount += meal.employee_con
+        if din : 
+            food_subsidy_ids = food_subsidy_obj.search(cr, uid, [('food_category','=','dinner')])
+            for meal in food_subsidy_obj.browse(cr, uid, food_subsidy_ids):
+                employer_amount += meal.employer_con
+                employee_amount += meal.employee_con
+        if mid : 
+            food_subsidy_ids = food_subsidy_obj.search(cr, uid, [('food_category','=','midnight_tiffin')])
+            for meal in food_subsidy_obj.browse(cr, uid, food_subsidy_ids):
+                employer_amount += meal.employer_con
+                employee_amount += meal.employee_con
+        if free : 
+            employer_amount += employee_amount
+            employee_amount = 0
+            
+        res = {
+            'employer_amt': employer_amount,
+            'employee_amt': employee_amount,
+        }        
+        return {'value':res}
+    
 meals_details()
 
+class employee_leave(osv.osv):
+    _name = "employee.leave"
+    _columns = {
+        'employee_id': fields.many2one('hr.employee', 'Employee', required=True),        
+        'year': fields.char('Year',size=128),
+        'emp_leave_details_ids': fields.one2many('employee.leave.detail','emp_id','Employee Leave Details'),
+    }
+employee_leave()
+
+class employee_leave_detail(osv.osv):
+    _name = "employee.leave.detail"
+    _description = "Employee Leave Details"
+    _columns = {
+        'emp_id': fields.many2one('hr.employee', 'Employee'),
+        'leave_type_id' : fields.many2one('arul.hr.leave.types', 'Leave Types'),
+        'total_day': fields.float('Total Day',degits=(16,2)),
+        'total_taken': fields.float('Total Taken',degits=(16,2)),
+    }
+    
+employee_leave_detail()
 # vim:expandtab:smartindent:tabstop=4:softtabstop=4:shiftwidth=4:
 
