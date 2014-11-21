@@ -1010,17 +1010,7 @@
 			<field name="arch" type="xml">
 				<tree string="Punch In/Punch Out">
 					<field name ="date_up_load"/>
-				</tree>
-			</field>
-		</record>
-            
-        <record id="employee_leave_tree_view" model="ir.ui.view">
-			<field name="name">employee.leave.tree</field>
-			<field name="model">employee.leave</field>
-			<field name="arch" type="xml">
-				<tree string="Employee Leave">
-					<field name ="employee_id"/>
-                	<field name ="year"/>
+					<field name="state"/>
 				</tree>
 			</field>
 		</record>
@@ -1060,6 +1050,17 @@
         <menuitem action="action_arul_hr_punch_in_out_form"
             id="menu_action_arul_hr_punch_in_out_form"
             parent="menu_hr_leave_management" sequence="26"/>
+  
+        <record id="employee_leave_tree_view" model="ir.ui.view">
+			<field name="name">employee.leave.tree</field>
+			<field name="model">employee.leave</field>
+			<field name="arch" type="xml">
+				<tree string="Employee Leave">
+					<field name ="employee_id"/>
+                	<field name ="year"/>
+				</tree>
+			</field>
+		</record>
   
 		<record id="employee_leave_form_view" model="ir.ui.view">
             <field name="name">employee.leave.form</field>

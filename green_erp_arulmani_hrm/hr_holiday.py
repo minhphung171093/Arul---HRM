@@ -319,7 +319,7 @@ class arul_hr_punch_in_out(osv.osv):
         return True
 
     _columns = {
-        'date_up_load': fields.date('Date Up load', required=True,readonly=True),
+        'date_up_load': fields.date('Date Up load', required=True,states={'done': [('readonly', True)]}),
         'datas_fname': fields.char('File Name',size=256),
         'datas': fields.function(_data_get, fnct_inv=_data_set, string='Upload/View Specification', type="binary", nodrop=True,states={'done': [('readonly', True)]}),
         'store_fname': fields.char('Stored Filename', size=256),
@@ -364,14 +364,15 @@ class arul_hr_punch_in_out(osv.osv):
                                     #work_shift_ids = detail_obj3.search(cr, uid, [('start_time','>',in_time + 1/6 ),('end_time','<',out_time - 1/6 )])
 #                                     planed_work_shift=' '.join(str(x) for x in work_shift_ids)
                                     sql = '''
-                                        select id from arul_hr_capture_work_shift where (start_time < %s or start_time > %s) and (end_time > %s or end_time < %s)
-                                    '''%(in_time + 1/6,in_time,out_time - 1/6,out_time)
+                                        select id from arul_hr_capture_work_shift where (start_time between %s and start_time+1/6) and (end_time between end_time-1/6 and %s)
+                                    '''%(in_time - 1,out_time + 1)
                                     cr.execute(sql)
                                     work_shift_ids = [row[0] for row in cr.fetchall()]
                                     if work_shift_ids :
                                         val1['planned_work_shift_id']=work_shift_ids[0]
                                         detail_obj.create(cr, uid, {'employee_id':employee_ids[0],'punch_in_out_line':[(0,0,val1)]})
                                     else:
+                                        val1['approval']=False
                                         detail_obj2.create(cr, uid,val1)
 #                                     if 4 <= (out_time - in_time) and (out_time - in_time) < 8:
 #                                         val3={'employee_id':employee_ids[0],'planned_work_shift_id':planed_work_shift,'work_date':date,'in_time':in_time,'out_time':out_time,'approval':0}
