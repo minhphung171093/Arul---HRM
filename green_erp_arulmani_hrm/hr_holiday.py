@@ -22,12 +22,12 @@ arul_hr_holiday_special()
 class arul_hr_leave_master(osv.osv):
     _name = "arul.hr.leave.master"
     _columns = {
-        'leave_type_id' : fields.many2one('arul.hr.leave.types', 'Leave Type'),
+        'leave_type_id' : fields.many2one('arul.hr.leave.types', 'Leave Type', required = True),
         'employee_category_id' : fields.many2one('vsis.hr.employee.category', 'Employee Category'),
         'employee_sub_category_id' : fields.many2one('hr.employee.sub.category', 'Employee Sub Category'),
         'maximum_limit': fields.integer('Maximum Limit Applicable'),
         'carryforward_nextyear': fields.boolean('Is Carry Forward for Next Year'),
-        'condition': fields.text('Eligible per Annum'),
+        'condition': fields.char('Eligible per Annum'),
     }
     def onchange_employee_category_id(self, cr, uid, ids,employee_category_id=False, context=None):
         emp_sub_cat = []
@@ -143,7 +143,12 @@ class arul_hr_audit_shift_time(osv.osv):
                     }
         return {'value': vals}
     def approve_shift_time(self, cr, uid, ids, context=None):
-        for line in self.browse(cr, uid, ids):
+        for line in self.browse(cr,uid,ids):
+            emp_attendence_obj = self.pool.get('arul.hr.employee.attendence.details')
+            employee_ids = emp_attendence_obj.search(cr, uid, [('employee_id','=',line.employee_id.id)])
+            if employee_ids:
+                val1={'work_date':line.work_date, 'planned_work_shift_id':line.planned_work_shift_id.id,'in_time':line.in_time,'out_time':line.out_time,'approval':1}
+                emp_attendence_obj.create(cr,uid,{'employee_id':employee_ids[0], 'punch_in_out_line':[(0,0,val1)]}) 
             self.write(cr, uid, [line.id],{'approval': True})
         return True
     def reject_shift_time(self, cr, uid, ids, context=None):
