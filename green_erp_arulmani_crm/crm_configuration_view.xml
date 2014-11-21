@@ -91,7 +91,7 @@
                         <field name="arulmani_type"/>
                         <field name="zone"/>
                         <field name="excise_duty"/>
-                        <field name="distribution_channel"/>
+                        <field name="distribution_channel" widget="selection"/>
                         <field name="currency_id" widget="selection"/>
                         <field name="sales_organization_code_id" widget="selection"/>
                         <field name="division_code_id" widget="selection"/>
@@ -774,7 +774,7 @@
             <field name="model">division.code</field>
             <field name="arch" type="xml">
                 <tree string="Division Code">
-                    <field name="code"/>
+                    <field name="name"/>
                 </tree>
             </field>
         </record>
@@ -787,7 +787,7 @@
                 <form version="7.0" string="Division Code">
                 	<sheet>
                 		<group>
-                			<field name="code"/>
+                			<field name="name"/>
                     	</group>
             		</sheet>
                 </form>

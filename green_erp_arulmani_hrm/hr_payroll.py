@@ -17,8 +17,9 @@ class arul_hr_payroll_area(osv.osv):
     }
     def _check_code_id(self, cr, uid, ids, context=None):
         for payroll in self.browse(cr, uid, ids, context=context):
-            payroll_ids = self.search(cr, uid, [('id','!=',payroll.id),('code','=',payroll.code)])
-            if payroll_ids:  
+            payroll_code_ids = self.search(cr, uid, [('id','!=',payroll.id),('code','=',payroll.code)])
+            payroll_name_ids = self.search(cr, uid, [('id','!=',payroll.id),('name','=',payroll.name)])
+            if payroll_code_ids or payroll_name_ids:  
                 return False
         return True
     _constraints = [
