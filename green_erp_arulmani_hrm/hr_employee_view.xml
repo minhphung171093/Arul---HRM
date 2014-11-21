@@ -2,6 +2,17 @@
 <openerp>
     <data>
 
+		<record id="view_arul_employee_category_search_vew" model="ir.ui.view">
+			<field name="name">vsis.employee.category.search</field>
+			<field name="model">vsis.hr.employee.category</field>
+			<field name="arch" type="xml">
+				<search string="Employee Category">
+					<field name="code"/>
+					<field name="name"/>
+				</search>
+			</field>
+		</record>
+
 		<record id="view_arul_employee_category_tree_vew" model="ir.ui.view">
 			<field name="name">vsis.employee.category.tree</field>
 			<field name="model">vsis.hr.employee.category</field>
@@ -48,6 +59,17 @@
             id="menu_action_arul_employee_category_form"
             parent="hr.menu_hr_main" sequence="24"/>
 		
+		<record id="view_arul_employee_sub_category_search_vew" model="ir.ui.view">
+			<field name="name">vsis.employee.sub.category.search</field>
+			<field name="model">hr.employee.sub.category</field>
+			<field name="arch" type="xml">
+				<search string="Employee Sub Category">
+					<field name="code"/>
+					<field name="name"/>
+				</search>
+			</field>
+		</record>
+		
 		<record id="view_arul_employee_sub_category_tree_vew" model="ir.ui.view">
 			<field name="name">vsis.employee.sub.category.tree</field>
 			<field name="model">hr.employee.sub.category</field>
@@ -86,6 +108,17 @@
         <menuitem action="action_arul_employee_sub_category_form"
             id="menu_action_arul_employee_sub_category_form"
             parent="hr.menu_hr_main" sequence="24"/>
+		
+		<record id="view_arul_employee_actions_search_vew" model="ir.ui.view">
+			<field name="name">arul.employee.actions.search</field>
+			<field name="model">arul.employee.actions</field>
+			<field name="arch" type="xml">
+				<search string="Employee Actions">
+					<field name="code"/>
+					<field name="name"/>
+				</search>
+			</field>
+		</record>
 		
         <record id="view_arul_employee_actions_tree_vew" model="ir.ui.view">
 			<field name="name">arul.employee.actions.tree</field>
@@ -132,7 +165,18 @@
         <menuitem action="action_arul_employee_actions_form"
             id="menu_action_arul_employee_actions_form"
             parent="hr.menu_hr_configuration" sequence="3"/>
-            
+        
+        <record id="view_arul_employee_actions_type_search_vew" model="ir.ui.view">
+			<field name="name">arul.employee.actions.type.search</field>
+			<field name="model">arul.employee.action.type</field>
+			<field name="arch" type="xml">
+				<search string="Action Type">
+					<field name="code"/>
+					<field name="name"/>
+				</search>
+			</field>
+		</record>
+        
         <record id="view_arul_employee_action_type_tree_vew" model="ir.ui.view">
 			<field name="name">arul.employee.action.type.tree</field>
 			<field name="model">arul.employee.action.type</field>
@@ -958,8 +1002,69 @@
         
         <menuitem action="action_meals_deduction_form"
             id="menu_action_meals_deduction_form"
-            parent="hr.menu_hr_main" sequence="31"/>  
+            parent="hr.menu_hr_main" sequence="31"/>
             
+<<<<<<< HEAD
+=======
+        <record id="arul_hr_punch_in_out_tree_view" model="ir.ui.view">
+			<field name="name">arul.hr.punch.in.out.tree</field>
+			<field name="model">arul.hr.punch.in.out</field>
+			<field name="arch" type="xml">
+				<tree string="Punch In/Punch Out">
+					<field name ="date_up_load"/>
+					<field name="state"/>
+				</tree>
+			</field>
+		</record>
+
+		<record id="arul_hr_punch_in_out_form_view" model="ir.ui.view">
+            <field name="name">arul.hr.punch.in.out.form</field>
+            <field name="model">arul.hr.punch.in.out</field>
+            <field name="arch" type="xml">
+                <form string="Upload Punch In/Punch Out" version="7.0">
+                    <header>
+	                    <button name="upload_punch_in_out" states='draft' string="Upload Punch In/Punch Out" type="object" class="oe_highlight" />
+	                    <field name="state" widget="statusbar" statusbar_visible="draft,done" statusbar_colors='{"draft":"blue","done":"blue"}'/>
+	                </header>                
+                	<sheet>  
+                		<group>
+                		<field name ="date_up_load"/>
+						<label for="datas" string="Data Upload Field"/>
+							<div>
+								<field name="datas" filename="datas_fname"/>
+	                        	<field name="datas_fname" invisible="1" class="oe_inline oe_right"/>
+	                        </div>
+                		</group>
+                	</sheet>
+				</form>
+			</field>
+		</record>
+
+        <record id="action_arul_hr_punch_in_out_form" model="ir.actions.act_window">
+            <field name="name">Upload Punch In/Punch Out</field>
+			<field name="type">ir.actions.act_window</field>
+            <field name="res_model">arul.hr.punch.in.out</field>
+            <field name="view_type">form</field>
+            <field name="view_mode">tree,form</field>
+            <field name="view_id" ref="arul_hr_punch_in_out_tree_view"/>
+        </record>
+        
+        <menuitem action="action_arul_hr_punch_in_out_form"
+            id="menu_action_arul_hr_punch_in_out_form"
+            parent="menu_hr_leave_management" sequence="26"/>
+  
+        <record id="employee_leave_tree_view" model="ir.ui.view">
+			<field name="name">employee.leave.tree</field>
+			<field name="model">employee.leave</field>
+			<field name="arch" type="xml">
+				<tree string="Employee Leave">
+					<field name ="employee_id"/>
+                	<field name ="year"/>
+				</tree>
+			</field>
+		</record>
+  
+>>>>>>> 2804366a47a2c8e20130ecb8baa09648ddfa592d
 		<record id="employee_leave_form_view" model="ir.ui.view">
             <field name="name">employee.leave.form</field>
             <field name="model">hr.employee</field>

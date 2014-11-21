@@ -19,36 +19,35 @@
 #
 ##############################################################################
 
-{
-    'name': 'VVTi_TPT_HRM',
-    'version': '1.0',
-    'category': 'GreenERP',
-    'sequence': 14,
-    'author': 'Tenth Planet',
-    'website' : 'http://www. tenthplanet.in',
-    'depends': ['green_erp_arulmani_crm'],
-    'data': [
-#         'security/green_erp_arulmani_hrm_security.xml',
-#         'security/ir.model.access.csv',
-        'hr_employee_view.xml',
-        'hr_department_view.xml',
-        'hr_payroll_view.xml',
-        'hr_holiday_view.xml',
-        'menu_view.xml',
-        'hr_demo_leave_types.xml',
-        'hr_employee_data.xml',
-<<<<<<< HEAD
-        'green_erp_arulmani_hrm_schedule/emp_leave_status_schedule.xml',
+import time
+from report import report_sxw
+import pooler
+from osv import osv
+from tools.translate import _
+import random
+from datetime import datetime
+from dateutil.relativedelta import relativedelta
+DATETIME_FORMAT = "%Y-%m-%d %H:%M:%S"
+DATE_FORMAT = "%Y-%m-%d"
+class Parser(report_sxw.rml_parse):
+    def __init__(self, cr, uid, name, context):
+        super(Parser, self).__init__(cr, uid, name, context=context)
+        self.user_obj = pooler.get_pool(self.cr.dbname).get('res.users')
+        self.cr = cr
+        self.uid = uid
+        self.context = context
+        self.localcontext.update({
+            'get_active_list':self.get_active_list,
+            'get_date': self.get_date,
+        })
         
-=======
->>>>>>> 2804366a47a2c8e20130ecb8baa09648ddfa592d
-    ],
-    'css' : [
-    ],
-    'qweb': [
-     ],
-    'installable': True,
-    'auto_install': False,
-    'application': True,
-}
+        
+    def get_active_list(self):
+        ids = self.context.get('active_ids')
+        return self.pool.get('res.partner').browse(self.cr, self.uid, ids)
+    
+    def get_date(self,date):
+        new_date = datetime.strptime(date, DATE_FORMAT)
+        return new_date.strftime('%d/%m/%Y')
 # vim:expandtab:smartindent:tabstop=4:softtabstop=4:shiftwidth=4:
+
