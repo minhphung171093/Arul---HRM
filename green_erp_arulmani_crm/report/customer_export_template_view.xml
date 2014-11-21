@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<openerp>
+    <data>
+    	<record id="customer_export_template" model="ir.actions.report.xml">
+	        <field name="name">customer_export_template</field>
+	        <field name="type">ir.actions.report.xml</field>
+	        <field name="model">res.partner</field>
+	        <field name="report_name">Customer Export Template</field>
+	        <field name="report_type">aeroo</field>
+	        <field name="in_format">oo-ods</field>
+	        <field name="out_format" model="report.mimetypes" search="[('code','=','oo-xls'),('compatible_types','=','oo-ods')]"/>
+	        <field name="parser_loc">green_erp_arulmani_crm/report/customer_export_template.py</field>
+	        <field name="report_rml">green_erp_arulmani_crm/report/customer_export_template.ods</field>
+	        <field name="parser_state">loc</field>
+	        <field name="tml_source">file</field>
+	        <field name="attachment_use" eval="0"/>
+    	</record>		    
+		
+		<report 
+			auto="True" 
+			menu="True"
+			id="customer_export_template" 
+			model="res.partner" 
+			name="customer_export_template"
+	        string="Customer Export Template"
+	        rml="green_erp_arulmani_crm/report/customer_export_template.ods"/>	
+    </data>
+</openerp>
