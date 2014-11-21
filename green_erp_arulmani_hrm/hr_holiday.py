@@ -6,6 +6,8 @@ import time
 from openerp import SUPERUSER_ID
 from openerp.tools import DEFAULT_SERVER_DATE_FORMAT, DEFAULT_SERVER_DATETIME_FORMAT, DATETIME_FORMATS_MAP, float_compare
 from datetime import datetime
+import datetime
+import base64
 
 class arul_hr_holiday_special(osv.osv):
     _name = "arul.hr.holiday.special"
@@ -118,17 +120,16 @@ class arul_hr_audit_shift_time(osv.osv):
               'in_time': fields.float('In Time'),
               'out_time': fields.float('Out Time'),
               'total_hours': fields.function(_time_total, string='Total Hours', multi='sums', help="The total amount."),
-              'approval': fields.boolean('Select for Approval', readonly = True),
-              'punch_in_out_id':fields.many2one('arul.hr.employee.attendence.details','Punch in/out')
+              'approval': fields.boolean('Select for Approval'),
               }
     def _check_time(self, cr, uid, ids, context=None): 
         for time in self.browse(cr, uid, ids, context = context):
             if ((time.in_time > 24 or time.in_time < 0) or (time.out_time > 24 or time.out_time < 0)):
                 raise osv.except_osv(_('Warning!'),_('Input Wrong Time!'))
                 return False
-            if (time.in_time > time.out_time):
-                raise osv.except_osv(_('Warning!'),_('In Time is earlier than Out Time'))
-                return False
+            #if (time.in_time > time.out_time):
+              #  raise osv.except_osv(_('Warning!'),_('In Time is earlier than Out Time'))
+               # return False
             return True       
     _constraints = [
         (_check_time, _(''), ['in_time', 'out_time']),
@@ -231,6 +232,14 @@ class arul_hr_permission_onduty(osv.osv):
    
 arul_hr_permission_onduty()
 
+class arul_hr_punch_in_out_time(osv.osv):
+    _inherit='arul.hr.audit.shift.time'
+    _name='arul.hr.punch.in.out.time'
+    _columns = {
+        'punch_in_out_id':fields.many2one('arul.hr.employee.attendence.details','Punch in/out')
+    }
+arul_hr_punch_in_out_time()
+
 class arul_hr_employee_attendence_details(osv.osv):
     _name='arul.hr.employee.attendence.details'
     _columns={
@@ -240,7 +249,7 @@ class arul_hr_employee_attendence_details(osv.osv):
         'designation_id': fields.many2one('arul.hr.designation', 'Designation'),
         'department_id':fields.many2one('hr.department', 'Department'),
         'permission_onduty_details_line':fields.one2many('arul.hr.permission.onduty','detail_id','Permission On duty Details',readonly=True),
-        'punch_in_out_line':fields.one2many('arul.hr.audit.shift.time','punch_in_out_id','Punch in/Punch out Details',readonly=True)
+        'punch_in_out_line':fields.one2many('arul.hr.punch.in.out.time','punch_in_out_id','Punch in/Punch out Details',readonly=True)
               }
     def onchange_attendence_datails_employee_id(self, cr, uid, ids,employee_id=False, context=None):
         vals = {}
@@ -275,5 +284,115 @@ class arul_hr_employee_attendence_details(osv.osv):
 
 arul_hr_employee_attendence_details()
 
+class arul_hr_punch_in_out(osv.osv):
+    _name = 'arul.hr.punch.in.out'
+    def _data_get(self, cr, uid, ids, name, arg, context=None):
+        if context is None:
+            context = {}
+        result = {}
+        location = self.pool.get('ir.config_parameter').get_param(cr, uid, 'hr_identities_attachment.location')
+        bin_size = context.get('bin_size')
+        for attach in self.browse(cr, uid, ids, context=context):
+            if location and attach.store_fname:
+                result[attach.id] = self._file_read(cr, uid, location, attach.store_fname, bin_size)
+            else:
+                result[attach.id] = attach.db_datas
+        return result
+
+    def _data_set(self, cr, uid, id, name, value, arg, context=None):
+        # We dont handle setting data to null
+        if not value:
+            return True
+        if context is None:
+            context = {}
+        location = self.pool.get('ir.config_parameter').get_param(cr, uid, 'hr_identities_attachment.location')
+        file_size = len(value.decode('base64'))
+        if location:
+            attach = self.browse(cr, uid, id, context=context)
+            if attach.store_fname:
+                self._file_delete(cr, uid, location, attach.store_fname)
+            fname = self._file_write(cr, uid, location, value)
+            # SUPERUSER_ID as probably don't have write access, trigger during create
+            super(arul_hr_punch_in_out, self).write(cr, SUPERUSER_ID, [id], {'store_fname': fname, 'file_size': file_size}, context=context)
+        else:
+            super(arul_hr_punch_in_out, self).write(cr, SUPERUSER_ID, [id], {'db_datas': value, 'file_size': file_size}, context=context)
+        return True
+
+    _columns = {
+        'date_up_load': fields.date('Date Up load', required=True,readonly=True),
+        'datas_fname': fields.char('File Name',size=256),
+        'datas': fields.function(_data_get, fnct_inv=_data_set, string='Upload/View Specification', type="binary", nodrop=True,states={'done': [('readonly', True)]}),
+        'store_fname': fields.char('Stored Filename', size=256),
+        'db_datas': fields.binary('Database Data'),
+        'file_size': fields.integer('File Size'),
+        'state':fields.selection([('draft', 'Draft'),('done', 'Done')],'Status', readonly=True)
+
+    }
+    
+    _defaults = {
+        'state':'draft',
+        'date_up_load': time.strftime('%Y-%m-%d'),
+        
+    }
+    def upload_punch_in_out(self, cr, uid, ids, context=None):
+        for line in self.browse(cr, uid, ids, context=context):
+            try:
+                recordlist = base64.decodestring(line.db_datas)
+                L = recordlist.split('\n')
+                employee_obj = self.pool.get('hr.employee')
+                detail_obj = self.pool.get('arul.hr.employee.attendence.details')
+                detail_obj2 = self.pool.get('arul.hr.audit.shift.time')
+                detail_obj3 = self.pool.get('arul.hr.capture.work.shift')
+                for i,data1 in enumerate(L):
+                    L2 = L[i+1:]
+                    employee_code = data1[43:51]
+                    employee_ids = employee_obj.search(cr, uid, [('employee_id','=',employee_code)])
+                    date = data1[7:11]+'-'+data1[11:13]+'-'+data1[13:15]
+                    temp = 0
+                    if employee_ids and date:
+                        if data1[:3]=='P10':
+                            in_time = float(data1[15:17])+float(data1[17:19])/60+float(data1[19:21])/3600
+                            val1={'employee_id':employee_ids[0],'planned_work_shift_id':False,'work_date':date,'in_time':in_time,'out_time':0,'approval':1}
+                            for j,data2 in enumerate(L2):
+                                #bat dau vi tri tiep theo cua for 1
+                                in_out = data2[:3]
+                                employee_code_2=data2[43:51]
+                                date_2=data2[7:11]+'-'+data2[11:13]+'-'+data2[13:15]
+                                if employee_code_2==employee_code and date==date_2 and in_out=='P20':
+                                    out_time=float(data2[15:17])+float(data2[17:19])/60+float(data2[19:21])/3600
+                                    val1['out_time']=out_time
+                                    #work_shift_ids = detail_obj3.search(cr, uid, [('start_time','>',in_time + 1/6 ),('end_time','<',out_time - 1/6 )])
+#                                     planed_work_shift=' '.join(str(x) for x in work_shift_ids)
+                                    sql = '''
+                                        select id from arul_hr_capture_work_shift where (start_time < %s or start_time > %s) and (end_time > %s or end_time < %s)
+                                    '''%(in_time + 1/6,in_time,out_time - 1/6,out_time)
+                                    cr.execute(sql)
+                                    work_shift_ids = [row[0] for row in cr.fetchall()]
+                                    if work_shift_ids :
+                                        val1['planned_work_shift_id']=work_shift_ids[0]
+                                        detail_obj.create(cr, uid, {'employee_id':employee_ids[0],'punch_in_out_line':[(0,0,val1)]})
+                                    else:
+                                        detail_obj2.create(cr, uid,val1)
+#                                     if 4 <= (out_time - in_time) and (out_time - in_time) < 8:
+#                                         val3={'employee_id':employee_ids[0],'planned_work_shift_id':planed_work_shift,'work_date':date,'in_time':in_time,'out_time':out_time,'approval':0}
+#                                         detail_obj2.create(cr, uid,val3)
+                                   
+                                    temp +=1
+                                    L.pop(j)
+                                    break
+                            if temp==0:
+                                val={'employee_id':employee_ids[0],'work_date':date,'in_time':in_time,'out_time':0}
+                                detail_obj2.create(cr, uid,val)
+                        if data1[:3]=='P20':
+                            out_time = float(data1[15:17])+float(data1[17:19])/60+float(data1[19:21])/3600
+                            val2={'employee_id':employee_ids[0],'work_date':date,'in_time':0,'out_time':out_time}
+                            detail_obj2.create(cr, uid,val2)
+                            
+                self.write(cr, uid, [line.id], {'state':'done'})
+            except Exception, e:
+                raise osv.except_osv(_('Warning!'), str(e))
+
+
+arul_hr_punch_in_out()
 
 

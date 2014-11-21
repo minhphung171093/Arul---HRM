@@ -386,6 +386,21 @@
 							<field name="department_id" on_change="onchange_designation_id(department_id)"/>
 						</group>
 						<notebook>
+							<page string = "Punch In/Punch Out Details">
+								<field name="punch_in_out_line" nolabel='1'>
+									<tree editable='top'>
+										
+										<field name="work_date"/>
+										<field name="planned_work_shift_id"/>
+										<field name="actual_work_shift_id"/>
+										<field name="in_time" string="Punch In Time" widget="float_time"/>
+										<field name="out_time" string="Punch Out Time" widget="float_time"/>
+										<field name="total_hours" widget="float_time"/>
+										<field name="approval"/>
+									</tree>
+								</field>
+							</page>
+						
 							<page string = "Permission and On Duty Details">
 								<field name="permission_onduty_details_line" nolabel='1'>
 									<tree editable='top'>
@@ -397,20 +412,6 @@
 										<field name="end_time"/>
 										<field name="time_total"/>
 										<field name="reason"/>
-									</tree>
-								</field>
-							</page>
-							<page string = "Punch In/Punch Out Details">
-								<field name="punch_in_out_line" nolabel='1'>
-									<tree editable='top'>
-										
-										<field name="work_date"/>
-										<field name="planned_work_shift_id"/>
-										<field name="actual_work_shift_id"/>
-										<field name="in_time" string="Punch In Time"/>
-										<field name="out_time" string="Punch Out Time"/>
-										<field name="total_hours"/>
-										<field name="approval"/>
 									</tree>
 								</field>
 							</page>
