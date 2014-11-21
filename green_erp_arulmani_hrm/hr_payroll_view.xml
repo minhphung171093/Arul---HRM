@@ -1,7 +1,18 @@
 <?xml version="1.0" encoding="utf-8"?>
 <openerp>
     <data>
-    
+    	
+    	<record id="view_arul_hr_payroll_area_search_vew" model="ir.ui.view">
+			<field name="name">arul.hr.payroll.area.search</field>
+			<field name="model">arul.hr.payroll.area</field>
+			<field name="arch" type="xml">
+				<search string="Payroll Area">
+					<field name="code"/>
+					<field name="name"/>
+				</search>
+			</field>
+		</record>
+    	
     	<record id="view_arul_hr_payroll_area_tree_vew" model="ir.ui.view">
 			<field name="name">arul.hr.payroll.area.tree</field>
 			<field name="model">arul.hr.payroll.area</field>
@@ -41,7 +52,18 @@
             id="menu_action_arul_hr_payroll_area_form"
             parent="hr.menu_hr_configuration" sequence="20"/>
          
-         <record id="view_arul_hr_payroll_sub_area_tree_vew" model="ir.ui.view">
+        <record id="view_arul_hr_payroll_sub_area_search_vew" model="ir.ui.view">
+			<field name="name">arul.hr.payroll.sub.area.search</field>
+			<field name="model">arul.hr.payroll.sub.area</field>
+			<field name="arch" type="xml">
+				<search string="Payroll Sub Area">
+					<field name="code"/>
+					<field name="name"/>
+				</search>
+			</field>
+		</record>
+        
+        <record id="view_arul_hr_payroll_sub_area_tree_vew" model="ir.ui.view">
 			<field name="name">arul.hr.payroll.sub.area.tree</field>
 			<field name="model">arul.hr.payroll.sub.area</field>
 			<field name="arch" type="xml">

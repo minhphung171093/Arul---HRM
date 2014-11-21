@@ -2,6 +2,17 @@
 <openerp>
     <data>
 
+		<record id="view_arul_employee_category_search_vew" model="ir.ui.view">
+			<field name="name">vsis.employee.category.search</field>
+			<field name="model">vsis.hr.employee.category</field>
+			<field name="arch" type="xml">
+				<search string="Employee Category">
+					<field name="code"/>
+					<field name="name"/>
+				</search>
+			</field>
+		</record>
+
 		<record id="view_arul_employee_category_tree_vew" model="ir.ui.view">
 			<field name="name">vsis.employee.category.tree</field>
 			<field name="model">vsis.hr.employee.category</field>
@@ -48,6 +59,17 @@
             id="menu_action_arul_employee_category_form"
             parent="hr.menu_hr_main" sequence="24"/>
 		
+		<record id="view_arul_employee_sub_category_search_vew" model="ir.ui.view">
+			<field name="name">vsis.employee.sub.category.search</field>
+			<field name="model">hr.employee.sub.category</field>
+			<field name="arch" type="xml">
+				<search string="Employee Sub Category">
+					<field name="code"/>
+					<field name="name"/>
+				</search>
+			</field>
+		</record>
+		
 		<record id="view_arul_employee_sub_category_tree_vew" model="ir.ui.view">
 			<field name="name">vsis.employee.sub.category.tree</field>
 			<field name="model">hr.employee.sub.category</field>
@@ -86,6 +108,17 @@
         <menuitem action="action_arul_employee_sub_category_form"
             id="menu_action_arul_employee_sub_category_form"
             parent="hr.menu_hr_main" sequence="24"/>
+		
+		<record id="view_arul_employee_actions_search_vew" model="ir.ui.view">
+			<field name="name">arul.employee.actions.search</field>
+			<field name="model">arul.employee.actions</field>
+			<field name="arch" type="xml">
+				<search string="Employee Actions">
+					<field name="code"/>
+					<field name="name"/>
+				</search>
+			</field>
+		</record>
 		
         <record id="view_arul_employee_actions_tree_vew" model="ir.ui.view">
 			<field name="name">arul.employee.actions.tree</field>
@@ -132,7 +165,18 @@
         <menuitem action="action_arul_employee_actions_form"
             id="menu_action_arul_employee_actions_form"
             parent="hr.menu_hr_configuration" sequence="3"/>
-            
+        
+        <record id="view_arul_employee_actions_type_search_vew" model="ir.ui.view">
+			<field name="name">arul.employee.actions.type.search</field>
+			<field name="model">arul.employee.action.type</field>
+			<field name="arch" type="xml">
+				<search string="Action Type">
+					<field name="code"/>
+					<field name="name"/>
+				</search>
+			</field>
+		</record>
+        
         <record id="view_arul_employee_action_type_tree_vew" model="ir.ui.view">
 			<field name="name">arul.employee.action.type.tree</field>
 			<field name="model">arul.employee.action.type</field>
