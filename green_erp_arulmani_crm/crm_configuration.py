@@ -43,7 +43,16 @@ class res_company(osv.osv):
                 'factory_state_id': fields.many2one("res.country.state", 'State'),
                 'factory_country_id': fields.many2one('res.country', 'Country'),              
                 }
+    def _check_code(self, cr, uid, ids, context=None):
+        for company in self.browse(cr, uid, ids, context=context):
+            company_ids = self.search(cr, uid, [('id','!=',company.id),('company_code','=',company.company_code)])
+            if company_ids:  
+                return False
+        return True
     
+    _constraints = [
+        (_check_code, 'Identical Data', ['code']),
+    ]
 res_company()    
 
 class res_partner(osv.osv):
@@ -99,7 +108,8 @@ class res_partner(osv.osv):
         'sin': fields.char('SIN',size=128),
         'cst': fields.char('CST',size=128),
         'excise_duty': fields.char('Excise Duty',size=128),
-        'distribution_channel': fields.selection([('corporate','Corporate'),('distributor','Distributor'),('consignee','Consignee'),('indenting','Indenting'),('direct','Direct')],'Distribution Channel'),
+#         'distribution_channel': fields.selection([('corporate','Corporate'),('distributor','Distributor'),('consignee','Consignee'),('indenting','Indenting'),('direct','Direct')],'Distribution Channel'),
+        'distribution_channel': fields.many2one('crm.case.channel','Distribution Channel'),
             'crm_lead_id': fields.many2one('crm.lead','CRM Lead'),
         'employee_id': fields.many2one('hr.employee', 'Salesperson', select=True, track_visibility='onchange'),
         'gender': fields.selection([('male', 'Male'),('female', 'Female')], 'Gender'),
@@ -107,6 +117,8 @@ class res_partner(osv.osv):
         'customer_code': fields.char('Customer Code', size=64, select=1),
 #         'is_company': fields.function(_get_is_company, type='boolean', size=5, string='Is a company',store=True, invisible=True),
         'currency_id': fields.many2one('res.currency','Currency'),
+        'create_uid': fields.many2one('res.users','Create by'),
+        'create_date': fields.datetime('Create on'),
         'language_id': fields.many2one('res.lang','Language'),
         'sales_organization_code_id': fields.many2one('sales.organization.code','Sales Organization Code'),
         'customer_account_group_id': fields.many2one('customer.account.group','Customer Account Group'),
@@ -329,12 +341,12 @@ class division_code(osv.osv):
     _name = "division.code"
     _description = 'Division Code'
     _columns = {
-        'code': fields.char('Division Code', size=128,required=True),
+        'name': fields.char('Division Code', size=128,required=True),
     }
     def _check_name(self,cr,uid,ids):
         obj = self.browse(cr,uid,ids[0])
-        if obj and obj.code:
-            code = self.search(cr, uid, [('code','=',obj.code)])
+        if obj and obj.name:
+            code = self.search(cr, uid, [('name','=',obj.name)])
             if code and len(code) > 1:
                 return False
         return True

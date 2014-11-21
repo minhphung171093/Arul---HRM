@@ -2,6 +2,17 @@
 <openerp>
     <data>
 
+		<record id="view_arul_employee_category_search_vew" model="ir.ui.view">
+			<field name="name">vsis.employee.category.search</field>
+			<field name="model">vsis.hr.employee.category</field>
+			<field name="arch" type="xml">
+				<search string="Employee Category">
+					<field name="code"/>
+					<field name="name"/>
+				</search>
+			</field>
+		</record>
+
 		<record id="view_arul_employee_category_tree_vew" model="ir.ui.view">
 			<field name="name">vsis.employee.category.tree</field>
 			<field name="model">vsis.hr.employee.category</field>
@@ -48,6 +59,17 @@
             id="menu_action_arul_employee_category_form"
             parent="hr.menu_hr_main" sequence="24"/>
 		
+		<record id="view_arul_employee_sub_category_search_vew" model="ir.ui.view">
+			<field name="name">vsis.employee.sub.category.search</field>
+			<field name="model">hr.employee.sub.category</field>
+			<field name="arch" type="xml">
+				<search string="Employee Sub Category">
+					<field name="code"/>
+					<field name="name"/>
+				</search>
+			</field>
+		</record>
+		
 		<record id="view_arul_employee_sub_category_tree_vew" model="ir.ui.view">
 			<field name="name">vsis.employee.sub.category.tree</field>
 			<field name="model">hr.employee.sub.category</field>
@@ -86,6 +108,17 @@
         <menuitem action="action_arul_employee_sub_category_form"
             id="menu_action_arul_employee_sub_category_form"
             parent="hr.menu_hr_main" sequence="24"/>
+		
+		<record id="view_arul_employee_actions_search_vew" model="ir.ui.view">
+			<field name="name">arul.employee.actions.search</field>
+			<field name="model">arul.employee.actions</field>
+			<field name="arch" type="xml">
+				<search string="Employee Actions">
+					<field name="code"/>
+					<field name="name"/>
+				</search>
+			</field>
+		</record>
 		
         <record id="view_arul_employee_actions_tree_vew" model="ir.ui.view">
 			<field name="name">arul.employee.actions.tree</field>
@@ -132,7 +165,18 @@
         <menuitem action="action_arul_employee_actions_form"
             id="menu_action_arul_employee_actions_form"
             parent="hr.menu_hr_configuration" sequence="3"/>
-            
+        
+        <record id="view_arul_employee_actions_type_search_vew" model="ir.ui.view">
+			<field name="name">arul.employee.actions.type.search</field>
+			<field name="model">arul.employee.action.type</field>
+			<field name="arch" type="xml">
+				<search string="Action Type">
+					<field name="code"/>
+					<field name="name"/>
+				</search>
+			</field>
+		</record>
+        
         <record id="view_arul_employee_action_type_tree_vew" model="ir.ui.view">
 			<field name="name">arul.employee.action.type.tree</field>
 			<field name="model">arul.employee.action.type</field>
@@ -911,15 +955,14 @@
                 <form string="Meals Deduction Master" version="7.0">  
                 	<sheet>  
                 		<group>
-                			<field name ="meals_date"/>
-                			<field name ="meals_for" style="width:40%%"/>
+                			<field name ="meals_date" on_change="onchange_date(meals_date,meals_for)"/>
+                			<field name ="meals_for" style="width:40%%" on_change="onchange_date(meals_date,meals_for)"/>
                 		</group>
                 		<notebook>
                 			<page string="Meals Deduction">
                 				<field name ="meals_details_emp_ids" nolabel="1" attrs="{'invisible':[('meals_for','!=','employees')]}">
                 					<tree editable="top">
-                						<field name ="emp_code" invisible="0" readonly="1"/>
-                						<field name ="emp_name" readonly="1"/>
+                						<field name ="emp_id" invisible="0" readonly="0"/>
                 						<field name ="break_fast" on_change="onchange_checkbox(break_fast,lunch,dinner,midnight_tiffin,free_cost)"/>
                 						<field name ="lunch" on_change="onchange_checkbox(break_fast,lunch,dinner,midnight_tiffin,free_cost)"/>
                 						<field name ="dinner" on_change="onchange_checkbox(break_fast,lunch,dinner,midnight_tiffin,free_cost)"/>
@@ -929,7 +972,7 @@
                 						<field name ="free_cost" on_change="onchange_checkbox(break_fast,lunch,dinner,midnight_tiffin,free_cost)"/>
                 					</tree>
                 				</field>
-                				<field name ="meals_details_order_ids" nolabel="1"  attrs="{'invisible':[('meals_for','!=','others')]}">
+                				<field name ="meals_details_order_ids" nolabel="1" attrs="{'invisible':[('meals_for','!=','others')]}">
                 					<tree editable="top">
                 						<field name ="emp_name" readonly="0"/>
                 						<field name ="break_fast" on_change="onchange_checkbox(break_fast,lunch,dinner,midnight_tiffin,free_cost)"/>
@@ -967,6 +1010,10 @@
 			<field name="arch" type="xml">
 				<tree string="Punch In/Punch Out">
 					<field name ="date_up_load"/>
+<<<<<<< HEAD
+=======
+					<field name="state"/>
+>>>>>>> 48fff98f15755fea9ee1dce1eca62b0c1cb35c95
 				</tree>
 			</field>
 		</record>
@@ -1007,5 +1054,55 @@
             id="menu_action_arul_hr_punch_in_out_form"
             parent="menu_hr_leave_management" sequence="26"/>
   
+<<<<<<< HEAD
+=======
+        <record id="employee_leave_tree_view" model="ir.ui.view">
+			<field name="name">employee.leave.tree</field>
+			<field name="model">employee.leave</field>
+			<field name="arch" type="xml">
+				<tree string="Employee Leave">
+					<field name ="employee_id"/>
+                	<field name ="year"/>
+				</tree>
+			</field>
+		</record>
+  
+		<record id="employee_leave_form_view" model="ir.ui.view">
+            <field name="name">employee.leave.form</field>
+            <field name="model">employee.leave</field>
+            <field name="arch" type="xml">
+                <form string="Employee Leave" version="7.0">  
+                	<sheet>  
+                		<group>
+	            			<field name ="employee_id" style="width:40%%" options="{'create': false, 'create_edit': false}"/>
+	            			<field name ="year" style="width:40%%"/>
+            			</group>
+            			<group string = "Employee Leave Details">
+	            			<field name ="emp_leave_details_ids" nolabel="1">
+								<tree editable="top">
+		    						<field name ="leave_type_id" options="{'create': false, 'create_edit': false}"/>
+		    						<field name ="total_day"/>
+		    						<field name ="total_taken"/>
+	                			</tree>
+	                		</field>
+                		</group>
+                	</sheet> 
+                </form>
+               </field>
+		</record>
+
+        <record id="action_employee_leave_form" model="ir.actions.act_window">
+            <field name="name">Employee Leave</field>
+			<field name="type">ir.actions.act_window</field>
+            <field name="res_model">employee.leave</field>
+            <field name="view_type">form</field>
+            <field name="view_mode">tree,form</field>
+            <field name="view_id" ref="employee_leave_tree_view"/>
+        </record>
+        
+        <menuitem action="action_employee_leave_form"
+            id="menu_action_employee_leave_form"
+            parent="menu_hr_leave_management" sequence="25"/> 
+>>>>>>> 48fff98f15755fea9ee1dce1eca62b0c1cb35c95
     </data>
 </openerp>
