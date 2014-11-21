@@ -48,8 +48,8 @@
 			<field name="model">arul.hr.leave.master</field>
 			<field name="arch" type="xml">
 				<tree string="Leave Master">
-					<field name="leave_type_id"/>
-					<field name="employee_category_id"/>
+					<field name="leave_type_id" />
+					<field name="employee_category_id" />
 					<field name="employee_sub_category_id"/>
 					<field name="maximum_limit"/>
 					<field name="carryforward_nextyear"/>
@@ -138,7 +138,7 @@
 			<field name="name">arul.hr.capture.work.shift.tree</field>
 			<field name="model">arul.hr.capture.work.shift</field>
 			<field name="arch" type="xml">
-				<tree string="Capture Work Shift">
+				<tree string="Work Shift">
 					<field name="code"/>
 					<field name="name"/>
 					<field name="description"/>
@@ -155,7 +155,7 @@
             <field name="name">arul.hr.capture.work.shift.form</field>
             <field name="model">arul.hr.capture.work.shift</field>
             <field name="arch" type="xml">
-	            <form string="Capture Work Shift" version="7.0">   
+	            <form string="Work Shift" version="7.0">   
 	            	<sheet>
 		                <group>    
 			                <field name="code"/>
@@ -174,7 +174,7 @@
 		</record>
           
 		<record id="action_arul_hr_capture_work_shift_form" model="ir.actions.act_window">
-            <field name="name">Capture Work Shift</field>
+            <field name="name">Work Shift</field>
             <field name="type">ir.actions.act_window</field>
             <field name="res_model">arul.hr.capture.work.shift</field>
             <field name="view_type">form</field>
@@ -304,8 +304,8 @@
 				<tree string="Audit Shift Time">
 					<field name="employee_id"/>
 					<field name="work_date"/>
+					<field name="employee_category_id"/>
 					<field name="planned_work_shift_id"/>
-					<field name="actual_work_shift_id"/>
 					<field name="in_time" widget="float_time"/>
 					<field name="out_time" widget="float_time"/>
 					<field name="total_hours" widget="float_time"/>
@@ -324,18 +324,16 @@
 	                    <button name="reject_shift_time" attrs="{'invisible':[('approval','=',False)]}" string="Reject" type="object" class="oe_highlight" groups="base.group_hr_manager"/>
 	                </header>   
 	            	<sheet>
-		                <group>    
-			                <field name="employee_id"/>
+		                <group col='4' colspan='2'>
+							<field name="employee_id" on_change="onchange_category_employee_id(employee_id)"/>
+							<field name="planned_work_shift_id" />
 							<field name="work_date"/>
-							<field name="planned_work_shift_id"/>
-							<field name="actual_work_shift_id"/>
-						</group>
-						<group col='4' colspan='2'>
+							<field name="employee_category_id" />
 							<field name="in_time" widget="float_time"/>
 							<field name="out_time" widget="float_time"/>
 							<field name="total_hours" widget="float_time"/>
 							<field name="approval"/>
-						</group>   	
+						</group>    	
 		         	</sheet>
 		         </form>
 			</field>
@@ -386,6 +384,20 @@
 							<field name="department_id" on_change="onchange_designation_id(department_id)"/>
 						</group>
 						<notebook>
+							<page string = "Punch In/Punch Out Details">
+								<field name="punch_in_out_line" nolabel='1'>
+									<tree editable='top'>
+										
+										<field name="work_date"/>
+										<field name="planned_work_shift_id"/>
+										<field name="in_time" string="Punch In Time" widget="float_time"/>
+										<field name="out_time" string="Punch Out Time" widget="float_time"/>
+										<field name="total_hours" widget="float_time"/>
+										<field name="approval"/>
+									</tree>
+								</field>
+							</page>
+						
 							<page string = "Permission and On Duty Details">
 								<field name="permission_onduty_details_line" nolabel='1'>
 									<tree editable='top'>
@@ -397,20 +409,6 @@
 										<field name="end_time"/>
 										<field name="time_total"/>
 										<field name="reason"/>
-									</tree>
-								</field>
-							</page>
-							<page string = "Punch In/Punch Out Details">
-								<field name="punch_in_out_line" nolabel='1'>
-									<tree editable='top'>
-										
-										<field name="work_date"/>
-										<field name="planned_work_shift_id"/>
-										<field name="actual_work_shift_id"/>
-										<field name="in_time" string="Punch In Time"/>
-										<field name="out_time" string="Punch Out Time"/>
-										<field name="total_hours"/>
-										<field name="approval"/>
 									</tree>
 								</field>
 							</page>
@@ -435,6 +433,97 @@
             id="menu_action_arul_hr_employee_attendence_details_form"
             parent="menu_hr_leave_management" sequence="24"/>
           		
-            
+        <record id="view_arul_hr_monthly_work_schedule_tree_vew" model="ir.ui.view">
+			<field name="name">arul.hr.monthly.work.schedule.tree</field>
+			<field name="model">arul.hr.monthly.work.schedule</field>
+			<field name="arch" type="xml">
+				<tree string="Monthly Work Schedule">
+					<field name="department_id"  options="{'create': false, 'create_edit': false}"/>
+					<field name="section_id"  options="{'create': false, 'create_edit': false}"/>
+					<field name="year"/>
+					<field name="month"/>
+					<field name="state" widget="statusbar" statusbar_visible="draft,done" statusbar_colors='{"draft":"blue","done":"blue"}'/>
+				</tree>
+			</field>
+		</record>
+		
+
+		<record id="view_arul_hr_monthly_work_schedule_form_vew" model="ir.ui.view">
+            <field name="name">arul.hr.monthly.work.schedule.form</field>
+            <field name="model">arul.hr.monthly.work.schedule</field>
+            <field name="arch" type="xml">
+	            <form string="Monthly Work Schedule" version="7.0">
+	            	<header>
+	                    <button name="load_previous_month" states='draft' string="Load Previous Month Schedule" type="object" class="oe_highlight" />
+	                    <button name="approve_current_month" states='load,draft' string="Approve Current Month Schedule" type="object" class="oe_highlight" />
+	                    <field name="state" widget="statusbar" statusbar_visible="draft,done" statusbar_colors='{"draft":"blue","done":"blue"}'/>
+	                </header> 
+	            	<sheet>
+						<group col='4' colspan='2'>
+							<field name="department_id" on_change="onchange_department_id(department_id)"  options="{'create': false, 'create_edit': false}"/>
+							<field name="section_id"  options="{'create': false, 'create_edit': false}"/>
+							<field name="year"/>
+							<field name="month"/>
+							
+						</group>
+						<notebook>
+							<page string = 'Monthly Shift Schedule'>
+							<field name="monthly_shift_line" nolabel='1'>
+	                    		<tree editable='top'>
+	                    			<field name="num_of_month" invisible="1"/>
+	                    			<field name="employee_id"  options="{'create': false, 'create_edit': false}"/>
+	                    			<field name="day_1"/>
+                    				<field name="day_2"/>
+                    				<field name="day_3"/>
+                    				<field name="day_4"/>
+                    				<field name="day_5"/>
+                    				<field name="day_6"/>
+                    				<field name="day_7"/>
+                    				<field name="day_8"/>
+                    				<field name="day_9"/>
+                    				<field name="day_10"/>
+                    				<field name="day_11"/>
+                    				<field name="day_12"/>
+                    				<field name="day_13"/>
+                    				<field name="day_14"/>
+                    				<field name="day_15"/>
+                    				<field name="day_16"/>
+                    				<field name="day_17"/>
+                    				<field name="day_18"/>
+                    				<field name="day_19"/>
+                    				<field name="day_20"/>
+                    				<field name="day_21"/>
+                    				<field name="day_22"/>
+                    				<field name="day_23"/>
+                    				<field name="day_24"/>
+                    				<field name="day_25"/>
+                    				<field name="day_26"/>
+                    				<field name="day_27"/>
+                    				<field name="day_28"/>
+                    				<field name="day_29" attrs="{'invisible':[('num_of_month','&lt;',29)]}"/>
+                    				<field name="day_30" attrs="{'invisible':[('num_of_month','&lt;',30)]}"/>
+                    				<field name="day_31" attrs="{'invisible':[('num_of_month','&lt;',31)]}"/>
+	                    		</tree>
+	                    	</field>
+                    		</page>
+						</notebook>   	
+		         	</sheet>
+		         </form>
+			</field>
+		</record>
+
+		<record id="action_arul_hr_monthly_work_schedule_form" model="ir.actions.act_window">
+            <field name="name">Monthly Work Schedule</field>
+            <field name="type">ir.actions.act_window</field>
+            <field name="res_model">arul.hr.monthly.work.schedule</field>
+            <field name="view_type">form</field>
+            <field name="view_mode">tree,form</field>
+            <field name="view_id" ref="view_arul_hr_monthly_work_schedule_tree_vew"/>
+        </record>
+        
+        <menuitem action="action_arul_hr_monthly_work_schedule_form"
+            id="menu_action_arul_hr_monthly_work_schedule_form"
+            parent="menu_hr_leave_management" sequence="20"/> 
+    
 	</data>
 </openerp>

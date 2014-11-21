@@ -289,6 +289,8 @@ class hr_employee(osv.osv):
         return {'value': {'employee_sub_category_id': False }, 'domain':{'employee_sub_category_id':[('id','in',emp_sub_cat)]}}
     
     def create(self, cr, uid, vals, context=None):
+        if context is None:
+            context = {}
         new_id = super(hr_employee, self).create(cr, uid, vals, context)
         if context.get('create_hiring_employee'):
             for line_id in context.get('create_hiring_employee'):
