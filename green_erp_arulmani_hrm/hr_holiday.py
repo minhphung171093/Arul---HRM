@@ -379,7 +379,7 @@ class arul_hr_punch_in_out(osv.osv):
                                         val1['planned_work_shift_id']=work_shift_ids[0]
                                         details_ids=detail_obj.search(cr, uid, [('employee_id','=',employee_ids[0])])
                                         if details_ids:
-                                            val4={'punch_in_out_id':details_ids[0],'planned_work_shift_id':work_shift_ids[0],'employee_id':employee_ids[0],'work_date':date,'in_time':in_time,'out_time':out_time}
+                                            val4={'punch_in_out_id':details_ids[0],'planned_work_shift_id':work_shift_ids[0],'employee_id':employee_ids[0],'work_date':date,'in_time':in_time,'out_time':out_time,'approval':1}
                                             detail_obj4.create(cr, uid, val4)
                                         else:
                                             detail_obj.create(cr, uid, {'employee_id':employee_ids[0],'punch_in_out_line':[(0,0,val1)]})
