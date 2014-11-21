@@ -356,6 +356,7 @@ class arul_hr_punch_in_out(osv.osv):
                 detail_obj = self.pool.get('arul.hr.employee.attendence.details')
                 detail_obj2 = self.pool.get('arul.hr.audit.shift.time')
                 detail_obj3 = self.pool.get('arul.hr.capture.work.shift')
+                detail_obj4 = self.pool.get('arul.hr.punch.in.out.time')
                 for i,data1 in enumerate(L):
                     L2 = L[i+1:]
                     employee_code = data1[43:51]
@@ -374,8 +375,6 @@ class arul_hr_punch_in_out(osv.osv):
                                 if employee_code_2==employee_code and date==date_2 and in_out=='P20':
                                     out_time=float(data2[15:17])+float(data2[17:19])/60+float(data2[19:21])/3600
                                     val1['out_time']=out_time
-                                    #work_shift_ids = detail_obj3.search(cr, uid, [('start_time','>',in_time + 1/6 ),('end_time','<',out_time - 1/6 )])
-#                                     planed_work_shift=' '.join(str(x) for x in work_shift_ids)
                                     sql = '''
                                         select id from arul_hr_capture_work_shift where (start_time between %s and start_time+1/6) and (end_time between end_time-1/6 and %s)
                                     '''%(in_time - 1,out_time + 1)
@@ -383,14 +382,15 @@ class arul_hr_punch_in_out(osv.osv):
                                     work_shift_ids = [row[0] for row in cr.fetchall()]
                                     if work_shift_ids :
                                         val1['planned_work_shift_id']=work_shift_ids[0]
-                                        detail_obj.create(cr, uid, {'employee_id':employee_ids[0],'punch_in_out_line':[(0,0,val1)]})
+                                        details_ids=detail_obj.search(cr, uid, [('employee_id','=',employee_ids[0])])
+                                        if details_ids:
+                                            val4={'punch_in_out_id':details_ids[0],'planned_work_shift_id':work_shift_ids[0],'employee_id':employee_ids[0],'work_date':date,'in_time':in_time,'out_time':out_time,'approval':1}
+                                            detail_obj4.create(cr, uid, val4)
+                                        else:
+                                            detail_obj.create(cr, uid, {'employee_id':employee_ids[0],'punch_in_out_line':[(0,0,val1)]})
                                     else:
                                         val1['approval']=False
                                         detail_obj2.create(cr, uid,val1)
-#                                     if 4 <= (out_time - in_time) and (out_time - in_time) < 8:
-#                                         val3={'employee_id':employee_ids[0],'planned_work_shift_id':planed_work_shift,'work_date':date,'in_time':in_time,'out_time':out_time,'approval':0}
-#                                         detail_obj2.create(cr, uid,val3)
-                                   
                                     temp +=1
                                     L.pop(j)
                                     break

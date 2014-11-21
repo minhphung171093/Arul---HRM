@@ -37,6 +37,7 @@
         'menu_view.xml',
         'hr_demo_leave_types.xml',
         'hr_employee_data.xml',
+        'emp_leave_status_schedule.xml',
     ],
     'css' : [
     ],
