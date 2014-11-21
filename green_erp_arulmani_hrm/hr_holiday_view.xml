@@ -390,10 +390,6 @@
 										
 										<field name="work_date"/>
 										<field name="planned_work_shift_id"/>
-<<<<<<< HEAD
-=======
-										<field name="actual_work_shift_id"/>
->>>>>>> 48fff98f15755fea9ee1dce1eca62b0c1cb35c95
 										<field name="in_time" string="Punch In Time" widget="float_time"/>
 										<field name="out_time" string="Punch Out Time" widget="float_time"/>
 										<field name="total_hours" widget="float_time"/>
