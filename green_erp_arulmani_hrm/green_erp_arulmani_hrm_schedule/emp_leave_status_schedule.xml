@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<openerp>
+    <data>
+		<record model="ir.cron" id="emp_leave_sta_update">
+	        <field name="name">Employee Leave Status Update</field>
+	        <field name="interval_number">12</field>
+	        <field name="interval_type">months</field>
+	        <field name="numbercall">-1</field>
+	        <field name="doall" eval="False"/>
+	        <field name="model" eval="'employee.leave'"/>
+	        <field name="function" eval="'get_employee_leave'"/>
+	        <field name="args" eval="'()'" />
+        </record>      
+    </data>
+</openerp>
