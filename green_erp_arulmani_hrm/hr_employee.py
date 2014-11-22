@@ -375,12 +375,13 @@ class meals_deduction(osv.osv):
     def onchange_date(self, cr, uid, ids, date, meals_for, context=None):
         vals = {}
         emp_obj = self.pool.get('arul.hr.punch.in.out.time')
-        emp_ids = emp_obj.search(cr, uid, ['work_date','=',date])
+        emp_ids = emp_obj.search(cr, uid, [('work_date','=',date)])
         emp_vals = []
         if meals_for == 'employees':
-            for emp_id in emp_ids:
-                emp_vals.append({'emp_id':emp_id})
-        vals = {'meals_details_emp_ids':emp_vals}
+            if emp_ids:
+                for emp_id in emp_ids:
+                    emp_vals.append({'emp_id':emp_id})
+                vals = {'meals_details_emp_ids':emp_vals}
         return {'value': vals}
    
     _columns = {

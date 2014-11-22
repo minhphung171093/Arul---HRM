@@ -38,8 +38,6 @@
             </field>
         </record>
       
-      
-      
      <record id="view_arul_hr_section_tree_vew" model="ir.ui.view">
 			<field name="name">arul.hr.section.tree</field>
 			<field name="model">arul.hr.section</field>

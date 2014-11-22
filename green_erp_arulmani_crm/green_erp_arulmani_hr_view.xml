@@ -43,14 +43,14 @@
 	        	</xpath> 
 	        	<xpath expr="//field[@name='user_id']" position="replace">
                         <field name="user_id" invisible="1"/>
-                        <field name="employee_category_id"/>
-                        <field name="employee_sub_category_id"/>
-                        <field name="employee_grade_id"/>
+                        <field name="employee_category_id" options="{'create': false, 'create_edit': false}"/>
+                        <field name="employee_sub_category_id" options="{'create': false, 'create_edit': false}"/>
+                        <field name="employee_grade_id" options="{'create': false, 'create_edit': false}"/>
 	        	</xpath> 
             	<xpath expr="//div[@class='oe_title']" position="replace">
                 	<div class="oe_title">
                 		<label for="employee_id" class="oe_edit_only"/>
-            			<field name="employee_id" />
+            			<field name="employee_id" options="{'create': false, 'create_edit': false}"/>
                     	<label for="name" string="Employee" class="oe_edit_only"/>
                         <h1>   
                         	<field name="name" class="oe_inline" placeholder="Fist Name ..."/>          
@@ -58,7 +58,7 @@
            					<field name="last_name" class="oe_inline" placeholder="Last Name ..."/>
                         </h1>  
                         <label for="category_ids" class="oe_edit_only"/>
-                        <field name="category_ids" widget="many2many_tags" placeholder="e.g. Part Time"/>
+                        <field name="category_ids" options="{'create': false, 'create_edit': false}" widget="many2many_tags" placeholder="e.g. Part Time"/>
                         <group>
 	                        <field name="employee_active"/>
 	                    </group>
@@ -67,7 +67,7 @@
                         
             	<xpath expr="//form/sheet/notebook/page[@string='Public Information']/group/group[@string='Position']" position="after">
                   	<group>
-	                    <field name="plant_id" />
+	                    <field name="plant_id" options="{'create': false, 'create_edit': false}"/>
 	                    <field name="date_of_joining" />
 	                    <field name="date_of_resignation" />
 	                </group>
@@ -76,7 +76,7 @@
                   	<group >
 	                    <field name="age_in_years" />
 	                    <field name="caste" />
-	                    <field name="religion_id" />
+	                    <field name="religion_id" options="{'create': false, 'create_edit': false}"/>
 	                    <field name="blood_group" />
 	                    <field name="physically_challenged" />
 	                </group>
