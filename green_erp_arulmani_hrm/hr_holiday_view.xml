@@ -258,7 +258,6 @@
 			</field>
 		</record>
 		
-		
 
 		<record id="view_arul_hr_permission_onduty_form_vew" model="ir.ui.view">
             <field name="name">arul.hr.permission.onduty.form</field>
@@ -351,8 +350,6 @@
             id="menu_action_arul_hr_audit_shift_time_form"
             parent="menu_hr_leave_management" sequence="20"/> 
 	
-		
-          
 
 		<record id="view_arul_hr_employee_attendence_details_tree_vew" model="ir.ui.view">
 			<field name="name">arul.hr.employee.attendence.details.tree</field>

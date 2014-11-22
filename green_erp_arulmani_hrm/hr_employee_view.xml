@@ -238,7 +238,7 @@
 	                    		<field name="datas" filename="datas_fname" string="Document upload"/>
 	                        	<field name="datas_fname" invisible="1" class="oe_inline oe_right"/>
 	                    		<field name ="department_from_id" string="Dept.From"/>
-	                    		<field name ="department_to_id" string="Dept.To"/>
+	                    		<field name ="department_to_id" string="Dept.To" />
 	                    		<field name ="designation_from_id" string="Dest.From"/>
 	                    		<field name ="designation_to_id" string="Dest.To"/>
 	                    		<field name ="current_month_salary"/>
@@ -713,7 +713,7 @@
             <field name="inherit_id" ref="hr.view_employee_form"/>
             <field name="arch" type="xml">
                 <xpath expr="//field[@name='department_id']" position="after">
-                    <field name="section_id"/>
+                    <field name="section_id" options="{'create': false, 'create_edit': false}"/>
                 </xpath>
             </field>
         </record>
@@ -724,14 +724,14 @@
             <field name="inherit_id" ref="green_erp_arulmani_crm.vsis_view_employee_form_portal"/>
             <field name="arch" type="xml">
             	<xpath expr="//field[@name='department_id']" position="replace">
-                    <field name="department_id" on_change="onchange_department_id(department_id)"/>
+                    <field name="department_id" on_change="onchange_department_id(department_id)" options="{'create': false, 'create_edit': false}"/>
                 </xpath>
                 <xpath expr="//field[@name='employee_category_id']" position="replace">
-                    <field name="employee_category_id" on_change="onchange_employee_category_id(employee_category_id)"/>
+                    <field name="employee_category_id" on_change="onchange_employee_category_id(employee_category_id)" options="{'create': false, 'create_edit': false}"/>
                 </xpath>
                 <xpath expr="//field[@name='employee_grade_id']" position="after">
-                    <field name="payroll_area_id"/>
-                    <field name="payroll_sub_area_id"/>
+                    <field name="payroll_area_id" options="{'create': false, 'create_edit': false}"/>
+                    <field name="payroll_sub_area_id" options="{'create': false, 'create_edit': false}"/>
                 </xpath>
                 <xpath expr="//field[@name='date_of_resignation']" position="after">
                     <field name="time_record"/>
@@ -1003,7 +1003,7 @@
         <menuitem action="action_meals_deduction_form"
             id="menu_action_meals_deduction_form"
             parent="hr.menu_hr_main" sequence="31"/>
-            
+
         <record id="arul_hr_punch_in_out_tree_view" model="ir.ui.view">
 			<field name="name">arul.hr.punch.in.out.tree</field>
 			<field name="model">arul.hr.punch.in.out</field>
