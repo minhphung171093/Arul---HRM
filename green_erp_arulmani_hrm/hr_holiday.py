@@ -121,7 +121,7 @@ class arul_hr_audit_shift_time(osv.osv):
               'in_time': fields.float('In Time'),
               'out_time': fields.float('Out Time'),
               'total_hours': fields.function(_time_total, string='Total Hours', multi='sums', help="The total amount."),
-              'approval': fields.boolean('Select for Approval'),
+              'approval': fields.boolean('Select for Approval', readonly = True),
               }
     def _check_time(self, cr, uid, ids, context=None): 
         for time in self.browse(cr, uid, ids, context = context):
@@ -145,10 +145,28 @@ class arul_hr_audit_shift_time(osv.osv):
     def approve_shift_time(self, cr, uid, ids, context=None):
         for line in self.browse(cr,uid,ids):
             emp_attendence_obj = self.pool.get('arul.hr.employee.attendence.details')
+            punch_obj = self.pool.get('arul.hr.punch.in.out.time')
             employee_ids = emp_attendence_obj.search(cr, uid, [('employee_id','=',line.employee_id.id)])
             if employee_ids:
-                val1={'work_date':line.work_date, 'planned_work_shift_id':line.planned_work_shift_id.id,'in_time':line.in_time,'out_time':line.out_time,'approval':1}
-                emp_attendence_obj.create(cr,uid,{'employee_id':employee_ids[0], 'punch_in_out_line':[(0,0,val1)]}) 
+                val2={'punch_in_out_id':employee_ids[0], 
+                      'employee_id': line.employee_id.id,
+                      'work_date':line.work_date, 
+                      'planned_work_shift_id':line.planned_work_shift_id.id,
+                      'in_time':line.in_time,
+                      'out_time':line.out_time,
+                      'approval':1
+                        }
+                punch_obj.create(cr,uid,val2) 
+            else:
+                val1={
+                      'employee_id':line.employee_id.id,
+                      'work_date':line.work_date,
+                      'planned_work_shift_id':line.planned_work_shift_id.id,
+                      'in_time':line.in_time,
+                      'out_time':line.out_time,
+                      'approval':1
+                      }
+                emp_attendence_obj.create(cr,uid,{'employee_id':line.employee_id.id, 'punch_in_out_line':[(0,0,val1)]}) 
             self.write(cr, uid, [line.id],{'approval': True})
         return True
     def reject_shift_time(self, cr, uid, ids, context=None):
