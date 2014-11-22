@@ -1003,9 +1003,7 @@
         <menuitem action="action_meals_deduction_form"
             id="menu_action_meals_deduction_form"
             parent="hr.menu_hr_main" sequence="31"/>
-            
-<<<<<<< HEAD
-=======
+
         <record id="arul_hr_punch_in_out_tree_view" model="ir.ui.view">
 			<field name="name">arul.hr.punch.in.out.tree</field>
 			<field name="model">arul.hr.punch.in.out</field>

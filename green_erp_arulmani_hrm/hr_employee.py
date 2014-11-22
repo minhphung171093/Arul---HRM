@@ -374,8 +374,8 @@ class meals_deduction(osv.osv):
 
     def onchange_date(self, cr, uid, ids, date, meals_for, context=None):
         vals = {}
-        emp_obj = self.pool.get('hr.employee')
-        emp_ids = emp_obj.search(cr, uid, [])
+        emp_obj = self.pool.get('arul.hr.punch.in.out.time')
+        emp_ids = emp_obj.search(cr, uid, ['work_date','=',date])
         emp_vals = []
         if meals_for == 'employees':
             for emp_id in emp_ids:
@@ -493,7 +493,7 @@ class employee_leave_detail(osv.osv):
             leave_detail_obj = self.pool.get('arul.hr.employee.leave.details')
             leave_detail_ids = leave_detail_obj.search(cr, uid, [('employee_id','=',emp),('leave_type_id','=',leave_type)])
             for detail in leave_detail_obj.browse(cr, uid, leave_detail_ids, context=context):
-                if detail.date_to[0:4] == year:
+                if detail.date_from[0:4] == year:
                     taken_day = detail.days_total
             res[line.id] = taken_day
         return res
