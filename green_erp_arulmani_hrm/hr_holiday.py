@@ -203,6 +203,37 @@ arul_permission_onduty()
 
 class arul_hr_permission_onduty(osv.osv):
     _name='arul.hr.permission.onduty'
+    
+    def create(self, cr, uid, vals, context=None):
+#         for line in self.browse(cr,uid,ids):
+            new_id = super(arul_hr_permission_onduty, self).create(cr, uid, vals, context)
+            line_id=self.browse(cr,uid,new_id)
+            emp_attendence_obj = self.pool.get('arul.hr.employee.attendence.details')
+            punch_obj = self.pool.get('arul.hr.permission.onduty.time')
+            employee_ids = emp_attendence_obj.search(cr, uid, [('employee_id','=',line_id.employee_id.id)])
+            if employee_ids:
+                val2={'permission_onduty_id':employee_ids[0], 
+                      'employee_id': line_id.employee_id.id,
+                      'non_availability_type_id':line_id.non_availability_type_id.id, 
+                      'date':line_id.date,
+                      'start_time':line_id.start_time,
+                      'end_time':line_id.end_time,
+                      'reason':line_id.reason,
+                        }
+                punch_obj.create(cr,uid,val2) 
+            else:
+                val1={
+                     'employee_id': line_id.employee_id.id,
+                      'non_availability_type_id':line_id.non_availability_type_id.id, 
+                      'date':line_id.date,
+                      'start_time':line_id.start_time,
+                      'end_time':line_id.end_time,
+                      'reason':line_id.reason,
+                      }
+                emp_attendence_obj.create(cr,uid,{'employee_id':line_id.employee_id.id, 'permission_onduty_id':[(0,0,val1)]}) 
+#             self.write(cr, uid, [line.id],{'approval': True})
+            return new_id
+        
     def _time_total(self, cr, uid, ids, field_name, arg, context=None):
         res = {}
         for time in self.browse(cr, uid, ids, context=context):
@@ -222,7 +253,7 @@ class arul_hr_permission_onduty(osv.osv):
         'end_time': fields.float('End Time'),
         'time_total': fields.function(_time_total, string='Total Hours', multi='sums', help="The total amount."),
         'reason':fields.text('Reason'),
-        'detail_id':fields.many2one('arul.hr.employee.attendence.details','Detail'),
+#         'detail_id':fields.many2one('arul.hr.employee.attendence.details','Detail'),
         
               }
     def _check_time(self, cr, uid, ids, context=None): 
@@ -248,15 +279,23 @@ class arul_hr_punch_in_out_time(osv.osv):
     }
 arul_hr_punch_in_out_time()
 
+class arul_hr_permission_onduty_time(osv.osv):
+    _inherit='arul.hr.permission.onduty'
+    _name='arul.hr.permission.onduty.time'
+    _columns = {
+        'permission_onduty_id':fields.many2one('arul.hr.employee.attendence.details','Permission/Onduty')
+    }
+arul_hr_punch_in_out_time()
+
 class arul_hr_employee_attendence_details(osv.osv):
     _name='arul.hr.employee.attendence.details'
     _columns={
-        'employee_id':fields.many2one('hr.employee','Employee'),
+        'employee_id':fields.many2one('hr.employee','Employee', required=True),
         'employee_category_id':fields.many2one('vsis.hr.employee.category','Employee Category'),
         'sub_category_id':fields.many2one('hr.employee.sub.category','Sub Category'),
         'designation_id': fields.many2one('arul.hr.designation', 'Designation'),
         'department_id':fields.many2one('hr.department', 'Department'),
-        'permission_onduty_details_line':fields.one2many('arul.hr.permission.onduty','detail_id','Permission On duty Details',readonly=True),
+        'permission_onduty_details_line':fields.one2many('arul.hr.permission.onduty.time','permission_onduty_id','Permission On duty Details',readonly=True),
         'punch_in_out_line':fields.one2many('arul.hr.punch.in.out.time','punch_in_out_id','Punch in/Punch out Details',readonly=True)
               }
     def onchange_attendence_datails_employee_id(self, cr, uid, ids,employee_id=False, context=None):
@@ -367,6 +406,9 @@ class arul_hr_punch_in_out(osv.osv):
                                 in_out = data2[:3]
                                 employee_code_2=data2[43:51]
                                 date_2=data2[7:11]+'-'+data2[11:13]+'-'+data2[13:15]
+                                if employee_code_2==employee_code and date==date_2 and in_out=='P10':
+                                    in_time2 = float(data2[15:17])+float(data2[17:19])/60+float(data2[19:21])/3600
+                                    val1={'employee_id':employee_ids[0],'planned_work_shift_id':False,'work_date':date,'in_time':in_time2,'out_time':0,'approval':1}
                                 if employee_code_2==employee_code and date==date_2 and in_out=='P20':
                                     out_time=float(data2[15:17])+float(data2[17:19])/60+float(data2[19:21])/3600
                                     val1['out_time']=out_time
