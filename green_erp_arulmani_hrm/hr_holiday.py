@@ -114,15 +114,19 @@ class arul_hr_audit_shift_time(osv.osv):
         return res
     
     _columns={
-              'employee_id':fields.many2one('hr.employee','Employee ID', required = True),
-              'work_date':fields.date('Work Date'),
-              'employee_category_id':fields.many2one('vsis.hr.employee.category','Work Group'),
-              'planned_work_shift_id':fields.many2one('arul.hr.capture.work.shift','Planned Work Shift'),
-              'in_time': fields.float('In Time'),
-              'out_time': fields.float('Out Time'),
-              'total_hours': fields.function(_time_total, string='Total Hours', multi='sums', help="The total amount."),
-              'approval': fields.boolean('Select for Approval', readonly = True),
+              'employee_id':fields.many2one('hr.employee','Employee ID', required = True, states={'done': [('readonly', True)], 'cancel': [('readonly', True)]}),
+              'work_date':fields.date('Work Date', states={'done': [('readonly', True)], 'cancel': [('readonly', True)]}),
+              'employee_category_id':fields.many2one('vsis.hr.employee.category','Work Group', states={'done': [('readonly', True)], 'cancel': [('readonly', True)]}),
+              'planned_work_shift_id':fields.many2one('arul.hr.capture.work.shift','Planned Work Shift', states={'done': [('readonly', True)], 'cancel': [('readonly', True)]}),
+              'in_time': fields.float('In Time', states={'done': [('readonly', True)], 'cancel': [('readonly', True)]}),
+              'out_time': fields.float('Out Time', states={'done': [('readonly', True)], 'cancel': [('readonly', True)]}),
+              'total_hours': fields.function(_time_total, string='Total Hours', multi='sums', help="The total amount.", states={'done': [('readonly', True)], 'cancel': [('readonly', True)]}),
+              'approval': fields.boolean('Select for Approval', states={'done': [('readonly', True)], 'cancel': [('readonly', True)]}),
+              'state':fields.selection([('draft', 'Draft'),('cancel', 'Reject'),('done', 'Approve')],'Status', readonly=True),
               }
+    _defaults = {
+        'state':'draft',
+    }
     def _check_time(self, cr, uid, ids, context=None): 
         for time in self.browse(cr, uid, ids, context = context):
             if ((time.in_time > 24 or time.in_time < 0) or (time.out_time > 24 or time.out_time < 0)):
@@ -167,11 +171,11 @@ class arul_hr_audit_shift_time(osv.osv):
                       'approval':1
                       }
                 emp_attendence_obj.create(cr,uid,{'employee_id':line.employee_id.id, 'punch_in_out_line':[(0,0,val1)]}) 
-            self.write(cr, uid, [line.id],{'approval': True})
+            self.write(cr, uid, [line.id],{'approval': True, 'state':'done'})
         return True
     def reject_shift_time(self, cr, uid, ids, context=None):
         for line in self.browse(cr, uid, ids):
-            self.write(cr, uid, [line.id],{'approval': False})
+            self.write(cr, uid, [line.id],{'approval': False, 'state':'cancel'})
         return True   
 arul_hr_audit_shift_time()
 
