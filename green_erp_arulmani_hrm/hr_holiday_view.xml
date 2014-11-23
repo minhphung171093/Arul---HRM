@@ -258,7 +258,6 @@
 			</field>
 		</record>
 		
-		
 
 		<record id="view_arul_hr_permission_onduty_form_vew" model="ir.ui.view">
             <field name="name">arul.hr.permission.onduty.form</field>
@@ -310,6 +309,7 @@
 					<field name="out_time" widget="float_time"/>
 					<field name="total_hours" widget="float_time"/>
 					<field name="approval"/>
+					<field name="state" widget="statusbar" statusbar_visible="draft,done" statusbar_colors='{"draft":"blue","done":"blue"}'/>
 				</tree>
 			</field>
 		</record>
@@ -320,8 +320,9 @@
             <field name="arch" type="xml">
 	            <form string="Audit Shift Time" version="7.0">
 	            	<header>
-	                    <button name="approve_shift_time" attrs="{'invisible':[('approval','=',True)]}" string="Approve" type="object" class="oe_highlight" groups="base.group_hr_manager"/>
-	                    <button name="reject_shift_time" attrs="{'invisible':[('approval','=',False)]}" string="Reject" type="object" class="oe_highlight" groups="base.group_hr_manager"/>
+	                    <button name="approve_shift_time" states='draft' string="Approve" type="object" class="oe_highlight" groups="base.group_hr_manager"/>
+	                    <button name="reject_shift_time" states='draft' string="Reject" type="object" class="oe_highlight" groups="base.group_hr_manager"/>
+	                	<field name="state" widget="statusbar" statusbar_visible="draft,done" statusbar_colors='{"draft":"blue","done":"blue"}'/>
 	                </header>   
 	            	<sheet>
 		                <group col='4' colspan='2'>
@@ -351,8 +352,6 @@
             id="menu_action_arul_hr_audit_shift_time_form"
             parent="menu_hr_leave_management" sequence="20"/> 
 	
-		
-          
 
 		<record id="view_arul_hr_employee_attendence_details_tree_vew" model="ir.ui.view">
 			<field name="name">arul.hr.employee.attendence.details.tree</field>
@@ -387,13 +386,13 @@
 							<page string = "Punch In/Punch Out Details">
 								<field name="punch_in_out_line" nolabel='1'>
 									<tree editable='top'>
-										
 										<field name="work_date"/>
 										<field name="planned_work_shift_id"/>
 										<field name="in_time" string="Punch In Time" widget="float_time"/>
 										<field name="out_time" string="Punch Out Time" widget="float_time"/>
 										<field name="total_hours" widget="float_time"/>
 										<field name="approval"/>
+										<field name="state" invisible = '1'/>
 									</tree>
 								</field>
 							</page>
