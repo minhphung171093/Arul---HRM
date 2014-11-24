@@ -121,7 +121,7 @@ class arul_hr_audit_shift_time(osv.osv):
               'in_time': fields.float('In Time', states={'done': [('readonly', True)], 'cancel': [('readonly', True)]}),
               'out_time': fields.float('Out Time', states={'done': [('readonly', True)], 'cancel': [('readonly', True)]}),
               'total_hours': fields.function(_time_total, string='Total Hours', multi='sums', help="The total amount.", states={'done': [('readonly', True)], 'cancel': [('readonly', True)]}),
-              'approval': fields.boolean('Select for Approval', states={'done': [('readonly', True)], 'cancel': [('readonly', True)]}),
+              'approval': fields.boolean('Select for Approval', readonly =  True, states={'done': [('readonly', True)], 'cancel': [('readonly', True)]}),
               'state':fields.selection([('draft', 'Draft'),('cancel', 'Reject'),('done', 'Approve')],'Status', readonly=True),
               }
     _defaults = {
@@ -148,10 +148,12 @@ class arul_hr_audit_shift_time(osv.osv):
         return {'value': vals}
     def approve_shift_time(self, cr, uid, ids, context=None):
         for line in self.browse(cr,uid,ids):
+#             emp = self.pool.get('hr.employee')
             emp_attendence_obj = self.pool.get('arul.hr.employee.attendence.details')
             punch_obj = self.pool.get('arul.hr.punch.in.out.time')
             employee_ids = emp_attendence_obj.search(cr, uid, [('employee_id','=',line.employee_id.id)])
             if employee_ids:
+                
                 val2={'punch_in_out_id':employee_ids[0], 
                       'employee_id': line.employee_id.id,
                       'work_date':line.work_date, 
@@ -170,7 +172,7 @@ class arul_hr_audit_shift_time(osv.osv):
                       'out_time':line.out_time,
                       'approval':1
                       }
-                emp_attendence_obj.create(cr,uid,{'employee_id':line.employee_id.id, 'punch_in_out_line':[(0,0,val1)]}) 
+                emp_attendence_obj.create(cr,uid,{'employee_id':line.employee_id.id, 'employee_category_id':line.employee_id.employee_category_id.id, 'sub_category_id':line.employee_id.employee_sub_category_id.id,'designation_id':line.employee_id.department_id.designation_id.id, 'department_id':line.employee_id.department_id.id, 'punch_in_out_line':[(0,0,val1)]}) 
             self.write(cr, uid, [line.id],{'approval': True, 'state':'done'})
         return True
     def reject_shift_time(self, cr, uid, ids, context=None):
@@ -414,6 +416,7 @@ class arul_hr_punch_in_out(osv.osv):
                     date = data1[7:11]+'-'+data1[11:13]+'-'+data1[13:15]
                     temp = 0
                     if employee_ids and date:
+                        employee = employee_obj.browse(cr, uid, employee_ids[0])
                         if data1[:3]=='P10':
                             in_time = float(data1[15:17])+float(data1[17:19])/60+float(data1[19:21])/3600
                             val1={'employee_id':employee_ids[0],'planned_work_shift_id':False,'work_date':date,'in_time':in_time,'out_time':0,'approval':1}
@@ -443,16 +446,17 @@ class arul_hr_punch_in_out(osv.osv):
                                             detail_obj.create(cr, uid, {'employee_id':employee_ids[0],'punch_in_out_line':[(0,0,val1)]})
                                     else:
                                         val1['approval']=False
+                                        val1['employee_category_id'] = employee.employee_category_id.id
                                         detail_obj2.create(cr, uid,val1)
                                     temp +=1
                                     L.pop(j)
                                     break
                             if temp==0:
-                                val={'employee_id':employee_ids[0],'work_date':date,'in_time':in_time,'out_time':0}
+                                val={'employee_id':employee_ids[0],'work_date':date,'in_time':in_time,'out_time':0,'employee_category_id':employee.employee_category_id.id}
                                 detail_obj2.create(cr, uid,val)
                         if data1[:3]=='P20':
                             out_time = float(data1[15:17])+float(data1[17:19])/60+float(data1[19:21])/3600
-                            val2={'employee_id':employee_ids[0],'work_date':date,'in_time':0,'out_time':out_time}
+                            val2={'employee_id':employee_ids[0],'work_date':date,'in_time':0,'out_time':out_time,'employee_category_id':employee.employee_category_id.id}
                             detail_obj2.create(cr, uid,val2)
                             
                 self.write(cr, uid, [line.id], {'state':'done'})
@@ -554,8 +558,6 @@ class arul_hr_monthly_shift_schedule(osv.osv):
     _name='arul.hr.monthly.shift.schedule'
     def _num_of_month(self, cr, uid, ids, field_name, arg, context=None):
         res = {}
-#         work_schedule_obj = self.pool.get('arul.hr.monthly.work.schedule')
-#         work_schedule_ids = work_schedule_obj.search(cr, uid, ids)
         for day in self.browse(cr, uid, ids):
             res[day.id] = {
                 'num_of_month': 0,
@@ -564,7 +566,8 @@ class arul_hr_monthly_shift_schedule(osv.osv):
             res[day.id]['num_of_month'] = num_day 
         return res
     _columns={
-              'num_of_month': fields.function(_num_of_month, string='Day', multi='sums', help="The total amount."),
+            'num_of_month': fields.function(_num_of_month, string='Day',store=True, multi='sums', help="The total amount."),
+#               'num_of_month': fields.integer('Day'),
               'employee_id':fields.many2one('hr.employee','Employee', required = True),
               'monthly_work_id':fields.many2one('arul.hr.monthly.work.schedule','Monthly Shift Schedule'),
               'day_1': fields.char('1',size=500),
