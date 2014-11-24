@@ -511,7 +511,7 @@ class arul_hr_monthly_shift_schedule(osv.osv):
             res[day.id]['num_of_month'] = num_day 
         return res
     _columns={
-              'num_of_month': fields.function(_num_of_month, string='Day', multi='sums', help="The total amount."),
+              'num_of_month': fields.function(_num_of_month,store=True, string='Day', multi='sums', help="The total amount."),
               'employee_id':fields.many2one('hr.employee','Employee', required = True),
               'monthly_work_id':fields.many2one('arul.hr.monthly.work.schedule','Monthly Shift Schedule'),
               'day_1': fields.char('1',size=500),
