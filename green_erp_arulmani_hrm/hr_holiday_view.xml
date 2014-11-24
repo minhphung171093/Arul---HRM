@@ -301,10 +301,10 @@
 			<field name="model">arul.hr.audit.shift.time</field>
 			<field name="arch" type="xml">
 				<tree string="Audit Shift Time">
-					<field name="employee_id"/>
+					<field name="employee_id" options="{'create': false, 'create_edit': false}"/>
 					<field name="work_date"/>
-					<field name="employee_category_id"/>
-					<field name="planned_work_shift_id"/>
+					<field name="employee_category_id" options="{'create': false, 'create_edit': false}"/>
+					<field name="planned_work_shift_id" options="{'create': false, 'create_edit': false}"/>
 					<field name="in_time" widget="float_time"/>
 					<field name="out_time" widget="float_time"/>
 					<field name="total_hours" widget="float_time"/>
@@ -326,10 +326,10 @@
 	                </header>   
 	            	<sheet>
 		                <group col='4' colspan='2'>
-							<field name="employee_id" on_change="onchange_category_employee_id(employee_id)"/>
-							<field name="planned_work_shift_id" />
+							<field name="employee_id" on_change="onchange_category_employee_id(employee_id)" options="{'create': false, 'create_edit': false}"/>
+							<field name="planned_work_shift_id" options="{'create': false, 'create_edit': false}"/>
 							<field name="work_date"/>
-							<field name="employee_category_id" />
+							<field name="employee_category_id" options="{'create': false, 'create_edit': false}"/>
 							<field name="in_time" widget="float_time"/>
 							<field name="out_time" widget="float_time"/>
 							<field name="total_hours" widget="float_time"/>
@@ -462,7 +462,7 @@
 							<field name="department_id" on_change="onchange_department_id(department_id)"  options="{'create': false, 'create_edit': false}"/>
 							<field name="section_id"  options="{'create': false, 'create_edit': false}"/>
 							<field name="year"/>
-							<field name="month"/>
+							<field name="month" />
 							
 						</group>
 						<notebook>

@@ -527,8 +527,6 @@ class arul_hr_monthly_shift_schedule(osv.osv):
     _name='arul.hr.monthly.shift.schedule'
     def _num_of_month(self, cr, uid, ids, field_name, arg, context=None):
         res = {}
-#         work_schedule_obj = self.pool.get('arul.hr.monthly.work.schedule')
-#         work_schedule_ids = work_schedule_obj.search(cr, uid, ids)
         for day in self.browse(cr, uid, ids):
             res[day.id] = {
                 'num_of_month': 0,
