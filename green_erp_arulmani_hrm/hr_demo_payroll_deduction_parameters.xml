@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="utf-8"?>
+<openerp>
+    <data noupdate="1">
+    
+      <record id="deduction_parameters_1" model="arul.hr.payroll.deduction.parameters">
+          <field name="name">PF Deduction</field>
+          <field name="code">PF.D</field>
+      </record>
+      
+      <record id="deduction_parameters_2" model="arul.hr.payroll.deduction.parameters">
+          <field name="name">Pension Deduction</field>
+          <field name="code">P.D</field>
+      </record>
+      
+      <record id="deduction_parameters_3" model="arul.hr.payroll.deduction.parameters">
+          <field name="name">VPF Deduction</field>
+          <field name="code">VPF.D</field>
+      </record>
+      
+      <record id="deduction_parameters_4" model="arul.hr.payroll.deduction.parameters">
+          <field name="name">ESI Deduction</field>
+          <field name="code">ESI.D</field>
+      </record>
+      
+      <record id="deduction_parameters_5" model="arul.hr.payroll.deduction.parameters">
+          <field name="name">Food Deduction</field>
+          <field name="code">F.D</field>
+      </record>
+      
+      <record id="deduction_parameters_6" model="arul.hr.payroll.deduction.parameters">
+          <field name="name">Loan Deduction</field>
+          <field name="code">L.D</field>
+      </record>
+      
+      <record id="deduction_parameters_7" model="arul.hr.payroll.deduction.parameters">
+          <field name="name">Insurance Deduction</field>
+          <field name="code">I.D</field>
+      </record>
+      
+      <record id="deduction_parameters_8" model="arul.hr.payroll.deduction.parameters">
+          <field name="name">Professional Tax</field>
+          <field name="code">PT</field>
+      </record>
+      
+      <record id="deduction_parameters_9" model="arul.hr.payroll.deduction.parameters">
+          <field name="name">Labor Welfare Fund</field>
+          <field name="code">LWF</field>
+      </record>
+
+
+    </data>
+</openerp>
