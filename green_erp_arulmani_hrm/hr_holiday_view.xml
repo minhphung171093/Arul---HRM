@@ -191,8 +191,8 @@
 			<field name="model">arul.hr.employee.leave.details</field>
 			<field name="arch" type="xml">
 				<tree string="Employee Leave Details">
-					<field name="employee_id"/>
-					<field name="leave_type_id"/>
+					<field name="employee_id"options="{'create': false, 'create_edit': false}"/>
+					<field name="leave_type_id"options="{'create': false, 'create_edit': false}"/>
 					<field name="date_from"/>
 					<field name="date_to" />
 					<field name="days_total"/>
@@ -209,9 +209,9 @@
 	            <form string="Employee Leave Details" version="7.0">   
 	            	<sheet>
 		                <group col='4' colspan='2'>    
-			                <field name="employee_id"/>
+			                <field name="employee_id"options="{'create': false, 'create_edit': false}"/>
 			                <newline/>
-			                <field name="leave_type_id"/>
+			                <field name="leave_type_id"options="{'create': false, 'create_edit': false}"/>
 			                <newline/>
 							<field name="date_from"/>
 							<field name="date_to"/>
@@ -247,8 +247,8 @@
 			<field name="model">arul.hr.permission.onduty</field>
 			<field name="arch" type="xml">
 				<tree string="Permission and On Duty">
-					<field name="employee_id"/>
-					<field name="non_availability_type_id"/>
+					<field name="employee_id"options="{'create': false, 'create_edit': false}"/>
+					<field name="non_availability_type_id"options="{'create': false, 'create_edit': false}"/>
 					<field name="date"/>
 					<field name="start_time" widget="float_time"/>
 					<field name="end_time" widget="float_time"/>
@@ -266,9 +266,9 @@
 	            <form string="Permission and On Duty" version="7.0">   
 	            	<sheet>
 		                <group col='4' colspan='2'>    
-			                <field name="employee_id"/>
+			                <field name="employee_id"options="{'create': false, 'create_edit': false}"/>
 			                <newline/>
-							<field name="non_availability_type_id"/>
+							<field name="non_availability_type_id"options="{'create': false, 'create_edit': false}"/>
 							<newline/>
 							<field name="date"/>
 							<field name="duty_location"/>
@@ -358,11 +358,11 @@
 			<field name="model">arul.hr.employee.attendence.details</field>
 			<field name="arch" type="xml">
 				<tree string="Employee Attendence Details">
-						<field name="employee_id"/>
-						<field name="employee_category_id"/>
-						<field name="sub_category_id"/>
-						<field name="designation_id"/>
-						<field name="department_id"/>
+						<field name="employee_id" options="{'create': false, 'create_edit': false}"/>
+						<field name="employee_category_id" options="{'create': false, 'create_edit': false}"/>
+						<field name="sub_category_id" options="{'create': false, 'create_edit': false}"/>
+						<field name="designation_id" options="{'create': false, 'create_edit': false}"/>
+						<field name="department_id"options="{'create': false, 'create_edit': false}"/>
 				</tree>
 			</field>
 		</record>
@@ -377,17 +377,17 @@
 		                <group col='4' colspan='2'>    
 			                <field name="employee_id" context="{'search_employee_id':True}"  on_change="onchange_attendence_datails_employee_id(employee_id)"/>
 			                <newline/>
-							<field name="employee_category_id"/>
-							<field name="sub_category_id"/>
-							<field name="designation_id" />
-							<field name="department_id" on_change="onchange_designation_id(department_id)"/>
+							<field name="employee_category_id"options="{'create': false, 'create_edit': false}"/>
+							<field name="sub_category_id"options="{'create': false, 'create_edit': false}"/>
+							<field name="designation_id" options="{'create': false, 'create_edit': false}"/>
+							<field name="department_id" on_change="onchange_designation_id(department_id)"options="{'create': false, 'create_edit': false}"/>
 						</group>
 						<notebook>
 							<page string = "Punch In/Punch Out Details">
 								<field name="punch_in_out_line" nolabel='1'>
 									<tree editable='top'>
 										<field name="work_date"/>
-										<field name="planned_work_shift_id"/>
+										<field name="planned_work_shift_id"options="{'create': false, 'create_edit': false}"/>
 										<field name="in_time" string="Punch In Time" widget="float_time"/>
 										<field name="out_time" string="Punch Out Time" widget="float_time"/>
 										<field name="total_hours" widget="float_time"/>
@@ -401,7 +401,7 @@
 								<field name="permission_onduty_details_line" nolabel='1'>
 									<tree editable='top'>
 										
-										<field name="non_availability_type_id"/>
+										<field name="non_availability_type_id"options="{'create': false, 'create_edit': false}"/>
 										<field name="date"/>
 										<field name="duty_location"/>
 										<field name="start_time"/>
