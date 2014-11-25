@@ -492,19 +492,32 @@ class employee_leave_detail(osv.osv):
             year = line.emp_leave_id and line.emp_leave_id.year or False
             leave_type = line.leave_type_id and line.leave_type_id.id or False
             leave_detail_obj = self.pool.get('arul.hr.employee.leave.details')
-            leave_detail_ids = leave_detail_obj.search(cr, uid, [('employee_id','=',emp),('leave_type_id','=',leave_type)])
+            leave_detail_ids = leave_detail_obj.search(cr, uid, [('employee_id','=',emp),('leave_type_id','=',leave_type),('state','!=','cancel')])
             for detail in leave_detail_obj.browse(cr, uid, leave_detail_ids, context=context):
                 if detail.date_from[0:4] == year:
-                    taken_day = detail.days_total
+                    taken_day += detail.days_total
             res[line.id] = taken_day
         return res
+    
+    def _get_leave_detail(self, cr, uid, ids, context=None):
+        result = {}
+        for leave_detail in self.pool.get('arul.hr.employee.leave.details').browse(cr, uid, ids):
+            year_leave = leave_detail.date_from[:4]
+            emp_leave_ids = self.pool.get('employee.leave').search(cr, uid, [('employee_id','=',leave_detail.employee_id.id),('year','=',year_leave)])
+            emp_leave_dt_ids = self.pool.get('employee.leave.detail').search(cr, uid, [('emp_leave_id','in',emp_leave_ids),('leave_type_id','=',leave_detail.leave_type_id.id)])
+            for line in emp_leave_dt_ids:
+                result[line] = True
+        return result.keys()
     
     _columns = {
         'emp_leave_id': fields.many2one('employee.leave', 'Employee Leave'),
         'leave_type_id' : fields.many2one('arul.hr.leave.types', 'Leave Types'),
         'total_day': fields.float('Total Day',degits=(16,2)),
 #         'total_taken': fields.float('Total Day',degits=(16,2)),
-        'total_taken': fields.function(get_taken_day,degits=(16,2), type='float',string='Taken Day'),
+        'total_taken': fields.function(get_taken_day,degits=(16,2),store={
+            'employee.leave.detail': (lambda self, cr, uid, ids, c={}: ids, ['total_day','leave_type_id','emp_leave_id'], 10),
+            'arul.hr.employee.leave.details': (_get_leave_detail, ['employee_id','leave_type_id','date_from','date_to','haft_day_leave','state'], 10),                                          
+        }, type='float',string='Taken Day'),
     }
     
     

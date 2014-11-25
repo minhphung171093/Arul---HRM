@@ -462,10 +462,10 @@
 	                </header> 
 	            	<sheet>
 						<group col='4' colspan='2'>
-							<field name="department_id" on_change="onchange_department_id(department_id)"  options="{'create': false, 'create_edit': false}"/>
-							<field name="section_id"  options="{'create': false, 'create_edit': false}"/>
-							<field name="year"/>
-							<field name="month" />
+							<field name="department_id" on_change="onchange_department_id(department_id,month,year)" options="{'create': false, 'create_edit': false}"/>
+							<field name="section_id" options="{'create': false, 'create_edit': false}"/>
+							<field name="year" on_change="onchange_department_id(department_id,month,year)"/>
+							<field name="month" on_change="onchange_department_id(department_id,month,year)"/>
 							
 						</group>
 						<notebook>
@@ -474,37 +474,37 @@
 	                    		<tree editable='top'>
 	                    			<field name="num_of_month" invisible="1"/>
 	                    			<field name="employee_id" options="{'create': false, 'create_edit': false}"/>
-	                    			<field name="day_1"/>
-                    				<field name="day_2"/>
-                    				<field name="day_3"/>
-                    				<field name="day_4"/>
-                    				<field name="day_5"/>
-                    				<field name="day_6"/>
-                    				<field name="day_7"/>
-                    				<field name="day_8"/>
-                    				<field name="day_9"/>
-                    				<field name="day_10"/>
-                    				<field name="day_11"/>
-                    				<field name="day_12"/>
-                    				<field name="day_13"/>
-                    				<field name="day_14"/>
-                    				<field name="day_15"/>
-                    				<field name="day_16"/>
-                    				<field name="day_17"/>
-                    				<field name="day_18"/>
-                    				<field name="day_19"/>
-                    				<field name="day_20"/>
-                    				<field name="day_21"/>
-                    				<field name="day_22"/>
-                    				<field name="day_23"/>
-                    				<field name="day_24"/>
-                    				<field name="day_25"/>
-                    				<field name="day_26"/>
-                    				<field name="day_27"/>
-                    				<field name="day_28"/>
-                    				<field name="day_29" attrs="{'invisible':[('num_of_month','&lt;',29)]}"/>
-                    				<field name="day_30" attrs="{'invisible':[('num_of_month','&lt;',30)]}"/>
-                    				<field name="day_31" attrs="{'invisible':[('num_of_month','&lt;',31)]}"/>
+	                    			<field name="day_1" options="{'create': false, 'create_edit': false}"/>
+                    				<field name="day_2" options="{'create': false, 'create_edit': false}"/>
+                    				<field name="day_3" options="{'create': false, 'create_edit': false}"/>
+                    				<field name="day_4" options="{'create': false, 'create_edit': false}"/>
+                    				<field name="day_5" options="{'create': false, 'create_edit': false}"/>
+                    				<field name="day_6" options="{'create': false, 'create_edit': false}"/>
+                    				<field name="day_7" options="{'create': false, 'create_edit': false}"/>
+                    				<field name="day_8" options="{'create': false, 'create_edit': false}"/>
+                    				<field name="day_9" options="{'create': false, 'create_edit': false}"/>
+                    				<field name="day_10" options="{'create': false, 'create_edit': false}"/>
+                    				<field name="day_11" options="{'create': false, 'create_edit': false}"/>
+                    				<field name="day_12" options="{'create': false, 'create_edit': false}"/>
+                    				<field name="day_13" options="{'create': false, 'create_edit': false}"/>
+                    				<field name="day_14" options="{'create': false, 'create_edit': false}"/>
+                    				<field name="day_15" options="{'create': false, 'create_edit': false}"/>
+                    				<field name="day_16" options="{'create': false, 'create_edit': false}"/>
+                    				<field name="day_17" options="{'create': false, 'create_edit': false}"/>
+                    				<field name="day_18" options="{'create': false, 'create_edit': false}"/>
+                    				<field name="day_19" options="{'create': false, 'create_edit': false}"/>
+                    				<field name="day_20" options="{'create': false, 'create_edit': false}"/>
+                    				<field name="day_21" options="{'create': false, 'create_edit': false}"/>
+                    				<field name="day_22" options="{'create': false, 'create_edit': false}"/>
+                    				<field name="day_23" options="{'create': false, 'create_edit': false}"/>
+                    				<field name="day_24" options="{'create': false, 'create_edit': false}"/>
+                    				<field name="day_25" options="{'create': false, 'create_edit': false}"/>
+                    				<field name="day_26" options="{'create': false, 'create_edit': false}"/>
+                    				<field name="day_27" options="{'create': false, 'create_edit': false}"/>
+                    				<field name="day_28" options="{'create': false, 'create_edit': false}"/>
+                    				<field name="day_29" attrs="{'invisible':[('num_of_month','&lt;',29)]}" options="{'create': false, 'create_edit': false}"/>
+                    				<field name="day_30" attrs="{'invisible':[('num_of_month','&lt;',30)]}" options="{'create': false, 'create_edit': false}"/>
+                    				<field name="day_31" attrs="{'invisible':[('num_of_month','&lt;',31)]}" options="{'create': false, 'create_edit': false}"/>
 	                    		</tree>
 	                    	</field>
                     		</page>
