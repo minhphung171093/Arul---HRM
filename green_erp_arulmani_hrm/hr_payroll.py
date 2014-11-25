@@ -97,10 +97,22 @@ class arul_hr_payroll_employee_structure(osv.osv):
     }
     def onchange_employee_structure_id(self, cr, uid, ids,employee_id=False, context=None):
         vals = {}
+        configuration_obj = self.pool.get('arul.hr.payroll.structure.configuration')
         if employee_id:
             emp = self.pool.get('hr.employee').browse(cr, uid, employee_id)
+            configuration_ids = configuration_obj.search(cr, uid, [('employee_category_id','=',emp.employee_category_id.id),('sub_category_id','=',emp.employee_sub_category_id.id)])
+            payroll_earning_structure_line = []
+            if configuration_ids:
+                configuration = configuration_obj.browse(cr, uid, configuration_ids[0])
+                for line in configuration.payroll_structure_configuration_line:
+                    vals={
+                          'earning_parameters_id':line.earning_parameters_id.id,
+                          'float': line.value,
+                    }
+                    payroll_earning_structure_line.append((0,0,vals))
             vals = {'employee_category_id':emp.employee_category_id.id,
-                    'sub_category_id':emp.employee_sub_category_id.id}
+                    'sub_category_id':emp.employee_sub_category_id.id,
+                    'payroll_earning_structure_line':payroll_earning_structure_line}
         return {'value': vals}
 
     
@@ -129,3 +141,30 @@ class arul_hr_payroll_contribution_parameters(osv.osv):
         'employer_lwf_con_amt': fields.float('Employer LWF Contribution Amt'),
     }
 arul_hr_payroll_contribution_parameters()
+
+class arul_hr_payroll_structure_configuration(osv.osv):
+    _name = 'arul.hr.payroll.structure.configuration'
+    _columns = {
+         'employee_category_id':fields.many2one('vsis.hr.employee.category','Employee Group', required = True),
+         'sub_category_id':fields.many2one('hr.employee.sub.category','Employee Sub Group'), 
+         'payroll_structure_configuration_line':fields.one2many('arul.hr.payroll.earning.structure.configuration','earning_structure_configuration_id','Structure Configuration') ,   
+    }
+    def onchange_employee_category_id(self, cr, uid, ids,employee_category_id=False, context=None):
+        emp_sub_cat = []
+        if employee_category_id:
+            emp_cat = self.pool.get('vsis.hr.employee.category').browse(cr, uid, employee_category_id)
+            emp_sub_cat = [x.id for x in emp_cat.sub_category_ids]
+        return {'value': {'sub_category_id': False }, 'domain':{'sub_category_id':[('id','in',emp_sub_cat)]}}
+    
+arul_hr_payroll_structure_configuration()
+
+class arul_hr_payroll_earning_structure_configuration(osv.osv):
+    _name = 'arul.hr.payroll.earning.structure.configuration'
+    _columns = {
+         'earning_parameters_id': fields.many2one('arul.hr.payroll.earning.parameters','Earning Parameters',required = True),
+         'earning_structure_configuration_id':fields.many2one('arul.hr.payroll.structure.configuration','Earning Structure'), 
+         'fixed_percentage':fields.selection([('fixed','Fixed'),('percentage','Percentage')], 'Fixed/Percentage?',required = True) ,
+         'value':fields.float('Values'),
+    }
+    
+arul_hr_payroll_earning_structure_configuration()
