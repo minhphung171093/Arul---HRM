@@ -190,9 +190,7 @@ class arul_hr_employee_leave_details(osv.osv):
             DATETIME_FORMAT = "%Y-%m-%d"
             from_dt = datetime.datetime.strptime(date.date_from, DATETIME_FORMAT)
             to_dt = datetime.datetime.strptime(date.date_to, DATETIME_FORMAT)
-<<<<<<< HEAD
-            timedelta = to_dt - from_dt
-=======
+#             timedelta = to_dt - from_dt
             timedelta = (to_dt - from_dt).days+1
             if date.haft_day_leave:
                 timedelta = timedelta-0.5
@@ -214,8 +212,6 @@ class arul_hr_employee_leave_details(osv.osv):
                     raise osv.except_osv(_('Warning!'),_('Leave Type Unlicensed'))
             else:
                 raise osv.except_osv(_('Warning!'),_('Employee Has Not Been Licensed Holidays For The Current Year'))
-            
->>>>>>> 6e479fdf98e37eafac83207ef07a16afe2770b8e
             res[date.id] = {
                 'days_total': timedelta
             }
