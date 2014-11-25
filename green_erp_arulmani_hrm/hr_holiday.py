@@ -164,8 +164,8 @@ class arul_hr_employee_leave_details(osv.osv):
         res = {}
         for date in self.browse(cr, uid, ids, context=context):
             DATETIME_FORMAT = "%Y-%m-%d"
-            from_dt = datetime.strptime(date.date_from, DATETIME_FORMAT)
-            to_dt = datetime.strptime(date.date_to, DATETIME_FORMAT)
+            from_dt = datetime.datetime.strptime(date.date_from, DATETIME_FORMAT)
+            to_dt = datetime.datetime.strptime(date.date_to, DATETIME_FORMAT)
             timedelta = to_dt - from_dt
             res[date.id] = {
                 'days_total': timedelta.days
