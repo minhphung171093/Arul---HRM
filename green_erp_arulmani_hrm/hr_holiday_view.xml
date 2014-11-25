@@ -198,6 +198,7 @@
 					<field name="days_total"/>
 					<field name="haft_day_leave"/>
 					<field name="reason"/>
+					<field name="state" widget="statusbar" statusbar_visible="draft,done" statusbar_colors='{"draft":"blue","done":"blue"}'/>
 				</tree>
 			</field>
 		</record>
@@ -207,23 +208,25 @@
             <field name="model">arul.hr.employee.leave.details</field>
             <field name="arch" type="xml">
 	            <form string="Employee Leave Details" version="7.0">   
+	           		<header>
+	                    <button name="process_leave_request" states='draft' string="Process leave request" type="object" class="oe_highlight" groups="base.group_hr_manager"/>
+	                    <button name="cancel_leave_request" states='draft' string="Cancel" type="object" class="oe_highlight" groups="base.group_hr_manager"/>
+	                	<field name="state" widget="statusbar" statusbar_visible="draft,done" statusbar_colors='{"draft":"blue","done":"blue"}'/>
+	                </header>   
 	            	<sheet>
 		                <group col='4' colspan='2'>    
-			                <field name="employee_id"/>
+			                <field name="employee_id" on_change="onchange_date(date_from, date_to,employee_id,leave_type_id,haft_day_leave)"/>
 			                <newline/>
-			                <field name="leave_type_id"/>
+			                <field name="leave_type_id" on_change="onchange_date(date_from, date_to,employee_id,leave_type_id,haft_day_leave)"/>
 			                <newline/>
-							<field name="date_from"/>
-							<field name="date_to"/>
+							<field name="date_from" on_change="onchange_date(date_from, date_to,employee_id,leave_type_id,haft_day_leave)"/>
+							<field name="date_to" on_change="onchange_date(date_from, date_to,employee_id,leave_type_id,haft_day_leave)"/>
 							<field name="days_total"/>
-							<field name="haft_day_leave"/>
+							<field name="haft_day_leave" on_change="onchange_date(date_from, date_to,employee_id,leave_type_id,haft_day_leave)"/>
 						</group>
 						<group >
 							<field name="reason"/>
 		                </group>
-		                <group >
-							 <button string="Process leave request" name="validate"  type="workflow" class="oe_highlight"/>		                	
-		                </group>   	
 		         	</sheet>
 		         </form>
 			</field>
@@ -268,7 +271,7 @@
 		                <group col='4' colspan='2'>    
 			                <field name="employee_id"/>
 			                <newline/>
-							<field name="non_availability_type_id" domain="[('name','in',['Permission', 'On Duty'])]" widget="selection"/>
+							<field name="non_availability_type_id"/>
 							<newline/>
 							<field name="date"/>
 							<field name="duty_location"/>
@@ -522,7 +525,56 @@
         
         <menuitem action="action_arul_hr_monthly_work_schedule_form"
             id="menu_action_arul_hr_monthly_work_schedule_form"
-            parent="menu_hr_leave_management" sequence="20"/> 
+            parent="menu_hr_leave_management" sequence="20"/>
+            
+            
+        <record id="arul_hr_punch_in_out_tree_view" model="ir.ui.view">
+			<field name="name">arul.hr.punch.in.out.tree</field>
+			<field name="model">arul.hr.punch.in.out</field>
+			<field name="arch" type="xml">
+				<tree string="Punch In/Punch Out">
+					<field name ="date_up_load"/>
+					<field name="state"/>
+				</tree>
+			</field>
+		</record>
+
+		<record id="arul_hr_punch_in_out_form_view" model="ir.ui.view">
+            <field name="name">arul.hr.punch.in.out.form</field>
+            <field name="model">arul.hr.punch.in.out</field>
+            <field name="arch" type="xml">
+                <form string="Upload Punch In/Punch Out" version="7.0">
+                    <header>
+	                    <button name="upload_punch_in_out" states='draft' string="Upload Punch In/Punch Out" type="object" class="oe_highlight" />
+	                    <field name="state" widget="statusbar" statusbar_visible="draft,done" statusbar_colors='{"draft":"blue","done":"blue"}'/>
+	                </header>                
+                	<sheet>  
+                		<group>
+                		<field name ="date_up_load"/>
+						<label for="datas" string="Data Upload Field"/>
+							<div>
+								<field name="datas" filename="datas_fname"/>
+	                        	<field name="datas_fname" invisible="1" class="oe_inline oe_right"/>
+	                        </div>
+                		</group>
+                	</sheet>
+				</form>
+			</field>
+		</record>
+
+        <record id="action_arul_hr_punch_in_out_form" model="ir.actions.act_window">
+            <field name="name">Upload Punch In/Punch Out</field>
+			<field name="type">ir.actions.act_window</field>
+            <field name="res_model">arul.hr.punch.in.out</field>
+            <field name="view_type">form</field>
+            <field name="view_mode">tree,form</field>
+            <field name="view_id" ref="arul_hr_punch_in_out_tree_view"/>
+        </record>
+        
+        <menuitem action="action_arul_hr_punch_in_out_form"
+            id="menu_action_arul_hr_punch_in_out_form"
+            parent="menu_hr_leave_management" sequence="26"/>
+ 
     
 	</data>
 </openerp>

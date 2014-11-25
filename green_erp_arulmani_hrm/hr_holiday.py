@@ -190,21 +190,83 @@ class arul_hr_employee_leave_details(osv.osv):
             DATETIME_FORMAT = "%Y-%m-%d"
             from_dt = datetime.datetime.strptime(date.date_from, DATETIME_FORMAT)
             to_dt = datetime.datetime.strptime(date.date_to, DATETIME_FORMAT)
-            timedelta = to_dt - from_dt
+            timedelta = (to_dt - from_dt).days+1
+            if date.haft_day_leave:
+                timedelta = timedelta-0.5
+             
+            leave_details_obj = self.pool.get('employee.leave.detail')
+            emp_leave_obj = self.pool.get('employee.leave')
+            year_now = time.strftime('%Y')
+            emp_leave_ids = emp_leave_obj.search(cr, uid, [('employee_id','=',date.employee_id.id),('year','=',year_now)])
+            if emp_leave_ids:
+                emp_leave = emp_leave_obj.browse(cr, uid, emp_leave_ids[0])
+                temp = 0
+                for line in emp_leave.emp_leave_details_ids:
+                    if line.leave_type_id.id == date.leave_type_id.id:
+                        temp += 1
+                        day = line.total_day - line.total_taken
+                        if timedelta > day:
+                            raise osv.except_osv(_('Warning!'),_('Exceeds Holiday Lets'))
+                if temp == 0:
+                    raise osv.except_osv(_('Warning!'),_('Leave Type Unlicensed'))
+            else:
+                raise osv.except_osv(_('Warning!'),_('Employee Has Not Been Licensed Holidays For The Current Year'))
+            
             res[date.id] = {
-                'days_total': timedelta.days
+                'days_total': timedelta
             }
         return res
     
     _columns={
-              'employee_id':fields.many2one('hr.employee','Employee'),
-              'leave_type_id':fields.many2one('arul.hr.leave.types','Leave Type',required=True),
-              'date_from':fields.date('Date From'),
-              'date_to': fields.date('To Date'),
-              'days_total': fields.function(days_total, string='Leave Total', multi='sums', help="The total amount.",required=True),
-              'haft_day_leave': fields.boolean('Is haft day leave ?'),
-              'reason':fields.text('Reason')
+              'employee_id':fields.many2one('hr.employee','Employee',required=True, states={'done': [('readonly', True)], 'cancel': [('readonly', True)]}),
+              'leave_type_id':fields.many2one('arul.hr.leave.types','Leave Type',required=True, states={'done': [('readonly', True)], 'cancel': [('readonly', True)]}),
+              'date_from':fields.date('Date From', states={'done': [('readonly', True)], 'cancel': [('readonly', True)]}),
+              'date_to': fields.date('To Date', states={'done': [('readonly', True)], 'cancel': [('readonly', True)]}),
+              'days_total': fields.function(days_total, string='Leave Total',store=True, multi='sums', help="The total amount.", states={'done': [('readonly', True)], 'cancel': [('readonly', True)]}),
+              'haft_day_leave': fields.boolean('Is haft day leave ?', states={'done': [('readonly', True)], 'cancel': [('readonly', True)]}),
+              'reason':fields.text('Reason', states={'done': [('readonly', True)], 'cancel': [('readonly', True)]}),
+              'state':fields.selection([('draft', 'Draft'),('cancel', 'Cancel'),('done', 'Done')],'Status', readonly=True),
               }
+    _defaults = {
+        'state':'draft',
+    }
+    def onchange_date(self, cr, uid, ids, date_from=False, date_to=False,employee_id=False,leave_type_id=False,haft_day_leave=False, context=None):
+        DATETIME_FORMAT = "%Y-%m-%d"
+        if date_from and date_to and employee_id and leave_type_id:
+            from_dt = datetime.datetime.strptime(date_from, DATETIME_FORMAT)
+            to_dt = datetime.datetime.strptime(date_to, DATETIME_FORMAT)
+            timedelta = (to_dt - from_dt).days+1
+            if haft_day_leave:
+                timedelta = timedelta-0.5
+            leave_details_obj = self.pool.get('employee.leave.detail')
+            emp_leave_obj = self.pool.get('employee.leave')
+            year_now = time.strftime('%Y')
+            emp_leave_ids = emp_leave_obj.search(cr, uid, [('employee_id','=',employee_id),('year','=',year_now)])
+            if emp_leave_ids:
+                emp_leave = emp_leave_obj.browse(cr, uid, emp_leave_ids[0])
+                temp = 0
+                for line in emp_leave.emp_leave_details_ids:
+                    if line.leave_type_id.id == leave_type_id:
+                        temp += 1
+                        day = line.total_day - line.total_taken
+                        if timedelta > day:
+                            raise osv.except_osv(_('Warning!'),_('Exceeds Holiday Lets'))
+                if temp == 0:
+                    raise osv.except_osv(_('Warning!'),_('Leave Type Unlicensed'))
+            else:
+                raise osv.except_osv(_('Warning!'),_('Employee Has Not Been Licensed Holidays For The Current Year'))
+        return True
+    
+    def process_leave_request(self, cr, uid, ids, context=None):
+        for line in self.browse(cr, uid, ids):
+            self.write(cr, uid, [line.id],{'state':'done'})
+        return True  
+    
+    def cancel_leave_request(self, cr, uid, ids, context=None):
+        for line in self.browse(cr, uid, ids):
+            self.write(cr, uid, [line.id],{'state':'cancel'})
+        return True  
+    
     def _check_days(self, cr, uid, ids, context=None): 
         for days in self.browse(cr, uid, ids, context = context):
             if ((days.date_from > days.date_to)):
@@ -216,22 +278,46 @@ class arul_hr_employee_leave_details(osv.osv):
     ]
 arul_hr_employee_leave_details()
 
-class arul_permission_onduty(osv.osv):
-    _name = 'arul.permission.onduty'
-    _columns = {
-        'name': fields.char('Name',size=1024, required=True),
-    }
-    
-    def init(self, cr):
-        for key in ['Permission','On Duty']:
-            arul_ids = self.search(cr, 1, [('name','=',key)])
-            if not arul_ids:
-                self.create(cr, 1, {'name': key})
-    
-arul_permission_onduty()
 
 class arul_hr_permission_onduty(osv.osv):
     _name='arul.hr.permission.onduty'
+    
+    def create(self, cr, uid, vals, context=None):
+#         for line in self.browse(cr,uid,ids):
+        new_id = super(arul_hr_permission_onduty, self).create(cr, uid, vals, context)
+        line_id=self.browse(cr,uid,new_id)
+        emp_attendence_obj = self.pool.get('arul.hr.employee.attendence.details')
+        punch_obj = self.pool.get('arul.hr.permission.onduty')
+        detail_obj4 = self.pool.get('arul.hr.punch.in.out.time')
+        emp_attendence_ids = emp_attendence_obj.search(cr, uid, [('employee_id','=',line_id.employee_id.id)])
+        if emp_attendence_ids:
+            if(non_availability_type_id == 'on_duty'):
+                if(line_id.time_total > 8)and(line_id.time_total < 12):
+                    val={'permission_onduty_id':emp_attendence_ids[0],'planned_work_shift_id':False,'work_date':date,'in_time':start_time,'out_time':end_time,'approval':1}
+                    sql = '''
+                        select id from arul_hr_capture_work_shift where (start_time between %s and start_time+1/6) and (end_time between end_time-1/6 and %s)
+                    '''%(in_time - 1,out_time + 1)
+                    cr.execute(sql)
+                    work_shift_ids = [row[0] for row in cr.fetchall()]
+                    if work_shift_ids :
+                        val['planned_work_shift_id']=work_shift_ids[0]
+                        details_ids=emp_attendence_obj.search(cr, uid, [('employee_id','=',emp_attendence_ids[0])])
+                        if details_ids:
+                            val4={'punch_in_out_id':details_ids[0],'planned_work_shift_id':work_shift_ids[0],'employee_id':emp_attendence_ids[0],'work_date':date,'in_time':start_time,'out_time':end_time,'approval':1}
+                            detail_obj4.create(cr, uid, val4)
+                        else:
+                            emp_attendence_obj.create(cr, uid, {'employee_id':employee_ids[0],'punch_in_out_line':[(0,0,val)]})
+                    
+            val2={'permission_onduty_id':emp_attendence_ids[0], 
+                    }
+            punch_obj.write(cr,uid,[line_id.id],val2) 
+        else:
+            
+            emp_attendence_id = emp_attendence_obj.create(cr,uid,{'employee_id':line_id.employee_id.id,'employee_category_id':line_id.employee_id.employee_category_id.id,'sub_category_id':line_id.employee_id.employee_sub_category_id.id,'department_id':line_id.employee_id.department_id.id,'designation_id':line_id.employee_id.department_id.designation_id.id}) 
+            punch_obj.write(cr,uid,[line_id.id],{'permission_onduty_id':emp_attendence_id}) 
+#             self.write(cr, uid, [line.id],{'approval': True})
+        return new_id
+    
     def _time_total(self, cr, uid, ids, field_name, arg, context=None):
         res = {}
         for time in self.browse(cr, uid, ids, context=context):
@@ -243,15 +329,16 @@ class arul_hr_permission_onduty(osv.osv):
         return res
 
     _columns={
-        'employee_id':fields.many2one('hr.employee','Employee'),
-        'non_availability_type_id':fields.many2one('arul.permission.onduty','Non Availability Type',required = True),
+        'employee_id':fields.many2one('hr.employee','Employee',required=True),
+        'non_availability_type_id':fields.selection([('permission','Permission'),('on_duty','On duty')],'Non Availability Type',required = True),
         'date':fields.date('Date'),
         'duty_location':fields.char('On Duty Location', size = 1024),
         'start_time': fields.float('Start Time'),
         'end_time': fields.float('End Time'),
         'time_total': fields.function(_time_total, string='Total Hours', multi='sums', help="The total amount."),
         'reason':fields.text('Reason'),
-        'detail_id':fields.many2one('arul.hr.employee.attendence.details','Detail'),
+        'permission_onduty_id':fields.many2one('arul.hr.employee.attendence.details','Permission/Onduty'),
+#         'detail_id':fields.many2one('arul.hr.employee.attendence.details','Detail'),
         
               }
     def _check_time(self, cr, uid, ids, context=None): 
@@ -266,6 +353,7 @@ class arul_hr_permission_onduty(osv.osv):
     _constraints = [
         (_check_time, _(''), ['start_time', 'end_time']),
         ]
+    
    
 arul_hr_permission_onduty()
 
@@ -280,12 +368,12 @@ arul_hr_punch_in_out_time()
 class arul_hr_employee_attendence_details(osv.osv):
     _name='arul.hr.employee.attendence.details'
     _columns={
-        'employee_id':fields.many2one('hr.employee','Employee'),
-        'employee_category_id':fields.many2one('vsis.hr.employee.category','Employee Category'),
-        'sub_category_id':fields.many2one('hr.employee.sub.category','Sub Category'),
-        'designation_id': fields.many2one('arul.hr.designation', 'Designation'),
-        'department_id':fields.many2one('hr.department', 'Department'),
-        'permission_onduty_details_line':fields.one2many('arul.hr.permission.onduty','detail_id','Permission On duty Details',readonly=True),
+        'employee_id':fields.many2one('hr.employee','Employee', required=True),
+        'employee_category_id':fields.many2one('vsis.hr.employee.category','Employee Category',readonly=True),
+        'sub_category_id':fields.many2one('hr.employee.sub.category','Sub Category',readonly=True),
+        'designation_id': fields.many2one('arul.hr.designation', 'Designation',readonly=True),
+        'department_id':fields.many2one('hr.department', 'Department',readonly=True),
+        'permission_onduty_details_line':fields.one2many('arul.hr.permission.onduty','permission_onduty_id','Permission On duty Details',readonly=True),
         'punch_in_out_line':fields.one2many('arul.hr.punch.in.out.time','punch_in_out_id','Punch in/Punch out Details',readonly=True)
               }
     def onchange_attendence_datails_employee_id(self, cr, uid, ids,employee_id=False, context=None):
@@ -397,6 +485,9 @@ class arul_hr_punch_in_out(osv.osv):
                                 in_out = data2[:3]
                                 employee_code_2=data2[43:51]
                                 date_2=data2[7:11]+'-'+data2[11:13]+'-'+data2[13:15]
+                                if employee_code_2==employee_code and date==date_2 and in_out=='P10':
+                                    in_time2 = float(data2[15:17])+float(data2[17:19])/60+float(data2[19:21])/3600
+                                    val1={'employee_id':employee_ids[0],'planned_work_shift_id':False,'work_date':date,'in_time':in_time2,'out_time':0,'approval':1}
                                 if employee_code_2==employee_code and date==date_2 and in_out=='P20':
                                     out_time=float(data2[15:17])+float(data2[17:19])/60+float(data2[19:21])/3600
                                     val1['out_time']=out_time
