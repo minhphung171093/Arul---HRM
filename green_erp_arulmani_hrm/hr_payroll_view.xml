@@ -101,6 +101,47 @@
        <menuitem action="action_arul_hr_payroll_sub_area_form"
             id="menu_action_arul_hr_payroll_sub_area_form"
             parent="hr.menu_hr_configuration" sequence="2"/>
+
+        <record id="view_arul_hr_payroll_earning_parameters_tree_vew" model="ir.ui.view">
+			<field name="name">arul.hr.payroll.earning.parameters.tree</field>
+			<field name="model">arul.hr.payroll.earning.parameters</field>
+			<field name="arch" type="xml">
+				<tree string="Payroll Earning Parameters">
+					<field name="code"/>
+					<field name="name"/>
+					<field name="description"/>
+				</tree>
+			</field>
+		</record>    
+		
+		<record id="view_arul_hr_payroll_earning_parameters_form_vew" model="ir.ui.view">
+            <field name="name">arul.hr.payroll.earning.parameters.form</field>
+            <field name="model">arul.hr.payroll.earning.parameters</field>
+            <field name="arch" type="xml">
+	            <form string="Payroll Earning Parameters" version="7.0">   
+	            	<sheet>
+		                <group>    
+			                <field name="code"/>
+							<field name="name"/>
+							<field name="description"/>
+		                </group>   	
+		         	</sheet>
+		         </form>
+	     	 </field>
+          </record>
+                
+		<record id="action_arul_hr_payroll_earning_parameters_form" model="ir.actions.act_window">
+            <field name="name">Payroll Earning Parameters</field>
+            <field name="type">ir.actions.act_window</field>
+            <field name="res_model">arul.hr.payroll.sub.area</field>
+            <field name="view_type">form</field>
+            <field name="view_mode">tree,form</field>
+            <field name="view_id" ref="view_arul_hr_payroll_earning_parameters_tree_vew"/>
+        </record>       
+        
+       <menuitem action="action_arul_hr_payroll_earning_parameters_form"
+            id="menu_action_arul_hr_payroll_earning_parameters_form"
+            parent="hr.menu_hr_configuration" sequence="2"/>
        
     </data>
     
