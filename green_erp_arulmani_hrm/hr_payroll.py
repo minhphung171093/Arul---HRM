@@ -84,7 +84,6 @@ class arul_hr_payroll_deduction_parameters(osv.osv):
     _constraints = [
         (_check_code_id, 'Identical Data', ['code']),
     ]
-<<<<<<< HEAD
     
 arul_hr_payroll_deduction_parameters()
 
@@ -117,9 +116,6 @@ class arul_hr_payroll_earning_structure(osv.osv):
     
 arul_hr_payroll_earning_structure()
         
-=======
-arul_hr_payroll_deduction_parameters()
->>>>>>> 6e479fdf98e37eafac83207ef07a16afe2770b8e
 
 class arul_hr_payroll_contribution_parameters(osv.osv):
     _name = 'arul.hr.payroll.contribution.parameters'
