@@ -76,7 +76,7 @@ class arul_hr_capture_work_shift(osv.osv):
               'start_time': fields.float('Shift Start Time'),
               'end_time': fields.float('Shift End Time'),
               'time_total': fields.function(_time_total, string='Shift Total Hours', multi='sums', help="The total amount."),
-              'allowance': fields.char('Shift Allowance', size=1024),
+              'allowance': fields.float('Shift Allowance'),
               }
     def _check_code(self, cr, uid, ids, context=None):
         for shift in self.browse(cr, uid, ids, context=context):
@@ -675,18 +675,22 @@ class arul_hr_monthly_work_schedule(osv.osv):
         return True
     def approve_current_month(self, cr, uid, ids, context=None):
         return self.write(cr, uid, ids, {'state':'done'})
-    def onchange_department_id(self, cr, uid, ids,department_id=False, context=None):
+    def onchange_department_id(self, cr, uid, ids,department_id=False,month=False,year=False, context=None):
         res = {'value':{}}
         section_ids = []
         employee_lines = []
-        if department_id:
+        num_of_month = 0
+        if department_id: 
+            if month and year:
+                num_of_month = calendar.monthrange(int(year),int(month))[1]
             dept = self.pool.get('hr.department').browse(cr, uid, department_id)
             section_ids = [x.id for x in dept.section_ids]
             employee_obj=self.pool.get('hr.employee')
             employee_ids = employee_obj.search(cr, uid, [('department_id','=',department_id )])
             for p in self.browse(cr,uid,employee_ids):
                 rs = {
-                      'employee_id':p.id
+                      'employee_id':p.id,
+                      'num_of_month': num_of_month,
                       }
                 employee_lines.append((0,0,rs))
         return {'value': {'section_id': False,'monthly_shift_line':employee_lines}, 'domain':{'section_id':[('id','in',section_ids)]}}
@@ -695,51 +699,51 @@ arul_hr_monthly_work_schedule()
 
 class arul_hr_monthly_shift_schedule(osv.osv):
     _name='arul.hr.monthly.shift.schedule'
-    def _num_of_month(self, cr, uid, ids, field_name, arg, context=None):
-        res = {}
-        for day in self.browse(cr, uid, ids):
-            res[day.id] = {
-                'num_of_month': 0,
-            }
-            num_day = calendar.monthrange(int(day.monthly_work_id.year),int(day.monthly_work_id.month))[1]  
-            res[day.id]['num_of_month'] = num_day 
-        return res
+#     def _num_of_month(self, cr, uid, ids, field_name, arg, context=None):
+#         res = {}
+#         for day in self.browse(cr, uid, ids):
+#             res[day.id] = {
+#                 'num_of_month': 0,
+#             }
+#             num_day = calendar.monthrange(int(day.monthly_work_id.year),int(day.monthly_work_id.month))[1]  
+#             res[day.id]['num_of_month'] = num_day 
+#         return res
     _columns={
-              'num_of_month': fields.function(_num_of_month, string='Day',store=True, multi='sums', help="The total amount."),
-#               'num_of_month': fields.integer('Day'),
+#               'num_of_month': fields.function(_num_of_month, string='Day',store=True, multi='sums', help="The total amount."),
+              'num_of_month': fields.integer('Day'),
               'employee_id':fields.many2one('hr.employee','Employee', required = True),
               'monthly_work_id':fields.many2one('arul.hr.monthly.work.schedule','Monthly Shift Schedule'),
-              'day_1': fields.char('1',size=500),
-              'day_2': fields.char('2',size=500),
-              'day_3': fields.char('3',size=500),
-              'day_4': fields.char('4',size=500),
-              'day_5': fields.char('5',size=500),
-              'day_6': fields.char('6',size=500),
-              'day_7': fields.char('7',size=500),
-              'day_8': fields.char('8',size=500),
-              'day_9': fields.char('9',size=500),
-              'day_10': fields.char('10',size=500),
-              'day_11': fields.char('11',size=500),
-              'day_12': fields.char('12',size=500),
-              'day_13': fields.char('13',size=500),
-              'day_14': fields.char('14',size=500),
-              'day_15': fields.char('15',size=500),
-              'day_16': fields.char('16',size=500),
-              'day_17': fields.char('17',size=500),
-              'day_18': fields.char('18',size=500),
-              'day_19': fields.char('19',size=500),
-              'day_20': fields.char('20',size=500),
-              'day_21': fields.char('21',size=500),
-              'day_22': fields.char('22',size=500),
-              'day_23': fields.char('23',size=500),
-              'day_24': fields.char('24',size=500),
-              'day_25': fields.char('25',size=500),
-              'day_26': fields.char('26',size=500),
-              'day_27': fields.char('27',size=500),
-              'day_28': fields.char('28',size=500),
-              'day_29': fields.char('29',size=500),
-              'day_30': fields.char('30',size=500),
-              'day_31': fields.char('31',size=500),
+              'day_1': fields.many2one('arul.hr.capture.work.shift','1'),
+              'day_2': fields.many2one('arul.hr.capture.work.shift','2'),
+              'day_3': fields.many2one('arul.hr.capture.work.shift','3'),
+              'day_4': fields.many2one('arul.hr.capture.work.shift','4'),
+              'day_5': fields.many2one('arul.hr.capture.work.shift','5'),
+              'day_6': fields.many2one('arul.hr.capture.work.shift','6'),
+              'day_7': fields.many2one('arul.hr.capture.work.shift','7'),
+              'day_8': fields.many2one('arul.hr.capture.work.shift','8'),
+              'day_9': fields.many2one('arul.hr.capture.work.shift','9'),
+              'day_10': fields.many2one('arul.hr.capture.work.shift','10'),
+              'day_11': fields.many2one('arul.hr.capture.work.shift','11'),
+              'day_12': fields.many2one('arul.hr.capture.work.shift','12'),
+              'day_13': fields.many2one('arul.hr.capture.work.shift','13'),
+              'day_14': fields.many2one('arul.hr.capture.work.shift','14'),
+              'day_15': fields.many2one('arul.hr.capture.work.shift','15'),
+              'day_16': fields.many2one('arul.hr.capture.work.shift','16'),
+              'day_17': fields.many2one('arul.hr.capture.work.shift','17'),
+              'day_18': fields.many2one('arul.hr.capture.work.shift','18'),
+              'day_19': fields.many2one('arul.hr.capture.work.shift','19'),
+              'day_20': fields.many2one('arul.hr.capture.work.shift','20'),
+              'day_21': fields.many2one('arul.hr.capture.work.shift','21'),
+              'day_22': fields.many2one('arul.hr.capture.work.shift','22'),
+              'day_23': fields.many2one('arul.hr.capture.work.shift','23'),
+              'day_24': fields.many2one('arul.hr.capture.work.shift','24'),
+              'day_25': fields.many2one('arul.hr.capture.work.shift','25'),
+              'day_26': fields.many2one('arul.hr.capture.work.shift','26'),
+              'day_27': fields.many2one('arul.hr.capture.work.shift','27'),
+              'day_28': fields.many2one('arul.hr.capture.work.shift','28'),
+              'day_29': fields.many2one('arul.hr.capture.work.shift','29'),
+              'day_30': fields.many2one('arul.hr.capture.work.shift','30'),
+              'day_31': fields.many2one('arul.hr.capture.work.shift','31'),
               }
 arul_hr_monthly_shift_schedule()
 
