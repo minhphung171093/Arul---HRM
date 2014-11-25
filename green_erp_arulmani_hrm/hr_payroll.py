@@ -85,5 +85,35 @@ class arul_hr_payroll_deduction_parameters(osv.osv):
         (_check_code_id, 'Identical Data', ['code']),
     ]
     
-arul_hr_payroll_deduction_parameters()    
+arul_hr_payroll_deduction_parameters()
+
+class arul_hr_payroll_employee_structure(osv.osv):
+    _name = 'arul.hr.payroll.employee.structure'
+    _columns = {
+         'employee_id': fields.many2one('hr.employee','Employee ID',required = True),
+         'employee_category_id':fields.many2one('vsis.hr.employee.category','Employee Group'),
+         'sub_category_id':fields.many2one('hr.employee.sub.category','Employee Sub Group'), 
+         'payroll_earning_structure_line':fields.one2many('arul.hr.payroll.earning.structure','earning_structure_id','Structure line') ,   
+    }
+    def onchange_employee_structure_id(self, cr, uid, ids,employee_id=False, context=None):
+        vals = {}
+        if employee_id:
+            emp = self.pool.get('hr.employee').browse(cr, uid, employee_id)
+            vals = {'employee_category_id':emp.employee_category_id.id,
+                    'sub_category_id':emp.employee_sub_category_id.id}
+        return {'value': vals}
+
+    
+arul_hr_payroll_employee_structure()
+
+class arul_hr_payroll_earning_structure(osv.osv):
+    _name = 'arul.hr.payroll.earning.structure'
+    _columns = {
+         'earning_parameters_id': fields.many2one('arul.hr.payroll.earning.parameters','Earning Parameters',required = False),
+         'earning_structure_id':fields.many2one('arul.hr.payroll.employee.structure','Earning Structure'), 
+         'float':fields.float('Float') ,
+    }
+    
+arul_hr_payroll_earning_structure()
+        
 
