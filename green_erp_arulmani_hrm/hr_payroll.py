@@ -115,7 +115,6 @@ class arul_hr_payroll_earning_structure(osv.osv):
     }
     
 arul_hr_payroll_earning_structure()
-        
 
 class arul_hr_payroll_contribution_parameters(osv.osv):
     _name = 'arul.hr.payroll.contribution.parameters'
