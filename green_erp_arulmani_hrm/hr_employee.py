@@ -380,8 +380,8 @@ class meals_deduction(osv.osv):
         if meals_for == 'employees':
             if emp_ids:
                 for emp_id in emp_ids:
-                    emp_vals.append({'emp_id':emp_id})
-                vals = {'meals_details_emp_ids':emp_vals}
+                    emp_vals.append((0,0,{'emp_id':emp_id}))
+        vals = {'meals_details_emp_ids':emp_vals}
         return {'value': vals}
    
     _columns = {
