@@ -2,36 +2,58 @@
 <openerp>
     <data noupdate="1">
     
-      <record id="leave_types_1" model="arul.hr.leave.types">
-          <field name="name">Casual Leave</field>
-          <field name="code">CL</field>
+      <record id="deduction_parameters_1" model="arul.hr.payroll.earning.parameters">
+          <field name="name">Basic</field>
+          <field name="code">BASIC</field>
       </record>
-      
-      <record id="leave_types_2" model="arul.hr.leave.types">
-          <field name="name">Sick Leave</field>
-          <field name="code">SL</field>
+      <record id="deduction_parameters_2" model="arul.hr.payroll.earning.parameters">
+          <field name="name"> DA</field>
+          <field name="code"> DA</field>
       </record>
-      
-      <record id="leave_types_3" model="arul.hr.leave.types">
-          <field name="name">Privilege Leave</field>
-          <field name="code">PL</field>
+      <record id="deduction_parameters_3" model="arul.hr.payroll.earning.parameters">
+          <field name="name">Conveyance</field>
+          <field name="code">C</field>
       </record>
-      
-      <record id="leave_types_4" model="arul.hr.leave.types">
-          <field name="name">Compensatory Off</field>
-          <field name="code">C.Off</field>
+      <record id="deduction_parameters_4" model="arul.hr.payroll.earning.parameters">
+          <field name="name">HRA</field>
+          <field name="code">HRA</field>
       </record>
-      
-      <record id="leave_types_5" model="arul.hr.leave.types">
-          <field name="name">ESI Leave</field>
-          <field name="code">ESI</field>
+      <record id="deduction_parameters_5" model="arul.hr.payroll.earning.parameters">
+          <field name="name">Fuel Allowance</field>
+          <field name="code">FA</field>
       </record>
-      
-      <record id="leave_types_6" model="arul.hr.leave.types">
-          <field name="name">LOP</field>
-          <field name="code">LOP</field>
+      <record id="deduction_parameters_6" model="arul.hr.payroll.earning.parameters">
+          <field name="name">Phone Conveyance</field>
+          <field name="code">PC</field>
       </record>
-
+      <record id="deduction_parameters_7" model="arul.hr.payroll.earning.parameters">
+          <field name="name">Car Rental</field>
+          <field name="code">CR</field>
+      </record>
+      <record id="deduction_parameters_8" model="arul.hr.payroll.earning.parameters">
+          <field name="name">Educational Allowance</field>
+          <field name="code">EA</field>
+      </record>
+      <record id="deduction_parameters_9" model="arul.hr.payroll.earning.parameters">
+          <field name="name">Special Allowance</field>
+          <field name="code">SpA</field>
+      </record>
+      <record id="deduction_parameters_10" model="arul.hr.payroll.earning.parameters">
+          <field name="name">Lunch Allowance</field>
+          <field name="code">LA</field>
+      </record>
+      <record id="deduction_parameters_11" model="arul.hr.payroll.earning.parameters">
+          <field name="name">Admin Allowance</field>
+          <field name="code">AA</field>
+      </record>
+      <record id="deduction_parameters_12" model="arul.hr.payroll.earning.parameters">
+          <field name="name">Shift Allowance</field>
+          <field name="code">ShA</field>
+      </record>
+      <record id="deduction_parameters_13" model="arul.hr.payroll.earning.parameters">
+          <field name="name">Other Allowance</field>
+          <field name="code">OA</field>
+      </record>
 
     </data>
 </openerp>

@@ -38,6 +38,7 @@
         'hr_demo_leave_types.xml',
         'hr_employee_data.xml',
         'emp_leave_status_schedule.xml',
+        'hr_payroll _earning _parameters_demo.xml',
     ],
     'css' : [
     ],

@@ -59,12 +59,31 @@ class arul_hr_payroll_earning_parameters(osv.osv):
         for payroll in self.browse(cr, uid, ids, context=context):
             payroll_code_ids = self.search(cr, uid, [('id','!=',payroll.id),('code','=',payroll.code)])
             payroll_name_ids = self.search(cr, uid, [('id','!=',payroll.id),('name','=',payroll.name)])
-            if payroll_code_ids or payroll_name_ids:  
+            if payroll_code_ids or payroll_name_ids:
+                return False
+        return True
+    _constraints = [
+        (_check_code_id, 'Identical Data', ['code','name']),
+    ]  
+
+arul_hr_payroll_earning_parameters()
+
+class arul_hr_payroll_deduction_parameters(osv.osv):
+    _name = 'arul.hr.payroll.deduction.parameters'
+    _columns = {
+        'name': fields.char('Name', size=1024, required = True),
+        'code': fields.char('Code', size=1024, required = True),
+        'description': fields.text('Description'),
+    }
+    def _check_code_id(self, cr, uid, ids, context=None):
+        for payroll in self.browse(cr, uid, ids, context=context):
+            payroll_ids = self.search(cr, uid, [('id','!=',payroll.id),('code','=',payroll.code)])
+            if payroll_ids:  
                 return False
         return True
     _constraints = [
         (_check_code_id, 'Identical Data', ['code']),
     ]
     
-    
-arul_hr_payroll_area()
+arul_hr_payroll_deduction_parameters()    
+
