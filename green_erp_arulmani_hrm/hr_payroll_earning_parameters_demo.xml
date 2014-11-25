@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="utf-8"?>
+<openerp>
+    <data noupdate="1">
+    
+      <record id="earning_parameters_1" model="arul.hr.payroll.earning.parameters">
+          <field name="name">Basic</field>
+          <field name="code">BASIC</field>
+      </record>
+      <record id="earning_parameters_2" model="arul.hr.payroll.earning.parameters">
+          <field name="name">DA</field>
+          <field name="code">DA</field>
+      </record>
+      <record id="earning_parameters_3" model="arul.hr.payroll.earning.parameters">
+          <field name="name">Conveyance</field>
+          <field name="code">C</field>
+      </record>
+      <record id="earning_parameters_4" model="arul.hr.payroll.earning.parameters">
+          <field name="name">HRA</field>
+          <field name="code">HRA</field>
+      </record>
+      <record id="earning_parameters_5" model="arul.hr.payroll.earning.parameters">
+          <field name="name">Fuel Allowance</field>
+          <field name="code">FA</field>
+      </record>
+      <record id="earning_parameters_6" model="arul.hr.payroll.earning.parameters">
+          <field name="name">Phone Conveyance</field>
+          <field name="code">PC</field>
+      </record>
+      <record id="earning_parameters_7" model="arul.hr.payroll.earning.parameters">
+          <field name="name">Car Rental</field>
+          <field name="code">CR</field>
+      </record>
+      <record id="earning_parameters_8" model="arul.hr.payroll.earning.parameters">
+          <field name="name">Educational Allowance</field>
+          <field name="code">EA</field>
+      </record>
+      <record id="earning_parameters_9" model="arul.hr.payroll.earning.parameters">
+          <field name="name">Special Allowance</field>
+          <field name="code">SpA</field>
+      </record>
+      <record id="earning_parameters_10" model="arul.hr.payroll.earning.parameters">
+          <field name="name">Lunch Allowance</field>
+          <field name="code">LA</field>
+      </record>
+      <record id="earning_parameters_11" model="arul.hr.payroll.earning.parameters">
+          <field name="name">Admin Allowance</field>
+          <field name="code">AA</field>
+      </record>
+      <record id="earning_parameters_12" model="arul.hr.payroll.earning.parameters">
+          <field name="name">Shift Allowance</field>
+          <field name="code">ShA</field>
+      </record>
+      <record id="earning_parameters_13" model="arul.hr.payroll.earning.parameters">
+          <field name="name">Other Allowance</field>
+          <field name="code">OA</field>
+      </record>
+
+    </data>
+</openerp>

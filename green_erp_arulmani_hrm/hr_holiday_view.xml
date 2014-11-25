@@ -191,13 +191,14 @@
 			<field name="model">arul.hr.employee.leave.details</field>
 			<field name="arch" type="xml">
 				<tree string="Employee Leave Details">
-					<field name="employee_id"/>
-					<field name="leave_type_id"/>
+					<field name="employee_id" options="{'create': false, 'create_edit': false}"/>
+					<field name="leave_type_id" options="{'create': false, 'create_edit': false}"/>
 					<field name="date_from"/>
 					<field name="date_to" />
 					<field name="days_total"/>
 					<field name="haft_day_leave"/>
 					<field name="reason"/>
+					<field name="state" widget="statusbar" statusbar_visible="draft,done" statusbar_colors='{"draft":"blue","done":"blue"}'/>
 				</tree>
 			</field>
 		</record>
@@ -207,23 +208,25 @@
             <field name="model">arul.hr.employee.leave.details</field>
             <field name="arch" type="xml">
 	            <form string="Employee Leave Details" version="7.0">   
+	           		<header>
+	                    <button name="process_leave_request" states='draft' string="Process leave request" type="object" class="oe_highlight" groups="base.group_hr_manager"/>
+	                    <button name="cancel_leave_request" states='draft' string="Cancel" type="object" class="oe_highlight" groups="base.group_hr_manager"/>
+	                	<field name="state" widget="statusbar" statusbar_visible="draft,done" statusbar_colors='{"draft":"blue","done":"blue"}'/>
+	                </header>   
 	            	<sheet>
 		                <group col='4' colspan='2'>    
-			                <field name="employee_id"/>
+			                <field name="employee_id" options="{'create': false, 'create_edit': false}" on_change="onchange_date(date_from, date_to,employee_id,leave_type_id,haft_day_leave)"/>
 			                <newline/>
-			                <field name="leave_type_id"/>
+			                <field name="leave_type_id" options="{'create': false, 'create_edit': false}" on_change="onchange_date(date_from, date_to,employee_id,leave_type_id,haft_day_leave)"/>
 			                <newline/>
-							<field name="date_from"/>
-							<field name="date_to"/>
+							<field name="date_from" on_change="onchange_date(date_from, date_to,employee_id,leave_type_id,haft_day_leave)"/>
+							<field name="date_to" on_change="onchange_date(date_from, date_to,employee_id,leave_type_id,haft_day_leave)"/>
 							<field name="days_total"/>
-							<field name="haft_day_leave"/>
+							<field name="haft_day_leave" on_change="onchange_date(date_from, date_to,employee_id,leave_type_id,haft_day_leave)"/>
 						</group>
 						<group >
 							<field name="reason"/>
 		                </group>
-		                <group >
-							 <button string="Process leave request" name="validate"  type="workflow" class="oe_highlight"/>		                	
-		                </group>   	
 		         	</sheet>
 		         </form>
 			</field>
@@ -247,8 +250,8 @@
 			<field name="model">arul.hr.permission.onduty</field>
 			<field name="arch" type="xml">
 				<tree string="Permission and On Duty">
-					<field name="employee_id"/>
-					<field name="non_availability_type_id"/>
+					<field name="employee_id" options="{'create': false, 'create_edit': false}"/>
+					<field name="non_availability_type_id" options="{'create': false, 'create_edit': false}"/>
 					<field name="date"/>
 					<field name="start_time" widget="float_time"/>
 					<field name="end_time" widget="float_time"/>
@@ -266,9 +269,9 @@
 	            <form string="Permission and On Duty" version="7.0">   
 	            	<sheet>
 		                <group col='4' colspan='2'>    
-			                <field name="employee_id"/>
+			                <field name="employee_id" options="{'create': false, 'create_edit': false}"/>
 			                <newline/>
-							<field name="non_availability_type_id" domain="[('name','in',['Permission', 'On Duty'])]" widget="selection"/>
+							<field name="non_availability_type_id" options="{'create': false, 'create_edit': false}"/>
 							<newline/>
 							<field name="date"/>
 							<field name="duty_location"/>
@@ -301,14 +304,15 @@
 			<field name="model">arul.hr.audit.shift.time</field>
 			<field name="arch" type="xml">
 				<tree string="Audit Shift Time">
-					<field name="employee_id"/>
+					<field name="employee_id" options="{'create': false, 'create_edit': false}"/>
 					<field name="work_date"/>
-					<field name="employee_category_id"/>
-					<field name="planned_work_shift_id"/>
+					<field name="employee_category_id" options="{'create': false, 'create_edit': false}"/>
+					<field name="planned_work_shift_id" options="{'create': false, 'create_edit': false}"/>
 					<field name="in_time" widget="float_time"/>
 					<field name="out_time" widget="float_time"/>
 					<field name="total_hours" widget="float_time"/>
 					<field name="approval"/>
+					<field name="state" widget="statusbar" statusbar_visible="draft,done" statusbar_colors='{"draft":"blue","done":"blue"}'/>
 				</tree>
 			</field>
 		</record>
@@ -319,15 +323,16 @@
             <field name="arch" type="xml">
 	            <form string="Audit Shift Time" version="7.0">
 	            	<header>
-	                    <button name="approve_shift_time" attrs="{'invisible':[('approval','=',True)]}" string="Approve" type="object" class="oe_highlight" groups="base.group_hr_manager"/>
-	                    <button name="reject_shift_time" attrs="{'invisible':[('approval','=',False)]}" string="Reject" type="object" class="oe_highlight" groups="base.group_hr_manager"/>
+	                    <button name="approve_shift_time" states='draft' string="Approve" type="object" class="oe_highlight" groups="base.group_hr_manager"/>
+	                    <button name="reject_shift_time" states='draft' string="Reject" type="object" class="oe_highlight" groups="base.group_hr_manager"/>
+	                	<field name="state" widget="statusbar" statusbar_visible="draft,done" statusbar_colors='{"draft":"blue","done":"blue"}'/>
 	                </header>   
 	            	<sheet>
 		                <group col='4' colspan='2'>
-							<field name="employee_id" on_change="onchange_category_employee_id(employee_id)"/>
-							<field name="planned_work_shift_id" />
+							<field name="employee_id" on_change="onchange_category_employee_id(employee_id)" options="{'create': false, 'create_edit': false}"/>
+							<field name="planned_work_shift_id" options="{'create': false, 'create_edit': false}"/>
 							<field name="work_date"/>
-							<field name="employee_category_id" />
+							<field name="employee_category_id" options="{'create': false, 'create_edit': false}"/>
 							<field name="in_time" widget="float_time"/>
 							<field name="out_time" widget="float_time"/>
 							<field name="total_hours" widget="float_time"/>
@@ -356,11 +361,11 @@
 			<field name="model">arul.hr.employee.attendence.details</field>
 			<field name="arch" type="xml">
 				<tree string="Employee Attendence Details">
-						<field name="employee_id"/>
-						<field name="employee_category_id"/>
-						<field name="sub_category_id"/>
-						<field name="designation_id"/>
-						<field name="department_id"/>
+						<field name="employee_id" options="{'create': false, 'create_edit': false}"/>
+						<field name="employee_category_id" options="{'create': false, 'create_edit': false}"/>
+						<field name="sub_category_id" options="{'create': false, 'create_edit': false}"/>
+						<field name="designation_id" options="{'create': false, 'create_edit': false}"/>
+						<field name="department_id" options="{'create': false, 'create_edit': false}"/>
 				</tree>
 			</field>
 		</record>
@@ -375,22 +380,22 @@
 		                <group col='4' colspan='2'>    
 			                <field name="employee_id" context="{'search_employee_id':True}"  on_change="onchange_attendence_datails_employee_id(employee_id)"/>
 			                <newline/>
-							<field name="employee_category_id"/>
-							<field name="sub_category_id"/>
-							<field name="designation_id" />
-							<field name="department_id" on_change="onchange_designation_id(department_id)"/>
+							<field name="employee_category_id" options="{'create': false, 'create_edit': false}"/>
+							<field name="sub_category_id" options="{'create': false, 'create_edit': false}"/>
+							<field name="designation_id" options="{'create': false, 'create_edit': false}"/>
+							<field name="department_id" on_change="onchange_designation_id(department_id)" options="{'create': false, 'create_edit': false}"/>
 						</group>
 						<notebook>
 							<page string = "Punch In/Punch Out Details">
 								<field name="punch_in_out_line" nolabel='1'>
 									<tree editable='top'>
-										
 										<field name="work_date"/>
-										<field name="planned_work_shift_id"/>
+										<field name="planned_work_shift_id" options="{'create': false, 'create_edit': false}"/>
 										<field name="in_time" string="Punch In Time" widget="float_time"/>
 										<field name="out_time" string="Punch Out Time" widget="float_time"/>
 										<field name="total_hours" widget="float_time"/>
 										<field name="approval"/>
+										<field name="state" invisible = '1'/>
 									</tree>
 								</field>
 							</page>
@@ -399,7 +404,7 @@
 								<field name="permission_onduty_details_line" nolabel='1'>
 									<tree editable='top'>
 										
-										<field name="non_availability_type_id"/>
+										<field name="non_availability_type_id" options="{'create': false, 'create_edit': false}"/>
 										<field name="date"/>
 										<field name="duty_location"/>
 										<field name="start_time"/>
@@ -435,8 +440,8 @@
 			<field name="model">arul.hr.monthly.work.schedule</field>
 			<field name="arch" type="xml">
 				<tree string="Monthly Work Schedule">
-					<field name="department_id"  options="{'create': false, 'create_edit': false}"/>
-					<field name="section_id"  options="{'create': false, 'create_edit': false}"/>
+					<field name="department_id" options="{'create': false, 'create_edit': false}"/>
+					<field name="section_id" options="{'create': false, 'create_edit': false}"/>
 					<field name="year"/>
 					<field name="month"/>
 					<field name="state" widget="statusbar" statusbar_visible="draft,done" statusbar_colors='{"draft":"blue","done":"blue"}'/>
@@ -457,10 +462,10 @@
 	                </header> 
 	            	<sheet>
 						<group col='4' colspan='2'>
-							<field name="department_id" on_change="onchange_department_id(department_id)"  options="{'create': false, 'create_edit': false}"/>
-							<field name="section_id"  options="{'create': false, 'create_edit': false}"/>
-							<field name="year"/>
-							<field name="month"/>
+							<field name="department_id" on_change="onchange_department_id(department_id,month,year)" options="{'create': false, 'create_edit': false}"/>
+							<field name="section_id" options="{'create': false, 'create_edit': false}"/>
+							<field name="year" on_change="onchange_department_id(department_id,month,year)"/>
+							<field name="month" on_change="onchange_department_id(department_id,month,year)"/>
 							
 						</group>
 						<notebook>
@@ -468,38 +473,38 @@
 							<field name="monthly_shift_line" nolabel='1'>
 	                    		<tree editable='top'>
 	                    			<field name="num_of_month" invisible="1"/>
-	                    			<field name="employee_id"  options="{'create': false, 'create_edit': false}"/>
-	                    			<field name="day_1"/>
-                    				<field name="day_2"/>
-                    				<field name="day_3"/>
-                    				<field name="day_4"/>
-                    				<field name="day_5"/>
-                    				<field name="day_6"/>
-                    				<field name="day_7"/>
-                    				<field name="day_8"/>
-                    				<field name="day_9"/>
-                    				<field name="day_10"/>
-                    				<field name="day_11"/>
-                    				<field name="day_12"/>
-                    				<field name="day_13"/>
-                    				<field name="day_14"/>
-                    				<field name="day_15"/>
-                    				<field name="day_16"/>
-                    				<field name="day_17"/>
-                    				<field name="day_18"/>
-                    				<field name="day_19"/>
-                    				<field name="day_20"/>
-                    				<field name="day_21"/>
-                    				<field name="day_22"/>
-                    				<field name="day_23"/>
-                    				<field name="day_24"/>
-                    				<field name="day_25"/>
-                    				<field name="day_26"/>
-                    				<field name="day_27"/>
-                    				<field name="day_28"/>
-                    				<field name="day_29" attrs="{'invisible':[('num_of_month','&lt;',29)]}"/>
-                    				<field name="day_30" attrs="{'invisible':[('num_of_month','&lt;',30)]}"/>
-                    				<field name="day_31" attrs="{'invisible':[('num_of_month','&lt;',31)]}"/>
+	                    			<field name="employee_id" options="{'create': false, 'create_edit': false}"/>
+	                    			<field name="day_1" options="{'create': false, 'create_edit': false}"/>
+                    				<field name="day_2" options="{'create': false, 'create_edit': false}"/>
+                    				<field name="day_3" options="{'create': false, 'create_edit': false}"/>
+                    				<field name="day_4" options="{'create': false, 'create_edit': false}"/>
+                    				<field name="day_5" options="{'create': false, 'create_edit': false}"/>
+                    				<field name="day_6" options="{'create': false, 'create_edit': false}"/>
+                    				<field name="day_7" options="{'create': false, 'create_edit': false}"/>
+                    				<field name="day_8" options="{'create': false, 'create_edit': false}"/>
+                    				<field name="day_9" options="{'create': false, 'create_edit': false}"/>
+                    				<field name="day_10" options="{'create': false, 'create_edit': false}"/>
+                    				<field name="day_11" options="{'create': false, 'create_edit': false}"/>
+                    				<field name="day_12" options="{'create': false, 'create_edit': false}"/>
+                    				<field name="day_13" options="{'create': false, 'create_edit': false}"/>
+                    				<field name="day_14" options="{'create': false, 'create_edit': false}"/>
+                    				<field name="day_15" options="{'create': false, 'create_edit': false}"/>
+                    				<field name="day_16" options="{'create': false, 'create_edit': false}"/>
+                    				<field name="day_17" options="{'create': false, 'create_edit': false}"/>
+                    				<field name="day_18" options="{'create': false, 'create_edit': false}"/>
+                    				<field name="day_19" options="{'create': false, 'create_edit': false}"/>
+                    				<field name="day_20" options="{'create': false, 'create_edit': false}"/>
+                    				<field name="day_21" options="{'create': false, 'create_edit': false}"/>
+                    				<field name="day_22" options="{'create': false, 'create_edit': false}"/>
+                    				<field name="day_23" options="{'create': false, 'create_edit': false}"/>
+                    				<field name="day_24" options="{'create': false, 'create_edit': false}"/>
+                    				<field name="day_25" options="{'create': false, 'create_edit': false}"/>
+                    				<field name="day_26" options="{'create': false, 'create_edit': false}"/>
+                    				<field name="day_27" options="{'create': false, 'create_edit': false}"/>
+                    				<field name="day_28" options="{'create': false, 'create_edit': false}"/>
+                    				<field name="day_29" attrs="{'invisible':[('num_of_month','&lt;',29)]}" options="{'create': false, 'create_edit': false}"/>
+                    				<field name="day_30" attrs="{'invisible':[('num_of_month','&lt;',30)]}" options="{'create': false, 'create_edit': false}"/>
+                    				<field name="day_31" attrs="{'invisible':[('num_of_month','&lt;',31)]}" options="{'create': false, 'create_edit': false}"/>
 	                    		</tree>
 	                    	</field>
                     		</page>
@@ -520,7 +525,56 @@
         
         <menuitem action="action_arul_hr_monthly_work_schedule_form"
             id="menu_action_arul_hr_monthly_work_schedule_form"
-            parent="menu_hr_leave_management" sequence="20"/> 
+            parent="menu_hr_leave_management" sequence="20"/>
+            
+            
+        <record id="arul_hr_punch_in_out_tree_view" model="ir.ui.view">
+			<field name="name">arul.hr.punch.in.out.tree</field>
+			<field name="model">arul.hr.punch.in.out</field>
+			<field name="arch" type="xml">
+				<tree string="Punch In/Punch Out">
+					<field name ="date_up_load"/>
+					<field name="state"/>
+				</tree>
+			</field>
+		</record>
+
+		<record id="arul_hr_punch_in_out_form_view" model="ir.ui.view">
+            <field name="name">arul.hr.punch.in.out.form</field>
+            <field name="model">arul.hr.punch.in.out</field>
+            <field name="arch" type="xml">
+                <form string="Upload Punch In/Punch Out" version="7.0">
+                    <header>
+	                    <button name="upload_punch_in_out" states='draft' string="Upload Punch In/Punch Out" type="object" class="oe_highlight" />
+	                    <field name="state" widget="statusbar" statusbar_visible="draft,done" statusbar_colors='{"draft":"blue","done":"blue"}'/>
+	                </header>                
+                	<sheet>  
+                		<group>
+                		<field name ="date_up_load"/>
+						<label for="datas" string="Data Upload Field"/>
+							<div>
+								<field name="datas" filename="datas_fname"/>
+	                        	<field name="datas_fname" invisible="1" class="oe_inline oe_right"/>
+	                        </div>
+                		</group>
+                	</sheet>
+				</form>
+			</field>
+		</record>
+
+        <record id="action_arul_hr_punch_in_out_form" model="ir.actions.act_window">
+            <field name="name">Upload Punch In/Punch Out</field>
+			<field name="type">ir.actions.act_window</field>
+            <field name="res_model">arul.hr.punch.in.out</field>
+            <field name="view_type">form</field>
+            <field name="view_mode">tree,form</field>
+            <field name="view_id" ref="arul_hr_punch_in_out_tree_view"/>
+        </record>
+        
+        <menuitem action="action_arul_hr_punch_in_out_form"
+            id="menu_action_arul_hr_punch_in_out_form"
+            parent="menu_hr_leave_management" sequence="26"/>
+ 
     
 	</data>
 </openerp>

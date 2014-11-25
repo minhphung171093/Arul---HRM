@@ -37,8 +37,9 @@
         'menu_view.xml',
         'hr_demo_leave_types.xml',
         'hr_employee_data.xml',
-#         'green_erp_arulmani_hrm_schedule/emp_leave_status_schedule.xml',
         'emp_leave_status_schedule.xml',
+        'hr_payroll_earning_parameters_demo.xml',
+        'hr_demo_payroll_deduction_parameters.xml',
     ],
     'css' : [
     ],
