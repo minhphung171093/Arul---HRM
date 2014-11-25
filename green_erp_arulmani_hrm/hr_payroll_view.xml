@@ -101,6 +101,14 @@
        <menuitem action="action_arul_hr_payroll_sub_area_form"
             id="menu_action_arul_hr_payroll_sub_area_form"
             parent="hr.menu_hr_configuration" sequence="2"/>
+            
+            
+            
+        <menuitem id="menu_hr_leave_management" parent="hr.menu_hr_root" name="Payroll Management" sequence="25"/>
+        <menuitem action="action_arul_hr_holiday_special_form"
+            id="menu_action_arul_hr_holiday_special_form"
+            parent="menu_hr_leave_management" sequence="0"/>
+            
        
     </data>
     
