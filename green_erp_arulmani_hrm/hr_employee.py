@@ -161,7 +161,7 @@ class arul_hr_employee_action_history(osv.osv):
             vals = {'employee_category_id':emp.employee_category_id.id,
                     'sub_category_id':emp.employee_sub_category_id.id,
                     'department_from_id':emp.department_id.id,
-                    'designation_from_id':emp.department_id.designation_id.id,}
+                    'designation_from_id':emp.department_id and emp.department_id.designation_id.id or False,}
         return {'value': vals}
 
     def onchange_leaving_employee_id(self, cr, uid, ids,employee_id=False, context=None):

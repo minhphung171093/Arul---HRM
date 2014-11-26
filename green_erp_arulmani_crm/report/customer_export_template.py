@@ -39,6 +39,7 @@ class Parser(report_sxw.rml_parse):
         self.localcontext.update({
             'get_active_list':self.get_active_list,
             'get_date': self.get_date,
+            'get_contract': self.get_contract,
         })
         
         
@@ -49,5 +50,21 @@ class Parser(report_sxw.rml_parse):
     def get_date(self,date):
         new_date = datetime.strptime(date, DATE_FORMAT)
         return new_date.strftime('%d/%m/%Y')
+    
+    def get_contract(self,partner):
+        if partner.child_ids:
+            contract = partner.child_ids[0]
+            res = {
+                'person': contract.name,
+                'email': contract.email,
+                'phone': contract.phone,
+            }
+        else:
+            res = {
+                'person': '',
+                'email': '',
+                'phone': '',
+            }
+        return res
 # vim:expandtab:smartindent:tabstop=4:softtabstop=4:shiftwidth=4:
 
