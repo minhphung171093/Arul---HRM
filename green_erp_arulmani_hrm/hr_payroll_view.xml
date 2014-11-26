@@ -310,7 +310,7 @@
 			<field name="model">arul.hr.payroll.executions</field>
 			<field name="arch" type="xml">
 				<tree string="Payroll Executions">
-					<field name="payroll_area_id"/>
+					<field name="payroll_area_id" on_change="onchange_generate_payroll(payroll_area_id)"/>
 					<field name="year"/>
 					<field name="month"/>
 				</tree>
@@ -321,12 +321,16 @@
             <field name="name">arul.hr.payroll.executions.form</field>
             <field name="model">arul.hr.payroll.executions</field>
             <field name="arch" type="xml">
-	            <form string="Payroll Executions" version="7.0">   
+	            <form string="Payroll Executions" version="7.0">  
+	            <header>
+	                <button name="generate_payroll" string="Generate Payroll" type="object" class="oe_highlight" groups="base.group_hr_manager"/>
+	                    
+	            </header>    
 	            	<sheet>
 		                <group col = '4' colspan = '2'>    
-			                <field name="payroll_area_id"/>
-							<field name="year"/>
-							<field name="month"/>
+			                <field name="payroll_area_id" />
+							<field name="year" />
+							<field name="month" />
 		                </group> 
 		                <notebook>
 		                	<page string = "Payroll Executions Details">

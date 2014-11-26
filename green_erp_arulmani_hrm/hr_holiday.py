@@ -623,12 +623,12 @@ class arul_hr_monthly_work_schedule(osv.osv):
     def load_previous_month(self, cr, uid, ids, context=None):
         for line in self.browse(cr, uid, ids):
             if line.month=='1':
-                year = int(line.year)-1
+                name = int(line.name)-1
                 month = 12
             else:
                 month = int(line.month)-1
-                year = line.year
-            work_schedule_pre_ids = self.search(cr, uid, [('year','=',str(year)),('month','=',str(month)),('department_id','=',line.department_id.id)])
+                name = line.name
+            work_schedule_pre_ids = self.search(cr, uid, [('name','=',str(name)),('month','=',str(month)),('department_id','=',line.department_id.id)])
             if work_schedule_pre_ids:
                 work_vals = []
                 work_schedule_pre = self.browse(cr, uid, work_schedule_pre_ids[0])
