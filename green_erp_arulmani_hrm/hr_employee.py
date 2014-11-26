@@ -633,7 +633,6 @@ class employee_leave_detail(osv.osv):
             year = line.emp_leave_id and line.emp_leave_id.year or False
             leave_type = line.leave_type_id and line.leave_type_id.id or False
             leave_detail_obj = self.pool.get('arul.hr.employee.leave.details')
-#             leave_detail_ids = leave_detail_obj.search(cr, uid, [('employee_id','=',emp),('leave_type_id','=',leave_type)])
             emp_obj = self.pool.get('hr.employee')
             emp_ids = emp_obj.search(cr, uid, [('id','=', emp)])
             for ee in emp_obj.browse(cr, uid, emp_ids):
@@ -642,9 +641,6 @@ class employee_leave_detail(osv.osv):
                     now = time.strftime('%Y-%m-%d')
                     date_now = datetime.datetime.strptime(now, DATETIME_FORMAT)
                     timedelta = date_now - join_date
-#             for detail in leave_detail_obj.browse(cr, uid, leave_detail_ids, context=context):
-#                 if detail.date_from[0:4] == year and timedelta.days >= 365 and line.total_day != 0:
-#                     taken_day = detail.days_total
             leave_detail_ids = leave_detail_obj.search(cr, uid, [('employee_id','=',emp),('leave_type_id','=',leave_type),('state','!=','cancel')])
             for detail in leave_detail_obj.browse(cr, uid, leave_detail_ids, context=context):
                 if detail.date_from[0:4] == year and timedelta.days >= 365 and line.total_day != 0:
