@@ -623,12 +623,12 @@ class arul_hr_monthly_work_schedule(osv.osv):
     def load_previous_month(self, cr, uid, ids, context=None):
         for line in self.browse(cr, uid, ids):
             if line.month=='1':
-                year = int(line.year)-1
+                year = int(line.name)-1
                 month = 12
             else:
                 month = int(line.month)-1
-                year = line.year
-            work_schedule_pre_ids = self.search(cr, uid, [('year','=',str(year)),('month','=',str(month)),('department_id','=',line.department_id.id)])
+                year = line.name
+            work_schedule_pre_ids = self.search(cr, uid, [('name','=',str(year)),('month','=',str(month)),('department_id','=',line.department_id.id)])
             if work_schedule_pre_ids:
                 work_vals = []
                 work_schedule_pre = self.browse(cr, uid, work_schedule_pre_ids[0])
@@ -639,37 +639,37 @@ class arul_hr_monthly_work_schedule(osv.osv):
                 for work in work_schedule_pre.monthly_shift_line:
                     work_vals.append((0,0,{
                                            'employee_id': work.employee_id.id,
-                                           'day_1': work.day_1,
-                                           'day_2': work.day_2,
-                                           'day_3': work.day_3,
-                                           'day_4': work.day_4,
-                                           'day_5': work.day_5,
-                                           'day_6': work.day_6,
-                                           'day_7': work.day_7,
-                                           'day_8': work.day_8,
-                                           'day_9': work.day_9,
-                                           'day_10': work.day_10,
-                                           'day_11': work.day_11,
-                                           'day_12': work.day_12,
-                                           'day_13': work.day_13,
-                                           'day_14': work.day_14,
-                                           'day_15': work.day_15,
-                                           'day_16': work.day_16,
-                                           'day_17': work.day_17,
-                                           'day_18': work.day_18,
-                                           'day_19': work.day_19,
-                                           'day_20': work.day_20,
-                                           'day_21': work.day_21,
-                                           'day_22': work.day_22,
-                                           'day_23': work.day_23,
-                                           'day_24': work.day_24,
-                                           'day_25': work.day_25,
-                                           'day_26': work.day_26,
-                                           'day_27': work.day_27,
-                                           'day_28': work.day_28,
-                                           'day_29': work.day_29,
-                                           'day_30': work.day_30,
-                                           'day_31': work.day_31,
+                                           'day_1': work.day_1.id,
+                                           'day_2': work.day_2.id,
+                                           'day_3': work.day_3.id,
+                                           'day_4': work.day_4.id,
+                                           'day_5': work.day_5.id,
+                                           'day_6': work.day_6.id,
+                                           'day_7': work.day_7.id,
+                                           'day_8': work.day_8.id,
+                                           'day_9': work.day_9.id,
+                                           'day_10': work.day_10.id,
+                                           'day_11': work.day_11.id,
+                                           'day_12': work.day_12.id,
+                                           'day_13': work.day_13.id,
+                                           'day_14': work.day_14.id,
+                                           'day_15': work.day_15.id,
+                                           'day_16': work.day_16.id,
+                                           'day_17': work.day_17.id,
+                                           'day_18': work.day_18.id,
+                                           'day_19': work.day_19.id,
+                                           'day_20': work.day_20.id,
+                                           'day_21': work.day_21.id,
+                                           'day_22': work.day_22.id,
+                                           'day_23': work.day_23.id,
+                                           'day_24': work.day_24.id,
+                                           'day_25': work.day_25.id,
+                                           'day_26': work.day_26.id,
+                                           'day_27': work.day_27.id,
+                                           'day_28': work.day_28.id,
+                                           'day_29': work.day_29.id,
+                                           'day_30': work.day_30.id,
+                                           'day_31': work.day_31.id,
                                            }))
                 self.write(cr, uid, [line.id], {'monthly_shift_line':work_vals,'state':'load'})
         return True
@@ -677,6 +677,11 @@ class arul_hr_monthly_work_schedule(osv.osv):
         return self.write(cr, uid, ids, {'state':'done'})
     def onchange_department_id(self, cr, uid, ids,department_id=False,month=False,year=False, context=None):
         res = {'value':{}}
+        for line in self.browse(cr, uid, ids):
+            sql = '''
+                delete from arul_hr_monthly_shift_schedule where monthly_work_id = %s
+            '''%(line.id)
+            cr.execute(sql)
         section_ids = []
         employee_lines = []
         num_of_month = 0
