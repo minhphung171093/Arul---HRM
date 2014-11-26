@@ -319,7 +319,7 @@ class arul_hr_punch_in_out(osv.osv):
         return True
 
     _columns = {
-        'date_up_load': fields.date('Date Up load', required=True,readonly=True),
+        'name': fields.date('Date Up load', required=True,readonly=True),
         'datas_fname': fields.char('File Name',size=256),
         'datas': fields.function(_data_get, fnct_inv=_data_set, string='Upload/View Specification', type="binary", nodrop=True,states={'done': [('readonly', True)]}),
         'store_fname': fields.char('Stored Filename', size=256),
@@ -331,7 +331,7 @@ class arul_hr_punch_in_out(osv.osv):
     
     _defaults = {
         'state':'draft',
-        'date_up_load': time.strftime('%Y-%m-%d'),
+        'name': time.strftime('%Y-%m-%d'),
         
     }
     def upload_punch_in_out(self, cr, uid, ids, context=None):

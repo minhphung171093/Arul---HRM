@@ -330,8 +330,42 @@
 		                </group> 
 		                <notebook>
 		                	<page string = "Payroll Executions Details">
-		                		<field name="payroll_executions_details_line" nolabel='1'>
-									<tree editable = 'top'>
+		                		<field name="payroll_executions_details_line">
+									<form string="Payroll Executions Details" version="7.0">
+										<group col = '4' colspan = '2'>
+											<field name="company_id" />
+											<newline/>
+											<field name="payroll_area_id" />
+											<field name="payroll_sub_area_id" />
+											<field name="employee_id" />
+											<newline/>
+											<field name="department_id" />
+											<field name="designation_id" />
+											<field name="year" />
+											<field name="month" />
+										</group>
+										<group>
+											<notebook>
+												<page string = "Earning Structure">
+													<field name="earning_structure_line" nolabel = '1'>
+														<tree editable = 'top' >
+															<field name="earning_parameters_id" />
+															<field name="float" />
+														</tree>
+													</field>
+												</page>
+												<page string = "Other Deduction">
+													<field name="other_deduction_line" nolabel = '1'>
+														<tree editable = 'top' >
+															<field name="deduction_parameters_id" />
+															<field name="float" />
+														</tree>
+													</field>
+												</page>
+											</notebook>
+										</group>
+									</form>
+									<tree>
 										<field name="company_id" />
 										<field name="payroll_area_id" />
 										<field name="payroll_sub_area_id" />
@@ -340,7 +374,7 @@
 										<field name="designation_id" />
 										<field name="year" />
 										<field name="month" />
-									</tree>	
+									</tree>
 								</field>	                		
 		                	</page>
 		                </notebook>  	

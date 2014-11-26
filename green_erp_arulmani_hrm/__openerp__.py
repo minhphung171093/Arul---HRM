@@ -26,7 +26,7 @@
     'sequence': 14,
     'author': 'Tenth Planet',
     'website' : 'http://www. tenthplanet.in',
-    'depends': ['green_erp_arulmani_crm'],
+    'depends': ['green_erp_arulmani_crm','hr_contract'],
     'data': [
 #         'security/green_erp_arulmani_hrm_security.xml',
 #         'security/ir.model.access.csv',
@@ -34,6 +34,7 @@
         'hr_department_view.xml',
         'hr_payroll_view.xml',
         'hr_holiday_view.xml',
+        'hr_contract_view.xml',
         'menu_view.xml',
         'hr_demo_leave_types.xml',
         'hr_employee_data.xml',

@@ -523,7 +523,7 @@ class arul_hr_punch_in_out(osv.osv):
         return True
 
     _columns = {
-        'date_up_load': fields.date('Date Up load', required=True,states={'done': [('readonly', True)]}),
+        'name': fields.date('Date Up load', required=True,states={'done': [('readonly', True)]}),
         'datas_fname': fields.char('File Name',size=256),
         'datas': fields.function(_data_get, fnct_inv=_data_set, string='Upload/View Specification', type="binary", nodrop=True,states={'done': [('readonly', True)]}),
         'store_fname': fields.char('Stored Filename', size=256),
@@ -535,7 +535,7 @@ class arul_hr_punch_in_out(osv.osv):
     
     _defaults = {
         'state':'draft',
-        'date_up_load': time.strftime('%Y-%m-%d'),
+        'name': time.strftime('%Y-%m-%d'),
         
     }
     def upload_punch_in_out(self, cr, uid, ids, context=None):
@@ -611,7 +611,7 @@ class arul_hr_monthly_work_schedule(osv.osv):
     _columns={
               'department_id':fields.many2one('hr.department','Department', required = True, states={'done': [('readonly', True)]}),
               'section_id': fields.many2one('arul.hr.section','Section', required = True, states={'done': [('readonly', True)]}),
-              'year': fields.char('Year', size = 1024,required = True, states={'done': [('readonly', True)]}),
+              'name': fields.char('Year', size = 1024,required = True, states={'done': [('readonly', True)]}),
               'month': fields.selection([('1', 'January'),('2', 'February'), ('3', 'March'), ('4','April'), ('5','May'), ('6','June'), ('7','July'), ('8','August'), ('9','September'), ('10','October'), ('11','November'), ('12','December')], 'Month',required = True, states={'done': [('readonly', True)]}),
               'monthly_shift_line': fields.one2many('arul.hr.monthly.shift.schedule','monthly_work_id', 'Monthly Work Schedule', states={'done': [('readonly', True)]}),
               'state':fields.selection([('draft', 'Draft'),('load', 'Load'),('done', 'Done')],'Status', readonly=True)
