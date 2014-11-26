@@ -10,6 +10,28 @@
 	        <field name="model" eval="'employee.leave'"/>
 	        <field name="function" eval="'get_employee_leave'"/>
 	        <field name="args" eval="'()'" />
+        </record>   
+        
+        <record model="ir.cron" id="emp_leave_sta_daily_update">
+	        <field name="name">Daily Employee Leave Status Update</field>
+	        <field name="interval_number">1</field>
+	        <field name="interval_type">days</field>
+	        <field name="numbercall">-1</field>
+	        <field name="doall" eval="False"/>
+	        <field name="model" eval="'employee.leave'"/>
+	        <field name="function" eval="'get_employee_leave_daily'"/>
+	        <field name="args" eval="'()'" />
         </record>      
+        
+        <record model="ir.cron" id="permission_emp_leave_">
+	        <field name="name">Permission Employee Leave</field>
+	        <field name="interval_number">1</field>
+	        <field name="interval_type">days</field>
+	        <field name="numbercall">-1</field>
+	        <field name="doall" eval="False"/>
+	        <field name="model" eval="'employee.leave'"/>
+	        <field name="function" eval="'get_permisson_for_employee_leave'"/>
+	        <field name="args" eval="'()'" />
+        </record> 
     </data>
 </openerp>
