@@ -100,24 +100,85 @@ class arul_hr_payroll_employee_structure(osv.osv):
         vals = {}
         configuration_obj = self.pool.get('arul.hr.payroll.structure.configuration')
         if employee_id:
+            earning_obj = self.pool.get('arul.hr.payroll.earning.structure')
+            earning_ids = earning_obj.search(cr, uid, [('earning_structure_id','in',ids)])
+            earning_obj.unlink(cr, uid, earning_ids)
             emp = self.pool.get('hr.employee').browse(cr, uid, employee_id)
             configuration_ids = configuration_obj.search(cr, uid, [('employee_category_id','=',emp.employee_category_id.id),('sub_category_id','=',emp.employee_sub_category_id.id)])
             payroll_earning_structure_line = []
             if configuration_ids:
                 configuration = configuration_obj.browse(cr, uid, configuration_ids[0])
+                base_amount = 0
                 for line in configuration.payroll_structure_configuration_line:
-                    
-                    vals={
-                          'earning_parameters_id':line.earning_parameters_id.id,
-                          'float': line.value,
-                    }
-                    payroll_earning_structure_line.append((0,0,vals))
+                    if line.earning_parameters_id.code=='BASIC':
+                        base_amount = line.value
+                        break
+                for line in configuration.payroll_structure_configuration_line:
+                    if line.fixed_percentage=='fixed':
+                        vals={
+                              'earning_parameters_id':line.earning_parameters_id.id,
+                              'float': line.value,
+                        }
+                        payroll_earning_structure_line.append((0,0,vals))
+                    if line.fixed_percentage=='percentage':
+                        vals={
+                              'earning_parameters_id':line.earning_parameters_id.id,
+                              'float': line.value*base_amount/100,
+                        }
+                        payroll_earning_structure_line.append((0,0,vals))
             vals = {'employee_category_id':emp.employee_category_id.id,
                     'sub_category_id':emp.employee_sub_category_id.id,
                     'payroll_earning_structure_line':payroll_earning_structure_line}
         return {'value': vals}
 
-    
+    def _check_employee_id(self, cr, uid, ids, context=None):
+        for employee in self.browse(cr, uid, ids, context=context):
+            employee_ids = self.search(cr, uid, [('id','!=',employee.id),('employee_id','=',employee.employee_id.id)])
+            if employee_ids:  
+                return False
+        return True
+    _constraints = [
+        (_check_employee_id, 'Identical Data', ['employee_id']),
+    ]
+
+    def onchange_structure_line(self, cr, uid, ids,payroll_earning_structure_line=False,employee_category_id=False,sub_category_id=False, context=None):
+        payroll_earning_structure = []
+#         if employee_category_id and sub_category_id:
+#             configuration_obj = self.pool.get('arul.hr.payroll.structure.configuration')
+#             base_amount = 0
+#             
+#             for line in payroll_earning_structure_line:
+#                 earning_parameter = self.pool.get('arul.hr.payroll.earning.parameters').browse(cr, uid, line[2]['earning_parameters_id'])
+#                 if earning_parameter.code == 'BASIC':
+#                     base_amount = line[2]['float']
+#                     payroll_earning_structure.append((0,0,{'earning_parameters_id':line[2]['earning_parameters_id'],
+#                               'float': base_amount,}))
+#                     break
+#             if payroll_earning_structure:
+#                 for line in payroll_earning_structure_line:
+#                     earning_parameters_id = line[2]['earning_parameters_id']
+#                     earning_parameter = self.pool.get('arul.hr.payroll.earning.parameters').browse(cr, uid, earning_parameters_id)
+#                     if earning_parameter.code != 'BASIC':
+#                         configuration_ids = configuration_obj.search(cr, uid, [('employee_category_id','=',employee_category_id),('sub_category_id','=',sub_category_id)])
+#                         if configuration_ids:
+#                             configuration = configuration_obj.browse(cr, uid, configuration_ids[0])
+#                             earning_parameters_id = line[2]['earning_parameters_id']
+#                             for line2 in configuration.payroll_structure_configuration_line:
+#                                 if line2.earning_parameters_id.id == earning_parameters_id:
+#                                     if line2.fixed_percentage=='fixed':
+#                                         vals={
+#                                               'earning_parameters_id':earning_parameters_id,
+#                                               'float': line[2]['float'],
+#                                         }
+#                                         payroll_earning_structure.append((0,0,vals))
+#                                     if line2.fixed_percentage=='percentage':
+#                                         vals={
+#                                               'earning_parameters_id':earning_parameters_id,
+#                                               'float': line2.value*base_amount/100,
+#                                         }
+#                                         payroll_earning_structure.append((0,0,vals))
+#         return {'value':{'payroll_earning_structure_line':payroll_earning_structure}}
+        return True
 arul_hr_payroll_employee_structure()
 
 class arul_hr_payroll_earning_structure(osv.osv):
@@ -127,7 +188,20 @@ class arul_hr_payroll_earning_structure(osv.osv):
          'earning_structure_id':fields.many2one('arul.hr.payroll.employee.structure','Earning Structure'), 
          'float':fields.float('Float') ,
     }
-    
+    def onchange_structure_line(self, cr, uid, ids, context=None):
+        configuration_obj = self.pool.get('arul.hr.payroll.structure.configuration')
+        for line in self.browse(cr, uid, ids):
+            if line.earning_parameters_id.code == 'BASIC' and line.earning_structure_id.employee_category_id and line.earning_structure_id.sub_category_id:
+                earning_structure_ids = self.search(cr, uid, [('id','!=',line.id),('earning_structure_id','=',line.earning_structure_id.id)])
+                configuration_ids = configuration_obj.search(cr, uid, [('employee_category_id','=',line.earning_structure_id.employee_category_id.id),('sub_category_id','=',line.earning_structure_id.sub_category_id.id)])
+                if configuration_ids:
+                    for earning_structure in self.browse(cr, uid, earning_structure_ids):
+                        configuration = configuration_obj.browse(cr, uid, configuration_ids[0])
+                        for line2 in configuration.payroll_structure_configuration_line:
+                            if line2.earning_parameters_id.id == line.earning_parameters_id.id:
+                                if line2.fixed_percentage=='percentage':
+                                    self.write(cr, uid, [earning_structure.id],{'float':line.float*line2.value/100})
+        return True
 arul_hr_payroll_earning_structure()
 
 class arul_hr_payroll_contribution_parameters(osv.osv):
@@ -157,6 +231,17 @@ class arul_hr_payroll_structure_configuration(osv.osv):
             emp_cat = self.pool.get('vsis.hr.employee.category').browse(cr, uid, employee_category_id)
             emp_sub_cat = [x.id for x in emp_cat.sub_category_ids]
         return {'value': {'sub_category_id': False }, 'domain':{'sub_category_id':[('id','in',emp_sub_cat)]}}
+    
+    def _check_category_sub_id(self, cr, uid, ids, context=None):
+        for payroll in self.browse(cr, uid, ids, context=context):
+            payroll_category_ids = self.search(cr, uid, [('id','!=',payroll.id),('employee_category_id','=',payroll.employee_category_id.id)])
+            payroll_sub_ids = self.search(cr, uid, [('id','!=',payroll.id),('sub_category_id','=',payroll.sub_category_id.id)])
+            if payroll_category_ids or payroll_sub_ids:
+                return False
+        return True
+    _constraints = [
+        (_check_category_sub_id, 'Identical Data', ['employee_category_id','sub_category_id']),
+    ]  
     
 arul_hr_payroll_structure_configuration()
 

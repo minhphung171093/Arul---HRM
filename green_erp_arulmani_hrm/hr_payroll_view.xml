@@ -183,7 +183,6 @@
         </record>       
        
             
-       <menuitem id="menu_hr_payroll_management" parent="hr.menu_hr_root" name="Payroll Management" sequence="25"/>
        <menuitem action="action_arul_hr_payroll_deduction_parameters_form"
             id="menu_action_arul_hr_payroll_deduction_parameters_form"
             parent="menu_hr_payroll_management" sequence="0"/>
@@ -215,10 +214,10 @@
 						</group>
 						<notebook>
 							<page string = "Earning Structure">
-								<field name="payroll_earning_structure_line" nolabel='1'>
+								<field name="payroll_earning_structure_line" nolabel='1' on_change="onchange_structure_line(payroll_earning_structure_line,employee_category_id,sub_category_id)">
 									<tree editable="top" >
 										<field name="earning_parameters_id" options="{'create': false, 'create_edit': false}"/>
-										<field name="float"/>
+										<field name="float" on_change="onchange_structure_line()" context="{'employee_category_id':parent.employee_category_id,'sub_category_id':parent.sub_category_id}"/>
 									</tree>
 								</field>
 							</page>
