@@ -178,6 +178,7 @@ class arul_hr_payroll_other_deductions(osv.osv):
          'deduction_parameters_id': fields.many2one('arul.hr.payroll.deduction.parameters','Deduction Parameters',required = True),
          'earning_structure_id':fields.many2one('arul.hr.payroll.employee.structure','Earning Structure'), 
          'float':fields.float('Float') ,
+         'executions_details_id':fields.many2one('arul.hr.payroll.executions.details','Execution Details'),
     }
     
 arul_hr_payroll_other_deductions()
@@ -207,6 +208,7 @@ class arul_hr_payroll_executions_details(osv.osv):
         'month': fields.selection([('1', 'January'),('2', 'February'), ('3', 'March'), ('4','April'), ('5','May'), ('6','June'), ('7','July'), ('8','August'), ('9','September'), ('10','October'), ('11','November'), ('12','December')], 'Month'),
         'payroll_executions_id':fields.many2one('arul.hr.payroll.executions', 'Payroll Executions'),
         'earning_structure_line':fields.one2many('arul.hr.payroll.earning.structure','executions_details_id', 'Earing Structure'),
+        'other_deduction_line':fields.one2many('arul.hr.payroll.other.deductions','executions_details_id', 'Other Deduction'),
     }
     
 arul_hr_payroll_executions_details()
