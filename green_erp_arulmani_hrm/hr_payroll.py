@@ -277,6 +277,26 @@ class arul_hr_payroll_executions(osv.osv):
          'month': fields.selection([('1', 'January'),('2', 'February'), ('3', 'March'), ('4','April'), ('5','May'), ('6','June'), ('7','July'), ('8','August'), ('9','September'), ('10','October'), ('11','November'), ('12','December')], 'Month',required = True),
          'payroll_executions_details_line': fields.one2many('arul.hr.payroll.executions.details','payroll_executions_id','Details Line'),
     }
+    def generate_payroll(self, cr, uid, ids, context=None):
+        details_line = []
+        for line in self.browse(cr,uid,ids):
+            emp_obj = self.pool.get('hr.employee')
+            employee_ids = emp_obj.search(cr, uid, [('payroll_area_id','=',line.payroll_area_id.id)])
+            for p in emp_obj.browse(cr,uid,employee_ids):
+                rs = {
+                        'employee_id': p.id,
+                        'department_id':p.department_id.id,
+                        'designation_id':p.department_id.designation_id.id,
+                        'year':line.year,
+                        'month':line.month,
+                        'company_id': p.company_id.id,
+                        'payroll_area_id': line.payroll_area_id.id,
+                        'payroll_sub_area_id': p.payroll_sub_area_id.id,
+                        
+                      }
+                details_line.append((0,0,rs))
+                self.write(cr,uid,[line.id],{'payroll_executions_details_line':details_line})
+        return True
     
 arul_hr_payroll_executions()
 
