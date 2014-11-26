@@ -187,6 +187,7 @@ class arul_hr_payroll_earning_structure(osv.osv):
          'earning_parameters_id': fields.many2one('arul.hr.payroll.earning.parameters','Earning Parameters',required = False),
          'earning_structure_id':fields.many2one('arul.hr.payroll.employee.structure','Earning Structure'), 
          'float':fields.float('Float') ,
+         'executions_details_id':fields.many2one('arul.hr.payroll.executions.details','Execution Details'),
     }
     def onchange_structure_line(self, cr, uid, ids, context=None):
         configuration_obj = self.pool.get('arul.hr.payroll.structure.configuration')
@@ -266,3 +267,31 @@ class arul_hr_payroll_other_deductions(osv.osv):
     
 arul_hr_payroll_other_deductions()
 
+
+class arul_hr_payroll_executions(osv.osv):
+    _name = 'arul.hr.payroll.executions'
+    _columns = {
+         'payroll_area_id': fields.many2one('arul.hr.payroll.area','Payroll Area',required = True),
+         'year': fields.char('Year', size = 1024,required = True),
+         'month': fields.selection([('1', 'January'),('2', 'February'), ('3', 'March'), ('4','April'), ('5','May'), ('6','June'), ('7','July'), ('8','August'), ('9','September'), ('10','October'), ('11','November'), ('12','December')], 'Month',required = True),
+         'payroll_executions_details_line': fields.one2many('arul.hr.payroll.executions.details','payroll_executions_id','Details Line'),
+    }
+    
+arul_hr_payroll_executions()
+
+class arul_hr_payroll_executions_details(osv.osv):
+    _name = 'arul.hr.payroll.executions.details'
+    _columns = {
+        'company_id': fields.many2one('res.company','Company'),
+        'payroll_area_id': fields.many2one('arul.hr.payroll.area', 'Payroll Area'),
+        'payroll_sub_area_id': fields.many2one('arul.hr.payroll.sub.area', 'Payroll Sub Area'),
+        'employee_id': fields.many2one('hr.employee', 'Employee'),
+        'department_id': fields.many2one('hr.department', 'Department'),
+        'designation_id': fields.many2one('arul.hr.designation', 'Designation'),
+        'year': fields.char('Year', size = 1024),
+        'month': fields.selection([('1', 'January'),('2', 'February'), ('3', 'March'), ('4','April'), ('5','May'), ('6','June'), ('7','July'), ('8','August'), ('9','September'), ('10','October'), ('11','November'), ('12','December')], 'Month'),
+        'payroll_executions_id':fields.many2one('arul.hr.payroll.executions', 'Payroll Executions'),
+        'earning_structure_line':fields.one2many('arul.hr.payroll.earning.structure','executions_details_id', 'Earing Structure'),
+    }
+    
+arul_hr_payroll_executions_details()
