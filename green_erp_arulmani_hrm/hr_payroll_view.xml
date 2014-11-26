@@ -328,7 +328,7 @@
 	            </header>    
 	            	<sheet>
 		                <group col = '4' colspan = '2'>    
-			                <field name="payroll_area_id" />
+			                <field name="payroll_area_id" options="{'create': false, 'create_edit': false}"/>
 							<field name="year" />
 							<field name="month" />
 		                </group> 
@@ -337,14 +337,14 @@
 		                		<field name="payroll_executions_details_line">
 									<form string="Payroll Executions Details" version="7.0">
 										<group col = '4' colspan = '2'>
-											<field name="company_id" />
+											<field name="company_id" options="{'create': false, 'create_edit': false}"/>
 											<newline/>
-											<field name="payroll_area_id" />
-											<field name="payroll_sub_area_id" />
-											<field name="employee_id" />
+											<field name="payroll_area_id" options="{'create': false, 'create_edit': false}"/>
+											<field name="payroll_sub_area_id" options="{'create': false, 'create_edit': false}"/>
+											<field name="employee_id" options="{'create': false, 'create_edit': false}"/>
 											<newline/>
-											<field name="department_id" />
-											<field name="designation_id" />
+											<field name="department_id" options="{'create': false, 'create_edit': false}"/>
+											<field name="designation_id" options="{'create': false, 'create_edit': false}"/>
 											<field name="year" />
 											<field name="month" />
 										</group>
@@ -353,7 +353,7 @@
 												<page string = "Earning Structure">
 													<field name="earning_structure_line" nolabel = '1'>
 														<tree editable = 'top' >
-															<field name="earning_parameters_id" />
+															<field name="earning_parameters_id" options="{'create': false, 'create_edit': false}"/>
 															<field name="float" />
 														</tree>
 													</field>
@@ -361,7 +361,7 @@
 												<page string = "Other Deduction">
 													<field name="other_deduction_line" nolabel = '1'>
 														<tree editable = 'top' >
-															<field name="deduction_parameters_id" />
+															<field name="deduction_parameters_id" options="{'create': false, 'create_edit': false}"/>
 															<field name="float" />
 														</tree>
 													</field>
@@ -370,12 +370,12 @@
 										</group>
 									</form>
 									<tree>
-										<field name="company_id" />
-										<field name="payroll_area_id" />
-										<field name="payroll_sub_area_id" />
-										<field name="employee_id" />
-										<field name="department_id" />
-										<field name="designation_id" />
+										<field name="company_id" options="{'create': false, 'create_edit': false}"/>
+										<field name="payroll_area_id" options="{'create': false, 'create_edit': false}"/>
+										<field name="payroll_sub_area_id" options="{'create': false, 'create_edit': false}"/>
+										<field name="employee_id" options="{'create': false, 'create_edit': false}"/>
+										<field name="department_id" options="{'create': false, 'create_edit': false}"/>
+										<field name="designation_id" options="{'create': false, 'create_edit': false}"/>
 										<field name="year" />
 										<field name="month" />
 									</tree>
