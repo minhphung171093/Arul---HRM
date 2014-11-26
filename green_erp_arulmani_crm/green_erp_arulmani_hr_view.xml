@@ -203,6 +203,7 @@
                 	<field name="job_id" options="{&quot;no_open&quot;: True, 'create': false, 'create_edit': false}" domain="[('state','!=','old')]" context="{'form_view_ref': 'hr.view_hr_job_employee_form'}" />
                 </xpath>
                 
+                
             </field>
         </record>
         

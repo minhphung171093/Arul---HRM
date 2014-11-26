@@ -183,7 +183,6 @@
         </record>       
        
             
-       <menuitem id="menu_hr_payroll_management" parent="hr.menu_hr_root" name="Payroll Management" sequence="25"/>
        <menuitem action="action_arul_hr_payroll_deduction_parameters_form"
             id="menu_action_arul_hr_payroll_deduction_parameters_form"
             parent="menu_hr_payroll_management" sequence="0"/>
@@ -215,10 +214,10 @@
 						</group>
 						<notebook>
 							<page string = "Earning Structure">
-								<field name="payroll_earning_structure_line" nolabel='1'>
+								<field name="payroll_earning_structure_line" nolabel='1' on_change="onchange_structure_line(payroll_earning_structure_line,employee_category_id,sub_category_id)">
 									<tree editable="top" >
 										<field name="earning_parameters_id" options="{'create': false, 'create_edit': false}"/>
-										<field name="float"/>
+										<field name="float" on_change="onchange_structure_line()" context="{'employee_category_id':parent.employee_category_id,'sub_category_id':parent.sub_category_id}"/>
 									</tree>
 								</field>
 							</page>
@@ -305,6 +304,99 @@
        <menuitem action="action_arul_hr_payroll_contribution_parameters_form"
             id="menu_action_arul_hr_payroll_contribution_parameters_form"
             parent="menu_hr_payroll_management" sequence="3"/>
+       
+       <record id="view_arul_hr_payroll_executions_tree_vew" model="ir.ui.view">
+			<field name="name">arul.hr.payroll.executions.tree</field>
+			<field name="model">arul.hr.payroll.executions</field>
+			<field name="arch" type="xml">
+				<tree string="Payroll Executions">
+					<field name="payroll_area_id"/>
+					<field name="year"/>
+					<field name="month"/>
+				</tree>
+			</field>
+		</record>    
+		
+		<record id="view_arul_hr_payroll_executions_form_vew" model="ir.ui.view">
+            <field name="name">arul.hr.payroll.executions.form</field>
+            <field name="model">arul.hr.payroll.executions</field>
+            <field name="arch" type="xml">
+	            <form string="Payroll Executions" version="7.0">   
+	            	<sheet>
+		                <group col = '4' colspan = '2'>    
+			                <field name="payroll_area_id"/>
+							<field name="year"/>
+							<field name="month"/>
+		                </group> 
+		                <notebook>
+		                	<page string = "Payroll Executions Details">
+		                		<field name="payroll_executions_details_line">
+									<form string="Payroll Executions Details" version="7.0">
+										<group col = '4' colspan = '2'>
+											<field name="company_id" />
+											<newline/>
+											<field name="payroll_area_id" />
+											<field name="payroll_sub_area_id" />
+											<field name="employee_id" />
+											<newline/>
+											<field name="department_id" />
+											<field name="designation_id" />
+											<field name="year" />
+											<field name="month" />
+										</group>
+										<group>
+											<notebook>
+												<page string = "Earning Structure">
+													<field name="earning_structure_line" nolabel = '1'>
+														<tree editable = 'top' >
+															<field name="earning_parameters_id" />
+															<field name="float" />
+														</tree>
+													</field>
+												</page>
+												<page string = "Other Deduction">
+													<field name="other_deduction_line" nolabel = '1'>
+														<tree editable = 'top' >
+															<field name="deduction_parameters_id" />
+															<field name="float" />
+														</tree>
+													</field>
+												</page>
+											</notebook>
+										</group>
+									</form>
+									<tree>
+										<field name="company_id" />
+										<field name="payroll_area_id" />
+										<field name="payroll_sub_area_id" />
+										<field name="employee_id" />
+										<field name="department_id" />
+										<field name="designation_id" />
+										<field name="year" />
+										<field name="month" />
+									</tree>
+								</field>	                		
+		                	</page>
+		                </notebook>  	
+		         	</sheet>
+		         </form>
+	     	 </field>
+          </record>
+                
+		<record id="action_arul_hr_payroll_executions_form" model="ir.actions.act_window">
+            <field name="name">Payroll Executions</field>
+            <field name="type">ir.actions.act_window</field>
+            <field name="res_model">arul.hr.payroll.executions</field>
+            <field name="view_type">form</field>
+            <field name="view_mode">tree,form</field>
+            <field name="view_id" ref="view_arul_hr_payroll_executions_tree_vew"/>
+        </record>       
+       
+            
+       <menuitem id="menu_hr_payroll_management" parent="hr.menu_hr_root" name="Payroll Management" sequence="25"/>
+       <menuitem action="action_arul_hr_payroll_executions_form"
+            id="menu_action_arul_hr_payroll_executions_form"
+            parent="menu_hr_payroll_management" sequence="5"/>
             
 		<record id="view_arul_hr_payroll_structure_configuration_tree_vew" model="ir.ui.view">
 			<field name="name">arul.hr.payroll.structure.configuration.tree</field>
