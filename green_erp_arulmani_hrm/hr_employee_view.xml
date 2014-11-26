@@ -292,7 +292,7 @@
 							<field name ="employee_category_id" options="{'create': false, 'create_edit': false}"/>
 							<field name ="sub_category_id" options="{'create': false, 'create_edit': false}"/>
 							<field name ="department_from_id" options="{'create': false, 'create_edit': false}"/>
-							<field name ="department_to_id" options="{'create': false, 'create_edit': false}"/>
+							<field name ="department_to_id" options="{'create': false, 'create_edit': false}" domain="[('id','!=',department_from_id)]"/>
 							<field name ="designation_from_id" options="{'create': false, 'create_edit': false}"/>
 							<field name ="designation_to_id" options="{'create': false, 'create_edit': false}"/>
 							<field name ="action_date" string = "Date of Transfer"/>
@@ -715,6 +715,17 @@
                 <xpath expr="//field[@name='department_id']" position="after">
                     <field name="section_id" options="{'create': false, 'create_edit': false}"/>
                 </xpath>
+                
+            </field>
+        </record>
+        <record id="vsis_hr_hr_employee_view_form2" model="ir.ui.view">
+            <field name="name">vsis.hr.hr.employee.view.form2</field>
+            <field name="model">hr.employee</field>
+            <field name="inherit_id" ref="hr_contract.hr_hr_employee_view_form2"/>
+            <field name="arch" type="xml">
+            	<xpath expr="//field[@name='bank_account_id']" position="replace">
+                    <field name="bank_account_id" context="{'display_partner':True}" options="{'create': false, 'create_edit': false}"/>
+                </xpath>
             </field>
         </record>
 		
@@ -736,6 +747,46 @@
                 <xpath expr="//field[@name='date_of_resignation']" position="after">
                     <field name="time_record"/>
                 </xpath>
+                <xpath expr="//field[@name='job_id']" position="replace">
+                    <field name="job_id" options="{'create': false, 'create_edit': false}"/>
+                </xpath>
+                <xpath expr="//field[@name='parent_id']" position="replace">
+                    <field name="parent_id" options="{'create': false, 'create_edit': false}"/>
+                </xpath>
+                <xpath expr="//field[@name='employee_sub_category_id']" position="replace">
+                    <field name="employee_sub_category_id" options="{'create': false, 'create_edit': false}"/>
+                </xpath>
+                <xpath expr="//field[@name='employee_grade_id']" position="replace">
+                    <field name="employee_grade_id" options="{'create': false, 'create_edit': false}"/>
+                </xpath>
+                <xpath expr="//field[@name='address_id']" position="replace">
+                    <field name="address_id" options="{'create': false, 'create_edit': false}"/>
+                </xpath>
+                <xpath expr="//field[@name='plant_id']" position="replace">
+                    <field name="plant_id" options="{'create': false, 'create_edit': false}"/>
+                </xpath>
+                <xpath expr="//field[@name='country_id']" position="replace">
+                    <field name="country_id" options="{'create': false, 'create_edit': false}"/>
+                </xpath>
+                <xpath expr="//field[@name='religion_id']" position="replace">
+                    <field name="religion_id" options="{'create': false, 'create_edit': false}"/>
+                </xpath>
+                <!--<xpath expr="//field[@name='category_ids']" position="replace">
+                    <field name="category_ids" options="{'create': false, 'create_edit': false}"/>
+                </xpath>-->
+            </field>
+        </record>
+        
+        <record id="vsis_hr_hr_employee_view_form3" model="ir.ui.view">
+            <field name="name">vsis.hr.employee.view.form3</field>
+            <field name="model">hr.employee</field>
+            <field name="inherit_id" ref="hr_contract.hr_hr_employee_view_form2"/>
+            <field name="arch" type="xml">
+                <data>
+                    <field name="place_of_birth" position="replace">
+                        <field name="place_of_birth" options="{'create': false, 'create_edit': false}"/>
+                    </field>
+                </data>
             </field>
         </record>
         
