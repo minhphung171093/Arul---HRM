@@ -106,6 +106,7 @@ class arul_hr_payroll_employee_structure(osv.osv):
             if configuration_ids:
                 configuration = configuration_obj.browse(cr, uid, configuration_ids[0])
                 for line in configuration.payroll_structure_configuration_line:
+                    
                     vals={
                           'earning_parameters_id':line.earning_parameters_id.id,
                           'float': line.value,
