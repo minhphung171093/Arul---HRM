@@ -53,7 +53,7 @@
             			<field name="employee_id" options="{'create': false, 'create_edit': false}"/>
                     	<label for="name" string="Employee" class="oe_edit_only"/>
                         <h1>   
-                        	<field name="name" class="oe_inline" placeholder="Fist Name ..."/>          
+                        	<field name="name" class="oe_inline" placeholder="First Name ..."/>          
            					<label string=" "/>
            					<field name="last_name" class="oe_inline" placeholder="Last Name ..."/>
                         </h1>  
