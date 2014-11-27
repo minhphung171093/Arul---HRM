@@ -43,6 +43,7 @@
         'hr_demo_payroll_deduction_parameters.xml',
     ],
     'css' : [
+        "static/src/css/base.css",
     ],
     'qweb': [
      ],

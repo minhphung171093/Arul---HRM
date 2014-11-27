@@ -223,33 +223,35 @@
             <field name="arch" type="xml">
           		<xpath expr="//page[@string='HR Settings']" position="after">
                     <page string = 'Action History'>
-                    	<field name="action_history_line" nolabel='1'>
-	                    	<tree editable='top'>
-	                    		<field name ="employee_id" string="Emp.ID"/>
-	                    		<field name ="action_id"/>
-	                    		<field name ="action_type_id"/>
-	                    		<field name ="action_date"/>
-	                    		<field name ="create_date"/>
-	                    		<field name ="create_uid"/>
-	                    		<field name ="period_from"/>
-	                    		<field name ="period_to"/>
-	                    		<field name ="reason_id"/>
-	                    		<field name ="note"/>
-	                    		<field name="datas" filename="datas_fname" string="Document upload"/>
-	                        	<field name="datas_fname" invisible="1" class="oe_inline oe_right"/>
-	                    		<field name ="department_from_id" string="Dept.From"/>
-	                    		<field name ="department_to_id" string="Dept.To" />
-	                    		<field name ="designation_from_id" string="Dest.From"/>
-	                    		<field name ="designation_to_id" string="Dest.To"/>
-	                    		<field name ="current_month_salary"/>
-	                    		<field name ="pl_encashment"/>
-	                    		<field name ="c_off"/>
-	                    		<field name ="bonus"/>
-	                    		<field name ="medical_reimbursement"/>
-	                    		<field name ="gratuity"/>
-	                    		<field name ="pf_settlement"/>
-	                    	</tree>
-                    	</field>
+                    	<div col='4' colspan='4' class='oe_green_erp_scroll'>
+	                    	<field name="action_history_line" nolabel='1'>
+		                    	<tree editable='top'>
+		                    		<field name ="employee_id" string="Emp.ID"/>
+		                    		<field name ="action_id"/>
+		                    		<field name ="action_type_id"/>
+		                    		<field name ="action_date"/>
+		                    		<field name ="create_date"/>
+		                    		<field name ="create_uid"/>
+		                    		<field name ="period_from"/>
+		                    		<field name ="period_to"/>
+		                    		<field name ="reason_id"/>
+		                    		<field name ="note"/>
+		                    		<field name="datas" filename="datas_fname" string="Document upload"/>
+		                        	<field name="datas_fname" invisible="1" class="oe_inline oe_right"/>
+		                    		<field name ="department_from_id" string="Dept.From"/>
+		                    		<field name ="department_to_id" string="Dept.To" />
+		                    		<field name ="designation_from_id" string="Dest.From"/>
+		                    		<field name ="designation_to_id" string="Dest.To"/>
+		                    		<field name ="current_month_salary"/>
+		                    		<field name ="pl_encashment"/>
+		                    		<field name ="c_off"/>
+		                    		<field name ="bonus"/>
+		                    		<field name ="medical_reimbursement"/>
+		                    		<field name ="gratuity"/>
+		                    		<field name ="pf_settlement"/>
+		                    	</tree>
+	                    	</field>
+                    	</div>
                     </page>
             	</xpath>
             </field>
