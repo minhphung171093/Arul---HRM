@@ -93,7 +93,7 @@ class arul_hr_payroll_employee_structure(osv.osv):
          'employee_id': fields.many2one('hr.employee','Employee ID',required = True),
          'employee_category_id':fields.many2one('vsis.hr.employee.category','Employee Group'),
          'sub_category_id':fields.many2one('hr.employee.sub.category','Employee Sub Group'), 
-         'payroll_earning_structure_line':fields.one2many('arul.hr.payroll.earning.structure','earning_structure_id','Structure line'),
+         'payroll_earning_structure_line':fields.one2many('arul.hr.payroll.earning.structure','earning_structure_id','Structure line' ),
          'payroll_other_deductions_line':fields.one2many('arul.hr.payroll.other.deductions','earning_structure_id','Structure line'),
     }
     def onchange_employee_structure_id(self, cr, uid, ids,employee_id=False, context=None):
