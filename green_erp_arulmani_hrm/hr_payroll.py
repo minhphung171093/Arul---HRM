@@ -184,7 +184,7 @@ arul_hr_payroll_employee_structure()
 class arul_hr_payroll_earning_structure(osv.osv):
     _name = 'arul.hr.payroll.earning.structure'
     _columns = {
-         'earning_parameters_id': fields.many2one('arul.hr.payroll.earning.parameters','Earning Parameters',required = False),
+         'earning_parameters_id': fields.many2one('arul.hr.payroll.earning.parameters','Earning Parameters', required = True),
          'earning_structure_id':fields.many2one('arul.hr.payroll.employee.structure','Earning Structure'), 
          'float':fields.float('Float') ,
          'executions_details_id':fields.many2one('arul.hr.payroll.executions.details','Execution Details'),
