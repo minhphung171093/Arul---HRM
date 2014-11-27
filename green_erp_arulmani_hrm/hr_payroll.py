@@ -93,7 +93,7 @@ class arul_hr_payroll_employee_structure(osv.osv):
          'employee_id': fields.many2one('hr.employee','Employee ID',required = True),
          'employee_category_id':fields.many2one('vsis.hr.employee.category','Employee Group'),
          'sub_category_id':fields.many2one('hr.employee.sub.category','Employee Sub Group'), 
-         'payroll_earning_structure_line':fields.one2many('arul.hr.payroll.earning.structure','earning_structure_id','Structure line'),
+         'payroll_earning_structure_line':fields.one2many('arul.hr.payroll.earning.structure','earning_structure_id','Structure line' ),
          'payroll_other_deductions_line':fields.one2many('arul.hr.payroll.other.deductions','earning_structure_id','Structure line'),
     }
     def onchange_employee_structure_id(self, cr, uid, ids,employee_id=False, context=None):
@@ -184,7 +184,7 @@ arul_hr_payroll_employee_structure()
 class arul_hr_payroll_earning_structure(osv.osv):
     _name = 'arul.hr.payroll.earning.structure'
     _columns = {
-         'earning_parameters_id': fields.many2one('arul.hr.payroll.earning.parameters','Earning Parameters',required = False),
+         'earning_parameters_id': fields.many2one('arul.hr.payroll.earning.parameters','Earning Parameters',required = True),
          'earning_structure_id':fields.many2one('arul.hr.payroll.employee.structure','Earning Structure'), 
          'float':fields.float('Float') ,
          'executions_details_id':fields.many2one('arul.hr.payroll.executions.details','Execution Details'),
