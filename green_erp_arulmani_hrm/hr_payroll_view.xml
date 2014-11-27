@@ -215,7 +215,7 @@
 						<notebook>
 							<page string = "Earning Structure">
 								<field name="payroll_earning_structure_line" nolabel='1' on_change="onchange_structure_line(payroll_earning_structure_line,employee_category_id,sub_category_id)">
-									<tree editable="top" >
+									<tree editable="bottom" >
 										<field name="earning_parameters_id" options="{'create': false, 'create_edit': false}"/>
 										<field name="float" on_change="onchange_structure_line()" context="{'employee_category_id':parent.employee_category_id,'sub_category_id':parent.sub_category_id}"/>
 									</tree>
@@ -223,7 +223,7 @@
 							</page>
 							<page string = "Other Deductions">
 								<field name="payroll_other_deductions_line" nolabel='1'>
-									<tree editable = "top">
+									<tree editable = "bottom">
 										<field name="deduction_parameters_id" options="{'create': false, 'create_edit': false}"/>
 										<field name="float"/>
 									</tree>
