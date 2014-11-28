@@ -654,8 +654,6 @@ class arul_hr_monthly_work_schedule(osv.osv):
     _columns={
               'department_id':fields.many2one('hr.department','Department', required = True, states={'done': [('readonly', True)]}),
               'section_id': fields.many2one('arul.hr.section','Section', required = True, states={'done': [('readonly', True)]}),
-#               'name': fields.char('Year', size = 1024,required = True, states={'done': [('readonly', True)]}),
-#                 'name': fields.selection([(num, str(num)) for num in range((datetime.now().year), 2050)], 'Year', required = True, states={'done': [('readonly', True)]}),
               'year': fields.selection([(num, str(num)) for num in range((datetime.now().year), 2050)], 'Year', required = True, states={'done': [('readonly', True)]}),
               'month': fields.selection([('1', 'January'),('2', 'February'), ('3', 'March'), ('4','April'), ('5','May'), ('6','June'), ('7','July'), ('8','August'), ('9','September'), ('10','October'), ('11','November'), ('12','December')], 'Month',required = True, states={'done': [('readonly', True)]}),
               'monthly_shift_line': fields.one2many('arul.hr.monthly.shift.schedule','monthly_work_id', 'Monthly Work Schedule', states={'done': [('readonly', True)]}),
@@ -670,12 +668,14 @@ class arul_hr_monthly_work_schedule(osv.osv):
         res = []
         if not ids:
             return res
-        reads = self.read(cr, uid, ids, ['year'], context)
-  
-        for record in reads:
-            name = record['year']
-            res.append((record['id'], name))
-        return res  
+        reads = self.read(cr, uid, ids, ['year', 'month'], context)
+        for line in self.browse(cr,uid,ids):
+            for record in reads:
+                year = str(line.year)
+                month = str(line.month)
+                name = 'Year: ' + year + ' - Month: ' + month
+                res.append((record['id'], name))
+            return res  
     
     def load_previous_month(self, cr, uid, ids, context=None):
         for line in self.browse(cr, uid, ids):
