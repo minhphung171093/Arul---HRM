@@ -1,0 +1,4 @@
+.openerp .oe_tag_dark {
+  background: #c63939;
+  color: #eeeeee;
+}

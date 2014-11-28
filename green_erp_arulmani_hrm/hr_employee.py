@@ -13,6 +13,20 @@ class hr_employee_category(osv.osv):
     _columns = {
         'sub_category_ids' : fields.many2many('hr.employee.sub.category','category_sub_category_ref','category_id','sub_category_id','Sub Category'),
     }
+    
+    def _check_code_id(self, cr, uid, ids, context=None):
+        for category in self.browse(cr, uid, ids, context=context):
+            sql = '''
+                select id from vsis_hr_employee_category where id != %s and lower(code) = lower('%s')
+            '''%(category.id,category.code)
+            cr.execute(sql)
+            category_ids = [row[0] for row in cr.fetchall()]
+            if category_ids:  
+                return False
+        return True
+    _constraints = [
+        (_check_code_id, 'Identical Data', ['code']),
+    ]
 hr_employee_category()
 
 class arul_reason(osv.osv):
@@ -221,7 +235,7 @@ class hr_employee(osv.osv):
         'section_id': fields.many2one('arul.hr.section','Section'),
         'payroll_area_id': fields.many2one('arul.hr.payroll.area','Payroll Area'),
         'payroll_sub_area_id': fields.many2one('arul.hr.payroll.sub.area','Payroll Sub Area'),
-        'time_record': fields.char('Time Record ID', size=1024),
+        'time_record': fields.char('Time Record ID', size=1024, required = True),
         'employee_leave_id': fields.one2many('employee.leave','employee_id','Employee Leave'),
     }
     def search(self, cr, uid, args, offset=0, limit=None, order=None, context=None, count=False):
@@ -291,6 +305,10 @@ class hr_employee(osv.osv):
         return {'value': {'employee_sub_category_id': False }, 'domain':{'employee_sub_category_id':[('id','in',emp_sub_cat)]}}
     
     def create(self, cr, uid, vals, context=None):
+        if 'time_record' in vals:
+            time_record = vals['time_record'].replace(" ","")
+            vals['time_record'] = time_record
+        return super(hr_employee, self).create(cr, uid, vals, context)
         if context is None:
             context = {}
         new_id = super(hr_employee, self).create(cr, uid, vals, context)
@@ -298,6 +316,23 @@ class hr_employee(osv.osv):
             for line_id in context.get('create_hiring_employee'):
                 self.pool.get('arul.hr.employee.action.history').write(cr, uid, [line_id], {'employee_id': new_id})
         return new_id
+    
+    def write(self, cr, uid, ids, vals, context=None):
+        if 'time_record' in vals:
+            time_record = vals['time_record'].replace(" ","")
+            vals['time_record'] = time_record
+        return super(hr_employee, self).write(cr, uid,ids, vals, context)
+#     
+#     def create(self, cr, uid, vals, context=None):
+#         if context is None:
+#             context = {}
+#         new_id = super(hr_employee, self).create(cr, uid, vals, context)
+#         if context.get('create_hiring_employee'):
+#             for line_id in context.get('create_hiring_employee'):
+#                 self.pool.get('arul.hr.employee.action.history').write(cr, uid, [line_id], {'employee_id': new_id})
+#         return new_id
+    
+    
 hr_employee()
     
 class arul_employee_actions(osv.osv):

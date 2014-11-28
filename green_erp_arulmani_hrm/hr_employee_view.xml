@@ -143,7 +143,7 @@
 	                    	<field name="name"/>
 	                    	<field name="active"/>
 	               	  	</group>
-	               	  	<group string = "Action Type">
+	               	  	<group string = "Employee Action Type">
 		                    <group >
 		                    	<field name="action_type_ids" nolabel='1'/>
 		                    </group>
@@ -154,7 +154,7 @@
         </record>     
 		
 		<record id="action_arul_employee_actions_form" model="ir.actions.act_window">
-            <field name="name">Action</field>
+            <field name="name">Employee Action</field>
             <field name="type">ir.actions.act_window</field>
             <field name="res_model">arul.employee.actions</field>
             <field name="view_type">form</field>
@@ -170,7 +170,7 @@
 			<field name="name">arul.employee.actions.type.search</field>
 			<field name="model">arul.employee.action.type</field>
 			<field name="arch" type="xml">
-				<search string="Action Type">
+				<search string="Employee Action Type">
 					<field name="code"/>
 					<field name="name"/>
 				</search>
@@ -181,7 +181,7 @@
 			<field name="name">arul.employee.action.type.tree</field>
 			<field name="model">arul.employee.action.type</field>
 			<field name="arch" type="xml">
-				<tree string="Action Type">
+				<tree string="Employee Action Type">
 					<field name="code"/>
 					<field name="name"/>
 				</tree>
@@ -192,7 +192,7 @@
             <field name="name">arul.employee.action.type.form</field>
             <field name="model">arul.employee.action.type</field>
             <field name="arch" type="xml">
-                <form string="Action Type" version="7.0">    
+                <form string="Employee Action Type" version="7.0">    
                 	<sheet>
 	                    <group>
 	                    	<field name="code"/>
@@ -204,7 +204,7 @@
         </record>    
         
         <record id="action_arul_employee_action_type_form" model="ir.actions.act_window">
-            <field name="name">Action Type</field>
+            <field name="name">Employee Action Type</field>
             <field name="type">ir.actions.act_window</field>
             <field name="res_model">arul.employee.action.type</field>
             <field name="view_type">form</field>
@@ -222,34 +222,36 @@
             <field name="inherit_id" ref="hr.view_employee_form"/>
             <field name="arch" type="xml">
           		<xpath expr="//page[@string='HR Settings']" position="after">
-                    <page string = 'Action History'>
-                    	<field name="action_history_line" nolabel='1'>
-	                    	<tree editable='top'>
-	                    		<field name ="employee_id" string="Emp.ID"/>
-	                    		<field name ="action_id"/>
-	                    		<field name ="action_type_id"/>
-	                    		<field name ="action_date"/>
-	                    		<field name ="create_date"/>
-	                    		<field name ="create_uid"/>
-	                    		<field name ="period_from"/>
-	                    		<field name ="period_to"/>
-	                    		<field name ="reason_id"/>
-	                    		<field name ="note"/>
-	                    		<field name="datas" filename="datas_fname" string="Document upload"/>
-	                        	<field name="datas_fname" invisible="1" class="oe_inline oe_right"/>
-	                    		<field name ="department_from_id" string="Dept.From"/>
-	                    		<field name ="department_to_id" string="Dept.To" />
-	                    		<field name ="designation_from_id" string="Dest.From"/>
-	                    		<field name ="designation_to_id" string="Dest.To"/>
-	                    		<field name ="current_month_salary"/>
-	                    		<field name ="pl_encashment"/>
-	                    		<field name ="c_off"/>
-	                    		<field name ="bonus"/>
-	                    		<field name ="medical_reimbursement"/>
-	                    		<field name ="gratuity"/>
-	                    		<field name ="pf_settlement"/>
-	                    	</tree>
-                    	</field>
+                    <page string = 'Employee Action History'>
+                    	<div col='4' colspan='4' class='oe_green_erp_scroll'>
+	                    	<field name="action_history_line" nolabel='1'>
+		                    	<tree editable='top'>
+		                    		<field name ="employee_id" string="Emp.ID"/>
+		                    		<field name ="action_id"/>
+		                    		<field name ="action_type_id"/>
+		                    		<field name ="action_date"/>
+		                    		<field name ="create_date"/>
+		                    		<field name ="create_uid"/>
+		                    		<field name ="period_from"/>
+		                    		<field name ="period_to"/>
+		                    		<field name ="reason_id"/>
+		                    		<field name ="note"/>
+		                    		<field name="datas" filename="datas_fname" string="Document upload"/>
+		                        	<field name="datas_fname" invisible="1" class="oe_inline oe_right"/>
+		                    		<field name ="department_from_id" string="Dept.From"/>
+		                    		<field name ="department_to_id" string="Dept.To" />
+		                    		<field name ="designation_from_id" string="Dest.From"/>
+		                    		<field name ="designation_to_id" string="Dest.To"/>
+		                    		<field name ="current_month_salary"/>
+		                    		<field name ="pl_encashment"/>
+		                    		<field name ="c_off"/>
+		                    		<field name ="bonus"/>
+		                    		<field name ="medical_reimbursement"/>
+		                    		<field name ="gratuity"/>
+		                    		<field name ="pf_settlement"/>
+		                    	</tree>
+	                    	</field>
+                    	</div>
                     </page>
             	</xpath>
             </field>

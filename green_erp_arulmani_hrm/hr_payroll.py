@@ -25,6 +25,19 @@ class arul_hr_payroll_area(osv.osv):
     _constraints = [
         (_check_code_id, 'Identical Data', ['code']),
     ]
+    def _check_code_id(self, cr, uid, ids, context=None):
+        for payroll in self.browse(cr, uid, ids, context=context):
+            sql = '''
+                select id from arul_hr_payroll_area where id != %s and lower(code) = lower('%s')
+            '''%(payroll.id,payroll.code)
+            cr.execute(sql)
+            payroll_ids = [row[0] for row in cr.fetchall()]
+            if payroll_ids:  
+                return False
+        return True
+    _constraints = [
+        (_check_code_id, 'Identical Data', ['code']),
+    ]
     
 arul_hr_payroll_area()
 
@@ -35,9 +48,26 @@ class arul_hr_payroll_sub_area(osv.osv):
          'code': fields.char('Code', size=1024, required = True),
         
     }
+    
+    def create(self, cr, uid, vals, context=None):
+        if 'code' in vals:
+            code = vals['code'].replace(" ","")
+            vals['code'] = code
+        return super(arul_hr_payroll_sub_area, self).create(cr, uid, vals, context)
+    
+    def write(self, cr, uid, ids, vals, context=None):
+        if 'code' in vals:
+            code = vals['code'].replace(" ","")
+            vals['code'] = code
+        return super(arul_hr_payroll_sub_area, self).write(cr, uid,ids, vals, context)
+    
     def _check_code_id(self, cr, uid, ids, context=None):
         for payroll in self.browse(cr, uid, ids, context=context):
-            payroll_ids = self.search(cr, uid, [('id','!=',payroll.id),('code','=',payroll.code)])
+            sql = '''
+                select id from arul_hr_payroll_sub_area where id != %s and lower(code) = lower('%s')
+            '''%(payroll.id,payroll.code)
+            cr.execute(sql)
+            payroll_ids = [row[0] for row in cr.fetchall()]
             if payroll_ids:  
                 return False
         return True

@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<openerp>
+    <data>
+    	<record id="view_company_inherit_form" model="ir.ui.view">
+            <field name="name">view.company.inherit.form</field>
+            <field name="model">res.company</field>
+			<field name="inherit_id" ref="green_erp_arulmani_crm.vsis_view_company_form"/>
+            <field name="arch" type="xml">
+                <data>
+                    <xpath expr="//field[@name='stylesheet_id']" position="replace">
+                        <field name="stylesheet_id" options="{'create': false, 'create_edit': false}"/>
+                    </xpath>
+                </data>
+            </field>
+        </record>
+    </data>
+</openerp>
