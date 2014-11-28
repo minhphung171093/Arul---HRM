@@ -238,6 +238,8 @@ arul_hr_payroll_earning_structure()
 class arul_hr_payroll_contribution_parameters(osv.osv):
     _name = 'arul.hr.payroll.contribution.parameters'
     _columns = {
+        'sub_category_id':fields.many2one('hr.employee.sub.category','Employee Sub Group'),
+        'employee_category_id':fields.many2one('vsis.hr.employee.category','Employee Group'),
         'emp_pf_con': fields.float('Employee PF Contribution (%)'),
         'employer_pension_con': fields.float('Employer Pension Contribution (%)'),
         'pension_limit_amt': fields.float('Pension Limit Amt'),
