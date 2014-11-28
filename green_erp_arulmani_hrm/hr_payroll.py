@@ -222,9 +222,9 @@ class arul_hr_payroll_earning_structure(osv.osv):
     _name = 'arul.hr.payroll.earning.structure'
     _columns = {
          'earning_parameters_id': fields.many2one('arul.hr.payroll.earning.parameters','Earning Parameters', required = True),
-         'earning_structure_id':fields.many2one('arul.hr.payroll.employee.structure','Earning Structure'), 
+         'earning_structure_id':fields.many2one('arul.hr.payroll.employee.structure','Earning Structure', ondelete='cascade'), 
          'float':fields.float('Float') ,
-         'executions_details_id':fields.many2one('arul.hr.payroll.executions.details','Execution Details'),
+         'executions_details_id':fields.many2one('arul.hr.payroll.executions.details','Execution Details', ondelete='cascade'),
     }
     def onchange_structure_line(self, cr, uid, ids, context=None):
         configuration_obj = self.pool.get('arul.hr.payroll.structure.configuration')
@@ -297,7 +297,7 @@ class arul_hr_payroll_earning_structure_configuration(osv.osv):
     _name = 'arul.hr.payroll.earning.structure.configuration'
     _columns = {
          'earning_parameters_id': fields.many2one('arul.hr.payroll.earning.parameters','Earning Parameters',required = True),
-         'earning_structure_configuration_id':fields.many2one('arul.hr.payroll.structure.configuration','Earning Structure'), 
+         'earning_structure_configuration_id':fields.many2one('arul.hr.payroll.structure.configuration','Earning Structure', ondelete='cascade'), 
          'fixed_percentage':fields.selection([('fixed','Fixed'),('percentage','Percentage')], 'Fixed/Percentage?',required = True) ,
          'value':fields.float('Values'),
     }
@@ -309,9 +309,9 @@ class arul_hr_payroll_other_deductions(osv.osv):
     _columns = {
          
          'deduction_parameters_id': fields.many2one('arul.hr.payroll.deduction.parameters','Deduction Parameters',required = True),
-         'earning_structure_id':fields.many2one('arul.hr.payroll.employee.structure','Earning Structure'), 
+         'earning_structure_id':fields.many2one('arul.hr.payroll.employee.structure','Earning Structure', ondelete='cascade'), 
          'float':fields.float('Float') ,
-         'executions_details_id':fields.many2one('arul.hr.payroll.executions.details','Execution Details'),
+         'executions_details_id':fields.many2one('arul.hr.payroll.executions.details','Execution Details', ondelete='cascade'),
     }
     
 arul_hr_payroll_other_deductions()
@@ -374,7 +374,7 @@ class arul_hr_payroll_executions_details(osv.osv):
         'designation_id': fields.many2one('arul.hr.designation', 'Designation'),
         'year': fields.char('Year', size = 1024),
         'month': fields.selection([('1', 'January'),('2', 'February'), ('3', 'March'), ('4','April'), ('5','May'), ('6','June'), ('7','July'), ('8','August'), ('9','September'), ('10','October'), ('11','November'), ('12','December')], 'Month'),
-        'payroll_executions_id':fields.many2one('arul.hr.payroll.executions', 'Payroll Executions'),
+        'payroll_executions_id':fields.many2one('arul.hr.payroll.executions', 'Payroll Executions', ondelete='cascade'),
         'earning_structure_line':fields.one2many('arul.hr.payroll.earning.structure','executions_details_id', 'Earing Structure'),
         'other_deduction_line':fields.one2many('arul.hr.payroll.other.deductions','executions_details_id', 'Other Deduction'),
     }

@@ -442,7 +442,7 @@
 				<tree string="Monthly Work Schedule">
 					<field name="department_id" options="{'create': false, 'create_edit': false}"/>
 					<field name="section_id" options="{'create': false, 'create_edit': false}"/>
-					<field name="name"/>
+					<field name="year"/>
 					<field name="month"/>
 					<field name="state" widget="statusbar" statusbar_visible="draft,done" statusbar_colors='{"draft":"blue","done":"blue"}'/>
 				</tree>
@@ -462,10 +462,10 @@
 	                </header> 
 	            	<sheet>
 						<group col='4' colspan='2'>
-							<field name="department_id" on_change="onchange_department_id(department_id,month,name)" options="{'create': false, 'create_edit': false}"/>
+							<field name="department_id" on_change="onchange_department_id(department_id,month,year)" options="{'create': false, 'create_edit': false}"/>
 							<field name="section_id" options="{'create': false, 'create_edit': false}"/>
-							<field name="name" on_change="onchange_department_id(department_id,month,name)"/>
-							<field name="month" on_change="onchange_department_id(department_id,month,name)"/>
+							<field name="year" on_change="onchange_department_id(department_id,month,year)"/>
+							<field name="month" on_change="onchange_department_id(department_id,month,year)"/>
 							
 						</group>
 						<notebook>
