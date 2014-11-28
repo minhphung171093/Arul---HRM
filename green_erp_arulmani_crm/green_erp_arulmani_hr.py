@@ -208,6 +208,18 @@ class hr_employee_category(osv.osv):
     _sql_constraints = [
         ('code_uniq', 'unique (code)', 'The code must be unique !'),
     ]
+    
+    def create(self, cr, uid, vals, context=None):
+        if 'code' in vals:
+            name = vals['code'].replace(" ","")
+            vals['code'] = name
+        return super(hr_employee_category, self).create(cr, uid, vals, context)
+    
+    def write(self, cr, uid, ids, vals, context=None):
+        if 'code' in vals:
+            code = vals['code'].replace(" ","")
+            vals['code'] = code
+        return super(hr_employee_category, self).write(cr, uid,ids, vals, context)
 hr_employee_category()
 class hr_employee_sub_category(osv.osv):
     _name = "hr.employee.sub.category"
@@ -223,6 +235,19 @@ class hr_employee_sub_category(osv.osv):
     }
     _sql_constraints = [
         ('code_uniq', 'unique (code)', 'The code must be unique !'),
+    ]
+    def _check_code_id(self, cr, uid, ids, context=None):
+        for sub_category in self.browse(cr, uid, ids, context=context):
+            sql = '''
+                select id from hr_employee_sub_category where id != %s and lower(code) = lower('%s')
+            '''%(sub_category.id,sub_category.code)
+            cr.execute(sql)
+            sub_category_ids = [row[0] for row in cr.fetchall()]
+            if sub_category_ids:  
+                return False
+        return True
+    _constraints = [
+        (_check_code_id, 'Identical Data', ['code']),
     ]
 hr_employee_sub_category()
 class hr_employee_grade(osv.osv):
@@ -240,6 +265,8 @@ class hr_employee_grade(osv.osv):
     _sql_constraints = [
         ('code_uniq', 'unique (code)', 'The code must be unique !'),
     ]
+    
+ 
 hr_employee_grade()
 class hr_statutory (osv.osv):
     _name = "hr.statutory"

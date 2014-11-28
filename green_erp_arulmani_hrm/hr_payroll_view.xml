@@ -215,7 +215,7 @@
 						<notebook>
 							<page string = "Earning Structure">
 								<field name="payroll_earning_structure_line" nolabel='1' on_change="onchange_structure_line(payroll_earning_structure_line,employee_category_id,sub_category_id)">
-									<tree editable="top" >
+									<tree editable="bottom" >
 										<field name="earning_parameters_id" options="{'create': false, 'create_edit': false}"/>
 										<field name="float" on_change="onchange_structure_line()" context="{'employee_category_id':parent.employee_category_id,'sub_category_id':parent.sub_category_id}"/>
 									</tree>
@@ -235,7 +235,7 @@
 									</div>
 								</group>
 								<field name="payroll_other_deductions_line" nolabel='1'>
-									<tree editable = "top">
+									<tree editable = "bottom">
 										<field name="deduction_parameters_id" options="{'create': false, 'create_edit': false}"/>
 										<field name="float"/>
 									</tree>
@@ -267,6 +267,8 @@
 			<field name="model">arul.hr.payroll.contribution.parameters</field>
 			<field name="arch" type="xml">
 				<tree string="Payroll Contribution Parameters">
+					<field name="employee_category_id" />  
+					<field name="sub_category_id"/>
 					<field name="emp_pf_con"/>
 					<field name="employer_pension_con"/>
 					<field name="pension_limit_amt"/>
@@ -285,7 +287,9 @@
             <field name="arch" type="xml">
 	            <form string="Payroll Contribution Parameters" version="7.0">   
 	            	<sheet>
-		                <group col = '4' colspan = '2'>    
+		                <group col = '4' colspan = '2'>
+		                	<field name="employee_category_id" options="{'create': false, 'create_edit': false}"/>  
+		                	<field name="sub_category_id" options="{'create': false, 'create_edit': false}"/>
 			                <field name="emp_pf_con"/>
 			                <newline/>
 							<field name="employer_pension_con"/>
@@ -364,7 +368,7 @@
 											<notebook>
 												<page string = "Earning Structure">
 													<field name="earning_structure_line" nolabel = '1'>
-														<tree editable = 'top' >
+														<tree editable = 'bottom' >
 															<field name="earning_parameters_id" options="{'create': false, 'create_edit': false}"/>
 															<field name="float" />
 														</tree>
@@ -372,7 +376,7 @@
 												</page>
 												<page string = "Other Deduction">
 													<field name="other_deduction_line" nolabel = '1'>
-														<tree editable = 'top' >
+														<tree editable = 'bottom' >
 															<field name="deduction_parameters_id" options="{'create': false, 'create_edit': false}"/>
 															<field name="float" />
 														</tree>
