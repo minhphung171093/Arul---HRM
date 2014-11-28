@@ -238,8 +238,8 @@ arul_hr_payroll_earning_structure()
 class arul_hr_payroll_contribution_parameters(osv.osv):
     _name = 'arul.hr.payroll.contribution.parameters'
     _columns = {
-        'sub_category_id':fields.many2one('hr.employee.sub.category','Employee Sub Group'),
-        'employee_category_id':fields.many2one('vsis.hr.employee.category','Employee Group'),
+        'sub_category_id':fields.many2one('hr.employee.sub.category','Employee Sub Group', required = True),
+        'employee_category_id':fields.many2one('vsis.hr.employee.category','Employee Group', required = True),
         'emp_pf_con': fields.float('Employee PF Contribution (%)'),
         'employer_pension_con': fields.float('Employer Pension Contribution (%)'),
         'pension_limit_amt': fields.float('Pension Limit Amt'),
@@ -248,7 +248,15 @@ class arul_hr_payroll_contribution_parameters(osv.osv):
         'employer_esi_con': fields.float('Employer ESI Contribution (%)'),
         'emp_lwf_amt': fields.float('Employee Labor Welfare Fund (LWF) Amt'),
         'employer_lwf_con_amt': fields.float('Employer LWF Contribution Amt'),
-    }
+        }
+        
+    def onchange_employee_category_id(self, cr, uid, ids,employee_category_id=False, context=None):
+        emp_sub_cat = []
+        if employee_category_id:
+            emp_cat = self.pool.get('vsis.hr.employee.category').browse(cr, uid, employee_category_id)
+            emp_sub_cat = [x.id for x in emp_cat.sub_category_ids]
+        return {'value': {'sub_category_id': False }, 'domain':{'sub_category_id':[('id','in',emp_sub_cat)]}}
+    
 arul_hr_payroll_contribution_parameters()
 
 class arul_hr_payroll_structure_configuration(osv.osv):
