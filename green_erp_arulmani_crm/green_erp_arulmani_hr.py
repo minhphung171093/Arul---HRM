@@ -205,8 +205,18 @@ class hr_employee_category(osv.osv):
     _defaults = {
         'active': True,
     }
-    _sql_constraints = [
-        ('code_uniq', 'unique (code)', 'The code must be unique !'),
+    def _check_code_id(self, cr, uid, ids, context=None):
+        for category in self.browse(cr, uid, ids, context=context):
+            sql = '''
+                select id from vsis_hr_employee_category where id != %s and lower(code) = lower('%s')
+            '''%(category.id,category.code)
+            cr.execute(sql)
+            category_ids = [row[0] for row in cr.fetchall()]
+            if category_ids:  
+                return False
+        return True
+    _constraints = [
+        (_check_code_id, 'Identical Data', ['code']),
     ]
     
     def create(self, cr, uid, vals, context=None):
@@ -217,8 +227,8 @@ class hr_employee_category(osv.osv):
     
     def write(self, cr, uid, ids, vals, context=None):
         if 'code' in vals:
-            code = vals['code'].replace(" ","")
-            vals['code'] = code
+            name = vals['code'].replace(" ","")
+            vals['code'] = name
         return super(hr_employee_category, self).write(cr, uid,ids, vals, context)
 hr_employee_category()
 class hr_employee_sub_category(osv.osv):
@@ -233,9 +243,19 @@ class hr_employee_sub_category(osv.osv):
     _defaults = {
         'active': True,
     }
-    _sql_constraints = [
-        ('code_uniq', 'unique (code)', 'The code must be unique !'),
-    ]
+
+    def create(self, cr, uid, vals, context=None):
+        if 'code' in vals:
+            name = vals['code'].replace(" ","")
+            vals['code'] = name
+        return super(hr_employee_sub_category, self).create(cr, uid, vals, context)
+    
+    def write(self, cr, uid, ids, vals, context=None):
+        if 'code' in vals:
+            name = vals['code'].replace(" ","")
+            vals['code'] = name
+        return super(hr_employee_sub_category, self).write(cr, uid,ids, vals, context)
+    
     def _check_code_id(self, cr, uid, ids, context=None):
         for sub_category in self.browse(cr, uid, ids, context=context):
             sql = '''
