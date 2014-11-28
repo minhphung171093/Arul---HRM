@@ -15,16 +15,18 @@ class arul_hr_payroll_area(osv.osv):
          'code': fields.char('Code', size=1024, required = True),
         
     }
-    def _check_code_id(self, cr, uid, ids, context=None):
-        for payroll in self.browse(cr, uid, ids, context=context):
-            payroll_code_ids = self.search(cr, uid, [('id','!=',payroll.id),('code','=',payroll.code)])
-            payroll_name_ids = self.search(cr, uid, [('id','!=',payroll.id),('name','=',payroll.name)])
-            if payroll_code_ids or payroll_name_ids:  
-                return False
-        return True
-    _constraints = [
-        (_check_code_id, 'Identical Data', ['code']),
-    ]
+    def create(self, cr, uid, vals, context=None):
+        if 'code' in vals:
+            name = vals['code'].replace(" ","")
+            vals['code'] = name
+        return super(arul_hr_payroll_area, self).create(cr, uid, vals, context)
+    
+    def write(self, cr, uid, ids, vals, context=None):
+        if 'code' in vals:
+            name = vals['code'].replace(" ","")
+            vals['code'] = name
+        return super(arul_hr_payroll_area, self).write(cr, uid,ids, vals, context)
+
     def _check_code_id(self, cr, uid, ids, context=None):
         for payroll in self.browse(cr, uid, ids, context=context):
             sql = '''
@@ -38,6 +40,7 @@ class arul_hr_payroll_area(osv.osv):
     _constraints = [
         (_check_code_id, 'Identical Data', ['code']),
     ]
+
     
 arul_hr_payroll_area()
 
@@ -123,6 +126,10 @@ class arul_hr_payroll_employee_structure(osv.osv):
          'employee_id': fields.many2one('hr.employee','Employee ID',required = True),
          'employee_category_id':fields.many2one('vsis.hr.employee.category','Employee Group'),
          'sub_category_id':fields.many2one('hr.employee.sub.category','Employee Sub Group'), 
+         'ins_de_period_start':fields.date('Insurance Deduction Period'),
+         'ins_de_period_end':fields.date('Insurance Deduction Period'),
+         'loan_de_period_start':fields.date('Loan Deductions Period'),
+         'loan_de_period_end':fields.date('Loan Deductions Period'),
          'payroll_earning_structure_line':fields.one2many('arul.hr.payroll.earning.structure','earning_structure_id','Structure line' ),
          'payroll_other_deductions_line':fields.one2many('arul.hr.payroll.other.deductions','earning_structure_id','Structure line'),
     }
@@ -300,6 +307,7 @@ arul_hr_payroll_earning_structure_configuration()
 class arul_hr_payroll_other_deductions(osv.osv):
     _name = 'arul.hr.payroll.other.deductions'
     _columns = {
+         
          'deduction_parameters_id': fields.many2one('arul.hr.payroll.deduction.parameters','Deduction Parameters',required = True),
          'earning_structure_id':fields.many2one('arul.hr.payroll.employee.structure','Earning Structure'), 
          'float':fields.float('Float') ,

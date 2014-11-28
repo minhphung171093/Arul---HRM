@@ -222,6 +222,18 @@
 								</field>
 							</page>
 							<page string = "Other Deductions">
+								<group>
+									<label for="ins_de_period_start" string="Insurance Deduction Period"/>
+									<div>
+										<field name="ins_de_period_start" class="oe_inline"/>
+										<field name="ins_de_period_end" class="oe_inline"/>
+									</div>
+									<label for="loan_de_period_start" string="Loan Deductions Period"/>
+									<div>
+										<field name="loan_de_period_start" class="oe_inline"/>
+										<field name="loan_de_period_end" class="oe_inline"/>
+									</div>
+								</group>
 								<field name="payroll_other_deductions_line" nolabel='1'>
 									<tree editable = "bottom">
 										<field name="deduction_parameters_id" options="{'create': false, 'create_edit': false}"/>
