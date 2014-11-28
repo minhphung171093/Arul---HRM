@@ -110,6 +110,10 @@ class arul_hr_payroll_employee_structure(osv.osv):
          'employee_id': fields.many2one('hr.employee','Employee ID',required = True),
          'employee_category_id':fields.many2one('vsis.hr.employee.category','Employee Group'),
          'sub_category_id':fields.many2one('hr.employee.sub.category','Employee Sub Group'), 
+         'ins_de_period_start':fields.date('Insurance Deduction Period'),
+         'ins_de_period_end':fields.date('Insurance Deduction Period'),
+         'loan_de_period_start':fields.date('Loan Deductions Period'),
+         'loan_de_period_end':fields.date('Loan Deductions Period'),
          'payroll_earning_structure_line':fields.one2many('arul.hr.payroll.earning.structure','earning_structure_id','Structure line' ),
          'payroll_other_deductions_line':fields.one2many('arul.hr.payroll.other.deductions','earning_structure_id','Structure line'),
     }
@@ -277,6 +281,7 @@ arul_hr_payroll_earning_structure_configuration()
 class arul_hr_payroll_other_deductions(osv.osv):
     _name = 'arul.hr.payroll.other.deductions'
     _columns = {
+         
          'deduction_parameters_id': fields.many2one('arul.hr.payroll.deduction.parameters','Deduction Parameters',required = True),
          'earning_structure_id':fields.many2one('arul.hr.payroll.employee.structure','Earning Structure'), 
          'float':fields.float('Float') ,
