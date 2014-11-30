@@ -288,7 +288,7 @@
 	            <form string="Payroll Contribution Parameters" version="7.0">   
 	            	<sheet>
 		                <group col = '4' colspan = '2'>
-		                	<field name="employee_category_id" options="{'create': false, 'create_edit': false}"/>  
+		                	<field name="employee_category_id" options="{'create': false, 'create_edit': false}" on_change="onchange_employee_category_id(employee_category_id)"/>  
 		                	<field name="sub_category_id" options="{'create': false, 'create_edit': false}"/>
 			                <field name="emp_pf_con"/>
 			                <newline/>
@@ -339,18 +339,20 @@
             <field name="arch" type="xml">
 	            <form string="Payroll Executions" version="7.0">  
 	            <header>
-	                <button name="generate_payroll" string="Generate Payroll" type="object" class="oe_highlight" groups="base.group_hr_manager"/>
-	                    
+	                <button name="generate_payroll" string="Generate Payroll" type="object" class="oe_highlight" groups="base.group_hr_manager" attrs="{'readonly':[('state','in',('confirm','approve'))]}"/>
+	                <button name="confirm_payroll" string="Confirm Payroll" type="object" class="oe_highlight" groups="base.group_hr_manager"/>
+	                <button name="rollback_payroll" string="Roll Back Payroll" type="object" class="oe_highlight" groups="base.group_hr_manager"/>
+	                <field name="state" widget="statusbar" statusbar_colors='{"confirm":"blue","draft":"blue"}'/>   
 	            </header>    
 	            	<sheet>
 		                <group col = '4' colspan = '2'>    
-			                <field name="payroll_area_id" options="{'create': false, 'create_edit': false}"/>
-							<field name="year" />
-							<field name="month" />
+			                <field name="payroll_area_id" options="{'create': false, 'create_edit': false}" attrs="{'readonly':[('state','in',('confirm','approve'))]}"/>
+							<field name="year" attrs="{'readonly':[('state','in',('confirm','approve'))]}"/>
+							<field name="month" attrs="{'readonly':[('state','in',('confirm','approve'))]}"/>
 		                </group> 
 		                <notebook>
 		                	<page string = "Payroll Executions Details">
-		                		<field name="payroll_executions_details_line">
+		                		<field name="payroll_executions_details_line" attrs="{'readonly':[('state','in',('confirm','approve'))]}">
 									<form string="Payroll Executions Details" version="7.0">
 										<group col = '4' colspan = '2'>
 											<field name="company_id" options="{'create': false, 'create_edit': false}"/>
@@ -367,7 +369,7 @@
 										<group>
 											<notebook>
 												<page string = "Earning Structure">
-													<field name="earning_structure_line" nolabel = '1'>
+													<field name="earning_structure_line" nolabel = '1' attrs="{'readonly':[('state','in',('confirm','approve'))]}">
 														<tree editable = 'bottom' >
 															<field name="earning_parameters_id" options="{'create': false, 'create_edit': false}"/>
 															<field name="float" />
@@ -375,7 +377,7 @@
 													</field>
 												</page>
 												<page string = "Other Deduction">
-													<field name="other_deduction_line" nolabel = '1'>
+													<field name="other_deduction_line" nolabel = '1' attrs="{'readonly':[('state','in',('confirm','approve'))]}">
 														<tree editable = 'bottom' >
 															<field name="deduction_parameters_id" options="{'create': false, 'create_edit': false}"/>
 															<field name="float" />
