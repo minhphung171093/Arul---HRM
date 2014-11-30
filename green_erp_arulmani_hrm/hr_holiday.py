@@ -782,4 +782,3 @@ class arul_hr_monthly_shift_schedule(osv.osv):
               'day_31': fields.many2one('arul.hr.capture.work.shift','31'),
               }
 arul_hr_monthly_shift_schedule()
-
