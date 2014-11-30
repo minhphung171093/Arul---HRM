@@ -288,7 +288,7 @@
 	            <form string="Payroll Contribution Parameters" version="7.0">   
 	            	<sheet>
 		                <group col = '4' colspan = '2'>
-		                	<field name="employee_category_id" options="{'create': false, 'create_edit': false}"/>  
+		                	<field name="employee_category_id" options="{'create': false, 'create_edit': false}" on_change="onchange_employee_category_id(employee_category_id)"/>  
 		                	<field name="sub_category_id" options="{'create': false, 'create_edit': false}"/>
 			                <field name="emp_pf_con"/>
 			                <newline/>

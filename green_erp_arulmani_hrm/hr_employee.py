@@ -14,19 +14,6 @@ class hr_employee_category(osv.osv):
         'sub_category_ids' : fields.many2many('hr.employee.sub.category','category_sub_category_ref','category_id','sub_category_id','Sub Category'),
     }
     
-    def _check_code_id(self, cr, uid, ids, context=None):
-        for category in self.browse(cr, uid, ids, context=context):
-            sql = '''
-                select id from vsis_hr_employee_category where id != %s and lower(code) = lower('%s')
-            '''%(category.id,category.code)
-            cr.execute(sql)
-            category_ids = [row[0] for row in cr.fetchall()]
-            if category_ids:  
-                return False
-        return True
-    _constraints = [
-        (_check_code_id, 'Identical Data', ['code']),
-    ]
 hr_employee_category()
 
 class arul_reason(osv.osv):
@@ -346,15 +333,30 @@ class arul_employee_actions(osv.osv):
     _defaults={
             'active':True,
                }
-    def _check_code(self, cr, uid, ids, context=None):
-        for employee in self.browse(cr, uid, ids, context=context):
-            employee_ids = self.search(cr, uid, [('id','!=',employee.id),('code','=',employee.code)])
-            if employee_ids:  
+    def create(self, cr, uid, vals, context=None):
+        if 'code' in vals:
+            code = vals['code'].replace(" ","")
+            vals['code'] = code
+        return super(arul_employee_actions, self).create(cr, uid, vals, context)
+    
+    def write(self, cr, uid, ids, vals, context=None):
+        if 'code' in vals:
+            code = vals['code'].replace(" ","")
+            vals['code'] = code
+        return super(arul_employee_actions, self).write(cr, uid,ids, vals, context)
+    
+    def _check_code_id(self, cr, uid, ids, context=None):
+        for actions in self.browse(cr, uid, ids, context=context):
+            sql = '''
+                select id from arul_employee_actions where id != %s and lower(code) = lower('%s')
+            '''%(actions.id,actions.code)
+            cr.execute(sql)
+            actions_ids = [row[0] for row in cr.fetchall()]
+            if actions_ids:  
                 return False
         return True
-
     _constraints = [
-        (_check_code, 'Identical Data', ['code']),
+        (_check_code_id, 'Identical Data', ['code']),
     ]
 arul_employee_actions()
 
@@ -364,15 +366,30 @@ class arul_employee_action_type(osv.osv):
         'name':fields.char('Name', size=64, required = True),
         'code':fields.char('Code',size=64,required = True),
               }
-    def _check_code(self, cr, uid, ids, context=None):
-        for employee in self.browse(cr, uid, ids, context=context):
-            employee_ids = self.search(cr, uid, [('id','!=',employee.id),('code','=',employee.code)])
-            if employee_ids:  
+    def create(self, cr, uid, vals, context=None):
+        if 'code' in vals:
+            code = vals['code'].replace(" ","")
+            vals['code'] = code
+        return super(arul_employee_action_type, self).create(cr, uid, vals, context)
+    
+    def write(self, cr, uid, ids, vals, context=None):
+        if 'code' in vals:
+            code = vals['code'].replace(" ","")
+            vals['code'] = code
+        return super(arul_employee_action_type, self).write(cr, uid,ids, vals, context)
+    
+    def _check_code_id(self, cr, uid, ids, context=None):
+        for type in self.browse(cr, uid, ids, context=context):
+            sql = '''
+                select id from arul_employee_action_type where id != %s and lower(code) = lower('%s')
+            '''%(type.id,type.code)
+            cr.execute(sql)
+            type_ids = [row[0] for row in cr.fetchall()]
+            if type_ids:  
                 return False
         return True
-    
     _constraints = [
-        (_check_code, 'Identical Data', ['code']),
+        (_check_code_id, 'Identical Data', ['code']),
     ]
 
 arul_employee_action_type()
