@@ -102,7 +102,7 @@ class arul_hr_payroll_deduction_parameters(osv.osv):
     _name = 'arul.hr.payroll.deduction.parameters'
     _columns = {
         'name': fields.char('Name', size=1024, required = True),
-        'code': fields.char('Code', size=1024, required = True),
+        'code': fields.char('Code', size=1024, equired = True),
         'description': fields.text('Description'),
     }
     def _check_code_id(self, cr, uid, ids, context=None):
@@ -311,6 +311,7 @@ class arul_hr_payroll_executions(osv.osv):
     _columns = {
          'payroll_area_id': fields.many2one('arul.hr.payroll.area','Payroll Area',required = True),
          'year': fields.char('Year', size = 1024,required = True),
+         'state': fields.selection([('draft', 'New'),('confirm', 'Confirmed'),('approve', 'Approved')],'Status'),
          'month': fields.selection([('1', 'January'),('2', 'February'), ('3', 'March'), ('4','April'), ('5','May'), ('6','June'), ('7','July'), ('8','August'), ('9','September'), ('10','October'), ('11','November'), ('12','December')], 'Month',required = True),
          'payroll_executions_details_line': fields.one2many('arul.hr.payroll.executions.details','payroll_executions_id','Details Line'),
     }
@@ -348,7 +349,11 @@ class arul_hr_payroll_executions(osv.osv):
 #                                 details_line_2.append((0,0,rs2))
 #                                 self.write(cr,uid,[line.id],{'earning_structure_line':details_line_2})
                     
-        
+    def confirm_payroll(self, cr, uid, ids, context=None):
+        return self.write(cr, uid, ids, {'state': 'confirm'})
+
+    def rollback_payroll(self, cr, uid, ids, context=None):
+        return self.write(cr, uid, ids, {'state': 'draft'})
     
 arul_hr_payroll_executions()
 
