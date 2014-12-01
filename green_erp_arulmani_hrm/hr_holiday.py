@@ -493,7 +493,7 @@ class arul_hr_employee_attendence_details(osv.osv):
         'employee_id':fields.many2one('hr.employee','Employee', required=True),
         'employee_category_id':fields.many2one('vsis.hr.employee.category','Employee Category',readonly=False),
         'sub_category_id':fields.many2one('hr.employee.sub.category','Sub Category',readonly=False),
-        'designation_id': fields.many2one('arul.hr.designation', 'Designation',readonly=False),
+        'designation_id': fields.many2one('hr.job', 'Designation',readonly=False),
         'department_id':fields.many2one('hr.department', 'Department',readonly=False),
         'permission_onduty_details_line':fields.one2many('arul.hr.permission.onduty','permission_onduty_id','Permission On duty Details',readonly=True),
         'punch_in_out_line':fields.one2many('arul.hr.punch.in.out.time','punch_in_out_id','Punch in/Punch out Details',readonly=True)
@@ -818,4 +818,3 @@ class arul_hr_monthly_shift_schedule(osv.osv):
               'day_31': fields.many2one('arul.hr.capture.work.shift','31'),
               }
 arul_hr_monthly_shift_schedule()
-

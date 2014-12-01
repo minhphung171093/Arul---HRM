@@ -617,7 +617,7 @@
         <menuitem action="action_arul_hr_punch_in_out_form"
             id="menu_action_arul_hr_punch_in_out_form"
             parent="menu_hr_leave_management" sequence="26"/>
- 
+            
     
 	</data>
 </openerp>

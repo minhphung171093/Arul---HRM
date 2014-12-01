@@ -1,6 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <openerp>
     <data>
+    
+    <menuitem parent="hr.menu_hr_configuration" id="hr.menu_hr_job" action="hr.action_hr_job" name="Designation" sequence="6"/>
+    
     <record id="view_hr_department_customize" model="ir.ui.view">
             <field name="name">hr.department.customize</field>
             <field name="model">hr.department</field>
@@ -89,48 +92,6 @@
         
          
     
-    <record id="view_arul_hr_designation_tree_vew" model="ir.ui.view">
-			<field name="name">arul.hr.designation.tree</field>
-			<field name="model">arul.hr.designation</field>
-			<field name="arch" type="xml">
-				<tree string="Designation">
-				
-					<field name="name"/>
-					
-				</tree>
-			</field>
-		</record>
-		
-		
-		<record id="view_arul_hr_designation_form_vew" model="ir.ui.view">
-            <field name="name">arul.hr.designation.form</field>
-            <field name="model">arul.hr.designation</field>
-            <field name="arch" type="xml">
-            <form string="Designation" version="7.0">   
-            	<sheet>
-                
-	                <group>    
-	                
-					<field name="name"/>
-					
-	                </group>   	
-	            
-	         </sheet>
-	         </form>
-	     	 </field>
-          </record>
-          
-          <record id="action_view_arul_hr_designation_form" model="ir.actions.act_window">
-         	
-            <field name="name">Designation</field>
-            <field name="type">ir.actions.act_window</field>
-            <field name="res_model">arul.hr.designation</field>
-            <field name="view_type">form</field>
-            <field name="view_mode">tree,form</field>
-            <field name="view_id" ref="view_arul_hr_designation_tree_vew"/>
-        </record>
-        
-        <menuitem action="action_view_arul_hr_designation_form" id="menu_action_view_arul_hr_designation_form" parent="hr.menu_hr_configuration" sequence="8"/>
     
       
     </data>

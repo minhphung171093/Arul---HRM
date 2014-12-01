@@ -392,7 +392,7 @@ class arul_hr_payroll_executions_details(osv.osv):
         'payroll_sub_area_id': fields.many2one('arul.hr.payroll.sub.area', 'Payroll Sub Area'),
         'employee_id': fields.many2one('hr.employee', 'Employee'),
         'department_id': fields.many2one('hr.department', 'Department'),
-        'designation_id': fields.many2one('arul.hr.designation', 'Designation'),
+        'designation_id': fields.many2one('hr.job', 'Designation'),
         'year': fields.char('Year', size = 1024),
         'month': fields.selection([('1', 'January'),('2', 'February'), ('3', 'March'), ('4','April'), ('5','May'), ('6','June'), ('7','July'), ('8','August'), ('9','September'), ('10','October'), ('11','November'), ('12','December')], 'Month'),
         'payroll_executions_id':fields.many2one('arul.hr.payroll.executions', 'Payroll Executions', ondelete='cascade'),
