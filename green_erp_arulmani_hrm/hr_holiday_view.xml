@@ -470,7 +470,7 @@
 						</group>
 						<notebook>
 							<page string = 'Monthly Shift Schedule'>
-								<field name="monthly_shift_line" nolabel='1' class='oe_green_erp_scroll'>
+								<field name="monthly_shift_line" nolabel='1' class='oe_green_erp_scroll' context="{'year': year,'month':month}">
 		                    		<tree>
 		                    			<field name="num_of_month" invisible="1"/>
 		                    			<field name="employee_id" options="{'create': false, 'create_edit': false}"/>

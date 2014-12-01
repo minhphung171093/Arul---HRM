@@ -164,6 +164,18 @@ class arul_hr_employee_action_history(osv.osv):
                     'department_from_id':emp.department_id.id,
                     'designation_from_id':emp.department_id and emp.department_id.designation_id.id or False,}
         return {'value': vals}
+    
+    def onchange_transfer_employee_id(self, cr, uid, ids,employee_id=False, context=None):
+        vals = {}
+        if employee_id:
+            emp = self.pool.get('hr.employee').browse(cr, uid, employee_id)
+            vals = {'employee_category_id':emp.employee_category_id.id,
+                    'sub_category_id':emp.employee_sub_category_id.id,
+                    'payroll_area_id':emp.payroll_area_id.id,
+                    'payroll_sub_area_id':emp.payroll_sub_area_id.id,
+                    'department_from_id':emp.department_id.id,
+                    'designation_from_id':emp.department_id and emp.department_id.designation_id.id or False,}
+        return {'value': vals}
 
     def onchange_leaving_employee_id(self, cr, uid, ids,employee_id=False, context=None):
         vals = {}
