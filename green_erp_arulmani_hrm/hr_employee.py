@@ -23,7 +23,7 @@ class hr_employee_sub_category(osv.osv):
         if context is None:
             context = {}
         if context.get('check_employee_category_id'):
-            employee_category_id = context.get('check_employee_category_id')
+            employee_category_id = context.get('employee_category_id')
             if not employee_category_id:
                 args += [('id','=',-1)]
         return super(hr_employee_sub_category, self).search(cr, uid, args, offset, limit, order, context, count)
@@ -170,7 +170,9 @@ class arul_hr_employee_action_history(osv.osv):
             emp = self.pool.get('hr.employee').browse(cr, uid, employee_id)
             vals = {'employee_category_id':emp.employee_category_id.id,
                     'sub_category_id':emp.employee_sub_category_id.id}
-        return {'value': vals}
+        if emp.employee_category_id:
+                emp_sub_cat = [x.id for x in emp.employee_category_id.sub_category_ids]
+        return {'value': vals, 'domain':{'sub_category_id':[('id','in',emp_sub_cat)]}}
 
     def onchange_promotion_employee_id(self, cr, uid, ids,employee_id=False, context=None):
         vals = {}
@@ -179,8 +181,11 @@ class arul_hr_employee_action_history(osv.osv):
             vals = {'employee_category_id':emp.employee_category_id.id,
                     'sub_category_id':emp.employee_sub_category_id.id,
                     'department_from_id':emp.department_id.id,
-                    'designation_from_id':emp.department_id and emp.department_id.designation_id.id or False,}
-        return {'value': vals}
+                    'designation_from_id':emp.department_id and emp.department_id.designation_id.id or False,
+                    }
+            if emp.employee_category_id:
+                emp_sub_cat = [x.id for x in emp.employee_category_id.sub_category_ids]
+        return {'value': vals, 'domain':{'sub_category_id':[('id','in',emp_sub_cat)]}}
 
     def onchange_leaving_employee_id(self, cr, uid, ids,employee_id=False, context=None):
         vals = {}
@@ -190,7 +195,9 @@ class arul_hr_employee_action_history(osv.osv):
                     'sub_category_id':emp.employee_sub_category_id.id,
                     'payroll_area_id':emp.payroll_area_id.id,
                     'payroll_sub_area_id':emp.payroll_sub_area_id.id}
-        return {'value': vals}
+            if emp.employee_category_id:
+                emp_sub_cat = [x.id for x in emp.employee_category_id.sub_category_ids]
+        return {'value': vals, 'domain':{'sub_category_id':[('id','in',emp_sub_cat)]}}
 
     def onchange_disciplinary_employee_id(self, cr, uid, ids,employee_id=False, context=None):
         vals = {}
@@ -198,7 +205,19 @@ class arul_hr_employee_action_history(osv.osv):
             emp = self.pool.get('hr.employee').browse(cr, uid, employee_id)
             vals = {'employee_category_id':emp.employee_category_id.id,
                     'sub_category_id':emp.employee_sub_category_id.id}
-        return {'value': vals}
+        if emp.employee_category_id:
+                emp_sub_cat = [x.id for x in emp.employee_category_id.sub_category_ids]
+        return {'value': vals, 'domain':{'sub_category_id':[('id','in',emp_sub_cat)]}}
+
+    def onchange_compensation_employee_id(self, cr, uid, ids,employee_id=False, context=None):
+        vals = {}
+        if employee_id:
+            emp = self.pool.get('hr.employee').browse(cr, uid, employee_id)
+            vals = {'employee_category_id':emp.employee_category_id.id,
+                    'sub_category_id':emp.employee_sub_category_id.id}
+        if emp.employee_category_id:
+                emp_sub_cat = [x.id for x in emp.employee_category_id.sub_category_ids]
+        return {'value': vals, 'domain':{'sub_category_id':[('id','in',emp_sub_cat)]}}
 
     
     def create_hiring_employee(self, cr, uid, ids, context=None):
@@ -243,7 +262,7 @@ class arul_hr_employee_action_history(osv.osv):
         if context is None:
             context = {}
         if context.get('check_employee_category_id'):
-            employee_category_id = context.get('check_employee_category_id')
+            employee_category_id = context.get('employee_category_id')
             if not employee_category_id:
                 args += [('id','=',-1)]
         return super(arul_hr_employee_action_history, self).search(cr, uid, args, offset, limit, order, context, count)
