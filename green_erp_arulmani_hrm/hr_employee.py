@@ -191,6 +191,7 @@ class arul_hr_employee_action_history(osv.osv):
 
     def onchange_promotion_employee_id(self, cr, uid, ids,employee_id=False, context=None):
         vals = {}
+        emp_sub_cat = []
         if employee_id:
             emp = self.pool.get('hr.employee').browse(cr, uid, employee_id)
             vals = {'employee_category_id':emp.employee_category_id.id,
@@ -202,6 +203,7 @@ class arul_hr_employee_action_history(osv.osv):
     
     def onchange_transfer_employee_id(self, cr, uid, ids,employee_id=False, context=None):
         vals = {}
+        emp_sub_cat = []
         if employee_id:
             emp = self.pool.get('hr.employee').browse(cr, uid, employee_id)
             vals = {'employee_category_id':emp.employee_category_id.id,
@@ -214,6 +216,7 @@ class arul_hr_employee_action_history(osv.osv):
 
     def onchange_leaving_employee_id(self, cr, uid, ids,employee_id=False, context=None):
         vals = {}
+        emp_sub_cat = []
         if employee_id:
             emp = self.pool.get('hr.employee').browse(cr, uid, employee_id)
             vals = {'employee_category_id':emp.employee_category_id.id,
@@ -226,6 +229,7 @@ class arul_hr_employee_action_history(osv.osv):
 
     def onchange_disciplinary_employee_id(self, cr, uid, ids,employee_id=False, context=None):
         vals = {}
+        emp_sub_cat = []
         if employee_id:
             emp = self.pool.get('hr.employee').browse(cr, uid, employee_id)
             vals = {'employee_category_id':emp.employee_category_id.id,
@@ -236,6 +240,7 @@ class arul_hr_employee_action_history(osv.osv):
 
     def onchange_compensation_employee_id(self, cr, uid, ids,employee_id=False, context=None):
         vals = {}
+        emp_sub_cat = []
         if employee_id:
             emp = self.pool.get('hr.employee').browse(cr, uid, employee_id)
             vals = {'employee_category_id':emp.employee_category_id.id,
@@ -244,7 +249,12 @@ class arul_hr_employee_action_history(osv.osv):
                 emp_sub_cat = [x.id for x in emp.employee_category_id.sub_category_ids]
         return {'value': vals, 'domain':{'sub_category_id':[('id','in',emp_sub_cat)]}}
     
-
+    def onchange_employee_category_id(self, cr, uid, ids,employee_category_id=False, context=None):
+        emp_sub_cat = []
+        if employee_category_id:
+            emp_cat = self.pool.get('vsis.hr.employee.category').browse(cr, uid, employee_category_id)
+            emp_sub_cat = [x.id for x in emp_cat.sub_category_ids]
+        return {'value': {'sub_category_id': False }, 'domain':{'sub_category_id':[('id','in',emp_sub_cat)]}}
     
     def create_hiring_employee(self, cr, uid, ids, context=None):
         ir_model_data = self.pool.get('ir.model.data')

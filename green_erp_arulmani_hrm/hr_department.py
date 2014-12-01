@@ -75,15 +75,15 @@ class arul_hr_section(osv.osv):
     def _check_code_id(self, cr, uid, ids, context=None):
         for section in self.browse(cr, uid, ids, context=context):
             sql = '''
-                select id from arul_hr_section where id != %s and lower(code) = lower('%s')
-            '''%(section.id,section.code)
+                select id from arul_hr_section where id != %s and (lower(code) = lower('%s') or lower(name) = lower('%s'))
+            '''%(section.id,section.code,section.name)
             cr.execute(sql)
             section_ids = [row[0] for row in cr.fetchall()]
             if section_ids:  
                 return False
         return True
     _constraints = [
-        (_check_code_id, 'Identical Data', ['code']),
+        (_check_code_id, 'Identical Data', ['code','name']),
     ]    
 arul_hr_section()
 
