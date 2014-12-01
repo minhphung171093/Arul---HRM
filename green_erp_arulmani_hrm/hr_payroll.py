@@ -361,6 +361,12 @@ class arul_hr_payroll_executions(osv.osv):
 #                                 self.write(cr,uid,[line.id],{'earning_structure_line':details_line_2})
                     
     def confirm_payroll(self, cr, uid, ids, context=None):
+#         sql = '''
+#                 select id from arul_hr_payroll_sub_area where id != %s and lower(code) = lower('%s')
+#             '''%(payroll.id,payroll.code)
+#             cr.execute(sql)
+#             payroll_ids = [row[0] for row in cr.fetchall()]
+#             if payroll_ids: 
         return self.write(cr, uid, ids, {'state': 'confirm'})
 
     def rollback_payroll(self, cr, uid, ids, context=None):
@@ -385,3 +391,40 @@ class arul_hr_payroll_executions_details(osv.osv):
     }
     
 arul_hr_payroll_executions_details()
+
+# class approve_reject_payroll(osv.osv):
+#     _name = 'approve.reject.payroll'
+#     _columns = {
+#          'name': fields.char('Name', size=1024, required = True),
+#         'month': fields.selection([('1', 'January'),('2', 'February'), ('3', 'March'), ('4','April'), ('5','May'), ('6','June'), ('7','July'), ('8','August'), ('9','September'), ('10','October'), ('11','November'), ('12','December')], 'Month',required = True),
+#         'year' : fields.many2one('payroll.year', 'Year', select="1"),    
+#                 }
+#     
+#     def reject_payroll(self, cr, uid, ids, context=None):
+#         return True
+#     
+#     def approve_payroll(self, cr, uid, ids, context=None):
+#         return True
+#     
+# approve_reject_payroll()
+# 
+# class  payroll_year(osv.osv):
+#     _name = 'payroll.year'
+#     _columns = {
+# #                 'name': fields.char('Name', size=1024, required = True),
+#                 'name': fields.integer('Year'),
+#                 }
+#     def __init__(self, pool, cr):
+#         now = time.strftime('%Y')
+#         i = 0
+#         for i in range(0,40):
+#             next_year = int(now) + i
+#             i += 1
+#             sql = '''
+#                 select id from payroll_year where name = %s
+#             '''%(next_year)
+#             cr.execute(sql)
+#             year_ids = [row[0] for row in cr.fetchall()]
+#             if len(year_ids) == 0:
+#                 self.pool.get('payroll.year').create(cr, uid, {'year': next_year})
+# payroll_year()

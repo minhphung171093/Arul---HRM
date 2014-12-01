@@ -348,6 +348,7 @@
             <field name="res_model">arul.hr.audit.shift.time</field>
             <field name="view_type">form</field>
             <field name="view_mode">tree,form</field>
+            <field name="domain">[('state','=','draft')]</field>
             <field name="view_id" ref="view_arul_hr_audit_shift_time_tree_vew"/>
         </record>
         

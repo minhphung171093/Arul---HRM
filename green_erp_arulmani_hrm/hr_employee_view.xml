@@ -953,7 +953,7 @@
 			<field name="arch" type="xml">
 				<tree string="Food Subsidy Master">
 					<field name ="food_category"/>
-                	<field name ="food_price"/>
+                	<field name ="food_price" />
                 	<field name ="employer_con"/>
                 	<field name ="employee_con"/>
 				</tree>
@@ -968,7 +968,7 @@
                 	<sheet>  
                 		<group>
                 		<field name ="food_category" style="width: 40%%"/>
-                		<field name ="food_price"/>
+                		<field name ="food_price" on_change="onchange_amount_all(food_price)"/>
                 		<field name ="employer_con"/>
                 		<field name ="employee_con"/>
                 		</group>
