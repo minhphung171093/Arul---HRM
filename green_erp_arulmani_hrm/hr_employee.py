@@ -242,6 +242,7 @@ class arul_hr_employee_action_history(osv.osv):
         if emp.employee_category_id:
                 emp_sub_cat = [x.id for x in emp.employee_category_id.sub_category_ids]
         return {'value': vals, 'domain':{'sub_category_id':[('id','in',emp_sub_cat)]}}
+    
 
     
     def create_hiring_employee(self, cr, uid, ids, context=None):
