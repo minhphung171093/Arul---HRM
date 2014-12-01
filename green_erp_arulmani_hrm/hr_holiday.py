@@ -184,7 +184,7 @@ class arul_hr_audit_shift_time(osv.osv):
                       'out_time':line.out_time,
                       'approval':1
                       }
-                emp_attendence_obj.create(cr,uid,{'employee_id':line.employee_id.id, 'employee_category_id':line.employee_id.employee_category_id.id, 'sub_category_id':line.employee_id.employee_sub_category_id.id,'designation_id':line.employee_id.department_id.designation_id.id, 'department_id':line.employee_id.department_id.id, 'punch_in_out_line':[(0,0,val1)]}) 
+                emp_attendence_obj.create(cr,uid,{'employee_id':line.employee_id.id, 'employee_category_id':line.employee_id.employee_category_id.id, 'sub_category_id':line.employee_id.employee_sub_category_id.id, 'department_id':line.employee_id.department_id.id, 'punch_in_out_line':[(0,0,val1)]}) 
             self.write(cr, uid, [line.id],{'approval': True, 'state':'done'})
         return True
     def reject_shift_time(self, cr, uid, ids, context=None):
@@ -508,13 +508,13 @@ class arul_hr_employee_attendence_details(osv.osv):
                     }
         return {'value': vals}
     def onchange_designation_id(self, cr, uid, ids,department_id=False, context=None):
-        vals = {}
+        designation_ids = []
         if department_id:
-            emp = self.pool.get('hr.department').browse(cr, uid, department_id)
-            vals = {
-#                     'designation_id':emp.designation_id.id,
-                   }
-        return {'value': vals}
+            department = self.pool.get('hr.department').browse(cr, uid, department_id)
+            for line in department.designation_line:
+                designation_ids.append(line.designation_id.id)
+        return {'value': {'designation_id': False }, 'domain':{'designation_id':[('id','in',designation_ids)]}}
+    
 #     def search(self, cr, uid, args, offset=0, limit=None, order=None, context=None, count=False):
 #         if context is None:
 #             context = {}
