@@ -30,6 +30,23 @@ class hr_employee_category(osv.osv):
     
 hr_employee_category()
 
+class hr_employee_sub_category(osv.osv):
+    _inherit = "hr.employee.sub.category"
+    
+    def search(self, cr, uid, args, offset=0, limit=None, order=None, context=None, count=False):
+        if context is None:
+            context = {}
+        if context.get('check_employee_category_id'):
+            employee_category_id = context.get('check_employee_category_id')
+            if not employee_category_id:
+                args += [('id','=',-1)]
+        return super(hr_employee_sub_category, self).search(cr, uid, args, offset, limit, order, context, count)
+    def name_search(self, cr, user, name, args=None, operator='ilike', context=None, limit=100):
+        ids = self.search(cr, user, args, context=context, limit=limit)
+        return self.name_get(cr, user, ids, context=context)
+    
+hr_employee_sub_category()
+
 class arul_reason(osv.osv):
     _name = 'arul.season'
     _columns = {
@@ -118,8 +135,8 @@ class arul_hr_employee_action_history(osv.osv):
         'note': fields.text('Note'),
         'department_from_id': fields.many2one('hr.department','Department From'),
         'department_to_id': fields.many2one('hr.department','Department To'),
-        'designation_from_id':fields.many2one('arul.hr.designation','Designation From'),
-        'designation_to_id':fields.many2one('arul.hr.designation','Designation To'),
+        'designation_from_id':fields.many2one('hr.job','Designation From'),
+        'designation_to_id':fields.many2one('hr.job','Designation To'),
         'employee_category_id':fields.many2one('vsis.hr.employee.category','Employee Category'),
         'sub_category_id':fields.many2one('hr.employee.sub.category','Sub Category'),
         'payroll_area_id':fields.many2one('arul.hr.payroll.area','Payroll Area'),
@@ -176,6 +193,19 @@ class arul_hr_employee_action_history(osv.osv):
             vals = {'employee_category_id':emp.employee_category_id.id,
                     'sub_category_id':emp.employee_sub_category_id.id,
                     'department_from_id':emp.department_id.id,
+#                     'designation_from_id':emp.department_id and emp.department_id.designation_id.id or False,
+                    }
+        return {'value': vals}
+    
+    def onchange_transfer_employee_id(self, cr, uid, ids,employee_id=False, context=None):
+        vals = {}
+        if employee_id:
+            emp = self.pool.get('hr.employee').browse(cr, uid, employee_id)
+            vals = {'employee_category_id':emp.employee_category_id.id,
+                    'sub_category_id':emp.employee_sub_category_id.id,
+                    'payroll_area_id':emp.payroll_area_id.id,
+                    'payroll_sub_area_id':emp.payroll_sub_area_id.id,
+                    'department_from_id':emp.department_id.id,
                     'designation_from_id':emp.department_id and emp.department_id.designation_id.id or False,}
         return {'value': vals}
 
@@ -188,6 +218,15 @@ class arul_hr_employee_action_history(osv.osv):
                     'payroll_area_id':emp.payroll_area_id.id,
                     'payroll_sub_area_id':emp.payroll_sub_area_id.id}
         return {'value': vals}
+
+    def onchange_disciplinary_employee_id(self, cr, uid, ids,employee_id=False, context=None):
+        vals = {}
+        if employee_id:
+            emp = self.pool.get('hr.employee').browse(cr, uid, employee_id)
+            vals = {'employee_category_id':emp.employee_category_id.id,
+                    'sub_category_id':emp.employee_sub_category_id.id}
+        return {'value': vals}
+
     
     def create_hiring_employee(self, cr, uid, ids, context=None):
         ir_model_data = self.pool.get('ir.model.data')
@@ -226,6 +265,7 @@ class arul_hr_employee_action_history(osv.osv):
             self.pool.get('hr.employee').write(cr, uid, [line.employee_id.id], {'employee_active': True})
             self.write(cr, uid, [line.id],{'approve_rehiring': True})
         return True
+<<<<<<< HEAD
     def _check_date(self, cr, uid, ids, context=None):
         for act in self.browse(cr, uid, ids, context=context):
             if act.period_from and act.period_to:
@@ -244,6 +284,21 @@ class arul_hr_employee_action_history(osv.osv):
         (_check_date, 'Identical Data', ['period_from','period_to']),
         (_check_rehiring_date, 'Identical Data', ['period_from','action_date']),
     ]
+=======
+    
+    def search(self, cr, uid, args, offset=0, limit=None, order=None, context=None, count=False):
+        if context is None:
+            context = {}
+        if context.get('check_employee_category_id'):
+            employee_category_id = context.get('check_employee_category_id')
+            if not employee_category_id:
+                args += [('id','=',-1)]
+        return super(arul_hr_employee_action_history, self).search(cr, uid, args, offset, limit, order, context, count)
+    def name_search(self, cr, user, name, args=None, operator='ilike', context=None, limit=100):
+        ids = self.search(cr, user, args, context=context, limit=limit)
+        return self.name_get(cr, user, ids, context=context)
+    
+>>>>>>> 4b47ba372ed79c1d8725cd299a0164c6728549a2
 arul_hr_employee_action_history()
 
 class hr_employee(osv.osv):
