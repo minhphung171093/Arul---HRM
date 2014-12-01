@@ -180,6 +180,7 @@ class arul_hr_employee_action_history(osv.osv):
     
     def onchange_rehiring_employee_id(self, cr, uid, ids,employee_id=False, context=None):
         vals = {}
+        emp_sub_cat = []
         if employee_id:
             emp = self.pool.get('hr.employee').browse(cr, uid, employee_id)
             vals = {'employee_category_id':emp.employee_category_id.id,
