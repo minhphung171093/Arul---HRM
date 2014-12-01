@@ -327,38 +327,54 @@ class arul_hr_payroll_executions(osv.osv):
          'payroll_executions_details_line': fields.one2many('arul.hr.payroll.executions.details','payroll_executions_id','Details Line'),
     }
     def generate_payroll(self, cr, uid, ids, context=None):
-        emp_obj = self.pool.get('hr.employee')
+        details_line = []
         for line in self.browse(cr,uid,ids):
+            emp_obj = self.pool.get('hr.employee')
+            payroll_emp_struc_obj = self.pool.get('arul.hr.payroll.employee.structure')
+            executions_details_obj = self.pool.get('arul.hr.payroll.executions.details')
+            earning_structure_obj = self.pool.get('arul.hr.payroll.earning.structure')
+            other_deductions_obj = self.pool.get('arul.hr.payroll.other.deductions')
             employee_ids = emp_obj.search(cr, uid, [('payroll_area_id','=',line.payroll_area_id.id)])
-            if employee_ids:
-                details_line = []
-                for p in emp_obj.browse(cr,uid,employee_ids):
-                    rs = {
-                            'employee_id': p.id,
-                            'department_id':p.department_id.id,
-                            'designation_id':p.department_id.designation_id.id,
-                            'year':line.year,
-                            'month':line.month,
-                            'company_id': p.company_id.id,
-                            'payroll_area_id': line.payroll_area_id.id,
-                            'payroll_sub_area_id': p.payroll_sub_area_id.id,
-                          }
-                    details_line.append((0,0,rs))
-                self.write(cr,uid,[line.id],{'payroll_executions_details_line':details_line})
+            for p in emp_obj.browse(cr,uid,employee_ids):
+                payroll_executions_details_ids = executions_details_obj.search(cr, uid, [('payroll_executions_id', '=', line.id), ('employee_id', '<=', p.id)], context=context)
+                if payroll_executions_details_ids:
+                    executions_details_obj.unlink(cr, uid, payroll_executions_details_ids, context=context) 
+                vals_earning_struc = []
+                vals_other_deductions = []
+                
+                emp_struc_ids = payroll_emp_struc_obj.search(cr,uid,[('employee_id','=',p.id)])
+                if emp_struc_ids:
+                    for earning_struc_id in payroll_emp_struc_obj.browse(cr,uid,emp_struc_ids[0]).payroll_earning_structure_line:
+                        vals_earning_struc.append((0,0, {
+#                                   'executions_details_id':executions_details_id,               
+                                  'earning_parameters_id':earning_struc_id.earning_parameters_id.id,
+                                  'float': earning_struc_id.float,
+                            }))
+#                         earning_structure_obj.create(cr,uid,vals_earning_struc)
+                    
+                    for other_deductions_id in payroll_emp_struc_obj.browse(cr,uid,emp_struc_ids[0]).payroll_other_deductions_line:
+                        vals_other_deductions.append((0,0, {
+#                                   'executions_details_id':executions_details_id,                    
+                                  'deduction_parameters_id':other_deductions_id.deduction_parameters_id.id,
+                                  'float': other_deductions_id.float,
+                            }))
+#                         other_deductions_obj.create(cr,uid,vals_other_deductions)
+                rs = {
+                        'payroll_executions_id': line.id,
+                        'employee_id': p.id,
+                        'department_id':p.department_id and p.department_id.id or False,
+                        'designation_id':p.department_id and (p.department_id.designation_id and p.department_id.designation_id.id or False) or False,
+                        'year':line.year,
+                        'month':line.month,
+                        'company_id': p.company_id and p.company_id.id or False,
+                        'payroll_area_id': line.payroll_area_id.id,
+                        'payroll_sub_area_id': p.payroll_sub_area_id.id,
+                        'earning_structure_line':vals_earning_struc,
+                        'other_deduction_line':vals_other_deductions,
+                      }
+                executions_details_id = executions_details_obj.create(cr,uid,rs)
+                
         return True
-#                     payroll_structure_obj = self.pool.get('arul.hr.payroll.employee.structure')
-#                     employee_details_ids = payroll_structure_obj.search(cr, uid, [('employee_id','=',p.id)])
-#                     if employee_details_ids:
-#                         earning_stucture_obj = self.pool.get('arul.hr.payroll.earning.structure')
-#                         for details in payroll_structure_obj.browse(cr,uid,employee_details_ids):
-#                             details_line_2 = []
-#                             for line1 in details.payroll_earning_structure_line:
-#                                 rs2 = {
-#                                         'earning_parameters_id': line1.earning_parameters_id.id,
-#                                         'float': line1.float,
-#                                        }
-#                                 details_line_2.append((0,0,rs2))
-#                                 self.write(cr,uid,[line.id],{'earning_structure_line':details_line_2})
                     
     def confirm_payroll(self, cr, uid, ids, context=None):
 #         sql = '''
