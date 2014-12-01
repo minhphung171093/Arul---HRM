@@ -74,8 +74,21 @@ class arul_hr_payroll_sub_area(osv.osv):
             if payroll_ids:  
                 return False
         return True
+    
+    def _check_name(self, cr, uid, ids, context=None):
+        for payroll in self.browse(cr, uid, ids, context=context):
+            sql = '''
+                select id from arul_hr_payroll_sub_area where id != %s and lower(name) = lower('%s')
+            '''%(payroll.id,payroll.name)
+            cr.execute(sql)
+            payroll_ids = [row[0] for row in cr.fetchall()]
+            if payroll_ids:  
+                raise osv.except_osv(_('Warning!'),_('This name is duplicated!'))
+                return False
+        return True
     _constraints = [
         (_check_code_id, 'Identical Data', ['code']),
+        (_check_name, 'Identical Data', ['name']),
     ]
     
 arul_hr_payroll_sub_area()
@@ -363,7 +376,7 @@ class arul_hr_payroll_executions(osv.osv):
                         'payroll_executions_id': line.id,
                         'employee_id': p.id,
                         'department_id':p.department_id and p.department_id.id or False,
-                        'designation_id':p.department_id and (p.department_id.designation_id and p.department_id.designation_id.id or False) or False,
+#                         'designation_id':p.department_id and (p.department_id.designation_id and p.department_id.designation_id.id or False) or False,
                         'year':line.year,
                         'month':line.month,
                         'company_id': p.company_id and p.company_id.id or False,
@@ -377,6 +390,12 @@ class arul_hr_payroll_executions(osv.osv):
         return True
                     
     def confirm_payroll(self, cr, uid, ids, context=None):
+#         sql = '''
+#                 select id from arul_hr_payroll_sub_area where id != %s and lower(code) = lower('%s')
+#             '''%(payroll.id,payroll.code)
+#             cr.execute(sql)
+#             payroll_ids = [row[0] for row in cr.fetchall()]
+#             if payroll_ids: 
         return self.write(cr, uid, ids, {'state': 'confirm'})
 
     def rollback_payroll(self, cr, uid, ids, context=None):
@@ -401,3 +420,40 @@ class arul_hr_payroll_executions_details(osv.osv):
     }
     
 arul_hr_payroll_executions_details()
+
+# class approve_reject_payroll(osv.osv):
+#     _name = 'approve.reject.payroll'
+#     _columns = {
+#          'name': fields.char('Name', size=1024, required = True),
+#         'month': fields.selection([('1', 'January'),('2', 'February'), ('3', 'March'), ('4','April'), ('5','May'), ('6','June'), ('7','July'), ('8','August'), ('9','September'), ('10','October'), ('11','November'), ('12','December')], 'Month',required = True),
+#         'year' : fields.many2one('payroll.year', 'Year', select="1"),    
+#                 }
+#     
+#     def reject_payroll(self, cr, uid, ids, context=None):
+#         return True
+#     
+#     def approve_payroll(self, cr, uid, ids, context=None):
+#         return True
+#     
+# approve_reject_payroll()
+# 
+# class  payroll_year(osv.osv):
+#     _name = 'payroll.year'
+#     _columns = {
+# #                 'name': fields.char('Name', size=1024, required = True),
+#                 'name': fields.integer('Year'),
+#                 }
+#     def init(self, cr):
+#         now = time.strftime('%Y')
+#         i = 0
+#         for i in range(0,40):
+#             next_year = int(now) + i
+#             i += 1
+#             sql = '''
+#                 select id from payroll_year where name = %s
+#             '''%(next_year)
+#             cr.execute(sql)
+#             year_ids = [row[0] for row in cr.fetchall()]
+#             if len(year_ids) == 0:
+#                 self.pool.get('payroll.year').create(cr, uid, {'year': next_year})
+# payroll_year()

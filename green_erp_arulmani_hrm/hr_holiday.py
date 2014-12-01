@@ -511,7 +511,8 @@ class arul_hr_employee_attendence_details(osv.osv):
         vals = {}
         if department_id:
             emp = self.pool.get('hr.department').browse(cr, uid, department_id)
-            vals = {'designation_id':emp.designation_id.id,
+            vals = {
+#                     'designation_id':emp.designation_id.id,
                    }
         return {'value': vals}
 #     def search(self, cr, uid, args, offset=0, limit=None, order=None, context=None, count=False):
@@ -673,7 +674,7 @@ class arul_hr_monthly_work_schedule(osv.osv):
             for record in reads:
                 year = str(line.year)
                 month = str(line.month)
-                name = 'Year: ' + year + ' - Month: ' + month
+                name = year + ' - ' + month
                 res.append((record['id'], name))
             return res  
     
@@ -761,6 +762,16 @@ arul_hr_monthly_work_schedule()
 
 class arul_hr_monthly_shift_schedule(osv.osv):
     _name='arul.hr.monthly.shift.schedule'
+    
+    def default_get(self, cr, uid, fields, context=None):
+        if context is None:
+            context = {}
+        res = super(arul_hr_monthly_shift_schedule, self).default_get(cr, uid, fields, context=context)
+        if 'num_of_month' in fields and context.get('month') and context.get('year'):
+            num_of_month = calendar.monthrange(int(context.get('year')),int(context.get('month')))[1]
+            res.update({'num_of_month': num_of_month})
+        return res
+    
 #     def _num_of_month(self, cr, uid, ids, field_name, arg, context=None):
 #         res = {}
 #         for day in self.browse(cr, uid, ids):

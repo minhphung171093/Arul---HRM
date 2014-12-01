@@ -289,7 +289,7 @@
 		                 <group col='4' colspan='2'>
 							<field name="action_id" on_change="onchange_action_id(action_id)" domain="[('name','=','Transfer')]" options="{'create': false, 'create_edit': false}"/>
 							<field name="action_type_id" options="{'create': false, 'create_edit': false}"/>
-							<field name ="employee_id" options="{'create': false, 'create_edit': false}" required = "1" domain="[('employee_active','=',1)]" on_change="onchange_rehiring_employee_id(employee_id)"/>
+							<field name ="employee_id" options="{'create': false, 'create_edit': false}" required = "1" domain="[('employee_active','=',1)]" on_change="onchange_transfer_employee_id(employee_id)"/>
 							<newline/>
 							<field name ="employee_category_id"   options="{'create': false, 'create_edit': false}"/>
 							<field name ="sub_category_id" context="{'check_employee_category_id':1,'employee_category_id':employee_category_id}" options="{'create': false, 'create_edit': false}"/>
@@ -297,6 +297,8 @@
 							<field name ="department_to_id" options="{'create': false, 'create_edit': false}" domain="[('id','!=',department_from_id)]"/>
 							<field name ="designation_from_id" options="{'create': false, 'create_edit': false}"/>
 							<field name ="designation_to_id" options="{'create': false, 'create_edit': false}" domain="[('id','!=',designation_from_id)]"/>
+							<field name ="payroll_area_id" options="{'create': false, 'create_edit': false}"/>
+							<field name ="payroll_sub_area_id" options="{'create': false, 'create_edit': false}"/>
 							<field name ="action_date" string = "Date of Transfer"/>
 							<newline/>
 							<field name ="period_from"/>
@@ -953,7 +955,7 @@
 			<field name="arch" type="xml">
 				<tree string="Food Subsidy Master">
 					<field name ="food_category"/>
-                	<field name ="food_price"/>
+                	<field name ="food_price" />
                 	<field name ="employer_con"/>
                 	<field name ="employee_con"/>
 				</tree>
@@ -968,7 +970,7 @@
                 	<sheet>  
                 		<group>
                 		<field name ="food_category" style="width: 40%%"/>
-                		<field name ="food_price"/>
+                		<field name ="food_price" on_change="onchange_amount_all(food_price)"/>
                 		<field name ="employer_con"/>
                 		<field name ="employee_con"/>
                 		</group>

@@ -13,6 +13,20 @@ class hr_employee_category(osv.osv):
     _columns = {
         'sub_category_ids' : fields.many2many('hr.employee.sub.category','category_sub_category_ref','category_id','sub_category_id','Sub Category'),
     }
+    def _check_name(self, cr, uid, ids, context=None):
+        for emp_cat in self.browse(cr, uid, ids, context=context):
+            sql = '''
+                select id from hr_employee_category where id != %s and lower(name) = lower('%s')
+            '''%(emp_cat.id,emp_cat.name)
+            cr.execute(sql)
+            emp_cat_ids = [row[0] for row in cr.fetchall()]
+            if emp_cat_ids:  
+                raise osv.except_osv(_('Warning!'),_('This name is duplicated!'))
+                return False
+        return True
+    _constraints = [
+        (_check_name, 'Identical Data', ['name']),
+    ]
     
 hr_employee_category()
 
@@ -181,11 +195,21 @@ class arul_hr_employee_action_history(osv.osv):
             vals = {'employee_category_id':emp.employee_category_id.id,
                     'sub_category_id':emp.employee_sub_category_id.id,
                     'department_from_id':emp.department_id.id,
-                    'designation_from_id':emp.department_id and emp.department_id.designation_id.id or False,
+#                     'designation_from_id':emp.department_id and emp.department_id.designation_id.id or False,
                     }
-            if emp.employee_category_id:
-                emp_sub_cat = [x.id for x in emp.employee_category_id.sub_category_ids]
-        return {'value': vals, 'domain':{'sub_category_id':[('id','in',emp_sub_cat)]}}
+        return {'value': vals}
+    
+    def onchange_transfer_employee_id(self, cr, uid, ids,employee_id=False, context=None):
+        vals = {}
+        if employee_id:
+            emp = self.pool.get('hr.employee').browse(cr, uid, employee_id)
+            vals = {'employee_category_id':emp.employee_category_id.id,
+                    'sub_category_id':emp.employee_sub_category_id.id,
+                    'payroll_area_id':emp.payroll_area_id.id,
+                    'payroll_sub_area_id':emp.payroll_sub_area_id.id,
+                    'department_from_id':emp.department_id.id,
+                    'designation_from_id':emp.department_id and emp.department_id.designation_id.id or False,}
+        return {'value': vals}
 
     def onchange_leaving_employee_id(self, cr, uid, ids,employee_id=False, context=None):
         vals = {}
@@ -257,6 +281,24 @@ class arul_hr_employee_action_history(osv.osv):
             self.pool.get('hr.employee').write(cr, uid, [line.employee_id.id], {'employee_active': True})
             self.write(cr, uid, [line.id],{'approve_rehiring': True})
         return True
+    def _check_date(self, cr, uid, ids, context=None):
+        for act in self.browse(cr, uid, ids, context=context):
+            if act.period_from and act.period_to:
+                if act.period_from > act.period_to:
+                    raise osv.except_osv(_('Warning!'),_('The Date is not suitable!'))
+                    return False
+        return True
+    def _check_rehiring_date(self, cr, uid, ids, context=None):
+        for act in self.browse(cr, uid, ids, context=context):
+            if act.period_from and act.action_date:
+                if act.period_from < act.action_date:
+                    raise osv.except_osv(_('Warning!'),_('The Valid From Date must be the same as/greater than The Date Of Rehiring!'))
+                    return False
+        return True
+    _constraints = [
+        (_check_date, 'Identical Data', ['period_from','period_to']),
+        (_check_rehiring_date, 'Identical Data', ['period_from','action_date']),
+    ]
     
     def search(self, cr, uid, args, offset=0, limit=None, order=None, context=None, count=False):
         if context is None:
@@ -375,7 +417,16 @@ class hr_employee(osv.osv):
 #                 self.pool.get('arul.hr.employee.action.history').write(cr, uid, [line_id], {'employee_id': new_id})
 #         return new_id
     
-    
+    def _check_date(self, cr, uid, ids, context=None):
+        for employee in self.browse(cr, uid, ids, context=context):
+            if employee.date_of_joining and employee.date_of_resignation:
+                if employee.date_of_joining >= employee.date_of_resignation:
+                    raise osv.except_osv(_('Warning!'),_('Date Of Joining must be less than Date Of Resignation!'))
+                    return False
+        return True
+    _constraints = [
+        (_check_date, 'Identical Data', ['date_of_joining','date_of_resignation']),
+    ]
 hr_employee()
     
 class arul_employee_actions(osv.osv):
@@ -453,28 +504,38 @@ arul_employee_action_type()
 class food_subsidy(osv.osv):
     _name = "food.subsidy"
     
-    def _amount_all(self, cr, uid, ids, field_name, arg, context=None):
+#     def _amount_all(self, cr, uid, ids, field_name, arg, context=None):
+#         res = {}
+#         for price in self.browse(cr, uid, ids, context=context):
+#             res[price.id] = {
+#                 'employer_con': price.food_price*0.75,
+#                 'employee_con': price.food_price*0.25,
+#             }
+#         return res
+
+    def onchange_amount_all(self, cr, uid, ids, food_price, context=None):
         res = {}
-        for price in self.browse(cr, uid, ids, context=context):
-            res[price.id] = {
-                'employer_con': price.food_price*0.75,
-                'employee_con': price.food_price*0.25,
+        res = {
+                'employer_con': food_price*0.75,
+                'employee_con': food_price*0.25,
             }
-        return res
+        return {'value': res}
     
     _columns = {
         'food_category':fields.selection([('break_fast','Break Fast'),('lunch','Lunch'),('dinner','Dinner'),('midnight_tiffin','Midnight Tiffin')],'Food Category',required=True),
         'food_price': fields.float('Food Price (Rs.)',degits=(16,2)),
-        'employer_con': fields.function(_amount_all,degits=(16,2), string='Employer Contribution (Rs.)',
-            store={
-                'food.subsidy': (lambda self, cr, uid, ids, c={}: ids, ['food_price'], 10),
-            },
-            multi='sums'),
-        'employee_con': fields.function(_amount_all,degits=(16,2), string='Employee Contribution (Rs.)',
-            store={
-                'food.subsidy': (lambda self, cr, uid, ids, c={}: ids, ['food_price'], 10),
-            },
-            multi='sums'),
+        'employer_con': fields.float('Employer Contribution (Rs.)',degits=(16,2)),
+        'employee_con': fields.float('Employee Contribution (Rs.)',degits=(16,2)),
+#         'employer_con': fields.function(_amount_all,degits=(16,2), string='Employer Contribution (Rs.)',
+#             store={
+#                 'food.subsidy': (lambda self, cr, uid, ids, c={}: ids, ['food_price'], 10),
+#             },
+#             multi='sums'),
+#         'employee_con': fields.function(_amount_all,degits=(16,2), string='Employee Contribution (Rs.)',
+#             store={
+#                 'food.subsidy': (lambda self, cr, uid, ids, c={}: ids, ['food_price'], 10),
+#             },
+#             multi='sums'),
     }
 food_subsidy()
 
@@ -556,8 +617,8 @@ meals_details()
 class employee_leave(osv.osv):
     _name = "employee.leave"
     _columns = {
-        'employee_id': fields.many2one('hr.employee', 'Employee', required=True),        
-        'year': fields.char('Year',size=128),
+        'employee_id': fields.many2one('hr.employee', 'Employee', required=True, readonly=True),        
+        'year': fields.char('Year',size=128, readonly=True),
         'emp_leave_details_ids': fields.one2many('employee.leave.detail','emp_leave_id','Employee Leave Details'),
     }
     def get_employee_leave(self, cr, uid, context=None):
@@ -760,9 +821,9 @@ class employee_leave_detail(osv.osv):
         return result.keys()
     
     _columns = {
-        'emp_leave_id': fields.many2one('employee.leave', 'Employee Leave'),
-        'leave_type_id' : fields.many2one('arul.hr.leave.types', 'Leave Types'),
-        'total_day': fields.float('Total Day',degits=(16,2)),
+        'emp_leave_id': fields.many2one('employee.leave', 'Employee Leave', readonly=True),
+        'leave_type_id' : fields.many2one('arul.hr.leave.types', 'Leave Types', readonly=True),
+        'total_day': fields.float('Total Day',degits=(16,2), readonly=True),
 #         'total_taken': fields.float('Total Day',degits=(16,2)),
         'total_taken': fields.function(get_taken_day,degits=(16,2),store={
             'employee.leave.detail': (lambda self, cr, uid, ids, c={}: ids, ['total_day','leave_type_id','emp_leave_id'], 10),
