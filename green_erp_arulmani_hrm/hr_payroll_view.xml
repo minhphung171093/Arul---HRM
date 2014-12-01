@@ -210,7 +210,7 @@
 			                <field name="employee_id" options="{'create': false, 'create_edit': false}" on_change="onchange_employee_structure_id(employee_id)"/>
 			                <newline/>
 							<field name="employee_category_id" options="{'create': false, 'create_edit': false}"/>
-							<field name="sub_category_id" options="{'create': false, 'create_edit': false}"/>
+							<field name="sub_category_id" domain="[('category_id','=',employee_category_id)]" options="{'create': false, 'create_edit': false}"/>
 						</group>
 						<notebook>
 							<page string = "Earning Structure">

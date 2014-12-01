@@ -208,8 +208,8 @@ class hr_employee_category(osv.osv):
     def _check_code_id(self, cr, uid, ids, context=None):
         for category in self.browse(cr, uid, ids, context=context):
             sql = '''
-                select id from vsis_hr_employee_category where id != %s and lower(code) = lower('%s')
-            '''%(category.id,category.code)
+                select id from vsis_hr_employee_category where id != %s and ( lower(code) = lower('%s') or lower(name) = lower('%s') )
+            '''%(category.id,category.code,category.name)
             cr.execute(sql)
             category_ids = [row[0] for row in cr.fetchall()]
             if category_ids:  
@@ -259,8 +259,8 @@ class hr_employee_sub_category(osv.osv):
     def _check_code_id(self, cr, uid, ids, context=None):
         for sub_category in self.browse(cr, uid, ids, context=context):
             sql = '''
-                select id from hr_employee_sub_category where id != %s and lower(code) = lower('%s')
-            '''%(sub_category.id,sub_category.code)
+                select id from hr_employee_sub_category where id != %s and ( lower(code) = lower('%s') or lower(name) = lower('%s') )
+            '''%(sub_category.id,sub_category.code,sub_category.name)
             cr.execute(sql)
             sub_category_ids = [row[0] for row in cr.fetchall()]
             if sub_category_ids:  
