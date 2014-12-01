@@ -46,6 +46,9 @@
     'css' : [
         "static/src/css/base.css",
     ],
+    'js' : [
+        "static/src/js/view_form.js",
+    ],
     'qweb': [
      ],
     'installable': True,

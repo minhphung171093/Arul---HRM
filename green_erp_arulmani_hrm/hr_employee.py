@@ -231,7 +231,7 @@ class hr_employee(osv.osv):
         if context.get('search_contract_employee'):
             sql = '''
                 
-                select employee_id from arul_hr_employee_action_history where action_id in (select id from arul_action where name = 'Contracts') group by employee_id
+                select employee_id from arul_hr_employee_action_history where action_id in (select id from arul_employee_actions where name = 'Contracts') group by employee_id
                     
             '''%()
             cr.execute(sql)
@@ -252,7 +252,7 @@ class hr_employee(osv.osv):
         if context.get('search_disciplinary_employee'):
             sql = '''
                 
-                select employee_id from arul_hr_employee_action_history where action_id in (select id from arul_action where name = 'Disciplinary') group by employee_id
+                select employee_id from arul_hr_employee_action_history where action_id in (select id from arul_employee_actions where name = 'Disciplinary') group by employee_id
                     
             '''%()
             cr.execute(sql)
@@ -264,7 +264,7 @@ class hr_employee(osv.osv):
         if context.get('search_promotion_employee'):
             sql = '''
                 
-                select employee_id from arul_hr_employee_action_history where action_id in (select id from arul_action where name = 'Promotion') group by employee_id
+                select employee_id from arul_hr_employee_action_history where action_id in (select id from arul_employee_actions where name = 'Promotion') group by employee_id
                     
             '''%()
             cr.execute(sql)
