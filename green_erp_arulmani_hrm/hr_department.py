@@ -15,9 +15,7 @@ class hr_department(osv.osv):
         'primary_auditor_id': fields.many2one('hr.employee', 'Primary Time Auditor'),
         'secondary_auditor_id':  fields.many2one('hr.employee', 'Sec. Time Auditor'),
         'section_ids': fields.many2many('arul.hr.section', 'department_section_rel', 'department_id', 'section_id', 'Sections'),
-        'designation_id': fields.many2one('arul.hr.designation', 'Designation'),
-        'number': fields.integer('No.of Persons'),
-        'resource_budget': fields.integer('Resource Budget'),
+        'designation_line': fields.one2many('arul.hr.designation', 'department_id', 'Designation Line'),
     }
     
 #     def _check_code(self, cr, uid, ids, context=None):
@@ -36,21 +34,11 @@ class hr_department(osv.osv):
             if department_ids:  
                 return False
         return True
-#     _constraints = [
-#         (_check_code_id, 'Identical Data', ['code']),
-#     ] 
-    
-    def _check_designation_id(self, cr, uid, ids, context=None):
-        for department in self.browse(cr, uid, ids, context=context):
-            department_ids = self.search(cr, uid, [('id','!=',department.id),('designation_id','!=',False),('designation_id','=',department.designation_id.id)])
-            if department_ids:  
-                return False
-        return True
-#     
     _constraints = [
         (_check_code, 'Identical Data', ['code']),
-        (_check_designation_id, 'Identical Data', ['designation_id']),
-    ]
+    ] 
+    
+
     def create(self, cr, uid, vals, context=None):
         if 'code' in vals:
             code = vals['code'].replace(" ","")
@@ -104,10 +92,21 @@ arul_hr_section()
 class arul_hr_designation(osv.osv):
     _name = 'arul.hr.designation'
     _columns = {
-                
-        'name': fields.char('Designation', size=1024, required = True),
-        
+        'designation_id': fields.many2one('hr.job', 'Designation'),
+        'number': fields.integer('No.of Persons'),
+        'resource_budget': fields.integer('Resource Budget'),
+        'department_id': fields.many2one('hr.department', 'Department',ondelete="cascade"),
     }
     
+#     def _check_designation_id(self, cr, uid, ids, context=None):
+#         for designation in self.browse(cr, uid, ids, context=context):
+#             designation_ids = self.search(cr, uid, [('id','!=',designation.id),('department_id','=',designation.department_id.id),('designation_id','!=',False),('designation_id','=',designation.designation_id.id)])
+#             if designation_ids:  
+#                 return False
+#         return True
+# #     
+#     _constraints = [
+#         (_check_designation_id, 'Identical Data', ['designation_id']),
+#     ]    
     
 arul_hr_designation()

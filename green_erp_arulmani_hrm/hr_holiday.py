@@ -493,7 +493,7 @@ class arul_hr_employee_attendence_details(osv.osv):
         'employee_id':fields.many2one('hr.employee','Employee', required=True),
         'employee_category_id':fields.many2one('vsis.hr.employee.category','Employee Category',readonly=False),
         'sub_category_id':fields.many2one('hr.employee.sub.category','Sub Category',readonly=False),
-        'designation_id': fields.many2one('arul.hr.designation', 'Designation',readonly=False),
+        'designation_id': fields.many2one('hr.job', 'Designation',readonly=False),
         'department_id':fields.many2one('hr.department', 'Department',readonly=False),
         'permission_onduty_details_line':fields.one2many('arul.hr.permission.onduty','permission_onduty_id','Permission On duty Details',readonly=True),
         'punch_in_out_line':fields.one2many('arul.hr.punch.in.out.time','punch_in_out_id','Punch in/Punch out Details',readonly=True)
@@ -511,7 +511,8 @@ class arul_hr_employee_attendence_details(osv.osv):
         vals = {}
         if department_id:
             emp = self.pool.get('hr.department').browse(cr, uid, department_id)
-            vals = {'designation_id':emp.designation_id.id,
+            vals = {
+#                     'designation_id':emp.designation_id.id,
                    }
         return {'value': vals}
 #     def search(self, cr, uid, args, offset=0, limit=None, order=None, context=None, count=False):
@@ -673,7 +674,7 @@ class arul_hr_monthly_work_schedule(osv.osv):
             for record in reads:
                 year = str(line.year)
                 month = str(line.month)
-                name = 'Year: ' + year + ' - Month: ' + month
+                name = year + ' - ' + month
                 res.append((record['id'], name))
             return res  
     
@@ -761,6 +762,16 @@ arul_hr_monthly_work_schedule()
 
 class arul_hr_monthly_shift_schedule(osv.osv):
     _name='arul.hr.monthly.shift.schedule'
+    
+    def default_get(self, cr, uid, fields, context=None):
+        if context is None:
+            context = {}
+        res = super(arul_hr_monthly_shift_schedule, self).default_get(cr, uid, fields, context=context)
+        if 'num_of_month' in fields and context.get('month') and context.get('year'):
+            num_of_month = calendar.monthrange(int(context.get('year')),int(context.get('month')))[1]
+            res.update({'num_of_month': num_of_month})
+        return res
+    
 #     def _num_of_month(self, cr, uid, ids, field_name, arg, context=None):
 #         res = {}
 #         for day in self.browse(cr, uid, ids):
@@ -808,4 +819,3 @@ class arul_hr_monthly_shift_schedule(osv.osv):
               'day_31': fields.many2one('arul.hr.capture.work.shift','31'),
               }
 arul_hr_monthly_shift_schedule()
-
