@@ -15,7 +15,7 @@ class hr_department(osv.osv):
         'primary_auditor_id': fields.many2one('hr.employee', 'Primary Time Auditor'),
         'secondary_auditor_id':  fields.many2one('hr.employee', 'Sec. Time Auditor'),
         'section_ids': fields.many2many('arul.hr.section', 'department_section_rel', 'department_id', 'section_id', 'Sections'),
-        'designation_id': fields.many2one('arul.hr.designation', 'Designation'),
+        'designation_id': fields.many2one('hr.job', 'Designation'),
         'number': fields.integer('No.of Persons'),
         'resource_budget': fields.integer('Resource Budget'),
     }
