@@ -92,7 +92,7 @@ arul_hr_section()
 class arul_hr_designation(osv.osv):
     _name = 'arul.hr.designation'
     _columns = {
-        'designation_id': fields.many2one('hr.job', 'Designation'),
+        'designation_id': fields.many2one('hr.job', 'Designation',required=True),
         'number': fields.integer('No.of Persons'),
         'resource_budget': fields.integer('Resource Budget'),
         'department_id': fields.many2one('hr.department', 'Department',ondelete="cascade"),
