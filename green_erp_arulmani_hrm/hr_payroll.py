@@ -74,8 +74,21 @@ class arul_hr_payroll_sub_area(osv.osv):
             if payroll_ids:  
                 return False
         return True
+    
+    def _check_name(self, cr, uid, ids, context=None):
+        for payroll in self.browse(cr, uid, ids, context=context):
+            sql = '''
+                select id from arul_hr_payroll_sub_area where id != %s and lower(name) = lower('%s')
+            '''%(payroll.id,payroll.name)
+            cr.execute(sql)
+            payroll_ids = [row[0] for row in cr.fetchall()]
+            if payroll_ids:  
+                raise osv.except_osv(_('Warning!'),_('This name is duplicated!'))
+                return False
+        return True
     _constraints = [
         (_check_code_id, 'Identical Data', ['code']),
+        (_check_name, 'Identical Data', ['name']),
     ]
     
 arul_hr_payroll_sub_area()
@@ -430,7 +443,7 @@ arul_hr_payroll_executions_details()
 # #                 'name': fields.char('Name', size=1024, required = True),
 #                 'name': fields.integer('Year'),
 #                 }
-#     def __init__(self, pool, cr):
+#     def init(self, cr):
 #         now = time.strftime('%Y')
 #         i = 0
 #         for i in range(0,40):

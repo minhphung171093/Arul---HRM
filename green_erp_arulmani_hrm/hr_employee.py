@@ -13,6 +13,20 @@ class hr_employee_category(osv.osv):
     _columns = {
         'sub_category_ids' : fields.many2many('hr.employee.sub.category','category_sub_category_ref','category_id','sub_category_id','Sub Category'),
     }
+    def _check_name(self, cr, uid, ids, context=None):
+        for emp_cat in self.browse(cr, uid, ids, context=context):
+            sql = '''
+                select id from hr_employee_category where id != %s and lower(name) = lower('%s')
+            '''%(emp_cat.id,emp_cat.name)
+            cr.execute(sql)
+            emp_cat_ids = [row[0] for row in cr.fetchall()]
+            if emp_cat_ids:  
+                raise osv.except_osv(_('Warning!'),_('This name is duplicated!'))
+                return False
+        return True
+    _constraints = [
+        (_check_name, 'Identical Data', ['name']),
+    ]
     
 hr_employee_category()
 
@@ -212,7 +226,24 @@ class arul_hr_employee_action_history(osv.osv):
             self.pool.get('hr.employee').write(cr, uid, [line.employee_id.id], {'employee_active': True})
             self.write(cr, uid, [line.id],{'approve_rehiring': True})
         return True
-    
+    def _check_date(self, cr, uid, ids, context=None):
+        for act in self.browse(cr, uid, ids, context=context):
+            if act.period_from and act.period_to:
+                if act.period_from > act.period_to:
+                    raise osv.except_osv(_('Warning!'),_('The Date is not suitable!'))
+                    return False
+        return True
+    def _check_rehiring_date(self, cr, uid, ids, context=None):
+        for act in self.browse(cr, uid, ids, context=context):
+            if act.period_from and act.action_date:
+                if act.period_from < act.action_date:
+                    raise osv.except_osv(_('Warning!'),_('The Valid From Date must be the same as/greater than The Date Of Rehiring!'))
+                    return False
+        return True
+    _constraints = [
+        (_check_date, 'Identical Data', ['period_from','period_to']),
+        (_check_rehiring_date, 'Identical Data', ['period_from','action_date']),
+    ]
 arul_hr_employee_action_history()
 
 class hr_employee(osv.osv):
@@ -321,7 +352,7 @@ class hr_employee(osv.osv):
     def _check_date(self, cr, uid, ids, context=None):
         for employee in self.browse(cr, uid, ids, context=context):
             if employee.date_of_joining and employee.date_of_resignation:
-                if employee.date_of_joining > employee.date_of_resignation:
+                if employee.date_of_joining >= employee.date_of_resignation:
                     raise osv.except_osv(_('Warning!'),_('Date Of Joining must be less than Date Of Resignation!'))
                     return False
         return True
