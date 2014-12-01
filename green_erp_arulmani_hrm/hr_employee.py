@@ -190,14 +190,32 @@ class arul_hr_employee_action_history(osv.osv):
 
     def onchange_promotion_employee_id(self, cr, uid, ids,employee_id=False, context=None):
         vals = {}
+        designation_ids = []
         if employee_id:
             emp = self.pool.get('hr.employee').browse(cr, uid, employee_id)
             vals = {'employee_category_id':emp.employee_category_id.id,
                     'sub_category_id':emp.employee_sub_category_id.id,
                     'department_from_id':emp.department_id.id,
-#                     'designation_from_id':emp.department_id and emp.department_id.designation_id.id or False,
                     }
         return {'value': vals}
+    
+    def onchange_department_from_id(self, cr, uid, ids,department_from_id=False, context=None):
+        designation_ids = []
+        if department_from_id:
+            department = self.pool.get('hr.department').browse(cr, uid, department_from_id)
+            for line in department.designation_line:
+                designation_ids.append(line.designation_id.id)
+        return {'value': {'designation_from_id': False }, 'domain':{'designation_from_id':[('id','in',designation_ids)]}}
+    
+    def onchange_department_to_id(self, cr, uid, ids,department_to_id=False,designation_from_id=False, context=None):
+        designation_ids = []
+        if department_to_id:
+            department = self.pool.get('hr.department').browse(cr, uid, department_to_id)
+            for line in department.designation_line:
+                if line.designation_id.id != designation_from_id:
+                    designation_ids.append(line.designation_id.id)
+            
+        return {'value': {'designation_to_id': False }, 'domain':{'designation_to_id':[('id','in',designation_ids)]}}
     
     def onchange_transfer_employee_id(self, cr, uid, ids,employee_id=False, context=None):
         vals = {}
@@ -208,7 +226,7 @@ class arul_hr_employee_action_history(osv.osv):
                     'payroll_area_id':emp.payroll_area_id.id,
                     'payroll_sub_area_id':emp.payroll_sub_area_id.id,
                     'department_from_id':emp.department_id.id,
-                    'designation_from_id':emp.department_id and emp.department_id.designation_id.id or False,}
+                    }
         return {'value': vals}
 
     def onchange_leaving_employee_id(self, cr, uid, ids,employee_id=False, context=None):
