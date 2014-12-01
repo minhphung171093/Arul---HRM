@@ -32,13 +32,13 @@
                     </page>
                     
                     <page string = 'Designation and Resource Budgets'>
-                    
-                    <group>
-                    <field name = "designation_id" options="{'create': false, 'create_edit': false}"/>
-                    <field name = "number" />
-                    <field name = "resource_budget" />
-                    </group>
-                    
+                    	<field name="designation_line" nolabel='1'>
+                    		<tree editable='bottom'>
+                   				 <field name = "designation_id" options="{'create': false, 'create_edit': false}"/>
+                   				 <field name = "number" />
+                    			 <field name = "resource_budget" />
+                    		</tree>
+	                    </field>
                     </page>
                     
                     </notebook>
