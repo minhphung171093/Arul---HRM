@@ -54,6 +54,25 @@
           <field name="name">Other Allowance</field>
           <field name="code">OA</field>
       </record>
-
+      <record id="earning_parameters_14" model="arul.hr.payroll.earning.parameters">
+          <field name="name">LTA</field>
+          <field name="code">LTA</field>
+      </record>
+      <record id="earning_parameters_15" model="arul.hr.payroll.earning.parameters">
+          <field name="name">Medical</field>
+          <field name="code">MED</field>
+      </record>
+      <record id="earning_parameters_16" model="arul.hr.payroll.earning.parameters">
+          <field name="name">Total Earning</field>
+          <field name="code">TOTAL_EARNING</field>
+      </record>
+      <record id="earning_parameters_17" model="arul.hr.payroll.earning.parameters">
+          <field name="name">Gross Salary</field>
+          <field name="code">GROSS_SALARY</field>
+      </record>
+      <record id="earning_parameters_18" model="arul.hr.payroll.earning.parameters">
+          <field name="name">Net Salary</field>
+          <field name="code">NET</field>
+      </record>
     </data>
 </openerp>
