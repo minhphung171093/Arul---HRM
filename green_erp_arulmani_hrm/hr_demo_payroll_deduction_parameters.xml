@@ -47,6 +47,11 @@
           <field name="code">LWF</field>
       </record>
 
+      <record id="deduction_parameters_10" model="arul.hr.payroll.deduction.parameters">
+          <field name="name">Total Deduction</field>
+          <field name="code">TOTAL_DEDUCTION</field>
+      </record>
+      
 
     </data>
 </openerp>

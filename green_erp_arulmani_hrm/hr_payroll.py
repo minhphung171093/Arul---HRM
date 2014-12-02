@@ -89,22 +89,10 @@ class arul_hr_payroll_earning_parameters(osv.osv):
          'description':fields.text('Description')
         
     }
-    def create(self, cr, uid, vals, context=None):
-        if 'code' in vals:
-            name = vals['code'].replace(" ","")
-            vals['code'] = name
-        return super(arul_hr_payroll_area, self).create(cr, uid, vals, context)
-    
-    def write(self, cr, uid, ids, vals, context=None):
-        if 'code' in vals:
-            name = vals['code'].replace(" ","")
-            vals['code'] = name
-        return super(arul_hr_payroll_area, self).write(cr, uid,ids, vals, context)
-
     def _check_code_id(self, cr, uid, ids, context=None):
         for payroll in self.browse(cr, uid, ids, context=context):
             sql = '''
-                select id from arul_hr_payroll_area where id != %s and (lower(code) = lower('%s') or lower(name) = lower('%s'))
+                select id from arul_hr_payroll_earning_parameters where id != %s and (lower(code) = lower('%s') or lower(name) = lower('%s'))
             '''%(payroll.id,payroll.code,payroll.name)
             cr.execute(sql)
             payroll_ids = [row[0] for row in cr.fetchall()]
@@ -113,7 +101,20 @@ class arul_hr_payroll_earning_parameters(osv.osv):
         return True
     _constraints = [
         (_check_code_id, 'Identical Data', ['code','name']),
-    ]  
+    ]
+    def create(self, cr, uid, vals, context=None):
+        if 'code' in vals:
+            name = vals['code'].replace(" ","")
+            vals['code'] = name
+        return super(arul_hr_payroll_earning_parameters, self).create(cr, uid, vals, context)
+    
+    def write(self, cr, uid, ids, vals, context=None):
+        if 'code' in vals:
+            name = vals['code'].replace(" ","")
+            vals['code'] = name
+        return super(arul_hr_payroll_earning_parameters, self).write(cr, uid,ids, vals, context)
+
+  
 
 arul_hr_payroll_earning_parameters()
 
@@ -126,13 +127,28 @@ class arul_hr_payroll_deduction_parameters(osv.osv):
     }
     def _check_code_id(self, cr, uid, ids, context=None):
         for payroll in self.browse(cr, uid, ids, context=context):
-            payroll_ids = self.search(cr, uid, [('id','!=',payroll.id),('code','=',payroll.code)])
+            sql = '''
+                select id from arul_hr_payroll_deduction_parameters where id != %s and (lower(code) = lower('%s') or lower(name) = lower('%s'))
+            '''%(payroll.id,payroll.code,payroll.name)
+            cr.execute(sql)
+            payroll_ids = [row[0] for row in cr.fetchall()]
             if payroll_ids:  
                 return False
         return True
     _constraints = [
-        (_check_code_id, 'Identical Data', ['code']),
+        (_check_code_id, 'Identical Data', ['code','name']),
     ]
+    def create(self, cr, uid, vals, context=None):
+        if 'code' in vals:
+            name = vals['code'].replace(" ","")
+            vals['code'] = name
+        return super(arul_hr_payroll_deduction_parameters, self).create(cr, uid, vals, context)
+    
+    def write(self, cr, uid, ids, vals, context=None):
+        if 'code' in vals:
+            name = vals['code'].replace(" ","")
+            vals['code'] = name
+        return super(arul_hr_payroll_deduction_parameters, self).write(cr, uid,ids, vals, context)
     
 arul_hr_payroll_deduction_parameters()
 
@@ -322,7 +338,7 @@ class arul_hr_payroll_structure_configuration(osv.osv):
         for payroll in self.browse(cr, uid, ids, context=context):
             payroll_category_ids = self.search(cr, uid, [('id','!=',payroll.id),('employee_category_id','=',payroll.employee_category_id.id)])
             payroll_sub_ids = self.search(cr, uid, [('id','!=',payroll.id),('sub_category_id','=',payroll.sub_category_id.id)])
-            if payroll_category_ids or payroll_sub_ids:
+            if payroll_category_ids and payroll_sub_ids:
                 return False
         return True
     _constraints = [
