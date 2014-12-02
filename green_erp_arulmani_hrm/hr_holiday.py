@@ -687,7 +687,7 @@ class arul_hr_monthly_work_schedule(osv.osv):
             for record in reads:
                 year = str(line.year)
                 month = str(line.month)
-                name = year + ' - ' + month
+                name = month + ' - ' + year
                 res.append((record['id'], name))
             return res  
     

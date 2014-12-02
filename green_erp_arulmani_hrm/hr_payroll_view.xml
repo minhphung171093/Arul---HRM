@@ -320,7 +320,54 @@
        <menuitem action="action_arul_hr_payroll_contribution_parameters_form"
             id="menu_action_arul_hr_payroll_contribution_parameters_form"
             parent="menu_hr_payroll_management" sequence="3"/>
+            
+       <record id="view_tpt_hr_payroll_approve_reject_tree_vew" model="ir.ui.view">
+			<field name="name">tpt.hr.payroll.approve.reject.tree</field>
+			<field name="model">tpt.hr.payroll.approve.reject</field>
+			<field name="arch" type="xml">
+				<tree string="Approve Reject Payroll">
+					<field name="year"/>
+					<field name="month"/>
+					<field name="state" widget="statusbar" statusbar_visible="draft,cancel,done" statusbar_colors='{"draft":"blue","done":"blue"}'/>
+				</tree>
+			</field>
+	   </record>
+	   
+	   <record id="view_tpt_hr_payroll_approve_reject_form_vew" model="ir.ui.view">
+            <field name="name">tpt.hr.payroll.approve.reject.form</field>
+            <field name="model">tpt.hr.payroll.approve.reject</field>
+            <field name="arch" type="xml">
+	            <form string="Approve Reject Payroll" version="7.0">  
+	            <header>
+	                <button name="approve_payroll" states = 'draft,cancel' string="Approve Payroll" type="object" class="oe_highlight" groups="base.group_hr_manager"/>
+	                <button name="reject_payroll" states = 'done' string="Reject Payroll" type="object" class="oe_highlight" groups="base.group_hr_manager"/>
+	           		<field name="state" widget="statusbar" statusbar_visible="draft,cancel,done" statusbar_colors='{"draft":"blue","done":"blue"}'/>
+	            </header>    
+	            <sheet>
+		           <group col = '4' colspan = '2'>    
+						<field name="year" />
+						<field name="month" />
+		           </group> 
+		        </sheet>
+		        </form>
+		     </field>   
+       </record>
        
+       <record id="action_tpt_hr_payroll_approve_reject_form" model="ir.actions.act_window">
+            <field name="name">Approve Reject Payroll</field>
+            <field name="type">ir.actions.act_window</field>
+            <field name="res_model">tpt.hr.payroll.approve.reject</field>
+            <field name="view_type">form</field>
+            <field name="view_mode">tree,form</field>
+            <field name="view_id" ref="view_tpt_hr_payroll_approve_reject_tree_vew"/>
+        </record>       
+       
+            
+       <menuitem id="menu_hr_payroll_management" parent="hr.menu_hr_root" name="Payroll Management" sequence="25"/>
+       <menuitem action="action_tpt_hr_payroll_approve_reject_form"
+            id="menu_action_tpt_hr_payroll_approve_reject_form"
+            parent="menu_hr_payroll_management" sequence="7"/>    
+		
        <record id="view_arul_hr_payroll_executions_tree_vew" model="ir.ui.view">
 			<field name="name">arul.hr.payroll.executions.tree</field>
 			<field name="model">arul.hr.payroll.executions</field>
@@ -329,6 +376,7 @@
 					<field name="payroll_area_id" on_change="onchange_generate_payroll(payroll_area_id)"/>
 					<field name="year"/>
 					<field name="month"/>
+					<field name="state" widget="statusbar" statusbar_visible="draft,done" statusbar_colors='{"draft":"blue","done":"blue"}'/>  
 				</tree>
 			</field>
 		</record>    
@@ -339,10 +387,10 @@
             <field name="arch" type="xml">
 	            <form string="Payroll Executions" version="7.0">  
 	            <header>
-	                <button name="generate_payroll" string="Generate Payroll" type="object" class="oe_highlight" groups="base.group_hr_manager" attrs="{'readonly':[('state','in',('confirm','approve'))]}"/>
-	                <button name="confirm_payroll" string="Confirm Payroll" type="object" class="oe_highlight" groups="base.group_hr_manager"/>
-	                <button name="rollback_payroll" string="Roll Back Payroll" type="object" class="oe_highlight" groups="base.group_hr_manager"/>
-	                <field name="state" widget="statusbar" statusbar_colors='{"confirm":"blue","draft":"blue"}'/>   
+	                <button name="generate_payroll" states='draft' string="Generate Payroll" type="object" class="oe_highlight" groups="base.group_hr_manager"/>
+	                <button name="confirm_payroll" states='draft' string="Confirm Payroll" type="object" class="oe_highlight" groups="base.group_hr_manager"/>
+	                <button name="rollback_payroll" states='confirm' string="Roll Back Payroll" type="object" class="oe_highlight" groups="base.group_hr_manager"/>
+	                <field name="state" widget="statusbar" statusbar_visible="draft,confirm,approve" statusbar_colors='{"draft":"blue","done":"blue"}'/>  
 	            </header>    
 	            	<sheet>
 		                <group col = '4' colspan = '2'>    
@@ -361,7 +409,7 @@
 											<field name="payroll_sub_area_id" options="{'create': false, 'create_edit': false}"/>
 											<field name="employee_id" options="{'create': false, 'create_edit': false}"/>
 											<newline/>
-											<field name="department_id" options="{'create': false, 'create_edit': false}"/>
+											<field name="department_id" on_change="onchange_department_from_id(department_id)" options="{'create': false, 'create_edit': false}"/>
 											<field name="designation_id" options="{'create': false, 'create_edit': false}"/>
 											<field name="year" />
 											<field name="month" />
@@ -441,7 +489,7 @@
 		                <group col='4' colspan='2'>    
 			                <field name="employee_category_id" options="{'create': false, 'create_edit': false}" on_change="onchange_employee_category_id(employee_category_id)"/>
 			                <newline/>
-							<field name="sub_category_id" options="{'create': false, 'create_edit': false}"/>
+							<field name="sub_category_id" context="{'check_employee_category_id':1,'employee_category_id':employee_category_id}" options="{'create': false, 'create_edit': false}"/>
 						</group>
 						<notebook>
 							<page string = "Earning Configuration">

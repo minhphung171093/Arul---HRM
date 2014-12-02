@@ -134,6 +134,19 @@ class arul_hr_payroll_employee_structure(osv.osv):
          'payroll_earning_structure_line':fields.one2many('arul.hr.payroll.earning.structure','earning_structure_id','Structure line' ),
          'payroll_other_deductions_line':fields.one2many('arul.hr.payroll.other.deductions','earning_structure_id','Structure line'),
     }
+    
+    def name_get(self, cr, uid, ids, context=None):
+        res = []
+        if not ids:
+            return res
+        reads = self.read(cr, uid, ids, ['employee_id'], context)
+        for line in self.browse(cr,uid,ids):
+            for record in reads:
+                employee_id = record['employee_id'][1]
+                name = employee_id
+                res.append((record['id'], name))
+            return res  
+    
     def onchange_employee_structure_id(self, cr, uid, ids,employee_id=False, context=None):
         vals = {}
         configuration_obj = self.pool.get('arul.hr.payroll.structure.configuration')
@@ -257,6 +270,20 @@ class arul_hr_payroll_contribution_parameters(osv.osv):
         'emp_lwf_amt': fields.float('Employee Labor Welfare Fund (LWF) Amt'),
         'employer_lwf_con_amt': fields.float('Employer LWF Contribution Amt'),
         }
+    
+    def name_get(self, cr, uid, ids, context=None):
+        res = []
+        if not ids:
+            return res
+        reads = self.read(cr, uid, ids, ['employee_category_id', 'sub_category_id'], context)
+        for line in self.browse(cr,uid,ids):
+            for record in reads:
+                sub_category_id = record['sub_category_id'][1]
+                employee_category_id = record['employee_category_id'][1]
+                name = employee_category_id + ' - ' + sub_category_id
+                res.append((record['id'], name))
+            return res  
+    
     def onchange_employee_category_id(self, cr, uid, ids,employee_category_id=False, context=None):
         emp_sub_cat = []
         if employee_category_id:
@@ -292,9 +319,36 @@ class arul_hr_payroll_structure_configuration(osv.osv):
     _name = 'arul.hr.payroll.structure.configuration'
     _columns = {
          'employee_category_id':fields.many2one('vsis.hr.employee.category','Employee Group', required = True),
-         'sub_category_id':fields.many2one('hr.employee.sub.category','Employee Sub Group'), 
+         'sub_category_id':fields.many2one('hr.employee.sub.category','Employee Sub Group',required = True), 
          'payroll_structure_configuration_line':fields.one2many('arul.hr.payroll.earning.structure.configuration','earning_structure_configuration_id','Structure Configuration') ,   
     }
+    
+    def name_get(self, cr, uid, ids, context=None):
+        res = []
+        if not ids:
+            return res
+        reads = self.read(cr, uid, ids, ['employee_category_id', 'sub_category_id'], context)
+        for line in self.browse(cr,uid,ids):
+            for record in reads:
+                sub_category_id = record['sub_category_id'][1]
+                employee_category_id = record['employee_category_id'][1]
+                name = employee_category_id + ' - ' + sub_category_id
+                res.append((record['id'], name))
+            return res  
+    
+    def search(self, cr, uid, args, offset=0, limit=None, order=None, context=None, count=False):
+        if context is None:
+            context = {}
+        if context.get('check_employee_category_id'):
+            employee_category_id = context.get('employee_category_id')
+            if not employee_category_id:
+                args += [('id','=',-1)]
+        return super(arul_hr_payroll_structure_configuration, self).search(cr, uid, args, offset, limit, order, context, count)
+    
+    def name_search(self, cr, user, name, args=None, operator='ilike', context=None, limit=100):
+        ids = self.search(cr, user, args, context=context, limit=limit)
+        return self.name_get(cr, user, ids, context=context)
+    
     def onchange_employee_category_id(self, cr, uid, ids,employee_category_id=False, context=None):
         emp_sub_cat = []
         if employee_category_id:
@@ -338,15 +392,62 @@ class arul_hr_payroll_other_deductions(osv.osv):
     
 arul_hr_payroll_other_deductions()
 
+class tpt_hr_payroll_approve_reject(osv.osv):
+    _name = 'tpt.hr.payroll.approve.reject'
+    _columns = {
+         'year': fields.selection([(num, str(num)) for num in range(1951, 2026)], 'Year', required = True, states={'done': [('readonly', True)], 'cancel': [('readonly', True)]}),
+         'month': fields.selection([('1', 'January'),('2', 'February'), ('3', 'March'), ('4','April'), ('5','May'), ('6','June'), ('7','July'), ('8','August'), ('9','September'), ('10','October'), ('11','November'), ('12','December')], 'Month',required = True, states={'done': [('readonly', True)], 'cancel': [('readonly', True)]}),
+         'state':fields.selection([('draft', 'Draft'),('cancel', 'Reject'),('done', 'Approve')],'Status', readonly=True),
+    }
+    _defaults = {
+        'state':'draft',
+       'year':int(time.strftime('%Y')),
+    }
+    
+    def name_get(self, cr, uid, ids, context=None):
+        res = []
+        if not ids:
+            return res
+        reads = self.read(cr, uid, ids, ['year', 'month'], context)
+        for line in self.browse(cr,uid,ids):
+            for record in reads:
+                year = str(line.year)
+                month = str(line.month)
+                name = month + ' - ' + year
+                res.append((record['id'], name))
+            return res     
+
+    def approve_payroll(self, cr, uid, ids, context=None):
+        for line in self.browse(cr,uid,ids):
+            payroll_obj = self.pool.get('arul.hr.payroll.executions')
+            payroll_ids = payroll_obj.search(cr, uid, [('year', '=', line.year), ('month', '=', line.month)])
+            for payroll in payroll_obj.browse(cr,uid,payroll_ids):
+                payroll_obj.write(cr, uid, payroll.id, {'state':'approve'})
+        return self.write(cr, uid, line.id, {'state':'done'})
+    
+    def reject_payroll(self, cr, uid, ids, context=None):
+        for line in self.browse(cr,uid,ids):
+            payroll_obj = self.pool.get('arul.hr.payroll.executions')
+            payroll_ids = payroll_obj.search(cr, uid, [('year', '=', line.year), ('month', '=', line.month)])
+            for payroll in payroll_obj.browse(cr,uid,payroll_ids):
+                payroll_obj.write(cr, uid, payroll.id, {'state':'confirm'})
+        return self.write(cr, uid, line.id, {'state':'cancel'})
+
+tpt_hr_payroll_approve_reject()
+
 
 class arul_hr_payroll_executions(osv.osv):
     _name = 'arul.hr.payroll.executions'
     _columns = {
-         'payroll_area_id': fields.many2one('arul.hr.payroll.area','Payroll Area',required = True),
-         'year': fields.char('Year', size = 1024,required = True),
-        'state': fields.selection([('draft', 'New'),('confirm', 'Confirmed'),('approve', 'Approved')],'Status'),
-         'month': fields.selection([('1', 'January'),('2', 'February'), ('3', 'March'), ('4','April'), ('5','May'), ('6','June'), ('7','July'), ('8','August'), ('9','September'), ('10','October'), ('11','November'), ('12','December')], 'Month',required = True),
-         'payroll_executions_details_line': fields.one2many('arul.hr.payroll.executions.details','payroll_executions_id','Details Line'),
+         'payroll_area_id': fields.many2one('arul.hr.payroll.area','Payroll Area',required = True, states={'confirm': [('readonly', True)], 'approve': [('readonly', True)]}),
+         'state': fields.selection([('draft', 'New'),('confirm', 'Confirmed'),('approve', 'Approved')],'Status'),
+         'year': fields.selection([(num, str(num)) for num in range(1951, 2026)], 'Year', required = True, states={'confirm': [('readonly', True)], 'approve': [('readonly', True)]}),
+         'month': fields.selection([('1', 'January'),('2', 'February'), ('3', 'March'), ('4','April'), ('5','May'), ('6','June'), ('7','July'), ('8','August'), ('9','September'), ('10','October'), ('11','November'), ('12','December')], 'Month',required = True, states={'confirm': [('readonly', True)], 'approve': [('readonly', True)]}),
+         'payroll_executions_details_line': fields.one2many('arul.hr.payroll.executions.details','payroll_executions_id','Details Line', states={'confirm': [('readonly', True)], 'approve': [('readonly', True)]}),
+    }
+    _defaults = {
+        'state':'draft',
+        'year':int(time.strftime('%Y')),
     }
     
     def length_month(self,year, month):
@@ -362,7 +463,7 @@ class arul_hr_payroll_executions(osv.osv):
                     select ss.id as shift_id
                     from arul_hr_monthly_shift_schedule ss 
                     left join arul_hr_monthly_work_schedule ws on ss.monthly_work_id = ws.id
-                    where ss.employee_id = %s and ws.month = '%s' and ws.name = '%s' and ws.state= 'done'
+                    where ss.employee_id = %s and ws.month = '%s' and ws.year = '%s' and ws.state= 'done'
                 '''%(emp,month,year)
         cr.execute(sql)
         kq = cr.fetchall()
@@ -1405,8 +1506,7 @@ class arul_hr_payroll_executions(osv.osv):
                       }
                 executions_details_id = executions_details_obj.create(cr,uid,rs)
                 
-        return True
-                    
+        return True           
     def confirm_payroll(self, cr, uid, ids, context=None):
 #         sql = '''
 #                 select id from arul_hr_payroll_sub_area where id != %s and lower(code) = lower('%s')
@@ -1419,6 +1519,20 @@ class arul_hr_payroll_executions(osv.osv):
     def rollback_payroll(self, cr, uid, ids, context=None):
         return self.write(cr, uid, ids, {'state': 'draft'})
     
+    def name_get(self, cr, uid, ids, context=None):
+        res = []
+        if not ids:
+            return res
+        reads = self.read(cr, uid, ids, ['payroll_area_id' ,'year', 'month'], context)
+        for line in self.browse(cr,uid,ids):
+            for record in reads:
+                year = str(line.year)
+                month = str(line.month)
+                payroll = record['payroll_area_id'][1]
+                name = payroll  + ' - ' + month + ' - ' + year
+                res.append((record['id'], name))
+            return res  
+        
 arul_hr_payroll_executions()
 
 class arul_hr_payroll_executions_details(osv.osv):
@@ -1435,10 +1549,19 @@ class arul_hr_payroll_executions_details(osv.osv):
         'payroll_executions_id':fields.many2one('arul.hr.payroll.executions', 'Payroll Executions', ondelete='cascade'),
         'earning_structure_line':fields.one2many('arul.hr.payroll.earning.structure','executions_details_id', 'Earing Structure'),
         'other_deduction_line':fields.one2many('arul.hr.payroll.other.deductions','executions_details_id', 'Other Deduction'),
+
     }
     
+    def onchange_department_from_id(self, cr, uid, ids,department_id=False, context=None):
+        designation_ids = []
+        if department_id:
+            department = self.pool.get('hr.department').browse(cr, uid, department_id)
+            for line in department.designation_line:
+                designation_ids.append(line.designation_id.id)
+        return {'value': {'designation_id': False }, 'domain':{'designation_id':[('id','in',designation_ids)]}}
+   
+    
 arul_hr_payroll_executions_details()
-
 # class approve_reject_payroll(osv.osv):
 #     _name = 'approve.reject.payroll'
 #     _columns = {
