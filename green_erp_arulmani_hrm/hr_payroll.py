@@ -30,15 +30,15 @@ class arul_hr_payroll_area(osv.osv):
     def _check_code_id(self, cr, uid, ids, context=None):
         for payroll in self.browse(cr, uid, ids, context=context):
             sql = '''
-                select id from arul_hr_payroll_area where id != %s and lower(code) = lower('%s')
-            '''%(payroll.id,payroll.code)
+                select id from arul_hr_payroll_area where id != %s and (lower(code) = lower('%s') or lower(name) = lower('%s'))
+            '''%(payroll.id,payroll.code,payroll.name)
             cr.execute(sql)
             payroll_ids = [row[0] for row in cr.fetchall()]
             if payroll_ids:  
                 return False
         return True
     _constraints = [
-        (_check_code_id, 'Identical Data', ['code']),
+        (_check_code_id, 'Identical Data', ['code','name']),
     ]
 
     

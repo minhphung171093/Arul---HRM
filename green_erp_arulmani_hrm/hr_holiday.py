@@ -593,6 +593,8 @@ class arul_hr_punch_in_out(osv.osv):
                 detail_obj3 = self.pool.get('arul.hr.capture.work.shift')
                 detail_obj4 = self.pool.get('arul.hr.punch.in.out.time')
                 for i,data1 in enumerate(L):
+                    if data1 and data1[:3]!='P10' and data1[:3]!='P20':
+                        raise osv.except_osv(_('Warning!'),_('Line %s Data Mismatch!')%(i+1))
                     L2 = L[i+1:]
                     employee_code = data1[43:51]
                     employee_ids = employee_obj.search(cr, uid, [('employee_id','=',employee_code)])
@@ -655,7 +657,7 @@ class arul_hr_monthly_work_schedule(osv.osv):
     _columns={
               'department_id':fields.many2one('hr.department','Department', required = True, states={'done': [('readonly', True)]}),
               'section_id': fields.many2one('arul.hr.section','Section', required = True, states={'done': [('readonly', True)]}),
-              'year': fields.selection([(num, str(num)) for num in range((datetime.now().year), 2050)], 'Year', required = True, states={'done': [('readonly', True)]}),
+              'year': fields.selection([(num, str(num)) for num in range(1950, 2026)], 'Year', required = True, states={'done': [('readonly', True)]}),
               'month': fields.selection([('1', 'January'),('2', 'February'), ('3', 'March'), ('4','April'), ('5','May'), ('6','June'), ('7','July'), ('8','August'), ('9','September'), ('10','October'), ('11','November'), ('12','December')], 'Month',required = True, states={'done': [('readonly', True)]}),
               'monthly_shift_line': fields.one2many('arul.hr.monthly.shift.schedule','monthly_work_id', 'Monthly Work Schedule', states={'done': [('readonly', True)]}),
               'state':fields.selection([('draft', 'Draft'),('load', 'Load'),('done', 'Done')],'Status', readonly=True)
@@ -664,6 +666,17 @@ class arul_hr_monthly_work_schedule(osv.osv):
         'state':'draft',
         
     }
+    
+    def _check_month_year(self, cr, uid, ids, context=None):
+        for work in self.browse(cr, uid, ids, context=context):
+            work_ids = self.search(cr, uid, [('id','!=',work.id),('year','=',work.year),('month','=',work.month),('department_id','=',work.department_id.id),('section_id','=',work.section_id.id)])
+            if work_ids:
+                raise osv.except_osv(_('Warning!'),_('The monthly work schedule has already existed!'))
+                return False
+        return True
+    _constraints = [
+        (_check_month_year, 'Identical Data', ['month','year']),
+    ]
     
     def name_get(self, cr, uid, ids, context=None):
         res = []
@@ -756,7 +769,33 @@ class arul_hr_monthly_work_schedule(osv.osv):
                       'num_of_month': num_of_month,
                       }
                 employee_lines.append((0,0,rs))
-        return {'value': {'section_id': False,'monthly_shift_line':employee_lines}, 'domain':{'section_id':[('id','in',section_ids)]}}
+        return {'value': {'section_id':False,'monthly_shift_line':employee_lines}, 'domain':{'section_id':[('id','in',section_ids)]}}
+    
+    def onchange_year_month(self, cr, uid, ids,department_id=False,month=False,year=False, context=None):
+        res = {'value':{}}
+        for line in self.browse(cr, uid, ids):
+            sql = '''
+                delete from arul_hr_monthly_shift_schedule where monthly_work_id = %s
+            '''%(line.id)
+            cr.execute(sql)
+        section_ids = []
+        employee_lines = []
+        num_of_month = 0
+        if department_id: 
+            if month and year:
+                num_of_month = calendar.monthrange(int(year),int(month))[1]
+            dept = self.pool.get('hr.department').browse(cr, uid, department_id)
+            section_ids = [x.id for x in dept.section_ids]
+            employee_obj=self.pool.get('hr.employee')
+            employee_ids = employee_obj.search(cr, uid, [('department_id','=',department_id )])
+            for p in self.browse(cr,uid,employee_ids):
+                rs = {
+                      'employee_id':p.id,
+                      'num_of_month': num_of_month,
+                      }
+                employee_lines.append((0,0,rs))
+        return {'value': {'monthly_shift_line':employee_lines}, 'domain':{'section_id':[('id','in',section_ids)]}}
+        
         
 arul_hr_monthly_work_schedule()
 

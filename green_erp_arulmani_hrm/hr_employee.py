@@ -344,7 +344,8 @@ class hr_employee(osv.osv):
         'payroll_area_id': fields.many2one('arul.hr.payroll.area','Payroll Area'),
         'payroll_sub_area_id': fields.many2one('arul.hr.payroll.sub.area','Payroll Sub Area'),
         'time_record': fields.char('Time Record ID', size=1024, required = True),
-        'employee_leave_id': fields.one2many('employee.leave','employee_id','Employee Leave'),
+        'employee_leave_id': fields.one2many('employee.leave','employee_id','Employee Leave',readonly=True),
+        'country_stateofbirth_id': fields.many2one('res.country', 'Country'),
     }
     def search(self, cr, uid, args, offset=0, limit=None, order=None, context=None, count=False):
         if context is None:
@@ -397,7 +398,10 @@ class hr_employee(osv.osv):
         return super(hr_employee, self).search(cr, uid, args, offset, limit, order, context, count)
     
     def name_search(self, cr, user, name, args=None, operator='ilike', context=None, limit=100):
-        ids = self.search(cr, user, args, context=context, limit=limit)
+        if name:
+            ids = self.search(cr, user, ['|',('name','like',name),('employee_id','like',name)]+args, context=context, limit=limit)
+        else:
+            ids = self.search(cr, user, args, context=context, limit=limit)
         return self.name_get(cr, user, ids, context=context)
     def onchange_department_id(self, cr, uid, ids,department_id=False, context=None):
         section_ids = []
@@ -474,15 +478,15 @@ class arul_employee_actions(osv.osv):
     def _check_code_id(self, cr, uid, ids, context=None):
         for actions in self.browse(cr, uid, ids, context=context):
             sql = '''
-                select id from arul_employee_actions where id != %s and lower(code) = lower('%s')
-            '''%(actions.id,actions.code)
+                select id from arul_employee_actions where id != %s and (lower(code) = lower('%s') or lower(name) = lower('%s'))
+            '''%(actions.id,actions.code,actions.name)
             cr.execute(sql)
             actions_ids = [row[0] for row in cr.fetchall()]
             if actions_ids:  
                 return False
         return True
     _constraints = [
-        (_check_code_id, 'Identical Data', ['code']),
+        (_check_code_id, 'Identical Data', ['code','name']),
     ]
 arul_employee_actions()
 
@@ -507,15 +511,15 @@ class arul_employee_action_type(osv.osv):
     def _check_code_id(self, cr, uid, ids, context=None):
         for type in self.browse(cr, uid, ids, context=context):
             sql = '''
-                select id from arul_employee_action_type where id != %s and lower(code) = lower('%s')
-            '''%(type.id,type.code)
+                select id from arul_employee_action_type where id != %s and (lower(code) = lower('%s') or lower(name) = lower('%s'))
+            '''%(type.id,type.code,type.name)
             cr.execute(sql)
             type_ids = [row[0] for row in cr.fetchall()]
             if type_ids:  
                 return False
         return True
     _constraints = [
-        (_check_code_id, 'Identical Data', ['code']),
+        (_check_code_id, 'Identical Data', ['code','name']),
     ]
 
 arul_employee_action_type()
@@ -638,7 +642,7 @@ class employee_leave(osv.osv):
     _columns = {
         'employee_id': fields.many2one('hr.employee', 'Employee', required=True, readonly=True),        
         'year': fields.char('Year',size=128, readonly=True),
-        'emp_leave_details_ids': fields.one2many('employee.leave.detail','emp_leave_id','Employee Leave Details'),
+        'emp_leave_details_ids': fields.one2many('employee.leave.detail','emp_leave_id','Employee Leave Details',readonly=True),
     }
     def get_employee_leave(self, cr, uid, context=None):
         day = 0
