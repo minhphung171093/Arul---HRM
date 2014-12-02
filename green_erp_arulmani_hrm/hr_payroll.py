@@ -101,11 +101,26 @@ class arul_hr_payroll_earning_parameters(osv.osv):
          'description':fields.text('Description')
         
     }
+    def create(self, cr, uid, vals, context=None):
+        if 'code' in vals:
+            name = vals['code'].replace(" ","")
+            vals['code'] = name
+        return super(arul_hr_payroll_area, self).create(cr, uid, vals, context)
+    
+    def write(self, cr, uid, ids, vals, context=None):
+        if 'code' in vals:
+            name = vals['code'].replace(" ","")
+            vals['code'] = name
+        return super(arul_hr_payroll_area, self).write(cr, uid,ids, vals, context)
+
     def _check_code_id(self, cr, uid, ids, context=None):
         for payroll in self.browse(cr, uid, ids, context=context):
-            payroll_code_ids = self.search(cr, uid, [('id','!=',payroll.id),('code','=',payroll.code)])
-            payroll_name_ids = self.search(cr, uid, [('id','!=',payroll.id),('name','=',payroll.name)])
-            if payroll_code_ids or payroll_name_ids:
+            sql = '''
+                select id from arul_hr_payroll_area where id != %s and (lower(code) = lower('%s') or lower(name) = lower('%s'))
+            '''%(payroll.id,payroll.code,payroll.name)
+            cr.execute(sql)
+            payroll_ids = [row[0] for row in cr.fetchall()]
+            if payroll_ids:  
                 return False
         return True
     _constraints = [
@@ -180,6 +195,7 @@ class arul_hr_payroll_employee_structure(osv.osv):
                     'sub_category_id':emp.employee_sub_category_id.id,
                     'payroll_earning_structure_line':payroll_earning_structure_line}
         return {'value': vals}
+    
 
     def _check_employee_id(self, cr, uid, ids, context=None):
         for employee in self.browse(cr, uid, ids, context=context):
