@@ -507,7 +507,7 @@ class arul_hr_employee_attendence_details(osv.osv):
                     'department_id':emp.department_id.id,
                     }
         return {'value': vals}
-    def onchange_designation_id(self, cr, uid, ids,department_id=False, context=None):
+    def onchange_department_id(self, cr, uid, ids,department_id=False, context=None):
         designation_ids = []
         if department_id:
             department = self.pool.get('hr.department').browse(cr, uid, department_id)
