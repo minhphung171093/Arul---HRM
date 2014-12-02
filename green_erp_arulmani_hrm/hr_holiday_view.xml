@@ -386,7 +386,7 @@
 							<field name="employee_category_id" options="{'create': false, 'create_edit': false}"/>
 							<field name="sub_category_id" domain="[('category_id','=',employee_category_id)]" options="{'create': false, 'create_edit': false}"/>
 							<field name="designation_id" options="{'create': false, 'create_edit': false}"/>
-							<field name="department_id" on_change="onchange_designation_id(department_id)" options="{'create': false, 'create_edit': false}"/>
+							<field name="department_id" on_change="onchange_department_id(department_id)" options="{'create': false, 'create_edit': false}"/>
 						</group>
 						<notebook>
 							<page string = "Punch In/Punch Out Details">

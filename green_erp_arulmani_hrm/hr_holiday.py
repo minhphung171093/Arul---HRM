@@ -608,14 +608,14 @@ class arul_hr_employee_attendence_details(osv.osv):
                     'department_id':emp.department_id.id,
                     }
         return {'value': vals}
-    def onchange_designation_id(self, cr, uid, ids,department_id=False, context=None):
-        vals = {}
+    def onchange_department_id(self, cr, uid, ids,department_id=False, context=None):
+        designation_ids = []
         if department_id:
-            emp = self.pool.get('hr.department').browse(cr, uid, department_id)
-            vals = {
-#                     'designation_id':emp.designation_id.id,
-                   }
-        return {'value': vals}
+            department = self.pool.get('hr.department').browse(cr, uid, department_id)
+            for line in department.designation_line:
+                designation_ids.append(line.designation_id.id)
+        return {'value': {'designation_id': False }, 'domain':{'designation_id':[('id','in',designation_ids)]}}
+    
 #     def search(self, cr, uid, args, offset=0, limit=None, order=None, context=None, count=False):
 #         if context is None:
 #             context = {}
@@ -788,7 +788,7 @@ class arul_hr_monthly_work_schedule(osv.osv):
             for record in reads:
                 year = str(line.year)
                 month = str(line.month)
-                name = year + ' - ' + month
+                name = month + ' - ' + year
                 res.append((record['id'], name))
             return res  
     
