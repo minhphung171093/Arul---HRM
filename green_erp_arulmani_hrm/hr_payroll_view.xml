@@ -268,7 +268,7 @@
 			<field name="arch" type="xml">
 				<tree string="Payroll Contribution Parameters">
 					<field name="employee_category_id" />  
-					<field name="sub_category_id"/>
+					<field name="sub_category_id"  />
 					<field name="emp_pf_con"/>
 					<field name="employer_pension_con"/>
 					<field name="pension_limit_amt"/>
@@ -288,8 +288,8 @@
 	            <form string="Payroll Contribution Parameters" version="7.0">   
 	            	<sheet>
 		                <group col = '4' colspan = '2'>
-		                	<field name="employee_category_id" options="{'create': false, 'create_edit': false}" on_change="onchange_employee_category_id(employee_category_id)"/>  
-		                	<field name="sub_category_id" options="{'create': false, 'create_edit': false}"/>
+		                	<field name="employee_category_id" on_change="onchange_employee_category_id(employee_category_id)" options="{'create': false, 'create_edit': false}" />  
+		                	<field name="sub_category_id" options="{'create': false, 'create_edit': false}" context="{'check_employee_category_id':1,'employee_category_id':employee_category_id}"/>
 			                <field name="emp_pf_con"/>
 			                <newline/>
 							<field name="employer_pension_con"/>
@@ -346,13 +346,13 @@
 	            </header>    
 	            	<sheet>
 		                <group col = '4' colspan = '2'>    
-			                <field name="payroll_area_id" options="{'create': false, 'create_edit': false}" attrs="{'readonly':[('state','in',('confirm','approve'))]}"/>
-							<field name="year" attrs="{'readonly':[('state','in',('confirm','approve'))]}"/>
-							<field name="month" attrs="{'readonly':[('state','in',('confirm','approve'))]}"/>
+			                <field name="payroll_area_id" options="{'create': false, 'create_edit': false}" />
+							<field name="year" />
+							<field name="month" />
 		                </group> 
 		                <notebook>
 		                	<page string = "Payroll Executions Details">
-		                		<field name="payroll_executions_details_line" attrs="{'readonly':[('state','in',('confirm','approve'))]}">
+		                		<field name="payroll_executions_details_line" >
 									<form string="Payroll Executions Details" version="7.0">
 										<group col = '4' colspan = '2'>
 											<field name="company_id" options="{'create': false, 'create_edit': false}"/>
@@ -369,7 +369,7 @@
 										<group>
 											<notebook>
 												<page string = "Earning Structure">
-													<field name="earning_structure_line" nolabel = '1' attrs="{'readonly':[('state','in',('confirm','approve'))]}">
+													<field name="earning_structure_line" nolabel = '1'>
 														<tree editable = 'bottom' >
 															<field name="earning_parameters_id" options="{'create': false, 'create_edit': false}"/>
 															<field name="float" />
@@ -377,7 +377,7 @@
 													</field>
 												</page>
 												<page string = "Other Deduction">
-													<field name="other_deduction_line" nolabel = '1' attrs="{'readonly':[('state','in',('confirm','approve'))]}">
+													<field name="other_deduction_line" nolabel = '1' >
 														<tree editable = 'bottom' >
 															<field name="deduction_parameters_id" options="{'create': false, 'create_edit': false}"/>
 															<field name="float" />
