@@ -465,8 +465,8 @@
 						<group col='4' colspan='2'>
 							<field name="department_id" on_change="onchange_department_id(department_id,month,year)" options="{'create': false, 'create_edit': false}"/>
 							<field name="section_id" options="{'create': false, 'create_edit': false}"/>
-							<field name="year" on_change="onchange_department_id(department_id,month,year)"/>
-							<field name="month" on_change="onchange_department_id(department_id,month,year)"/>
+							<field name="year" on_change="onchange_year_month(department_id,month,year)"/>
+							<field name="month" on_change="onchange_year_month(department_id,month,year)"/>
 							
 						</group>
 						<notebook>
@@ -512,8 +512,8 @@
 			                    			<field name="num_of_month" invisible="1"/>
 			                    			<field name="employee_id" options="{'create': false, 'create_edit': false}"/>
 			                    		</group>
-		                    			<group col='4' colspan='4'>
-			                    			<group>
+		                    			<group col='6' colspan='6'>
+			                    			<group colspan='2'>
 				                    			<field name="day_1" options="{'create': false, 'create_edit': false}"/>
 			                    				<field name="day_2" options="{'create': false, 'create_edit': false}"/>
 			                    				<field name="day_3" options="{'create': false, 'create_edit': false}"/>
@@ -524,18 +524,21 @@
 			                    				<field name="day_8" options="{'create': false, 'create_edit': false}"/>
 			                    				<field name="day_9" options="{'create': false, 'create_edit': false}"/>
 			                    				<field name="day_10" options="{'create': false, 'create_edit': false}"/>
+			                    			</group>
+			                    			<group colspan='2'>
 			                    				<field name="day_11" options="{'create': false, 'create_edit': false}"/>
 			                    				<field name="day_12" options="{'create': false, 'create_edit': false}"/>
 			                    				<field name="day_13" options="{'create': false, 'create_edit': false}"/>
 			                    				<field name="day_14" options="{'create': false, 'create_edit': false}"/>
 			                    				<field name="day_15" options="{'create': false, 'create_edit': false}"/>
-			                    			</group>
-			                    			<group>
+			                    			
 			                    				<field name="day_16" options="{'create': false, 'create_edit': false}"/>
 			                    				<field name="day_17" options="{'create': false, 'create_edit': false}"/>
 			                    				<field name="day_18" options="{'create': false, 'create_edit': false}"/>
 			                    				<field name="day_19" options="{'create': false, 'create_edit': false}"/>
 			                    				<field name="day_20" options="{'create': false, 'create_edit': false}"/>
+			                    				</group>
+			                    			<group colspan='2'>
 			                    				<field name="day_21" options="{'create': false, 'create_edit': false}"/>
 			                    				<field name="day_22" options="{'create': false, 'create_edit': false}"/>
 			                    				<field name="day_23" options="{'create': false, 'create_edit': false}"/>

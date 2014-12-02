@@ -382,7 +382,7 @@
 							<field name ="employee_category_id" options="{'create': false, 'create_edit': false}"/>
 							<field name ="sub_category_id" domain="[('category_id','=',employee_category_id)]" context="{'check_employee_category_id':1,'employee_category_id':employee_category_id}" options="{'create': false, 'create_edit': false}"/>
 							<field name ="department_from_id" options="{'create': false, 'create_edit': false}" on_change="onchange_department_from_id(department_from_id)"/>
-							<field name ="department_to_id" options="{'create': false, 'create_edit': false}" on_change="onchange_department_to_id(department_to_id,designation_from_id) " domain="[('id','!=',department_from_id)]"/> 
+							<field name ="department_to_id" options="{'create': false, 'create_edit': false}" on_change="onchange_department_to_id(department_to_id,designation_from_id) "/> 
 							<field name ="designation_from_id" options="{'create': false, 'create_edit': false}"/>
 							<field name ="designation_to_id" options="{'create': false, 'create_edit': false}" domain="[('id','!=',designation_from_id)]"/>
 							<field name ="action_date" string="Date Of Promotion"/>
@@ -601,7 +601,7 @@
 		                 <group col='4' colspan='2'>
 							<field name="action_id" on_change="onchange_action_id(action_id)" domain="[('name','=','Contracts')]" options="{'create': false, 'create_edit': false}"/>
 							<field name="action_type_id" options="{'create': false, 'create_edit': false}"/>
-							<field name ="employee_id" on_change="onchange_compensation_employee_id(employee_id)" options="{'create': false, 'create_edit': false}" required='1' context="{'search_contract_employee':True, 'employee_id':employee_id}"/>
+							<field name ="employee_id" on_change="onchange_compensation_employee_id(employee_id)" options="{'create': false, 'create_edit': false}" required='1'/>
 							<newline/>
 							<field name ="employee_category_id"  options="{'create': false, 'create_edit': false}"/>
 							<field name ="sub_category_id" domain="[('category_id','=',employee_category_id)]" context="{'check_employee_category_id':1,'employee_category_id':employee_category_id}" options="{'create': false, 'create_edit': false}"/>
@@ -777,7 +777,7 @@
                     <field name="plant_id" options="{'create': false, 'create_edit': false}"/>
                 </xpath>
                 <xpath expr="//field[@name='country_id']" position="replace">
-                    <field name="country_id" options="{'create': false, 'create_edit': false}"/>
+                    <field name="country_stateofbirth_id" options="{'create': false, 'create_edit': false}"/>
                 </xpath>
                 <xpath expr="//field[@name='religion_id']" position="replace">
                     <field name="religion_id" options="{'create': false, 'create_edit': false}"/>
@@ -795,7 +795,7 @@
             <field name="arch" type="xml">
                 <data>
                     <field name="place_of_birth" position="replace">
-                        <field name="place_of_birth" options="{'create': false, 'create_edit': false}"/>
+                        <field name="place_of_birth" domain="[('country_id','=',country_stateofbirth_id)]" options="{'create': false, 'create_edit': false}"/>
                     </field>
                 </data>
             </field>
