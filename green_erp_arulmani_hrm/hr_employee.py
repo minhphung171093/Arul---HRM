@@ -478,15 +478,15 @@ class arul_employee_actions(osv.osv):
     def _check_code_id(self, cr, uid, ids, context=None):
         for actions in self.browse(cr, uid, ids, context=context):
             sql = '''
-                select id from arul_employee_actions where id != %s and lower(code) = lower('%s')
-            '''%(actions.id,actions.code)
+                select id from arul_employee_actions where id != %s and (lower(code) = lower('%s') or lower(name) = lower('%s'))
+            '''%(actions.id,actions.code,actions.name)
             cr.execute(sql)
             actions_ids = [row[0] for row in cr.fetchall()]
             if actions_ids:  
                 return False
         return True
     _constraints = [
-        (_check_code_id, 'Identical Data', ['code']),
+        (_check_code_id, 'Identical Data', ['code','name']),
     ]
 arul_employee_actions()
 
@@ -511,15 +511,15 @@ class arul_employee_action_type(osv.osv):
     def _check_code_id(self, cr, uid, ids, context=None):
         for type in self.browse(cr, uid, ids, context=context):
             sql = '''
-                select id from arul_employee_action_type where id != %s and lower(code) = lower('%s')
-            '''%(type.id,type.code)
+                select id from arul_employee_action_type where id != %s and (lower(code) = lower('%s') or lower(name) = lower('%s'))
+            '''%(type.id,type.code,type.name)
             cr.execute(sql)
             type_ids = [row[0] for row in cr.fetchall()]
             if type_ids:  
                 return False
         return True
     _constraints = [
-        (_check_code_id, 'Identical Data', ['code']),
+        (_check_code_id, 'Identical Data', ['code','name']),
     ]
 
 arul_employee_action_type()

@@ -71,7 +71,10 @@
 	                <group>    
 	                <field name="code"/>
 					<field name="name"/>
-	                </group>   	
+	                </group>
+	                <group string="Department">
+	                	<field name = "department_ids" nolabel='1'/>
+	                </group>
 	            
 	         </sheet>
 	         </form>

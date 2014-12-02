@@ -14,7 +14,7 @@ class hr_department(osv.osv):
         'code': fields.char('Department Code', size=1024, required = True),
         'primary_auditor_id': fields.many2one('hr.employee', 'Primary Time Auditor'),
         'secondary_auditor_id':  fields.many2one('hr.employee', 'Sec. Time Auditor'),
-        'section_ids': fields.many2many('arul.hr.section', 'department_section_rel', 'department_id', 'section_id', 'Sections'),
+        'section_ids': fields.many2many('arul.hr.section', 'department_section_rel', 'department_id', 'section_id', 'Sections', readonly=True),
         'designation_line': fields.one2many('arul.hr.designation', 'department_id', 'Designation Line'),
     }
     
@@ -27,8 +27,8 @@ class hr_department(osv.osv):
     def _check_code(self, cr, uid, ids, context=None):
         for department in self.browse(cr, uid, ids, context=context):
             sql = '''
-                select id from hr_department where id != %s and lower(code) = lower('%s')
-            '''%(department.id,department.code)
+                select id from hr_department where id != %s and (lower(code) = lower('%s') or lower(name) = lower('%s'))
+            '''%(department.id,department.code,department.name)
             cr.execute(sql)
             department_ids = [row[0] for row in cr.fetchall()]
             if department_ids:  
@@ -58,6 +58,7 @@ class arul_hr_section(osv.osv):
     _columns = {
         'name': fields.char('Name', size=1024, required = True),
          'code': fields.char('Code', size=1024, required = True),
+         'department_ids': fields.many2many('hr.department', 'department_section_rel', 'section_id','department_id', 'Department'),
         
     }
     def create(self, cr, uid, vals, context=None):
