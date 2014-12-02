@@ -2,7 +2,8 @@
 <openerp>
     <data>
     
-    <menuitem parent="hr.menu_hr_configuration" id="hr.menu_hr_job" action="hr.action_hr_job" name="Designation" sequence="6"/>
+    <menuitem parent="hr.menu_hr_configuration" id="hr.menu_hr_job" action="hr.action_hr_job" name="Designation" sequence="6" groups='group_vvti_hrm_admin'/>
+    <menuitem action="hr.open_module_tree_department" id="hr.menu_hr_department_tree" parent="hr.menu_hr_configuration" sequence="5" groups='group_vvti_hrm_admin'/>
     
     <record id="view_hr_department_customize" model="ir.ui.view">
             <field name="name">hr.department.customize</field>
@@ -27,7 +28,12 @@
                     
                     <page string = 'Sections'>
                     
-                    <field name = "section_ids" />
+                    <field name = "section_ids">
+                    	<tree editable='top'>
+                    		<field name="code"/>
+							<field name="name"/>
+                    	</tree>
+                    </field>
                     
                     </page>
                     
@@ -55,6 +61,7 @@
 				
 					<field name="code"/>
 					<field name="name"/>
+					<field name="department_id"/>
 					
 				</tree>
 			</field>
@@ -71,9 +78,7 @@
 	                <group>    
 	                <field name="code"/>
 					<field name="name"/>
-	                </group>
-	                <group string="Department">
-	                	<field name = "department_ids" nolabel='1'/>
+					<field name="department_id" options="{'create': false, 'create_edit': false}"/>
 	                </group>
 	            
 	         </sheet>
@@ -82,7 +87,6 @@
           </record>
           
           <record id="action_view_arul_hr_section_form" model="ir.actions.act_window">
-         	
             <field name="name">Sections</field>
             <field name="type">ir.actions.act_window</field>
             <field name="res_model">arul.hr.section</field>
@@ -91,7 +95,7 @@
             <field name="view_id" ref="view_arul_hr_section_tree_vew"/>
         </record>
         
-        <menuitem action="action_view_arul_hr_section_form" id="menu_action_view_arul_hr_section_form" parent="hr.menu_hr_configuration" sequence="6"/>
+        <menuitem action="action_view_arul_hr_section_form" id="menu_action_view_arul_hr_section_form" parent="hr.menu_hr_configuration" sequence="6" groups='group_vvti_hrm_admin'/>
         
          
     

@@ -1,6 +1,8 @@
 id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
-access_res_company_vvti_admin,res_company,base.model_res_company,group_vvti_hrm_admin,1,1,1,1
-access_hr_department_vvti_admin,hr_department,hr.model_hr_department,group_vvti_hrm_admin,1,1,1,1
-access_arul_hr_section_vvti_admin,arul.hr.section,model_arul_hr_section,group_vvti_hrm_admin,1,1,1,1
-access_hr_job_vvti_admin,hr_job,hr.model_hr_job,group_vvti_hrm_admin,1,1,1,1
-access_arul_hr_section_vvti_admin,arul.hr.section,model_arul_hr_section,group_vvti_hrm_admin,1,1,1,1
+access_res_company_vvti_hrm_admin,res_company,base.model_res_company,group_vvti_hrm_admin,1,1,1,1
+access_hr_department_vvti_hrm_admin,hr_department,hr.model_hr_department,group_vvti_hrm_admin,1,1,1,1
+access_arul_hr_section_vvti_hrm_admin,arul.hr.section,model_arul_hr_section,group_vvti_hrm_admin,1,1,1,1
+access_hr_job_vvti_hrm_admin,hr_job,hr.model_hr_job,group_vvti_hrm_admin,1,1,1,1
+access_arul_hr_section_vvti_hrm_admin,arul.hr.section,model_arul_hr_section,group_vvti_hrm_admin,1,1,1,1
+
+access_arul_hr_employee_action_history_vvti_hrm_hr_user,arul.hr.employee.action.history,model_arul_hr_employee_action_history,group_vvti_hrm_hr_user,1,0,0,0

@@ -14,7 +14,7 @@ class hr_department(osv.osv):
         'code': fields.char('Department Code', size=1024, required = True),
         'primary_auditor_id': fields.many2one('hr.employee', 'Primary Time Auditor'),
         'secondary_auditor_id':  fields.many2one('hr.employee', 'Sec. Time Auditor'),
-        'section_ids': fields.many2many('arul.hr.section', 'department_section_rel', 'department_id', 'section_id', 'Sections', readonly=True),
+        'section_ids': fields.one2many('arul.hr.section', 'department_id','Sections'),
         'designation_line': fields.one2many('arul.hr.designation', 'department_id', 'Designation Line'),
     }
     
@@ -58,7 +58,7 @@ class arul_hr_section(osv.osv):
     _columns = {
         'name': fields.char('Name', size=1024, required = True),
          'code': fields.char('Code', size=1024, required = True),
-         'department_ids': fields.many2many('hr.department', 'department_section_rel', 'section_id','department_id', 'Department'),
+         'department_id': fields.many2one('hr.department', 'Department',ondelete='cascade'),
         
     }
     def create(self, cr, uid, vals, context=None):

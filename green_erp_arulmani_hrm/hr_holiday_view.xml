@@ -257,6 +257,7 @@
 					<field name="end_time" widget="float_time"/>
 					<field name="time_total" widget="float_time"/>
 					<field name="reason"/>
+					<field name="approval"/>
 				</tree>
 			</field>
 		</record>
@@ -278,6 +279,7 @@
 							<field name="start_time" widget="float_time"/>
 							<field name="end_time" widget="float_time"/>
 							<field name="time_total" widget="float_time"/>
+							<field name="approval"/>
 						</group>
 						<group>
 							<field name="reason"/>
@@ -412,6 +414,7 @@
 										<field name="end_time"/>
 										<field name="time_total"/>
 										<field name="reason"/>
+										<field name="approval"/>
 									</tree>
 								</field>
 							</page>
@@ -464,7 +467,7 @@
 	            	<sheet>
 						<group col='4' colspan='2'>
 							<field name="department_id" on_change="onchange_department_id(department_id,month,year)" options="{'create': false, 'create_edit': false}"/>
-							<field name="section_id" options="{'create': false, 'create_edit': false}"/>
+							<field name="section_id" domain="[('department_id','=',department_id)]" options="{'create': false, 'create_edit': false}"/>
 							<field name="year" on_change="onchange_year_month(department_id,month,year)"/>
 							<field name="month" on_change="onchange_year_month(department_id,month,year)"/>
 							

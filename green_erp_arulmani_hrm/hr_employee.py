@@ -297,6 +297,12 @@ class arul_hr_employee_action_history(osv.osv):
         if context.get('create_leaving_employee'):
             action_history = self.browse(cr, uid, new_id)
             self.pool.get('hr.employee').write(cr, uid, [action_history.employee_id.id], {'employee_active': False})
+        if context.get('create_promotion_employee'):
+            action_history = self.browse(cr, uid, new_id)
+            self.pool.get('hr.employee').write(cr, uid, [action_history.employee_id.id], {'employee_category_id': action_history.employee_category_id.id,
+                                                                                          'employee_sub_category_id': action_history.sub_category_id.id,
+                                                                                          'job_id': action_history.designation_to_id.id,
+                                                                                          'department_id': action_history.department_to_id.id})
         return new_id
     def approve_employee_rehiring(self, cr, uid, ids, context=None):
         for line in self.browse(cr, uid, ids):
@@ -404,11 +410,11 @@ class hr_employee(osv.osv):
             ids = self.search(cr, user, args, context=context, limit=limit)
         return self.name_get(cr, user, ids, context=context)
     def onchange_department_id(self, cr, uid, ids,department_id=False, context=None):
-        section_ids = []
-        if department_id:
-            dept = self.pool.get('hr.department').browse(cr, uid, department_id)
-            section_ids = [x.id for x in dept.section_ids]
-        return {'value': {'section_id': False}, 'domain':{'section_id':[('id','in',section_ids)]}}
+#         section_ids = []
+#         if department_id:
+#             dept = self.pool.get('hr.department').browse(cr, uid, department_id)
+#             section_ids = [x.id for x in dept.section_ids]
+        return {'value': {'section_id': False}}
     def onchange_employee_category_id(self, cr, uid, ids,employee_category_id=False, context=None):
         emp_sub_cat = []
         return {'value': {'employee_sub_category_id': False }}

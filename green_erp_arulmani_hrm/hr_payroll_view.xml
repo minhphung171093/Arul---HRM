@@ -50,7 +50,7 @@
         
         <menuitem action="action_arul_hr_payroll_area_form"
             id="menu_action_arul_hr_payroll_area_form"
-            parent="hr.menu_hr_configuration" sequence="20"/>
+            parent="hr.menu_hr_configuration" sequence="20" groups='group_vvti_hrm_admin'/>
          
         <record id="view_arul_hr_payroll_sub_area_search_vew" model="ir.ui.view">
 			<field name="name">arul.hr.payroll.sub.area.search</field>
@@ -100,7 +100,7 @@
         
        <menuitem action="action_arul_hr_payroll_sub_area_form"
             id="menu_action_arul_hr_payroll_sub_area_form"
-            parent="hr.menu_hr_configuration" sequence="2"/>
+            parent="hr.menu_hr_configuration" sequence="2" groups='group_vvti_hrm_admin'/>
 
 
         <record id="view_arul_hr_payroll_earning_parameters_tree_vew" model="ir.ui.view">

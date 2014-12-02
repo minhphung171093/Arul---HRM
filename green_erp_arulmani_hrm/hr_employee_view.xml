@@ -62,7 +62,7 @@
         
         <menuitem action="action_arul_employee_category_form"
             id="menu_action_arul_employee_category_form"
-            parent="hr.menu_hr_main" sequence="24"/>
+            parent="hr.menu_hr_main" sequence="24" groups='group_vvti_hrm_admin'/>
 		
 		<record id="view_arul_employee_sub_category_search_vew" model="ir.ui.view">
 			<field name="name">vsis.employee.sub.category.search</field>
@@ -96,7 +96,7 @@
 	                    <group>
 	                    	<field name="code"/>
 	                    	<field name="name"/>
-	                    	<field name="category_id"/>
+	                    	<field name="category_id" options="{'create': false, 'create_edit': false}"/>
 	               	  	</group>
                 	</sheet>
                 </form>
@@ -114,7 +114,7 @@
         
         <menuitem action="action_arul_employee_sub_category_form"
             id="menu_action_arul_employee_sub_category_form"
-            parent="hr.menu_hr_main" sequence="24"/>
+            parent="hr.menu_hr_main" sequence="24" groups='group_vvti_hrm_admin'/>
 		
 		<record id="view_arul_employee_actions_search_vew" model="ir.ui.view">
 			<field name="name">arul.employee.actions.search</field>
@@ -171,7 +171,7 @@
         
         <menuitem action="action_arul_employee_actions_form"
             id="menu_action_arul_employee_actions_form"
-            parent="hr.menu_hr_configuration" sequence="3"/>
+            parent="hr.menu_hr_configuration" sequence="3" groups='group_vvti_hrm_admin'/>
         
         <record id="view_arul_employee_actions_type_search_vew" model="ir.ui.view">
 			<field name="name">arul.employee.actions.type.search</field>
@@ -221,7 +221,7 @@
         
         <menuitem action="action_arul_employee_action_type_form"
             id="menu_action_arul_employee_action_type_form"
-            parent="hr.menu_hr_configuration" sequence="4"/> 
+            parent="hr.menu_hr_configuration" sequence="4" groups='group_vvti_hrm_admin'/> 
             
         <record id="view_arul_hr_employee_action_history" model="ir.ui.view">
             <field name="name">view.arul.hr.employee.action.history</field>
@@ -343,7 +343,7 @@
         </record>
          <menuitem action="action_arul_hr_employee_transfer_action_form"
             id="menu_action_arul_hr_employee_transfer_action_form"
-            parent="hr.menu_hr_main" sequence="28"/>
+            parent="hr.menu_hr_main" sequence="28" groups="group_vvti_hrm_hr_key_user"/>
         
         <record id="view_arul_hr_employee_action_history_tree_vew" model="ir.ui.view">
 			<field name="name">arul.hr.employee.action.history.tree</field>
@@ -405,7 +405,7 @@
             <field name="view_type">form</field>
             <field name="view_mode">tree,form</field>
             <field name="domain">[('action_id.name','=','Promotion')]</field>
-            <field name="context">{'action_default_promotion':1}</field>
+            <field name="context">{'action_default_promotion':1,'create_promotion_employee':1}</field>
             <field name="view_id" ref="view_arul_hr_employee_action_history_tree_vew"/>
         </record>
         <record id="action_arul_hr_employee_action_history_form1" model="ir.actions.act_window.view">
@@ -422,7 +422,7 @@
         </record>
          <menuitem action="action_arul_hr_employee_action_history_form"
             id="menu_action_arul_hr_employee_action_history_form"
-            parent="hr.menu_hr_main" sequence="25"/> 
+            parent="hr.menu_hr_main" sequence="25" groups="group_vvti_hrm_hr_key_user"/> 
             
          <record id="view_arul_hr_employee_rehiring_history_tree_vew" model="ir.ui.view">
 			<field name="name">arul.hr.employee.rehiring.history.tree</field>
@@ -497,7 +497,7 @@
         </record>
          <menuitem action="action_arul_hr_employee_rehiring_history_form"
             id="menu_action_arul_hr_employee_rehiring_history_form"
-            parent="hr.menu_hr_main" sequence="26"/> 
+            parent="hr.menu_hr_main" sequence="26" groups="group_vvti_hrm_hr_key_user"/> 
             
          <record id="view_arul_hr_employee_compensation_review_action_tree_vew" model="ir.ui.view">
 			<field name="name">arul.hr.employee.compensation_review.action.tree</field>
@@ -570,7 +570,7 @@
         </record>
          <menuitem action="action_arul_hr_employee_compensation_review_action_form"
             id="menu_action_arul_hr_employee_compensation_review_action_form"
-            parent="hr.menu_hr_main" sequence="27"/>
+            parent="hr.menu_hr_main" sequence="27" groups="group_vvti_hrm_hr_key_user"/>
             
           <record id="view_arul_hr_employee_contracts_action_tree_vew" model="ir.ui.view">
 			<field name="name">arul.hr.employee.contracts.action.tree</field>
@@ -643,7 +643,7 @@
         </record>
          <menuitem action="action_arul_hr_employee_contracts_action_form"
             id="menu_action_arul_hr_employee_contracts_action_form"
-            parent="hr.menu_hr_main" sequence="28"/>
+            parent="hr.menu_hr_main" sequence="28" groups="group_vvti_hrm_hr_key_user"/>
 		
 		<record id="view_arul_hr_employee_hiring_action_tree_vew" model="ir.ui.view">
 			<field name="name">arul.hr.employee.hiring.action.tree</field>
@@ -716,7 +716,7 @@
         </record>
          <menuitem action="action_arul_hr_employee_hiring_action_form"
             id="menu_action_arul_hr_employee_hiring_action_form"
-            parent="hr.menu_hr_main" sequence="30"/>
+            parent="hr.menu_hr_main" sequence="30" groups="group_vvti_hrm_hr_key_user"/>
 		
 		<record id="arul_hr_employees_form" model="ir.ui.view">
             <field name="name">arul_hr_employees_form</field>
@@ -724,7 +724,7 @@
             <field name="inherit_id" ref="hr.view_employee_form"/>
             <field name="arch" type="xml">
                 <xpath expr="//field[@name='department_id']" position="after">
-                    <field name="section_id" options="{'create': false, 'create_edit': false}"/>
+                    <field name="section_id" domain="[('department_id','=',department_id)]" options="{'create': false, 'create_edit': false}"/>
                 </xpath>
                 
             </field>
@@ -879,7 +879,7 @@
         </record>
 		<menuitem action="action_arul_hr_employee_leaving_action_form"
             id="menu_action_arul_hr_employee_leaving_action_form"
-            parent="hr.menu_hr_main" sequence="29"/>
+            parent="hr.menu_hr_main" sequence="29" groups="group_vvti_hrm_hr_key_user"/>
 
 		<record id="view_arul_hr_employee_disciplinary_action_tree_vew" model="ir.ui.view">
 			<field name="name">arul.hr.employee.disciplinary.action.tree</field>
@@ -954,7 +954,7 @@
         </record>
         <menuitem action="action_arul_hr_employee_disciplinary_action_form"
             id="menu_action_arul_hr_employee_disciplinary_action_form"
-            parent="hr.menu_hr_main" sequence="29"/>
+            parent="hr.menu_hr_main" sequence="29" groups="group_vvti_hrm_hr_key_user"/>
             
         <record id="food_subsidy_tree_view" model="ir.ui.view">
 			<field name="name">food.subsidy.tree</field>
@@ -1110,18 +1110,6 @@
                 </xpath>
             </field>
 		</record>
-		
-		<record id="arul_hr_employees_form" model="ir.ui.view">
-            <field name="name">arul_hr_employees_form</field>
-            <field name="model">hr.employee</field>
-            <field name="inherit_id" ref="hr.view_employee_form"/>
-            <field name="arch" type="xml">
-                <xpath expr="//field[@name='department_id']" position="after">
-                    <field name="section_id" options="{'create': false, 'create_edit': false}"/>
-                </xpath>
-                
-            </field>
-        </record>
 		
     </data>
 </openerp>
