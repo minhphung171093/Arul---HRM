@@ -106,7 +106,7 @@ class arul_hr_payroll_deduction_parameters(osv.osv):
     _name = 'arul.hr.payroll.deduction.parameters'
     _columns = {
         'name': fields.char('Name', size=1024, required = True),
-        'code': fields.char('Code', size=1024, equired = True),
+        'code': fields.char('Code', size=1024, required = True),
         'description': fields.text('Description'),
     }
     def _check_code_id(self, cr, uid, ids, context=None):
@@ -257,12 +257,12 @@ class arul_hr_payroll_contribution_parameters(osv.osv):
         'emp_lwf_amt': fields.float('Employee Labor Welfare Fund (LWF) Amt'),
         'employer_lwf_con_amt': fields.float('Employer LWF Contribution Amt'),
         }
-#     def onchange_employee_category_id(self, cr, uid, ids,employee_category_id=False, context=None):
-#         emp_sub_cat = []
-#         if employee_category_id:
-#             emp_cat = self.pool.get('vsis.hr.employee.category').browse(cr, uid, employee_category_id)
-#             emp_sub_cat = [x.id for x in emp_cat.sub_category_ids]
-#         return {'value': {'sub_category_id': False }, 'domain':{'sub_category_id':[('id','in',emp_sub_cat)]}}
+    def onchange_employee_category_id(self, cr, uid, ids,employee_category_id=False, context=None):
+        emp_sub_cat = []
+        if employee_category_id:
+            emp_cat = self.pool.get('vsis.hr.employee.category').browse(cr, uid, employee_category_id)
+            emp_sub_cat = [x.id for x in emp_cat.sub_category_ids]
+        return {'value': {'sub_category_id': False }, 'domain':{'sub_category_id':[('id','in',emp_sub_cat)]}}
         
 #     def onchange_employee_category_id(self, cr, uid, ids,employee_category_id=False, context=None):
 #         employee_sub_ids = []
@@ -344,7 +344,7 @@ class arul_hr_payroll_executions(osv.osv):
     _columns = {
          'payroll_area_id': fields.many2one('arul.hr.payroll.area','Payroll Area',required = True),
          'year': fields.char('Year', size = 1024,required = True),
-         'state': fields.selection([('draft', 'New'),('confirm', 'Confirmed'),('approve', 'Approved')],'Status'),
+        'state': fields.selection([('draft', 'New'),('confirm', 'Confirmed'),('approve', 'Approved')],'Status'),
          'month': fields.selection([('1', 'January'),('2', 'February'), ('3', 'March'), ('4','April'), ('5','May'), ('6','June'), ('7','July'), ('8','August'), ('9','September'), ('10','October'), ('11','November'), ('12','December')], 'Month',required = True),
          'payroll_executions_details_line': fields.one2many('arul.hr.payroll.executions.details','payroll_executions_id','Details Line'),
     }
