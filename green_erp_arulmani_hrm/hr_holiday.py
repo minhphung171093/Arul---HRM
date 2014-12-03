@@ -5,8 +5,8 @@ from openerp.tools.translate import _
 import time
 from openerp import SUPERUSER_ID
 from openerp.tools import DEFAULT_SERVER_DATE_FORMAT, DEFAULT_SERVER_DATETIME_FORMAT, DATETIME_FORMATS_MAP, float_compare
-import datetime
 from datetime import datetime
+import datetime
 import base64
 import calendar
 class arul_hr_holiday_special(osv.osv):

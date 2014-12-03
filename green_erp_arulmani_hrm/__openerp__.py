@@ -43,6 +43,7 @@
         'hr_demo_payroll_deduction_parameters.xml',
         'report/arul_payslip_report.xml',
         'wizard/print_payslip_view.xml',
+        'wizard/alert_form_view.xml',
     ],
     'css' : [
         "static/src/css/base.css",

@@ -340,7 +340,7 @@
 	            <form string="Approve Reject Payroll" version="7.0">  
 	            <header>
 	                <button name="approve_payroll" states = 'draft,cancel' string="Approve Payroll" type="object" class="oe_highlight" groups="base.group_hr_manager"/>
-	                <button name="reject_payroll" states = 'done' string="Reject Payroll" type="object" class="oe_highlight" groups="base.group_hr_manager"/>
+	                <button name="reject_payroll" states = 'draft' string="Reject Payroll" type="object" class="oe_highlight" groups="base.group_hr_manager"/>
 	           		<field name="state" widget="statusbar" statusbar_visible="draft,cancel,done" statusbar_colors='{"draft":"blue","done":"blue"}'/>
 	            </header>    
 	            <sheet>
@@ -388,8 +388,8 @@
 	            <form string="Payroll Executions" version="7.0">  
 	            <header>
 	                <button name="generate_payroll" states='draft' string="Generate Payroll" type="object" class="oe_highlight" groups="base.group_hr_manager"/>
-	                <button name="confirm_payroll" states='draft' string="Confirm Payroll" type="object" class="oe_highlight" groups="base.group_hr_manager"/>
-	                <button name="rollback_payroll" states='confirm' string="Roll Back Payroll" type="object" class="oe_highlight" groups="base.group_hr_manager"/>
+	                <button name="rollback_payroll" states='draft' string="Roll Back Payroll" type="object" class="oe_highlight" groups="base.group_hr_manager"/>
+	               	<button name="confirm_payroll" states='draft' string="Confirm Payroll" type="object" class="oe_highlight" groups="base.group_hr_manager"/>
 	                <field name="state" widget="statusbar" statusbar_visible="draft,confirm,approve" statusbar_colors='{"draft":"blue","done":"blue"}'/>  
 	            </header>    
 	            	<sheet>

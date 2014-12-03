@@ -429,7 +429,7 @@ class tpt_hr_payroll_approve_reject(osv.osv):
     _columns = {
          'year': fields.selection([(num, str(num)) for num in range(1951, 2026)], 'Year', required = True, states={'done': [('readonly', True)], 'cancel': [('readonly', True)]}),
          'month': fields.selection([('1', 'January'),('2', 'February'), ('3', 'March'), ('4','April'), ('5','May'), ('6','June'), ('7','July'), ('8','August'), ('9','September'), ('10','October'), ('11','November'), ('12','December')], 'Month',required = True, states={'done': [('readonly', True)], 'cancel': [('readonly', True)]}),
-         'state':fields.selection([('draft', 'Draft'),('cancel', 'Reject'),('done', 'Approve')],'Status', readonly=True),
+         'state':fields.selection([('draft', 'New'),('cancel', 'Reject'),('done', 'Approved')],'Status', readonly=True),
     }
     _defaults = {
         'state':'draft',
@@ -453,18 +453,30 @@ class tpt_hr_payroll_approve_reject(osv.osv):
         for line in self.browse(cr,uid,ids):
             payroll_obj = self.pool.get('arul.hr.payroll.executions')
             payroll_ids = payroll_obj.search(cr, uid, [('year', '=', line.year), ('month', '=', line.month)])
+#             executions_obj = self.pool.get('arul.hr.payroll.executions.details')
+#         executions_ids = executions_obj.search(cr, uid, [('payroll_executions_id','in',ids)])
+#         if executions_ids:
             for payroll in payroll_obj.browse(cr,uid,payroll_ids):
-                payroll_obj.write(cr, uid, payroll.id, {'state':'approve'})
+                if payroll.state == "confirm":
+                    payroll_obj.write(cr, uid, payroll.id, {'state':'approve'})
         return self.write(cr, uid, line.id, {'state':'done'})
     
     def reject_payroll(self, cr, uid, ids, context=None):
-        for line in self.browse(cr,uid,ids):
-            payroll_obj = self.pool.get('arul.hr.payroll.executions')
-            payroll_ids = payroll_obj.search(cr, uid, [('year', '=', line.year), ('month', '=', line.month)])
-            for payroll in payroll_obj.browse(cr,uid,payroll_ids):
-                payroll_obj.write(cr, uid, payroll.id, {'state':'confirm'})
-        return self.write(cr, uid, line.id, {'state':'cancel'})
-
+#         for line in self.browse(cr,uid,ids):
+#             payroll_obj = self.pool.get('arul.hr.payroll.executions')
+#             executions_obj = self.pool.get('arul.hr.payroll.executions.details')
+#             payroll_ids = payroll_obj.search(cr, uid, [('year', '=', line.year), ('month', '=', line.month),('state', '=', 'confirm')])
+#             if not payroll_ids:
+#                 raise osv.except_osv(_('Warning !'), _("Do not find the confirmed payroll!"))
+#             payroll_obj.write(cr, uid, payroll_ids, {'state':'draft'})
+#             executions_ids = executions_obj.search(cr, uid, [('payroll_executions_id','in',payroll_ids)])
+#             if not executions_ids:
+#                 raise osv.except_osv(_('Warning !'), _("Can not confirm this payroll!"))
+#             else:
+#                 executions_obj.unlink(cr, uid, executions_ids, context=context)
+#         return self.write(cr, uid, ids, {'state':'cancel'})
+        line = self.browse(cr,uid,ids[0])
+        return self.pool.get('alert.form').info(cr, uid, title='Alert', message="Do you need to roll back the Payroll for the Period: %s?"%(str(line.month)+'-'+str(line.year)))
 tpt_hr_payroll_approve_reject()
 
 
@@ -1540,17 +1552,20 @@ class arul_hr_payroll_executions(osv.osv):
                 
         return True           
     def confirm_payroll(self, cr, uid, ids, context=None):
-#         sql = '''
-#                 select id from arul_hr_payroll_sub_area where id != %s and lower(code) = lower('%s')
-#             '''%(payroll.id,payroll.code)
-#             cr.execute(sql)
-#             payroll_ids = [row[0] for row in cr.fetchall()]
-#             if payroll_ids: 
-        return self.write(cr, uid, ids, {'state': 'confirm'})
+        executions_obj = self.pool.get('arul.hr.payroll.executions.details')
+        executions_ids = executions_obj.search(cr, uid, [('payroll_executions_id','in',ids)])
+        if executions_ids:
+            return self.write(cr, uid, ids, {'state': 'confirm'})
+        else:
+            raise osv.except_osv(_('Warning !'), _("Can not confirm this payroll!"))
 
     def rollback_payroll(self, cr, uid, ids, context=None):
-        return self.write(cr, uid, ids, {'state': 'draft'})
-    
+        executions_obj = self.pool.get('arul.hr.payroll.executions.details')
+        executions_ids = executions_obj.search(cr, uid, [('payroll_executions_id','in',ids)])
+        if executions_ids:
+            return  executions_obj.unlink(cr, uid, executions_ids, context=context)
+        else:
+            raise osv.except_osv(_('Warning !'), _("This payroll has not been generated yet!"))
     def name_get(self, cr, uid, ids, context=None):
         res = []
         if not ids:
