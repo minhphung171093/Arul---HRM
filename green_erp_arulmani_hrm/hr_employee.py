@@ -819,6 +819,7 @@ class employee_leave_detail(osv.osv):
         taken_day = 0
         res = {}
         DATETIME_FORMAT = "%Y-%m-%d"
+        timedelta = 0
         for line in self.browse(cr, uid, ids, context=context):
             emp = line.emp_leave_id and line.emp_leave_id.employee_id.id or False
             year = line.emp_leave_id and line.emp_leave_id.year or False
@@ -834,7 +835,9 @@ class employee_leave_detail(osv.osv):
                     timedelta = date_now - join_date
             leave_detail_ids = leave_detail_obj.search(cr, uid, [('employee_id','=',emp),('leave_type_id','=',leave_type),('state','!=','cancel')])
             for detail in leave_detail_obj.browse(cr, uid, leave_detail_ids, context=context):
-                if detail.date_from[0:4] == year and timedelta.days >= 365 and line.total_day != 0:
+                if not timedelta:
+                    raise osv.except_osv(_('Warning!'),_('Exceeds Holiday Lets'))
+                if timedelta and detail.date_from[0:4] == year and timedelta.days >= 365 and line.total_day != 0:
                     taken_day += detail.days_total
             res[line.id] = taken_day
         return res
