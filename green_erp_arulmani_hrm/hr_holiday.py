@@ -388,7 +388,7 @@ class arul_hr_permission_onduty(osv.osv):
         '''%(permission.start_time - 1,permission.end_time + 1)
         cr.execute(sql)
         work_shift_ids = [row[0] for row in cr.fetchall()]
-        self.pool.get('arul.hr.audit.shift.time').create(cr, uid, {
+        self.pool.get('arul.hr.audit.shift.time').create(cr, SUPERUSER_ID, {
             'employee_id':permission.employee_id.id,
             'work_date':permission.date,
             'employee_category_id':permission.employee_id.employee_category_id and permission.employee_id.employee_category_id.id or False,
