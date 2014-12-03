@@ -343,7 +343,7 @@
         </record>
          <menuitem action="action_arul_hr_employee_transfer_action_form"
             id="menu_action_arul_hr_employee_transfer_action_form"
-            parent="hr.menu_hr_main" sequence="28" groups="group_vvti_hrm_hr_key_user"/>
+            parent="hr.menu_hr_main" sequence="28" groups="group_vvti_hrm_hr_key_user,group_vvti_hrm_hr_manager"/>
         
         <record id="view_arul_hr_employee_action_history_tree_vew" model="ir.ui.view">
 			<field name="name">arul.hr.employee.action.history.tree</field>
@@ -422,7 +422,7 @@
         </record>
          <menuitem action="action_arul_hr_employee_action_history_form"
             id="menu_action_arul_hr_employee_action_history_form"
-            parent="hr.menu_hr_main" sequence="25" groups="group_vvti_hrm_hr_key_user"/> 
+            parent="hr.menu_hr_main" sequence="25" groups="group_vvti_hrm_hr_key_user,group_vvti_hrm_hr_manager"/> 
             
          <record id="view_arul_hr_employee_rehiring_history_tree_vew" model="ir.ui.view">
 			<field name="name">arul.hr.employee.rehiring.history.tree</field>
@@ -497,7 +497,7 @@
         </record>
          <menuitem action="action_arul_hr_employee_rehiring_history_form"
             id="menu_action_arul_hr_employee_rehiring_history_form"
-            parent="hr.menu_hr_main" sequence="26" groups="group_vvti_hrm_hr_key_user"/> 
+            parent="hr.menu_hr_main" sequence="26" groups="group_vvti_hrm_hr_key_user,group_vvti_hrm_hr_manager"/> 
             
          <record id="view_arul_hr_employee_compensation_review_action_tree_vew" model="ir.ui.view">
 			<field name="name">arul.hr.employee.compensation_review.action.tree</field>
@@ -570,7 +570,7 @@
         </record>
          <menuitem action="action_arul_hr_employee_compensation_review_action_form"
             id="menu_action_arul_hr_employee_compensation_review_action_form"
-            parent="hr.menu_hr_main" sequence="27" groups="group_vvti_hrm_hr_key_user"/>
+            parent="hr.menu_hr_main" sequence="27" groups="group_vvti_hrm_hr_key_user,group_vvti_hrm_hr_manager"/>
             
           <record id="view_arul_hr_employee_contracts_action_tree_vew" model="ir.ui.view">
 			<field name="name">arul.hr.employee.contracts.action.tree</field>
@@ -643,7 +643,7 @@
         </record>
          <menuitem action="action_arul_hr_employee_contracts_action_form"
             id="menu_action_arul_hr_employee_contracts_action_form"
-            parent="hr.menu_hr_main" sequence="28" groups="group_vvti_hrm_hr_key_user"/>
+            parent="hr.menu_hr_main" sequence="28" groups="group_vvti_hrm_hr_key_user,group_vvti_hrm_hr_manager"/>
 		
 		<record id="view_arul_hr_employee_hiring_action_tree_vew" model="ir.ui.view">
 			<field name="name">arul.hr.employee.hiring.action.tree</field>
@@ -716,7 +716,7 @@
         </record>
          <menuitem action="action_arul_hr_employee_hiring_action_form"
             id="menu_action_arul_hr_employee_hiring_action_form"
-            parent="hr.menu_hr_main" sequence="30" groups="group_vvti_hrm_hr_key_user"/>
+            parent="hr.menu_hr_main" sequence="30" groups="group_vvti_hrm_hr_key_user,group_vvti_hrm_hr_manager"/>
 		
 		<record id="arul_hr_employees_form" model="ir.ui.view">
             <field name="name">arul_hr_employees_form</field>
@@ -879,7 +879,7 @@
         </record>
 		<menuitem action="action_arul_hr_employee_leaving_action_form"
             id="menu_action_arul_hr_employee_leaving_action_form"
-            parent="hr.menu_hr_main" sequence="29" groups="group_vvti_hrm_hr_key_user"/>
+            parent="hr.menu_hr_main" sequence="29" groups="group_vvti_hrm_hr_key_user,group_vvti_hrm_hr_manager"/>
 
 		<record id="view_arul_hr_employee_disciplinary_action_tree_vew" model="ir.ui.view">
 			<field name="name">arul.hr.employee.disciplinary.action.tree</field>
@@ -954,7 +954,7 @@
         </record>
         <menuitem action="action_arul_hr_employee_disciplinary_action_form"
             id="menu_action_arul_hr_employee_disciplinary_action_form"
-            parent="hr.menu_hr_main" sequence="29" groups="group_vvti_hrm_hr_key_user"/>
+            parent="hr.menu_hr_main" sequence="29" groups="group_vvti_hrm_hr_key_user,group_vvti_hrm_hr_manager"/>
             
         <record id="food_subsidy_tree_view" model="ir.ui.view">
 			<field name="name">food.subsidy.tree</field>
@@ -997,7 +997,7 @@
         
         <menuitem action="action_food_subsidy_form"
             id="menu_action_food_subsidy_form"
-            parent="hr.menu_hr_configuration" sequence="4"/>
+            parent="hr.menu_hr_configuration" sequence="4" groups="group_vvti_hrm_time_user"/>
         
         <record id="meals_deduction_tree_view" model="ir.ui.view">
 			<field name="name">meals.deduction.tree</field>
