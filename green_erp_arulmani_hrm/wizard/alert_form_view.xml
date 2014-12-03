@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<openerp>
+    <data>
+		<record id="alert_form_view" model="ir.ui.view">
+	        <field name="name">alert.form</field>
+	        <field name="model">alert.form</field>
+	        <field eval="20" name="priority"/>
+	        <field name="arch" type="xml">
+	            <form string="Alert" version="7.0">
+	                <field name="message"  nolabel="1" />
+	                <footer>
+	                    <button name="reject" type='object' string="Yes" class="oe_highlight"/>
+	                    <button string="No" class="oe_highlight" special="cancel" />
+	                </footer>
+	            </form>
+	        </field>
+    	</record>
+
+	    <record model="ir.actions.act_window" id="action_warning">
+	        <field name="name">Alert</field>
+	        <field name="res_model">alert.form</field>
+	        <field name="view_type">form</field>
+	        <field name="view_mode">form</field>
+	        <field name="view_id" ref="alert_form_view" />
+	        <field name="target">new</field>
+	    </record>        
+    </data>
+</openerp>
+
