@@ -60,7 +60,6 @@ class Parser(report_sxw.rml_parse):
         for emp_id in emp_ids :
             payroll_ids = payroll_obj.search(self.cr, self.uid,[('month','=',month),('year','=',year),('employee_id','=',emp_id)])
             basic = 0
-            employee_name 
             if payroll_ids:
                 payroll = payroll_obj.browse(self.cr, self.uid, payroll_ids[0])
                 for earning in payroll.earning_structure_line:
