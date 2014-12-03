@@ -1549,7 +1549,9 @@ class arul_hr_payroll_executions(osv.osv):
         return self.write(cr, uid, ids, {'state': 'confirm'})
 
     def rollback_payroll(self, cr, uid, ids, context=None):
-        return self.write(cr, uid, ids, {'state': 'draft'})
+        executions_obj = self.pool.get('arul.hr.payroll.executions.details')
+        executions_ids = executions_obj.search(cr, uid, [('payroll_executions_id','in',ids)])
+        return  executions_obj.unlink(cr, uid, executions_ids, context=context)
     
     def name_get(self, cr, uid, ids, context=None):
         res = []
