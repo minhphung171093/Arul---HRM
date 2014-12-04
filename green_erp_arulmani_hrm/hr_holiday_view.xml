@@ -741,7 +741,7 @@
          
         <menuitem action="action_tpt_equipment_master_form"
             id="menu_action_tpt_equipment_master_form"
-            parent="menu_hr_leave_management" sequence="30"/>
+            parent="menu_hr_leave_management" sequence="30" groups="group_vvti_hrm_admin"/>
             
         <record id="view_tpt_manage_equipment_inventory_tree_vew" model="ir.ui.view">
 			<field name="name">tpt.manage.equipment.inventory.tree</field>
