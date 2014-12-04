@@ -976,11 +976,35 @@
                 <form string="Food Subsidy Master" version="7.0">  
                 	<sheet>  
                 		<group>
-                		<field name ="food_category" style="width: 40%%"/>
-                		<field name ="food_price" on_change="onchange_amount_all(food_price)"/>
-                		<field name ="employer_con"/>
-                		<field name ="employee_con"/>
-                		</group>
+	                		<group>
+		                		<field name ="food_category" style="width: 40%%"/>
+		                		<field name ="food_price" on_change="onchange_amount_all(food_price)"/>
+		                		<field name ="employer_con"/>
+		                		<field name ="employee_con"/>
+	                		</group>
+	                		<group>
+	                			<field name ="hotel_name"/>
+		                		<label for="street" string="Contact Address"/>
+		                		<div>	
+			                    	<field name="street" placeholder="Street..."/>
+			                        <field name="street2"/>
+			                        <field name="city" placeholder="City" />
+			                        <div class="address_format">
+			                        	<field name="country_id" style="width: 45%%" placeholder="Country" options="{'create': false, 'create_edit': false}"/>
+			                            <field name="state_id" style="width: 50%%"  domain="[('country_id', '=', country_id)]" options="{'create': false, 'create_edit': false}" placeholder="State"/>
+			                        </div>
+			                        <field name="zip" placeholder="Zip" />
+			                    </div>
+		                    </group>
+	                    </group>
+	                    <field name="history_line">
+	                    	<tree>
+	                    		<field name ="food_category"/>
+		                		<field name ="food_price"/>
+		                		<field name ="employer_con"/>
+		                		<field name ="employee_con"/>
+	                    	</tree>
+	                    </field>
                 	</sheet>
 				</form>
 			</field>
@@ -992,6 +1016,7 @@
             <field name="res_model">food.subsidy</field>
             <field name="view_type">form</field>
             <field name="view_mode">tree,form</field>
+            <field name="domain">[('history_id','=',False)]</field>
             <field name="view_id" ref="food_subsidy_tree_view"/>
         </record>
         
