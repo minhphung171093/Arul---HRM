@@ -23,7 +23,36 @@
 	        <field name="view_mode">form</field>
 	        <field name="view_id" ref="alert_form_view" />
 	        <field name="target">new</field>
-	    </record>        
+	    </record>
+	    
+	    <record id="aprove_or_reject_audit_form_view" model="ir.ui.view">
+	        <field name="name">aprove.or.reject.audit.form</field>
+	        <field name="model">alert.form</field>
+	        <field eval="20" name="priority"/>
+	        <field name="arch" type="xml">
+	            <form string="Alert" version="7.0">
+	                <h1>
+	                	<field name="message"  nolabel="1" />
+	                </h1>
+	                <footer>
+	                	<button name="approve_audit" type='object' string="Approve" class="oe_highlight"/>
+	                    <button name="reject_audit" type='object' string="Reject" class="oe_highlight"/>
+	                    or
+	                    <button string="Cancel" special="cancel" />
+	                </footer>
+	            </form>
+	        </field>
+    	</record>
+
+	    <record model="ir.actions.act_window" id="action_aprove_or_reject_audit_form">
+	        <field name="name">Aprove or Reject</field>
+	        <field name="res_model">alert.form</field>
+	        <field name="view_type">form</field>
+	        <field name="view_mode">form</field>
+	        <field name="view_id" ref="aprove_or_reject_audit_form_view" />
+	        <field name="context">{'default_message':'Aprove or Reject?'}</field>
+	        <field name="target">new</field>
+	    </record>   
     </data>
 </openerp>
 
