@@ -792,6 +792,15 @@
         <menuitem action="action_tpt_manage_equipment_inventory_form"
             id="menu_action_tpt_manage_equipment_inventory_form"
             parent="menu_hr_leave_management" sequence="31"/>            
-    
+    	
+    	<record model="ir.values" id="sale_order_make_invoice">
+            <field name="model_id" ref="model_arul_hr_audit_shift_time" />
+            <field name="name">Aprove or Reject</field>
+            <field name="key2">client_action_multi</field>
+            <field name="value" eval="'ir.actions.act_window,' + str(ref('action_aprove_or_reject_audit_form'))" />
+            <field name="key">action</field>
+            <field name="model">arul.hr.audit.shift.time</field>
+        </record>
+    	
 	</data>
 </openerp>

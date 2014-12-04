@@ -60,7 +60,6 @@ class alert_form(osv.osv_memory):
     def reject(self, cr, uid, ids, context=None):
         payroll_obj = self.pool.get('arul.hr.payroll.executions')
         execution_id = context.get('active_ids')[0]
-        print execution_id
         line = self.pool.get('tpt.hr.payroll.approve.reject').browse(cr,uid,execution_id)
         executions_obj = self.pool.get('arul.hr.payroll.executions.details')
         payroll_ids = payroll_obj.search(cr, uid, [('year', '=', line.year), ('month', '=', line.month),('state', '=', 'confirm')])
@@ -74,5 +73,14 @@ class alert_form(osv.osv_memory):
             executions_obj.unlink(cr, uid, executions_ids, context=context)
         self.pool.get('tpt.hr.payroll.approve.reject').write(cr, uid, [execution_id], {'state':'cancel'})
         return {'type': 'ir.actions.act_window_close'}
-        
+    
+    def approve_audit(self, cr, uid, ids, context=None):
+        audit_ids = context.get('active_ids')
+        self.pool.get('arul.hr.audit.shift.time').approve_shift_time(cr, uid, audit_ids)
+        return {'type': 'ir.actions.act_window_close'}
+    
+    def reject_audit(self, cr, uid, ids, context=None):
+        audit_ids = context.get('active_ids')
+        self.pool.get('arul.hr.audit.shift.time').reject_shift_time(cr, uid, audit_ids)
+        return {'type': 'ir.actions.act_window_close'}
 alert_form()
