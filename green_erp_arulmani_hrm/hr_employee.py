@@ -78,6 +78,7 @@ class arul_hr_employee_action_history(osv.osv):
             action_ids = self.pool.get('arul.employee.actions').search(cr, uid, [('name','=','Leaving')])
         elif context.get('action_default_hiring'):
             action_ids = self.pool.get('arul.employee.actions').search(cr, uid, [('name','=','Hiring')])
+            res.update({'period_to' : '9999-12-31'})
         elif context.get('action_default_contracts'):
             action_ids = self.pool.get('arul.employee.actions').search(cr, uid, [('name','=','Contracts')])
         elif context.get('action_default_compensation_review'):
