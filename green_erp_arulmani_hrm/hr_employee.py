@@ -277,7 +277,7 @@ class arul_hr_employee_action_history(osv.osv):
             'default_employee_category_id': hiring.employee_category_id.id,
             'default_employee_sub_category_id': hiring.sub_category_id.id,
             'default_payroll_area_id': hiring.payroll_area_id.id,
-            'default_payroll_sub_area_id': hiring.payroll_sub_area_id.id,
+            'default_department_id': hiring.department_from_id.id,
             'default_date_of_joining': hiring.period_from,
             'default_date_of_resignation': hiring.period_to,
             })
