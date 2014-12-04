@@ -1062,25 +1062,25 @@
                 				<field name ="meals_details_emp_ids" nolabel="1" attrs="{'invisible':[('meals_for','!=','employees')]}">
                 					<tree editable="top">
                 						<field name ="emp_id" invisible="0" readonly="0"/>
-                						<field name ="break_fast" on_change="onchange_checkbox(break_fast,lunch,dinner,midnight_tiffin,free_cost)"/>
-                						<field name ="lunch" on_change="onchange_checkbox(break_fast,lunch,dinner,midnight_tiffin,free_cost)"/>
-                						<field name ="dinner" on_change="onchange_checkbox(break_fast,lunch,dinner,midnight_tiffin,free_cost)"/>
-                						<field name ="midnight_tiffin" on_change="onchange_checkbox(break_fast,lunch,dinner,midnight_tiffin,free_cost)"/>
+                						<field name ="break_fast"/>
+                						<field name ="lunch"/>
+                						<field name ="dinner"/>
+                						<field name ="midnight_tiffin"/>
                 						<field name ="employer_amt"/>
                 						<field name ="employee_amt"/>
-                						<field name ="free_cost" on_change="onchange_checkbox(break_fast,lunch,dinner,midnight_tiffin,free_cost)"/>
+                						<field name ="free_cost_1"  options="{'create': false, 'create_edit': false}" domain="[('history_id','=',False),('id','!=',free_cost_2)]"/>
+                						<field name ="free_cost_2"  options="{'create': false, 'create_edit': false}" domain="[('history_id','=',False),('id','!=',free_cost_1)]"/>
                 					</tree>
                 				</field>
                 				<field name ="meals_details_order_ids" nolabel="1" attrs="{'invisible':[('meals_for','!=','others')]}">
                 					<tree editable="top">
                 						<field name ="emp_name" readonly="0"/>
-                						<field name ="break_fast" on_change="onchange_checkbox(break_fast,lunch,dinner,midnight_tiffin,free_cost)"/>
-                						<field name ="lunch" on_change="onchange_checkbox(break_fast,lunch,dinner,midnight_tiffin,free_cost)"/>
+                						<field name ="break_fast"/>
+                						<field name ="lunch"/>
                 						<field name ="dinner"/>
-                						<field name ="midnight_tiffin" on_change="onchange_checkbox(break_fast,lunch,dinner,midnight_tiffin,free_cost)"/>
+                						<field name ="midnight_tiffin"/>
                 						<field name ="employer_amt"/>
                 						<field name ="employee_amt"/>
-                						<field name ="free_cost" on_change="onchange_checkbox(break_fast,lunch,dinner,midnight_tiffin,free_cost)"/>
                 					</tree>
                 				</field>
                 			</page>
