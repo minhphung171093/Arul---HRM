@@ -78,6 +78,7 @@ class arul_hr_employee_action_history(osv.osv):
             action_ids = self.pool.get('arul.employee.actions').search(cr, uid, [('name','=','Leaving')])
         elif context.get('action_default_hiring'):
             action_ids = self.pool.get('arul.employee.actions').search(cr, uid, [('name','=','Hiring')])
+            res.update({'period_to' : '9999-12-31'})
         elif context.get('action_default_contracts'):
             action_ids = self.pool.get('arul.employee.actions').search(cr, uid, [('name','=','Contracts')])
         elif context.get('action_default_compensation_review'):
@@ -277,7 +278,7 @@ class arul_hr_employee_action_history(osv.osv):
             'default_employee_category_id': hiring.employee_category_id.id,
             'default_employee_sub_category_id': hiring.sub_category_id.id,
             'default_payroll_area_id': hiring.payroll_area_id.id,
-            'default_payroll_sub_area_id': hiring.payroll_sub_area_id.id,
+            'default_department_id': hiring.department_from_id.id,
             'default_date_of_joining': hiring.period_from,
             'default_date_of_resignation': hiring.period_to,
             })
@@ -352,6 +353,7 @@ class hr_employee(osv.osv):
         'time_record': fields.char('Time Record ID', size=1024, required = True),
         'employee_leave_id': fields.one2many('employee.leave','employee_id','Employee Leave',readonly=True),
         'country_stateofbirth_id': fields.many2one('res.country', 'Country'),
+        'manage_equipment_inventory_line': fields.one2many('tpt.manage.equipment.inventory','employee_id','Manage Equipment Inventory Line'),
     }
     def search(self, cr, uid, args, offset=0, limit=None, order=None, context=None, count=False):
         if context is None:

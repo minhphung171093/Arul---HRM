@@ -1,3 +1,3 @@
 # -*- encoding: utf-8 -*-
 
-import arul_payslip
+import arul_payslip_report

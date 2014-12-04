@@ -22,6 +22,7 @@
                 <xpath expr="//field[@name='parent_id']" position="after">
                     <field name = "primary_auditor_id" options="{'create': false, 'create_edit': false}"/>
                     <field name = "secondary_auditor_id" options="{'create': false, 'create_edit': false}"/>
+                    <field name = "payroll_sub_area_id" string = 'Area' options="{'create': false, 'create_edit': false}"/>
                 </xpath>
                 <xpath expr="//sheet/group[@col='4']" position="after">
                     <notebook>

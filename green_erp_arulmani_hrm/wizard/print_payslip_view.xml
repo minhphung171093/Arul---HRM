@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="utf-8"?>
+<openerp>
+    <data>   
+        <record id="view_print_payslip_report" model="ir.ui.view">
+            <field name="name">print.payslip.report</field>
+            <field name="model">print.payslip</field>
+            <field name="arch" type="xml">
+                <form string="Print Payslip" version="7.0">
+                <sheet>
+                
+                	<group>
+	                    <field name='month'/>  
+	                    <field name='year'/>
+                 	</group>
+                 	<separator colspan="4" string="Employees"/>
+                    <group colspan="4" col="4" >
+	                    <field name="employee_ids" nolabel='1' colspan='4' >
+	                     </field>
+                    </group>
+         		</sheet>          
+	                    <footer>
+	                        <button name="print_report" string="Print Payslip" type="object" class="oe_highlight" context="{'type':'appointments'}"/>
+	                        <button string="Cancel" class="oe_link" special="cancel"/>
+	                    </footer>
+                </form>
+            </field>
+        </record>        
+        <record id="action_print_payslip_report" model="ir.actions.act_window">
+            <field name="name">Print Payslip</field>
+            <field name="type">ir.actions.act_window</field>
+            <field name="res_model">print.payslip</field>
+            <field name="view_type">form</field>
+            <field name="view_mode">form</field>
+            <field name="target">new</field>
+        </record>
+        
+        <menuitem id="menu_action_print_payslip_report" action="action_print_payslip_report" parent="menu_hr_payroll_management" sequence="20"/>
+        
+    </data>
+</openerp>
+

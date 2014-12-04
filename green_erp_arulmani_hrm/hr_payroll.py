@@ -1606,6 +1606,5 @@ class arul_hr_payroll_executions_details(osv.osv):
             for line in department.designation_line:
                 designation_ids.append(line.designation_id.id)
         return {'value': {'designation_id': False }, 'domain':{'designation_id':[('id','in',designation_ids)]}}
-   
     
 arul_hr_payroll_executions_details()

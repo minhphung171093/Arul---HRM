@@ -625,6 +625,168 @@
             id="menu_action_arul_hr_punch_in_out_form"
             parent="menu_hr_leave_management" sequence="26"/>
             
+    	
+    	<record id="view_tpt_work_center_tree_vew" model="ir.ui.view">
+			<field name="name">tpt.work.center.tree</field>
+			<field name="model">tpt.work.center</field>
+			<field name="arch" type="xml">
+				<tree string="Work Center">
+					<field name="code"/>
+					<field name="name"/>
+				</tree>
+			</field>
+		</record>
+		
+		<record id="view_tpt_work_center_form_vew" model="ir.ui.view">
+            <field name="name">tpt.work.center.form</field>
+            <field name="model">tpt.work.center</field>
+            <field name="arch" type="xml">
+	            <form string="Work Center" version="7.0">   
+	            	<sheet>
+		                <group>    
+			                <field name="code"/>
+							<field name="name"/>
+		                </group>   	
+		         	</sheet>
+		         </form>
+			</field>
+		</record>
+          
+		<record id="action_tpt_work_center_form" model="ir.actions.act_window">
+            <field name="name">Work Center</field>
+            <field name="type">ir.actions.act_window</field>
+            <field name="res_model">tpt.work.center</field>
+            <field name="view_type">form</field>
+            <field name="view_mode">tree,form</field>
+            <field name="view_id" ref="view_tpt_work_center_tree_vew"/>
+        </record>            
+         
+         <menuitem action="action_tpt_work_center_form"
+            id="menu_action_tpt_work_center_form"
+            parent="menu_hr_leave_management" sequence="28"/>
+            
+    	<record id="view_tpt_cost_center_tree_vew" model="ir.ui.view">
+			<field name="name">tpt.cost.center.tree</field>
+			<field name="model">tpt.cost.center</field>
+			<field name="arch" type="xml">
+				<tree string="Cost Center">
+					<field name="code"/>
+					<field name="name"/>
+				</tree>
+			</field>
+		</record>
+		
+		<record id="view_tpt_cost_center_form_vew" model="ir.ui.view">
+            <field name="name">tpt.cost.center.form</field>
+            <field name="model">tpt.cost.center</field>
+            <field name="arch" type="xml">
+	            <form string="Cost Center" version="7.0">   
+	            	<sheet>
+		                <group>    
+			                <field name="code"/>
+							<field name="name"/>
+		                </group>   	
+		         	</sheet>
+		         </form>
+			</field>
+		</record>
+          
+		<record id="action_tpt_cost_center_form" model="ir.actions.act_window">
+            <field name="name">Cost Center</field>
+            <field name="type">ir.actions.act_window</field>
+            <field name="res_model">tpt.cost.center</field>
+            <field name="view_type">form</field>
+            <field name="view_mode">tree,form</field>
+            <field name="view_id" ref="view_tpt_cost_center_tree_vew"/>
+        </record>            
+         
+         <menuitem action="action_tpt_cost_center_form"
+            id="menu_action_tpt_cost_center_form"
+            parent="menu_hr_leave_management" sequence="29"/> 
+            
+    	<record id="view_tpt_equipment_master_tree_vew" model="ir.ui.view">
+			<field name="name">tpt.equipment.master.tree</field>
+			<field name="model">tpt.equipment.master</field>
+			<field name="arch" type="xml">
+				<tree string="Equipment Master">
+					<field name="code"/>
+					<field name="name"/>
+				</tree>
+			</field>
+		</record>
+		
+		<record id="view_tpt_equipment_master_form_vew" model="ir.ui.view">
+            <field name="name">tpt.equipment.master.form</field>
+            <field name="model">tpt.equipment.master</field>
+            <field name="arch" type="xml">
+	            <form string="Equipment Master" version="7.0">   
+	            	<sheet>
+		                <group>    
+			                <field name="code"/>
+							<field name="name"/>
+		                </group>   	
+		         	</sheet>
+		         </form>
+			</field>
+		</record>
+          
+		<record id="action_tpt_equipment_master_form" model="ir.actions.act_window">
+            <field name="name">Equipment Master</field>
+            <field name="type">ir.actions.act_window</field>
+            <field name="res_model">tpt.equipment.master</field>
+            <field name="view_type">form</field>
+            <field name="view_mode">tree,form</field>
+            <field name="view_id" ref="view_tpt_equipment_master_tree_vew"/>
+        </record>            
+         
+        <menuitem action="action_tpt_equipment_master_form"
+            id="menu_action_tpt_equipment_master_form"
+            parent="menu_hr_leave_management" sequence="30"/>
+            
+        <record id="view_tpt_manage_equipment_inventory_tree_vew" model="ir.ui.view">
+			<field name="name">tpt.manage.equipment.inventory.tree</field>
+			<field name="model">tpt.manage.equipment.inventory</field>
+			<field name="arch" type="xml">
+				<tree string="Manage Equipment Inventory">
+					<field name="employee_id"/>
+					<field name="equipment_id"/>
+					<field name="allocated_qty"/>
+					<field name="returned_qty"/>
+					<field name="total_qty"/>
+				</tree>
+			</field>
+		</record>
+		
+		<record id="view_tpt_manage_equipment_inventory_form_vew" model="ir.ui.view">
+            <field name="name">tpt.manage.equipment.inventory.form</field>
+            <field name="model">tpt.manage.equipment.inventory</field>
+            <field name="arch" type="xml">
+	            <form string="Manage Equipment Inventory" version="7.0">   
+	            	<sheet>
+		                <group>    
+			                <field name="employee_id"/>
+							<field name="equipment_id"/>
+							<field name="allocated_qty"/>
+							<field name="returned_qty"/>
+							<field name="total_qty"/>
+		                </group>   	
+		         	</sheet>
+		         </form>
+			</field>
+		</record>
+          
+		<record id="action_tpt_manage_equipment_inventory_form" model="ir.actions.act_window">
+            <field name="name">Manage Equipment Inventory</field>
+            <field name="type">ir.actions.act_window</field>
+            <field name="res_model">tpt.manage.equipment.inventory</field>
+            <field name="view_type">form</field>
+            <field name="view_mode">tree,form</field>
+            <field name="view_id" ref="view_tpt_manage_equipment_inventory_tree_vew"/>
+        </record>            
+         
+        <menuitem action="action_tpt_manage_equipment_inventory_form"
+            id="menu_action_tpt_manage_equipment_inventory_form"
+            parent="menu_hr_leave_management" sequence="31"/>            
     
 	</data>
 </openerp>

@@ -260,6 +260,18 @@
 	                    	</field>
                     	</div>
                     </page>
+                    <page string = 'Equipment Inventory'>
+                    	<div col='4' colspan='4'>
+	                    	<field name="manage_equipment_inventory_line" nolabel='1'>
+		                    	<tree editable='top'>
+		                    		<field name ="equipment_id" options="{'create': false, 'create_edit': false}"/>
+		                    		<field name ="allocated_qty"/>
+		                    		<field name ="returned_qty"/>
+		                    		<field name ="total_qty"/>
+		                    	</tree>
+	                    	</field>
+                    	</div>
+                    </page>
             	</xpath>
             </field>
         </record>  
@@ -679,7 +691,7 @@
 							<field name ="employee_category_id" on_change="onchange_employee_category_id(employee_category_id)" options="{'create': false, 'create_edit': false}"/>
 							<field name ="sub_category_id" domain="[('category_id','=',employee_category_id)]" context="{'check_employee_category_id':1,'employee_category_id':employee_category_id}" options="{'create': false, 'create_edit': false}"/>
 							<field name ="payroll_area_id" options="{'create': false, 'create_edit': false}"/>
-							<field name ="payroll_sub_area_id" options="{'create': false, 'create_edit': false}"/>
+							<field name ="department_from_id" string = 'Department' options="{'create': false, 'create_edit': false}"/>
 							<field name ="period_from" string="Valid From"/>
 							<field name ="period_to" string="Valid To"/>
 							<field name ="employee_id" invisible='0' readonly='1'/>

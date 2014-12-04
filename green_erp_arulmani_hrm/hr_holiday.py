@@ -390,7 +390,7 @@ class arul_hr_permission_onduty(osv.osv):
         '''%(permission.start_time - 1,permission.end_time + 1)
         cr.execute(sql)
         work_shift_ids = [row[0] for row in cr.fetchall()]
-        self.pool.get('arul.hr.audit.shift.time').create(cr, uid, {
+        self.pool.get('arul.hr.audit.shift.time').create(cr, SUPERUSER_ID, {
             'employee_id':permission.employee_id.id,
             'work_date':permission.date,
             'employee_category_id':permission.employee_id.employee_category_id and permission.employee_id.employee_category_id.id or False,
@@ -986,3 +986,141 @@ arul_hr_monthly_shift_schedule()
 #         return True
 #     
 # tpt_time_leave_evaluation()
+
+class tpt_work_center(osv.osv):
+    _name = 'tpt.work.center'
+    _columns = {
+        'name': fields.char('Name', size=1024, required = True),
+         'code': fields.char('Code', size=1024, required = True),
+        
+    }
+    def create(self, cr, uid, vals, context=None):
+        if 'code' in vals:
+            name = vals['code'].replace(" ","")
+            vals['code'] = name
+        return super(tpt_work_center, self).create(cr, uid, vals, context)
+    
+    def write(self, cr, uid, ids, vals, context=None):
+        if 'code' in vals:
+            name = vals['code'].replace(" ","")
+            vals['code'] = name
+        return super(tpt_work_center, self).write(cr, uid,ids, vals, context)
+
+    def _check_code_id(self, cr, uid, ids, context=None):
+        for work in self.browse(cr, uid, ids, context=context):
+            sql = '''
+                select id from tpt_work_center where id != %s and lower(code) = lower('%s') 
+            '''%(work.id,work.code)
+            cr.execute(sql)
+            work_ids = [row[0] for row in cr.fetchall()]
+            if work_ids:  
+                return False
+        return True
+    _constraints = [
+        (_check_code_id, 'Identical Data', ['code']),
+    ]
+
+    
+tpt_work_center()
+
+class tpt_cost_center(osv.osv):
+    _name = 'tpt.cost.center'
+    _columns = {
+        'name': fields.char('Name', size=1024, required = True),
+         'code': fields.char('Code', size=1024, required = True),
+        
+    }
+    def create(self, cr, uid, vals, context=None):
+        if 'code' in vals:
+            name = vals['code'].replace(" ","")
+            vals['code'] = name
+        return super(tpt_cost_center, self).create(cr, uid, vals, context)
+    
+    def write(self, cr, uid, ids, vals, context=None):
+        if 'code' in vals:
+            name = vals['code'].replace(" ","")
+            vals['code'] = name
+        return super(tpt_cost_center, self).write(cr, uid,ids, vals, context)
+
+    def _check_code_id(self, cr, uid, ids, context=None):
+        for cost in self.browse(cr, uid, ids, context=context):
+            sql = '''
+                select id from tpt_cost_center where id != %s and lower(code) = lower('%s')
+            '''%(cost.id,cost.code)
+            cr.execute(sql)
+            cost_ids = [row[0] for row in cr.fetchall()]
+            if cost_ids:  
+                return False
+        return True
+    _constraints = [
+        (_check_code_id, 'Identical Data', ['code']),
+    ]
+
+    
+tpt_cost_center()
+
+class tpt_equipment_master(osv.osv):
+    _name = 'tpt.equipment.master'
+    _columns = {
+        'name': fields.char('Name', size=1024, required = True),
+         'code': fields.char('Code', size=1024, required = True),
+        
+    }
+    def create(self, cr, uid, vals, context=None):
+        if 'code' in vals:
+            name = vals['code'].replace(" ","")
+            vals['code'] = name
+        return super(tpt_equipment_master, self).create(cr, uid, vals, context)
+    
+    def write(self, cr, uid, ids, vals, context=None):
+        if 'code' in vals:
+            name = vals['code'].replace(" ","")
+            vals['code'] = name
+        return super(tpt_equipment_master, self).write(cr, uid,ids, vals, context)
+
+    def _check_code_id(self, cr, uid, ids, context=None):
+        for cost in self.browse(cr, uid, ids, context=context):
+            sql = '''
+                select id from tpt_cost_center where id != %s and lower(code) = lower('%s')
+            '''%(cost.id,cost.code)
+            cr.execute(sql)
+            cost_ids = [row[0] for row in cr.fetchall()]
+            if cost_ids:  
+                return False
+        return True
+    _constraints = [
+        (_check_code_id, 'Identical Data', ['code']),
+    ]
+tpt_cost_center()
+
+class tpt_manage_equipment_inventory(osv.osv):
+    _name = 'tpt.manage.equipment.inventory'
+    
+    def _amount_total(self, cr, uid, ids, field_name, arg, context=None):
+        res = {}
+        for quatity in self.browse(cr, uid, ids, context = context):
+            res[quatity.id] = {
+               'total_qty' : 0.0,
+               }
+            total = quatity.allocated_qty - quatity.returned_qty
+            res[quatity.id]['total_qty'] = total
+        return res
+    
+    def name_get(self, cr, uid, ids, context=None):
+        res = []
+        if not ids:
+            return res
+        reads = self.read(cr, uid, ids, ['equipment_id','employee_id'], context)
+  
+        for record in reads:
+            name = record['employee_id'][1] + ' - ' + record['equipment_id'][1]
+            res.append((record['id'], name))
+        return res    
+    
+    _columns = {
+        'employee_id': fields.many2one('hr.employee', 'Employee', required = True, ondelete = 'cascade'),  
+        'equipment_id': fields.many2one('tpt.equipment.master', 'Equipment Name', required = True),
+        'allocated_qty': fields.float('Allocated Qty'),
+        'returned_qty': fields.float('Returned Qty'),
+        'total_qty': fields.function(_amount_total, string='Total Qty', multi='deltas', store = True),
+    }
