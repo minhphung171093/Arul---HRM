@@ -1009,14 +1009,16 @@
 			                    </div>
 		                    </group>
 	                    </group>
-	                    <field name="history_line">
-	                    	<tree>
-	                    		<field name ="food_category"/>
-		                		<field name ="food_price"/>
-		                		<field name ="employer_con"/>
-		                		<field name ="employee_con"/>
-	                    	</tree>
-	                    </field>
+	                    <group string='History'>
+		                    <field name="history_line" nolabel='1'>
+		                    	<tree>
+		                    		<field name ="food_category"/>
+			                		<field name ="food_price"/>
+			                		<field name ="employer_con"/>
+			                		<field name ="employee_con"/>
+		                    	</tree>
+		                    </field>
+	                  	</group>
                 	</sheet>
 				</form>
 			</field>
