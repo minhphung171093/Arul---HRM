@@ -588,6 +588,25 @@ class food_subsidy(osv.osv):
 #                 self.copy(cr, uid, id,vals)
             self.create(cr,uid,res)
         return super(food_subsidy, self).write(cr, uid,ids, vals, context)
+    
+    def name_get(self, cr, uid, ids, context=None):
+        res = []
+        if not ids:
+            return res
+        reads = self.read(cr, uid, ids, ['food_category'], context)
+        for record in reads:
+            name = record['food_category']
+            if name=='break_fast':
+                name = 'Break Fast'
+            elif name=='lunch':
+                name = 'Lunch'
+            elif name=='dinner':
+                name = 'Dinner'
+            else:
+                name = 'Midnight Tiffin'
+            res.append((record['id'], name))
+        return res  
+    
 food_subsidy()
 
 class meals_deduction(osv.osv):
