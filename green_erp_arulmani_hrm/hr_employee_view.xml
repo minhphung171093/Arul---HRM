@@ -988,11 +988,37 @@
                 <form string="Food Subsidy Master" version="7.0">  
                 	<sheet>  
                 		<group>
-                		<field name ="food_category" style="width: 40%%"/>
-                		<field name ="food_price" on_change="onchange_amount_all(food_price)"/>
-                		<field name ="employer_con"/>
-                		<field name ="employee_con"/>
-                		</group>
+	                		<group>
+		                		<field name ="food_category" style="width: 40%%"/>
+		                		<field name ="food_price" on_change="onchange_amount_all(food_price)"/>
+		                		<field name ="employer_con"/>
+		                		<field name ="employee_con"/>
+	                		</group>
+	                		<group>
+	                			<field name ="hotel_name"/>
+		                		<label for="street" string="Contact Address"/>
+		                		<div>	
+			                    	<field name="street" placeholder="Street..."/>
+			                        <field name="street2"/>
+			                        <field name="city" placeholder="City" />
+			                        <div class="address_format">
+			                        	<field name="country_id" style="width: 45%%" placeholder="Country" options="{'create': false, 'create_edit': false}"/>
+			                            <field name="state_id" style="width: 50%%"  domain="[('country_id', '=', country_id)]" options="{'create': false, 'create_edit': false}" placeholder="State"/>
+			                        </div>
+			                        <field name="zip" placeholder="Zip" />
+			                    </div>
+		                    </group>
+	                    </group>
+	                    <group string='History'>
+		                    <field name="history_line" nolabel='1'>
+		                    	<tree>
+		                    		<field name ="food_category"/>
+			                		<field name ="food_price"/>
+			                		<field name ="employer_con"/>
+			                		<field name ="employee_con"/>
+		                    	</tree>
+		                    </field>
+	                  	</group>
                 	</sheet>
 				</form>
 			</field>
@@ -1004,6 +1030,7 @@
             <field name="res_model">food.subsidy</field>
             <field name="view_type">form</field>
             <field name="view_mode">tree,form</field>
+            <field name="domain">[('history_id','=',False)]</field>
             <field name="view_id" ref="food_subsidy_tree_view"/>
         </record>
         
@@ -1037,25 +1064,25 @@
                 				<field name ="meals_details_emp_ids" nolabel="1" attrs="{'invisible':[('meals_for','!=','employees')]}">
                 					<tree editable="top">
                 						<field name ="emp_id" invisible="0" readonly="0"/>
-                						<field name ="break_fast" on_change="onchange_checkbox(break_fast,lunch,dinner,midnight_tiffin,free_cost)"/>
-                						<field name ="lunch" on_change="onchange_checkbox(break_fast,lunch,dinner,midnight_tiffin,free_cost)"/>
-                						<field name ="dinner" on_change="onchange_checkbox(break_fast,lunch,dinner,midnight_tiffin,free_cost)"/>
-                						<field name ="midnight_tiffin" on_change="onchange_checkbox(break_fast,lunch,dinner,midnight_tiffin,free_cost)"/>
+                						<field name ="break_fast"/>
+                						<field name ="lunch"/>
+                						<field name ="dinner"/>
+                						<field name ="midnight_tiffin"/>
                 						<field name ="employer_amt"/>
                 						<field name ="employee_amt"/>
-                						<field name ="free_cost" on_change="onchange_checkbox(break_fast,lunch,dinner,midnight_tiffin,free_cost)"/>
+                						<field name ="free_cost_1"  options="{'create': false, 'create_edit': false}" domain="[('history_id','=',False),('id','!=',free_cost_2)]"/>
+                						<field name ="free_cost_2"  options="{'create': false, 'create_edit': false}" domain="[('history_id','=',False),('id','!=',free_cost_1)]"/>
                 					</tree>
                 				</field>
                 				<field name ="meals_details_order_ids" nolabel="1" attrs="{'invisible':[('meals_for','!=','others')]}">
                 					<tree editable="top">
                 						<field name ="emp_name" readonly="0"/>
-                						<field name ="break_fast" on_change="onchange_checkbox(break_fast,lunch,dinner,midnight_tiffin,free_cost)"/>
-                						<field name ="lunch" on_change="onchange_checkbox(break_fast,lunch,dinner,midnight_tiffin,free_cost)"/>
+                						<field name ="break_fast"/>
+                						<field name ="lunch"/>
                 						<field name ="dinner"/>
-                						<field name ="midnight_tiffin" on_change="onchange_checkbox(break_fast,lunch,dinner,midnight_tiffin,free_cost)"/>
+                						<field name ="midnight_tiffin"/>
                 						<field name ="employer_amt"/>
                 						<field name ="employee_amt"/>
-                						<field name ="free_cost" on_change="onchange_checkbox(break_fast,lunch,dinner,midnight_tiffin,free_cost)"/>
                 					</tree>
                 				</field>
                 			</page>
