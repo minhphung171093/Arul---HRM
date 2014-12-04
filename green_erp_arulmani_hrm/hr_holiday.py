@@ -1039,3 +1039,63 @@ class tpt_cost_center(osv.osv):
     
 tpt_cost_center()
 
+class tpt_equipment_master(osv.osv):
+    _name = 'tpt.equipment.master'
+    _columns = {
+        'name': fields.char('Name', size=1024, required = True),
+         'code': fields.char('Code', size=1024, required = True),
+        
+    }
+    def create(self, cr, uid, vals, context=None):
+        if 'code' in vals:
+            name = vals['code'].replace(" ","")
+            vals['code'] = name
+        return super(tpt_equipment_master, self).create(cr, uid, vals, context)
+    
+    def write(self, cr, uid, ids, vals, context=None):
+        if 'code' in vals:
+            name = vals['code'].replace(" ","")
+            vals['code'] = name
+        return super(tpt_equipment_master, self).write(cr, uid,ids, vals, context)
+
+    def _check_code_id(self, cr, uid, ids, context=None):
+        for cost in self.browse(cr, uid, ids, context=context):
+            sql = '''
+                select id from tpt_cost_center where id != %s and lower(code) = lower('%s')
+            '''%(cost.id,cost.code)
+            cr.execute(sql)
+            cost_ids = [row[0] for row in cr.fetchall()]
+            if cost_ids:  
+                return False
+        return True
+    _constraints = [
+        (_check_code_id, 'Identical Data', ['code']),
+    ]
+tpt_cost_center()
+
+class tpt_manage_equipment_inventory(osv.osv):
+    _name = 'tpt.manage.equipment.inventory'
+    
+    def _amount_total(self, cr, uid, ids, context=None):
+        res = {}
+        for quatity in self.browse(cr, uid, ids, context = context):
+            res[quatity.id] = {
+               'total_qty' : 0.0,
+               }
+            total = quatity.allocated_qty - quatity.returned_qty
+            res[quatity.id]['total_qty'] = total
+        return res
+    
+    _columns = {
+        'employee_id': fields.many2one('hr.employee', 'Employee', required = True),  
+        'equipment_id': fields.many2one('tpt.equipment.master', 'Equipment Name', required = True),
+        'allocated_qty': fields.float('Allocated Qty'),
+        'returned_qty': fields.float('Returned Qty'),
+        'total_qty': fields.function(_amount_total, string='Total Qty', type='float'),
+    }
+class hr_employee(osv.osv):
+    _inherit = 'hr.employee'
+    _columns = {
+        'manage_equipment_inventory_line': fields.one2many('tpt.manage.equipment.inventory','employee_id','Manage Equipment Inventory Line'),
+        }
+hr_employee()

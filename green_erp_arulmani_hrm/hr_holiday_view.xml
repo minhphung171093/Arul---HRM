@@ -702,7 +702,70 @@
          
          <menuitem action="action_tpt_cost_center_form"
             id="menu_action_tpt_cost_center_form"
-            parent="menu_hr_leave_management" sequence="29"/>      
+            parent="menu_hr_leave_management" sequence="29"/> 
+            
+    	<record id="view_tpt_equipment_master_tree_vew" model="ir.ui.view">
+			<field name="name">tpt.equipment.master.tree</field>
+			<field name="model">tpt.equipment.master</field>
+			<field name="arch" type="xml">
+				<tree string="Equipment Master">
+					<field name="code"/>
+					<field name="name"/>
+				</tree>
+			</field>
+		</record>
+		
+		<record id="view_tpt_equipment_master_form_vew" model="ir.ui.view">
+            <field name="name">tpt.equipment.master.form</field>
+            <field name="model">tpt.equipment.master</field>
+            <field name="arch" type="xml">
+	            <form string="Equipment Master" version="7.0">   
+	            	<sheet>
+		                <group>    
+			                <field name="code"/>
+							<field name="name"/>
+		                </group>   	
+		         	</sheet>
+		         </form>
+			</field>
+		</record>
+          
+		<record id="action_tpt_equipment_master_form" model="ir.actions.act_window">
+            <field name="name">Equipment Master</field>
+            <field name="type">ir.actions.act_window</field>
+            <field name="res_model">tpt.equipment.master</field>
+            <field name="view_type">form</field>
+            <field name="view_mode">tree,form</field>
+            <field name="view_id" ref="view_tpt_equipment_master_tree_vew"/>
+        </record>            
+         
+        <menuitem action="action_tpt_equipment_master_form"
+            id="menu_action_tpt_equipment_master_form"
+            parent="menu_hr_leave_management" sequence="30"/>
+            
+        <record id="view_tpt_manage_equipment_inventory" model="ir.ui.view">
+            <field name="name">view.tpt.manage.equipment.inventory</field>
+            <field name="model">hr.employee</field>
+            <field name="inherit_id" ref="employee_leave_form_view"/>
+            <field name="arch" type="xml">
+          		<xpath expr="//page[@string='Employee Leave Status']" position="after">
+                    <page string = 'Equipment Inventory'>
+                    	<div col='4' colspan='4' class='oe_green_erp_scroll'>
+	                    	<field name="manage_equipment_inventory_line" nolabel='1'>
+		                    	<tree editable='top'>
+		                    		<field name ="equipment_id" options="{'create': false, 'create_edit': false}"/>
+		                    		<field name ="allocated_qty"/>
+		                    		<field name ="returned_qty"/>
+		                    		<field name ="total_qty"/>
+		                    	</tree>
+	                    	</field>
+                    	</div>
+                    </page>
+            	</xpath>
+            </field>
+        </record>      
+            
+                    
     
 	</data>
 </openerp>
