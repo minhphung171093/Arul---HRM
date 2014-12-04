@@ -51,6 +51,7 @@
     'js' : [
     ],
     'qweb': [
+        "static/src/xml/base.xml",
      ],
     'installable': True,
     'auto_install': False,
