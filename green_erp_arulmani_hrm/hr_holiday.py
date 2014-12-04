@@ -966,3 +966,76 @@ class arul_hr_monthly_shift_schedule(osv.osv):
         (_check_employee_id, 'Identical Data', ['employee_id']),
     ]
 arul_hr_monthly_shift_schedule()
+
+class tpt_work_center(osv.osv):
+    _name = 'tpt.work.center'
+    _columns = {
+        'name': fields.char('Name', size=1024, required = True),
+         'code': fields.char('Code', size=1024, required = True),
+        
+    }
+    def create(self, cr, uid, vals, context=None):
+        if 'code' in vals:
+            name = vals['code'].replace(" ","")
+            vals['code'] = name
+        return super(tpt_work_center, self).create(cr, uid, vals, context)
+    
+    def write(self, cr, uid, ids, vals, context=None):
+        if 'code' in vals:
+            name = vals['code'].replace(" ","")
+            vals['code'] = name
+        return super(tpt_work_center, self).write(cr, uid,ids, vals, context)
+
+    def _check_code_id(self, cr, uid, ids, context=None):
+        for work in self.browse(cr, uid, ids, context=context):
+            sql = '''
+                select id from tpt_work_center where id != %s and (lower(code) = lower('%s') or lower(name) = lower('%s'))
+            '''%(work.id,work.code,work.name)
+            cr.execute(sql)
+            work_ids = [row[0] for row in cr.fetchall()]
+            if work_ids:  
+                return False
+        return True
+    _constraints = [
+        (_check_code_id, 'Identical Data', ['code','name']),
+    ]
+
+    
+tpt_work_center()
+
+class tpt_cost_center(osv.osv):
+    _name = 'tpt.cost.center'
+    _columns = {
+        'name': fields.char('Name', size=1024, required = True),
+         'code': fields.char('Code', size=1024, required = True),
+        
+    }
+    def create(self, cr, uid, vals, context=None):
+        if 'code' in vals:
+            name = vals['code'].replace(" ","")
+            vals['code'] = name
+        return super(tpt_work_center, self).create(cr, uid, vals, context)
+    
+    def write(self, cr, uid, ids, vals, context=None):
+        if 'code' in vals:
+            name = vals['code'].replace(" ","")
+            vals['code'] = name
+        return super(tpt_work_center, self).write(cr, uid,ids, vals, context)
+
+    def _check_code_id(self, cr, uid, ids, context=None):
+        for cost in self.browse(cr, uid, ids, context=context):
+            sql = '''
+                select id from tpt_cost_center where id != %s and (lower(code) = lower('%s') or lower(name) = lower('%s'))
+            '''%(cost.id,cost.code,cost.name)
+            cr.execute(sql)
+            cost_ids = [row[0] for row in cr.fetchall()]
+            if cost_ids:  
+                return False
+        return True
+    _constraints = [
+        (_check_code_id, 'Identical Data', ['code','name']),
+    ]
+
+    
+tpt_cost_center()
+

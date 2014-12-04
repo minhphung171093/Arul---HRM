@@ -60,13 +60,32 @@ class Parser(report_sxw.rml_parse):
         for emp_id in emp_ids :
             payroll_ids = payroll_obj.search(self.cr, self.uid,[('month','=',month),('year','=',year),('employee_id','=',emp_id)])
             basic = 0
+            da = 0
+            hra = 0
+            conv = 0
+            gross = 0
             if payroll_ids:
                 payroll = payroll_obj.browse(self.cr, self.uid, payroll_ids[0])
                 for earning in payroll.earning_structure_line:
                     if earning.earning_parameters_id.code=='BASIC':
                         basic += earning.float
+                    if earning.earning_parameters_id.code=='DA':
+                        da += earning.float
+                    if earning.earning_parameters_id.code=='HRA':
+                        hra += earning.float
+                    if earning.earning_parameters_id.code=='C':
+                        conv += earning.float
+                    if earning.earning_parameters_id.code=='GROSS_SALARY':
+                        gross += earning.float
+#                     if earning.earning_parameters_id.code=='BASIC':
+#                         basic += earning.float
+#                     if earning.earning_parameters_id.code=='BASIC':
+#                         basic += earning.float
+#                     if earning.earning_parameters_id.code=='BASIC':
+#                         basic += earning.float
                 res.append({
-                    'emp_name': payroll.employee_id.name + ' ' + payroll.employee_id.last_name,
+                    'emp_name': payroll.employee_id.name + ' ' + (payroll.employee_id.last_name and payroll.employee_id.last_name or ''),
+                    'emp_code':payroll.employee_id.employee_id,
                     'basic': basic,
                 })
         return res
