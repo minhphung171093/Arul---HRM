@@ -137,6 +137,7 @@ class arul_hr_audit_shift_time(osv.osv):
               'state':fields.selection([('draft', 'Draft'),('cancel', 'Reject'),('done', 'Approve')],'Status', readonly=True),
               'type':fields.selection([('permission', 'Permission')],'Type', readonly=True),
               'permission_id':fields.many2one('arul.hr.permission.onduty','Permission/On Duty'),
+#               'time_evaluate_id': fields.many2one('tpt.time.leave.evaluation','Time Evaluation'),
               }
     _defaults = {
         'state':'draft',
@@ -324,6 +325,7 @@ class arul_hr_employee_leave_details(osv.osv):
               'haft_day_leave': fields.boolean('Is haft day leave ?', states={'done': [('readonly', True)], 'cancel': [('readonly', True)]}),
               'reason':fields.text('Reason', states={'done': [('readonly', True)], 'cancel': [('readonly', True)]}),
               'state':fields.selection([('draft', 'Draft'),('cancel', 'Cancel'),('done', 'Done')],'Status', readonly=True),
+#               'leave_evaluate_id': fields.many2one('tpt.time.leave.evaluation','Leave Evaluation'),
               }
     _defaults = {
         'state':'draft',
@@ -847,6 +849,7 @@ class arul_hr_monthly_work_schedule(osv.osv):
         return True
     def approve_current_month(self, cr, uid, ids, context=None):
         return self.write(cr, uid, ids, {'state':'done'})
+
     def onchange_department_id(self, cr, uid, ids,department_id=False,month=False,year=False, context=None):
         res = {'value':{}}
         for line in self.browse(cr, uid, ids):
@@ -920,6 +923,9 @@ class arul_hr_monthly_shift_schedule(osv.osv):
     _columns={
 #               'num_of_month': fields.function(_num_of_month, string='Day',store=True, multi='sums', help="The total amount."),
               'num_of_month': fields.integer('Day'),
+              'shift_day_from': fields.integer('Shift Day From'),
+              'shift_day_to': fields.integer('Shift Day To'),
+              'work_shift_id': fields.many2one('arul.hr.capture.work.shift','Work Shift'),
               'employee_id':fields.many2one('hr.employee','Employee', required = True),
               'monthly_work_id':fields.many2one('arul.hr.monthly.work.schedule','Monthly Shift Schedule'),
               'day_1': fields.many2one('arul.hr.capture.work.shift','1'),
@@ -954,6 +960,17 @@ class arul_hr_monthly_shift_schedule(osv.osv):
               'day_30': fields.many2one('arul.hr.capture.work.shift','30'),
               'day_31': fields.many2one('arul.hr.capture.work.shift','31'),
               }
+    def load(self, cr, uid, ids, context=None):
+        return True
+    
+    def onchange_monthly(self, cr, uid, ids, num_of_month = False, shift_day_from=False,shift_day_to=False, work_shift_id = False, context=None):
+        if shift_day_from > shift_day_to:
+            raise osv.except_osv(_('Warning!'),_('Shift Day Form must less than Shift Day To'))
+        if shift_day_to > num_of_month:
+            raise osv.except_osv(_('Warning!'),_('Range of month is limit'))
+#         if shift_day_from and shift_day_to and work_shift_id:
+            
+        return True
     
     def _check_employee_id(self, cr, uid, ids, context=None):
         for shift_schedule in self.browse(cr, uid, ids, context=context):
@@ -966,6 +983,24 @@ class arul_hr_monthly_shift_schedule(osv.osv):
         (_check_employee_id, 'Identical Data', ['employee_id']),
     ]
 arul_hr_monthly_shift_schedule()
+
+# class tpt_time_leave_evaluation(osv.osv):
+#     _name = 'tpt.time.leave.evaluation'
+#     _columns = {
+#          'year': fields.selection([(num, str(num)) for num in range(1951, 2026)], 'Year', required = True, states={'done': [('readonly', True)], 'cancel': [('readonly', True)]}),
+#          'month': fields.selection([('1', 'January'),('2', 'February'), ('3', 'March'), ('4','April'), ('5','May'), ('6','June'), ('7','July'), ('8','August'), ('9','September'), ('10','October'), ('11','November'), ('12','December')], 'Month',required = True, states={'done': [('readonly', True)], 'cancel': [('readonly', True)]}),
+#          'shift_time_id': fields.one2many('arul_hr_audit_shift_time','time_evaluate_id','Time Evaluation Report'),
+#          'leave_request_id': fields.one2many('arul_hr_employee_leave_details','leave_evaluate_id','Non Availability Report'),
+#     }
+#     _defaults = {
+#        'year':int(time.strftime('%Y')),
+#     }
+#     
+#     def submit_evaluate(self, cr, uid, ids, context=None):
+#         
+#         return True
+#     
+# tpt_time_leave_evaluation()
 
 class tpt_work_center(osv.osv):
     _name = 'tpt.work.center'
@@ -1039,3 +1074,68 @@ class tpt_cost_center(osv.osv):
     
 tpt_cost_center()
 
+class tpt_equipment_master(osv.osv):
+    _name = 'tpt.equipment.master'
+    _columns = {
+        'name': fields.char('Name', size=1024, required = True),
+         'code': fields.char('Code', size=1024, required = True),
+        
+    }
+    def create(self, cr, uid, vals, context=None):
+        if 'code' in vals:
+            name = vals['code'].replace(" ","")
+            vals['code'] = name
+        return super(tpt_equipment_master, self).create(cr, uid, vals, context)
+    
+    def write(self, cr, uid, ids, vals, context=None):
+        if 'code' in vals:
+            name = vals['code'].replace(" ","")
+            vals['code'] = name
+        return super(tpt_equipment_master, self).write(cr, uid,ids, vals, context)
+
+    def _check_code_id(self, cr, uid, ids, context=None):
+        for cost in self.browse(cr, uid, ids, context=context):
+            sql = '''
+                select id from tpt_cost_center where id != %s and lower(code) = lower('%s')
+            '''%(cost.id,cost.code)
+            cr.execute(sql)
+            cost_ids = [row[0] for row in cr.fetchall()]
+            if cost_ids:  
+                return False
+        return True
+    _constraints = [
+        (_check_code_id, 'Identical Data', ['code']),
+    ]
+tpt_cost_center()
+
+class tpt_manage_equipment_inventory(osv.osv):
+    _name = 'tpt.manage.equipment.inventory'
+    
+    def _amount_total(self, cr, uid, ids, field_name, arg, context=None):
+        res = {}
+        for quatity in self.browse(cr, uid, ids, context = context):
+            res[quatity.id] = {
+               'total_qty' : 0.0,
+               }
+            total = quatity.allocated_qty - quatity.returned_qty
+            res[quatity.id]['total_qty'] = total
+        return res
+    
+    def name_get(self, cr, uid, ids, context=None):
+        res = []
+        if not ids:
+            return res
+        reads = self.read(cr, uid, ids, ['equipment_id','employee_id'], context)
+  
+        for record in reads:
+            name = record['employee_id'][1] + ' - ' + record['equipment_id'][1]
+            res.append((record['id'], name))
+        return res    
+    
+    _columns = {
+        'employee_id': fields.many2one('hr.employee', 'Employee', required = True, ondelete = 'cascade'),  
+        'equipment_id': fields.many2one('tpt.equipment.master', 'Equipment Name', required = True),
+        'allocated_qty': fields.float('Allocated Qty'),
+        'returned_qty': fields.float('Returned Qty'),
+        'total_qty': fields.function(_amount_total, string='Total Qty', multi='deltas', store = True),
+    }

@@ -16,6 +16,7 @@ class hr_department(osv.osv):
         'secondary_auditor_id':  fields.many2one('hr.employee', 'Sec. Time Auditor'),
         'section_ids': fields.one2many('arul.hr.section', 'department_id','Sections'),
         'designation_line': fields.one2many('arul.hr.designation', 'department_id', 'Designation Line'),
+        'payroll_sub_area_id': fields.many2one('arul.hr.payroll.sub.area', 'Area'),
     }
     
 #     def _check_code(self, cr, uid, ids, context=None):

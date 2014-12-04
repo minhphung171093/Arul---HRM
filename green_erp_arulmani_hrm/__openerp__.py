@@ -30,6 +30,8 @@
     'data': [
         'security/green_erp_arulmani_hrm_security.xml',
         'security/ir.model.access.csv',
+        'wizard/alert_form_view.xml',
+        'wizard/print_payslip_view.xml',
         'hr_employee_view.xml',
         'hr_department_view.xml',
         'hr_payroll_view.xml',
@@ -42,8 +44,6 @@
         'hr_payroll_earning_parameters_demo.xml',
         'hr_demo_payroll_deduction_parameters.xml',
         'report/arul_payslip_report.xml',
-        'wizard/print_payslip_view.xml',
-        'wizard/alert_form_view.xml',
     ],
     'css' : [
         "static/src/css/base.css",

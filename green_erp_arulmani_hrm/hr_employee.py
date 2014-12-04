@@ -78,6 +78,7 @@ class arul_hr_employee_action_history(osv.osv):
             action_ids = self.pool.get('arul.employee.actions').search(cr, uid, [('name','=','Leaving')])
         elif context.get('action_default_hiring'):
             action_ids = self.pool.get('arul.employee.actions').search(cr, uid, [('name','=','Hiring')])
+            res.update({'period_to' : '9999-12-31'})
         elif context.get('action_default_contracts'):
             action_ids = self.pool.get('arul.employee.actions').search(cr, uid, [('name','=','Contracts')])
         elif context.get('action_default_compensation_review'):
@@ -277,7 +278,7 @@ class arul_hr_employee_action_history(osv.osv):
             'default_employee_category_id': hiring.employee_category_id.id,
             'default_employee_sub_category_id': hiring.sub_category_id.id,
             'default_payroll_area_id': hiring.payroll_area_id.id,
-            'default_payroll_sub_area_id': hiring.payroll_sub_area_id.id,
+            'default_department_id': hiring.department_from_id.id,
             'default_date_of_joining': hiring.period_from,
             'default_date_of_resignation': hiring.period_to,
             })
@@ -353,8 +354,10 @@ class hr_employee(osv.osv):
         'employee_leave_id': fields.one2many('employee.leave','employee_id','Employee Leave',readonly=True),
         'country_stateofbirth_id': fields.many2one('res.country', 'Country'),
         'date_of_retirement': fields.date('Date Of Retirement'),
+        'personal_contact': fields.char('Personal Contact', size=1024),
         
 #         'personal_contact': fields.char('Personal Contact', size=1024),
+        'manage_equipment_inventory_line': fields.one2many('tpt.manage.equipment.inventory','employee_id','Manage Equipment Inventory Line'),
     }
     def search(self, cr, uid, args, offset=0, limit=None, order=None, context=None, count=False):
         if context is None:
@@ -597,17 +600,56 @@ class food_subsidy(osv.osv):
         'food_price': fields.float('Food Price (Rs.)',degits=(16,2)),
         'employer_con': fields.float('Employer Contribution (Rs.)',degits=(16,2)),
         'employee_con': fields.float('Employee Contribution (Rs.)',degits=(16,2)),
-#         'employer_con': fields.function(_amount_all,degits=(16,2), string='Employer Contribution (Rs.)',
-#             store={
-#                 'food.subsidy': (lambda self, cr, uid, ids, c={}: ids, ['food_price'], 10),
-#             },
-#             multi='sums'),
-#         'employee_con': fields.function(_amount_all,degits=(16,2), string='Employee Contribution (Rs.)',
-#             store={
-#                 'food.subsidy': (lambda self, cr, uid, ids, c={}: ids, ['food_price'], 10),
-#             },
-#             multi='sums'),
+        'hotel_name':fields.char('Hotel', size=64, required = True),
+        'street': fields.char('Street', size=128),
+        'street2': fields.char('Street2', size=128),
+        'zip': fields.char('Zip', change_default=True, size=24),
+        'city': fields.char('City', size=128),
+        'state_id': fields.many2one("res.country.state", 'State'),
+        'country_id': fields.many2one('res.country', 'Country'),
+        'history_line': fields.one2many('food.subsidy','history_id','Histories',readonly = True),
+        'history_id': fields.many2one('food.subsidy','Histories Line', ondelete='cascade'),
     }
+    def write(self, cr, uid, ids, vals, context=None):
+        for line in self.browse(cr,uid,ids):
+            res = {
+                    'food_category': line.food_category or False,
+                    'food_price': line.food_price or False,
+                    'employer_con': line.employer_con or False,
+                    'employee_con': line.employee_con or False,
+                    'hotel_name': line.hotel_name or False,
+                    'street': line.street or False,
+                    'street2': line.street2 or False,
+                    'zip': line.zip or False,
+                    'city': line.city or False,
+                    'state_id': line.state_id and line.state_id.id or False,
+                    'country_id': line.country_id and line.country_id.id or False,
+                    'history_id': line.id,
+                    }
+#             if 'food_price' in vals:
+#                 default ={'history_id': id}
+#                 self.copy(cr, uid, id,vals)
+            self.create(cr,uid,res)
+        return super(food_subsidy, self).write(cr, uid,ids, vals, context)
+    
+    def name_get(self, cr, uid, ids, context=None):
+        res = []
+        if not ids:
+            return res
+        reads = self.read(cr, uid, ids, ['food_category'], context)
+        for record in reads:
+            name = record['food_category']
+            if name=='break_fast':
+                name = 'Break Fast'
+            elif name=='lunch':
+                name = 'Lunch'
+            elif name=='dinner':
+                name = 'Dinner'
+            else:
+                name = 'Midnight Tiffin'
+            res.append((record['id'], name))
+        return res  
+    
 food_subsidy()
 
 class meals_deduction(osv.osv):
@@ -636,52 +678,113 @@ meals_deduction()
 class meals_details(osv.osv):
     _name = "meals.details"
     _description = "Meals Deduction"
+    def evaluate_amt(self, cr, uid, ids, name, args, context=None):
+        employer_amount = 0.0
+        employee_amount = 0.0
+        res = {}
+        dict = {}
+        food_subsidy_obj = self.pool.get('food.subsidy')
+        for meal_de in self.browse(cr, uid, ids, context=context):
+            if meal_de.meals_id.meals_for == "others":
+                if meal_de.break_fast: 
+                    food_subsidy_ids = food_subsidy_obj.search(cr, uid, [('food_category','=','break_fast'),('history_id','=',False)])
+                    for free1 in food_subsidy_obj.browse(cr, uid, food_subsidy_ids):
+                        employer_amount += (free1.employer_con + free1.employee_con)
+                if meal_de.lunch:
+                    food_subsidy_ids = food_subsidy_obj.search(cr, uid, [('food_category','=','lunch'),('history_id','=',False)])
+                    for free1 in food_subsidy_obj.browse(cr, uid, food_subsidy_ids):
+                        employer_amount += (free1.employer_con + free1.employee_con)
+                if meal_de.dinner:
+                    food_subsidy_ids = food_subsidy_obj.search(cr, uid, [('food_category','=','dinner'),('history_id','=',False)])
+                    for free1 in food_subsidy_obj.browse(cr, uid, food_subsidy_ids):
+                        employer_amount += (free1.employer_con + free1.employee_con)
+                if meal_de.midnight_tiffin:        
+                    food_subsidy_ids = food_subsidy_obj.search(cr, uid, [('food_category','=','midnight_tiffin'),('history_id','=',False)])
+                    for free1 in food_subsidy_obj.browse(cr, uid, food_subsidy_ids):
+                        employer_amount += (free1.employer_con + free1.employee_con)
+            else:
+                if meal_de.break_fast : 
+                    food_subsidy_ids = food_subsidy_obj.search(cr, uid, [('food_category','=','break_fast'),('history_id','=',False)])
+                    for meal in food_subsidy_obj.browse(cr, uid, food_subsidy_ids):
+                        employer_amount += meal.employer_con
+                        employee_amount += meal.employee_con
+                if meal_de .lunch: 
+                    food_subsidy_ids = food_subsidy_obj.search(cr, uid, [('food_category','=','lunch'),('history_id','=',False)])
+                    for meal in food_subsidy_obj.browse(cr, uid, food_subsidy_ids):
+                        employer_amount += meal.employer_con
+                        employee_amount += meal.employee_con
+                if meal_de.dinner : 
+                    food_subsidy_ids = food_subsidy_obj.search(cr, uid, [('food_category','=','dinner'),('history_id','=',False)])
+                    for meal in food_subsidy_obj.browse(cr, uid, food_subsidy_ids):
+                        employer_amount += meal.employer_con
+                        employee_amount += meal.employee_con
+                if meal_de.midnight_tiffin : 
+                    food_subsidy_ids = food_subsidy_obj.search(cr, uid, [('food_category','=','midnight_tiffin'),('history_id','=',False)])
+                    for meal in food_subsidy_obj.browse(cr, uid, food_subsidy_ids):
+                        employer_amount += meal.employer_con
+                        employee_amount += meal.employee_con
+                if meal_de.free_cost_1 : 
+                    if meal_de.break_fast and(meal_de.free_cost_1.food_category == "break_fast") and (meal_de.employee_amt > 0): 
+                        food_subsidy_ids = food_subsidy_obj.search(cr, uid, [('food_category','=','break_fast'),('history_id','=',False)])
+                        for free1 in food_subsidy_obj.browse(cr, uid, food_subsidy_ids):
+                            employer_amount += free1.employee_con
+                            employee_amount -= free1.employee_con
+                    if meal_de.lunch and (meal_de.free_cost_1.food_category == "lunch") and (meal_de.employee_amt > 0):
+                        food_subsidy_ids = food_subsidy_obj.search(cr, uid, [('food_category','=','lunch'),('history_id','=',False)])
+                        for free1 in food_subsidy_obj.browse(cr, uid, food_subsidy_ids):
+                            employer_amount += free1.employee_con
+                            employee_amount -= free1.employee_con
+                    if meal_de.dinner and (meal_de.free_cost_1.food_category == "dinner") and (meal_de.employee_amt > 0):
+                        food_subsidy_ids = food_subsidy_obj.search(cr, uid, [('food_category','=','dinner'),('history_id','=',False)])
+                        for free1 in food_subsidy_obj.browse(cr, uid, food_subsidy_ids):
+                            employer_amount += free1.employee_con
+                            employee_amount -= free1.employee_con
+                    if meal_de.midnight_tiffin and (meal_de.free_cost_1.food_category == "midnight_tiffin") and (meal_de.employee_amt > 0):        
+                        food_subsidy_ids = food_subsidy_obj.search(cr, uid, [('food_category','=','midnight_tiffin'),('history_id','=',False)])
+                        for free1 in food_subsidy_obj.browse(cr, uid, food_subsidy_ids):
+                            employer_amount += free1.employee_con
+                            employee_amount -= free1.employee_con  
+                if meal_de.free_cost_2 : 
+                    if meal_de.break_fast and (meal_de.free_cost_2.food_category == "break_fast") and (meal_de.employee_amt > 0): 
+                        food_subsidy_ids = food_subsidy_obj.search(cr, uid, [('food_category','=','break_fast'),('history_id','=',False)])
+                        for free2 in food_subsidy_obj.browse(cr, uid, food_subsidy_ids):
+                            employer_amount += free2.employee_con
+                            employee_amount -= free2.employee_con
+                    if meal_de.lunch and (meal_de.free_cost_2.food_category == "lunch") and (meal_de.employee_amt > 0):
+                        food_subsidy_ids = food_subsidy_obj.search(cr, uid, [('food_category','=','lunch'),('history_id','=',False)])
+                        for free2 in food_subsidy_obj.browse(cr, uid, food_subsidy_ids):
+                            employer_amount += free2.employee_con
+                            employee_amount -= free2.employee_con
+                    if meal_de.dinner and (meal_de.free_cost_2.food_category == "dinner") and (meal_de.employee_amt > 0):
+                        food_subsidy_ids = food_subsidy_obj.search(cr, uid, [('food_category','=','dinner'),('history_id','=',False)])
+                        for free2 in food_subsidy_obj.browse(cr, uid, food_subsidy_ids):
+                            employer_amount += free2.employee_con
+                            employee_amount -= free2.employee_con
+                    if meal_de.midnight_tiffin and (meal_de.free_cost_2.food_category == "midnight_tiffin") and (meal_de.employee_amt > 0):        
+                        food_subsidy_ids = food_subsidy_obj.search(cr, uid, [('food_category','=','midnight_tiffin'),('history_id','=',False)])
+                        for free2 in food_subsidy_obj.browse(cr, uid, food_subsidy_ids):
+                            employer_amount += free2.employee_con
+                            employee_amount -= free2.employee_con  
+            dict = {
+                    'employer_amt': employer_amount,
+                    'employee_amt': employee_amount,
+                    }  
+            res[meal_de.id] = dict
+        return res
     _columns = {
 #         'emp_code' : fields.char('Emp. Code', size=128),
         'emp_name' : fields.char('Name', size=128),
-        'emp_id': fields.many2one('hr.employee', 'Emp. Code', select="1"),
+        'emp_id': fields.many2one('hr.employee', 'Emp. Code', select="1",required=True),
         'break_fast' : fields.boolean('Break Fast'),
         'lunch' : fields.boolean('Lunch'),
         'dinner' : fields.boolean('Dinner'),
         'midnight_tiffin' : fields.boolean('Midnight Tiffin'),
-        'employer_amt': fields.float('Employer Amt',degits=(16,2)),
-        'employee_amt': fields.float('Employee Amt',degits=(16,2)),
-        'free_cost' : fields.boolean('Free Of Cost'),
-        'meals_id': fields.many2one('hr.employee','Employee'),
+        'employer_amt' : fields.function(evaluate_amt,digits=(16,2),type='float',string='Employer Amt',multi='sum',store=True),  
+        'employee_amt' : fields.function(evaluate_amt,digits=(16,2),type='float',string='Employee Amt',multi='sum',store=True), 
+        'free_cost_1' : fields.many2one('food.subsidy', 'Free Cost 1'),
+        'free_cost_2' : fields.many2one('food.subsidy', 'Free Cost 2'),
+        'meals_id': fields.many2one('meals.deduction','Meal Deduction'),
     }
-    def onchange_checkbox(self, cr, uid, ids, bre, lun, din, mid, free, context=None):
-        employer_amount = 0
-        employee_amount = 0
-        food_subsidy_obj = self.pool.get('food.subsidy')
-        if bre : 
-            food_subsidy_ids = food_subsidy_obj.search(cr, uid, [('food_category','=','break_fast')])
-            for meal in food_subsidy_obj.browse(cr, uid, food_subsidy_ids):
-                employer_amount += meal.employer_con
-                employee_amount += meal.employee_con
-        if lun : 
-            food_subsidy_ids = food_subsidy_obj.search(cr, uid, [('food_category','=','lunch')])
-            for meal in food_subsidy_obj.browse(cr, uid, food_subsidy_ids):
-                employer_amount += meal.employer_con
-                employee_amount += meal.employee_con
-        if din : 
-            food_subsidy_ids = food_subsidy_obj.search(cr, uid, [('food_category','=','dinner')])
-            for meal in food_subsidy_obj.browse(cr, uid, food_subsidy_ids):
-                employer_amount += meal.employer_con
-                employee_amount += meal.employee_con
-        if mid : 
-            food_subsidy_ids = food_subsidy_obj.search(cr, uid, [('food_category','=','midnight_tiffin')])
-            for meal in food_subsidy_obj.browse(cr, uid, food_subsidy_ids):
-                employer_amount += meal.employer_con
-                employee_amount += meal.employee_con
-        if free : 
-            employer_amount += employee_amount
-            employee_amount = 0
-            
-        res = {
-            'employer_amt': employer_amount,
-            'employee_amt': employee_amount,
-        }        
-        return {'value':res}
     
 meals_details()
 
