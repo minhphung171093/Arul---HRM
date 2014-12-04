@@ -511,7 +511,7 @@
 		                    		</tree>
 		                    		<form>
 		                    			<header>
-		                    				<button name="load" string="Load" type="object" />
+		                    				<button name="load" string="Load" type="object" invisible = "1" />
 		                    			</header>
 		                    			<group col='4' colspan='4'>
 			                    			<field name="num_of_month" on_change="onchange_monthly(num_of_month, shift_day_from, shift_day_to, work_shift_id)" invisible="1"/>
