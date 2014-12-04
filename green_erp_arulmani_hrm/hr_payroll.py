@@ -801,7 +801,7 @@ class arul_hr_payroll_executions(osv.osv):
                     if monthly_shift_schedule_id.day_28.code == 'C':
                         total_c +=1
                         shift_allowance_c += monthly_shift_schedule_id.day_28.time_total
-                if monthly_shift_schedule_id.day_29:
+                if monthly_shift_schedule_id.num_of_month >=29 and monthly_shift_schedule_id.day_29:
                     if monthly_shift_schedule_id.day_29.code == 'A':
                         total_a +=1
                         shift_allowance_a += monthly_shift_schedule_id.day_29.time_total
@@ -811,7 +811,7 @@ class arul_hr_payroll_executions(osv.osv):
                     if monthly_shift_schedule_id.day_29.code == 'C':
                         total_c +=1
                         shift_allowance_c += monthly_shift_schedule_id.day_29.time_total
-                if monthly_shift_schedule_id.day_30:
+                if monthly_shift_schedule_id.num_of_month >=30 and monthly_shift_schedule_id.day_30:
                     if monthly_shift_schedule_id.day_30.code == 'A':
                         total_a +=1
                         shift_allowance_a += monthly_shift_schedule_id.day_30.time_total
@@ -821,7 +821,7 @@ class arul_hr_payroll_executions(osv.osv):
                     if monthly_shift_schedule_id.day_30.code == 'C':
                         total_c +=1
                         shift_allowance_c += monthly_shift_schedule_id.day_30.time_total
-                if monthly_shift_schedule_id.day_31:
+                if monthly_shift_schedule_id.num_of_month >=31 and monthly_shift_schedule_id.day_31:
                     if monthly_shift_schedule_id.day_31.code == 'A':
                         total_a +=1
                         shift_allowance_a += monthly_shift_schedule_id.day_31.time_total
