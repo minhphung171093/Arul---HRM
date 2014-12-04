@@ -353,6 +353,7 @@ class hr_employee(osv.osv):
         'time_record': fields.char('Time Record ID', size=1024, required = True),
         'employee_leave_id': fields.one2many('employee.leave','employee_id','Employee Leave',readonly=True),
         'country_stateofbirth_id': fields.many2one('res.country', 'Country'),
+        'manage_equipment_inventory_line': fields.one2many('tpt.manage.equipment.inventory','employee_id','Manage Equipment Inventory Line'),
     }
     def search(self, cr, uid, args, offset=0, limit=None, order=None, context=None, count=False):
         if context is None:

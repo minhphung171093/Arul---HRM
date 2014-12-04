@@ -1076,7 +1076,7 @@ tpt_cost_center()
 class tpt_manage_equipment_inventory(osv.osv):
     _name = 'tpt.manage.equipment.inventory'
     
-    def _amount_total(self, cr, uid, ids, context=None):
+    def _amount_total(self, cr, uid, ids, field_name, arg, context=None):
         res = {}
         for quatity in self.browse(cr, uid, ids, context = context):
             res[quatity.id] = {
@@ -1086,16 +1086,21 @@ class tpt_manage_equipment_inventory(osv.osv):
             res[quatity.id]['total_qty'] = total
         return res
     
+    def name_get(self, cr, uid, ids, context=None):
+        res = []
+        if not ids:
+            return res
+        reads = self.read(cr, uid, ids, ['equipment_id','employee_id'], context)
+  
+        for record in reads:
+            name = record['employee_id'][1] + ' - ' + record['equipment_id'][1]
+            res.append((record['id'], name))
+        return res    
+    
     _columns = {
-        'employee_id': fields.many2one('hr.employee', 'Employee', required = True),  
+        'employee_id': fields.many2one('hr.employee', 'Employee', required = True, ondelete = 'cascade'),  
         'equipment_id': fields.many2one('tpt.equipment.master', 'Equipment Name', required = True),
         'allocated_qty': fields.float('Allocated Qty'),
         'returned_qty': fields.float('Returned Qty'),
-        'total_qty': fields.function(_amount_total, string='Total Qty', type='float'),
+        'total_qty': fields.function(_amount_total, string='Total Qty', multi='deltas', store = True),
     }
-class hr_employee(osv.osv):
-    _inherit = 'hr.employee'
-    _columns = {
-        'manage_equipment_inventory_line': fields.one2many('tpt.manage.equipment.inventory','employee_id','Manage Equipment Inventory Line'),
-        }
-hr_employee()

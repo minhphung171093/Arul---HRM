@@ -765,7 +765,50 @@
             </field>
         </record>      
             
-                    
+        <record id="view_tpt_manage_equipment_inventory_tree_vew" model="ir.ui.view">
+			<field name="name">tpt.manage.equipment.inventory.tree</field>
+			<field name="model">tpt.manage.equipment.inventory</field>
+			<field name="arch" type="xml">
+				<tree string="Manage Equipment Inventory">
+					<field name="employee_id"/>
+					<field name="equipment_id"/>
+					<field name="allocated_qty"/>
+					<field name="returned_qty"/>
+					<field name="total_qty"/>
+				</tree>
+			</field>
+		</record>
+		
+		<record id="view_tpt_manage_equipment_inventory_form_vew" model="ir.ui.view">
+            <field name="name">tpt.manage.equipment.inventory.form</field>
+            <field name="model">tpt.manage.equipment.inventory</field>
+            <field name="arch" type="xml">
+	            <form string="Manage Equipment Inventory" version="7.0">   
+	            	<sheet>
+		                <group>    
+			                <field name="employee_id"/>
+							<field name="equipment_id"/>
+							<field name="allocated_qty"/>
+							<field name="returned_qty"/>
+							<field name="total_qty"/>
+		                </group>   	
+		         	</sheet>
+		         </form>
+			</field>
+		</record>
+          
+		<record id="action_tpt_manage_equipment_inventory_form" model="ir.actions.act_window">
+            <field name="name">Manage Equipment Inventory</field>
+            <field name="type">ir.actions.act_window</field>
+            <field name="res_model">tpt.manage.equipment.inventory</field>
+            <field name="view_type">form</field>
+            <field name="view_mode">tree,form</field>
+            <field name="view_id" ref="view_tpt_manage_equipment_inventory_tree_vew"/>
+        </record>            
+         
+        <menuitem action="action_tpt_manage_equipment_inventory_form"
+            id="menu_action_tpt_manage_equipment_inventory_form"
+            parent="menu_hr_leave_management" sequence="31"/>            
     
 	</data>
 </openerp>
