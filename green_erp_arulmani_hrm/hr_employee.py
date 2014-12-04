@@ -7,7 +7,7 @@ from openerp import SUPERUSER_ID
 from openerp.tools import DEFAULT_SERVER_DATE_FORMAT, DEFAULT_SERVER_DATETIME_FORMAT, DATETIME_FORMATS_MAP, float_compare
 from datetime import datetime
 import datetime
-
+import calendar
 class hr_employee_category(osv.osv):
     _inherit = "vsis.hr.employee.category"
     _columns = {
@@ -352,6 +352,9 @@ class hr_employee(osv.osv):
         'time_record': fields.char('Time Record ID', size=1024, required = True),
         'employee_leave_id': fields.one2many('employee.leave','employee_id','Employee Leave',readonly=True),
         'country_stateofbirth_id': fields.many2one('res.country', 'Country'),
+        'date_of_retirement': fields.date('Date Of Retirement'),
+        
+#         'personal_contact': fields.char('Personal Contact', size=1024),
     }
     def search(self, cr, uid, args, offset=0, limit=None, order=None, context=None, count=False):
         if context is None:
@@ -418,6 +421,30 @@ class hr_employee(osv.osv):
     def onchange_employee_category_id(self, cr, uid, ids,employee_category_id=False, context=None):
         emp_sub_cat = []
         return {'value': {'employee_sub_category_id': False }}
+
+    def onchange_date_of_retirement(self, cr, uid, ids,birthday=False, context=None):
+        retirement = ''
+        if birthday:
+            day = birthday[8:10]
+            month = birthday[5:7]
+            year = birthday[:4]
+            if month == "01" and day=='01':
+                year = int(year)+59
+                num_of_month = calendar.monthrange(year,12)[1]
+                retirement = datetime.datetime(year,12,num_of_month)
+            elif month != "01" and day=='01':
+                year = int(year)+60
+                month = int(month)-1
+                num_of_month = calendar.monthrange(year,month)[1]
+                retirement = datetime.datetime(year,month,num_of_month)
+            else:
+                year = int(year)+60
+                day = int(day)-1
+                month = int(month)
+                retirement = datetime.datetime(year,month,day)
+        if retirement:
+            retirement=retirement.strftime('%Y-%m-%d')
+        return {'value': {'date_of_retirement':retirement}}
     
     def create(self, cr, uid, vals, context=None):
         if context is None:
@@ -495,6 +522,21 @@ class arul_employee_actions(osv.osv):
         (_check_code_id, 'Identical Data', ['code','name']),
     ]
 arul_employee_actions()
+
+class tpt_stream(osv.osv):
+    _inherit = 'hr.qualification.attachment'
+    _columns={
+       'stream_id': fields.many2one('tpt.stream.master','Streams'),
+              }
+tpt_stream()
+
+class tpt_stream_master(osv.osv):
+    _name="tpt.stream.master"
+    _columns={
+        'name':fields.char('Name', size=64, required = True),
+        'code':fields.char('Code',size=64,required = True),
+              }
+tpt_stream_master()
 
 class arul_employee_action_type(osv.osv):
     _name="arul.employee.action.type"

@@ -233,7 +233,6 @@
                     	<div col='4' colspan='4' class='oe_green_erp_scroll'>
 	                    	<field name="action_history_line" nolabel='1'>
 		                    	<tree editable='top'>
-		                    		<field name ="employee_id" string="Emp.ID"/>
 		                    		<field name ="action_id"/>
 		                    		<field name ="action_type_id"/>
 		                    		<field name ="action_date"/>
@@ -753,22 +752,18 @@
                 </xpath>
                 <xpath expr="//field[@name='employee_grade_id']" position="after">
                     <field name="payroll_area_id" options="{'create': false, 'create_edit': false}"/>
-                    <field name="payroll_sub_area_id" options="{'create': false, 'create_edit': false}"/>
                 </xpath>
                 <xpath expr="//field[@name='date_of_resignation']" position="after">
                     <field name="time_record"/>
                 </xpath>
                 <xpath expr="//field[@name='job_id']" position="replace">
-                    <field name="job_id" options="{'create': false, 'create_edit': false}"/>
+                    <field name="job_id" string = "Designation" options="{'create': false, 'create_edit': false}"/>
                 </xpath>
                 <xpath expr="//field[@name='parent_id']" position="replace">
-                    <field name="parent_id" options="{'create': false, 'create_edit': false}"/>
+                    <field name="parent_id" string = "Reporting To" options="{'create': false, 'create_edit': false}"/>
                 </xpath>
                 <xpath expr="//field[@name='employee_sub_category_id']" position="replace">
                     <field name="employee_sub_category_id" domain="[('category_id','=',employee_category_id)]" context="{'check_employee_category_id':1,'employee_category_id':employee_category_id}" options="{'create': false, 'create_edit': false}"/>
-                </xpath>
-                <xpath expr="//field[@name='employee_grade_id']" position="replace">
-                    <field name="employee_grade_id" options="{'create': false, 'create_edit': false}"/>
                 </xpath>
                 <xpath expr="//field[@name='address_id']" position="replace">
                     <field name="address_id" options="{'create': false, 'create_edit': false}"/>
@@ -787,6 +782,18 @@
                 </xpath>-->
             </field>
         </record>
+        <record id="hr_hr_employee_view_form" model="ir.ui.view">
+            <field name="name">hr.hr.employee.view.form</field>
+            <field name="model">hr.employee</field>
+            <field name="inherit_id" ref="hr_contract.hr_hr_employee_view_form2"/>
+            <field name="arch" type="xml">
+                <data>
+                    <xpath expr="//field[@name='manager']" position="replace">
+                        <field name="manager" invisible = "1"/>
+                    </xpath>
+             	</data>
+            </field>
+        </record>
         
         <record id="vsis_hr_hr_employee_view_form3" model="ir.ui.view">
             <field name="name">vsis.hr.employee.view.form3</field>
@@ -796,6 +803,58 @@
                 <data>
                     <field name="place_of_birth" position="replace">
                         <field name="place_of_birth" domain="[('country_id','=',country_stateofbirth_id)]" options="{'create': false, 'create_edit': false}"/>
+                    </field>
+                </data>
+            </field>
+        </record>
+     
+        <record id="hr_hr_employee_view_form3" model="ir.ui.view">
+            <field name="name">hr.hr.employee.view.form3</field>
+            <field name="model">hr.employee</field>
+            <field name="inherit_id" ref="hr_contract.hr_hr_employee_view_form2"/>
+            <field name="arch" type="xml">
+                <data>
+                 	<xpath expr="//field[@name='birthday']" position="replace">
+                        <field name="birthday" on_change="onchange_date_of_retirement(birthday)"/>
+                    </xpath>
+                </data>
+            </field>
+        </record>
+
+        <!-- <record id="hr_hr_employee_view_form4" model="ir.ui.view">
+            <field name="name">hr.hr.employee.view.form4</field>
+            <field name="model">hr.employee</field>
+            <field name="inherit_id" ref="base.vsis_view_company_form"/>
+            <field name="arch" type="xml">
+                <data>
+                 	<xpath expr="//field[@name='birthday']" position="replace">
+                        <field name="birthday" on_change="onchange_date_of_retirement(birthday)"/>
+                    </xpath>
+                </data>
+            </field>
+        </record>--> 
+
+        <record id="tpt_stream_view" model="ir.ui.view">
+            <field name="name">tpt.stream.view</field>
+            <field name="model">hr.qualification.attachment</field>
+            <field name="inherit_id" ref="green_erp_arulmani_crm.vsis_view_attachment_form"/>
+            <field name="arch" type="xml">
+                <data>
+	                <xpath expr="//field[@name='name']" position="after">
+	                        <field name="stream_id"/>
+	                </xpath>
+             	</data>
+            </field>
+        </record>
+
+        <record id="hr_hr_employee_view_form2" model="ir.ui.view">
+            <field name="name">hr.hr.employee.view.form2</field>
+            <field name="model">hr.employee</field>
+            <field name="inherit_id" ref="green_erp_arulmani_crm.vsis_hr_hr_employee_view_form2"/>
+            <field name="arch" type="xml">
+                <data>
+                    <field name="date_of_wedding" position="after">
+                        <field name="date_of_retirement"/>
                     </field>
                 </data>
             </field>
@@ -1102,7 +1161,7 @@
                 				</group>
                 			</form>
                 			<tree string="Employee Leave Details">
-                				<field name ="employee_id"/>
+                				
                 				<field name ="year"/>
                 			</tree>
                 		</field>
