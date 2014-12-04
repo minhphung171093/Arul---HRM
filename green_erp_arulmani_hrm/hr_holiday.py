@@ -847,6 +847,7 @@ class arul_hr_monthly_work_schedule(osv.osv):
         return True
     def approve_current_month(self, cr, uid, ids, context=None):
         return self.write(cr, uid, ids, {'state':'done'})
+
     def onchange_department_id(self, cr, uid, ids,department_id=False,month=False,year=False, context=None):
         res = {'value':{}}
         for line in self.browse(cr, uid, ids):
@@ -920,6 +921,9 @@ class arul_hr_monthly_shift_schedule(osv.osv):
     _columns={
 #               'num_of_month': fields.function(_num_of_month, string='Day',store=True, multi='sums', help="The total amount."),
               'num_of_month': fields.integer('Day'),
+              'shift_day_from': fields.integer('Shift Day From'),
+              'shift_day_to': fields.integer('Shift Day To'),
+              'work_shift_id': fields.many2one('arul.hr.capture.work.shift','Work Shift'),
               'employee_id':fields.many2one('hr.employee','Employee', required = True),
               'monthly_work_id':fields.many2one('arul.hr.monthly.work.schedule','Monthly Shift Schedule'),
               'day_1': fields.many2one('arul.hr.capture.work.shift','1'),
@@ -954,6 +958,17 @@ class arul_hr_monthly_shift_schedule(osv.osv):
               'day_30': fields.many2one('arul.hr.capture.work.shift','30'),
               'day_31': fields.many2one('arul.hr.capture.work.shift','31'),
               }
+    def load(self, cr, uid, ids, context=None):
+        return True
+    
+    def onchange_monthly(self, cr, uid, ids, num_of_month = False, shift_day_from=False,shift_day_to=False, work_shift_id = False, context=None):
+        if shift_day_from > shift_day_to:
+            raise osv.except_osv(_('Warning!'),_('Shift Day Form must less than Shift Day To'))
+        if shift_day_to > num_of_month:
+            raise osv.except_osv(_('Warning!'),_('Range of month is limit'))
+#         if shift_day_from and shift_day_to and work_shift_id:
+            
+        return True
     
     def _check_employee_id(self, cr, uid, ids, context=None):
         for shift_schedule in self.browse(cr, uid, ids, context=context):

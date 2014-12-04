@@ -470,7 +470,6 @@
 							<field name="section_id" domain="[('department_id','=',department_id)]" options="{'create': false, 'create_edit': false}"/>
 							<field name="year" on_change="onchange_year_month(department_id,month,year)"/>
 							<field name="month" on_change="onchange_year_month(department_id,month,year)"/>
-							
 						</group>
 						<notebook>
 							<page string = 'Monthly Shift Schedule'>
@@ -511,12 +510,16 @@
 	                    				<field name="day_31" attrs="{'invisible':[('num_of_month','&lt;',31)]}" options="{'create': false, 'create_edit': false}"/>
 		                    		</tree>
 		                    		<form>
+		                    			<header>
+		                    				<button name="load" string="Load" type="object" />
+		                    			</header>
 		                    			<group col='4' colspan='4'>
-			                    			<field name="num_of_month" invisible="1"/>
+			                    			<field name="num_of_month" on_change="onchange_monthly(num_of_month, shift_day_from, shift_day_to, work_shift_id)" invisible="1"/>
 			                    			<field name="employee_id" options="{'create': false, 'create_edit': false}"/>
 			                    		</group>
 		                    			<group col='6' colspan='6'>
 			                    			<group colspan='2'>
+			                    				<field name="shift_day_from" on_change="onchange_monthly(num_of_month, shift_day_from, shift_day_to, work_shift_id)"/>
 				                    			<field name="day_1" options="{'create': false, 'create_edit': false}"/>
 			                    				<field name="day_2" options="{'create': false, 'create_edit': false}"/>
 			                    				<field name="day_3" options="{'create': false, 'create_edit': false}"/>
@@ -529,6 +532,7 @@
 			                    				<field name="day_10" options="{'create': false, 'create_edit': false}"/>
 			                    			</group>
 			                    			<group colspan='2'>
+			                    				<field name="shift_day_to" on_change="onchange_monthly(num_of_month, shift_day_from, shift_day_to, work_shift_id)"/>
 			                    				<field name="day_11" options="{'create': false, 'create_edit': false}"/>
 			                    				<field name="day_12" options="{'create': false, 'create_edit': false}"/>
 			                    				<field name="day_13" options="{'create': false, 'create_edit': false}"/>
@@ -542,6 +546,7 @@
 			                    				<field name="day_20" options="{'create': false, 'create_edit': false}"/>
 			                    				</group>
 			                    			<group colspan='2'>
+			                    				<field name="work_shift_id" options="{'create': false, 'create_edit': false}" on_change="onchange_monthly(num_of_month, shift_day_from, shift_day_to, work_shift_id)"/>
 			                    				<field name="day_21" options="{'create': false, 'create_edit': false}"/>
 			                    				<field name="day_22" options="{'create': false, 'create_edit': false}"/>
 			                    				<field name="day_23" options="{'create': false, 'create_edit': false}"/>
