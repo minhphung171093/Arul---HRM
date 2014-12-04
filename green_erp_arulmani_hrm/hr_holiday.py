@@ -137,6 +137,7 @@ class arul_hr_audit_shift_time(osv.osv):
               'state':fields.selection([('draft', 'Draft'),('cancel', 'Reject'),('done', 'Approve')],'Status', readonly=True),
               'type':fields.selection([('permission', 'Permission')],'Type', readonly=True),
               'permission_id':fields.many2one('arul.hr.permission.onduty','Permission/On Duty'),
+#               'time_evaluate_id': fields.many2one('tpt.time.leave.evaluation','Time Evaluation'),
               }
     _defaults = {
         'state':'draft',
@@ -324,6 +325,7 @@ class arul_hr_employee_leave_details(osv.osv):
               'haft_day_leave': fields.boolean('Is haft day leave ?', states={'done': [('readonly', True)], 'cancel': [('readonly', True)]}),
               'reason':fields.text('Reason', states={'done': [('readonly', True)], 'cancel': [('readonly', True)]}),
               'state':fields.selection([('draft', 'Draft'),('cancel', 'Cancel'),('done', 'Done')],'Status', readonly=True),
+#               'leave_evaluate_id': fields.many2one('tpt.time.leave.evaluation','Leave Evaluation'),
               }
     _defaults = {
         'state':'draft',
@@ -966,6 +968,24 @@ class arul_hr_monthly_shift_schedule(osv.osv):
         (_check_employee_id, 'Identical Data', ['employee_id']),
     ]
 arul_hr_monthly_shift_schedule()
+
+# class tpt_time_leave_evaluation(osv.osv):
+#     _name = 'tpt.time.leave.evaluation'
+#     _columns = {
+#          'year': fields.selection([(num, str(num)) for num in range(1951, 2026)], 'Year', required = True, states={'done': [('readonly', True)], 'cancel': [('readonly', True)]}),
+#          'month': fields.selection([('1', 'January'),('2', 'February'), ('3', 'March'), ('4','April'), ('5','May'), ('6','June'), ('7','July'), ('8','August'), ('9','September'), ('10','October'), ('11','November'), ('12','December')], 'Month',required = True, states={'done': [('readonly', True)], 'cancel': [('readonly', True)]}),
+#          'shift_time_id': fields.one2many('arul_hr_audit_shift_time','time_evaluate_id','Time Evaluation Report'),
+#          'leave_request_id': fields.one2many('arul_hr_employee_leave_details','leave_evaluate_id','Non Availability Report'),
+#     }
+#     _defaults = {
+#        'year':int(time.strftime('%Y')),
+#     }
+#     
+#     def submit_evaluate(self, cr, uid, ids, context=None):
+#         
+#         return True
+#     
+# tpt_time_leave_evaluation()
 
 class tpt_work_center(osv.osv):
     _name = 'tpt.work.center'

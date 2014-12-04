@@ -557,17 +557,37 @@ class food_subsidy(osv.osv):
         'food_price': fields.float('Food Price (Rs.)',degits=(16,2)),
         'employer_con': fields.float('Employer Contribution (Rs.)',degits=(16,2)),
         'employee_con': fields.float('Employee Contribution (Rs.)',degits=(16,2)),
-#         'employer_con': fields.function(_amount_all,degits=(16,2), string='Employer Contribution (Rs.)',
-#             store={
-#                 'food.subsidy': (lambda self, cr, uid, ids, c={}: ids, ['food_price'], 10),
-#             },
-#             multi='sums'),
-#         'employee_con': fields.function(_amount_all,degits=(16,2), string='Employee Contribution (Rs.)',
-#             store={
-#                 'food.subsidy': (lambda self, cr, uid, ids, c={}: ids, ['food_price'], 10),
-#             },
-#             multi='sums'),
+        'hotel_name':fields.char('Hotel', size=64, required = True),
+        'street': fields.char('Street', size=128),
+        'street2': fields.char('Street2', size=128),
+        'zip': fields.char('Zip', change_default=True, size=24),
+        'city': fields.char('City', size=128),
+        'state_id': fields.many2one("res.country.state", 'State'),
+        'country_id': fields.many2one('res.country', 'Country'),
+        'history_line': fields.one2many('food.subsidy','history_id','Histories',readonly = True),
+        'history_id': fields.many2one('food.subsidy','Histories Line', ondelete='cascade'),
     }
+    def write(self, cr, uid, ids, vals, context=None):
+        for line in self.browse(cr,uid,ids):
+            res = {
+                    'food_category': line.food_category or False,
+                    'food_price': line.food_price or False,
+                    'employer_con': line.employer_con or False,
+                    'employee_con': line.employee_con or False,
+                    'hotel_name': line.hotel_name or False,
+                    'street': line.street or False,
+                    'street2': line.street2 or False,
+                    'zip': line.zip or False,
+                    'city': line.city or False,
+                    'state_id': line.state_id and line.state_id.id or False,
+                    'country_id': line.country_id and line.country_id.id or False,
+                    'history_id': line.id,
+                    }
+#             if 'food_price' in vals:
+#                 default ={'history_id': id}
+#                 self.copy(cr, uid, id,vals)
+            self.create(cr,uid,res)
+        return super(food_subsidy, self).write(cr, uid,ids, vals, context)
 food_subsidy()
 
 class meals_deduction(osv.osv):
