@@ -64,6 +64,27 @@ class Parser(report_sxw.rml_parse):
             hra = 0
             conv = 0
             gross = 0
+            spa = 0
+            oa = 0
+            arr_pf = 0
+            arr_npf = 0
+            com_alw = 0
+            mis_erng = 0
+            pdn_bon = 0
+            shd = 0
+            ot = 0
+            vpf = 0
+            esi = 0
+            loan = 0 
+            epf = 0
+            union = 0
+            hr = 0
+            po_rd = 0
+            m_ded1 = 0
+            m_ded2 = 0
+            m_ded3 = 0
+            ndw = 0
+            
             if payroll_ids:
                 payroll = payroll_obj.browse(self.cr, self.uid, payroll_ids[0])
                 for earning in payroll.earning_structure_line:
@@ -77,16 +98,38 @@ class Parser(report_sxw.rml_parse):
                         conv += earning.float
                     if earning.earning_parameters_id.code=='GROSS_SALARY':
                         gross += earning.float
-#                     if earning.earning_parameters_id.code=='BASIC':
-#                         basic += earning.float
-#                     if earning.earning_parameters_id.code=='BASIC':
-#                         basic += earning.float
-#                     if earning.earning_parameters_id.code=='BASIC':
-#                         basic += earning.float
+                    if earning.earning_parameters_id.code=='SpA':
+                        spa += earning.float
+                    if earning.earning_parameters_id.code=='OA':
+                        oa += earning.float
+                for deduction in payroll.other_deduction_line:
+                    if earning.earning_parameters_id.code=='VPF.D':
+                        vpf += earning.float
+                    if earning.earning_parameters_id.code=='ESI.D':
+                        esi += earning.float
+                    if earning.earning_parameters_id.code=='L.D':
+                        loan += earning.float
+                    if earning.earning_parameters_id.code=='PF.D':
+                        epf += earning.float
+
+                        oa += earning.float
                 res.append({
                     'emp_name': payroll.employee_id.name + ' ' + (payroll.employee_id.last_name and payroll.employee_id.last_name or ''),
                     'emp_code':payroll.employee_id.employee_id,
                     'basic': basic,
+                    'da': da,
+                    'hra' : hra,
+                    'conv' : conv,
+                    'gross' : gross,
+                    'spa' : spa,
+                    'oa' : oa,
+                    'arr_pf' : arr_pf,
+                    'arr_npf' : arr_npf,
+                    'com_alw' : com_alw,
+                    'mis_erng' : mis_erng,
+                    'pdn_bon' : pdn_bon,
+                    'shd' : shd,
+                    'ot' : ot,
                 })
         return res
                 

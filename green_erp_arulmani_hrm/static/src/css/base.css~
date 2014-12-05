@@ -1,4 +1,7 @@
-.openerp .oe_tag_dark {
-  background: #c63939;
-  color: #eeeeee;
+.openerp .oe_green_erp_scroll {
+overflow-x: auto;
+}
+
+.openerp .oe_green_erp_scroll_y {
+overflow-x: auto;
 }
