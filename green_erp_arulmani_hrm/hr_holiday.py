@@ -28,6 +28,16 @@ class arul_hr_leave_master(osv.osv):
         'carryforward_nextyear': fields.boolean('Is Carry Forward for Next Year'),
         'condition': fields.char('Eligible per Annum'),
     }
+    def _check_sub_category_id(self, cr, uid, ids, context=None):
+        for sub_cate in self.browse(cr, uid, ids, context=context):
+            sub_cate_ids = self.search(cr, uid, [('id','!=',sub_cate.id),('employee_sub_category_id','=',sub_cate.employee_sub_category_id.id)])
+            if sub_cate_ids:
+                raise osv.except_osv(_('Warning!'),_('The data is not suitable!'))  
+                return False
+        return True
+    _constraints = [
+        (_check_sub_category_id, 'Identical Data', ['employee_sub_category_id']),
+        ]
     def name_get(self, cr, uid, ids, context=None):
         res = []
         if not ids:
