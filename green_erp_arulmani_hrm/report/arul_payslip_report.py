@@ -114,6 +114,7 @@ class Parser(report_sxw.rml_parse):
                 res.append({
                     'emp_name': payroll.employee_id.name + ' ' + (payroll.employee_id.last_name and payroll.employee_id.last_name or ''),
                     'emp_code':payroll.employee_id.employee_id,
+                    'emp_designation':payroll.employee_id,
                     'basic': basic,
                     'da': da,
                     'hra' : hra,
