@@ -923,8 +923,8 @@ class arul_hr_monthly_shift_schedule(osv.osv):
     _columns={
 #               'num_of_month': fields.function(_num_of_month, string='Day',store=True, multi='sums', help="The total amount."),
               'num_of_month': fields.integer('Day'),
-              'shift_day_from': fields.integer('Shift Day From'),
-              'shift_day_to': fields.integer('Shift Day To'),
+              'shift_day_from': fields.many2one('tpt.month','Shift Day From'),
+              'shift_day_to': fields.many2one('tpt.month','Shift Day To'),
               'work_shift_id': fields.many2one('arul.hr.capture.work.shift','Work Shift'),
               'employee_id':fields.many2one('hr.employee','Employee', required = True),
               'monthly_work_id':fields.many2one('arul.hr.monthly.work.schedule','Monthly Shift Schedule'),
@@ -960,17 +960,21 @@ class arul_hr_monthly_shift_schedule(osv.osv):
               'day_30': fields.many2one('arul.hr.capture.work.shift','30'),
               'day_31': fields.many2one('arul.hr.capture.work.shift','31'),
               }
+    _defaults = {
+        'num_of_month': 28,
+    }
+    
     def load(self, cr, uid, ids, context=None):
         return True
     
     def onchange_monthly(self, cr, uid, ids, num_of_month = False, shift_day_from=False,shift_day_to=False, work_shift_id = False, context=None):
         value = {}
-        if shift_day_from > shift_day_to:
-            raise osv.except_osv(_('Warning!'),_('Shift Day Form must less than Shift Day To'))
-        if shift_day_to > num_of_month:
-            raise osv.except_osv(_('Warning!'),_('Range of month is limited'))
         if shift_day_from and shift_day_to and work_shift_id:
-            for num in range(shift_day_from, shift_day_to + 1):
+            if shift_day_from.name > shift_day_to.name:
+                raise osv.except_osv(_('Warning!'),_('Shift Day Form must less than Shift Day To'))
+            if shift_day_to.name > num_of_month.name:
+                raise osv.except_osv(_('Warning!'),_('Range of month is limited'))
+            for num in range(shift_day_from.name, shift_day_to.name + 1):
                 if num == 1 :
                     value['day_1'] = work_shift_id
                 if num == 2:
@@ -1047,6 +1051,19 @@ class arul_hr_monthly_shift_schedule(osv.osv):
     ]
 arul_hr_monthly_shift_schedule()
 
+class tpt_month(osv.osv):
+    _name = 'tpt.month'
+    _columns = {
+        'name': fields.integer('Name'),     
+    }
+    
+    def init(self, cr):
+        for num in range(1,32):
+            month_ids = self.search(cr, 1, [('name','=',num)])
+            if not month_ids:
+                self.create(cr, 1, {'name':num})
+        return True
+tpt_month()
 # class tpt_time_leave_evaluation(osv.osv):
 #     _name = 'tpt.time.leave.evaluation'
 #     _columns = {
