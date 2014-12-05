@@ -774,7 +774,7 @@ class meals_details(osv.osv):
     _columns = {
 #         'emp_code' : fields.char('Emp. Code', size=128),
         'emp_name' : fields.char('Name', size=128),
-        'emp_id': fields.many2one('hr.employee', 'Emp. Code', select="1",required=True),
+        'emp_id': fields.many2one('hr.employee', 'Emp. Code', select="1"),
         'break_fast' : fields.boolean('Break Fast'),
         'lunch' : fields.boolean('Lunch'),
         'dinner' : fields.boolean('Dinner'),

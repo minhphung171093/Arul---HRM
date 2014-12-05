@@ -799,7 +799,71 @@
          
         <menuitem action="action_tpt_manage_equipment_inventory_form"
             id="menu_action_tpt_manage_equipment_inventory_form"
-            parent="menu_hr_leave_management" sequence="31"/>            
+            parent="menu_hr_leave_management" sequence="31"/>   
+                     
+    	<record id="tpt_time_leave_evaluation_tree_view" model="ir.ui.view">
+			<field name="name">tpt.time.leave.evaluation.tree</field>
+			<field name="model">tpt.time.leave.evaluation</field>
+			<field name="arch" type="xml">
+				<tree string="Time/Leave Evaluation">
+					<field name="month"/>
+					<field name="year"/>
+				</tree>
+			</field>
+	   </record>
+	   
+	   <record id="tpt_time_leave_evaluation_form_view" model="ir.ui.view">
+            <field name="name">tpt.time.leave.evaluation.form</field>
+            <field name="model">tpt.time.leave.evaluation</field>
+            <field name="arch" type="xml">
+	            <form string="Approve Reject Payroll" version="7.0">  
+	            <header>
+	                <button name="submit_evaluate" string="Submit" type="object" class="oe_highlight"/>
+	            </header>    
+	            <sheet>
+		           <group col = '4' colspan = '2'>    
+						<field name="year"/>
+						<field name="month"/>
+		           </group> 
+		           <group col = '4' colspan = '2' string="Time Evaluation Report">    
+						<field name="shift_time_id" editable="top" nolabel="1">
+							<tree>
+								<field name="employee_id"/>
+								<field name="work_date"/>
+								<field name="planned_work_shift_id"/>
+								<field name="in_time"/>
+								<field name="out_time"/>
+								<field name="total_hours"/>
+								<field name="state"/>
+							</tree>
+						</field>
+		           </group> 
+		           <group col = '4' colspan = '2' string="Non Availability Report">    
+						<field name="leave_request_id" editable="top" nolabel="1">
+							<tree>
+								<field name="employee_id"/>
+								<field name="date_from" string ="Leave Date"/>
+								<field name="state"/>
+							</tree>
+						</field>
+		           </group> 
+		        </sheet>
+		        </form>
+		     </field>   
+       </record>
+       
+       <record id="action_tpt_time_leave_evaluation_form" model="ir.actions.act_window">
+            <field name="name">Time Leave Evaluation</field>
+            <field name="type">ir.actions.act_window</field>
+            <field name="res_model">tpt.time.leave.evaluation</field>
+            <field name="view_type">form</field>
+            <field name="view_mode">tree,form</field>
+            <field name="view_id" ref="tpt_time_leave_evaluation_tree_view"/>
+        </record>       
+            
+       <menuitem action="action_tpt_time_leave_evaluation_form"
+            id="menu_action_tpt_time_leave_evaluation_form"
+            parent="menu_hr_leave_management" sequence="32"/>
     	
     	<record model="ir.values" id="sale_order_make_invoice">
             <field name="model_id" ref="model_arul_hr_audit_shift_time" />
