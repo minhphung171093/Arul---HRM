@@ -236,7 +236,7 @@
 								</group>
 								<field name="payroll_other_deductions_line" nolabel='1'>
 									<tree editable = "bottom">
-										<field name="deduction_parameters_id" options="{'create': false, 'create_edit': false}"/>
+										<field name="deduction_parameters_id" domain="[('code','in',['I.D','L.D','VPF.D'])]" options="{'create': false, 'create_edit': false}"/>
 										<field name="float"/>
 									</tree>
 								</field>
