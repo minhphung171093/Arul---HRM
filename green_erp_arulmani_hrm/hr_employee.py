@@ -421,9 +421,17 @@ class hr_employee(osv.osv):
 #             dept = self.pool.get('hr.department').browse(cr, uid, department_id)
 #             section_ids = [x.id for x in dept.section_ids]
         return {'value': {'section_id': False}}
-    def onchange_employee_category_id(self, cr, uid, ids,employee_category_id=False, context=None):
-        emp_sub_cat = []
-        return {'value': {'employee_sub_category_id': False }}
+    def onchange_employee_category_id(self, cr, uid, ids,employee_category_id=False,employee_sub_category_id=False, context=None):
+        vals = {}
+        if employee_category_id and employee_sub_category_id:
+            sql = '''
+                select id from hr_employee_sub_category where id = %s and category_id=%s
+            '''%(employee_sub_category_id,employee_category_id)
+            cr.execute(sql)
+            sub_category_ids = [row[0] for row in cr.fetchall()]
+            if not sub_category_ids:
+                vals['employee_sub_category_id']=False
+        return {'value': vals}
 
     def onchange_date_of_retirement(self, cr, uid, ids,birthday=False, context=None):
         retirement = ''
@@ -612,24 +620,24 @@ class food_subsidy(osv.osv):
     }
     def write(self, cr, uid, ids, vals, context=None):
         for line in self.browse(cr,uid,ids):
-            res = {
-                    'food_category': line.food_category or False,
-                    'food_price': line.food_price or False,
-                    'employer_con': line.employer_con or False,
-                    'employee_con': line.employee_con or False,
-                    'hotel_name': line.hotel_name or False,
-                    'street': line.street or False,
-                    'street2': line.street2 or False,
-                    'zip': line.zip or False,
-                    'city': line.city or False,
-                    'state_id': line.state_id and line.state_id.id or False,
-                    'country_id': line.country_id and line.country_id.id or False,
-                    'history_id': line.id,
-                    }
-#             if 'food_price' in vals:
-#                 default ={'history_id': id}
-#                 self.copy(cr, uid, id,vals)
-            self.create(cr,uid,res)
+#             res = {
+#                     'food_category': line.food_category or False,
+#                     'food_price': line.food_price or False,
+#                     'employer_con': line.employer_con or False,
+#                     'employee_con': line.employee_con or False,
+#                     'hotel_name': line.hotel_name or False,
+#                     'street': line.street or False,
+#                     'street2': line.street2 or False,
+#                     'zip': line.zip or False,
+#                     'city': line.city or False,
+#                     'state_id': line.state_id and line.state_id.id or False,
+#                     'country_id': line.country_id and line.country_id.id or False,
+#                     'history_id': line.id,
+#                     }
+            if 'food_price' in vals:
+                default ={'history_id': line.id,'history_line':[]}
+                self.copy(cr, uid, line.id,default)
+#             self.create(cr,uid,res)
         return super(food_subsidy, self).write(cr, uid,ids, vals, context)
     
     def name_get(self, cr, uid, ids, context=None):
@@ -649,6 +657,18 @@ class food_subsidy(osv.osv):
                 name = 'Midnight Tiffin'
             res.append((record['id'], name))
         return res  
+    
+    def _check_food_category(self, cr, uid, ids, context=None):
+        for food in self.browse(cr, uid, ids, context=context):
+            if not food.history_id:
+                food_ids = self.search(cr, uid, [('id','!=',food.id),('food_category','=',food.food_category),('history_id','=',False)])
+                if food_ids:  
+                    return False
+        return True
+
+    _constraints = [
+        (_check_food_category, 'Identical Data', ['food_category']),
+    ]
     
 food_subsidy()
 
