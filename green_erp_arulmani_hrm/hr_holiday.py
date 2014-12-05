@@ -364,7 +364,11 @@ class arul_hr_employee_leave_details(osv.osv):
     
     def cancel_leave_request(self, cr, uid, ids, context=None):
         for line in self.browse(cr, uid, ids):
-            self.write(cr, uid, [line.id],{'state':'cancel'})
+            sql = '''
+                update arul_hr_employee_leave_details set state='cancel' where id = %s
+            '''%(line.id)
+            cr.execute(sql)
+#             self.write(cr, uid, [line.id],{'state':'cancel'})
         return True  
     
     def _check_days(self, cr, uid, ids, context=None): 
