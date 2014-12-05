@@ -84,8 +84,8 @@ arul_hr_payroll_sub_area()
 class arul_hr_payroll_earning_parameters(osv.osv):
     _name = 'arul.hr.payroll.earning.parameters'
     _columns = {
-        'name': fields.char('Name', size=1024, required = True),
-         'code': fields.char('Code', size=1024, required = True),
+        'name': fields.char('Name', size=1024, required = True ),
+         'code': fields.char('Code', size=1024, required = True, readonly = True),
          'description':fields.text('Description')
         
     }
@@ -122,7 +122,7 @@ class arul_hr_payroll_deduction_parameters(osv.osv):
     _name = 'arul.hr.payroll.deduction.parameters'
     _columns = {
         'name': fields.char('Name', size=1024, required = True),
-        'code': fields.char('Code', size=1024, required = True),
+        'code': fields.char('Code', size=1024, required = True,readonly = True),
         'description': fields.text('Description'),
     }
     def _check_code_id(self, cr, uid, ids, context=None):
@@ -409,7 +409,15 @@ class arul_hr_payroll_earning_structure_configuration(osv.osv):
          'fixed_percentage':fields.selection([('fixed','Fixed'),('percentage','Percentage')], 'Fixed/Percentage?',required = True) ,
          'value':fields.float('Values'),
     }
-    
+    def _check_earning_parameters_id(self, cr, uid, ids, context=None):
+        for payroll in self.browse(cr, uid, ids, context=context):
+            payroll_category_ids = self.search(cr, uid, [('id','!=',payroll.id),('earning_parameters_id','=',payroll.earning_parameters_id.id)])
+            if payroll_category_ids :
+                return False
+        return True
+    _constraints = [
+        (_check_earning_parameters_id, 'Identical Data', ['earning_parameters_id']),
+    ]  
 arul_hr_payroll_earning_structure_configuration()
 
 class arul_hr_payroll_other_deductions(osv.osv):
