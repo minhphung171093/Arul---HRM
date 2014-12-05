@@ -462,6 +462,7 @@
 	            	<header>
 	                    <button name="load_previous_month" states='draft' string="Load Previous Month Schedule" type="object" class="oe_highlight" />
 	                    <button name="approve_current_month" states='load,draft' string="Approve Current Month Schedule" type="object" class="oe_highlight" />
+	                    <button name="set_to_draft" states='done' string="Set To Draft" type="object" class="oe_highlight" />
 	                    <field name="state" widget="statusbar" statusbar_visible="draft,done" statusbar_colors='{"draft":"blue","done":"blue"}'/>
 	                </header> 
 	            	<sheet>

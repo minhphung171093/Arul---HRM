@@ -773,6 +773,8 @@ class arul_hr_monthly_work_schedule(osv.osv):
         'state':'draft',
         'year': int(time.strftime('%Y')),
     }
+    def set_to_draft(self, cr, uid, ids, context=None):
+        return self.write(cr, uid, ids, {'state':'draft'})
     
     def _check_month_year(self, cr, uid, ids, context=None):
         for work in self.browse(cr, uid, ids, context=context):
