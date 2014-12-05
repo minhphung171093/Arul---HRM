@@ -321,12 +321,7 @@ class arul_hr_employee_action_history(osv.osv):
             self.pool.get('hr.employee').write(cr, uid, [line.employee_id.id], {'employee_active': True})
             self.write(cr, uid, [line.id],{'approve_rehiring': True})
         return True
-    def _check_sub_category_id(self, cr, uid, ids, context=None):
-        for sub_cate in self.browse(cr, uid, ids, context=context):
-            sub_cate_ids = self.search(cr, uid, [('id','!=',sub_cate.id),('sub_category_id','=',sub_cate.sub_category_id.id)])
-            if sub_cate_ids:  
-                return False
-        return True
+
     def _check_date(self, cr, uid, ids, context=None):
         for act in self.browse(cr, uid, ids, context=context):
             if act.period_from and act.period_to:
@@ -344,7 +339,6 @@ class arul_hr_employee_action_history(osv.osv):
     _constraints = [
         (_check_date, 'Identical Data', ['period_from','period_to']),
         (_check_rehiring_date, 'Identical Data', ['period_from','action_date']),
-        (_check_sub_category_id, 'Identical Data', ['sub_category_id']),
     ]
     
     def search(self, cr, uid, args, offset=0, limit=None, order=None, context=None, count=False):
