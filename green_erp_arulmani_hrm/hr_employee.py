@@ -650,6 +650,22 @@ class food_subsidy(osv.osv):
             res.append((record['id'], name))
         return res  
     
+#     def check_food_category(self, cr, uid, ids, context=None):
+# #         for type in self.browse(cr, uid, ids, context=context):
+# #             sql = '''
+# #                 select id from food_subsidy where food_category = %s and history_id = False
+# #             '''%(type.food_category)
+# #             cr.execute(sql)
+# #             type_ids = [row[0] for row in cr.fetchall()]
+#         for food in self.browse(cr, uid, ids, context=context):
+#             food_ids = self.search(cr, uid, [('id','!=',food.id),('food_category','=',food.food_category),('history_id','=',False)])
+#             if food_ids:  
+#                 return False
+#         return True
+#     _constraints = [
+#         (check_food_category, 'Identical Data', ['food_category']),
+#     ]
+    
 food_subsidy()
 
 class meals_deduction(osv.osv):
@@ -673,6 +689,16 @@ class meals_deduction(osv.osv):
         'meals_details_emp_ids': fields.one2many('meals.details','meals_id','Meals Deduction Details'),
         'meals_details_order_ids': fields.one2many('meals.details','meals_id','Meals Deduction Details'),
     }
+    def name_get(self, cr, uid, ids, context=None):
+        res = []
+        if not ids:
+            return res
+        reads = self.read(cr, uid, ids, ['meals_date'], context)
+  
+        for record in reads:
+            name = record['meals_date']
+            res.append((record['id'], name))
+        return res  
 meals_deduction()
 
 class meals_details(osv.osv):
@@ -1025,6 +1051,7 @@ class employee_leave_detail(osv.osv):
         }, type='float',string='Taken Day'),
 #         'total_taken': fields.function(get_taken_day,degits=(16,2), type='float',string='Taken Day')
     }
+    
     
     
 employee_leave_detail()
