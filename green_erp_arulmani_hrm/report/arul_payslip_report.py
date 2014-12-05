@@ -111,8 +111,6 @@ class Parser(report_sxw.rml_parse):
                         loan += earning.float
                     if earning.earning_parameters_id.code=='PF.D':
                         epf += earning.float
-
-                        oa += earning.float
                 res.append({
                     'emp_name': payroll.employee_id.name + ' ' + (payroll.employee_id.last_name and payroll.employee_id.last_name or ''),
                     'emp_code':payroll.employee_id.employee_id,
@@ -130,6 +128,17 @@ class Parser(report_sxw.rml_parse):
                     'pdn_bon' : pdn_bon,
                     'shd' : shd,
                     'ot' : ot,
+                    'vpf' : vpf,
+                    'esi' : esi,
+                    'loan' : loan ,
+                    'epf' : epf,
+                    'union' : union,
+                    'hr' : hr,
+                    'po_rd' : po_rd,
+                    'm_ded1' : m_ded1,
+                    'm_ded2' : m_ded2,
+                    'm_ded3' : m_ded3,
+                    'ndw' : ndw,
                 })
         return res
                 

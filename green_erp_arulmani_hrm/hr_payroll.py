@@ -296,7 +296,7 @@ class arul_hr_payroll_contribution_parameters(osv.osv):
         'emp_pf_con': fields.float('Employee PF Contribution (%)'),
         'employer_pension_con': fields.float('Employer Pension Contribution (%)'),
         'pension_limit_amt': fields.float('Pension Limit Amt'),
-        'emp_esi_limit': fields.float('Employee ESI Limit (%)'),
+        'emp_esi_limit': fields.float('Employee ESI Limit'),
         'emp_esi_con': fields.float('Employee ESI Contribution (%)'),
         'employer_esi_con': fields.float('Employer ESI Contribution (%)'),
         'emp_lwf_amt': fields.float('Employee Labor Welfare Fund (LWF) Amt'),
@@ -426,7 +426,7 @@ class arul_hr_payroll_other_deductions(osv.osv):
          
          'deduction_parameters_id': fields.many2one('arul.hr.payroll.deduction.parameters','Deduction Parameters',required = True),
          'earning_structure_id':fields.many2one('arul.hr.payroll.employee.structure','Earning Structure', ondelete='cascade'), 
-         'float':fields.float('Float') ,
+         'float':fields.float('Amount') ,
          'executions_details_id':fields.many2one('arul.hr.payroll.executions.details','Execution Details', ondelete='cascade'),
     }
     
