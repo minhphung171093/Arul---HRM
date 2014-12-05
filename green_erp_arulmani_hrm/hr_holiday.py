@@ -800,13 +800,15 @@ class arul_hr_monthly_work_schedule(osv.osv):
               'section_id': fields.many2one('arul.hr.section','Section', required = True, states={'done': [('readonly', True)]}),
               'year': fields.selection([(num, str(num)) for num in range(1950, 2026)], 'Year', required = True, states={'done': [('readonly', True)]}),
               'month': fields.selection([('1', 'January'),('2', 'February'), ('3', 'March'), ('4','April'), ('5','May'), ('6','June'), ('7','July'), ('8','August'), ('9','September'), ('10','October'), ('11','November'), ('12','December')], 'Month',required = True, states={'done': [('readonly', True)]}),
-              'monthly_shift_line': fields.one2many('arul.hr.monthly.shift.schedule','monthly_work_id', 'Monthly Work Schedule', states={'done': [('readonly', True)]}),
+              'monthly_shift_line': fields.one2many('arul.hr.monthly.shift.schedule','monthly_work_id', 'Monthly Work Schedule'),
               'state':fields.selection([('draft', 'Draft'),('load', 'Load'),('done', 'Done')],'Status', readonly=True)
               }
     _defaults = {
         'state':'draft',
         'year': int(time.strftime('%Y')),
     }
+    def set_to_draft(self, cr, uid, ids, context=None):
+        return self.write(cr, uid, ids, {'state':'draft'})
     
     def _check_month_year(self, cr, uid, ids, context=None):
         for work in self.browse(cr, uid, ids, context=context):
