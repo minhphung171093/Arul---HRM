@@ -337,7 +337,7 @@
             <field name="view_type">form</field>
             <field name="view_mode">tree,form</field>
             <field name="domain">[('action_id.name','=','Transfer')]</field>
-            <field name="context">{'action_default_transfer':1}</field>
+            <field name="context">{'create_transfer_employee':1,'action_default_transfer':1}</field>
             <field name="view_id" ref="view_arul_hr_employee_transfer_action_form_vew"/>
         </record>
         <record id="action_arul_hr_employee_transfer_action_form1" model="ir.actions.act_window.view">

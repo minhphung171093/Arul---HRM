@@ -304,7 +304,18 @@ class arul_hr_employee_action_history(osv.osv):
                                                                                           'employee_sub_category_id': action_history.sub_category_id.id,
                                                                                           'job_id': action_history.designation_to_id.id,
                                                                                           'department_id': action_history.department_to_id.id})
+        if context.get('create_transfer_employee'):
+            action_history = self.browse(cr, uid, new_id)
+            self.pool.get('hr.employee').write(cr, uid, [action_history.employee_id.id], {'department_id': action_history.department_to_id and action_history.department_to_id.id or False})
         return new_id
+    
+    def write(self, cr, uid, ids, vals, context=None):
+        new_write = super(arul_hr_employee_action_history, self).write(cr, uid,ids, vals, context)
+        if 'department_to_id' in vals:
+            for line in self.browse(cr, uid, ids):
+                self.pool.get('hr.employee').write(cr, uid, [line.employee_id.id], {'department_id': line.department_to_id and line.department_to_id.id or False})
+        return new_write
+    
     def approve_employee_rehiring(self, cr, uid, ids, context=None):
         for line in self.browse(cr, uid, ids):
             self.pool.get('hr.employee').write(cr, uid, [line.employee_id.id], {'employee_active': True})
