@@ -1122,7 +1122,7 @@
                 			<page string="Meals Deduction">
                 				<field name ="meals_details_emp_ids" nolabel="1" attrs="{'invisible':[('meals_for','!=','employees')]}">
                 					<tree editable="top">
-                						<field name ="emp_id" invisible="0" readonly="0"/>
+                						<field name ="emp_id" invisible="0" readonly="0" required = "1"/>
                 						<field name ="break_fast"/>
                 						<field name ="lunch"/>
                 						<field name ="dinner"/>
@@ -1135,7 +1135,7 @@
                 				</field>
                 				<field name ="meals_details_order_ids" nolabel="1" attrs="{'invisible':[('meals_for','!=','others')]}">
                 					<tree editable="top">
-                						<field name ="emp_name" readonly="0"/>
+                						<field name ="emp_name" readonly="0" required = "1"/>
                 						<field name ="break_fast"/>
                 						<field name ="lunch"/>
                 						<field name ="dinner"/>

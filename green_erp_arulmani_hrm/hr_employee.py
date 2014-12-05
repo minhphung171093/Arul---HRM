@@ -321,6 +321,12 @@ class arul_hr_employee_action_history(osv.osv):
             self.pool.get('hr.employee').write(cr, uid, [line.employee_id.id], {'employee_active': True})
             self.write(cr, uid, [line.id],{'approve_rehiring': True})
         return True
+    def _check_sub_category_id(self, cr, uid, ids, context=None):
+        for sub_cate in self.browse(cr, uid, ids, context=context):
+            sub_cate_ids = self.search(cr, uid, [('id','!=',sub_cate.id),('sub_category_id','=',sub_cate.sub_category_id.id)])
+            if sub_cate_ids:  
+                return False
+        return True
     def _check_date(self, cr, uid, ids, context=None):
         for act in self.browse(cr, uid, ids, context=context):
             if act.period_from and act.period_to:
@@ -338,6 +344,7 @@ class arul_hr_employee_action_history(osv.osv):
     _constraints = [
         (_check_date, 'Identical Data', ['period_from','period_to']),
         (_check_rehiring_date, 'Identical Data', ['period_from','action_date']),
+        (_check_sub_category_id, 'Identical Data', ['sub_category_id']),
     ]
     
     def search(self, cr, uid, args, offset=0, limit=None, order=None, context=None, count=False):
@@ -494,6 +501,12 @@ class hr_employee(osv.osv):
 #             for line_id in context.get('create_hiring_employee'):
 #                 self.pool.get('arul.hr.employee.action.history').write(cr, uid, [line_id], {'employee_id': new_id})
 #         return new_id
+    def _check_time_record_id(self, cr, uid, ids, context=None):
+        for record in self.browse(cr, uid, ids, context=context):
+            record_ids = self.search(cr, uid, [('id','!=',record.id),('time_record','=',record.time_record)])
+            if record_ids:  
+                return False
+        return True
     
     def _check_date(self, cr, uid, ids, context=None):
         for employee in self.browse(cr, uid, ids, context=context):
@@ -504,6 +517,7 @@ class hr_employee(osv.osv):
         return True
     _constraints = [
         (_check_date, 'Identical Data', ['date_of_joining','date_of_resignation']),
+        (_check_time_record_id, 'Identical Data', ['time_record']),
     ]
 hr_employee()
     
@@ -704,6 +718,16 @@ class meals_deduction(osv.osv):
         'meals_details_emp_ids': fields.one2many('meals.details','meals_id','Meals Deduction Details'),
         'meals_details_order_ids': fields.one2many('meals.details','meals_id','Meals Deduction Details'),
     }
+    def name_get(self, cr, uid, ids, context=None):
+        res = []
+        if not ids:
+            return res
+        reads = self.read(cr, uid, ids, ['meals_date'], context)
+  
+        for record in reads:
+            name = record['meals_date']
+            res.append((record['id'], name))
+        return res  
 meals_deduction()
 
 class meals_details(osv.osv):
@@ -1056,6 +1080,7 @@ class employee_leave_detail(osv.osv):
         }, type='float',string='Taken Day'),
 #         'total_taken': fields.function(get_taken_day,degits=(16,2), type='float',string='Taken Day')
     }
+    
     
     
 employee_leave_detail()

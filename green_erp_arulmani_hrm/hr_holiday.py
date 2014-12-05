@@ -22,12 +22,23 @@ class arul_hr_leave_master(osv.osv):
     _name = "arul.hr.leave.master"
     _columns = {
         'leave_type_id' : fields.many2one('arul.hr.leave.types', 'Leave Type', required = True),
-        'employee_category_id' : fields.many2one('vsis.hr.employee.category', 'Employee Category'),
-        'employee_sub_category_id' : fields.many2one('hr.employee.sub.category', 'Employee Sub Category'),
+        'employee_category_id' : fields.many2one('vsis.hr.employee.category', 'Employee Category', required = True),
+        'employee_sub_category_id' : fields.many2one('hr.employee.sub.category', 'Employee Sub Category', required = True),
         'maximum_limit': fields.integer('Maximum Limit Applicable'),
         'carryforward_nextyear': fields.boolean('Is Carry Forward for Next Year'),
         'condition': fields.char('Eligible per Annum'),
     }
+    def name_get(self, cr, uid, ids, context=None):
+        res = []
+        if not ids:
+            return res
+        reads = self.read(cr, uid, ids, ['leave_type_id'], context)
+  
+        for record in reads:
+            name = record['leave_type_id']
+            res.append((record['id'], name))
+        return res 
+    
     def onchange_employee_category_id(self, cr, uid, ids,employee_category_id=False, context=None):
         emp_sub_cat = []
         if employee_category_id:
@@ -127,7 +138,7 @@ class arul_hr_audit_shift_time(osv.osv):
     
     _columns={
               'employee_id':fields.many2one('hr.employee','Employee ID', required = True, states={'done': [('readonly', True)], 'cancel': [('readonly', True)]}),
-              'work_date':fields.date('Work Date', states={'done': [('readonly', True)], 'cancel': [('readonly', True)]}),
+              'work_date':fields.date('Work Date', required = True, states={'done': [('readonly', True)], 'cancel': [('readonly', True)]}),
               'employee_category_id':fields.many2one('vsis.hr.employee.category','Work Group', states={'done': [('readonly', True)], 'cancel': [('readonly', True)]}),
               'planned_work_shift_id':fields.many2one('arul.hr.capture.work.shift','Planned Work Shift', states={'done': [('readonly', True)], 'cancel': [('readonly', True)]}),
               'in_time': fields.float('In Time', states={'done': [('readonly', True)], 'cancel': [('readonly', True)]}),
@@ -142,6 +153,16 @@ class arul_hr_audit_shift_time(osv.osv):
     _defaults = {
         'state':'draft',
     }
+    def name_get(self, cr, uid, ids, context=None):
+        res = []
+        if not ids:
+            return res
+        reads = self.read(cr, uid, ids, ['work_date'], context)
+  
+        for record in reads:
+            name = record['work_date']
+            res.append((record['id'], name))
+        return res 
     def _check_time(self, cr, uid, ids, context=None): 
         for time in self.browse(cr, uid, ids, context = context):
             if ((time.in_time > 24 or time.in_time < 0) or (time.out_time > 24 or time.out_time < 0)):
@@ -570,6 +591,19 @@ class arul_hr_permission_onduty(osv.osv):
 #         'detail_id':fields.many2one('arul.hr.employee.attendence.details','Detail'),
         
               }
+    def name_get(self, cr, uid, ids, context=None):
+        res = []
+        if not ids:
+            return res
+        reads = self.read(cr, uid, ids, ['non_availability_type_id'], context)
+        for record in reads:
+            name = record['non_availability_type_id']
+            if name=='permission':
+                name = 'Permission'
+            elif name=='on_duty':
+                name = 'On duty'
+            res.append((record['id'], name))
+        return res  
     def _check_time(self, cr, uid, ids, context=None): 
         for time in self.browse(cr, uid, ids, context = context):
             if ((time.start_time > 24 or time.start_time < 0) or (time.end_time > 24 or time.end_time < 0)):
@@ -1068,6 +1102,17 @@ class tpt_time_leave_evaluation(osv.osv):
     _defaults = {
        'year':int(time.strftime('%Y')),
     }
+    
+    def name_get(self, cr, uid, ids, context=None):
+        res = []
+        if not ids:
+            return res
+        reads = self.read(cr, uid, ids, ['month','year'], context)
+  
+        for record in reads:
+            name = record['month'] + ' - ' + str(record['year'])
+            res.append((record['id'], name))
+        return res   
      
     def submit_evaluate(self, cr, uid, ids, context=None):
         for sub in self.browse(cr, uid, ids, context=context):
