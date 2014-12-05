@@ -849,6 +849,7 @@ class arul_hr_monthly_work_schedule(osv.osv):
         return True
     def approve_current_month(self, cr, uid, ids, context=None):
         return self.write(cr, uid, ids, {'state':'done'})
+
     def onchange_department_id(self, cr, uid, ids,department_id=False,month=False,year=False, context=None):
         res = {'value':{}}
         for line in self.browse(cr, uid, ids):
@@ -922,6 +923,9 @@ class arul_hr_monthly_shift_schedule(osv.osv):
     _columns={
 #               'num_of_month': fields.function(_num_of_month, string='Day',store=True, multi='sums', help="The total amount."),
               'num_of_month': fields.integer('Day'),
+              'shift_day_from': fields.many2one('tpt.month','Shift Day From'),
+              'shift_day_to': fields.many2one('tpt.month','Shift Day To'),
+              'work_shift_id': fields.many2one('arul.hr.capture.work.shift','Work Shift'),
               'employee_id':fields.many2one('hr.employee','Employee', required = True),
               'monthly_work_id':fields.many2one('arul.hr.monthly.work.schedule','Monthly Shift Schedule'),
               'day_1': fields.many2one('arul.hr.capture.work.shift','1'),
@@ -956,6 +960,84 @@ class arul_hr_monthly_shift_schedule(osv.osv):
               'day_30': fields.many2one('arul.hr.capture.work.shift','30'),
               'day_31': fields.many2one('arul.hr.capture.work.shift','31'),
               }
+    _defaults = {
+        'num_of_month': 28,
+    }
+    
+    def load(self, cr, uid, ids, context=None):
+        return True
+    
+    def onchange_monthly(self, cr, uid, ids, num_of_month = False, shift_day_from=False,shift_day_to=False, work_shift_id = False, context=None):
+        value = {}
+        if shift_day_from and shift_day_to and work_shift_id:
+            if shift_day_from.name > shift_day_to.name:
+                raise osv.except_osv(_('Warning!'),_('Shift Day Form must less than Shift Day To'))
+            if shift_day_to.name > num_of_month.name:
+                raise osv.except_osv(_('Warning!'),_('Range of month is limited'))
+            for num in range(shift_day_from.name, shift_day_to.name + 1):
+                if num == 1 :
+                    value['day_1'] = work_shift_id
+                if num == 2:
+                    value['day_2'] = work_shift_id
+                if num == 3:
+                    value['day_3'] = work_shift_id
+                if num == 4:
+                    value['day_4'] = work_shift_id
+                if num == 5:
+                    value['day_5'] = work_shift_id
+                if num == 6:
+                    value['day_6'] = work_shift_id
+                if num == 7:
+                    value['day_7'] = work_shift_id
+                if num == 8:
+                    value['day_8'] = work_shift_id
+                if num == 9:
+                    value['day_9'] = work_shift_id
+                if num == 10:
+                    value['day_10'] = work_shift_id
+                if num == 11:
+                    value['day_11'] = work_shift_id
+                if num == 12:
+                    value['day_12'] = work_shift_id
+                if num == 13:
+                    value['day_13'] = work_shift_id
+                if num == 14:
+                    value['day_14'] = work_shift_id
+                if num == 15:
+                    value['day_15'] = work_shift_id
+                if num == 16:
+                    value['day_16'] = work_shift_id
+                if num == 17:
+                    value['day_17'] = work_shift_id
+                if num == 18:
+                    value['day_18'] = work_shift_id
+                if num == 19:
+                    value['day_19'] = work_shift_id
+                if num == 20:
+                    value['day_20'] = work_shift_id
+                if num == 21:
+                    value['day_21'] = work_shift_id
+                if num == 22:
+                    value['day_22'] = work_shift_id
+                if num == 23:
+                    value['day_23'] = work_shift_id
+                if num == 24:
+                    value['day_24'] = work_shift_id
+                if num == 25:
+                    value['day_25'] = work_shift_id
+                if num == 26:
+                    value['day_26'] = work_shift_id
+                if num == 27:
+                    value['day_27'] = work_shift_id
+                if num == 28:
+                    value['day_28'] = work_shift_id
+                if num == 29:
+                    value['day_29'] = work_shift_id
+                if num == 30:
+                    value['day_30'] = work_shift_id
+                if num == 31:
+                    value['day_31'] = work_shift_id
+        return {'value': value}          
     
     def _check_employee_id(self, cr, uid, ids, context=None):
         for shift_schedule in self.browse(cr, uid, ids, context=context):
@@ -994,6 +1076,20 @@ class tpt_time_leave_evaluation(osv.osv):
         return True
      
 tpt_time_leave_evaluation()
+
+class tpt_month(osv.osv):
+    _name = 'tpt.month'
+    _columns = {
+        'name': fields.integer('Name'),     
+    }
+    
+    def init(self, cr):
+        for num in range(1,32):
+            month_ids = self.search(cr, 1, [('name','=',num)])
+            if not month_ids:
+                self.create(cr, 1, {'name':num})
+        return True
+tpt_month()
 
 class tpt_work_center(osv.osv):
     _name = 'tpt.work.center'

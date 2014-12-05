@@ -1,3 +1,7 @@
 .openerp .oe_green_erp_scroll {
 overflow-x: auto;
 }
+
+.openerp .oe_green_erp_scroll_y {
+overflow-y: auto;
+}

@@ -7,7 +7,7 @@ from openerp import SUPERUSER_ID
 from openerp.tools import DEFAULT_SERVER_DATE_FORMAT, DEFAULT_SERVER_DATETIME_FORMAT, DATETIME_FORMATS_MAP, float_compare
 from datetime import datetime
 import datetime
-
+import calendar
 class hr_employee_category(osv.osv):
     _inherit = "vsis.hr.employee.category"
     _columns = {
@@ -353,6 +353,10 @@ class hr_employee(osv.osv):
         'time_record': fields.char('Time Record ID', size=1024, required = True),
         'employee_leave_id': fields.one2many('employee.leave','employee_id','Employee Leave',readonly=True),
         'country_stateofbirth_id': fields.many2one('res.country', 'Country'),
+        'date_of_retirement': fields.date('Date Of Retirement'),
+        'personal_contact': fields.char('Personal Contact', size=1024),
+        
+#         'personal_contact': fields.char('Personal Contact', size=1024),
         'manage_equipment_inventory_line': fields.one2many('tpt.manage.equipment.inventory','employee_id','Manage Equipment Inventory Line'),
     }
     def search(self, cr, uid, args, offset=0, limit=None, order=None, context=None, count=False):
@@ -420,6 +424,30 @@ class hr_employee(osv.osv):
     def onchange_employee_category_id(self, cr, uid, ids,employee_category_id=False, context=None):
         emp_sub_cat = []
         return {'value': {'employee_sub_category_id': False }}
+
+    def onchange_date_of_retirement(self, cr, uid, ids,birthday=False, context=None):
+        retirement = ''
+        if birthday:
+            day = birthday[8:10]
+            month = birthday[5:7]
+            year = birthday[:4]
+            if month == "01" and day=='01':
+                year = int(year)+59
+                num_of_month = calendar.monthrange(year,12)[1]
+                retirement = datetime.datetime(year,12,num_of_month)
+            elif month != "01" and day=='01':
+                year = int(year)+60
+                month = int(month)-1
+                num_of_month = calendar.monthrange(year,month)[1]
+                retirement = datetime.datetime(year,month,num_of_month)
+            else:
+                year = int(year)+60
+                day = int(day)-1
+                month = int(month)
+                retirement = datetime.datetime(year,month,day)
+        if retirement:
+            retirement=retirement.strftime('%Y-%m-%d')
+        return {'value': {'date_of_retirement':retirement}}
     
     def create(self, cr, uid, vals, context=None):
         if context is None:
@@ -497,6 +525,21 @@ class arul_employee_actions(osv.osv):
         (_check_code_id, 'Identical Data', ['code','name']),
     ]
 arul_employee_actions()
+
+class tpt_stream(osv.osv):
+    _inherit = 'hr.qualification.attachment'
+    _columns={
+       'stream_id': fields.many2one('tpt.stream.master','Streams'),
+              }
+tpt_stream()
+
+class tpt_stream_master(osv.osv):
+    _name="tpt.stream.master"
+    _columns={
+        'name':fields.char('Name', size=64, required = True),
+        'code':fields.char('Code',size=64,required = True),
+              }
+tpt_stream_master()
 
 class arul_employee_action_type(osv.osv):
     _name="arul.employee.action.type"
@@ -935,11 +978,16 @@ class employee_leave_detail(osv.osv):
                     now = time.strftime('%Y-%m-%d')
                     date_now = datetime.datetime.strptime(now, DATETIME_FORMAT)
                     timedelta = date_now - join_date
-            leave_detail_ids = leave_detail_obj.search(cr, uid, [('employee_id','=',emp),('leave_type_id','=',leave_type),('state','!=','cancel')])
+            if line.leave_type_id.code=='LOP':
+                shift_ids = self.pool.get('arul.hr.audit.shift.time').search(cr, uid, [('work_date','like',line.emp_leave_id.year),('employee_id','=',emp),('state','=','cancel')])
+                taken_day += len(shift_ids)
+            leave_detail_ids = leave_detail_obj.search(cr, uid, [('date_from','like',line.emp_leave_id.year),('employee_id','=',emp),('leave_type_id','=',leave_type),('state','!=','cancel')])
             for detail in leave_detail_obj.browse(cr, uid, leave_detail_ids, context=context):
-                if not timedelta:
+                if not timedelta and (detail.leave_type_id.code=='CL' or detail.leave_type_id.code=='SL' or detail.leave_type_id.code=='PL'):
                     raise osv.except_osv(_('Warning!'),_('Exceeds Holiday Lets'))
-                if timedelta and detail.date_from[0:4] == year and timedelta.days >= 365 and line.total_day != 0:
+                elif timedelta and detail.date_from[0:4] == year and timedelta.days >= 365 and line.total_day != 0 and (detail.leave_type_id.code=='CL' or detail.leave_type_id.code=='SL' or detail.leave_type_id.code=='PL'):
+                    taken_day += detail.days_total
+                else:
                     taken_day += detail.days_total
             res[line.id] = taken_day
         return res
@@ -954,6 +1002,17 @@ class employee_leave_detail(osv.osv):
                 result[line] = True
         return result.keys()
     
+    def _get_audit(self, cr, uid, ids, context=None):
+        result = {}
+        for audit in self.pool.get('arul.hr.audit.shift.time').browse(cr, uid, ids):
+            year_audit = audit.work_date[:4]
+            emp_leave_ids = self.pool.get('employee.leave').search(cr, uid, [('employee_id','=',audit.employee_id.id),('year','=',year_audit)])
+            leave_type_ids = self.pool.get('arul.hr.leave.types').search(cr, uid, [('code','=','LOP')])
+            emp_leave_dt_ids = self.pool.get('employee.leave.detail').search(cr, uid, [('emp_leave_id','in',emp_leave_ids),('leave_type_id','in',leave_type_ids)])
+            for line in emp_leave_dt_ids:
+                result[line] = True
+        return result.keys()
+    
     _columns = {
         'emp_leave_id': fields.many2one('employee.leave', 'Employee Leave', readonly=True),
         'leave_type_id' : fields.many2one('arul.hr.leave.types', 'Leave Types', readonly=True),
@@ -961,7 +1020,8 @@ class employee_leave_detail(osv.osv):
 #         'total_taken': fields.float('Total Day',degits=(16,2)),
         'total_taken': fields.function(get_taken_day,degits=(16,2),store={
             'employee.leave.detail': (lambda self, cr, uid, ids, c={}: ids, ['total_day','leave_type_id','emp_leave_id'], 10),
-            'arul.hr.employee.leave.details': (_get_leave_detail, ['employee_id','leave_type_id','date_from','date_to','haft_day_leave','state'], 10),                                          
+            'arul.hr.employee.leave.details': (_get_leave_detail, ['employee_id','leave_type_id','date_from','date_to','haft_day_leave','state'], 10),
+            'arul.hr.audit.shift.time': (_get_audit, ['employee_id','work_date','state'], 20),                                          
         }, type='float',string='Taken Day'),
 #         'total_taken': fields.function(get_taken_day,degits=(16,2), type='float',string='Taken Day')
     }

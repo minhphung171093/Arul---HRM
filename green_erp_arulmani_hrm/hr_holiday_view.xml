@@ -470,7 +470,6 @@
 							<field name="section_id" domain="[('department_id','=',department_id)]" options="{'create': false, 'create_edit': false}"/>
 							<field name="year" on_change="onchange_year_month(department_id,month,year)"/>
 							<field name="month" on_change="onchange_year_month(department_id,month,year)"/>
-							
 						</group>
 						<notebook>
 							<page string = 'Monthly Shift Schedule'>
@@ -511,10 +510,24 @@
 	                    				<field name="day_31" attrs="{'invisible':[('num_of_month','&lt;',31)]}" options="{'create': false, 'create_edit': false}"/>
 		                    		</tree>
 		                    		<form>
+		                    			<header>
+		                    				<button name="load" string="Load" type="object" invisible = "1" />
+		                    			</header>
 		                    			<group col='4' colspan='4'>
-			                    			<field name="num_of_month" invisible="1"/>
+			                    			<field name="num_of_month" on_change="onchange_monthly(num_of_month, shift_day_from, shift_day_to, work_shift_id)" invisible="1"/>
 			                    			<field name="employee_id" options="{'create': false, 'create_edit': false}"/>
 			                    		</group>
+			                    		<group col='6' colspan='6'>
+			                    			<group colspan='2'>
+			                    				<field name="shift_day_from" class="oe_green_erp_scroll_y" domain="[('name','&lt;=',num_of_month)]" options="{'limit':31,'create': false, 'create_edit': false}" on_change="onchange_monthly(num_of_month, shift_day_from, shift_day_to, work_shift_id)"/>
+			                    			</group>
+			                    			<group colspan='2'>
+			                    				<field name="shift_day_to" class="oe_green_erp_scroll_y" domain="[('name','&lt;=',num_of_month)]" options="{'limit':31,'create': false, 'create_edit': false}" on_change="onchange_monthly(num_of_month, shift_day_from, shift_day_to, work_shift_id)"/>
+			                    				</group>
+			                    			<group colspan='2'>
+			                    				<field name="work_shift_id" options="{'create': false, 'create_edit': false}" on_change="onchange_monthly(num_of_month, shift_day_from, shift_day_to, work_shift_id)"/>
+			                    			</group>
+		                    			</group>
 		                    			<group col='6' colspan='6'>
 			                    			<group colspan='2'>
 				                    			<field name="day_1" options="{'create': false, 'create_edit': false}"/>
@@ -851,5 +864,15 @@
        <menuitem action="action_tpt_time_leave_evaluation_form"
             id="menu_action_tpt_time_leave_evaluation_form"
             parent="menu_hr_leave_management" sequence="32"/>
+    	
+    	<record model="ir.values" id="sale_order_make_invoice">
+            <field name="model_id" ref="model_arul_hr_audit_shift_time" />
+            <field name="name">Aprove or Reject</field>
+            <field name="key2">client_action_multi</field>
+            <field name="value" eval="'ir.actions.act_window,' + str(ref('action_aprove_or_reject_audit_form'))" />
+            <field name="key">action</field>
+            <field name="model">arul.hr.audit.shift.time</field>
+        </record>
+    	
 	</data>
 </openerp>
