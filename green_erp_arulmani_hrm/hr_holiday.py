@@ -30,13 +30,13 @@ class arul_hr_leave_master(osv.osv):
     }
     def _check_sub_category_id(self, cr, uid, ids, context=None):
         for sub_cate in self.browse(cr, uid, ids, context=context):
-            sub_cate_ids = self.search(cr, uid, [('id','!=',sub_cate.id),('employee_sub_category_id','=',sub_cate.employee_sub_category_id.id)])
+            sub_cate_ids = self.search(cr, uid, [('id','!=',sub_cate.id),('leave_type_id','=',sub_cate.leave_type_id.id),('employee_category_id','=',sub_cate.employee_category_id.id),('employee_sub_category_id','=',sub_cate.employee_sub_category_id.id)])
             if sub_cate_ids:
                 raise osv.except_osv(_('Warning!'),_('The data is not suitable!'))  
                 return False
         return True
     _constraints = [
-        (_check_sub_category_id, 'Identical Data', ['employee_sub_category_id']),
+        (_check_sub_category_id, 'Identical Data', ['leave_type_id','employee_category_id','employee_sub_category_id']),
         ]
     def name_get(self, cr, uid, ids, context=None):
         res = []
