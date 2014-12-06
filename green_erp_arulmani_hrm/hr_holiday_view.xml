@@ -305,7 +305,7 @@
 			<field name="name">arul.hr.audit.shift.time.tree</field>
 			<field name="model">arul.hr.audit.shift.time</field>
 			<field name="arch" type="xml">
-				<tree string="Audit Shift Time">
+				<tree string="Audit Shift Time" create='false'>
 					<field name="employee_id" options="{'create': false, 'create_edit': false}"/>
 					<field name="work_date"/>
 					<field name="employee_category_id" options="{'create': false, 'create_edit': false}"/>
@@ -323,7 +323,7 @@
             <field name="name">arul.hr.audit.shift.time.form</field>
             <field name="model">arul.hr.audit.shift.time</field>
             <field name="arch" type="xml">
-	            <form string="Audit Shift Time" version="7.0">
+	            <form string="Audit Shift Time" version="7.0" create='false'>
 	            	<header>
 	                    <button name="approve_shift_time" states='draft' string="Approve" type="object" class="oe_highlight" groups="base.group_hr_manager"/>
 	                    <button name="reject_shift_time" states='draft' string="Reject" type="object" class="oe_highlight" groups="base.group_hr_manager"/>
