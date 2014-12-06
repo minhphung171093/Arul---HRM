@@ -337,9 +337,9 @@ class arul_hr_employee_leave_details(osv.osv):
                         temp += 1
                         day = line.total_day - line.total_taken
                         if timedelta > day:
-                            raise osv.except_osv(_('Warning!'),_('Exceeds Holiday Lets'))
+                            raise osv.except_osv(_('Warning!'),_('The Taken Day Must Be Less Than The Limit!'))
                 if temp == 0:
-                    raise osv.except_osv(_('Warning!'),_('Leave Type Unlicensed'))
+                    raise osv.except_osv(_('Warning!'),_('Leave Type Is Unlicensed For Employee Category And Employee Sub Category!'))
             else:
                 raise osv.except_osv(_('Warning!'),_('Employee Has Not Been Licensed Holidays For The Current Year'))
             res[date.id] = {
