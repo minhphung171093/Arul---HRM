@@ -212,17 +212,17 @@
 							<field name="employee_category_id" options="{'create': false, 'create_edit': false}"/>
 							<field name="sub_category_id" domain="[('category_id','=',employee_category_id)]" options="{'create': false, 'create_edit': false}"/>
 						</group>
-						<notebook>
-							<page string = "Earning Structure">
+						<group>
+							<group string = "Earning Structure">
 								<field name="payroll_earning_structure_line" nolabel='1' on_change="onchange_structure_line(payroll_earning_structure_line,employee_category_id,sub_category_id)">
 									<tree editable="bottom" >
 										<field name="earning_parameters_id" options="{'create': false, 'create_edit': false}"/>
 										<field name="float" on_change="onchange_structure_line()" context="{'employee_category_id':parent.employee_category_id,'sub_category_id':parent.sub_category_id}"/>
 									</tree>
 								</field>
-							</page>
-							<page string = "Other Deductions">
-								<group>
+							</group>
+							<group string = "Other Deductions">
+								<group colspan='4'>
 									<label for="ins_de_period_start" string="Insurance Deduction Period"/>
 									<div>
 										<field name="ins_de_period_start" class="oe_inline"/>
@@ -234,14 +234,16 @@
 										<field name="loan_de_period_end" class="oe_inline"/>
 									</div>
 								</group>
-								<field name="payroll_other_deductions_line" nolabel='1'>
-									<tree editable = "bottom">
-										<field name="deduction_parameters_id" domain="[('code','in',['I.D','L.D','VPF.D'])]" options="{'create': false, 'create_edit': false}"/>
-										<field name="float"/>
-									</tree>
-								</field>
-							</page>
-						</notebook>
+								<group colspan='4'>
+									<field name="payroll_other_deductions_line" nolabel='1'>
+										<tree editable = "bottom">
+											<field name="deduction_parameters_id" domain="[('code','in',['I.D','L.D','VPF.D'])]" options="{'create': false, 'create_edit': false}"/>
+											<field name="float"/>
+										</tree>
+									</field>
+								</group>
+							</group>
+						</group>
 						
 		         	</sheet>
 		         </form>

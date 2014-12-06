@@ -44,7 +44,7 @@
         'hr_payroll_earning_parameters_demo.xml',
         'hr_demo_payroll_deduction_parameters.xml',
         'report/arul_payslip_report.xml',
-        'data_category.xml',
+#         'data_category.xml',
     ],
     'css' : [
         "static/src/css/base.css",
