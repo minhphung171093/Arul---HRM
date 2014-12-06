@@ -366,7 +366,7 @@ class hr_employee(osv.osv):
         'employee_leave_id': fields.one2many('employee.leave','employee_id','Employee Leave',readonly=True),
         'country_stateofbirth_id': fields.many2one('res.country', 'Country'),
         'date_of_retirement': fields.date('Date Of Retirement'),
-        'personal_contact': fields.char('Personal Contact', size=1024),
+        'personal_contact': fields.char('Personal Mobile Number', size=1024),
         
 #         'personal_contact': fields.char('Personal Contact', size=1024),
         'manage_equipment_inventory_line': fields.one2many('tpt.manage.equipment.inventory','employee_id','Manage Equipment Inventory Line'),
