@@ -269,7 +269,7 @@ class arul_hr_payroll_earning_structure(osv.osv):
     _columns = {
          'earning_parameters_id': fields.many2one('arul.hr.payroll.earning.parameters','Earning Parameters', required = True),
          'earning_structure_id':fields.many2one('arul.hr.payroll.employee.structure','Earning Structure', ondelete='cascade'), 
-         'float':fields.float('Float') ,
+         'float':fields.float('Amount') ,
          'executions_details_id':fields.many2one('arul.hr.payroll.executions.details','Execution Details', ondelete='cascade'),
     }
     def onchange_structure_line(self, cr, uid, ids, context=None):
