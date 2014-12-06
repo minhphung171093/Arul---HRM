@@ -2,7 +2,7 @@
 <openerp>
     <data noupdate="1">
     
-      <record id="action_1" model="hr.employee.sub.category">
+      <!--<record id="action_1" model="hr.employee.sub.category">
           <field name="name">MA</field>
           <field name="code">MA</field>
       </record>
@@ -37,7 +37,7 @@
       <record id="action_9" model="hr.employee.sub.category">
           <field name="name">MI</field>
           <field name="code">MI</field>
-      </record>
+      </record> 
       <record id="action_10" model="hr.employee.sub.category">
           <field name="name">W1</field>
           <field name="code">W1</field>
@@ -72,7 +72,7 @@
           <field name="name">Workers</field>
           <field name="code">S3</field>
           <field name="sub_category_ids" eval="[(4, ref('action_10')),(4, ref('action_11')),(4, ref('action_12')),(4, ref('action_13'))]"/>
-      </record>
+      </record> -->
 
     </data>
 </openerp>
