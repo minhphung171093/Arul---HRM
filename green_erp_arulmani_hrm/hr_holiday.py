@@ -364,6 +364,8 @@ class arul_hr_employee_leave_details(osv.osv):
     }
     
     def create(self, cr, uid, vals, context=None):
+        new_id1 = False
+        new_id2 = False
         if 'date_from' in vals and 'date_to' in vals:
             date_from = vals['date_from']
             date_to = vals['date_to']

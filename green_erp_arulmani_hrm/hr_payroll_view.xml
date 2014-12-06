@@ -409,7 +409,7 @@
 										<field name="payroll_sub_area_id" options="{'create': false, 'create_edit': false}"/>
 										<field name="department_id" on_change="onchange_department_from_id(department_id)" options="{'create': false, 'create_edit': false}"/>
 										<field name="designation_id" options="{'create': false, 'create_edit': false}"/>
-										<field name="year" />
+										<field name="year"/>
 		                			</tree>
 									<form string="Payroll Executions Details" version="7.0" create='false'>
 										<group col = '4' colspan = '2'>

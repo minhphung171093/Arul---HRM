@@ -912,6 +912,8 @@ class arul_hr_payroll_executions(osv.osv):
                 emp_esi_con = 0
                 emp_pf_con = 0
                 emp_lwf_amt = 0
+                emp_esi_con_amount = 0
+                emp_pf_con_amount = 0
                 if emp_struc_ids:
                     payroll_emp_struc = payroll_emp_struc_obj.browse(cr,uid,emp_struc_ids[0])
                     contribution_ids = contribution_obj.search(cr, uid, [('employee_category_id','=',payroll_emp_struc.employee_category_id.id),('sub_category_id','=',payroll_emp_struc.sub_category_id.id)])
