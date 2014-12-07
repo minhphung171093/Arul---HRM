@@ -361,6 +361,16 @@ class arul_hr_employee_leave_details(osv.osv):
     _defaults = {
         'state':'draft',
     }
+    def name_get(self, cr, uid, ids, context=None):
+        res = []
+        if not ids:
+            return res
+        reads = self.read(cr, uid, ids, ['employee_id'], context)
+  
+        for record in reads:
+            name = record['employee_id']
+            res.append((record['id'], name))
+        return res 
     def onchange_date(self, cr, uid, ids, date_from=False, date_to=False,employee_id=False,leave_type_id=False,haft_day_leave=False, context=None):
         DATETIME_FORMAT = "%Y-%m-%d"
         if date_from and date_to and employee_id and leave_type_id:
@@ -649,6 +659,16 @@ class arul_hr_employee_attendence_details(osv.osv):
         'permission_onduty_details_line':fields.one2many('arul.hr.permission.onduty','permission_onduty_id','Permission On duty Details',readonly=True),
         'punch_in_out_line':fields.one2many('arul.hr.punch.in.out.time','punch_in_out_id','Punch in/Punch out Details',readonly=True)
               }
+    def name_get(self, cr, uid, ids, context=None):
+        res = []
+        if not ids:
+            return res
+        reads = self.read(cr, uid, ids, ['employee_id'], context)
+  
+        for record in reads:
+            name = record['employee_id']
+            res.append((record['id'], name))
+        return res 
     def onchange_attendence_datails_employee_id(self, cr, uid, ids,employee_id=False, context=None):
         vals = {}
         if employee_id:
