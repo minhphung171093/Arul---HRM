@@ -232,7 +232,7 @@
                     <page string = 'Employee Action History'>
                     	<div col='4' colspan='4' class='oe_green_erp_scroll'>
 	                    	<field name="action_history_line" nolabel='1'>
-		                    	<tree editable='top'>
+		                    	<tree editable='top' delete = 'false'>
 		                    		<field name ="action_id"/>
 		                    		<field name ="action_type_id"/>
 		                    		<field name ="action_date"/>
@@ -280,7 +280,7 @@
 			<field name="name">arul.hr.employee.transfer.action.tree</field>
 			<field name="model">arul.hr.employee.action.history</field>
 			<field name="arch" type="xml">
-				<tree string="Employee Transfer Action">
+				<tree string="Employee Transfer Action" delete = 'false'>
 					<field name="action_id"/>
 					<field name ="action_type_id"/>
 					<field name ="employee_id"/>
@@ -302,7 +302,7 @@
             <field name="name">arul.hr.employee.transfer.action.form</field>
             <field name="model">arul.hr.employee.action.history</field>
             <field name="arch" type="xml">
-                <form string="Employee Transfer Action" version="7.0">    
+                <form string="Employee Transfer Action" version="7.0" delete = 'false'>    
                 	<sheet>
 		                 <group col='4' colspan='2'>
 							<field name="action_id" on_change="onchange_action_id(action_id)" domain="[('name','=','Transfer')]" options="{'create': false, 'create_edit': false}"/>
@@ -360,7 +360,7 @@
 			<field name="name">arul.hr.employee.action.history.tree</field>
 			<field name="model">arul.hr.employee.action.history</field>
 			<field name="arch" type="xml">
-				<tree string="Employee Promotion Action">
+				<tree string="Employee Promotion Action" delete = 'false'>
 					<field name="action_id"/>
 					<field name ="employee_id"/>
 					<field name ="employee_category_id"/>
@@ -383,7 +383,7 @@
             <field name="name">arul.hr.employee.action.history.form</field>
             <field name="model">arul.hr.employee.action.history</field>
             <field name="arch" type="xml">
-                <form string="Employee Promotion Action" version="7.0">    
+                <form string="Employee Promotion Action" version="7.0" delete = 'false'>    
                 	<sheet>
 		                 <group col='4' colspan='2'>
 							<field name="action_id" on_change="onchange_action_id(action_id)" domain="[('name','=','Promotion')]" options="{'create': false, 'create_edit': false}"/>
@@ -439,7 +439,7 @@
 			<field name="name">arul.hr.employee.rehiring.history.tree</field>
 			<field name="model">arul.hr.employee.action.history</field>
 			<field name="arch" type="xml">
-				<tree string="Employee Rehiring">
+				<tree string="Employee Rehiring" delete = 'false'>
 					<field name="action_id"/>
 					<field name ="employee_id"/>
 					<field name ="employee_category_id"/>
@@ -458,7 +458,7 @@
             <field name="name">arul.hr.employee.rehiring.history.form</field>
             <field name="model">arul.hr.employee.action.history</field>
             <field name="arch" type="xml">
-                <form string="Employee Rehiring" version="7.0"> 
+                <form string="Employee Rehiring" version="7.0" delete = 'false'> 
                     <header>
 	                    <button name="approve_employee_rehiring" attrs="{'invisible':[('approve_rehiring','=',True)]}" string="Approve" type="object" class="oe_highlight" groups="base.group_hr_manager"/>
 	                    <field name ="approve_rehiring" invisible='1'/>
@@ -514,7 +514,7 @@
 			<field name="name">arul.hr.employee.compensation_review.action.tree</field>
 			<field name="model">arul.hr.employee.action.history</field>
 			<field name="arch" type="xml">
-				<tree string="Employee Compensation Review Action">
+				<tree string="Employee Compensation Review Action" delete = 'false'>
 					<field name="action_id"/>
 					<field name ="employee_id"/>
 					<field name ="employee_category_id"/>
@@ -534,7 +534,7 @@
             <field name="name">arul.hr.employee.compensation.review.action.form</field>
             <field name="model">arul.hr.employee.action.history</field>
             <field name="arch" type="xml">
-                <form string="Employee Compensation Review Action" version="7.0">    
+                <form string="Employee Compensation Review Action" version="7.0" delete = 'false'>    
                 	<sheet>
 		                 <group col='4' colspan='2'>
 							<field name="action_id" on_change="onchange_action_id(action_id)" domain="[('name','=','Compensation Review')]" options="{'create': false, 'create_edit': false}"/>
@@ -587,7 +587,7 @@
 			<field name="name">arul.hr.employee.contracts.action.tree</field>
 			<field name="model">arul.hr.employee.action.history</field>
 			<field name="arch" type="xml">
-				<tree string="Employee Contracts Action">
+				<tree string="Employee Contracts Action" delete = 'false'>
 					<field name="action_id"/>
 					<field name ="employee_id"/>
 					<field name ="employee_category_id"/>
@@ -607,7 +607,7 @@
             <field name="name">arul.hr.employee.contracts.action.form</field>
             <field name="model">arul.hr.employee.action.history</field>
             <field name="arch" type="xml">
-                <form string="Employee Contracts Action" version="7.0">    
+                <form string="Employee Contracts Action" version="7.0" delete = 'false'>    
                 	<sheet>
 		                 <group col='4' colspan='2'>
 							<field name="action_id" on_change="onchange_action_id(action_id)" domain="[('name','=','Contracts')]" options="{'create': false, 'create_edit': false}"/>
@@ -660,7 +660,7 @@
 			<field name="name">arul.hr.employee.hiring.action.tree</field>
 			<field name="model">arul.hr.employee.action.history</field>
 			<field name="arch" type="xml">
-				<tree string="Employee Hiring Action">
+				<tree string="Employee Hiring Action" delete = 'false'>
 					<field name="action_id"/>
 					<field name ="employee_id"/>
 					<field name="action_type_id"/>
@@ -677,7 +677,7 @@
             <field name="name">arul.hr.employee.hiring.action.form</field>
             <field name="model">arul.hr.employee.action.history</field>
             <field name="arch" type="xml">
-                <form string="Employee Hiring Action" version="7.0">    
+                <form string="Employee Hiring Action" version="7.0" delete = 'false'>    
                 	<header>
 	                    <button name="create_hiring_employee" attrs="{'invisible':[('employee_id','!=',False)]}" string="Create Employee" type="object" class="oe_highlight"/>
 	                </header>
@@ -876,7 +876,7 @@
 			<field name="name">arul.hr.employee.leaving.action.tree</field>
 			<field name="model">arul.hr.employee.action.history</field>
 			<field name="arch" type="xml">
-				<tree string="Employee Leaving Action">
+				<tree string="Employee Leaving Action" delete = 'false'>
 					<field name="action_id"/>
 					<field name="action_type_id"/>
 					<field name ="employee_id"/>
@@ -894,7 +894,7 @@
             <field name="name">arul.hr.employee.leaving.action.form</field>
             <field name="model">arul.hr.employee.action.history</field>
             <field name="arch" type="xml">
-                <form string="Employee Leaving Action" version="7.0">    
+                <form string="Employee Leaving Action" version="7.0" delete = 'false'>    
                 	<sheet>
 		                 <group col='4' colspan='2'>
 							<field name="action_id" on_change="onchange_action_id(action_id)" domain="[('name','=','Leaving')]" options="{'create': false, 'create_edit': false}"/>
@@ -956,7 +956,7 @@
 			<field name="name">arul.hr.employee.disciplinary.action.tree</field>
 			<field name="model">arul.hr.employee.action.history</field>
 			<field name="arch" type="xml">
-				<tree string="Employee Disciplinary Action">
+				<tree string="Employee Disciplinary Action" delete = 'false'>
 					<field name="action_id"/>
 					<field name ="action_type_id"/>
 					<field name ="employee_id"/>
@@ -974,7 +974,7 @@
             <field name="name">arul.hr.employee.disciplinary.action.form</field>
             <field name="model">arul.hr.employee.action.history</field>
             <field name="arch" type="xml">
-                <form string="Employee Disciplinary Action" version="7.0">    
+                <form string="Employee Disciplinary Action" version="7.0" delete = 'false'>    
                 	<sheet>
 		                 <group col='4' colspan='2'>
 							<field name="action_id" on_change="onchange_action_id(action_id)" domain="[('name','=','Disciplinary')]" options="{'create': false, 'create_edit': false}"/>
