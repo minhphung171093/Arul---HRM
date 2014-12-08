@@ -905,7 +905,15 @@ class arul_hr_payroll_executions(osv.osv):
     
     def generate_payroll(self, cr, uid, ids, context=None):
         details_line = []
+        
         for line in self.browse(cr,uid,ids):
+            time_leav_obj = self.pool.get('tpt.time.leave.evaluation')
+            time_leav_ids = time_leav_obj.search(cr, uid, [('payroll_area_id','=',line.payroll_area_id.id),('year','=',line.year),('month','=',line.month)])
+            for ti_le in  time_leav_obj.browse(cr,uid,time_leav_ids):
+                if ti_le.shift_time_id or ti_le.leave_request_id:
+                    raise osv.except_osv(_('Warning!'),_('Time/Leave Evaluation is not made!'))
+                else:
+                    break
             emp_obj = self.pool.get('hr.employee')
             payroll_emp_struc_obj = self.pool.get('arul.hr.payroll.employee.structure')
             executions_details_obj = self.pool.get('arul.hr.payroll.executions.details')
