@@ -58,7 +58,7 @@ class Parser(report_sxw.rml_parse):
         payroll_obj = self.pool.get('arul.hr.payroll.executions.details')
         res = []
         for emp_id in emp_ids :
-            payroll_ids = payroll_obj.search(self.cr, self.uid,[('month','=',month),('year','=',year),('employee_id','=',emp_id)])
+            payroll_ids = payroll_obj.search(self.cr, self.uid,[('month','=',month),('year','=',year),('employee_id','=',emp_id),('payroll_executions_id.state','=','approve')])
             basic = 0
             da = 0
             hra = 0
@@ -75,7 +75,7 @@ class Parser(report_sxw.rml_parse):
             ot = 0
             vpf = 0
             esi = 0
-            loan = 0 
+            loan = 0
             epf = 0
             union = 0
             hr = 0
@@ -84,7 +84,6 @@ class Parser(report_sxw.rml_parse):
             m_ded2 = 0
             m_ded3 = 0
             ndw = 0
-            
             if payroll_ids:
                 payroll = payroll_obj.browse(self.cr, self.uid, payroll_ids[0])
                 for earning in payroll.earning_structure_line:
@@ -102,15 +101,15 @@ class Parser(report_sxw.rml_parse):
                         spa += earning.float
                     if earning.earning_parameters_id.code=='OA':
                         oa += earning.float
-                for deduction in payroll.other_deduction_line:
-                    if earning.earning_parameters_id.code=='VPF.D':
-                        vpf += earning.float
-                    if earning.earning_parameters_id.code=='ESI.D':
-                        esi += earning.float
-                    if earning.earning_parameters_id.code=='L.D':
-                        loan += earning.float
-                    if earning.earning_parameters_id.code=='PF.D':
-                        epf += earning.float
+#                 for deduction in payroll.other_deduction_line:
+#                     if earning.earning_parameters_id.code=='VPF.D':
+#                         vpf += earning.float
+#                     if earning.earning_parameters_id.code=='ESI.D':
+#                         esi += earning.float
+#                     if earning.earning_parameters_id.code=='L.D':
+#                         loan += earning.float
+#                     if earning.earning_parameters_id.code=='PF.D':
+#                         epf += earning.float
                 res.append({
                     'emp_name': payroll.employee_id.name + ' ' + (payroll.employee_id.last_name and payroll.employee_id.last_name or ''),
                     'emp_code':payroll.employee_id.employee_id,
@@ -118,29 +117,29 @@ class Parser(report_sxw.rml_parse):
                     'emp_doj': payroll.employee_id.date_of_joining,
                     'basic': basic,
                     'da': da,
-                    'hra' : hra,
-                    'conv' : conv,
-                    'gross' : gross,
-                    'spa' : spa,
-                    'oa' : oa,
-                    'arr_pf' : arr_pf,
-                    'arr_npf' : arr_npf,
-                    'com_alw' : com_alw,
-                    'mis_erng' : mis_erng,
-                    'pdn_bon' : pdn_bon,
-                    'shd' : shd,
-                    'ot' : ot,
-                    'vpf' : vpf,
-                    'esi' : esi,
-                    'loan' : loan ,
-                    'epf' : epf,
-                    'union' : union,
-                    'hr' : hr,
-                    'po_rd' : po_rd,
-                    'm_ded1' : m_ded1,
-                    'm_ded2' : m_ded2,
-                    'm_ded3' : m_ded3,
-                    'ndw' : ndw,
+                    'hra': hra,
+                    'conv': conv,
+                    'gross': gross,
+                    'spa': spa,
+                    'oa': oa,
+                    'arr_pf': arr_pf,
+                    'arr_npf': arr_npf,
+                    'com_alw': com_alw,
+                    'mis_erng': mis_erng,
+                    'pdn_bon': pdn_bon,
+                    'shd': shd,
+                    'ot': ot,
+                    'vpf': vpf,
+                    'esi': esi,
+                    'loan': loan ,
+                    'epf': epf,
+                    'union': union,
+                    'hr': hr,
+                    'po_rd': po_rd,
+                    'm_ded1': m_ded1,
+                    'm_ded2': m_ded2,
+                    'm_ded3': m_ded3,
+                    'ndw': ndw,
                 })
         return res
                 
