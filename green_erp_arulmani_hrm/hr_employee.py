@@ -203,6 +203,8 @@ class arul_hr_employee_action_history(osv.osv):
             vals = {'employee_category_id':emp.employee_category_id.id,
                     'sub_category_id':emp.employee_sub_category_id.id,
                     'department_from_id':emp.department_id.id,
+                    'designation_from_id':emp.job_id.id,
+#                     'payroll_area_id':emp.payroll_area_id.id,
                     }
         return {'value': vals}
     
@@ -300,20 +302,48 @@ class arul_hr_employee_action_history(osv.osv):
             self.pool.get('hr.employee').write(cr, uid, [action_history.employee_id.id], {'employee_active': False})
         if context.get('create_promotion_employee'):
             action_history = self.browse(cr, uid, new_id)
-            self.pool.get('hr.employee').write(cr, uid, [action_history.employee_id.id], {'employee_category_id': action_history.employee_category_id.id,
-                                                                                          'employee_sub_category_id': action_history.sub_category_id.id,
-                                                                                          'job_id': action_history.designation_to_id.id,
-                                                                                          'department_id': action_history.department_to_id.id})
+            self.pool.get('hr.employee').write(cr, uid, [action_history.employee_id.id], {'employee_category_id': action_history.employee_category_id and action_history.employee_category_id.id or False,
+                                                                                          'employee_sub_category_id': action_history.sub_category_id and action_history.sub_category_id.id or False,
+                                                                                          'job_id': action_history.designation_to_id.id and action_history.designation_to_id.id or action_history.designation_from_id.id,
+                                                                                          'department_id': action_history.department_to_id.id and action_history.department_to_id.id or action_history.department_from_id.id},
+                                                                                          )
         if context.get('create_transfer_employee'):
             action_history = self.browse(cr, uid, new_id)
-            self.pool.get('hr.employee').write(cr, uid, [action_history.employee_id.id], {'department_id': action_history.department_to_id and action_history.department_to_id.id or False})
+            self.pool.get('hr.employee').write(cr, uid, [action_history.employee_id.id], {'employee_category_id': action_history.employee_category_id and action_history.employee_category_id.id or False,
+                                                                                          'employee_sub_category_id': action_history.sub_category_id and action_history.sub_category_id.id or False,
+                                                                                          'job_id': action_history.designation_to_id.id and action_history.designation_to_id.id or action_history.designation_from_id.id,
+                                                                                          'payroll_area_id':action_history.payroll_area_id and action_history.payroll_area_id.id or False,
+#                                                                                           'payroll_sub_area_id':action_history.payroll_sub_area_id and action_history.payroll_sub_area_id.id or False,
+                                                                                          'department_id': action_history.department_to_id.id and action_history.department_to_id.id or action_history.department_from_id.id})
         return new_id
     
     def write(self, cr, uid, ids, vals, context=None):
         new_write = super(arul_hr_employee_action_history, self).write(cr, uid,ids, vals, context)
         if 'department_to_id' in vals:
             for line in self.browse(cr, uid, ids):
-                self.pool.get('hr.employee').write(cr, uid, [line.employee_id.id], {'department_id': line.department_to_id and line.department_to_id.id or False})
+                self.pool.get('hr.employee').write(cr, uid, [line.employee_id.id], {'department_id': line.department_to_id.id})
+        else:
+            if 'department_from_id' in vals:
+                for line in self.browse(cr, uid, ids):
+                    self.pool.get('hr.employee').write(cr, uid, [line.employee_id.id], {'department_id': line.department_from_id.id})
+                
+        if 'designation_to_id' in vals:
+            for line in self.browse(cr, uid, ids):
+                self.pool.get('hr.employee').write(cr, uid, [line.employee_id.id], {'job_id': line.designation_to_id.id})
+        else:
+            if 'designation_from_id' in vals:
+                for line in self.browse(cr, uid, ids):
+                    self.pool.get('hr.employee').write(cr, uid, [line.employee_id.id], {'job_id': line.designation_from_id.id})
+              
+        if 'employee_category_id' in vals:
+            for line in self.browse(cr, uid, ids):
+                self.pool.get('hr.employee').write(cr, uid, [line.employee_id.id], {'employee_category_id': line.employee_category_id and line.employee_category_id.id or False})
+        if 'sub_category_id' in vals:
+            for line in self.browse(cr, uid, ids):
+                self.pool.get('hr.employee').write(cr, uid, [line.employee_id.id], {'employee_sub_category_id': line.sub_category_id and line.sub_category_id.id or False})
+        if 'payroll_area_id' in vals:
+            for line in self.browse(cr, uid, ids):
+                self.pool.get('hr.employee').write(cr, uid, [line.employee_id.id], {'payroll_area_id': line.payroll_area_id and line.payroll_area_id.id or False})
         return new_write
     
     def approve_employee_rehiring(self, cr, uid, ids, context=None):
@@ -407,18 +437,19 @@ class hr_employee(osv.osv):
             if context.get('employee_id'):
                 employee_ids.append(context.get('employee_id'))
             args += [('id','in',employee_ids)]
-        if context.get('search_promotion_employee'):
-            sql = '''
-                
-                select employee_id from arul_hr_employee_action_history where action_id in (select id from arul_employee_actions where name = 'Promotion') group by employee_id
-                    
-            '''%()
-            cr.execute(sql)
-            exist_employee_ids = [row[0] for row in cr.fetchall()]
-            employee_ids = self.search(cr, uid, [('id','not in',exist_employee_ids)])
-            if context.get('employee_id'):
-                employee_ids.append(context.get('employee_id'))
-            args += [('id','in',employee_ids)]
+#         if context.get('search_promotion_employee'):
+#             sql = '''
+#                   
+#                 select employee_id from arul_hr_employee_action_history where action_id in (select id from arul_employee_actions where name = 'Promotion') group by employee_id
+#                       
+#             '''%()
+#             cr.execute(sql)
+#             exist_employee_ids = [row[0] for row in cr.fetchall()]
+#             employee_ids = self.search(cr, uid, [('id','not in',exist_employee_ids)])
+#             employee_ids = self.search(cr, uid,[])
+#             if context.get('employee_id'):
+#                 employee_ids.append(context.get('employee_id'))
+#             args += [('id','in',employee_ids)]
         return super(hr_employee, self).search(cr, uid, args, offset, limit, order, context, count)
     
     def name_search(self, cr, user, name, args=None, operator='ilike', context=None, limit=100):
@@ -497,7 +528,7 @@ class hr_employee(osv.osv):
 #         return new_id
     def _check_time_record_id(self, cr, uid, ids, context=None):
         for record in self.browse(cr, uid, ids, context=context):
-            record_ids = self.search(cr, uid, [('id','!=',record.id),('time_record','=',record.time_record)])
+            record_ids = self.search(cr, uid, [('id','!=',record.id),('time_record','=',record.time_record),('time_record','!=',False)])
             if record_ids:  
                 return False
         return True
@@ -519,7 +550,7 @@ class arul_employee_actions(osv.osv):
     _name="arul.employee.actions"
     _columns={
         'name':fields.char('Name', size=64, required = True),
-        'code':fields.char('Code',size=64,required = True),
+        'code':fields.char('Code',size=64,required = True,readonly = True),
         'active':fields.boolean('Active'),
         'action_type_ids':fields.many2many('arul.employee.action.type','actions_action_type_ref','actions_id','action_type_id','Action Type'),
               }
@@ -1080,8 +1111,6 @@ class employee_leave_detail(osv.osv):
         }, type='float',string='Taken Day'),
 #         'total_taken': fields.function(get_taken_day,degits=(16,2), type='float',string='Taken Day')
     }
-    
-    
     
 employee_leave_detail()
 # vim:expandtab:smartindent:tabstop=4:softtabstop=4:shiftwidth=4:

@@ -538,6 +538,18 @@ class arul_hr_payroll_executions(osv.osv):
         'year':int(time.strftime('%Y')),
     }
     
+    def print_payslip(self, cr, uid, ids, context=None):
+        datas = {
+             'ids': ids,
+             'model': 'arul.hr.payroll.executions',
+             'form': self.read(cr, uid, ids[0], context=context)
+        }
+        return {
+            'type': 'ir.actions.report.xml',
+            'report_name': 'arul_print_report',
+        }
+        return True
+    
     def length_month(self,year, month):
         if month == 2 and (year % 4 == 0) and (year % 100 != 0) or (year % 400 == 0):
             value =  29
@@ -893,7 +905,15 @@ class arul_hr_payroll_executions(osv.osv):
     
     def generate_payroll(self, cr, uid, ids, context=None):
         details_line = []
+        
         for line in self.browse(cr,uid,ids):
+            time_leav_obj = self.pool.get('tpt.time.leave.evaluation')
+            time_leav_ids = time_leav_obj.search(cr, uid, [('payroll_area_id','=',line.payroll_area_id.id),('year','=',line.year),('month','=',line.month)])
+            for ti_le in  time_leav_obj.browse(cr,uid,time_leav_ids):
+                if ti_le.shift_time_id or ti_le.leave_request_id:
+                    raise osv.except_osv(_('Warning!'),_('Time/Leave Evaluation is not made!'))
+                else:
+                    break
             emp_obj = self.pool.get('hr.employee')
             payroll_emp_struc_obj = self.pool.get('arul.hr.payroll.employee.structure')
             executions_details_obj = self.pool.get('arul.hr.payroll.executions.details')

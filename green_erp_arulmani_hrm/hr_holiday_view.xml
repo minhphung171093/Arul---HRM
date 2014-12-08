@@ -807,6 +807,7 @@
 			<field name="model">tpt.time.leave.evaluation</field>
 			<field name="arch" type="xml">
 				<tree string="Time/Leave Evaluation">
+					<field name="payroll_area_id"/>
 					<field name="month"/>
 					<field name="year"/>
 				</tree>
@@ -823,8 +824,9 @@
 	            </header>    
 	            <sheet>
 		           <group col = '4' colspan = '2'>    
-						<field name="year"/>
+						<field name="payroll_area_id" options="{'create': false, 'create_edit': false}"/>
 						<field name="month"/>
+						<field name="year"/>
 		           </group> 
 		           <group col = '4' colspan = '2' string="Time Evaluation Report">    
 						<field name="shift_time_id" editable="top" nolabel="1">

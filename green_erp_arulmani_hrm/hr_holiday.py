@@ -220,7 +220,7 @@ class arul_hr_audit_shift_time(osv.osv):
                           'out_time':line.out_time,
                           'approval':1
                           }
-                    emp_attendence_obj.create(cr,uid,{'employee_id':line.employee_id.id, 'employee_category_id':line.employee_id.employee_category_id.id, 'sub_category_id':line.employee_id.employee_sub_category_id.id, 'department_id':line.employee_id.department_id.id, 'punch_in_out_line':[(0,0,val1)]}) 
+                    emp_attendence_obj.create(cr,uid,{'employee_id':line.employee_id.id, 'employee_category_id':line.employee_id.employee_category_id.id, 'sub_category_id':line.employee_id.employee_sub_category_id.id, 'department_id':line.employee_id.department_id.id, 'designation_id':line.employee_id.job_id.id,'punch_in_out_line':[(0,0,val1)]}) 
             else:
                 line_id=line.permission_id
                 emp_attendence_obj = self.pool.get('arul.hr.employee.attendence.details')
@@ -243,7 +243,7 @@ class arul_hr_audit_shift_time(osv.osv):
                                 val4={'punch_in_out_id':details_ids[0],'employee_id':line_id.employee_id.id,'planned_work_shift_id':line.planned_work_shift_id.id,'work_date':line_id.date,'in_time':line_id.start_time,'out_time':line_id.end_time,'approval':1}
                                 detail_obj4.create(cr, uid, val4)
                             else:
-                                emp_attendence_obj.create(cr, uid, {'employee_id':line_id.employee_id.id,'punch_in_out_line':[(0,0,val)]})
+                                emp_attendence_obj.create(cr, uid, {'employee_id':line_id.employee_id.id,'punch_in_out_line':[(0,0,val)], 'employee_category_id':line.employee_id.employee_category_id.id, 'sub_category_id':line.employee_id.employee_sub_category_id.id, 'department_id':line.employee_id.department_id.id, 'designation_id':line.employee_id.job_id.id})
                         if(line_id.time_total > 12)and(line_id.time_total < 16):
                             val={'permission_onduty_id':emp_attendence_ids[0],'planned_work_shift_id':line.planned_work_shift_id.id,'work_date':line_id.date,'in_time':line_id.start_time,'out_time':line_id.end_time,'approval':1}
 #                             sql = '''
@@ -258,7 +258,7 @@ class arul_hr_audit_shift_time(osv.osv):
                                 val4={'punch_in_out_id':details_ids[0],'employee_id':line_id.employee_id.id,'planned_work_shift_id':line.planned_work_shift_id.id,'work_date':line_id.date,'in_time':line_id.start_time,'out_time':line_id.end_time,'approval':1}
                                 detail_obj4.create(cr, uid, val4)
                             else:
-                                emp_attendence_obj.create(cr, uid, {'employee_id':line_id.employee_id.id,'punch_in_out_line':[(0,0,val)]})
+                                emp_attendence_obj.create(cr, uid, {'employee_id':line_id.employee_id.id,'punch_in_out_line':[(0,0,val)], 'employee_category_id':line.employee_id.employee_category_id.id, 'sub_category_id':line.employee_id.employee_sub_category_id.id, 'department_id':line.employee_id.department_id.id, 'designation_id':line.employee_id.job_id.id})
         
                             
                     val2={'permission_onduty_id':emp_attendence_ids[0], 'approval':1,
@@ -269,6 +269,7 @@ class arul_hr_audit_shift_time(osv.osv):
                                    'employee_category_id':line_id.employee_id.employee_category_id.id,
                                    'sub_category_id':line_id.employee_id.employee_sub_category_id.id,
                                    'department_id':line_id.employee_id.department_id.id,
+                                   'designation_id':line_id.employee_id.job_id.id
 #                                    'designation_id':line_id.employee_id.department_id and line_id.employee_id.department_id.designation_id.id or False
                                    }
                     emp_attendence_id = emp_attendence_obj.create(cr,uid,detail_vals)
@@ -287,7 +288,7 @@ class arul_hr_audit_shift_time(osv.osv):
                                 val4={'punch_in_out_id':details_ids[0],'employee_id':line_id.employee_id.id,'planned_work_shift_id':line.planned_work_shift_id.id,'work_date':line_id.date,'in_time':line_id.start_time,'out_time':line_id.end_time,'approval':1}
                                 detail_obj4.create(cr, uid, val4)
                             else:
-                                emp_attendence_obj.create(cr, uid, {'employee_id':line_id.employee_id.id,'punch_in_out_line':[(0,0,val)]})
+                                emp_attendence_obj.create(cr, uid, {'employee_id':line_id.employee_id.id,'punch_in_out_line':[(0,0,val)], 'employee_category_id':line.employee_id.employee_category_id.id, 'sub_category_id':line.employee_id.employee_sub_category_id.id, 'department_id':line.employee_id.department_id.id, 'designation_id':line.employee_id.job_id.id})
                         if(line_id.time_total > 12)and(line_id.time_total < 16):
                             val={'permission_onduty_id':emp_attendence_id,'planned_work_shift_id':line.planned_work_shift_id.id,'work_date':line_id.date,'in_time':line_id.start_time,'out_time':line_id.end_time,'approval':1}
 #                             sql = '''
@@ -302,7 +303,7 @@ class arul_hr_audit_shift_time(osv.osv):
                                 val4={'punch_in_out_id':details_ids[0],'employee_id':line_id.employee_id.id,'planned_work_shift_id':line.planned_work_shift_id.id,'work_date':line_id.date,'in_time':line_id.start_time,'out_time':line_id.end_time,'approval':1}
                                 detail_obj4.create(cr, uid, val4)
                             else:
-                                emp_attendence_obj.create(cr, uid, {'employee_id':line_id.employee_id.id,'punch_in_out_line':[(0,0,val)]})
+                                emp_attendence_obj.create(cr, uid, {'employee_id':line_id.employee_id.id,'punch_in_out_line':[(0,0,val)], 'employee_category_id':line.employee_id.employee_category_id.id, 'sub_category_id':line.employee_id.employee_sub_category_id.id, 'department_id':line.employee_id.department_id.id, 'designation_id':line.employee_id.job_id.id})
                     punch_obj.write(cr,uid,[line_id.id],{'permission_onduty_id':emp_attendence_id,'approval':1}) 
             self.write(cr, uid, [line.id],{'approval': True, 'state':'done'})
         return True
@@ -362,6 +363,16 @@ class arul_hr_employee_leave_details(osv.osv):
     _defaults = {
         'state':'draft',
     }
+    def name_get(self, cr, uid, ids, context=None):
+        res = []
+        if not ids:
+            return res
+        reads = self.read(cr, uid, ids, ['employee_id'], context)
+  
+        for record in reads:
+            name = record['employee_id']
+            res.append((record['id'], name))
+        return res 
     
     def create(self, cr, uid, vals, context=None):
         new_id1 = False
@@ -646,15 +657,25 @@ class arul_hr_permission_onduty(osv.osv):
         res = []
         if not ids:
             return res
-        reads = self.read(cr, uid, ids, ['non_availability_type_id'], context)
+        reads = self.read(cr, uid, ids, ['employee_id'], context)
+  
         for record in reads:
-            name = record['non_availability_type_id']
-            if name=='permission':
-                name = 'Permission'
-            elif name=='on_duty':
-                name = 'On duty'
+            name = record['employee_id']
             res.append((record['id'], name))
-        return res  
+        return res
+#     def name_get(self, cr, uid, ids, context=None):
+#         res = []
+#         if not ids:
+#             return res
+#         reads = self.read(cr, uid, ids, ['non_availability_type_id'], context)
+#         for record in reads:
+#             name = record['non_availability_type_id']
+#             if name=='permission':
+#                 name = 'Permission'
+#             elif name=='on_duty':
+#                 name = 'On duty'
+#             res.append((record['id'], name))
+#         return res  
     def _check_time(self, cr, uid, ids, context=None): 
         for time in self.browse(cr, uid, ids, context = context):
             if ((time.start_time > 24 or time.start_time < 0) or (time.end_time > 24 or time.end_time < 0)):
@@ -699,7 +720,8 @@ class arul_hr_employee_attendence_details(osv.osv):
         for record in reads:
             name = record['employee_id']
             res.append((record['id'], name))
-        return res
+        return res 
+    
     def onchange_attendence_datails_employee_id(self, cr, uid, ids,employee_id=False, context=None):
         vals = {}
         if employee_id:
@@ -707,6 +729,7 @@ class arul_hr_employee_attendence_details(osv.osv):
             vals = {'employee_category_id':emp.employee_category_id.id,
                     'sub_category_id':emp.employee_sub_category_id.id,
                     'department_id':emp.department_id.id,
+                    'designation_id':emp.job_id.id,
                     }
         return {'value': vals}
     def onchange_department_id(self, cr, uid, ids,department_id=False, context=None):
@@ -832,7 +855,7 @@ class arul_hr_punch_in_out(osv.osv):
                                         else:
                                             detail_obj.create(cr, uid, {'employee_id':employee_ids[0],'punch_in_out_line':[(0,0,val1)]})
                                     else:
-                                        val1['approval']=False
+                                        val1['approval']=False  
                                         val1['employee_category_id'] = employee.employee_category_id.id
                                         detail_obj2.create(cr, uid,val1)
                                     temp +=1
@@ -960,7 +983,7 @@ class arul_hr_monthly_work_schedule(osv.osv):
             cr.execute(sql)
         employee_lines = []
         num_of_month = 0
-        if department_id: 
+        if department_id and month and year: 
             if month and year:
                 num_of_month = calendar.monthrange(int(year),int(month))[1]
             dept = self.pool.get('hr.department').browse(cr, uid, department_id)
@@ -983,7 +1006,7 @@ class arul_hr_monthly_work_schedule(osv.osv):
             cr.execute(sql)
         employee_lines = []
         num_of_month = 0
-        if department_id: 
+        if department_id and month and year: 
             if month and year:
                 num_of_month = calendar.monthrange(int(year),int(month))[1]
             dept = self.pool.get('hr.department').browse(cr, uid, department_id)
@@ -1157,7 +1180,8 @@ arul_hr_monthly_shift_schedule()
 class tpt_time_leave_evaluation(osv.osv):
     _name = 'tpt.time.leave.evaluation'
     _columns = {
-         'year': fields.selection([(num, str(num)) for num in range(1951, 2026)], 'Year', required = True),
+         'payroll_area_id':fields.many2one('arul.hr.payroll.area','Payroll Area',required = True),
+         'year': fields.selection([(num, str(num)) for num in range(1951, 2026)], 'Year',required = True),
          'month': fields.selection([('1', 'January'),('2', 'February'), ('3', 'March'), ('4','April'), ('5','May'), ('6','June'), ('7','July'), ('8','August'), ('9','September'), ('10','October'), ('11','November'), ('12','December')], 'Month',required = True),
          'shift_time_id': fields.one2many('arul.hr.audit.shift.time','time_evaluate_id','Time Evaluation Report',readonly = True),
          'leave_request_id': fields.one2many('arul.hr.employee.leave.details','leave_evaluate_id','Non Availability Report',readonly = True),
@@ -1181,11 +1205,13 @@ class tpt_time_leave_evaluation(osv.osv):
         for sub in self.browse(cr, uid, ids, context=context):
             sql = '''
                 update arul_hr_audit_shift_time set time_evaluate_id = %s where EXTRACT(year FROM work_date) = %s and EXTRACT(month FROM work_date) = %s and state = 'draft'
-            '''%(sub.id,sub.year,sub.month)
+                and employee_id in (select id from hr_employee where payroll_area_id = %s)
+            '''%(sub.id,sub.year,sub.month,sub.payroll_area_id.id)
             cr.execute(sql)
             sql = '''
                 update arul_hr_employee_leave_details set leave_evaluate_id = %s where EXTRACT(year FROM date_from) = %s and EXTRACT(month FROM date_from) = %s and state = 'draft'
-            '''%(sub.id,sub.year,sub.month)
+                and employee_id in (select id from hr_employee where payroll_area_id = %s)
+            '''%(sub.id,sub.year,sub.month,sub.payroll_area_id.id)
             cr.execute(sql)
         return True
      
