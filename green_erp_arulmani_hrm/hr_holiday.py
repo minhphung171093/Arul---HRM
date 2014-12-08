@@ -30,13 +30,13 @@ class arul_hr_leave_master(osv.osv):
     }
     def _check_sub_category_id(self, cr, uid, ids, context=None):
         for sub_cate in self.browse(cr, uid, ids, context=context):
-            sub_cate_ids = self.search(cr, uid, [('id','!=',sub_cate.id),('employee_sub_category_id','=',sub_cate.employee_sub_category_id.id)])
+            sub_cate_ids = self.search(cr, uid, [('id','!=',sub_cate.id),('leave_type_id','=',sub_cate.leave_type_id.id),('employee_category_id','=',sub_cate.employee_category_id.id),('employee_sub_category_id','=',sub_cate.employee_sub_category_id.id)])
             if sub_cate_ids:
                 raise osv.except_osv(_('Warning!'),_('The data is not suitable!'))  
                 return False
         return True
     _constraints = [
-        (_check_sub_category_id, 'Identical Data', ['employee_sub_category_id']),
+        (_check_sub_category_id, 'Identical Data', ['leave_type_id','employee_category_id','employee_sub_category_id']),
         ]
     def name_get(self, cr, uid, ids, context=None):
         res = []
@@ -85,7 +85,11 @@ class arul_hr_capture_work_shift(osv.osv):
             res[time.id] = {
                 'time_total': 0.0,
             }
-            time_total = time.end_time - time.start_time
+            
+            if time.start_time > time.end_time:
+                time_total = 24-time.start_time + time.end_time
+            else:
+                time_total = time.end_time - time.start_time
             res[time.id]['time_total'] = time_total 
         return res
     
@@ -122,9 +126,6 @@ class arul_hr_capture_work_shift(osv.osv):
         for time in self.browse(cr, uid, ids, context = context):
             if ((time.start_time > 24 or time.start_time < 0) or (time.end_time > 24 or time.end_time < 0)):
                 raise osv.except_osv(_('Warning!'),_('Input Wrong Time!'))
-                return False
-            if (time.start_time > time.end_time):
-                raise osv.except_osv(_('Warning!'),_('Shift Start Time is earlier than Shift End Time'))
                 return False
             return True       
     _constraints = [
@@ -328,7 +329,7 @@ class arul_hr_employee_leave_details(osv.osv):
             leave_details_obj = self.pool.get('employee.leave.detail')
             emp_leave_obj = self.pool.get('employee.leave')
             year_now = time.strftime('%Y')
-            emp_leave_ids = emp_leave_obj.search(cr, uid, [('employee_id','=',date.employee_id.id),('year','=',year_now)])
+            emp_leave_ids = emp_leave_obj.search(cr, uid, [('employee_id','=',date.employee_id.id),('year','=',date.date_from[:4])])
             if emp_leave_ids:
                 emp_leave = emp_leave_obj.browse(cr, uid, emp_leave_ids[0])
                 temp = 0
@@ -336,12 +337,12 @@ class arul_hr_employee_leave_details(osv.osv):
                     if line.leave_type_id.id == date.leave_type_id.id:
                         temp += 1
                         day = line.total_day - line.total_taken
-                        if timedelta > day:
-                            raise osv.except_osv(_('Warning!'),_('Exceeds Holiday Lets'))
+                        if timedelta > day and line.leave_type_id.code!='LOP':
+                            raise osv.except_osv(_('Warning!'),_('The Taken Day Must Be Less Than The Limit!'))
                 if temp == 0:
-                    raise osv.except_osv(_('Warning!'),_('Leave Type Unlicensed'))
+                    raise osv.except_osv(_('Warning!'),_('Leave Type Is Unlicensed For Employee Category And Employee Sub Category!'))
             else:
-                raise osv.except_osv(_('Warning!'),_('Employee Has Not Been Licensed Holidays For The Current Year'))
+                raise osv.except_osv(_('Warning!'),_('Employee Has Not Been Licensed Holidays For The Year'))
             res[date.id] = {
                 'days_total': timedelta
             }
@@ -350,8 +351,8 @@ class arul_hr_employee_leave_details(osv.osv):
     _columns={
               'employee_id':fields.many2one('hr.employee','Employee',required=True, states={'done': [('readonly', True)], 'cancel': [('readonly', True)]}),
               'leave_type_id':fields.many2one('arul.hr.leave.types','Leave Type',required=True, states={'done': [('readonly', True)], 'cancel': [('readonly', True)]}),
-              'date_from':fields.date('Date From', states={'done': [('readonly', True)], 'cancel': [('readonly', True)]}),
-              'date_to': fields.date('To Date', states={'done': [('readonly', True)], 'cancel': [('readonly', True)]}),
+              'date_from':fields.date('Date From',required=True, states={'done': [('readonly', True)], 'cancel': [('readonly', True)]}),
+              'date_to': fields.date('To Date',required=True, states={'done': [('readonly', True)], 'cancel': [('readonly', True)]}),
               'days_total': fields.function(days_total, string='Leave Total',store=True, multi='sums', help="The total amount.", states={'done': [('readonly', True)], 'cancel': [('readonly', True)]}),
               'haft_day_leave': fields.boolean('Is haft day leave ?', states={'done': [('readonly', True)], 'cancel': [('readonly', True)]}),
               'reason':fields.text('Reason', states={'done': [('readonly', True)], 'cancel': [('readonly', True)]}),
@@ -361,6 +362,54 @@ class arul_hr_employee_leave_details(osv.osv):
     _defaults = {
         'state':'draft',
     }
+    def name_get(self, cr, uid, ids, context=None):
+        res = []
+        if not ids:
+            return res
+        reads = self.read(cr, uid, ids, ['employee_id'], context)
+  
+        for record in reads:
+            name = record['employee_id']
+            res.append((record['id'], name))
+        return res 
+    
+    def create(self, cr, uid, vals, context=None):
+        new_id1 = False
+        new_id2 = False
+        if 'date_from' in vals and 'date_to' in vals:
+            date_from = vals['date_from']
+            date_to = vals['date_to']
+            vals1 = vals
+            vals2 = vals
+            if date_from[5:7] != date_to[5:7]:
+                num_of_month = calendar.monthrange(int(date_from[:4]),int(date_from[5:7]))[1]
+                vals2['date_from'] = date_from
+                vals1['date_to']=date_from[:4]+'-'+date_from[5:7]+'-'+str(num_of_month)
+                new_id1 = super(arul_hr_employee_leave_details, self).create(cr, uid, vals1, context)
+                vals2['date_from'] = date_to[:4]+'-'+date_to[5:7]+'-01'
+                vals2['date_to'] = date_to
+                new_id2 = super(arul_hr_employee_leave_details, self).create(cr, uid, vals2, context)
+        if new_id1 or new_id2:
+            return new_id1
+        else:
+            return super(arul_hr_employee_leave_details, self).create(cr, uid, vals, context)
+    
+#     def write(self, cr, uid, ids, vals, context=None):
+#         if 'date_from' in vals and 'date_to' in vals:
+#             date_from = vals['date_from']
+#             date_to = vals['date_to']
+#             vals1 = vals
+#             vals2 = vals
+#             if date_from[5:7] != date_to[5:7]:
+#                 num_of_month = calendar.monthrange(int(date_from[:4]),int(date_from[5:7]))[1]
+#                 vals2['date_from'] = date_from
+#                 vals1['date_to']=date_from[:4]+'-'+date_from[5:7]+'-'+str(num_of_month)
+#                 new_id1 = super(arul_hr_employee_leave_details, self).create(cr, uid, vals1, context)
+#                 vals2['date_from'] = date_to[:4]+'-'+date_to[5:7]+'-01'
+#                 vals2['date_to'] = date_to
+#                 new_id2 = super(arul_hr_employee_leave_details, self).create(cr, uid, vals2, context)
+#         return super(arul_hr_employee_leave_details, self).write(cr, uid, vals, context)
+    
     def onchange_date(self, cr, uid, ids, date_from=False, date_to=False,employee_id=False,leave_type_id=False,haft_day_leave=False, context=None):
         DATETIME_FORMAT = "%Y-%m-%d"
         if date_from and date_to and employee_id and leave_type_id:
@@ -380,10 +429,10 @@ class arul_hr_employee_leave_details(osv.osv):
                     if line.leave_type_id.id == leave_type_id:
                         temp += 1
                         day = line.total_day - line.total_taken
-                        if timedelta > day:
-                            raise osv.except_osv(_('Warning!'),_('Exceeds Holiday Lets'))
+                        if timedelta > day and line.leave_type_id.code!='LOP':
+                            raise osv.except_osv(_('Warning!'),_('The Taken Day Must Be Less Than The Limit'))
                 if temp == 0:
-                    raise osv.except_osv(_('Warning!'),_('Leave Type Unlicensed'))
+                    raise osv.except_osv(_('Warning!'),_('Leave Type Is Unlicensed For Employee Category And Employee Sub Category!'))
             else:
                 raise osv.except_osv(_('Warning!'),_('Employee Has Not Been Licensed Holidays For The Current Year'))
         return True
@@ -404,8 +453,10 @@ class arul_hr_employee_leave_details(osv.osv):
     
     def _check_days(self, cr, uid, ids, context=None): 
         for days in self.browse(cr, uid, ids, context = context):
-            if ((days.date_from > days.date_to)):
-                raise osv.except_osv(_('Warning!'),_('The start date must be anterior to the end date.'))
+            date_from = datetime.datetime.strptime(days.date_from, "%Y-%m-%d")
+            date_to = datetime.datetime.strptime(days.date_to, "%Y-%m-%d")
+            if date_from > date_to:
+                raise osv.except_osv(_('Warning!'),_('The start date must be before to the end date.'))
                 return False
             return True       
     _constraints = [
@@ -605,15 +656,25 @@ class arul_hr_permission_onduty(osv.osv):
         res = []
         if not ids:
             return res
-        reads = self.read(cr, uid, ids, ['non_availability_type_id'], context)
+        reads = self.read(cr, uid, ids, ['employee_id'], context)
+  
         for record in reads:
-            name = record['non_availability_type_id']
-            if name=='permission':
-                name = 'Permission'
-            elif name=='on_duty':
-                name = 'On duty'
+            name = record['employee_id']
             res.append((record['id'], name))
-        return res  
+        return res
+#     def name_get(self, cr, uid, ids, context=None):
+#         res = []
+#         if not ids:
+#             return res
+#         reads = self.read(cr, uid, ids, ['non_availability_type_id'], context)
+#         for record in reads:
+#             name = record['non_availability_type_id']
+#             if name=='permission':
+#                 name = 'Permission'
+#             elif name=='on_duty':
+#                 name = 'On duty'
+#             res.append((record['id'], name))
+#         return res  
     def _check_time(self, cr, uid, ids, context=None): 
         for time in self.browse(cr, uid, ids, context = context):
             if ((time.start_time > 24 or time.start_time < 0) or (time.end_time > 24 or time.end_time < 0)):
@@ -649,6 +710,17 @@ class arul_hr_employee_attendence_details(osv.osv):
         'permission_onduty_details_line':fields.one2many('arul.hr.permission.onduty','permission_onduty_id','Permission On duty Details',readonly=True),
         'punch_in_out_line':fields.one2many('arul.hr.punch.in.out.time','punch_in_out_id','Punch in/Punch out Details',readonly=True)
               }
+    def name_get(self, cr, uid, ids, context=None):
+        res = []
+        if not ids:
+            return res
+        reads = self.read(cr, uid, ids, ['employee_id'], context)
+  
+        for record in reads:
+            name = record['employee_id']
+            res.append((record['id'], name))
+        return res 
+    
     def onchange_attendence_datails_employee_id(self, cr, uid, ids,employee_id=False, context=None):
         vals = {}
         if employee_id:
@@ -1020,11 +1092,13 @@ class arul_hr_monthly_shift_schedule(osv.osv):
     def onchange_monthly(self, cr, uid, ids, num_of_month = False, shift_day_from=False,shift_day_to=False, work_shift_id = False, context=None):
         value = {}
         if shift_day_from and shift_day_to and work_shift_id:
-            if shift_day_from.name > shift_day_to.name:
+            shift_day_f = self.pool.get('tpt.month').browse(cr, uid, shift_day_from)
+            shift_day_t = self.pool.get('tpt.month').browse(cr, uid, shift_day_to)
+            if shift_day_f.name > shift_day_t.name:
                 raise osv.except_osv(_('Warning!'),_('Shift Day Form must less than Shift Day To'))
-            if shift_day_to.name > num_of_month.name:
+            if shift_day_t.name > num_of_month:
                 raise osv.except_osv(_('Warning!'),_('Range of month is limited'))
-            for num in range(shift_day_from.name, shift_day_to.name + 1):
+            for num in range(shift_day_f.name, shift_day_t.name + 1):
                 if num == 1 :
                     value['day_1'] = work_shift_id
                 if num == 2:
@@ -1104,7 +1178,8 @@ arul_hr_monthly_shift_schedule()
 class tpt_time_leave_evaluation(osv.osv):
     _name = 'tpt.time.leave.evaluation'
     _columns = {
-         'year': fields.selection([(num, str(num)) for num in range(1951, 2026)], 'Year', required = True),
+         'payroll_area_id':fields.many2one('arul.hr.payroll.area','Payroll Area',required = True),
+         'year': fields.selection([(num, str(num)) for num in range(1951, 2026)], 'Year',required = True),
          'month': fields.selection([('1', 'January'),('2', 'February'), ('3', 'March'), ('4','April'), ('5','May'), ('6','June'), ('7','July'), ('8','August'), ('9','September'), ('10','October'), ('11','November'), ('12','December')], 'Month',required = True),
          'shift_time_id': fields.one2many('arul.hr.audit.shift.time','time_evaluate_id','Time Evaluation Report',readonly = True),
          'leave_request_id': fields.one2many('arul.hr.employee.leave.details','leave_evaluate_id','Non Availability Report',readonly = True),
@@ -1128,11 +1203,13 @@ class tpt_time_leave_evaluation(osv.osv):
         for sub in self.browse(cr, uid, ids, context=context):
             sql = '''
                 update arul_hr_audit_shift_time set time_evaluate_id = %s where EXTRACT(year FROM work_date) = %s and EXTRACT(month FROM work_date) = %s and state = 'draft'
-            '''%(sub.id,sub.year,sub.month)
+                and employee_id in (select id from hr_employee where payroll_area_id = %s)
+            '''%(sub.id,sub.year,sub.month,sub.payroll_area_id.id)
             cr.execute(sql)
             sql = '''
                 update arul_hr_employee_leave_details set leave_evaluate_id = %s where EXTRACT(year FROM date_from) = %s and EXTRACT(month FROM date_from) = %s and state = 'draft'
-            '''%(sub.id,sub.year,sub.month)
+                and employee_id in (select id from hr_employee where payroll_area_id = %s)
+            '''%(sub.id,sub.year,sub.month,sub.payroll_area_id.id)
             cr.execute(sql)
         return True
      

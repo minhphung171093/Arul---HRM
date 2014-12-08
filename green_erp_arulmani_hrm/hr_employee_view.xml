@@ -112,9 +112,9 @@
             <field name="view_id" ref="view_arul_employee_sub_category_tree_vew"/>
         </record>
         
-        <menuitem action="action_arul_employee_sub_category_form"
+        <!--<menuitem action="action_arul_employee_sub_category_form"
             id="menu_action_arul_employee_sub_category_form"
-            parent="hr.menu_hr_main" sequence="24" groups='group_vvti_hrm_admin'/>
+            parent="hr.menu_hr_main" sequence="24" groups='group_vvti_hrm_admin'/>-->
 		
 		<record id="view_arul_employee_actions_search_vew" model="ir.ui.view">
 			<field name="name">arul.employee.actions.search</field>
@@ -1122,7 +1122,7 @@
                 			<page string="Meals Deduction">
                 				<field name ="meals_details_emp_ids" nolabel="1" attrs="{'invisible':[('meals_for','!=','employees')]}">
                 					<tree editable="top">
-                						<field name ="emp_id" invisible="0" readonly="0" required = "1"/>
+                						<field name ="emp_id" invisible="0" readonly="0" options="{'create': false, 'create_edit': false}" />
                 						<field name ="break_fast"/>
                 						<field name ="lunch"/>
                 						<field name ="dinner"/>
@@ -1135,7 +1135,7 @@
                 				</field>
                 				<field name ="meals_details_order_ids" nolabel="1" attrs="{'invisible':[('meals_for','!=','others')]}">
                 					<tree editable="top">
-                						<field name ="emp_name" readonly="0" required = "1"/>
+                						<field name ="emp_name" options="{'create': false, 'create_edit': false}" readonly="0" required = "1"/>
                 						<field name ="break_fast"/>
                 						<field name ="lunch"/>
                 						<field name ="dinner"/>

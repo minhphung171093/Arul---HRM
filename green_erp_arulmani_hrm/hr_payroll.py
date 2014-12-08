@@ -154,6 +154,18 @@ arul_hr_payroll_deduction_parameters()
 
 class arul_hr_payroll_employee_structure(osv.osv):
     _name = 'arul.hr.payroll.employee.structure'
+    
+    def default_get(self, cr, uid, fields, context=None):
+        if context is None:
+            context = {}
+        res = super(arul_hr_payroll_employee_structure, self).default_get(cr, uid, fields, context=context)
+        deductions_ids = self.pool.get('arul.hr.payroll.deduction.parameters').search(cr, uid, [('code','in',['I.D','L.D','VPF.D'])])
+        deductions = []
+        for line in deductions_ids:
+            deductions.append((0,0,{'deduction_parameters_id':line}))
+        res.update({'payroll_other_deductions_line': deductions})
+        return res
+    
     _columns = {
          'employee_id': fields.many2one('hr.employee','Employee ID',required = True),
          'employee_category_id':fields.many2one('vsis.hr.employee.category','Employee Group'),
@@ -164,7 +176,12 @@ class arul_hr_payroll_employee_structure(osv.osv):
          'loan_de_period_end':fields.date('Loan Deductions Period'),
          'payroll_earning_structure_line':fields.one2many('arul.hr.payroll.earning.structure','earning_structure_id','Structure line' ),
          'payroll_other_deductions_line':fields.one2many('arul.hr.payroll.other.deductions','earning_structure_id','Structure line'),
+         'flag': fields.boolean('Flag'),
     }
+    
+    def create(self, cr, uid, vals, context=None):
+        vals['flag'] = True
+        return super(arul_hr_payroll_employee_structure, self).create(cr, uid, vals, context)
     
     def name_get(self, cr, uid, ids, context=None):
         res = []
@@ -177,6 +194,18 @@ class arul_hr_payroll_employee_structure(osv.osv):
                 name = employee_id
                 res.append((record['id'], name))
             return res  
+    
+    def onchange_employee_category_id(self, cr, uid, ids,employee_category_id=False,employee_sub_category_id=False, context=None):
+        vals = {}
+        if employee_category_id and employee_sub_category_id:
+            sql = '''
+                select id from hr_employee_sub_category where id = %s and category_id=%s
+            '''%(employee_sub_category_id,employee_category_id)
+            cr.execute(sql)
+            sub_category_ids = [row[0] for row in cr.fetchall()]
+            if not sub_category_ids:
+                vals['sub_category_id']=False
+        return {'value': vals}
     
     def onchange_employee_structure_id(self, cr, uid, ids,employee_id=False, context=None):
         vals = {}
@@ -269,7 +298,7 @@ class arul_hr_payroll_earning_structure(osv.osv):
     _columns = {
          'earning_parameters_id': fields.many2one('arul.hr.payroll.earning.parameters','Earning Parameters', required = True),
          'earning_structure_id':fields.many2one('arul.hr.payroll.employee.structure','Earning Structure', ondelete='cascade'), 
-         'float':fields.float('Float') ,
+         'float':fields.float('Amount') ,
          'executions_details_id':fields.many2one('arul.hr.payroll.executions.details','Execution Details', ondelete='cascade'),
     }
     def onchange_structure_line(self, cr, uid, ids, context=None):
@@ -302,6 +331,17 @@ class arul_hr_payroll_contribution_parameters(osv.osv):
         'emp_lwf_amt': fields.float('Employee Labor Welfare Fund (LWF) Amt'),
         'employer_lwf_con_amt': fields.float('Employer LWF Contribution Amt'),
         }
+    
+    def _check_category(self, cr, uid, ids, context=None):
+        for work in self.browse(cr, uid, ids, context=context):
+            work_ids = self.search(cr, uid, [('id','!=',work.id),('sub_category_id','=',work.sub_category_id.id),('employee_category_id','=',work.employee_category_id.id)])
+            if work_ids:
+                raise osv.except_osv(_('Warning!'),_('Employee Group and Employee Sub Group already exist!'))
+                return False
+        return True
+    _constraints = [
+        (_check_category, 'Identical Data', ['employee_category_id','sub_category_id']),
+    ]
     
     def name_get(self, cr, uid, ids, context=None):
         res = []
@@ -382,11 +422,7 @@ class arul_hr_payroll_structure_configuration(osv.osv):
         return self.name_get(cr, user, ids, context=context)
     
     def onchange_employee_category_id(self, cr, uid, ids,employee_category_id=False, context=None):
-        emp_sub_cat = []
-        if employee_category_id:
-            emp_cat = self.pool.get('vsis.hr.employee.category').browse(cr, uid, employee_category_id)
-            emp_sub_cat = [x.id for x in emp_cat.sub_category_ids]
-        return {'value': {'sub_category_id': False }, 'domain':{'sub_category_id':[('id','in',emp_sub_cat)]}}
+        return {'value': {'sub_category_id': False }}
     
     def _check_category_sub_id(self, cr, uid, ids, context=None):
         for payroll in self.browse(cr, uid, ids, context=context):
@@ -502,6 +538,18 @@ class arul_hr_payroll_executions(osv.osv):
         'year':int(time.strftime('%Y')),
     }
     
+    def print_payslip(self, cr, uid, ids, context=None):
+        datas = {
+             'ids': ids,
+             'model': 'arul.hr.payroll.executions',
+             'form': self.read(cr, uid, ids[0], context=context)
+        }
+        return {
+            'type': 'ir.actions.report.xml',
+            'report_name': 'arul_print_report',
+        }
+        return True
+    
     def length_month(self,year, month):
         if month == 2 and (year % 4 == 0) and (year % 100 != 0) or (year % 400 == 0):
             value =  29
@@ -527,7 +575,19 @@ class arul_hr_payroll_executions(osv.osv):
         shift_allowance_b = 0
         shift_allowance_c = 0
         total_shift_allowance = 0
+        total_lop = 0
         if kq:
+            leave_detail_obj = self.pool.get('arul.hr.employee.leave.details')
+            sql = '''
+                select * from arul_hr_employee_leave_details where EXTRACT(year FROM date_from) = %s and EXTRACT(month FROM date_from) = %s and employee_id = %s and leave_type_id in (select id from arul_hr_leave_types where code = 'LOP')
+            '''%(year,int(month),emp)
+            cr.execute(sql)
+            leave_detail_ids = [row[0] for row in cr.fetchall()]
+            for leave_detail in leave_detail_obj.browse(cr, uid, leave_detail_ids):
+                day_from = leave_detail.date_from[8:10]
+                day_to = leave_detail.date_to[8:10]
+                for day in range(day_from,day_to+1):
+                    total_lop += 1
             for monthly_shift_schedule_id in monthly_shift_schedule_obj.browse(cr,uid,[kq[0][0]],context=context):
                 if monthly_shift_schedule_id.day_1:
                     if monthly_shift_schedule_id.day_1.code == 'A':
@@ -841,7 +901,7 @@ class arul_hr_payroll_executions(osv.osv):
                         shift_allowance_c += monthly_shift_schedule_id.day_31.time_total
             total_days = total_a + total_b + total_c
             total_shift_allowance = shift_allowance_a + shift_allowance_b + shift_allowance_c    
-        return total_days,total_shift_allowance
+        return total_days,total_shift_allowance,total_lop
     
     def generate_payroll(self, cr, uid, ids, context=None):
         details_line = []
@@ -851,17 +911,38 @@ class arul_hr_payroll_executions(osv.osv):
             executions_details_obj = self.pool.get('arul.hr.payroll.executions.details')
             earning_structure_obj = self.pool.get('arul.hr.payroll.earning.structure')
             other_deductions_obj = self.pool.get('arul.hr.payroll.other.deductions')
+            contribution_obj = self.pool.get('arul.hr.payroll.contribution.parameters')
             employee_ids = emp_obj.search(cr, uid, [('payroll_area_id','=',line.payroll_area_id.id)])
             for p in emp_obj.browse(cr,uid,employee_ids):
-                payroll_executions_details_ids = executions_details_obj.search(cr, uid, [('payroll_executions_id', '=', line.id), ('employee_id', '<=', p.id)], context=context)
+                payroll_executions_details_ids = executions_details_obj.search(cr, uid, [('payroll_executions_id', '=', line.id), ('employee_id', '=', p.id)], context=context)
                 if payroll_executions_details_ids:
                     executions_details_obj.unlink(cr, uid, payroll_executions_details_ids, context=context) 
                 vals_earning_struc = []
                 vals_other_deductions = []
                 emp_struc_ids = payroll_emp_struc_obj.search(cr,uid,[('employee_id','=',p.id)]) 
+                emp_esi_limit = 0
+                emp_esi_con = 0
+                emp_pf_con = 0
+                emp_lwf_amt = 0
+                emp_esi_con_amount = 0
+                emp_pf_con_amount = 0
                 if emp_struc_ids:
-                    total_days,total_shift_allowance = self.get_timesheet(cr,uid,p.id,line.month,line.year,context=context)
+                    payroll_emp_struc = payroll_emp_struc_obj.browse(cr,uid,emp_struc_ids[0])
+                    contribution_ids = contribution_obj.search(cr, uid, [('employee_category_id','=',payroll_emp_struc.employee_category_id.id),('sub_category_id','=',payroll_emp_struc.sub_category_id.id)])
+                    if contribution_ids:
+                        contribution = contribution_obj.browse(cr, uid, contribution_ids[0])
+                        emp_esi_limit = contribution.emp_esi_limit
+                        if line.month=='12':
+                            emp_lwf_amt = contribution.emp_lwf_amt
+                        emp_esi_con = contribution.emp_esi_con
+                        emp_pf_con = contribution.emp_pf_con
+                    total_days,total_shift_allowance,total_lop = self.get_timesheet(cr,uid,p.id,line.month,line.year,context=context)
                     calendar_days = self.length_month(int(line.year),int(line.month))
+                    sql = '''
+                        select case when sum(employee_amt)!=0 then sum(employee_amt) else 0 end total_fd from meals_details where emp_id = %s and meals_id in (select id from meals_deduction where meals_for='employees' and EXTRACT(year FROM meals_date) = %s and EXTRACT(month FROM meals_date) = %s)
+                    '''%(p.id,line.year,int(line.month))
+                    cr.execute(sql)
+                    total_fd = cr.dictfetchone()['total_fd']
                     if p.employee_category_id and p.employee_category_id.code == 'S1':
                         pfd = 0.0
                         pd = 0.0
@@ -892,6 +973,9 @@ class arul_hr_payroll_executions(osv.osv):
                                 pt = other_deductions_id.float
                             if other_deductions_id.deduction_parameters_id.code == 'LWF':
                                 lwf = other_deductions_id.float
+
+                        fd += total_fd
+                        
                         total_deduction = pfd + pd + vpfd + esid + fd + ld + ind +  pt + lwf    
                         for _other_deductions_id in payroll_emp_struc_obj.browse(cr,uid,emp_struc_ids[0]).payroll_other_deductions_line:
                             if _other_deductions_id.deduction_parameters_id.code == 'PF.D':
@@ -993,10 +1077,23 @@ class arul_hr_payroll_executions(osv.osv):
                                 lta = earning_struc_id.float
                             if earning_struc_id.earning_parameters_id.code == 'MED':
                                 med = earning_struc_id.float
-                            
+                                
                         total_earning = basic + da + c + hra + fa + pc + cre + ea +spa + la + aa + sha + oa + lta + med
-                        gross_sal = basic + c + hra  +spa + ea + oa
+                        gross_before = basic + c + hra  +spa + ea + oa
+                        if total_lop:
+                            gross_sal = gross_before/calendar_days*(total_days-total_lop)
+                            lop = gross_before - gross_sal
+                        else:
+                            gross_sal = gross_before
+                            lop = 0
+                        total_deduction += lop
                         net_sala = gross_sal - total_deduction
+                        for _other_deductions_id in payroll_emp_struc_obj.browse(cr,uid,emp_struc_ids[0]).payroll_other_deductions_line:
+                            if _other_deductions_id.deduction_parameters_id.code == 'LOP':
+                                vals_other_deductions.append((0,0, {
+                                          'deduction_parameters_id':_other_deductions_id.deduction_parameters_id.id,
+                                          'float': lop,
+                                    }))
                         for _earning_struc_id in payroll_emp_struc_obj.browse(cr,uid,emp_struc_ids[0]).payroll_earning_structure_line:
                             if _earning_struc_id.earning_parameters_id.code == 'BASIC':
                                 vals_earning_struc.append((0,0, {
@@ -1119,6 +1216,9 @@ class arul_hr_payroll_executions(osv.osv):
                                 pt = other_deductions_id.float
                             if other_deductions_id.deduction_parameters_id.code == 'LWF':
                                 lwf = other_deductions_id.float
+                                
+                        fd += total_fd
+                        
                         total_deduction = pfd + pd + vpfd + esid + fd + ld + ind +  pt + lwf    
                         for _other_deductions_id in payroll_emp_struc_obj.browse(cr,uid,emp_struc_ids[0]).payroll_other_deductions_line:
                             if _other_deductions_id.deduction_parameters_id.code == 'PF.D':
@@ -1222,8 +1322,22 @@ class arul_hr_payroll_executions(osv.osv):
                                 med = earning_struc_id.float
                         spa = spa/(calendar_days - 4)*total_days  
                         total_earning = basic + da + c + hra + fa + pc + cre + ea +spa + la + aa + sha + oa + lta + med
-                        gross_sal = basic + c + hra  +spa + ea + oa + da + la + aa
+                        gross_before = basic + c + hra  +spa + ea + oa + da + la + aa
+                        if total_lop:
+                            gross_sal = gross_before/calendar_days*(total_days-total_lop)
+                            lop = gross_before - gross_sal
+                        else:
+                            gross_sal = gross_before
+                            lop = 0
+                        lop = gross_before - gross_sal
+                        total_deduction += lop
                         net_sala = gross_sal - total_deduction
+                        for _other_deductions_id in payroll_emp_struc_obj.browse(cr,uid,emp_struc_ids[0]).payroll_other_deductions_line:
+                            if _other_deductions_id.deduction_parameters_id.code == 'LOP':
+                                vals_other_deductions.append((0,0, {
+                                          'deduction_parameters_id':_other_deductions_id.deduction_parameters_id.id,
+                                          'float': lop,
+                                    }))
                         for _earning_struc_id in payroll_emp_struc_obj.browse(cr,uid,emp_struc_ids[0]).payroll_earning_structure_line:
                             if _earning_struc_id.earning_parameters_id.code == 'BASIC':
                                 vals_earning_struc.append((0,0, {
@@ -1346,6 +1460,9 @@ class arul_hr_payroll_executions(osv.osv):
                                 pt = other_deductions_id.float
                             if other_deductions_id.deduction_parameters_id.code == 'LWF':
                                 lwf = other_deductions_id.float
+                        
+                        fd += total_fd        
+                        
                         total_deduction = pfd + pd + vpfd + esid + fd + ld + ind +  pt + lwf    
                         for _other_deductions_id in payroll_emp_struc_obj.browse(cr,uid,emp_struc_ids[0]).payroll_other_deductions_line:
                             if _other_deductions_id.deduction_parameters_id.code == 'PF.D':
@@ -1450,8 +1567,22 @@ class arul_hr_payroll_executions(osv.osv):
                         spa = spa/(26 - 4)*total_days 
                         oa = total_shift_allowance + total_days*4 + la  
                         total_earning = basic + da + c + hra + fa + pc + cre + ea +spa + la + aa + sha + oa + lta + med
-                        gross_sal = basic + c + hra  +spa + oa + da + ea
+                        gross_before = basic + c + hra  +spa + oa + da + ea
+                        if total_lop:
+                            gross_sal = gross_before/26*(total_days-total_lop)
+                            lop = gross_before - gross_sal
+                        else:
+                            gross_sal = gross_before
+                            lop = 0
+                        lop = gross_before - gross_sal
+                        total_deduction += lop
                         net_sala = gross_sal - total_deduction
+                        for _other_deductions_id in payroll_emp_struc_obj.browse(cr,uid,emp_struc_ids[0]).payroll_other_deductions_line:
+                            if _other_deductions_id.deduction_parameters_id.code == 'LOP':
+                                vals_other_deductions.append((0,0, {
+                                          'deduction_parameters_id':_other_deductions_id.deduction_parameters_id.id,
+                                          'float': lop,
+                                    }))
                         for _earning_struc_id in payroll_emp_struc_obj.browse(cr,uid,emp_struc_ids[0]).payroll_earning_structure_line:
                             if _earning_struc_id.earning_parameters_id.code == 'BASIC':
                                 vals_earning_struc.append((0,0, {
@@ -1542,7 +1673,13 @@ class arul_hr_payroll_executions(osv.osv):
                                 vals_earning_struc.append((0,0, {
                                           'earning_parameters_id':_earning_struc_id.earning_parameters_id.id,
                                           'float': net_sala,
-                                    }))   
+                                    }))
+                    if gross_sal >= emp_esi_limit:
+                        emp_esi_con_amount = 0
+                    else:
+                        emp_esi_con_amount = total_earning*emp_esi_con/100
+                    base_amount = basic + da - lop
+                    emp_pf_con_amount = base_amount*emp_pf_con/100
                 rs = {
                         'payroll_executions_id': line.id,
                         'employee_id': p.id,
@@ -1555,6 +1692,10 @@ class arul_hr_payroll_executions(osv.osv):
                         'payroll_sub_area_id': p.payroll_sub_area_id.id,
                         'earning_structure_line':vals_earning_struc,
                         'other_deduction_line':vals_other_deductions,
+                        'emp_esi_limit': emp_esi_limit,
+                        'emp_esi_con': emp_esi_con_amount,
+                        'emp_pf_con': emp_pf_con_amount,
+                        'emp_lwf_amt': emp_lwf_amt,
                       }
                 executions_details_id = executions_details_obj.create(cr,uid,rs)
                 
@@ -1604,7 +1745,11 @@ class arul_hr_payroll_executions_details(osv.osv):
         'payroll_executions_id':fields.many2one('arul.hr.payroll.executions', 'Payroll Executions', ondelete='cascade'),
         'earning_structure_line':fields.one2many('arul.hr.payroll.earning.structure','executions_details_id', 'Earing Structure'),
         'other_deduction_line':fields.one2many('arul.hr.payroll.other.deductions','executions_details_id', 'Other Deduction'),
-
+        
+        'emp_pf_con': fields.float('Employee PF Contribution'),
+        'emp_esi_limit': fields.float('Employee ESI Limit'),
+        'emp_esi_con': fields.float('Employee ESI Contribution'),
+        'emp_lwf_amt': fields.float('Employee Labor Welfare Fund (LWF) Amt'),
     }
     
     def onchange_department_from_id(self, cr, uid, ids,department_id=False, context=None):
