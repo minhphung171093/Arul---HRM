@@ -34,7 +34,6 @@
             <field name="target">new</field>
         </record>
         
-        <menuitem id="menu_action_print_payslip_report" action="action_print_payslip_report" parent="menu_hr_payroll_management" sequence="20" groups="group_vvti_hrm_payroll_controller"/>
         
     </data>
 </openerp>
