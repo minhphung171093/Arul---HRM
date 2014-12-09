@@ -539,15 +539,15 @@ class arul_hr_payroll_executions(osv.osv):
     }
     
     def print_payslip(self, cr, uid, ids, context=None):
-#         datas = {
-#              'ids': ids,
-#              'model': 'arul.hr.payroll.executions',
-#              'form': self.read(cr, uid, ids[0], context=context)
-#         }
-#         return {
-#             'type': 'ir.actions.report.xml',
-#             'report_name': 'arul_payslip_report',
-#         }
+        datas = {
+             'ids': ids,
+             'model': 'arul.hr.payroll.executions',
+             'form': self.read(cr, uid, ids[0], context=context)
+        }
+        return {
+            'type': 'ir.actions.report.xml',
+            'report_name': 'arul_print_report',
+        }
         return True
     
     def length_month(self,year, month):
@@ -563,7 +563,7 @@ class arul_hr_payroll_executions(osv.osv):
                     select ss.id as shift_id
                     from arul_hr_monthly_shift_schedule ss 
                     left join arul_hr_monthly_work_schedule ws on ss.monthly_work_id = ws.id
-                    where ss.employee_id = %s and ws.month = '%s' and ws.year = '%s' and ws.state= 'done'
+                    where ss.employee_id = %s and ws.month = '%s' and ws.year = %s and ws.state= 'done'
                 '''%(emp,month,year)
         cr.execute(sql)
         kq = cr.fetchall()
@@ -907,13 +907,15 @@ class arul_hr_payroll_executions(osv.osv):
         details_line = []
         
         for line in self.browse(cr,uid,ids):
+            
             time_leav_obj = self.pool.get('tpt.time.leave.evaluation')
             time_leav_ids = time_leav_obj.search(cr, uid, [('payroll_area_id','=',line.payroll_area_id.id),('year','=',line.year),('month','=',line.month)])
-            for ti_le in  time_leav_obj.browse(cr,uid,time_leav_ids):
-                if ti_le.shift_time_id or ti_le.leave_request_id:
-                    raise osv.except_osv(_('Warning!'),_('Time/Leave Evaluation is not made!'))
-                else:
-                    break
+            if not time_leav_ids:
+                raise osv.except_osv(_('Warning!'),_('Time/Leave Evaluation is not made!'))
+            for ti_le in time_leav_obj.browse(cr,uid,time_leav_ids):
+                if len(ti_le.shift_time_id)!=0 or len(ti_le.leave_request_id)!=0:
+                    raise osv.except_osv(_('Warning!'),_('Time/Leave Evaluation is not completed!'))
+
             emp_obj = self.pool.get('hr.employee')
             payroll_emp_struc_obj = self.pool.get('arul.hr.payroll.employee.structure')
             executions_details_obj = self.pool.get('arul.hr.payroll.executions.details')
