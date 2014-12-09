@@ -928,9 +928,9 @@ class employee_leave(osv.osv):
         emp_obj = self.pool.get('hr.employee') 
         leave_obj = self.pool.get('arul.hr.leave.master')
         leave_detail_obj = self.pool.get('employee.leave.detail')
-#         emp_ids = emp_obj.search(cr, uid, [])
-        record = self.search(cr, uid, [])
-        if record:
+        emp_ids = emp_obj.search(cr, uid, [])
+#         record = self.search(cr, uid, [])
+        if emp_ids:
             for daily in self.browse(cr, uid, record):
                 em_id = daily.employee_id.id and daily.employee_id.id or False
                 em_year = daily.year and daily.year or False
