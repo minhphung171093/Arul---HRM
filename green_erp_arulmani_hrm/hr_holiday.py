@@ -143,7 +143,10 @@ class arul_hr_audit_shift_time(osv.osv):
             res[time.id] = {
                 'total_hours': 0.0,
             }
-            time_total = time.out_time - time.in_time
+            if time.in_time > time.out_time:
+                time_total = 24-time.in_time + time.out_time
+            else:
+                time_total = time.out_time - time.in_time
             res[time.id]['total_hours'] = time_total 
         return res
     
@@ -305,11 +308,11 @@ class arul_hr_audit_shift_time(osv.osv):
                             else:
                                 emp_attendence_obj.create(cr, uid, {'employee_id':line_id.employee_id.id,'punch_in_out_line':[(0,0,val)], 'employee_category_id':line.employee_id.employee_category_id.id, 'sub_category_id':line.employee_id.employee_sub_category_id.id, 'department_id':line.employee_id.department_id.id, 'designation_id':line.employee_id.job_id.id})
                     punch_obj.write(cr,uid,[line_id.id],{'permission_onduty_id':emp_attendence_id,'approval':1}) 
-            self.write(cr, uid, [line.id],{'approval': True, 'state':'done'})
+            self.write(cr, uid, [line.id],{'approval': True, 'state':'done', 'time_evaluate_id':False})
         return True
     def reject_shift_time(self, cr, uid, ids, context=None):
         for line in self.browse(cr, uid, ids):
-            self.write(cr, uid, [line.id],{'approval': False, 'state':'cancel'})
+            self.write(cr, uid, [line.id],{'approval': False, 'state':'cancel', 'time_evaluate_id':False})
         return True   
 arul_hr_audit_shift_time()
 
@@ -440,13 +443,13 @@ class arul_hr_employee_leave_details(osv.osv):
     
     def process_leave_request(self, cr, uid, ids, context=None):
         for line in self.browse(cr, uid, ids):
-            self.write(cr, uid, [line.id],{'state':'done'})
+            self.write(cr, uid, [line.id],{'state':'done','leave_evaluate_id': False})
         return True  
     
     def cancel_leave_request(self, cr, uid, ids, context=None):
         for line in self.browse(cr, uid, ids):
             sql = '''
-                update arul_hr_employee_leave_details set state='cancel' where id = %s
+                update arul_hr_employee_leave_details set state='cancel', leave_evaluate_id = null where id = %s
             '''%(line.id)
             cr.execute(sql)
 #             self.write(cr, uid, [line.id],{'state':'cancel'})
@@ -807,6 +810,84 @@ class arul_hr_punch_in_out(osv.osv):
         'name': time.strftime('%Y-%m-%d'),
         
     }
+    
+    def get_work_shift(self,cr,uid,emp,day,month,year,context=None):
+        monthly_shift_schedule_obj = self.pool.get('arul.hr.monthly.shift.schedule')
+        sql =   '''
+                    select ss.id as shift_id
+                    from arul_hr_monthly_shift_schedule ss 
+                    left join arul_hr_monthly_work_schedule ws on ss.monthly_work_id = ws.id
+                    where ss.employee_id = %s and ws.month = '%s' and ws.year = %s and ws.state= 'done'
+                '''%(emp,month,year)
+        cr.execute(sql)
+        kq = cr.fetchall()
+        shift_id = False
+        if kq:
+            for monthly_shift_schedule_id in monthly_shift_schedule_obj.browse(cr,uid,[kq[0][0]],context=context):
+                if day == 1:
+                    shift_id = monthly_shift_schedule_id.day_1.id
+                if day == 2:
+                    shift_id = monthly_shift_schedule_id.day_2.id
+                if day == 3:
+                    shift_id = monthly_shift_schedule_id.day_3.id
+                if day == 4:
+                    shift_id = monthly_shift_schedule_id.day_4.id
+                if day == 5:
+                    shift_id = monthly_shift_schedule_id.day_5.id
+                if day == 6:
+                    shift_id = monthly_shift_schedule_id.day_6.id
+                if day == 7:
+                    shift_id = monthly_shift_schedule_id.day_7.id
+                if day == 8:
+                    shift_id = monthly_shift_schedule_id.day_8.id
+                if day == 9:
+                    shift_id = monthly_shift_schedule_id.day_9.id
+                if day == 10:
+                    shift_id = monthly_shift_schedule_id.day_10.id
+                if day == 11:
+                    shift_id = monthly_shift_schedule_id.day_11.id
+                if day == 12:
+                    shift_id = monthly_shift_schedule_id.day_12.id
+                if day == 13:
+                    shift_id = monthly_shift_schedule_id.day_13.id
+                if day == 14:
+                    shift_id = monthly_shift_schedule_id.day_14.id
+                if day == 15:
+                    shift_id = monthly_shift_schedule_id.day_15.id
+                if day == 16:
+                    shift_id = monthly_shift_schedule_id.day_16.id
+                if day == 17:
+                    shift_id = monthly_shift_schedule_id.day_17.id
+                if day == 18:
+                    shift_id = monthly_shift_schedule_id.day_18.id
+                if day == 19:
+                    shift_id = monthly_shift_schedule_id.day_19.id
+                if day == 20:
+                    shift_id = monthly_shift_schedule_id.day_20.id
+                if day == 21:
+                    shift_id = monthly_shift_schedule_id.day_21.id
+                if day == 22:
+                    shift_id = monthly_shift_schedule_id.day_22.id
+                if day == 23:
+                    shift_id = monthly_shift_schedule_id.day_23.id
+                if day == 24:
+                    shift_id = monthly_shift_schedule_id.day_24.id
+                if day == 25:
+                    shift_id = monthly_shift_schedule_id.day_25.id
+                if day == 26:
+                    shift_id = monthly_shift_schedule_id.day_26.id
+                if day == 27:
+                    shift_id = monthly_shift_schedule_id.day_27.id
+                if day == 28:
+                    shift_id = monthly_shift_schedule_id.day_28.id
+                if day == 29:
+                    shift_id = monthly_shift_schedule_id.day_29.id
+                if day == 30:
+                    shift_id = monthly_shift_schedule_id.day_30.id
+                if day == 31:
+                    shift_id = monthly_shift_schedule_id.day_31.id
+        return shift_id
+                
     def upload_punch_in_out(self, cr, uid, ids, context=None):
         for line in self.browse(cr, uid, ids, context=context):
             try:
@@ -835,10 +916,10 @@ class arul_hr_punch_in_out(osv.osv):
                                 in_out = data2[:3]
                                 employee_code_2=data2[43:51]
                                 date_2=data2[7:11]+'-'+data2[11:13]+'-'+data2[13:15]
-                                if employee_code_2==employee_code and date==date_2 and in_out=='P10':
+                                if employee_code_2==employee_code and in_out=='P10':
                                     in_time2 = float(data2[15:17])+float(data2[17:19])/60+float(data2[19:21])/3600
                                     val1={'employee_id':employee_ids[0],'planned_work_shift_id':False,'work_date':date,'in_time':in_time2,'out_time':0,'approval':1}
-                                if employee_code_2==employee_code and date==date_2 and in_out=='P20':
+                                if employee_code_2==employee_code and in_out=='P20':
                                     out_time=float(data2[15:17])+float(data2[17:19])/60+float(data2[19:21])/3600
                                     val1['out_time']=out_time
                                     sql = '''
@@ -846,11 +927,15 @@ class arul_hr_punch_in_out(osv.osv):
                                     '''%(in_time - 1,out_time + 1)
                                     cr.execute(sql)
                                     work_shift_ids = [row[0] for row in cr.fetchall()]
-                                    if work_shift_ids :
-                                        val1['planned_work_shift_id']=work_shift_ids[0]
+                                    day = date[8:10]
+                                    month = date[5:7]
+                                    year = date[:4]
+                                    shift_id = self.get_work_shift(cr, uid, employee_ids[0], int(day), int(month), year)
+                                    if work_shift_ids and shift_id and shift_id == work_shift_ids[0]:
+                                        val1['planned_work_shift_id']=shift_id
                                         details_ids=detail_obj.search(cr, uid, [('employee_id','=',employee_ids[0])])
                                         if details_ids:
-                                            val4={'punch_in_out_id':details_ids[0],'planned_work_shift_id':work_shift_ids[0],'employee_id':employee_ids[0],'work_date':date,'in_time':in_time,'out_time':out_time,'approval':1}
+                                            val4={'punch_in_out_id':details_ids[0],'planned_work_shift_id':shift_id,'employee_id':employee_ids[0],'work_date':date,'in_time':in_time,'out_time':out_time,'approval':1}
                                             detail_obj4.create(cr, uid, val4)
                                         else:
                                             detail_obj.create(cr, uid, {'employee_id':employee_ids[0],'punch_in_out_line':[(0,0,val1)]})

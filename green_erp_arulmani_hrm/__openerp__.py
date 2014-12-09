@@ -51,6 +51,7 @@
         "static/src/css/base.css",
     ],
     'js' : [
+        "static/src/js/view_form.js",
     ],
     'qweb': [
         "static/src/xml/base.xml",

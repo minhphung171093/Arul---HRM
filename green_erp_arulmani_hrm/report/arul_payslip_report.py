@@ -101,17 +101,17 @@ class Parser(report_sxw.rml_parse):
                         net += earning.float                        
                 for deduction in payroll.other_deduction_line:
                     if deduction.deduction_parameters_id.code=='VPF.D':
-                        vpf += earning.float
+                        vpf += deduction.float
                     if deduction.deduction_parameters_id.code=='PT':
-                        pt += earning.float
+                        pt += deduction.float
                     if deduction.deduction_parameters_id.code=='L.D':
-                        loan += earning.float
+                        loan += deduction.float
 #                     if earning.earning_parameters_id.code=='PF.D':
 #                         epf += earning.float
                     if deduction.deduction_parameters_id.code=='TOTAL_DEDUCTION':
-                        total_ded += earning.float
+                        total_ded += deduction.float
                     if deduction.deduction_parameters_id.code=='LOP':
-                        lop += earning.float
+                        lop += deduction.float
                            
 
                 res.append({

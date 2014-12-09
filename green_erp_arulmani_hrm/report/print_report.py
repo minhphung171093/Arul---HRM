@@ -39,6 +39,7 @@ class Parser(report_sxw.rml_parse):
         self.localcontext.update({
             'get_month':self.get_month,
             'get_emp':self.get_emp,
+            'get_payslip': self.get_payslip,
         })
         
     def get_month(self):
@@ -47,8 +48,92 @@ class Parser(report_sxw.rml_parse):
     def get_emp(self):
         payroll_obj = self.pool.get('arul.hr.payroll.executions')
         return payroll_obj.browse(self.cr, self.uid, self.ids[0]).payroll_executions_details_line
-                
-                
-                    
+    
+    def get_payslip(self):
+        res = []
+        payroll_obj = self.pool.get('arul.hr.payroll.executions')
+        for line in payroll_obj.browse(self.cr, self.uid, self.ids[0]).payroll_executions_details_line:
+            basic = 0
+            da = 0
+            hra = 0
+            conv = 0
+            spa = 0
+            oa = 0
+            la = 0
+            aa = 0
+            pfd = 0
+            vpf = 0
+            esi_con = 0
+            fd = 0
+            loan = 0
+            id = 0
+            pt = 0
+            lwf = 0
+            lop = 0
+            total_ear = 0
+            total_ded = 0
+            net = 0
+            for earning in line.earning_structure_line:
+                if earning.earning_parameters_id.code=='BASIC':
+                    basic += earning.float
+                if earning.earning_parameters_id.code=='DA':
+                    da += earning.float
+                if earning.earning_parameters_id.code=='HRA':
+                    hra += earning.float
+                if earning.earning_parameters_id.code=='C':
+                    conv += earning.float
+                if earning.earning_parameters_id.code=='SpA':
+                    spa += earning.float
+                if earning.earning_parameters_id.code=='OA':
+                    oa += earning.float
+                if earning.earning_parameters_id.code=='LA':
+                    la += earning.float
+                if earning.earning_parameters_id.code=='AA':
+                    aa += earning.float
+                if earning.earning_parameters_id.code=='TOTAL_EARNING':
+                    total_ear += earning.float
+                if earning.earning_parameters_id.code=='NET':
+                    net += earning.float                        
+            for deduction in line.other_deduction_line:
+                if deduction.deduction_parameters_id.code=='PF.D':
+                    pfd += deduction.float
+                if deduction.deduction_parameters_id.code=='VPF.D':
+                    vpf += deduction.float
+                if deduction.deduction_parameters_id.code=='F.D':
+                    fd += deduction.float
+                if deduction.deduction_parameters_id.code=='PT':
+                    pt += deduction.float
+                if deduction.deduction_parameters_id.code=='L.D':
+                    loan += deduction.float
+                if deduction.deduction_parameters_id.code=='I.D':
+                    id += deduction.float
+                if deduction.deduction_parameters_id.code=='TOTAL_DEDUCTION':
+                    total_ded += deduction.float
+                if deduction.deduction_parameters_id.code=='LOP':
+                    lop += deduction.float
+            res.append({
+                'payslip': line,
+                'basic': basic,
+                'da': da,
+                'hra': hra,
+                'conv': conv,
+                'spa': spa,
+                'oa': oa,
+                'la': la,
+                'aa': oa,
+                'pfd': pfd,
+                'vpf': vpf,
+                'esi_con': line.emp_esi_con,
+                'fd': fd,
+                'loan': loan,
+                'id': id,
+                'pt': id,
+                'lwf': line.emp_lwf_amt,
+                'lop': lop,
+                'total_ear': total_ear,
+                'total_ded': total_ded,
+                'net': net,
+            })
+        return res
 # vim:expandtab:smartindent:tabstop=4:softtabstop=4:shiftwidth=4:
 
