@@ -1248,6 +1248,7 @@ class arul_hr_monthly_shift_schedule(osv.osv):
                     value['day_30'] = work_shift_id
                 if num == 31:
                     value['day_31'] = work_shift_id
+            value.update({'shift_day_from': False,'shift_day_to': False, 'work_shift_id':False})
         return {'value': value}          
     
     def _check_employee_id(self, cr, uid, ids, context=None):
