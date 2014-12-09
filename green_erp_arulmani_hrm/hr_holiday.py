@@ -1262,7 +1262,20 @@ class arul_hr_monthly_shift_schedule(osv.osv):
         (_check_employee_id, 'Identical Data', ['employee_id']),
     ]
 arul_hr_monthly_shift_schedule()
- 
+
+class tpt_non_availability(osv.osv):
+    _name = 'tpt.non.availability'
+    _columns={
+          'employee_id':fields.many2one('hr.employee','Employee',required=True),
+          'date':fields.date('Date'),
+          'state':fields.selection([('draft', 'Draft'),('done', 'Done')],'Status', readonly=True),
+          'leave_evaluate_id': fields.many2one('tpt.time.leave.evaluation','Leave Evaluation'),
+      }
+    _defaults = {
+        'state':'draft',
+    }
+tpt_non_availability()
+
 class tpt_time_leave_evaluation(osv.osv):
     _name = 'tpt.time.leave.evaluation'
     _columns = {
@@ -1270,7 +1283,8 @@ class tpt_time_leave_evaluation(osv.osv):
          'year': fields.selection([(num, str(num)) for num in range(1951, 2026)], 'Year',required = True),
          'month': fields.selection([('1', 'January'),('2', 'February'), ('3', 'March'), ('4','April'), ('5','May'), ('6','June'), ('7','July'), ('8','August'), ('9','September'), ('10','October'), ('11','November'), ('12','December')], 'Month',required = True),
          'shift_time_id': fields.one2many('arul.hr.audit.shift.time','time_evaluate_id','Time Evaluation Report',readonly = True),
-         'leave_request_id': fields.one2many('arul.hr.employee.leave.details','leave_evaluate_id','Non Availability Report',readonly = True),
+         'leave_request_id': fields.one2many('arul.hr.employee.leave.details','leave_evaluate_id','Not Approved Section',readonly = True),
+         'non_availability_id': fields.one2many('tpt.non.availability','leave_evaluate_id','Non Availability Report',readonly = True),
     }
     _defaults = {
        'year':int(time.strftime('%Y')),
@@ -1288,6 +1302,8 @@ class tpt_time_leave_evaluation(osv.osv):
         return res   
      
     def submit_evaluate(self, cr, uid, ids, context=None):
+        monthly_shift_obj = self.pool.get('arul.hr.monthly.shift.schedule')
+        non_availability_obj = self.pool.get('tpt.non.availability')
         for sub in self.browse(cr, uid, ids, context=context):
             sql = '''
                 update arul_hr_audit_shift_time set time_evaluate_id = %s where EXTRACT(year FROM work_date) = %s and EXTRACT(month FROM work_date) = %s and state = 'draft'
@@ -1299,6 +1315,155 @@ class tpt_time_leave_evaluation(osv.osv):
                 and employee_id in (select id from hr_employee where payroll_area_id = %s)
             '''%(sub.id,sub.year,sub.month,sub.payroll_area_id.id)
             cr.execute(sql)
+            
+            sql = '''
+                delete from tpt_non_availability where leave_evaluate_id = %s
+            '''%(sub.id)
+            cr.execute(sql)
+            monthly_shift_ids = monthly_shift_obj.search(cr, uid, [('employee_id.payroll_area_id','=',sub.payroll_area_id.id),('monthly_work_id.year','=',sub.year),('monthly_work_id.month','=',sub.month)])
+            for shift in monthly_shift_obj.browse(cr, uid, monthly_shift_ids):
+                emp_id = shift.employee_id.id
+                sql = '''
+                    select EXTRACT(day FROM work_date) from arul_hr_audit_shift_time where employee_id = %s and EXTRACT(year FROM work_date) = %s and EXTRACT(month FROM work_date) = %s
+                '''%(emp_id, sub.year, sub.month)
+                cr.execute(sql)
+                audit_days = [row[0] for row in cr.fetchall()]
+                
+                sql = '''
+                    select EXTRACT(day FROM work_date) from arul_hr_punch_in_out_time where employee_id = %s and EXTRACT(year FROM work_date) = %s and EXTRACT(month FROM work_date) = %s
+                '''%(emp_id, sub.year, sub.month)
+                cr.execute(sql)
+                punch_days = [row[0] for row in cr.fetchall()]
+                
+                sql = '''
+                    select EXTRACT(day FROM date_from) from arul_hr_employee_leave_details where employee_id = %s and EXTRACT(year FROM date_from) = %s and EXTRACT(month FROM date_from) = %s
+                '''%(emp_id, sub.year, sub.month)
+                cr.execute(sql)
+                leave_days = [row[0] for row in cr.fetchall()]
+                if shift.day_1 and shift.day_1.code != 'W':
+                    if 1.0 not in audit_days and 1.0 not in punch_days and 1.0 not in leave_days:
+                        date = datetime.datetime(sub.year,int(sub.month),1)
+                        non_availability_obj.create(cr, uid, {'employee_id':emp_id,'state':'draft','date':date,'leave_evaluate_id':sub.id})
+                if shift.day_2 and shift.day_2.code != 'W':
+                    if 2.0 not in audit_days and 2.0 not in punch_days and 2.0 not in leave_days:
+                        date = datetime.datetime(sub.year,int(sub.month),2)
+                        non_availability_obj.create(cr, uid, {'employee_id':emp_id,'state':'draft','date':date,'leave_evaluate_id':sub.id})
+                if shift.day_3 and shift.day_3.code != 'W':
+                    if 3.0 not in audit_days and 3.0 not in punch_days and 3.0 not in leave_days:
+                        date = datetime.datetime(sub.year,int(sub.month),3)
+                        non_availability_obj.create(cr, uid, {'employee_id':emp_id,'state':'draft','date':date,'leave_evaluate_id':sub.id})
+                if shift.day_4 and shift.day_4.code != 'W':
+                    if 4.0 not in audit_days and 4.0 not in punch_days and 4.0 not in leave_days:
+                        date = datetime.datetime(sub.year,int(sub.month),4)
+                        non_availability_obj.create(cr, uid, {'employee_id':emp_id,'state':'draft','date':date,'leave_evaluate_id':sub.id})
+                if shift.day_5 and shift.day_5.code != 'W':
+                    if 5.0 not in audit_days and 5.0 not in punch_days and 5.0 not in leave_days:
+                        date = datetime.datetime(sub.year,int(sub.month),5)
+                        non_availability_obj.create(cr, uid, {'employee_id':emp_id,'state':'draft','date':date,'leave_evaluate_id':sub.id})
+                if shift.day_6 and shift.day_6.code != 'W':
+                    if 6.0 not in audit_days and 6.0 not in punch_days and 6.0 not in leave_days:
+                        date = datetime.datetime(sub.year,int(sub.month),6)
+                        non_availability_obj.create(cr, uid, {'employee_id':emp_id,'state':'draft','date':date,'leave_evaluate_id':sub.id})
+                if shift.day_7 and shift.day_7.code != 'W':
+                    if 7.0 not in audit_days and 7.0 not in punch_days and 7.0 not in leave_days:
+                        date = datetime.datetime(sub.year,int(sub.month),7)
+                        non_availability_obj.create(cr, uid, {'employee_id':emp_id,'state':'draft','date':date,'leave_evaluate_id':sub.id})
+                if shift.day_8 and shift.day_8.code != 'W':
+                    if 8.0 not in audit_days and 8.0 not in punch_days and 8.0 not in leave_days:
+                        date = datetime.datetime(sub.year,int(sub.month),8)
+                        non_availability_obj.create(cr, uid, {'employee_id':emp_id,'state':'draft','date':date,'leave_evaluate_id':sub.id})
+                if shift.day_9 and shift.day_9.code != 'W':
+                    if 9.0 not in audit_days and 9.0 not in punch_days and 9.0 not in leave_days:
+                        date = datetime.datetime(sub.year,int(sub.month),9)
+                        non_availability_obj.create(cr, uid, {'employee_id':emp_id,'state':'draft','date':date,'leave_evaluate_id':sub.id})
+                if shift.day_10 and shift.day_10.code != 'W':
+                    if 10.0 not in audit_days and 10.0 not in punch_days and 10.0 not in leave_days:
+                        date = datetime.datetime(sub.year,int(sub.month),10)
+                        non_availability_obj.create(cr, uid, {'employee_id':emp_id,'state':'draft','date':date,'leave_evaluate_id':sub.id})
+                if shift.day_11 and shift.day_11.code != 'W':
+                    if 11.0 not in audit_days and 11.0 not in punch_days and 11.0 not in leave_days:
+                        date = datetime.datetime(sub.year,int(sub.month),11)
+                        non_availability_obj.create(cr, uid, {'employee_id':emp_id,'state':'draft','date':date,'leave_evaluate_id':sub.id})
+                if shift.day_12 and shift.day_12.code != 'W':
+                    if 12.0 not in audit_days and 12.0 not in punch_days and 12.0 not in leave_days:
+                        date = datetime.datetime(sub.year,int(sub.month),12)
+                        non_availability_obj.create(cr, uid, {'employee_id':emp_id,'state':'draft','date':date,'leave_evaluate_id':sub.id})
+                if shift.day_13 and shift.day_13.code != 'W':
+                    if 13.0 not in audit_days and 13.0 not in punch_days and 13.0 not in leave_days:
+                        date = datetime.datetime(sub.year,int(sub.month),13)
+                        non_availability_obj.create(cr, uid, {'employee_id':emp_id,'state':'draft','date':date,'leave_evaluate_id':sub.id})
+                if shift.day_14 and shift.day_14.code != 'W':
+                    if 14.0 not in audit_days and 14.0 not in punch_days and 14.0 not in leave_days:
+                        date = datetime.datetime(sub.year,int(sub.month),14)
+                        non_availability_obj.create(cr, uid, {'employee_id':emp_id,'state':'draft','date':date,'leave_evaluate_id':sub.id})
+                if shift.day_15 and shift.day_15.code != 'W':
+                    if 15.0 not in audit_days and 15.0 not in punch_days and 15.0 not in leave_days:
+                        date = datetime.datetime(sub.year,int(sub.month),15)
+                        non_availability_obj.create(cr, uid, {'employee_id':emp_id,'state':'draft','date':date,'leave_evaluate_id':sub.id})
+                if shift.day_16 and shift.day_16.code != 'W':
+                    if 16.0 not in audit_days and 16.0 not in punch_days and 16.0 not in leave_days:
+                        date = datetime.datetime(sub.year,int(sub.month),16)
+                        non_availability_obj.create(cr, uid, {'employee_id':emp_id,'state':'draft','date':date,'leave_evaluate_id':sub.id})
+                if shift.day_17 and shift.day_17.code != 'W':
+                    if 17.0 not in audit_days and 17.0 not in punch_days and 17.0 not in leave_days:
+                        date = datetime.datetime(sub.year,int(sub.month),17)
+                        non_availability_obj.create(cr, uid, {'employee_id':emp_id,'state':'draft','date':date,'leave_evaluate_id':sub.id})
+                if shift.day_18 and shift.day_18.code != 'W':
+                    if 18.0 not in audit_days and 18.0 not in punch_days and 18.0 not in leave_days:
+                        date = datetime.datetime(sub.year,int(sub.month),18)
+                        non_availability_obj.create(cr, uid, {'employee_id':emp_id,'state':'draft','date':date,'leave_evaluate_id':sub.id})
+                if shift.day_19 and shift.day_19.code != 'W':
+                    if 19.0 not in audit_days and 19.0 not in punch_days and 19.0 not in leave_days:
+                        date = datetime.datetime(sub.year,int(sub.month),19)
+                        non_availability_obj.create(cr, uid, {'employee_id':emp_id,'state':'draft','date':date,'leave_evaluate_id':sub.id})
+                if shift.day_20 and shift.day_20.code != 'W':
+                    if 20.0 not in audit_days and 20.0 not in punch_days and 20.0 not in leave_days:
+                        date = datetime.datetime(sub.year,int(sub.month),20)
+                        non_availability_obj.create(cr, uid, {'employee_id':emp_id,'state':'draft','date':date,'leave_evaluate_id':sub.id})
+                if shift.day_21 and shift.day_21.code != 'W':
+                    if 21.0 not in audit_days and 21.0 not in punch_days and 21.0 not in leave_days:
+                        date = datetime.datetime(sub.year,int(sub.month),21)
+                        non_availability_obj.create(cr, uid, {'employee_id':emp_id,'state':'draft','date':date,'leave_evaluate_id':sub.id})
+                if shift.day_22 and shift.day_22.code != 'W':
+                    if 22.0 not in audit_days and 22.0 not in punch_days and 22.0 not in leave_days:
+                        date = datetime.datetime(sub.year,int(sub.month),22)
+                        non_availability_obj.create(cr, uid, {'employee_id':emp_id,'state':'draft','date':date,'leave_evaluate_id':sub.id})
+                if shift.day_23 and shift.day_23.code != 'W':
+                    if 23.0 not in audit_days and 23.0 not in punch_days and 23.0 not in leave_days:
+                        date = datetime.datetime(sub.year,int(sub.month),23)
+                        non_availability_obj.create(cr, uid, {'employee_id':emp_id,'state':'draft','date':date,'leave_evaluate_id':sub.id})
+                if shift.day_24 and shift.day_24.code != 'W':
+                    if 24.0 not in audit_days and 24.0 not in punch_days and 24.0 not in leave_days:
+                        date = datetime.datetime(sub.year,int(sub.month),24)
+                        non_availability_obj.create(cr, uid, {'employee_id':emp_id,'state':'draft','date':date,'leave_evaluate_id':sub.id})
+                if shift.day_25 and shift.day_25.code != 'W':
+                    if 25.0 not in audit_days and 25.0 not in punch_days and 25.0 not in leave_days:
+                        date = datetime.datetime(sub.year,int(sub.month),25)
+                        non_availability_obj.create(cr, uid, {'employee_id':emp_id,'state':'draft','date':date,'leave_evaluate_id':sub.id})
+                if shift.day_26 and shift.day_26.code != 'W':
+                    if 26.0 not in audit_days and 26.0 not in punch_days and 26.0 not in leave_days:
+                        date = datetime.datetime(sub.year,int(sub.month),26)
+                        non_availability_obj.create(cr, uid, {'employee_id':emp_id,'state':'draft','date':date,'leave_evaluate_id':sub.id})
+                if shift.day_27 and shift.day_27.code != 'W':
+                    if 27.0 not in audit_days and 27.0 not in punch_days and 27.0 not in leave_days:
+                        date = datetime.datetime(sub.year,int(sub.month),27)
+                        non_availability_obj.create(cr, uid, {'employee_id':emp_id,'state':'draft','date':date,'leave_evaluate_id':sub.id})
+                if shift.day_28 and shift.day_28.code != 'W':
+                    if 28.0 not in audit_days and 28.0 not in punch_days and 28.0 not in leave_days:
+                        date = datetime.datetime(sub.year,int(sub.month),28)
+                        non_availability_obj.create(cr, uid, {'employee_id':emp_id,'state':'draft','date':date,'leave_evaluate_id':sub.id})
+                if shift.day_29 and shift.day_29.code != 'W' and shift.num_of_month>=29:
+                    if 29.0 not in audit_days and 29.0 not in punch_days and 29.0 not in leave_days:
+                        date = datetime.datetime(sub.year,int(sub.month),29)
+                        non_availability_obj.create(cr, uid, {'employee_id':emp_id,'state':'draft','date':date,'leave_evaluate_id':sub.id})
+                if shift.day_30 and shift.day_30.code != 'W' and shift.num_of_month>=30:
+                    if 30.0 not in audit_days and 30.0 not in punch_days and 30.0 not in leave_days:
+                        date = datetime.datetime(sub.year,int(sub.month),30)
+                        non_availability_obj.create(cr, uid, {'employee_id':emp_id,'state':'draft','date':date,'leave_evaluate_id':sub.id})
+                if shift.day_31 and shift.day_31.code != 'W' and shift.num_of_month>=31:
+                    if 31.0 not in audit_days and 31.0 not in punch_days and 31.0 not in leave_days:
+                        date = datetime.datetime(sub.year,int(sub.month),31)
+                        non_availability_obj.create(cr, uid, {'employee_id':emp_id,'state':'draft','date':date,'leave_evaluate_id':sub.id})
         return True
      
 tpt_time_leave_evaluation()

@@ -840,8 +840,17 @@
 								<field name="state"/>
 							</tree>
 						</field>
-		           </group> 
+		           </group>
 		           <group col = '4' colspan = '2' string="Non Availability Report">    
+						<field name="non_availability_id" editable="top" nolabel="1">
+							<tree>
+								<field name="employee_id"/>
+								<field name="date"/>
+								<field name="state"/>
+							</tree>
+						</field>
+		           </group>
+		           <group col = '4' colspan = '2' string="Not Approved Section">    
 						<field name="leave_request_id" editable="top" nolabel="1">
 							<tree>
 								<field name="employee_id"/>
