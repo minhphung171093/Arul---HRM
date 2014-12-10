@@ -407,7 +407,7 @@ class hr_employee(osv.osv):
         'country_stateofbirth_id': fields.many2one('res.country', 'Country'),
         'date_of_retirement': fields.date('Date Of Retirement'),
         'personal_contact': fields.char('Personal Mobile Number', size=1024),
-        
+        'birth_place': fields.char('Birthplace', size=1024),
 #         'personal_contact': fields.char('Personal Contact', size=1024),
         'manage_equipment_inventory_line': fields.one2many('tpt.manage.equipment.inventory','employee_id','Manage Equipment Inventory Line'),
     }
@@ -590,6 +590,15 @@ class hr_employee(osv.osv):
                     raise osv.except_osv(_('Warning!'),_('Date Of Joining must be less than Date Of Resignation!'))
                     return False
         return True
+    
+    def _check_employee_id(self, cr, uid, ids, context=None):
+        for employee in self.browse(cr, uid, ids, context=context):
+            record_ids = self.search(cr, uid, [('id','!=',record.id),('employee_id','=',record.employee_id),('employee_id','!=',False)])
+            if record_ids:
+                raise osv.except_osv(_('Warning!'),_('Employee ID already exists!'))
+                return False
+        return True
+    
     _constraints = [
         (_check_date, 'Identical Data', ['date_of_joining','date_of_resignation']),
         (_check_time_record_id, 'Identical Data', ['time_record']),
@@ -1090,7 +1099,7 @@ class employee_leave_detail(osv.osv):
         return result.keys()
     
     _columns = {
-        'emp_leave_id': fields.many2one('employee.leave', 'Employee Leave', readonly=True),
+        'emp_leave_id': fields.many2one('employee.leave', 'Employee Leave', readonly=True,ondelete='cascade'),
         'leave_type_id' : fields.many2one('arul.hr.leave.types', 'Leave Types', readonly=False),
         'total_day': fields.float('Total Day',degits=(16,2), readonly=False),
 #         'total_taken': fields.float('Total Day',degits=(16,2)),

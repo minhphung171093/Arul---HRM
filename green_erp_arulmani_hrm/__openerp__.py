@@ -37,7 +37,7 @@
         'hr_payroll_view.xml',
         'hr_holiday_view.xml',
         'hr_contract_view.xml',
-        'menu_view.xml',
+        
         'hr_demo_leave_types.xml',
         'hr_employee_data.xml',
         'emp_leave_status_schedule.xml',
@@ -46,6 +46,9 @@
         'report/arul_payslip_report.xml',
         'report/print_report.xml',
 #         'data_category.xml',
+        'import_view.xml',
+        'green_erp_arulmani_sequence.xml',
+        'menu_view.xml',
     ],
     'css' : [
         "static/src/css/base.css",

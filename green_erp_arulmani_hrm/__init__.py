@@ -5,3 +5,4 @@ import hr_payroll
 import hr_holiday
 import wizard
 import report
+import import_data

@@ -10,7 +10,8 @@ class hr_employee(osv.osv):
     _inherit = "hr.employee"
     
     def create(self, cr, user, vals, context=None):
-        vals['employee_id']= self.pool.get('ir.sequence').get(cr, user, 'hr.employee.id')
+        if vals['employee_id'] == False:
+            vals['employee_id']= self.pool.get('ir.sequence').get(cr, user, 'hr.employee.id')
         new_id = super(hr_employee, self).create(cr, user, vals, context)
         return new_id
     
@@ -112,7 +113,7 @@ class hr_religion(osv.osv):
     _description = "Religion"
     _columns = {
         'name' : fields.char('Name', 64, required=True),
-        'code' : fields.char('Code', 9, required=True),
+        'code' : fields.char('Code', 64, required=True),
         'active': fields.boolean('Active', help="If the active field is set to False, it will allow you to hide the record without removing it."),
     }
     _defaults = {

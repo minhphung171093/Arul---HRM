@@ -447,7 +447,7 @@ class arul_hr_payroll_earning_structure_configuration(osv.osv):
     }
     def _check_earning_parameters_id(self, cr, uid, ids, context=None):
         for payroll in self.browse(cr, uid, ids, context=context):
-            payroll_category_ids = self.search(cr, uid, [('id','!=',payroll.id),('earning_parameters_id','=',payroll.earning_parameters_id.id)])
+            payroll_category_ids = self.search(cr, uid, [('id','!=',payroll.id),('earning_parameters_id','=',payroll.earning_parameters_id.id),('earning_structure_configuration_id','=',payroll.earning_structure_configuration_id.id)])
             if payroll_category_ids :
                 return False
         return True
@@ -790,6 +790,8 @@ class arul_hr_payroll_executions(osv.osv):
             earning_structure_obj = self.pool.get('arul.hr.payroll.earning.structure')
             other_deductions_obj = self.pool.get('arul.hr.payroll.other.deductions')
             contribution_obj = self.pool.get('arul.hr.payroll.contribution.parameters')
+            earning_obj = self.pool.get('arul.hr.payroll.earning.parameters')
+            deduction_obj = self.pool.get('arul.hr.payroll.deduction.parameters')
             employee_ids = emp_obj.search(cr, uid, [('payroll_area_id','=',line.payroll_area_id.id)])
             for p in emp_obj.browse(cr,uid,employee_ids):
                 payroll_executions_details_ids = executions_details_obj.search(cr, uid, [('payroll_executions_id', '=', line.id), ('employee_id', '=', p.id)], context=context)
@@ -833,14 +835,14 @@ class arul_hr_payroll_executions(osv.osv):
                         lwf = 0.0
                         total_deduction = 0
                         for other_deductions_id in payroll_emp_struc_obj.browse(cr,uid,emp_struc_ids[0]).payroll_other_deductions_line:
-                            if other_deductions_id.deduction_parameters_id.code == 'PF.D':
-                                pfd = other_deductions_id.float
+#                             if other_deductions_id.deduction_parameters_id.code == 'PF.D':
+#                                 pfd = other_deductions_id.float
                             if other_deductions_id.deduction_parameters_id.code == 'P.D':
                                 pd = other_deductions_id.float
                             if other_deductions_id.deduction_parameters_id.code == 'VPF.D':
                                 vpfd = other_deductions_id.float
-                            if other_deductions_id.deduction_parameters_id.code == 'ESI.D':
-                                esid = other_deductions_id.float
+#                             if other_deductions_id.deduction_parameters_id.code == 'ESI.D':
+#                                 esid = other_deductions_id.float
                             if other_deductions_id.deduction_parameters_id.code == 'F.D':
                                 fd = other_deductions_id.float
                             if other_deductions_id.deduction_parameters_id.code == 'L.D':
@@ -849,18 +851,26 @@ class arul_hr_payroll_executions(osv.osv):
                                 ind = other_deductions_id.float
                             if other_deductions_id.deduction_parameters_id.code == 'PT':
                                 pt = other_deductions_id.float
-                            if other_deductions_id.deduction_parameters_id.code == 'LWF':
-                                lwf = other_deductions_id.float
+#                             if other_deductions_id.deduction_parameters_id.code == 'LWF':
+#                                 lwf = other_deductions_id.float
 
                         fd += total_fd
                         
-                        total_deduction = pfd + pd + vpfd + esid + fd + ld + ind +  pt + lwf    
+                        if gross_sal >= emp_esi_limit:
+                            emp_esi_con_amount = 0
+                        else:
+                            emp_esi_con_amount = total_earning*emp_esi_con/100
+                        base_amount = basic + da - lop
+                        emp_pf_con_amount = base_amount*emp_pf_con/100
+
+                        total_deduction = pfd + pd + vpfd + esid + fd + ld + ind +  pt + lwf + emp_pf_con_amount + emp_esi_con_amount + emp_lwf_amt
+                        
                         for _other_deductions_id in payroll_emp_struc_obj.browse(cr,uid,emp_struc_ids[0]).payroll_other_deductions_line:
-                            if _other_deductions_id.deduction_parameters_id.code == 'PF.D':
-                                vals_other_deductions.append((0,0, {
-                                          'deduction_parameters_id':_other_deductions_id.deduction_parameters_id.id,
-                                          'float': pfd,
-                                    }))
+#                             if _other_deductions_id.deduction_parameters_id.code == 'PF.D':
+#                                 vals_other_deductions.append((0,0, {
+#                                           'deduction_parameters_id':_other_deductions_id.deduction_parameters_id.id,
+#                                           'float': pfd,
+#                                     }))
                             if _other_deductions_id.deduction_parameters_id.code == 'P.D':
                                 vals_other_deductions.append((0,0, {
                                           'deduction_parameters_id':_other_deductions_id.deduction_parameters_id.id,
@@ -871,11 +881,11 @@ class arul_hr_payroll_executions(osv.osv):
                                           'deduction_parameters_id':_other_deductions_id.deduction_parameters_id.id,
                                           'float': vpfd,
                                     }))
-                            if _other_deductions_id.deduction_parameters_id.code == 'ESI.D':
-                                vals_other_deductions.append((0,0, {
-                                          'deduction_parameters_id':_other_deductions_id.deduction_parameters_id.id,
-                                          'float': esid,
-                                    }))
+#                             if _other_deductions_id.deduction_parameters_id.code == 'ESI.D':
+#                                 vals_other_deductions.append((0,0, {
+#                                           'deduction_parameters_id':_other_deductions_id.deduction_parameters_id.id,
+#                                           'float': esid,
+#                                     }))
                             if _other_deductions_id.deduction_parameters_id.code == 'F.D':
                                 vals_other_deductions.append((0,0, {
                                           'deduction_parameters_id':_other_deductions_id.deduction_parameters_id.id,
@@ -896,16 +906,16 @@ class arul_hr_payroll_executions(osv.osv):
                                           'deduction_parameters_id':_other_deductions_id.deduction_parameters_id.id,
                                           'float': pt,
                                     }))
-                            if _other_deductions_id.deduction_parameters_id.code == 'LWF':
-                                vals_other_deductions.append((0,0, {
-                                          'deduction_parameters_id':_other_deductions_id.deduction_parameters_id.id,
-                                          'float': lwf,
-                                    }))
-                            if _other_deductions_id.deduction_parameters_id.code == 'TOTAL_DEDUCTION':
-                                vals_other_deductions.append((0,0, {
-                                          'deduction_parameters_id':_other_deductions_id.deduction_parameters_id.id,
-                                          'float': total_deduction,
-                                    }))
+#                             if _other_deductions_id.deduction_parameters_id.code == 'LWF':
+#                                 vals_other_deductions.append((0,0, {
+#                                           'deduction_parameters_id':_other_deductions_id.deduction_parameters_id.id,
+#                                           'float': lwf,
+#                                     }))
+#                             if _other_deductions_id.deduction_parameters_id.code == 'TOTAL_DEDUCTION':
+#                                 vals_other_deductions.append((0,0, {
+#                                           'deduction_parameters_id':_other_deductions_id.deduction_parameters_id.id,
+#                                           'float': total_deduction,
+#                                     }))
                         basic = 0.0
                         da = 0.0
                         c = 0.0
@@ -1048,22 +1058,60 @@ class arul_hr_payroll_executions(osv.osv):
                                           'earning_parameters_id':_earning_struc_id.earning_parameters_id.id,
                                           'float': med,
                                     }))
-                            if _earning_struc_id.earning_parameters_id.code == 'TOTAL_EARNING':
+#                             if _earning_struc_id.earning_parameters_id.code == 'TOTAL_EARNING':
+#                                 vals_earning_struc.append((0,0, {
+#                                           'earning_parameters_id':_earning_struc_id.earning_parameters_id.id,
+#                                           'float': total_earning,
+#                                     }))
+#                             if _earning_struc_id.earning_parameters_id.code == 'GROSS_SALARY':
+#                                 vals_earning_struc.append((0,0, {
+#                                           'earning_parameters_id':_earning_struc_id.earning_parameters_id.id,
+#                                           'float': gross_sal,
+#                                     }))
+#                             if _earning_struc_id.earning_parameters_id.code == 'NET':
+#                                 vals_earning_struc.append((0,0, {
+#                                           'earning_parameters_id':_earning_struc_id.earning_parameters_id.id,
+#                                           'float': net_sala,
+#                                     }))
+                        earning_ids = earning_obj.search(cr, uid, [('code','in',['TOTAL_EARNING','GROSS_SALARY','NET'])])
+                        for earning in earning_obj.browse(cr, uid, earning_ids):
+                            if earning.code == 'TOTAL_EARNING':
                                 vals_earning_struc.append((0,0, {
-                                          'earning_parameters_id':_earning_struc_id.earning_parameters_id.id,
-                                          'float': total_earning,
-                                    }))
-                            if _earning_struc_id.earning_parameters_id.code == 'GROSS_SALARY':
+                                      'earning_parameters_id':earning.id,
+                                      'float': total_earning,
+                                }))
+                            if earning.code == 'GROSS_SALARY':
                                 vals_earning_struc.append((0,0, {
-                                          'earning_parameters_id':_earning_struc_id.earning_parameters_id.id,
-                                          'float': gross_sal,
-                                    }))
-                            if _earning_struc_id.earning_parameters_id.code == 'NET':
+                                      'earning_parameters_id':earning.id,
+                                      'float': gross_sal,
+                                }))
+                            if earning.code == 'NET':
                                 vals_earning_struc.append((0,0, {
-                                          'earning_parameters_id':_earning_struc_id.earning_parameters_id.id,
-                                          'float': net_sala,
+                                      'earning_parameters_id':earning.id,
+                                      'float': net_sala,
+                                }))
+                        deduction_ids = deduction_obj.search(cr, uid, [('code','in',['TOTAL_DEDUCTION','PF.D','ESI.D','LWF'])])
+                        for deduction in deduction_obj.browse(cr, uid, deduction_ids):
+                            if deduction.code == 'TOTAL_DEDUCTION':
+                                vals_other_deductions.append((0,0, {
+                                          'deduction_parameters_id':deduction.id,
+                                          'float': total_deduction,
                                     }))
-                    
+                            if deduction.code == 'PF.D':
+                                vals_other_deductions.append((0,0, {
+                                          'deduction_parameters_id':deduction.id,
+                                          'float': emp_pf_con_amount,
+                                    }))
+                            if deduction.code == 'ESI.D':
+                                vals_other_deductions.append((0,0, {
+                                          'deduction_parameters_id':deduction.id,
+                                          'float': emp_esi_con_amount,
+                                    }))
+                            if deduction.code == 'LWF':
+                                vals_other_deductions.append((0,0, {
+                                          'deduction_parameters_id':deduction.id,
+                                          'float': emp_lwf_amt,
+                                    }))
                     if p.employee_category_id and p.employee_category_id.code == 'S2':
                         pfd = 0.0
                         pd = 0.0
@@ -1076,14 +1124,14 @@ class arul_hr_payroll_executions(osv.osv):
                         lwf = 0.0
                         total_deduction = 0
                         for other_deductions_id in payroll_emp_struc_obj.browse(cr,uid,emp_struc_ids[0]).payroll_other_deductions_line:
-                            if other_deductions_id.deduction_parameters_id.code == 'PF.D':
-                                pfd = other_deductions_id.float
+#                             if other_deductions_id.deduction_parameters_id.code == 'PF.D':
+#                                 pfd = other_deductions_id.float
                             if other_deductions_id.deduction_parameters_id.code == 'P.D':
                                 pd = other_deductions_id.float
                             if other_deductions_id.deduction_parameters_id.code == 'VPF.D':
                                 vpfd = other_deductions_id.float
-                            if other_deductions_id.deduction_parameters_id.code == 'ESI.D':
-                                esid = other_deductions_id.float
+#                             if other_deductions_id.deduction_parameters_id.code == 'ESI.D':
+#                                 esid = other_deductions_id.float
                             if other_deductions_id.deduction_parameters_id.code == 'F.D':
                                 fd = other_deductions_id.float
                             if other_deductions_id.deduction_parameters_id.code == 'L.D':
@@ -1092,18 +1140,25 @@ class arul_hr_payroll_executions(osv.osv):
                                 ind = other_deductions_id.float
                             if other_deductions_id.deduction_parameters_id.code == 'PT':
                                 pt = other_deductions_id.float
-                            if other_deductions_id.deduction_parameters_id.code == 'LWF':
-                                lwf = other_deductions_id.float
+#                             if other_deductions_id.deduction_parameters_id.code == 'LWF':
+#                                 lwf = other_deductions_id.float
                                 
                         fd += total_fd
                         
-                        total_deduction = pfd + pd + vpfd + esid + fd + ld + ind +  pt + lwf    
+                        if gross_sal >= emp_esi_limit:
+                            emp_esi_con_amount = 0
+                        else:
+                            emp_esi_con_amount = total_earning*emp_esi_con/100
+                        base_amount = basic + da - lop
+                        emp_pf_con_amount = base_amount*emp_pf_con/100
+                        
+                        total_deduction = pfd + pd + vpfd + esid + fd + ld + ind +  pt + lwf + emp_pf_con_amount + emp_esi_con_amount + emp_lwf_amt 
                         for _other_deductions_id in payroll_emp_struc_obj.browse(cr,uid,emp_struc_ids[0]).payroll_other_deductions_line:
-                            if _other_deductions_id.deduction_parameters_id.code == 'PF.D':
-                                vals_other_deductions.append((0,0, {
-                                          'deduction_parameters_id':_other_deductions_id.deduction_parameters_id.id,
-                                          'float': pfd,
-                                    }))
+#                             if _other_deductions_id.deduction_parameters_id.code == 'PF.D':
+#                                 vals_other_deductions.append((0,0, {
+#                                           'deduction_parameters_id':_other_deductions_id.deduction_parameters_id.id,
+#                                           'float': pfd,
+#                                     }))
                             if _other_deductions_id.deduction_parameters_id.code == 'P.D':
                                 vals_other_deductions.append((0,0, {
                                           'deduction_parameters_id':_other_deductions_id.deduction_parameters_id.id,
@@ -1114,11 +1169,11 @@ class arul_hr_payroll_executions(osv.osv):
                                           'deduction_parameters_id':_other_deductions_id.deduction_parameters_id.id,
                                           'float': vpfd,
                                     }))
-                            if _other_deductions_id.deduction_parameters_id.code == 'ESI.D':
-                                vals_other_deductions.append((0,0, {
-                                          'deduction_parameters_id':_other_deductions_id.deduction_parameters_id.id,
-                                          'float': esid,
-                                    }))
+#                             if _other_deductions_id.deduction_parameters_id.code == 'ESI.D':
+#                                 vals_other_deductions.append((0,0, {
+#                                           'deduction_parameters_id':_other_deductions_id.deduction_parameters_id.id,
+#                                           'float': esid,
+#                                     }))
                             if _other_deductions_id.deduction_parameters_id.code == 'F.D':
                                 vals_other_deductions.append((0,0, {
                                           'deduction_parameters_id':_other_deductions_id.deduction_parameters_id.id,
@@ -1139,16 +1194,16 @@ class arul_hr_payroll_executions(osv.osv):
                                           'deduction_parameters_id':_other_deductions_id.deduction_parameters_id.id,
                                           'float': pt,
                                     }))
-                            if _other_deductions_id.deduction_parameters_id.code == 'LWF':
-                                vals_other_deductions.append((0,0, {
-                                          'deduction_parameters_id':_other_deductions_id.deduction_parameters_id.id,
-                                          'float': lwf,
-                                    }))
-                            if _other_deductions_id.deduction_parameters_id.code == 'TOTAL_DEDUCTION':
-                                vals_other_deductions.append((0,0, {
-                                          'deduction_parameters_id':_other_deductions_id.deduction_parameters_id.id,
-                                          'float': total_deduction,
-                                    }))
+#                             if _other_deductions_id.deduction_parameters_id.code == 'LWF':
+#                                 vals_other_deductions.append((0,0, {
+#                                           'deduction_parameters_id':_other_deductions_id.deduction_parameters_id.id,
+#                                           'float': lwf,
+#                                     }))
+#                             if _other_deductions_id.deduction_parameters_id.code == 'TOTAL_DEDUCTION':
+#                                 vals_other_deductions.append((0,0, {
+#                                           'deduction_parameters_id':_other_deductions_id.deduction_parameters_id.id,
+#                                           'float': total_deduction,
+#                                     }))
                         basic = 0.0
                         da = 0.0
                         c = 0.0
@@ -1292,22 +1347,60 @@ class arul_hr_payroll_executions(osv.osv):
                                           'earning_parameters_id':_earning_struc_id.earning_parameters_id.id,
                                           'float': med,
                                     }))
-                            if _earning_struc_id.earning_parameters_id.code == 'TOTAL_EARNING':
+#                             if _earning_struc_id.earning_parameters_id.code == 'TOTAL_EARNING':
+#                                 vals_earning_struc.append((0,0, {
+#                                           'earning_parameters_id':_earning_struc_id.earning_parameters_id.id,
+#                                           'float': total_earning,
+#                                     }))
+#                             if _earning_struc_id.earning_parameters_id.code == 'GROSS_SALARY':
+#                                 vals_earning_struc.append((0,0, {
+#                                           'earning_parameters_id':_earning_struc_id.earning_parameters_id.id,
+#                                           'float': gross_sal,
+#                                     }))
+#                             if _earning_struc_id.earning_parameters_id.code == 'NET':
+#                                 vals_earning_struc.append((0,0, {
+#                                           'earning_parameters_id':_earning_struc_id.earning_parameters_id.id,
+#                                           'float': net_sala,
+#                                     }))  
+                        earning_ids = earning_obj.search(cr, uid, [('code','in',['TOTAL_EARNING','GROSS_SALARY','NET'])])
+                        for earning in earning_obj.browse(cr, uid, earning_ids):
+                            if earning.code == 'TOTAL_EARNING':
                                 vals_earning_struc.append((0,0, {
-                                          'earning_parameters_id':_earning_struc_id.earning_parameters_id.id,
-                                          'float': total_earning,
+                                      'earning_parameters_id':earning.id,
+                                      'float': total_earning,
+                                }))
+                            if earning.code == 'GROSS_SALARY':
+                                vals_earning_struc.append((0,0, {
+                                      'earning_parameters_id':earning.id,
+                                      'float': gross_sal,
+                                }))
+                            if earning.code == 'NET':
+                                vals_earning_struc.append((0,0, {
+                                      'earning_parameters_id':earning.id,
+                                      'float': net_sala,
+                                }))
+                        deduction_ids = deduction_obj.search(cr, uid, [('code','in',['TOTAL_DEDUCTION','PF.D','ESI.D','LWF'])])
+                        for deduction in deduction_obj.browse(cr, uid, deduction_ids):
+                            if deduction.code == 'TOTAL_DEDUCTION':
+                                vals_other_deductions.append((0,0, {
+                                          'deduction_parameters_id':deduction.id,
+                                          'float': total_deduction,
                                     }))
-                            if _earning_struc_id.earning_parameters_id.code == 'GROSS_SALARY':
-                                vals_earning_struc.append((0,0, {
-                                          'earning_parameters_id':_earning_struc_id.earning_parameters_id.id,
-                                          'float': gross_sal,
+                            if deduction.code == 'PF.D':
+                                vals_other_deductions.append((0,0, {
+                                          'deduction_parameters_id':deduction.id,
+                                          'float': emp_pf_con_amount,
                                     }))
-                            if _earning_struc_id.earning_parameters_id.code == 'NET':
-                                vals_earning_struc.append((0,0, {
-                                          'earning_parameters_id':_earning_struc_id.earning_parameters_id.id,
-                                          'float': net_sala,
-                                    }))  
-                    
+                            if deduction.code == 'ESI.D':
+                                vals_other_deductions.append((0,0, {
+                                          'deduction_parameters_id':deduction.id,
+                                          'float': emp_esi_con_amount,
+                                    }))
+                            if deduction.code == 'LWF':
+                                vals_other_deductions.append((0,0, {
+                                          'deduction_parameters_id':deduction.id,
+                                          'float': emp_lwf_amt,
+                                    }))
                     if p.employee_category_id and p.employee_category_id.code == 'S3':
                         pfd = 0.0
                         pd = 0.0
@@ -1320,14 +1413,14 @@ class arul_hr_payroll_executions(osv.osv):
                         lwf = 0.0
                         total_deduction = 0
                         for other_deductions_id in payroll_emp_struc_obj.browse(cr,uid,emp_struc_ids[0]).payroll_other_deductions_line:
-                            if other_deductions_id.deduction_parameters_id.code == 'PF.D':
-                                pfd = other_deductions_id.float
+#                             if other_deductions_id.deduction_parameters_id.code == 'PF.D':
+#                                 pfd = other_deductions_id.float
                             if other_deductions_id.deduction_parameters_id.code == 'P.D':
                                 pd = other_deductions_id.float
                             if other_deductions_id.deduction_parameters_id.code == 'VPF.D':
                                 vpfd = other_deductions_id.float
-                            if other_deductions_id.deduction_parameters_id.code == 'ESI.D':
-                                esid = other_deductions_id.float
+#                             if other_deductions_id.deduction_parameters_id.code == 'ESI.D':
+#                                 esid = other_deductions_id.float
                             if other_deductions_id.deduction_parameters_id.code == 'F.D':
                                 fd = other_deductions_id.float
                             if other_deductions_id.deduction_parameters_id.code == 'L.D':
@@ -1336,18 +1429,25 @@ class arul_hr_payroll_executions(osv.osv):
                                 ind = other_deductions_id.float
                             if other_deductions_id.deduction_parameters_id.code == 'PT':
                                 pt = other_deductions_id.float
-                            if other_deductions_id.deduction_parameters_id.code == 'LWF':
-                                lwf = other_deductions_id.float
+#                             if other_deductions_id.deduction_parameters_id.code == 'LWF':
+#                                 lwf = other_deductions_id.float
                         
                         fd += total_fd        
                         
-                        total_deduction = pfd + pd + vpfd + esid + fd + ld + ind +  pt + lwf    
+                        if gross_sal >= emp_esi_limit:
+                            emp_esi_con_amount = 0
+                        else:
+                            emp_esi_con_amount = total_earning*emp_esi_con/100
+                        base_amount = basic + da - lop
+                        emp_pf_con_amount = base_amount*emp_pf_con/100
+                        
+                        total_deduction = pfd + pd + vpfd + esid + fd + ld + ind +  pt + lwf + emp_pf_con_amount + emp_esi_con_amount + emp_lwf_amt
                         for _other_deductions_id in payroll_emp_struc_obj.browse(cr,uid,emp_struc_ids[0]).payroll_other_deductions_line:
-                            if _other_deductions_id.deduction_parameters_id.code == 'PF.D':
-                                vals_other_deductions.append((0,0, {
-                                          'deduction_parameters_id':_other_deductions_id.deduction_parameters_id.id,
-                                          'float': pfd,
-                                    }))
+#                             if _other_deductions_id.deduction_parameters_id.code == 'PF.D':
+#                                 vals_other_deductions.append((0,0, {
+#                                           'deduction_parameters_id':_other_deductions_id.deduction_parameters_id.id,
+#                                           'float': pfd,
+#                                     }))
                             if _other_deductions_id.deduction_parameters_id.code == 'P.D':
                                 vals_other_deductions.append((0,0, {
                                           'deduction_parameters_id':_other_deductions_id.deduction_parameters_id.id,
@@ -1358,11 +1458,11 @@ class arul_hr_payroll_executions(osv.osv):
                                           'deduction_parameters_id':_other_deductions_id.deduction_parameters_id.id,
                                           'float': vpfd,
                                     }))
-                            if _other_deductions_id.deduction_parameters_id.code == 'ESI.D':
-                                vals_other_deductions.append((0,0, {
-                                          'deduction_parameters_id':_other_deductions_id.deduction_parameters_id.id,
-                                          'float': esid,
-                                    }))
+#                             if _other_deductions_id.deduction_parameters_id.code == 'ESI.D':
+#                                 vals_other_deductions.append((0,0, {
+#                                           'deduction_parameters_id':_other_deductions_id.deduction_parameters_id.id,
+#                                           'float': esid,
+#                                     }))
                             if _other_deductions_id.deduction_parameters_id.code == 'F.D':
                                 vals_other_deductions.append((0,0, {
                                           'deduction_parameters_id':_other_deductions_id.deduction_parameters_id.id,
@@ -1383,16 +1483,16 @@ class arul_hr_payroll_executions(osv.osv):
                                           'deduction_parameters_id':_other_deductions_id.deduction_parameters_id.id,
                                           'float': pt,
                                     }))
-                            if _other_deductions_id.deduction_parameters_id.code == 'LWF':
-                                vals_other_deductions.append((0,0, {
-                                          'deduction_parameters_id':_other_deductions_id.deduction_parameters_id.id,
-                                          'float': lwf,
-                                    }))
-                            if _other_deductions_id.deduction_parameters_id.code == 'TOTAL_DEDUCTION':
-                                vals_other_deductions.append((0,0, {
-                                          'deduction_parameters_id':_other_deductions_id.deduction_parameters_id.id,
-                                          'float': total_deduction,
-                                    }))
+#                             if _other_deductions_id.deduction_parameters_id.code == 'LWF':
+#                                 vals_other_deductions.append((0,0, {
+#                                           'deduction_parameters_id':_other_deductions_id.deduction_parameters_id.id,
+#                                           'float': lwf,
+#                                     }))
+#                             if _other_deductions_id.deduction_parameters_id.code == 'TOTAL_DEDUCTION':
+#                                 vals_other_deductions.append((0,0, {
+#                                           'deduction_parameters_id':_other_deductions_id.deduction_parameters_id.id,
+#                                           'float': total_deduction,
+#                                     }))
                         basic = 0.0
                         da = 0.0
                         c = 0.0
@@ -1537,20 +1637,59 @@ class arul_hr_payroll_executions(osv.osv):
                                           'earning_parameters_id':_earning_struc_id.earning_parameters_id.id,
                                           'float': med,
                                     }))
-                            if _earning_struc_id.earning_parameters_id.code == 'TOTAL_EARNING':
+#                             if _earning_struc_id.earning_parameters_id.code == 'TOTAL_EARNING':
+#                                 vals_earning_struc.append((0,0, {
+#                                           'earning_parameters_id':_earning_struc_id.earning_parameters_id.id,
+#                                           'float': total_earning,
+#                                     }))
+#                             if _earning_struc_id.earning_parameters_id.code == 'GROSS_SALARY':
+#                                 vals_earning_struc.append((0,0, {
+#                                           'earning_parameters_id':_earning_struc_id.earning_parameters_id.id,
+#                                           'float': gross_sal,
+#                                     }))
+#                             if _earning_struc_id.earning_parameters_id.code == 'NET':
+#                                 vals_earning_struc.append((0,0, {
+#                                           'earning_parameters_id':_earning_struc_id.earning_parameters_id.id,
+#                                           'float': net_sala,
+#                                     }))
+                        earning_ids = earning_obj.search(cr, uid, [('code','in',['TOTAL_EARNING','GROSS_SALARY','NET'])])
+                        for earning in earning_obj.browse(cr, uid, earning_ids):
+                            if earning.code == 'TOTAL_EARNING':
                                 vals_earning_struc.append((0,0, {
-                                          'earning_parameters_id':_earning_struc_id.earning_parameters_id.id,
-                                          'float': total_earning,
+                                      'earning_parameters_id':earning.id,
+                                      'float': total_earning,
+                                }))
+                            if earning.code == 'GROSS_SALARY':
+                                vals_earning_struc.append((0,0, {
+                                      'earning_parameters_id':earning.id,
+                                      'float': gross_sal,
+                                }))
+                            if earning.code == 'NET':
+                                vals_earning_struc.append((0,0, {
+                                      'earning_parameters_id':earning.id,
+                                      'float': net_sala,
+                                }))
+                        deduction_ids = deduction_obj.search(cr, uid, [('code','in',['TOTAL_DEDUCTION','PF.D','ESI.D','LWF'])])
+                        for deduction in deduction_obj.browse(cr, uid, deduction_ids):
+                            if deduction.code == 'TOTAL_DEDUCTION':
+                                vals_other_deductions.append((0,0, {
+                                          'deduction_parameters_id':deduction.id,
+                                          'float': total_deduction,
                                     }))
-                            if _earning_struc_id.earning_parameters_id.code == 'GROSS_SALARY':
-                                vals_earning_struc.append((0,0, {
-                                          'earning_parameters_id':_earning_struc_id.earning_parameters_id.id,
-                                          'float': gross_sal,
+                            if deduction.code == 'PF.D':
+                                vals_other_deductions.append((0,0, {
+                                          'deduction_parameters_id':deduction.id,
+                                          'float': emp_pf_con_amount,
                                     }))
-                            if _earning_struc_id.earning_parameters_id.code == 'NET':
-                                vals_earning_struc.append((0,0, {
-                                          'earning_parameters_id':_earning_struc_id.earning_parameters_id.id,
-                                          'float': net_sala,
+                            if deduction.code == 'ESI.D':
+                                vals_other_deductions.append((0,0, {
+                                          'deduction_parameters_id':deduction.id,
+                                          'float': emp_esi_con_amount,
+                                    }))
+                            if deduction.code == 'LWF':
+                                vals_other_deductions.append((0,0, {
+                                          'deduction_parameters_id':deduction.id,
+                                          'float': emp_lwf_amt,
                                     }))
                     if gross_sal >= emp_esi_limit:
                         emp_esi_con_amount = 0
