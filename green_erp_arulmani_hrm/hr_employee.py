@@ -263,7 +263,19 @@ class arul_hr_employee_action_history(osv.osv):
             vals = {'employee_category_id':emp.employee_category_id.id,
                     'sub_category_id':emp.employee_sub_category_id.id}
         return {'value': vals}
-
+    
+    def onchange_employee_category_id(self, cr, uid, ids,employee_category_id=False,employee_sub_category_id=False, context=None):
+        vals = {}
+        if employee_category_id and employee_sub_category_id:
+            sql = '''
+                select id from hr_employee_sub_category where id = %s and category_id=%s
+            '''%(employee_sub_category_id,employee_category_id)
+            cr.execute(sql)
+            sub_category_ids = [row[0] for row in cr.fetchall()]
+            if not sub_category_ids:
+                vals['sub_category_id']=False
+        return {'value': vals}    
+    
     def create_hiring_employee(self, cr, uid, ids, context=None):
         ir_model_data = self.pool.get('ir.model.data')
         try:
