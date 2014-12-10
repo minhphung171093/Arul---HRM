@@ -433,7 +433,8 @@ class arul_hr_payroll_structure_configuration(osv.osv):
         return True
     _constraints = [
         (_check_category_sub_id, 'Identical Data', ['employee_category_id','sub_category_id']),
-    ]  
+    ]
+
     
 arul_hr_payroll_structure_configuration()
 
