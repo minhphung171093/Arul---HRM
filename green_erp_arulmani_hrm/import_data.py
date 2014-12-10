@@ -133,7 +133,7 @@ class tpt_import_employee(osv.osv):
                         country_id = country_ids[0]
                          
                     state = sh.cell(row, 14).value
-                    state_ids = state_obj.search(cr, uid, [('code','=',state)])
+                    state_ids = state_obj.search(cr, uid, [('code','=',state),('country_id','=',country_id)])
                     if not state_ids:
                         state_id = state_obj.create(cr, uid, {'name':state,'code':state,'country_id':country_id})
                     else:

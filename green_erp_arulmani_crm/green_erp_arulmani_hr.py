@@ -10,7 +10,7 @@ class hr_employee(osv.osv):
     _inherit = "hr.employee"
     
     def create(self, cr, user, vals, context=None):
-        if vals['employee_id'] == False:
+        if 'employee_id' not in vals:
             vals['employee_id']= self.pool.get('ir.sequence').get(cr, user, 'hr.employee.id')
         new_id = super(hr_employee, self).create(cr, user, vals, context)
         return new_id
