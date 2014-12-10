@@ -263,10 +263,7 @@ class arul_hr_employee_action_history(osv.osv):
             vals = {'employee_category_id':emp.employee_category_id.id,
                     'sub_category_id':emp.employee_sub_category_id.id}
         return {'value': vals}
-    
-    def onchange_employee_category_id(self, cr, uid, ids,employee_category_id=False, context=None):
-        return {'value': {'sub_category_id': False }}
-    
+
     def create_hiring_employee(self, cr, uid, ids, context=None):
         ir_model_data = self.pool.get('ir.model.data')
         try:
@@ -962,126 +959,66 @@ class employee_leave(osv.osv):
                     emp_all_lea_detail.append((0,0,{'leave_type_id':leave.leave_type_id.id, 'total_day':day}))
                 self.pool.get('employee.leave').create(cr, uid, {'employee_id':emp.id,'year': time.strftime('%Y'),'emp_leave_details_ids':emp_all_lea_detail})
         return vals
-    
     def get_employee_leave_daily(self, cr, uid, context=None):
         day = 0
         vals = {}
+        emp_all_lea_detail = []
         DATETIME_FORMAT = "%Y-%m-%d"
-        
-        emp_obj = self.pool.get('hr.employee') 
+        now = time.strftime('%Y-%m-%d')
+        date_now = datetime.datetime.strptime(now, DATETIME_FORMAT)
+        curr_year = time.strftime('%Y')
+        emp_obj = self.pool.get('hr.employee')
         leave_obj = self.pool.get('arul.hr.leave.master')
-        leave_detail_obj = self.pool.get('employee.leave.detail')
         emp_ids = emp_obj.search(cr, uid, [])
-#         record = self.search(cr, uid, [])
-        if emp_ids:
-            for daily in self.browse(cr, uid, record):
-                em_id = daily.employee_id.id and daily.employee_id.id or False
-                em_year = daily.year and daily.year or False
-                emp_leave_ids = self.search(cr, uid, [('employee_id','=',em_id),('year','=',em_year)])
-                if emp_leave_ids:
-                    emp_ids = emp_obj.search(cr, uid, [('id','=',em_id)])
-                    for emp in emp_obj.browse(cr, uid, emp_ids):
-                        if emp.date_of_joining:
-                            join_date = datetime.datetime.strptime(emp.date_of_joining, DATETIME_FORMAT)
-                            now = time.strftime('%Y-%m-%d')
-                            date_now = datetime.datetime.strptime(now, DATETIME_FORMAT)
-                            timedelta = date_now - join_date
-                        emp_all_lea_detail = []
-                        emp_category = emp.employee_category_id and emp.employee_category_id.id or False
-                        emp_sub = emp.employee_sub_category_id and emp.employee_sub_category_id.id or False
-                        leave_ids = leave_obj.search(cr, uid, [('employee_category_id','=',emp_category),('employee_sub_category_id','=',emp_sub)])
-                        for leave in leave_obj.browse(cr, uid, leave_ids):
-                            day = 0
-                            if leave.carryforward_nextyear:
-                                last_year = int(time.strftime('%Y')) - 1
-                                last_emp_leave_ids = self.search(cr, uid, [('employee_id','=',em_id),('year','=',str(last_year))])
-                                if last_emp_leave_ids:
-                                    for line in self.browse(cr, uid, emp_leave_ids, context=context):
-                                        for leave_detail in line.emp_leave_details_ids:
-                                            if leave_detail.leave_type_id.id == leave.id and timedelta.days >= 365:
-                                                day = line.total_day - line.taken_day + leave.maximum_limit
-                                else:
-                                    if timedelta.days >= 365: 
-                                        day = leave.maximum_limit
-                            else:
-                                if timedelta.days >= 365: 
-                                    day = leave.maximum_limit
-                            emp_all_lea_detail.append((0,daily.emp_leave_details_ids.id,{'total_day':day}))
-                    self.pool.get('employee.leave').write(cr, uid, [daily.id] ,{'emp_leave_details_ids':emp_all_lea_detail})
-        else:
-#             self.get_employee_leave(cr, uid, context=context)
-            emp_obj = self.pool.get('hr.employee') 
-            leave_obj = self.pool.get('arul.hr.leave.master')
-            leave_detail_obj = self.pool.get('employee.leave.detail')
-            emp_ids = emp_obj.search(cr, uid, [])
-            for emp in emp_obj.browse(cr, uid, emp_ids):
-                if emp.date_of_joining:
-                    join_date = datetime.datetime.strptime(emp.date_of_joining, DATETIME_FORMAT)
-                    now = time.strftime('%Y-%m-%d')
-                    date_now = datetime.datetime.strptime(now, DATETIME_FORMAT)
-                    timedelta = date_now - join_date
-                emp_all_lea_detail = []
-                emp_category = emp.employee_category_id and emp.employee_category_id.id or False
-                emp_sub = emp.employee_sub_category_id and emp.employee_sub_category_id.id or False
+        for emp in emp_obj.browse(cr, uid, emp_ids):
+            emp_all_lea_detail = []
+            emp_leave_ids = self.pool.get('employee.leave').search(cr, uid, [('employee_id','=',emp.id),('year','=',curr_year)])
+            emp_category = emp.employee_category_id and emp.employee_category_id.id or False
+            emp_sub = emp.employee_sub_category_id and emp.employee_sub_category_id.id or False
+            if emp.date_of_joining:
+                join_date = datetime.datetime.strptime(emp.date_of_joining, DATETIME_FORMAT)
+                timedelta = date_now - join_date
+            else:
+                timedelta = date_now - date_now
+            if emp_leave_ids and timedelta.days > 365:
+                for line in self.pool.get('employee.leave').browse(cr, uid, emp_leave_ids, context=context):
+                    for leave_detail in line.emp_leave_details_ids:
+                        if leave_detail.total_day == 0 and leave_detail.leave_type_id.code in ['CL','SL','PL']:
+                            leave_type = leave_detail.leave_type_id and leave_detail.leave_type_id.id or False
+                            leave_ids = leave_obj.search(cr, uid, [('leave_type_id','=',leave_type),('employee_category_id','=',emp_category),('employee_sub_category_id','=',emp_sub)])
+                            for le in leave_obj.browse(cr, uid, leave_ids):
+                                day = le.maximum_limit
+#                                 emp_all_lea_detail.append((0,leave_detail.id,{'total_day':day}))
+#                                 self.pool.get('employee.leave.detail').write(cr, uid, [leave_detail.id] ,{'total_day':day})
+                            self.pool.get('employee.leave.detail').write(cr, uid, [leave_detail.id] ,{'total_day':day})
+            if not emp_leave_ids:
+#                 emp_category = emp.employee_category_id and emp.employee_category_id.id or False
+#                 emp_sub = emp.employee_sub_category_id and emp.employee_sub_category_id.id or False
                 leave_ids = leave_obj.search(cr, uid, [('employee_category_id','=',emp_category),('employee_sub_category_id','=',emp_sub)])
                 for leave in leave_obj.browse(cr, uid, leave_ids):
-                    day = 0
                     if leave.carryforward_nextyear:
                         last_year = int(time.strftime('%Y')) - 1
-                        emp_leave_ids = self.search(cr, uid, [('employee_id','=',emp.id),('year','=',str(last_year))])
+                        emp_leave_ids = self.pool.get('employee.leave').search(cr, uid, [('employee_id','=',emp.id),('year','=',str(last_year))])
                         if emp_leave_ids:
-                            for line in self.browse(cr, uid, emp_leave_ids, context=context):
+                            for line in self.pool.get('employee.leave').browse(cr, uid, emp_leave_ids, context=context):
                                 for leave_detail in line.emp_leave_details_ids:
-                                    if leave_detail.leave_type_id.id == leave.id and timedelta.days >= 365:
+                                    if leave_detail.leave_type_id.id == leave.id and timedelta.days > 365 and leave.leave_type_id.code in ['CL','SL','PL']:
+                                        day = line.total_day - line.taken_day + leave.maximum_limit
+                                    if leave_detail.leave_type_id.id == leave.id and leave.leave_type_id.code not in ['CL','SL','PL']:
                                         day = line.total_day - line.taken_day + leave.maximum_limit
                         else:
-                            if timedelta.days >= 365: 
+                            if timedelta.days < 365 and leave.leave_type_id.code in ['CL','SL','PL']:
+                                day = 0
+                            else:
                                 day = leave.maximum_limit
                     else:
-                        if timedelta.days >= 365: 
+                        if timedelta.days < 365 and leave.leave_type_id.code in ['CL','SL','PL']:
+                            day = 0
+                        else:
                             day = leave.maximum_limit
                     emp_all_lea_detail.append((0,0,{'leave_type_id':leave.leave_type_id.id, 'total_day':day}))
                 self.pool.get('employee.leave').create(cr, uid, {'employee_id':emp.id,'year': time.strftime('%Y'),'emp_leave_details_ids':emp_all_lea_detail})
-        return vals
-    def get_permisson_for_employee_leave(self, cr, uid, context=None):
-        cur_year = time.strftime('%Y')
-        cur_month = time.strftime('%m')
-        per_year = 0
-        per_month = 0
-        day = 0
-        per_emp_obj = self.pool.get('arul.hr.employee.leave.details')
-        
-        record = self.search(cr, uid, [])
-        if record:
-            for daily in self.browse(cr, uid, record):
-                em_id = daily.employee_id.id and daily.employee_id.id or False
-                per_emp_ids = per_emp_obj.search(cr, uid, [('employee_id','=',em_id)])
-                if per_emp_ids:
-                    emp_leave_detail_obj = self.pool.get('employee_leave_detail')
-                    emp_leave_detail_ids = emp_leave_detail_obj.search(cr, uid, [('emp_leave_id','=',daily.id),('leave_type_id','=',1)])
-                    for detai in emp_leave_detail_obj.browse(cr, uid, emp_leave_detail_ids):
-                        day = detai.total_day
-                    for per in per_emp_obj.browse(cr, uid, per_emp_ids):
-                        if per.date_from[0:4] == cur_year:
-                            per_year += 1
-                        if per.date_from[5:7] == cur_month and per.date_from[0:4] == cur_year:
-                            per_month += 1
-                    sql = '''
-                        select id from employee_leave_detail 
-                        where leave_type_id = 1 and 
-                        emp_leave_id in (select id from employee_leave where employee_id = %s and year = %s)
-                        '''%(em_id, daily.year)
-                    cr.execute(sql)
-                    leave_detail_ids = [row[0] for row in cr.fetchall()]
-                    if leave_detail_ids:
-                        if per_year > 10:
-                            day = day * 0.5
-                            self.pool.get('employee.leave.detail').write(cr, uid, [leave_detail_ids[0]] ,{'total_day':day})
-                        if per_month > 2:
-                            day = day * 0.5
-                            self.pool.get('employee.leave.detail').write(cr, uid, [leave_detail_ids[0]] ,{'total_day':day})
-                            
-        return True
+        return True                   
     
 employee_leave()
 
