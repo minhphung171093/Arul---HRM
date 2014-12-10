@@ -1176,11 +1176,25 @@
 			</field>
 		</record>
   
+  		<record id="view_employee_tree_view_inherit" model="ir.ui.view">
+            <field name="name">view_employee_tree.inherit</field>
+            <field name="model">hr.employee</field>
+            <field name="inherit_id" ref="hr.view_employee_tree"/>
+            <field name="arch" type="xml">
+            	<xpath expr="//tree[@string='Employees']" position="attributes">
+            		<attribute name="delete">false</attribute>
+            	</xpath>
+            </field>
+		</record>
+  
 		<record id="employee_leave_form_view" model="ir.ui.view">
             <field name="name">employee.leave.form</field>
             <field name="model">hr.employee</field>
             <field name="inherit_id" ref="hr.view_employee_form"/>
             <field name="arch" type="xml">
+            	<xpath expr="//form[@string='Employee']" position="attributes">
+            		<attribute name="delete">false</attribute>
+            	</xpath>
             	<xpath expr="//page[@string='HR Settings']" position="after">
             		<page string = 'Employee Leave Status'>
             			<field name ="employee_leave_id">
