@@ -435,7 +435,7 @@
 														</tree>
 													</field>
 												</page>
-												<page string = "Other Deduction">
+												<page string = "Deduction">
 													<field name="other_deduction_line" nolabel = '1' >
 														<tree editable = 'bottom' create='false'>
 															<field name="deduction_parameters_id" options="{'create': false, 'create_edit': false}"/>
@@ -443,14 +443,14 @@
 														</tree>
 													</field>
 												</page>
-												<page string = "Contribution">
+												<!--<page string = "Contribution">
 													<group col='4' colspan='2'>
 														<field name="emp_esi_limit"/>
 														<field name="emp_esi_con"/>
 														<field name="emp_pf_con"/>
 														<field name="emp_lwf_amt"/>
 													</group>
-												</page>
+												</page>-->
 											</notebook>
 										</group>
 									</form>
@@ -508,7 +508,7 @@
 		                <group col='4' colspan='2'>    
 			                <field name="employee_category_id" options="{'create': false, 'create_edit': false}" on_change="onchange_employee_category_id(employee_category_id)"/>
 			                <newline/>
-							<field name="sub_category_id" context="{'check_employee_category_id':1,'employee_category_id':employee_category_id}" options="{'create': false, 'create_edit': false}"/>
+							<field name="sub_category_id" domain="[('category_id','=',employee_category_id)]" context="{'check_employee_category_id':1,'employee_category_id':employee_category_id}" options="{'create': false, 'create_edit': false}"/>
 						</group>
 						<notebook>
 							<page string = "Earning Configuration">

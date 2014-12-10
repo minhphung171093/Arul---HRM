@@ -97,6 +97,10 @@ class Parser(report_sxw.rml_parse):
             for deduction in line.other_deduction_line:
                 if deduction.deduction_parameters_id.code=='PF.D':
                     pfd += deduction.float
+                if deduction.deduction_parameters_id.code=='ESI.D':
+                    esi_con += deduction.float
+                if deduction.deduction_parameters_id.code=='LWF':
+                    lwf += deduction.float
                 if deduction.deduction_parameters_id.code=='VPF.D':
                     vpf += deduction.float
                 if deduction.deduction_parameters_id.code=='F.D':
@@ -123,12 +127,12 @@ class Parser(report_sxw.rml_parse):
                 'aa': oa,
                 'pfd': pfd,
                 'vpf': vpf,
-                'esi_con': line.emp_esi_con,
+                'esi_con': esi_con,
                 'fd': fd,
                 'loan': loan,
                 'id': id,
                 'pt': id,
-                'lwf': line.emp_lwf_amt,
+                'lwf': lwf,
                 'lop': lop,
                 'total_ear': total_ear,
                 'total_ded': total_ded,
