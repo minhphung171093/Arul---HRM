@@ -309,7 +309,7 @@
 							<field name="action_type_id" options="{'create': false, 'create_edit': false}"/>
 							<field name ="employee_id" options="{'create': false, 'create_edit': false}" required = "1" domain="[('employee_active','=',1)]" on_change="onchange_transfer_employee_id(employee_id)"/>
 							<newline/>
-							<field name ="employee_category_id"   options="{'create': false, 'create_edit': false}"/>
+							<field name ="employee_category_id" on_change="onchange_employee_category_id(employee_category_id,sub_category_id)"  options="{'create': false, 'create_edit': false}"/>
 							<field name ="sub_category_id" domain="[('category_id','=',employee_category_id)]" context="{'check_employee_category_id':1,'employee_category_id':employee_category_id}" options="{'create': false, 'create_edit': false}"/>
 							<field name ="department_from_id" options="{'create': false, 'create_edit': false}" on_change="onchange_department_from_id(department_from_id)"/>
 							<field name ="department_to_id" options="{'create': false, 'create_edit': false}" domain="[('id','!=',department_from_id)]" on_change="onchange_department_to_id(department_to_id,designation_from_id) "/>
@@ -390,7 +390,7 @@
 							<field name="action_type_id" options="{'create': false, 'create_edit': false}"/>
 							<field name ="employee_id" options="{'create': false, 'create_edit': false}" required='1' on_change="onchange_promotion_employee_id(employee_id)" context="{'search_promotion_employee':True, 'employee_id':employee_id}"/>
 							<newline/>
-							<field name ="employee_category_id" options="{'create': false, 'create_edit': false}"/>
+							<field name ="employee_category_id" on_change="onchange_employee_category_id(employee_category_id,sub_category_id)" options="{'create': false, 'create_edit': false}"/>
 							<field name ="sub_category_id" domain="[('category_id','=',employee_category_id)]" context="{'check_employee_category_id':1,'employee_category_id':employee_category_id}" options="{'create': false, 'create_edit': false}"/>
 							<field name ="department_from_id" options="{'create': false, 'create_edit': false}" on_change="onchange_department_from_id(department_from_id)"/>
 							<field name ="department_to_id" options="{'create': false, 'create_edit': false}" on_change="onchange_department_to_id(department_to_id,designation_from_id) "/> 
@@ -469,7 +469,7 @@
 							<field name="action_type_id" options="{'create': false, 'create_edit': false}"/>
 							<field name ="employee_id" options="{'create': false, 'create_edit': false}" required='1' domain="[('employee_active','=',0)]" on_change="onchange_rehiring_employee_id(employee_id)"/>
 							<newline/>
-							<field name ="employee_category_id"   options="{'create': false, 'create_edit': false}"/>
+							<field name ="employee_category_id" on_change="onchange_employee_category_id(employee_category_id,sub_category_id)"  options="{'create': false, 'create_edit': false}"/>
 							<field name ="sub_category_id" domain="[('category_id','=',employee_category_id)]" context="{'check_employee_category_id':1,'employee_category_id':employee_category_id}" options="{'create': false, 'create_edit': false}"/>
 							<field name ="action_date" string="Date Of Rehiring"/>
 							<newline/>
@@ -541,7 +541,7 @@
 							<field name="action_type_id" options="{'create': false, 'create_edit': false}"/>
 							<field name ="employee_id" on_change="onchange_compensation_employee_id(employee_id)" options="{'create': false, 'create_edit': false}" domain="[('employee_active','=',1)]" required='1'/>
 							<newline/>
-							<field name ="employee_category_id" options="{'create': false, 'create_edit': false}"/>
+							<field name ="employee_category_id" on_change="onchange_employee_category_id(employee_category_id,sub_category_id)" options="{'create': false, 'create_edit': false}"/>
 							<field name ="sub_category_id" domain="[('category_id','=',employee_category_id)]" context="{'check_employee_category_id':1,'employee_category_id':employee_category_id}" options="{'create': false, 'create_edit': false}"/>
 							<field name ="action_date" string="Date Of Review Action"/>
 							<field name ="reason_id" domain="[('name','in', ['Completion of Trainee'])]" widget="selection"/>
@@ -614,7 +614,7 @@
 							<field name="action_type_id" options="{'create': false, 'create_edit': false}"/>
 							<field name ="employee_id" on_change="onchange_compensation_employee_id(employee_id)" options="{'create': false, 'create_edit': false}" required='1'/>
 							<newline/>
-							<field name ="employee_category_id"  options="{'create': false, 'create_edit': false}"/>
+							<field name ="employee_category_id" on_change="onchange_employee_category_id(employee_category_id,sub_category_id)" options="{'create': false, 'create_edit': false}"/>
 							<field name ="sub_category_id" domain="[('category_id','=',employee_category_id)]" context="{'check_employee_category_id':1,'employee_category_id':employee_category_id}" options="{'create': false, 'create_edit': false}"/>
 							<field name ="action_date" string="Date Of Contracts"/>
 							<field name ="reason_id" domain="[('name','in', ['Good Performance', 'Successful completion of Trainee','Successful completion of Probation'])]" widget="selection"/>
@@ -687,7 +687,7 @@
 							<field name="action_type_id" options="{'create': false, 'create_edit': false}"/>
 							<field name ="action_date" string="Date Of Hiring"/>
 							<newline/>
-							<field name ="employee_category_id" on_change="onchange_employee_category_id(employee_category_id)" options="{'create': false, 'create_edit': false}"/>
+							<field name ="employee_category_id" on_change="onchange_employee_category_id(employee_category_id,sub_category_id)" options="{'create': false, 'create_edit': false}"/>
 							<field name ="sub_category_id" domain="[('category_id','=',employee_category_id)]" context="{'check_employee_category_id':1,'employee_category_id':employee_category_id}" options="{'create': false, 'create_edit': false}"/>
 							<field name ="payroll_area_id" options="{'create': false, 'create_edit': false}"/>
 							<field name ="department_from_id" string = 'Department' options="{'create': false, 'create_edit': false}"/>
@@ -901,7 +901,7 @@
 							<field name="action_type_id" options="{'create': false, 'create_edit': false}"/>
 							<field name ="employee_id" options="{'create': false, 'create_edit': false}" required = '1' domain="[('employee_active','=',1)]" on_change="onchange_leaving_employee_id(employee_id)"/>
 							<newline/>
-							<field name ="employee_category_id" context="{'check_employee_category_id':1,'employee_category_id':employee_category_id}" options="{'create': false, 'create_edit': false}"/>
+							<field name ="employee_category_id" on_change="onchange_employee_category_id(employee_category_id,sub_category_id)" context="{'check_employee_category_id':1,'employee_category_id':employee_category_id}" options="{'create': false, 'create_edit': false}"/>
 							<field name ="sub_category_id" domain="[('category_id','=',employee_category_id)]" options="{'create': false, 'create_edit': false}"/>
 							<field name ="payroll_area_id" options="{'create': false, 'create_edit': false}"/>
 							<field name ="payroll_sub_area_id" options="{'create': false, 'create_edit': false}"/>
@@ -981,7 +981,7 @@
 							<field name="action_type_id" options="{'create': false, 'create_edit': false}"/>
 							<field name ="employee_id" on_change="onchange_disciplinary_employee_id(employee_id)" options="{'create': false, 'create_edit': false}" required = "1" context="{'search_disciplinary_employee':True, 'employee_id':employee_id}"/>
 							<newline/>
-							<field name ="employee_category_id" options="{'create': false, 'create_edit': false}"/>
+							<field name ="employee_category_id" on_change="onchange_employee_category_id(employee_category_id,sub_category_id)" options="{'create': false, 'create_edit': false}"/>
 							<field name ="sub_category_id" domain="[('category_id','=',employee_category_id)]" context="{'check_employee_category_id':1,'employee_category_id':employee_category_id}" options="{'create': false, 'create_edit': false}"/>
 							<field name ="action_date" string = "Date of Disciplinary"/>
 							<label for="datas" string="Data Upload Field"/>
