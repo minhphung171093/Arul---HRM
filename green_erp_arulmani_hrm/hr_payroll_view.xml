@@ -391,7 +391,7 @@
 	                <button name="generate_payroll" states='draft' string="Generate Payroll" type="object" class="oe_highlight" groups="base.group_hr_manager"/>
 	                <button name="rollback_payroll" states='draft' string="Roll Back Payroll" type="object" class="oe_highlight" groups="base.group_hr_manager"/>
 	               	<button name="confirm_payroll" states='draft' string="Confirm Payroll" type="object" class="oe_highlight" groups="base.group_hr_manager"/>
-	               	<button name="print_payslip" string="Print Payslip" type="object" class="oe_highlight" groups="base.group_hr_manager"/>
+	               	<button name="print_payslip" string="Export" type="object" class="oe_highlight" groups="base.group_hr_manager"/>
 	                <field name="state" widget="statusbar" statusbar_visible="draft,confirm,approve" statusbar_colors='{"draft":"blue","done":"blue"}'/>  
 	            </header>    
 	            	<sheet>
