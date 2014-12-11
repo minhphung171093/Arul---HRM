@@ -174,6 +174,7 @@ class hr_family (osv.osv):
         'email' : fields.char('Email', size=128),
         'emergency_contact':fields.selection([('yes','Yes'),('no','No')],'Emergency Contact'),
         'employee_id': fields.many2one('hr.employee','Employee'),
+        'gender': fields.selection([('female','Female'),('male','Male')],'Gender'),
     }
 hr_family()
 
@@ -297,9 +298,11 @@ class hr_statutory (osv.osv):
         'epf_nominee' : fields.char('EPF Nominee', size=128),
         'esi_no' : fields.char('ESI No', size=128),
         'eis_nominee' : fields.char('ESI Nominee', size=128),
+        'esi_dispensary' : fields.char(' ESI Dispensary ', size=128),
         'gratuity_no' : fields.char('Gratuity No', size=128),
         'gratuity_nominee' : fields.char('Gratuity Nominee', size=128),
         'pan_no' : fields.char('PAN No.', size=128),
+        'pension_no' : fields.char('Pension No', size=128),
         'employee_id': fields.many2one('hr.employee','Employee'),
     }
 hr_statutory()
