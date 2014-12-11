@@ -366,6 +366,7 @@ class arul_hr_employee_leave_details(osv.osv):
     _defaults = {
         'state':'draft',
     }
+    
     def name_get(self, cr, uid, ids, context=None):
         res = []
         if not ids:
@@ -735,6 +736,7 @@ class arul_hr_employee_attendence_details(osv.osv):
                     'designation_id':emp.job_id.id,
                     }
         return {'value': vals}
+
     def onchange_department_id(self, cr, uid, ids,department_id=False, context=None):
         designation_ids = []
         if department_id:
