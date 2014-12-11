@@ -397,6 +397,7 @@ arul_hr_employee_action_history()
 
 class hr_employee(osv.osv):
     _inherit = 'hr.employee'
+    _order = 'employee_id'
     _columns = {
         'action_history_line': fields.one2many('arul.hr.employee.action.history','employee_id','Action History Line',readonly=True),
         'section_id': fields.many2one('arul.hr.section','Section'),
@@ -936,7 +937,7 @@ meals_details()
 class employee_leave(osv.osv):
     _name = "employee.leave"
     _columns = {
-        'employee_id': fields.many2one('hr.employee', 'Employee', required=True, readonly=False),        
+        'employee_id': fields.many2one('hr.employee', 'Employee', required=True, readonly=False,ondelete='cascade'),        
         'year': fields.char('Year',size=128, readonly=False),
         'emp_leave_details_ids': fields.one2many('employee.leave.detail','emp_leave_id','Employee Leave Details',readonly=False),
     }

@@ -2,3 +2,8 @@
   background: #c63939;
   color: #eeeeee;
 }
+
+.openerp .oe_green_erp_scroll {
+overflow-x: auto;
+}
+
