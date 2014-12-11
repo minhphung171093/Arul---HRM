@@ -814,6 +814,7 @@
             <field name="arch" type="xml">
                 <data>
                     <field name="place_of_birth" position="replace">
+                    	<field name="birth_place"/>
                         <field name="place_of_birth" domain="[('country_id','=',country_stateofbirth_id)]" options="{'create': false, 'create_edit': false}"/>
                     </field>
                 </data>

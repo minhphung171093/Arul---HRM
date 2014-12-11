@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<openerp>
+    <data noupdate="1">
+
+        <record id="seq_hr_department_import_code" model="ir.sequence.type">
+            <field name="name">Department Import</field>
+            <field name="code">hr.department.import</field>
+        </record>
+        
+        <record id="seq_hr_department_import_item" model="ir.sequence">
+            <field name="name">Department Import</field>
+            <field name="code">hr.department.import</field>
+            <field name="prefix"></field>
+            <field name="padding">3</field>
+            <field name="number_next_actual">201</field>
+            <field name="implementation">no_gap</field>
+        </record>
+
+    </data>
+</openerp>
