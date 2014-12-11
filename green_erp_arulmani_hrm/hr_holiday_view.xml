@@ -310,6 +310,7 @@
 					<field name="work_date"/>
 					<field name="employee_category_id" options="{'create': false, 'create_edit': false}"/>
 					<field name="planned_work_shift_id" options="{'create': false, 'create_edit': false}"/>
+					<field name="actual_work_shift_id" options="{'create': false, 'create_edit': false}"/>
 					<field name="in_time" widget="float_time"/>
 					<field name="out_time" widget="float_time"/>
 					<field name="total_hours" widget="float_time"/>
@@ -332,7 +333,9 @@
 	            	<sheet>
 		                <group col='4' colspan='2'>
 							<field name="employee_id" on_change="onchange_category_employee_id(employee_id)" options="{'create': false, 'create_edit': false}"/>
+							<newline/>
 							<field name="planned_work_shift_id" options="{'create': false, 'create_edit': false}"/>
+							<field name="actual_work_shift_id" options="{'create': false, 'create_edit': false}"/>
 							<field name="work_date"/>
 							<field name="employee_category_id" options="{'create': false, 'create_edit': false}"/>
 							<field name="in_time" widget="float_time"/>
@@ -383,7 +386,7 @@
 		                <group col='4' colspan='2'>    
 			                <field name="employee_id" context="{'search_employee_id':True}"  on_change="onchange_attendence_datails_employee_id(employee_id)"/>
 			                <newline/>
-							<field name="employee_category_id" options="{'create': false, 'create_edit': false}"/>
+							<field name="employee_category_id" on_change="onchange_employee_category_id(employee_category_id,sub_category_id)" options="{'create': false, 'create_edit': false}"/>
 							<field name="sub_category_id" domain="[('category_id','=',employee_category_id)]" options="{'create': false, 'create_edit': false}"/>
 							<field name="designation_id" options="{'create': false, 'create_edit': false}"/>
 							<field name="department_id" on_change="onchange_department_id(department_id)" options="{'create': false, 'create_edit': false}"/>
@@ -394,6 +397,7 @@
 									<tree editable='top'>
 										<field name="work_date"/>
 										<field name="planned_work_shift_id" options="{'create': false, 'create_edit': false}"/>
+										<field name="actual_work_shift_id" options="{'create': false, 'create_edit': false}"/>
 										<field name="in_time" string="Punch In Time" widget="float_time"/>
 										<field name="out_time" string="Punch Out Time" widget="float_time"/>
 										<field name="total_hours" widget="float_time"/>
@@ -840,8 +844,17 @@
 								<field name="state"/>
 							</tree>
 						</field>
-		           </group> 
+		           </group>
 		           <group col = '4' colspan = '2' string="Non Availability Report">    
+						<field name="non_availability_id" editable="top" nolabel="1">
+							<tree>
+								<field name="employee_id"/>
+								<field name="date"/>
+								<field name="state"/>
+							</tree>
+						</field>
+		           </group>
+		           <group col = '4' colspan = '2' string="Not Approved Section">    
 						<field name="leave_request_id" editable="top" nolabel="1">
 							<tree>
 								<field name="employee_id"/>

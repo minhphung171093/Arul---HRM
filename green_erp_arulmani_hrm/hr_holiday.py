@@ -26,7 +26,7 @@ class arul_hr_leave_master(osv.osv):
         'employee_sub_category_id' : fields.many2one('hr.employee.sub.category', 'Employee Sub Category', required = True),
         'maximum_limit': fields.integer('Maximum Limit Applicable'),
         'carryforward_nextyear': fields.boolean('Is Carry Forward for Next Year'),
-        'condition': fields.char('Eligible per Annum'),
+        'condition': fields.integer('Eligible per Annum'),
     }
     def _check_sub_category_id(self, cr, uid, ids, context=None):
         for sub_cate in self.browse(cr, uid, ids, context=context):
@@ -155,6 +155,7 @@ class arul_hr_audit_shift_time(osv.osv):
               'work_date':fields.date('Work Date', required = True, states={'done': [('readonly', True)], 'cancel': [('readonly', True)]}),
               'employee_category_id':fields.many2one('vsis.hr.employee.category','Work Group', states={'done': [('readonly', True)], 'cancel': [('readonly', True)]}),
               'planned_work_shift_id':fields.many2one('arul.hr.capture.work.shift','Planned Work Shift', states={'done': [('readonly', True)], 'cancel': [('readonly', True)]}),
+              'actual_work_shift_id':fields.many2one('arul.hr.capture.work.shift','Actual Work Shift', states={'done': [('readonly', True)], 'cancel': [('readonly', True)]}),
               'in_time': fields.float('In Time', states={'done': [('readonly', True)], 'cancel': [('readonly', True)]}),
               'out_time': fields.float('Out Time', states={'done': [('readonly', True)], 'cancel': [('readonly', True)]}),
               'total_hours': fields.function(_time_total, string='Total Hours', multi='sums', help="The total amount.", states={'done': [('readonly', True)], 'cancel': [('readonly', True)]}),
@@ -223,7 +224,12 @@ class arul_hr_audit_shift_time(osv.osv):
                           'out_time':line.out_time,
                           'approval':1
                           }
-                    emp_attendence_obj.create(cr,uid,{'employee_id':line.employee_id.id, 'employee_category_id':line.employee_id.employee_category_id.id, 'sub_category_id':line.employee_id.employee_sub_category_id.id, 'department_id':line.employee_id.department_id.id, 'designation_id':line.employee_id.job_id.id,'punch_in_out_line':[(0,0,val1)]}) 
+                    emp_attendence_obj.create(cr,uid,{'employee_id':line.employee_id.id,
+                                                      'employee_category_id':line.employee_id.employee_category_id and line.employee_id.employee_category_id.id or False,
+                                                      'sub_category_id':line.employee_id.employee_sub_category_id and line.employee_id.employee_sub_category_id.id or False,
+                                                      'department_id':line.employee_id.department_id and line.employee_id.department_id.id or False,
+                                                      'designation_id':line.employee_id.job_id and line.employee_id.job_id.id or False,
+                                                      'punch_in_out_line':[(0,0,val1)]}) 
             else:
                 line_id=line.permission_id
                 emp_attendence_obj = self.pool.get('arul.hr.employee.attendence.details')
@@ -246,7 +252,12 @@ class arul_hr_audit_shift_time(osv.osv):
                                 val4={'punch_in_out_id':details_ids[0],'employee_id':line_id.employee_id.id,'planned_work_shift_id':line.planned_work_shift_id.id,'work_date':line_id.date,'in_time':line_id.start_time,'out_time':line_id.end_time,'approval':1}
                                 detail_obj4.create(cr, uid, val4)
                             else:
-                                emp_attendence_obj.create(cr, uid, {'employee_id':line_id.employee_id.id,'punch_in_out_line':[(0,0,val)], 'employee_category_id':line.employee_id.employee_category_id.id, 'sub_category_id':line.employee_id.employee_sub_category_id.id, 'department_id':line.employee_id.department_id.id, 'designation_id':line.employee_id.job_id.id})
+                                emp_attendence_obj.create(cr, uid, {'employee_id':line_id.employee_id.id,
+                                                                    'punch_in_out_line':[(0,0,val)],
+                                                                    'employee_category_id':line.employee_id.employee_category_id and line.employee_id.employee_category_id.id or False,
+                                                                    'sub_category_id':line.employee_id.employee_sub_category_id and line.employee_id.employee_sub_category_id.id or False,
+                                                                    'department_id':line.employee_id.department_id and line.employee_id.department_id.id or False,
+                                                                    'designation_id':line.employee_id.job_id and line.employee_id.job_id.id or False})
                         if(line_id.time_total > 12)and(line_id.time_total < 16):
                             val={'permission_onduty_id':emp_attendence_ids[0],'planned_work_shift_id':line.planned_work_shift_id.id,'work_date':line_id.date,'in_time':line_id.start_time,'out_time':line_id.end_time,'approval':1}
 #                             sql = '''
@@ -261,7 +272,12 @@ class arul_hr_audit_shift_time(osv.osv):
                                 val4={'punch_in_out_id':details_ids[0],'employee_id':line_id.employee_id.id,'planned_work_shift_id':line.planned_work_shift_id.id,'work_date':line_id.date,'in_time':line_id.start_time,'out_time':line_id.end_time,'approval':1}
                                 detail_obj4.create(cr, uid, val4)
                             else:
-                                emp_attendence_obj.create(cr, uid, {'employee_id':line_id.employee_id.id,'punch_in_out_line':[(0,0,val)], 'employee_category_id':line.employee_id.employee_category_id.id, 'sub_category_id':line.employee_id.employee_sub_category_id.id, 'department_id':line.employee_id.department_id.id, 'designation_id':line.employee_id.job_id.id})
+                                emp_attendence_obj.create(cr, uid, {'employee_id':line_id.employee_id.id,
+                                                                    'punch_in_out_line':[(0,0,val)],
+                                                                    'employee_category_id':line_id.employee_id.employee_category_id and line_id.employee_id.employee_category_id.id or False,
+                                                                    'sub_category_id':line_id.employee_id.employee_sub_category_id and line_id.employee_id.employee_sub_category_id.id or False,
+                                                                    'department_id':line_id.employee_id.department_id and line_id.employee_id.department_id.id or False,
+                                                                    'designation_id':line_id.employee_id.job_id and line_id.employee_id.job_id.id or False})
         
                             
                     val2={'permission_onduty_id':emp_attendence_ids[0], 'approval':1,
@@ -269,10 +285,10 @@ class arul_hr_audit_shift_time(osv.osv):
                     punch_obj.write(cr,uid,[line_id.id],val2) 
                 else:
                     detail_vals = {'employee_id':line_id.employee_id.id,
-                                   'employee_category_id':line_id.employee_id.employee_category_id.id,
-                                   'sub_category_id':line_id.employee_id.employee_sub_category_id.id,
-                                   'department_id':line_id.employee_id.department_id.id,
-                                   'designation_id':line_id.employee_id.job_id.id
+                                   'employee_category_id':line_id.employee_id.employee_category_id and line_id.employee_id.employee_category_id.id or False,
+                                    'sub_category_id':line_id.employee_id.employee_sub_category_id and line_id.employee_id.employee_sub_category_id.id or False,
+                                    'department_id':line_id.employee_id.department_id and line_id.employee_id.department_id.id or False,
+                                    'designation_id':line_id.employee_id.job_id and line_id.employee_id.job_id.id or False
 #                                    'designation_id':line_id.employee_id.department_id and line_id.employee_id.department_id.designation_id.id or False
                                    }
                     emp_attendence_id = emp_attendence_obj.create(cr,uid,detail_vals)
@@ -291,7 +307,12 @@ class arul_hr_audit_shift_time(osv.osv):
                                 val4={'punch_in_out_id':details_ids[0],'employee_id':line_id.employee_id.id,'planned_work_shift_id':line.planned_work_shift_id.id,'work_date':line_id.date,'in_time':line_id.start_time,'out_time':line_id.end_time,'approval':1}
                                 detail_obj4.create(cr, uid, val4)
                             else:
-                                emp_attendence_obj.create(cr, uid, {'employee_id':line_id.employee_id.id,'punch_in_out_line':[(0,0,val)], 'employee_category_id':line.employee_id.employee_category_id.id, 'sub_category_id':line.employee_id.employee_sub_category_id.id, 'department_id':line.employee_id.department_id.id, 'designation_id':line.employee_id.job_id.id})
+                                emp_attendence_obj.create(cr, uid, {'employee_id':line_id.employee_id.id,
+                                                                    'punch_in_out_line':[(0,0,val)],
+                                                                    'employee_category_id':line_id.employee_id.employee_category_id and line_id.employee_id.employee_category_id.id or False,
+                                                                    'sub_category_id':line_id.employee_id.employee_sub_category_id and line_id.employee_id.employee_sub_category_id.id or False,
+                                                                    'department_id':line_id.employee_id.department_id and line_id.employee_id.department_id.id or False,
+                                                                    'designation_id':line_id.employee_id.job_id and line_id.employee_id.job_id.id or False})
                         if(line_id.time_total > 12)and(line_id.time_total < 16):
                             val={'permission_onduty_id':emp_attendence_id,'planned_work_shift_id':line.planned_work_shift_id.id,'work_date':line_id.date,'in_time':line_id.start_time,'out_time':line_id.end_time,'approval':1}
 #                             sql = '''
@@ -306,7 +327,12 @@ class arul_hr_audit_shift_time(osv.osv):
                                 val4={'punch_in_out_id':details_ids[0],'employee_id':line_id.employee_id.id,'planned_work_shift_id':line.planned_work_shift_id.id,'work_date':line_id.date,'in_time':line_id.start_time,'out_time':line_id.end_time,'approval':1}
                                 detail_obj4.create(cr, uid, val4)
                             else:
-                                emp_attendence_obj.create(cr, uid, {'employee_id':line_id.employee_id.id,'punch_in_out_line':[(0,0,val)], 'employee_category_id':line.employee_id.employee_category_id.id, 'sub_category_id':line.employee_id.employee_sub_category_id.id, 'department_id':line.employee_id.department_id.id, 'designation_id':line.employee_id.job_id.id})
+                                emp_attendence_obj.create(cr, uid, {'employee_id':line_id.employee_id.id,
+                                                                    'punch_in_out_line':[(0,0,val)],
+                                                                    'employee_category_id':line_id.employee_id.employee_category_id and line_id.employee_id.employee_category_id.id or False,
+                                                                    'sub_category_id':line_id.employee_id.employee_sub_category_id and line_id.employee_id.employee_sub_category_id.id or False,
+                                                                    'department_id':line_id.employee_id.department_id and line_id.employee_id.department_id.id or False,
+                                                                    'designation_id':line_id.employee_id.job_id and line_id.employee_id.job_id.id or False})
                     punch_obj.write(cr,uid,[line_id.id],{'permission_onduty_id':emp_attendence_id,'approval':1}) 
             self.write(cr, uid, [line.id],{'approval': True, 'state':'done', 'time_evaluate_id':False})
         return True
@@ -481,11 +507,19 @@ class arul_hr_permission_onduty(osv.osv):
         '''%(permission.start_time - 1,permission.end_time + 1)
         cr.execute(sql)
         work_shift_ids = [row[0] for row in cr.fetchall()]
+        
+        punch_obj = self.pool.get('arul.hr.punch.in.out')
+        day = permission.date[8:10]
+        month = permission.date[5:7]
+        year = permission.date[:4]
+        shift_id = punch_obj.get_work_shift(cr, uid, permission.employee_id.id, int(day), int(month), year)
+        
         self.pool.get('arul.hr.audit.shift.time').create(cr, SUPERUSER_ID, {
             'employee_id':permission.employee_id.id,
             'work_date':permission.date,
             'employee_category_id':permission.employee_id.employee_category_id and permission.employee_id.employee_category_id.id or False,
-            'planned_work_shift_id': work_shift_ids and work_shift_ids[0] or False,
+            'planned_work_shift_id': shift_id,
+            'actual_work_shift_id': work_shift_ids and work_shift_ids[0] or False,
             'in_time':permission.start_time,
             'out_time':permission.end_time,
             'type': 'permission',
@@ -736,14 +770,24 @@ class arul_hr_employee_attendence_details(osv.osv):
                     'designation_id':emp.job_id.id,
                     }
         return {'value': vals}
-
+    def onchange_employee_category_id(self, cr, uid, ids,employee_category_id=False,employee_sub_category_id=False, context=None):
+        vals = {}
+        if employee_category_id and employee_sub_category_id:
+            sql = '''
+                select id from hr_employee_sub_category where id = %s and category_id=%s
+            '''%(employee_sub_category_id,employee_category_id)
+            cr.execute(sql)
+            sub_category_ids = [row[0] for row in cr.fetchall()]
+            if not sub_category_ids:
+                vals['sub_category_id']=False
+        return {'value': vals}
     def onchange_department_id(self, cr, uid, ids,department_id=False, context=None):
         designation_ids = []
         if department_id:
             department = self.pool.get('hr.department').browse(cr, uid, department_id)
             for line in department.designation_line:
                 designation_ids.append(line.designation_id.id)
-        return {'value': {'designation_id': False }, 'domain':{'designation_id':[('id','in',designation_ids)]}}
+        return {'value': {}}
     
 #     def search(self, cr, uid, args, offset=0, limit=None, order=None, context=None, count=False):
 #         if context is None:
@@ -910,9 +954,13 @@ class arul_hr_punch_in_out(osv.osv):
                     temp = 0
                     if employee_ids and date:
                         employee = employee_obj.browse(cr, uid, employee_ids[0])
+                        day = date[8:10]
+                        month = date[5:7]
+                        year = date[:4]
+                        shift_id = self.get_work_shift(cr, uid, employee_ids[0], int(day), int(month), year)
                         if data1[:3]=='P10':
                             in_time = float(data1[15:17])+float(data1[17:19])/60+float(data1[19:21])/3600
-                            val1={'employee_id':employee_ids[0],'planned_work_shift_id':False,'work_date':date,'in_time':in_time,'out_time':0,'approval':1}
+                            val1={'employee_id':employee_ids[0],'planned_work_shift_id':shift_id,'actual_work_shift_id':False,'work_date':date,'in_time':in_time,'out_time':0,'approval':1}
                             for j,data2 in enumerate(L2):
                                 #bat dau vi tri tiep theo cua for 1
                                 in_out = data2[:3]
@@ -920,7 +968,7 @@ class arul_hr_punch_in_out(osv.osv):
                                 date_2=data2[7:11]+'-'+data2[11:13]+'-'+data2[13:15]
                                 if employee_code_2==employee_code and in_out=='P10':
                                     in_time2 = float(data2[15:17])+float(data2[17:19])/60+float(data2[19:21])/3600
-                                    val1={'employee_id':employee_ids[0],'planned_work_shift_id':False,'work_date':date,'in_time':in_time2,'out_time':0,'approval':1}
+                                    val1={'employee_id':employee_ids[0],'planned_work_shift_id':shift_id,'actual_work_shift_id':False,'work_date':date,'in_time':in_time2,'out_time':0,'approval':1}
                                 if employee_code_2==employee_code and in_out=='P20':
                                     out_time=float(data2[15:17])+float(data2[17:19])/60+float(data2[19:21])/3600
                                     val1['out_time']=out_time
@@ -929,18 +977,20 @@ class arul_hr_punch_in_out(osv.osv):
                                     '''%(in_time - 1,out_time + 1)
                                     cr.execute(sql)
                                     work_shift_ids = [row[0] for row in cr.fetchall()]
-                                    day = date[8:10]
-                                    month = date[5:7]
-                                    year = date[:4]
-                                    shift_id = self.get_work_shift(cr, uid, employee_ids[0], int(day), int(month), year)
                                     if work_shift_ids and shift_id and shift_id == work_shift_ids[0]:
-                                        val1['planned_work_shift_id']=shift_id
+                                        val1['actual_work_shift_id']=shift_id
                                         details_ids=detail_obj.search(cr, uid, [('employee_id','=',employee_ids[0])])
                                         if details_ids:
-                                            val4={'punch_in_out_id':details_ids[0],'planned_work_shift_id':shift_id,'employee_id':employee_ids[0],'work_date':date,'in_time':in_time,'out_time':out_time,'approval':1}
+                                            val4={'punch_in_out_id':details_ids[0],'planned_work_shift_id':shift_id,'actual_work_shift_id':shift_id,'employee_id':employee_ids[0],'work_date':date,'in_time':in_time,'out_time':out_time,'approval':1}
                                             detail_obj4.create(cr, uid, val4)
                                         else:
-                                            detail_obj.create(cr, uid, {'employee_id':employee_ids[0],'punch_in_out_line':[(0,0,val1)]})
+                                            employee = self.pool.get('hr.employee').browse(cr, uid, employee_ids[0])
+                                            detail_obj.create(cr, uid, {'employee_id':employee_ids[0],
+                                                                        'employee_category_id':employee.employee_category_id and employee.employee_category_id.id or False,
+                                                                        'sub_category_id':employee.employee_sub_category_id and employee.employee_sub_category_id.id or False,
+                                                                        'department_id':employee.department_id and employee.department_id.id or False,
+                                                                        'designation_id':employee.job_id and employee.job_id.id or False,
+                                                                        'punch_in_out_line':[(0,0,val1)]})
                                     else:
                                         val1['approval']=False  
                                         val1['employee_category_id'] = employee.employee_category_id.id
@@ -949,11 +999,11 @@ class arul_hr_punch_in_out(osv.osv):
                                     L.pop(j)
                                     break
                             if temp==0:
-                                val={'employee_id':employee_ids[0],'work_date':date,'in_time':in_time,'out_time':0,'employee_category_id':employee.employee_category_id.id}
+                                val={'employee_id':employee_ids[0],'planned_work_shift_id':shift_id,'work_date':date,'in_time':in_time,'out_time':0,'employee_category_id':employee.employee_category_id.id}
                                 detail_obj2.create(cr, uid,val)
                         if data1[:3]=='P20':
                             out_time = float(data1[15:17])+float(data1[17:19])/60+float(data1[19:21])/3600
-                            val2={'employee_id':employee_ids[0],'work_date':date,'in_time':0,'out_time':out_time,'employee_category_id':employee.employee_category_id.id}
+                            val2={'employee_id':employee_ids[0],'planned_work_shift_id':shift_id,'work_date':date,'in_time':0,'out_time':out_time,'employee_category_id':employee.employee_category_id.id}
                             detail_obj2.create(cr, uid,val2)
                             
                 self.write(cr, uid, [line.id], {'state':'done'})
@@ -1264,7 +1314,20 @@ class arul_hr_monthly_shift_schedule(osv.osv):
         (_check_employee_id, 'Identical Data', ['employee_id']),
     ]
 arul_hr_monthly_shift_schedule()
- 
+
+class tpt_non_availability(osv.osv):
+    _name = 'tpt.non.availability'
+    _columns={
+          'employee_id':fields.many2one('hr.employee','Employee',required=True),
+          'date':fields.date('Date'),
+          'state':fields.selection([('draft', 'No Leave Request Raised'),('done', 'Done')],'Status', readonly=True),
+          'leave_evaluate_id': fields.many2one('tpt.time.leave.evaluation','Leave Evaluation'),
+      }
+    _defaults = {
+        'state':'draft',
+    }
+tpt_non_availability()
+
 class tpt_time_leave_evaluation(osv.osv):
     _name = 'tpt.time.leave.evaluation'
     _columns = {
@@ -1272,7 +1335,8 @@ class tpt_time_leave_evaluation(osv.osv):
          'year': fields.selection([(num, str(num)) for num in range(1951, 2026)], 'Year',required = True),
          'month': fields.selection([('1', 'January'),('2', 'February'), ('3', 'March'), ('4','April'), ('5','May'), ('6','June'), ('7','July'), ('8','August'), ('9','September'), ('10','October'), ('11','November'), ('12','December')], 'Month',required = True),
          'shift_time_id': fields.one2many('arul.hr.audit.shift.time','time_evaluate_id','Time Evaluation Report',readonly = True),
-         'leave_request_id': fields.one2many('arul.hr.employee.leave.details','leave_evaluate_id','Non Availability Report',readonly = True),
+         'leave_request_id': fields.one2many('arul.hr.employee.leave.details','leave_evaluate_id','Not Approved Section',readonly = True),
+         'non_availability_id': fields.one2many('tpt.non.availability','leave_evaluate_id','Non Availability Report',readonly = True),
     }
     _defaults = {
        'year':int(time.strftime('%Y')),
@@ -1290,6 +1354,8 @@ class tpt_time_leave_evaluation(osv.osv):
         return res   
      
     def submit_evaluate(self, cr, uid, ids, context=None):
+        monthly_shift_obj = self.pool.get('arul.hr.monthly.shift.schedule')
+        non_availability_obj = self.pool.get('tpt.non.availability')
         for sub in self.browse(cr, uid, ids, context=context):
             sql = '''
                 update arul_hr_audit_shift_time set time_evaluate_id = %s where EXTRACT(year FROM work_date) = %s and EXTRACT(month FROM work_date) = %s and state = 'draft'
@@ -1301,6 +1367,163 @@ class tpt_time_leave_evaluation(osv.osv):
                 and employee_id in (select id from hr_employee where payroll_area_id = %s)
             '''%(sub.id,sub.year,sub.month,sub.payroll_area_id.id)
             cr.execute(sql)
+            
+            sql = '''
+                delete from tpt_non_availability where leave_evaluate_id = %s
+            '''%(sub.id)
+            cr.execute(sql)
+            monthly_shift_ids = monthly_shift_obj.search(cr, uid, [('employee_id.payroll_area_id','=',sub.payroll_area_id.id),('monthly_work_id.year','=',sub.year),('monthly_work_id.month','=',sub.month)])
+            for shift in monthly_shift_obj.browse(cr, uid, monthly_shift_ids):
+                emp_id = shift.employee_id.id
+                sql = '''
+                    select EXTRACT(day FROM work_date) from arul_hr_audit_shift_time where employee_id = %s and EXTRACT(year FROM work_date) = %s and EXTRACT(month FROM work_date) = %s
+                '''%(emp_id, sub.year, sub.month)
+                cr.execute(sql)
+                audit_days = [row[0] for row in cr.fetchall()]
+                
+                sql = '''
+                    select EXTRACT(day FROM work_date) from arul_hr_punch_in_out_time where employee_id = %s and EXTRACT(year FROM work_date) = %s and EXTRACT(month FROM work_date) = %s
+                '''%(emp_id, sub.year, sub.month)
+                cr.execute(sql)
+                punch_days = [row[0] for row in cr.fetchall()]
+                
+                sql = '''
+                    select EXTRACT(day FROM date_from) from arul_hr_employee_leave_details where employee_id = %s and EXTRACT(year FROM date_from) = %s and EXTRACT(month FROM date_from) = %s
+                '''%(emp_id, sub.year, sub.month)
+                cr.execute(sql)
+                leave_days = [row[0] for row in cr.fetchall()]
+                
+                sql = '''
+                    select EXTRACT(day FROM date) from arul_hr_holiday_special where EXTRACT(year FROM date) = %s and EXTRACT(month FROM date) = %s
+                '''%(sub.year, sub.month)
+                cr.execute(sql)
+                holiday_days = [row[0] for row in cr.fetchall()]
+                
+                day_now = int(time.strftime('%d'))
+                if shift.day_1 and shift.day_1.code != 'W' and day_now>=1 and 1.0 not in holiday_days:
+                    if 1.0 not in audit_days and 1.0 not in punch_days and 1.0 not in leave_days:
+                        date = datetime.datetime(sub.year,int(sub.month),1)
+                        non_availability_obj.create(cr, uid, {'employee_id':emp_id,'state':'draft','date':date,'leave_evaluate_id':sub.id})
+                if shift.day_2 and shift.day_2.code != 'W' and day_now>=2 and 2.0 not in holiday_days:
+                    if 2.0 not in audit_days and 2.0 not in punch_days and 2.0 not in leave_days:
+                        date = datetime.datetime(sub.year,int(sub.month),2)
+                        non_availability_obj.create(cr, uid, {'employee_id':emp_id,'state':'draft','date':date,'leave_evaluate_id':sub.id})
+                if shift.day_3 and shift.day_3.code != 'W' and day_now>=3 and 3.0 not in holiday_days:
+                    if 3.0 not in audit_days and 3.0 not in punch_days and 3.0 not in leave_days:
+                        date = datetime.datetime(sub.year,int(sub.month),3)
+                        non_availability_obj.create(cr, uid, {'employee_id':emp_id,'state':'draft','date':date,'leave_evaluate_id':sub.id})
+                if shift.day_4 and shift.day_4.code != 'W' and day_now>=4 and 4.0 not in holiday_days:
+                    if 4.0 not in audit_days and 4.0 not in punch_days and 4.0 not in leave_days:
+                        date = datetime.datetime(sub.year,int(sub.month),4)
+                        non_availability_obj.create(cr, uid, {'employee_id':emp_id,'state':'draft','date':date,'leave_evaluate_id':sub.id})
+                if shift.day_5 and shift.day_5.code != 'W' and day_now>=5 and 5.0 not in holiday_days:
+                    if 5.0 not in audit_days and 5.0 not in punch_days and 5.0 not in leave_days:
+                        date = datetime.datetime(sub.year,int(sub.month),5)
+                        non_availability_obj.create(cr, uid, {'employee_id':emp_id,'state':'draft','date':date,'leave_evaluate_id':sub.id})
+                if shift.day_6 and shift.day_6.code != 'W' and day_now>=6 and 6.0 not in holiday_days:
+                    if 6.0 not in audit_days and 6.0 not in punch_days and 6.0 not in leave_days:
+                        date = datetime.datetime(sub.year,int(sub.month),6)
+                        non_availability_obj.create(cr, uid, {'employee_id':emp_id,'state':'draft','date':date,'leave_evaluate_id':sub.id})
+                if shift.day_7 and shift.day_7.code != 'W' and day_now>=7 and 7.0 not in holiday_days:
+                    if 7.0 not in audit_days and 7.0 not in punch_days and 7.0 not in leave_days:
+                        date = datetime.datetime(sub.year,int(sub.month),7)
+                        non_availability_obj.create(cr, uid, {'employee_id':emp_id,'state':'draft','date':date,'leave_evaluate_id':sub.id})
+                if shift.day_8 and shift.day_8.code != 'W' and day_now>=8 and 8.0 not in holiday_days:
+                    if 8.0 not in audit_days and 8.0 not in punch_days and 8.0 not in leave_days:
+                        date = datetime.datetime(sub.year,int(sub.month),8)
+                        non_availability_obj.create(cr, uid, {'employee_id':emp_id,'state':'draft','date':date,'leave_evaluate_id':sub.id})
+                if shift.day_9 and shift.day_9.code != 'W' and day_now>=9 and 9.0 not in holiday_days:
+                    if 9.0 not in audit_days and 9.0 not in punch_days and 9.0 not in leave_days:
+                        date = datetime.datetime(sub.year,int(sub.month),9)
+                        non_availability_obj.create(cr, uid, {'employee_id':emp_id,'state':'draft','date':date,'leave_evaluate_id':sub.id})
+                if shift.day_10 and shift.day_10.code != 'W' and day_now>=10 and 10.0 not in holiday_days:
+                    if 10.0 not in audit_days and 10.0 not in punch_days and 10.0 not in leave_days:
+                        date = datetime.datetime(sub.year,int(sub.month),10)
+                        non_availability_obj.create(cr, uid, {'employee_id':emp_id,'state':'draft','date':date,'leave_evaluate_id':sub.id})
+                if shift.day_11 and shift.day_11.code != 'W' and day_now>=11 and 11.0 not in holiday_days:
+                    if 11.0 not in audit_days and 11.0 not in punch_days and 11.0 not in leave_days:
+                        date = datetime.datetime(sub.year,int(sub.month),11)
+                        non_availability_obj.create(cr, uid, {'employee_id':emp_id,'state':'draft','date':date,'leave_evaluate_id':sub.id})
+                if shift.day_12 and shift.day_12.code != 'W' and day_now>=12 and 12.0 not in holiday_days:
+                    if 12.0 not in audit_days and 12.0 not in punch_days and 12.0 not in leave_days:
+                        date = datetime.datetime(sub.year,int(sub.month),12)
+                        non_availability_obj.create(cr, uid, {'employee_id':emp_id,'state':'draft','date':date,'leave_evaluate_id':sub.id})
+                if shift.day_13 and shift.day_13.code != 'W' and day_now>=13 and 13.0 not in holiday_days:
+                    if 13.0 not in audit_days and 13.0 not in punch_days and 13.0 not in leave_days:
+                        date = datetime.datetime(sub.year,int(sub.month),13)
+                        non_availability_obj.create(cr, uid, {'employee_id':emp_id,'state':'draft','date':date,'leave_evaluate_id':sub.id})
+                if shift.day_14 and shift.day_14.code != 'W' and day_now>=14 and 14.0 not in holiday_days:
+                    if 14.0 not in audit_days and 14.0 not in punch_days and 14.0 not in leave_days:
+                        date = datetime.datetime(sub.year,int(sub.month),14)
+                        non_availability_obj.create(cr, uid, {'employee_id':emp_id,'state':'draft','date':date,'leave_evaluate_id':sub.id})
+                if shift.day_15 and shift.day_15.code != 'W' and day_now>=15 and 15.0 not in holiday_days:
+                    if 15.0 not in audit_days and 15.0 not in punch_days and 15.0 not in leave_days:
+                        date = datetime.datetime(sub.year,int(sub.month),15)
+                        non_availability_obj.create(cr, uid, {'employee_id':emp_id,'state':'draft','date':date,'leave_evaluate_id':sub.id})
+                if shift.day_16 and shift.day_16.code != 'W' and day_now>=16 and 16.0 not in holiday_days:
+                    if 16.0 not in audit_days and 16.0 not in punch_days and 16.0 not in leave_days:
+                        date = datetime.datetime(sub.year,int(sub.month),16)
+                        non_availability_obj.create(cr, uid, {'employee_id':emp_id,'state':'draft','date':date,'leave_evaluate_id':sub.id})
+                if shift.day_17 and shift.day_17.code != 'W' and day_now>=17 and 17.0 not in holiday_days:
+                    if 17.0 not in audit_days and 17.0 not in punch_days and 17.0 not in leave_days:
+                        date = datetime.datetime(sub.year,int(sub.month),17)
+                        non_availability_obj.create(cr, uid, {'employee_id':emp_id,'state':'draft','date':date,'leave_evaluate_id':sub.id})
+                if shift.day_18 and shift.day_18.code != 'W' and day_now>=18 and 18.0 not in holiday_days:
+                    if 18.0 not in audit_days and 18.0 not in punch_days and 18.0 not in leave_days:
+                        date = datetime.datetime(sub.year,int(sub.month),18)
+                        non_availability_obj.create(cr, uid, {'employee_id':emp_id,'state':'draft','date':date,'leave_evaluate_id':sub.id})
+                if shift.day_19 and shift.day_19.code != 'W' and day_now>=19 and 19.0 not in holiday_days:
+                    if 19.0 not in audit_days and 19.0 not in punch_days and 19.0 not in leave_days:
+                        date = datetime.datetime(sub.year,int(sub.month),19)
+                        non_availability_obj.create(cr, uid, {'employee_id':emp_id,'state':'draft','date':date,'leave_evaluate_id':sub.id})
+                if shift.day_20 and shift.day_20.code != 'W' and day_now>=20 and 20.0 not in holiday_days:
+                    if 20.0 not in audit_days and 20.0 not in punch_days and 20.0 not in leave_days:
+                        date = datetime.datetime(sub.year,int(sub.month),20)
+                        non_availability_obj.create(cr, uid, {'employee_id':emp_id,'state':'draft','date':date,'leave_evaluate_id':sub.id})
+                if shift.day_21 and shift.day_21.code != 'W' and day_now>=21 and 21.0 not in holiday_days:
+                    if 21.0 not in audit_days and 21.0 not in punch_days and 21.0 not in leave_days:
+                        date = datetime.datetime(sub.year,int(sub.month),21)
+                        non_availability_obj.create(cr, uid, {'employee_id':emp_id,'state':'draft','date':date,'leave_evaluate_id':sub.id})
+                if shift.day_22 and shift.day_22.code != 'W' and day_now>=22 and 22.0 not in holiday_days:
+                    if 22.0 not in audit_days and 22.0 not in punch_days and 22.0 not in leave_days:
+                        date = datetime.datetime(sub.year,int(sub.month),22)
+                        non_availability_obj.create(cr, uid, {'employee_id':emp_id,'state':'draft','date':date,'leave_evaluate_id':sub.id})
+                if shift.day_23 and shift.day_23.code != 'W' and day_now>=23 and 23.0 not in holiday_days:
+                    if 23.0 not in audit_days and 23.0 not in punch_days and 23.0 not in leave_days:
+                        date = datetime.datetime(sub.year,int(sub.month),23)
+                        non_availability_obj.create(cr, uid, {'employee_id':emp_id,'state':'draft','date':date,'leave_evaluate_id':sub.id})
+                if shift.day_24 and shift.day_24.code != 'W' and day_now>=24 and 24.0 not in holiday_days:
+                    if 24.0 not in audit_days and 24.0 not in punch_days and 24.0 not in leave_days:
+                        date = datetime.datetime(sub.year,int(sub.month),24)
+                        non_availability_obj.create(cr, uid, {'employee_id':emp_id,'state':'draft','date':date,'leave_evaluate_id':sub.id})
+                if shift.day_25 and shift.day_25.code != 'W' and day_now>=25 and 25.0 not in holiday_days:
+                    if 25.0 not in audit_days and 25.0 not in punch_days and 25.0 not in leave_days:
+                        date = datetime.datetime(sub.year,int(sub.month),25)
+                        non_availability_obj.create(cr, uid, {'employee_id':emp_id,'state':'draft','date':date,'leave_evaluate_id':sub.id})
+                if shift.day_26 and shift.day_26.code != 'W' and day_now>=26 and 26.0 not in holiday_days:
+                    if 26.0 not in audit_days and 26.0 not in punch_days and 26.0 not in leave_days:
+                        date = datetime.datetime(sub.year,int(sub.month),26)
+                        non_availability_obj.create(cr, uid, {'employee_id':emp_id,'state':'draft','date':date,'leave_evaluate_id':sub.id})
+                if shift.day_27 and shift.day_27.code != 'W' and day_now>=27 and 27.0 not in holiday_days:
+                    if 27.0 not in audit_days and 27.0 not in punch_days and 27.0 not in leave_days:
+                        date = datetime.datetime(sub.year,int(sub.month),27)
+                        non_availability_obj.create(cr, uid, {'employee_id':emp_id,'state':'draft','date':date,'leave_evaluate_id':sub.id})
+                if shift.day_28 and shift.day_28.code != 'W' and day_now>=28 and 28.0 not in holiday_days:
+                    if 28.0 not in audit_days and 28.0 not in punch_days and 28.0 not in leave_days:
+                        date = datetime.datetime(sub.year,int(sub.month),28)
+                        non_availability_obj.create(cr, uid, {'employee_id':emp_id,'state':'draft','date':date,'leave_evaluate_id':sub.id})
+                if shift.day_29 and shift.day_29.code != 'W' and shift.num_of_month>=29 and day_now>=29 and 29.0 not in holiday_days:
+                    if 29.0 not in audit_days and 29.0 not in punch_days and 29.0 not in leave_days:
+                        date = datetime.datetime(sub.year,int(sub.month),29)
+                        non_availability_obj.create(cr, uid, {'employee_id':emp_id,'state':'draft','date':date,'leave_evaluate_id':sub.id})
+                if shift.day_30 and shift.day_30.code != 'W' and shift.num_of_month>=30 and day_now>=30 and 30.0 not in holiday_days:
+                    if 30.0 not in audit_days and 30.0 not in punch_days and 30.0 not in leave_days:
+                        date = datetime.datetime(sub.year,int(sub.month),30)
+                        non_availability_obj.create(cr, uid, {'employee_id':emp_id,'state':'draft','date':date,'leave_evaluate_id':sub.id})
+                if shift.day_31 and shift.day_31.code != 'W' and shift.num_of_month>=31 and day_now>=31 and 31.0 not in holiday_days:
+                    if 31.0 not in audit_days and 31.0 not in punch_days and 31.0 not in leave_days:
+                        date = datetime.datetime(sub.year,int(sub.month),31)
+                        non_availability_obj.create(cr, uid, {'employee_id':emp_id,'state':'draft','date':date,'leave_evaluate_id':sub.id})
         return True
      
 tpt_time_leave_evaluation()

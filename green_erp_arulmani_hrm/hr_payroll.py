@@ -450,7 +450,7 @@ class arul_hr_payroll_earning_structure_configuration(osv.osv):
     }
     def _check_earning_parameters_id(self, cr, uid, ids, context=None):
         for payroll in self.browse(cr, uid, ids, context=context):
-            payroll_category_ids = self.search(cr, uid, [('id','!=',payroll.id),('earning_parameters_id','=',payroll.earning_parameters_id.id)])
+            payroll_category_ids = self.search(cr, uid, [('id','!=',payroll.id),('earning_parameters_id','=',payroll.earning_parameters_id.id),('earning_structure_configuration_id','=',payroll.earning_structure_configuration_id.id)])
             if payroll_category_ids :
                 return False
         return True
@@ -551,7 +551,6 @@ class arul_hr_payroll_executions(osv.osv):
             'type': 'ir.actions.report.xml',
             'report_name': 'arul_print_report',
         }
-        return True
     
     def length_month(self,year, month):
         if month == 2 and (year % 4 == 0) and (year % 100 != 0) or (year % 400 == 0):
@@ -571,14 +570,9 @@ class arul_hr_payroll_executions(osv.osv):
         cr.execute(sql)
         kq = cr.fetchall()
         total_days = 0
-        total_a = 0
-        total_b = 0
-        total_c = 0
-        shift_allowance_a = 0
-        shift_allowance_b = 0
-        shift_allowance_c = 0
         total_shift_allowance = 0
         total_lop = 0
+        total_week_off = 0
         if kq:
             leave_detail_obj = self.pool.get('arul.hr.employee.leave.details')
             sql = '''
@@ -593,318 +587,192 @@ class arul_hr_payroll_executions(osv.osv):
                     total_lop += 1
             for monthly_shift_schedule_id in monthly_shift_schedule_obj.browse(cr,uid,[kq[0][0]],context=context):
                 if monthly_shift_schedule_id.day_1:
-                    if monthly_shift_schedule_id.day_1.code == 'A':
-                        total_a +=1
-                        shift_allowance_a += monthly_shift_schedule_id.day_1.time_total
-                    if monthly_shift_schedule_id.day_1.code == 'B':
-                        total_b +=1
-                        shift_allowance_b += monthly_shift_schedule_id.day_1.time_total
-                    if monthly_shift_schedule_id.day_1.code == 'C':
-                        total_c +=1
-                        shift_allowance_c += monthly_shift_schedule_id.day_1.time_total
+                    if monthly_shift_schedule_id.day_1.code != 'W':
+                        total_days += 1
+                        total_shift_allowance += monthly_shift_schedule_id.day_1.time_total
+                    else:
+                        total_week_off += 1
                 if monthly_shift_schedule_id.day_2:
-                    if monthly_shift_schedule_id.day_2.code == 'A':
-                        total_a +=1
-                        shift_allowance_a += monthly_shift_schedule_id.day_2.time_total
-                    if monthly_shift_schedule_id.day_2.code == 'B':
-                        total_b +=1
-                        shift_allowance_b += monthly_shift_schedule_id.day_2.time_total
-                    if monthly_shift_schedule_id.day_2.code == 'C':
-                        total_c +=1
-                        shift_allowance_c += monthly_shift_schedule_id.day_2.time_total
+                    if monthly_shift_schedule_id.day_2.code != 'W':
+                        total_days += 1
+                        total_shift_allowance += monthly_shift_schedule_id.day_2.time_total
+                    else:
+                        total_week_off += 1
                 if monthly_shift_schedule_id.day_3:
-                    if monthly_shift_schedule_id.day_3.code == 'A':
-                        total_a +=1
-                        shift_allowance_a += monthly_shift_schedule_id.day_3.time_total
-                    if monthly_shift_schedule_id.day_3.code == 'B':
-                        total_b +=1
-                        shift_allowance_b += monthly_shift_schedule_id.day_3.time_total
-                    if monthly_shift_schedule_id.day_3.code == 'C':
-                        total_c +=1
-                        shift_allowance_c += monthly_shift_schedule_id.day_3.time_total
+                    if monthly_shift_schedule_id.day_3.code != 'W':
+                        total_days += 1
+                        total_shift_allowance += monthly_shift_schedule_id.day_3.time_total
+                    else:
+                        total_week_off += 1
                 if monthly_shift_schedule_id.day_4:
-                    if monthly_shift_schedule_id.day_4.code == 'A':
-                        total_a +=1
-                        shift_allowance_a += monthly_shift_schedule_id.day_4.time_total
-                    if monthly_shift_schedule_id.day_4.code == 'B':
-                        total_b +=1
-                        shift_allowance_b += monthly_shift_schedule_id.day_4.time_total
-                    if monthly_shift_schedule_id.day_4.code == 'C':
-                        total_c +=1
-                        shift_allowance_c += monthly_shift_schedule_id.day_4.time_total
+                    if monthly_shift_schedule_id.day_4.code != 'W':
+                        total_days += 1
+                        total_shift_allowance += monthly_shift_schedule_id.day_4.time_total
+                    else:
+                        total_week_off += 1
                 if monthly_shift_schedule_id.day_5:
-                    if monthly_shift_schedule_id.day_5.code == 'A':
-                        total_a +=1
-                        shift_allowance_a += monthly_shift_schedule_id.day_5.time_total
-                    if monthly_shift_schedule_id.day_5.code == 'B':
-                        total_b +=1
-                        shift_allowance_b += monthly_shift_schedule_id.day_5.time_total
-                    if monthly_shift_schedule_id.day_5.code == 'C':
-                        total_c +=1
-                        shift_allowance_c += monthly_shift_schedule_id.day_5.time_total
+                    if monthly_shift_schedule_id.day_5.code != 'W':
+                        total_days += 1
+                        total_shift_allowance += monthly_shift_schedule_id.day_5.time_total
+                    else:
+                        total_week_off += 1
                 if monthly_shift_schedule_id.day_6:
-                    if monthly_shift_schedule_id.day_6.code == 'A':
-                        total_a +=1
-                        shift_allowance_a += monthly_shift_schedule_id.day_6.time_total
-                    if monthly_shift_schedule_id.day_6.code == 'B':
-                        total_b +=1
-                        shift_allowance_b += monthly_shift_schedule_id.day_6.time_total
-                    if monthly_shift_schedule_id.day_6.code == 'C':
-                        total_c +=1
-                        shift_allowance_c += monthly_shift_schedule_id.day_6.time_total
+                    if monthly_shift_schedule_id.day_6.code != 'W':
+                        total_days += 1
+                        total_shift_allowance += monthly_shift_schedule_id.day_6.time_total
+                    else:
+                        total_week_off += 1
                 if monthly_shift_schedule_id.day_7:
-                    if monthly_shift_schedule_id.day_7.code == 'A':
-                        total_a +=1
-                        shift_allowance_a += monthly_shift_schedule_id.day_7.time_total
-                    if monthly_shift_schedule_id.day_7.code == 'B':
-                        total_b +=1
-                        shift_allowance_b += monthly_shift_schedule_id.day_7.time_total
-                    if monthly_shift_schedule_id.day_7.code == 'C':
-                        total_c +=1
-                        shift_allowance_c += monthly_shift_schedule_id.day_7.time_total
+                    if monthly_shift_schedule_id.day_7.code != 'W':
+                        total_days += 1
+                        total_shift_allowance += monthly_shift_schedule_id.day_7.time_total
+                    else:
+                        total_week_off += 1
                 if monthly_shift_schedule_id.day_8:
-                    if monthly_shift_schedule_id.day_8.code == 'A':
-                        total_a +=1
-                        shift_allowance_a += monthly_shift_schedule_id.day_8.time_total
-                    if monthly_shift_schedule_id.day_8.code == 'B':
-                        total_b +=1
-                        shift_allowance_b += monthly_shift_schedule_id.day_8.time_total
-                    if monthly_shift_schedule_id.day_8.code == 'C':
-                        total_c +=1
-                        shift_allowance_c += monthly_shift_schedule_id.day_8.time_total
+                    if monthly_shift_schedule_id.day_8.code != 'W':
+                        total_days += 1
+                        total_shift_allowance += monthly_shift_schedule_id.day_8.time_total
+                    else:
+                        total_week_off += 1
                 if monthly_shift_schedule_id.day_9:
-                    if monthly_shift_schedule_id.day_9.code == 'A':
-                        total_a +=1
-                        shift_allowance_a += monthly_shift_schedule_id.day_9.time_total
-                    if monthly_shift_schedule_id.day_9.code == 'B':
-                        total_b +=1
-                        shift_allowance_b += monthly_shift_schedule_id.day_9.time_total
-                    if monthly_shift_schedule_id.day_9.code == 'C':
-                        total_c +=1
-                        shift_allowance_c += monthly_shift_schedule_id.day_9.time_total
+                    if monthly_shift_schedule_id.day_9.code != 'W':
+                        total_days += 1
+                        total_shift_allowance += monthly_shift_schedule_id.day_9.time_total
+                    else:
+                        total_week_off += 1
                 if monthly_shift_schedule_id.day_10:
-                    if monthly_shift_schedule_id.day_10.code == 'A':
-                        total_a +=1
-                        shift_allowance_a += monthly_shift_schedule_id.day_10.time_total
-                    if monthly_shift_schedule_id.day_10.code == 'B':
-                        total_b +=1
-                        shift_allowance_b += monthly_shift_schedule_id.day_10.time_total
-                    if monthly_shift_schedule_id.day_10.code == 'C':
-                        total_c +=1
-                        shift_allowance_c += monthly_shift_schedule_id.day_10.time_total
+                    if monthly_shift_schedule_id.day_10.code != 'W':
+                        total_days += 1
+                        total_shift_allowance += monthly_shift_schedule_id.day_10.time_total
+                    else:
+                        total_week_off += 1
                 if monthly_shift_schedule_id.day_11:
-                    if monthly_shift_schedule_id.day_11.code == 'A':
-                        total_a +=1
-                        shift_allowance_a += monthly_shift_schedule_id.day_11.time_total
-                    if monthly_shift_schedule_id.day_11.code == 'B':
-                        total_b +=1
-                        shift_allowance_b += monthly_shift_schedule_id.day_11.time_total
-                    if monthly_shift_schedule_id.day_11.code == 'C':
-                        total_c +=1
-                        shift_allowance_c += monthly_shift_schedule_id.day_11.time_total
+                    if monthly_shift_schedule_id.day_11.code != 'W':
+                        total_days += 1
+                        total_shift_allowance += monthly_shift_schedule_id.day_11.time_total
+                    else:
+                        total_week_off += 1
                 if monthly_shift_schedule_id.day_12:
-                    if monthly_shift_schedule_id.day_12.code == 'A':
-                        total_a +=1
-                        shift_allowance_a += monthly_shift_schedule_id.day_12.time_total
-                    if monthly_shift_schedule_id.day_12.code == 'B':
-                        total_b +=1
-                        shift_allowance_b += monthly_shift_schedule_id.day_12.time_total
-                    if monthly_shift_schedule_id.day_12.code == 'C':
-                        total_c +=1
-                        shift_allowance_c += monthly_shift_schedule_id.day_12.time_total
+                    if monthly_shift_schedule_id.day_12.code != 'W':
+                        total_days += 1
+                        total_shift_allowance += monthly_shift_schedule_id.day_12.time_total
+                    else:
+                        total_week_off += 1
                 if monthly_shift_schedule_id.day_13:
-                    if monthly_shift_schedule_id.day_13.code == 'A':
-                        total_a +=1
-                        shift_allowance_a += monthly_shift_schedule_id.day_13.time_total
-                    if monthly_shift_schedule_id.day_13.code == 'B':
-                        total_b +=1
-                        shift_allowance_b += monthly_shift_schedule_id.day_13.time_total
-                    if monthly_shift_schedule_id.day_13.code == 'C':
-                        total_c +=1
-                        shift_allowance_c += monthly_shift_schedule_id.day_13.time_total
+                    if monthly_shift_schedule_id.day_13.code != 'W':
+                        total_days += 1
+                        total_shift_allowance += monthly_shift_schedule_id.day_13.time_total
+                    else:
+                        total_week_off += 1
                 if monthly_shift_schedule_id.day_14:
-                    if monthly_shift_schedule_id.day_14.code == 'A':
-                        total_a +=1
-                        shift_allowance_a += monthly_shift_schedule_id.day_14.time_total
-                    if monthly_shift_schedule_id.day_14.code == 'B':
-                        total_b +=1
-                        shift_allowance_b += monthly_shift_schedule_id.day_14.time_total
-                    if monthly_shift_schedule_id.day_14.code == 'C':
-                        total_c +=1
-                        shift_allowance_c += monthly_shift_schedule_id.day_14.time_total
+                    if monthly_shift_schedule_id.day_14.code != 'W':
+                        total_days += 1
+                        total_shift_allowance += monthly_shift_schedule_id.day_14.time_total
+                    else:
+                        total_week_off += 1
                 if monthly_shift_schedule_id.day_15:
-                    if monthly_shift_schedule_id.day_15.code == 'A':
-                        total_a +=1
-                        shift_allowance_a += monthly_shift_schedule_id.day_15.time_total
-                    if monthly_shift_schedule_id.day_15.code == 'B':
-                        total_b +=1
-                        shift_allowance_b += monthly_shift_schedule_id.day_15.time_total
-                    if monthly_shift_schedule_id.day_15.code == 'C':
-                        total_c +=1
-                        shift_allowance_c += monthly_shift_schedule_id.day_15.time_total
+                    if monthly_shift_schedule_id.day_15.code != 'W':
+                        total_days += 1
+                        total_shift_allowance += monthly_shift_schedule_id.day_15.time_total
+                    else:
+                        total_week_off += 1
                 if monthly_shift_schedule_id.day_16:
-                    if monthly_shift_schedule_id.day_16.code == 'A':
-                        total_a +=1
-                        shift_allowance_a += monthly_shift_schedule_id.day_16.time_total
-                    if monthly_shift_schedule_id.day_16.code == 'B':
-                        total_b +=1
-                        shift_allowance_b += monthly_shift_schedule_id.day_16.time_total
-                    if monthly_shift_schedule_id.day_16.code == 'C':
-                        total_c +=1
-                        shift_allowance_c += monthly_shift_schedule_id.day_16.time_total
+                    if monthly_shift_schedule_id.day_16.code != 'W':
+                        total_days += 1
+                        total_shift_allowance += monthly_shift_schedule_id.day_16.time_total
+                    else:
+                        total_week_off += 1
                 if monthly_shift_schedule_id.day_17:
-                    if monthly_shift_schedule_id.day_17.code == 'A':
-                        total_a +=1
-                        shift_allowance_a += monthly_shift_schedule_id.day_17.time_total
-                    if monthly_shift_schedule_id.day_17.code == 'B':
-                        total_b +=1
-                        shift_allowance_b += monthly_shift_schedule_id.day_17.time_total
-                    if monthly_shift_schedule_id.day_17.code == 'C':
-                        total_c +=1
-                        shift_allowance_c += monthly_shift_schedule_id.day_17.time_total
+                    if monthly_shift_schedule_id.day_17.code != 'W':
+                        total_days += 1
+                        total_shift_allowance += monthly_shift_schedule_id.day_17.time_total
+                    else:
+                        total_week_off += 1
                 if monthly_shift_schedule_id.day_18:
-                    if monthly_shift_schedule_id.day_18.code == 'A':
-                        total_a +=1
-                        shift_allowance_a += monthly_shift_schedule_id.day_18.time_total
-                    if monthly_shift_schedule_id.day_18.code == 'B':
-                        total_b +=1
-                        shift_allowance_b += monthly_shift_schedule_id.day_18.time_total
-                    if monthly_shift_schedule_id.day_18.code == 'C':
-                        total_c +=1
-                        shift_allowance_c += monthly_shift_schedule_id.day_18.time_total
+                    if monthly_shift_schedule_id.day_18.code != 'W':
+                        total_days += 1
+                        total_shift_allowance += monthly_shift_schedule_id.day_18.time_total
+                    else:
+                        total_week_off += 1
                 if monthly_shift_schedule_id.day_19:
-                    if monthly_shift_schedule_id.day_19.code == 'A':
-                        total_a +=1
-                        shift_allowance_a += monthly_shift_schedule_id.day_19.time_total
-                    if monthly_shift_schedule_id.day_19.code == 'B':
-                        total_b +=1
-                        shift_allowance_b += monthly_shift_schedule_id.day_19.time_total
-                    if monthly_shift_schedule_id.day_19.code == 'C':
-                        total_c +=1
-                        shift_allowance_c += monthly_shift_schedule_id.day_19.time_total
+                    if monthly_shift_schedule_id.day_19.code != 'W':
+                        total_days += 1
+                        total_shift_allowance += monthly_shift_schedule_id.day_19.time_total
+                    else:
+                        total_week_off += 1
                 if monthly_shift_schedule_id.day_20:
-                    if monthly_shift_schedule_id.day_20.code == 'A':
-                        total_a +=1
-                        shift_allowance_a += monthly_shift_schedule_id.day_20.time_total
-                    if monthly_shift_schedule_id.day_20.code == 'B':
-                        total_b +=1
-                        shift_allowance_b += monthly_shift_schedule_id.day_20.time_total
-                    if monthly_shift_schedule_id.day_20.code == 'C':
-                        total_c +=1
-                        shift_allowance_c += monthly_shift_schedule_id.day_20.time_total
+                    if monthly_shift_schedule_id.day_20.code != 'W':
+                        total_days += 1
+                        total_shift_allowance += monthly_shift_schedule_id.day_20.time_total
+                    else:
+                        total_week_off += 1
                 if monthly_shift_schedule_id.day_21:
-                    if monthly_shift_schedule_id.day_21.code == 'A':
-                        total_a +=1
-                        shift_allowance_a += monthly_shift_schedule_id.day_21.time_total
-                    if monthly_shift_schedule_id.day_21.code == 'B':
-                        total_b +=1
-                        shift_allowance_b += monthly_shift_schedule_id.day_21.time_total
-                    if monthly_shift_schedule_id.day_21.code == 'C':
-                        total_c +=1
-                        shift_allowance_c += monthly_shift_schedule_id.day_21.time_total
+                    if monthly_shift_schedule_id.day_21.code != 'W':
+                        total_days += 1
+                        total_shift_allowance += monthly_shift_schedule_id.day_21.time_total
+                    else:
+                        total_week_off += 1
                 if monthly_shift_schedule_id.day_22:
-                    if monthly_shift_schedule_id.day_22.code == 'A':
-                        total_a +=1
-                        shift_allowance_a += monthly_shift_schedule_id.day_22.time_total
-                    if monthly_shift_schedule_id.day_22.code == 'B':
-                        total_b +=1
-                        shift_allowance_b += monthly_shift_schedule_id.day_22.time_total
-                    if monthly_shift_schedule_id.day_22.code == 'C':
-                        total_c +=1
-                        shift_allowance_c += monthly_shift_schedule_id.day_22.time_total
+                    if monthly_shift_schedule_id.day_22.code != 'W':
+                        total_days += 1
+                        total_shift_allowance += monthly_shift_schedule_id.day_22.time_total
+                    else:
+                        total_week_off += 1
                 if monthly_shift_schedule_id.day_23:
-                    if monthly_shift_schedule_id.day_23.code == 'A':
-                        total_a +=1
-                        shift_allowance_a += monthly_shift_schedule_id.day_23.time_total
-                    if monthly_shift_schedule_id.day_23.code == 'B':
-                        total_b +=1
-                        shift_allowance_b += monthly_shift_schedule_id.day_23.time_total
-                    if monthly_shift_schedule_id.day_23.code == 'C':
-                        total_c +=1
-                        shift_allowance_c += monthly_shift_schedule_id.day_23.time_total
+                    if monthly_shift_schedule_id.day_23.code != 'W':
+                        total_days += 1
+                        total_shift_allowance += monthly_shift_schedule_id.day_23.time_total
+                    else:
+                        total_week_off += 1
                 if monthly_shift_schedule_id.day_24:
-                    if monthly_shift_schedule_id.day_24.code == 'A':
-                        total_a +=1
-                        shift_allowance_a += monthly_shift_schedule_id.day_24.time_total
-                    if monthly_shift_schedule_id.day_24.code == 'B':
-                        total_b +=1
-                        shift_allowance_b += monthly_shift_schedule_id.day_24.time_total
-                    if monthly_shift_schedule_id.day_24.code == 'C':
-                        total_c +=1
-                        shift_allowance_c += monthly_shift_schedule_id.day_24.time_total
+                    if monthly_shift_schedule_id.day_24.code != 'W':
+                        total_days += 1
+                        total_shift_allowance += monthly_shift_schedule_id.day_24.time_total
+                    else:
+                        total_week_off += 1
                 if monthly_shift_schedule_id.day_25:
-                    if monthly_shift_schedule_id.day_25.code == 'A':
-                        total_a +=1
-                        shift_allowance_a += monthly_shift_schedule_id.day_25.time_total
-                    if monthly_shift_schedule_id.day_25.code == 'B':
-                        total_b +=1
-                        shift_allowance_b += monthly_shift_schedule_id.day_25.time_total
-                    if monthly_shift_schedule_id.day_25.code == 'C':
-                        total_c +=1
-                        shift_allowance_c += monthly_shift_schedule_id.day_25.time_total
+                    if monthly_shift_schedule_id.day_25.code != 'W':
+                        total_days += 1
+                        total_shift_allowance += monthly_shift_schedule_id.day_25.time_total
+                    else:
+                        total_week_off += 1
                 if monthly_shift_schedule_id.day_26:
-                    if monthly_shift_schedule_id.day_26.code == 'A':
-                        total_a +=1
-                        shift_allowance_a += monthly_shift_schedule_id.day_26.time_total
-                    if monthly_shift_schedule_id.day_26.code == 'B':
-                        total_b +=1
-                        shift_allowance_b += monthly_shift_schedule_id.day_26.time_total
-                    if monthly_shift_schedule_id.day_26.code == 'C':
-                        total_c +=1
-                        shift_allowance_c += monthly_shift_schedule_id.day_26.time_total
+                    if monthly_shift_schedule_id.day_26.code != 'W':
+                        total_days += 1
+                        total_shift_allowance += monthly_shift_schedule_id.day_26.time_total
+                    else:
+                        total_week_off += 1
                 if monthly_shift_schedule_id.day_27:
-                    if monthly_shift_schedule_id.day_27.code == 'A':
-                        total_a +=1
-                        shift_allowance_a += monthly_shift_schedule_id.day_27.time_total
-                    if monthly_shift_schedule_id.day_27.code == 'B':
-                        total_b +=1
-                        shift_allowance_b += monthly_shift_schedule_id.day_27.time_total
-                    if monthly_shift_schedule_id.day_27.code == 'C':
-                        total_c +=1
-                        shift_allowance_c += monthly_shift_schedule_id.day_27.time_total
+                    if monthly_shift_schedule_id.day_27.code != 'W':
+                        total_days += 1
+                        total_shift_allowance += monthly_shift_schedule_id.day_27.time_total
+                    else:
+                        total_week_off += 1
                 if monthly_shift_schedule_id.day_28:
-                    if monthly_shift_schedule_id.day_28.code == 'A':
-                        total_a +=1
-                        shift_allowance_a += monthly_shift_schedule_id.day_28.time_total
-                    if monthly_shift_schedule_id.day_28.code == 'B':
-                        total_b +=1
-                        shift_allowance_b += monthly_shift_schedule_id.day_28.time_total
-                    if monthly_shift_schedule_id.day_28.code == 'C':
-                        total_c +=1
-                        shift_allowance_c += monthly_shift_schedule_id.day_28.time_total
-                if monthly_shift_schedule_id.num_of_month >=29 and monthly_shift_schedule_id.day_29:
-                    if monthly_shift_schedule_id.day_29.code == 'A':
-                        total_a +=1
-                        shift_allowance_a += monthly_shift_schedule_id.day_29.time_total
-                    if monthly_shift_schedule_id.day_29.code == 'B':
-                        total_b +=1
-                        shift_allowance_b += monthly_shift_schedule_id.day_29.time_total
-                    if monthly_shift_schedule_id.day_29.code == 'C':
-                        total_c +=1
-                        shift_allowance_c += monthly_shift_schedule_id.day_29.time_total
-                if monthly_shift_schedule_id.num_of_month >=30 and monthly_shift_schedule_id.day_30:
-                    if monthly_shift_schedule_id.day_30.code == 'A':
-                        total_a +=1
-                        shift_allowance_a += monthly_shift_schedule_id.day_30.time_total
-                    if monthly_shift_schedule_id.day_30.code == 'B':
-                        total_b +=1
-                        shift_allowance_b += monthly_shift_schedule_id.day_30.time_total
-                    if monthly_shift_schedule_id.day_30.code == 'C':
-                        total_c +=1
-                        shift_allowance_c += monthly_shift_schedule_id.day_30.time_total
-                if monthly_shift_schedule_id.num_of_month >=31 and monthly_shift_schedule_id.day_31:
-                    if monthly_shift_schedule_id.day_31.code == 'A':
-                        total_a +=1
-                        shift_allowance_a += monthly_shift_schedule_id.day_31.time_total
-                    if monthly_shift_schedule_id.day_31.code == 'B':
-                        total_b +=1
-                        shift_allowance_b += monthly_shift_schedule_id.day_31.time_total
-                    if monthly_shift_schedule_id.day_31.code == 'C':
-                        total_c +=1
-                        shift_allowance_c += monthly_shift_schedule_id.day_31.time_total
-            total_days = total_a + total_b + total_c
-            total_shift_allowance = shift_allowance_a + shift_allowance_b + shift_allowance_c    
-        return total_days,total_shift_allowance,total_lop
+                    if monthly_shift_schedule_id.day_28.code != 'W':
+                        total_days += 1
+                        total_shift_allowance += monthly_shift_schedule_id.day_28.time_total
+                    else:
+                        total_week_off += 1
+                if monthly_shift_schedule_id.day_29 and monthly_shift_schedule_id.num_of_month>=29:
+                    if monthly_shift_schedule_id.day_29.code != 'W':
+                        total_days += 1
+                        total_shift_allowance += monthly_shift_schedule_id.day_29.time_total
+                    else:
+                        total_week_off += 1
+                if monthly_shift_schedule_id.day_30 and monthly_shift_schedule_id.num_of_month>=30:
+                    if monthly_shift_schedule_id.day_30.code != 'W':
+                        total_days += 1
+                        total_shift_allowance += monthly_shift_schedule_id.day_30.time_total
+                    else:
+                        total_week_off += 1
+                if monthly_shift_schedule_id.day_31 and monthly_shift_schedule_id.num_of_month>=31:
+                    if monthly_shift_schedule_id.day_31.code != 'W':
+                        total_days += 1
+                        total_shift_allowance += monthly_shift_schedule_id.day_31.time_total
+                    else:
+                        total_week_off += 1
+        return total_days,total_shift_allowance,total_lop,total_week_off
     
     def generate_payroll(self, cr, uid, ids, context=None):
         details_line = []
@@ -916,7 +784,7 @@ class arul_hr_payroll_executions(osv.osv):
             if not time_leav_ids:
                 raise osv.except_osv(_('Warning!'),_('Time/Leave Evaluation is not made!'))
             for ti_le in time_leav_obj.browse(cr,uid,time_leav_ids):
-                if len(ti_le.shift_time_id)!=0 or len(ti_le.leave_request_id)!=0:
+                if len(ti_le.shift_time_id)!=0 or len(ti_le.leave_request_id)!=0 or len(ti_le.non_availability_id)!=0:
                     raise osv.except_osv(_('Warning!'),_('Time/Leave Evaluation is not completed!'))
 
             emp_obj = self.pool.get('hr.employee')
@@ -925,6 +793,8 @@ class arul_hr_payroll_executions(osv.osv):
             earning_structure_obj = self.pool.get('arul.hr.payroll.earning.structure')
             other_deductions_obj = self.pool.get('arul.hr.payroll.other.deductions')
             contribution_obj = self.pool.get('arul.hr.payroll.contribution.parameters')
+            earning_obj = self.pool.get('arul.hr.payroll.earning.parameters')
+            deduction_obj = self.pool.get('arul.hr.payroll.deduction.parameters')
             employee_ids = emp_obj.search(cr, uid, [('payroll_area_id','=',line.payroll_area_id.id)])
             for p in emp_obj.browse(cr,uid,employee_ids):
                 payroll_executions_details_ids = executions_details_obj.search(cr, uid, [('payroll_executions_id', '=', line.id), ('employee_id', '=', p.id)], context=context)
@@ -949,7 +819,7 @@ class arul_hr_payroll_executions(osv.osv):
                             emp_lwf_amt = contribution.emp_lwf_amt
                         emp_esi_con = contribution.emp_esi_con
                         emp_pf_con = contribution.emp_pf_con
-                    total_days,total_shift_allowance,total_lop = self.get_timesheet(cr,uid,p.id,line.month,line.year,context=context)
+                    total_days,total_shift_allowance,total_lop,total_week_off = self.get_timesheet(cr,uid,p.id,line.month,line.year,context=context)
                     calendar_days = self.length_month(int(line.year),int(line.month))
                     sql = '''
                         select case when sum(employee_amt)!=0 then sum(employee_amt) else 0 end total_fd from meals_details where emp_id = %s and meals_id in (select id from meals_deduction where meals_for='employees' and EXTRACT(year FROM meals_date) = %s and EXTRACT(month FROM meals_date) = %s)
@@ -968,14 +838,14 @@ class arul_hr_payroll_executions(osv.osv):
                         lwf = 0.0
                         total_deduction = 0
                         for other_deductions_id in payroll_emp_struc_obj.browse(cr,uid,emp_struc_ids[0]).payroll_other_deductions_line:
-                            if other_deductions_id.deduction_parameters_id.code == 'PF.D':
-                                pfd = other_deductions_id.float
+#                             if other_deductions_id.deduction_parameters_id.code == 'PF.D':
+#                                 pfd = other_deductions_id.float
                             if other_deductions_id.deduction_parameters_id.code == 'P.D':
                                 pd = other_deductions_id.float
                             if other_deductions_id.deduction_parameters_id.code == 'VPF.D':
                                 vpfd = other_deductions_id.float
-                            if other_deductions_id.deduction_parameters_id.code == 'ESI.D':
-                                esid = other_deductions_id.float
+#                             if other_deductions_id.deduction_parameters_id.code == 'ESI.D':
+#                                 esid = other_deductions_id.float
                             if other_deductions_id.deduction_parameters_id.code == 'F.D':
                                 fd = other_deductions_id.float
                             if other_deductions_id.deduction_parameters_id.code == 'L.D':
@@ -984,18 +854,26 @@ class arul_hr_payroll_executions(osv.osv):
                                 ind = other_deductions_id.float
                             if other_deductions_id.deduction_parameters_id.code == 'PT':
                                 pt = other_deductions_id.float
-                            if other_deductions_id.deduction_parameters_id.code == 'LWF':
-                                lwf = other_deductions_id.float
+#                             if other_deductions_id.deduction_parameters_id.code == 'LWF':
+#                                 lwf = other_deductions_id.float
 
                         fd += total_fd
                         
-                        total_deduction = pfd + pd + vpfd + esid + fd + ld + ind +  pt + lwf    
+                        if gross_sal >= emp_esi_limit:
+                            emp_esi_con_amount = 0
+                        else:
+                            emp_esi_con_amount = total_earning*emp_esi_con/100
+                        base_amount = basic + da - lop
+                        emp_pf_con_amount = base_amount*emp_pf_con/100
+
+                        total_deduction = pfd + pd + vpfd + esid + fd + ld + ind +  pt + lwf + emp_pf_con_amount + emp_esi_con_amount + emp_lwf_amt
+                        
                         for _other_deductions_id in payroll_emp_struc_obj.browse(cr,uid,emp_struc_ids[0]).payroll_other_deductions_line:
-                            if _other_deductions_id.deduction_parameters_id.code == 'PF.D':
-                                vals_other_deductions.append((0,0, {
-                                          'deduction_parameters_id':_other_deductions_id.deduction_parameters_id.id,
-                                          'float': pfd,
-                                    }))
+#                             if _other_deductions_id.deduction_parameters_id.code == 'PF.D':
+#                                 vals_other_deductions.append((0,0, {
+#                                           'deduction_parameters_id':_other_deductions_id.deduction_parameters_id.id,
+#                                           'float': pfd,
+#                                     }))
                             if _other_deductions_id.deduction_parameters_id.code == 'P.D':
                                 vals_other_deductions.append((0,0, {
                                           'deduction_parameters_id':_other_deductions_id.deduction_parameters_id.id,
@@ -1006,11 +884,11 @@ class arul_hr_payroll_executions(osv.osv):
                                           'deduction_parameters_id':_other_deductions_id.deduction_parameters_id.id,
                                           'float': vpfd,
                                     }))
-                            if _other_deductions_id.deduction_parameters_id.code == 'ESI.D':
-                                vals_other_deductions.append((0,0, {
-                                          'deduction_parameters_id':_other_deductions_id.deduction_parameters_id.id,
-                                          'float': esid,
-                                    }))
+#                             if _other_deductions_id.deduction_parameters_id.code == 'ESI.D':
+#                                 vals_other_deductions.append((0,0, {
+#                                           'deduction_parameters_id':_other_deductions_id.deduction_parameters_id.id,
+#                                           'float': esid,
+#                                     }))
                             if _other_deductions_id.deduction_parameters_id.code == 'F.D':
                                 vals_other_deductions.append((0,0, {
                                           'deduction_parameters_id':_other_deductions_id.deduction_parameters_id.id,
@@ -1031,16 +909,16 @@ class arul_hr_payroll_executions(osv.osv):
                                           'deduction_parameters_id':_other_deductions_id.deduction_parameters_id.id,
                                           'float': pt,
                                     }))
-                            if _other_deductions_id.deduction_parameters_id.code == 'LWF':
-                                vals_other_deductions.append((0,0, {
-                                          'deduction_parameters_id':_other_deductions_id.deduction_parameters_id.id,
-                                          'float': lwf,
-                                    }))
-                            if _other_deductions_id.deduction_parameters_id.code == 'TOTAL_DEDUCTION':
-                                vals_other_deductions.append((0,0, {
-                                          'deduction_parameters_id':_other_deductions_id.deduction_parameters_id.id,
-                                          'float': total_deduction,
-                                    }))
+#                             if _other_deductions_id.deduction_parameters_id.code == 'LWF':
+#                                 vals_other_deductions.append((0,0, {
+#                                           'deduction_parameters_id':_other_deductions_id.deduction_parameters_id.id,
+#                                           'float': lwf,
+#                                     }))
+#                             if _other_deductions_id.deduction_parameters_id.code == 'TOTAL_DEDUCTION':
+#                                 vals_other_deductions.append((0,0, {
+#                                           'deduction_parameters_id':_other_deductions_id.deduction_parameters_id.id,
+#                                           'float': total_deduction,
+#                                     }))
                         basic = 0.0
                         da = 0.0
                         c = 0.0
@@ -1183,22 +1061,60 @@ class arul_hr_payroll_executions(osv.osv):
                                           'earning_parameters_id':_earning_struc_id.earning_parameters_id.id,
                                           'float': med,
                                     }))
-                            if _earning_struc_id.earning_parameters_id.code == 'TOTAL_EARNING':
+#                             if _earning_struc_id.earning_parameters_id.code == 'TOTAL_EARNING':
+#                                 vals_earning_struc.append((0,0, {
+#                                           'earning_parameters_id':_earning_struc_id.earning_parameters_id.id,
+#                                           'float': total_earning,
+#                                     }))
+#                             if _earning_struc_id.earning_parameters_id.code == 'GROSS_SALARY':
+#                                 vals_earning_struc.append((0,0, {
+#                                           'earning_parameters_id':_earning_struc_id.earning_parameters_id.id,
+#                                           'float': gross_sal,
+#                                     }))
+#                             if _earning_struc_id.earning_parameters_id.code == 'NET':
+#                                 vals_earning_struc.append((0,0, {
+#                                           'earning_parameters_id':_earning_struc_id.earning_parameters_id.id,
+#                                           'float': net_sala,
+#                                     }))
+                        earning_ids = earning_obj.search(cr, uid, [('code','in',['TOTAL_EARNING','GROSS_SALARY','NET'])])
+                        for earning in earning_obj.browse(cr, uid, earning_ids):
+                            if earning.code == 'TOTAL_EARNING':
                                 vals_earning_struc.append((0,0, {
-                                          'earning_parameters_id':_earning_struc_id.earning_parameters_id.id,
-                                          'float': total_earning,
-                                    }))
-                            if _earning_struc_id.earning_parameters_id.code == 'GROSS_SALARY':
+                                      'earning_parameters_id':earning.id,
+                                      'float': total_earning,
+                                }))
+                            if earning.code == 'GROSS_SALARY':
                                 vals_earning_struc.append((0,0, {
-                                          'earning_parameters_id':_earning_struc_id.earning_parameters_id.id,
-                                          'float': gross_sal,
-                                    }))
-                            if _earning_struc_id.earning_parameters_id.code == 'NET':
+                                      'earning_parameters_id':earning.id,
+                                      'float': gross_sal,
+                                }))
+                            if earning.code == 'NET':
                                 vals_earning_struc.append((0,0, {
-                                          'earning_parameters_id':_earning_struc_id.earning_parameters_id.id,
-                                          'float': net_sala,
+                                      'earning_parameters_id':earning.id,
+                                      'float': net_sala,
+                                }))
+                        deduction_ids = deduction_obj.search(cr, uid, [('code','in',['TOTAL_DEDUCTION','PF.D','ESI.D','LWF'])])
+                        for deduction in deduction_obj.browse(cr, uid, deduction_ids):
+                            if deduction.code == 'TOTAL_DEDUCTION':
+                                vals_other_deductions.append((0,0, {
+                                          'deduction_parameters_id':deduction.id,
+                                          'float': total_deduction,
                                     }))
-                    
+                            if deduction.code == 'PF.D':
+                                vals_other_deductions.append((0,0, {
+                                          'deduction_parameters_id':deduction.id,
+                                          'float': emp_pf_con_amount,
+                                    }))
+                            if deduction.code == 'ESI.D':
+                                vals_other_deductions.append((0,0, {
+                                          'deduction_parameters_id':deduction.id,
+                                          'float': emp_esi_con_amount,
+                                    }))
+                            if deduction.code == 'LWF':
+                                vals_other_deductions.append((0,0, {
+                                          'deduction_parameters_id':deduction.id,
+                                          'float': emp_lwf_amt,
+                                    }))
                     if p.employee_category_id and p.employee_category_id.code == 'S2':
                         pfd = 0.0
                         pd = 0.0
@@ -1211,14 +1127,14 @@ class arul_hr_payroll_executions(osv.osv):
                         lwf = 0.0
                         total_deduction = 0
                         for other_deductions_id in payroll_emp_struc_obj.browse(cr,uid,emp_struc_ids[0]).payroll_other_deductions_line:
-                            if other_deductions_id.deduction_parameters_id.code == 'PF.D':
-                                pfd = other_deductions_id.float
+#                             if other_deductions_id.deduction_parameters_id.code == 'PF.D':
+#                                 pfd = other_deductions_id.float
                             if other_deductions_id.deduction_parameters_id.code == 'P.D':
                                 pd = other_deductions_id.float
                             if other_deductions_id.deduction_parameters_id.code == 'VPF.D':
                                 vpfd = other_deductions_id.float
-                            if other_deductions_id.deduction_parameters_id.code == 'ESI.D':
-                                esid = other_deductions_id.float
+#                             if other_deductions_id.deduction_parameters_id.code == 'ESI.D':
+#                                 esid = other_deductions_id.float
                             if other_deductions_id.deduction_parameters_id.code == 'F.D':
                                 fd = other_deductions_id.float
                             if other_deductions_id.deduction_parameters_id.code == 'L.D':
@@ -1227,18 +1143,25 @@ class arul_hr_payroll_executions(osv.osv):
                                 ind = other_deductions_id.float
                             if other_deductions_id.deduction_parameters_id.code == 'PT':
                                 pt = other_deductions_id.float
-                            if other_deductions_id.deduction_parameters_id.code == 'LWF':
-                                lwf = other_deductions_id.float
+#                             if other_deductions_id.deduction_parameters_id.code == 'LWF':
+#                                 lwf = other_deductions_id.float
                                 
                         fd += total_fd
                         
-                        total_deduction = pfd + pd + vpfd + esid + fd + ld + ind +  pt + lwf    
+                        if gross_sal >= emp_esi_limit:
+                            emp_esi_con_amount = 0
+                        else:
+                            emp_esi_con_amount = total_earning*emp_esi_con/100
+                        base_amount = basic + da - lop
+                        emp_pf_con_amount = base_amount*emp_pf_con/100
+                        
+                        total_deduction = pfd + pd + vpfd + esid + fd + ld + ind +  pt + lwf + emp_pf_con_amount + emp_esi_con_amount + emp_lwf_amt 
                         for _other_deductions_id in payroll_emp_struc_obj.browse(cr,uid,emp_struc_ids[0]).payroll_other_deductions_line:
-                            if _other_deductions_id.deduction_parameters_id.code == 'PF.D':
-                                vals_other_deductions.append((0,0, {
-                                          'deduction_parameters_id':_other_deductions_id.deduction_parameters_id.id,
-                                          'float': pfd,
-                                    }))
+#                             if _other_deductions_id.deduction_parameters_id.code == 'PF.D':
+#                                 vals_other_deductions.append((0,0, {
+#                                           'deduction_parameters_id':_other_deductions_id.deduction_parameters_id.id,
+#                                           'float': pfd,
+#                                     }))
                             if _other_deductions_id.deduction_parameters_id.code == 'P.D':
                                 vals_other_deductions.append((0,0, {
                                           'deduction_parameters_id':_other_deductions_id.deduction_parameters_id.id,
@@ -1249,11 +1172,11 @@ class arul_hr_payroll_executions(osv.osv):
                                           'deduction_parameters_id':_other_deductions_id.deduction_parameters_id.id,
                                           'float': vpfd,
                                     }))
-                            if _other_deductions_id.deduction_parameters_id.code == 'ESI.D':
-                                vals_other_deductions.append((0,0, {
-                                          'deduction_parameters_id':_other_deductions_id.deduction_parameters_id.id,
-                                          'float': esid,
-                                    }))
+#                             if _other_deductions_id.deduction_parameters_id.code == 'ESI.D':
+#                                 vals_other_deductions.append((0,0, {
+#                                           'deduction_parameters_id':_other_deductions_id.deduction_parameters_id.id,
+#                                           'float': esid,
+#                                     }))
                             if _other_deductions_id.deduction_parameters_id.code == 'F.D':
                                 vals_other_deductions.append((0,0, {
                                           'deduction_parameters_id':_other_deductions_id.deduction_parameters_id.id,
@@ -1274,16 +1197,16 @@ class arul_hr_payroll_executions(osv.osv):
                                           'deduction_parameters_id':_other_deductions_id.deduction_parameters_id.id,
                                           'float': pt,
                                     }))
-                            if _other_deductions_id.deduction_parameters_id.code == 'LWF':
-                                vals_other_deductions.append((0,0, {
-                                          'deduction_parameters_id':_other_deductions_id.deduction_parameters_id.id,
-                                          'float': lwf,
-                                    }))
-                            if _other_deductions_id.deduction_parameters_id.code == 'TOTAL_DEDUCTION':
-                                vals_other_deductions.append((0,0, {
-                                          'deduction_parameters_id':_other_deductions_id.deduction_parameters_id.id,
-                                          'float': total_deduction,
-                                    }))
+#                             if _other_deductions_id.deduction_parameters_id.code == 'LWF':
+#                                 vals_other_deductions.append((0,0, {
+#                                           'deduction_parameters_id':_other_deductions_id.deduction_parameters_id.id,
+#                                           'float': lwf,
+#                                     }))
+#                             if _other_deductions_id.deduction_parameters_id.code == 'TOTAL_DEDUCTION':
+#                                 vals_other_deductions.append((0,0, {
+#                                           'deduction_parameters_id':_other_deductions_id.deduction_parameters_id.id,
+#                                           'float': total_deduction,
+#                                     }))
                         basic = 0.0
                         da = 0.0
                         c = 0.0
@@ -1427,22 +1350,60 @@ class arul_hr_payroll_executions(osv.osv):
                                           'earning_parameters_id':_earning_struc_id.earning_parameters_id.id,
                                           'float': med,
                                     }))
-                            if _earning_struc_id.earning_parameters_id.code == 'TOTAL_EARNING':
+#                             if _earning_struc_id.earning_parameters_id.code == 'TOTAL_EARNING':
+#                                 vals_earning_struc.append((0,0, {
+#                                           'earning_parameters_id':_earning_struc_id.earning_parameters_id.id,
+#                                           'float': total_earning,
+#                                     }))
+#                             if _earning_struc_id.earning_parameters_id.code == 'GROSS_SALARY':
+#                                 vals_earning_struc.append((0,0, {
+#                                           'earning_parameters_id':_earning_struc_id.earning_parameters_id.id,
+#                                           'float': gross_sal,
+#                                     }))
+#                             if _earning_struc_id.earning_parameters_id.code == 'NET':
+#                                 vals_earning_struc.append((0,0, {
+#                                           'earning_parameters_id':_earning_struc_id.earning_parameters_id.id,
+#                                           'float': net_sala,
+#                                     }))  
+                        earning_ids = earning_obj.search(cr, uid, [('code','in',['TOTAL_EARNING','GROSS_SALARY','NET'])])
+                        for earning in earning_obj.browse(cr, uid, earning_ids):
+                            if earning.code == 'TOTAL_EARNING':
                                 vals_earning_struc.append((0,0, {
-                                          'earning_parameters_id':_earning_struc_id.earning_parameters_id.id,
-                                          'float': total_earning,
+                                      'earning_parameters_id':earning.id,
+                                      'float': total_earning,
+                                }))
+                            if earning.code == 'GROSS_SALARY':
+                                vals_earning_struc.append((0,0, {
+                                      'earning_parameters_id':earning.id,
+                                      'float': gross_sal,
+                                }))
+                            if earning.code == 'NET':
+                                vals_earning_struc.append((0,0, {
+                                      'earning_parameters_id':earning.id,
+                                      'float': net_sala,
+                                }))
+                        deduction_ids = deduction_obj.search(cr, uid, [('code','in',['TOTAL_DEDUCTION','PF.D','ESI.D','LWF'])])
+                        for deduction in deduction_obj.browse(cr, uid, deduction_ids):
+                            if deduction.code == 'TOTAL_DEDUCTION':
+                                vals_other_deductions.append((0,0, {
+                                          'deduction_parameters_id':deduction.id,
+                                          'float': total_deduction,
                                     }))
-                            if _earning_struc_id.earning_parameters_id.code == 'GROSS_SALARY':
-                                vals_earning_struc.append((0,0, {
-                                          'earning_parameters_id':_earning_struc_id.earning_parameters_id.id,
-                                          'float': gross_sal,
+                            if deduction.code == 'PF.D':
+                                vals_other_deductions.append((0,0, {
+                                          'deduction_parameters_id':deduction.id,
+                                          'float': emp_pf_con_amount,
                                     }))
-                            if _earning_struc_id.earning_parameters_id.code == 'NET':
-                                vals_earning_struc.append((0,0, {
-                                          'earning_parameters_id':_earning_struc_id.earning_parameters_id.id,
-                                          'float': net_sala,
-                                    }))  
-                    
+                            if deduction.code == 'ESI.D':
+                                vals_other_deductions.append((0,0, {
+                                          'deduction_parameters_id':deduction.id,
+                                          'float': emp_esi_con_amount,
+                                    }))
+                            if deduction.code == 'LWF':
+                                vals_other_deductions.append((0,0, {
+                                          'deduction_parameters_id':deduction.id,
+                                          'float': emp_lwf_amt,
+                                    }))
                     if p.employee_category_id and p.employee_category_id.code == 'S3':
                         pfd = 0.0
                         pd = 0.0
@@ -1455,14 +1416,14 @@ class arul_hr_payroll_executions(osv.osv):
                         lwf = 0.0
                         total_deduction = 0
                         for other_deductions_id in payroll_emp_struc_obj.browse(cr,uid,emp_struc_ids[0]).payroll_other_deductions_line:
-                            if other_deductions_id.deduction_parameters_id.code == 'PF.D':
-                                pfd = other_deductions_id.float
+#                             if other_deductions_id.deduction_parameters_id.code == 'PF.D':
+#                                 pfd = other_deductions_id.float
                             if other_deductions_id.deduction_parameters_id.code == 'P.D':
                                 pd = other_deductions_id.float
                             if other_deductions_id.deduction_parameters_id.code == 'VPF.D':
                                 vpfd = other_deductions_id.float
-                            if other_deductions_id.deduction_parameters_id.code == 'ESI.D':
-                                esid = other_deductions_id.float
+#                             if other_deductions_id.deduction_parameters_id.code == 'ESI.D':
+#                                 esid = other_deductions_id.float
                             if other_deductions_id.deduction_parameters_id.code == 'F.D':
                                 fd = other_deductions_id.float
                             if other_deductions_id.deduction_parameters_id.code == 'L.D':
@@ -1471,18 +1432,25 @@ class arul_hr_payroll_executions(osv.osv):
                                 ind = other_deductions_id.float
                             if other_deductions_id.deduction_parameters_id.code == 'PT':
                                 pt = other_deductions_id.float
-                            if other_deductions_id.deduction_parameters_id.code == 'LWF':
-                                lwf = other_deductions_id.float
+#                             if other_deductions_id.deduction_parameters_id.code == 'LWF':
+#                                 lwf = other_deductions_id.float
                         
                         fd += total_fd        
                         
-                        total_deduction = pfd + pd + vpfd + esid + fd + ld + ind +  pt + lwf    
+                        if gross_sal >= emp_esi_limit:
+                            emp_esi_con_amount = 0
+                        else:
+                            emp_esi_con_amount = total_earning*emp_esi_con/100
+                        base_amount = basic + da - lop
+                        emp_pf_con_amount = base_amount*emp_pf_con/100
+                        
+                        total_deduction = pfd + pd + vpfd + esid + fd + ld + ind +  pt + lwf + emp_pf_con_amount + emp_esi_con_amount + emp_lwf_amt
                         for _other_deductions_id in payroll_emp_struc_obj.browse(cr,uid,emp_struc_ids[0]).payroll_other_deductions_line:
-                            if _other_deductions_id.deduction_parameters_id.code == 'PF.D':
-                                vals_other_deductions.append((0,0, {
-                                          'deduction_parameters_id':_other_deductions_id.deduction_parameters_id.id,
-                                          'float': pfd,
-                                    }))
+#                             if _other_deductions_id.deduction_parameters_id.code == 'PF.D':
+#                                 vals_other_deductions.append((0,0, {
+#                                           'deduction_parameters_id':_other_deductions_id.deduction_parameters_id.id,
+#                                           'float': pfd,
+#                                     }))
                             if _other_deductions_id.deduction_parameters_id.code == 'P.D':
                                 vals_other_deductions.append((0,0, {
                                           'deduction_parameters_id':_other_deductions_id.deduction_parameters_id.id,
@@ -1493,11 +1461,11 @@ class arul_hr_payroll_executions(osv.osv):
                                           'deduction_parameters_id':_other_deductions_id.deduction_parameters_id.id,
                                           'float': vpfd,
                                     }))
-                            if _other_deductions_id.deduction_parameters_id.code == 'ESI.D':
-                                vals_other_deductions.append((0,0, {
-                                          'deduction_parameters_id':_other_deductions_id.deduction_parameters_id.id,
-                                          'float': esid,
-                                    }))
+#                             if _other_deductions_id.deduction_parameters_id.code == 'ESI.D':
+#                                 vals_other_deductions.append((0,0, {
+#                                           'deduction_parameters_id':_other_deductions_id.deduction_parameters_id.id,
+#                                           'float': esid,
+#                                     }))
                             if _other_deductions_id.deduction_parameters_id.code == 'F.D':
                                 vals_other_deductions.append((0,0, {
                                           'deduction_parameters_id':_other_deductions_id.deduction_parameters_id.id,
@@ -1518,16 +1486,16 @@ class arul_hr_payroll_executions(osv.osv):
                                           'deduction_parameters_id':_other_deductions_id.deduction_parameters_id.id,
                                           'float': pt,
                                     }))
-                            if _other_deductions_id.deduction_parameters_id.code == 'LWF':
-                                vals_other_deductions.append((0,0, {
-                                          'deduction_parameters_id':_other_deductions_id.deduction_parameters_id.id,
-                                          'float': lwf,
-                                    }))
-                            if _other_deductions_id.deduction_parameters_id.code == 'TOTAL_DEDUCTION':
-                                vals_other_deductions.append((0,0, {
-                                          'deduction_parameters_id':_other_deductions_id.deduction_parameters_id.id,
-                                          'float': total_deduction,
-                                    }))
+#                             if _other_deductions_id.deduction_parameters_id.code == 'LWF':
+#                                 vals_other_deductions.append((0,0, {
+#                                           'deduction_parameters_id':_other_deductions_id.deduction_parameters_id.id,
+#                                           'float': lwf,
+#                                     }))
+#                             if _other_deductions_id.deduction_parameters_id.code == 'TOTAL_DEDUCTION':
+#                                 vals_other_deductions.append((0,0, {
+#                                           'deduction_parameters_id':_other_deductions_id.deduction_parameters_id.id,
+#                                           'float': total_deduction,
+#                                     }))
                         basic = 0.0
                         da = 0.0
                         c = 0.0
@@ -1672,20 +1640,59 @@ class arul_hr_payroll_executions(osv.osv):
                                           'earning_parameters_id':_earning_struc_id.earning_parameters_id.id,
                                           'float': med,
                                     }))
-                            if _earning_struc_id.earning_parameters_id.code == 'TOTAL_EARNING':
+#                             if _earning_struc_id.earning_parameters_id.code == 'TOTAL_EARNING':
+#                                 vals_earning_struc.append((0,0, {
+#                                           'earning_parameters_id':_earning_struc_id.earning_parameters_id.id,
+#                                           'float': total_earning,
+#                                     }))
+#                             if _earning_struc_id.earning_parameters_id.code == 'GROSS_SALARY':
+#                                 vals_earning_struc.append((0,0, {
+#                                           'earning_parameters_id':_earning_struc_id.earning_parameters_id.id,
+#                                           'float': gross_sal,
+#                                     }))
+#                             if _earning_struc_id.earning_parameters_id.code == 'NET':
+#                                 vals_earning_struc.append((0,0, {
+#                                           'earning_parameters_id':_earning_struc_id.earning_parameters_id.id,
+#                                           'float': net_sala,
+#                                     }))
+                        earning_ids = earning_obj.search(cr, uid, [('code','in',['TOTAL_EARNING','GROSS_SALARY','NET'])])
+                        for earning in earning_obj.browse(cr, uid, earning_ids):
+                            if earning.code == 'TOTAL_EARNING':
                                 vals_earning_struc.append((0,0, {
-                                          'earning_parameters_id':_earning_struc_id.earning_parameters_id.id,
-                                          'float': total_earning,
+                                      'earning_parameters_id':earning.id,
+                                      'float': total_earning,
+                                }))
+                            if earning.code == 'GROSS_SALARY':
+                                vals_earning_struc.append((0,0, {
+                                      'earning_parameters_id':earning.id,
+                                      'float': gross_sal,
+                                }))
+                            if earning.code == 'NET':
+                                vals_earning_struc.append((0,0, {
+                                      'earning_parameters_id':earning.id,
+                                      'float': net_sala,
+                                }))
+                        deduction_ids = deduction_obj.search(cr, uid, [('code','in',['TOTAL_DEDUCTION','PF.D','ESI.D','LWF'])])
+                        for deduction in deduction_obj.browse(cr, uid, deduction_ids):
+                            if deduction.code == 'TOTAL_DEDUCTION':
+                                vals_other_deductions.append((0,0, {
+                                          'deduction_parameters_id':deduction.id,
+                                          'float': total_deduction,
                                     }))
-                            if _earning_struc_id.earning_parameters_id.code == 'GROSS_SALARY':
-                                vals_earning_struc.append((0,0, {
-                                          'earning_parameters_id':_earning_struc_id.earning_parameters_id.id,
-                                          'float': gross_sal,
+                            if deduction.code == 'PF.D':
+                                vals_other_deductions.append((0,0, {
+                                          'deduction_parameters_id':deduction.id,
+                                          'float': emp_pf_con_amount,
                                     }))
-                            if _earning_struc_id.earning_parameters_id.code == 'NET':
-                                vals_earning_struc.append((0,0, {
-                                          'earning_parameters_id':_earning_struc_id.earning_parameters_id.id,
-                                          'float': net_sala,
+                            if deduction.code == 'ESI.D':
+                                vals_other_deductions.append((0,0, {
+                                          'deduction_parameters_id':deduction.id,
+                                          'float': emp_esi_con_amount,
+                                    }))
+                            if deduction.code == 'LWF':
+                                vals_other_deductions.append((0,0, {
+                                          'deduction_parameters_id':deduction.id,
+                                          'float': emp_lwf_amt,
                                     }))
                     if gross_sal >= emp_esi_limit:
                         emp_esi_con_amount = 0
@@ -1712,7 +1719,16 @@ class arul_hr_payroll_executions(osv.osv):
                       }
                 executions_details_id = executions_details_obj.create(cr,uid,rs)
                 
-        return True           
+        datas = {
+             'ids': ids,
+             'model': 'arul.hr.payroll.executions',
+             'form': self.read(cr, uid, ids[0], context=context)
+        }
+        return {
+            'type': 'ir.actions.report.xml',
+            'report_name': 'arul_print_report',
+        }
+                   
     def confirm_payroll(self, cr, uid, ids, context=None):
         executions_obj = self.pool.get('arul.hr.payroll.executions.details')
         executions_ids = executions_obj.search(cr, uid, [('payroll_executions_id','in',ids)])
