@@ -1,0 +1,14 @@
+﻿select * from hr_employee
+delete from arul_hr_monthly_work_schedule
+delete from arul_hr_section
+delete from arul_hr_section
+delete from hr_holidays
+delete from hr_attendance
+delete from employee_leave
+delete from arul_hr_payroll_structure_configuration
+delete from arul_hr_audit_shift_time
+delete from arul_hr_monthly_shift_schedule
+delete from arul_hr_punch_in_out_time
+delete from hr_contract
+
+delete from hr_employee
