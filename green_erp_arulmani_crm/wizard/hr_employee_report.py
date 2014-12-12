@@ -10,8 +10,7 @@ from openerp.tools import DEFAULT_SERVER_DATE_FORMAT, DEFAULT_SERVER_DATETIME_FO
 class list_employee_report(osv.osv_memory):
     _name = "list.employee.report"
     _columns = {
-        'employee_ids': fields.many2many('hr.employee','list_employee_report_ref', 'list_employee_report_id', 'employee_id', 'Employee', required=True),
-        
+            'active_selection':fields.selection([('active','Active'),('inactive','Inactive'),('both','Both')], 'Active Selection',required = True) ,        
     }
     
     def print_report(self, cr, uid, ids, context=None):
