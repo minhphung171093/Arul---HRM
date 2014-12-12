@@ -82,6 +82,10 @@ class tpt_import_employee(osv.osv):
             employee_obj = self.pool.get('hr.employee')
             department_obj = self.pool.get('hr.department')
             section_obj = self.pool.get('arul.hr.section')
+            statutory_obj = self.pool.get('hr.statutory')
+            bank_acc_obj = self.pool.get('res.partner.bank')
+            bank_obj = self.pool.get('res.bank')
+            partner_obj = self.pool.get('res.partner')
             try:
                 dem = 1
                 for row in range(1,sh.nrows):
@@ -184,7 +188,35 @@ class tpt_import_employee(osv.osv):
                         section_id = section_obj.create(cr, uid, {'name':section,'code':section,'department_id':department_id})
                     else:
                         section_id = section_ids[0]
-                         
+                    
+                    epf_no = sh.cell(row, 22).value
+                    esi_no = sh.cell(row, 23).value
+                    esi_dis = sh.cell(row, 24).value
+                    pen_no = sh.cell(row, 25).value
+                    statutory_arr = [(0,0,{'name':epf_no,'esi_no':esi_no,'esi_dispensary':esi_dis,'pension_no':pen_no})]
+                    
+                    bank_country = sh.cell(row, 27).value
+                    bank_country_ids = country_obj.search(cr, uid, [('code','=',bank_country)])
+                    if not bank_country_ids:
+                        bank_country_id = country_obj.create(cr, uid, {'name':bank_country,'code':bank_country})
+                    else:
+                        bank_country_id = bank_country_ids[0]
+                    
+                    bank_name = sh.cell(row, 26).value
+                    bank_ids = bank_obj.search(cr, uid, [('name','=',bank_name),('country','=',bank_country_id)])
+                    if not bank_ids:
+                        bank_id = bank_obj.create(cr, uid, {'name':bank_name,'country':bank_country_id})
+                    else:
+                        bank_id = bank_ids[0]
+                    
+                    bank_acc = sh.cell(row, 28).value
+                    bank_acc_ids = bank_acc_obj.search(cr, uid, [('acc_number','=',bank_acc),('bank','=',bank_id)])
+                    if not bank_acc_ids:
+                        partner_id = partner_obj.create(cr, uid, {'name':sh.cell(row, 1).value})
+                        bank_acc_id = bank_acc_obj.create(cr, uid, {'acc_number':bank_acc,'bank':bank_id,'partner_id':partner_id,'state': "bank"})
+                    else:
+                        bank_acc_id = bank_acc_ids[0]
+                        
                     employee_code = sh.cell(row, 0).value
                     dem += 1
                     employee_obj.create(cr, uid, {
@@ -200,6 +232,7 @@ class tpt_import_employee(osv.osv):
                         'time_record': employee_code,
                         'job_id': job_id,
                         'birthday': birth,
+                        'time_record': str(sh.cell(row, 10).value),
                         'country_stateofbirth_id': country_id,
                         'place_of_birth': state_id,
                         'birth_place': sh.cell(row, 15).value,
@@ -208,11 +241,142 @@ class tpt_import_employee(osv.osv):
                         'date_of_wedding': wedding,
                         'department_id': department_id,
                         'section_id': section_id,
+                        'statutory_ids': statutory_arr,
+                        'bank_account_id':bank_acc_id
                     })
+                    
+#                     epf_no = sh.cell(row, 22).value
+#                     esi_no = sh.cell(row, 23).value
+#                     esi_dis = sh.cell(row, 24).value
+#                     pen_no = sh.cell(row, 25).value
+#                     statutory_ids = statutory_obj.search(cr, uid, [('name','=',epf_no),('employee_id','=',emp_new_id)])
+#                     if not statutory_ids:
+#                         statutory_id = statutory_obj.create(cr, uid, {'name':epf_no,'esi_no':esi_no,'esi_dispensary':esi_dis,'pension_no':pen_no,'employee_id':emp_new_id})
+#                     else:
+#                         statutory_id = statutory_ids[0]
+#                         
             except Exception, e:
                 raise osv.except_osv(_('Warning!'), str(e)+ ' Line: '+str(dem+1))
         return self.write(cr, uid, ids, {'state':'done'})
     
 tpt_import_employee()
     
+class tpt_import_employee_family(osv.osv):
+    _name = 'tpt.import.employee.family'
+    def _data_get(self, cr, uid, ids, name, arg, context=None):
+        if context is None:
+            context = {}
+        result = {}
+        location = self.pool.get('ir.config_parameter').get_param(cr, uid, 'hr_identities_attachment.location')
+        bin_size = context.get('bin_size')
+        for attach in self.browse(cr, uid, ids, context=context):
+            if location and attach.store_fname:
+                result[attach.id] = self._file_read(cr, uid, location, attach.store_fname, bin_size)
+            else:
+                result[attach.id] = attach.db_datas
+        return result
+
+    def _data_set(self, cr, uid, id, name, value, arg, context=None):
+        # We dont handle setting data to null
+        if not value:
+            return True
+        if context is None:
+            context = {}
+        location = self.pool.get('ir.config_parameter').get_param(cr, uid, 'hr_identities_attachment.location')
+        file_size = len(value.decode('base64'))
+        if location:
+            attach = self.browse(cr, uid, id, context=context)
+            if attach.store_fname:
+                self._file_delete(cr, uid, location, attach.store_fname)
+            fname = self._file_write(cr, uid, location, value)
+            # SUPERUSER_ID as probably don't have write access, trigger during create
+            super(tpt_import_employee_family, self).write(cr, SUPERUSER_ID, [id], {'store_fname': fname, 'file_size': file_size}, context=context)
+        else:
+            super(tpt_import_employee_family, self).write(cr, SUPERUSER_ID, [id], {'db_datas': value, 'file_size': file_size}, context=context)
+        return True
+
+    _columns = {
+        'name': fields.date('Date Import', required=True,states={'done': [('readonly', True)]}),
+        'datas_fname': fields.char('File Name',size=256),
+        'datas': fields.function(_data_get, fnct_inv=_data_set, string='Data Employee', type="binary", nodrop=True,states={'done': [('readonly', True)]}),
+        'store_fname': fields.char('Stored Filename', size=256),
+        'db_datas': fields.binary('Database Data'),
+        'file_size': fields.integer('File Size'),
+        'state':fields.selection([('draft', 'Draft'),('done', 'Done')],'Status', readonly=True)
+    }
+    
+    _defaults = {
+        'state':'draft',
+        'name': time.strftime('%Y-%m-%d'),
+        
+    }
+    
+    def import_employee_family(self, cr, uid, ids, context=None):
+        this = self.browse(cr, uid, ids[0])
+        try:
+            recordlist = base64.decodestring(this.datas)
+            excel = xlrd.open_workbook(file_contents = recordlist)
+            sh = excel.sheet_by_index(0)
+        except Exception, e:
+            raise osv.except_osv(_('Warning!'), str(e))
+        if sh:
+            employee_obj = self.pool.get('hr.employee')
+            emp_family_obj = self.pool.get('hr.family')
+            try:
+                dem = 1
+                for row in range(1,sh.nrows):
+                    emp_code = sh.cell(row, 0).value
+                    employee_ids = employee_obj.search(cr, uid, [('employee_id','=',emp_code)])
+                    if not employee_ids:
+                        raise osv.except_osv(_('Warning!'), ' Line: '+str(dem+1))
+                    else:
+                        emp_id = employee_ids[0]
+                         
+                    member_name = sh.cell(row, 1).value
+                    
+                    relation = sh.cell(row, 2).value
+                    if relation == 'Father':
+                        relation_type = 'father'
+                    elif relation == 'Mother':
+                        relation_type = 'mother'
+                    elif relation == 'Spouse':
+                        relation_type = 'spouse'
+                    elif relation == 'Sibling':
+                        relation_type = 'sibling'
+                    elif relation == 'Child':
+                        relation_type = 'child'
+                    elif relation == 'Other':
+                        relation_type = 'other'
+                    else:
+                        relation_type = False
+                    
+                    birth = sh.cell(row, 3).value
+                    if birth:
+                        birthdate = birth[6:10] + '-' + birth[3:5] + '-'+ birth[:2]
+                    else:
+                        birthdate = False
+                    
+                    gen = sh.cell(row, 5).value
+                    if gen:
+                       if gen == 'Female':
+                        gender = 'female'
+                    elif gen == 'Male':
+                        gender = 'male' 
+                    else:
+                        gender = False
+                        
+                    employee_code = sh.cell(row, 0).value
+                    dem += 1
+                    emp_family_obj.create(cr, uid, {
+                        'name': member_name,
+                        'employee_id': emp_id,
+                        'relation_type': relation_type,
+                        'date_of_birth': birthdate,
+                        'gender': gender,
+                    })
+            except Exception, e:
+                raise osv.except_osv(_('Warning!'), str(e)+ ' Line: '+str(dem+1))
+        return self.write(cr, uid, ids, {'state':'done'})
+    
+tpt_import_employee_family()
     

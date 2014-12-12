@@ -160,16 +160,31 @@
                         </field>
                     </page> 
                     <page string="Statutory Details" autofocus="autofocus">
-                        <field name="statutory_ids" nolabel='1'>
-                        	<tree string="Statutory Details" editable='top'>
+                        <field name="statutory_ids" nolabel='1' class="oe_green_erp_scroll">
+                        	<tree string="Statutory Details">
                         		<field name="name"/>
                         		<field name="epf_nominee"/>
                         		<field name="esi_no" />
                         		<field name="eis_nominee"/>
                         		<field name="gratuity_no"/>
+                        		<field name="pension_no"/>
+                        		<field name="esi_dispensary"/>
                         		<field name="gratuity_nominee"/>
                         		<field name="pan_no"/>
                             </tree>
+                            <form string="Statutory Details">
+                            	<group col='4' colspan='2'>
+	                        		<field name="name"/>
+	                        		<field name="epf_nominee"/>
+	                        		<field name="esi_no" />
+	                        		<field name="eis_nominee"/>
+	                        		<field name="gratuity_no"/>
+	                        		<field name="pension_no"/>
+	                        		<field name="esi_dispensary"/>
+	                        		<field name="gratuity_nominee"/>
+	                        		<field name="pan_no"/>
+	                        	</group>
+                            </form>
                         </field>
                     </page>                                                   
                 </xpath>
