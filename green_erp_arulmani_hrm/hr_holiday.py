@@ -392,6 +392,7 @@ class arul_hr_employee_leave_details(osv.osv):
     _defaults = {
         'state':'draft',
     }
+    
     def name_get(self, cr, uid, ids, context=None):
         res = []
         if not ids:

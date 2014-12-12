@@ -215,6 +215,9 @@ class arul_hr_payroll_employee_structure(osv.osv):
             earning_ids = earning_obj.search(cr, uid, [('earning_structure_id','in',ids)])
             earning_obj.unlink(cr, uid, earning_ids)
             emp = self.pool.get('hr.employee').browse(cr, uid, employee_id)
+#             emp_obj = self.pool.get('hr.employee')
+#             emp_ids = emp_obj.search(cr, uid, [('id','=',employee_id)])
+#             emp = emp_obj.browse(cr,uid,emp_ids[0])
             configuration_ids = configuration_obj.search(cr, uid, [('employee_category_id','=',emp.employee_category_id.id),('sub_category_id','=',emp.employee_sub_category_id.id)])
             payroll_earning_structure_line = []
             if configuration_ids:
@@ -362,14 +365,14 @@ class arul_hr_payroll_contribution_parameters(osv.osv):
             emp_cat = self.pool.get('vsis.hr.employee.category').browse(cr, uid, employee_category_id)
             emp_sub_cat = [x.id for x in emp_cat.sub_category_ids]
         return {'value': {'sub_category_id': False }, 'domain':{'sub_category_id':[('id','in',emp_sub_cat)]}}
-        
+         
 #     def onchange_employee_category_id(self, cr, uid, ids,employee_category_id=False, context=None):
 #         employee_sub_ids = []
 #         if employee_category_id:
 #             employee = self.pool.get('vsis.hr.employee.category').browse(cr, uid, employee_category_id)
 #             for emp in employee.sub_category_ids:
-#                 employee_sub_ids.append(emp.id)
-#         return {'value': {'sub_category_id': False }, 'domain':{'sub_category_id':[('id','in',employee_sub_ids)]}}
+#                 employee_sub_ids.append(emp.code)
+#         return {'value': {'sub_category_id': False }, 'domain':{'sub_category_id':[('char','in',employee_sub_ids)]}}
     
     def search(self, cr, uid, args, offset=0, limit=None, order=None, context=None, count=False):
         if context is None:

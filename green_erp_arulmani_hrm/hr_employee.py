@@ -412,6 +412,16 @@ class hr_employee(osv.osv):
 #         'personal_contact': fields.char('Personal Contact', size=1024),
         'manage_equipment_inventory_line': fields.one2many('tpt.manage.equipment.inventory','employee_id','Manage Equipment Inventory Line'),
     }
+    
+#     def init(self, cr):
+#         try:
+#             sql = '''
+#                 ALTER TABLE resource_resource DROP COLUMN active;
+#             '''
+#             cr.execute(sql)
+#         except Exception, e:
+#             pass
+    
     def search(self, cr, uid, args, offset=0, limit=None, order=None, context=None, count=False):
         if context is None:
             context = {}
