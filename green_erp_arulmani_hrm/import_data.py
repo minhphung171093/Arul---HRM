@@ -227,7 +227,7 @@ class tpt_import_employee(osv.osv):
                         'employee_sub_category_id': sub_category_id,
                         'city': sh.cell(row, 5).value,
                         'zip': sh.cell(row, 6).value,
-                        'employee_active': is_active,
+                        'active': is_active,
                         'payroll_area_id': payroll_area_id,
                         'time_record': employee_code,
                         'job_id': job_id,

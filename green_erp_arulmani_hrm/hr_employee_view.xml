@@ -1,7 +1,59 @@
 <?xml version="1.0" encoding="utf-8"?>
 <openerp>
     <data>
+		
+		<record id="view_hr_plant_search_vew" model="ir.ui.view">
+			<field name="name">hr_plant.search</field>
+			<field name="model">hr.plant</field>
+			<field name="arch" type="xml">
+				<search string="Plant">
+					<field name="code"/>
+					<field name="name"/>
+				</search>
+			</field>
+		</record>
 
+		<record id="view_hr_plant_tree_vew" model="ir.ui.view">
+			<field name="name">hr_plant.tree</field>
+			<field name="model">hr.plant</field>
+			<field name="arch" type="xml">
+				<tree string="Plant">
+					<field name="code"/>
+					<field name="name"/>
+					<field name="active"/>
+				</tree>
+			</field>
+		</record>
+		
+		<record id="view_hr_plant_form_vew" model="ir.ui.view">
+            <field name="name">hr_plant.form</field>
+            <field name="model">hr.plant</field>
+            <field name="arch" type="xml">
+                <form string="Plant" version="7.0">    
+                	<sheet>
+	                    <group>
+	                    	<field name="code"/>
+	                    	<field name="name"/>
+	                    	<field name="active"/>
+	               	  	</group>
+                	</sheet>
+                </form>
+            </field>
+        </record>     
+		
+		<record id="action_hr_plant_form" model="ir.actions.act_window">
+            <field name="name">Plant</field>
+            <field name="type">ir.actions.act_window</field>
+            <field name="res_model">hr.plant</field>
+            <field name="view_type">form</field>
+            <field name="view_mode">tree,form</field>
+            <field name="view_id" ref="view_hr_plant_tree_vew"/>
+        </record>
+        
+        <menuitem action="action_hr_plant_form"
+            id="menu_action_hr_plant_form"
+            parent="hr.menu_hr_main" sequence="24"/>
+		
 		<record id="view_arul_employee_category_search_vew" model="ir.ui.view">
 			<field name="name">vsis.employee.category.search</field>
 			<field name="model">vsis.hr.employee.category</field>
@@ -307,7 +359,7 @@
 		                 <group col='4' colspan='2'>
 							<field name="action_id" on_change="onchange_action_id(action_id)" domain="[('name','=','Transfer')]" options="{'create': false, 'create_edit': false}"/>
 							<field name="action_type_id" options="{'create': false, 'create_edit': false}"/>
-							<field name ="employee_id" options="{'create': false, 'create_edit': false}" required = "1" domain="[('employee_active','=',1)]" on_change="onchange_transfer_employee_id(employee_id)"/>
+							<field name ="employee_id" options="{'create': false, 'create_edit': false}" required = "1" domain="[('active','=',1)]" on_change="onchange_transfer_employee_id(employee_id)"/>
 							<newline/>
 							<field name ="employee_category_id" on_change="onchange_employee_category_id(employee_category_id,sub_category_id)"  options="{'create': false, 'create_edit': false}"/>
 							<field name ="sub_category_id" domain="[('category_id','=',employee_category_id)]" context="{'check_employee_category_id':1,'employee_category_id':employee_category_id}" options="{'create': false, 'create_edit': false}"/>
@@ -467,7 +519,7 @@
 		                 <group col='4' colspan='2'>
 							<field name="action_id" on_change="onchange_action_id(action_id)" domain="[('name','=','Re Hiring')]" options="{'create': false, 'create_edit': false}"/>
 							<field name="action_type_id" options="{'create': false, 'create_edit': false}"/>
-							<field name ="employee_id" options="{'create': false, 'create_edit': false}" required='1' domain="[('employee_active','=',0)]" on_change="onchange_rehiring_employee_id(employee_id)"/>
+							<field name ="employee_id" options="{'create': false, 'create_edit': false}" required='1' domain="[('active','=',0)]" on_change="onchange_rehiring_employee_id(employee_id)"/>
 							<newline/>
 							<field name ="employee_category_id" on_change="onchange_employee_category_id(employee_category_id,sub_category_id)"  options="{'create': false, 'create_edit': false}"/>
 							<field name ="sub_category_id" domain="[('category_id','=',employee_category_id)]" context="{'check_employee_category_id':1,'employee_category_id':employee_category_id}" options="{'create': false, 'create_edit': false}"/>
@@ -539,7 +591,7 @@
 		                 <group col='4' colspan='2'>
 							<field name="action_id" on_change="onchange_action_id(action_id)" domain="[('name','=','Compensation Review')]" options="{'create': false, 'create_edit': false}"/>
 							<field name="action_type_id" options="{'create': false, 'create_edit': false}"/>
-							<field name ="employee_id" on_change="onchange_compensation_employee_id(employee_id)" options="{'create': false, 'create_edit': false}" domain="[('employee_active','=',1)]" required='1'/>
+							<field name ="employee_id" on_change="onchange_compensation_employee_id(employee_id)" options="{'create': false, 'create_edit': false}" domain="[('active','=',1)]" required='1'/>
 							<newline/>
 							<field name ="employee_category_id" on_change="onchange_employee_category_id(employee_category_id,sub_category_id)" options="{'create': false, 'create_edit': false}"/>
 							<field name ="sub_category_id" domain="[('category_id','=',employee_category_id)]" context="{'check_employee_category_id':1,'employee_category_id':employee_category_id}" options="{'create': false, 'create_edit': false}"/>
@@ -762,7 +814,7 @@
                 <xpath expr="//field[@name='employee_category_id']" position="replace">
                     <field name="employee_category_id" on_change="onchange_employee_category_id(employee_category_id,employee_sub_category_id)" options="{'create': false, 'create_edit': false}"/>
                 </xpath>
-                <xpath expr="//field[@name='employee_grade_id']" position="after">
+                <xpath expr="//field[@name='employee_grade_id']" position="replace">
                     <field name="payroll_area_id" options="{'create': false, 'create_edit': false}"/>
                 </xpath>
                 <xpath expr="//field[@name='date_of_resignation']" position="after">
@@ -863,10 +915,10 @@
         <record id="hr_hr_employee_view_form2" model="ir.ui.view">
             <field name="name">hr.hr.employee.view.form2</field>
             <field name="model">hr.employee</field>
-            <field name="inherit_id" ref="green_erp_arulmani_crm.vsis_hr_hr_employee_view_form2"/>
+            <field name="inherit_id" ref="hr.view_employee_form"/>
             <field name="arch" type="xml">
                 <data>
-                    <field name="date_of_wedding" position="after">
+                    <field name="coach_id" position="after">
                         <field name="date_of_retirement"/>
                     </field>
                 </data>
@@ -900,7 +952,7 @@
 		                 <group col='4' colspan='2'>
 							<field name="action_id" on_change="onchange_action_id(action_id)" domain="[('name','=','Leaving')]" options="{'create': false, 'create_edit': false}"/>
 							<field name="action_type_id" options="{'create': false, 'create_edit': false}"/>
-							<field name ="employee_id" options="{'create': false, 'create_edit': false}" required = '1' domain="[('employee_active','=',1)]" on_change="onchange_leaving_employee_id(employee_id)"/>
+							<field name ="employee_id" options="{'create': false, 'create_edit': false}" required = '1' domain="[('active','=',1)]" on_change="onchange_leaving_employee_id(employee_id)"/>
 							<newline/>
 							<field name ="employee_category_id" on_change="onchange_employee_category_id(employee_category_id,sub_category_id)" context="{'check_employee_category_id':1,'employee_category_id':employee_category_id}" options="{'create': false, 'create_edit': false}"/>
 							<field name ="sub_category_id" domain="[('category_id','=',employee_category_id)]" options="{'create': false, 'create_edit': false}"/>
@@ -1177,13 +1229,13 @@
 			</field>
 		</record>
   		
-  		<record id="view_employee_filter_inherit" model="ir.ui.view">
+  		<!--<record id="view_employee_filter_inherit" model="ir.ui.view">
             <field name="name">view_employee_filter.inherit</field>
             <field name="model">hr.employee</field>
             <field name="inherit_id" ref="hr.view_employee_filter"/>
             <field name="arch" type="xml">
             	<xpath expr="//filter[@string='Company']" position="after">
-            		<filter string="Active" icon="terp-go-home" domain="[]" context="{'group_by':'employee_active'}"/>
+            		<filter string="Active" icon="terp-go-home" domain="[]" context="{'group_by':'active'}"/>
             	</xpath>
             	<xpath expr="//field[@name='category_ids']" position="after">
             		<filter string="Active" name="employee_active" domain="[('employee_active','=',1)]"/>
@@ -1191,7 +1243,7 @@
             	</xpath>
             	
             </field>
-		</record>
+		</record>-->
   		
   		<record id="view_employee_tree_view_inherit" model="ir.ui.view">
             <field name="name">view_employee_tree.inherit</field>
@@ -1215,6 +1267,15 @@
             	<xpath expr="//form[@string='Employee']" position="attributes">
             		<attribute name="delete">false</attribute>
             	</xpath>
+            	
+            	<!--<xpath expr="//page[@string='Personal Information']" position="attributes">
+            		<attribute name="groups">[4,group_vvti_hrm_hr_key_user]</attribute>
+            	</xpath>
+            	
+            	<xpath expr="//page[@string='HR Settings']" position="attributes">
+            		<attribute name="groups">[4,group_vvti_hrm_hr_key_user]</attribute>
+            	</xpath>-->
+            	
             	<xpath expr="//page[@string='HR Settings']" position="after">
             		<page string = 'Employee Leave Status'>
             			<field name ="employee_leave_id">

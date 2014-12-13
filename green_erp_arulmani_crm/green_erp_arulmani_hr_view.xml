@@ -7,13 +7,17 @@
             <field name="model">hr.employee</field>
             <field name="inherit_id" ref="hr.view_employee_form"/>
             <field name="arch" type="xml">
-            	<xpath expr="//group[@name='active_group']" position="replace">
-            		<group string="Active" name="active_group" invisible="1">
-                        <field name="active" invisible="1"/>
-                    </group>
-	        	</xpath>
 	        	<xpath expr="//field[@name='coach_id']" position="replace">
                         <field name="coach_id" invisible="1"/>
+	        	</xpath> 
+	        	<xpath expr="//field[@name='identification_id']" position="replace">
+                    <field name="identification_id" groups="base.group_hr_user" invisible="1"/>
+	        	</xpath>
+	        	<xpath expr="//field[@name='passport_id']" position="replace">
+                     <field name="passport_id" groups="base.group_hr_user" invisible="1"/>
+	        	</xpath> 
+	        	<xpath expr="//field[@name='otherid']" position="replace">
+                    <field name="otherid" groups="base.group_hr_user" invisible="1"/>
 	        	</xpath> 
 	        	<xpath expr="//field[@name='address_home_id']" position="replace">
                         <field name="address_home_id" invisible="1"/>
@@ -60,10 +64,13 @@
                         <label for="category_ids" class="oe_edit_only"/>
                         <field name="category_ids" options="{'create': false, 'create_edit': false}" widget="many2many_tags" placeholder="e.g. Part Time"/>
                         <group>
-	                        <field name="employee_active"/>
+	                        <field name="active"/>
 	                    </group>
                     </div>
                 </xpath>
+                <xpath expr="//group[@name='active_group']/field[@name='active']" position="replace">
+			                <field name="active" invisible="1"/>
+				</xpath>
                         
             	<xpath expr="//form/sheet/notebook/page[@string='Public Information']/group/group[@string='Position']" position="after">
                   	<group>
@@ -79,6 +86,7 @@
 	                    <field name="religion_id" options="{'create': false, 'create_edit': false}"/>
 	                    <field name="blood_group" />
 	                    <field name="physically_challenged" />
+	                    <field name="physically_challenged_note" attrs="{'invisible':[('physically_challenged','=',False)]}"/>
 	                </group>
                 </xpath>
                 <xpath expr="//form/sheet/notebook/page[@string='Personal Information']" position="after">
@@ -163,24 +171,24 @@
                         <field name="statutory_ids" nolabel='1' class="oe_green_erp_scroll">
                         	<tree string="Statutory Details">
                         		<field name="name"/>
+                        		<field name="pension_no"/>
                         		<field name="epf_nominee"/>
                         		<field name="esi_no" />
                         		<field name="eis_nominee"/>
-                        		<field name="gratuity_no"/>
-                        		<field name="pension_no"/>
                         		<field name="esi_dispensary"/>
+                        		<field name="gratuity_no"/>
                         		<field name="gratuity_nominee"/>
                         		<field name="pan_no"/>
                             </tree>
                             <form string="Statutory Details">
                             	<group col='4' colspan='2'>
 	                        		<field name="name"/>
+	                        		<field name="pension_no"/>
 	                        		<field name="epf_nominee"/>
 	                        		<field name="esi_no" />
 	                        		<field name="eis_nominee"/>
-	                        		<field name="gratuity_no"/>
-	                        		<field name="pension_no"/>
 	                        		<field name="esi_dispensary"/>
+	                        		<field name="gratuity_no"/>
 	                        		<field name="gratuity_nominee"/>
 	                        		<field name="pan_no"/>
 	                        	</group>

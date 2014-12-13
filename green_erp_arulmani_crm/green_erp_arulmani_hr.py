@@ -62,14 +62,15 @@ class hr_employee(osv.osv):
                 'religion_id': fields.many2one('hr.religion', 'Religion'),
                 'blood_group': fields.selection([('O+','O+'),('O-','O-'),('A+','A+'),('A-','A-'),('B+','B+'),('B-','B-'),('AB+','AB+'),('AB-','AB-')],'Blood Group'),
                 'physically_challenged' : fields.boolean('Physically Challenged'),
+                'physically_challenged_note' : fields.text('Note'),
                 'identities_ids': fields.one2many('hr.identities.attachment','employee_id','Identities Line'),
                 'qualification_ids': fields.one2many('hr.qualification.attachment','employee_id','Qualification Line'),
                 'experience_ids': fields.one2many('hr.experience','employee_id','Experience Summary'),
                 'family_ids': fields.one2many('hr.family','employee_id','Family Details'),
                 'last_name' : fields.char('Last Name', size=32),
-                'date_of_resignation' : fields.date('Date Of Resignation'), 
+                'date_of_resignation' : fields.date('Date Of Leaving'), 
                 'employee_category_id' : fields.many2one('vsis.hr.employee.category', 'Employee Category'),
-                'employee_sub_category_id' : fields.many2one('hr.employee.sub.category', 'Employee Sub Category'),
+                'employee_sub_category_id' : fields.many2one('hr.employee.sub.category', 'Employee Sub Category(Grade)'),
                 'employee_grade_id' : fields.many2one('hr.employee.grade', 'Employee Grade'),
                 'street': fields.char('Street', size=128),
                 'street2': fields.char('Street2', size=128),
@@ -99,11 +100,12 @@ class hr_employee(osv.osv):
                 'other_allowance' : fields.float('Other Allowance'),
                 'lta' : fields.float('LTA'),
                 'bonus' : fields.float('Bonus'),
-                'employee_active' : fields.boolean('Active'),
+#                 'employee_active' : fields.boolean('Active'),
                 
                 }
     _defaults = {
-        'employee_active': True,
+                 'active': True,
+#         'employee_active': True,
     }
 hr_employee()
 
