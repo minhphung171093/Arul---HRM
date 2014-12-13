@@ -160,7 +160,7 @@ class Parser(report_sxw.rml_parse):
                     'permanent_address': emp.permanent_street,
                     'blood_group': emp.blood_group,
                     'emergency_contact': mobile,
-                    'bank_acc': emp.bank_account_id.name,
+                    'bank_acc': emp.bank_account_id.acc_number,
                     'grade': emp.employee_grade_id.name,
                     'fa': fa,
                     'disiciplinary_actions': disiciplinary_actions,
