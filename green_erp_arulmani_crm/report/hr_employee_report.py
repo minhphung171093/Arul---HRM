@@ -61,15 +61,17 @@ class Parser(report_sxw.rml_parse):
         res=[]
         emp_obj = self.pool.get('hr.employee')
         if active_selection=='active':
-            emp_ids = emp_obj.search(self.cr, self.uid, [('employee_active','=', True)])
+            emp_ids = emp_obj.search(self.cr, self.uid, [('active','=', True)])
         elif active_selection=='inactive':
-            emp_ids = emp_obj.search(self.cr, self.uid, [('employee_active','=',False)])
+            emp_ids = emp_obj.search(self.cr, self.uid, [('active','=',False)])
         else:
             emp_ids = emp_obj.search(self.cr, self.uid, [])
             
         for emp in emp_obj.browse(self.cr, self.uid, emp_ids):
             fa = ''
             mobile = ''
+            
+            comu_add = (emp.street or '')+' '+(emp.street2 or '')+' '+(emp.zip or '')+' '+(emp.city or '')+' '+(emp.state_id and emp.state_id.id or '')+' '+(emp.country_id and emp.country_id.id or '') 
             if emp.family_ids:
                 for father in emp.family_ids:
                     if father.relation_type == 'father':
@@ -144,7 +146,6 @@ class Parser(report_sxw.rml_parse):
             if employee_action_ids:
                 action = employee_action_obj.browse(self.cr, self.uid, employee_action_ids[0])
                 disiciplinary_actions = action.note
-                
             date_of_wedding = ''
             if emp.date_of_wedding:
                 date = datetime.strptime(emp.date_of_wedding, "%Y-%m-%d")
@@ -153,23 +154,33 @@ class Parser(report_sxw.rml_parse):
             if emp.date_of_joining:
                 date = datetime.strptime(emp.date_of_joining, "%Y-%m-%d")
                 date_of_joining = date.strftime('%d-%m-%Y')
+                
+            birthday = ''
+            if emp.birthday:
+                date = datetime.strptime(emp.birthday, "%Y-%m-%d")
+                birthday = date.strftime('%d-%m-%Y')
+            
+            date_of_resignation = ''
+            if emp.date_of_resignation:
+                date = datetime.strptime(emp.date_of_resignation, "%Y-%m-%d")
+                date_of_resignation = date.strftime('%d-%m-%Y')
             res.append({
                     'code': emp.employee_id,
                     'name': emp.name,
-                    'birthday': emp.birthday,
+                    'birthday': birthday,
                     'date_of_wedding': date_of_wedding,
                     'date_of_joining': date_of_joining,
-                    'date_of_resignation': emp.date_of_resignation,
+                    'date_of_resignation': date_of_resignation,
                     'designation': emp.job_id.name,
                     'category': emp.employee_category_id.code,
                     'department': emp.department_id.name,
                     'email': emp.work_email,
                     'mobile': emp.work_phone,
-                    'communication_address': emp.street,
+                    'communication_address': comu_add,
                     'permanent_address': emp.permanent_street,
                     'blood_group': emp.blood_group,
                     'emergency_contact': mobile,
-                    'bank_acc': emp.bank_account_id.acc_number,
+                    'bank_acc': str(emp.bank_account_id.acc_number),
                     'grade': emp.employee_sub_category_id.code,
                     'fa': fa,
                     'disiciplinary_actions': disiciplinary_actions,

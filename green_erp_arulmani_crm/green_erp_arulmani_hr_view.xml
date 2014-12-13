@@ -7,11 +7,6 @@
             <field name="model">hr.employee</field>
             <field name="inherit_id" ref="hr.view_employee_form"/>
             <field name="arch" type="xml">
-            	<xpath expr="//group[@name='active_group']" position="replace">
-            		<group string="Active" name="active_group" invisible="1">
-                        <!--<field name="active" invisible="1"/>-->
-                    </group>
-	        	</xpath>
 	        	<xpath expr="//field[@name='coach_id']" position="replace">
                         <field name="coach_id" invisible="1"/>
 	        	</xpath> 
@@ -69,10 +64,16 @@
                         <label for="category_ids" class="oe_edit_only"/>
                         <field name="category_ids" options="{'create': false, 'create_edit': false}" widget="many2many_tags" placeholder="e.g. Part Time"/>
                         <group>
-	                        <field name="employee_active"/>
+	                        <field name="active"/>
 	                    </group>
                     </div>
                 </xpath>
+                
+                <xpath expr="//group[@string='Active']" position="replace">
+                	<group string="Active" name="active_group" invisible="1">
+                        <field name="active" invisible="1"/>
+                    </group>
+				</xpath>
                         
             	<xpath expr="//form/sheet/notebook/page[@string='Public Information']/group/group[@string='Position']" position="after">
                   	<group>

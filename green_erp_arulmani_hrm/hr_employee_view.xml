@@ -359,7 +359,7 @@
 		                 <group col='4' colspan='2'>
 							<field name="action_id" on_change="onchange_action_id(action_id)" domain="[('name','=','Transfer')]" options="{'create': false, 'create_edit': false}"/>
 							<field name="action_type_id" options="{'create': false, 'create_edit': false}"/>
-							<field name ="employee_id" options="{'create': false, 'create_edit': false}" required = "1" domain="[('employee_active','=',1)]" on_change="onchange_transfer_employee_id(employee_id)"/>
+							<field name ="employee_id" options="{'create': false, 'create_edit': false}" required = "1" domain="[('active','=',1)]" on_change="onchange_transfer_employee_id(employee_id)"/>
 							<newline/>
 							<field name ="employee_category_id" on_change="onchange_employee_category_id(employee_category_id,sub_category_id)"  options="{'create': false, 'create_edit': false}"/>
 							<field name ="sub_category_id" domain="[('category_id','=',employee_category_id)]" context="{'check_employee_category_id':1,'employee_category_id':employee_category_id}" options="{'create': false, 'create_edit': false}"/>
@@ -519,7 +519,7 @@
 		                 <group col='4' colspan='2'>
 							<field name="action_id" on_change="onchange_action_id(action_id)" domain="[('name','=','Re Hiring')]" options="{'create': false, 'create_edit': false}"/>
 							<field name="action_type_id" options="{'create': false, 'create_edit': false}"/>
-							<field name ="employee_id" options="{'create': false, 'create_edit': false}" required='1' domain="[('employee_active','=',0)]" on_change="onchange_rehiring_employee_id(employee_id)"/>
+							<field name ="employee_id" options="{'create': false, 'create_edit': false}" required='1' domain="[('active','=',0)]" on_change="onchange_rehiring_employee_id(employee_id)"/>
 							<newline/>
 							<field name ="employee_category_id" on_change="onchange_employee_category_id(employee_category_id,sub_category_id)"  options="{'create': false, 'create_edit': false}"/>
 							<field name ="sub_category_id" domain="[('category_id','=',employee_category_id)]" context="{'check_employee_category_id':1,'employee_category_id':employee_category_id}" options="{'create': false, 'create_edit': false}"/>
@@ -591,7 +591,7 @@
 		                 <group col='4' colspan='2'>
 							<field name="action_id" on_change="onchange_action_id(action_id)" domain="[('name','=','Compensation Review')]" options="{'create': false, 'create_edit': false}"/>
 							<field name="action_type_id" options="{'create': false, 'create_edit': false}"/>
-							<field name ="employee_id" on_change="onchange_compensation_employee_id(employee_id)" options="{'create': false, 'create_edit': false}" domain="[('employee_active','=',1)]" required='1'/>
+							<field name ="employee_id" on_change="onchange_compensation_employee_id(employee_id)" options="{'create': false, 'create_edit': false}" domain="[('active','=',1)]" required='1'/>
 							<newline/>
 							<field name ="employee_category_id" on_change="onchange_employee_category_id(employee_category_id,sub_category_id)" options="{'create': false, 'create_edit': false}"/>
 							<field name ="sub_category_id" domain="[('category_id','=',employee_category_id)]" context="{'check_employee_category_id':1,'employee_category_id':employee_category_id}" options="{'create': false, 'create_edit': false}"/>
@@ -952,7 +952,7 @@
 		                 <group col='4' colspan='2'>
 							<field name="action_id" on_change="onchange_action_id(action_id)" domain="[('name','=','Leaving')]" options="{'create': false, 'create_edit': false}"/>
 							<field name="action_type_id" options="{'create': false, 'create_edit': false}"/>
-							<field name ="employee_id" options="{'create': false, 'create_edit': false}" required = '1' domain="[('employee_active','=',1)]" on_change="onchange_leaving_employee_id(employee_id)"/>
+							<field name ="employee_id" options="{'create': false, 'create_edit': false}" required = '1' domain="[('active','=',1)]" on_change="onchange_leaving_employee_id(employee_id)"/>
 							<newline/>
 							<field name ="employee_category_id" on_change="onchange_employee_category_id(employee_category_id,sub_category_id)" context="{'check_employee_category_id':1,'employee_category_id':employee_category_id}" options="{'create': false, 'create_edit': false}"/>
 							<field name ="sub_category_id" domain="[('category_id','=',employee_category_id)]" options="{'create': false, 'create_edit': false}"/>
@@ -1235,11 +1235,11 @@
             <field name="inherit_id" ref="hr.view_employee_filter"/>
             <field name="arch" type="xml">
             	<xpath expr="//filter[@string='Company']" position="after">
-            		<filter string="Active" icon="terp-go-home" domain="[]" context="{'group_by':'employee_active'}"/>
+            		<filter string="Active" icon="terp-go-home" domain="[]" context="{'group_by':'active'}"/>
             	</xpath>
             	<xpath expr="//field[@name='category_ids']" position="after">
-            		<filter string="Active" name="employee_active" domain="[('employee_active','=',1)]"/>
-            		<filter string="Inactive" name="employee_inactive" domain="[('employee_active','=',0)]"/>
+            		<filter string="Active" name="employee_active" domain="[('active','=',1)]"/>
+            		<filter string="Inactive" name="employee_inactive" domain="[('active','=',0)]"/>
             	</xpath>
             	
             </field>
@@ -1268,13 +1268,13 @@
             		<attribute name="delete">false</attribute>
             	</xpath>
             	
-            	<!--<xpath expr="//page[@string='Personal Information']" position="attributes">
-            		<attribute name="groups">[4,group_vvti_hrm_hr_key_user]</attribute>
+            	<xpath expr="//page[@string='Personal Information']" position="attributes">
+            		<attribute name="groups">green_erp_arulmani_hrm.group_vvti_hrm_hr_key_user</attribute>
             	</xpath>
             	
             	<xpath expr="//page[@string='HR Settings']" position="attributes">
-            		<attribute name="groups">[4,group_vvti_hrm_hr_key_user]</attribute>
-            	</xpath>-->
+            		<attribute name="groups">green_erp_arulmani_hrm.group_vvti_hrm_hr_key_user</attribute>
+            	</xpath>
             	
             	<xpath expr="//page[@string='HR Settings']" position="after">
             		<page string = 'Employee Leave Status'>

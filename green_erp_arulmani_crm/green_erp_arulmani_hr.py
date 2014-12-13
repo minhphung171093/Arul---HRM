@@ -100,11 +100,12 @@ class hr_employee(osv.osv):
                 'other_allowance' : fields.float('Other Allowance'),
                 'lta' : fields.float('LTA'),
                 'bonus' : fields.float('Bonus'),
-                'employee_active' : fields.boolean('Active'),
+#                 'employee_active' : fields.boolean('Active'),
                 
                 }
     _defaults = {
-        'employee_active': True,
+                 'active': True,
+#         'employee_active': True,
     }
 hr_employee()
 

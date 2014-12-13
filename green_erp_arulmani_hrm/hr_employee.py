@@ -308,7 +308,7 @@ class arul_hr_employee_action_history(osv.osv):
         new_id = super(arul_hr_employee_action_history, self).create(cr, uid, vals, context)
         if context.get('create_leaving_employee'):
             action_history = self.browse(cr, uid, new_id)
-            self.pool.get('hr.employee').write(cr, uid, [action_history.employee_id.id], {'employee_active': False})
+            self.pool.get('hr.employee').write(cr, uid, [action_history.employee_id.id], {'active': False})
         if context.get('create_promotion_employee'):
             action_history = self.browse(cr, uid, new_id)
             self.pool.get('hr.employee').write(cr, uid, [action_history.employee_id.id], {'employee_category_id': action_history.employee_category_id and action_history.employee_category_id.id or False,
@@ -358,7 +358,7 @@ class arul_hr_employee_action_history(osv.osv):
     
     def approve_employee_rehiring(self, cr, uid, ids, context=None):
         for line in self.browse(cr, uid, ids):
-            self.pool.get('hr.employee').write(cr, uid, [line.employee_id.id], {'employee_active': True})
+            self.pool.get('hr.employee').write(cr, uid, [line.employee_id.id], {'active': True})
             self.write(cr, uid, [line.id],{'approve_rehiring': True})
         return True
 
