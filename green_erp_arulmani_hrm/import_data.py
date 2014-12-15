@@ -97,9 +97,9 @@ class tpt_import_employee(osv.osv):
                         category_id = category_ids[0]
                          
                     sub_category = sh.cell(row, 4).value
-                    sub_category_ids = sub_category_obj.search(cr, uid, [('code','=',sub_category)])
+                    sub_category_ids = sub_category_obj.search(cr, uid, [('code','=',sub_category),('category_id','=',category_id)])
                     if not sub_category_ids:
-                        sub_category_id = sub_category_obj.create(cr, uid, {'name':sub_category,'code':sub_category})
+                        sub_category_id = sub_category_obj.create(cr, uid, {'name':sub_category,'code':sub_category,'category_id':category_id})
                     else:
                         sub_category_id = sub_category_ids[0]
                          
