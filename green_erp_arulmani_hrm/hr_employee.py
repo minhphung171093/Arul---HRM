@@ -1017,12 +1017,12 @@ class employee_leave(osv.osv):
             if emp_leave_ids and timedelta.days > 365:
                 for line in self.pool.get('employee.leave').browse(cr, uid, emp_leave_ids, context=context):
                     for leave_detail in line.emp_leave_details_ids:
-                        if leave_detail.total_day == 0 and leave_detail.leave_type_id.code in ['CL','SL','PL']:
-                            leave_type = leave_detail.leave_type_id and leave_detail.leave_type_id.id or False
-                            leave_ids = leave_obj.search(cr, uid, [('leave_type_id','=',leave_type),('employee_category_id','=',emp_category),('employee_sub_category_id','=',emp_sub)])
-                            for le in leave_obj.browse(cr, uid, leave_ids):
-                                day = le.condition
-                            self.pool.get('employee.leave.detail').write(cr, uid, [leave_detail.id] ,{'total_day':day})
+#                         if leave_detail.total_day == 0 and leave_detail.leave_type_id.code in ['CL','SL','PL']:
+                        leave_type = leave_detail.leave_type_id and leave_detail.leave_type_id.id or False
+                        leave_ids = leave_obj.search(cr, uid, [('leave_type_id','=',leave_type),('employee_category_id','=',emp_category),('employee_sub_category_id','=',emp_sub)])
+                        for le in leave_obj.browse(cr, uid, leave_ids):
+                            day = le.condition
+                        self.pool.get('employee.leave.detail').write(cr, uid, [leave_detail.id] ,{'total_day':day})
             if not emp_leave_ids:
                 leave_ids = leave_obj.search(cr, uid, [('employee_category_id','=',emp_category),('employee_sub_category_id','=',emp_sub)])
                 for leave in leave_obj.browse(cr, uid, leave_ids):
@@ -1080,7 +1080,7 @@ class employee_leave_detail(osv.osv):
             leave_detail_ids = leave_detail_obj.search(cr, uid, [('date_from','like',line.emp_leave_id.year),('employee_id','=',emp),('leave_type_id','=',leave_type),('state','!=','cancel')])
             for detail in leave_detail_obj.browse(cr, uid, leave_detail_ids, context=context):
                 if not timedelta and (detail.leave_type_id.code=='CL' or detail.leave_type_id.code=='SL' or detail.leave_type_id.code=='PL'):
-                    raise osv.except_osv(_('Warning!'),_('Exceeds Holiday Lets'))
+                    raise osv.except_osv(_('Warning!'),_('The Taken Leave Days is not greater than The Limit Days'))
                 elif timedelta and detail.date_from[0:4] == year and timedelta.days >= 365 and line.total_day != 0 and (detail.leave_type_id.code=='CL' or detail.leave_type_id.code=='SL' or detail.leave_type_id.code=='PL'):
                     taken_day += detail.days_total
                 else:
