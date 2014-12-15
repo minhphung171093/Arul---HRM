@@ -71,7 +71,6 @@
                 
                 <xpath expr="//group[@string='Active']" position="replace">
                 	<group string="Active" name="active_group" invisible="1">
-                        <field name="active" invisible="1"/>
                     </group>
 				</xpath>
                         
