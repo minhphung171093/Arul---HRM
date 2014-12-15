@@ -31,6 +31,15 @@
         </record>
         <menuitem id="menu_list_employee_report" name="List Employee Report" action="action_list_employee_report" parent="hr.menu_hr_main" sequence="22"/>
         
+        <act_window name="Employee Report"
+            context="{'search_default_draft': 1, 'search_default_approved': False}"
+            res_model="list.employee.report"
+            src_model="hr.employee"
+            view_mode="form"
+            target="new"
+            multi="True"
+            key2="client_action_multi"
+            id="action_list_employee_report"/>
     </data>
 </openerp>
 

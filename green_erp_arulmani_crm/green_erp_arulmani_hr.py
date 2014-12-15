@@ -297,7 +297,7 @@ class hr_statutory (osv.osv):
     _description = "Statutory"
     _columns = {
         'name' : fields.char('EPF No.', size=128),
-        'epf_nominee' : fields.char('EPF Nominee', size=128),
+        'epf_nominee' : fields.char('EPF/EPS Nominee', size=128),
         'esi_no' : fields.char('ESI No', size=128),
         'eis_nominee' : fields.char('ESI Nominee', size=128),
         'esi_dispensary' : fields.char(' ESI Dispensary ', size=128),
