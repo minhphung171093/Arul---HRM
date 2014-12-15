@@ -326,7 +326,7 @@ class tpt_import_employee_family(osv.osv):
                 dem = 1
                 for row in range(1,sh.nrows):
                     emp_code = sh.cell(row, 0).value
-                    employee_ids = employee_obj.search(cr, uid, [('employee_id','=',emp_code)])
+                    employee_ids = employee_obj.search(cr, uid, [('employee_id','=',str(emp_code))])
                     if not employee_ids:
                         raise osv.except_osv(_('Warning!'), ' Line: '+str(dem+1))
                     else:
