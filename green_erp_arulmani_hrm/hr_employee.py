@@ -1027,6 +1027,8 @@ class employee_leave(osv.osv):
                         else:
                             if timedelta.days > 365 and master.leave_type_id.code in ['CL','SL','PL']:
                                 day = master.condition
+                            if timedelta.days < 365 and master.leave_type_id.code in ['CL','SL','PL']:
+                                day = 0
                             if master.leave_type_id.code not in ['CL','SL','PL']:
                                 day = master.condition
                             self.pool.get('employee.leave.detail').create(cr, uid, {'emp_leave_id':line.id,'leave_type_id':master.leave_type_id.id, 'total_day':day})  
