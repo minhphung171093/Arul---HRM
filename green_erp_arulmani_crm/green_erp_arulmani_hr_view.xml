@@ -68,8 +68,10 @@
 	                    </group>
                     </div>
                 </xpath>
-                <xpath expr="//group[@name='active_group']/field[@name='active']" position="replace">
-			                <field name="active" invisible="1"/>
+                
+                <xpath expr="//group[@string='Active']" position="replace">
+                	<group string="Active" name="active_group" invisible="1">
+                    </group>
 				</xpath>
                         
             	<xpath expr="//form/sheet/notebook/page[@string='Public Information']/group/group[@string='Position']" position="after">

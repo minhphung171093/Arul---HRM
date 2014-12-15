@@ -154,13 +154,23 @@ class Parser(report_sxw.rml_parse):
             if emp.date_of_joining:
                 date = datetime.strptime(emp.date_of_joining, "%Y-%m-%d")
                 date_of_joining = date.strftime('%d-%m-%Y')
+                
+            birthday = ''
+            if emp.birthday:
+                date = datetime.strptime(emp.birthday, "%Y-%m-%d")
+                birthday = date.strftime('%d-%m-%Y')
+            
+            date_of_resignation = ''
+            if emp.date_of_resignation:
+                date = datetime.strptime(emp.date_of_resignation, "%Y-%m-%d")
+                date_of_resignation = date.strftime('%d-%m-%Y')
             res.append({
                     'code': emp.employee_id,
                     'name': emp.name,
-                    'birthday': emp.birthday,
+                    'birthday': birthday,
                     'date_of_wedding': date_of_wedding,
                     'date_of_joining': date_of_joining,
-                    'date_of_resignation': emp.date_of_resignation,
+                    'date_of_resignation': date_of_resignation,
                     'designation': emp.job_id.name,
                     'category': emp.employee_category_id.code,
                     'department': emp.department_id.name,
