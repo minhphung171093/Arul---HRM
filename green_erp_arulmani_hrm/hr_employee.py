@@ -992,7 +992,6 @@ class employee_leave(osv.osv):
                     emp_all_lea_detail.append((0,0,{'leave_type_id':leave.leave_type_id.id, 'total_day':day}))
                 self.pool.get('employee.leave').create(cr, uid, {'employee_id':emp.id,'year': time.strftime('%Y'),'emp_leave_details_ids':emp_all_lea_detail})
         return vals
-    
     def get_employee_leave_daily(self, cr, uid, context=None):
         day = 0
         vals = {}
@@ -1003,6 +1002,7 @@ class employee_leave(osv.osv):
         curr_year = time.strftime('%Y')
         emp_obj = self.pool.get('hr.employee')
         leave_obj = self.pool.get('arul.hr.leave.master')
+        emp_leave_de_obj = self.pool.get('employee.leave.detail')
         emp_ids = emp_obj.search(cr, uid, [])
         for emp in emp_obj.browse(cr, uid, emp_ids):
             emp_all_lea_detail = []
@@ -1014,16 +1014,26 @@ class employee_leave(osv.osv):
                 timedelta = date_now - join_date
             else:
                 timedelta = date_now - date_now
-            if emp_leave_ids and timedelta.days > 365:
+            if emp_leave_ids:
                 for line in self.pool.get('employee.leave').browse(cr, uid, emp_leave_ids, context=context):
-                    for leave_detail in line.emp_leave_details_ids:
-                        if leave_detail.total_day == 0 and leave_detail.leave_type_id.code in ['CL','SL','PL']:
-                            leave_type = leave_detail.leave_type_id and leave_detail.leave_type_id.id or False
-                            leave_ids = leave_obj.search(cr, uid, [('leave_type_id','=',leave_type),('employee_category_id','=',emp_category),('employee_sub_category_id','=',emp_sub)])
-                            for le in leave_obj.browse(cr, uid, leave_ids):
-                                day = le.condition
-                            self.pool.get('employee.leave.detail').write(cr, uid, [leave_detail.id] ,{'total_day':day})
-            if not emp_leave_ids:
+                    master_leave_ids = leave_obj.search(cr, uid, [('employee_category_id','=',emp_category),('employee_sub_category_id','=',emp_sub)])
+                    for master in leave_obj.browse(cr, uid, master_leave_ids):
+                        emp_leave_de_ids = emp_leave_de_obj.search(cr, uid, [('emp_leave_id','=',line.id),('leave_type_id','=',master.leave_type_id.id)])
+                        if emp_leave_de_ids:
+                            for leave_de in emp_leave_de_obj.browse(cr, uid, emp_leave_de_ids):
+                                if leave_de.total_day == 0 and timedelta.days > 365 and leave_de.leave_type_id.code in ['CL','SL','PL']:
+                                    day = master.condition
+                                    self.pool.get('employee.leave.detail').write(cr, uid, [leave_de.id] ,{'total_day':day})
+                        else:
+                            if master.leave_type_id.code in ['CL','SL','PL']:
+                                if timedelta.days > 365:
+                                    day = master.condition
+                                if timedelta.days < 365:
+                                    day = 0
+                            else:
+                                day = master.condition
+                            self.pool.get('employee.leave.detail').create(cr, uid, {'emp_leave_id':line.id,'leave_type_id':master.leave_type_id.id, 'total_day':day})  
+            else:
                 leave_ids = leave_obj.search(cr, uid, [('employee_category_id','=',emp_category),('employee_sub_category_id','=',emp_sub)])
                 for leave in leave_obj.browse(cr, uid, leave_ids):
                     if leave.carryforward_nextyear:
@@ -1048,7 +1058,7 @@ class employee_leave(osv.osv):
                             day = leave.condition
                     emp_all_lea_detail.append((0,0,{'leave_type_id':leave.leave_type_id.id, 'total_day':day}))
                 self.pool.get('employee.leave').create(cr, uid, {'employee_id':emp.id,'year': time.strftime('%Y'),'emp_leave_details_ids':emp_all_lea_detail})
-        return True                   
+        return True  
     
 employee_leave()
 
@@ -1080,7 +1090,7 @@ class employee_leave_detail(osv.osv):
             leave_detail_ids = leave_detail_obj.search(cr, uid, [('date_from','like',line.emp_leave_id.year),('employee_id','=',emp),('leave_type_id','=',leave_type),('state','!=','cancel')])
             for detail in leave_detail_obj.browse(cr, uid, leave_detail_ids, context=context):
                 if not timedelta and (detail.leave_type_id.code=='CL' or detail.leave_type_id.code=='SL' or detail.leave_type_id.code=='PL'):
-                    raise osv.except_osv(_('Warning!'),_('Exceeds Holiday Lets'))
+                    raise osv.except_osv(_('Warning!'),_('The Selected Employee does not reach 1 year from The Date of Joining'))
                 elif timedelta and detail.date_from[0:4] == year and timedelta.days >= 365 and line.total_day != 0 and (detail.leave_type_id.code=='CL' or detail.leave_type_id.code=='SL' or detail.leave_type_id.code=='PL'):
                     taken_day += detail.days_total
                 else:
