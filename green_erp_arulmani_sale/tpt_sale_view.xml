@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="utf-8"?>
+<openerp>
+    <data>
+		 
+        <record id="tpt_view_order_form" model="ir.ui.view">
+            <field name="name">tpt.sale.order.form</field>
+            <field name="model">sale.order</field>
+            <field name="inherit_id" ref="sale.view_order_form"/>
+            <field name="arch" type="xml">
+                <xpath expr="//form[@string='Sales Order']/"  position="replace">
+                	<form string="Sales Order" create="false" version="7.0">
+	                    <!--<header>
+	                        <button name="invoice_recreate" states="invoice_except" string="Recreate Invoice" groups="base.group_user"/>
+	                        <button name="invoice_corrected" states="invoice_except" string="Ignore Exception" groups="base.group_user"/>
+	                        <button name="action_quotation_send" string="Send by Email" type="object" states="draft" class="oe_highlight" groups="base.group_user"/>
+	                        <button name="action_quotation_send" string="Send by Email" type="object" states="sent,progress,manual" groups="base.group_user"/>
+	                        <button name="print_quotation" string="Print" type="object" states="draft,cancel" class="oe_highlight" groups="base.group_user"/>
+	                        <button name="print_quotation" string="Print" type="object" states="sent,progress,manual" groups="base.group_user"/>
+	                        <button name="action_button_view_partner" attrs="{'invisible': [('state', '=', 'cancel')]}" string="Confirm Quote" type="object"/>
+	                        <button name="action_button_confirm" states="draft" string="Confirm Sale" type="object" groups="base.group_user"/>
+	                        <button name="action_button_confirm" states="sent" string="Confirm Sale" class="oe_highlight" type="object" groups="base.group_user"/>
+	                        <button name="action_view_invoice" string="View Invoice" type="object" class="oe_highlight"
+	                            attrs="{'invisible': [('invoice_exists', '=', False)]}" groups="base.group_user"/>
+	                        <button name="%(sale.action_view_sale_advance_payment_inv)d" string="Create Invoice"
+	                            type="action" states="manual" class="oe_highlight" groups="base.group_user"/>
+	                        <button name="sale.copy_quotation" states="cancel" string="New Copy of Quotation" type="object"/>
+	                        <button name="sale.cancel" states="draft,sent" string="Cancel Quotation" groups="base.group_user"/>
+	                        <button name="action_cancel" states="manual,progress" string="Cancel Order" type="object" groups="base.group_user"/>
+	                        <button name="sale.invoice_cancel" states="invoice_except" string="Cancel Order" groups="base.group_user"/>
+	                        <field name="state" widget="statusbar" statusbar_visible="draft,sent,progress,done" statusbar_colors='{"invoice_except":"red","waiting_date":"blue"}'/>
+	                	</header>-->
+	                	<sheet>
+	                        <group col = "4" colpan = "2">
+	                            <field name="order_type" widget="selection"/>
+								
+								<field name="so_date"/>
+								<field name="po_date"/>
+								<field name="document_type"/>
+								<field name="po_number"/>
+								<field name="payment_term_id"/>
+								<field name="expected_date"/>
+								<field name="currency_id"/>
+								<field name="quotaion_no"/>
+								<field name="incoterm" widget="selection"/>
+								<field name="distribution_chanel"/>
+								<field name="excise_duty"/>
+								<field name="sale_tax"/>
+								<field name="reason"/>
+								<field name="document_status"/>
+								
+	                        </group>
+	                   </sheet>
+					</form>
+                </xpath>
+            </field>
+        </record> 
+        
+        
+    </data>
+</openerp>

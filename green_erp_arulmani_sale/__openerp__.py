@@ -28,7 +28,7 @@
     'website' : 'http://www. tenthplanet.in',
     'depends': ['sale','stock'],
     'data': [
-        
+        'tpt_sale_view.xml',
     ],
     'css' : [
     ],
