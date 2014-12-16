@@ -604,10 +604,10 @@ class arul_hr_employee_attendence_details(osv.osv):
     _name='arul.hr.employee.attendence.details'
     _columns={
         'employee_id':fields.many2one('hr.employee','Employee', required=True),
-        'employee_category_id':fields.many2one('vsis.hr.employee.category','Employee Category',readonly=False),
-        'sub_category_id':fields.many2one('hr.employee.sub.category','Sub Category',readonly=False),
-        'designation_id': fields.many2one('hr.job', 'Designation',readonly=False),
-        'department_id':fields.many2one('hr.department', 'Department',readonly=False),
+        'employee_category_id':fields.many2one('vsis.hr.employee.category','Employee Category',readonly=False,ondelete='restrict'),
+        'sub_category_id':fields.many2one('hr.employee.sub.category','Sub Category',readonly=False,ondelete='restrict'),
+        'designation_id': fields.many2one('hr.job', 'Designation',readonly=False,ondelete='restrict'),
+        'department_id':fields.many2one('hr.department', 'Department',readonly=False,ondelete='restrict'),
         'permission_onduty_details_line':fields.one2many('arul.hr.permission.onduty','permission_onduty_id','Permission On duty Details',readonly=True),
         'punch_in_out_line':fields.one2many('arul.hr.punch.in.out.time','punch_in_out_id','Punch in/Punch out Details',readonly=True)
               }

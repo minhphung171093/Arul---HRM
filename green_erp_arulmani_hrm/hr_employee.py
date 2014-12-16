@@ -128,24 +128,24 @@ class arul_hr_employee_action_history(osv.osv):
             super(arul_hr_employee_action_history, self).write(cr, SUPERUSER_ID, [id], {'db_datas': value, 'file_size': file_size}, context=context)
         return True
     _columns = {
-        'employee_id': fields.many2one('hr.employee','Employee ID',required = False),
-        'action_id': fields.many2one('arul.employee.actions','Action', required=True),
-        'action_type_id': fields.many2one('arul.employee.action.type','Action type', required=True),
+        'employee_id': fields.many2one('hr.employee','Employee ID',required = False,ondelete='restrict'),
+        'action_id': fields.many2one('arul.employee.actions','Action', required=True,ondelete='restrict'),
+        'action_type_id': fields.many2one('arul.employee.action.type','Action type', required=True,ondelete='restrict'),
         'action_date': fields.date('Action Date'),
         'create_date': fields.datetime('Created Date'),
-        'create_uid': fields.many2one('res.users','Created By'),
+        'create_uid': fields.many2one('res.users','Created By',ondelete='restrict'),
         'period_from': fields.date('Period From'),
         'period_to': fields.date('Period to'),
-        'reason_id': fields.many2one('arul.season','Reason'),
+        'reason_id': fields.many2one('arul.season','Reason',ondelete='restrict'),
         'note': fields.text('Note'),
-        'department_from_id': fields.many2one('hr.department','Department From'),
-        'department_to_id': fields.many2one('hr.department','Department To'),
-        'designation_from_id':fields.many2one('hr.job','Designation From'),
-        'designation_to_id':fields.many2one('hr.job','Designation To'),
-        'employee_category_id':fields.many2one('vsis.hr.employee.category','Employee Category'),
-        'sub_category_id':fields.many2one('hr.employee.sub.category','Sub Category'),
-        'payroll_area_id':fields.many2one('arul.hr.payroll.area','Payroll Area'),
-        'payroll_sub_area_id':fields.many2one('arul.hr.payroll.sub.area','Payroll Sub Area'),
+        'department_from_id': fields.many2one('hr.department','Department From',ondelete='restrict'),
+        'department_to_id': fields.many2one('hr.department','Department To',ondelete='restrict'),
+        'designation_from_id':fields.many2one('hr.job','Designation From',ondelete='restrict'),
+        'designation_to_id':fields.many2one('hr.job','Designation To',ondelete='restrict'),
+        'employee_category_id':fields.many2one('vsis.hr.employee.category','Employee Category',ondelete='restrict'),
+        'sub_category_id':fields.many2one('hr.employee.sub.category','Sub Category',ondelete='restrict'),
+        'payroll_area_id':fields.many2one('arul.hr.payroll.area','Payroll Area',ondelete='restrict'),
+        'payroll_sub_area_id':fields.many2one('arul.hr.payroll.sub.area','Payroll Sub Area',ondelete='restrict'),
         'approve_rehiring': fields.boolean('Approve Rehiring'),
 #         Document upload
         'datas_fname': fields.char('File Name',size=256),
@@ -160,6 +160,8 @@ class arul_hr_employee_action_history(osv.osv):
         'medical_reimbursement': fields.boolean('Medical Reimbursement (Y/N)'),
         'gratuity': fields.boolean('Gratuity (Y/N)'),
         'pf_settlement': fields.boolean('PF Settlement (Y/N)'),
+#         'address_id': fields.many2one('res.partner', 'Working Address',ondelete='restrict'),
+#         'department_id':fields.many2one('hr.department', 'Department',ondelete='restrict'),
     }
     
     def name_get(self, cr, uid, ids, context=None):
@@ -400,18 +402,22 @@ class hr_employee(osv.osv):
     _order = 'employee_id'
     _columns = {
         'action_history_line': fields.one2many('arul.hr.employee.action.history','employee_id','Action History Line',readonly=True),
-        'section_id': fields.many2one('arul.hr.section','Section'),
-        'payroll_area_id': fields.many2one('arul.hr.payroll.area','Payroll Area'),
-        'payroll_sub_area_id': fields.many2one('arul.hr.payroll.sub.area','Payroll Sub Area'),
+        'section_id': fields.many2one('arul.hr.section','Section',ondelete='restrict'),
+        'payroll_area_id': fields.many2one('arul.hr.payroll.area','Payroll Area',ondelete='restrict'),
+        'payroll_sub_area_id': fields.many2one('arul.hr.payroll.sub.area','Payroll Sub Area',ondelete='restrict'),
         'time_record': fields.char('Time Record ID', size=1024, required = True),
         'employee_leave_id': fields.one2many('employee.leave','employee_id','Employee Leave',readonly=False),
-        'country_stateofbirth_id': fields.many2one('res.country', 'Country'),
+        'country_stateofbirth_id': fields.many2one('res.country', 'Country',ondelete='restrict'),
         'date_of_retirement': fields.date('Date Of Retirement'),
         'personal_contact': fields.char('Personal Mobile Number', size=1024),
         'birth_place': fields.char('Birthplace', size=1024),
 #         'personal_contact': fields.char('Personal Contact', size=1024),
         'manage_equipment_inventory_line': fields.one2many('tpt.manage.equipment.inventory','employee_id','Manage Equipment Inventory Line'),
+        'address_id': fields.many2one('res.partner', 'Working Address',ondelete='restrict'),
+        'department_id':fields.many2one('hr.department', 'Department',ondelete='restrict'),
+        'job_id': fields.many2one('hr.job', 'Designation',ondelete='restrict'),
     }
+    
     
 #     def init(self, cr):
 #         try:
@@ -657,7 +663,7 @@ arul_employee_actions()
 class tpt_stream(osv.osv):
     _inherit = 'hr.qualification.attachment'
     _columns={
-       'stream_id': fields.many2one('tpt.stream.master','Streams'),
+       'stream_id': fields.many2one('tpt.stream.master','Streams',ondelete='restrict'),
               }
 tpt_stream()
 
@@ -733,8 +739,8 @@ class food_subsidy(osv.osv):
         'street2': fields.char('Street2', size=128),
         'zip': fields.char('Zip', change_default=True, size=24),
         'city': fields.char('City', size=128),
-        'state_id': fields.many2one("res.country.state", 'State'),
-        'country_id': fields.many2one('res.country', 'Country'),
+        'state_id': fields.many2one("res.country.state", 'State',ondelete='restrict'),
+        'country_id': fields.many2one('res.country', 'Country',ondelete='restrict'),
         'history_line': fields.one2many('food.subsidy','history_id','Histories',readonly = True),
         'history_id': fields.many2one('food.subsidy','Histories Line', ondelete='cascade'),
     }
@@ -937,9 +943,9 @@ class meals_details(osv.osv):
         'midnight_tiffin' : fields.boolean('Midnight Tiffin'),
         'employer_amt' : fields.function(evaluate_amt,digits=(16,2),type='float',string='Employer Amt',multi='sum',store=True),  
         'employee_amt' : fields.function(evaluate_amt,digits=(16,2),type='float',string='Employee Amt',multi='sum',store=True), 
-        'free_cost_1' : fields.many2one('food.subsidy', 'Free Cost 1'),
-        'free_cost_2' : fields.many2one('food.subsidy', 'Free Cost 2'),
-        'meals_id': fields.many2one('meals.deduction','Meal Deduction'),
+        'free_cost_1' : fields.many2one('food.subsidy', 'Free Cost 1',ondelete='restrict'),
+        'free_cost_2' : fields.many2one('food.subsidy', 'Free Cost 2',ondelete='restrict'),
+        'meals_id': fields.many2one('meals.deduction','Meal Deduction',ondelete='restrict'),
     }
     
 meals_details()
@@ -1121,7 +1127,7 @@ class employee_leave_detail(osv.osv):
     
     _columns = {
         'emp_leave_id': fields.many2one('employee.leave', 'Employee Leave', readonly=True,ondelete='cascade'),
-        'leave_type_id' : fields.many2one('arul.hr.leave.types', 'Leave Types', readonly=False),
+        'leave_type_id' : fields.many2one('arul.hr.leave.types', 'Leave Types', readonly=False,ondelete='restrict'),
         'total_day': fields.float('Total Day',degits=(16,2), readonly=False),
 #         'total_taken': fields.float('Total Day',degits=(16,2)),
         'total_taken': fields.function(get_taken_day,degits=(16,2),store={
