@@ -69,7 +69,7 @@ class hr_employee(osv.osv):
                 'family_ids': fields.one2many('hr.family','employee_id','Family Details'),
                 'last_name' : fields.char('Last Name', size=32),
                 'date_of_resignation' : fields.date('Date Of Leaving'), 
-                'employee_category_id' : fields.many2one('vsis.hr.employee.category', 'Employee Category'),
+                'employee_category_id' : fields.many2one('vsis.hr.employee.category', 'Employee Category', ondelete='restrict'),
                 'employee_sub_category_id' : fields.many2one('hr.employee.sub.category', 'Employee Sub Category(Grade)'),
                 'employee_grade_id' : fields.many2one('hr.employee.grade', 'Employee Grade'),
                 'street': fields.char('Street', size=128),
