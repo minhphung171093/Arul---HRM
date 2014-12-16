@@ -603,8 +603,10 @@
                 <form string="Monthly Shift Schedule" version="7.0">
                 	<sheet>  
             			<group col='4' colspan='4'>
+            				<field name="monthly_work" invisible='1'/>
                 			<field name="num_of_month" on_change="onchange_monthly(num_of_month, shift_day_from, shift_day_to, work_shift_id)" invisible="1"/>
-                			<field name="employee_id" 
+                			<field name="employee_id"
+                			on_change="onchange_employee_id(employee_id,monthly_work)"
                 			domain="context.get('department_id',False) and context.get('section_id',False) and [('department_id','=',context['department_id']),('section_id','=',context['section_id'])] or [(1,'=',1)]"
                 			options="{'create': false, 'create_edit': false}"/>
                 		</group>

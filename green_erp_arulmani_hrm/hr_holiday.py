@@ -1011,7 +1011,7 @@ class arul_hr_monthly_work_schedule(osv.osv):
         resource_id = obj_model.read(cr, uid, model_data_ids, fields=['res_id'])[0]['res_id']
         work = self.browse(cr, uid, ids[0])
         num_of_month = calendar.monthrange(int(work.year),int(work.month))[1]
-        context.update({'default_num_of_month':num_of_month,'department_id':work.department_id.id,'section_id':work.section_id.id})
+        context.update({'default_num_of_month':num_of_month,'department_id':work.department_id.id,'section_id':work.section_id.id,'default_monthly_work':work.id})
         return {
             'view_type': 'form',
             'view_mode': 'form',
@@ -1105,6 +1105,7 @@ class arul_hr_monthly_shift_schedule(osv.osv):
     _columns={
 #               'num_of_month': fields.function(_num_of_month, string='Day',store=True, multi='sums', help="The total amount."),
               'num_of_month': fields.integer('Day'),
+              'monthly_work': fields.integer('monthly work'),
               'shift_day_from': fields.many2one('tpt.month','Shift Day From'),
               'shift_day_to': fields.many2one('tpt.month','Shift Day To'),
               'work_shift_id': fields.many2one('arul.hr.capture.work.shift','Work Shift'),
@@ -1153,44 +1154,90 @@ class arul_hr_monthly_shift_schedule(osv.osv):
         active_id = context.get('active_id')
         for shift_schedule in self.browse(cr, uid, ids):
             shift_schedule_ids = self.search(cr, uid, [('monthly_work_id','=',active_id),('employee_id','=',shift_schedule.employee_id.id)])
-            self.write(cr, uid, shift_schedule_ids,{
-              'day_1': shift_schedule.day_1.id,
-              'day_2': shift_schedule.day_2.id,
-              'day_3': shift_schedule.day_3.id,
-              'day_4': shift_schedule.day_4.id,
-              'day_5': shift_schedule.day_5.id,
-              'day_6': shift_schedule.day_6.id,
-              'day_7': shift_schedule.day_7.id,
-              'day_8': shift_schedule.day_8.id,
-              'day_9': shift_schedule.day_9.id,
-              'day_10': shift_schedule.day_10.id,
-              'day_11': shift_schedule.day_11.id,
-              'day_12': shift_schedule.day_12.id,
-              'day_13': shift_schedule.day_13.id,
-              'day_14': shift_schedule.day_14.id,
-              'day_15': shift_schedule.day_15.id,
-              'day_16': shift_schedule.day_16.id,
-              'day_17': shift_schedule.day_17.id,
-              'day_18': shift_schedule.day_18.id,
-              'day_19': shift_schedule.day_19.id,
-              'day_20': shift_schedule.day_20.id,
-              'day_21': shift_schedule.day_21.id,
-              'day_22': shift_schedule.day_22.id,
-              'day_23': shift_schedule.day_23.id,
-              'day_24': shift_schedule.day_24.id,
-              'day_25': shift_schedule.day_25.id,
-              'day_26': shift_schedule.day_26.id,
-              'day_27': shift_schedule.day_27.id,
-              'day_28': shift_schedule.day_28.id,
-              'day_29': shift_schedule.day_29.id,
-              'day_30': shift_schedule.day_30.id,
-              'day_31': shift_schedule.day_31.id,
-            })
+            if shift_schedule_ids:
+                self.write(cr, uid, shift_schedule_ids,{
+                  'day_1': shift_schedule.day_1.id,
+                  'day_2': shift_schedule.day_2.id,
+                  'day_3': shift_schedule.day_3.id,
+                  'day_4': shift_schedule.day_4.id,
+                  'day_5': shift_schedule.day_5.id,
+                  'day_6': shift_schedule.day_6.id,
+                  'day_7': shift_schedule.day_7.id,
+                  'day_8': shift_schedule.day_8.id,
+                  'day_9': shift_schedule.day_9.id,
+                  'day_10': shift_schedule.day_10.id,
+                  'day_11': shift_schedule.day_11.id,
+                  'day_12': shift_schedule.day_12.id,
+                  'day_13': shift_schedule.day_13.id,
+                  'day_14': shift_schedule.day_14.id,
+                  'day_15': shift_schedule.day_15.id,
+                  'day_16': shift_schedule.day_16.id,
+                  'day_17': shift_schedule.day_17.id,
+                  'day_18': shift_schedule.day_18.id,
+                  'day_19': shift_schedule.day_19.id,
+                  'day_20': shift_schedule.day_20.id,
+                  'day_21': shift_schedule.day_21.id,
+                  'day_22': shift_schedule.day_22.id,
+                  'day_23': shift_schedule.day_23.id,
+                  'day_24': shift_schedule.day_24.id,
+                  'day_25': shift_schedule.day_25.id,
+                  'day_26': shift_schedule.day_26.id,
+                  'day_27': shift_schedule.day_27.id,
+                  'day_28': shift_schedule.day_28.id,
+                  'day_29': shift_schedule.day_29.id,
+                  'day_30': shift_schedule.day_30.id,
+                  'day_31': shift_schedule.day_31.id,
+                })
+            else:
+                self.write(cr, uid, [shift_schedule.id],{
+                  'monthly_work_id': active_id,
+                })
             sql = '''
                 delete from arul_hr_monthly_shift_schedule where monthly_work_id is null
             '''
             cr.execute(sql)
         return {'type': 'ir.actions.act_window_close'}
+    
+    def onchange_employee_id(self, cr, uid, ids, employee_id = False,monthly_work=False, context=None):
+        value = {}
+        if employee_id and monthly_work:
+            shift_schedule_ids = self.search(cr, uid, [('monthly_work_id','=',monthly_work),('employee_id','=',employee_id)])
+            if shift_schedule_ids:
+                shift_schedule = self.browse(cr, uid, shift_schedule_ids[0])
+                value = {
+                      'day_1': shift_schedule.day_1.id,
+                      'day_2': shift_schedule.day_2.id,
+                      'day_3': shift_schedule.day_3.id,
+                      'day_4': shift_schedule.day_4.id,
+                      'day_5': shift_schedule.day_5.id,
+                      'day_6': shift_schedule.day_6.id,
+                      'day_7': shift_schedule.day_7.id,
+                      'day_8': shift_schedule.day_8.id,
+                      'day_9': shift_schedule.day_9.id,
+                      'day_10': shift_schedule.day_10.id,
+                      'day_11': shift_schedule.day_11.id,
+                      'day_12': shift_schedule.day_12.id,
+                      'day_13': shift_schedule.day_13.id,
+                      'day_14': shift_schedule.day_14.id,
+                      'day_15': shift_schedule.day_15.id,
+                      'day_16': shift_schedule.day_16.id,
+                      'day_17': shift_schedule.day_17.id,
+                      'day_18': shift_schedule.day_18.id,
+                      'day_19': shift_schedule.day_19.id,
+                      'day_20': shift_schedule.day_20.id,
+                      'day_21': shift_schedule.day_21.id,
+                      'day_22': shift_schedule.day_22.id,
+                      'day_23': shift_schedule.day_23.id,
+                      'day_24': shift_schedule.day_24.id,
+                      'day_25': shift_schedule.day_25.id,
+                      'day_26': shift_schedule.day_26.id,
+                      'day_27': shift_schedule.day_27.id,
+                      'day_28': shift_schedule.day_28.id,
+                      'day_29': shift_schedule.day_29.id,
+                      'day_30': shift_schedule.day_30.id,
+                      'day_31': shift_schedule.day_31.id,
+                    }
+        return {'value': value}
     
     def onchange_monthly(self, cr, uid, ids, num_of_month = False, shift_day_from=False,shift_day_to=False, work_shift_id = False, context=None):
         value = {}
@@ -1265,7 +1312,7 @@ class arul_hr_monthly_shift_schedule(osv.osv):
                 if num == 31:
                     value['day_31'] = work_shift_id
             value.update({'shift_day_from': False,'shift_day_to': False, 'work_shift_id':False})
-        return {'value': value}          
+        return {'value': value}         
     
     def _check_employee_id(self, cr, uid, ids, context=None):
         for shift_schedule in self.browse(cr, uid, ids, context=context):
