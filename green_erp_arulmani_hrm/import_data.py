@@ -432,7 +432,6 @@ class tpt_import_payroll(osv.osv):
     
     def import_payroll(self, cr, uid, ids, context=None):
         this = self.browse(cr, uid, ids[0])
-#         earning_arr = []
         try:
             recordlist = base64.decodestring(this.datas)
             excel = xlrd.open_workbook(file_contents = recordlist)
@@ -446,35 +445,81 @@ class tpt_import_payroll(osv.osv):
             try:
                 dem = 1
                 for row in range(1,sh.nrows):
-                    earning_arr = []
+    #                     earning_arr = []
                     emp_code = sh.cell(row, 0).value
-                    emp_code_char = str(emp_code).replace(".0","")
-                    employee_ids = employee_obj.search(cr, uid, [('employee_id','=',emp_code_char)])
+                    emp_code_char = str(int(emp_code))
+                    sql = '''
+                        select id, employee_category_id, employee_sub_category_id from hr_employee where employee_id = '%s'
+                    '''%(emp_code_char)
+                    cr.execute(sql)
+                    employee_ids = cr.dictfetchone()
                     if not employee_ids:
                         raise osv.except_osv(_('Warning!'), ' Line: '+str(dem+1))
                     else:
-                        for em in employee_obj.browse(cr, uid, employee_ids, context):
-                            emp_id = em.id
-                            emp_cate = em.employee_category_id.id or False
-                            emp_sub = em.employee_sub_category_id.id or False
-#                         emp_id = employee_ids[0]
-#                         emp_cate = employee_obj.browse(cr, uid, employee_ids, context).employee_category_id.id or False
-#                         emp_sub = employee_obj.browse(cr, uid, employee_ids, context).sub_category_id.id or False
-                    for col in range(1,8,2):
-                        if sh.cell(row,col).value=="BASIC":
-                            pay_earn_ids = pay_earn_obj.search(cr, uid, [('name','=',"Basic")])
-                            if pay_earn_ids:
-                                pay_earn_id = pay_earn_ids[0]
-                                amount = sh.cell(row,(col+1)).value
-                                earning_arr.append((0,0,{'earning_parameters_id':pay_earn_id,'float':amount}))
-                        else:
-                            wave_type = sh.cell(row,col).value
-                            pay_earn_ids = pay_earn_obj.search(cr, uid, [('name','=',wave_type)])
-                            if pay_earn_ids:
-                                pay_earn_id = pay_earn_ids[0]
-                                amount = sh.cell(row,(col+1)).value
-                                earning_arr.append((0,0,{'earning_parameters_id':pay_earn_id,'float':amount}))
+                        emp_id = employee_ids['id']
+                        emp_cate = employee_ids['employee_category_id'] or False
+                        emp_sub = employee_ids['employee_sub_category_id'] or False
+                    earning_arr = []
+                    join = sh.cell(row, 1).value
+                    if join:
+                        join_day = join[6:10] + '-' + join[3:5] + '-'+ join[:2]
+                    else:
+                        join_day = False
+                    employee_obj.write(cr, uid, [emp_id], {'date_of_joining':join_day})
+                    basic = sh.cell(row, 2).value
+                    pay_earn_ids = pay_earn_obj.search(cr, uid, [('name','=',"Basic")])
+                    if pay_earn_ids:
+                        pay_earn_id = pay_earn_ids[0]
+                        earning_arr.append((0,0,{'earning_parameters_id':pay_earn_id,'float':basic}))
                         
+                    da = sh.cell(row, 3).value
+                    pay_earn_ids = pay_earn_obj.search(cr, uid, [('name','=',"DA")])
+                    if pay_earn_ids:
+                        pay_earn_id = pay_earn_ids[0]
+                        earning_arr.append((0,0,{'earning_parameters_id':pay_earn_id,'float':da}))
+                    
+                    hra = sh.cell(row, 4).value
+                    pay_earn_ids = pay_earn_obj.search(cr, uid, [('name','=',"HRA")])
+                    if pay_earn_ids:
+                        pay_earn_id = pay_earn_ids[0]
+                        earning_arr.append((0,0,{'earning_parameters_id':pay_earn_id,'float':hra}))
+                    
+                    convey = sh.cell(row, 5).value
+                    pay_earn_ids = pay_earn_obj.search(cr, uid, [('name','=',"Conveyance")])
+                    if pay_earn_ids:
+                        pay_earn_id = pay_earn_ids[0]
+                        earning_arr.append((0,0,{'earning_parameters_id':pay_earn_id,'float':convey}))
+                    
+                    lunch_all = sh.cell(row, 6).value
+                    pay_earn_ids = pay_earn_obj.search(cr, uid, [('name','=',"Lunch Allowance")])
+                    if pay_earn_ids:
+                        pay_earn_id = pay_earn_ids[0]
+                        earning_arr.append((0,0,{'earning_parameters_id':pay_earn_id,'float':lunch_all}))
+                    
+                    edu_all = sh.cell(row, 7).value
+                    pay_earn_ids = pay_earn_obj.search(cr, uid, [('name','=',"Educational Allowance")])
+                    if pay_earn_ids:
+                        pay_earn_id = pay_earn_ids[0]
+                        earning_arr.append((0,0,{'earning_parameters_id':pay_earn_id,'float':edu_all}))
+                        
+                    admin_all = sh.cell(row, 8).value
+                    pay_earn_ids = pay_earn_obj.search(cr, uid, [('name','=',"Admin Allowance")])
+                    if pay_earn_ids:
+                        pay_earn_id = pay_earn_ids[0]
+                        earning_arr.append((0,0,{'earning_parameters_id':pay_earn_id,'float':admin_all}))
+                        
+                    other_all = sh.cell(row, 9).value
+                    pay_earn_ids = pay_earn_obj.search(cr, uid, [('name','=',"Other Allowance")])
+                    if pay_earn_ids:
+                        pay_earn_id = pay_earn_ids[0]
+                        earning_arr.append((0,0,{'earning_parameters_id':pay_earn_id,'float':other_all}))
+                        
+                    special_all = sh.cell(row, 10).value
+                    pay_earn_ids = pay_earn_obj.search(cr, uid, [('name','=',"Special Allowance")])
+                    if pay_earn_ids:
+                        pay_earn_id = pay_earn_ids[0]
+                        earning_arr.append((0,0,{'earning_parameters_id':pay_earn_id,'float':special_all}))
+                    
                     dem += 1
                     pay_emp_stru_obj.create(cr, uid, {
                         'employee_id': emp_id,
