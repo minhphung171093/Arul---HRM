@@ -12,12 +12,17 @@ class tpt_blanket_order(osv.osv):
     _columns = {
         'customer_id': fields.many2one('res.partner', 'Customer', required = True),
         'invoice_address': fields.char('Invoice Address', size = 1024),
+        'street2': fields.char('', size = 1024),
+        'city': fields.char('', size = 1024),
+        'country_id': fields.many2one('res.country', ''),
+        'state_id': fields.many2one('res.country.state', ''),
+        'zip': fields.char('', size = 1024),
         'payment_term_id': fields.many2one('account.payment.term', 'Payment Term'),
         'currency_id': fields.many2one('res.currency', 'Currency'),
-        'bo_date': fields.date('BO Date', readonly = True, required = True),
+        'bo_date': fields.date('BO Date', required = True),
         'po_date': fields.date('PO Date', required = True),
-        'po_number': fields.float('PO Number'),
-        'quotaion_no': fields.float('Quotaion No'),
+        'po_number': fields.char('PO Number', size = 1024),
+        'quotaion_no': fields.char('Quotaion No', size = 1024),
         'excise_duty': fields.many2one('tpt.excise.duty', 'Excise Duty', required = True), 
         'sale_tax_id': fields.many2one('account.tax', 'Sale Tax', required = True), 
         'incoterm_id': fields.many2one('stock.incoterms', 'Incoterms', required = True),
@@ -27,6 +32,7 @@ class tpt_blanket_order(osv.osv):
         'order_type':fields.selection([('domestic','Domestic'),('export','Export')],'Order Type' ,required=True),
         'document_type':fields.selection([('blankedorder','Blanked Order')], 'Document Type',required=True),
         'blank_order_line': fields.one2many('tpt.blank.order.line', 'blanket_order_id', 'Sale Order'), 
+        'blank_consignee_line': fields.one2many('tpt.consignee', 'blanket_consignee_id', 'Consignee'), 
     }
     
     _defaults = {
@@ -49,7 +55,12 @@ class tpt_blanket_order(osv.osv):
         vals = {}
         if customer_id:
             customer = self.pool.get('res.partner').browse(cr, uid, customer_id)
-            vals = {'invoice_address':customer.street,
+            vals = {'invoice_address': customer.street,
+                    'street2': customer.street2,
+                    'city': customer.city,
+                    'country_id': customer.country_id.id,
+                    'state_id': customer.state_id.id,
+                    'zip': customer.zip,
                     'payment_term_id':customer.property_payment_term.id,
                     'excise_duty':customer.excise_duty,
                     }
@@ -91,5 +102,40 @@ class tpt_blank_order_line(osv.osv):
         return {'value': vals}
       
 tpt_blank_order_line()
+
+class tpt_consignee(osv.osv):
+    _name = "tpt.consignee"
+    
+    def quatity_consignee(self, cr, uid, ids, field_name, args, context=None):
+        quatity = 0
+        res = {}
+        for line in self.browse(cr,uid,ids,context=context):
+            for order_line in line.blanket_consignee_id.blank_order_line:
+                if order_line.product_id.id == line.product_id.id:
+                    quatity = order_line.product_uom_qty
+            res[line.id] = quatity
+        return res
+                
+            
+          
+    _columns = {
+        'blanket_consignee_id': fields.many2one('tpt.blanket.order', 'Consignee'),
+        'name': fields.char('Consignee Name', size = 1024, required = True),
+        'location': fields.char('Location', size = 1024),
+        'product_id': fields.many2one('product.product', 'Product'),
+        'product_uom_qty': fields.function(quatity_consignee, store = True, type='float',string='Quatity'),
+        'uom_po_id': fields.many2one('product.uom', 'UOM', readonly = True),
+                }
+    
+    def onchange_product_id(self, cr, uid, ids,product_id=False, context=None):
+        vals = {}
+        if product_id :
+            product = self.pool.get('product.product').browse(cr, uid, product_id)
+            vals = {
+                    'uom_po_id':product.uom_id.id,
+                    }
+        return {'value': vals}
+      
+tpt_consignee()
 
 

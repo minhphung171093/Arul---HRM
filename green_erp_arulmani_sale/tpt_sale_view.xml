@@ -8,7 +8,7 @@
 			<field name="arch" type="xml">
 				<tree string="Blanket Order">
 						<field name="customer_id" options="{'create': false, 'create_edit': false}"/>
-						<field name="invoice_address"/>
+						<field name="invoice_address" />
 						<field name="document_type" />
 						<field name="payment_term_id" options="{'create': false, 'create_edit': false}"/>
 						<field name="currency_id" />
@@ -34,16 +34,29 @@
             <field name="arch" type="xml">
 	            <form string="Blanket Order" version="7.0">   
 	            	<sheet>
+	            	 <h1>
+                        <label string="Blanket Order "/>
+                        <field name="customer_id" readonly="1"/>
+                    </h1>
 		                <group col='4' colspan='2'>    
 						<field name="customer_id" on_change="onchange_customer_id(customer_id)" options="{'create': false, 'create_edit': false}"/>
 						<field name="bo_date" />
-						<field name="invoice_address"/>
-						<field name="po_date" />
+						<field name="invoice_address" placeholder="Street..."/>
 						<field name="document_type" />
+						<newline/>
+						<field name="street2"/>
 						<field name="po_number" />
+						<newline/>
+						<field name="city" placeholder="City"/>
 						<field name="payment_term_id" options="{'create': false, 'create_edit': false}"/>
+						<newline/>
+						<field name="country_id" placeholder="Country" options="{'create': false, 'create_edit': false}"/>
 						<field name="exp_delivery_date" />
+						<newline/>
+						<field name="state_id" placeholder="State" options="{'create': false, 'create_edit': false}"/>
 						<field name="currency_id" options="{'create': false, 'create_edit': false}"/>
+						<newline/>
+						<field name="zip" placeholder="ZIP"/>
 						<field name="quotaion_no" />
 						<field name="incoterm_id" options="{'create': false, 'create_edit': false}"/>
 						<field name="channel" options="{'create': false, 'create_edit': false}"/>
@@ -63,6 +76,17 @@
 										<field name="product_uom_qty" />
 										<field name="uom_po_id" options="{'create': false, 'create_edit': false}"/>
 										<field name="price_unit" />
+									</tree>
+								</field>
+							</page>
+							<page string = "Consignee">
+								<field name="blank_consignee_line" nolabel='1'>
+									<tree editable='top'>
+										<field name="name"/>
+										<field name="location" />
+										<field name="product_id" widget = "selection" on_change="onchange_product_id(product_id)" options="{'create': false, 'create_edit': false}"/>
+										<field name="product_uom_qty" />
+										<field name="uom_po_id" options="{'create': false, 'create_edit': false}"/>
 									</tree>
 								</field>
 							</page>
