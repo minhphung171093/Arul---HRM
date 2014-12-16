@@ -134,12 +134,12 @@ class Parser(report_sxw.rml_parse):
                         spa = earning.float
                     if earning.earning_parameters_id.code=='OA':
                         oa = earning.float
-                    if earning.earning_parameters_id.code=='GROSS_SALARY':
-                        gross = earning.float
+#                     if earning.earning_parameters_id.code=='GROSS_SALARY':
+#                         gross = earning.float
                     if earning.earning_parameters_id.code=='LTA':
                         lta = earning.float
-                    sum = basic + da + hra + conv + ea + la + aa + spa + oa + gross + lta
-                    
+                    sum += basic + da + hra + conv + ea + la + aa + spa + oa + lta
+                    gross += basic + da + hra + conv + ea + la + aa + spa + oa
             employee_action_obj = self.pool.get('arul.hr.employee.action.history')
             employee_action_ids = employee_action_obj.search(self.cr, self.uid, [('employee_id','=', emp.id),('action_id.name','=', 'Disciplinary')],order='id desc')
             disiciplinary_actions = ''
