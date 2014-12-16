@@ -86,6 +86,7 @@ class tpt_import_employee(osv.osv):
             bank_acc_obj = self.pool.get('res.partner.bank')
             bank_obj = self.pool.get('res.bank')
             partner_obj = self.pool.get('res.partner')
+            plant_obj = self.pool.get('hr.plant')
             try:
                 dem = 1
                 for row in range(1,sh.nrows):
@@ -216,7 +217,14 @@ class tpt_import_employee(osv.osv):
                         bank_acc_id = bank_acc_obj.create(cr, uid, {'acc_number':bank_acc,'bank':bank_id,'partner_id':partner_id,'state': "bank"})
                     else:
                         bank_acc_id = bank_acc_ids[0]
-                        
+                    
+                    plant = sh.cell(row, 29).value
+                    plant_ids = plant_obj.search(cr, uid, [('code','=',plant)])
+                    if not plant_ids:
+                        plant_id = plant_obj.create(cr, uid, {'name':plant,'code':plant})
+                    else:
+                        plant_id = plant_ids[0]
+                         
                     employee_code = sh.cell(row, 0).value
                     dem += 1
                     employee_obj.create(cr, uid, {
@@ -242,7 +250,8 @@ class tpt_import_employee(osv.osv):
                         'department_id': department_id,
                         'section_id': section_id,
                         'statutory_ids': statutory_arr,
-                        'bank_account_id':bank_acc_id
+                        'bank_account_id':bank_acc_id,
+                        'plant_id':plant_id,
                     })
                     
 #                     epf_no = sh.cell(row, 22).value
@@ -467,55 +476,55 @@ class tpt_import_payroll(osv.osv):
                         join_day = False
                     employee_obj.write(cr, uid, [emp_id], {'date_of_joining':join_day})
                     basic = sh.cell(row, 2).value
-                    pay_earn_ids = pay_earn_obj.search(cr, uid, [('name','=',"Basic")])
+                    pay_earn_ids = pay_earn_obj.search(cr, uid, [('code','=',"BASIC")])
                     if pay_earn_ids:
                         pay_earn_id = pay_earn_ids[0]
                         earning_arr.append((0,0,{'earning_parameters_id':pay_earn_id,'float':basic}))
                         
                     da = sh.cell(row, 3).value
-                    pay_earn_ids = pay_earn_obj.search(cr, uid, [('name','=',"DA")])
+                    pay_earn_ids = pay_earn_obj.search(cr, uid, [('code','=',"DA")])
                     if pay_earn_ids:
                         pay_earn_id = pay_earn_ids[0]
                         earning_arr.append((0,0,{'earning_parameters_id':pay_earn_id,'float':da}))
                     
                     hra = sh.cell(row, 4).value
-                    pay_earn_ids = pay_earn_obj.search(cr, uid, [('name','=',"HRA")])
+                    pay_earn_ids = pay_earn_obj.search(cr, uid, [('code','=',"HRA")])
                     if pay_earn_ids:
                         pay_earn_id = pay_earn_ids[0]
                         earning_arr.append((0,0,{'earning_parameters_id':pay_earn_id,'float':hra}))
                     
                     convey = sh.cell(row, 5).value
-                    pay_earn_ids = pay_earn_obj.search(cr, uid, [('name','=',"Conveyance")])
+                    pay_earn_ids = pay_earn_obj.search(cr, uid, [('code','=',"C")])
                     if pay_earn_ids:
                         pay_earn_id = pay_earn_ids[0]
                         earning_arr.append((0,0,{'earning_parameters_id':pay_earn_id,'float':convey}))
                     
                     lunch_all = sh.cell(row, 6).value
-                    pay_earn_ids = pay_earn_obj.search(cr, uid, [('name','=',"Lunch Allowance")])
+                    pay_earn_ids = pay_earn_obj.search(cr, uid, [('code','=',"LA")])
                     if pay_earn_ids:
                         pay_earn_id = pay_earn_ids[0]
                         earning_arr.append((0,0,{'earning_parameters_id':pay_earn_id,'float':lunch_all}))
                     
                     edu_all = sh.cell(row, 7).value
-                    pay_earn_ids = pay_earn_obj.search(cr, uid, [('name','=',"Educational Allowance")])
+                    pay_earn_ids = pay_earn_obj.search(cr, uid, [('code','=',"EA")])
                     if pay_earn_ids:
                         pay_earn_id = pay_earn_ids[0]
                         earning_arr.append((0,0,{'earning_parameters_id':pay_earn_id,'float':edu_all}))
                         
                     admin_all = sh.cell(row, 8).value
-                    pay_earn_ids = pay_earn_obj.search(cr, uid, [('name','=',"Admin Allowance")])
+                    pay_earn_ids = pay_earn_obj.search(cr, uid, [('code','=',"AA")])
                     if pay_earn_ids:
                         pay_earn_id = pay_earn_ids[0]
                         earning_arr.append((0,0,{'earning_parameters_id':pay_earn_id,'float':admin_all}))
                         
                     other_all = sh.cell(row, 9).value
-                    pay_earn_ids = pay_earn_obj.search(cr, uid, [('name','=',"Other Allowance")])
+                    pay_earn_ids = pay_earn_obj.search(cr, uid, [('code','=',"OA")])
                     if pay_earn_ids:
                         pay_earn_id = pay_earn_ids[0]
                         earning_arr.append((0,0,{'earning_parameters_id':pay_earn_id,'float':other_all}))
                         
                     special_all = sh.cell(row, 10).value
-                    pay_earn_ids = pay_earn_obj.search(cr, uid, [('name','=',"Special Allowance")])
+                    pay_earn_ids = pay_earn_obj.search(cr, uid, [('code','=',"SpA")])
                     if pay_earn_ids:
                         pay_earn_id = pay_earn_ids[0]
                         earning_arr.append((0,0,{'earning_parameters_id':pay_earn_id,'float':special_all}))
