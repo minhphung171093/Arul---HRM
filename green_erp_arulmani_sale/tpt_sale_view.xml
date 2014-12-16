@@ -1,0 +1,133 @@
+<?xml version="1.0" encoding="utf-8"?>
+<openerp>
+    <data>
+    
+    <record id="view_tpt_blanket_order_tree_vew" model="ir.ui.view">
+			<field name="name">tpt.blanket.order.tree</field>
+			<field name="model">tpt.blanket.order</field>
+			<field name="arch" type="xml">
+				<tree string="Blanket Order">
+						<field name="customer_id" options="{'create': false, 'create_edit': false}"/>
+						<field name="invoice_address"/>
+						<field name="document_type" />
+						<field name="payment_term_id" options="{'create': false, 'create_edit': false}"/>
+						<field name="currency_id" />
+						<field name="incoterm_id" />
+						<field name="excise_duty" />
+						<field name="bo_date" />
+						<field name="po_date" />
+						<field name="po_number" />
+						<field name="exp_delivery_date" />
+						<field name="quotaion_no" />
+						<field name="channel" />
+						<field name="sale_tax_id" options="{'create': false, 'create_edit': false}"/>
+						<field name="order_type" />
+						
+				</tree>
+			</field>
+		</record>
+		
+
+		<record id="view_tpt_blanket_order_form_vew" model="ir.ui.view">
+            <field name="name">tpt.blanket.order.form</field>
+            <field name="model">tpt.blanket.order</field>
+            <field name="arch" type="xml">
+	            <form string="Blanket Order" version="7.0">   
+	            	<sheet>
+		                <group col='4' colspan='2'>    
+						<field name="customer_id" on_change="onchange_customer_id(customer_id)" options="{'create': false, 'create_edit': false}"/>
+						<field name="bo_date" />
+						<field name="invoice_address"/>
+						<field name="po_date" />
+						<field name="document_type" />
+						<field name="po_number" />
+						<field name="payment_term_id" options="{'create': false, 'create_edit': false}"/>
+						<field name="exp_delivery_date" />
+						<field name="currency_id" options="{'create': false, 'create_edit': false}"/>
+						<field name="quotaion_no" />
+						<field name="incoterm_id" options="{'create': false, 'create_edit': false}"/>
+						<field name="channel" options="{'create': false, 'create_edit': false}"/>
+						<field name="excise_duty" options="{'create': false, 'create_edit': false}"/>
+						<field name="sale_tax_id" options="{'create': false, 'create_edit': false}"/>
+						<field name="reason" />
+						<field name="order_type" />
+						</group>
+						<notebook>
+							<page string = "Order Lines">
+								<field name="blank_order_line" nolabel='1'>
+									<tree editable='top'>
+										<field name="product_id" widget = "selection" on_change="onchange_product_id(product_id)" options="{'create': false, 'create_edit': false}"/>
+										<field name="description"/>
+										<field name="product_type" />
+										<field name="application_id" options="{'create': false, 'create_edit': false}"/>
+										<field name="product_uom_qty" />
+										<field name="uom_po_id" options="{'create': false, 'create_edit': false}"/>
+										<field name="price_unit" />
+									</tree>
+								</field>
+							</page>
+						
+						</notebook>
+						
+		         	</sheet>
+		         </form>
+			</field>
+		</record>
+          
+		<record id="action_tpt_blanket_order_form" model="ir.actions.act_window">
+            <field name="name">Blanket Order</field>
+            <field name="type">ir.actions.act_window</field>
+            <field name="res_model">tpt.blanket.order</field>
+            <field name="view_type">form</field>
+            <field name="view_mode">tree,form</field>
+            <field name="view_id" ref="view_tpt_blanket_order_tree_vew"/>
+        </record>
+        
+        <menuitem id="menu_hr_sale_management" parent="base.menu_base_partner" name="Sale Management" sequence="60"/>
+        <menuitem action="action_tpt_blanket_order_form"
+            id="menu_action_tpt_blanket_order_form"
+            parent="menu_hr_sale_management" sequence="0"/>
+            
+        <record id="view_tpt_excise_duty_tree_vew" model="ir.ui.view">
+			<field name="name">tpt.excise.duty.tree</field>
+			<field name="model">tpt.excise.duty</field>
+			<field name="arch" type="xml">
+				<tree string="Excise Duty">
+						<field name="name"/>
+				</tree>
+			</field>
+		</record>
+		
+
+		<record id="view_tpt_excise_duty_form_vew" model="ir.ui.view">
+            <field name="name">tpt.excise.duty.form</field>
+            <field name="model">tpt.excise.duty</field>
+            <field name="arch" type="xml">
+	            <form string="Excise Duty" version="7.0">   
+	            	<sheet>
+		                <group col='4' colspan='2'>    
+						<field name="name" />
+						</group>
+						
+		         	</sheet>
+		         </form>
+			</field>
+		</record>
+          
+		<record id="action_tpt_excise_duty_form" model="ir.actions.act_window">
+            <field name="name">Excise Duty</field>
+            <field name="type">ir.actions.act_window</field>
+            <field name="res_model">tpt.excise.duty</field>
+            <field name="view_type">form</field>
+            <field name="view_mode">tree,form</field>
+            <field name="view_id" ref="view_tpt_excise_duty_tree_vew"/>
+        </record>
+        
+        <menuitem id="menu_hr_sale_management" parent="base.menu_base_partner" name="Sale Management" sequence="60"/>
+        <menuitem action="action_tpt_excise_duty_form"
+            id="menu_action_tpt_excise_duty_form"
+            parent="menu_hr_sale_management" sequence="1"/>
+            
+    </data>
+    
+</openerp>
