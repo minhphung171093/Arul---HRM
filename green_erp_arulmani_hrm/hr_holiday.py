@@ -548,7 +548,7 @@ class arul_hr_permission_onduty(osv.osv):
         'end_time': fields.float('End Time'),
         'time_total': fields.function(_time_total, string='Total Hours', multi='sums', help="The total amount."),
         'reason':fields.text('Reason'),
-        'permission_onduty_id':fields.many2one('arul.hr.employee.attendence.details','Permission/Onduty'),
+        'permission_onduty_id':fields.many2one('arul.hr.employee.attendence.details','Permission/Onduty',ondelete='cascade'),
         'approval': fields.boolean('Select for Approval', readonly =  True),
 #         'detail_id':fields.many2one('arul.hr.employee.attendence.details','Detail'),
         
@@ -596,7 +596,7 @@ class arul_hr_punch_in_out_time(osv.osv):
     _inherit='arul.hr.audit.shift.time'
     _name='arul.hr.punch.in.out.time'
     _columns = {
-        'punch_in_out_id':fields.many2one('arul.hr.employee.attendence.details','Punch in/out')
+        'punch_in_out_id':fields.many2one('arul.hr.employee.attendence.details','Punch in/out',ondelete='cascade')
     }
 arul_hr_punch_in_out_time()
 
@@ -1004,9 +1004,27 @@ class arul_hr_monthly_work_schedule(osv.osv):
         return True
     def approve_current_month(self, cr, uid, ids, context=None):
         return self.write(cr, uid, ids, {'state':'done'})
-
-    def onchange_department_id(self, cr, uid, ids,department_id=False,month=False,year=False, context=None):
+    
+    def shift_schedule(self, cr, uid, ids, context=None):
+        obj_model = self.pool.get('ir.model.data')
+        model_data_ids = obj_model.search(cr,uid,[('model','=','ir.ui.view'),('name','=','view_arul_hr_monthly_shift_schedule_form_vew')])
+        resource_id = obj_model.read(cr, uid, model_data_ids, fields=['res_id'])[0]['res_id']
+        work = self.browse(cr, uid, ids[0])
+        num_of_month = calendar.monthrange(int(work.year),int(work.month))[1]
+        context.update({'default_num_of_month':num_of_month,'department_id':work.department_id.id,'section_id':work.section_id.id})
+        return {
+            'view_type': 'form',
+            'view_mode': 'form',
+            'res_model': 'arul.hr.monthly.shift.schedule',
+            'views': [(resource_id,'form')],
+            'type': 'ir.actions.act_window',
+            'target': 'new',
+            'context': context,
+        }
+    
+    def onchange_department_id(self, cr, uid, ids,department_id=False,section_id=False,month=False,year=False, context=None):
         res = {'value':{}}
+        new_section_id = False
         for line in self.browse(cr, uid, ids):
             sql = '''
                 delete from arul_hr_monthly_shift_schedule where monthly_work_id = %s
@@ -1014,21 +1032,30 @@ class arul_hr_monthly_work_schedule(osv.osv):
             cr.execute(sql)
         employee_lines = []
         num_of_month = 0
-        if department_id and month and year: 
+        if department_id and month and year and section_id: 
+            sql = '''
+               select id from arul_hr_section where id = %s and department_id=%s 
+            '''%(section_id,department_id)
+            cr.execute(sql)
+            section_ids = [row[0] for row in cr.fetchall()]
+            if not section_ids:
+                new_section_id = False
+            else:
+                new_section_id = section_id
             if month and year:
                 num_of_month = calendar.monthrange(int(year),int(month))[1]
             dept = self.pool.get('hr.department').browse(cr, uid, department_id)
             employee_obj=self.pool.get('hr.employee')
-            employee_ids = employee_obj.search(cr, uid, [('department_id','=',department_id )])
+            employee_ids = employee_obj.search(cr, uid, [('department_id','=',department_id ),('section_id','=',section_id )])
             for p in self.browse(cr,uid,employee_ids):
                 rs = {
                       'employee_id':p.id,
                       'num_of_month': num_of_month,
                       }
                 employee_lines.append((0,0,rs))
-        return {'value': {'section_id':False,'monthly_shift_line':employee_lines}}
+        return {'value': {'section_id':new_section_id,'monthly_shift_line':employee_lines}}
     
-    def onchange_year_month(self, cr, uid, ids,department_id=False,month=False,year=False, context=None):
+    def onchange_year_month(self, cr, uid, ids,department_id=False,section_id=False,month=False,year=False, context=None):
         res = {'value':{}}
         for line in self.browse(cr, uid, ids):
             sql = '''
@@ -1037,12 +1064,12 @@ class arul_hr_monthly_work_schedule(osv.osv):
             cr.execute(sql)
         employee_lines = []
         num_of_month = 0
-        if department_id and month and year: 
+        if department_id and month and year and section_id: 
             if month and year:
                 num_of_month = calendar.monthrange(int(year),int(month))[1]
             dept = self.pool.get('hr.department').browse(cr, uid, department_id)
             employee_obj=self.pool.get('hr.employee')
-            employee_ids = employee_obj.search(cr, uid, [('department_id','=',department_id )])
+            employee_ids = employee_obj.search(cr, uid, [('department_id','=',department_id ),('section_id','=',section_id )])
             for p in self.browse(cr,uid,employee_ids):
                 rs = {
                       'employee_id':p.id,
@@ -1122,6 +1149,49 @@ class arul_hr_monthly_shift_schedule(osv.osv):
     def load(self, cr, uid, ids, context=None):
         return True
     
+    def save_shift_schedule(self, cr, uid, ids, context=None):
+        active_id = context.get('active_id')
+        for shift_schedule in self.browse(cr, uid, ids):
+            shift_schedule_ids = self.search(cr, uid, [('monthly_work_id','=',active_id),('employee_id','=',shift_schedule.employee_id.id)])
+            self.write(cr, uid, shift_schedule_ids,{
+              'day_1': shift_schedule.day_1.id,
+              'day_2': shift_schedule.day_2.id,
+              'day_3': shift_schedule.day_3.id,
+              'day_4': shift_schedule.day_4.id,
+              'day_5': shift_schedule.day_5.id,
+              'day_6': shift_schedule.day_6.id,
+              'day_7': shift_schedule.day_7.id,
+              'day_8': shift_schedule.day_8.id,
+              'day_9': shift_schedule.day_9.id,
+              'day_10': shift_schedule.day_10.id,
+              'day_11': shift_schedule.day_11.id,
+              'day_12': shift_schedule.day_12.id,
+              'day_13': shift_schedule.day_13.id,
+              'day_14': shift_schedule.day_14.id,
+              'day_15': shift_schedule.day_15.id,
+              'day_16': shift_schedule.day_16.id,
+              'day_17': shift_schedule.day_17.id,
+              'day_18': shift_schedule.day_18.id,
+              'day_19': shift_schedule.day_19.id,
+              'day_20': shift_schedule.day_20.id,
+              'day_21': shift_schedule.day_21.id,
+              'day_22': shift_schedule.day_22.id,
+              'day_23': shift_schedule.day_23.id,
+              'day_24': shift_schedule.day_24.id,
+              'day_25': shift_schedule.day_25.id,
+              'day_26': shift_schedule.day_26.id,
+              'day_27': shift_schedule.day_27.id,
+              'day_28': shift_schedule.day_28.id,
+              'day_29': shift_schedule.day_29.id,
+              'day_30': shift_schedule.day_30.id,
+              'day_31': shift_schedule.day_31.id,
+            })
+            sql = '''
+                delete from arul_hr_monthly_shift_schedule where monthly_work_id is null
+            '''
+            cr.execute(sql)
+        return {'type': 'ir.actions.act_window_close'}
+    
     def onchange_monthly(self, cr, uid, ids, num_of_month = False, shift_day_from=False,shift_day_to=False, work_shift_id = False, context=None):
         value = {}
         if shift_day_from and shift_day_to and work_shift_id:
@@ -1199,10 +1269,11 @@ class arul_hr_monthly_shift_schedule(osv.osv):
     
     def _check_employee_id(self, cr, uid, ids, context=None):
         for shift_schedule in self.browse(cr, uid, ids, context=context):
-            shift_schedule_ids = self.search(cr, uid, [('id','!=',shift_schedule.id),('employee_id','=',shift_schedule.employee_id.id),('monthly_work_id','=',shift_schedule.monthly_work_id.id)])
-            if shift_schedule_ids:  
-                raise osv.except_osv(_('Warning!'),_('This employee: %s is selected!')%(shift_schedule.employee_id.name+' '+(shift_schedule.employee_id.last_name or '')))
-                return False
+            if shift_schedule.monthly_work_id:
+                shift_schedule_ids = self.search(cr, uid, [('id','!=',shift_schedule.id),('employee_id','=',shift_schedule.employee_id.id),('monthly_work_id','=',shift_schedule.monthly_work_id.id)])
+                if shift_schedule_ids:  
+                    raise osv.except_osv(_('Warning!'),_('This employee: %s is selected!')%(shift_schedule.employee_id.name+' '+(shift_schedule.employee_id.last_name or '')))
+                    return False
         return True
     _constraints = [
         (_check_employee_id, 'Identical Data', ['employee_id']),
