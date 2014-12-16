@@ -168,8 +168,8 @@ class arul_hr_payroll_employee_structure(osv.osv):
     
     _columns = {
          'employee_id': fields.many2one('hr.employee','Employee ID',required = True),
-         'employee_category_id':fields.many2one('vsis.hr.employee.category','Employee Group'),
-         'sub_category_id':fields.many2one('hr.employee.sub.category','Employee Sub Group'), 
+         'employee_category_id':fields.many2one('vsis.hr.employee.category','Employee Group',ondelete='restrict'),
+         'sub_category_id':fields.many2one('hr.employee.sub.category','Employee Sub Group',ondelete='restrict'), 
          'ins_de_period_start':fields.date('Insurance Deduction Period'),
          'ins_de_period_end':fields.date('Insurance Deduction Period'),
          'loan_de_period_start':fields.date('Loan Deductions Period'),
@@ -1772,12 +1772,12 @@ arul_hr_payroll_executions()
 class arul_hr_payroll_executions_details(osv.osv):
     _name = 'arul.hr.payroll.executions.details'
     _columns = {
-        'company_id': fields.many2one('res.company','Company'),
-        'payroll_area_id': fields.many2one('arul.hr.payroll.area', 'Payroll Area'),
-        'payroll_sub_area_id': fields.many2one('arul.hr.payroll.sub.area', 'Payroll Sub Area'),
-        'employee_id': fields.many2one('hr.employee', 'Employee'),
-        'department_id': fields.many2one('hr.department', 'Department'),
-        'designation_id': fields.many2one('hr.job', 'Designation'),
+        'company_id': fields.many2one('res.company','Company',ondelete='restrict'),
+        'payroll_area_id': fields.many2one('arul.hr.payroll.area', 'Payroll Area',ondelete='restrict'),
+        'payroll_sub_area_id': fields.many2one('arul.hr.payroll.sub.area', 'Payroll Sub Area',ondelete='restrict'),
+        'employee_id': fields.many2one('hr.employee', 'Employee',ondelete='restrict'),
+        'department_id': fields.many2one('hr.department', 'Department',ondelete='restrict'),
+        'designation_id': fields.many2one('hr.job', 'Designation',ondelete='restrict'),
         'year': fields.char('Year', size = 1024),
         'month': fields.selection([('1', 'January'),('2', 'February'), ('3', 'March'), ('4','April'), ('5','May'), ('6','June'), ('7','July'), ('8','August'), ('9','September'), ('10','October'), ('11','November'), ('12','December')], 'Month'),
         'payroll_executions_id':fields.many2one('arul.hr.payroll.executions', 'Payroll Executions', ondelete='cascade'),

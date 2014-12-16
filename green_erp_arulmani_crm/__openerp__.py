@@ -40,7 +40,7 @@
         'crm_specification_view.xml',
         'crm_qc_test_view.xml',
         'crm_sample_invoice_view.xml',
-        'green_erp_arulmani_sale_view.xml',
+#         'green_erp_arulmani_sale_view.xml',
         'crm_configuration_view.xml',
         'report/sample_sending_report_view.xml',
         'report/sample_invoice_report_view.xml',

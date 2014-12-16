@@ -70,8 +70,8 @@ class Parser(report_sxw.rml_parse):
         for emp in emp_obj.browse(self.cr, self.uid, emp_ids):
             fa = ''
             mobile = ''
-            
-            comu_add = (emp.street or '')+' '+(emp.street2 or '')+' '+(emp.zip or '')+' '+(emp.city or '')+' '+(emp.state_id and emp.state_id.id or '')+' '+(emp.country_id and emp.country_id.id or '') 
+            comu_add = 'Street: '+(emp.street or '')+', '+(emp.street2 or '')+', '+'Zip: '+(emp.zip or '')+', '+'City: '+(emp.city or '')+', '+'State: '+(emp.state_id and emp.state_id.name or '')+', '+'Country: '+(emp.country_id and emp.country_id.name or '') 
+            permanent_add = 'Street: '+(emp.permanent_street or '')+', '+(emp.permanent_street2 or '')+', '+'Zip: '+(emp.permanent_zip or '')+', '+'City: '+(emp.permanent_city or '')+', '+'State: '+(emp.permanent_state_id and emp.permanent_state_id.name or '')+', '+'Country: '+(emp.permanent_country_id and emp.permanent_country_id.name or '') 
             if emp.family_ids:
                 for father in emp.family_ids:
                     if father.relation_type == 'father':
@@ -177,7 +177,7 @@ class Parser(report_sxw.rml_parse):
                     'email': emp.work_email,
                     'mobile': emp.work_phone,
                     'communication_address': comu_add,
-                    'permanent_address': emp.permanent_street,
+                    'permanent_address': permanent_add,
                     'blood_group': emp.blood_group,
                     'emergency_contact': mobile,
                     'bank_acc': str(emp.bank_account_id.acc_number),
