@@ -796,7 +796,23 @@ class arul_hr_payroll_executions(osv.osv):
             contribution_obj = self.pool.get('arul.hr.payroll.contribution.parameters')
             earning_obj = self.pool.get('arul.hr.payroll.earning.parameters')
             deduction_obj = self.pool.get('arul.hr.payroll.deduction.parameters')
-            employee_ids = emp_obj.search(cr, uid, [('payroll_area_id','=',line.payroll_area_id.id)])
+            sql = '''
+                select employee_id from arul_hr_monthly_shift_schedule where 
+                    monthly_work_id in (select id from arul_hr_monthly_work_schedule where "month"='%s' and "year"=%s and state='done')
+            '''%(line.month,line.year)
+            cr.execute(sql)
+            monthly_shift_emp_ids = [row[0] for row in cr.fetchall()]
+            sql = '''
+                select employee_id from arul_hr_payroll_employee_structure
+            '''
+            cr.execute(sql)
+            employee_structure_emp_ids = [row[0] for row in cr.fetchall()]
+            sql = '''
+                select employee_id from arul_hr_punch_in_out_time where EXTRACT(year FROM work_date) = %s and EXTRACT(month FROM work_date) = %s
+            '''%(line.year,line.month)
+            cr.execute(sql)
+            punch_in_out_emp_ids = [row[0] for row in cr.fetchall()]
+            employee_ids = emp_obj.search(cr, uid, [('payroll_area_id','=',line.payroll_area_id.id),('id','in',monthly_shift_emp_ids),('id','in',employee_structure_emp_ids),('id','in',punch_in_out_emp_ids)])
             for p in emp_obj.browse(cr,uid,employee_ids):
                 payroll_executions_details_ids = executions_details_obj.search(cr, uid, [('payroll_executions_id', '=', line.id), ('employee_id', '=', p.id)], context=context)
                 if payroll_executions_details_ids:
@@ -814,6 +830,34 @@ class arul_hr_payroll_executions(osv.osv):
                 total_earning = 0
                 da = 0
                 lop = 0
+                
+                pfd = 0.0
+                pd = 0.0
+                vpfd = 0.0
+                esid = 0.0
+                fd = 0.0
+                ld = 0.0 
+                ind = 0.0
+                pt = 0.0
+                lwf = 0.0
+                total_deduction = 0
+                
+                basic = 0.0
+                da = 0.0
+                c = 0.0
+                hra = 0.0
+                fa = 0.0
+                pc = 0.0
+                cre = 0.0
+                ea = 0.0
+                spa = 0.0
+                la = 0.0
+                aa = 0.0
+                sha = 0.0
+                oa = 0.0
+                lta = 0.0
+                med = 0.0
+                net_sala = 0.0
                 
                 if emp_struc_ids:
                     payroll_emp_struc = payroll_emp_struc_obj.browse(cr,uid,emp_struc_ids[0])
