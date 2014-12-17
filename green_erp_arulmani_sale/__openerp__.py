@@ -26,7 +26,7 @@
     'sequence': 14,
     'author': 'Tenth Planet',
     'website' : 'http://www. tenthplanet.in',
-    'depends': ['green_erp_arulmani_hrm','sale','stock'],
+    'depends': ['green_erp_arulmani_hrm','green_erp_arulmani_crm','sale','stock'],
     'data': [
         'tpt_sale_view.xml',
     ],
