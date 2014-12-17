@@ -70,8 +70,8 @@ class Parser(report_sxw.rml_parse):
         for emp in emp_obj.browse(self.cr, self.uid, emp_ids):
             fa = ''
             mobile = ''
-            comu_add = 'Street: '+(emp.street or '')+', '+(emp.street2 or '')+', '+'Zip: '+(emp.zip or '')+', '+'City: '+(emp.city or '')+', '+'State: '+(emp.state_id and emp.state_id.name or '')+', '+'Country: '+(emp.country_id and emp.country_id.name or '') 
-            permanent_add = 'Street: '+(emp.permanent_street or '')+', '+(emp.permanent_street2 or '')+', '+'Zip: '+(emp.permanent_zip or '')+', '+'City: '+(emp.permanent_city or '')+', '+'State: '+(emp.permanent_state_id and emp.permanent_state_id.name or '')+', '+'Country: '+(emp.permanent_country_id and emp.permanent_country_id.name or '') 
+            comu_add = '<'+(emp.street or '')+', '+(emp.street2 or '')+'>, '+'<'+(emp.city or '')+'>, '+'<'+(emp.state_id and emp.state_id.name or '')+'>, '+'and <'+(emp.zip or '')+'>, '+'<'+(emp.country_id and emp.country_id.name or '') +'>'
+            permanent_add = '<'+(emp.permanent_street or '')+', '+(emp.permanent_street2 or '')+'>, '+'<'+(emp.permanent_city or '')+'>, '+'<'+(emp.permanent_state_id and emp.permanent_state_id.name or '')+'>, '+'and <'+(emp.permanent_zip or '')+'>, '+'<'+(emp.permanent_country_id and emp.permanent_country_id.name or '')+'>' 
             if emp.family_ids:
                 for father in emp.family_ids:
                     if father.relation_type == 'father':
@@ -134,12 +134,10 @@ class Parser(report_sxw.rml_parse):
                         spa = earning.float
                     if earning.earning_parameters_id.code=='OA':
                         oa = earning.float
-#                     if earning.earning_parameters_id.code=='GROSS_SALARY':
-#                         gross = earning.float
                     if earning.earning_parameters_id.code=='LTA':
                         lta = earning.float
-                    sum += basic + da + hra + conv + ea + la + aa + spa + oa + lta
-                    gross += basic + da + hra + conv + ea + la + aa + spa + oa
+                sum = basic + da + hra + conv + ea + la + aa + spa + oa + lta
+                gross = basic + da + hra + conv + ea + la + aa + spa + oa
             employee_action_obj = self.pool.get('arul.hr.employee.action.history')
             employee_action_ids = employee_action_obj.search(self.cr, self.uid, [('employee_id','=', emp.id),('action_id.name','=', 'Disciplinary')],order='id desc')
             disiciplinary_actions = ''
