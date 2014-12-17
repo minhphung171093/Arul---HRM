@@ -838,11 +838,18 @@ class arul_hr_punch_in_out(osv.osv):
                                     if employee_code_2==employee_code and in_out=='P20':
                                         out_time=float(data2[15:17])+float(data2[17:19])/60+float(data2[19:21])/3600
                                         val1['out_time']=out_time
-                                        sql = '''
-                                            select id from arul_hr_capture_work_shift where (start_time between %s and start_time+1/6) and (end_time between end_time-1/6 and %s)
-                                        '''%(in_time - 1,out_time + 1)
-                                        cr.execute(sql)
-                                        work_shift_ids = [row[0] for row in cr.fetchall()]
+                                        if in_time <= 12:
+                                            sql = '''
+                                                select id from arul_hr_capture_work_shift where (start_time between %s and start_time+1/6) and (start_time <= 12)and (end_time between end_time-1/6 and %s)
+                                            '''%(in_time - 1,out_time + 1)
+                                            cr.execute(sql)
+                                            work_shift_ids = [row[0] for row in cr.fetchall()]
+                                        else :
+                                            sql = '''
+                                                select id from arul_hr_capture_work_shift where (start_time between %s and start_time+1/6) and (start_time > 12)and (end_time between end_time-1/6 and %s)
+                                            '''%(in_time - 1,out_time + 1)
+                                            cr.execute(sql)
+                                            work_shift_ids = [row[0] for row in cr.fetchall()]
                                         if work_shift_ids and shift_id:
                                             if shift_id == work_shift_ids[0]:
                                                 val1['actual_work_shift_id']=shift_id
