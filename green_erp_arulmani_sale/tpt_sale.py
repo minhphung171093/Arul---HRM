@@ -86,7 +86,7 @@ class tpt_blank_order_line(osv.osv):
         'product_type': fields.selection([('product', 'Stockable Product'),('consu', 'Consumable'),('service', 'Service')],'Product Type'),
         'application_id': fields.many2one('crm.application', 'Application'),
         'product_uom_qty': fields.float('Quantity'),
-        'uom_po_id': fields.many2one('product.uom', 'UOM', readonly = True),
+        'uom_po_id': fields.many2one('product.uom', 'UOM'),
         'price_unit': fields.float('Unit Price'),
                 }
     
@@ -124,7 +124,7 @@ class tpt_consignee(osv.osv):
         'location': fields.char('Location', size = 1024),
         'product_id': fields.many2one('product.product', 'Product'),
         'product_uom_qty': fields.function(quatity_consignee, store = True, type='float',string='Quatity'),
-        'uom_po_id': fields.many2one('product.uom', 'UOM', readonly = True),
+        'uom_po_id': fields.many2one('product.uom', 'UOM'),
                 }
     
     def onchange_product_id(self, cr, uid, ids,product_id=False, context=None):
