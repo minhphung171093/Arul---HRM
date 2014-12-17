@@ -843,20 +843,40 @@ class arul_hr_punch_in_out(osv.osv):
                                         '''%(in_time - 1,out_time + 1)
                                         cr.execute(sql)
                                         work_shift_ids = [row[0] for row in cr.fetchall()]
-                                        if work_shift_ids and shift_id and shift_id == work_shift_ids[0]:
-                                            val1['actual_work_shift_id']=shift_id
-                                            details_ids=detail_obj.search(cr, uid, [('employee_id','=',employee_ids[0])])
-                                            if details_ids:
-                                                val4={'punch_in_out_id':details_ids[0],'planned_work_shift_id':shift_id,'actual_work_shift_id':shift_id,'employee_id':employee_ids[0],'work_date':date,'in_time':in_time,'out_time':out_time,'approval':1}
-                                                detail_obj4.create(cr, uid, val4)
+                                        if work_shift_ids and shift_id:
+                                            if shift_id == work_shift_ids[0]:
+                                                val1['actual_work_shift_id']=shift_id
+                                                details_ids=detail_obj.search(cr, uid, [('employee_id','=',employee_ids[0])])
+                                                if details_ids:
+                                                    val4={'punch_in_out_id':details_ids[0],'planned_work_shift_id':shift_id,'actual_work_shift_id':shift_id,'employee_id':employee_ids[0],'work_date':date,'in_time':in_time,'out_time':out_time,'approval':1}
+                                                    detail_obj4.create(cr, uid, val4)
+                                                else:
+                                                    employee = self.pool.get('hr.employee').browse(cr, uid, employee_ids[0])
+                                                    detail_obj.create(cr, uid, {'employee_id':employee_ids[0],
+                                                                                'employee_category_id':employee.employee_category_id and employee.employee_category_id.id or False,
+                                                                                'sub_category_id':employee.employee_sub_category_id and employee.employee_sub_category_id.id or False,
+                                                                                'department_id':employee.department_id and employee.department_id.id or False,
+                                                                                'designation_id':employee.job_id and employee.job_id.id or False,
+                                                                                'punch_in_out_line':[(0,0,val1)]})
                                             else:
-                                                employee = self.pool.get('hr.employee').browse(cr, uid, employee_ids[0])
-                                                detail_obj.create(cr, uid, {'employee_id':employee_ids[0],
-                                                                            'employee_category_id':employee.employee_category_id and employee.employee_category_id.id or False,
-                                                                            'sub_category_id':employee.employee_sub_category_id and employee.employee_sub_category_id.id or False,
-                                                                            'department_id':employee.department_id and employee.department_id.id or False,
-                                                                            'designation_id':employee.job_id and employee.job_id.id or False,
-                                                                            'punch_in_out_line':[(0,0,val1)]})
+                                                val1['actual_work_shift_id']=work_shift_ids[0]
+                                                val1['approval']=False  
+                                                val1['employee_category_id'] = employee.employee_category_id.id
+                                                detail_obj2.create(cr, uid,val1)
+#                                         if work_shift_ids and shift_id and shift_id == work_shift_ids[0]:
+#                                             val1['actual_work_shift_id']=shift_id
+#                                             details_ids=detail_obj.search(cr, uid, [('employee_id','=',employee_ids[0])])
+#                                             if details_ids:
+#                                                 val4={'punch_in_out_id':details_ids[0],'planned_work_shift_id':shift_id,'actual_work_shift_id':shift_id,'employee_id':employee_ids[0],'work_date':date,'in_time':in_time,'out_time':out_time,'approval':1}
+#                                                 detail_obj4.create(cr, uid, val4)
+#                                             else:
+#                                                 employee = self.pool.get('hr.employee').browse(cr, uid, employee_ids[0])
+#                                                 detail_obj.create(cr, uid, {'employee_id':employee_ids[0],
+#                                                                             'employee_category_id':employee.employee_category_id and employee.employee_category_id.id or False,
+#                                                                             'sub_category_id':employee.employee_sub_category_id and employee.employee_sub_category_id.id or False,
+#                                                                             'department_id':employee.department_id and employee.department_id.id or False,
+#                                                                             'designation_id':employee.job_id and employee.job_id.id or False,
+#                                                                             'punch_in_out_line':[(0,0,val1)]})
                                         else:
                                             val1['approval']=False  
                                             val1['employee_category_id'] = employee.employee_category_id.id
@@ -878,7 +898,7 @@ class arul_hr_punch_in_out(osv.osv):
                                 })
                         if data1[:3]=='P20':
                             out_time = float(data1[15:17])+float(data1[17:19])/60+float(data1[19:21])/3600
-                            audit_shift_ids = detail_obj2.search(cr, uid, [('type','=','shift'),('work_date','=',date),('employee_id','=', employee_ids[0])])
+                            audit_shift_ids = detail_obj2.search(cr, uid, [('type','=','shift'),('work_date','=',date),('employee_id','=', employee_ids[0]),('state','=','draft')])
                             
                             if audit_shift_ids :
                                 audit_shift = detail_obj2.browse(cr,uid,audit_shift_ids[0])
@@ -887,10 +907,21 @@ class arul_hr_punch_in_out(osv.osv):
                                         '''%(audit_shift.in_time - 1,out_time + 1)
                                 cr.execute(sql)
                                 audit_work_shift_ids = [row[0] for row in cr.fetchall()]
-                                if audit_work_shift_ids and shift_id and shift_id == audit_work_shift_ids[0]:
-                                    detail_obj2.write(cr, uid, [audit_shift.id],{'out_time':out_time,
-                                                                                 'actual_work_shift_id':shift_id,})
-                                    detail_obj2.approve_shift_time(cr, uid, [audit_shift.id])
+                                if audit_work_shift_ids and shift_id:
+                                    if shift_id == audit_work_shift_ids[0]:
+                                         detail_obj2.write(cr, uid, [audit_shift.id],{'out_time':out_time,
+                                                                                'actual_work_shift_id':shift_id,})
+                                         detail_obj2.approve_shift_time(cr, uid, [audit_shift.id])
+                                    else:
+                                        detail_obj2.write(cr, uid,[audit_shift.id],{
+                                            'out_time':out_time,
+                                            'actual_work_shift_id':audit_work_shift_ids[0],
+                                    })
+                                    
+#                                 if audit_work_shift_ids and shift_id and shift_id == audit_work_shift_ids[0]:
+#                                     detail_obj2.write(cr, uid, [audit_shift.id],{'out_time':out_time,
+#                                                                                  'actual_work_shift_id':shift_id,})
+#                                     detail_obj2.approve_shift_time(cr, uid, [audit_shift.id])
                                 else:
                                     detail_obj2.write(cr, uid,[audit_shift.id],{
                                     'out_time':out_time,
