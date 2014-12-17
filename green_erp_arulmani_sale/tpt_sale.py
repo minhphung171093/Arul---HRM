@@ -159,17 +159,17 @@ class tpt_consignee(osv.osv):
             for order_line in line.blanket_consignee_id.blank_order_line:
                 if order_line.product_id.id == line.product_id.id:
                     quatity = order_line.product_uom_qty
+                        
             res[line.id] = quatity
         return res
-                
-            
-          
+    
+    
     _columns = {
         'blanket_consignee_id': fields.many2one('tpt.blanket.order', 'Consignee'),
         'name': fields.char('Consignee Name', size = 1024, required = True),
         'location': fields.char('Location', size = 1024),
         'product_id': fields.many2one('product.product', 'Product'),
-        'product_uom_qty': fields.function(quatity_consignee, store = True, type='float',string='Quatity'),
+        'product_uom_qty': fields.function(quatity_consignee, type='float',string='Quatity'),
         'uom_po_id': fields.many2one('product.uom', 'UOM'),
                 }
     
