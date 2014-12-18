@@ -129,7 +129,7 @@ class tpt_blanket_order(osv.osv):
         return res
     
     _columns = {
-        'name': fields.char('Blanked Order', size = 1024, required = True),
+        'name': fields.char('Blanked Order', size = 1024, readonly=True),
         'customer_id': fields.many2one('res.partner', 'Customer', required = True),
         'invoice_address': fields.char('Invoice Address', size = 1024),
         'street2': fields.char('', size = 1024),
@@ -160,11 +160,15 @@ class tpt_blanket_order(osv.osv):
     
     
     _defaults = {
-        'name': lambda self,cr,uid,ctx=None: self.pool.get('ir.sequence').get(cr, uid, 'tpt.blanked.import'),        
+        'name': '/',
         'document_type': 'blankedorder',
         'bo_date': time.strftime('%Y-%m-%d'),
         
     }
+    def create(self, cr, uid, vals, context=None):
+        if vals.get('name','/')=='/':
+            vals['name'] = self.pool.get('ir.sequence').get(cr, uid, 'tpt.blanked.order.import') or '/'
+        return super(tpt_blanket_order, self).create(cr, uid, vals, context=context)
     
     def onchange_customer_id(self, cr, uid, ids,customer_id=False, context=None):
         vals = {}
@@ -279,23 +283,22 @@ class tpt_test_report(osv.osv):
 tpt_test_report()
 class tpt_batch_request(osv.osv):
     _name = "tpt.batch.request"
-     
+    
     _columns = {
-        'name': fields.char('Request No', size = 1024, required = True),
+        'name': fields.char('Request No', size = 1024,readonly=True),
         'sale_order_id': fields.many2one('sale.order', 'Sales Order'),
         'customer_id': fields.many2one('res.partner', 'Customer'),
         'description': fields.text('Description'),
         'product_information_line': fields.one2many('tpt.product.information', 'product_information_id', 'Product Information'), 
                 }
-    
-#     _defaults = {
-#         'name': lambda self,cr,uid,ctx=None: self.pool.get('ir.sequence').get(cr, uid, 'tpt.batch.request.import'),        
-#     }
-    
+    _defaults={
+    'name':'/',
+    }
     def create(self, cr, uid, vals, context=None):
         if vals.get('name','/')=='/':
-            vals['name'] = self.pool.get('ir.sequence').get(cr, uid, 'tpt.batch.request.import') or '/'
+            vals['name'] = self.pool.get('ir.sequence').get(cr, uid, 'tpt.batch.req.import') or '/'
         return super(tpt_batch_request, self).create(cr, uid, vals, context=context)
+    
     
     def _check_sale_order_id(self, cr, uid, ids, context=None):
         for request in self.browse(cr, uid, ids, context=context):
