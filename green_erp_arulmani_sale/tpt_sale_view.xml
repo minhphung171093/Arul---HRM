@@ -293,7 +293,8 @@
                     </h1>
                     <group>
                     	<group >
-                    	<label for="invoice_address" string="Address"/>
+                    	<field name="customer_id" />
+                    	<label for="invoice_address" />
                     	<div>
                     		<field name="invoice_address" placeholder="Street..."/>
                     		<field name="street2"/>

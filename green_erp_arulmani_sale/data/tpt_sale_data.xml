@@ -21,14 +21,14 @@
         
         <!--    Batch Request     -->
         
-       	<record id="sequence_tpt_batch_request_import_code1" model="ir.sequence.type">
+       	<record id="sequence_tpt_batch_request_import_code" model="ir.sequence.type">
             <field name="name">Batch Request Import</field>
-            <field name="code">tpt.batch.request.import1</field>
+            <field name="code">tpt.batch.request.import</field>
         </record>
         
-        <record id="sequence_tpt_batch_request_import_item1" model="ir.sequence">
+        <record id="sequence_tpt_batch_request_import_item" model="ir.sequence">
             <field name="name">Batch Request Import</field>
-            <field name="code">tpt.batch.request.import1</field>
+            <field name="code">tpt.batch.request.import</field>
             <field name="prefix">BR</field>
             <field name="padding">3</field>
             <field name="number_next_actual">001</field>
