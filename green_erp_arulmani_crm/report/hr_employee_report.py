@@ -70,8 +70,8 @@ class Parser(report_sxw.rml_parse):
         for emp in emp_obj.browse(self.cr, self.uid, emp_ids):
             fa = ''
             mobile = ''
-            comu_add = '<'+(emp.street or '')+', '+(emp.street2 or '')+'>, '+'<'+(emp.city or '')+'>, '+'<'+(emp.state_id and emp.state_id.name or '')+'>, '+'and <'+(emp.zip or '')+'>, '+'<'+(emp.country_id and emp.country_id.name or '') +'>'
-            permanent_add = '<'+(emp.permanent_street or '')+', '+(emp.permanent_street2 or '')+'>, '+'<'+(emp.permanent_city or '')+'>, '+'<'+(emp.permanent_state_id and emp.permanent_state_id.name or '')+'>, '+'and <'+(emp.permanent_zip or '')+'>, '+'<'+(emp.permanent_country_id and emp.permanent_country_id.name or '')+'>' 
+            comu_add = (emp.street or '')+', '+(emp.street2 or '')+', '+(emp.city or '')+', '+(emp.state_id and emp.state_id.name or '')+', '+(emp.zip or '')+', '+(emp.country_id and emp.country_id.name or '') 
+            permanent_add = (emp.permanent_street or '')+', '+(emp.permanent_street2 or '')+', '+(emp.permanent_city or '')+', '+(emp.permanent_state_id and emp.permanent_state_id.name or '')+', '+(emp.permanent_zip or '')+', '+(emp.permanent_country_id and emp.permanent_country_id.name or '') 
             if emp.family_ids:
                 for father in emp.family_ids:
                     if father.relation_type == 'father':
