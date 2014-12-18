@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="utf-8"?>
+<openerp>
+    <data noupdate="1">
+
+		<!--    Blanked Order     -->
+
+        <record id="sequence_tpt_blanked_order_import_code" model="ir.sequence.type">
+            <field name="name">Blanked Order Import</field>
+            <field name="code">tpt.blanked.order.import</field>
+        </record>
+        
+        <record id="sequence_tpt_blanked_order_import_item" model="ir.sequence">
+            <field name="name">Blanked Order Import</field>
+            <field name="code">tpt.blanked.order.import</field>
+            <field name="prefix">BO</field>
+            <field name="padding">3</field>
+            <field name="number_next_actual">001</field>
+            <field name="implementation">no_gap</field>
+	
+        </record>
+        
+        <!--    Batch Request     -->
+        
+       	<record id="sequence_tpt_batch_req_import_code" model="ir.sequence.type">
+            <field name="name">Batch Request Import</field>
+            <field name="code">tpt.batch.req.import</field>
+        </record>
+        
+        <record id="sequence_tpt_batch_req_import_item" model="ir.sequence">
+            <field name="name">Batch Request Import</field>
+            <field name="code">tpt.batch.req.import</field>
+            <field name="prefix">BR</field>
+            <field name="padding">3</field>
+            <field name="number_next_actual">001</field>
+            <field name="implementation">no_gap</field>
+	
+        </record>
+
+    </data>
+</openerp>
