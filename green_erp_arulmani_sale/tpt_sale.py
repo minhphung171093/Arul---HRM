@@ -290,9 +290,10 @@ class tpt_batch_request(osv.osv):
 #         'name': lambda self,cr,uid,ctx=None: self.pool.get('ir.sequence').get(cr, uid, 'tpt.batch.request.import'),        
 #     }
     
-#     def create(self, cr, uid, vals, context=None):
-#         vals['name'] = self.pool.get('ir.sequence').get(cr, uid, 'tpt.batch.request.import1')
-#         return super(tpt_batch_request, self).create(cr, uid, vals, context=context)
+    def create(self, cr, uid, vals, context=None):
+        if vals.get('name','/')=='/':
+            vals['name'] = self.pool.get('ir.sequence').get(cr, uid, 'tpt.batch.request.import') or '/'
+        return super(tpt_batch_request, self).create(cr, uid, vals, context=context)
     
     def _check_sale_order_id(self, cr, uid, ids, context=None):
         for request in self.browse(cr, uid, ids, context=context):
