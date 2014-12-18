@@ -45,12 +45,12 @@
     	</record>
 
 	    <record model="ir.actions.act_window" id="action_aprove_or_reject_audit_form">
-	        <field name="name">Aprove or Reject</field>
+	        <field name="name">Approve or Reject</field>
 	        <field name="res_model">alert.form</field>
 	        <field name="view_type">form</field>
 	        <field name="view_mode">form</field>
 	        <field name="view_id" ref="aprove_or_reject_audit_form_view" />
-	        <field name="context">{'default_message':'Aprove or Reject?'}</field>
+	        <field name="context">{'default_message':'Approve or Reject?'}</field>
 	        <field name="target">new</field>
 	    </record>   
     </data>
