@@ -23,7 +23,7 @@
                     		 <field name="currency_id" />
                     		 <field name="incoterms_id" />
                     		 <field name="excise_duty" />
-                    		 <field name="reason" />
+                    		
                     
 	        	</xpath>
 				<xpath expr="//field[@name='date_order']"  position="replace">
@@ -35,6 +35,7 @@
                 	<field name="distribution_chanel" />
                 	<field name="sale_tax" />
                 	<field name="document_status"/>
+                	 <field name="reason" />
 				</xpath>
 				<xpath expr="//field[@name='client_order_ref']"  position="replace">
 					<field name="client_order_ref" invisible="1" />

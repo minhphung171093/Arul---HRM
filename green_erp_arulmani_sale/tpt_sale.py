@@ -37,28 +37,30 @@ class sale_order(osv.osv):
     _defaults = {
 #         'so_date': time.strftime('%Y-%m-%d'),
     }
-#     def onchange_blanket_id(self, cr, uid, ids,blanket_id=False, context=None):
-#         vals = {}
-#         if blanket_id:
-#             emp = self.pool.get('tpt.blanket.order').browse(cr, uid, blanket_id)
-#             vals = {'partner_id':emp.customer_id.name,
-#             vals = {'partner_id':emp.customer_id.id,
-#                     'partner_invoice_id':emp.invoice_address,
-#                     'payment_term':emp.payment_term_id.id,
-#                     'po_date':emp.po_date,
-#                     'order_type':emp.order_type,
-#                     'po_number':emp.po_number,
-#                     'currency_id':emp.currency_id.id,
-#                     'quotaion_no':emp.quotaion_no,
-#                     'incoterms_id':emp.incoterm_id.id,
-#                     'distribution_chanel':emp.po_number,
-#                     'currency_id':emp.currency_id.id,
-#                     'quotaion_no':emp.quotaion_no,
-#                     'excise_duty':emp.excise_duty,
-#                     'sale_tax':emp.sale_tax_id.id,
-#                     'reason':emp.reason,
-#                     }
-#         return {'value': vals}    
+    def onchange_blanket_id(self, cr, uid, ids,blanket_id=False, context=None):
+        vals = {}
+        if blanket_id:
+            emp = self.pool.get('tpt.blanket.order').browse(cr, uid, blanket_id)
+            vals = {'partner_id':emp.customer_id.name,
+                    'invoice_address':emp.invoice_address,
+                    'street2':emp.street2,
+                    'city':emp.city,
+                    'country_id':emp.country_id,
+                    'state_id':emp.state_id,
+                    'zip':emp.zip,
+                    'po_date':emp.po_date,
+                    'order_type':emp.order_type,
+                    'po_number':emp.po_number,
+                    'payment_term':emp.payment_term_id.id,
+                    'currency_id':emp.currency_id.id,
+                    'quotaion_no':emp.quotaion_no,
+                    'incoterms_id':emp.incoterm_id.id,
+                    'distribution_chanel':emp.po_number,
+                    'excise_duty':emp.excise_duty,
+                    'sale_tax':emp.sale_tax_id.id,
+                    'reason':emp.reason,
+                    }
+        return {'value': vals}    
 
 sale_order()
 
