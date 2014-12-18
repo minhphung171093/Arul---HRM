@@ -28,6 +28,7 @@
     'website' : 'http://www. tenthplanet.in',
     'depends': ['green_erp_arulmani_hrm','green_erp_arulmani_crm','sale','stock'],
     'data': [
+        'data/tpt_sale_data.xml',
         'tpt_sale_view.xml',
     ],
     'css' : [

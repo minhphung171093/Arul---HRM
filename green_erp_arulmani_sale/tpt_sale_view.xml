@@ -73,6 +73,7 @@
 			<field name="model">tpt.blanket.order</field>
 			<field name="arch" type="xml">
 				<tree string="Blanket Order">
+						<field name="name" />
 						<field name="customer_id" options="{'create': false, 'create_edit': false}"/>
 						<field name="invoice_address" />
 						<field name="document_type" />
@@ -81,7 +82,7 @@
 						<field name="incoterm_id" />
 						<field name="excise_duty" />
 						<field name="bo_date" />
-			<!--			<field name="po_date" /> -->
+						<field name="po_date" /> 
 						<field name="po_number" />
 						<field name="exp_delivery_date" />
 						<field name="quotaion_no" />
@@ -100,37 +101,42 @@
             <field name="arch" type="xml">
 	            <form string="Blanket Order" version="7.0">   
 	            	<sheet>
-	            	 <h1>
-                        <label string="Blanket Order "/>
-                        <field name="customer_id" readonly="1"/>
+                    <h1>
+                    	<label for ="name" />
+                        <field name="name" nolabel="1" />
                     </h1>
-		                <group col='4' colspan='2'>    
-						<field name="customer_id" on_change="onchange_customer_id(customer_id)" options="{'create': false, 'create_edit': false}"/>
+                    <group>
+                    	<group >
+                    	<label for="invoice_address" string="Address"/>
+                    	<div>
+                    		<field name="invoice_address" placeholder="Street..."/>
+                    		<field name="street2"/>
+                    		<field name="city" placeholder="City"/>
+                    		<field name="country_id" placeholder="Country" options="{'create': false, 'create_edit': false}"/>
+                    		<field name="state_id" placeholder="State" options="{'create': false, 'create_edit': false}"/>
+                    		<field name="zip" placeholder="ZIP"/>
+                    	</div>
+                    	<field name="document_type" />
+                    	<field name="payment_term_id" options="{'create': false, 'create_edit': false}"/>
+                    	<field name="currency_id" options="{'create': false, 'create_edit': false}"/>
+                    	<field name="incoterm_id" options="{'create': false, 'create_edit': false}"/>
+                    	<field name="excise_duty" options="{'create': false, 'create_edit': false}"/>
+                    	</group>
+                      
+						<group>
 						<field name="bo_date" />
-						<field name="invoice_address" placeholder="Street..."/>
-						<field name="document_type" />
-						<newline/>
-						<field name="street2"/>
+						<field name="po_date" />
 						<field name="po_number" />
-						<newline/>
-						<field name="city" placeholder="City"/>
-						<field name="payment_term_id" options="{'create': false, 'create_edit': false}"/>
-						<newline/>
-						<field name="country_id" placeholder="Country" options="{'create': false, 'create_edit': false}"/>
 						<field name="exp_delivery_date" />
-						<newline/>
-						<field name="state_id" placeholder="State" options="{'create': false, 'create_edit': false}"/>
-						<field name="currency_id" options="{'create': false, 'create_edit': false}"/>
-						<newline/>
-						<field name="zip" placeholder="ZIP"/>
 						<field name="quotaion_no" />
-						<field name="incoterm_id" options="{'create': false, 'create_edit': false}"/>
 						<field name="channel" options="{'create': false, 'create_edit': false}"/>
-						<field name="excise_duty" options="{'create': false, 'create_edit': false}"/>
 						<field name="sale_tax_id" options="{'create': false, 'create_edit': false}"/>
-						<field name="reason" />
 						<field name="order_type" />
+						<field name="reason" />
+						
 						</group>
+						
+					</group>
 						<notebook>
 							<page string = "Order Lines">
 								<field name="blank_order_line" nolabel='1'>
@@ -140,10 +146,20 @@
 										<field name="product_type" />
 										<field name="application_id" options="{'create': false, 'create_edit': false}"/>
 										<field name="product_uom_qty" />
-										<field name="uom_po_id" options="{'create': false, 'create_edit': false}"/>
+										<field name="uom_po_id" edit='false' options="{'create': false, 'create_edit': false}"/>
 										<field name="price_unit" />
+										<field name="sub_total" />
+										<field name="freight" />
 									</tree>
 								</field>
+								<group class="oe_subtotal_footer oe_right" colspan="2" name="sale_total">
+                                	<field name="amount_untaxed" widget="monetary" />
+                                	<field name="amount_tax" widget="monetary" />
+                                		<div class="oe_subtotal_footer_separator oe_inline">
+                                    		<label for="amount_total"/>
+                                		</div>
+                                	<field name="amount_total" nolabel="1" class="oe_subtotal_footer_separator" widget="monetary" />
+                            	</group>
 							</page>
 							<page string = "Consignee">
 								<field name="blank_consignee_line" nolabel='1'>
@@ -234,7 +250,6 @@
 				</tree>
 			</field>
 		</record>
-		
 
 		<record id="view_tpt_test_report_form_vew" model="ir.ui.view">
             <field name="name">tpt.test.report.form</field>
@@ -252,8 +267,7 @@
 						<field name="ferric"/>
 						<field name="acid"/>
 						</group>
-						
-		         	</sheet>
+				    </sheet>
 		         </form>
 			</field>
 		</record>
@@ -270,8 +284,64 @@
         <menuitem id="menu_hr_sale_management" parent="base.menu_base_partner" name="Sale Management" sequence="60"/>
         <menuitem action="action_view_tpt_test_report_form"
             id="menu_action_view_tpt_test_report_form"
-            parent="menu_hr_sale_management" sequence="5"/>
-            
+            parent="menu_hr_sale_management" sequence="5"/>						
+
+        <record id="view_tpt_batch_request_tree_vew" model="ir.ui.view">
+			<field name="name">tpt.batch.request.tree</field>
+			<field name="model">tpt.batch.request</field>
+			<field name="arch" type="xml">
+				<tree string="Batch Request">
+						<field name="name"/>
+						<field name="sale_order_id"/>
+						<field name="customer_id"/>
+						<field name="description"/>
+				</tree>
+			</field>
+		</record>
+		
+		<record id="view_tpt_batch_request_form_vew" model="ir.ui.view">
+            <field name="name">tpt.batch.request.form</field>
+            <field name="model">tpt.batch.request</field>
+            <field name="arch" type="xml">
+	            <form string="Batch Request" version="7.0">   
+	            	<sheet>
+		                <group>    
+						<field name="name"/>
+						<field name="sale_order_id"/>
+						<field name="customer_id"/>
+						<field name="description"/>
+						</group>
+						<notebook>
+							<page string = "Product Information">
+								<field name="product_information_line" nolabel='1'>
+									<tree editable='top'>
+										<field name="product_id" widget = "selection" on_change="onchange_product_id(product_id)" options="{'create': false, 'create_edit': false}"/>
+										<field name="product_type" />
+										<field name="application_id" options="{'create': false, 'create_edit': false}"/>
+										<field name="product_uom_qty" />
+										<field name="uom_po_id" edit='false' options="{'create': false, 'create_edit': false}"/>
+									</tree>
+								</field>
+							</page>
+						</notebook>
+		         	</sheet>
+		         </form>
+			</field>
+		</record>
+          
+		<record id="action_tpt_batch_request_form" model="ir.actions.act_window">
+            <field name="name">Batch Request</field>
+            <field name="type">ir.actions.act_window</field>
+            <field name="res_model">tpt.batch.request</field>
+            <field name="view_type">form</field>
+            <field name="view_mode">tree,form</field>
+            <field name="view_id" ref="view_tpt_batch_request_tree_vew"/>
+        </record>
+        
+        <menuitem id="menu_hr_sale_management" parent="base.menu_base_partner" name="Sale Management" sequence="60"/>
+        <menuitem action="action_tpt_batch_request_form"
+            id="menu_action_tpt_batch_request_form"
+            parent="menu_hr_sale_management" sequence="2"/>            
     </data>
     
 </openerp>

@@ -3,5 +3,13 @@ overflow-x: auto;
 }
 
 .openerp .oe_green_erp_scroll_y {
-overflow-x: auto;
+overflow-y: auto;
+}
+
+.openerp .oe_list_content th.oe_sortable, .openerp .oe_list_content th.oe_sortable div {
+  cursor: pointer;
+  vertical-align: text-top;
+  margin-left: auto;
+  margin-right: auto;
+ text-align: right; 
 }
