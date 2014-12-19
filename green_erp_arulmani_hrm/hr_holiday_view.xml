@@ -857,8 +857,8 @@
 	            <form string="Manage Equipment Inventory" version="7.0">   
 	            	<sheet>
 		                <group>    
-			                <field name="employee_id"/>
-							<field name="equipment_id"/>
+			                <field name="employee_id" options="{'create': false, 'create_edit': false}"/>
+							<field name="equipment_id" options="{'create': false, 'create_edit': false}"/>
 							<field name="allocated_qty"/>
 							<field name="returned_qty"/>
 							<field name="total_qty"/>
