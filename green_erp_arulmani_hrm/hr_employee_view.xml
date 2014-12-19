@@ -1229,11 +1229,14 @@
 			</field>
 		</record>
   		
-  		<!--<record id="view_employee_filter_inherit" model="ir.ui.view">
+  		<record id="view_employee_filter_inherit" model="ir.ui.view">
             <field name="name">view_employee_filter.inherit</field>
             <field name="model">hr.employee</field>
             <field name="inherit_id" ref="hr.view_employee_filter"/>
             <field name="arch" type="xml">
+            	<xpath expr="//field[@name='name']" position="after">
+            		 <field name="employee_id"/>
+            	</xpath>
             	<xpath expr="//filter[@string='Company']" position="after">
             		<filter string="Active" icon="terp-go-home" domain="[]" context="{'group_by':'active'}"/>
             	</xpath>
@@ -1243,7 +1246,7 @@
             	</xpath>
             	
             </field>
-		</record>-->
+		</record>
   		
   		<record id="view_employee_tree_view_inherit" model="ir.ui.view">
             <field name="name">view_employee_tree.inherit</field>
@@ -1266,6 +1269,10 @@
             <field name="arch" type="xml">
             	<xpath expr="//form[@string='Employee']" position="attributes">
             		<attribute name="delete">false</attribute>
+            	</xpath>
+            	
+            	<xpath expr="//field[@name='bank_account_id']" position="after">
+            		<field name ="bank_account"/>
             	</xpath>
             	
             	<xpath expr="//page[@string='Personal Information']" position="attributes">
