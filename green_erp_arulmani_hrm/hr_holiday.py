@@ -542,7 +542,7 @@ class arul_hr_permission_onduty(osv.osv):
     _columns={
         'employee_id':fields.many2one('hr.employee','Employee',required=True),
         'non_availability_type_id':fields.selection([('permission','Permission'),('on_duty','On duty')],'Non Availability Type',required = True),
-        'date':fields.date('Date'),
+        'date':fields.date('Date',required=True),
         'duty_location':fields.char('On Duty Location', size = 1024),
         'start_time': fields.float('Start Time'),
         'end_time': fields.float('End Time'),
