@@ -20,7 +20,7 @@
                     		<field name="zip" placeholder="ZIP"/>
                     		 <field name="document_type"/>
                     		 <field name="payment_term" />
-                    		 <field name="currency_id" />
+                    		<!-- <field name="currency_id" /> -->
                     		 <field name="incoterms_id" />
                     		 <field name="excise_duty" />
                     		
