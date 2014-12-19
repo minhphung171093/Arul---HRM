@@ -38,10 +38,6 @@
         </record>
         
         <menuitem id="menu_hr_leave_management" parent="hr.menu_hr_root" name="Leave Management" sequence="25"/>
-        <menuitem action="action_arul_hr_holiday_special_form"
-            id="menu_action_arul_hr_holiday_special_form"
-            parent="menu_hr_leave_management" sequence="0"/>
-
             
         <record id="view_arul_hr_leave_master_tree_vew" model="ir.ui.view">
 			<field name="name">arul.hr.leave.master.tree</field>
@@ -88,12 +84,6 @@
             <field name="view_id" ref="view_arul_hr_leave_master_tree_vew"/>
         </record>
         
-        
-        <menuitem action="action_arul_hr_leave_master_form"
-            id="menu_action_arul_hr_leave_master_form"
-            parent="menu_hr_leave_management" sequence="1"/>
-            
-        
         <record id="view_arul_hr_leave_types_tree_vew" model="ir.ui.view">
 			<field name="name">arul.hr.leave.types.tree</field>
 			<field name="model">arul.hr.leave.types</field>
@@ -130,10 +120,6 @@
             <field name="view_id" ref="view_arul_hr_leave_types_tree_vew"/>
         </record>
         
-        <menuitem action="action_arul_hr_leave_types_form"
-            id="menu_action_arul_hr_leave_types_form"
-            parent="menu_hr_leave_management" sequence="20"/>
-
 		<record id="view_arul_hr_capture_work_shift_tree_vew" model="ir.ui.view">
 			<field name="name">arul.hr.capture.work.shift.tree</field>
 			<field name="model">arul.hr.capture.work.shift</field>
@@ -182,10 +168,6 @@
             <field name="view_id" ref="view_arul_hr_capture_work_shift_tree_vew"/>
         </record>
         
-        <menuitem action="action_arul_hr_capture_work_shift_form"
-            id="menu_action_arul_hr_capture_work_shift_form"
-            parent="menu_hr_leave_management" sequence="20"/>
-
 		<record id="view_arul_hr_employee_leave_details_tree_vew" model="ir.ui.view">
 			<field name="name">arul.hr.employee.leave.details.tree</field>
 			<field name="model">arul.hr.employee.leave.details</field>
@@ -754,10 +736,6 @@
             <field name="view_id" ref="view_tpt_work_center_tree_vew"/>
         </record>            
          
-         <menuitem action="action_tpt_work_center_form"
-            id="menu_action_tpt_work_center_form"
-            parent="menu_hr_leave_management" sequence="28"/>
-            
     	<record id="view_tpt_cost_center_tree_vew" model="ir.ui.view">
 			<field name="name">tpt.cost.center.tree</field>
 			<field name="model">tpt.cost.center</field>
@@ -793,10 +771,6 @@
             <field name="view_id" ref="view_tpt_cost_center_tree_vew"/>
         </record>            
          
-         <menuitem action="action_tpt_cost_center_form"
-            id="menu_action_tpt_cost_center_form"
-            parent="menu_hr_leave_management" sequence="29"/> 
-            
     	<record id="view_tpt_equipment_master_tree_vew" model="ir.ui.view">
 			<field name="name">tpt.equipment.master.tree</field>
 			<field name="model">tpt.equipment.master</field>
@@ -832,10 +806,6 @@
             <field name="view_id" ref="view_tpt_equipment_master_tree_vew"/>
         </record>            
          
-        <menuitem action="action_tpt_equipment_master_form"
-            id="menu_action_tpt_equipment_master_form"
-            parent="menu_hr_leave_management" sequence="30" groups="group_vvti_hrm_admin"/>
-            
         <record id="view_tpt_manage_equipment_inventory_tree_vew" model="ir.ui.view">
 			<field name="name">tpt.manage.equipment.inventory.tree</field>
 			<field name="model">tpt.manage.equipment.inventory</field>
