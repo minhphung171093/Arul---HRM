@@ -818,6 +818,7 @@
                     <field name="payroll_area_id" options="{'create': false, 'create_edit': false}"/>
                 </xpath>
                 <xpath expr="//field[@name='date_of_resignation']" position="after">
+					<field name ="bank_account"/>
                     <field name="time_record"/>
                 </xpath>
                 <xpath expr="//field[@name='job_id']" position="replace">
@@ -1271,8 +1272,8 @@
             		<attribute name="delete">false</attribute>
             	</xpath>
             	
-            	<xpath expr="//field[@name='bank_account_id']" position="after">
-            		<field name ="bank_account"/>
+            	<xpath expr="//field[@name='bank_account_id']" position="replace">
+            		<field name ="bank_account_id" invisible='1'/>
             	</xpath>
             	
             	<xpath expr="//page[@string='Personal Information']" position="attributes">
@@ -1308,6 +1309,17 @@
                 		</field>
                 	</page> 
                 </xpath>
+            </field>
+		</record>
+		
+		<record id="hr_hr_employee_view_form2_inherit" model="ir.ui.view">
+            <field name="name">employee.leave.form</field>
+            <field name="model">hr.employee</field>
+            <field name="inherit_id" ref="hr_contract.hr_hr_employee_view_form2"/>
+            <field name="arch" type="xml">
+            	<xpath expr="//field[@name='bank_account_id']" position="attributes">
+            		<attribute name="invisible">1</attribute>
+            	</xpath>
             </field>
 		</record>
 		
