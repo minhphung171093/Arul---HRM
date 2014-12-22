@@ -16,6 +16,7 @@ class sale_order(osv.osv):
         'blanket_id':fields.many2one('tpt.blanket.order','Blanket Order'),
 #         'so_date':fields.date('SO Date'),
         'po_date':fields.date('PO Date'),
+        'payment_term_id': fields.many2one('account.payment.term', 'Payment Term'),
         'document_type':fields.selection([('saleorder','Sale Order'),('return','Return Sales Order'),('scrap','Scrap Sales')],'Document Type' ,required=True),
         'po_number':fields.char('PO Number', size = 1024),
         'reason':fields.text('Reason'),
@@ -23,9 +24,9 @@ class sale_order(osv.osv):
         'expected_date':fields.date('Expected delivery Date'),
         'document_status':fields.selection([('draft','Draft'),('waiting','Waiting for Approval'),('completed','Completed(Ready to Process)'),('partially','Partially Delivered'),('close','Closed(Delivered)')],'Document Status' ,required=True),
         'incoterms_id':fields.many2one('stock.incoterms','Incoterms',required = True),
-        'distribution_chanel':fields.many2one('crm.case.channel','Distribution Chanel',required = True),
+        'distribution_channel':fields.many2one('crm.case.channel','Distribution Channel',required = True),
         'sale_tax':fields.many2one('account.tax','Sales Tax',required = True),
-        'excise_duty':fields.char('Excise Duty',size = 1024),
+        'excise_duty': fields.many2one('tpt.excise.duty', 'Excise Duty'),
         'invoice_address': fields.char('Invoice Address', size = 1024),
         'street2': fields.char('', size = 1024),
         'city': fields.char('', size = 1024),
@@ -39,30 +40,71 @@ class sale_order(osv.osv):
     }
     def onchange_blanket_id(self, cr, uid, ids,blanket_id=False, context=None):
         vals = {}
+        blanket_lines = []
+        consignee_lines = []
         if blanket_id:
-            emp = self.pool.get('tpt.blanket.order').browse(cr, uid, blanket_id)
-            vals = {'partner_id':emp.customer_id.name,
-                    'invoice_address':emp.invoice_address,
-                    'street2':emp.street2,
-                    'city':emp.city,
-                    'country_id':emp.country_id,
-                    'state_id':emp.state_id,
-                    'zip':emp.zip,
-                    'po_date':emp.po_date,
-                    'order_type':emp.order_type,
-                    'po_number':emp.po_number,
-                    'payment_term':emp.payment_term_id.id,
-                    'currency_id':emp.currency_id.id,
-                    'quotaion_no':emp.quotaion_no,
-                    'incoterms_id':emp.incoterm_id.id,
-                    'distribution_chanel':emp.po_number,
-                    'excise_duty':emp.excise_duty,
-                    'sale_tax':emp.sale_tax_id.id,
-                    'reason':emp.reason,
-                    }
+            blanket = self.pool.get('tpt.blanket.order').browse(cr, uid, blanket_id)
+            for blanket_line in blanket.blank_order_line:
+                rs_order = {
+                      'product_id': blanket_line.product_id.id,
+                      'name': blanket_line.description,
+                      'product_type': blanket_line.product_type,
+                      'application_id': blanket_line.application_id.id,
+                      'product_uom_qty': blanket_line.product_uom_qty,
+                      'product_uom': blanket_line.uom_po_id.id,
+                      'price_unit': blanket_line.price_unit,
+#                       'price_subtotal': blanket_line.sub_total,
+                      'freight': blanket_line.freight,
+                      }
+                blanket_lines.append((0,0,rs_order))
+              
+            for consignee_line in blanket.blank_consignee_line:
+                rs_consignee = {
+                      'name': consignee_line.name,
+                      'location': consignee_line.location,
+                      'product_id': consignee_line.product_id.id,
+                      'product_uom_qty': consignee_line.product_uom_qty,
+                      'uom_po_id': consignee_line.uom_po_id.id,
+                                }
+                consignee_lines.append((0,0,rs_consignee))
+                
+            vals = {'partner_id':blanket.customer_id.id,
+                    'invoice_address':blanket.invoice_address,
+                    'street2':blanket.street2,
+                    'city':blanket.city,
+                    'country_id':blanket.country_id.id,
+                    'state_id':blanket.state_id.id,
+                    'zip':blanket.zip,
+                    'po_date':blanket.po_date,
+                    'order_type':blanket.order_type,
+                    'po_number':blanket.po_number,
+                    'payment_term_id':blanket.payment_term_id.id,
+                    'currency_id':blanket.currency_id.id,
+                    'quotaion_no':blanket.quotaion_no,
+                    'incoterms_id':blanket.incoterm_id.id,
+                    'distribution_channel':blanket.channel.id,
+                    'excise_duty':blanket.excise_duty.id,
+                    'sale_tax':blanket.sale_tax_id.id,
+                    'reason':blanket.reason,
+#                     'amount_untaxed': blanket.amount_untaxed,
+                    'order_line':blanket_lines,
+                    'sale_consignee_line':consignee_lines,
+                        
+                        }
         return {'value': vals}    
 
 sale_order()
+
+class sale_order_line(osv.osv):
+    _inherit = 'sale.order.line'
+    
+    _columns = {
+        'product_type': fields.selection([('product', 'Stockable Product'),('consu', 'Consumable'),('service', 'Service')],'Product Type'),
+        'application_id': fields.many2one('crm.application', 'Application'),
+        'freight': fields.float('Freight'),
+    }
+    
+sale_order_line()
 
 class tpt_sale_order_consignee(osv.osv):
     _name = "tpt.sale.order.consignee"
