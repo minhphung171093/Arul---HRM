@@ -196,27 +196,27 @@ class tpt_import_employee(osv.osv):
                     pen_no = sh.cell(row, 25).value
                     statutory_arr = [(0,0,{'name':epf_no,'esi_no':esi_no,'esi_dispensary':esi_dis,'pension_no':pen_no})]
                     
-                    bank_country = sh.cell(row, 27).value
-                    bank_country_ids = country_obj.search(cr, uid, [('code','=',bank_country)])
-                    if not bank_country_ids:
-                        bank_country_id = country_obj.create(cr, uid, {'name':bank_country,'code':bank_country})
-                    else:
-                        bank_country_id = bank_country_ids[0]
-                    
-                    bank_name = sh.cell(row, 26).value
-                    bank_ids = bank_obj.search(cr, uid, [('name','=',bank_name),('country','=',bank_country_id)])
-                    if not bank_ids:
-                        bank_id = bank_obj.create(cr, uid, {'name':bank_name,'country':bank_country_id})
-                    else:
-                        bank_id = bank_ids[0]
+#                     bank_country = sh.cell(row, 27).value
+#                     bank_country_ids = country_obj.search(cr, uid, [('code','=',bank_country)])
+#                     if not bank_country_ids:
+#                         bank_country_id = country_obj.create(cr, uid, {'name':bank_country,'code':bank_country})
+#                     else:
+#                         bank_country_id = bank_country_ids[0]
+#                     
+#                     bank_name = sh.cell(row, 26).value
+#                     bank_ids = bank_obj.search(cr, uid, [('name','=',bank_name),('country','=',bank_country_id)])
+#                     if not bank_ids:
+#                         bank_id = bank_obj.create(cr, uid, {'name':bank_name,'country':bank_country_id})
+#                     else:
+#                         bank_id = bank_ids[0]
                     
                     bank_acc = sh.cell(row, 28).value
-                    bank_acc_ids = bank_acc_obj.search(cr, uid, [('acc_number','=',bank_acc),('bank','=',bank_id)])
-                    if not bank_acc_ids:
-                        partner_id = partner_obj.create(cr, uid, {'name':sh.cell(row, 1).value})
-                        bank_acc_id = bank_acc_obj.create(cr, uid, {'acc_number':bank_acc,'bank':bank_id,'partner_id':partner_id,'state': "bank"})
-                    else:
-                        bank_acc_id = bank_acc_ids[0]
+#                     bank_acc_ids = bank_acc_obj.search(cr, uid, [('acc_number','=',bank_acc),('bank','=',bank_id)])
+#                     if not bank_acc_ids:
+#                         partner_id = partner_obj.create(cr, uid, {'name':sh.cell(row, 1).value})
+#                         bank_acc_id = bank_acc_obj.create(cr, uid, {'acc_number':bank_acc,'bank':bank_id,'partner_id':partner_id,'state': "bank"})
+#                     else:
+#                         bank_acc_id = bank_acc_ids[0]
                     
                     plant = sh.cell(row, 29).value
                     plant_ids = plant_obj.search(cr, uid, [('code','=',plant)])
@@ -250,7 +250,8 @@ class tpt_import_employee(osv.osv):
                         'department_id': department_id,
                         'section_id': section_id,
                         'statutory_ids': statutory_arr,
-                        'bank_account_id':bank_acc_id,
+#                         'bank_account_id':bank_acc_id,
+                        'bank_account':bank_acc,
                         'plant_id':plant_id,
                     })
                     
