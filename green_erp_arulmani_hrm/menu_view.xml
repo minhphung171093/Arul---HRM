@@ -3,6 +3,101 @@
     <data>
 		<menuitem id="hr.menu_hr_configuration" name="Configuration" parent="hr.menu_hr_root" groups="base.group_hr_manager,group_vvti_hrm_time_user" sequence="50"/>
 		<menuitem id="menu_action_print_payslip_report" action="action_print_payslip_report" parent="menu_hr_payroll_management" sequence="20" groups="group_vvti_hrm_payroll_controller"/>
+		<menuitem id="menu_vvti_hr_master"
+			name="VVTi HR Master"
+			parent="hr.menu_hr_root"
+			sequence="2"/>
+			
+			<menuitem action="action_arul_employee_category_form"
+	            id="menu_action_arul_employee_category_form"
+	            parent="menu_vvti_hr_master" sequence="5" groups='group_vvti_hrm_admin'/>
+	            
+	        <menuitem action="action_arul_hr_payroll_deduction_parameters_form"
+	            id="menu_action_arul_hr_payroll_deduction_parameters_form"
+	            parent="menu_vvti_hr_master" sequence="10"/>
+	            
+            <menuitem action="action_arul_hr_payroll_earning_parameters_form"
+	            id="menu_action_arul_hr_payroll_earning_parameters_form"
+	            parent="menu_vvti_hr_master" sequence="15"/>
+	            
+            <menuitem action="action_arul_hr_payroll_contribution_parameters_form"
+	            id="menu_action_arul_hr_payroll_contribution_parameters_form"
+	            parent="menu_vvti_hr_master" sequence="20"/>
+	            
+            <menuitem action="action_arul_hr_holiday_special_form"
+	            id="menu_action_arul_hr_holiday_special_form"
+	            parent="menu_vvti_hr_master" sequence="25"/>
+	            
+            <menuitem action="action_arul_hr_leave_master_form"
+	            id="menu_action_arul_hr_leave_master_form"
+	            parent="menu_vvti_hr_master" sequence="30"/>
+            
+            <menuitem action="action_arul_hr_leave_types_form"
+	            id="menu_action_arul_hr_leave_types_form"
+	            parent="menu_vvti_hr_master" sequence="35"/>
+	            
+            <menuitem action="action_arul_hr_capture_work_shift_form"
+	            id="menu_action_arul_hr_capture_work_shift_form"
+	            parent="menu_vvti_hr_master" sequence="40"/>
+	            
+            <menuitem action="action_tpt_equipment_master_form"
+	            id="menu_action_tpt_equipment_master_form"
+	            parent="menu_vvti_hr_master" sequence="45" groups="group_vvti_hrm_admin"/>
+	            
+            <menuitem action="hr.open_view_categ_form" id="hr.menu_view_employee_category_form"
+            	parent="menu_vvti_hr_master" sequence="50"
+            	groups="group_vvti_hrm_time_user"/>
+            	
+        	<menuitem action="action_arul_hr_payroll_area_form"
+	            id="menu_action_arul_hr_payroll_area_form"
+	            parent="menu_vvti_hr_master" sequence="55" groups='group_vvti_hrm_admin'/>
+	            
+            <menuitem action="action_arul_hr_payroll_sub_area_form"
+	            id="menu_action_arul_hr_payroll_sub_area_form"
+	            parent="menu_vvti_hr_master" sequence="60" groups='group_vvti_hrm_admin'/>
+	            
+            <menuitem action="action_arul_employee_actions_form"
+	            id="menu_action_arul_employee_actions_form"
+	            parent="menu_vvti_hr_master" sequence="65" groups='group_vvti_hrm_admin'/>
+	            
+            <menuitem action="action_arul_employee_action_type_form"
+	            id="menu_action_arul_employee_action_type_form"
+	            parent="menu_vvti_hr_master" sequence="70" groups='group_vvti_hrm_admin'/>
+	            
+            <menuitem action="action_food_subsidy_form"
+	            id="menu_action_food_subsidy_form"
+	            parent="menu_vvti_hr_master" sequence="75" groups="group_vvti_hrm_time_user"/>
+	            
+            <menuitem action="hr.open_module_tree_department"
+            	id="hr.menu_hr_department_tree"
+            	parent="menu_vvti_hr_master" sequence="80"
+            	groups="group_vvti_hrm_admin"/>
+            	
+            <menuitem parent="menu_vvti_hr_master"
+            	id="hr.menu_hr_job" action="hr.action_hr_job"
+            	name="Designation" sequence="85"
+            	groups='group_vvti_hrm_admin'/>
+            	
+        	<menuitem action="action_view_arul_hr_section_form"
+        		id="menu_action_view_arul_hr_section_form"
+        		parent="menu_vvti_hr_master" sequence="90"
+        		groups='group_vvti_hrm_admin'/>
+        		
+		<menuitem id="menu_vvti_hr_global_master"
+			name="Global Master"
+			parent="hr.menu_hr_root"
+			sequence="3"/>
+			
+			<menuitem action="action_hr_plant_form"
+	            id="menu_action_hr_plant_form"
+	            parent="menu_vvti_hr_global_master" sequence="5"/>
+	            
+            <menuitem action="action_tpt_work_center_form"
+	            id="menu_action_tpt_work_center_form"
+	            parent="menu_vvti_hr_global_master" sequence="10"/>
+	            
+            <menuitem action="action_tpt_cost_center_form"
+	            id="menu_action_tpt_cost_center_form"
+	            parent="menu_vvti_hr_global_master" sequence="15"/>
     </data>
-    
 </openerp>

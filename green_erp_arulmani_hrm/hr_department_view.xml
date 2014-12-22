@@ -2,9 +2,6 @@
 <openerp>
     <data>
     
-    <menuitem parent="hr.menu_hr_configuration" id="hr.menu_hr_job" action="hr.action_hr_job" name="Designation" sequence="6" groups='group_vvti_hrm_admin'/>
-    <menuitem action="hr.open_module_tree_department" id="hr.menu_hr_department_tree" parent="hr.menu_hr_configuration" sequence="5" groups='group_vvti_hrm_admin'/>
-    
     <record id="view_hr_department_customize" model="ir.ui.view">
             <field name="name">hr.department.customize</field>
             <field name="model">hr.department</field>
@@ -96,12 +93,5 @@
             <field name="view_id" ref="view_arul_hr_section_tree_vew"/>
         </record>
         
-        <menuitem action="action_view_arul_hr_section_form" id="menu_action_view_arul_hr_section_form" parent="hr.menu_hr_configuration" sequence="6" groups='group_vvti_hrm_admin'/>
-        
-         
-    
-    
-      
     </data>
-    
 </openerp>

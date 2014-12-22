@@ -416,6 +416,7 @@ class hr_employee(osv.osv):
         'address_id': fields.many2one('res.partner', 'Working Address',ondelete='restrict'),
         'department_id':fields.many2one('hr.department', 'Department',ondelete='restrict'),
         'job_id': fields.many2one('hr.job', 'Designation',ondelete='restrict'),
+        'bank_account': fields.char('Bank Account',size=1024),
     }
     
     

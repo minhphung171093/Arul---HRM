@@ -50,10 +50,6 @@
             <field name="view_id" ref="view_hr_plant_tree_vew"/>
         </record>
         
-        <menuitem action="action_hr_plant_form"
-            id="menu_action_hr_plant_form"
-            parent="hr.menu_hr_main" sequence="24"/>
-		
 		<record id="view_arul_employee_category_search_vew" model="ir.ui.view">
 			<field name="name">vsis.employee.category.search</field>
 			<field name="model">vsis.hr.employee.category</field>
@@ -112,10 +108,6 @@
             <field name="view_id" ref="view_arul_employee_category_tree_vew"/>
         </record>
         
-        <menuitem action="action_arul_employee_category_form"
-            id="menu_action_arul_employee_category_form"
-            parent="hr.menu_hr_main" sequence="24" groups='group_vvti_hrm_admin'/>
-		
 		<record id="view_arul_employee_sub_category_search_vew" model="ir.ui.view">
 			<field name="name">vsis.employee.sub.category.search</field>
 			<field name="model">hr.employee.sub.category</field>
@@ -221,10 +213,6 @@
             <field name="view_id" ref="view_arul_employee_actions_tree_vew"/>
         </record>
         
-        <menuitem action="action_arul_employee_actions_form"
-            id="menu_action_arul_employee_actions_form"
-            parent="hr.menu_hr_configuration" sequence="3" groups='group_vvti_hrm_admin'/>
-        
         <record id="view_arul_employee_actions_type_search_vew" model="ir.ui.view">
 			<field name="name">arul.employee.actions.type.search</field>
 			<field name="model">arul.employee.action.type</field>
@@ -271,10 +259,6 @@
             <field name="view_id" ref="view_arul_employee_action_type_tree_vew"/>
         </record> 
         
-        <menuitem action="action_arul_employee_action_type_form"
-            id="menu_action_arul_employee_action_type_form"
-            parent="hr.menu_hr_configuration" sequence="4" groups='group_vvti_hrm_admin'/> 
-            
         <record id="view_arul_hr_employee_action_history" model="ir.ui.view">
             <field name="name">view.arul.hr.employee.action.history</field>
             <field name="model">hr.employee</field>
@@ -512,7 +496,7 @@
             <field name="arch" type="xml">
                 <form string="Employee Rehiring" version="7.0"> 
                     <header>
-	                    <button name="approve_employee_rehiring" attrs="{'invisible':[('approve_rehiring','=',True)]}" string="Approve" type="object" class="oe_highlight" groups="base.group_hr_manager"/>
+	                    <button name="approve_employee_rehiring" attrs="{'invisible':[('approve_rehiring','=',True)]}" string="Approve" type="object" class="oe_highlight" groups="green_erp_arulmani_hrm.group_vvti_hrm_hr_manager"/>
 	                    <field name ="approve_rehiring" invisible='1'/>
 	                </header>
                 	<sheet>
@@ -798,7 +782,7 @@
             <field name="inherit_id" ref="hr_contract.hr_hr_employee_view_form2"/>
             <field name="arch" type="xml">
             	<xpath expr="//field[@name='bank_account_id']" position="replace">
-                    <field name="bank_account_id" context="{'display_partner':True}" options="{'create': false, 'create_edit': false}"/>
+                    <field name="bank_account_id" invisible='1' context="{'display_partner':True}" options="{'create': false, 'create_edit': false}"/>
                 </xpath>
             </field>
         </record>
@@ -818,6 +802,7 @@
                     <field name="payroll_area_id" options="{'create': false, 'create_edit': false}"/>
                 </xpath>
                 <xpath expr="//field[@name='date_of_resignation']" position="after">
+					<field name ="bank_account"/>
                     <field name="time_record"/>
                 </xpath>
                 <xpath expr="//field[@name='job_id']" position="replace">
@@ -1146,10 +1131,6 @@
             <field name="view_id" ref="food_subsidy_tree_view"/>
         </record>
         
-        <menuitem action="action_food_subsidy_form"
-            id="menu_action_food_subsidy_form"
-            parent="hr.menu_hr_configuration" sequence="4" groups="group_vvti_hrm_time_user"/>
-        
         <record id="meals_deduction_tree_view" model="ir.ui.view">
 			<field name="name">meals.deduction.tree</field>
 			<field name="model">meals.deduction</field>
@@ -1229,11 +1210,14 @@
 			</field>
 		</record>
   		
-  		<!--<record id="view_employee_filter_inherit" model="ir.ui.view">
+  		<record id="view_employee_filter_inherit" model="ir.ui.view">
             <field name="name">view_employee_filter.inherit</field>
             <field name="model">hr.employee</field>
             <field name="inherit_id" ref="hr.view_employee_filter"/>
             <field name="arch" type="xml">
+            	<xpath expr="//field[@name='name']" position="after">
+            		 <field name="employee_id"/>
+            	</xpath>
             	<xpath expr="//filter[@string='Company']" position="after">
             		<filter string="Active" icon="terp-go-home" domain="[]" context="{'group_by':'active'}"/>
             	</xpath>
@@ -1243,7 +1227,7 @@
             	</xpath>
             	
             </field>
-		</record>-->
+		</record>
   		
   		<record id="view_employee_tree_view_inherit" model="ir.ui.view">
             <field name="name">view_employee_tree.inherit</field>
@@ -1266,6 +1250,10 @@
             <field name="arch" type="xml">
             	<xpath expr="//form[@string='Employee']" position="attributes">
             		<attribute name="delete">false</attribute>
+            	</xpath>
+            	
+            	<xpath expr="//field[@name='bank_account_id']" position="replace">
+            		<field name ="bank_account_id" invisible='1'/>
             	</xpath>
             	
             	<xpath expr="//page[@string='Personal Information']" position="attributes">
