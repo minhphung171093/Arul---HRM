@@ -381,6 +381,7 @@
 		                	</group>
 		                	<group string="Consignor's Details">
 		                		<group>
+		                			<field name="name" invisible="1"/>
 		                			<field name="consignor_name" />
 		                			<field name="consignor_tel" />
 		                			<field name="consignor_certi_no" />
@@ -402,7 +403,7 @@
 		                    	</group>
 		                	</group>
 		                	<group string="Nature of Transaction">
-		                		<group>
+		                		<group col="3">
 		                			<field name="selection_nature" widget="radio" />
 		                		</group>
 		                	</group>
@@ -492,7 +493,7 @@
 			                		</group>
 		                		</group>
 								<field name="consignee_line" nolabel='1'>
-									<tree editable='top'>
+									<tree editable='bottom'>
 										<field name="number" />
 										<field name="description" />
 										<field name="commodity" />

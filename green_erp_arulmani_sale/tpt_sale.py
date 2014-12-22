@@ -342,6 +342,7 @@ class tpt_form_403(osv.osv):
     _name = "tpt.form.403"
      
     _columns = {
+        'name':fields.char('Form 403', size = 1024),
         'from_place':fields.char('From Place', size = 1024),
         'to_place':fields.char('To Place', size = 1024),
         'from_district':fields.char('From District', size = 1024),
@@ -416,14 +417,28 @@ class tpt_form_403_consignee(osv.osv):
     _name = "tpt.form.403.consignee"
       
     _columns = {
-        'number': fields.char('SI.No',size = 32, required = True),
+        'number': fields.char('SI.No',size = 32, readonly = True),
         'description': fields.char('Description of Goods',size =1024),
         'commodity': fields.char('Commodity Code',size = 1024),
         'unity_code': fields.char('Unity Code',size = 1024),
         'rate_of_tax': fields.char('Rate of Tax',size = 1024),
-        'value': fields.char('Value',size = 1024),
-        'form_403_id':fields.many2one('tpt.form.403','Consignee')
+        'value': fields.char('Value',size = 1024, required = True),
+        'form_403_id':fields.many2one('tpt.form.403','Consignee'),
                 
                 }
+    _defaults = {
+        'number': ' ',
+    }
+    def unlink(self, cr, uid, ids, context=None):
+        for line in self.browse(cr, uid, ids):
+            update_ids = self.search(cr, uid,[('form_403_id','=',line.form_403_id.id),('number','>',line.number)])
+            if update_ids:
+                cr.execute("UPDATE tpt_form_403_consignee SET number=number-1 WHERE id in %s",(tuple(update_ids),))
+        return super(tpt_form_403_consignee, self).unlink(cr, uid, ids, context)  
+    
+    def create(self, cr, uid, vals, context=None):
+        if vals.get('form_403_id',False):
+            vals['number'] = len(self.search(cr, uid,[('form_403_id', '=', vals['form_403_id'])])) + 1
+        return super(tpt_form_403_consignee, self).create(cr, uid, vals, context)
 tpt_form_403_consignee()
 # vim:expandtab:smartindent:tabstop=4:softtabstop=4:shiftwidth=4:
