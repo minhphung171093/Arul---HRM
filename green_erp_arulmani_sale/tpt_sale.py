@@ -8,9 +8,30 @@ from openerp.tools import DEFAULT_SERVER_DATE_FORMAT, DEFAULT_SERVER_DATETIME_FO
 from datetime import datetime
 import datetime
 import calendar
+import openerp.addons.decimal_precision as dp
 
 class sale_order(osv.osv):
     _inherit = "sale.order"
+    
+    def _amount_all(self, cr, uid, ids, field_name, arg, context=None):
+        cur_obj = self.pool.get('res.currency')
+        res = {}
+        for order in self.browse(cr, uid, ids, context=context):
+            res[order.id] = {
+                'amount_untaxed': 0.0,
+                'amount_tax': 0.0,
+                'amount_total': 0.0,
+            }
+            val = val1 = 0.0
+            cur = order.pricelist_id.currency_id
+            for line in order.order_line:
+                val1 += line.price_subtotal
+                val += self._amount_line_tax(cr, uid, line, context=context)
+            res[order.id]['amount_tax'] = cur_obj.round(cr, uid, cur, val)
+            res[order.id]['amount_untaxed'] = cur_obj.round(cr, uid, cur, val1)
+            res[order.id]['amount_total'] = res[order.id]['amount_untaxed'] + res[order.id]['amount_tax']
+        return res
+    
     _columns = {
         'order_type':fields.selection([('domestic','Domestic'),('export','Export')],'Order Type' ,required=True),
         'blanket_id':fields.many2one('tpt.blanket.order','Blanket Order'),
@@ -98,10 +119,19 @@ sale_order()
 class sale_order_line(osv.osv):
     _inherit = 'sale.order.line'
     
+    def _amount_line(self, cr, uid, ids, field_name, arg, context=None):
+        subtotal = 0
+        res = {}
+        for line in self.browse(cr,uid,ids,context=context):
+            subtotal = (line.product_uom_qty * line.price_unit) + (line.product_uom_qty * line.price_unit) * (line.order_id.excise_duty.name/100)
+            res[line.id] = subtotal
+        return res
+     
     _columns = {
         'product_type': fields.selection([('product', 'Stockable Product'),('consu', 'Consumable'),('service', 'Service')],'Product Type'),
         'application_id': fields.many2one('crm.application', 'Application'),
         'freight': fields.float('Freight'),
+        'price_subtotal': fields.function(_amount_line, string='Subtotal', digits_compute= dp.get_precision('Account')),
     }
     
 sale_order_line()
@@ -113,7 +143,7 @@ class tpt_sale_order_consignee(osv.osv):
         quatity = 0
         res = {}
         for line in self.browse(cr,uid,ids,context=context):
-            for order_line in line.blanket_consignee_id.blank_order_line:
+            for order_line in line.sale_order_consignee_id.order_line:
                 if order_line.product_id.id == line.product_id.id:
                     quatity = order_line.product_uom_qty
             res[line.id] = quatity
@@ -126,7 +156,7 @@ class tpt_sale_order_consignee(osv.osv):
         'name': fields.char('Consignee Name', size = 1024, required = True),
         'location': fields.char('Location', size = 1024),
         'product_id': fields.many2one('product.product', 'Product'),
-        'product_uom_qty': fields.function(quatity_consignee, store = True, type='float',string='Quatity'),
+        'product_uom_qty': fields.function(quatity_consignee, type='float',string='Quatity'),
         'uom_po_id': fields.many2one('product.uom', 'UOM', readonly = True),
                 }
     
@@ -144,32 +174,43 @@ tpt_sale_order_consignee()
 class tpt_blanket_order(osv.osv):
     _name = "tpt.blanket.order"
     
-    def amount_untaxed_blanket_orderline(self, cr, uid, ids, field_name, args, context=None):
-        amount_untaxed = 0
+    def amount_all_blanket_orderline(self, cr, uid, ids, field_name, args, context=None):
         res = {}
         for line in self.browse(cr,uid,ids,context=context):
+            res[line.id] = {
+                'amount_untaxed': 0.0,
+                'amount_tax': 0.0,
+                'amount_total': 0.0,
+            }
+            val1 = 0.0
+            val2 = 0.0
+            val3 = 0.0
             for orderline in line.blank_order_line:
-                amount_untaxed = orderline.sub_total
-            res[line.id] = amount_untaxed
+                val1 = val1 + orderline.sub_total
+                res[line.id]['amount_untaxed'] = val1
+#             val2 = line.amount_untaxed * line.sale_tax_id.amount / 100
+            val2 = val1 * line.sale_tax_id.amount / 100
+            res[line.id]['amount_tax'] = val2
+#             val3 = res[line.id]['amount_untaxed'] + res[line.id]['amount_tax']
+            val3 = val1 + val2
+            res[line.id]['amount_total'] = val3
         return res
     
-    def amount_tax_blanket_orderline(self, cr, uid, ids, field_name, args, context=None):
-        amount_tax = 0
-        res = {}
-        for line in self.browse(cr,uid,ids,context=context):
-            amount_tax = line.amount_untaxed * line.sale_tax_id.amount / 100
-            res[line.id] = amount_tax
-        return res
-    
-    def amount_total_blanket_orderline(self, cr, uid, ids, field_name, args, context=None):
-        amount_total = 0
-        res = {}
-        for line in self.browse(cr,uid,ids,context=context):
-            for orderline in line.blank_order_line:
-                amount_total = line.amount_untaxed + line.amount_tax + orderline.freight
-            res[line.id] = amount_total
-        return res
-    
+#     def amount_total_blanket_orderline(self, cr, uid, ids, field_name, args, context=None):
+#         amount_total = 0
+#         res = {}
+#         for line in self.browse(cr,uid,ids,context=context):
+#             for orderline in line.blank_order_line:
+#                 amount_total = line.amount_untaxed + line.amount_tax + orderline.freight
+#             res[line.id] = amount_total
+#         return res
+
+    def _get_order(self, cr, uid, ids, context=None):
+        result = {}
+        for line in self.pool.get('tpt.blank.order.line').browse(cr, uid, ids, context=context):
+            result[line.blanket_order_id.id] = True
+        return result.keys()
+
     _columns = {
         'name': fields.char('Blanked Order', size = 1024, readonly=True),
         'customer_id': fields.many2one('res.partner', 'Customer', required = True),
@@ -193,10 +234,15 @@ class tpt_blanket_order(osv.osv):
         'channel': fields.many2one('crm.case.channel', 'Distribution Channel'),
         'order_type':fields.selection([('domestic','Domestic'),('export','Export')],'Order Type' ,required=True),
         'document_type':fields.selection([('blankedorder','Blanked Order')], 'Document Type',required=True),
-        'amount_untaxed': fields.function(amount_untaxed_blanket_orderline, type='float',string='Untaxed Amount'),
-        'amount_tax': fields.function(amount_tax_blanket_orderline, type='float',string='Taxes'),
-        'amount_total': fields.function(amount_total_blanket_orderline, type='float',string='Total'),
         'blank_order_line': fields.one2many('tpt.blank.order.line', 'blanket_order_id', 'Sale Order'), 
+        'amount_untaxed': fields.function(amount_all_blanket_orderline, multi='sums',string='Untaxed Amount',
+                                         store={
+                'tpt.blanket.order': (lambda self, cr, uid, ids, c={}: ids, ['blank_order_line'], 10),
+                'tpt.blank.order.line': (_get_order, ['price_unit', 'product_uom_qty'], 10),
+            },),
+        'amount_tax': fields.function(amount_all_blanket_orderline, multi='sums',string='Taxes'),
+        'amount_total': fields.function(amount_all_blanket_orderline, multi='sums',string='Total'),
+        
         'blank_consignee_line': fields.one2many('tpt.consignee', 'blanket_consignee_id', 'Consignee'), 
     }
     
@@ -205,7 +251,6 @@ class tpt_blanket_order(osv.osv):
         'name': '/',
         'document_type': 'blankedorder',
         'bo_date': time.strftime('%Y-%m-%d'),
-        
     }
     def create(self, cr, uid, vals, context=None):
         if vals.get('name','/')=='/':
@@ -241,11 +286,13 @@ class tpt_blank_order_line(osv.osv):
     _name = "tpt.blank.order.line"
     
     def subtotal_blanket_orderline(self, cr, uid, ids, field_name, args, context=None):
-        subtotal = 0
         res = {}
         for line in self.browse(cr,uid,ids,context=context):
+            res[line.id] = {
+               'sub_total' : 0.0,
+               }
             subtotal = (line.product_uom_qty * line.price_unit) + (line.product_uom_qty * line.price_unit) * (line.blanket_order_id.excise_duty.name/100)
-            res[line.id] = subtotal
+            res[line.id]['sub_total'] = subtotal
         return res
     
     _columns = {
@@ -257,7 +304,7 @@ class tpt_blank_order_line(osv.osv):
         'product_uom_qty': fields.float('Quantity'),
         'uom_po_id': fields.many2one('product.uom', 'UOM'),
         'price_unit': fields.float('Unit Price'),
-        'sub_total': fields.function(subtotal_blanket_orderline, type='float',string='SubTotal'),
+        'sub_total': fields.function(subtotal_blanket_orderline, store = True, multi='deltas' ,string='SubTotal'),
         'freight': fields.float('Freight'),
                 }
     
@@ -278,15 +325,31 @@ class tpt_consignee(osv.osv):
     _name = "tpt.consignee"
     
     def quatity_consignee(self, cr, uid, ids, field_name, args, context=None):
-        quatity = 0
         res = {}
         for line in self.browse(cr,uid,ids,context=context):
+            res[line.id] = {
+                'product_uom_qty' : 0.0,
+                }
+            quatity = 0.0
             for order_line in line.blanket_consignee_id.blank_order_line:
                 if order_line.product_id.id == line.product_id.id:
                     quatity = order_line.product_uom_qty
-                        
-            res[line.id] = quatity
+                         
+            res[line.id]['product_uom_qty'] = quatity
         return res
+    
+#     def quatity_consignee(self, cr, uid, ids, field_name, args, context=None):
+#         res = {}
+#         for line in self.browse(cr,uid,ids,context=context):
+#             res[line.id] = {
+#                'product_uom_qty' : 0.0,
+#                }
+#             for order_line in line.blanket_consignee_id.blank_order_line:
+#                 if order_line.product_id.id == line.product_id.id:
+#                     quatity = order_line.product_uom_qty
+#                         
+#             res[line.id]['product_uom_qty'] = quatity
+#         return res
     
     
     _columns = {
@@ -294,7 +357,7 @@ class tpt_consignee(osv.osv):
         'name': fields.char('Consignee Name', size = 1024, required = True),
         'location': fields.char('Location', size = 1024),
         'product_id': fields.many2one('product.product', 'Product'),
-        'product_uom_qty': fields.function(quatity_consignee, type='float',string='Quatity'),
+        'product_uom_qty': fields.function(quatity_consignee, type = 'float',multi='deltas', string='Quatity'),
         'uom_po_id': fields.many2one('product.uom', 'UOM'),
                 }
     
