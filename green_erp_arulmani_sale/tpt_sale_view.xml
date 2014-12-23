@@ -19,10 +19,10 @@
                     		<field name="state_id" placeholder="State" options="{'create': false, 'create_edit': false}"/>
                     		<field name="zip" placeholder="ZIP"/>
                     		 <field name="document_type"/>
-                    		 <field name="payment_term_id"/>
+                    		 <field name="payment_term_id" options="{'create': false, 'create_edit': false}"/>
                     		<!-- <field name="currency_id" /> -->
                     		 <field name="incoterms_id" />
-                    		 <field name="excise_duty" />
+                    		 <field name="excise_duty_id" options="{'create': false, 'create_edit': false}"/>
                     		
                     
 	        	</xpath>
@@ -33,7 +33,7 @@
                 	<field name="expected_date" />
                 	<field name="quotaion_no"/>
                 	<field name="distribution_channel" />
-                	<field name="sale_tax" />
+                	<field name="sale_tax_id" options="{'create': false, 'create_edit': false}"/>
                 	<field name="document_status"/>
                 	 <field name="reason" />
 				</xpath>
@@ -101,7 +101,7 @@
 						<field name="payment_term_id" options="{'create': false, 'create_edit': false}"/>
 						<field name="currency_id" />
 						<field name="incoterm_id" />
-						<field name="excise_duty" />
+						<field name="excise_duty_id" />
 						<field name="bo_date" />
 						<field name="po_date" /> 
 						<field name="po_number" />
@@ -128,7 +128,7 @@
                     </h1>
                     <group>
                     	<group >
-                    	<field name="customer_id" on_change = "onchange_customer_id(customer_id)"/>
+                    	<field name="customer_id" on_change = "onchange_customer_id(customer_id)" options="{'create': false, 'create_edit': false}"/>
                     	<label for="invoice_address" />
                     	<div>
                     		<field name="invoice_address" placeholder="Street..."/>
@@ -142,7 +142,7 @@
                     	<field name="payment_term_id" options="{'create': false, 'create_edit': false}"/>
                     	<field name="currency_id" options="{'create': false, 'create_edit': false}"/>
                     	<field name="incoterm_id" options="{'create': false, 'create_edit': false}"/>
-                    	<field name="excise_duty" options="{'create': false, 'create_edit': false}"/>
+                    	<field name="excise_duty_id" options="{'create': false, 'create_edit': false}"/>
                     	</group>
                       
 						<group>
@@ -366,19 +366,20 @@
             parent="menu_hr_sale_management" sequence="2"/>
             
             
-     <!-- <record id="view_tpt_form_403_tree_vew" model="ir.ui.view">
+     <record id="view_tpt_form_403_tree_vew" model="ir.ui.view">
 			<field name="name">tpt.form.403.tree</field>
 			<field name="model">tpt.form.403</field>
 			<field name="arch" type="xml">
 				<tree string="Form 403">
-						<field name="from_place"/>
-						<field name="from_district"/>
-						<field name="to_place"/>
-						<field name="to_district"/>
 						<field name="invoice_no"/>
+						<field name="from_place"/>
+						<field name="to_place"/>
+						<field name="from_district"/>
+						<field name="to_district"/>
+						
 				</tree>
 			</field>
-		</record> -->
+		</record> 
 		
 		<record id="view_tpt_form_403_form_vew" model="ir.ui.view">
             <field name="name">tpt.form.403.form</field>
@@ -531,12 +532,103 @@
             <field name="res_model">tpt.form.403</field>
             <field name="view_type">form</field>
             <field name="view_mode">tree,form</field>
-            <field name="view_id" ref="view_tpt_form_403_form_vew"/>
+            <field name="view_id" ref="view_tpt_form_403_tree_vew"/>
         </record>
         
         <menuitem action="action_view_tpt_form_403_form"
             id="menu_action_view_tpt_form_403_form"
-            parent="menu_hr_sale_management" sequence="13"/>                        
+            parent="menu_hr_sale_management" sequence="13"/>
+
+		<record id="tpt_form_are_3_tree_vew" model="ir.ui.view">
+			<field name="name">tpt.form.are.3.tree</field>
+			<field name="model">tpt.form.are.3</field>
+			<field name="arch" type="xml">
+				<tree string="Form A.R.E - 3">
+						<field name="name"/>
+						<field name="date"/>
+						<field name="division_from"/>
+						<field name="division_to"/>
+						<field name="warehouse_from"/>
+						<field name="warehouse_to"/>
+				</tree>
+			</field>
+		</record>      
+            
+		<record id="tpt_form_are_3_form_vew" model="ir.ui.view">
+            <field name="name">tpt.form.are.3.form</field>
+            <field name="model">tpt.form.are.3</field>
+            <field name="arch" type="xml">
+	            <form string="Form A.R.E - 3" version="7.0">   
+	            	<sheet>
+	            		<group col="4" colspan="2">
+	            			<group>
+	            				<field name="name" />
+	            				<field name="range_from" />
+	            				<field name="reg_no_from" />
+	            				<field name="division_from" />
+	            				<field name="warehouse_from" />
+	            				<field name="to_mr_mess" />
+	            				<field name="invoice_no_id" />
+	            			</group>
+	            			<group>
+	            				<field name="date" />
+	            				<field name="range_to" />
+	            				<field name="reg_no_to" />
+	            				<field name="division_to" />
+	            				<field name="warehouse_to" />
+	            			</group>
+	            		</group>
+	            		<notebook>
+							<page string = "Goods Detail">
+								<group col="4" colspan="2">
+									<group>
+										<field name="warehouse_register" />
+			            				<field name="good_description" />
+			            				<field name="gross_weight" />
+			            				<label for="good_qty"/>
+			            				<div>
+			            				<field name="good_qty" class="oe_inline"/> MT
+			            				</div>
+			            				<field name="value" />
+			            				<field name="remarks" />
+									</group>
+									<group>
+										<field name="warehouse_date" />
+			            				<field name="package_description" />
+			            				<field name="marks_package" />
+			            				<field name="warehousing_date" />
+			            				<field name="tranport" />
+			            				<field name="invoiced_date" />
+									</group>
+								</group>
+							</page>
+							<page string = "Duty Rate">
+								<field name="duty_rate_line" nolabel='1'>
+									<tree editable='bottom'>
+										<field name="duty_rate" />
+										<field name="amount_usd" />
+										<field name="amount_inr" />
+									</tree>
+								</field>
+							</page>
+						</notebook>
+	            	</sheet>
+		         </form>
+			</field>
+		</record>   
+		
+		<record id="action_tpt_form_are_3_form_vew" model="ir.actions.act_window">
+            <field name="name">Form A.R.E - 3</field>
+            <field name="type">ir.actions.act_window</field>
+            <field name="res_model">tpt.form.are.3</field>
+            <field name="view_type">form</field>
+            <field name="view_mode">tree,form</field>
+            <field name="view_id" ref="tpt_form_are_3_tree_vew"/>
+        </record>
+        
+        <menuitem action="action_tpt_form_are_3_form_vew"
+            id="menu_action_action_tpt_form_are_3_form_vew"
+            parent="menu_hr_sale_management" sequence="15"/>                     
     </data>
     
 </openerp>
