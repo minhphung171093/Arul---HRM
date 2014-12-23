@@ -19,7 +19,7 @@
                     		<field name="state_id" placeholder="State" options="{'create': false, 'create_edit': false}"/>
                     		<field name="zip" placeholder="ZIP"/>
                     		 <field name="document_type"/>
-                    <!--		 <field name="payment_term" /> -->
+                    		 <field name="payment_term_id"/>
                     		<!-- <field name="currency_id" /> -->
                     		 <field name="incoterms_id" />
                     		 <field name="excise_duty" />
@@ -32,7 +32,7 @@
                 	<field name="po_number" />
                 	<field name="expected_date" />
                 	<field name="quotaion_no"/>
-                	<field name="distribution_chanel" />
+                	<field name="distribution_channel" />
                 	<field name="sale_tax" />
                 	<field name="document_status"/>
                 	 <field name="reason" />
@@ -52,6 +52,22 @@
 				<xpath expr="//field[@name='currency_id']"  position="replace">
 					<field name="currency_id" invisible="0" readonly = "0" required = "0"/>
 				</xpath>
+				<xpath expr="//field[@name='payment_term']"  position="replace">
+				</xpath>
+				<xpath expr="//form/sheet/notebook/page[@string='Order Lines']/field/tree/field[@name='name']"  position="after">
+					<field name="product_type" />
+					<field name="application_id" />
+				</xpath>
+				
+				<xpath expr="//form/sheet/notebook/page[@string='Order Lines']/field/tree/field[@name='price_subtotal']"  position="after">
+					<field name="freight" />
+				</xpath>
+				
+				<xpath expr="//form/sheet/notebook/page[@string='Order Lines']/field/tree/field[@name='tax_id']"  position="attributes">
+					<attribute name='invisible'>1</attribute>
+				</xpath>
+				
+
 				<xpath expr="//page[@string='Order Lines']"  position="after">
 					<page string="Consinee">
 						<field name="sale_consignee_line" nolabel='1'>
@@ -112,7 +128,7 @@
                     </h1>
                     <group>
                     	<group >
-                    	<field name="customer_id" />
+                    	<field name="customer_id" on_change = "onchange_customer_id(customer_id)"/>
                     	<label for="invoice_address" />
                     	<div>
                     		<field name="invoice_address" placeholder="Street..."/>
@@ -154,18 +170,18 @@
 										<field name="product_uom_qty" />
 										<field name="uom_po_id" edit='false' options="{'create': false, 'create_edit': false}"/>
 										<field name="price_unit" />
-										<field name="sub_total" />
+										<field name="sub_total" />  
 										<field name="freight" />
 									</tree>
 								</field>
 								<group class="oe_subtotal_footer oe_right" colspan="2" name="sale_total">
                                 	<field name="amount_untaxed" widget="monetary" />
-                                	<field name="amount_tax" widget="monetary" />
+                                	<field name="amount_tax" widget="monetary" />     
                                 		<div class="oe_subtotal_footer_separator oe_inline">
-                                    		<label for="amount_total"/>
+                                     		<label for="amount_total"/>  
                                 		</div>
-                                	<field name="amount_total" nolabel="1" class="oe_subtotal_footer_separator" widget="monetary" />
-                            	</group>
+                                 	<field name="amount_total" nolabel="1" class="oe_subtotal_footer_separator" widget="monetary" />  
+                            	</group>    
 							</page>
 							<page string = "Consignee">
 								<field name="blank_consignee_line" nolabel='1'>
