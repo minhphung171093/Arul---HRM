@@ -14,23 +14,30 @@ class sale_order(osv.osv):
     _inherit = "sale.order"
     
     def _amount_all(self, cr, uid, ids, field_name, arg, context=None):
-        cur_obj = self.pool.get('res.currency')
         res = {}
-        for order in self.browse(cr, uid, ids, context=context):
-            res[order.id] = {
+        for line in self.browse(cr,uid,ids,context=context):
+            res[line.id] = {
                 'amount_untaxed': 0.0,
                 'amount_tax': 0.0,
                 'amount_total': 0.0,
             }
-            val = val1 = 0.0
-            cur = order.pricelist_id.currency_id
-            for line in order.order_line:
-                val1 += line.price_subtotal
-                val += self._amount_line_tax(cr, uid, line, context=context)
-            res[order.id]['amount_tax'] = cur_obj.round(cr, uid, cur, val)
-            res[order.id]['amount_untaxed'] = cur_obj.round(cr, uid, cur, val1)
-            res[order.id]['amount_total'] = res[order.id]['amount_untaxed'] + res[order.id]['amount_tax']
+            val1 = 0.0
+            val2 = 0.0
+            val3 = 0.0
+            for orderline in line.order_line:
+                val1 = val1 + orderline.price_subtotal
+                res[line.id]['amount_untaxed'] = val1
+            val2 = val1 * line.sale_tax_id.amount / 100
+            res[line.id]['amount_tax'] = val2
+            val3 = val1 + val2
+            res[line.id]['amount_total'] = val3
         return res
+    
+    def _get_order(self, cr, uid, ids, context=None):
+        result = {}
+        for line in self.pool.get('sale.order.line').browse(cr, uid, ids, context=context):
+            result[line.order_id.id] = True
+        return result.keys() 
     
     _columns = {
         'order_type':fields.selection([('domestic','Domestic'),('export','Export')],'Order Type' ,required=True),
@@ -46,19 +53,49 @@ class sale_order(osv.osv):
         'document_status':fields.selection([('draft','Draft'),('waiting','Waiting for Approval'),('completed','Completed(Ready to Process)'),('partially','Partially Delivered'),('close','Closed(Delivered)')],'Document Status' ,required=True),
         'incoterms_id':fields.many2one('stock.incoterms','Incoterms',required = True),
         'distribution_channel':fields.many2one('crm.case.channel','Distribution Channel',required = True),
-        'sale_tax':fields.many2one('account.tax','Sales Tax',required = True),
-        'excise_duty': fields.many2one('tpt.excise.duty', 'Excise Duty'),
+        'sale_tax_id':fields.many2one('account.tax','Sales Tax',required = True),
+        'excise_duty_id': fields.many2one('tpt.excise.duty', 'Excise Duty',required = True),
         'invoice_address': fields.char('Invoice Address', size = 1024),
         'street2': fields.char('', size = 1024),
         'city': fields.char('', size = 1024),
         'country_id': fields.many2one('res.country', ''),
         'state_id': fields.many2one('res.country.state', ''),
         'zip': fields.char('', size = 1024),
+        'amount_untaxed': fields.function(_amount_all, digits_compute=dp.get_precision('Account'), string='Untaxed Amount',
+            store={
+                'sale.order': (lambda self, cr, uid, ids, c={}: ids, ['order_line'], 10),
+                'sale.order.line': (_get_order, ['price_unit', 'tax_id', 'discount', 'product_uom_qty'], 10),
+            },
+            multi='sums', help="The amount without tax.", track_visibility='always'),
+        'amount_tax': fields.function(_amount_all, digits_compute=dp.get_precision('Account'), string='Taxes',
+            store={
+                'sale.order': (lambda self, cr, uid, ids, c={}: ids, ['order_line'], 10),
+                'sale.order.line': (_get_order, ['price_unit', 'tax_id', 'discount', 'product_uom_qty'], 10),
+            },
+            multi='sums', help="The tax amount."),
+        'amount_total': fields.function(_amount_all, digits_compute=dp.get_precision('Account'), string='Total',
+            store={
+                'sale.order': (lambda self, cr, uid, ids, c={}: ids, ['order_line'], 10),
+                'sale.order.line': (_get_order, ['price_unit', 'tax_id', 'discount', 'product_uom_qty'], 10),
+            },
+            multi='sums', help="The total amount."),
         'sale_consignee_line':fields.one2many('tpt.sale.order.consignee','sale_order_consignee_id','Consignee')
     }
     _defaults = {
 #         'so_date': time.strftime('%Y-%m-%d'),
     }
+    
+    def _check_blanket_order_id(self, cr, uid, ids, context=None):
+        for blanket in self.browse(cr, uid, ids, context=context):
+            blanket_ids = self.search(cr, uid, [('id','!=',blanket.id),('blanket_id','=',blanket.blanket_id.id)])
+            if blanket_ids:
+                raise osv.except_osv(_('Warning!'),_('The data is not suitable!'))  
+                return False
+        return True
+    _constraints = [
+        (_check_blanket_order_id, 'Identical Data', ['blanket_id']),
+        ]
+    
     def onchange_blanket_id(self, cr, uid, ids,blanket_id=False, context=None):
         vals = {}
         blanket_lines = []
@@ -74,7 +111,7 @@ class sale_order(osv.osv):
                       'product_uom_qty': blanket_line.product_uom_qty,
                       'product_uom': blanket_line.uom_po_id.id,
                       'price_unit': blanket_line.price_unit,
-#                       'price_subtotal': blanket_line.sub_total,
+                      'price_subtotal': blanket_line.sub_total,
                       'freight': blanket_line.freight,
                       }
                 blanket_lines.append((0,0,rs_order))
@@ -104,10 +141,10 @@ class sale_order(osv.osv):
                     'quotaion_no':blanket.quotaion_no,
                     'incoterms_id':blanket.incoterm_id.id,
                     'distribution_channel':blanket.channel.id,
-                    'excise_duty':blanket.excise_duty.id,
-                    'sale_tax':blanket.sale_tax_id.id,
+                    'excise_duty_id':blanket.excise_duty_id.id,
+                    'sale_tax_id':blanket.sale_tax_id.id,
                     'reason':blanket.reason,
-#                     'amount_untaxed': blanket.amount_untaxed,
+                    'amount_untaxed': blanket.amount_untaxed,
                     'order_line':blanket_lines,
                     'sale_consignee_line':consignee_lines,
                         
@@ -120,10 +157,10 @@ class sale_order_line(osv.osv):
     _inherit = 'sale.order.line'
     
     def _amount_line(self, cr, uid, ids, field_name, arg, context=None):
-        subtotal = 0
+        subtotal = 0.0
         res = {}
         for line in self.browse(cr,uid,ids,context=context):
-            subtotal = (line.product_uom_qty * line.price_unit) + (line.product_uom_qty * line.price_unit) * (line.order_id.excise_duty.name/100)
+            subtotal = (line.product_uom_qty * line.price_unit) + (line.product_uom_qty * line.price_unit) * (line.order_id.excise_duty_id.name/100)
             res[line.id] = subtotal
         return res
      
@@ -188,10 +225,8 @@ class tpt_blanket_order(osv.osv):
             for orderline in line.blank_order_line:
                 val1 = val1 + orderline.sub_total
                 res[line.id]['amount_untaxed'] = val1
-#             val2 = line.amount_untaxed * line.sale_tax_id.amount / 100
             val2 = val1 * line.sale_tax_id.amount / 100
             res[line.id]['amount_tax'] = val2
-#             val3 = res[line.id]['amount_untaxed'] + res[line.id]['amount_tax']
             val3 = val1 + val2
             res[line.id]['amount_total'] = val3
         return res
@@ -226,7 +261,7 @@ class tpt_blanket_order(osv.osv):
         'po_date': fields.date('PO Date', required = True),
         'po_number': fields.char('PO Number', size = 1024),
         'quotaion_no': fields.char('Quotaion No', size = 1024),
-        'excise_duty': fields.many2one('tpt.excise.duty', 'Excise Duty', required = True), 
+        'excise_duty_id': fields.many2one('tpt.excise.duty', 'Excise Duty', required = True), 
         'sale_tax_id': fields.many2one('account.tax', 'Sale Tax', required = True), 
         'incoterm_id': fields.many2one('stock.incoterms', 'Incoterms', required = True),
         'reason': fields.text('Reason'),
@@ -238,10 +273,18 @@ class tpt_blanket_order(osv.osv):
         'amount_untaxed': fields.function(amount_all_blanket_orderline, multi='sums',string='Untaxed Amount',
                                          store={
                 'tpt.blanket.order': (lambda self, cr, uid, ids, c={}: ids, ['blank_order_line'], 10),
-                'tpt.blank.order.line': (_get_order, ['price_unit', 'product_uom_qty'], 10),
-            },),
-        'amount_tax': fields.function(amount_all_blanket_orderline, multi='sums',string='Taxes'),
-        'amount_total': fields.function(amount_all_blanket_orderline, multi='sums',string='Total'),
+                'tpt.blank.order.line': (_get_order, ['price_unit', 'sub_total', 'product_uom_qty'], 10),
+            }),
+        'amount_tax': fields.function(amount_all_blanket_orderline, multi='sums',string='Taxes',
+#                                       store={
+#                 'tpt.blanket.order': (lambda self, cr, uid, ids, c={}: ids, ['blank_order_line'], 10),
+#                 'tpt.blank.order.line': (_get_order, ['price_unit', 'sub_total', 'product_uom_qty'], 10), },
+            ),
+        'amount_total': fields.function(amount_all_blanket_orderline, multi='sums',string='Total',
+#                                         store={
+#                 'tpt.blanket.order': (lambda self, cr, uid, ids, c={}: ids, ['blank_order_line'], 10),
+#                 'tpt.blank.order.line': (_get_order, ['price_unit', 'sub_total', 'product_uom_qty'], 10), },
+            ),
         
         'blank_consignee_line': fields.one2many('tpt.consignee', 'blanket_consignee_id', 'Consignee'), 
     }
@@ -268,7 +311,7 @@ class tpt_blanket_order(osv.osv):
                     'state_id': customer.state_id.id,
                     'zip': customer.zip,
                     'payment_term_id':customer.property_payment_term.id,
-                    'excise_duty':customer.excise_duty,
+#                     'excise_duty_id':customer.excise_duty_id.id,
                     }
         return {'value': vals}
     
@@ -291,14 +334,14 @@ class tpt_blank_order_line(osv.osv):
             res[line.id] = {
                'sub_total' : 0.0,
                }
-            subtotal = (line.product_uom_qty * line.price_unit) + (line.product_uom_qty * line.price_unit) * (line.blanket_order_id.excise_duty.name/100)
+            subtotal = (line.product_uom_qty * line.price_unit) + (line.product_uom_qty * line.price_unit) * (line.blanket_order_id.excise_duty_id.name/100)
             res[line.id]['sub_total'] = subtotal
         return res
     
     _columns = {
         'blanket_order_id': fields.many2one('tpt.blanket.order', 'Blank Order', ondelete = 'cascade'),
-        'product_id': fields.many2one('product.product', 'Product'),
-        'description': fields.text('Description'),
+        'product_id': fields.many2one('product.product', 'Product', required = True),
+        'description': fields.text('Description', required = True),
         'product_type': fields.selection([('product', 'Stockable Product'),('consu', 'Consumable'),('service', 'Service')],'Product Type'),
         'application_id': fields.many2one('crm.application', 'Application'),
         'product_uom_qty': fields.float('Quantity'),

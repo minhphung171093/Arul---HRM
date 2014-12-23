@@ -19,10 +19,10 @@
                     		<field name="state_id" placeholder="State" options="{'create': false, 'create_edit': false}"/>
                     		<field name="zip" placeholder="ZIP"/>
                     		 <field name="document_type"/>
-                    		 <field name="payment_term_id"/>
+                    		 <field name="payment_term_id" options="{'create': false, 'create_edit': false}"/>
                     		<!-- <field name="currency_id" /> -->
                     		 <field name="incoterms_id" />
-                    		 <field name="excise_duty" />
+                    		 <field name="excise_duty_id" options="{'create': false, 'create_edit': false}"/>
                     		
                     
 	        	</xpath>
@@ -33,7 +33,7 @@
                 	<field name="expected_date" />
                 	<field name="quotaion_no"/>
                 	<field name="distribution_channel" />
-                	<field name="sale_tax" />
+                	<field name="sale_tax_id" options="{'create': false, 'create_edit': false}"/>
                 	<field name="document_status"/>
                 	 <field name="reason" />
 				</xpath>
@@ -97,7 +97,7 @@
 						<field name="payment_term_id" options="{'create': false, 'create_edit': false}"/>
 						<field name="currency_id" />
 						<field name="incoterm_id" />
-						<field name="excise_duty" />
+						<field name="excise_duty_id" />
 						<field name="bo_date" />
 						<field name="po_date" /> 
 						<field name="po_number" />
@@ -124,7 +124,7 @@
                     </h1>
                     <group>
                     	<group >
-                    	<field name="customer_id" on_change = "onchange_customer_id(customer_id)"/>
+                    	<field name="customer_id" on_change = "onchange_customer_id(customer_id)" options="{'create': false, 'create_edit': false}"/>
                     	<label for="invoice_address" />
                     	<div>
                     		<field name="invoice_address" placeholder="Street..."/>
@@ -138,7 +138,7 @@
                     	<field name="payment_term_id" options="{'create': false, 'create_edit': false}"/>
                     	<field name="currency_id" options="{'create': false, 'create_edit': false}"/>
                     	<field name="incoterm_id" options="{'create': false, 'create_edit': false}"/>
-                    	<field name="excise_duty" options="{'create': false, 'create_edit': false}"/>
+                    	<field name="excise_duty_id" options="{'create': false, 'create_edit': false}"/>
                     	</group>
                       
 						<group>
