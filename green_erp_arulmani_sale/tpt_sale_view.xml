@@ -110,7 +110,7 @@
 						<field name="channel" />
 						<field name="sale_tax_id" options="{'create': false, 'create_edit': false}"/>
 						<field name="order_type" />
-						
+						<field name="state" widget="statusbar" statusbar_visible="draft,cancel" statusbar_colors='{"draft":"blue","cancel":"blue"}'/>
 				</tree>
 			</field>
 		</record>
@@ -120,7 +120,11 @@
             <field name="name">tpt.blanket.order.form</field>
             <field name="model">tpt.blanket.order</field>
             <field name="arch" type="xml">
-	            <form string="Blanket Order" version="7.0">   
+	            <form string="Blanket Order" version="7.0">
+	            <header>
+	                    <button name="bt_cancel" states='draft' string="Cancel" type="object" class="oe_highlight" />
+	                    <field name="state" widget="statusbar" statusbar_visible="draft,cancel" statusbar_colors='{"draft":"blue","cancel":"blue"}'/>
+	            </header>    
 	            	<sheet>
                     <h1>
                     	<label for ="name" />
@@ -142,7 +146,7 @@
                     	<field name="payment_term_id" options="{'create': false, 'create_edit': false}"/>
                     	<field name="currency_id" options="{'create': false, 'create_edit': false}"/>
                     	<field name="incoterm_id" options="{'create': false, 'create_edit': false}"/>
-                    	<field name="excise_duty_id" options="{'create': false, 'create_edit': false}"/>
+                    	<field name="excise_duty_id" domain="[('type_tax_use','=','excise_duty')]" options="{'create': false, 'create_edit': false}"/>
                     	</group>
                       
 						<group>
@@ -152,7 +156,7 @@
 						<field name="exp_delivery_date" />
 						<field name="quotaion_no" />
 						<field name="channel" options="{'create': false, 'create_edit': false}"/>
-						<field name="sale_tax_id" options="{'create': false, 'create_edit': false}"/>
+						<field name="sale_tax_id" domain="[('type_tax_use','=','sale')]" options="{'create': false, 'create_edit': false}"/>
 						<field name="order_type" />
 						<field name="reason" />
 						
