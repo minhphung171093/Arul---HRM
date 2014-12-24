@@ -19,6 +19,24 @@
 	
         </record>
         
+        <!--    Sale Order     
+        
+        <record id="sequence_tpt_sale_order_import_code" model="ir.sequence.type">
+            <field name="name">Sale Order Import</field>
+            <field name="code">tpt.sale.order.import</field>
+        </record>
+        
+        <record id="sequence_tpt_sale_order_import_item" model="ir.sequence">
+            <field name="name">Sale Order Import</field>
+            <field name="code">tpt.sale.order.import</field>
+            <field name="prefix">%(year)s</field>
+            <field name="padding">6</field>
+            <field name="number_next_actual">000001</field>
+            <field name="implementation">no_gap</field>
+        </record>
+        
+        -->
+        
         <!--    Batch Request     -->
         
        	<record id="sequence_tpt_batch_req_import_code" model="ir.sequence.type">
@@ -35,6 +53,8 @@
             <field name="implementation">no_gap</field>
 	
         </record>
+        
+        
 
     </data>
 </openerp>

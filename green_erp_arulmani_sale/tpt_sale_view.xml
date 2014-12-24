@@ -220,46 +220,6 @@
             id="menu_action_tpt_blanket_order_form"
             parent="menu_hr_sale_management" sequence="0"/>
             
-        <record id="view_tpt_excise_duty_tree_vew" model="ir.ui.view">
-			<field name="name">tpt.excise.duty.tree</field>
-			<field name="model">tpt.excise.duty</field>
-			<field name="arch" type="xml">
-				<tree string="Excise Duty">
-						<field name="name"/>
-				</tree>
-			</field>
-		</record>
-		
-
-		<record id="view_tpt_excise_duty_form_vew" model="ir.ui.view">
-            <field name="name">tpt.excise.duty.form</field>
-            <field name="model">tpt.excise.duty</field>
-            <field name="arch" type="xml">
-	            <form string="Excise Duty" version="7.0">   
-	            	<sheet>
-		                <group col='4' colspan='2'>    
-						<field name="name" />
-						</group>
-						
-		         	</sheet>
-		         </form>
-			</field>
-		</record>
-          
-		<record id="action_tpt_excise_duty_form" model="ir.actions.act_window">
-            <field name="name">Excise Duty</field>
-            <field name="type">ir.actions.act_window</field>
-            <field name="res_model">tpt.excise.duty</field>
-            <field name="view_type">form</field>
-            <field name="view_mode">tree,form</field>
-            <field name="view_id" ref="view_tpt_excise_duty_tree_vew"/>
-        </record>
-        
-        <menuitem id="menu_hr_sale_management" parent="base.menu_base_partner" name="Sale Management" sequence="60"/>
-        <menuitem action="action_tpt_excise_duty_form"
-            id="menu_action_tpt_excise_duty_form"
-            parent="menu_hr_sale_management" sequence="1"/>
-            
         <record id="view_tpt_test_report_tree_vew" model="ir.ui.view">
 			<field name="name">tpt.test.report.tree</field>
 			<field name="model">tpt.test.report</field>
@@ -404,10 +364,8 @@
 		                		<group>
 		                			<field name="name" invisible="1"/>
 		                			<field name="consignor_name" />
-		                			<field name="consignor_tel" />
-		                			<field name="consignor_certi_no" />
-		                			<field name="consignor_cst_no" />
 		                		</group>
+		                		
 		                		<group >
 			                    	<label for="consignor_street" string="Address"/>
 			                    	<div>
@@ -418,10 +376,17 @@
 			                    		<field name="consignor_state_id" placeholder="State" options="{'create': false, 'create_edit': false}"/>
 			                    		<field name="consignor_zip" placeholder="ZIP"/>
 			                    	</div>
-			                    	<field name="consignor_fax" />
+		                    	</group>
+		                    	<group>
+		                			<field name="consignor_tel" />
+		                			<field name="consignor_certi_no" />
+		                			<field name="consignor_cst_no" />
+		                		</group>
+		                		<group>
+		                			<field name="consignor_fax" />
 			                    	<field name="consignor_date_1" />
 			                    	<field name="consignor_date_2" />
-		                    	</group>
+		                		</group>
 		                	</group>
 		                	<group string="Nature of Transaction">
 		                		<group col="3">

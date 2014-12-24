@@ -24,15 +24,12 @@ class Parser(report_sxw.rml_parse):
         super(Parser, self).__init__(cr, uid, name, context=context)
         pool = pooler.get_pool(self.cr.dbname)
         self.localcontext.update({
-            'get_invoice_date': self.get_invoice_date,
-            'get_giamsat1': self.get_giamsat1,
+            'get_form_403': self.get_form_403,
         })
     
-    def get_invoice_date(self, date):
-        if not date:
-            date = time.strftime(DATE_FORMAT)
-        date = datetime.strptime(date, DATE_FORMAT)
-        return date.strftime('%d/%m/%Y')
+    def get_form_403(self):
+       
+        return
 
 
     

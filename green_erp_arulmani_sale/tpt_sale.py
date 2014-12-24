@@ -40,6 +40,7 @@ class sale_order(osv.osv):
         return result.keys() 
     
     _columns = {
+#         'name': fields.char('Order Reference', size=64, required=True, readonly=True, select=True),
         'order_type':fields.selection([('domestic','Domestic'),('export','Export')],'Order Type' ,required=True),
         'blanket_id':fields.many2one('tpt.blanket.order','Blanket Order'),
 #         'so_date':fields.date('SO Date'),
@@ -50,7 +51,7 @@ class sale_order(osv.osv):
         'reason':fields.text('Reason'),
         'quotaion_no':fields.char('Quotaion No', size = 1024),
         'expected_date':fields.date('Expected delivery Date'),
-        'document_status':fields.selection([('draft','Draft'),('waiting','Waiting for Approval'),('completed','Completed(Ready to Process)'),('partially','Partially Delivered'),('close','Closed(Delivered)')],'Document Status' ,required=True),
+        'document_status':fields.selection([('draft','Draft'),('waiting','Waiting for Approval'),('completed','Completed(Ready to Process)'),('partially','Partially Delivered'),('close','Closed(Delivered)')],'Document Status'),
         'incoterms_id':fields.many2one('stock.incoterms','Incoterms',required = True),
         'distribution_channel':fields.many2one('crm.case.channel','Distribution Channel',required = True),
         'excise_duty_id': fields.many2one('account.tax', 'Ex.Duty', domain="[('type_tax_use','=','excise_duty')]", required = True),
@@ -82,6 +83,7 @@ class sale_order(osv.osv):
         'sale_consignee_line':fields.one2many('tpt.sale.order.consignee','sale_order_consignee_id','Consignee')
     }
     _defaults = {
+#                  'name': lambda obj, cr, uid, context: '/',
 #         'so_date': time.strftime('%Y-%m-%d'),
     }
     def onchange_partner_id(self, cr, uid, ids, partner_id=False, context=None):
@@ -98,17 +100,32 @@ class sale_order(osv.osv):
                     }
         return {'value': vals}    
         
+#     def create(self, cr, uid, vals, context=None):
+#         if vals.get('name','/')=='/':
+#             vals['name'] = self.pool.get('ir.sequence').get(cr, uid, 'tpt.sale.order.import') or '/'
+#         return super(sale_order, self).create(cr, uid, vals, context=context)
     
     def _check_blanket_order_id(self, cr, uid, ids, context=None):
         for blanket in self.browse(cr, uid, ids, context=context):
-            blanket_ids = self.search(cr, uid, [('id','!=',blanket.id),('blanket_id','=',blanket.blanket_id.id)])
-            if blanket_ids:
-                raise osv.except_osv(_('Warning!'),_('The data is not suitable!'))  
-                return False
+            if blanket.blanket_id:
+                blanket_ids = self.search(cr, uid, [('id','!=',blanket.id),('blanket_id','=',blanket.blanket_id.id)])
+                if blanket_ids:
+                    raise osv.except_osv(_('Warning!'),_('The data is not suitable!'))  
+                    return False
         return True
     _constraints = [
         (_check_blanket_order_id, 'Identical Data', ['blanket_id']),
         ]
+    
+    def create(self, cr, uid, vals, context=None):
+        if 'document_status' in vals:
+            vals['document_status'] = 'draft'
+        return super(sale_order, self).create(cr, uid, vals, context)
+    
+    def write(self, cr, uid, ids, vals, context=None):
+        if 'document_status' in vals:
+            vals['document_status'] = 'draft'
+        return super(sale_order, self).write(cr, uid,ids, vals, context)
     
     def onchange_blanket_id(self, cr, uid, ids,blanket_id=False, context=None):
         vals = {}
@@ -342,14 +359,6 @@ class tpt_blanket_order(osv.osv):
     
 tpt_blanket_order()
 
-class tpt_excise_duty(osv.osv):
-    _name = "tpt.excise.duty"
-      
-    _columns = {
-        'name': fields.float('Excise Duty', required = True),
-                }
-tpt_excise_duty()
-
 class tpt_blank_order_line(osv.osv):
     _name = "tpt.blank.order.line"
     
@@ -454,6 +463,7 @@ class tpt_test_report(osv.osv):
         'acid':fields.char('Free Acid, % by mass', size = 1024),
                 }
 tpt_test_report()
+
 class tpt_batch_request(osv.osv):
     _name = "tpt.batch.request"
     

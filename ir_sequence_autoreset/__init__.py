@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 ##############################################################################
 #
-#    OpenERP, Open Source Management Solution
-#    Copyright (C) 2004-2010 Tiny SPRL (<http://tiny.be>).
+#    Auto reset sequence by year,month,day
+#    Copyright 2013 wangbuke <wangbuke@gmail.com>
 #
 #    This program is free software: you can redistribute it and/or modify
 #    it under the terms of the GNU Affero General Public License as
@@ -18,28 +18,4 @@
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 ##############################################################################
-
-{
-    'name': 'VVTi_TPT_SALE',
-    'version': '1.0',
-    'category': 'GreenERP',
-    'sequence': 14,
-    'author': 'Tenth Planet',
-    'website' : 'http://www. tenthplanet.in',
-    'depends': ['green_erp_arulmani_hrm','green_erp_arulmani_crm','sale','stock','ir_sequence_autoreset'],
-    'data': [
-        'data/tpt_sale_data.xml',
-        'tpt_sale_view.xml',
-        'report/print_form_403_view.xml',
-    ],
-    'css' : [
-    ],
-    'js' : [
-    ],
-    'qweb': [
-     ],
-    'installable': True,
-    'auto_install': False,
-    'application': True,
-}
-# vim:expandtab:smartindent:tabstop=4:softtabstop=4:shiftwidth=4:
+import ir_sequence

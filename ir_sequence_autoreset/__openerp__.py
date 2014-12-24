@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 ##############################################################################
 #
-#    OpenERP, Open Source Management Solution
-#    Copyright (C) 2004-2010 Tiny SPRL (<http://tiny.be>).
+#    Auto reset sequence by year,month,day
+#    Copyright 2013 wangbuke <wangbuke@gmail.com>
 #
 #    This program is free software: you can redistribute it and/or modify
 #    it under the terms of the GNU Affero General Public License as
@@ -18,28 +18,33 @@
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 ##############################################################################
-
 {
-    'name': 'VVTi_TPT_SALE',
-    'version': '1.0',
-    'category': 'GreenERP',
-    'sequence': 14,
-    'author': 'Tenth Planet',
-    'website' : 'http://www. tenthplanet.in',
-    'depends': ['green_erp_arulmani_hrm','green_erp_arulmani_crm','sale','stock','ir_sequence_autoreset'],
+    'name': 'ir_sequence_autoreset',
+    'version': '0.1',
+    'category' : 'Others',
+    'description': """
+
+Auto reset sequence by year,month,day
+
+Note: ONLY sequence implementation is standard mode can be reset.
+
+功能：自动重置序列编号 (注：仅当序列实现方法为标准时，才允许自动重置)
+
+如果您觉得好用，请进入下面的网址，付费支持作者 ~
+
+http://me.alipay.com/wangbuke
+
+谢谢！
+
+""",
+    'author': 'wangbuke@gmail.com',
+    'website': 'http://buke.github.io',
+    'depends': ['base'],
     'data': [
-        'data/tpt_sale_data.xml',
-        'tpt_sale_view.xml',
-        'report/print_form_403_view.xml',
+           'ir_sequence.xml',
     ],
-    'css' : [
-    ],
-    'js' : [
-    ],
-    'qweb': [
-     ],
     'installable': True,
-    'auto_install': False,
-    'application': True,
+    'images': [],
 }
+
 # vim:expandtab:smartindent:tabstop=4:softtabstop=4:shiftwidth=4:
