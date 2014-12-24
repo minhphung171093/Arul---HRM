@@ -330,8 +330,13 @@ class tpt_blanket_order(osv.osv):
     
     def onchange_customer_id(self, cr, uid, ids,customer_id=False, context=None):
         vals = {}
+        consignee_lines = []
         if customer_id:
             customer = self.pool.get('res.partner').browse(cr, uid, customer_id)
+#             for line in customer.consignee_line:
+#                 rs = {
+#                         'consignee': line.name,
+#                       }
             vals = {'invoice_address': customer.street,
                     'street2': customer.street2,
                     'city': customer.city,
@@ -417,7 +422,7 @@ class tpt_consignee(osv.osv):
     
     _columns = {
         'blanket_consignee_id': fields.many2one('tpt.blanket.order', 'Consignee'),
-        'name': fields.char('Consignee Name', size = 1024, required = True),
+        'name': fields.char('Consignee', size = 1024),
         'location': fields.char('Location', size = 1024),
         'product_id': fields.many2one('product.product', 'Product'),
         'product_uom_qty': fields.function(quatity_consignee, type = 'float',multi='deltas', string='Quatity'),
@@ -458,6 +463,7 @@ class tpt_batch_request(osv.osv):
         'sale_order_id': fields.many2one('sale.order', 'Sales Order'),
         'customer_id': fields.many2one('res.partner', 'Customer'),
         'description': fields.text('Description'),
+        'request_date': fields.date('Request Date'),
         'product_information_line': fields.one2many('tpt.product.information', 'product_information_id', 'Product Information'), 
                 }
     _defaults={
@@ -492,6 +498,16 @@ class tpt_product_information(osv.osv):
                 }
        
 tpt_product_information()
-
+class res_partner(osv.osv):
+     _inherit = "res.partner"
+      
+     _columns = {
+         'consignee_parent_id': fields.many2one('res.partner', 'Parent', ondelete = 'cascade'),
+        'consignee_line': fields.one2many('res.partner', 'consignee_parent_id', 'Consignee'),
+        'bill_location': fields.boolean('Is Bill To Location'), 
+        'shipping_location': fields.boolean('Is Shipping Location'), 
+                 }
+     
+res_partner()
 
 # vim:expandtab:smartindent:tabstop=4:softtabstop=4:shiftwidth=4:
