@@ -483,5 +483,41 @@ class tpt_product_information(osv.osv):
        
 tpt_product_information()
 
+class tpt_batch_number(osv.osv):
+    _name = "tpt.batch.number"
+     
+    _columns = {
+        'name': fields.char('System Batch No.', size = 1024),          
+        'phy_batch_no': fields.char('Physical Batch No.', size = 1024),     
+                }
 
+tpt_batch_number()
+
+class tpt_batch_allotment(osv.osv):
+    _name = "tpt.batch.allotment"
+     
+    _columns = {
+        'batch_request_id':fields.many2one('tpt.batch.request', 'Batch Request No.',required = True), 
+        'name':fields.date('Date Requested',required = True), 
+        'sale_order_id':fields.many2one('sale.order', 'Sale Order'),   
+        'customer_id':fields.many2one('res.partner', 'Customer', required = True), 
+        'description':fields.text('Description'),
+        'batch_allotment_line': fields.one2many('tpt.batch.allotment.line', 'product_information_id', 'Product Information'), 
+                }
+tpt_batch_allotment()
+
+class tpt_batch_allotment_line(osv.osv):
+    _name = "tpt.batch.allotment.line"
+     
+    _columns = {
+        'batch_allotment_id':fields.many2one('tpt.batch.allotment', 'Batch Allotment',ondelete='cascade'), 
+        'product_id': fields.many2one('product.product', 'Product'),     
+        'product_type': fields.selection([('product', 'Stockable Product'),('consu', 'Consumable'),('service', 'Service')],'Product Type'),   
+        'application_id': fields.many2one('crm.application', 'Application'),    
+        'product_uom_qty': fields.float('Quantity'),   
+        'uom_po_id': fields.many2one('product.uom', 'UOM'),   
+        'sys_batch':fields.many2one('tpt.batch.number', 'System Batch No.'), 
+        'phy_batch':fields.float('Physical Batch No.'),  
+                }
+tpt_batch_allotment_line()
 # vim:expandtab:smartindent:tabstop=4:softtabstop=4:shiftwidth=4:
