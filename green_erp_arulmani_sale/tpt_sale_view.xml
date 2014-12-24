@@ -17,7 +17,7 @@
                     		<field name="city" placeholder="City"/>
                     		<field name="country_id" placeholder="Country" options="{'create': false, 'create_edit': false}"/>
                     		<field name="state_id" placeholder="State" options="{'create': false, 'create_edit': false}"/>
-                    		<field name="zip" placeholder="ZIP"/>
+                    		<field name="zip" placeholder="ZIP"/> 
                     		 <field name="document_type"/>
                     		 <field name="payment_term_id" options="{'create': false, 'create_edit': false}"/>
                     		<!-- <field name="currency_id" /> -->
@@ -46,6 +46,7 @@
 				<xpath expr="//field[@name='partner_invoice_id']"  position="replace">
 					<field name="partner_invoice_id" required="0" invisible="1" />
 				</xpath>
+
 				<xpath expr="//field[@name='date_order']"  position="before">
 					<field name="order_type" />
 				</xpath>
@@ -80,6 +81,10 @@
 		                    	</tree>
 		                </field>
 					</page>
+				</xpath>
+				
+				<xpath expr="//field[@name='partner_id']"  position="replace">
+					<field name="partner_id" />
 				</xpath>
 	       	</field>
         </record>
@@ -325,7 +330,277 @@
         <menuitem id="menu_hr_sale_management" parent="base.menu_base_partner" name="Sale Management" sequence="60"/>
         <menuitem action="action_tpt_batch_request_form"
             id="menu_action_tpt_batch_request_form"
-            parent="menu_hr_sale_management" sequence="2"/>     
+            parent="menu_hr_sale_management" sequence="2"/>
+            
+            
+     <record id="view_tpt_form_403_tree_vew" model="ir.ui.view">
+			<field name="name">tpt.form.403.tree</field>
+			<field name="model">tpt.form.403</field>
+			<field name="arch" type="xml">
+				<tree string="Form 403">
+						<field name="invoice_no"/>
+						<field name="from_place"/>
+						<field name="to_place"/>
+						<field name="from_district"/>
+						<field name="to_district"/>
+						
+				</tree>
+			</field>
+		</record> 
+		
+		<record id="view_tpt_form_403_form_vew" model="ir.ui.view">
+            <field name="name">tpt.form.403.form</field>
+            <field name="model">tpt.form.403</field>
+            <field name="arch" type="xml">
+	            <form string="Form 403" version="7.0">   
+	            	<sheet>
+		                <group col="1">  
+		                	<group col="4" colspan="2">
+		                		<field name="from_place"/>
+								<field name="from_district"/>
+								<field name="to_place"/>
+								<field name="to_district"/>
+								<field name="invoice_no"/>
+								<field name="date"/>
+		                	</group>
+		                	<group string="Consignor's Details">
+		                		<group>
+		                			<field name="name" invisible="1"/>
+		                			<field name="consignor_name" />
+		                		</group>
+		                		
+		                		<group >
+			                    	<label for="consignor_street" string="Address"/>
+			                    	<div>
+			                    		<field name="consignor_street" placeholder="Street..."/>
+			                    		<field name="consignor_street2"/>
+			                    		<field name="consignor_city" placeholder="City"/>
+			                    		<field name="consignor_country_id" placeholder="Country" options="{'create': false, 'create_edit': false}"/>
+			                    		<field name="consignor_state_id" placeholder="State" options="{'create': false, 'create_edit': false}"/>
+			                    		<field name="consignor_zip" placeholder="ZIP"/>
+			                    	</div>
+		                    	</group>
+		                    	<group>
+		                			<field name="consignor_tel" />
+		                			<field name="consignor_certi_no" />
+		                			<field name="consignor_cst_no" />
+		                		</group>
+		                		<group>
+		                			<field name="consignor_fax" />
+			                    	<field name="consignor_date_1" />
+			                    	<field name="consignor_date_2" />
+		                		</group>
+		                	</group>
+		                	<group string="Nature of Transaction">
+		                		<group col="3">
+		                			<field name="selection_nature" widget="radio" />
+		                		</group>
+		                	</group>
+		                	<group string="Transporter’s Details">
+		                		<group>
+		                			<field name="transporter_name" />
+		                			<field name="transporter_owner" />
+		                			<field name="transporter_vehicle_no" />
+		                		</group>
+		                		<group >
+			                    	<label for="transporter_street" string="Address" />
+			                    	<div>
+			                    		<field name="transporter_street" placeholder="Street..."/>
+			                    		<field name="transporter_street2"/>
+			                    		<field name="transporter_city" placeholder="City"/>
+			                    		<field name="transporter_country_id" placeholder="Country" options="{'create': false, 'create_edit': false}"/>
+			                    		<field name="transporter_state_id" placeholder="State" options="{'create': false, 'create_edit': false}"/>
+			                    		<field name="transporter_zip" placeholder="ZIP"/>
+			                    	</div>
+		                    	</group>
+		                	</group>
+		                	<group string="Driver's Details">
+		                		<group>
+		                			<field name="driver_name" />
+		                			<field name="driver_licence" />
+		                			<field name="driver_issuing" />
+		                		</group>
+		                		<group >
+			                    	<label for="driver_street" string="Address" />
+			                    	<div>
+			                    		<field name="driver_street" placeholder="Street..."/>
+			                    		<field name="driver_street2"/>
+			                    		<field name="driver_city" placeholder="City"/>
+			                    		<field name="driver_country_id" placeholder="Country" options="{'create': false, 'create_edit': false}"/>
+			                    		<field name="driver_state_id" placeholder="State" options="{'create': false, 'create_edit': false}"/>
+			                    		<field name="driver_zip" placeholder="ZIP"/>
+			                    	</div>
+		                    	</group>
+		                	</group>
+		                	<group string="In charge of Goods">
+		                		<group >
+		                			<field name="good_name" />
+			                    	<label for="good_street" string="Address" />
+			                    	<div>
+			                    		<field name="good_street" placeholder="Street..."/>
+			                    		<field name="good_street2"/>
+			                    		<field name="good_city" placeholder="City"/>
+			                    		<field name="good_country_id" placeholder="Country" options="{'create': false, 'create_edit': false}"/>
+			                    		<field name="good_state_id" placeholder="State" options="{'create': false, 'create_edit': false}"/>
+			                    		<field name="good_zip" placeholder="ZIP"/>
+			                    	</div>
+		                    	</group>
+		                    	<group>
+		                			<field name="good_designation" />
+		                		</group>
+		                	</group>
+		                	<group string="For Commercial tax Department/Check Post">
+		                		<group >
+		                			<field name="entry_no" />
+		                			<field name="arrival" />
+		                			<field name="reason" />
+		                    	</group>
+		                    	<group>
+		                			<field name="departure" />
+		                			<field name="result" />
+		                		</group>
+		                	</group>                
+						</group>
+						<notebook>
+							<page string = "Consignee">
+								<group col="4" colspan="2">
+									<group >
+				                    	<label for="consignee_street" string="Address" />
+				                    	<div>
+				                    		<field name="consignee_street" placeholder="Street..."/>
+				                    		<field name="consignee_street2"/>
+				                    		<field name="consignee_city" placeholder="City"/>
+				                    		<field name="consignee_country_id" placeholder="Country" options="{'create': false, 'create_edit': false}"/>
+				                    		<field name="consignee_state_id" placeholder="State" options="{'create': false, 'create_edit': false}"/>
+				                    		<field name="consignee_zip" placeholder="ZIP"/>
+				                    	</div>
+				                    	<field name="consignee_value" />
+			                    	</group>
+			                    	<group>
+			                			<field name="consignee_certi_no" />
+			                			<field name="consignee_cst_no" />
+			                		</group>
+		                		</group>
+								<field name="consignee_line" nolabel='1'>
+									<tree editable='bottom'>
+										<field name="number" />
+										<field name="description" />
+										<field name="commodity" />
+										<field name="unity_code" />
+										<field name="rate_of_tax" />
+										<field name="value" />
+									</tree>
+								</field>
+							</page>
+						</notebook>
+		         	</sheet>
+		         </form>
+			</field>
+		</record>
+          
+		<record id="action_view_tpt_form_403_form" model="ir.actions.act_window">
+            <field name="name">Form 403</field>
+            <field name="type">ir.actions.act_window</field>
+            <field name="res_model">tpt.form.403</field>
+            <field name="view_type">form</field>
+            <field name="view_mode">tree,form</field>
+            <field name="view_id" ref="view_tpt_form_403_tree_vew"/>
+        </record>
+        
+        <menuitem action="action_view_tpt_form_403_form"
+            id="menu_action_view_tpt_form_403_form"
+            parent="menu_hr_sale_management" sequence="13"/>
+
+		<record id="tpt_form_are_3_tree_vew" model="ir.ui.view">
+			<field name="name">tpt.form.are.3.tree</field>
+			<field name="model">tpt.form.are.3</field>
+			<field name="arch" type="xml">
+				<tree string="Form A.R.E - 3">
+						<field name="name"/>
+						<field name="date"/>
+						<field name="division_from"/>
+						<field name="division_to"/>
+						<field name="warehouse_from"/>
+						<field name="warehouse_to"/>
+				</tree>
+			</field>
+		</record>      
+            
+		<record id="tpt_form_are_3_form_vew" model="ir.ui.view">
+            <field name="name">tpt.form.are.3.form</field>
+            <field name="model">tpt.form.are.3</field>
+            <field name="arch" type="xml">
+	            <form string="Form A.R.E - 3" version="7.0">   
+	            	<sheet>
+	            		<group col="4" colspan="2">
+	            			<group>
+	            				<field name="name" />
+	            				<field name="range_from" />
+	            				<field name="reg_no_from" />
+	            				<field name="division_from" />
+	            				<field name="warehouse_from" />
+	            				<field name="to_mr_mess" />
+	            				<field name="invoice_no_id" />
+	            			</group>
+	            			<group>
+	            				<field name="date" />
+	            				<field name="range_to" />
+	            				<field name="reg_no_to" />
+	            				<field name="division_to" />
+	            				<field name="warehouse_to" />
+	            			</group>
+	            		</group>
+	            		<notebook>
+							<page string = "Goods Detail">
+								<group col="4" colspan="2">
+									<group>
+										<field name="warehouse_register" />
+			            				<field name="good_description" />
+			            				<field name="gross_weight" />
+			            				<label for="good_qty"/>
+			            				<div>
+			            				<field name="good_qty" class="oe_inline"/> MT
+			            				</div>
+			            				<field name="value" />
+			            				<field name="remarks" />
+									</group>
+									<group>
+										<field name="warehouse_date" />
+			            				<field name="package_description" />
+			            				<field name="marks_package" />
+			            				<field name="warehousing_date" />
+			            				<field name="tranport" />
+			            				<field name="invoiced_date" />
+									</group>
+								</group>
+							</page>
+							<page string = "Duty Rate">
+								<field name="duty_rate_line" nolabel='1'>
+									<tree editable='bottom'>
+										<field name="duty_rate" />
+										<field name="amount_usd" />
+										<field name="amount_inr" />
+									</tree>
+								</field>
+							</page>
+						</notebook>
+	            	</sheet>
+		         </form>
+			</field>
+		</record>   
+		
+		<record id="action_tpt_form_are_3_form_vew" model="ir.actions.act_window">
+            <field name="name">Form A.R.E - 3</field>
+            <field name="type">ir.actions.act_window</field>
+            <field name="res_model">tpt.form.are.3</field>
+            <field name="view_type">form</field>
+            <field name="view_mode">tree,form</field>
+            <field name="view_id" ref="tpt_form_are_3_tree_vew"/>
+        </record>
+        
+        <menuitem action="action_tpt_form_are_3_form_vew"
+            id="menu_action_action_tpt_form_are_3_form_vew"
+            parent="menu_hr_sale_management" sequence="15"/>                     
             
         <record id="tpt_view_res_partner_form" model="ir.ui.view">
             <field name="name">tpt.res.partner.form</field>

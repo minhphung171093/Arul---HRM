@@ -80,12 +80,28 @@ class sale_order(osv.osv):
                 'sale.order.line': (_get_order, ['price_unit', 'tax_id', 'discount', 'product_uom_qty'], 10),
             },
             multi='sums', help="The total amount."),
+        'partner_invoice_id': fields.many2one('res.partner', 'Invoice Address', readonly=True, required=False, states={'draft': [('readonly', False)], 'sent': [('readonly', False)]}, help="Invoice address for current sales order."),
+        'partner_shipping_id': fields.many2one('res.partner', 'Delivery Address', readonly=True, required=False, states={'draft': [('readonly', False)], 'sent': [('readonly', False)]}, help="Delivery address for current sales order."),
         'sale_consignee_line':fields.one2many('tpt.sale.order.consignee','sale_order_consignee_id','Consignee')
     }
     _defaults = {
 #                  'name': lambda obj, cr, uid, context: '/',
 #         'so_date': time.strftime('%Y-%m-%d'),
     }
+    def onchange_partner_id(self, cr, uid, ids, partner_id=False, context=None):
+        vals = {}
+        if partner_id :
+            part = self.pool.get('res.partner').browse(cr, uid, partner_id)
+            vals = {'invoice_address':part.street,
+                    'street2':part.street2,
+                    'city':part.city,
+                    'country_id':part.country_id.id,
+                    'state_id':part.state_id.id,
+                    'zip':part.zip,
+                    
+                    }
+        return {'value': vals}    
+        
 #     def create(self, cr, uid, vals, context=None):
 #         if vals.get('name','/')=='/':
 #             vals['name'] = self.pool.get('ir.sequence').get(cr, uid, 'tpt.sale.order.import') or '/'
@@ -550,6 +566,81 @@ class tpt_batch_allotment(osv.osv):
         return res
 tpt_batch_allotment()
 
+class tpt_form_403(osv.osv):
+    _name = "tpt.form.403"
+     
+    _columns = {
+        'name':fields.char('Form 403', size = 1024),
+        'from_place':fields.char('From Place', size = 1024),
+        'to_place':fields.char('To Place', size = 1024),
+        'from_district':fields.char('From District', size = 1024),
+        'to_district':fields.char('To District', size = 1024),
+        'invoice_no':fields.char('Invoice No', size = 1024),
+        'date':fields.date('Date'),
+        'consignor_name':fields.char('Name', size = 1024),
+        'consignor_street': fields.char('Street', size = 1024),
+        'consignor_street2': fields.char('', size = 1024),
+        'consignor_city': fields.char('', size = 1024),
+        'consignor_country_id': fields.many2one('res.country', ''),
+        'consignor_state_id': fields.many2one('res.country.state', ''),
+        'consignor_zip': fields.char('', size = 1024),
+        'consignor_tel':fields.char('Telephone', size = 15),
+        'consignor_fax':fields.char('Fax', size = 32),
+        'consignor_certi_no':fields.char('Reg. Certificate No', size = 1024),
+        'consignor_cst_no':fields.char('CST Reg No', size = 1024),
+        'consignor_date_1':fields.date('Date'),
+        'consignor_date_2':fields.date('Date'),
+        'transporter_name':fields.char('Name', size = 1024),
+        'transporter_street': fields.char('Street', size = 1024),
+        'transporter_street2': fields.char('', size = 1024),
+        'transporter_city': fields.char('', size = 1024),
+        'transporter_country_id': fields.many2one('res.country', ''),
+        'transporter_state_id': fields.many2one('res.country.state', ''),
+        'transporter_zip': fields.char('', size = 1024),
+        'transporter_owner':fields.char('Owner Partner Name', size = 1024),
+        'transporter_vehicle_no':fields.char('Vehicle No', size = 32),
+        'driver_name':fields.char('Name', size = 1024),
+        'driver_street': fields.char('Street', size = 1024),
+        'driver_street2': fields.char('', size = 1024),
+        'driver_city': fields.char('', size = 1024),
+        'driver_country_id': fields.many2one('res.country', ''),
+        'driver_state_id': fields.many2one('res.country.state', ''),
+        'driver_zip': fields.char('', size = 1024),
+        'driver_licence':fields.char('Driving Licence Number', size = 1024),
+        'driver_issuing':fields.char('Licence Issuing State', size = 1024),
+        'good_name':fields.char('Name', size = 1024),
+        'good_street': fields.char('Street', size = 1024),
+        'good_street2': fields.char('', size = 1024),
+        'good_city': fields.char('', size = 1024),
+        'good_country_id': fields.many2one('res.country', ''),
+        'good_state_id': fields.many2one('res.country.state', ''),
+        'good_zip': fields.char('', size = 1024),
+        'good_designation':fields.char('Designation', size = 1024),
+        'entry_no':fields.char('Entry no', size = 64),
+        'reason':fields.char('Reason for abnormal Stoppage', size = 1024),
+        'result':fields.char('Result if any', size = 1024, required = True),
+        'arrival':fields.datetime('Arrival Time', required = True),
+        'departure':fields.datetime('Departure Time'),
+        'consignee_street': fields.char('Street', size = 1024),
+        'consignee_street2': fields.char('', size = 1024),
+        'consignee_city': fields.char('', size = 1024),
+        'consignee_country_id': fields.many2one('res.country', ''),
+        'consignee_state_id': fields.many2one('res.country.state', ''),
+        'consignee_zip': fields.char('', size = 1024),
+        'consignee_certi_no':fields.char('Reg. Certificate No', size = 1024),
+        'consignee_cst_no':fields.char('CST Reg No', size = 1024),
+        'consignee_value':fields.float('Consigned Value'),
+        'consignee_line':fields.one2many('tpt.form.403.consignee','form_403_id','Consignee'),
+        'selection_nature':fields.selection([('1','Inter State Sale'),
+                                             ('2','Transfer of Documents of Title'),
+                                             ('3','Depot Transfer'),
+                                             ('4','Consignment to Branch/Agent'),
+                                             ('5','For Job works/ Works contract'),
+                                             ('6','Any Other')],'Nature of Transaction',required=True),
+                }
+       
+tpt_form_403()
+
 class res_partner(osv.osv):
      _inherit = "res.partner"
       
@@ -625,4 +716,76 @@ class tpt_pgi(osv.osv):
         'batch_allotment_line': fields.one2many('tpt.batch.allotment.line', 'pgi_id', 'Product'), 
                 }
 tpt_pgi()
+
+class tpt_form_403_consignee(osv.osv):
+    _name = "tpt.form.403.consignee"
+      
+    _columns = {
+        'number': fields.char('SI.No',size = 32, readonly = True),
+        'description': fields.char('Description of Goods',size =1024),
+        'commodity': fields.char('Commodity Code',size = 1024),
+        'unity_code': fields.char('Unity Code',size = 1024),
+        'rate_of_tax': fields.char('Rate of Tax',size = 1024),
+        'value': fields.char('Value',size = 1024, required = True),
+        'form_403_id':fields.many2one('tpt.form.403','Consignee'),
+                
+                }
+    _defaults = {
+        'number': ' ',
+    }
+    def unlink(self, cr, uid, ids, context=None):
+        for line in self.browse(cr, uid, ids):
+            update_ids = self.search(cr, uid,[('form_403_id','=',line.form_403_id.id),('number','>',line.number)])
+            if update_ids:
+                cr.execute("UPDATE tpt_form_403_consignee SET number=number-1 WHERE id in %s",(tuple(update_ids),))
+        return super(tpt_form_403_consignee, self).unlink(cr, uid, ids, context)  
+    
+    def create(self, cr, uid, vals, context=None):
+        if vals.get('form_403_id',False):
+            vals['number'] = len(self.search(cr, uid,[('form_403_id', '=', vals['form_403_id'])])) + 1
+        return super(tpt_form_403_consignee, self).create(cr, uid, vals, context)
+tpt_form_403_consignee()
+
+class tpt_form_are_3(osv.osv):
+    _name = "tpt.form.are.3"
+      
+    _columns = {
+        'name': fields.char('SI.No',size = 32, required = True),
+        'range_from': fields.char('From Range',size =1024),
+        'range_to': fields.char('To Range',size = 1024),
+        'reg_no_from': fields.char('From CE Reg No',size =1024),
+        'reg_no_to': fields.char('To CE Reg No',size = 1024),
+        'division_from': fields.char('From Division',size =1024, required = True),
+        'division_to': fields.char('To Division',size = 1024,  required = True),
+        'warehouse_from': fields.char('From Warehouse',size =1024,  required = True),
+        'warehouse_to': fields.char('To Warehouse',size = 1024,  required = True),
+        'to_mr_mess': fields.char('To Mr./Messrs.',size = 1024),
+        'invoice_no_id': fields.many2one('account.invoice','Invoice No'),
+        'date': fields.date('Date', required = True),
+        'warehouse_register':fields.char('No in Warehouse Register',size = 1024),
+        'good_description':fields.char('Good Description',size = 1024),
+        'remarks':fields.char('Remarks',size = 1024),
+        'package_description':fields.char('No & Package Description',size = 1024),
+        'tranport':fields.char('Tranport Manner',size = 1024),
+        'gross_weight':fields.float('Package gross weight'),
+        'good_qty':fields.float('Good Qty'),
+        'value':fields.float('Value'),
+        'marks_package':fields.float('Marks & No on Packages'),
+        'warehouse_date': fields.date('Warehouse Date of Entry', required = True),
+        'invoiced_date': fields.date('Invoiced Date', required = True),
+        'warehousing_date': fields.date('1st Warehousing Date', required = True),
+        'duty_rate_line':fields.one2many('tpt.form.are.3.duty.rate','form_are_3_id','Duty Rate'),       
+                }
+tpt_form_are_3()
+
+class tpt_form_are_3_duty_rate(osv.osv):
+    _name = "tpt.form.are.3.duty.rate"
+      
+    _columns = {
+        'duty_rate': fields.float('Duty Rate in %', required = True),
+        'amount_usd': fields.float('Amount(in USD)', required = True),
+        'amount_inr': fields.float('Amount(in INR)', required = True),
+        'form_are_3_id': fields.many2one('tpt.form.are.3', 'Duty Rate'),
+                }
+tpt_form_are_3_duty_rate()
 # vim:expandtab:smartindent:tabstop=4:softtabstop=4:shiftwidth=4:
