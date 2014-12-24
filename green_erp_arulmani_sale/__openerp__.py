@@ -30,6 +30,7 @@
     'data': [
         'data/tpt_sale_data.xml',
         'tpt_sale_view.xml',
+        'report/print_form_403_view.xml',
     ],
     'css' : [
     ],
