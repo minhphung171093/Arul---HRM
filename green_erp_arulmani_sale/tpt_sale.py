@@ -40,6 +40,7 @@ class sale_order(osv.osv):
         return result.keys() 
     
     _columns = {
+#         'name': fields.char('Order Reference', size=64, required=True, readonly=True, select=True),
         'order_type':fields.selection([('domestic','Domestic'),('export','Export')],'Order Type' ,required=True),
         'blanket_id':fields.many2one('tpt.blanket.order','Blanket Order'),
 #         'so_date':fields.date('SO Date'),
@@ -50,7 +51,7 @@ class sale_order(osv.osv):
         'reason':fields.text('Reason'),
         'quotaion_no':fields.char('Quotaion No', size = 1024),
         'expected_date':fields.date('Expected delivery Date'),
-        'document_status':fields.selection([('draft','Draft'),('waiting','Waiting for Approval'),('completed','Completed(Ready to Process)'),('partially','Partially Delivered'),('close','Closed(Delivered)')],'Document Status' ,required=True),
+        'document_status':fields.selection([('draft','Draft'),('waiting','Waiting for Approval'),('completed','Completed(Ready to Process)'),('partially','Partially Delivered'),('close','Closed(Delivered)')],'Document Status'),
         'incoterms_id':fields.many2one('stock.incoterms','Incoterms',required = True),
         'distribution_channel':fields.many2one('crm.case.channel','Distribution Channel',required = True),
         'excise_duty_id': fields.many2one('account.tax', 'Ex.Duty', domain="[('type_tax_use','=','excise_duty')]", required = True),
@@ -82,19 +83,35 @@ class sale_order(osv.osv):
         'sale_consignee_line':fields.one2many('tpt.sale.order.consignee','sale_order_consignee_id','Consignee')
     }
     _defaults = {
+#                  'name': lambda obj, cr, uid, context: '/',
 #         'so_date': time.strftime('%Y-%m-%d'),
     }
+#     def create(self, cr, uid, vals, context=None):
+#         if vals.get('name','/')=='/':
+#             vals['name'] = self.pool.get('ir.sequence').get(cr, uid, 'tpt.sale.order.import') or '/'
+#         return super(sale_order, self).create(cr, uid, vals, context=context)
     
     def _check_blanket_order_id(self, cr, uid, ids, context=None):
         for blanket in self.browse(cr, uid, ids, context=context):
-            blanket_ids = self.search(cr, uid, [('id','!=',blanket.id),('blanket_id','=',blanket.blanket_id.id)])
-            if blanket_ids:
-                raise osv.except_osv(_('Warning!'),_('The data is not suitable!'))  
-                return False
+            if blanket.blanket_id:
+                blanket_ids = self.search(cr, uid, [('id','!=',blanket.id),('blanket_id','=',blanket.blanket_id.id)])
+                if blanket_ids:
+                    raise osv.except_osv(_('Warning!'),_('The data is not suitable!'))  
+                    return False
         return True
     _constraints = [
         (_check_blanket_order_id, 'Identical Data', ['blanket_id']),
         ]
+    
+    def create(self, cr, uid, vals, context=None):
+        if 'document_status' in vals:
+            vals['document_status'] = 'draft'
+        return super(sale_order, self).create(cr, uid, vals, context)
+    
+    def write(self, cr, uid, ids, vals, context=None):
+        if 'document_status' in vals:
+            vals['document_status'] = 'draft'
+        return super(sale_order, self).write(cr, uid,ids, vals, context)
     
     def onchange_blanket_id(self, cr, uid, ids,blanket_id=False, context=None):
         vals = {}
@@ -313,8 +330,13 @@ class tpt_blanket_order(osv.osv):
     
     def onchange_customer_id(self, cr, uid, ids,customer_id=False, context=None):
         vals = {}
+        consignee_lines = []
         if customer_id:
             customer = self.pool.get('res.partner').browse(cr, uid, customer_id)
+#             for line in customer.consignee_line:
+#                 rs = {
+#                         'consignee': line.name,
+#                       }
             vals = {'invoice_address': customer.street,
                     'street2': customer.street2,
                     'city': customer.city,
@@ -327,14 +349,6 @@ class tpt_blanket_order(osv.osv):
         return {'value': vals}
     
 tpt_blanket_order()
-
-class tpt_excise_duty(osv.osv):
-    _name = "tpt.excise.duty"
-      
-    _columns = {
-        'name': fields.float('Excise Duty', required = True),
-                }
-tpt_excise_duty()
 
 class tpt_blank_order_line(osv.osv):
     _name = "tpt.blank.order.line"
@@ -408,7 +422,7 @@ class tpt_consignee(osv.osv):
     
     _columns = {
         'blanket_consignee_id': fields.many2one('tpt.blanket.order', 'Consignee'),
-        'name': fields.char('Consignee Name', size = 1024, required = True),
+        'name': fields.char('Consignee', size = 1024),
         'location': fields.char('Location', size = 1024),
         'product_id': fields.many2one('product.product', 'Product'),
         'product_uom_qty': fields.function(quatity_consignee, type = 'float',multi='deltas', string='Quatity'),
@@ -440,6 +454,7 @@ class tpt_test_report(osv.osv):
         'acid':fields.char('Free Acid, % by mass', size = 1024),
                 }
 tpt_test_report()
+
 class tpt_batch_request(osv.osv):
     _name = "tpt.batch.request"
     
@@ -448,6 +463,7 @@ class tpt_batch_request(osv.osv):
         'sale_order_id': fields.many2one('sale.order', 'Sales Order'),
         'customer_id': fields.many2one('res.partner', 'Customer'),
         'description': fields.text('Description'),
+        'request_date': fields.date('Request Date'),
         'product_information_line': fields.one2many('tpt.product.information', 'product_information_id', 'Product Information'), 
                 }
     _defaults={
@@ -487,8 +503,8 @@ class tpt_batch_number(osv.osv):
     _name = "tpt.batch.number"
      
     _columns = {
-        'name': fields.char('System Batch No.', size = 1024),          
-        'phy_batch_no': fields.char('Physical Batch No.', size = 1024),     
+        'name': fields.char('System Batch No.', size = 1024,required = True),          
+        'phy_batch_no': fields.char('Physical Batch No.', size = 1024,required = True),     
                 }
 
 tpt_batch_number()
@@ -497,27 +513,116 @@ class tpt_batch_allotment(osv.osv):
     _name = "tpt.batch.allotment"
      
     _columns = {
-        'batch_request_id':fields.many2one('tpt.batch.request', 'Batch Request No.',required = True), 
+        'batch_request_id':fields.many2one('tpt.batch.request','Batch Request No.',required = True), 
         'name':fields.date('Date Requested',required = True), 
-        'sale_order_id':fields.many2one('sale.order', 'Sale Order'),   
+        'sale_order_id':fields.many2one('sale.order','Sale Order'),   
         'customer_id':fields.many2one('res.partner', 'Customer', required = True), 
         'description':fields.text('Description'),
-        'batch_allotment_line': fields.one2many('tpt.batch.allotment.line', 'product_information_id', 'Product Information'), 
+        'batch_allotment_line': fields.one2many('tpt.batch.allotment.line', 'batch_allotment_id', 'Product Information'), 
                 }
+    def onchange_batch_request_id(self, cr, uid, ids,batch_request_id=False):
+        res = {'value':{
+                        'name':False,
+                        'sale_order_id':False,
+                        'customer_id':False,
+                        'description':False,
+                        'batch_allotment_line':[],
+                      }
+               }
+        if batch_request_id:
+            batch = self.pool.get('tpt.batch.request').browse(cr, uid, batch_request_id)
+            batch_allotment_line = []
+            for line in batch.product_information_line:
+                batch_allotment_line.append({
+                          'product_id': line.product_id.id,
+                          'product_uom_qty':line.product_uom_qty,
+                          'product_type':line.product_type,
+                          'uom_po_id': line.uom_po_id.id,
+                          'application_id':line.application_id.id,
+                    })
+        res['value'].update({
+                    'name':batch.request_date or False,
+                    'sale_order_id':batch.sale_order_id and batch.sale_order_id.id or False,
+                    'customer_id':batch.customer_id and batch.customer_id.id or False,
+                    'description':batch.description or False,
+                    'batch_allotment_line': batch_allotment_line,
+        })
+        return res
 tpt_batch_allotment()
+
+class res_partner(osv.osv):
+     _inherit = "res.partner"
+      
+     _columns = {
+         'consignee_parent_id': fields.many2one('res.partner', 'Parent', ondelete = 'cascade'),
+        'consignee_line': fields.one2many('res.partner', 'consignee_parent_id', 'Consignee'),
+        'bill_location': fields.boolean('Is Bill To Location'), 
+        'shipping_location': fields.boolean('Is Shipping Location'), 
+                 }
+     
+res_partner()
 
 class tpt_batch_allotment_line(osv.osv):
     _name = "tpt.batch.allotment.line"
+#     def get_phy_batch(self, cr, uid, ids, name, arg, context=None):
+#         res = {}
+#         for physical in self.browse(cr, uid, ids, context=context):
+#             res[physical.id] = {
+#                 'phy_batch': physical.sys_batch and physical.sys_batch.phy_batch_no or False,
+#             }
+#         return res
      
     _columns = {
-        'batch_allotment_id':fields.many2one('tpt.batch.allotment', 'Batch Allotment',ondelete='cascade'), 
-        'product_id': fields.many2one('product.product', 'Product'),     
+        'pgi_id':fields.many2one('tpt.pgi','PGI',ondelete='cascade'),
+        'delivery_order_id':fields.many2one('tpt.delivery.order','Delivery Order',ondelete='cascade'),
+        'batch_allotment_id':fields.many2one('tpt.batch.allotment','Batch Allotment',ondelete='cascade'), 
+        'product_id': fields.many2one('product.product','Product'),     
         'product_type': fields.selection([('product', 'Stockable Product'),('consu', 'Consumable'),('service', 'Service')],'Product Type'),   
-        'application_id': fields.many2one('crm.application', 'Application'),    
+        'application_id': fields.many2one('crm.application','Application'),    
         'product_uom_qty': fields.float('Quantity'),   
-        'uom_po_id': fields.many2one('product.uom', 'UOM'),   
-        'sys_batch':fields.many2one('tpt.batch.number', 'System Batch No.'), 
-        'phy_batch':fields.float('Physical Batch No.'),  
+        'uom_po_id': fields.many2one('product.uom','UOM'),   
+        'sys_batch':fields.many2one('tpt.batch.number','System Batch No.'), 
+        'phy_batch':fields.char('Physical Batch No.', size = 1024)
+#         'phy_batch':fields.function(get_phy_batch,type='char',size=1024,string='Physical Batch No.',multi='sum',store=True),
                 }
+    def onchange_sys_batch(self, cr, uid, ids,sys_batch=False):
+        res = {'value':{
+                        'phy_batch_no':False,
+                      }
+               }
+        if sys_batch:
+            batch = self.pool.get('tpt.batch.number').browse(cr, uid, sys_batch)
+        res['value'].update({
+                    'phy_batch':batch.phy_batch_no or False,
+        })
+        return res
 tpt_batch_allotment_line()
+
+class tpt_delivery_order(osv.osv):
+    _name = "tpt.delivery.order"
+    _columns = {
+        'sale_order_id':fields.many2one('sale.order','Sale Order'),   
+        'customer_id':fields.many2one('res.partner', 'Customer'), 
+        'creation_date':fields.date('Creation Date',required = True),
+        'cons_loca':fields.char('Consignee Location', size = 1024),
+        'warehouse':fields.char('Warehouse', size = 1024,required = True),
+        'transporter':fields.char('Transporter Name', size = 1024),
+        'truck':fields.char('Truck Number', size = 1024),
+        'remarks':fields.text('Remarks'),
+        'doc_status':fields.selection([('completed','Completed')],'Document Status'),
+        'batch_allotment_line': fields.one2many('tpt.batch.allotment.line', 'delivery_order_id', 'Product'), 
+                }
+tpt_delivery_order()
+
+class tpt_pgi(osv.osv):
+    _name = "tpt.pgi"
+     
+    _columns = {
+        'do_id':fields.many2one('tpt.delivery.order','Delivery Order',required = True), 
+        'name':fields.date('DO Date',required = True), 
+        'customer_id':fields.many2one('res.partner', 'Customer', required = True), 
+        'warehouse':fields.char('Warehouse', size = 1024,required = True),
+        'batch_allotment_line': fields.one2many('tpt.batch.allotment.line', 'pgi_id', 'Product'), 
+                }
+tpt_pgi()
 # vim:expandtab:smartindent:tabstop=4:softtabstop=4:shiftwidth=4:
