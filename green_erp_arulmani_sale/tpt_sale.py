@@ -135,7 +135,7 @@ class sale_order(osv.osv):
               
             for consignee_line in blanket.blank_consignee_line:
                 rs_consignee = {
-                      'name': consignee_line.name,
+                      'name_consignee': consignee_line.name_consignee,
                       'location': consignee_line.location,
                       'product_id': consignee_line.product_id.id,
                       'product_uom_qty': consignee_line.product_uom_qty,
@@ -207,7 +207,7 @@ class tpt_sale_order_consignee(osv.osv):
           
     _columns = {
         'sale_order_consignee_id': fields.many2one('sale.order', 'Consignee'),
-        'name': fields.char('Consignee Name', size = 1024, required = True),
+        'name_consignee': fields.char('Consignee Name', size = 1024, required = True),
         'location': fields.char('Location', size = 1024),
         'product_id': fields.many2one('product.product', 'Product'),
         'product_uom_qty': fields.function(quatity_consignee, type='float',string='Quatity'),
@@ -333,10 +333,13 @@ class tpt_blanket_order(osv.osv):
         consignee_lines = []
         if customer_id:
             customer = self.pool.get('res.partner').browse(cr, uid, customer_id)
-#             for line in customer.consignee_line:
-#                 rs = {
-#                         'consignee': line.name,
-#                       }
+            for line in customer.consignee_line:
+                rs = {
+                        'name_consignee': line.name,
+                        'location': str(line.street) + str(line.street2) + ' , ' + str(line.city) + ' , ' + str(line.state_id.name) + ' , ' + str(line.country_id.name) + ' , ' +str(line.zip),
+                      }
+                consignee_lines.append((0,0,rs))
+            
             vals = {'invoice_address': customer.street,
                     'street2': customer.street2,
                     'city': customer.city,
@@ -344,6 +347,7 @@ class tpt_blanket_order(osv.osv):
                     'state_id': customer.state_id.id,
                     'zip': customer.zip,
                     'payment_term_id':customer.property_payment_term.id,
+                    'blank_consignee_line': consignee_lines,
 #                     'excise_duty_id':customer.excise_duty_id.id,
                     }
         return {'value': vals}
@@ -422,7 +426,7 @@ class tpt_consignee(osv.osv):
     
     _columns = {
         'blanket_consignee_id': fields.many2one('tpt.blanket.order', 'Consignee'),
-        'name': fields.char('Consignee', size = 1024),
+        'name_consignee': fields.char('Consignee', size = 1024),
         'location': fields.char('Location', size = 1024),
         'product_id': fields.many2one('product.product', 'Product'),
         'product_uom_qty': fields.function(quatity_consignee, type = 'float',multi='deltas', string='Quatity'),
