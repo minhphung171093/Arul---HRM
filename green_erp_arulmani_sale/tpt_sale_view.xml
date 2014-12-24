@@ -17,7 +17,7 @@
                     		<field name="city" placeholder="City"/>
                     		<field name="country_id" placeholder="Country" options="{'create': false, 'create_edit': false}"/>
                     		<field name="state_id" placeholder="State" options="{'create': false, 'create_edit': false}"/>
-                    		<field name="zip" placeholder="ZIP"/>
+                    		<field name="zip" placeholder="ZIP"/> 
                     		 <field name="document_type"/>
                     		 <field name="payment_term_id" options="{'create': false, 'create_edit': false}"/>
                     		<!-- <field name="currency_id" /> -->
@@ -46,6 +46,7 @@
 				<xpath expr="//field[@name='partner_invoice_id']"  position="replace">
 					<field name="partner_invoice_id" required="0" invisible="1" />
 				</xpath>
+
 				<xpath expr="//field[@name='date_order']"  position="before">
 					<field name="order_type" />
 				</xpath>
@@ -83,7 +84,7 @@
 				</xpath>
 				
 				<xpath expr="//field[@name='partner_id']"  position="replace">
-					<field name="partner_id" on_change="onchange_partner_id(partner_id)"/>
+					<field name="partner_id" />
 				</xpath>
 	       	</field>
         </record>
