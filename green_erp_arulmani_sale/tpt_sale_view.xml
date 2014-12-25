@@ -216,7 +216,6 @@
             <field name="view_id" ref="view_tpt_blanket_order_tree_vew"/>
         </record>
         
-        <menuitem id="menu_hr_sale_management" parent="base.menu_base_partner" name="Sale Management" sequence="60"/>
         <menuitem action="action_tpt_blanket_order_form"
             id="menu_action_tpt_blanket_order_form"
             parent="menu_hr_sale_management" sequence="0"/>
@@ -268,7 +267,6 @@
             <field name="view_id" ref="view_tpt_test_report_tree_vew"/>
         </record>
         
-        <menuitem id="menu_hr_sale_management" parent="base.menu_base_partner" name="Sale Management" sequence="60"/>
         <menuitem action="action_view_tpt_test_report_form"
             id="menu_action_view_tpt_test_report_form"
             parent="menu_hr_sale_management" sequence="5"/>						
@@ -327,7 +325,6 @@
             <field name="view_id" ref="view_tpt_batch_request_tree_vew"/>
         </record>
         
-        <menuitem id="menu_hr_sale_management" parent="base.menu_base_partner" name="Sale Management" sequence="60"/>
         <menuitem action="action_tpt_batch_request_form"
             id="menu_action_tpt_batch_request_form"
             parent="menu_hr_sale_management" sequence="2"/>
