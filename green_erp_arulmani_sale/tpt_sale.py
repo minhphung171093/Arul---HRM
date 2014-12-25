@@ -98,6 +98,7 @@ class sale_order(osv.osv):
                     'country_id':part.country_id.id,
                     'state_id':part.state_id.id,
                     'zip':part.zip,
+                    'payment_term_id':part.property_payment_term.id,
                     
                     }
         return {'value': vals}    
@@ -768,10 +769,10 @@ class tpt_form_are_3(osv.osv):
         'to_mr_mess': fields.char('To Mr./Messrs.',size = 1024),
         'invoice_no_id': fields.many2one('account.invoice','Invoice No'),
         'date': fields.date('Date', required = True),
-        'warehouse_register':fields.char('No in Warehouse Register',size = 1024),
+        'warehouse_register':fields.char('No. in Warehouse Register',size = 1024),
         'good_description':fields.char('Good Description',size = 1024),
         'remarks':fields.char('Remarks',size = 1024),
-        'package_description':fields.char('No & Package Description',size = 1024),
+        'package_description':fields.char('No. & Package Description',size = 1024),
         'tranport':fields.char('Tranport Manner',size = 1024),
         'gross_weight':fields.float('Package gross weight'),
         'good_qty':fields.float('Good Qty'),

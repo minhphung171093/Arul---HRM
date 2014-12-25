@@ -8,7 +8,7 @@
             <field name="inherit_id" ref="sale.view_order_form"/>
             <field name="arch" type="xml">
            
-                <xpath expr="//field[@name='partner_id']"  position="after" >
+                <xpath expr="//field[@name='partner_id']" position="after" >
                 	
                 	
                 		<field name="blanket_id" on_change="onchange_blanket_id(blanket_id)" />
@@ -84,7 +84,7 @@
 				</xpath>
 				
 				<xpath expr="//field[@name='partner_id']"  position="replace">
-					<field name="partner_id" />
+					<field name="partner_id" on_change="onchange_partner_id(partner_id)" />
 				</xpath>
 	       	</field>
         </record>
