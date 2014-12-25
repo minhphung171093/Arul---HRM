@@ -460,8 +460,7 @@ class tpt_test_report(osv.osv):
     _name = "tpt.test.report"
       
     _columns = {
-        'name':fields.char('Test Report',size = 1024),
-        'product_id': fields.many2one('product.product', 'Product', required = True),
+        'name': fields.many2one('product.product', 'Product', required = True),
         'grade':fields.char('Grade', size = 1024),
         'ph':fields.char('pH(5% of Slurry)', size = 1024),
         'moisture':fields.char('Moisture, % by mass', size = 1024),
@@ -571,12 +570,11 @@ class tpt_form_403(osv.osv):
     _name = "tpt.form.403"
      
     _columns = {
-        'name':fields.char('Form 403', size = 1024),
         'from_place':fields.char('From Place', size = 1024),
         'to_place':fields.char('To Place', size = 1024),
         'from_district':fields.char('From District', size = 1024),
         'to_district':fields.char('To District', size = 1024),
-        'invoice_no':fields.char('Invoice No', size = 1024),
+        'name':fields.char('Invoice No', size = 1024),
         'date':fields.date('Date'),
         'consignor_name':fields.char('Name', size = 1024),
         'consignor_street': fields.char('Street', size = 1024),
@@ -621,7 +619,7 @@ class tpt_form_403(osv.osv):
         'reason':fields.char('Reason for abnormal Stoppage', size = 1024),
         'result':fields.char('Result if any', size = 1024, required = True),
         'arrival':fields.datetime('Arrival Time', required = True),
-        'departure':fields.datetime('Departure Time'),
+        'departure':fields.datetime('Departure Time', required = True),
         'consignee_street': fields.char('Street', size = 1024),
         'consignee_street2': fields.char('', size = 1024),
         'consignee_city': fields.char('', size = 1024),
@@ -632,12 +630,18 @@ class tpt_form_403(osv.osv):
         'consignee_cst_no':fields.char('CST Reg No', size = 1024),
         'consignee_value':fields.float('Consigned Value'),
         'consignee_line':fields.one2many('tpt.form.403.consignee','form_403_id','Consignee'),
-        'selection_nature':fields.selection([('1','Inter State Sale'),
-                                             ('2','Transfer of Documents of Title'),
-                                             ('3','Depot Transfer'),
-                                             ('4','Consignment to Branch/Agent'),
-                                             ('5','For Job works/ Works contract'),
-                                             ('6','Any Other')],'Nature of Transaction',required=True),
+        'inter_state':fields.boolean('Inter State Sale'),
+        'tranfer':fields.boolean('Transfer of Documents of Title'),
+        'deport_tranfer':fields.boolean('Depot Transfer'),
+        'consigment':fields.boolean('Consignment to Branch/Agent'),
+        'job_work':fields.boolean('For Job works/ Works contract'),
+        'any_other':fields.boolean('Any Other'),
+#         'selection_nature':fields.selection([('1','Inter State Sale'),
+#                                              ('2','Transfer of Documents of Title'),
+#                                              ('3','Depot Transfer'),
+#                                              ('4','Consignment to Branch/Agent'),
+#                                              ('5','For Job works/ Works contract'),
+#                                              ('6','Any Other')],'Nature of Transaction',required=True),
                 }
        
 tpt_form_403()

@@ -225,8 +225,8 @@
 			<field name="name">tpt.test.report.tree</field>
 			<field name="model">tpt.test.report</field>
 			<field name="arch" type="xml">
-				<tree string="Teat Report">
-						<field name="product_id"/>
+				<tree string="Test Report">
+						<field name="name"/>
 						<field name="grade"/>
 						<field name="ph"/>
 						<field name="moisture"/>
@@ -244,8 +244,8 @@
             <field name="arch" type="xml">
 	            <form string="Test Report" version="7.0">   
 	            	<sheet>
-		                <group >    
-						<field name="product_id"/>
+		                <group > 
+						<field name="name"/>
 						<field name="grade"/>
 						<field name="ph"/>
 						<field name="moisture"/>
@@ -338,7 +338,7 @@
 			<field name="model">tpt.form.403</field>
 			<field name="arch" type="xml">
 				<tree string="Form 403">
-						<field name="invoice_no"/>
+						<field name="name"/>
 						<field name="from_place"/>
 						<field name="to_place"/>
 						<field name="from_district"/>
@@ -360,12 +360,11 @@
 								<field name="from_district"/>
 								<field name="to_place"/>
 								<field name="to_district"/>
-								<field name="invoice_no"/>
+								<field name="name" required = "1"/>
 								<field name="date"/>
 		                	</group>
 		                	<group string="Consignor's Details">
 		                		<group>
-		                			<field name="name" invisible="1"/>
 		                			<field name="consignor_name" />
 		                		</group>
 		                		
@@ -392,8 +391,13 @@
 		                		</group>
 		                	</group>
 		                	<group string="Nature of Transaction">
-		                		<group col="3">
-		                			<field name="selection_nature" widget="radio" />
+		                		<group col="4" colspan="2">
+		                			<field name="inter_state" />
+		                			<field name="tranfer" />
+		                			<field name="deport_tranfer" />
+		                			<field name="consigment" />
+		                			<field name="job_work" />
+		                			<field name="any_other" />
 		                		</group>
 		                	</group>
 		                	<group string="Transporter’s Details">
