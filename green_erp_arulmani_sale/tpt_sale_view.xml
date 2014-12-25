@@ -17,7 +17,7 @@
                     		<field name="city" placeholder="City"/>
                     		<field name="country_id" placeholder="Country" options="{'create': false, 'create_edit': false}"/>
                     		<field name="state_id" placeholder="State" options="{'create': false, 'create_edit': false}"/>
-                    		<field name="zip" placeholder="ZIP"/>
+                    		<field name="zip" placeholder="ZIP"/> 
                     		 <field name="document_type"/>
                     		 <field name="payment_term_id" options="{'create': false, 'create_edit': false}"/>
                     		<!-- <field name="currency_id" /> -->
@@ -46,6 +46,7 @@
 				<xpath expr="//field[@name='partner_invoice_id']"  position="replace">
 					<field name="partner_invoice_id" required="0" invisible="1" />
 				</xpath>
+
 				<xpath expr="//field[@name='date_order']"  position="before">
 					<field name="order_type" />
 				</xpath>
@@ -83,7 +84,7 @@
 				</xpath>
 				
 				<xpath expr="//field[@name='partner_id']"  position="replace">
-					<field name="partner_id" on_change="onchange_partner_id(partner_id)"/>
+					<field name="partner_id" />
 				</xpath>
 	       	</field>
         </record>
@@ -215,7 +216,7 @@
             <field name="view_id" ref="view_tpt_blanket_order_tree_vew"/>
         </record>
         
-        <menuitem id="menu_hr_sale_management" parent="base.menu_base_partner" name="Sale Management" sequence="60"/>
+        <menuitem id="menu_hr_sale_management" parent="base.menu_base_partner" name="Sale Management" sequence="1"/>
         <menuitem action="action_tpt_blanket_order_form"
             id="menu_action_tpt_blanket_order_form"
             parent="menu_hr_sale_management" sequence="0"/>
@@ -224,8 +225,8 @@
 			<field name="name">tpt.test.report.tree</field>
 			<field name="model">tpt.test.report</field>
 			<field name="arch" type="xml">
-				<tree string="Teat Report">
-						<field name="product_id"/>
+				<tree string="Test Report">
+						<field name="name"/>
 						<field name="grade"/>
 						<field name="ph"/>
 						<field name="moisture"/>
@@ -243,8 +244,8 @@
             <field name="arch" type="xml">
 	            <form string="Test Report" version="7.0">   
 	            	<sheet>
-		                <group >    
-						<field name="product_id"/>
+		                <group > 
+						<field name="name"/>
 						<field name="grade"/>
 						<field name="ph"/>
 						<field name="moisture"/>
@@ -267,7 +268,6 @@
             <field name="view_id" ref="view_tpt_test_report_tree_vew"/>
         </record>
         
-        <menuitem id="menu_hr_sale_management" parent="base.menu_base_partner" name="Sale Management" sequence="60"/>
         <menuitem action="action_view_tpt_test_report_form"
             id="menu_action_view_tpt_test_report_form"
             parent="menu_hr_sale_management" sequence="5"/>						
@@ -326,7 +326,6 @@
             <field name="view_id" ref="view_tpt_batch_request_tree_vew"/>
         </record>
         
-        <menuitem id="menu_hr_sale_management" parent="base.menu_base_partner" name="Sale Management" sequence="60"/>
         <menuitem action="action_tpt_batch_request_form"
             id="menu_action_tpt_batch_request_form"
             parent="menu_hr_sale_management" sequence="2"/>
@@ -337,7 +336,7 @@
 			<field name="model">tpt.form.403</field>
 			<field name="arch" type="xml">
 				<tree string="Form 403">
-						<field name="invoice_no"/>
+						<field name="name"/>
 						<field name="from_place"/>
 						<field name="to_place"/>
 						<field name="from_district"/>
@@ -359,12 +358,11 @@
 								<field name="from_district"/>
 								<field name="to_place"/>
 								<field name="to_district"/>
-								<field name="invoice_no"/>
+								<field name="name" required = "1"/>
 								<field name="date"/>
 		                	</group>
 		                	<group string="Consignor's Details">
 		                		<group>
-		                			<field name="name" invisible="1"/>
 		                			<field name="consignor_name" />
 		                		</group>
 		                		
@@ -391,8 +389,13 @@
 		                		</group>
 		                	</group>
 		                	<group string="Nature of Transaction">
-		                		<group col="3">
-		                			<field name="selection_nature" widget="radio" />
+		                		<group col="4" colspan="2">
+		                			<field name="inter_state" />
+		                			<field name="tranfer" />
+		                			<field name="deport_tranfer" />
+		                			<field name="consigment" />
+		                			<field name="job_work" />
+		                			<field name="any_other" />
 		                		</group>
 		                	</group>
 		                	<group string="Transporter’s Details">
@@ -711,6 +714,197 @@
         
             </field>
         </record> 
+        
+        <record id="tpt_view_batch_allotment_form" model="ir.ui.view">
+            <field name="model">tpt.batch.allotment</field>
+            <field name="arch" type="xml">
+                <form string="Batch Allotment" version="7.0">
+                   <sheet>
+                   		<group>
+                        	<field name="batch_request_id" options="{'create': false, 'create_edit': false}" on_change="onchange_batch_request_id(batch_request_id)"/>
+                    		<field name="name" />
+                    		<field name="sale_order_id" options="{'create': false, 'create_edit': false}"/>
+                    		<field name="customer_id" options="{'create': false, 'create_edit': false}"/>
+                    		<field name="description" />
+	                    </group>
+	                    <notebook>
+		                    <page string="Product Information" autofocus="autofocus">
+	                            <field name="batch_allotment_line" nolabel='1' >
+	                            	<tree editable='top'>
+	                            		<field name="product_id" widget = "selection" options="{'create': false, 'create_edit': false}"/>
+										<field name="product_type" />
+										<field name="application_id" options="{'create': false, 'create_edit': false}"/>
+										<field name="product_uom_qty" />
+										<field name="uom_po_id" edit='false' options="{'create': false, 'create_edit': false}"/>
+										<field name="sys_batch" options="{'create': false, 'create_edit': false}" on_change="onchange_sys_batch(sys_batch)"/>
+										<field name="phy_batch"/>
+	                                </tree>
+	                            </field>
+	                        </page>
+                       </notebook>
+                  </sheet>
+                </form>
+            </field>
+        </record>
+        <record id="tpt_view_batch_allotment_tree" model="ir.ui.view">
+            <field name="model">tpt.batch.allotment</field>
+            <field name="arch" type="xml">
+                <tree string="Batch Allotment">
+                    <field name="batch_request_id"/>
+                    <field name="name"/>
+                </tree>
+            </field>
+        </record>
+        <record id="tpt_action_batch_allotment" model="ir.actions.act_window">
+            <field name="name">Batch Allotment</field>
+            <field name="type">ir.actions.act_window</field>
+            <field name="res_model">tpt.batch.allotment</field>
+            <field name="view_type">form</field>
+            <field name="view_mode">tree,form</field>
+            <field name="view_id" ref="tpt_view_batch_allotment_tree"/>
+        </record>
+        <menuitem action="tpt_action_batch_allotment" id="tpt_menu_batch_allotment" parent="menu_hr_sale_management" sequence="10"/>
+        
+        <record id="view_tpt_batch_number_form" model="ir.ui.view">
+            <field name="model">tpt.batch.number</field>
+            <field name="arch" type="xml">
+                <form string="Batch Number" version="7.0">
+                   <sheet>
+                    	<field name="name" style="width: 50%%"/>
+                		<field name="phy_batch_no" style="width: 50%%"/>
+                  </sheet>
+                </form>
+            </field>
+        </record>
+        <record id="view_tpt_batch_number_tree" model="ir.ui.view">
+            <field name="model">tpt.batch.number</field>
+            <field name="arch" type="xml">
+                <tree string="Batch Number">
+                    <field name="name"/>
+                    <field name="phy_batch_no"/>
+                </tree>
+            </field>
+        </record>
+        <record id="action_tpt_batch_number" model="ir.actions.act_window">
+            <field name="name">Batch Number</field>
+            <field name="type">ir.actions.act_window</field>
+            <field name="res_model">tpt.batch.number</field>
+            <field name="view_type">form</field>
+            <field name="view_mode">tree,form</field>
+            <field name="view_id" ref="view_tpt_batch_number_tree"/>
+        </record>
+        <menuitem action="action_tpt_batch_number" id="tpt_menu_batch_number" parent="menu_hr_sale_management" sequence="11"/>
+        
+        <record id="view_tpt_delivery_order_form" model="ir.ui.view">
+            <field name="model">tpt.delivery.order</field>
+            <field name="arch" type="xml">
+                <form string="Delivery Order" version="7.0">
+                   <sheet>
+                   		<group>
+                        	<field name="sale_order_id" options="{'create': false, 'create_edit': false}"/>
+                    		<field name="customer_id" options="{'create': false, 'create_edit': false}"/>
+                    		<field name="creation_date"/>
+                    		<field name="cons_loca"/>
+                    		<field name="warehouse"/>
+                    		<field name="transporter"/>
+                    		<field name="truck"/>
+                    		<field name="remarks"/>
+                    		<field name="doc_status"/>
+	                    </group>
+	                    <notebook>
+		                    <page string="Product" autofocus="autofocus">
+	                            <field name="batch_allotment_line" nolabel='1' >
+	                            	<tree editable='top'>
+	                            		<field name="product_id" widget = "selection" options="{'create': false, 'create_edit': false}"/>
+										<field name="product_type"/>
+										<field name="application_id" options="{'create': false, 'create_edit': false}"/>
+										<field name="product_uom_qty"/>
+										<field name="uom_po_id" edit='false' options="{'create': false, 'create_edit': false}"/>
+										<field name="sys_batch" options="{'create': false, 'create_edit': false}" on_change="onchange_sys_batch(sys_batch)"/>
+										<field name="phy_batch"/>
+	                                </tree>
+	                            </field>
+	                        </page>
+                       </notebook>
+                  </sheet>
+                </form>
+            </field>
+        </record>
+        <record id="view_tpt_delivery_order_tree" model="ir.ui.view">
+            <field name="model">tpt.delivery.order</field>
+            <field name="arch" type="xml">
+                <tree string="Delivery Order">
+                    <field name="sale_order_id" options="{'create': false, 'create_edit': false}"/>
+            		<field name="customer_id"/>
+            		<field name="creation_date"/>
+            		<field name="cons_loca"/>
+            		<field name="warehouse"/>
+            		<field name="transporter"/>
+            		<field name="truck"/>
+            		<field name="remarks"/>
+            		<field name="doc_status"/>
+                </tree>
+            </field>
+        </record>
+        <record id="action_tpt_delivery_order" model="ir.actions.act_window">
+            <field name="name">Delivery Order</field>
+            <field name="type">ir.actions.act_window</field>
+            <field name="res_model">tpt.delivery.order</field>
+            <field name="view_type">form</field>
+            <field name="view_mode">tree,form</field>
+            <field name="view_id" ref="view_tpt_delivery_order_tree"/>
+        </record>
+        <menuitem action="action_tpt_delivery_order" id="menu_tpt_delivery_order" parent="menu_hr_sale_management" sequence="12"/>
+        
+        <record id="view_tpt_pgi_form" model="ir.ui.view">
+            <field name="model">tpt.pgi</field>
+            <field name="arch" type="xml">
+                <form string="Post Goods Issue" version="7.0">
+                   <sheet>
+                   		<group>
+                        	<field name="do_id" options="{'create': false, 'create_edit': false}"/>
+                    		<field name="customer_id" options="{'create': false, 'create_edit': false}"/>
+                    		<field name="name"/>
+                    		<field name="warehouse"/>
+	                    </group>
+	                    <notebook>
+		                    <page string="Product" autofocus="autofocus">
+	                            <field name="batch_allotment_line" nolabel='1' >
+	                            	<tree editable='top'>
+	                            		<field name="product_id" widget = "selection" options="{'create': false, 'create_edit': false}"/>
+										<field name="product_type"/>
+										<field name="application_id" options="{'create': false, 'create_edit': false}"/>
+										<field name="product_uom_qty"/>
+										<field name="uom_po_id" edit='false' options="{'create': false, 'create_edit': false}"/>
+										<field name="sys_batch" options="{'create': false, 'create_edit': false}" on_change="onchange_sys_batch(sys_batch)"/>
+										<field name="phy_batch"/>
+	                                </tree>
+	                            </field>
+	                        </page>
+                       </notebook>
+                  </sheet>
+                </form>
+            </field>
+        </record>
+        <record id="view_tpt_pgi_tree" model="ir.ui.view">
+            <field name="model">tpt.pgi</field>
+            <field name="arch" type="xml">
+                <tree string="Post Goods Issue">
+                    <field name="do_id"/>
+            		<field name="customer_id"/>
+            		<field name="name"/>
+            		<field name="warehouse"/>
+                </tree>
+            </field>
+        </record>
+        <record id="action_tpt_pgi" model="ir.actions.act_window">
+            <field name="name">Post Goods Issue</field>
+            <field name="type">ir.actions.act_window</field>
+            <field name="res_model">tpt.pgi</field>
+            <field name="view_type">form</field>
+            <field name="view_mode">tree,form</field>
+            <field name="view_id" ref="view_tpt_pgi_tree"/>
+        </record>
+        <menuitem action="action_tpt_pgi" id="menu_tpt_pgi" parent="menu_hr_sale_management" sequence="13"/>
     </data>
-    
 </openerp>

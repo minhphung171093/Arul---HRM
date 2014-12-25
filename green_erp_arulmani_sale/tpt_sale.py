@@ -80,6 +80,8 @@ class sale_order(osv.osv):
                 'sale.order.line': (_get_order, ['price_unit', 'tax_id', 'discount', 'product_uom_qty'], 10),
             },
             multi='sums', help="The total amount."),
+        'partner_invoice_id': fields.many2one('res.partner', 'Invoice Address', readonly=True, required=False, states={'draft': [('readonly', False)], 'sent': [('readonly', False)]}, help="Invoice address for current sales order."),
+        'partner_shipping_id': fields.many2one('res.partner', 'Delivery Address', readonly=True, required=False, states={'draft': [('readonly', False)], 'sent': [('readonly', False)]}, help="Delivery address for current sales order."),
         'sale_consignee_line':fields.one2many('tpt.sale.order.consignee','sale_order_consignee_id','Consignee')
     }
     _defaults = {
@@ -470,7 +472,7 @@ class tpt_test_report(osv.osv):
     _name = "tpt.test.report"
       
     _columns = {
-        'product_id': fields.many2one('product.product', 'Product', required = True),
+        'name': fields.many2one('product.product', 'Product', required = True),
         'grade':fields.char('Grade', size = 1024),
         'ph':fields.char('pH(5% of Slurry)', size = 1024),
         'moisture':fields.char('Moisture, % by mass', size = 1024),
@@ -525,16 +527,66 @@ class tpt_product_information(osv.osv):
        
 tpt_product_information()
 
+class tpt_batch_number(osv.osv):
+    _name = "tpt.batch.number"
+     
+    _columns = {
+        'name': fields.char('System Batch No.', size = 1024,required = True),          
+        'phy_batch_no': fields.char('Physical Batch No.', size = 1024,required = True),     
+                }
+
+tpt_batch_number()
+
+class tpt_batch_allotment(osv.osv):
+    _name = "tpt.batch.allotment"
+     
+    _columns = {
+        'batch_request_id':fields.many2one('tpt.batch.request','Batch Request No.',required = True), 
+        'name':fields.date('Date Requested',required = True), 
+        'sale_order_id':fields.many2one('sale.order','Sale Order'),   
+        'customer_id':fields.many2one('res.partner', 'Customer', required = True), 
+        'description':fields.text('Description'),
+        'batch_allotment_line': fields.one2many('tpt.batch.allotment.line', 'batch_allotment_id', 'Product Information'), 
+                }
+    def onchange_batch_request_id(self, cr, uid, ids,batch_request_id=False):
+        res = {'value':{
+                        'name':False,
+                        'sale_order_id':False,
+                        'customer_id':False,
+                        'description':False,
+                        'batch_allotment_line':[],
+                      }
+               }
+        if batch_request_id:
+            batch = self.pool.get('tpt.batch.request').browse(cr, uid, batch_request_id)
+            batch_allotment_line = []
+            for line in batch.product_information_line:
+                batch_allotment_line.append({
+                          'product_id': line.product_id.id,
+                          'product_uom_qty':line.product_uom_qty,
+                          'product_type':line.product_type,
+                          'uom_po_id': line.uom_po_id.id,
+                          'application_id':line.application_id.id,
+                    })
+        res['value'].update({
+                    'name':batch.request_date or False,
+                    'sale_order_id':batch.sale_order_id and batch.sale_order_id.id or False,
+                    'customer_id':batch.customer_id and batch.customer_id.id or False,
+                    'description':batch.description or False,
+                    'batch_allotment_line': batch_allotment_line,
+        })
+        return res
+tpt_batch_allotment()
+
 class tpt_form_403(osv.osv):
     _name = "tpt.form.403"
      
     _columns = {
-        'name':fields.char('Form 403', size = 1024),
         'from_place':fields.char('From Place', size = 1024),
         'to_place':fields.char('To Place', size = 1024),
         'from_district':fields.char('From District', size = 1024),
         'to_district':fields.char('To District', size = 1024),
-        'invoice_no':fields.char('Invoice No', size = 1024),
+        'name':fields.char('Invoice No', size = 1024),
         'date':fields.date('Date'),
         'consignor_name':fields.char('Name', size = 1024),
         'consignor_street': fields.char('Street', size = 1024),
@@ -579,7 +631,7 @@ class tpt_form_403(osv.osv):
         'reason':fields.char('Reason for abnormal Stoppage', size = 1024),
         'result':fields.char('Result if any', size = 1024, required = True),
         'arrival':fields.datetime('Arrival Time', required = True),
-        'departure':fields.datetime('Departure Time'),
+        'departure':fields.datetime('Departure Time', required = True),
         'consignee_street': fields.char('Street', size = 1024),
         'consignee_street2': fields.char('', size = 1024),
         'consignee_city': fields.char('', size = 1024),
@@ -590,15 +642,22 @@ class tpt_form_403(osv.osv):
         'consignee_cst_no':fields.char('CST Reg No', size = 1024),
         'consignee_value':fields.float('Consigned Value'),
         'consignee_line':fields.one2many('tpt.form.403.consignee','form_403_id','Consignee'),
-        'selection_nature':fields.selection([('1','Inter State Sale'),
-                                             ('2','Transfer of Documents of Title'),
-                                             ('3','Depot Transfer'),
-                                             ('4','Consignment to Branch/Agent'),
-                                             ('5','For Job works/ Works contract'),
-                                             ('6','Any Other')],'Nature of Transaction',required=True),
+        'inter_state':fields.boolean('Inter State Sale'),
+        'tranfer':fields.boolean('Transfer of Documents of Title'),
+        'deport_tranfer':fields.boolean('Depot Transfer'),
+        'consigment':fields.boolean('Consignment to Branch/Agent'),
+        'job_work':fields.boolean('For Job works/ Works contract'),
+        'any_other':fields.boolean('Any Other'),
+#         'selection_nature':fields.selection([('1','Inter State Sale'),
+#                                              ('2','Transfer of Documents of Title'),
+#                                              ('3','Depot Transfer'),
+#                                              ('4','Consignment to Branch/Agent'),
+#                                              ('5','For Job works/ Works contract'),
+#                                              ('6','Any Other')],'Nature of Transaction',required=True),
                 }
        
 tpt_form_403()
+
 class res_partner(osv.osv):
      _inherit = "res.partner"
       
@@ -610,6 +669,71 @@ class res_partner(osv.osv):
                  }
      
 res_partner()
+
+class tpt_batch_allotment_line(osv.osv):
+    _name = "tpt.batch.allotment.line"
+    def get_phy_batch(self, cr, uid, ids, name, arg, context=None):
+        res = {}
+        for physical in self.browse(cr, uid, ids, context=context):
+            res[physical.id] = {
+                'phy_batch': physical.sys_batch and physical.sys_batch.phy_batch_no or False,
+            }
+        return res
+     
+    _columns = {
+        'pgi_id':fields.many2one('tpt.pgi','PGI',ondelete='cascade'),
+        'delivery_order_id':fields.many2one('tpt.delivery.order','Delivery Order',ondelete='cascade'),
+        'batch_allotment_id':fields.many2one('tpt.batch.allotment','Batch Allotment',ondelete='cascade'), 
+        'product_id': fields.many2one('product.product','Product'),     
+        'product_type': fields.selection([('product', 'Stockable Product'),('consu', 'Consumable'),('service', 'Service')],'Product Type'),   
+        'application_id': fields.many2one('crm.application','Application'),    
+        'product_uom_qty': fields.float('Quantity'),   
+        'uom_po_id': fields.many2one('product.uom','UOM'),   
+        'sys_batch':fields.many2one('tpt.batch.number','System Batch No.'), 
+#         'phy_batch':fields.char('Physical Batch No.', size = 1024)
+        'phy_batch':fields.function(get_phy_batch,type='char', size = 1024,string='Physical Batch No.',multi='sum',store=True),
+                }
+    def onchange_sys_batch(self, cr, uid, ids,sys_batch=False):
+        res = {'value':{}}
+#         res = {'value':{
+#                         'phy_batch_no':False,
+#                       }
+#                }
+#         if sys_batch:
+#             batch = self.pool.get('tpt.batch.number').browse(cr, uid, sys_batch)
+#         res['value'].update({
+#                     'phy_batch':batch.phy_batch_no or False,
+#         })
+        return res
+tpt_batch_allotment_line()
+
+class tpt_delivery_order(osv.osv):
+    _name = "tpt.delivery.order"
+    _columns = {
+        'sale_order_id':fields.many2one('sale.order','Sale Order'),   
+        'customer_id':fields.many2one('res.partner', 'Customer'), 
+        'creation_date':fields.date('Creation Date',required = True),
+        'cons_loca':fields.char('Consignee Location', size = 1024),
+        'warehouse':fields.char('Warehouse', size = 1024,required = True),
+        'transporter':fields.char('Transporter Name', size = 1024),
+        'truck':fields.char('Truck Number', size = 1024),
+        'remarks':fields.text('Remarks'),
+        'doc_status':fields.selection([('completed','Completed')],'Document Status'),
+        'batch_allotment_line': fields.one2many('tpt.batch.allotment.line', 'delivery_order_id', 'Product'), 
+                }
+tpt_delivery_order()
+
+class tpt_pgi(osv.osv):
+    _name = "tpt.pgi"
+     
+    _columns = {
+        'do_id':fields.many2one('tpt.delivery.order','Delivery Order',required = True), 
+        'name':fields.date('DO Date',required = True), 
+        'customer_id':fields.many2one('res.partner', 'Customer', required = True), 
+        'warehouse':fields.char('Warehouse', size = 1024,required = True),
+        'batch_allotment_line': fields.one2many('tpt.batch.allotment.line', 'pgi_id', 'Product'), 
+                }
+tpt_pgi()
 
 class tpt_form_403_consignee(osv.osv):
     _name = "tpt.form.403.consignee"
