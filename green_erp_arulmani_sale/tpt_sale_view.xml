@@ -768,8 +768,10 @@
             <field name="arch" type="xml">
                 <form string="Batch Number" version="7.0">
                    <sheet>
-                    	<field name="name" style="width: 50%%"/>
-                		<field name="phy_batch_no" style="width: 50%%"/>
+                   		<group>
+	                    	<field name="name" string="System Batch No." style="width: 50%%"/>
+	                		<field name="phy_batch_no" string="Physical Batch No." style="width: 50%%"/>
+	                	</group>
                   </sheet>
                 </form>
             </field>
