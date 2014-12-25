@@ -660,13 +660,13 @@ res_partner()
 
 class tpt_batch_allotment_line(osv.osv):
     _name = "tpt.batch.allotment.line"
-#     def get_phy_batch(self, cr, uid, ids, name, arg, context=None):
-#         res = {}
-#         for physical in self.browse(cr, uid, ids, context=context):
-#             res[physical.id] = {
-#                 'phy_batch': physical.sys_batch and physical.sys_batch.phy_batch_no or False,
-#             }
-#         return res
+    def get_phy_batch(self, cr, uid, ids, name, arg, context=None):
+        res = {}
+        for physical in self.browse(cr, uid, ids, context=context):
+            res[physical.id] = {
+                'phy_batch': physical.sys_batch and physical.sys_batch.phy_batch_no or False,
+            }
+        return res
      
     _columns = {
         'pgi_id':fields.many2one('tpt.pgi','PGI',ondelete='cascade'),
@@ -678,19 +678,20 @@ class tpt_batch_allotment_line(osv.osv):
         'product_uom_qty': fields.float('Quantity'),   
         'uom_po_id': fields.many2one('product.uom','UOM'),   
         'sys_batch':fields.many2one('tpt.batch.number','System Batch No.'), 
-        'phy_batch':fields.char('Physical Batch No.', size = 1024)
-#         'phy_batch':fields.function(get_phy_batch,type='char',size=1024,string='Physical Batch No.',multi='sum',store=True),
+#         'phy_batch':fields.char('Physical Batch No.', size = 1024)
+        'phy_batch':fields.function(get_phy_batch,type='char', size = 1024,string='Physical Batch No.',multi='sum',store=True),
                 }
     def onchange_sys_batch(self, cr, uid, ids,sys_batch=False):
-        res = {'value':{
-                        'phy_batch_no':False,
-                      }
-               }
-        if sys_batch:
-            batch = self.pool.get('tpt.batch.number').browse(cr, uid, sys_batch)
-        res['value'].update({
-                    'phy_batch':batch.phy_batch_no or False,
-        })
+        res = {'value':{}}
+#         res = {'value':{
+#                         'phy_batch_no':False,
+#                       }
+#                }
+#         if sys_batch:
+#             batch = self.pool.get('tpt.batch.number').browse(cr, uid, sys_batch)
+#         res['value'].update({
+#                     'phy_batch':batch.phy_batch_no or False,
+#         })
         return res
 tpt_batch_allotment_line()
 
