@@ -460,6 +460,7 @@ class tpt_test_report(osv.osv):
     _name = "tpt.test.report"
       
     _columns = {
+        'name':fields.char('Test Report',size = 1024),
         'product_id': fields.many2one('product.product', 'Product', required = True),
         'grade':fields.char('Grade', size = 1024),
         'ph':fields.char('pH(5% of Slurry)', size = 1024),
