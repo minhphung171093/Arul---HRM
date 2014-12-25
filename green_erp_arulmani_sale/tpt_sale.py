@@ -88,15 +88,23 @@ class sale_order(osv.osv):
     }
     def onchange_partner_id(self, cr, uid, ids, partner_id=False, context=None):
         vals = {}
+        consignee_lines = []
         if partner_id :
             part = self.pool.get('res.partner').browse(cr, uid, partner_id)
+            for line in part.consignee_line:
+                rs = {
+                        'name_consignee': line.name,
+                        'location': str(line.street) + str(line.street2) + ' , ' + str(line.city) + ' , ' + str(line.state_id.name) + ' , ' + str(line.country_id.name) + ' , ' +str(line.zip),
+                      }
+                consignee_lines.append((0,0,rs))
             vals = {'invoice_address':part.street,
                     'street2':part.street2,
                     'city':part.city,
                     'country_id':part.country_id.id,
                     'state_id':part.state_id.id,
                     'zip':part.zip,
-                    
+                    'payment_term_id':part.property_payment_term.id,
+                    'sale_consignee_line': consignee_lines,
                     }
         return {'value': vals}    
         
