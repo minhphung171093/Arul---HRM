@@ -27,8 +27,8 @@
                     
 	        	</xpath>
 				<xpath expr="//field[@name='date_order']"  position="replace">
-					<field name="date_order" string = "SO Date" />
-                	<field name="po_date" />
+					<field name="date_order" string = "SO Date" readonly = "1"/>
+                	<field name="po_date" on_change="onchange_po_date(po_date)" />
                 	<field name="po_number" />
                 	<field name="expected_date" />
                 	<field name="quotaion_no"/>
@@ -55,6 +55,7 @@
 				</xpath>
 				<xpath expr="//field[@name='payment_term']"  position="replace">
 				</xpath>
+			
 				<xpath expr="//form/sheet/notebook/page[@string='Order Lines']/field/tree/field[@name='name']"  position="after">
 					<field name="product_type" />
 					<field name="application_id" />
@@ -87,6 +88,9 @@
 				
 				<xpath expr="//field[@name='partner_id']"  position="replace">
 					<field name="partner_id" on_change="onchange_partner_id(partner_id)" />
+				</xpath>
+				<xpath expr="//button[@name='action_button_confirm']"  position="attributes">
+					<attribute name='invisible'>1</attribute>
 				</xpath>
 	       	</field>
         </record>
