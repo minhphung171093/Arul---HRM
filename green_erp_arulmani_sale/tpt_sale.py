@@ -148,6 +148,11 @@ class sale_order(osv.osv):
         consignee_lines = []
         if blanket_id:
             blanket = self.pool.get('tpt.blanket.order').browse(cr, uid, blanket_id)
+            for line in self.browse(cr, uid, ids):
+                sql = '''
+                    delete from sale_order_line where order_id = %s
+                '''%(line.id)
+                cr.execute(sql)
             for blanket_line in blanket.blank_order_line:
                 rs_order = {
                       'product_id': blanket_line.product_id.id,
@@ -159,6 +164,7 @@ class sale_order(osv.osv):
                       'price_unit': blanket_line.price_unit,
                       'price_subtotal': blanket_line.sub_total,
                       'freight': blanket_line.freight,
+                      'state': 'draft',
                       }
                 blanket_lines.append((0,0,rs_order))
               
@@ -193,7 +199,6 @@ class sale_order(osv.osv):
                     'amount_untaxed': blanket.amount_untaxed,
                     'order_line':blanket_lines,
                     'sale_consignee_line':consignee_lines,
-                        
                         }
         return {'value': vals}    
 
@@ -201,6 +206,18 @@ sale_order()
 
 class sale_order_line(osv.osv):
     _inherit = 'sale.order.line'
+    
+    def create(self, cr, uid, vals, context=None):
+        if 'product_id' in vals:
+            product = self.pool.get('product.product').browse(cr, uid, vals['product_id'])
+            vals.update({'product_uom':product.uom_id.id})
+        return super(sale_order_line, self).create(cr, uid, vals, context)
+    
+    def write(self, cr, uid, ids, vals, context=None):
+        if 'product_id' in vals:
+            product = self.pool.get('product.product').browse(cr, uid, vals['product_id'])
+            vals.update({'product_uom':product.uom_id.id})
+        return super(sale_order_line, self).write(cr, uid,ids, vals, context)
     
     def _amount_line(self, cr, uid, ids, field_name, arg, context=None):
         subtotal = 0.0
@@ -615,8 +632,8 @@ class tpt_form_403(osv.osv):
         'to_place':fields.char('To Place', size = 1024),
         'from_district':fields.char('From District', size = 1024),
         'to_district':fields.char('To District', size = 1024),
-        'name':fields.char('Invoice No', size = 1024),
-        'date':fields.date('Date'),
+        'name':fields.many2one('account.invoice','Invoice No'),
+        'date':fields.related('name', 'date_invoice', type='date', string='Date',readonly=True),
         'consignor_name':fields.char('Name', size = 1024),
         'consignor_street': fields.char('Street', size = 1024),
         'consignor_street2': fields.char('', size = 1024),
@@ -809,10 +826,10 @@ class tpt_form_are_3(osv.osv):
         'to_mr_mess': fields.char('To Mr./Messrs.',size = 1024),
         'invoice_no_id': fields.many2one('account.invoice','Invoice No'),
         'date': fields.date('Date', required = True),
-        'warehouse_register':fields.char('No in Warehouse Register',size = 1024),
+        'warehouse_register':fields.char('No. in Warehouse Register',size = 1024),
         'good_description':fields.char('Good Description',size = 1024),
         'remarks':fields.char('Remarks',size = 1024),
-        'package_description':fields.char('No & Package Description',size = 1024),
+        'package_description':fields.char('No. & Package Description',size = 1024),
         'tranport':fields.char('Tranport Manner',size = 1024),
         'gross_weight':fields.float('Package gross weight'),
         'good_qty':fields.float('Good Qty'),
