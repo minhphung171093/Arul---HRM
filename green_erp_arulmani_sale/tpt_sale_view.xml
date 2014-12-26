@@ -730,9 +730,9 @@
 	                            		<field name="product_id" widget = "selection" options="{'create': false, 'create_edit': false}"/>
 										<field name="product_type" />
 										<field name="application_id" options="{'create': false, 'create_edit': false}"/>
-										<field name="product_uom_qty" />
+										<field name="product_uom_qty" on_change="onchange_sys_batch(sys_batch,product_uom_qty)"/>
 										<field name="uom_po_id" edit='false' options="{'create': false, 'create_edit': false}"/>
-										<field name="sys_batch" options="{'create': false, 'create_edit': false}" on_change="onchange_sys_batch(sys_batch)"/>
+										<field name="sys_batch" domain="[('product_id','=',product_id)]" options="{'create': false, 'create_edit': false}" on_change="onchange_sys_batch(sys_batch,product_uom_qty)"/>
 										<field name="phy_batch"/>
 	                                </tree>
 	                            </field>
@@ -761,39 +761,7 @@
         </record>
         <menuitem action="tpt_action_batch_allotment" id="tpt_menu_batch_allotment" parent="menu_hr_sale_management" sequence="10"/>
         
-        <record id="view_tpt_batch_number_form" model="ir.ui.view">
-            <field name="model">tpt.batch.number</field>
-            <field name="arch" type="xml">
-                <form string="Batch Number" version="7.0">
-                   <sheet>
-                   		<group>
-	                    	<field name="name" string="System Batch No." style="width: 50%%"/>
-	                		<field name="phy_batch_no" string="Physical Batch No." style="width: 50%%"/>
-	                	</group>
-                  </sheet>
-                </form>
-            </field>
-        </record>
-        <record id="view_tpt_batch_number_tree" model="ir.ui.view">
-            <field name="model">tpt.batch.number</field>
-            <field name="arch" type="xml">
-                <tree string="Batch Number">
-                    <field name="name"/>
-                    <field name="phy_batch_no"/>
-                </tree>
-            </field>
-        </record>
-        <record id="action_tpt_batch_number" model="ir.actions.act_window">
-            <field name="name">Batch Number</field>
-            <field name="type">ir.actions.act_window</field>
-            <field name="res_model">tpt.batch.number</field>
-            <field name="view_type">form</field>
-            <field name="view_mode">tree,form</field>
-            <field name="view_id" ref="view_tpt_batch_number_tree"/>
-        </record>
-        <menuitem action="action_tpt_batch_number" id="tpt_menu_batch_number" parent="menu_hr_sale_management" sequence="11"/>
-        
-        <record id="view_tpt_delivery_order_form" model="ir.ui.view">
+        <!--<record id="view_tpt_delivery_order_form" model="ir.ui.view">
             <field name="model">tpt.delivery.order</field>
             <field name="arch" type="xml">
                 <form string="Delivery Order" version="7.0">
@@ -852,7 +820,7 @@
             <field name="view_mode">tree,form</field>
             <field name="view_id" ref="view_tpt_delivery_order_tree"/>
         </record>
-        <menuitem action="action_tpt_delivery_order" id="menu_tpt_delivery_order" parent="menu_hr_sale_management" sequence="12"/>
+        <menuitem action="action_tpt_delivery_order" id="menu_tpt_delivery_order" parent="menu_hr_sale_management" sequence="12"/>-->
         
         <record id="view_tpt_pgi_form" model="ir.ui.view">
             <field name="model">tpt.pgi</field>
@@ -904,5 +872,16 @@
             <field name="view_id" ref="view_tpt_pgi_tree"/>
         </record>
         <menuitem action="action_tpt_pgi" id="menu_tpt_pgi" parent="menu_hr_sale_management" sequence="13"/>
+        
+        <record id="stock_production_lot_form" model="ir.ui.view">
+            <field name="name">stock.production.lot.form</field>
+            <field name="model">stock.production.lot</field>
+            <field name="inherit_id" ref="stock.view_production_lot_form"/>
+            <field name="arch" type="xml">
+                <xpath expr="//field[@name='product_id']"  position="after" >
+                	<field name="phy_batch_no"/>
+                </xpath>
+            </field>
+        </record> 
     </data>
 </openerp>

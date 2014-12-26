@@ -522,6 +522,23 @@ class tpt_batch_number(osv.osv):
         'name': fields.char('System Batch No.', size = 1024,required = True),          
         'phy_batch_no': fields.char('Physical Batch No.', size = 1024,required = True),     
                 }
+    def search(self, cr, uid, args, offset=0, limit=None, order=None, context=None, count=False):
+        if context is None:
+            context = {}
+        if context.get('batch_number_selected'):
+            sql = '''
+                SELECT sys_batch FROM tpt_batch_allotment_line where sys_batch is not null
+            '''
+            cr.execute(sql)
+            tpt_batch_number_ids = [row[0] for row in cr.fetchall()]
+            batch_ids = self.search(cr, uid, [('id','not in',tpt_batch_number_ids)])
+            if context.get('sys_batch'):
+                batch_ids.append(context.get('sys_batch'))
+            args += [('id','in',batch_ids)]
+        return super(tpt_batch_number, self).search(cr, uid, args, offset, limit, order, context, count)
+    def name_search(self, cr, user, name, args=None, operator='ilike', context=None, limit=100):
+        ids = self.search(cr, user, args, context=context, limit=limit)
+        return self.name_get(cr, user, ids, context=context)
 
 tpt_batch_number()
 
@@ -672,22 +689,39 @@ class tpt_batch_allotment_line(osv.osv):
         'application_id': fields.many2one('crm.application','Application'),    
         'product_uom_qty': fields.float('Quantity'),   
         'uom_po_id': fields.many2one('product.uom','UOM'),   
-        'sys_batch':fields.many2one('tpt.batch.number','System Batch No.'), 
+        'sys_batch':fields.many2one('stock.production.lot','System Serial No.'), 
 #         'phy_batch':fields.char('Physical Batch No.', size = 1024)
-        'phy_batch':fields.function(get_phy_batch,type='char', size = 1024,string='Physical Batch No.',multi='sum',store=True),
+        'phy_batch':fields.function(get_phy_batch,type='char', size = 1024,string='Physical Serial No.',multi='sum',store=True),
                 }
-    def onchange_sys_batch(self, cr, uid, ids,sys_batch=False):
-        res = {'value':{}}
+    def onchange_sys_batch(self, cr, uid, ids,sys_batch=False,qty=False):
 #         res = {'value':{
-#                         'phy_batch_no':False,
-#                       }
-#                }
-#         if sys_batch:
-#             batch = self.pool.get('tpt.batch.number').browse(cr, uid, sys_batch)
-#         res['value'].update({
-#                     'phy_batch':batch.phy_batch_no or False,
-#         })
-        return res
+#                         'sys_batch':False
+#                         }}
+#         if sys_batch and qty:
+#             batch = self.pool.get('stock.production.lot').browse(cr, uid, sys_batch)
+#             if  batch.stock_available < qty:
+#                 warning = {  
+#                           'title': _('Warning'),  
+#                           'message': _('The quantity product of sale order  is not greater than the quantity product in stock!'),  
+#                           }  
+#                 res['value'].update({'sys_batch':False,'warning':warning,})
+# #                 raise osv.except_osv(_('Warning!'),_('The quantity product of sale order  is not greater than the quantity product in stock !'))
+#             else:
+#                 res['value'].update({'sys_batch':sys_batch,})
+#         return res
+        vals = {}
+        if sys_batch and qty:
+            batch = self.pool.get('stock.production.lot').browse(cr, uid, sys_batch)
+            if  batch.stock_available < qty:
+                warning = {  
+                          'title': _('Warning!'),  
+                          'message': _('The quantity product of sale order  is not greater than the quantity product in stock!'),  
+                          }  
+                vals['sys_batch']=False
+                return {'value': vals,'warning':warning}
+            else:
+                vals['sys_batch']= sys_batch
+        return {'value': vals}
 tpt_batch_allotment_line()
 
 class tpt_delivery_order(osv.osv):
@@ -789,4 +823,45 @@ class tpt_form_are_3_duty_rate(osv.osv):
         'form_are_3_id': fields.many2one('tpt.form.are.3', 'Duty Rate'),
                 }
 tpt_form_are_3_duty_rate()
+
+class stock_production_lot(osv.osv):
+    _inherit = "stock.production.lot"
+    _columns = {
+        'phy_batch_no': fields.char('Physical Serial No.', size = 1024,required = True), 
+                }
+stock_production_lot()  
+
+class stock_picking_out(osv.osv):
+    _inherit = "stock.picking.out"
+    _columns = {
+        'sale_order_id':fields.many2one('sale.order','Sale Order'),   
+        'cons_loca':fields.char('Consignee Location', size = 1024),
+        'warehouse':fields.char('Warehouse', size = 1024,required = True),
+        'transporter':fields.char('Transporter Name', size = 1024),
+        'truck':fields.char('Truck Number', size = 1024),
+        'remarks':fields.text('Remarks'),
+        'doc_status':fields.selection([('completed','Completed')],'Document Status'),
+                }
+    
+stock_picking_out()
+
+class stock_move(osv.osv):
+    _inherit = "stock.move"
+    def get_phy_batch(self, cr, uid, ids, name, arg, context=None):
+        res = {}
+        for physical in self.browse(cr, uid, ids, context=context):
+            res[physical.id] = {
+                'phy_batch': physical.prodlot_id and physical.prodlot_id.phy_batch_no or False,
+            }
+        return res
+    _columns = {
+        'product_type': fields.selection([('product', 'Stockable Product'),('consu', 'Consumable'),('service', 'Service')],'Product Type'),   
+        'application_id': fields.many2one('crm.application','Application'),   
+        'prodlot_id': fields.many2one('stock.production.lot', 'System Serial No.', states={'done': [('readonly', True)]}, help="Serial number is used to put a serial number on the production", select=True), 
+#         'sys_batch':fields.many2one('stock.production.lot','System Serial No.'), 
+#         'phy_batch':fields.char('Physical Batch No.', size = 1024)
+        'phy_batch':fields.function(get_phy_batch,type='char', size = 1024,string='Physical Serial No.',multi='sum',store=True),
+                }
+    
+stock_move()
 # vim:expandtab:smartindent:tabstop=4:softtabstop=4:shiftwidth=4:
