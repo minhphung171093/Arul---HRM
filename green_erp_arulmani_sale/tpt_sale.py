@@ -9,6 +9,7 @@ from datetime import datetime
 import datetime
 import calendar
 import openerp.addons.decimal_precision as dp
+from openerp import netsvc
 
 class sale_order(osv.osv):
     _inherit = "sale.order"
@@ -563,8 +564,40 @@ class tpt_batch_allotment(osv.osv):
         'sale_order_id':fields.many2one('sale.order','Sale Order'),   
         'customer_id':fields.many2one('res.partner', 'Customer', required = True), 
         'description':fields.text('Description'),
+        'state': fields.selection([('to_approve', 'To Approved'), ('refuse', 'Refused'),('confirm', 'Approve'), ('cancel', 'Cancelled')],'Status'),
         'batch_allotment_line': fields.one2many('tpt.batch.allotment.line', 'batch_allotment_id', 'Product Information'), 
                 }
+    _defaults = {
+              'state': 'to_approve',
+    }
+    def confirm(self, cr, uid, ids, context=None):
+        self.write(cr, uid, ids, {'state': 'confirm'})
+        sale_obj = self.pool.get('sale.order')
+        for batch_allotment in self.browse(cr,uid,ids,context=context):
+            picking_out_ids = self.pool.get('stock.picking').search(cr,uid,[('sale_id','=',batch_allotment.sale_order_id.id)],context=context)
+            if picking_out_ids:
+                return True
+            wf_service = netsvc.LocalService('workflow')
+            wf_service.trg_validate(uid, 'sale.order', batch_allotment.sale_order_id.id, 'order_confirm', cr)
+    
+            # redisplay the record as a sales order
+            view_ref = self.pool.get('ir.model.data').get_object_reference(cr, uid, 'sale', 'view_order_form')
+            view_id = view_ref and view_ref[1] or False,
+            return {
+                'type': 'ir.actions.act_window',
+                'name': _('Sales Order'),
+                'res_model': 'sale.order',
+                'res_id': batch_allotment.sale_order_id.id,
+                'view_type': 'form',
+                'view_mode': 'form',
+                'view_id': view_id,
+                'target': 'current',
+                'nodestroy': True,
+            }
+    def refuse(self, cr, uid, ids, context=None):
+        return self.write(cr, uid, ids, {'state': 'refuse'})
+    def cancelled(self, cr, uid, ids, context=None):
+        return self.write(cr, uid, ids, {'state': 'cancel'})
     def onchange_batch_request_id(self, cr, uid, ids,batch_request_id=False):
         res = {'value':{
                         'name':False,
@@ -699,7 +732,7 @@ class tpt_batch_allotment_line(osv.osv):
      
     _columns = {
         'pgi_id':fields.many2one('tpt.pgi','PGI',ondelete='cascade'),
-        'delivery_order_id':fields.many2one('tpt.delivery.order','Delivery Order',ondelete='cascade'),
+#         'delivery_order_id':fields.many2one('tpt.delivery.order','Delivery Order',ondelete='cascade'),
         'batch_allotment_id':fields.many2one('tpt.batch.allotment','Batch Allotment',ondelete='cascade'), 
         'product_id': fields.many2one('product.product','Product'),     
         'product_type': fields.selection([('product', 'Stockable Product'),('consu', 'Consumable'),('service', 'Service')],'Product Type'),   
@@ -710,7 +743,7 @@ class tpt_batch_allotment_line(osv.osv):
 #         'phy_batch':fields.char('Physical Batch No.', size = 1024)
         'phy_batch':fields.function(get_phy_batch,type='char', size = 1024,string='Physical Serial No.',multi='sum',store=True),
                 }
-    def onchange_sys_batch(self, cr, uid, ids,sys_batch=False,qty=False):
+    def onchange_sys_batch(self, cr, uid, ids,sys_batch=False,qty=False,batch_allotment_line=False,context=None):
 #         res = {'value':{
 #                         'sys_batch':False
 #                         }}
@@ -741,27 +774,11 @@ class tpt_batch_allotment_line(osv.osv):
         return {'value': vals}
 tpt_batch_allotment_line()
 
-class tpt_delivery_order(osv.osv):
-    _name = "tpt.delivery.order"
-    _columns = {
-        'sale_order_id':fields.many2one('sale.order','Sale Order'),   
-        'customer_id':fields.many2one('res.partner', 'Customer'), 
-        'creation_date':fields.date('Creation Date',required = True),
-        'cons_loca':fields.char('Consignee Location', size = 1024),
-        'warehouse':fields.char('Warehouse', size = 1024,required = True),
-        'transporter':fields.char('Transporter Name', size = 1024),
-        'truck':fields.char('Truck Number', size = 1024),
-        'remarks':fields.text('Remarks'),
-        'doc_status':fields.selection([('completed','Completed')],'Document Status'),
-        'batch_allotment_line': fields.one2many('tpt.batch.allotment.line', 'delivery_order_id', 'Product'), 
-                }
-tpt_delivery_order()
-
 class tpt_pgi(osv.osv):
     _name = "tpt.pgi"
      
     _columns = {
-        'do_id':fields.many2one('tpt.delivery.order','Delivery Order',required = True), 
+#         'do_id':fields.many2one('tpt.delivery.order','Delivery Order',required = True), 
         'name':fields.date('DO Date',required = True), 
         'customer_id':fields.many2one('res.partner', 'Customer', required = True), 
         'warehouse':fields.char('Warehouse', size = 1024,required = True),
@@ -848,37 +865,5 @@ class stock_production_lot(osv.osv):
                 }
 stock_production_lot()  
 
-class stock_picking_out(osv.osv):
-    _inherit = "stock.picking.out"
-    _columns = {
-        'sale_order_id':fields.many2one('sale.order','Sale Order'),   
-        'cons_loca':fields.char('Consignee Location', size = 1024),
-        'warehouse':fields.char('Warehouse', size = 1024,required = True),
-        'transporter':fields.char('Transporter Name', size = 1024),
-        'truck':fields.char('Truck Number', size = 1024),
-        'remarks':fields.text('Remarks'),
-        'doc_status':fields.selection([('completed','Completed')],'Document Status'),
-                }
-    
-stock_picking_out()
 
-class stock_move(osv.osv):
-    _inherit = "stock.move"
-    def get_phy_batch(self, cr, uid, ids, name, arg, context=None):
-        res = {}
-        for physical in self.browse(cr, uid, ids, context=context):
-            res[physical.id] = {
-                'phy_batch': physical.prodlot_id and physical.prodlot_id.phy_batch_no or False,
-            }
-        return res
-    _columns = {
-        'product_type': fields.selection([('product', 'Stockable Product'),('consu', 'Consumable'),('service', 'Service')],'Product Type'),   
-        'application_id': fields.many2one('crm.application','Application'),   
-        'prodlot_id': fields.many2one('stock.production.lot', 'System Serial No.', states={'done': [('readonly', True)]}, help="Serial number is used to put a serial number on the production", select=True), 
-#         'sys_batch':fields.many2one('stock.production.lot','System Serial No.'), 
-#         'phy_batch':fields.char('Physical Batch No.', size = 1024)
-        'phy_batch':fields.function(get_phy_batch,type='char', size = 1024,string='Physical Serial No.',multi='sum',store=True),
-                }
-    
-stock_move()
 # vim:expandtab:smartindent:tabstop=4:softtabstop=4:shiftwidth=4:
