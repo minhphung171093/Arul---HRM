@@ -26,12 +26,13 @@
     'sequence': 14,
     'author': 'Tenth Planet',
     'website' : 'http://www. tenthplanet.in',
-    'depends': ['green_erp_arulmani_hrm','green_erp_arulmani_crm','sale','stock','ir_sequence_autoreset'],
+    'depends': ['green_erp_arulmani_hrm','green_erp_arulmani_crm','sale_stock','stock','ir_sequence_autoreset'],
     'data': [
         'data/tpt_sale_data.xml',
         'tpt_sale_view.xml',
         'report/print_form_403_view.xml',
         'report/test_report_view.xml',
+        'tpt_stock_view.xml',
         'sale_sequence.xml',
     ],
     'css' : [

@@ -9,6 +9,7 @@ from datetime import datetime
 import datetime
 import calendar
 import openerp.addons.decimal_precision as dp
+from openerp import netsvc
 
 class sale_order(osv.osv):
     _inherit = "sale.order"
@@ -613,6 +614,23 @@ class tpt_batch_number(osv.osv):
         'name': fields.char('System Batch No.', size = 1024,required = True),          
         'phy_batch_no': fields.char('Physical Batch No.', size = 1024,required = True),     
                 }
+    def search(self, cr, uid, args, offset=0, limit=None, order=None, context=None, count=False):
+        if context is None:
+            context = {}
+        if context.get('batch_number_selected'):
+            sql = '''
+                SELECT sys_batch FROM tpt_batch_allotment_line where sys_batch is not null
+            '''
+            cr.execute(sql)
+            tpt_batch_number_ids = [row[0] for row in cr.fetchall()]
+            batch_ids = self.search(cr, uid, [('id','not in',tpt_batch_number_ids)])
+            if context.get('sys_batch'):
+                batch_ids.append(context.get('sys_batch'))
+            args += [('id','in',batch_ids)]
+        return super(tpt_batch_number, self).search(cr, uid, args, offset, limit, order, context, count)
+    def name_search(self, cr, user, name, args=None, operator='ilike', context=None, limit=100):
+        ids = self.search(cr, user, args, context=context, limit=limit)
+        return self.name_get(cr, user, ids, context=context)
 
 tpt_batch_number()
 
@@ -625,8 +643,40 @@ class tpt_batch_allotment(osv.osv):
         'sale_order_id':fields.many2one('sale.order','Sale Order'),   
         'customer_id':fields.many2one('res.partner', 'Customer', required = True), 
         'description':fields.text('Description'),
+        'state': fields.selection([('to_approve', 'To Approved'), ('refuse', 'Refused'),('confirm', 'Approve'), ('cancel', 'Cancelled')],'Status'),
         'batch_allotment_line': fields.one2many('tpt.batch.allotment.line', 'batch_allotment_id', 'Product Information'), 
                 }
+    _defaults = {
+              'state': 'to_approve',
+    }
+    def confirm(self, cr, uid, ids, context=None):
+        self.write(cr, uid, ids, {'state': 'confirm'})
+        sale_obj = self.pool.get('sale.order')
+        for batch_allotment in self.browse(cr,uid,ids,context=context):
+            picking_out_ids = self.pool.get('stock.picking').search(cr,uid,[('sale_id','=',batch_allotment.sale_order_id.id)],context=context)
+            if picking_out_ids:
+                return True
+            wf_service = netsvc.LocalService('workflow')
+            wf_service.trg_validate(uid, 'sale.order', batch_allotment.sale_order_id.id, 'order_confirm', cr)
+    
+            # redisplay the record as a sales order
+            view_ref = self.pool.get('ir.model.data').get_object_reference(cr, uid, 'sale', 'view_order_form')
+            view_id = view_ref and view_ref[1] or False,
+            return {
+                'type': 'ir.actions.act_window',
+                'name': _('Sales Order'),
+                'res_model': 'sale.order',
+                'res_id': batch_allotment.sale_order_id.id,
+                'view_type': 'form',
+                'view_mode': 'form',
+                'view_id': view_id,
+                'target': 'current',
+                'nodestroy': True,
+            }
+    def refuse(self, cr, uid, ids, context=None):
+        return self.write(cr, uid, ids, {'state': 'refuse'})
+    def cancelled(self, cr, uid, ids, context=None):
+        return self.write(cr, uid, ids, {'state': 'cancel'})
     def onchange_batch_request_id(self, cr, uid, ids,batch_request_id=False):
         res = {'value':{
                         'name':False,
@@ -761,52 +811,53 @@ class tpt_batch_allotment_line(osv.osv):
      
     _columns = {
         'pgi_id':fields.many2one('tpt.pgi','PGI',ondelete='cascade'),
-        'delivery_order_id':fields.many2one('tpt.delivery.order','Delivery Order',ondelete='cascade'),
+#         'delivery_order_id':fields.many2one('tpt.delivery.order','Delivery Order',ondelete='cascade'),
         'batch_allotment_id':fields.many2one('tpt.batch.allotment','Batch Allotment',ondelete='cascade'), 
         'product_id': fields.many2one('product.product','Product'),     
         'product_type': fields.selection([('product', 'Stockable Product'),('consu', 'Consumable'),('service', 'Service')],'Product Type'),   
         'application_id': fields.many2one('crm.application','Application'),    
         'product_uom_qty': fields.float('Quantity'),   
         'uom_po_id': fields.many2one('product.uom','UOM'),   
-        'sys_batch':fields.many2one('tpt.batch.number','System Batch No.'), 
+        'sys_batch':fields.many2one('stock.production.lot','System Serial No.'), 
 #         'phy_batch':fields.char('Physical Batch No.', size = 1024)
-        'phy_batch':fields.function(get_phy_batch,type='char', size = 1024,string='Physical Batch No.',multi='sum',store=True),
+        'phy_batch':fields.function(get_phy_batch,type='char', size = 1024,string='Physical Serial No.',multi='sum',store=True),
                 }
-    def onchange_sys_batch(self, cr, uid, ids,sys_batch=False):
-        res = {'value':{}}
+    def onchange_sys_batch(self, cr, uid, ids,sys_batch=False,qty=False,batch_allotment_line=False,context=None):
 #         res = {'value':{
-#                         'phy_batch_no':False,
-#                       }
-#                }
-#         if sys_batch:
-#             batch = self.pool.get('tpt.batch.number').browse(cr, uid, sys_batch)
-#         res['value'].update({
-#                     'phy_batch':batch.phy_batch_no or False,
-#         })
-        return res
+#                         'sys_batch':False
+#                         }}
+#         if sys_batch and qty:
+#             batch = self.pool.get('stock.production.lot').browse(cr, uid, sys_batch)
+#             if  batch.stock_available < qty:
+#                 warning = {  
+#                           'title': _('Warning'),  
+#                           'message': _('The quantity product of sale order  is not greater than the quantity product in stock!'),  
+#                           }  
+#                 res['value'].update({'sys_batch':False,'warning':warning,})
+# #                 raise osv.except_osv(_('Warning!'),_('The quantity product of sale order  is not greater than the quantity product in stock !'))
+#             else:
+#                 res['value'].update({'sys_batch':sys_batch,})
+#         return res
+        vals = {}
+        if sys_batch and qty:
+            batch = self.pool.get('stock.production.lot').browse(cr, uid, sys_batch)
+            if  batch.stock_available < qty:
+                warning = {  
+                          'title': _('Warning!'),  
+                          'message': _('The quantity product of sale order  is not greater than the quantity product in stock!'),  
+                          }  
+                vals['sys_batch']=False
+                return {'value': vals,'warning':warning}
+            else:
+                vals['sys_batch']= sys_batch
+        return {'value': vals}
 tpt_batch_allotment_line()
-
-class tpt_delivery_order(osv.osv):
-    _name = "tpt.delivery.order"
-    _columns = {
-        'sale_order_id':fields.many2one('sale.order','Sale Order'),   
-        'customer_id':fields.many2one('res.partner', 'Customer'), 
-        'creation_date':fields.date('Creation Date',required = True),
-        'cons_loca':fields.char('Consignee Location', size = 1024),
-        'warehouse':fields.char('Warehouse', size = 1024,required = True),
-        'transporter':fields.char('Transporter Name', size = 1024),
-        'truck':fields.char('Truck Number', size = 1024),
-        'remarks':fields.text('Remarks'),
-        'doc_status':fields.selection([('completed','Completed')],'Document Status'),
-        'batch_allotment_line': fields.one2many('tpt.batch.allotment.line', 'delivery_order_id', 'Product'), 
-                }
-tpt_delivery_order()
 
 class tpt_pgi(osv.osv):
     _name = "tpt.pgi"
      
     _columns = {
-        'do_id':fields.many2one('tpt.delivery.order','Delivery Order',required = True), 
+#         'do_id':fields.many2one('tpt.delivery.order','Delivery Order',required = True), 
         'name':fields.date('DO Date',required = True), 
         'customer_id':fields.many2one('res.partner', 'Customer', required = True), 
         'warehouse':fields.char('Warehouse', size = 1024,required = True),
@@ -885,4 +936,13 @@ class tpt_form_are_3_duty_rate(osv.osv):
         'form_are_3_id': fields.many2one('tpt.form.are.3', 'Duty Rate'),
                 }
 tpt_form_are_3_duty_rate()
+
+class stock_production_lot(osv.osv):
+    _inherit = "stock.production.lot"
+    _columns = {
+        'phy_batch_no': fields.char('Physical Serial No.', size = 1024,required = True), 
+                }
+stock_production_lot()  
+
+
 # vim:expandtab:smartindent:tabstop=4:softtabstop=4:shiftwidth=4:
