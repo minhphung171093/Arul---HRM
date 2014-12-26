@@ -10,7 +10,18 @@ import datetime
 import calendar
 import openerp.addons.decimal_precision as dp
 
-
+class stock_picking(osv.osv):
+    _inherit = "stock.picking"
+    _columns = {
+        'cons_loca':fields.char('Consignee Location', size = 64),
+        'warehouse':fields.char('Warehouse', size = 64),
+        'transporter':fields.char('Transporter Name', size = 64),
+        'truck':fields.char('Truck Number', size = 64),
+        'remarks':fields.text('Remarks'),
+        'doc_status':fields.selection([('completed','Completed')],'Document Status'),
+                }
+    
+stock_picking()
 
 class stock_picking_out(osv.osv):
     _inherit = "stock.picking.out"
