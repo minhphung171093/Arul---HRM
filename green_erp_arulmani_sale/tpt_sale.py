@@ -91,12 +91,17 @@ class sale_order(osv.osv):
     def onchange_partner_id(self, cr, uid, ids, partner_id=False, context=None):
         vals = {}
         consignee_lines = []
+#         for blanket in self.browse(cr, uid, ids):
+#             sql = '''
+#                 delete from order_line where blanket_order_id = %s
+#             '''%(blanket.id)
+#             cr.execute(sql)
         if partner_id :
             part = self.pool.get('res.partner').browse(cr, uid, partner_id)
             for line in part.consignee_line:
                 rs = {
-                        'name_consignee': line.name,
-                        'location': str(line.street) + str(line.street2) + ' , ' + str(line.city) + ' , ' + str(line.state_id.name) + ' , ' + str(line.country_id.name) + ' , ' +str(line.zip),
+                        'name_consignee_id': line.id,
+                        'location': str(line.street or '') + str(line.street2 or '') + ' , ' + str(line.city or '') + ' , ' + str(line.state_id.name or '') + ' , ' + str(line.country_id.name or '') + ' , ' +str(line.zip or ''),
                       }
                 consignee_lines.append((0,0,rs))
             vals = {'invoice_address':part.street,
@@ -143,6 +148,11 @@ class sale_order(osv.osv):
         consignee_lines = []
         if blanket_id:
             blanket = self.pool.get('tpt.blanket.order').browse(cr, uid, blanket_id)
+            for line in self.browse(cr, uid, ids):
+                sql = '''
+                    delete from sale_order_line where order_id = %s
+                '''%(line.id)
+                cr.execute(sql)
             for blanket_line in blanket.blank_order_line:
                 rs_order = {
                       'product_id': blanket_line.product_id.id,
@@ -154,12 +164,13 @@ class sale_order(osv.osv):
                       'price_unit': blanket_line.price_unit,
                       'price_subtotal': blanket_line.sub_total,
                       'freight': blanket_line.freight,
+                      'state': 'draft',
                       }
                 blanket_lines.append((0,0,rs_order))
               
             for consignee_line in blanket.blank_consignee_line:
                 rs_consignee = {
-                      'name_consignee': consignee_line.name_consignee,
+                      'name_consignee_id': consignee_line.name_consignee_id,
                       'location': consignee_line.location,
                       'product_id': consignee_line.product_id.id,
                       'product_uom_qty': consignee_line.product_uom_qty,
@@ -188,7 +199,6 @@ class sale_order(osv.osv):
                     'amount_untaxed': blanket.amount_untaxed,
                     'order_line':blanket_lines,
                     'sale_consignee_line':consignee_lines,
-                        
                         }
         return {'value': vals}    
 
@@ -196,6 +206,18 @@ sale_order()
 
 class sale_order_line(osv.osv):
     _inherit = 'sale.order.line'
+    
+    def create(self, cr, uid, vals, context=None):
+        if 'product_id' in vals:
+            product = self.pool.get('product.product').browse(cr, uid, vals['product_id'])
+            vals.update({'product_uom':product.uom_id.id})
+        return super(sale_order_line, self).create(cr, uid, vals, context)
+    
+    def write(self, cr, uid, ids, vals, context=None):
+        if 'product_id' in vals:
+            product = self.pool.get('product.product').browse(cr, uid, vals['product_id'])
+            vals.update({'product_uom':product.uom_id.id})
+        return super(sale_order_line, self).write(cr, uid,ids, vals, context)
     
     def _amount_line(self, cr, uid, ids, field_name, arg, context=None):
         subtotal = 0.0
@@ -206,12 +228,23 @@ class sale_order_line(osv.osv):
         return res
      
     _columns = {
+        'product_id': fields.many2one('product.product', 'Product', required = True),
         'product_type': fields.selection([('product', 'Stockable Product'),('consu', 'Consumable'),('service', 'Service')],'Product Type'),
         'application_id': fields.many2one('crm.application', 'Application'),
         'freight': fields.float('Freight'),
         'price_subtotal': fields.function(_amount_line, string='Subtotal', digits_compute= dp.get_precision('Account')),
     }
-    
+    def onchange_product_id(self, cr, uid, ids, product_id = False, context=None):
+        vals = {}
+        if product_id :
+            product = self.pool.get('product.product').browse(cr, uid, product_id)
+            vals = {
+                    'product_type':product.type,
+                    'product_uom':product.uom_id.id,
+                    'price_unit':product.list_price,
+                    'name': product.name
+                    }
+        return {'value': vals}
 sale_order_line()
 
 class tpt_sale_order_consignee(osv.osv):
@@ -231,7 +264,7 @@ class tpt_sale_order_consignee(osv.osv):
           
     _columns = {
         'sale_order_consignee_id': fields.many2one('sale.order', 'Consignee'),
-        'name_consignee': fields.char('Consignee Name', size = 1024, required = True),
+        'name_consignee_id': fields.many2one('res.partner', 'Consignee', required = True),
         'location': fields.char('Location', size = 1024),
         'product_id': fields.many2one('product.product', 'Product'),
         'product_uom_qty': fields.function(quatity_consignee, type='float',string='Quatity'),
@@ -264,23 +297,14 @@ class tpt_blanket_order(osv.osv):
             val2 = 0.0
             val3 = 0.0
             for orderline in line.blank_order_line:
-                val1 = val1 + orderline.sub_total
-                res[line.id]['amount_untaxed'] = val1
+                val1 += orderline.sub_total
+            res[line.id]['amount_untaxed'] = val1
             val2 = val1 * line.sale_tax_id.amount / 100
             res[line.id]['amount_tax'] = val2
             val3 = val1 + val2
             res[line.id]['amount_total'] = val3
         return res
     
-#     def amount_total_blanket_orderline(self, cr, uid, ids, field_name, args, context=None):
-#         amount_total = 0
-#         res = {}
-#         for line in self.browse(cr,uid,ids,context=context):
-#             for orderline in line.blank_order_line:
-#                 amount_total = line.amount_untaxed + line.amount_tax + orderline.freight
-#             res[line.id] = amount_total
-#         return res
-
     def _get_order(self, cr, uid, ids, context=None):
         result = {}
         for line in self.pool.get('tpt.blank.order.line').browse(cr, uid, ids, context=context):
@@ -289,46 +313,46 @@ class tpt_blanket_order(osv.osv):
 
     _columns = {
         'name': fields.char('Blanked Order', size = 1024, readonly=True),
-        'customer_id': fields.many2one('res.partner', 'Customer', required = True, states={'cancel': [('readonly', True)]}),
-        'invoice_address': fields.char('Invoice Address', size = 1024, states={'cancel': [('readonly', True)]}),
-        'street2': fields.char('', size = 1024, states={'cancel': [('readonly', True)]}),
-        'city': fields.char('', size = 1024, states={'cancel': [('readonly', True)]}),
-        'country_id': fields.many2one('res.country', '', states={'cancel': [('readonly', True)]}),
-        'state_id': fields.many2one('res.country.state', '', states={'cancel': [('readonly', True)]}),
-        'zip': fields.char('', size = 1024, states={'cancel': [('readonly', True)]}),
-        'payment_term_id': fields.many2one('account.payment.term', 'Payment Term', states={'cancel': [('readonly', True)]}),
-        'currency_id': fields.many2one('res.currency', 'Currency', states={'cancel': [('readonly', True)]}),
-        'bo_date': fields.date('BO Date', required = True, states={'cancel': [('readonly', True)]}),
-        'po_date': fields.date('PO Date', required = True, states={'cancel': [('readonly', True)]}),
-        'po_number': fields.char('PO Number', size = 1024, states={'cancel': [('readonly', True)]}),
-        'quotaion_no': fields.char('Quotaion No', size = 1024, states={'cancel': [('readonly', True)]}),
-        'excise_duty_id': fields.many2one('account.tax', 'Ex.Duty', domain="[('type_tax_use','=','excise_duty')]", required = True, states={'cancel': [('readonly', True)]}),
-        'sale_tax_id': fields.many2one('account.tax', 'Sale Tax', domain="[('type_tax_use','=','sale')]", required = True, states={'cancel': [('readonly', True)]}), 
-        'incoterm_id': fields.many2one('stock.incoterms', 'Incoterms', required = True, states={'cancel': [('readonly', True)]}),
-        'reason': fields.text('Reason', states={'cancel': [('readonly', True)]}),
-        'exp_delivery_date': fields.date('Expected delivery Date', required = True, states={'cancel': [('readonly', True)]}),
-        'channel': fields.many2one('crm.case.channel', 'Distribution Channel', states={'cancel': [('readonly', True)]}),
-        'order_type':fields.selection([('domestic','Domestic'),('export','Export')],'Order Type' ,required=True, states={'cancel': [('readonly', True)]}),
-        'document_type':fields.selection([('blankedorder','Blanked Order')], 'Document Type',required=True, states={'cancel': [('readonly', True)]}),
-        'blank_order_line': fields.one2many('tpt.blank.order.line', 'blanket_order_id', 'Sale Order', states={'cancel': [('readonly', True)]}),
+        'customer_id': fields.many2one('res.partner', 'Customer', required = True, states={'cancel': [('readonly', True)], 'done':[('readonly', True)]}),
+        'invoice_address': fields.char('Invoice Address', size = 1024, states={'cancel': [('readonly', True)], 'done':[('readonly', True)]}),
+        'street2': fields.char('', size = 1024, states={'cancel': [('readonly', True)], 'done':[('readonly', True)]}),
+        'city': fields.char('', size = 1024, states={'cancel': [('readonly', True)], 'done':[('readonly', True)]}),
+        'country_id': fields.many2one('res.country', '', states={'cancel': [('readonly', True)], 'done':[('readonly', True)]}),
+        'state_id': fields.many2one('res.country.state', '', states={'cancel': [('readonly', True)], 'done':[('readonly', True)]}),
+        'zip': fields.char('', size = 1024, states={'cancel': [('readonly', True)], 'done':[('readonly', True)]}),
+        'payment_term_id': fields.many2one('account.payment.term', 'Payment Term', states={'cancel': [('readonly', True)], 'done':[('readonly', True)]}),
+        'currency_id': fields.many2one('res.currency', 'Currency', states={'cancel': [('readonly', True)], 'done':[('readonly', True)]}),
+        'bo_date': fields.date('BO Date', required = True, readonly = True,  states={'cancel': [('readonly', True)], 'done':[('readonly', True)]}),
+        'po_date': fields.date('PO Date', required = True, states={'cancel': [('readonly', True)], 'done':[('readonly', True)]}),
+        'po_number': fields.char('PO Number', size = 1024, states={'cancel': [('readonly', True)], 'done':[('readonly', True)]}),
+        'quotaion_no': fields.char('Quotaion No', size = 1024, states={'cancel': [('readonly', True)], 'done':[('readonly', True)]}),
+        'excise_duty_id': fields.many2one('account.tax', 'Excise Duty', domain="[('type_tax_use','=','excise_duty')]", required = True, states={'cancel': [('readonly', True)], 'done':[('readonly', True)]}),
+        'sale_tax_id': fields.many2one('account.tax', 'Sale Tax', domain="[('type_tax_use','=','sale')]", required = True, states={'cancel': [('readonly', True)], 'done':[('readonly', True)]}), 
+        'incoterm_id': fields.many2one('stock.incoterms', 'Incoterms', required = True, states={'cancel': [('readonly', True)], 'done':[('readonly', True)]}),
+        'reason': fields.text('Reason', states={'cancel': [('readonly', True)], 'done':[('readonly', True)]}),
+        'exp_delivery_date': fields.date('Expected delivery Date', required = True, states={'cancel': [('readonly', True)], 'done':[('readonly', True)]}),
+        'channel': fields.many2one('crm.case.channel', 'Distribution Channel', states={'cancel': [('readonly', True)], 'done':[('readonly', True)]}),
+        'order_type':fields.selection([('domestic','Domestic'),('export','Export')],'Order Type' ,required=True, states={'cancel': [('readonly', True)], 'done':[('readonly', True)]}),
+        'document_type':fields.selection([('blankedorder','Blanked Order')], 'Document Type',required=True, states={'cancel': [('readonly', True)], 'done':[('readonly', True)]}),
+        'blank_order_line': fields.one2many('tpt.blank.order.line', 'blanket_order_id', 'Sale Order', states={'cancel': [('readonly', True)], 'done':[('readonly', True)]}),
         'amount_untaxed': fields.function(amount_all_blanket_orderline, multi='sums',string='Untaxed Amount',
                                          store={
                 'tpt.blanket.order': (lambda self, cr, uid, ids, c={}: ids, ['blank_order_line'], 10),
-                'tpt.blank.order.line': (_get_order, ['price_unit', 'sub_total', 'product_uom_qty'], 10),
-            }, states={'cancel': [('readonly', True)]}),
-        'amount_tax': fields.function(amount_all_blanket_orderline, multi='sums',string='Taxes'
-#                                       store={
-#                 'tpt.blanket.order': (lambda self, cr, uid, ids, c={}: ids, ['blank_order_line'], 10),
-#                 'tpt.blank.order.line': (_get_order, ['price_unit', 'sub_total', 'product_uom_qty'], 10), },
-            , states={'cancel': [('readonly', True)]}),
+                'tpt.blank.order.line': (_get_order, ['price_unit', 'sub_total', 'product_uom_qty'], 10),}, 
+            states={'cancel': [('readonly', True)], 'done':[('readonly', True)]}),
+        'amount_tax': fields.function(amount_all_blanket_orderline, multi='sums',string='Taxes',
+                                      store={
+                'tpt.blanket.order': (lambda self, cr, uid, ids, c={}: ids, ['blank_order_line'], 10),
+                'tpt.blank.order.line': (_get_order, ['price_unit', 'sub_total', 'product_uom_qty'], 10), }, 
+            states={'cancel': [('readonly', True)], 'done':[('readonly', True)]}),
         'amount_total': fields.function(amount_all_blanket_orderline, multi='sums',string='Total',
-#                                         store={
-#                 'tpt.blanket.order': (lambda self, cr, uid, ids, c={}: ids, ['blank_order_line'], 10),
-#                 'tpt.blank.order.line': (_get_order, ['price_unit', 'sub_total', 'product_uom_qty'], 10), },
-             states={'cancel': [('readonly', True)]}),
+                                        store={
+                'tpt.blanket.order': (lambda self, cr, uid, ids, c={}: ids, ['blank_order_line'], 10),
+                'tpt.blank.order.line': (_get_order, ['price_unit', 'sub_total', 'product_uom_qty'], 10), },
+             states={'cancel': [('readonly', True)], 'done':[('readonly', True)]}),
         
-        'blank_consignee_line': fields.one2many('tpt.consignee', 'blanket_consignee_id', 'Consignee', states={'cancel': [('readonly', True)]}), 
-        'state':fields.selection([('draft', 'Draft'),('cancel', 'Cancel')],'Status', readonly=True),
+        'blank_consignee_line': fields.one2many('tpt.consignee', 'blanket_consignee_id', 'Consignee', states={'cancel': [('readonly', True)], 'done':[('readonly', True)]}), 
+        'state':fields.selection([('draft', 'Draft'),('cancel', 'Cancel'),('done', 'Approve')],'Status', readonly=True),
     }
     
     
@@ -341,6 +365,10 @@ class tpt_blanket_order(osv.osv):
     
 #     def _check_bo_date(self, cr, uid, ids, context=None):
         
+    def bt_approve(self, cr, uid, ids, context=None):
+        for line in self.browse(cr, uid, ids):
+            self.write(cr, uid, ids,{'state':'done'})
+        return True   
     
     def bt_cancel(self, cr, uid, ids, context=None):
         for line in self.browse(cr, uid, ids):
@@ -356,11 +384,17 @@ class tpt_blanket_order(osv.osv):
         vals = {}
         consignee_lines = []
         if customer_id:
+            for blanket in self.browse(cr, uid, ids):
+                sql = '''
+                    delete from tpt_consignee where blanket_consignee_id = %s
+                '''%(blanket.id)
+                cr.execute(sql)
             customer = self.pool.get('res.partner').browse(cr, uid, customer_id)
             for line in customer.consignee_line:
                 rs = {
-                        'name_consignee': line.name,
-                        'location': str(line.street) + str(line.street2) + ' , ' + str(line.city) + ' , ' + str(line.state_id.name) + ' , ' + str(line.country_id.name) + ' , ' +str(line.zip),
+                        'name_consignee_id': line.id,
+                        'location': str(line.street or '') + str(line.street2 or '') + ' , ' + str(line.city or '') + ' , ' + str(line.state_id.name or '') + ' , ' + str(line.country_id.name or '') + ' , ' +str(line.zip or ''),
+                        
                       }
                 consignee_lines.append((0,0,rs))
             
@@ -398,11 +432,23 @@ class tpt_blank_order_line(osv.osv):
         'product_type': fields.selection([('product', 'Stockable Product'),('consu', 'Consumable'),('service', 'Service')],'Product Type'),
         'application_id': fields.many2one('crm.application', 'Application'),
         'product_uom_qty': fields.float('Quantity'),
-        'uom_po_id': fields.many2one('product.uom', 'UOM'),
+        'uom_po_id': fields.many2one('product.uom', 'UOM', readonly = True),
         'price_unit': fields.float('Unit Price'),
         'sub_total': fields.function(subtotal_blanket_orderline, store = True, multi='deltas' ,string='SubTotal'),
         'freight': fields.float('Freight'),
                 }
+    
+    def create(self, cr, uid, vals, context=None):
+        if 'product_id' in vals:
+            product = self.pool.get('product.product').browse(cr, uid, vals['product_id'])
+            vals.update({'uom_po_id':product.uom_id.id})
+        return super(tpt_blank_order_line, self).create(cr, uid, vals, context)
+    
+    def write(self, cr, uid, ids, vals, context=None):
+        if 'product_id' in vals:
+            product = self.pool.get('product.product').browse(cr, uid, vals['product_id'])
+            vals.update({'uom_po_id':product.uom_id.id})
+        return super(tpt_blank_order_line, self).write(cr, uid,ids, vals, context)
     
     def onchange_product_id(self, cr, uid, ids,product_id=False, context=None):
         vals = {}
@@ -411,7 +457,7 @@ class tpt_blank_order_line(osv.osv):
             vals = {'product_type':product.type,
                     'uom_po_id':product.uom_id.id,
                     'price_unit':product.list_price,
-                    'description': product.description_purchase
+                    'description': product.name
                     }
         return {'value': vals}
       
@@ -450,7 +496,7 @@ class tpt_consignee(osv.osv):
     
     _columns = {
         'blanket_consignee_id': fields.many2one('tpt.blanket.order', 'Consignee'),
-        'name_consignee': fields.char('Consignee', size = 1024),
+        'name_consignee_id': fields.many2one('res.partner', 'Consignee', required = True),
         'location': fields.char('Location', size = 1024),
         'product_id': fields.many2one('product.product', 'Product'),
         'product_uom_qty': fields.function(quatity_consignee, type = 'float',multi='deltas', string='Quatity'),
@@ -586,8 +632,8 @@ class tpt_form_403(osv.osv):
         'to_place':fields.char('To Place', size = 1024),
         'from_district':fields.char('From District', size = 1024),
         'to_district':fields.char('To District', size = 1024),
-        'name':fields.char('Invoice No', size = 1024),
-        'date':fields.date('Date'),
+        'name':fields.many2one('account.invoice','Invoice No'),
+        'date':fields.related('name', 'date_invoice', type='date', string='Date',readonly=True),
         'consignor_name':fields.char('Name', size = 1024),
         'consignor_street': fields.char('Street', size = 1024),
         'consignor_street2': fields.char('', size = 1024),
@@ -780,10 +826,10 @@ class tpt_form_are_3(osv.osv):
         'to_mr_mess': fields.char('To Mr./Messrs.',size = 1024),
         'invoice_no_id': fields.many2one('account.invoice','Invoice No'),
         'date': fields.date('Date', required = True),
-        'warehouse_register':fields.char('No in Warehouse Register',size = 1024),
+        'warehouse_register':fields.char('No. in Warehouse Register',size = 1024),
         'good_description':fields.char('Good Description',size = 1024),
         'remarks':fields.char('Remarks',size = 1024),
-        'package_description':fields.char('No & Package Description',size = 1024),
+        'package_description':fields.char('No. & Package Description',size = 1024),
         'tranport':fields.char('Tranport Manner',size = 1024),
         'gross_weight':fields.float('Package gross weight'),
         'good_qty':fields.float('Good Qty'),
