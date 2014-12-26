@@ -48,9 +48,9 @@ class sale_order(osv.osv):
         'po_date':fields.date('PO Date'),
         'payment_term_id': fields.many2one('account.payment.term', 'Payment Term'),
         'document_type':fields.selection([('saleorder','Sale Order'),('return','Return Sales Order'),('scrap','Scrap Sales')],'Document Type' ,required=True),
-        'po_number':fields.char('PO Number', size = 1024),
+        'po_number':fields.char('PO Number', size = 20),
         'reason':fields.text('Reason'),
-        'quotaion_no':fields.char('Quotaion No', size = 1024),
+        'quotaion_no':fields.char('Quotaion No', size = 40),
         'expected_date':fields.date('Expected delivery Date'),
         'document_status':fields.selection([('draft','Draft'),('waiting','Waiting for Approval'),('completed','Completed(Ready to Process)'),('partially','Partially Delivered'),('close','Closed(Delivered)')],'Document Status'),
         'incoterms_id':fields.many2one('stock.incoterms','Incoterms',required = True),
@@ -87,8 +87,36 @@ class sale_order(osv.osv):
     }
     _defaults = {
 #                  'name': lambda obj, cr, uid, context: '/',
-#         'so_date': time.strftime('%Y-%m-%d'),
+        'po_date': time.strftime('%Y-%m-%d'),
+        'expected_date': time.strftime('%Y-%m-%d'),
     }
+    def onchange_po_date(self, cr, uid, ids, po_date=False, context=None):
+        vals = {}
+        current = time.strftime('%Y-%m-%d')
+        warning = {}
+        if po_date:
+            if po_date > current:
+                vals = {'po_date':current}
+                warning = {
+                    'title': _('Warning!'),
+                    'message': _('PO Date: Allow back date, not allow future date')
+                }
+        return {'value':vals,'warning':warning}
+    
+    def onchange_so_date(self, cr, uid, ids, date_order=False, blanket_id=False, context=None):
+        vals = {}
+        current = time.strftime('%Y-%m-%d')
+        warning = {}
+        if blanket_id:
+            blanket = self.pool.get('tpt.blanket.order').browse(cr,uid,blanket_id)
+            if date_order < blanket.bo_date:
+                vals = {'date_order':current}
+                warning = {
+                    'title': _('Warning!'),
+                    'message': _('PO Date: Allow back date, not allow future date')
+                }
+        return {'value':vals,'warning':warning}    
+    
     def onchange_partner_id(self, cr, uid, ids, partner_id=False, context=None):
         vals = {}
         consignee_lines = []
@@ -99,6 +127,11 @@ class sale_order(osv.osv):
 #             cr.execute(sql)
         if partner_id :
             part = self.pool.get('res.partner').browse(cr, uid, partner_id)
+            for order in self.browse(cr, uid, ids):
+                sql = '''
+                    delete from tpt_sale_order_consignee where sale_order_consignee_id = %s
+                '''%(order.id)
+                cr.execute(sql)
             for line in part.consignee_line:
                 rs = {
                         'name_consignee_id': line.id,
