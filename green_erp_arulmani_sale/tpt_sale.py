@@ -90,15 +90,23 @@ class sale_order(osv.osv):
     }
     def onchange_partner_id(self, cr, uid, ids, partner_id=False, context=None):
         vals = {}
+        consignee_lines = []
         if partner_id :
             part = self.pool.get('res.partner').browse(cr, uid, partner_id)
+            for line in part.consignee_line:
+                rs = {
+                        'name_consignee': line.name,
+                        'location': str(line.street) + str(line.street2) + ' , ' + str(line.city) + ' , ' + str(line.state_id.name) + ' , ' + str(line.country_id.name) + ' , ' +str(line.zip),
+                      }
+                consignee_lines.append((0,0,rs))
             vals = {'invoice_address':part.street,
                     'street2':part.street2,
                     'city':part.city,
                     'country_id':part.country_id.id,
                     'state_id':part.state_id.id,
                     'zip':part.zip,
-                    
+                    'payment_term_id':part.property_payment_term.id,
+                    'sale_consignee_line': consignee_lines,
                     }
         return {'value': vals}    
         
@@ -151,7 +159,7 @@ class sale_order(osv.osv):
               
             for consignee_line in blanket.blank_consignee_line:
                 rs_consignee = {
-                      'name': consignee_line.name,
+                      'name_consignee': consignee_line.name_consignee,
                       'location': consignee_line.location,
                       'product_id': consignee_line.product_id.id,
                       'product_uom_qty': consignee_line.product_uom_qty,
@@ -223,7 +231,7 @@ class tpt_sale_order_consignee(osv.osv):
           
     _columns = {
         'sale_order_consignee_id': fields.many2one('sale.order', 'Consignee'),
-        'name': fields.char('Consignee Name', size = 1024, required = True),
+        'name_consignee': fields.char('Consignee Name', size = 1024, required = True),
         'location': fields.char('Location', size = 1024),
         'product_id': fields.many2one('product.product', 'Product'),
         'product_uom_qty': fields.function(quatity_consignee, type='float',string='Quatity'),
@@ -349,10 +357,13 @@ class tpt_blanket_order(osv.osv):
         consignee_lines = []
         if customer_id:
             customer = self.pool.get('res.partner').browse(cr, uid, customer_id)
-#             for line in customer.consignee_line:
-#                 rs = {
-#                         'consignee': line.name,
-#                       }
+            for line in customer.consignee_line:
+                rs = {
+                        'name_consignee': line.name,
+                        'location': str(line.street) + str(line.street2) + ' , ' + str(line.city) + ' , ' + str(line.state_id.name) + ' , ' + str(line.country_id.name) + ' , ' +str(line.zip),
+                      }
+                consignee_lines.append((0,0,rs))
+            
             vals = {'invoice_address': customer.street,
                     'street2': customer.street2,
                     'city': customer.city,
@@ -360,6 +371,7 @@ class tpt_blanket_order(osv.osv):
                     'state_id': customer.state_id.id,
                     'zip': customer.zip,
                     'payment_term_id':customer.property_payment_term.id,
+                    'blank_consignee_line': consignee_lines,
 #                     'excise_duty_id':customer.excise_duty_id.id,
                     }
         return {'value': vals}
@@ -438,7 +450,7 @@ class tpt_consignee(osv.osv):
     
     _columns = {
         'blanket_consignee_id': fields.many2one('tpt.blanket.order', 'Consignee'),
-        'name': fields.char('Consignee', size = 1024),
+        'name_consignee': fields.char('Consignee', size = 1024),
         'location': fields.char('Location', size = 1024),
         'product_id': fields.many2one('product.product', 'Product'),
         'product_uom_qty': fields.function(quatity_consignee, type = 'float',multi='deltas', string='Quatity'),
@@ -460,7 +472,7 @@ class tpt_test_report(osv.osv):
     _name = "tpt.test.report"
       
     _columns = {
-        'product_id': fields.many2one('product.product', 'Product', required = True),
+        'name': fields.many2one('product.product', 'Product', required = True),
         'grade':fields.char('Grade', size = 1024),
         'ph':fields.char('pH(5% of Slurry)', size = 1024),
         'moisture':fields.char('Moisture, % by mass', size = 1024),
@@ -587,12 +599,11 @@ class tpt_form_403(osv.osv):
     _name = "tpt.form.403"
      
     _columns = {
-        'name':fields.char('Form 403', size = 1024),
         'from_place':fields.char('From Place', size = 1024),
         'to_place':fields.char('To Place', size = 1024),
         'from_district':fields.char('From District', size = 1024),
         'to_district':fields.char('To District', size = 1024),
-        'invoice_no':fields.char('Invoice No', size = 1024),
+        'name':fields.char('Invoice No', size = 1024),
         'date':fields.date('Date'),
         'consignor_name':fields.char('Name', size = 1024),
         'consignor_street': fields.char('Street', size = 1024),
@@ -637,7 +648,7 @@ class tpt_form_403(osv.osv):
         'reason':fields.char('Reason for abnormal Stoppage', size = 1024),
         'result':fields.char('Result if any', size = 1024, required = True),
         'arrival':fields.datetime('Arrival Time', required = True),
-        'departure':fields.datetime('Departure Time'),
+        'departure':fields.datetime('Departure Time', required = True),
         'consignee_street': fields.char('Street', size = 1024),
         'consignee_street2': fields.char('', size = 1024),
         'consignee_city': fields.char('', size = 1024),
@@ -648,12 +659,18 @@ class tpt_form_403(osv.osv):
         'consignee_cst_no':fields.char('CST Reg No', size = 1024),
         'consignee_value':fields.float('Consigned Value'),
         'consignee_line':fields.one2many('tpt.form.403.consignee','form_403_id','Consignee'),
-        'selection_nature':fields.selection([('1','Inter State Sale'),
-                                             ('2','Transfer of Documents of Title'),
-                                             ('3','Depot Transfer'),
-                                             ('4','Consignment to Branch/Agent'),
-                                             ('5','For Job works/ Works contract'),
-                                             ('6','Any Other')],'Nature of Transaction',required=True),
+        'inter_state':fields.boolean('Inter State Sale'),
+        'tranfer':fields.boolean('Transfer of Documents of Title'),
+        'deport_tranfer':fields.boolean('Depot Transfer'),
+        'consigment':fields.boolean('Consignment to Branch/Agent'),
+        'job_work':fields.boolean('For Job works/ Works contract'),
+        'any_other':fields.boolean('Any Other'),
+#         'selection_nature':fields.selection([('1','Inter State Sale'),
+#                                              ('2','Transfer of Documents of Title'),
+#                                              ('3','Depot Transfer'),
+#                                              ('4','Consignment to Branch/Agent'),
+#                                              ('5','For Job works/ Works contract'),
+#                                              ('6','Any Other')],'Nature of Transaction',required=True),
                 }
        
 tpt_form_403()
