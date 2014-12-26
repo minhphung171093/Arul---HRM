@@ -90,8 +90,15 @@ class sale_order(osv.osv):
     }
     def onchange_partner_id(self, cr, uid, ids, partner_id=False, context=None):
         vals = {}
+        consignee_lines = []
         if partner_id :
             part = self.pool.get('res.partner').browse(cr, uid, partner_id)
+            for line in part.consignee_line:
+                rs = {
+                        'name_consignee': line.name,
+                        'location': str(line.street) + str(line.street2) + ' , ' + str(line.city) + ' , ' + str(line.state_id.name) + ' , ' + str(line.country_id.name) + ' , ' +str(line.zip),
+                      }
+                consignee_lines.append((0,0,rs))
             vals = {'invoice_address':part.street,
                     'street2':part.street2,
                     'city':part.city,
@@ -99,7 +106,7 @@ class sale_order(osv.osv):
                     'state_id':part.state_id.id,
                     'zip':part.zip,
                     'payment_term_id':part.property_payment_term.id,
-                    
+                    'sale_consignee_line': consignee_lines,
                     }
         return {'value': vals}    
         
@@ -136,6 +143,11 @@ class sale_order(osv.osv):
         consignee_lines = []
         if blanket_id:
             blanket = self.pool.get('tpt.blanket.order').browse(cr, uid, blanket_id)
+            for line in self.browse(cr, uid, ids):
+                sql = '''
+                    delete from sale_order_line where order_id = %s
+                '''%(line.id)
+                cr.execute(sql)
             for blanket_line in blanket.blank_order_line:
                 rs_order = {
                       'product_id': blanket_line.product_id.id,
@@ -147,12 +159,13 @@ class sale_order(osv.osv):
                       'price_unit': blanket_line.price_unit,
                       'price_subtotal': blanket_line.sub_total,
                       'freight': blanket_line.freight,
+                      'state': 'draft',
                       }
                 blanket_lines.append((0,0,rs_order))
               
             for consignee_line in blanket.blank_consignee_line:
                 rs_consignee = {
-                      'name': consignee_line.name,
+                      'name_consignee': consignee_line.name_consignee,
                       'location': consignee_line.location,
                       'product_id': consignee_line.product_id.id,
                       'product_uom_qty': consignee_line.product_uom_qty,
@@ -181,7 +194,6 @@ class sale_order(osv.osv):
                     'amount_untaxed': blanket.amount_untaxed,
                     'order_line':blanket_lines,
                     'sale_consignee_line':consignee_lines,
-                        
                         }
         return {'value': vals}    
 
@@ -189,6 +201,18 @@ sale_order()
 
 class sale_order_line(osv.osv):
     _inherit = 'sale.order.line'
+    
+    def create(self, cr, uid, vals, context=None):
+        if 'product_id' in vals:
+            product = self.pool.get('product.product').browse(cr, uid, vals['product_id'])
+            vals.update({'product_uom':product.uom_id.id})
+        return super(sale_order_line, self).create(cr, uid, vals, context)
+    
+    def write(self, cr, uid, ids, vals, context=None):
+        if 'product_id' in vals:
+            product = self.pool.get('product.product').browse(cr, uid, vals['product_id'])
+            vals.update({'product_uom':product.uom_id.id})
+        return super(sale_order_line, self).write(cr, uid,ids, vals, context)
     
     def _amount_line(self, cr, uid, ids, field_name, arg, context=None):
         subtotal = 0.0
@@ -224,7 +248,7 @@ class tpt_sale_order_consignee(osv.osv):
           
     _columns = {
         'sale_order_consignee_id': fields.many2one('sale.order', 'Consignee'),
-        'name': fields.char('Consignee Name', size = 1024, required = True),
+        'name_consignee': fields.char('Consignee Name', size = 1024, required = True),
         'location': fields.char('Location', size = 1024),
         'product_id': fields.many2one('product.product', 'Product'),
         'product_uom_qty': fields.function(quatity_consignee, type='float',string='Quatity'),
@@ -350,10 +374,13 @@ class tpt_blanket_order(osv.osv):
         consignee_lines = []
         if customer_id:
             customer = self.pool.get('res.partner').browse(cr, uid, customer_id)
-#             for line in customer.consignee_line:
-#                 rs = {
-#                         'consignee': line.name,
-#                       }
+            for line in customer.consignee_line:
+                rs = {
+                        'name_consignee': line.name,
+                        'location': str(line.street) + str(line.street2) + ' , ' + str(line.city) + ' , ' + str(line.state_id.name) + ' , ' + str(line.country_id.name) + ' , ' +str(line.zip),
+                      }
+                consignee_lines.append((0,0,rs))
+            
             vals = {'invoice_address': customer.street,
                     'street2': customer.street2,
                     'city': customer.city,
@@ -361,6 +388,7 @@ class tpt_blanket_order(osv.osv):
                     'state_id': customer.state_id.id,
                     'zip': customer.zip,
                     'payment_term_id':customer.property_payment_term.id,
+                    'blank_consignee_line': consignee_lines,
 #                     'excise_duty_id':customer.excise_duty_id.id,
                     }
         return {'value': vals}
@@ -439,7 +467,7 @@ class tpt_consignee(osv.osv):
     
     _columns = {
         'blanket_consignee_id': fields.many2one('tpt.blanket.order', 'Consignee'),
-        'name': fields.char('Consignee', size = 1024),
+        'name_consignee': fields.char('Consignee', size = 1024),
         'location': fields.char('Location', size = 1024),
         'product_id': fields.many2one('product.product', 'Product'),
         'product_uom_qty': fields.function(quatity_consignee, type = 'float',multi='deltas', string='Quatity'),
@@ -575,8 +603,8 @@ class tpt_form_403(osv.osv):
         'to_place':fields.char('To Place', size = 1024),
         'from_district':fields.char('From District', size = 1024),
         'to_district':fields.char('To District', size = 1024),
-        'name':fields.char('Invoice No', size = 1024),
-        'date':fields.date('Date'),
+        'name':fields.many2one('account.invoice','Invoice No'),
+        'date':fields.related('name', 'date_invoice', type='date', string='Date',readonly=True),
         'consignor_name':fields.char('Name', size = 1024),
         'consignor_street': fields.char('Street', size = 1024),
         'consignor_street2': fields.char('', size = 1024),
