@@ -60,6 +60,9 @@
 					<field name="application_id" />
 				</xpath>
 				
+				<xpath expr="//form/sheet/notebook/page[@string='Order Lines']/field/tree/field[@name='product_id']"  position="replace">
+					<field name="product_id" on_change="onchange_product_id(product_id)"/>
+				</xpath>
 				<xpath expr="//form/sheet/notebook/page[@string='Order Lines']/field/tree/field[@name='price_subtotal']"  position="after">
 					<field name="freight" />
 				</xpath>
@@ -73,18 +76,18 @@
 					<page string="Consinee">
 						<field name="sale_consignee_line" nolabel='1'>
 		                    	<tree editable='top' >
-		                    		<field name ="name_consignee"/>
+		                    		<field name ="name_consignee_id" options="{'create': false, 'create_edit': false}"/>
 		                    		<field name ="location"/>
 		                    		<field name ="product_id"/>
 		                    		<field name ="product_uom_qty"/>
-		                    		<field name ="uom_po_id"/>
+		                    		<field name ="uom_po_id" options="{'create': false, 'create_edit': false}"/>
 		                    	</tree>
 		                </field>
 					</page>
 				</xpath>
 				
 				<xpath expr="//field[@name='partner_id']"  position="replace">
-					<field name="partner_id" />
+					<field name="partner_id" on_change = "onchange_partner_id(partner_id)"/>
 				</xpath>
 	       	</field>
         </record>
@@ -111,7 +114,7 @@
 						<field name="channel" />
 						<field name="sale_tax_id" options="{'create': false, 'create_edit': false}"/>
 						<field name="order_type" />
-						<field name="state" widget="statusbar" statusbar_visible="draft,cancel" statusbar_colors='{"draft":"blue","cancel":"blue"}'/>
+						<field name="state" widget="statusbar" statusbar_visible="draft,cancel,done" statusbar_colors='{"draft":"blue","cancel":"blue"}'/>
 				</tree>
 			</field>
 		</record>
@@ -123,8 +126,9 @@
             <field name="arch" type="xml">
 	            <form string="Blanket Order" version="7.0">
 	            <header>
+	            		<button name="bt_approve" states='draft' string="Cancel" type="object" class="oe_highlight" />
 	                    <button name="bt_cancel" states='draft' string="Cancel" type="object" class="oe_highlight" />
-	                    <field name="state" widget="statusbar" statusbar_visible="draft,cancel" statusbar_colors='{"draft":"blue","cancel":"blue"}'/>
+	                    <field name="state" widget="statusbar" statusbar_visible="draft,cancel,done" statusbar_colors='{"draft":"blue","cancel":"blue"}'/>
 	            </header>    
 	            	<sheet>
                     <h1>
@@ -186,12 +190,13 @@
                                      		<label for="amount_total"/>  
                                 		</div>
                                  	<field name="amount_total" nolabel="1" class="oe_subtotal_footer_separator" widget="monetary" />  
-                            	</group>    
+                            	</group>  
+                            	<div class="oe_clear"/>  
 							</page>
 							<page string = "Consignee">
 								<field name="blank_consignee_line" nolabel='1'>
 									<tree editable='top'>
-										<field name="name_consignee"/>
+										<field name="name_consignee_id" options="{'create': false, 'create_edit': false}"/>
 										<field name="location" />
 										<field name="product_id" widget = "selection" on_change="onchange_product_id(product_id)" options="{'create': false, 'create_edit': false}"/>
 										<field name="product_uom_qty" />
