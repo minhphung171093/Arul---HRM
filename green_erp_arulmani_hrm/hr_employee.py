@@ -58,7 +58,7 @@ class arul_reason(osv.osv):
     }
     
     def init(self, cr):
-        for key in ['Completion of Trainee','Good Performance', 'Successful completion of Trainee','Successful completion of Probation']:
+        for key in ['Poor Performance','Completion of Trainee','Good Performance', 'Successful completion of Trainee','Successful completion of Probation']:
             arul_ids = self.search(cr, 1, [('name','=',key)])
             if not arul_ids:
                 self.create(cr, 1, {'name': key})
@@ -129,6 +129,8 @@ class arul_hr_employee_action_history(osv.osv):
         return True
     _columns = {
         'employee_id': fields.many2one('hr.employee','Employee ID',required = False,ondelete='restrict'),
+        'first_name': fields.char('First Name',size=1024),
+        'last_name': fields.char('Last Name',size=1024),
         'action_id': fields.many2one('arul.employee.actions','Action', required=True,ondelete='restrict'),
         'action_type_id': fields.many2one('arul.employee.action.type','Action type', required=True,ondelete='restrict'),
         'action_date': fields.date('Action Date'),
@@ -294,6 +296,8 @@ class arul_hr_employee_action_history(osv.osv):
             'default_department_id': hiring.department_from_id.id,
             'default_date_of_joining': hiring.period_from,
             'default_date_of_resignation': hiring.period_to,
+            'default_name': hiring.first_name,
+            'default_last_name': hiring.last_name,
             })
         return {
             'type': 'ir.actions.act_window',
@@ -326,6 +330,7 @@ class arul_hr_employee_action_history(osv.osv):
                                                                                           'payroll_area_id':action_history.payroll_area_id and action_history.payroll_area_id.id or False,
 #                                                                                           'payroll_sub_area_id':action_history.payroll_sub_area_id and action_history.payroll_sub_area_id.id or False,
                                                                                           'department_id': action_history.department_to_id.id and action_history.department_to_id.id or action_history.department_from_id.id})
+            
         return new_id
     
     def write(self, cr, uid, ids, vals, context=None):
@@ -359,8 +364,14 @@ class arul_hr_employee_action_history(osv.osv):
         return new_write
     
     def approve_employee_rehiring(self, cr, uid, ids, context=None):
+        employee_obj = self.pool.get('hr.employee')
         for line in self.browse(cr, uid, ids):
-            self.pool.get('hr.employee').write(cr, uid, [line.employee_id.id], {'active': True})
+            new_employee_id = employee_obj.copy(cr, uid, line.employee_id.id)
+            sql = '''
+                delete from arul_hr_employee_action_history where id in (select id from arul_hr_employee_action_history where employee_id = %s order by id desc limit 1)
+            '''%(int(new_employee_id))
+            cr.execute(sql)
+            employee_obj.write(cr, uid, [line.employee_id.id], {'active': True})
             self.write(cr, uid, [line.id],{'approve_rehiring': True})
         return True
 
