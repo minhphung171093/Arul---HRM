@@ -26,20 +26,30 @@
 	            
             <menuitem action="action_arul_hr_holiday_special_form"
 	            id="menu_action_arul_hr_holiday_special_form"
-	            parent="menu_vvti_hr_master" sequence="25"/>
+	            parent="menu_vvti_hr_master" sequence="25" 
+	            groups="group_vvti_hrm_hr_key_user,group_vvti_hrm_time_user,group_vvti_hrm_hr_manager,group_vvti_hrm_payroll_controller"/>
 	            
             <menuitem action="action_arul_hr_leave_master_form"
 	            id="menu_action_arul_hr_leave_master_form"
-	            parent="menu_vvti_hr_master" sequence="30"/>
+	            parent="menu_vvti_hr_master" sequence="30"
+	            groups="group_vvti_hrm_hr_key_user,group_vvti_hrm_time_user,group_vvti_hrm_hr_manager,group_vvti_hrm_payroll_controller"/>
             
             <menuitem action="action_arul_hr_leave_types_form"
 	            id="menu_action_arul_hr_leave_types_form"
-	            parent="menu_vvti_hr_master" sequence="35"/>
+	            parent="menu_vvti_hr_master" sequence="35"
+	            groups="group_vvti_hrm_hr_key_user,group_vvti_hrm_time_user,group_vvti_hrm_hr_manager,group_vvti_hrm_payroll_controller"/>
 	            
             <menuitem action="action_arul_hr_capture_work_shift_form"
 	            id="menu_action_arul_hr_capture_work_shift_form"
-	            parent="menu_vvti_hr_master" sequence="40"/>
-	            
+	            parent="menu_vvti_hr_master" sequence="40"
+	            groups="group_vvti_hrm_hr_key_user,group_vvti_hrm_time_user,group_vvti_hrm_hr_manager,group_vvti_hrm_payroll_controller"/>
+	        
+	        <menuitem id="menu_action_shift_group"
+	        	action="action_shift_group"
+	        	parent="menu_vvti_hr_master"
+	        	name="Shift Group" sequence="42"
+	        	groups="group_vvti_hrm_hr_key_user,group_vvti_hrm_time_user,group_vvti_hrm_hr_manager,group_vvti_hrm_payroll_controller"/>
+	        
             <menuitem action="action_tpt_equipment_master_form"
 	            id="menu_action_tpt_equipment_master_form"
 	            parent="menu_vvti_hr_master" sequence="45" groups="group_vvti_hrm_admin"/>
@@ -90,7 +100,8 @@
 			
 			<menuitem action="action_hr_plant_form"
 	            id="menu_action_hr_plant_form"
-	            parent="menu_vvti_hr_global_master" sequence="5"/>
+	            parent="menu_vvti_hr_global_master" sequence="5"
+	            groups="group_vvti_hrm_hr_key_user,group_vvti_hrm_time_user,group_vvti_hrm_hr_manager,group_vvti_hrm_payroll_controller"/>
 	            
             <menuitem action="action_tpt_work_center_form"
 	            id="menu_action_tpt_work_center_form"

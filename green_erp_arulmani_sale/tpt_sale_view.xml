@@ -299,7 +299,7 @@
 	            	<sheet>
 		                <group>    
 						<field name="name"/>
-						<field name="sale_order_id"/>
+						<field name="sale_order_id" on_change="onchange_sale_order_id(sale_order_id)"/>
 						<field name="customer_id"/>
 						<field name="request_date"/>
 						<field name="description"/>

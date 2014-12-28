@@ -146,6 +146,7 @@ class sale_order(osv.osv):
                     'zip':part.zip,
                     'payment_term_id':part.property_payment_term.id,
                     'sale_consignee_line': consignee_lines,
+                    'incoterms_id':part.inco_terms_id and part.inco_terms_id.id or False,
                     }
         return {'value': vals}    
         
@@ -189,50 +190,50 @@ class sale_order(osv.osv):
                 cr.execute(sql)
             for blanket_line in blanket.blank_order_line:
                 rs_order = {
-                      'product_id': blanket_line.product_id.id,
-                      'name': blanket_line.description,
-                      'product_type': blanket_line.product_type,
-                      'application_id': blanket_line.application_id.id,
-                      'product_uom_qty': blanket_line.product_uom_qty,
-                      'product_uom': blanket_line.uom_po_id.id,
-                      'price_unit': blanket_line.price_unit,
-                      'price_subtotal': blanket_line.sub_total,
-                      'freight': blanket_line.freight,
+                      'product_id': blanket_line.product_id and blanket_line.product_id.id or False,
+                      'name': blanket_line.description or False,
+                      'product_type': blanket_line.product_type or False,
+                      'application_id': blanket_line.application_id and blanket_line.application_id.id or False,
+                      'product_uom_qty': blanket_line.product_uom_qty or False,
+                      'product_uom': blanket_line.uom_po_id and blanket_line.uom_po_id.id or False,
+                      'price_unit': blanket_line.price_unit or False,
+                      'price_subtotal': blanket_line.sub_total or False,
+                      'freight': blanket_line.freight or False,
                       'state': 'draft',
                       }
                 blanket_lines.append((0,0,rs_order))
               
             for consignee_line in blanket.blank_consignee_line:
                 rs_consignee = {
-                      'name_consignee_id': consignee_line.name_consignee_id,
-                      'location': consignee_line.location,
-                      'product_id': consignee_line.product_id.id,
-                      'product_uom_qty': consignee_line.product_uom_qty,
-                      'uom_po_id': consignee_line.uom_po_id.id,
+                      'name_consignee_id': consignee_line.name_consignee_id or False,
+                      'location': consignee_line.location or False,
+                      'product_id': consignee_line.product_id and consignee_line.product_id.id or False,
+                      'product_uom_qty': consignee_line.product_uom_qty or False,
+                      'uom_po_id': consignee_line.uom_po_id and consignee_line.uom_po_id.id or False,
                                 }
                 consignee_lines.append((0,0,rs_consignee))
                 
-            vals = {'partner_id':blanket.customer_id.id,
-                    'invoice_address':blanket.invoice_address,
-                    'street2':blanket.street2,
-                    'city':blanket.city,
-                    'country_id':blanket.country_id.id,
-                    'state_id':blanket.state_id.id,
-                    'zip':blanket.zip,
-                    'po_date':blanket.po_date,
-                    'order_type':blanket.order_type,
-                    'po_number':blanket.po_number,
-                    'payment_term_id':blanket.payment_term_id.id,
-                    'currency_id':blanket.currency_id.id,
-                    'quotaion_no':blanket.quotaion_no,
-                    'incoterms_id':blanket.incoterm_id.id,
-                    'distribution_channel':blanket.channel.id,
-                    'excise_duty_id':blanket.excise_duty_id.id,
-                    'sale_tax_id':blanket.sale_tax_id.id,
-                    'reason':blanket.reason,
-                    'amount_untaxed': blanket.amount_untaxed,
-                    'order_line':blanket_lines,
-                    'sale_consignee_line':consignee_lines,
+            vals = {'partner_id':blanket.customer_id and blanket.customer_id.id or False,
+                    'invoice_address':blanket.invoice_address or False,
+                    'street2':blanket.street2 or False,
+                    'city':blanket.city or False,
+                    'country_id':blanket.country_id and blanket.country_id.id or False,
+                    'state_id':blanket.state_id and blanket.state_id.id or False,
+                    'zip':blanket.zip or False,
+                    'po_date':blanket.po_date or False,
+                    'order_type':blanket.order_type or False,
+                    'po_number':blanket.po_number or False,
+                    'payment_term_id':blanket.payment_term_id and blanket.payment_term_id.id or False,
+                    'currency_id':blanket.currency_id and blanket.currency_id.id or False,
+                    'quotaion_no':blanket.quotaion_no or False,
+                    'incoterms_id':blanket.incoterm_id and blanket.incoterm_id.id or False,
+                    'distribution_channel':blanket.channel and blanket.channel.id or False,
+                    'excise_duty_id':blanket.excise_duty_id and blanket.excise_duty_id.id or False,
+                    'sale_tax_id':blanket.sale_tax_id and blanket.sale_tax_id.id or False, 
+                    'reason':blanket.reason or False,
+                    'amount_untaxed': blanket.amount_untaxed or False,
+                    'order_line':blanket_lines or False,
+                    'sale_consignee_line':consignee_lines or False,
                         }
         return {'value': vals}    
 
@@ -432,15 +433,15 @@ class tpt_blanket_order(osv.osv):
                       }
                 consignee_lines.append((0,0,rs))
             
-            vals = {'invoice_address': customer.street,
-                    'street2': customer.street2,
-                    'city': customer.city,
-                    'country_id': customer.country_id.id,
-                    'state_id': customer.state_id.id,
-                    'zip': customer.zip,
-                    'payment_term_id':customer.property_payment_term.id,
-                    'blank_consignee_line': consignee_lines,
-#                     'excise_duty_id':customer.excise_duty_id.id,
+            vals = {'invoice_address': customer.street or False,
+                    'street2': customer.street2 or False,
+                    'city': customer.city or False,
+                    'country_id': customer.country_id and customer.country_id.id or False,
+                    'state_id': customer.state_id and customer.state_id.id or False,
+                    'zip': customer.zip or False,
+                    'payment_term_id':customer.property_payment_term and customer.property_payment_term.id or False,
+                    'blank_consignee_line': consignee_lines or False,
+                    'incoterm_id':customer.inco_terms_id and customer.inco_terms_id.id or False,
                     }
         return {'value': vals}
     
@@ -590,6 +591,27 @@ class tpt_batch_request(osv.osv):
                 raise osv.except_osv(_('Warning!'),_('Sale Order ID already exists!'))
                 return False
         return True
+    
+    def onchange_sale_order_id(self, cr, uid, ids,sale_order_id=False, context=None):
+        vals = {}
+        product_information_line = []
+        if sale_order_id:
+            sale = self.pool.get('sale.order').browse(cr, uid, sale_order_id)
+            for line in sale.order_line:
+                rs = {
+                      'product_id': line.product_id and line.product_id.id or False,
+                      'product_type': line.product_type or False,
+                      'application_id': line.application_id and line.application_id.id or False,
+                      'product_uom_qty': line.product_uom_qty or False,
+                      'uom_po_id': line.product_uom and line.product_uom.id or False,
+                      }
+                product_information_line.append((0,0,rs))
+            
+            vals = {'customer_id': sale.partner_id and sale.partner_id.id or False,
+                    'product_information_line':product_information_line
+                    }
+        return {'value': vals}
+    
 
 tpt_batch_request()
 
@@ -654,14 +676,51 @@ class tpt_batch_allotment(osv.osv):
         sale_obj = self.pool.get('sale.order')
         for batch_allotment in self.browse(cr,uid,ids,context=context):
             picking_out_ids = self.pool.get('stock.picking').search(cr,uid,[('sale_id','=',batch_allotment.sale_order_id.id)],context=context)
-            if picking_out_ids:
-                return True
-            wf_service = netsvc.LocalService('workflow')
-            wf_service.trg_validate(uid, 'sale.order', batch_allotment.sale_order_id.id, 'order_confirm', cr)
-    
-            # redisplay the record as a sales order
+            if not picking_out_ids:
+                wf_service = netsvc.LocalService('workflow')
+                wf_service.trg_validate(uid, 'sale.order', batch_allotment.sale_order_id.id, 'order_confirm', cr)
+        
+                # redisplay the record as a sales order
             view_ref = self.pool.get('ir.model.data').get_object_reference(cr, uid, 'sale', 'view_order_form')
             view_id = view_ref and view_ref[1] or False,
+    
+            #Tim delivery_order cua Sale order do
+#             picking_out_ids = self.pool.get('stock.picking').search(cr,uid,[('sale_id','=',batch_allotment.sale_order_id.id)],context=context)
+#             sql = '''
+#                 delete from stock_move where picking_id = %s
+#             '''%(picking_out_ids[0])
+#             cr.execute(sql)
+#             date_planned = self.pool.get('sale.order')._get_date_planned(cr, uid, batch_allotment.sale_order_id, batch_allotment.sale_order_id.order_line, batch_allotment.sale_order_id.date_order, context=context)
+#             location_id = batch_allotment.sale_order_id.shop_id.warehouse_id.lot_stock_id.id
+#             output_id = batch_allotment.sale_order_id.shop_id.warehouse_id.lot_output_id.id
+#             for line in batch_allotment.batch_allotment_line:
+#                 
+#                 res = {
+#                     'name': line.product_id.name,
+#                     'picking_id': picking_out_ids[0],
+#                     'product_id': line.product_id.id,
+#                     'date': batch_allotment.sale_order_id.expected_date or False,
+#                     'date_expected': batch_allotment.sale_order_id.expected_date or False,
+#                     'product_qty': line.product_uom_qty,
+#                     'product_uom': line.uom_po_id.id,
+#                     'product_uos_qty': line.product_uom_qty,
+#                     'product_uos': line.uom_po_id.id,
+# #                     'product_packaging': line.product_packaging.id,
+#                     'partner_id': batch_allotment.sale_order_id.partner_id.id,
+#                     'location_id': location_id,
+#                     'location_dest_id': output_id,
+# #                     'sale_line_id': line.id,
+#                     'tracking_id': False,
+#                     'state': 'draft',
+#                     #'state': 'waiting',
+#                     'company_id': batch_allotment.sale_order_id.company_id.id,
+#                     'price_unit': 5000 or 0.0
+#                 }
+#                 self.pool.get('stock.move').create(cr, uid, res)
+            #Kiem tra delivery_order lay Id ra roi kiem tra
+            #Neu chua done hoac cancel thi xoa stock_move trong picking_out do
+            #tao lai stock_move theo batch_allotment_line
+            
             return {
                 'type': 'ir.actions.act_window',
                 'name': _('Sales Order'),

@@ -316,7 +316,7 @@
 			<field name="name">arul.hr.employee.transfer.action.tree</field>
 			<field name="model">arul.hr.employee.action.history</field>
 			<field name="arch" type="xml">
-				<tree string="Employee Transfer Action">
+				<tree string="Employee Transfer/ Deputation Action">
 					<field name="action_id"/>
 					<field name ="action_type_id"/>
 					<field name ="employee_id"/>
@@ -326,7 +326,7 @@
 					<field name ="department_to_id"/>
 					<field name ="designation_from_id"/>
 					<field name ="designation_to_id"/>
-					<field name ="action_date" string = "Date of Transfer"/>
+					<field name ="action_date" string = "Date of Transfer/ Deputation"/>
 					<field name ="period_from"/>
 					<field name ="period_to"/>
 					<field name ="note"/>
@@ -338,7 +338,7 @@
             <field name="name">arul.hr.employee.transfer.action.form</field>
             <field name="model">arul.hr.employee.action.history</field>
             <field name="arch" type="xml">
-                <form string="Employee Transfer Action" version="7.0">    
+                <form string="Employee Transfer/ Deputation Action" version="7.0">    
                 	<sheet>
 		                 <group col='4' colspan='2'>
 							<field name="action_id" on_change="onchange_action_id(action_id)" domain="[('name','=','Transfer')]" options="{'create': false, 'create_edit': false}"/>
@@ -353,7 +353,7 @@
 							<field name ="designation_to_id" options="{'create': false, 'create_edit': false}" domain="[('id','!=',designation_from_id)]"/>
 							<field name ="payroll_area_id" options="{'create': false, 'create_edit': false}"/>
 							<field name ="payroll_sub_area_id" options="{'create': false, 'create_edit': false}"/>
-							<field name ="action_date" string = "Date of Transfer"/>
+							<field name ="action_date" string = "Date of Transfer/ Deputation"/>
 							<newline/>
 							<field name ="period_from"/>
 							<field name ="period_to"/>
@@ -367,7 +367,7 @@
 		</record>
 
          <record id="action_arul_hr_employee_transfer_action_form" model="ir.actions.act_window">
-            <field name="name">Employee Transfer</field>
+            <field name="name">Employee Transfer/ Deputation</field>
 			<field name="type">ir.actions.act_window</field>
             <field name="res_model">arul.hr.employee.action.history</field>
             <field name="view_type">form</field>
@@ -527,7 +527,7 @@
             <field name="view_type">form</field>
             <field name="view_mode">tree,form</field>
             <field name="domain">[('action_id.name','=','Re Hiring')]</field>
-            <field name="context">{'action_default_rehiring':1}</field>
+            <field name="context">{'create_rehiring_employee':1,'action_default_rehiring':1}</field>
             <field name="view_id" ref="view_arul_hr_employee_rehiring_history_tree_vew"/>
         </record>
         <record id="action_arul_hr_employee_rehiring_history_form1" model="ir.actions.act_window.view">
@@ -653,7 +653,7 @@
 							<field name ="employee_category_id" on_change="onchange_employee_category_id(employee_category_id,sub_category_id)" options="{'create': false, 'create_edit': false}"/>
 							<field name ="sub_category_id" domain="[('category_id','=',employee_category_id)]" context="{'check_employee_category_id':1,'employee_category_id':employee_category_id}" options="{'create': false, 'create_edit': false}"/>
 							<field name ="action_date" string="Date Of Contracts"/>
-							<field name ="reason_id" domain="[('name','in', ['Good Performance', 'Successful completion of Trainee','Successful completion of Probation'])]" widget="selection"/>
+							<field name ="reason_id" domain="[('name','in', ['Poor Performance','Good Performance', 'Successful completion of Trainee','Successful completion of Probation'])]" widget="selection"/>
 							<newline/>
 							<field name ="period_from"/>
 							<field name ="period_to"/>
@@ -721,6 +721,8 @@
 		                 <group col='4' colspan='2'>
 							<field name="action_id" on_change="onchange_action_id(action_id)" domain="[('name','=','Hiring')]" options="{'create': false, 'create_edit': false}"/>
 							<field name="action_type_id" options="{'create': false, 'create_edit': false}"/>
+							<field name ="first_name"/>
+							<field name ="last_name"/>
 							<field name ="action_date" string="Date Of Hiring"/>
 							<newline/>
 							<field name ="employee_category_id" on_change="onchange_employee_category_id(employee_category_id,sub_category_id)" options="{'create': false, 'create_edit': false}"/>
