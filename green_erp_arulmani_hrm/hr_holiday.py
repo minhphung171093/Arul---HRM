@@ -633,7 +633,7 @@ class arul_hr_employee_attendence_details(osv.osv):
         'designation_id': fields.many2one('hr.job', 'Designation',readonly=False,ondelete='restrict'),
         'department_id':fields.many2one('hr.department', 'Department',readonly=False,ondelete='restrict'),
         'permission_onduty_details_line':fields.one2many('arul.hr.permission.onduty','permission_onduty_id','Permission On duty Details',readonly=True),
-        'punch_in_out_line':fields.one2many('arul.hr.punch.in.out.time','punch_in_out_id','Punch in/Punch out Details',readonly=True)
+        'punch_in_out_line':fields.one2many('arul.hr.punch.in.out.time','punch_in_out_id','Punch in/Punch out Details',readonly=False)
               }
     def name_get(self, cr, uid, ids, context=None):
         res = []
@@ -977,7 +977,7 @@ class arul_hr_monthly_work_schedule(osv.osv):
               'year': fields.selection([(num, str(num)) for num in range(1950, 2026)], 'Year', required = True, states={'done': [('readonly', True)]}),
               'month': fields.selection([('1', 'January'),('2', 'February'), ('3', 'March'), ('4','April'), ('5','May'), ('6','June'), ('7','July'), ('8','August'), ('9','September'), ('10','October'), ('11','November'), ('12','December')], 'Month',required = True, states={'done': [('readonly', True)]}),
               'monthly_shift_line': fields.one2many('arul.hr.monthly.shift.schedule','monthly_work_id', 'Monthly Work Schedule', states={'done': [('readonly', True)]}),
-              'state':fields.selection([('draft', 'Draft'),('load', 'Load'),('done', 'Done')],'Status', readonly=True)
+              'state':fields.selection([('draft', 'Draft'),('load', 'Load'),('done', 'Done')],'Status', readonly=True),
               }
     _defaults = {
         'state':'draft',
@@ -1072,6 +1072,100 @@ class arul_hr_monthly_work_schedule(osv.osv):
         resource_id = obj_model.read(cr, uid, model_data_ids, fields=['res_id'])[0]['res_id']
         work = self.browse(cr, uid, ids[0])
         num_of_month = calendar.monthrange(int(work.year),int(work.month))[1]
+        for num in range(1,num_of_month+1):
+            if num == 1:
+                date = datetime.date (int(work.year), int(work.month), 1)
+                context.update({'default_name_of_day_1': date.strftime("%A")})
+            if num == 2:
+                date = datetime.date (int(work.year), int(work.month), 2)
+                context.update({'default_name_of_day_2': date.strftime("%A")})
+            if num == 3:
+                date = datetime.date (int(work.year), int(work.month), 3)
+                context.update({'default_name_of_day_3': date.strftime("%A")})
+            if num == 4:
+                date = datetime.date (int(work.year), int(work.month), 4)
+                context.update({'default_name_of_day_4': date.strftime("%A")})
+            if num == 5:
+                date = datetime.date (int(work.year), int(work.month), 5)
+                context.update({'default_name_of_day_5': date.strftime("%A")})
+            if num == 6:
+                date = datetime.date (int(work.year), int(work.month), 6)
+                context.update({'default_name_of_day_6': date.strftime("%A")})
+            if num == 7:
+                date = datetime.date (int(work.year), int(work.month), 7)
+                context.update({'default_name_of_day_7': date.strftime("%A")})
+            if num == 8:
+                date = datetime.date (int(work.year), int(work.month), 8)
+                context.update({'default_name_of_day_8': date.strftime("%A")})
+            if num == 9:
+                date = datetime.date (int(work.year), int(work.month), 9)
+                context.update({'default_name_of_day_9': date.strftime("%A")})
+            if num == 10:
+                date = datetime.date (int(work.year), int(work.month), 10)
+                context.update({'default_name_of_day_10': date.strftime("%A")})
+            if num == 11:
+                date = datetime.date (int(work.year), int(work.month), 11)
+                context.update({'default_name_of_day_11': date.strftime("%A")})
+            if num == 12:
+                date = datetime.date (int(work.year), int(work.month), 12)
+                context.update({'default_name_of_day_12': date.strftime("%A")})
+            if num == 13:
+                date = datetime.date (int(work.year), int(work.month), 13)
+                context.update({'default_name_of_day_13': date.strftime("%A")})
+            if num == 14:
+                date = datetime.date (int(work.year), int(work.month), 14)
+                context.update({'default_name_of_day_14': date.strftime("%A")})
+            if num == 15:
+                date = datetime.date (int(work.year), int(work.month), 15)
+                context.update({'default_name_of_day_15': date.strftime("%A")})
+            if num == 16:
+                date = datetime.date (int(work.year), int(work.month), 16)
+                context.update({'default_name_of_day_16': date.strftime("%A")})
+            if num == 17:
+                date = datetime.date (int(work.year), int(work.month), 17)
+                context.update({'default_name_of_day_17': date.strftime("%A")})
+            if num == 18:
+                date = datetime.date (int(work.year), int(work.month), 18)
+                context.update({'default_name_of_day_18': date.strftime("%A")})
+            if num == 19:
+                date = datetime.date (int(work.year), int(work.month), 19)
+                context.update({'default_name_of_day_19': date.strftime("%A")})
+            if num == 20:
+                date = datetime.date (int(work.year), int(work.month), 20)
+                context.update({'default_name_of_day_20': date.strftime("%A")})
+            if num == 21:
+                date = datetime.date (int(work.year), int(work.month), 21)
+                context.update({'default_name_of_day_21': date.strftime("%A")})
+            if num == 22:
+                date = datetime.date (int(work.year), int(work.month), 22)
+                context.update({'default_name_of_day_22': date.strftime("%A")})
+            if num == 23:
+                date = datetime.date (int(work.year), int(work.month), 23)
+                context.update({'default_name_of_day_23': date.strftime("%A")})
+            if num == 24:
+                date = datetime.date (int(work.year), int(work.month), 24)
+                context.update({'default_name_of_day_24': date.strftime("%A")})
+            if num == 25:
+                date = datetime.date (int(work.year), int(work.month), 25)
+                context.update({'default_name_of_day_25': date.strftime("%A")})
+            if num == 26:
+                date = datetime.date (int(work.year), int(work.month), 26)
+                context.update({'default_name_of_day_26': date.strftime("%A")})
+            if num == 27:
+                date = datetime.date (int(work.year), int(work.month), 27)
+                context.update({'default_name_of_day_27': date.strftime("%A")})
+            if num == 28:
+                date = datetime.date (int(work.year), int(work.month), 28)
+                context.update({'default_name_of_day_28': date.strftime("%A")})
+            if num == 29:
+                date = datetime.date (int(work.year), int(work.month), 29)
+                context.update({'default_name_of_day_29': date.strftime("%A")})
+            if num == 30:
+                date = datetime.date (int(work.year), int(work.month), 30)
+                context.update({'default_name_of_day_30': date.strftime("%A")})
+            if num == 31:
+                date = datetime.date (int(work.year), int(work.month), 31)
+                context.update({'default_name_of_day_31': date.strftime("%A")})
         context.update({'default_year':work.year,'default_month':work.month,'default_num_of_month':num_of_month,'department_id':work.department_id.id,'section_id':work.section_id.id,'default_monthly_work':work.id})
         return {
             'view_type': 'form',
@@ -1108,12 +1202,168 @@ class arul_hr_monthly_work_schedule(osv.osv):
             dept = self.pool.get('hr.department').browse(cr, uid, department_id)
             employee_obj=self.pool.get('hr.employee')
             employee_ids = employee_obj.search(cr, uid, [('department_id','=',department_id ),('section_id','=',section_id )])
+            name_of_day_1 = False
+            name_of_day_2 = False
+            name_of_day_3 = False
+            name_of_day_4 = False
+            name_of_day_5 = False
+            name_of_day_6 = False
+            name_of_day_7 = False
+            name_of_day_8 = False
+            name_of_day_9 = False
+            name_of_day_10 = False
+            name_of_day_11 = False
+            name_of_day_12 = False
+            name_of_day_13 = False
+            name_of_day_14 = False
+            name_of_day_15 = False
+            name_of_day_16 = False
+            name_of_day_17 = False
+            name_of_day_18 = False
+            name_of_day_19 = False
+            name_of_day_20 = False
+            name_of_day_21 = False
+            name_of_day_22 = False
+            name_of_day_23 = False
+            name_of_day_24 = False
+            name_of_day_25 = False
+            name_of_day_26 = False
+            name_of_day_27 = False
+            name_of_day_28 = False
+            name_of_day_29 = False
+            name_of_day_30 = False
+            name_of_day_31 = False
+            for num in range(1,num_of_month+1):
+                if num == 1:
+                    date = datetime.date (year, int(month), 1)
+                    name_of_day_1 = date.strftime("%A")
+                if num == 2:
+                    date = datetime.date (year, int(month), 2)
+                    name_of_day_2 = date.strftime("%A")
+                if num == 3:
+                    date = datetime.date (year, int(month), 3)
+                    name_of_day_3 = date.strftime("%A")
+                if num == 4:
+                    date = datetime.date (year, int(month), 4)
+                    name_of_day_4 = date.strftime("%A")
+                if num == 5:
+                    date = datetime.date (year, int(month), 5)
+                    name_of_day_5 = date.strftime("%A")
+                if num == 6:
+                    date = datetime.date (year, int(month), 6)
+                    name_of_day_6 = date.strftime("%A")
+                if num == 7:
+                    date = datetime.date (year, int(month), 7)
+                    name_of_day_7 = date.strftime("%A")
+                if num == 8:
+                    date = datetime.date (year, int(month), 8)
+                    name_of_day_8 = date.strftime("%A")
+                if num == 9:
+                    date = datetime.date (year, int(month), 9)
+                    name_of_day_9 = date.strftime("%A")
+                if num == 10:
+                    date = datetime.date (year, int(month), 10)
+                    name_of_day_10 = date.strftime("%A")
+                if num == 11:
+                    date = datetime.date (year, int(month), 11)
+                    name_of_day_11 = date.strftime("%A")
+                if num == 12:
+                    date = datetime.date (year, int(month), 12)
+                    name_of_day_12 = date.strftime("%A")
+                if num == 13:
+                    date = datetime.date (year, int(month), 13)
+                    name_of_day_13 = date.strftime("%A")
+                if num == 14:
+                    date = datetime.date (year, int(month), 14)
+                    name_of_day_14 = date.strftime("%A")
+                if num == 15:
+                    date = datetime.date (year, int(month), 15)
+                    name_of_day_15 = date.strftime("%A")
+                if num == 16:
+                    date = datetime.date (year, int(month), 16)
+                    name_of_day_16 = date.strftime("%A")
+                if num == 17:
+                    date = datetime.date (year, int(month), 17)
+                    name_of_day_17 = date.strftime("%A")
+                if num == 18:
+                    date = datetime.date (year, int(month), 18)
+                    name_of_day_18 = date.strftime("%A")
+                if num == 19:
+                    date = datetime.date (year, int(month), 19)
+                    name_of_day_19 = date.strftime("%A")
+                if num == 20:
+                    date = datetime.date (year, int(month), 20)
+                    name_of_day_20 = date.strftime("%A")
+                if num == 21:
+                    date = datetime.date (year, int(month), 21)
+                    name_of_day_21 = date.strftime("%A")
+                if num == 22:
+                    date = datetime.date (year, int(month), 22)
+                    name_of_day_22 = date.strftime("%A")
+                if num == 23:
+                    date = datetime.date (year, int(month), 23)
+                    name_of_day_23 = date.strftime("%A")
+                if num == 24:
+                    date = datetime.date (year, int(month), 24)
+                    name_of_day_24 = date.strftime("%A")
+                if num == 25:
+                    date = datetime.date (year, int(month), 25)
+                    name_of_day_25 = date.strftime("%A")
+                if num == 26:
+                    date = datetime.date (year, int(month), 26)
+                    name_of_day_26 = date.strftime("%A")
+                if num == 27:
+                    date = datetime.date (year, int(month), 27)
+                    name_of_day_27 = date.strftime("%A")
+                if num == 28:
+                    date = datetime.date (year, int(month), 28)
+                    name_of_day_28 = date.strftime("%A")
+                if num == 29:
+                    date = datetime.date (year, int(month), 29)
+                    name_of_day_29 = date.strftime("%A")
+                if num == 30:
+                    date = datetime.date (year, int(month), 30)
+                    name_of_day_30 = date.strftime("%A")
+                if num == 31:
+                    date = datetime.date (year, int(month), 31)
+                    name_of_day_31 = date.strftime("%A")
             for p in self.browse(cr,uid,employee_ids):
                 rs = {
                       'employee_id':p.id,
                       'num_of_month': num_of_month,
                       'month':month,
                       'year': year,
+                      'name_of_day_1': name_of_day_1,
+                      'name_of_day_2': name_of_day_2,
+                      'name_of_day_3': name_of_day_3,
+                      'name_of_day_4': name_of_day_4,
+                      'name_of_day_5': name_of_day_5,
+                      'name_of_day_6': name_of_day_6,
+                      'name_of_day_7': name_of_day_7,
+                      'name_of_day_8': name_of_day_8,
+                      'name_of_day_9': name_of_day_9,
+                      'name_of_day_10': name_of_day_10,
+                      'name_of_day_11': name_of_day_11,
+                      'name_of_day_12': name_of_day_12,
+                      'name_of_day_13': name_of_day_13,
+                      'name_of_day_14': name_of_day_14,
+                      'name_of_day_15': name_of_day_15,
+                      'name_of_day_16': name_of_day_16,
+                      'name_of_day_17': name_of_day_17,
+                      'name_of_day_18': name_of_day_18,
+                      'name_of_day_19': name_of_day_19,
+                      'name_of_day_20': name_of_day_20,
+                      'name_of_day_21': name_of_day_21,
+                      'name_of_day_22': name_of_day_22,
+                      'name_of_day_23': name_of_day_23,
+                      'name_of_day_24': name_of_day_24,
+                      'name_of_day_25': name_of_day_25,
+                      'name_of_day_26': name_of_day_26,
+                      'name_of_day_27': name_of_day_27,
+                      'name_of_day_28': name_of_day_28,
+                      'name_of_day_29': name_of_day_29,
+                      'name_of_day_30': name_of_day_30,
+                      'name_of_day_31': name_of_day_31,
                       }
                 employee_lines.append((0,0,rs))
         return {'value': {'section_id':new_section_id,'monthly_shift_line':employee_lines}}
@@ -1133,12 +1383,168 @@ class arul_hr_monthly_work_schedule(osv.osv):
             dept = self.pool.get('hr.department').browse(cr, uid, department_id)
             employee_obj=self.pool.get('hr.employee')
             employee_ids = employee_obj.search(cr, uid, [('department_id','=',department_id ),('section_id','=',section_id )])
+            name_of_day_1 = False
+            name_of_day_2 = False
+            name_of_day_3 = False
+            name_of_day_4 = False
+            name_of_day_5 = False
+            name_of_day_6 = False
+            name_of_day_7 = False
+            name_of_day_8 = False
+            name_of_day_9 = False
+            name_of_day_10 = False
+            name_of_day_11 = False
+            name_of_day_12 = False
+            name_of_day_13 = False
+            name_of_day_14 = False
+            name_of_day_15 = False
+            name_of_day_16 = False
+            name_of_day_17 = False
+            name_of_day_18 = False
+            name_of_day_19 = False
+            name_of_day_20 = False
+            name_of_day_21 = False
+            name_of_day_22 = False
+            name_of_day_23 = False
+            name_of_day_24 = False
+            name_of_day_25 = False
+            name_of_day_26 = False
+            name_of_day_27 = False
+            name_of_day_28 = False
+            name_of_day_29 = False
+            name_of_day_30 = False
+            name_of_day_31 = False
+            for num in range(1,num_of_month+1):
+                if num == 1:
+                    date = datetime.date (year, int(month), 1)
+                    name_of_day_1 = date.strftime("%A")
+                if num == 2:
+                    date = datetime.date (year, int(month), 2)
+                    name_of_day_2 = date.strftime("%A")
+                if num == 3:
+                    date = datetime.date (year, int(month), 3)
+                    name_of_day_3 = date.strftime("%A")
+                if num == 4:
+                    date = datetime.date (year, int(month), 4)
+                    name_of_day_4 = date.strftime("%A")
+                if num == 5:
+                    date = datetime.date (year, int(month), 5)
+                    name_of_day_5 = date.strftime("%A")
+                if num == 6:
+                    date = datetime.date (year, int(month), 6)
+                    name_of_day_6 = date.strftime("%A")
+                if num == 7:
+                    date = datetime.date (year, int(month), 7)
+                    name_of_day_7 = date.strftime("%A")
+                if num == 8:
+                    date = datetime.date (year, int(month), 8)
+                    name_of_day_8 = date.strftime("%A")
+                if num == 9:
+                    date = datetime.date (year, int(month), 9)
+                    name_of_day_9 = date.strftime("%A")
+                if num == 10:
+                    date = datetime.date (year, int(month), 10)
+                    name_of_day_10 = date.strftime("%A")
+                if num == 11:
+                    date = datetime.date (year, int(month), 11)
+                    name_of_day_11 = date.strftime("%A")
+                if num == 12:
+                    date = datetime.date (year, int(month), 12)
+                    name_of_day_12 = date.strftime("%A")
+                if num == 13:
+                    date = datetime.date (year, int(month), 13)
+                    name_of_day_13 = date.strftime("%A")
+                if num == 14:
+                    date = datetime.date (year, int(month), 14)
+                    name_of_day_14 = date.strftime("%A")
+                if num == 15:
+                    date = datetime.date (year, int(month), 15)
+                    name_of_day_15 = date.strftime("%A")
+                if num == 16:
+                    date = datetime.date (year, int(month), 16)
+                    name_of_day_16 = date.strftime("%A")
+                if num == 17:
+                    date = datetime.date (year, int(month), 17)
+                    name_of_day_17 = date.strftime("%A")
+                if num == 18:
+                    date = datetime.date (year, int(month), 18)
+                    name_of_day_18 = date.strftime("%A")
+                if num == 19:
+                    date = datetime.date (year, int(month), 19)
+                    name_of_day_19 = date.strftime("%A")
+                if num == 20:
+                    date = datetime.date (year, int(month), 20)
+                    name_of_day_20 = date.strftime("%A")
+                if num == 21:
+                    date = datetime.date (year, int(month), 21)
+                    name_of_day_21 = date.strftime("%A")
+                if num == 22:
+                    date = datetime.date (year, int(month), 22)
+                    name_of_day_22 = date.strftime("%A")
+                if num == 23:
+                    date = datetime.date (year, int(month), 23)
+                    name_of_day_23 = date.strftime("%A")
+                if num == 24:
+                    date = datetime.date (year, int(month), 24)
+                    name_of_day_24 = date.strftime("%A")
+                if num == 25:
+                    date = datetime.date (year, int(month), 25)
+                    name_of_day_25 = date.strftime("%A")
+                if num == 26:
+                    date = datetime.date (year, int(month), 26)
+                    name_of_day_26 = date.strftime("%A")
+                if num == 27:
+                    date = datetime.date (year, int(month), 27)
+                    name_of_day_27 = date.strftime("%A")
+                if num == 28:
+                    date = datetime.date (year, int(month), 28)
+                    name_of_day_28 = date.strftime("%A")
+                if num == 29:
+                    date = datetime.date (year, int(month), 29)
+                    name_of_day_29 = date.strftime("%A")
+                if num == 30:
+                    date = datetime.date (year, int(month), 30)
+                    name_of_day_30 = date.strftime("%A")
+                if num == 31:
+                    date = datetime.date (year, int(month), 31)
+                    name_of_day_31 = date.strftime("%A")
             for p in self.browse(cr,uid,employee_ids):
                 rs = {
                       'employee_id':p.id,
                       'num_of_month': num_of_month,
                       'month':month,
                       'year': year,
+                      'name_of_day_1': name_of_day_1,
+                        'name_of_day_2': name_of_day_2,
+                        'name_of_day_3': name_of_day_3,
+                        'name_of_day_4': name_of_day_4,
+                        'name_of_day_5': name_of_day_5,
+                        'name_of_day_6': name_of_day_6,
+                        'name_of_day_7': name_of_day_7,
+                        'name_of_day_8': name_of_day_8,
+                        'name_of_day_9': name_of_day_9,
+                        'name_of_day_10': name_of_day_10,
+                        'name_of_day_11': name_of_day_11,
+                      'name_of_day_12': name_of_day_12,
+                      'name_of_day_13': name_of_day_13,
+                      'name_of_day_14': name_of_day_14,
+                      'name_of_day_15': name_of_day_15,
+                      'name_of_day_16': name_of_day_16,
+                      'name_of_day_17': name_of_day_17,
+                      'name_of_day_18': name_of_day_18,
+                      'name_of_day_19': name_of_day_19,
+                      'name_of_day_20': name_of_day_20,
+                      'name_of_day_21': name_of_day_21,
+                      'name_of_day_22': name_of_day_22,
+                      'name_of_day_23': name_of_day_23,
+                      'name_of_day_24': name_of_day_24,
+                      'name_of_day_25': name_of_day_25,
+                      'name_of_day_26': name_of_day_26,
+                      'name_of_day_27': name_of_day_27,
+                      'name_of_day_28': name_of_day_28,
+                      'name_of_day_29': name_of_day_29,
+                      'name_of_day_30': name_of_day_30,
+                      'name_of_day_31': name_of_day_31,
                       }
                 employee_lines.append((0,0,rs))
         return {'value': {'monthly_shift_line':employee_lines}}
@@ -1158,18 +1564,202 @@ class arul_hr_monthly_shift_schedule(osv.osv):
             res.update({'num_of_month': num_of_month})
         return res
     
-#     def _num_of_month(self, cr, uid, ids, field_name, arg, context=None):
-#         res = {}
-#         for day in self.browse(cr, uid, ids):
-#             res[day.id] = {
-#                 'num_of_month': 0,
-#             }
-#             num_day = calendar.monthrange(int(day.monthly_work_id.year),int(day.monthly_work_id.month))[1]  
-#             res[day.id]['num_of_month'] = num_day 
-#         return res
+    def _get_name_of_day(self, cr, uid, ids, field_name, arg, context=None):
+        res = {}
+        for line in self.browse(cr, uid, ids):
+            name_of_day_1 = False
+            name_of_day_2 = False
+            name_of_day_3 = False
+            name_of_day_4 = False
+            name_of_day_5 = False
+            name_of_day_6 = False
+            name_of_day_7 = False
+            name_of_day_8 = False
+            name_of_day_9 = False
+            name_of_day_10 = False
+            name_of_day_11 = False
+            name_of_day_12 = False
+            name_of_day_13 = False
+            name_of_day_14 = False
+            name_of_day_15 = False
+            name_of_day_16 = False
+            name_of_day_17 = False
+            name_of_day_18 = False
+            name_of_day_19 = False
+            name_of_day_20 = False
+            name_of_day_21 = False
+            name_of_day_22 = False
+            name_of_day_23 = False
+            name_of_day_24 = False
+            name_of_day_25 = False
+            name_of_day_26 = False
+            name_of_day_27 = False
+            name_of_day_28 = False
+            name_of_day_29 = False
+            name_of_day_30 = False
+            name_of_day_31 = False
+            for num in range(1,line.num_of_month+1):
+                if num == 1:
+                    date = datetime.date (line.year, int(line.month), 1)
+                    name_of_day_1 = date.strftime("%A")
+                if num == 2:
+                    date = datetime.date (line.year, int(line.month), 2)
+                    name_of_day_2 = date.strftime("%A")
+                if num == 3:
+                    date = datetime.date (line.year, int(line.month), 3)
+                    name_of_day_3 = date.strftime("%A")
+                if num == 4:
+                    date = datetime.date (line.year, int(line.month), 4)
+                    name_of_day_4 = date.strftime("%A")
+                if num == 5:
+                    date = datetime.date (line.year, int(line.month), 5)
+                    name_of_day_5 = date.strftime("%A")
+                if num == 6:
+                    date = datetime.date (line.year, int(line.month), 6)
+                    name_of_day_6 = date.strftime("%A")
+                if num == 7:
+                    date = datetime.date (line.year, int(line.month), 7)
+                    name_of_day_7 = date.strftime("%A")
+                if num == 8:
+                    date = datetime.date (line.year, int(line.month), 8)
+                    name_of_day_8 = date.strftime("%A")
+                if num == 9:
+                    date = datetime.date (line.year, int(line.month), 9)
+                    name_of_day_9 = date.strftime("%A")
+                if num == 10:
+                    date = datetime.date (line.year, int(line.month), 10)
+                    name_of_day_10 = date.strftime("%A")
+                if num == 11:
+                    date = datetime.date (line.year, int(line.month), 11)
+                    name_of_day_11 = date.strftime("%A")
+                if num == 12:
+                    date = datetime.date (line.year, int(line.month), 12)
+                    name_of_day_12 = date.strftime("%A")
+                if num == 13:
+                    date = datetime.date (line.year, int(line.month), 13)
+                    name_of_day_13 = date.strftime("%A")
+                if num == 14:
+                    date = datetime.date (line.year, int(line.month), 14)
+                    name_of_day_14 = date.strftime("%A")
+                if num == 15:
+                    date = datetime.date (line.year, int(line.month), 15)
+                    name_of_day_15 = date.strftime("%A")
+                if num == 16:
+                    date = datetime.date (line.year, int(line.month), 16)
+                    name_of_day_16 = date.strftime("%A")
+                if num == 17:
+                    date = datetime.date (line.year, int(line.month), 17)
+                    name_of_day_17 = date.strftime("%A")
+                if num == 18:
+                    date = datetime.date (line.year, int(line.month), 18)
+                    name_of_day_18 = date.strftime("%A")
+                if num == 19:
+                    date = datetime.date (line.year, int(line.month), 19)
+                    name_of_day_19 = date.strftime("%A")
+                if num == 20:
+                    date = datetime.date (line.year, int(line.month), 20)
+                    name_of_day_20 = date.strftime("%A")
+                if num == 21:
+                    date = datetime.date (line.year, int(line.month), 21)
+                    name_of_day_21 = date.strftime("%A")
+                if num == 22:
+                    date = datetime.date (line.year, int(line.month), 22)
+                    name_of_day_22 = date.strftime("%A")
+                if num == 23:
+                    date = datetime.date (line.year, int(line.month), 23)
+                    name_of_day_23 = date.strftime("%A")
+                if num == 24:
+                    date = datetime.date (line.year, int(line.month), 24)
+                    name_of_day_24 = date.strftime("%A")
+                if num == 25:
+                    date = datetime.date (line.year, int(line.month), 25)
+                    name_of_day_25 = date.strftime("%A")
+                if num == 26:
+                    date = datetime.date (line.year, int(line.month), 26)
+                    name_of_day_26 = date.strftime("%A")
+                if num == 27:
+                    date = datetime.date (line.year, int(line.month), 27)
+                    name_of_day_27 = date.strftime("%A")
+                if num == 28:
+                    date = datetime.date (line.year, int(line.month), 28)
+                    name_of_day_28 = date.strftime("%A")
+                if num == 29:
+                    date = datetime.date (line.year, int(line.month), 29)
+                    name_of_day_29 = date.strftime("%A")
+                if num == 30:
+                    date = datetime.date (line.year, int(line.month), 30)
+                    name_of_day_30 = date.strftime("%A")
+                if num == 31:
+                    date = datetime.date (line.year, int(line.month), 31)
+                    name_of_day_31 = date.strftime("%A")
+            res[line.id] = {
+                'name_of_day_1': name_of_day_1,
+                'name_of_day_2': name_of_day_2,
+                'name_of_day_3': name_of_day_3,
+                'name_of_day_4': name_of_day_4,
+                'name_of_day_5': name_of_day_5,
+                'name_of_day_6': name_of_day_6,
+                'name_of_day_7': name_of_day_7,
+                'name_of_day_8': name_of_day_8,
+                'name_of_day_9': name_of_day_9,
+                'name_of_day_10': name_of_day_10,
+                'name_of_day_11': name_of_day_11,
+                'name_of_day_12': name_of_day_12,
+                'name_of_day_13': name_of_day_13,
+                'name_of_day_14': name_of_day_14,
+                'name_of_day_15': name_of_day_15,
+                'name_of_day_16': name_of_day_16,
+                'name_of_day_17': name_of_day_17,
+                'name_of_day_18': name_of_day_18,
+                'name_of_day_19': name_of_day_19,
+                'name_of_day_20': name_of_day_20,
+                'name_of_day_21': name_of_day_21,
+                'name_of_day_22': name_of_day_22,
+                'name_of_day_23': name_of_day_23,
+                'name_of_day_24': name_of_day_24,
+                'name_of_day_25': name_of_day_25,
+                'name_of_day_26': name_of_day_26,
+                'name_of_day_27': name_of_day_27,
+                'name_of_day_28': name_of_day_28,
+                'name_of_day_29': name_of_day_29,
+                'name_of_day_30': name_of_day_30,
+                'name_of_day_31': name_of_day_31,
+            }
+        return res
     _columns={
 #               'num_of_month': fields.function(_num_of_month, string='Day',store=True, multi='sums', help="The total amount."),
               'num_of_month': fields.integer('Day'),
+              'name_of_day_1': fields.function(_get_name_of_day,string='Name Of Day', type='char',multi='days'),
+              'name_of_day_2': fields.function(_get_name_of_day,string='Name Of Day', type='char',multi='days'),
+              'name_of_day_3': fields.function(_get_name_of_day,string='Name Of Day', type='char',multi='days'),
+              'name_of_day_4': fields.function(_get_name_of_day,string='Name Of Day', type='char',multi='days'),
+              'name_of_day_5': fields.function(_get_name_of_day,string='Name Of Day', type='char',multi='days'),
+              'name_of_day_6': fields.function(_get_name_of_day,string='Name Of Day', type='char',multi='days'),
+              'name_of_day_7': fields.function(_get_name_of_day,string='Name Of Day', type='char',multi='days'),
+              'name_of_day_8': fields.function(_get_name_of_day,string='Name Of Day', type='char',multi='days'),
+              'name_of_day_9': fields.function(_get_name_of_day,string='Name Of Day', type='char',multi='days'),
+              'name_of_day_10': fields.function(_get_name_of_day,string='Name Of Day', type='char',multi='days'),
+              'name_of_day_11': fields.function(_get_name_of_day,string='Name Of Day', type='char',multi='days'),
+              'name_of_day_12': fields.function(_get_name_of_day,string='Name Of Day', type='char',multi='days'),
+              'name_of_day_13': fields.function(_get_name_of_day,string='Name Of Day', type='char',multi='days'),
+              'name_of_day_14': fields.function(_get_name_of_day,string='Name Of Day', type='char',multi='days'),
+              'name_of_day_15': fields.function(_get_name_of_day,string='Name Of Day', type='char',multi='days'),
+              'name_of_day_16': fields.function(_get_name_of_day,string='Name Of Day', type='char',multi='days'),
+              'name_of_day_17': fields.function(_get_name_of_day,string='Name Of Day', type='char',multi='days'),
+              'name_of_day_18': fields.function(_get_name_of_day,string='Name Of Day', type='char',multi='days'),
+              'name_of_day_19': fields.function(_get_name_of_day,string='Name Of Day', type='char',multi='days'),
+              'name_of_day_20': fields.function(_get_name_of_day,string='Name Of Day', type='char',multi='days'),
+              'name_of_day_21': fields.function(_get_name_of_day,string='Name Of Day', type='char',multi='days'),
+              'name_of_day_22': fields.function(_get_name_of_day,string='Name Of Day', type='char',multi='days'),
+              'name_of_day_23': fields.function(_get_name_of_day,string='Name Of Day', type='char',multi='days'),
+              'name_of_day_24': fields.function(_get_name_of_day,string='Name Of Day', type='char',multi='days'),
+              'name_of_day_25': fields.function(_get_name_of_day,string='Name Of Day', type='char',multi='days'),
+              'name_of_day_26': fields.function(_get_name_of_day,string='Name Of Day', type='char',multi='days'),
+              'name_of_day_27': fields.function(_get_name_of_day,string='Name Of Day', type='char',multi='days'),
+              'name_of_day_28': fields.function(_get_name_of_day,string='Name Of Day', type='char',multi='days'),
+              'name_of_day_29': fields.function(_get_name_of_day,string='Name Of Day', type='char',multi='days'),
+              'name_of_day_30': fields.function(_get_name_of_day,string='Name Of Day', type='char',multi='days'),
+              'name_of_day_31': fields.function(_get_name_of_day,string='Name Of Day', type='char',multi='days'),
               'year': fields.selection([(num, str(num)) for num in range(1950, 2026)], 'Year'),
               'month': fields.selection([('1', 'January'),('2', 'February'), ('3', 'March'), ('4','April'), ('5','May'), ('6','June'), ('7','July'), ('8','August'), ('9','September'), ('10','October'), ('11','November'), ('12','December')], 'Month'),
               'monthly_work': fields.integer('monthly work'),
