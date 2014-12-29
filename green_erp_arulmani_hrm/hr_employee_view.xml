@@ -1175,10 +1175,10 @@
                 				<field name ="meals_details_order_ids" nolabel="1" attrs="{'invisible':[('meals_for','!=','others')]}">
                 					<tree editable="top">
                 						<field name ="emp_name" options="{'create': false, 'create_edit': false}" readonly="0" required = "1"/>
-                						<field name ="break_fast"/>
-                						<field name ="lunch"/>
-                						<field name ="dinner"/>
-                						<field name ="midnight_tiffin"/>
+                						<field name ="break_fast_num"/>
+                						<field name ="lunch_num"/>
+                						<field name ="dinner_num"/>
+                						<field name ="midnight_tiffin_num"/>
                 						<field name ="employer_amt"/>
                 						<field name ="employee_amt"/>
                 					</tree>

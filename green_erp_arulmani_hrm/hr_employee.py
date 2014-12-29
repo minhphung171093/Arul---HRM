@@ -856,26 +856,16 @@ class meals_details(osv.osv):
         food_subsidy_obj = self.pool.get('food.subsidy')
         for meal_de in self.browse(cr, uid, ids, context=context):
             if meal_de.meals_id.meals_for == "others":
-                if meal_de.break_fast: 
-                    food_subsidy_ids = food_subsidy_obj.search(cr, uid, [('food_category','=','break_fast'),('history_id','=',False)])
-                    for free1 in food_subsidy_obj.browse(cr, uid, food_subsidy_ids):
-                        employer_amount += (free1.employer_con + free1.employee_con)
-                        employee_amount = 0.0
-                if meal_de.lunch:
-                    food_subsidy_ids = food_subsidy_obj.search(cr, uid, [('food_category','=','lunch'),('history_id','=',False)])
-                    for free1 in food_subsidy_obj.browse(cr, uid, food_subsidy_ids):
-                        employer_amount += (free1.employer_con + free1.employee_con)
-                        employee_amount = 0.0
-                if meal_de.dinner:
-                    food_subsidy_ids = food_subsidy_obj.search(cr, uid, [('food_category','=','dinner'),('history_id','=',False)])
-                    for free1 in food_subsidy_obj.browse(cr, uid, food_subsidy_ids):
-                        employer_amount += (free1.employer_con + free1.employee_con)
-                        employee_amount = 0.0
-                if meal_de.midnight_tiffin:        
-                    food_subsidy_ids = food_subsidy_obj.search(cr, uid, [('food_category','=','midnight_tiffin'),('history_id','=',False)])
-                    for free1 in food_subsidy_obj.browse(cr, uid, food_subsidy_ids):
-                        employer_amount += (free1.employer_con + free1.employee_con)
-                        employee_amount = 0.0
+                food_subsidy_ids = food_subsidy_obj.search(cr, uid, [('history_id','=',False)])
+                for free1 in food_subsidy_obj.browse(cr, uid, food_subsidy_ids):
+                    if free1.food_category=='break_fast':
+                        employer_amount += (free1.employer_con + free1.employee_con)*meal_de.break_fast_num
+                    elif free1.food_category=='lunch':
+                        employer_amount += (free1.employer_con + free1.employee_con)*meal_de.lunch_num
+                    elif free1.food_category=='dinner':
+                        employer_amount += (free1.employer_con + free1.employee_con)*meal_de.dinner_num
+                    else:
+                        employer_amount += (free1.employer_con + free1.employee_con)*meal_de.midnight_tiffin_num
             else:
                 if meal_de.break_fast : 
                     food_subsidy_ids = food_subsidy_obj.search(cr, uid, [('food_category','=','break_fast'),('history_id','=',False)])
@@ -953,6 +943,10 @@ class meals_details(osv.osv):
         'lunch' : fields.boolean('Lunch'),
         'dinner' : fields.boolean('Dinner'),
         'midnight_tiffin' : fields.boolean('Midnight Tiffin'),
+        'break_fast_num' : fields.integer('Break Fast'),
+        'lunch_num' : fields.integer('Lunch'),
+        'dinner_num' : fields.integer('Dinner'),
+        'midnight_tiffin_num' : fields.integer('Midnight Tiffin'),
         'employer_amt' : fields.function(evaluate_amt,digits=(16,2),type='float',string='Employer Amt',multi='sum',store=True),  
         'employee_amt' : fields.function(evaluate_amt,digits=(16,2),type='float',string='Employee Amt',multi='sum',store=True), 
         'free_cost_1' : fields.many2one('food.subsidy', 'Free Cost 1',ondelete='restrict'),
