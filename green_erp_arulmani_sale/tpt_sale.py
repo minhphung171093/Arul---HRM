@@ -568,22 +568,6 @@ class tpt_batch_request(osv.osv):
                'state': 'draft',
     }
     
-    def create(self, cr, uid, vals, context=None):
-        if 'sale_order_id' in vals:
-            sale = self.pool.get('sale.order').browse(cr, uid, vals['sale_order_id'])
-            for line in sale.order_line:
-                product_lines = []
-                rs = {
-                        'product_id': line.product_id.id,
-                        'product_type': line.product_type,
-                        'application_id': line.application_id.id,
-                        'product_uom_qty': line.product_uom_qty,
-                        'uom_po_id': line.product_uom.id,
-                      }
-                product_lines.append((0,0,rs))
-            vals.update({'customer_id':sale.partner_id.id, 'product_information_line': product_lines})
-        return super(tpt_batch_request, self).create(cr, uid, vals, context)
-    
     def write(self, cr, uid, ids, vals, context=None):
         if 'sale_order_id' in vals:
             sale = self.pool.get('sale.order').browse(cr, uid, vals['sale_order_id'])
@@ -622,12 +606,33 @@ class tpt_batch_request(osv.osv):
         (_check_sale_order_id, 'Identical Data', ['sale_order_id']),
     ]
     
-    def onchange_sale_order_id(self, cr, uid, ids,sale_order_id=False, context=None):
-        vals = {}
-        product_lines = []
-        if sale_order_id :
-            sale = self.pool.get('sale.order').browse(cr, uid, sale_order_id)
+#     def onchange_sale_order_id(self, cr, uid, ids,sale_order_id=False, context=None):
+#         vals = {}
+#         product_lines = []
+#         if sale_order_id :
+#             sale = self.pool.get('sale.order').browse(cr, uid, sale_order_id)
+#             for line in sale.order_line:
+#                 rs = {
+#                         'product_id': line.product_id.id,
+#                         'product_type': line.product_type,
+#                         'application_id': line.application_id.id,
+#                         'product_uom_qty': line.product_uom_qty,
+#                         'uom_po_id': line.product_uom.id,
+#                       }
+#                 product_lines.append((0,0,rs))
+#             vals = {
+#                     'customer_id':sale.partner_id.id,
+#                     'product_information_line': product_lines,
+#                     }
+#         return {'value': vals}
+    
+    def create(self, cr, uid, vals, context=None):
+        if vals.get('name','/')=='/':
+            vals['name'] = self.pool.get('ir.sequence').get(cr, uid, 'tpt.batch.req.import') or '/'
+        if 'sale_order_id' in vals:
+            sale = self.pool.get('sale.order').browse(cr, uid, vals['sale_order_id'])
             for line in sale.order_line:
+                product_lines = []
                 rs = {
                         'product_id': line.product_id.id,
                         'product_type': line.product_type,
@@ -636,20 +641,17 @@ class tpt_batch_request(osv.osv):
                         'uom_po_id': line.product_uom.id,
                       }
                 product_lines.append((0,0,rs))
-            vals = {
-                    'customer_id':sale.partner_id.id,
-                    'product_information_line': product_lines,
-                    }
-        return {'value': vals}
-    
-    def create(self, cr, uid, vals, context=None):
-        if vals.get('name','/')=='/':
-            vals['name'] = self.pool.get('ir.sequence').get(cr, uid, 'tpt.batch.req.import') or '/'
+            vals.update({'customer_id':sale.partner_id.id, 'product_information_line': product_lines})
         return super(tpt_batch_request, self).create(cr, uid, vals, context=context)
     
     def onchange_sale_order_id(self, cr, uid, ids,sale_order_id=False, context=None):
         vals = {}
         product_information_line = []
+        for request in self.browse(cr, uid, ids):
+            sql = '''
+                delete from tpt_product_information where product_information_id = %s
+            '''%(request.id)
+            cr.execute(sql)
         if sale_order_id:
             sale = self.pool.get('sale.order').browse(cr, uid, sale_order_id)
             for line in sale.order_line:
@@ -1056,6 +1058,5 @@ class stock_production_lot(osv.osv):
         'phy_batch_no': fields.char('Physical Serial No.', size = 1024,required = True), 
                 }
 stock_production_lot()  
-
 
 # vim:expandtab:smartindent:tabstop=4:softtabstop=4:shiftwidth=4:
