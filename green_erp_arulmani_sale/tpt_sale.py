@@ -515,19 +515,6 @@ class tpt_consignee(osv.osv):
             res[line.id]['product_uom_qty'] = quatity
         return res
     
-#     def quatity_consignee(self, cr, uid, ids, field_name, args, context=None):
-#         res = {}
-#         for line in self.browse(cr,uid,ids,context=context):
-#             res[line.id] = {
-#                'product_uom_qty' : 0.0,
-#                }
-#             for order_line in line.blanket_consignee_id.blank_order_line:
-#                 if order_line.product_id.id == line.product_id.id:
-#                     quatity = order_line.product_uom_qty
-#                         
-#             res[line.id]['product_uom_qty'] = quatity
-#         return res
-    
     
     _columns = {
         'blanket_consignee_id': fields.many2one('tpt.blanket.order', 'Consignee'),
@@ -568,21 +555,44 @@ class tpt_batch_request(osv.osv):
     _name = "tpt.batch.request"
     
     _columns = {
-        'name': fields.char('Request No', size = 1024,readonly=True),
-        'sale_order_id': fields.many2one('sale.order', 'Sales Order'),
-        'customer_id': fields.many2one('res.partner', 'Customer'),
-        'description': fields.text('Description'),
-        'request_date': fields.date('Request Date'),
-        'product_information_line': fields.one2many('tpt.product.information', 'product_information_id', 'Product Information'), 
+        'name': fields.char('Request No', size = 1024,readonly=True, required = True , states={'cancel': [('readonly', True)], 'done':[('readonly', True)]}),
+        'sale_order_id': fields.many2one('sale.order', 'Sales Order', required = True, states={'cancel': [('readonly', True)], 'done':[('readonly', True)]}),
+        'customer_id': fields.many2one('res.partner', 'Customer', readonly=True, states={'cancel': [('readonly', True)], 'done':[('readonly', True)]}),
+        'description': fields.text('Description', states={'cancel': [('readonly', True)], 'done':[('readonly', True)]}),
+        'request_date': fields.date('Request Date', states={'cancel': [('readonly', True)], 'done':[('readonly', True)]}),
+        'product_information_line': fields.one2many('tpt.product.information', 'product_information_id', 'Product Information', readonly=True, states={'cancel': [('readonly', True)], 'done':[('readonly', True)]}),
+        'state':fields.selection([('draft', 'Draft'),('cancel', 'Cancel'),('done', 'Approve')],'Status', readonly=True, states={'cancel': [('readonly', True)], 'done':[('readonly', True)]}),
                 }
     _defaults={
-    'name':'/',
+               'name':'/',
+               'state': 'draft',
     }
-    def create(self, cr, uid, vals, context=None):
-        if vals.get('name','/')=='/':
-            vals['name'] = self.pool.get('ir.sequence').get(cr, uid, 'tpt.batch.req.import') or '/'
-        return super(tpt_batch_request, self).create(cr, uid, vals, context=context)
     
+    def write(self, cr, uid, ids, vals, context=None):
+        if 'sale_order_id' in vals:
+            sale = self.pool.get('sale.order').browse(cr, uid, vals['sale_order_id'])
+            for line in sale.order_line:
+                product_lines = []
+                rs = {
+                        'product_id': line.product_id.id,
+                        'product_type': line.product_type,
+                        'application_id': line.application_id.id,
+                        'product_uom_qty': line.product_uom_qty,
+                        'uom_po_id': line.product_uom.id,
+                      }
+                product_lines.append((0,0,rs))
+            vals.update({'customer_id':sale.partner_id.id, 'product_information_line': product_lines})
+        return super(tpt_batch_request, self).write(cr, uid,ids, vals, context)
+    
+    def bt_approve(self, cr, uid, ids, context=None):
+        return self.write(cr, uid, ids,{'state':'done'})
+    
+    def bt_cancel(self, cr, uid, ids, context=None):
+        for line in self.browse(cr, uid, ids):
+            batch_allotment_ids = self.pool.get('tpt.batch.allotment').search(cr,uid,[('batch_request_id', '=',line.id )])
+            if batch_allotment_ids:
+                raise osv.except_osv(_('Warning!'),_('Batch Request has already existed on Batch Allotment'))
+        return self.write(cr, uid, ids,{'state':'cancel'})
     
     def _check_sale_order_id(self, cr, uid, ids, context=None):
         for request in self.browse(cr, uid, ids, context=context):
@@ -591,10 +601,57 @@ class tpt_batch_request(osv.osv):
                 raise osv.except_osv(_('Warning!'),_('Sale Order ID already exists!'))
                 return False
         return True
+
+    _constraints = [
+        (_check_sale_order_id, 'Identical Data', ['sale_order_id']),
+    ]
+    
+#     def onchange_sale_order_id(self, cr, uid, ids,sale_order_id=False, context=None):
+#         vals = {}
+#         product_lines = []
+#         if sale_order_id :
+#             sale = self.pool.get('sale.order').browse(cr, uid, sale_order_id)
+#             for line in sale.order_line:
+#                 rs = {
+#                         'product_id': line.product_id.id,
+#                         'product_type': line.product_type,
+#                         'application_id': line.application_id.id,
+#                         'product_uom_qty': line.product_uom_qty,
+#                         'uom_po_id': line.product_uom.id,
+#                       }
+#                 product_lines.append((0,0,rs))
+#             vals = {
+#                     'customer_id':sale.partner_id.id,
+#                     'product_information_line': product_lines,
+#                     }
+#         return {'value': vals}
+    
+    def create(self, cr, uid, vals, context=None):
+        if vals.get('name','/')=='/':
+            vals['name'] = self.pool.get('ir.sequence').get(cr, uid, 'tpt.batch.req.import') or '/'
+        if 'sale_order_id' in vals:
+            sale = self.pool.get('sale.order').browse(cr, uid, vals['sale_order_id'])
+            for line in sale.order_line:
+                product_lines = []
+                rs = {
+                        'product_id': line.product_id.id,
+                        'product_type': line.product_type,
+                        'application_id': line.application_id.id,
+                        'product_uom_qty': line.product_uom_qty,
+                        'uom_po_id': line.product_uom.id,
+                      }
+                product_lines.append((0,0,rs))
+            vals.update({'customer_id':sale.partner_id.id, 'product_information_line': product_lines})
+        return super(tpt_batch_request, self).create(cr, uid, vals, context=context)
     
     def onchange_sale_order_id(self, cr, uid, ids,sale_order_id=False, context=None):
         vals = {}
         product_information_line = []
+        for request in self.browse(cr, uid, ids):
+            sql = '''
+                delete from tpt_product_information where product_information_id = %s
+            '''%(request.id)
+            cr.execute(sql)
         if sale_order_id:
             sale = self.pool.get('sale.order').browse(cr, uid, sale_order_id)
             for line in sale.order_line:
@@ -612,7 +669,6 @@ class tpt_batch_request(osv.osv):
                     }
         return {'value': vals}
     
-
 tpt_batch_request()
 
 class tpt_product_information(osv.osv):
@@ -685,7 +741,7 @@ class tpt_batch_allotment(osv.osv):
             view_id = view_ref and view_ref[1] or False,
     
             #Tim delivery_order cua Sale order do
-#             picking_out_ids = self.pool.get('stock.picking').search(cr,uid,[('sale_id','=',batch_allotment.sale_order_id.id)],context=context)
+            picking_out_ids = self.pool.get('stock.picking').search(cr,uid,[('sale_id','=',batch_allotment.sale_order_id.id)],context=context)
 #             sql = '''
 #                 delete from stock_move where picking_id = %s
 #             '''%(picking_out_ids[0])
@@ -1002,6 +1058,5 @@ class stock_production_lot(osv.osv):
         'phy_batch_no': fields.char('Physical Serial No.', size = 1024,required = True), 
                 }
 stock_production_lot()  
-
 
 # vim:expandtab:smartindent:tabstop=4:softtabstop=4:shiftwidth=4:

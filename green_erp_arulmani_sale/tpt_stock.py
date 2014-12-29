@@ -46,12 +46,13 @@ class stock_move(osv.osv):
             }
         return res
     _columns = {
-        'product_type': fields.selection([('product', 'Stockable Product'),('consu', 'Consumable'),('service', 'Service')],'Product Type'),   
+        'product_type': fields.selection([('product', 'Stockable Product'),('consu', 'Consumable'),('service', 'Service')],'Product Type'),  
         'application_id': fields.many2one('crm.application','Application'),   
         'prodlot_id': fields.many2one('stock.production.lot', 'System Serial No.', states={'done': [('readonly', True)]}, help="Serial number is used to put a serial number on the production", select=True), 
 #         'sys_batch':fields.many2one('stock.production.lot','System Serial No.'), 
 #         'phy_batch':fields.char('Physical Batch No.', size = 1024)
         'phy_batch':fields.function(get_phy_batch,type='char', size = 1024,string='Physical Serial No.',multi='sum',store=True),
+
                 }
     
 stock_move()
