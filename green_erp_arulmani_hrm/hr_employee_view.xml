@@ -367,7 +367,7 @@
 		</record>
 
          <record id="action_arul_hr_employee_transfer_action_form" model="ir.actions.act_window">
-            <field name="name">Employee Transfer/ Deputation</field>
+            <field name="name">Transfer/ Deputation</field>
 			<field name="type">ir.actions.act_window</field>
             <field name="res_model">arul.hr.employee.action.history</field>
             <field name="view_type">form</field>
@@ -388,9 +388,7 @@
             <field name="view_id" ref="view_arul_hr_employee_transfer_action_form_vew"/>
             <field name="act_window_id" ref="action_arul_hr_employee_transfer_action_form"/>
         </record>
-         <menuitem action="action_arul_hr_employee_transfer_action_form"
-            id="menu_action_arul_hr_employee_transfer_action_form"
-            parent="hr.menu_hr_main" sequence="28" groups="group_vvti_hrm_hr_key_user,group_vvti_hrm_hr_manager"/>
+
         
         <record id="view_arul_hr_employee_action_history_tree_vew" model="ir.ui.view">
 			<field name="name">arul.hr.employee.action.history.tree</field>
@@ -446,7 +444,7 @@
         </record>
         
         <record id="action_arul_hr_employee_action_history_form" model="ir.actions.act_window">
-            <field name="name">Employee Promotion Action</field>
+            <field name="name">Promotion</field>
             <field name="type">ir.actions.act_window</field>
             <field name="res_model">arul.hr.employee.action.history</field>
             <field name="view_type">form</field>
@@ -467,10 +465,7 @@
             <field name="view_id" ref="view_arul_hr_employee_action_history_form_vew"/>
             <field name="act_window_id" ref="action_arul_hr_employee_action_history_form"/>
         </record>
-         <menuitem action="action_arul_hr_employee_action_history_form"
-            id="menu_action_arul_hr_employee_action_history_form"
-            parent="hr.menu_hr_main" sequence="25" groups="group_vvti_hrm_hr_key_user,group_vvti_hrm_hr_manager"/> 
-            
+       
          <record id="view_arul_hr_employee_rehiring_history_tree_vew" model="ir.ui.view">
 			<field name="name">arul.hr.employee.rehiring.history.tree</field>
 			<field name="model">arul.hr.employee.action.history</field>
@@ -521,7 +516,7 @@
         </record>
         
         <record id="action_arul_hr_employee_rehiring_history_form" model="ir.actions.act_window">
-            <field name="name">Employee Rehiring</field>
+            <field name="name">Rehiring</field>
             <field name="type">ir.actions.act_window</field>
             <field name="res_model">arul.hr.employee.action.history</field>
             <field name="view_type">form</field>
@@ -542,10 +537,7 @@
             <field name="view_id" ref="view_arul_hr_employee_rehiring_history_form_vew"/>
             <field name="act_window_id" ref="action_arul_hr_employee_rehiring_history_form"/>
         </record>
-         <menuitem action="action_arul_hr_employee_rehiring_history_form"
-            id="menu_action_arul_hr_employee_rehiring_history_form"
-            parent="hr.menu_hr_main" sequence="26" groups="group_vvti_hrm_hr_key_user,group_vvti_hrm_hr_manager"/> 
-            
+    
          <record id="view_arul_hr_employee_compensation_review_action_tree_vew" model="ir.ui.view">
 			<field name="name">arul.hr.employee.compensation_review.action.tree</field>
 			<field name="model">arul.hr.employee.action.history</field>
@@ -594,7 +586,7 @@
         </record>
         
         <record id="action_arul_hr_employee_compensation_review_action_form" model="ir.actions.act_window">
-            <field name="name">Employee Compensation Review Action</field>
+            <field name="name">Compensation Review</field>
             <field name="type">ir.actions.act_window</field>
             <field name="res_model">arul.hr.employee.action.history</field>
             <field name="view_type">form</field>
@@ -615,10 +607,7 @@
             <field name="view_id" ref="view_arul_hr_employee_compensation_review_action_form_vew"/>
             <field name="act_window_id" ref="action_arul_hr_employee_compensation_review_action_form"/>
         </record>
-         <menuitem action="action_arul_hr_employee_compensation_review_action_form"
-            id="menu_action_arul_hr_employee_compensation_review_action_form"
-            parent="hr.menu_hr_main" sequence="27" groups="group_vvti_hrm_hr_key_user,group_vvti_hrm_hr_manager"/>
-            
+           
           <record id="view_arul_hr_employee_contracts_action_tree_vew" model="ir.ui.view">
 			<field name="name">arul.hr.employee.contracts.action.tree</field>
 			<field name="model">arul.hr.employee.action.history</field>
@@ -667,7 +656,7 @@
         </record>
         
         <record id="action_arul_hr_employee_contracts_action_form" model="ir.actions.act_window">
-            <field name="name">Employee Contracts</field>
+            <field name="name">Contracts</field>
             <field name="type">ir.actions.act_window</field>
             <field name="res_model">arul.hr.employee.action.history</field>
             <field name="view_type">form</field>
@@ -688,9 +677,6 @@
             <field name="view_id" ref="view_arul_hr_employee_contracts_action_form_vew"/>
             <field name="act_window_id" ref="action_arul_hr_employee_contracts_action_form"/>
         </record>
-         <menuitem action="action_arul_hr_employee_contracts_action_form"
-            id="menu_action_arul_hr_employee_contracts_action_form"
-            parent="hr.menu_hr_main" sequence="28" groups="group_vvti_hrm_hr_key_user,group_vvti_hrm_hr_manager"/>
 		
 		<record id="view_arul_hr_employee_hiring_action_tree_vew" model="ir.ui.view">
 			<field name="name">arul.hr.employee.hiring.action.tree</field>
@@ -742,7 +728,7 @@
         </record>
         
         <record id="action_arul_hr_employee_hiring_action_form" model="ir.actions.act_window">
-            <field name="name">Employee Hiring</field>
+            <field name="name">Hiring</field>
             <field name="type">ir.actions.act_window</field>
             <field name="res_model">arul.hr.employee.action.history</field>
             <field name="view_type">form</field>
@@ -763,9 +749,6 @@
             <field name="view_id" ref="view_arul_hr_employee_hiring_action_form_vew"/>
             <field name="act_window_id" ref="action_arul_hr_employee_hiring_action_form"/>
         </record>
-         <menuitem action="action_arul_hr_employee_hiring_action_form"
-            id="menu_action_arul_hr_employee_hiring_action_form"
-            parent="hr.menu_hr_main" sequence="30" groups="group_vvti_hrm_hr_key_user,group_vvti_hrm_hr_manager"/>
 		
 		<record id="arul_hr_employees_form" model="ir.ui.view">
             <field name="name">arul_hr_employees_form</field>
@@ -970,7 +953,7 @@
         </record>
 		
 		 <record id="action_arul_hr_employee_leaving_action_form" model="ir.actions.act_window">
-            <field name="name">Employee Leaving</field>
+            <field name="name">Leaving</field>
             <field name="type">ir.actions.act_window</field>
             <field name="res_model">arul.hr.employee.action.history</field>
             <field name="view_type">form</field>
@@ -991,9 +974,6 @@
             <field name="view_id" ref="view_arul_hr_employee_leaving_action_form_vew"/>
             <field name="act_window_id" ref="action_arul_hr_employee_leaving_action_form"/>
         </record>
-		<menuitem action="action_arul_hr_employee_leaving_action_form"
-            id="menu_action_arul_hr_employee_leaving_action_form"
-            parent="hr.menu_hr_main" sequence="29" groups="group_vvti_hrm_hr_key_user,group_vvti_hrm_hr_manager"/>
 
 		<record id="view_arul_hr_employee_disciplinary_action_tree_vew" model="ir.ui.view">
 			<field name="name">arul.hr.employee.disciplinary.action.tree</field>
@@ -1045,7 +1025,7 @@
 		</record>
 
         <record id="action_arul_hr_employee_disciplinary_action_form" model="ir.actions.act_window">
-            <field name="name">Employee Disciplinary</field>
+            <field name="name">Disciplinary</field>
 			<field name="type">ir.actions.act_window</field>
             <field name="res_model">arul.hr.employee.action.history</field>
             <field name="view_type">form</field>
@@ -1066,9 +1046,6 @@
             <field name="view_id" ref="view_arul_hr_employee_disciplinary_action_form_vew"/>
             <field name="act_window_id" ref="action_arul_hr_employee_disciplinary_action_form"/>
         </record>
-        <menuitem action="action_arul_hr_employee_disciplinary_action_form"
-            id="menu_action_arul_hr_employee_disciplinary_action_form"
-            parent="hr.menu_hr_main" sequence="29" groups="group_vvti_hrm_hr_key_user,group_vvti_hrm_hr_manager"/>
             
         <record id="food_subsidy_tree_view" model="ir.ui.view">
 			<field name="name">food.subsidy.tree</field>
@@ -1175,10 +1152,10 @@
                 				<field name ="meals_details_order_ids" nolabel="1" attrs="{'invisible':[('meals_for','!=','others')]}">
                 					<tree editable="top">
                 						<field name ="emp_name" options="{'create': false, 'create_edit': false}" readonly="0" required = "1"/>
-                						<field name ="break_fast"/>
-                						<field name ="lunch"/>
-                						<field name ="dinner"/>
-                						<field name ="midnight_tiffin"/>
+                						<field name ="break_fast_num"/>
+                						<field name ="lunch_num"/>
+                						<field name ="dinner_num"/>
+                						<field name ="midnight_tiffin_num"/>
                 						<field name ="employer_amt"/>
                 						<field name ="employee_amt"/>
                 					</tree>

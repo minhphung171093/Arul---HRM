@@ -185,7 +185,7 @@ class hr_family (osv.osv):
     _description = "Family"
     _columns = {
         'name' : fields.char('Name', size=128),
-        'relation_type': fields.selection([('father','Father'),('mother','Mother'),('spouse','Spouse'),('sibling','Sibling'),('child','Child'),('other','Other')],'Relation Type'),
+        'relation_type': fields.selection([('father','Father'),('mother','Mother'),('spouse','Spouse'),('sibling','Sibling'),('child','Child'),('daughter','Daughter'),('son','Son'),('brother','Brother'),('sister','Sister'),('other','Other')],'Relation Type'),
         'date_of_birth' : fields.date('Date Of Birth'),
         'qualification' : fields.char('Qualification', size=128),
         'phone' : fields.char('Phone', size=128),
@@ -324,6 +324,18 @@ class hr_statutory (osv.osv):
         'pension_no' : fields.char('Pension No', size=128),
         'employee_id': fields.many2one('hr.employee','Employee'),
     }
+
+    def _check_epf(self, cr, uid, ids, context=None):
+        for record in self.browse(cr, uid, ids, context=context):
+            record_ids = self.search(cr, uid, [('id','!=',record.id),('name','=',record.name)])
+            pension_ids = self.search(cr, uid, [('id','!=',record.id),('pension_no','=',record.pension_no)])
+            if record_ids or pension_ids:
+                raise osv.except_osv(_('Warning!'),_('EPF No./ Pension No. has already existed !'))
+                return False
+        return True
+    _constraints = [
+        (_check_epf, 'Identical Data', ['name']),
+    ]
 hr_statutory()
 
 
