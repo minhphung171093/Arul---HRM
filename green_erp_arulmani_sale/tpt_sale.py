@@ -480,19 +480,6 @@ class tpt_consignee(osv.osv):
             res[line.id]['product_uom_qty'] = quatity
         return res
     
-#     def quatity_consignee(self, cr, uid, ids, field_name, args, context=None):
-#         res = {}
-#         for line in self.browse(cr,uid,ids,context=context):
-#             res[line.id] = {
-#                'product_uom_qty' : 0.0,
-#                }
-#             for order_line in line.blanket_consignee_id.blank_order_line:
-#                 if order_line.product_id.id == line.product_id.id:
-#                     quatity = order_line.product_uom_qty
-#                         
-#             res[line.id]['product_uom_qty'] = quatity
-#         return res
-    
     
     _columns = {
         'blanket_consignee_id': fields.many2one('tpt.blanket.order', 'Consignee'),
@@ -533,22 +520,16 @@ class tpt_batch_request(osv.osv):
     _name = "tpt.batch.request"
     
     _columns = {
-        'name': fields.char('Request No', size = 1024,readonly=True),
-        'sale_order_id': fields.many2one('sale.order', 'Sales Order'),
+        'name': fields.char('Request No', size = 1024,readonly=True, required = True ),
+        'sale_order_id': fields.many2one('sale.order', 'Sales Order', required = True),
         'customer_id': fields.many2one('res.partner', 'Customer'),
         'description': fields.text('Description'),
         'request_date': fields.date('Request Date'),
         'product_information_line': fields.one2many('tpt.product.information', 'product_information_id', 'Product Information'), 
                 }
     _defaults={
-    'name':'/',
+               'name':'/',
     }
-    def create(self, cr, uid, vals, context=None):
-        if vals.get('name','/')=='/':
-            vals['name'] = self.pool.get('ir.sequence').get(cr, uid, 'tpt.batch.req.import') or '/'
-        return super(tpt_batch_request, self).create(cr, uid, vals, context=context)
-    
-    
     def _check_sale_order_id(self, cr, uid, ids, context=None):
         for request in self.browse(cr, uid, ids, context=context):
             request_ids = self.search(cr, uid, [('id','!=',request.id),('sale_order_id','=',request.sale_order_id.id)])
@@ -556,6 +537,37 @@ class tpt_batch_request(osv.osv):
                 raise osv.except_osv(_('Warning!'),_('Sale Order ID already exists!'))
                 return False
         return True
+    _constraints = [
+        (_check_sale_order_id, 'Identical Data', ['sale_order_id']),
+    ]
+    
+    def onchange_sale_order_id(self, cr, uid, ids,sale_order_id=False, context=None):
+        vals = {}
+        product_lines = []
+        if sale_order_id :
+            sale = self.pool.get('sale.order').browse(cr, uid, sale_order_id)
+            for line in sale.order_line:
+                rs = {
+                        'product_id': line.product_id.id,
+                        'product_type': line.product_type,
+                        'application_id': line.application_id.id,
+                        'product_uom_qty': line.product_uom_qty,
+                        'uom_po_id': line.product_uom.id,
+                      }
+                product_lines.append((0,0,rs))
+            vals = {
+                    'customer_id':sale.partner_id.id,
+                    'product_information_line': product_lines,
+                    }
+        return {'value': vals}
+    
+    def create(self, cr, uid, vals, context=None):
+        if vals.get('name','/')=='/':
+            vals['name'] = self.pool.get('ir.sequence').get(cr, uid, 'tpt.batch.req.import') or '/'
+        return super(tpt_batch_request, self).create(cr, uid, vals, context=context)
+    
+    
+    
 
 tpt_batch_request()
 
