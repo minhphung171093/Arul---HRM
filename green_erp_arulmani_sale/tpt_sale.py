@@ -685,7 +685,7 @@ class tpt_batch_allotment(osv.osv):
             view_id = view_ref and view_ref[1] or False,
     
             #Tim delivery_order cua Sale order do
-#             picking_out_ids = self.pool.get('stock.picking').search(cr,uid,[('sale_id','=',batch_allotment.sale_order_id.id)],context=context)
+            picking_out_ids = self.pool.get('stock.picking').search(cr,uid,[('sale_id','=',batch_allotment.sale_order_id.id)],context=context)
 #             sql = '''
 #                 delete from stock_move where picking_id = %s
 #             '''%(picking_out_ids[0])
