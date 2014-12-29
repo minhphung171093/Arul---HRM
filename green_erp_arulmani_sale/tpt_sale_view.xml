@@ -747,7 +747,7 @@
 	                    <notebook>
 		                    <page string="Product Information" autofocus="autofocus">
 	                            <field name="batch_allotment_line" nolabel='1' attrs="{'readonly':[('state','in',('cancel','confirm'))]}">
-	                            	<tree editable='top'>
+	                            	<tree editable='bottom'>
 	                            		<field name="product_id" widget = "selection" options="{'create': false, 'create_edit': false}"/>
 										<field name="product_type" />
 										<field name="application_id" options="{'create': false, 'create_edit': false}"/>
