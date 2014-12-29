@@ -2,7 +2,8 @@
 ##############################################################################
 #
 #    OpenERP, Open Source Management Solution
-#    Copyright (C) 2004-2010 Tiny SPRL (<http://tiny.be>).
+#    Copyright (c) 2010-2014 Elico Corp. All Rights Reserved.
+#    Augustin Cisterne-Kaas <augustin.cisterne-kaas@elico-corp.com>
 #
 #    This program is free software: you can redistribute it and/or modify
 #    it under the terms of the GNU Affero General Public License as
@@ -18,31 +19,19 @@
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 ##############################################################################
-
 {
-    'name': 'VVTi_TPT_SALE',
-    'version': '1.0',
-    'category': 'GreenERP',
-    'sequence': 14,
-    'author': 'Tenth Planet',
-    'website' : 'http://www. tenthplanet.in',
-    'depends': ['green_erp_arulmani_hrm','green_erp_arulmani_crm','sale_stock','stock','ir_sequence_autoreset'],
-    'data': [
-        'data/tpt_sale_data.xml',
-        'tpt_sale_view.xml',
-        'report/print_form_403_view.xml',
-        'report/test_report_view.xml',
-        'tpt_stock_view.xml',
-        'sale_sequence.xml',
-    ],
-    'css' : [
-    ],
-    'js' : [
-    ],
-    'qweb': [
-     ],
+    'name': 'OpenERP Adblock',
+    'version': '0.1',
+    'category': 'Web',
+    'depends': ['mail'],
+    'author': 'Elico Corp',
+    'license': 'AGPL-3',
+    'website': 'https://www.elico-corp.com',
+    'description': """
+        Module which hides the OpenERP announcement bar.
+    """,
+    'images': [],
+    'js': ['static/src/js/announcement.js'],
     'installable': True,
-    'auto_install': False,
-    'application': True,
+    'application': False,
 }
-# vim:expandtab:smartindent:tabstop=4:softtabstop=4:shiftwidth=4:

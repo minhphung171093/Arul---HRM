@@ -542,4 +542,341 @@ class tpt_import_payroll(osv.osv):
         return self.write(cr, uid, ids, {'state':'done'})
     
 tpt_import_payroll()
+
+class tpt_import_employee_history(osv.osv):
+    _name = 'tpt.import.employee.history'
+    def _data_get(self, cr, uid, ids, name, arg, context=None):
+        if context is None:
+            context = {}
+        result = {}
+        location = self.pool.get('ir.config_parameter').get_param(cr, uid, 'hr_identities_attachment.location')
+        bin_size = context.get('bin_size')
+        for attach in self.browse(cr, uid, ids, context=context):
+            if location and attach.store_fname:
+                result[attach.id] = self._file_read(cr, uid, location, attach.store_fname, bin_size)
+            else:
+                result[attach.id] = attach.db_datas
+        return result
+
+    def _data_set(self, cr, uid, id, name, value, arg, context=None):
+        # We dont handle setting data to null
+        if not value:
+            return True
+        if context is None:
+            context = {}
+        location = self.pool.get('ir.config_parameter').get_param(cr, uid, 'hr_identities_attachment.location')
+        file_size = len(value.decode('base64'))
+        if location:
+            attach = self.browse(cr, uid, id, context=context)
+            if attach.store_fname:
+                self._file_delete(cr, uid, location, attach.store_fname)
+            fname = self._file_write(cr, uid, location, value)
+            # SUPERUSER_ID as probably don't have write access, trigger during create
+            super(tpt_import_employee_history, self).write(cr, SUPERUSER_ID, [id], {'store_fname': fname, 'file_size': file_size}, context=context)
+        else:
+            super(tpt_import_employee_history, self).write(cr, SUPERUSER_ID, [id], {'db_datas': value, 'file_size': file_size}, context=context)
+        return True
+
+    _columns = {
+        'name': fields.date('Date Import', required=True,states={'done': [('readonly', True)]}),
+        'datas_fname': fields.char('File Name',size=256),
+        'datas': fields.function(_data_get, fnct_inv=_data_set, string='Data Employee', type="binary", nodrop=True,states={'done': [('readonly', True)]}),
+        'store_fname': fields.char('Stored Filename', size=256),
+        'db_datas': fields.binary('Database Data'),
+        'file_size': fields.integer('File Size'),
+        'state':fields.selection([('draft', 'Draft'),('done', 'Done')],'Status', readonly=True)
+    }
+    
+    _defaults = {
+        'state':'draft',
+        'name': time.strftime('%Y-%m-%d'),
+        
+    }
+    
+    def import_employee_history(self, cr, uid, ids, context=None):
+        this = self.browse(cr, uid, ids[0])
+        try:
+            recordlist = base64.decodestring(this.datas)
+            excel = xlrd.open_workbook(file_contents = recordlist)
+            sh = excel.sheet_by_index(0)
+        except Exception, e:
+            raise osv.except_osv(_('Warning!'), str(e))
+        if sh:
+            
+            action_obj = self.pool.get('arul.employee.actions')
+            action_type_obj = self.pool.get('arul.employee.action.type')
+            employee_obj = self.pool.get('hr.employee')
+            season_obj = self.pool.get('arul.season')
+            user_obj = self.pool.get('res.users')
+            department_obj = self.pool.get('hr.department')
+            designation_obj = self.pool.get('hr.job')
+            employee_category_obj = self.pool.get('vsis.hr.employee.category')
+            sub_category_obj = self.pool.get('hr.employee.sub.category')
+            payroll_area_obj = self.pool.get('arul.hr.payroll.area')
+            payroll_sub_area_obj = self.pool.get('arul.hr.payroll.sub.area')
+            employee_history_obj = self.pool.get('arul.hr.employee.action.history')
+            try:
+                dem = 1
+                for row in range(1,sh.nrows):
+                    action = sh.cell(row, 0).value
+                    action_ids = action_obj.search(cr, uid, [('name','=',action)])
+                    if not action_ids:
+                        raise osv.except_osv(_('Warning!'),'Line: '+str(dem+1)+' Action '+action+' does not exist!')
+                    else:
+                        action_id = action_ids[0]
+                        
+                    action_type = sh.cell(row, 1).value
+                    action_type_ids = action_type_obj.search(cr, uid, [('name','=',action_type)])
+                    if not action_type_ids:
+                        raise osv.except_osv(_('Warning!'),'Line: '+str(dem+1)+' Action Type '+action_type+' does not exist!')
+                    else:
+                        action_type_id = action_type_ids[0]
+                        
+                    employee = sh.cell(row, 2).value
+                    if employee:
+                        employee_ids = employee_obj.search(cr, uid, [('employee_id','=',employee)])
+                        if not employee_ids:
+                            raise osv.except_osv(_('Warning!'),'Line: '+str(dem+1)+' Employee '+employee+' does not exist!')
+                        else:
+                            employee_id = employee_ids[0]
+                    else:
+                        employee_id = False
+                    
+                    firstname = sh.cell(row, 3).value
+                    if firstname:
+                        first_name = firstname
+                    else:
+                        first_name = False
+                        
+                    lastname = sh.cell(row, 4).value
+                    if lastname:
+                        last_name = lastname
+                    else:
+                        last_name = False
+                        
+                    actiondate = sh.cell(row, 5).value
+                    if actiondate:
+                        action_date = actiondate[6:10] + '-' + actiondate[3:5] + '-'+ actiondate[:2]
+                    else:
+                        action_date = False
+                        
+                    createdate = sh.cell(row, 6).value
+                    if createdate:
+                        create_date = createdate[6:10] + '-' + createdate[3:5] + '-'+ createdate[:2]+createdate[10:]
+                    else:
+                        create_date = False
+                        
+                    create_by = sh.cell(row, 7).value
+                    user_ids = user_obj.search(cr, uid, [('name','=',create_by)])
+                    if not user_ids:
+                        raise osv.except_osv(_('Warning!'),'Line: '+str(dem+1)+' User '+user+' does not exist!')
+                    else:
+                        user_id = user_ids[0]
+                        
+                    periodfrom = sh.cell(row, 8).value
+                    if periodfrom:
+                        period_from = periodfrom[6:10] + '-' + periodfrom[3:5] + '-'+ periodfrom[:2]
+                    else:
+                        period_from = False
+                        
+                    periodto = sh.cell(row, 9).value
+                    if periodto:
+                        period_to = periodto[6:10] + '-' + periodto[3:5] + '-'+ periodto[:2]
+                    else:
+                        period_to = False
+                        
+                    reason = sh.cell(row, 10).value
+                    if reason:
+                        season_ids = season_obj.search(cr, uid, [('season_id','=',season)])
+                        if not season_ids:
+                            raise osv.except_osv(_('Warning!'),'Line: '+str(dem+1)+' Season '+season+' does not exist!')
+                        else:
+                            season_id = season_ids[0]
+                    else:
+                        reason_id = False
+                        
+                    note = sh.cell(row, 11).value
+                    
+                    department_from = sh.cell(row, 12).value
+                    if department_from:
+                        department_from_ids = department_obj.search(cr, uid, [('name','=',department_from)])
+                        if not department_from_ids:
+                            raise osv.except_osv(_('Warning!'),'Line: '+str(dem+1)+' Department '+department_from+' does not exist!')
+                        else:
+                            department_from_id = department_from_ids[0]
+                    else:
+                        department_from_id = False
+                        
+                    department_to = sh.cell(row, 13).value
+                    if department_to:
+                        department_to_ids = department_obj.search(cr, uid, [('name','=',department_to)])
+                        if not department_to_ids:
+                            raise osv.except_osv(_('Warning!'),'Line: '+str(dem+1)+' Department '+department_to+' does not exist!')
+                        else:
+                            department_to_id = department_to_ids[0]
+                    else:
+                        department_to_id = False
+                    
+                    designation_from = sh.cell(row, 14).value
+                    if designation_from:
+                        designation_from_ids = designation_obj.search(cr, uid, [('name','=',designation_from)])
+                        if not designation_from_ids:
+                            raise osv.except_osv(_('Warning!'),'Line: '+str(dem+1)+' Designation '+designation_from+' does not exist!')
+                        else:
+                            designation_from_id = designation_from_ids[0]
+                    else:
+                        designation_from_id = False
+                        
+                    designation_to = sh.cell(row, 15).value
+                    if designation_to:
+                        designation_to_ids = designation_obj.search(cr, uid, [('name','=',designation_to)])
+                        if not designation_ids:
+                            raise osv.except_osv(_('Warning!'),'Line: '+str(dem+1)+' Designation '+designation_to+' does not exist!')
+                        else:
+                            designation_to_id = designation_to_ids[0]
+                    else:
+                        designation_to_id = False
+                        
+                    employee_category = sh.cell(row, 16).value
+                    if employee_category:
+                        employee_category_ids = employee_category_obj.search(cr, uid, [('code','=',employee_category)])
+                        if not employee_category_ids:
+                            raise osv.except_osv(_('Warning!'),'Line: '+str(dem+1)+' Employee Category '+employee_category+' does not exist!')
+                        else:
+                            employee_category_id = employee_category_ids[0]
+                    else:
+                        employee_category_id = False
+                        
+                    sub_category = sh.cell(row, 17).value
+                    if sub_category:
+                        sub_category_ids = sub_category_obj.search(cr, uid, [('code','=',sub_category)])
+                        if not sub_category_ids:
+                            raise osv.except_osv(_('Warning!'),'Line: '+str(dem+1)+' Employee Sub Category '+sub_category+' does not exist!')
+                        else:
+                            sub_category_id = sub_category_ids[0]
+                    else:
+                        sub_category_id = False
+                        
+                    payroll_area = sh.cell(row, 18).value
+                    if payroll_area:
+                        payroll_area_ids = payroll_area_obj.search(cr, uid, [('code','=',payroll_area)])
+                        if not payroll_area_ids:
+                            raise osv.except_osv(_('Warning!'),'Line: '+str(dem+1)+' Payroll Area '+payroll_area+' does not exist!')
+                        else:
+                            payroll_area_id = payroll_area_ids[0]
+                    else:
+                        payroll_area_id = False
+                        
+                    payroll_sub_area = sh.cell(row, 19).value
+                    if payroll_sub_area:
+                        payroll_sub_area_ids = payroll_sub_area_obj.search(cr, uid, [('code','=',payroll_sub_area)])
+                        if not payroll_sub_area_ids:
+                            raise osv.except_osv(_('Warning!'),'Line: '+str(dem+1)+' Payroll Sub Area '+payroll_sub_area+' does not exist!')
+                        else:
+                            payroll_sub_area_id = payroll_sub_area_ids[0]
+                    else:
+                        payroll_sub_area_id = False
+                        
+                    current_monthsalary = sh.cell(row, 20).value
+                    if current_monthsalary:
+                        if current_monthsalary=='Y':
+                            current_month_salary = True
+                        else:
+                            current_month_salary = False
+                    else:
+                        current_month_salary = False
+                        
+                    plencashment = sh.cell(row, 21).value
+                    if plencashment:
+                        if plencashment=='Y':
+                            pl_encashment = True
+                        else:
+                            pl_encashment = False
+                    else:
+                        pl_encashment = False
+                        
+                    coff = sh.cell(row, 22).value
+                    if coff:
+                        if coff=='Y':
+                            c_off = True
+                        else:
+                            c_off = False
+                    else:
+                        c_off = False
+                        
+                    bonus_val = sh.cell(row, 23).value
+                    if bonus_val:
+                        if bonus_val=='Y':
+                            bonus = True
+                        else:
+                            bonus = False
+                    else:
+                        bonus = False
+                        
+                    medicalreimbursement = sh.cell(row, 24).value
+                    if medicalreimbursement:
+                        if medicalreimbursement=='Y':
+                            medical_reimbursement = True
+                        else:
+                            medical_reimbursement = False
+                    else:
+                        medical_reimbursement = False
+                        
+                    gratuity_val = sh.cell(row, 25).value
+                    if gratuity_val:
+                        if gratuity_val=='Y':
+                            gratuity = True
+                        else:
+                            gratuity = False
+                    else:
+                        gratuity = False
+                        
+                    pfsettlement = sh.cell(row, 26).value
+                    if pfsettlement:
+                        if pfsettlement=='Y':
+                            pf_settlement = True
+                        else:
+                            pf_settlement = False
+                    else:
+                        pf_settlement = False
+                    
+                    dem += 1
+                    if employee_id:
+                        employee_history_obj.create(cr, uid, {
+                            'employee_id': employee_id,
+                            'first_name': first_name,
+                            'last_name': last_name,
+                            'action_id': action_id,
+                            'action_type_id': action_type_id,
+                            'action_date': action_date,
+                            'create_date': create_date,
+                            'create_uid': create_uid,
+                            'period_from': period_from,
+                            'period_to': period_to,
+                            'reason_id': reason_id,
+                            'note': note,
+                            'department_from_id': department_from_id,
+                            'department_to_id': department_to_id,
+                            'designation_from_id': designation_from_id,
+                            'designation_to_id': designation_to_id,
+                            'employee_category_id': employee_category_id,
+                            'sub_category_id': sub_category_id,
+                            'employee_category_id': employee_category_id,
+                            'payroll_area_id': payroll_area_id,
+                            'payroll_sub_area_id': payroll_sub_area_id,
+                            'current_month_salary': current_month_salary,
+                            'pl_encashment': pl_encashment,
+                            'c_off': c_off,
+                            'bonus': bonus,
+                            'medical_reimbursement': medical_reimbursement,
+                            'gratuity': gratuity,
+                            'pf_settlement': pf_settlement,
+                        })
+                    else:
+                        raise osv.except_osv(_('Warning!'),'Line: '+str(dem+1)+' Employee '+employee+' does not exist!')
+            except Exception, e:
+                raise osv.except_osv(_('Warning!'), str(e)+ ' Line: '+str(dem+1))
+        return self.write(cr, uid, ids, {'state':'done'})
+    
+tpt_import_employee_history()
     

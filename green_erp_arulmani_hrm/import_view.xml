@@ -141,5 +141,52 @@
         <menuitem action="action_tpt_import_payroll_form"
             id="menu_action_tpt_import_payroll_form"
             parent="hr.menu_hr_main" sequence="102"/>
+            
+        <record id="tpt_import_employee_history_tree_view" model="ir.ui.view">
+			<field name="name">tpt.import.employee.history.tree</field>
+			<field name="model">tpt.import.employee.history</field>
+			<field name="arch" type="xml">
+				<tree string="Import Employee History Data ">
+					<field name ="name"/>
+					<field name="state"/>
+				</tree>
+			</field>
+		</record>
+
+		<record id="tpt_import_employee_history_form_view" model="ir.ui.view">
+            <field name="name">tpt.import.employee.history.form</field>
+            <field name="model">tpt.import.employee.history</field>
+            <field name="arch" type="xml">
+                <form string="Import Employee History Data" version="7.0">
+                    <header>
+	                    <button name="import_employee_history" states='draft' string="Import" type="object" class="oe_highlight" />
+	                    <field name="state" widget="statusbar" statusbar_visible="draft,done" statusbar_colors='{"draft":"blue","done":"blue"}'/>
+	                </header>                
+                	<sheet>  
+                		<group>
+                		<field name ="name"/>
+						<label for="datas" string="Data Upload Field"/>
+							<div>
+								<field name="datas" filename="datas_fname"/>
+	                        	<field name="datas_fname" invisible="1" class="oe_inline oe_right"/>
+	                        </div>
+                		</group>
+                	</sheet>
+				</form>
+			</field>
+		</record>
+
+        <record id="action_tpt_import_employee_history_form" model="ir.actions.act_window">
+            <field name="name">Import Employee History</field>
+			<field name="type">ir.actions.act_window</field>
+            <field name="res_model">tpt.import.employee.history</field>
+            <field name="view_type">form</field>
+            <field name="view_mode">tree,form</field>
+            <field name="view_id" ref="tpt_import_employee_history_tree_view"/>
+        </record>
+        
+        <menuitem action="action_tpt_import_employee_history_form"
+            id="menu_action_tpt_import_employee_history_form"
+            parent="hr.menu_hr_main" sequence="103"/>
     </data>
 </openerp>
