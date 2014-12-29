@@ -162,6 +162,7 @@ class arul_hr_employee_action_history(osv.osv):
         'medical_reimbursement': fields.boolean('Medical Reimbursement (Y/N)'),
         'gratuity': fields.boolean('Gratuity (Y/N)'),
         'pf_settlement': fields.boolean('PF Settlement (Y/N)'),
+        'block_list': fields.boolean('Block list'),
 #         'address_id': fields.many2one('res.partner', 'Working Address',ondelete='restrict'),
 #         'department_id':fields.many2one('hr.department', 'Department',ondelete='restrict'),
     }
@@ -309,7 +310,13 @@ class arul_hr_employee_action_history(osv.osv):
             'target': 'current',
             'context': ctx,
         }
-        
+    
+    def add_block_list(self, cr, uid, ids, context=None):
+        return self.write(cr, uid, ids, {'block_list':True}, context)
+    
+    def unblock_list(self, cr, uid, ids, context=None):
+        return self.write(cr, uid, ids, {'block_list':False}, context)
+    
     def create(self, cr, uid, vals, context=None):
         new_id = super(arul_hr_employee_action_history, self).create(cr, uid, vals, context)
         if context.get('create_leaving_employee'):

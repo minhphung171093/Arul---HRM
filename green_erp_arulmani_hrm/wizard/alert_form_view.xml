@@ -81,6 +81,35 @@
 	        <field name="context">{'default_message':'Do you want to Reject the Time?'}</field>
 	        <field name="target">new</field>
 	    </record>
+	    
+	    <record id="approve_or_reject_shift_change_form_view" model="ir.ui.view">
+	        <field name="name">approve.or.reject.shift.change.form</field>
+	        <field name="model">alert.form</field>
+	        <field eval="20" name="priority"/>
+	        <field name="arch" type="xml">
+	            <form string="Approve or Reject" version="7.0">
+	                <h1>
+	                	<field name="message"  nolabel="1" />
+	                </h1>
+	                <footer>
+	                	<button name="approve_shift_change" type='object' string="Approve" class="oe_highlight"/>
+	                    <button name="reject_shift_change" type='object' string="Reject" class="oe_highlight"/>
+	                    or
+	                    <button string="Cancel" special="cancel" />
+	                </footer>
+	            </form>
+	        </field>
+    	</record>
+
+	    <record model="ir.actions.act_window" id="action_approve_or_reject_shift_change">
+	        <field name="name">Approve or Reject</field>
+	        <field name="res_model">alert.form</field>
+	        <field name="view_type">form</field>
+	        <field name="view_mode">form</field>
+	        <field name="view_id" ref="approve_or_reject_shift_change_form_view"/>
+	        <field name="context">{'default_message':'Approve or Reject?'}</field>
+	        <field name="target">new</field>
+	    </record>
     </data>
 </openerp>
 

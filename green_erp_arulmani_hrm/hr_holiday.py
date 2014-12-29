@@ -535,22 +535,54 @@ class arul_hr_permission_onduty(osv.osv):
         work_shift_ids = [row[0] for row in cr.fetchall()]
         
         punch_obj = self.pool.get('arul.hr.punch.in.out')
-        day = permission.date[8:10]
-        month = permission.date[5:7]
-        year = permission.date[:4]
-        shift_id = punch_obj.get_work_shift(cr, uid, permission.employee_id.id, int(day), int(month), year)
         
-        self.pool.get('arul.hr.audit.shift.time').create(cr, SUPERUSER_ID, {
-            'employee_id':permission.employee_id.id,
-            'work_date':permission.date,
-            'employee_category_id':permission.employee_id.employee_category_id and permission.employee_id.employee_category_id.id or False,
-            'planned_work_shift_id': shift_id,
-            'actual_work_shift_id': work_shift_ids and work_shift_ids[0] or False,
-            'in_time':permission.start_time,
-            'out_time':permission.end_time,
-            'type': 'permission',
-            'permission_id':new_id,
-        })
+        if permission.non_availability_type_id == 'on_duty' and not permission.date:
+            date_from = datetime.datetime.strptime(permission.from_date,'%Y-%m-%d')
+            date_to = datetime.datetime.strptime(permission.to_date,'%Y-%m-%d')
+            while (date_from<=date_to):
+                day = date_from.day
+                month = date_from.month
+                year = date_from.year
+                shift_id = punch_obj.get_work_shift(cr, uid, permission.employee_id.id, int(day), int(month), year)
+                self.create(cr, uid, {
+                                        'employee_id': permission.employee_id.id,
+                                        'non_availability_type_id': 'on_duty',
+                                        'date': date_from,
+                                        'duty_location': permission.duty_location,
+                                        'start_time': permission.start_time,
+                                        'end_time': permission.end_time,
+                                        'reason':permission.reason,
+                                        'parent_id': permission.id,
+                                        }, context)
+                
+#                 self.pool.get('arul.hr.audit.shift.time').create(cr, SUPERUSER_ID, {
+#                     'employee_id':permission.employee_id.id,
+#                     'work_date':date_from,
+#                     'employee_category_id':permission.employee_id.employee_category_id and permission.employee_id.employee_category_id.id or False,
+#                     'planned_work_shift_id': shift_id,
+#                     'actual_work_shift_id': work_shift_ids and work_shift_ids[0] or False,
+#                     'in_time':permission.start_time,
+#                     'out_time':permission.end_time,
+#                     'type': 'permission',
+#                     'permission_id':new_id,
+#                 })
+                date_from += datetime.timedelta(days=1)
+        else:
+            day = permission.date[8:10]
+            month = permission.date[5:7]
+            year = permission.date[:4]
+            shift_id = punch_obj.get_work_shift(cr, uid, permission.employee_id.id, int(day), int(month), year)
+            self.pool.get('arul.hr.audit.shift.time').create(cr, SUPERUSER_ID, {
+                'employee_id':permission.employee_id.id,
+                'work_date':permission.date,
+                'employee_category_id':permission.employee_id.employee_category_id and permission.employee_id.employee_category_id.id or False,
+                'planned_work_shift_id': shift_id,
+                'actual_work_shift_id': work_shift_ids and work_shift_ids[0] or False,
+                'in_time':permission.start_time,
+                'out_time':permission.end_time,
+                'type': 'permission',
+                'permission_id':new_id,
+            })
         return new_id
 #     
     def _time_total(self, cr, uid, ids, field_name, arg, context=None):
@@ -566,7 +598,9 @@ class arul_hr_permission_onduty(osv.osv):
     _columns={
         'employee_id':fields.many2one('hr.employee','Employee',required=True),
         'non_availability_type_id':fields.selection([('permission','Permission'),('on_duty','On duty')],'Non Availability Type',required = True),
-        'date':fields.date('Date',required=True),
+        'date':fields.date('Date'),
+        'from_date':fields.date('From Date'),
+        'to_date':fields.date('To Date'),
         'duty_location':fields.char('On Duty Location', size = 1024),
         'start_time': fields.float('Start Time'),
         'end_time': fields.float('End Time'),
@@ -574,6 +608,8 @@ class arul_hr_permission_onduty(osv.osv):
         'reason':fields.text('Reason'),
         'permission_onduty_id':fields.many2one('arul.hr.employee.attendence.details','Permission/Onduty',ondelete='cascade'),
         'approval': fields.boolean('Select for Approval', readonly =  True),
+        'parent_id':fields.many2one('arul.hr.permission.onduty','Permission/Onduty',ondelete='cascade'),
+        'permission_onduty_line':fields.one2many('arul.hr.permission.onduty','parent_id','Onduty Line',readonly=True),
 #         'detail_id':fields.many2one('arul.hr.employee.attendence.details','Detail'),
         
               }
@@ -608,9 +644,17 @@ class arul_hr_permission_onduty(osv.osv):
             if (time.start_time > time.end_time):
                 raise osv.except_osv(_('Warning!'),_('Start Time is earlier than End Time'))
                 return False
-            return True       
+        return True
+    
+    def _check_date_from_to(self, cr, uid, ids, context=None): 
+        for permission_onduty in self.browse(cr, uid, ids, context = context):
+            if permission_onduty.non_availability_type_id and permission_onduty.to_date < permission_onduty.from_date:
+                raise osv.except_osv(_('Warning!'),_('From Date is earlier than To Date'))
+                return False
+        return True    
     _constraints = [
         (_check_time, _(''), ['start_time', 'end_time']),
+        (_check_date_from_to, _(''), ['from_date', 'to_date']),
         ]
     
    
@@ -2924,3 +2968,214 @@ class shift_group(osv.osv):
 
 shift_group()
 
+class shift_change(osv.osv):
+    _name='shift.change'
+    _columns={
+              'num_of_month': fields.integer('Num Of Month'),
+              'date_from': fields.many2one('tpt.month','Change Requested From', required = True, states={'done': [('readonly', True)]}),
+              'date_to': fields.many2one('tpt.month','Change Requested To', required = True, states={'done': [('readonly', True)]}),
+              'department_id':fields.many2one('hr.department','Department', required = True, states={'done': [('readonly', True)]}),
+              'section_id': fields.many2one('arul.hr.section','Section', required = True, states={'done': [('readonly', True)]}),
+              'employee_id': fields.many2one('hr.employee','Employee', required = True, states={'done': [('readonly', True)]}),
+              'year': fields.selection([(num, str(num)) for num in range(1950, 2026)], 'Work Schedule Year', required = True, states={'done': [('readonly', True)]}),
+              'month': fields.selection([('1', 'January'),('2', 'February'), ('3', 'March'), ('4','April'), ('5','May'), ('6','June'), ('7','July'), ('8','August'), ('9','September'), ('10','October'), ('11','November'), ('12','December')], 'Work Schedule Month',required = True, states={'done': [('readonly', True)]}),
+              'shift_id': fields.many2one('arul.hr.capture.work.shift','Shift to be Changed', required = True, states={'done': [('readonly', True)]}),
+              'apply_weekly_off': fields.boolean('Apply schedule change to weekly off days?', states={'done': [('readonly', True)]}),
+              'state':fields.selection([('draft', 'Draft'),('submitted', 'Submitted'),('rejected', 'Rejected'),('approved', 'Approved')],'Status', readonly=True),
+              }
+    _defaults = {
+        'state':'draft',
+        'year': int(time.strftime('%Y')),
+    }
+    
+    def submit(self, cr, uid, ids, context=None):
+        for line in self.browse(cr, uid, ids):
+            sql = '''
+                select id from arul_hr_monthly_shift_schedule where employee_id=%s
+                    and monthly_work_id in (select id from arul_hr_monthly_work_schedule where department_id = %s and section_id = %s and year=%s and month='%s' and state='done')
+            '''%(line.employee_id.id,line.department_id.id,line.section_id.id,line.year,line.month)
+            cr.execute(sql)
+            monthly_shift_ids = [row[0] for row in cr.fetchall()]
+            if not monthly_shift_ids:
+                raise osv.except_osv(_('Warning!'),_('Please Approve Monthly Work Schedule before Approve!!'))
+        return self.write(cr, uid, ids, {'state': 'submitted'})
+    
+    def approve(self, cr, uid, ids, context=None):
+        monthly_shift_obj = self.pool.get('arul.hr.monthly.shift.schedule')
+        for line in self.browse(cr, uid, ids):
+            if line.state != 'submitted':
+                raise osv.except_osv(_('Warning!'),_('Please Submit request before Approve!'))
+            sql = '''
+                select id from arul_hr_monthly_shift_schedule where employee_id=%s
+                    and monthly_work_id in (select id from arul_hr_monthly_work_schedule where department_id = %s and section_id = %s and year=%s and month='%s' and state='done')
+            '''%(line.employee_id.id,line.department_id.id,line.section_id.id,line.year,line.month)
+            cr.execute(sql)
+            monthly_shift_ids = [row[0] for row in cr.fetchall()]
+            for monthly_shift in monthly_shift_obj.browse(cr, uid, monthly_shift_ids):
+                if line.apply_weekly_off:
+                    for num in range(line.date_from.name,line.date_to.name+1):
+                        if num==1:
+                            monthly_shift_obj.write(cr, uid, [monthly_shift.id], {'day_1':line.shift_id.id})
+                        if num==2:
+                            monthly_shift_obj.write(cr, uid, [monthly_shift.id], {'day_2':line.shift_id.id})
+                        if num==3:
+                            monthly_shift_obj.write(cr, uid, [monthly_shift.id], {'day_3':line.shift_id.id})
+                        if num==4:
+                            monthly_shift_obj.write(cr, uid, [monthly_shift.id], {'day_4':line.shift_id.id})
+                        if num==5:
+                            monthly_shift_obj.write(cr, uid, [monthly_shift.id], {'day_5':line.shift_id.id})
+                        if num==6:
+                            monthly_shift_obj.write(cr, uid, [monthly_shift.id], {'day_6':line.shift_id.id})
+                        if num==7:
+                            monthly_shift_obj.write(cr, uid, [monthly_shift.id], {'day_7':line.shift_id.id})
+                        if num==8:
+                            monthly_shift_obj.write(cr, uid, [monthly_shift.id], {'day_8':line.shift_id.id})
+                        if num==9:
+                            monthly_shift_obj.write(cr, uid, [monthly_shift.id], {'day_9':line.shift_id.id})
+                        if num==10:
+                            monthly_shift_obj.write(cr, uid, [monthly_shift.id], {'day_10':line.shift_id.id})
+                        if num==11:
+                            monthly_shift_obj.write(cr, uid, [monthly_shift.id], {'day_11':line.shift_id.id})
+                        if num==12:
+                            monthly_shift_obj.write(cr, uid, [monthly_shift.id], {'day_12':line.shift_id.id})
+                        if num==13:
+                            monthly_shift_obj.write(cr, uid, [monthly_shift.id], {'day_13':line.shift_id.id})
+                        if num==14:
+                            monthly_shift_obj.write(cr, uid, [monthly_shift.id], {'day_14':line.shift_id.id})
+                        if num==15:
+                            monthly_shift_obj.write(cr, uid, [monthly_shift.id], {'day_15':line.shift_id.id})
+                        if num==16:
+                            monthly_shift_obj.write(cr, uid, [monthly_shift.id], {'day_16':line.shift_id.id})
+                        if num==17:
+                            monthly_shift_obj.write(cr, uid, [monthly_shift.id], {'day_17':line.shift_id.id})
+                        if num==18:
+                            monthly_shift_obj.write(cr, uid, [monthly_shift.id], {'day_18':line.shift_id.id})
+                        if num==19:
+                            monthly_shift_obj.write(cr, uid, [monthly_shift.id], {'day_19':line.shift_id.id})
+                        if num==20:
+                            monthly_shift_obj.write(cr, uid, [monthly_shift.id], {'day_20':line.shift_id.id})
+                        if num==21:
+                            monthly_shift_obj.write(cr, uid, [monthly_shift.id], {'day_21':line.shift_id.id})
+                        if num==22:
+                            monthly_shift_obj.write(cr, uid, [monthly_shift.id], {'day_22':line.shift_id.id})
+                        if num==23:
+                            monthly_shift_obj.write(cr, uid, [monthly_shift.id], {'day_23':line.shift_id.id})
+                        if num==24:
+                            monthly_shift_obj.write(cr, uid, [monthly_shift.id], {'day_24':line.shift_id.id})
+                        if num==25:
+                            monthly_shift_obj.write(cr, uid, [monthly_shift.id], {'day_25':line.shift_id.id})
+                        if num==26:
+                            monthly_shift_obj.write(cr, uid, [monthly_shift.id], {'day_26':line.shift_id.id})
+                        if num==27:
+                            monthly_shift_obj.write(cr, uid, [monthly_shift.id], {'day_27':line.shift_id.id})
+                        if num==28:
+                            monthly_shift_obj.write(cr, uid, [monthly_shift.id], {'day_28':line.shift_id.id})
+                        if num==29:
+                            monthly_shift_obj.write(cr, uid, [monthly_shift.id], {'day_29':line.shift_id.id})
+                        if num==30:
+                            monthly_shift_obj.write(cr, uid, [monthly_shift].id, {'day_30':line.shift_id.id})
+                        if num==31:
+                            monthly_shift_obj.write(cr, uid, [monthly_shift.id], {'day_31':line.shift_id.id})
+                else:
+                    for num in range(line.date_from.name,line.date_to.name+1):
+                        if num==1 and monthly_shift.name_of_day_1 != 'Sunday':
+                            monthly_shift_obj.write(cr, uid, [monthly_shift.id], {'day_1':line.shift_id.id})
+                        if num==2 and monthly_shift.name_of_day_2 != 'Sunday':
+                            monthly_shift_obj.write(cr, uid, [monthly_shift.id], {'day_2':line.shift_id.id})
+                        if num==3 and monthly_shift.name_of_day_3 != 'Sunday':
+                            monthly_shift_obj.write(cr, uid, [monthly_shift.id], {'day_3':line.shift_id.id})
+                        if num==4 and monthly_shift.name_of_day_4 != 'Sunday':
+                            monthly_shift_obj.write(cr, uid, [monthly_shift.id], {'day_4':line.shift_id.id})
+                        if num==5 and monthly_shift.name_of_day_5 != 'Sunday':
+                            monthly_shift_obj.write(cr, uid, [monthly_shift.id], {'day_5':line.shift_id.id})
+                        if num==6 and monthly_shift.name_of_day_6 != 'Sunday':
+                            monthly_shift_obj.write(cr, uid, [monthly_shift.id], {'day_6':line.shift_id.id})
+                        if num==7 and monthly_shift.name_of_day_7 != 'Sunday':
+                            monthly_shift_obj.write(cr, uid, [monthly_shift.id], {'day_7':line.shift_id.id})
+                        if num==8 and monthly_shift.name_of_day_8 != 'Sunday':
+                            monthly_shift_obj.write(cr, uid, [monthly_shift.id], {'day_8':line.shift_id.id})
+                        if num==9 and monthly_shift.name_of_day_9 != 'Sunday':
+                            monthly_shift_obj.write(cr, uid, [monthly_shift.id], {'day_9':line.shift_id.id})
+                        if num==10 and monthly_shift.name_of_day_10 != 'Sunday':
+                            monthly_shift_obj.write(cr, uid, [monthly_shift.id], {'day_10':line.shift_id.id})
+                        if num==11 and monthly_shift.name_of_day_11 != 'Sunday':
+                            monthly_shift_obj.write(cr, uid, [monthly_shift.id], {'day_11':line.shift_id.id})
+                        if num==12 and monthly_shift.name_of_day_12 != 'Sunday':
+                            monthly_shift_obj.write(cr, uid, [monthly_shift.id], {'day_12':line.shift_id.id})
+                        if num==13 and monthly_shift.name_of_day_13 != 'Sunday':
+                            monthly_shift_obj.write(cr, uid, [monthly_shift.id], {'day_13':line.shift_id.id})
+                        if num==14 and monthly_shift.name_of_day_14 != 'Sunday':
+                            monthly_shift_obj.write(cr, uid, [monthly_shift.id], {'day_14':line.shift_id.id})
+                        if num==15 and monthly_shift.name_of_day_15 != 'Sunday':
+                            monthly_shift_obj.write(cr, uid, [monthly_shift.id], {'day_15':line.shift_id.id})
+                        if num==16 and monthly_shift.name_of_day_16 != 'Sunday':
+                            monthly_shift_obj.write(cr, uid, [monthly_shift.id], {'day_16':line.shift_id.id})
+                        if num==17 and monthly_shift.name_of_day_17 != 'Sunday':
+                            monthly_shift_obj.write(cr, uid, [monthly_shift.id], {'day_17':line.shift_id.id})
+                        if num==18 and monthly_shift.name_of_day_18 != 'Sunday':
+                            monthly_shift_obj.write(cr, uid, [monthly_shift.id], {'day_18':line.shift_id.id})
+                        if num==19 and monthly_shift.name_of_day_19 != 'Sunday':
+                            monthly_shift_obj.write(cr, uid, [monthly_shift.id], {'day_19':line.shift_id.id})
+                        if num==20 and monthly_shift.name_of_day_20 != 'Sunday':
+                            monthly_shift_obj.write(cr, uid, [monthly_shift.id], {'day_20':line.shift_id.id})
+                        if num==21 and monthly_shift.name_of_day_21 != 'Sunday':
+                            monthly_shift_obj.write(cr, uid, [monthly_shift.id], {'day_21':line.shift_id.id})
+                        if num==22 and monthly_shift.name_of_day_22 != 'Sunday':
+                            monthly_shift_obj.write(cr, uid, [monthly_shift.id], {'day_22':line.shift_id.id})
+                        if num==23 and monthly_shift.name_of_day_23 != 'Sunday':
+                            monthly_shift_obj.write(cr, uid, [monthly_shift.id], {'day_23':line.shift_id.id})
+                        if num==24 and monthly_shift.name_of_day_24 != 'Sunday':
+                            monthly_shift_obj.write(cr, uid, [monthly_shift.id], {'day_24':line.shift_id.id})
+                        if num==25 and monthly_shift.name_of_day_25 != 'Sunday':
+                            monthly_shift_obj.write(cr, uid, [monthly_shift.id], {'day_25':line.shift_id.id})
+                        if num==26 and monthly_shift.name_of_day_26 != 'Sunday':
+                            monthly_shift_obj.write(cr, uid, [monthly_shift.id], {'day_26':line.shift_id.id})
+                        if num==27 and monthly_shift.name_of_day_27 != 'Sunday':
+                            monthly_shift_obj.write(cr, uid, [monthly_shift.id], {'day_27':line.shift_id.id})
+                        if num==28 and monthly_shift.name_of_day_28 != 'Sunday':
+                            monthly_shift_obj.write(cr, uid, [monthly_shift.id], {'day_28':line.shift_id.id})
+                        if num==29 and monthly_shift.name_of_day_29 != 'Sunday':
+                            monthly_shift_obj.write(cr, uid, [monthly_shift.id], {'day_29':line.shift_id.id})
+                        if num==30 and monthly_shift.name_of_day_30 != 'Sunday':
+                            monthly_shift_obj.write(cr, uid, [monthly_shift].id, {'day_30':line.shift_id.id})
+                        if num==31 and monthly_shift.name_of_day_31 != 'Sunday':
+                            monthly_shift_obj.write(cr, uid, [monthly_shift.id], {'day_31':line.shift_id.id})
+        return self.write(cr, uid, ids, {'state': 'approved'})
+    
+    def reject(self, cr, uid, ids, context=None):
+        for line in self.browse(cr, uid, ids):
+            if line.state != 'submitted':
+                raise osv.except_osv(_('Warning!'),_('Please Submit request before Reject!'))
+        return self.write(cr, uid, ids, {'state': 'rejected'})
+    
+    def onchange_department(self, cr, uid, ids,department_id=False,section_id=False, context=None):
+        domain = {}
+        vals = {'employee_id':False}
+        if department_id and section_id:
+            section_ids = self.pool.get('arul.hr.section').search(cr, uid, [('id','=',section_id),('department_id','=',department_id)])
+            if not section_ids:
+                vals.update({'section_id': False})
+            employee_ids = self.pool.get('hr.employee').search(cr, uid, [('department_id','=',department_id),('section_id','=',section_id)])
+            domain = {'employee_id':[('id','in',employee_ids)]}
+        return {'value':vals,'domain':domain}
+    
+    def onchange_year_month(self, cr, uid, ids,month=False,year=False, context=None):
+        num_of_month = 0
+        if month and year:
+            num_of_month = calendar.monthrange(int(year),int(month))[1]
+        return {'value': {'num_of_month':num_of_month}}
+    
+    def name_get(self, cr, uid, ids, context=None):
+        res = []
+        if not ids:
+            return res
+        reads = self.read(cr, uid, ids, ['year', 'month'], context)
+        for line in self.browse(cr,uid,ids):
+            for record in reads:
+                year = str(line.year)
+                month = str(line.month)
+                name = month + ' - ' + year
+                res.append((record['id'], name))
+            return res
+        
+shift_change()
