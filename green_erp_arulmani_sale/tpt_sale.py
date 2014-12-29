@@ -675,17 +675,19 @@ class tpt_batch_allotment(osv.osv):
         self.write(cr, uid, ids, {'state': 'confirm'})
         sale_obj = self.pool.get('sale.order')
         for batch_allotment in self.browse(cr,uid,ids,context=context):
-            picking_out_ids = self.pool.get('stock.picking').search(cr,uid,[('sale_id','=',batch_allotment.sale_order_id.id)],context=context)
-            if not picking_out_ids:
-                wf_service = netsvc.LocalService('workflow')
-                wf_service.trg_validate(uid, 'sale.order', batch_allotment.sale_order_id.id, 'order_confirm', cr)
+            
+            # cap nhat cho order line cua sale order giong nhu cua batch allotment
+#             picking_out_ids = self.pool.get('stock.picking').search(cr,uid,[('sale_id','=',batch_allotment.sale_order_id.id)],context=context)
+#             if not picking_out_ids:
+            wf_service = netsvc.LocalService('workflow')
+            wf_service.trg_validate(uid, 'sale.order', batch_allotment.sale_order_id.id, 'order_confirm', cr)
         
                 # redisplay the record as a sales order
             view_ref = self.pool.get('ir.model.data').get_object_reference(cr, uid, 'sale', 'view_order_form')
             view_id = view_ref and view_ref[1] or False,
     
             #Tim delivery_order cua Sale order do
-            picking_out_ids = self.pool.get('stock.picking').search(cr,uid,[('sale_id','=',batch_allotment.sale_order_id.id)],context=context)
+#             picking_out_ids = self.pool.get('stock.picking').search(cr,uid,[('sale_id','=',batch_allotment.sale_order_id.id)],context=context)
 #             sql = '''
 #                 delete from stock_move where picking_id = %s
 #             '''%(picking_out_ids[0])
