@@ -3,6 +3,44 @@
     <data>
 		<menuitem id="hr.menu_hr_configuration" name="Configuration" parent="hr.menu_hr_root" groups="base.group_hr_manager,group_vvti_hrm_time_user" sequence="50"/>
 		<menuitem id="menu_action_print_payslip_report" action="action_print_payslip_report" parent="menu_hr_payroll_management" sequence="20" groups="group_vvti_hrm_payroll_controller"/>
+		<menuitem id="menu_employee_actions"
+			name="Employee Actions"
+			parent="hr.menu_hr_root"
+			sequence="1"/>
+			
+			<menuitem action="action_arul_hr_employee_transfer_action_form"
+	            id="menu_action_arul_hr_employee_transfer_action_form"
+	            parent="menu_employee_actions" sequence="28" groups="group_vvti_hrm_hr_key_user,group_vvti_hrm_hr_manager"/>
+			
+			<menuitem action="action_arul_hr_employee_rehiring_history_form"
+	            id="menu_action_arul_hr_employee_rehiring_history_form"
+	            parent="menu_employee_actions" sequence="26" groups="group_vvti_hrm_hr_key_user,group_vvti_hrm_hr_manager"/> 
+            
+            <menuitem action="action_arul_hr_employee_action_history_form"
+	            id="menu_action_arul_hr_employee_action_history_form"
+	            parent="menu_employee_actions" sequence="25" groups="group_vvti_hrm_hr_key_user,group_vvti_hrm_hr_manager"/> 
+            
+        	<menuitem action="action_arul_hr_employee_compensation_review_action_form"
+	            id="menu_action_arul_hr_employee_compensation_review_action_form"
+	            parent="menu_employee_actions" sequence="27" groups="group_vvti_hrm_hr_key_user,group_vvti_hrm_hr_manager"/>
+
+	         <menuitem action="action_arul_hr_employee_contracts_action_form"
+	            id="menu_action_arul_hr_employee_contracts_action_form"
+	            parent="menu_employee_actions" sequence="28" groups="group_vvti_hrm_hr_key_user,group_vvti_hrm_hr_manager"/>
+ 
+	         <menuitem action="action_arul_hr_employee_hiring_action_form"
+	            id="menu_action_arul_hr_employee_hiring_action_form"
+	            parent="menu_employee_actions" sequence="30" groups="group_vvti_hrm_hr_key_user,group_vvti_hrm_hr_manager"/>
+
+			<menuitem action="action_arul_hr_employee_leaving_action_form"
+	            id="menu_action_arul_hr_employee_leaving_action_form"
+	            parent="menu_employee_actions" sequence="29" groups="group_vvti_hrm_hr_key_user,group_vvti_hrm_hr_manager"/>
+
+	        <menuitem action="action_arul_hr_employee_disciplinary_action_form"
+	            id="menu_action_arul_hr_employee_disciplinary_action_form"
+	            parent="menu_employee_actions" sequence="29" groups="group_vvti_hrm_hr_key_user,group_vvti_hrm_hr_manager"/>
+ 
+            
 		<menuitem id="menu_vvti_hr_master"
 			name="VVTi HR Master"
 			parent="hr.menu_hr_root"
