@@ -89,6 +89,7 @@ class sale_order(osv.osv):
 #                  'name': lambda obj, cr, uid, context: '/',
         'po_date': time.strftime('%Y-%m-%d'),
         'expected_date': time.strftime('%Y-%m-%d'),
+        'order_policy': 'picking',
     }
     def onchange_po_date(self, cr, uid, ids, po_date=False, context=None):
         vals = {}
@@ -1009,48 +1010,6 @@ class tpt_form_403_consignee(osv.osv):
         return super(tpt_form_403_consignee, self).create(cr, uid, vals, context)
 tpt_form_403_consignee()
 
-class tpt_form_are_3(osv.osv):
-    _name = "tpt.form.are.3"
-      
-    _columns = {
-        'name': fields.char('SI.No',size = 32, required = True),
-        'range_from': fields.char('From Range',size =1024),
-        'range_to': fields.char('To Range',size = 1024),
-        'reg_no_from': fields.char('From CE Reg No',size =1024),
-        'reg_no_to': fields.char('To CE Reg No',size = 1024),
-        'division_from': fields.char('From Division',size =1024, required = True),
-        'division_to': fields.char('To Division',size = 1024,  required = True),
-        'warehouse_from': fields.char('From Warehouse',size =1024,  required = True),
-        'warehouse_to': fields.char('To Warehouse',size = 1024,  required = True),
-        'to_mr_mess': fields.char('To Mr./Messrs.',size = 1024),
-        'invoice_no_id': fields.many2one('account.invoice','Invoice No'),
-        'date': fields.date('Date', required = True),
-        'warehouse_register':fields.char('No. in Warehouse Register',size = 1024),
-        'good_description':fields.char('Good Description',size = 1024),
-        'remarks':fields.char('Remarks',size = 1024),
-        'package_description':fields.char('No. & Package Description',size = 1024),
-        'tranport':fields.char('Tranport Manner',size = 1024),
-        'gross_weight':fields.float('Package gross weight'),
-        'good_qty':fields.float('Good Qty'),
-        'value':fields.float('Value'),
-        'marks_package':fields.float('Marks & No on Packages'),
-        'warehouse_date': fields.date('Warehouse Date of Entry', required = True),
-        'invoiced_date': fields.date('Invoiced Date', required = True),
-        'warehousing_date': fields.date('1st Warehousing Date', required = True),
-        'duty_rate_line':fields.one2many('tpt.form.are.3.duty.rate','form_are_3_id','Duty Rate'),       
-                }
-tpt_form_are_3()
-
-class tpt_form_are_3_duty_rate(osv.osv):
-    _name = "tpt.form.are.3.duty.rate"
-      
-    _columns = {
-        'duty_rate': fields.float('Duty Rate in %', required = True),
-        'amount_usd': fields.float('Amount(in USD)', required = True),
-        'amount_inr': fields.float('Amount(in INR)', required = True),
-        'form_are_3_id': fields.many2one('tpt.form.are.3', 'Duty Rate'),
-                }
-tpt_form_are_3_duty_rate()
 
 class stock_production_lot(osv.osv):
     _inherit = "stock.production.lot"

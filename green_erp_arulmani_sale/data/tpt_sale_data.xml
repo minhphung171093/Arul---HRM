@@ -71,7 +71,22 @@
 	
         </record>
         
+        		<!--    From A.R.E - 1     -->
         
+        <record id="sequence_tpt_form_are_1_import_code" model="ir.sequence.type">
+            <field name="name">From ARE - 1</field>
+            <field name="code">tpt.form.area.1.import</field>
+        </record>
+        
+        <record id="sequence_tpt_form_are_1_import_item" model="ir.sequence">
+            <field name="name">From ARE - 1</field>
+            <field name="code">tpt.form.area.1.import</field>
+            <field name="prefix">VVTi/ARE1/</field>
+            <field name="padding">6</field>
+            <field name="number_next_actual">000001</field>
+            <field name="implementation">no_gap</field>
+	
+        </record>
 
     </data>
 </openerp>
