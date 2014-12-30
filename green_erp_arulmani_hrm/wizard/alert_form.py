@@ -83,4 +83,14 @@ class alert_form(osv.osv_memory):
         audit_ids = context.get('active_ids')
         self.pool.get('arul.hr.audit.shift.time').reject_shift_time(cr, uid, audit_ids)
         return {'type': 'ir.actions.act_window_close'}
+    
+    def approve_shift_change(self, cr, uid, ids, context=None):
+        shift_change_ids = context.get('active_ids')
+        self.pool.get('shift.change').approve(cr, uid, shift_change_ids)
+        return {'type': 'ir.actions.act_window_close'}
+    
+    def reject_shift_change(self, cr, uid, ids, context=None):
+        shift_change_ids = context.get('active_ids')
+        self.pool.get('shift.change').reject(cr, uid, shift_change_ids)
+        return {'type': 'ir.actions.act_window_close'}
 alert_form()

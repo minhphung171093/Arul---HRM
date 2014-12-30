@@ -329,8 +329,11 @@ class hr_statutory (osv.osv):
         for record in self.browse(cr, uid, ids, context=context):
             record_ids = self.search(cr, uid, [('id','!=',record.id),('name','=',record.name)])
             pension_ids = self.search(cr, uid, [('id','!=',record.id),('pension_no','=',record.pension_no)])
-            if record_ids or pension_ids:
-                raise osv.except_osv(_('Warning!'),_('EPF No./ Pension No. has already existed !'))
+            if pension_ids:
+                raise osv.except_osv(_('Warning!'),_('EPF No. has already existed !'))
+                return False
+            if pension_ids:
+                raise osv.except_osv(_('Warning!'),_('Pension No. has already existed !'))
                 return False
         return True
     _constraints = [
