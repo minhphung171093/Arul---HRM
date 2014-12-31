@@ -89,6 +89,7 @@ class sale_order(osv.osv):
 #                  'name': lambda obj, cr, uid, context: '/',
         'po_date': time.strftime('%Y-%m-%d'),
         'expected_date': time.strftime('%Y-%m-%d'),
+        'order_policy': 'picking',
     }
     def onchange_po_date(self, cr, uid, ids, po_date=False, context=None):
         vals = {}
@@ -127,17 +128,6 @@ class sale_order(osv.osv):
 #             cr.execute(sql)
         if partner_id :
             part = self.pool.get('res.partner').browse(cr, uid, partner_id)
-            for order in self.browse(cr, uid, ids):
-                sql = '''
-                    delete from tpt_sale_order_consignee where sale_order_consignee_id = %s
-                '''%(order.id)
-                cr.execute(sql)
-            for line in part.consignee_line:
-                rs = {
-                        'name_consignee_id': line.id,
-                        'location': str(line.street or '') + str(line.street2 or '') + ' , ' + str(line.city or '') + ' , ' + str(line.state_id.name or '') + ' , ' + str(line.country_id.name or '') + ' , ' +str(line.zip or ''),
-                      }
-                consignee_lines.append((0,0,rs))
             vals = {'invoice_address':part.street,
                     'street2':part.street2,
                     'city':part.city,
@@ -145,7 +135,6 @@ class sale_order(osv.osv):
                     'state_id':part.state_id.id,
                     'zip':part.zip,
                     'payment_term_id':part.property_payment_term.id,
-                    'sale_consignee_line': consignee_lines,
                     'incoterms_id':part.inco_terms_id and part.inco_terms_id.id or False,
                     }
         return {'value': vals}    
@@ -268,7 +257,17 @@ class sale_order_line(osv.osv):
         'application_id': fields.many2one('crm.application', 'Application'),
         'freight': fields.float('Freight'),
         'price_subtotal': fields.function(_amount_line, string='Subtotal', digits_compute= dp.get_precision('Account')),
+        'name_consignee_id': fields.many2one('res.partner', 'Consignee', required = True),
+        'location': fields.char('Location', size = 1024),   
     }
+    def onchange_consignee_id(self, cr, uid, ids, name_consignee_id = False, context=None):
+        vals = {}
+        if name_consignee_id :
+            line = self.pool.get('res.partner').browse(cr, uid, name_consignee_id)
+            vals = {
+                    'location': str(line.street or '') + str(line.street2 or '') + ' , ' + str(line.city or '') + ' , ' + str(line.state_id.name or '') + ' , ' + str(line.country_id.name or '') + ' , ' +str(line.zip or ''),    
+                    }
+        return {'value': vals}
     def onchange_product_id(self, cr, uid, ids, product_id = False, context=None):
         vals = {}
         if product_id :
@@ -282,40 +281,6 @@ class sale_order_line(osv.osv):
         return {'value': vals}
 sale_order_line()
 
-class tpt_sale_order_consignee(osv.osv):
-    _name = "tpt.sale.order.consignee"
-    
-    def quatity_consignee(self, cr, uid, ids, field_name, args, context=None):
-        quatity = 0
-        res = {}
-        for line in self.browse(cr,uid,ids,context=context):
-            for order_line in line.sale_order_consignee_id.order_line:
-                if order_line.product_id.id == line.product_id.id:
-                    quatity = order_line.product_uom_qty
-            res[line.id] = quatity
-        return res
-                
-            
-          
-    _columns = {
-        'sale_order_consignee_id': fields.many2one('sale.order', 'Consignee'),
-        'name_consignee_id': fields.many2one('res.partner', 'Consignee', required = True),
-        'location': fields.char('Location', size = 1024),
-        'product_id': fields.many2one('product.product', 'Product'),
-        'product_uom_qty': fields.function(quatity_consignee, type='float',string='Quatity'),
-        'uom_po_id': fields.many2one('product.uom', 'UOM', readonly = True),
-                }
-    
-    def onchange_product_id(self, cr, uid, ids,product_id=False, context=None):
-        vals = {}
-        if product_id :
-            product = self.pool.get('product.product').browse(cr, uid, product_id)
-            vals = {
-                    'uom_po_id':product.uom_id.id,
-                    }
-        return {'value': vals}
-      
-tpt_sale_order_consignee()
 
 class tpt_blanket_order(osv.osv):
     _name = "tpt.blanket.order"
@@ -501,19 +466,19 @@ tpt_blank_order_line()
 class tpt_consignee(osv.osv):
     _name = "tpt.consignee"
     
-    def quatity_consignee(self, cr, uid, ids, field_name, args, context=None):
-        res = {}
-        for line in self.browse(cr,uid,ids,context=context):
-            res[line.id] = {
-                'product_uom_qty' : 0.0,
-                }
-            quatity = 0.0
-            for order_line in line.blanket_consignee_id.blank_order_line:
-                if order_line.product_id.id == line.product_id.id:
-                    quatity = order_line.product_uom_qty
-                         
-            res[line.id]['product_uom_qty'] = quatity
-        return res
+#     def quatity_consignee(self, cr, uid, ids, field_name, args, context=None):
+#         res = {}
+#         for line in self.browse(cr,uid,ids,context=context):
+#             res[line.id] = {
+#                 'total_qty' : 0.0,
+#                 }
+#             quatity = 0.0
+#             for order_line in line.blanket_consignee_id.blank_order_line:
+#                 if order_line.product_id.id == line.product_id.id:
+#                     quatity = quatity + line.product_uom_qty
+#                           
+#             res[line.id]['total_qty'] = quatity
+#         return res
     
     
     _columns = {
@@ -521,9 +486,11 @@ class tpt_consignee(osv.osv):
         'name_consignee_id': fields.many2one('res.partner', 'Consignee', required = True),
         'location': fields.char('Location', size = 1024),
         'product_id': fields.many2one('product.product', 'Product'),
-        'product_uom_qty': fields.function(quatity_consignee, type = 'float',multi='deltas', string='Quatity'),
+#         'total_qty': fields.function(quatity_consignee, store = True, type = 'float',multi='deltas', string='Quatity'),
+        'product_uom_qty': fields.float('Quatity'),
         'uom_po_id': fields.many2one('product.uom', 'UOM'),
                 }
+    
     
     def onchange_product_id(self, cr, uid, ids,product_id=False, context=None):
         vals = {}
@@ -908,7 +875,7 @@ class res_partner(osv.osv):
      _inherit = "res.partner"
       
      _columns = {
-         'consignee_parent_id': fields.many2one('res.partner', 'Parent', ondelete = 'cascade'),
+        'consignee_parent_id': fields.many2one('res.partner', 'Parent', ondelete = 'cascade'),
         'consignee_line': fields.one2many('res.partner', 'consignee_parent_id', 'Consignee'),
         'bill_location': fields.boolean('Is Bill To Location'), 
         'shipping_location': fields.boolean('Is Shipping Location'), 
@@ -1011,48 +978,6 @@ class tpt_form_403_consignee(osv.osv):
         return super(tpt_form_403_consignee, self).create(cr, uid, vals, context)
 tpt_form_403_consignee()
 
-class tpt_form_are_3(osv.osv):
-    _name = "tpt.form.are.3"
-      
-    _columns = {
-        'name': fields.char('SI.No',size = 32, required = True),
-        'range_from': fields.char('From Range',size =1024),
-        'range_to': fields.char('To Range',size = 1024),
-        'reg_no_from': fields.char('From CE Reg No',size =1024),
-        'reg_no_to': fields.char('To CE Reg No',size = 1024),
-        'division_from': fields.char('From Division',size =1024, required = True),
-        'division_to': fields.char('To Division',size = 1024,  required = True),
-        'warehouse_from': fields.char('From Warehouse',size =1024,  required = True),
-        'warehouse_to': fields.char('To Warehouse',size = 1024,  required = True),
-        'to_mr_mess': fields.char('To Mr./Messrs.',size = 1024),
-        'invoice_no_id': fields.many2one('account.invoice','Invoice No'),
-        'date': fields.date('Date', required = True),
-        'warehouse_register':fields.char('No. in Warehouse Register',size = 1024),
-        'good_description':fields.char('Good Description',size = 1024),
-        'remarks':fields.char('Remarks',size = 1024),
-        'package_description':fields.char('No. & Package Description',size = 1024),
-        'tranport':fields.char('Tranport Manner',size = 1024),
-        'gross_weight':fields.float('Package gross weight'),
-        'good_qty':fields.float('Good Qty'),
-        'value':fields.float('Value'),
-        'marks_package':fields.float('Marks & No on Packages'),
-        'warehouse_date': fields.date('Warehouse Date of Entry', required = True),
-        'invoiced_date': fields.date('Invoiced Date', required = True),
-        'warehousing_date': fields.date('1st Warehousing Date', required = True),
-        'duty_rate_line':fields.one2many('tpt.form.are.3.duty.rate','form_are_3_id','Duty Rate'),       
-                }
-tpt_form_are_3()
-
-class tpt_form_are_3_duty_rate(osv.osv):
-    _name = "tpt.form.are.3.duty.rate"
-      
-    _columns = {
-        'duty_rate': fields.float('Duty Rate in %', required = True),
-        'amount_usd': fields.float('Amount(in USD)', required = True),
-        'amount_inr': fields.float('Amount(in INR)', required = True),
-        'form_are_3_id': fields.many2one('tpt.form.are.3', 'Duty Rate'),
-                }
-tpt_form_are_3_duty_rate()
 
 class stock_production_lot(osv.osv):
     _inherit = "stock.production.lot"

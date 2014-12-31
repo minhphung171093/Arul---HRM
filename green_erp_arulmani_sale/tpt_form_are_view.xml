@@ -1,0 +1,236 @@
+<?xml version="1.0" encoding="utf-8"?>
+<openerp>
+    <data>
+    	<record id="tpt_form_are_1_tree_vew" model="ir.ui.view">
+			<field name="name">tpt.form.are.1.tree</field>
+			<field name="model">tpt.form.are.1</field>
+			<field name="arch" type="xml">
+				<tree string="Form A.R.E - 1">
+						<field name="name"/>
+						<field name="date"/>
+						<field name="commisionarate_id"/>
+						<field name="consignment_to"/>
+						<field name="invoice_no_id"/>
+						<field name="state" widget="statusbar" statusbar_visible="draft,cancel,done" statusbar_colors='{"draft":"blue","cancel":"blue"}'/>
+				</tree>
+			</field>
+		</record>      
+            
+		<record id="tpt_form_are_1_form_vew" model="ir.ui.view">
+            <field name="name">tpt.form.are.1.form</field>
+            <field name="model">tpt.form.are.1</field>
+            <field name="arch" type="xml">
+	            <form string="Form A.R.E - 1" version="7.0">  
+	            <header>
+	            	<button name="bt_approve" states='draft' string="Approve" type="object" class="oe_highlight" />
+                    <button name="bt_cancel" states='draft' string="Cancel" type="object" class="oe_highlight" />
+                    <field name="state" widget="statusbar" statusbar_visible="draft,cancel,done" statusbar_colors='{"draft":"blue","cancel":"blue"}'/>
+	            </header> 
+	            	<sheet>
+	            		<group col="4" colspan="2">
+	            			<field name="name"/>
+							<field name="date"/>
+							<field name="commisionarate_id" options="{'create': false, 'create_edit': false}"/>
+							<field name="consignment_to"/>
+							<field name="invoice_no_id"/>
+	            		</group>
+	            		<notebook>
+							<page string = "Export Details">
+								<group col="4" colspan="2">
+									<field name="manufacturer_id" />
+		            				<field name="ce_reg_no" />
+		            				<field name="package_description" />
+		            				<field name="marks_package" />
+		            				<label for="gross_weight"/>
+		            				<div>
+		            				<field name="gross_weight" class="oe_inline"/> KGS
+		            				</div>
+		            				<label for="net_weight"/>
+		            				<div>
+		            				<field name="net_weight" class="oe_inline"/> KGS
+		            				</div>
+		            				<label for="quantity"/>
+		            				<div>
+		            				<field name="quantity" class="oe_inline"/> KGS
+		            				</div>
+		            				<field name="description_goods" />
+		            				<label for="value"/>
+		            				<div>
+		            				<field name="value" class="oe_inline"/> INR
+		            				</div>
+		            				<field name="invoiced_date" />
+		            				<field name="rebate_claimed_amt" />
+		            				<field name="remarks" />
+								</group>
+							</page>
+							<page string = "Duty Rate">
+								<field name="duty_rate_line" nolabel='1'>
+									<tree editable='bottom'>
+										<field name="duty_rate" />
+										<field name="amount_usd" />
+										<field name="amount_inr" />
+									</tree>
+								</field>
+							</page>
+						</notebook>
+	            	</sheet>
+		         </form>
+			</field>
+		</record>   
+		
+		<record id="action_tpt_form_are_1_form_vew" model="ir.actions.act_window">
+            <field name="name">Form A.R.E - 1</field>
+            <field name="type">ir.actions.act_window</field>
+            <field name="res_model">tpt.form.are.1</field>
+            <field name="view_type">form</field>
+            <field name="view_mode">tree,form</field>
+            <field name="view_id" ref="tpt_form_are_1_tree_vew"/>
+        </record>
+        
+        <menuitem id="menu_hr_sale_management" parent="base.menu_base_partner" name="Sale Management" sequence="1"/>
+        <menuitem action="action_tpt_form_are_1_form_vew"
+            id="menu_action_action_tpt_form_are_1_form_vew"
+            parent="menu_hr_sale_management" sequence="15"/>  
+            
+        <record id="tpt_commisionarate_tree_vew" model="ir.ui.view">
+			<field name="name">tpt.commisionarate.tree</field>
+			<field name="model">tpt.commisionarate</field>
+			<field name="arch" type="xml">
+				<tree string="Commisionarate">
+						<field name="name"/>
+						<field name="nature"/>
+						<field name="code1"/>
+						<field name="code2"/>
+						<field name="code3"/>
+				</tree>
+			</field>
+		</record>      
+            
+		<record id="tpt_commisionarate_form_vew" model="ir.ui.view">
+            <field name="name">tpt.commisionarate.form</field>
+            <field name="model">tpt.commisionarate</field>
+            <field name="arch" type="xml">
+	            <form string="Commisionarate" version="7.0">   
+	            	<sheet>
+	            		<group col="4" colspan="2">
+	            			<field name="name"/>
+							<field name="nature"/>
+							<field name="code1"/>
+							<field name="code2"/>
+							<field name="code3"/>
+	            		</group>
+	            	</sheet>
+	            </form>
+	        </field>
+	    </record>
+	            		
+	    <record id="action_tpt_commisionarate_form_vew" model="ir.actions.act_window">
+            <field name="name">Commisionarate</field>
+            <field name="type">ir.actions.act_window</field>
+            <field name="res_model">tpt.commisionarate</field>
+            <field name="view_type">form</field>
+            <field name="view_mode">tree,form</field>
+            <field name="view_id" ref="tpt_commisionarate_tree_vew"/>
+        </record>
+        
+        <menuitem action="action_tpt_commisionarate_form_vew"
+            id="menu_action_tpt_commisionarate_form_vew"
+            parent="menu_hr_sale_management" sequence="15"/>          		
+	            		
+	            		
+	            		
+       
+       	<record id="tpt_form_are_3_tree_vew" model="ir.ui.view">
+			<field name="name">tpt.form.are.3.tree</field>
+			<field name="model">tpt.form.are.3</field>
+			<field name="arch" type="xml">
+				<tree string="Form A.R.E - 3">
+						<field name="name"/>
+						<field name="date"/>
+						<field name="division_from"/>
+						<field name="division_to"/>
+						<field name="warehouse_from"/>
+						<field name="warehouse_to"/>
+				</tree>
+			</field>
+		</record>      
+            
+		<record id="tpt_form_are_3_form_vew" model="ir.ui.view">
+            <field name="name">tpt.form.are.3.form</field>
+            <field name="model">tpt.form.are.3</field>
+            <field name="arch" type="xml">
+	            <form string="Form A.R.E - 3" version="7.0">   
+	            	<sheet>
+	            		<group col="4" colspan="2">
+	            			<group>
+	            				<field name="name" />
+	            				<field name="range_from" />
+	            				<field name="reg_no_from" />
+	            				<field name="division_from" />
+	            				<field name="warehouse_from" />
+	            				<field name="to_mr_mess" />
+	            				<field name="invoice_no_id" />
+	            			</group>
+	            			<group>
+	            				<field name="date" />
+	            				<field name="range_to" />
+	            				<field name="reg_no_to" />
+	            				<field name="division_to" />
+	            				<field name="warehouse_to" />
+	            			</group>
+	            		</group>
+	            		<notebook>
+							<page string = "Goods Detail">
+								<group col="4" colspan="2">
+									<group>
+										<field name="warehouse_register" />
+			            				<field name="good_description" />
+			            				<field name="gross_weight" />
+			            				<label for="good_qty"/>
+			            				<div>
+			            				<field name="good_qty" class="oe_inline"/> MT
+			            				</div>
+			            				<field name="value" />
+			            				<field name="remarks" />
+									</group>
+									<group>
+										<field name="warehouse_date" />
+			            				<field name="package_description" />
+			            				<field name="marks_package" />
+			            				<field name="warehousing_date" />
+			            				<field name="tranport" />
+			            				<field name="invoiced_date" />
+									</group>
+								</group>
+							</page>
+							<page string = "Duty Rate">
+								<field name="duty_rate_line" nolabel='1'>
+									<tree editable='bottom'>
+										<field name="duty_rate" />
+										<field name="amount_usd" />
+										<field name="amount_inr" />
+									</tree>
+								</field>
+							</page>
+						</notebook>
+	            	</sheet>
+		         </form>
+			</field>
+		</record>   
+		
+		<record id="action_tpt_form_are_3_form_vew" model="ir.actions.act_window">
+            <field name="name">Form A.R.E - 3</field>
+            <field name="type">ir.actions.act_window</field>
+            <field name="res_model">tpt.form.are.3</field>
+            <field name="view_type">form</field>
+            <field name="view_mode">tree,form</field>
+            <field name="view_id" ref="tpt_form_are_3_tree_vew"/>
+        </record>
+        
+        <menuitem action="action_tpt_form_are_3_form_vew"
+            id="menu_action_action_tpt_form_are_3_form_vew"
+            parent="menu_hr_sale_management" sequence="15"/>           
+            
+                 
+      </data>
+</openerp>

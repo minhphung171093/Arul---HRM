@@ -34,6 +34,7 @@
         'report/test_report_view.xml',
         'tpt_stock_view.xml',
         'sale_sequence.xml',
+        'tpt_form_are_view.xml',
     ],
     'css' : [
     ],
