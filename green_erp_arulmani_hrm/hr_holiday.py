@@ -15,6 +15,17 @@ class arul_hr_holiday_special(osv.osv):
         'name' : fields.char('Holiday Name', size = 1024, required = True),
         'date' : fields.date('Date', required = True),
     }
+    def _check(self,cr,uid,ids):
+        obj = self.browse(cr,uid,ids[0])
+        if obj and obj.name:
+            name = self.search(cr, uid, [('name','=',obj.name)])
+            date = self.search(cr, uid, [('date','=',obj.date)])
+            if (name and len(name) > 1) or (date and len(date) > 1):
+                raise osv.except_osv(_('Warning!'),_('This Holiday has already existed!'))
+        return True
+    _constraints = [
+        (_check, _(''), ['name', 'date']),
+    ]
 arul_hr_holiday_special()
 
 
@@ -35,8 +46,15 @@ class arul_hr_leave_master(osv.osv):
                 raise osv.except_osv(_('Warning!'),_('The data is not suitable!'))  
                 return False
         return True
+    def _check_limit_day(self, cr, uid, ids, context=None):
+        obj = self.browse(cr,uid,ids[0])
+        if obj:
+            if obj.maximum_limit < obj.condition:
+                raise osv.except_osv(_('Warning!'),_('Eligible per Annum must be less than/as same as Maximum Limit Applicable!'))
+        return True
     _constraints = [
         (_check_sub_category_id, 'Identical Data', ['leave_type_id','employee_category_id','employee_sub_category_id']),
+        (_check_limit_day, 'Identical Data', ['maximum_limit','condition']),
         ]
     def name_get(self, cr, uid, ids, context=None):
         res = []
@@ -64,11 +82,23 @@ class arul_hr_leave_types(osv.osv):
               'code':fields.char('Code',size=256,required = True),
               'name':fields.char('Name',size=256,required =True)
               }
+    def create(self, cr, uid, vals, context=None):
+        if 'code' in vals:
+            code = vals['code'].replace(" ","")
+            vals['code'] = code
+        return super(arul_hr_leave_types, self).create(cr, uid, vals, context)
+    
+    def write(self, cr, uid, ids, vals, context=None):
+        if 'code' in vals:
+            code = vals['code'].replace(" ","")
+            vals['code'] = code
+        return super(arul_hr_leave_types, self).write(cr, uid,ids, vals, context)
+    
     def _check_code(self, cr, uid, ids, context=None):
         for leave in self.browse(cr, uid, ids, context=context):
             leave_ids = self.search(cr, uid, [('id','!=',leave.id),('code','=',leave.code)])
             if leave_ids:  
-                return False
+                raise osv.except_osv(_('Warning!'),_('The Code is unique!'))
         return True
 
     _constraints = [
@@ -119,17 +149,22 @@ class arul_hr_capture_work_shift(osv.osv):
         for shift in self.browse(cr, uid, ids, context=context):
             shift_ids = self.search(cr, uid, [('id','!=',shift.id),('code','=',shift.code)])
             if shift_ids:  
-                return False
+                raise osv.except_osv(_('Warning!'),_('The Code is unique!'))
         return True
     
     def _check_time(self, cr, uid, ids, context=None): 
-        for time in self.browse(cr, uid, ids, context = context):
-            if ((time.start_time > 24 or time.start_time < 0) or (time.end_time > 24 or time.end_time < 0)):
-                raise osv.except_osv(_('Warning!'),_('Input Wrong Time!'))
-                return False
-            return True       
+        time = self.browse(cr,uid,ids[0])
+        shift_ids = self.search(cr, uid, [('start_time','=',time.start_time),('end_time','=',time.end_time)])
+        if shift_ids and len(shift_ids) > 1:  
+            raise osv.except_osv(_('Warning!'),_('The Time is duplicated!'))
+        if ((time.start_time > 24 or time.start_time < 0) or (time.end_time > 24 or time.end_time < 0)):
+            raise osv.except_osv(_('Warning!'),_('Input Wrong Time!'))
+        if time.start_time == 0 and time.end_time == 0:
+            raise osv.except_osv(_('Warning!'),_('Input Wrong Time!'))
+        return True       
     _constraints = [
         (_check_time, _(''), ['start_time', 'end_time']),
+        (_check_code, _(''), ['code']),
     ]   
 
 arul_hr_capture_work_shift()
@@ -386,8 +421,8 @@ class arul_hr_employee_leave_details(osv.osv):
               'leave_type_id':fields.many2one('arul.hr.leave.types','Leave Type',required=True, states={'done': [('readonly', True)], 'cancel': [('readonly', True)]}),
               'date_from':fields.date('Date From',required=True, states={'done': [('readonly', True)], 'cancel': [('readonly', True)]}),
               'date_to': fields.date('To Date',required=True, states={'done': [('readonly', True)], 'cancel': [('readonly', True)]}),
-              'days_total': fields.function(days_total, string='Leave Total',store=True, multi='sums', help="The total amount.", states={'done': [('readonly', True)], 'cancel': [('readonly', True)]}),
-              'haft_day_leave': fields.boolean('Is haft day leave ?', states={'done': [('readonly', True)], 'cancel': [('readonly', True)]}),
+              'days_total': fields.function(days_total, string='Total Leaves',store=True, multi='sums', help="The total amount.", states={'done': [('readonly', True)], 'cancel': [('readonly', True)]}),
+              'haft_day_leave': fields.boolean('Is Haft Day Leave ?', states={'done': [('readonly', True)], 'cancel': [('readonly', True)]}),
               'check_leave_type_pl': fields.boolean('Check Leave Type PL'),
               'available_leave': fields.float('Available Leave',readonly=True),
               'reason':fields.text('Reason', states={'done': [('readonly', True)], 'cancel': [('readonly', True)]}),
@@ -516,8 +551,22 @@ class arul_hr_employee_leave_details(osv.osv):
                 raise osv.except_osv(_('Warning!'),_('The start date must be before to the end date.'))
                 return False
             return True       
+    def _check_days_2(self, cr, uid, ids, context=None): 
+        day = self.browse(cr, uid, ids[0])
+        if day and day.employee_id and day.date_from and day.date_to:
+            date_from = datetime.datetime.strptime(day.date_from, "%Y-%m-%d")
+            date_to = datetime.datetime.strptime(day.date_to, "%Y-%m-%d")
+            sql = '''
+                select id from arul_hr_employee_leave_details where id != %s and employee_id = %s and (date_from = '%s' or date_to = '%s')
+            '''%(day.id,day.employee_id.id,date_from.strftime('%Y-%m-%d'),date_to.strftime('%Y-%m-%d'))
+            cr.execute(sql)
+            leave_ids = [row[0] for row in cr.fetchall()]
+            if leave_ids:  
+                raise osv.except_osv(_('Warning!'),_('The Employee requested leave day for these date!'))
+        return True   
     _constraints = [
         (_check_days, _(''), ['date_from', 'date_to']),
+        (_check_days_2, _(''), ['employee_id','date_from', 'date_to']),
     ]
 arul_hr_employee_leave_details()
 
@@ -607,7 +656,7 @@ class arul_hr_permission_onduty(osv.osv):
         'time_total': fields.function(_time_total, string='Total Hours', multi='sums', help="The total amount."),
         'reason':fields.text('Reason'),
         'permission_onduty_id':fields.many2one('arul.hr.employee.attendence.details','Permission/Onduty',ondelete='cascade'),
-        'approval': fields.boolean('Select for Approval', readonly =  True),
+        'approval': fields.boolean('Is Approved?', readonly =  True),
         'parent_id':fields.many2one('arul.hr.permission.onduty','Permission/Onduty',ondelete='cascade'),
         'permission_onduty_line':fields.one2many('arul.hr.permission.onduty','parent_id','Onduty Line',readonly=True),
 #         'detail_id':fields.many2one('arul.hr.employee.attendence.details','Detail'),
@@ -643,6 +692,9 @@ class arul_hr_permission_onduty(osv.osv):
                 return False
             if (time.start_time > time.end_time):
                 raise osv.except_osv(_('Warning!'),_('Start Time is earlier than End Time'))
+                return False
+            if time.start_time == 0.0 and time.end_time == 0.0:
+                raise osv.except_osv(_('Warning!'),_('Input Wrong Time'))
                 return False
         return True
     
@@ -2593,7 +2645,16 @@ class tpt_time_leave_evaluation(osv.osv):
     _defaults = {
        'year':int(time.strftime('%Y')),
     }
-    
+    def _check(self,cr,uid,ids):
+        obj = self.browse(cr,uid,ids[0])
+        if obj:
+            time_leave = self.search(cr, uid, [('payroll_area_id','=',obj.payroll_area_id.id),('year','=',obj.year),('month','=',obj.month)])
+            if time_leave and len(time_leave) > 1:
+                raise osv.except_osv(_('Warning!'),_('This Time Leave Evaluation has already existed!'))
+        return True
+    _constraints = [
+        (_check, _(''), ['payroll_area_id', 'year', 'month']),
+    ]
     def name_get(self, cr, uid, ids, context=None):
         res = []
         if not ids:
@@ -2893,12 +2954,12 @@ class tpt_equipment_master(osv.osv):
     def _check_code_id(self, cr, uid, ids, context=None):
         for cost in self.browse(cr, uid, ids, context=context):
             sql = '''
-                select id from tpt_cost_center where id != %s and lower(code) = lower('%s')
+                select id from tpt_equipment_master where id != %s and lower(code) = lower('%s')
             '''%(cost.id,cost.code)
             cr.execute(sql)
             cost_ids = [row[0] for row in cr.fetchall()]
             if cost_ids:  
-                return False
+                raise osv.except_osv(_('Warning!'),_('The Code is unique!'))
         return True
     _constraints = [
         (_check_code_id, 'Identical Data', ['code']),

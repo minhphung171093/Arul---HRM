@@ -583,8 +583,8 @@ class hr_employee(osv.osv):
                             for leave_detail in line.emp_leave_details_ids:
 #                                 if leave_detail.leave_type_id.id == leave.id and timedelta.days >= 365 and leave.leave_type_id.code in ['CL','SL','PL']:
 #                                     day = line.total_day - line.taken_day + leave.condition
-                                if leave_detail.leave_type_id.id == leave.id:
-                                    day = line.total_day - line.taken_day + leave.condition
+                                if leave_detail.leave_type_id.id == leave.leave_type_id.id:
+                                            day = leave_detail.total_day - leave_detail.total_taken + leave.condition
                     else:
 #                         if timedelta.days < 365 and leave.leave_type_id.code in ['CL','SL','PL']:
 #                             day = 0
@@ -804,6 +804,12 @@ class food_subsidy(osv.osv):
                 name = 'Midnight Tiffin'
             res.append((record['id'], name))
         return res  
+    def _check_price(self,cr,uid,ids):
+        obj = self.browse(cr,uid,ids[0])
+        if obj and obj.food_price:
+            if obj.food_price < obj.employer_con or obj.food_price < obj.employee_con:
+                raise osv.except_osv(_('Warning!'),_('The Food Price is not less than Employer Contribution or Employe Contribution !'))
+        return True
     
     def _check_food_category(self, cr, uid, ids, context=None):
         for food in self.browse(cr, uid, ids, context=context):
@@ -815,6 +821,7 @@ class food_subsidy(osv.osv):
 
     _constraints = [
         (_check_food_category, 'Identical Data', ['food_category']),
+        (_check_price, '', ['food_price']),
     ]
     
 food_subsidy()
@@ -972,9 +979,6 @@ class employee_leave(osv.osv):
         'year': fields.char('Year',size=128, readonly=False),
         'emp_leave_details_ids': fields.one2many('employee.leave.detail','emp_leave_id','Employee Leave Details',readonly=False),
     }
-    def get_employee_leave(self, cr, uid, context=None):
-        vals = {}
-        return vals
     def get_employee_leave_daily(self, cr, uid, context=None):
         day = 0
         vals = {}
@@ -1029,8 +1033,8 @@ class employee_leave(osv.osv):
                                     for leave_detail in line.emp_leave_details_ids:
 #                                         if leave_detail.leave_type_id.id == leave.id and timedelta.days > 365 and leave.leave_type_id.code in ['CL','SL','PL']:
 #                                             day = line.total_day - line.taken_day + leave.condition
-                                        if leave_detail.leave_type_id.id == leave.id:
-                                            day = line.total_day - line.taken_day + leave.condition
+                                        if leave_detail.leave_type_id.id == leave.leave_type_id.id:
+                                            day = leave_detail.total_day - leave_detail.total_taken + leave.condition
                             else:
 #                                 if timedelta.days < 365 and leave.leave_type_id.code in ['CL','SL','PL']:
 #                                     day = 0
@@ -1074,9 +1078,9 @@ class employee_leave_detail(osv.osv):
                 taken_day += len(shift_ids)
             leave_detail_ids = leave_detail_obj.search(cr, uid, [('date_from','like',line.emp_leave_id.year),('employee_id','=',emp),('leave_type_id','=',leave_type),('state','!=','cancel')])
             for detail in leave_detail_obj.browse(cr, uid, leave_detail_ids, context=context):
-                if not timedelta and (detail.leave_type_id.code=='CL' or detail.leave_type_id.code=='SL' or detail.leave_type_id.code=='PL'):
-                    raise osv.except_osv(_('Warning!'),_('The Selected Employee does not reach 1 year from The Date of Joining'))
-                elif timedelta and detail.date_from[0:4] == year and timedelta.days >= 365 and line.total_day != 0 and (detail.leave_type_id.code=='CL' or detail.leave_type_id.code=='SL' or detail.leave_type_id.code=='PL'):
+#                 if not timedelta and (detail.leave_type_id.code=='CL' or detail.leave_type_id.code=='SL' or detail.leave_type_id.code=='PL'):
+#                     raise osv.except_osv(_('Warning!'),_('The Selected Employee does not reach 1 year from The Date of Joining'))
+                if detail.date_from[0:4] == year and line.total_day != 0:
                     taken_day += detail.days_total
                 else:
                     taken_day += detail.days_total
