@@ -687,7 +687,7 @@
                         	<field name="do_id" on_change="onchange_do_id(do_id)" domain="[('type','=','out')]" options="{'create': false, 'create_edit': false}"/>
                     		<field name="customer_id" options="{'create': false, 'create_edit': false}"/>
                     		<field name="name"/>
-                    		<field name="warehouse"/>
+                    		<field name="warehouse" options="{'create': false, 'create_edit': false}"/>
 	                    </group>
 	                    <notebook>
 		                    <page string="Product" autofocus="autofocus">

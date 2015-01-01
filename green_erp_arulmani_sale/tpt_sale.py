@@ -730,6 +730,13 @@ class tpt_batch_allotment(osv.osv):
     _defaults = {
               'state': 'to_approve',
     }
+    def create(self, cr, uid, vals, context=None):
+        
+        return super(tpt_batch_allotment, self).create(cr, uid, vals, context)
+    
+    def write(self, cr, uid, ids, vals, context=None):
+        
+        return super(tpt_batch_allotment, self).write(cr, uid,ids, vals, context)
     def confirm(self, cr, uid, ids, context=None):
         return self.write(cr, uid, ids, {'state': 'confirm'})
 #         sale_obj = self.pool.get('sale.order')
@@ -978,9 +985,9 @@ class tpt_pgi(osv.osv):
      
     _columns = {
         'do_id':fields.many2one('stock.picking.out','Delivery Order',required = True), 
-        'name':fields.datetime('DO Date',required = True), 
+        'name':fields.date('DO Date',required = True), 
         'customer_id':fields.many2one('res.partner', 'Customer', required = True), 
-        'warehouse':fields.char('Warehouse', size = 1024,required = False),
+        'warehouse':fields.many2one('stock.location','Warehouse'),
         'batch_allotment_line': fields.one2many('tpt.batch.allotment.line', 'pgi_id', 'Product'), 
                 }
     
@@ -1003,7 +1010,7 @@ class tpt_pgi(osv.osv):
                                       'application_id':line.application_id and line.application_id.id or False,
                                       'sys_batch':line.prodlot_id and line.prodlot_id.id or False,
                                       }))
-            vals = {'name':do.date,'batch_allotment_line': pgi_line,'customer_id':do.partner_id and do.partner_id.id or False}
+            vals = {'name':do.date,'batch_allotment_line': pgi_line,'customer_id':do.partner_id and do.partner_id.id or False,'warehouse':do.warehouse and do.warehouse.id or False}
         return {'value':vals}
     
 tpt_pgi()

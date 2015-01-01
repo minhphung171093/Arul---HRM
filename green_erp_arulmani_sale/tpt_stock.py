@@ -35,7 +35,17 @@ class stock_picking_out(osv.osv):
         'doc_status':fields.selection([('completed','Completed')],'Document Status'),
         'sale_id': fields.many2one('sale.order', 'Sales Order', ondelete='set null', select=True),
                 }
-    
+    def write(self, cr, uid, ids, vals, context=None):
+        stock = self.browse(cr, uid, ids[0])
+        if 'warehouse' in vals:
+            location_id = vals['warehouse']
+            sql = '''
+                UPDATE stock_move
+                SET location_id= %s
+                WHERE picking_id = %s;
+                '''%(location_id,stock.id)
+            cr.execute(sql)
+        return super(stock_picking_out, self).write(cr, uid,ids, vals, context)
 stock_picking_out()
 
 class stock_move(osv.osv):

@@ -1,7 +1,31 @@
 <?xml version="1.0" encoding="utf-8"?>
 <openerp>
     <data>
-     
+     	<!--<record id="tpt_stock_picking_out_tree" model="ir.ui.view">
+            <field name="name">tpt.stock.picking.out.tree</field>
+            <field name="model">stock.picking.out</field>
+            <field name="inherit_id" ref="stock.view_picking_out_tree"/>
+            <field name="arch" type="xml">
+                <tree colors="blue:state == 'draft';grey:state == 'cancel';red:state not in ('cancel', 'done') and min_date &lt; current_date" string="Delivery Orders">
+                    <field name="name"/>
+                    <field name="partner_id" string="Customer"/>
+                    <field name="origin" invisible="1"/>
+                    <field name="min_date" invisible="1"/>
+                    <field name="sale_id"/>
+                    <field name="date"/>
+        			<field name="cons_loca"/>
+	        		<field name="warehouse"/>
+	        		<field name="transporter"/>
+	        		<field name="truck"/>
+	        		<field name="remarks"/>
+	        		<field name="doc_status"/>
+                    <field name="backorder_id" invisible="1"/>
+                    <field name="stock_journal_id" invisible="1" groups="account.group_account_user"/>
+                    <field name="invoice_state" invisible="1"/>
+                    <field name="state" invisible="1"/>
+                </tree>
+            </field>
+        </record>-->
      	<record id="tpt_stock_picking_out_form" model="ir.ui.view">
             <field name="name">tpt.stock.picking.out.form</field>
             <field name="model">stock.picking.out</field>
@@ -17,9 +41,9 @@
             		<field name="min_date" invisible="1"/>
             	</xpath>
             	<xpath expr="//field[@name='partner_id']"  position="after">
-            		<field name="sale_id"/>
-            		<field name="cons_loca"/>
-            		<field name="warehouse"/>
+            		<field name="sale_id" options="{'create': false, 'create_edit': false}"/>
+            		<field name="cons_loca" options="{'create': false, 'create_edit': false}"/>
+            		<field name="warehouse" options="{'create': false, 'create_edit': false}"/>
             		<field name="transporter"/>
             		<field name="truck"/>
             		<field name="remarks"/>
