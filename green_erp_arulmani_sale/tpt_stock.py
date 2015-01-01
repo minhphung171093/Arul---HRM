@@ -13,12 +13,13 @@ import openerp.addons.decimal_precision as dp
 class stock_picking(osv.osv):
     _inherit = "stock.picking"
     _columns = {
-        'cons_loca':fields.char('Consignee Location', size = 64),
+        'cons_loca':fields.many2one('res.partner','Consignee Location'),
         'warehouse':fields.many2one('stock.location','Warehouse'),
         'transporter':fields.char('Transporter Name', size = 64),
         'truck':fields.char('Truck Number', size = 64),
         'remarks':fields.text('Remarks'),
         'doc_status':fields.selection([('completed','Completed')],'Document Status'),
+        'sale_id': fields.many2one('sale.order', 'Sales Order', ondelete='set null', select=True),
                 }
     
 stock_picking()
@@ -26,12 +27,13 @@ stock_picking()
 class stock_picking_out(osv.osv):
     _inherit = "stock.picking.out"
     _columns = {
-        'cons_loca':fields.char('Consignee Location', size = 64),
+        'cons_loca':fields.many2one('res.partner','Consignee Location'),
         'warehouse':fields.many2one('stock.location','Warehouse'),
         'transporter':fields.char('Transporter Name', size = 64),
         'truck':fields.char('Truck Number', size = 64),
         'remarks':fields.text('Remarks'),
         'doc_status':fields.selection([('completed','Completed')],'Document Status'),
+        'sale_id': fields.many2one('sale.order', 'Sales Order', ondelete='set null', select=True),
                 }
     
 stock_picking_out()
