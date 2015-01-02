@@ -62,7 +62,7 @@
 				</xpath>
 				<xpath expr="//form/sheet/notebook/page[@string='Order Lines']/field/tree/field[@name='price_subtotal']"  position="after">
 					<field name="freight" />
-					<field name="name_consignee_id" on_change = "onchange_consignee_id(name_consignee_id)" options="{'create': false, 'create_edit': false}" domain="[('consignee_parent_id','=',parent.partner_id)]"  />
+					<field name="name_consignee_id" on_change = "onchange_consignee_id(name_consignee_id)" options="{'create': false, 'create_edit': false}" domain="[('consignee_parent_id','=',parent.partner_id)]"/>
 					<field name="location" />
 				</xpath>
 				
@@ -73,9 +73,6 @@
 
 				<xpath expr="//field[@name='partner_id']"  position="replace">
 					<field name="partner_id" options="{'create': false, 'create_edit': false}" on_change = "onchange_partner_id(partner_id)"/>
-				</xpath>
-				<xpath expr="//button[@name='action_button_confirm']"  position="attributes">
-					<attribute name='invisible'>1</attribute>
 				</xpath>
 	       	</field>
         </record>
@@ -184,7 +181,7 @@
 							<page string = "Consignee">
 								<field name="blank_consignee_line" nolabel='1'>
 									<tree editable='top'>
-										<field name="name_consignee_id" options="{'create': false, 'create_edit': false}"/>
+										<field name="name_consignee_id" domain="[('consignee_parent_id','=',parent.customer_id)]" options="{'create': false, 'create_edit': false}"/>
 										<field name="location" />
 										<field name="product_id" widget = "selection" on_change="onchange_product_id(product_id)" options="{'create': false, 'create_edit': false}"/>
 										<field name="product_uom_qty" />
@@ -687,10 +684,10 @@
                 <form string="Post Goods Issue" version="7.0">
                    <sheet>
                    		<group>
-                        	<!--<field name="do_id" options="{'create': false, 'create_edit': false}"/>-->
+                        	<field name="do_id" on_change="onchange_do_id(do_id)" domain="[('type','=','out')]" options="{'create': false, 'create_edit': false}"/>
                     		<field name="customer_id" options="{'create': false, 'create_edit': false}"/>
                     		<field name="name"/>
-                    		<field name="warehouse"/>
+                    		<field name="warehouse" options="{'create': false, 'create_edit': false}"/>
 	                    </group>
 	                    <notebook>
 		                    <page string="Product" autofocus="autofocus">

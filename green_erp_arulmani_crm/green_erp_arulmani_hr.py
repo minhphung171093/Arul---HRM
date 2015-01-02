@@ -172,7 +172,7 @@ class hr_experience(osv.osv):
     _name = "hr.experience"
     _description = "Experience"
     _columns = {
-        'company_ornganization' : fields.char('Company/Ornganization', size=128),
+        'company_ornganization' : fields.char('Company/Organization', size=128),
         'last_held_designation' : fields.char('Last Held Designation', size=128),
         'joining_date' : fields.date('Joining Date'),
         'relieving_date' : fields.date('Relieving Date'), 
@@ -322,7 +322,7 @@ class hr_statutory (osv.osv):
         'gratuity_nominee' : fields.char('Gratuity Nominee', size=128),
         'pan_no' : fields.char('PAN No.', size=128),
         'pension_no' : fields.char('Pension No', size=128),
-        'employee_id': fields.many2one('hr.employee','Employee'),
+        'employee_id': fields.many2one('hr.employee','Employee',ondelete='cascade'),
     }
 
     def _check_epf(self, cr, uid, ids, context=None):

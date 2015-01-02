@@ -140,7 +140,7 @@ class hr_qualification_attachment(osv.osv):
         'store_fname': fields.char('Stored Filename', size=256),
         'db_datas': fields.binary('Database Data'),
         'file_size': fields.integer('File Size'),
-        'name': fields.many2one('hr.qualification.master','Qualitification', 64, required=True),
+        'name': fields.many2one('hr.qualification.master','Qualification', 64, required=True),
         'institution' : fields.char('Institution', 64),
         'board_university' : fields.char('Board / University', 64),
         'year_of_passing': fields.integer('Year Of Passing'),

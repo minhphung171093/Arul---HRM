@@ -189,6 +189,7 @@ class sale_order(osv.osv):
                       'price_subtotal': blanket_line.sub_total or False,
                       'freight': blanket_line.freight or False,
                       'state': 'draft',
+                      'type': 'make_to_stock',
                       }
                 blanket_lines.append((0,0,rs_order))
               
@@ -222,10 +223,45 @@ class sale_order(osv.osv):
                     'reason':blanket.reason or False,
                     'amount_untaxed': blanket.amount_untaxed or False,
                     'order_line':blanket_lines or False,
-                    'sale_consignee_line':consignee_lines or False,
+                    'order_policy': 'picking',
+#                     'sale_consignee_line':consignee_lines or False,
                         }
         return {'value': vals}    
-
+    
+    def action_button_confirm(self, cr, uid, ids, context=None):
+        assert len(ids) == 1, 'This option should only be used for a single id at a time.'
+        wf_service = netsvc.LocalService('workflow')
+        wf_service.trg_validate(uid, 'sale.order', ids[0], 'order_confirm', cr)
+        picking_out_obj = self.pool.get('stock.picking.out')
+        stock_move_obj = self.pool.get('stock.move')
+        picking_out_ids = picking_out_obj.search(cr,uid,[('sale_id','=',ids[0])],context=context)
+        sql = '''
+            select name_consignee_id from sale_order_line where order_id = %s group by name_consignee_id
+        '''%(ids[0])
+        cr.execute(sql)
+        consignee_ids = [row[0] for row in cr.fetchall()]
+        picking_id = picking_out_ids[0]
+        sale = self.browse(cr, uid, ids[0])
+        for i,consignee_id in enumerate(consignee_ids):
+            if i==0:
+                picking = picking_out_obj.browse(cr, uid, picking_id)
+                picking_out_obj.write(cr, uid, [picking_id], {'cons_loca': consignee_id,'backorder_id':picking_id,'origin':picking.origin,'sale_id':ids[0],'partner_id':sale.partner_id.id})
+            else:
+                sql = '''
+                    select id from sale_order_line where name_consignee_id = %s and order_id = %s
+                '''%(consignee_id,sale.id)
+                cr.execute(sql)
+                order_line_ids = [row[0] for row in cr.fetchall()]
+                default = {'backorder_id':picking_id,'move_lines':[],'cons_loca': consignee_id}
+                picking = picking_out_obj.browse(cr, uid, picking_id)
+                new_picking_id = picking_out_obj.copy(cr, uid, picking_id, default)
+                picking_out_obj.write(cr, uid, [new_picking_id], {'cons_loca': consignee_id,'backorder_id':picking_id,'origin':picking.origin,'sale_id':ids[0],'partner_id':sale.partner_id.id})
+                stock_move_ids = stock_move_obj.search(cr, uid, [('sale_line_id','in',order_line_ids)])
+                stock_move_obj.write(cr, uid, stock_move_ids, {'picking_id':new_picking_id})
+#                 wf_service.trg_validate(uid, 'stock.picking', new_picking_id, 'button_confirm', cr)
+                picking_id = new_picking_id
+        return True
+    
 sale_order()
 
 class sale_order_line(osv.osv):
@@ -694,21 +730,30 @@ class tpt_batch_allotment(osv.osv):
     _defaults = {
               'state': 'to_approve',
     }
-    def confirm(self, cr, uid, ids, context=None):
-        self.write(cr, uid, ids, {'state': 'confirm'})
-        sale_obj = self.pool.get('sale.order')
-        for batch_allotment in self.browse(cr,uid,ids,context=context):
-            picking_out_ids = self.pool.get('stock.picking').search(cr,uid,[('sale_id','=',batch_allotment.sale_order_id.id)],context=context)
-            if not picking_out_ids:
-                wf_service = netsvc.LocalService('workflow')
-                wf_service.trg_validate(uid, 'sale.order', batch_allotment.sale_order_id.id, 'order_confirm', cr)
+    def create(self, cr, uid, vals, context=None):
         
-                # redisplay the record as a sales order
-            view_ref = self.pool.get('ir.model.data').get_object_reference(cr, uid, 'sale', 'view_order_form')
-            view_id = view_ref and view_ref[1] or False,
+        return super(tpt_batch_allotment, self).create(cr, uid, vals, context)
+    
+    def write(self, cr, uid, ids, vals, context=None):
+        
+        return super(tpt_batch_allotment, self).write(cr, uid,ids, vals, context)
+    def confirm(self, cr, uid, ids, context=None):
+        return self.write(cr, uid, ids, {'state': 'confirm'})
+#         sale_obj = self.pool.get('sale.order')
+#         for batch_allotment in self.browse(cr,uid,ids,context=context):
+#             
+#             # cap nhat cho order line cua sale order giong nhu cua batch allotment
+# #             picking_out_ids = self.pool.get('stock.picking').search(cr,uid,[('sale_id','=',batch_allotment.sale_order_id.id)],context=context)
+# #             if not picking_out_ids:
+#             wf_service = netsvc.LocalService('workflow')
+#             wf_service.trg_validate(uid, 'sale.order', batch_allotment.sale_order_id.id, 'order_confirm', cr)
+#         
+#                 # redisplay the record as a sales order
+#             view_ref = self.pool.get('ir.model.data').get_object_reference(cr, uid, 'sale', 'view_order_form')
+#             view_id = view_ref and view_ref[1] or False,
     
             #Tim delivery_order cua Sale order do
-            picking_out_ids = self.pool.get('stock.picking').search(cr,uid,[('sale_id','=',batch_allotment.sale_order_id.id)],context=context)
+#             picking_out_ids = self.pool.get('stock.picking').search(cr,uid,[('sale_id','=',batch_allotment.sale_order_id.id)],context=context)
 #             sql = '''
 #                 delete from stock_move where picking_id = %s
 #             '''%(picking_out_ids[0])
@@ -744,17 +789,17 @@ class tpt_batch_allotment(osv.osv):
             #Neu chua done hoac cancel thi xoa stock_move trong picking_out do
             #tao lai stock_move theo batch_allotment_line
             
-            return {
-                'type': 'ir.actions.act_window',
-                'name': _('Sales Order'),
-                'res_model': 'sale.order',
-                'res_id': batch_allotment.sale_order_id.id,
-                'view_type': 'form',
-                'view_mode': 'form',
-                'view_id': view_id,
-                'target': 'current',
-                'nodestroy': True,
-            }
+#             return {
+#                 'type': 'ir.actions.act_window',
+#                 'name': _('Sales Order'),
+#                 'res_model': 'sale.order',
+#                 'res_id': batch_allotment.sale_order_id.id,
+#                 'view_type': 'form',
+#                 'view_mode': 'form',
+#                 'view_id': view_id,
+#                 'target': 'current',
+#                 'nodestroy': True,
+#             }
     def refuse(self, cr, uid, ids, context=None):
         return self.write(cr, uid, ids, {'state': 'refuse'})
     def cancelled(self, cr, uid, ids, context=None):
@@ -939,12 +984,35 @@ class tpt_pgi(osv.osv):
     _name = "tpt.pgi"
      
     _columns = {
-#         'do_id':fields.many2one('tpt.delivery.order','Delivery Order',required = True), 
+        'do_id':fields.many2one('stock.picking.out','Delivery Order',required = True), 
         'name':fields.date('DO Date',required = True), 
         'customer_id':fields.many2one('res.partner', 'Customer', required = True), 
-        'warehouse':fields.char('Warehouse', size = 1024,required = True),
+        'warehouse':fields.many2one('stock.location','Warehouse'),
         'batch_allotment_line': fields.one2many('tpt.batch.allotment.line', 'pgi_id', 'Product'), 
                 }
+    
+    def onchange_do_id(self, cr, uid, ids, do_id=False, context=None):
+        vals = {}
+        for pgi in ids:
+            sql = '''
+                delete from tpt_batch_allotment_line where pgi_id = %s
+            '''%(pgi)
+            cr.execute(sql)
+        if do_id:
+            do = self.pool.get('stock.picking.out').browse(cr, uid, do_id)
+            pgi_line = []
+            for line in do.move_lines:
+                pgi_line.append((0,0,{
+                                      'product_id': line.product_id.id,
+                                      'product_uom_qty':line.product_qty,
+                                      'product_type':line.product_type,
+                                      'uom_po_id': line.product_uom.id,
+                                      'application_id':line.application_id and line.application_id.id or False,
+                                      'sys_batch':line.prodlot_id and line.prodlot_id.id or False,
+                                      }))
+            vals = {'name':do.date,'batch_allotment_line': pgi_line,'customer_id':do.partner_id and do.partner_id.id or False,'warehouse':do.warehouse and do.warehouse.id or False}
+        return {'value':vals}
+    
 tpt_pgi()
 
 class tpt_form_403_consignee(osv.osv):
