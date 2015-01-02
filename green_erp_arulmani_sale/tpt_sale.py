@@ -202,7 +202,9 @@ class sale_order(osv.osv):
                       'uom_po_id': consignee_line.uom_po_id and consignee_line.uom_po_id.id or False,
                                 }
                 consignee_lines.append((0,0,rs_consignee))
-                
+            
+            addr = self.pool.get('res.partner').address_get(cr, uid, [blanket.customer_id.id], ['delivery', 'invoice', 'contact'])
+            
             vals = {'partner_id':blanket.customer_id and blanket.customer_id.id or False,
                     'invoice_address':blanket.invoice_address or False,
                     'street2':blanket.street2 or False,
@@ -224,6 +226,7 @@ class sale_order(osv.osv):
                     'amount_untaxed': blanket.amount_untaxed or False,
                     'order_line':blanket_lines or False,
                     'order_policy': 'picking',
+                    'partner_invoice_id': addr['invoice'],
 #                     'sale_consignee_line':consignee_lines or False,
                         }
         return {'value': vals}    

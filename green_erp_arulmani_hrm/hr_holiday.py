@@ -465,6 +465,17 @@ class arul_hr_employee_leave_details(osv.osv):
         else:
             return super(arul_hr_employee_leave_details, self).create(cr, uid, vals, context)
     
+    def unlink(self, cr, uid, ids, context=None):
+        leave_details = self.read(cr, uid, ids, ['state'], context=context)
+        unlink_ids = []
+        for ld in leave_details:
+            if ld['state'] in ['draft', 'cancel']:
+                unlink_ids.append(ld['id'])
+            else:
+                raise osv.except_osv(_('Warning!'), _('In employee leave details to delete a confirmed employee leave details, You can not delete it!'))
+
+        return osv.osv.unlink(self, cr, uid, unlink_ids, context=context)
+    
 #     def write(self, cr, uid, ids, vals, context=None):
 #         if 'date_from' in vals and 'date_to' in vals:
 #             date_from = vals['date_from']
@@ -825,7 +836,7 @@ class arul_hr_punch_in_out(osv.osv):
     _columns = {
         'name': fields.date('Date Up load', required=True,states={'done': [('readonly', True)]}),
         'datas_fname': fields.char('File Name',size=256),
-        'datas': fields.function(_data_get, fnct_inv=_data_set, string='Upload/View Specification', type="binary", nodrop=True,states={'done': [('readonly', True)]}),
+        'datas': fields.function(_data_get, fnct_inv=_data_set, string='Upload/View Specification', type="binary", nodrop=True,states={'done': [('readonly', True)]}, required=True),
         'store_fname': fields.char('Stored Filename', size=256),
         'db_datas': fields.binary('Database Data'),
         'file_size': fields.integer('File Size'),
@@ -1297,7 +1308,7 @@ class arul_hr_monthly_work_schedule(osv.osv):
                 num_of_month = calendar.monthrange(int(year),int(month))[1]
             dept = self.pool.get('hr.department').browse(cr, uid, department_id)
             employee_obj=self.pool.get('hr.employee')
-            employee_ids = employee_obj.search(cr, uid, [('department_id','=',department_id ),('section_id','=',section_id )])
+            employee_ids = employee_obj.search(cr, uid, [('active','=',True ),('department_id','=',department_id ),('section_id','=',section_id )])
             name_of_day_1 = False
             name_of_day_2 = False
             name_of_day_3 = False
@@ -1478,7 +1489,7 @@ class arul_hr_monthly_work_schedule(osv.osv):
                 num_of_month = calendar.monthrange(int(year),int(month))[1]
             dept = self.pool.get('hr.department').browse(cr, uid, department_id)
             employee_obj=self.pool.get('hr.employee')
-            employee_ids = employee_obj.search(cr, uid, [('department_id','=',department_id ),('section_id','=',section_id )])
+            employee_ids = employee_obj.search(cr, uid, [('active','=',True ),('department_id','=',department_id ),('section_id','=',section_id )])
             name_of_day_1 = False
             name_of_day_2 = False
             name_of_day_3 = False
