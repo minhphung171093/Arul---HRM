@@ -341,6 +341,10 @@ class arul_hr_employee_action_history(osv.osv):
         return new_id
     
     def write(self, cr, uid, ids, vals, context=None):
+        if not context:
+            context = {}
+        if context.get('create_hiring_employee'):
+            return super(arul_hr_employee_action_history, self).write(cr, uid,ids, vals, context)
         new_write = super(arul_hr_employee_action_history, self).write(cr, uid,ids, vals, context)
         if 'department_to_id' in vals:
             for line in self.browse(cr, uid, ids):
@@ -373,12 +377,13 @@ class arul_hr_employee_action_history(osv.osv):
     def approve_employee_rehiring(self, cr, uid, ids, context=None):
         employee_obj = self.pool.get('hr.employee')
         for line in self.browse(cr, uid, ids):
-            new_employee_id = employee_obj.copy(cr, uid, line.employee_id.id)
-            sql = '''
-                delete from arul_hr_employee_action_history where id in (select id from arul_hr_employee_action_history where employee_id = %s order by id desc limit 1)
-            '''%(int(new_employee_id))
-            cr.execute(sql)
-            employee_obj.write(cr, uid, [line.employee_id.id], {'active': True})
+            default = {'employee_id': self.pool.get('ir.sequence').get(cr, uid, 'hr.employee.id'),'active': True,'statutory_ids':[]}
+            new_employee_id = employee_obj.copy(cr, uid, line.employee_id.id,default)
+#             sql = '''
+#                 delete from arul_hr_employee_action_history where id in (select id from arul_hr_employee_action_history where employee_id = %s order by id desc limit 1)
+#             '''%(int(line.employee_id.id))
+#             cr.execute(sql)
+#             employee_obj.write(cr, uid, [line.employee_id.id], {'active': True})
             self.write(cr, uid, [line.id],{'approve_rehiring': True})
         return True
 

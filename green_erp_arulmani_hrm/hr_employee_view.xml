@@ -735,8 +735,8 @@
             <field name="type">ir.actions.act_window</field>
             <field name="res_model">arul.hr.employee.action.history</field>
             <field name="view_type">form</field>
-            <field name="domain">[('action_id.name','=','Hiring'),('employee_id','!=',False)]</field>
-            <field name="context">{'action_default_hiring':1}</field>
+            <field name="domain">[('action_id.name','=','Hiring'),('employee_id','=',False)]</field>
+            <field name="context">{'create_hiring_employee':1,'action_default_hiring':1}</field>
             <field name="view_mode">tree,form</field>
             <field name="view_id" ref="view_arul_hr_employee_hiring_action_tree_vew"/>
         </record>
@@ -1221,9 +1221,22 @@
             <field name="arch" type="xml">
             	<xpath expr="//tree[@string='Employees']" position="attributes">
             		<attribute name="delete">false</attribute>
+            		<attribute name="create">false</attribute>
             	</xpath>
             	<xpath expr="//field[@name='name']" position="before">
             		<field name ="employee_id"/>
+            	</xpath>
+            </field>
+		</record>
+  
+  		<record id="hr_kanban_view_employees_inherit" model="ir.ui.view">
+            <field name="name">hr_kanban_view_employees.inherit</field>
+            <field name="model">hr.employee</field>
+            <field name="inherit_id" ref="hr.hr_kanban_view_employees"/>
+            <field name="arch" type="xml">
+            	<xpath expr="//kanban" position="attributes">
+            		<attribute name="delete">false</attribute>
+            		<attribute name="create">false</attribute>
             	</xpath>
             </field>
 		</record>
@@ -1235,6 +1248,7 @@
             <field name="arch" type="xml">
             	<xpath expr="//form[@string='Employee']" position="attributes">
             		<attribute name="delete">false</attribute>
+            		<attribute name="create">false</attribute>
             	</xpath>
             	
             	<xpath expr="//field[@name='bank_account_id']" position="replace">
