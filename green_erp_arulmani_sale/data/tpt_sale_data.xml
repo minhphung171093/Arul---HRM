@@ -71,6 +71,23 @@
 	
         </record>
         
+        		<!--    Customer Invoice    -->
+        
+       	<record id="sequence_tpt_customer_invoice_import_code" model="ir.sequence.type">
+            <field name="name">Customer Invoice Import</field>
+            <field name="code">tpt.customer.invoice.import</field>
+        </record>
+        
+        <record id="sequence_tpt_customer_invoice_import_item" model="ir.sequence">
+            <field name="name">Customer Invoice Import</field>
+            <field name="code">tpt.customer.invoice.import</field>
+            <field name="prefix">%(year)s</field>
+            <field name="padding">6</field>
+            <field name="number_next_actual">000001</field>
+            <field name="implementation">no_gap</field>
+		
+        </record>
+        
         		<!--    From A.R.E - 1     -->
         
         <record id="sequence_tpt_form_are_1_import_code" model="ir.sequence.type">

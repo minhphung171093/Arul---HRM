@@ -68,3 +68,122 @@ class stock_move(osv.osv):
                 }
     
 stock_move()
+
+class account_invoice(osv.osv):
+    _inherit = "account.invoice"
+    
+    def _amount_all(self, cr, uid, ids, field_name, arg, context=None):
+        res = {}
+        for line in self.browse(cr,uid,ids,context=context):
+            res[line.id] = {
+                'amount_untaxed': 0.0,
+                'amount_tax': 0.0,
+                'amount_total': 0.0,
+            }
+            val1 = 0.0
+            val2 = 0.0
+            val3 = 0.0
+            for invoiceline in line.invoice_line:
+                val1 = val1 + invoiceline.price_subtotal
+                res[line.id]['amount_untaxed'] = val1
+                val2 = val1 * line.sale_tax_id.amount / 100
+                res[line.id]['amount_tax'] = val2
+                val3 = val1 + val2 + invoiceline.freight
+                res[line.id]['amount_total'] = val3
+        return res
+    
+    def _get_invoice_line(self, cr, uid, ids, context=None):
+        result = {}
+        for line in self.pool.get('account.invoice.line').browse(cr, uid, ids, context=context):
+            result[line.invoice_id.id] = True
+        return result.keys()
+    
+    _columns = {
+        'delivery_order_id': fields.many2one('stock.picking.out','Delivery Order'),  
+        'cons_loca': fields.many2one('res.partner','Consignee Location'),
+        'sale_id':  fields.many2one('sale.order','Sale Order'), 
+        'excise_duty_id': fields.many2one('account.tax','Excise Duty', required = True),
+        'sale_tax_id': fields.many2one('account.tax','Sales Tax', required = True),
+        'doc_status':fields.selection([('completed','Completed')],'Document Status'),
+        'invoice_type':fields.selection([('domestic','Domestic')],'Invoice Type'),
+        'vessel_flight_no': fields.char('Vessel/Flight No.', size = 1024),
+        'port_of_loading_id': fields.many2one('res.country','Port Of Loading'),
+        'port_of_discharge_id': fields.many2one('res.country','Port Of_Discharge'),
+        'mark_container_no': fields.char('Marks & No Container No.', size = 1024),
+        'insurance': fields.float('Insurance'),
+        'pre_carriage_by': fields.selection([('sea','Sea')],'Pre Carriage By'),
+        'amount_untaxed': fields.function(_amount_all, digits_compute=dp.get_precision('Account'), string='Untaxed Amount',
+            store={
+                'account.invoice': (lambda self, cr, uid, ids, c={}: ids, ['invoice_line'], 20),
+                'account.invoice.line': (_get_invoice_line, ['price_unit','invoice_line_tax_id','quantity','discount','invoice_id'], 20),
+            },
+            multi='sums', help="The amount without tax.", track_visibility='always'),
+        'amount_tax': fields.function(_amount_all, digits_compute=dp.get_precision('Account'), string='Taxes',
+            store={
+                'account.invoice': (lambda self, cr, uid, ids, c={}: ids, ['invoice_line'], 20),
+                'account.invoice.line': (_get_invoice_line, ['price_unit','invoice_line_tax_id','quantity','discount','invoice_id'], 20),
+            },
+            multi='sums', help="The tax amount."),
+        'amount_total': fields.function(_amount_all, digits_compute=dp.get_precision('Account'), string='Total',
+            store={
+                'account.invoice': (lambda self, cr, uid, ids, c={}: ids, ['invoice_line'], 20),
+                'account.invoice.line': (_get_invoice_line, ['price_unit','invoice_line_tax_id','quantity','discount','invoice_id'], 20),
+            },
+            multi='sums', help="The total amount."),
+                }
+    _defaults = {
+        'name': '/',
+    }
+    
+    def onchange_delivery_order_id(self, cr, uid, ids, delivery_order_id=False, context=None):
+        vals = {}
+        invoice_lines = []
+        if delivery_order_id :
+            delivery = self.pool.get('stock.picking.out').browse(cr, uid, delivery_order_id)
+            for line in self.browse(cr, uid, ids):
+                sql = '''
+                    delete from invoice_line where invoice_id = %s
+                '''%(line.id)
+                cr.execute(sql)
+            for invoice_line in delivery.move_lines:
+                rs_invoice = {
+                      'product_id': invoice_line.product_id and invoice_line.product_id.id or False,
+                      'product_type': invoice_line.product_type or False,
+                      'application_id': invoice_line.application_id and invoice_line.application_id.id or False,
+                      'quantity': invoice_line.product_qty or False,
+                      'uos_id': invoice_line.product_uom and invoice_line.product_uom.id or False,
+                      }
+                invoice_lines.append((0,0,rs_invoice))
+            vals = {'partner_id':delivery.partner_id and delivery.partner_id.id or False,
+                    'cons_loca':delivery.partner_id and delivery.cons_loca.id or False,
+                    'sale_id': delivery.sale_id and delivery.sale_id.id or False,
+                    'doc_status':delivery.doc_status or False,
+                    'invoice_line': invoice_lines or False
+                    }
+        return {'value': vals}   
+    def create(self, cr, uid, vals, context=None):
+        if vals.get('name','/')=='/':
+            vals['name'] = self.pool.get('ir.sequence').get(cr, uid, 'tpt.customer.invoice.import') or '/'
+        return super(account_invoice, self).create(cr, uid, vals, context=context)
+    
+account_invoice()
+
+class account_invoice_line(osv.osv):
+    _inherit = "account.invoice.line"
+    
+    def _amount_line(self, cr, uid, ids, field_name, arg, context=None):
+        subtotal = 0.0
+        res = {}
+        for line in self.browse(cr,uid,ids,context=context):
+            subtotal = (line.quantity * line.price_unit) + (line.quantity * line.price_unit) * (line.invoice_id.excise_duty_id.amount/100)
+            res[line.id] = subtotal
+        return res
+    
+    _columns = {
+        'product_type': fields.selection([('product', 'Stockable Product'),('consu', 'Consumable'),('service', 'Service')],'Product Type'),
+        'application_id': fields.many2one('crm.application', 'Application'),
+        'freight': fields.float('FreightAmt'),
+        'price_subtotal': fields.function(_amount_line, string='Subtotal', digits_compute= dp.get_precision('Account')),
+       } 
+    
+account_invoice_line()
