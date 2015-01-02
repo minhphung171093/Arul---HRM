@@ -157,7 +157,7 @@
                     </page>
                     <page string="Family Details" autofocus="autofocus">
                         <field name="family_ids" nolabel='1'>
-                        	<tree string="Family Details" editable='top'>
+                        	<tree string="Family Details" editable='bottom'>
                         		<field name="name"/>
                         		<field name="relation_type"/>
                         		<field name="date_of_birth" />
