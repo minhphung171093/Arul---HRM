@@ -22,7 +22,7 @@
 			id="arul_print_report" 
 			model="arul.hr.payroll.executions" 
 			name="arul_print_report"
-	        string="Payslip"
+	        string="PreviewPayroll"
 	        rml="green_erp_arulmani_hrm/report/print_report.ods"/>	
     </data>
 </openerp>

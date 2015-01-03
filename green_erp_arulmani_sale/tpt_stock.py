@@ -152,7 +152,7 @@ class account_invoice(osv.osv):
         warning = {}
         if date_invoice:
             sql = '''
-                select date_invoice from account_invoice order by date_invoice desc
+                select date_invoice from account_invoice where type='out_invoice' order by date_invoice desc
             ''' 
             cr.execute(sql)
             date_invoices = [row[0] for row in cr.fetchall()]
