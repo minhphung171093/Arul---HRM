@@ -52,11 +52,13 @@
 				</xpath> 
 				<xpath expr="//field[@name='origin']" position="replace">
 					<field name="origin" placeholder="e.g. PO0032" class="oe_inline" invisible = "1"/>
-					<field name="move_date"/>
+					<field name="move_date" on_change="onchange_move_date(move_date)"/>
 					<field name="location_dest_id" domain="[('id','!=',location_sour_id)]" string = "Destination Location" options="{'create': false, 'create_edit': false}"/>
 				</xpath> 
 			</field>
 		</record>
+		
+		<menuitem name="Stock Move" action="stock.action_picking_tree6" id="stock.menu_action_picking_tree6" parent="stock.menu_stock_warehouse_mgmt" sequence="2" groups="stock.group_locations"/>
 		
         
        <record id="tpt_customer_invoice_form" model="ir.ui.view">
