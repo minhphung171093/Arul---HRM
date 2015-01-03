@@ -55,6 +55,30 @@
 					<field name="move_date"/>
 					<field name="location_dest_id" domain="[('id','!=',location_sour_id)]" string = "Destination Location" options="{'create': false, 'create_edit': false}"/>
 				</xpath> 
+				
+				<xpath expr="//page[@string='Products']" position="replace">
+					<page string="Stock Move Details">
+						<field name="move_lines" string="Stock Move" context="{'address_in_id': partner_id, 'form_view_ref':'stock.view_move_picking_form', 'tree_view_ref':'stock.view_move_picking_tree', 'picking_type': 'internal'}" options='{"reload_on_button": true}'/>
+                        <field name="note" placeholder="Add an internal note..." class="oe_inline" invisible = "1"/>
+					</page>
+				</xpath> 
+				
+				<xpath expr="//page[@string='Additional Info']" position="replace">
+					<page string="Additional Info" invisible = "1">
+					<group>
+                                <group>
+                                    <field name="move_type"/>
+                                    <field name="type" invisible="1"/>
+                                    <field name="auto_picking" groups="base.group_user"/>
+                                </group>
+                                <group>
+                                    <field name="company_id" groups="base.group_multi_company" widget="selection"/>
+                                    <field name="date_done" groups="base.group_no_one"/>
+                                </group>
+                            </group>
+					</page>
+				</xpath> 
+				
 			</field>
 		</record>
 		
