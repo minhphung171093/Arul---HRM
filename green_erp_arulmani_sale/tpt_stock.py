@@ -46,6 +46,18 @@ class stock_picking_out(osv.osv):
                 '''%(location_id,stock.id)
             cr.execute(sql)
         return super(stock_picking_out, self).write(cr, uid,ids, vals, context)
+    
+    def print_dispatch_slip(self, cr, uid, ids, context=None):
+        datas = {
+             'ids': ids,
+             'model': 'stock.picking.out',
+             'form': self.read(cr, uid, ids[0], context=context)
+        }
+        return {
+            'type': 'ir.actions.report.xml',
+            'report_name': 'tpt_print_dispatch_slip',
+        }
+    
 stock_picking_out()
 
 class stock_move(osv.osv):

@@ -149,8 +149,8 @@
 						<field name="date"/>
 						<field name="division_from"/>
 						<field name="division_to"/>
-						<field name="warehouse_from"/>
-						<field name="warehouse_to"/>
+						<field name="warehouse_from_id"/>
+						<field name="warehouse_to_id"/>
 				</tree>
 			</field>
 		</record>      
@@ -167,16 +167,16 @@
 	            				<field name="range_from" />
 	            				<field name="reg_no_from" />
 	            				<field name="division_from" />
-	            				<field name="warehouse_from" />
+	            				<field name="warehouse_from_id" options="{'create': false, 'create_edit': false}" />
 	            				<field name="to_mr_mess" />
-	            				<field name="invoice_no_id" />
+	            				<field name="invoice_no_id" options="{'create': false, 'create_edit': false}" />
 	            			</group>
 	            			<group>
 	            				<field name="date" />
 	            				<field name="range_to" />
 	            				<field name="reg_no_to" />
 	            				<field name="division_to" />
-	            				<field name="warehouse_to" />
+	            				<field name="warehouse_to_id" options="{'create': false, 'create_edit': false}" />
 	            			</group>
 	            		</group>
 	            		<notebook>
