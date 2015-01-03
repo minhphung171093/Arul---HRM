@@ -20,7 +20,38 @@ class stock_picking(osv.osv):
         'remarks':fields.text('Remarks'),
         'doc_status':fields.selection([('completed','Completed')],'Document Status'),
         'sale_id': fields.many2one('sale.order', 'Sales Order', ondelete='set null', select=True),
+        'do_ref_id': fields.many2one('stock.picking.out','DO Reference'),   
+        'move_date': fields.date('Movement Date'),
+        'reason': fields.text("Reason for Move"),
+        'location_sour_id': fields.many2one('stock.location', 'Source Location'),
                 }
+    
+    _defaults = {
+        'move_date': time.strftime('%Y-%m-%d'),
+        'name': '/',
+    }
+     
+    def create(self, cr, uid, vals, context=None):
+        if vals.get('name','/')=='/':
+            vals['name'] = self.pool.get('ir.sequence').get(cr, uid, 'tpt.stock.move.import') or '/'
+        return super(stock_picking, self).create(cr, uid, vals, context=context)
+    
+    def onchange_move_date(self, cr, uid, ids, move_date=False, context=None):
+        vals = {}
+        warning = {}
+        if move_date:
+            sql = '''
+                select move_date from stock_picking where type='internal' order by move_date desc
+            ''' 
+            cr.execute(sql)
+            move_dates = [row[0] for row in cr.fetchall()]
+            if move_dates and move_date < move_dates[0]:
+                warning = {
+                    'title': _('Warning!'),
+                    'message': _('Not allow to create back date invoices')
+                }
+                vals = {'move_date':False}
+        return {'value': vals,'warning':warning}
     
 stock_picking()
 
@@ -152,7 +183,7 @@ class account_invoice(osv.osv):
         warning = {}
         if date_invoice:
             sql = '''
-                select date_invoice from account_invoice order by date_invoice desc
+                select date_invoice from account_invoice where type='out_invoice' order by date_invoice desc
             ''' 
             cr.execute(sql)
             date_invoices = [row[0] for row in cr.fetchall()]
@@ -217,23 +248,3 @@ class account_invoice_line(osv.osv):
        } 
     
 account_invoice_line()
-
-class stock_picking(osv.osv):
-    _inherit = "stock.picking"
-    _columns = {
-        'do_ref_id': fields.many2one('stock.picking.out','DO Reference'),   
-        'move_date': fields.date('Movement Date'),
-        'reason': fields.text("Reason for Move"),
-        'location_sour_id': fields.many2one('stock.location', 'Source Location'),
-            }
-    _defaults = {
-        'move_date': time.strftime('%Y-%m-%d'),
-        'name': '/',
-    }
-     
-    def create(self, cr, uid, vals, context=None):
-        if vals.get('name','/')=='/':
-            vals['name'] = self.pool.get('ir.sequence').get(cr, uid, 'tpt.stock.move.import') or '/'
-        return super(stock_picking, self).create(cr, uid, vals, context=context)
-    
-stock_picking()

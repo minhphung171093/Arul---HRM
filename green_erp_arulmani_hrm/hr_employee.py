@@ -797,6 +797,7 @@ class food_subsidy(osv.osv):
         if not ids:
             return res
         reads = self.read(cr, uid, ids, ['food_category'], context)
+        name = ''
         for record in reads:
             name = record['food_category']
             if name=='break_fast':
@@ -808,7 +809,15 @@ class food_subsidy(osv.osv):
             else:
                 name = 'Midnight Tiffin'
             res.append((record['id'], name))
-        return res  
+        return res
+    
+    def name_search(self, cr, user, name, args=None, operator='ilike', context=None, limit=100):
+        if name:
+            ids = self.search(cr, user, [('food_category','like',name)]+args, context=context, limit=limit)
+        else:
+            ids = self.search(cr, user, args, context=context, limit=limit)
+        return self.name_get(cr, user, ids, context=context)
+    
     def _check_price(self,cr,uid,ids):
         obj = self.browse(cr,uid,ids[0])
         if obj and obj.food_price:

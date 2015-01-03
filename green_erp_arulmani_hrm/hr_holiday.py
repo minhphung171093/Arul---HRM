@@ -730,7 +730,8 @@ class arul_hr_punch_in_out_time(osv.osv):
     _inherit='arul.hr.audit.shift.time'
     _name='arul.hr.punch.in.out.time'
     _columns = {
-        'punch_in_out_id':fields.many2one('arul.hr.employee.attendence.details','Punch in/out',ondelete='cascade')
+        'punch_in_out_id':fields.many2one('arul.hr.employee.attendence.details','Punch in/out',ondelete='cascade'),
+        'emp_id': fields.related('punch_in_out_id','employee_id',string="Employee",relation='hr.employee',type='many2one',readonly=True,store=True),
     }
 arul_hr_punch_in_out_time()
 
@@ -3228,7 +3229,20 @@ class tpt_manage_equipment_inventory(osv.osv):
         'returned_qty': fields.float('Returned Qty'),
         'total_qty': fields.function(_amount_total, string='Total Qty', multi='deltas', store = True),
     }
-
+    
+    def onchange_allocated_qty(self, cr, uid, ids, allocated_qty=False, returned_qty=False, context=None):
+        vals = {}
+        warning = {}
+        if allocated_qty and returned_qty:
+            if  allocated_qty < returned_qty:
+                vals = {'returned_qty':0}
+                warning = {
+                    'title': _('Warning!'),
+                    'message': _('Return quantity should not be greater than allocated qty')
+                }
+        return {'value':vals,'warning':warning}
+tpt_manage_equipment_inventory()
+    
 class shift_group(osv.osv):
     _name='shift.group'
     

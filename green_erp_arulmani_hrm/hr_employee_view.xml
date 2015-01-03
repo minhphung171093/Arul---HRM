@@ -300,8 +300,8 @@
 	                    	<field name="manage_equipment_inventory_line" nolabel='1'>
 		                    	<tree editable='top'>
 		                    		<field name ="equipment_id" options="{'create': false, 'create_edit': false}"/>
-		                    		<field name ="allocated_qty"/>
-		                    		<field name ="returned_qty"/>
+		                    		<field name ="allocated_qty" on_change="onchange_allocated_qty(allocated_qty,returned_qty)"/>
+		                    		<field name ="returned_qty" on_change="onchange_allocated_qty(allocated_qty,returned_qty)"/>
 		                    		<field name ="total_qty"/>
 		                    	</tree>
 	                    	</field>
