@@ -99,7 +99,7 @@ class account_invoice(osv.osv):
         return result.keys()
     
     _columns = {
-        'delivery_order_id': fields.many2one('stock.picking.out','Delivery Order'),  
+        'delivery_order_id': fields.many2one('stock.picking.out','Delivery Order', readonly=True),  
         'cons_loca': fields.many2one('res.partner','Consignee Location'),
         'sale_id':  fields.many2one('sale.order','Sale Order'), 
         'excise_duty_id': fields.many2one('account.tax','Excise Duty', required = True),
@@ -132,8 +132,25 @@ class account_invoice(osv.osv):
             multi='sums', help="The total amount."),
                 }
     _defaults = {
-        'name': '/',
+#         'name': '/',
     }
+    
+    def onchange_date_invoice(self, cr, uid, ids, date_invoice=False, context=None):
+        vals = {}
+        warning = {}
+        if date_invoice:
+            sql = '''
+                select date_invoice from account_invoice order by date_invoice desc
+            ''' 
+            cr.execute(sql)
+            date_invoices = [row[0] for row in cr.fetchall()]
+            if date_invoices and date_invoice < date_invoices[0]:
+                warning = {
+                    'title': _('Warning!'),
+                    'message': _('Not allow to create back date invoices')
+                }
+                vals = {'date_invoice':False}
+        return {'value': vals,'warning':warning}
     
     def onchange_delivery_order_id(self, cr, uid, ids, delivery_order_id=False, context=None):
         vals = {}
@@ -160,11 +177,12 @@ class account_invoice(osv.osv):
                     'doc_status':delivery.doc_status or False,
                     'invoice_line': invoice_lines or False
                     }
-        return {'value': vals}   
-    def create(self, cr, uid, vals, context=None):
-        if vals.get('name','/')=='/':
-            vals['name'] = self.pool.get('ir.sequence').get(cr, uid, 'tpt.customer.invoice.import') or '/'
-        return super(account_invoice, self).create(cr, uid, vals, context=context)
+        return {'value': vals}
+    
+#     def create(self, cr, uid, vals, context=None):
+#         if vals.get('number','/')=='/':
+#             vals['number'] = self.pool.get('ir.sequence').get(cr, uid, 'tpt.customer.invoice.import') or '/'
+#         return super(account_invoice, self).create(cr, uid, vals, context=context)
     
 account_invoice()
 

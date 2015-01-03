@@ -261,8 +261,8 @@
 	        <field name="model">hr.employee</field>
 	        <field name="inherit_id" ref="hr.hr_kanban_view_employees"/>
 	        <field name="arch" type="xml">
-	        	<xpath expr="//field[@name='name']" position="after">
-	        		<field name="last_name"/>
+	        	<xpath expr="//field[@name='name']" position="replace">
+	        		<a type="open"><field name="name"/> <field name="last_name"/><t t-if="record.login.raw_value"> (<field name="login"/>)</t></a>
 	        	</xpath>   
 	        </field>
 	    </record> 

@@ -51,6 +51,9 @@
 				<xpath expr="//field[@name='journal_id']" position="replace">
 					<field name="cons_loca" />
 				</xpath>
+				<xpath expr="//field[@name='date_invoice']" position="attributes">
+					<attribute name="on_change">onchange_date_invoice(date_invoice)</attribute>
+				</xpath>
 				<xpath expr="//field[@name='account_id']" position="replace">
 					<field name="account_id" required = "0" invisible = "1"/>
 					<field name="sale_id" options="{'create': false, 'create_edit': false}"/>
