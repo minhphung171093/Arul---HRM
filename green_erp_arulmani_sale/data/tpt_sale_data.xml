@@ -64,7 +64,7 @@
         <record id="sequence_tpt_stock_move_import_item" model="ir.sequence">
             <field name="name">Stock Move Import</field>
             <field name="code">tpt.stock.move.import</field>
-            <field name="prefix">VVTI/ST/</field>
+            <field name="prefix">VVTI/SM/</field>
             <field name="padding">8</field>
             <field name="number_next_actual">00000001</field>
             <field name="implementation">no_gap</field>

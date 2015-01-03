@@ -217,3 +217,23 @@ class account_invoice_line(osv.osv):
        } 
     
 account_invoice_line()
+
+class stock_picking(osv.osv):
+    _inherit = "stock.picking"
+    _columns = {
+        'do_ref_id': fields.many2one('stock.picking.out','DO Reference'),   
+        'move_date': fields.date('Movement Date'),
+        'reason': fields.text("Reason for Move"),
+        'location_sour_id': fields.many2one('stock.location', 'Source Location'),
+            }
+    _defaults = {
+        'move_date': time.strftime('%Y-%m-%d'),
+        'name': '/',
+    }
+     
+    def create(self, cr, uid, vals, context=None):
+        if vals.get('name','/')=='/':
+            vals['name'] = self.pool.get('ir.sequence').get(cr, uid, 'tpt.stock.move.import') or '/'
+        return super(stock_picking, self).create(cr, uid, vals, context=context)
+    
+stock_picking()
