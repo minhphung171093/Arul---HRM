@@ -48,7 +48,7 @@ class stock_picking(osv.osv):
             if move_dates and move_date < move_dates[0]:
                 warning = {
                     'title': _('Warning!'),
-                    'message': _('Not allow to create back date invoices')
+                    'message': _('Not allow to create back Movement Date')
                 }
                 vals = {'move_date':False}
         return {'value': vals,'warning':warning}
