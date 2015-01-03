@@ -23,7 +23,7 @@ class stock_picking(osv.osv):
         'do_ref_id': fields.many2one('stock.picking.out','DO Reference'),   
         'move_date': fields.date('Movement Date'),
         'reason': fields.text("Reason for Move"),
-        'location_sour_id': fields.many2one('stock.location', 'Source Location'),
+#         'location_sour_id': fields.many2one('stock.location', 'Source Location'),
                 }
     
     _defaults = {
