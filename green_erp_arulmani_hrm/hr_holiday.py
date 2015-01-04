@@ -550,11 +550,11 @@ class arul_hr_employee_leave_details(osv.osv):
         for line in self.browse(cr, uid, ids):
             if line.date_from < date_now:
                 raise osv.except_osv(_('Warning!'),_('Can not Cancel for past day!'))
-            sql = '''
-                update arul_hr_employee_leave_details set state='cancel', leave_evaluate_id = null where id = %s
-            '''%(line.id)
-            cr.execute(sql)
-#             self.write(cr, uid, [line.id],{'state':'cancel'})
+#             sql = '''
+#                 update arul_hr_employee_leave_details set state='cancel', leave_evaluate_id = null where id = %s
+#             '''%(line.id)
+#             cr.execute(sql)
+            self.write(cr, uid, [line.id],{'state':'cancel','leave_evaluate_id':False})
         return True  
     
     def _check_days(self, cr, uid, ids, context=None): 

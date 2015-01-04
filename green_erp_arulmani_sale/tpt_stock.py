@@ -142,7 +142,7 @@ class account_invoice(osv.osv):
         return result.keys()
     
     _columns = {
-        'delivery_order_id': fields.many2one('stock.picking.out','Delivery Order', readonly=True),  
+        'delivery_order_id': fields.many2one('stock.picking.out','Delivery Order', readonly=True),
         'cons_loca': fields.many2one('res.partner','Consignee Location'),
         'sale_id':  fields.many2one('sale.order','Sale Order'), 
         'excise_duty_id': fields.many2one('account.tax','Excise Duty', required = True),
