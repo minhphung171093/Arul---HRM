@@ -32,11 +32,11 @@ class Parser(report_sxw.rml_parse):
         date = datetime.strptime(date, DATETIME_FORMAT)
         return date.strftime('%d/%m/%Y')
     
-    def get_date(self, date=False):
-        if not date:
-            date = time.strftime(DATETIME_FORMAT)
-        date = datetime.strptime(date, DATETIME_FORMAT)
-        return date.strftime('%d/%m/%Y')
+    def get_qty_bags(self, qty, uom):
+        bags_qty = 0
+        if uom.lower()=='kg':
+            bags_qty = qty
+        return bags_qty
     
     
     
