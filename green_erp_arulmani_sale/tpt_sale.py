@@ -25,12 +25,14 @@ class sale_order(osv.osv):
             val1 = 0.0
             val2 = 0.0
             val3 = 0.0
+            freight = 0.0
             for orderline in line.order_line:
+                freight = freight + orderline.freight
                 val1 = val1 + orderline.price_subtotal
                 res[line.id]['amount_untaxed'] = val1
                 val2 = val1 * line.sale_tax_id.amount / 100
                 res[line.id]['amount_tax'] = val2
-                val3 = val1 + val2 + orderline.freight
+                val3 = val1 + val2 + freight
                 res[line.id]['amount_total'] = val3
         return res
     
@@ -335,12 +337,14 @@ class tpt_blanket_order(osv.osv):
             val1 = 0.0
             val2 = 0.0
             val3 = 0.0
+            freight = 0.0
             for orderline in line.blank_order_line:
+                freight = freight + orderline.freight
                 val1 += orderline.sub_total
             res[line.id]['amount_untaxed'] = val1
             val2 = val1 * line.sale_tax_id.amount / 100
             res[line.id]['amount_tax'] = val2
-            val3 = val1 + val2
+            val3 = val1 + val2 + freight
             res[line.id]['amount_total'] = val3
         return res
     

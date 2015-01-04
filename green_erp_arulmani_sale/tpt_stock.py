@@ -126,12 +126,14 @@ class account_invoice(osv.osv):
             val1 = 0.0
             val2 = 0.0
             val3 = 0.0
+            freight = 0.0
             for invoiceline in line.invoice_line:
+                freight = freight + invoiceline.freight
                 val1 = val1 + invoiceline.price_subtotal
                 res[line.id]['amount_untaxed'] = val1
                 val2 = val1 * (line.sale_tax_id.amount and line.sale_tax_id.amount / 100 or 1)
                 res[line.id]['amount_tax'] = val2
-                val3 = val1 + val2 + invoiceline.freight
+                val3 = val1 + val2 + freight
                 res[line.id]['amount_total'] = val3
         return res
     
@@ -240,7 +242,7 @@ class account_invoice(osv.osv):
         }
         return {
             'type': 'ir.actions.report.xml',
-            'report_name': 'tpt_account_invoice',
+            'report_name': 'tpt_export_account_invoice',
             'datas': datas,
             'nodestroy' : True
         }
