@@ -148,7 +148,7 @@ class account_invoice(osv.osv):
         'excise_duty_id': fields.many2one('account.tax','Excise Duty', required = True),
         'sale_tax_id': fields.many2one('account.tax','Sales Tax', required = True),
         'doc_status':fields.selection([('completed','Completed')],'Document Status'),
-        'invoice_type':fields.selection([('domestic','Domestic')],'Invoice Type'),
+        'invoice_type':fields.selection([ ('domestic','Domestic'), ('export','Export'), ],'Invoice Type'),
         'vessel_flight_no': fields.char('Vessel/Flight No.', size = 1024),
         'port_of_loading_id': fields.many2one('res.country','Port Of Loading'),
         'port_of_discharge_id': fields.many2one('res.country','Port Of_Discharge'),
@@ -226,6 +226,24 @@ class account_invoice(osv.osv):
 #         if vals.get('number','/')=='/':
 #             vals['number'] = self.pool.get('ir.sequence').get(cr, uid, 'tpt.customer.invoice.import') or '/'
 #         return super(account_invoice, self).create(cr, uid, vals, context=context)
+    
+    def invoice_print(self, cr, uid, ids, context=None):
+        '''
+        This function prints the invoice and mark it as sent, so that we can see more easily the next step of the workflow
+        '''
+        assert len(ids) == 1, 'This option should only be used for a single id at a time.'
+        self.write(cr, uid, ids, {'sent': True}, context=context)
+        datas = {
+             'ids': ids,
+             'model': 'account.invoice',
+             'form': self.read(cr, uid, ids[0], context=context)
+        }
+        return {
+            'type': 'ir.actions.report.xml',
+            'report_name': 'tpt_account_invoice',
+            'datas': datas,
+            'nodestroy' : True
+        }
     
 account_invoice()
 
