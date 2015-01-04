@@ -31,6 +31,7 @@ class Parser(report_sxw.rml_parse):
             date = time.strftime(DATE_FORMAT)
         date = datetime.strptime(date, DATE_FORMAT)
         return date.strftime('%d/%m/%Y')
-
+    
+    
 
     
