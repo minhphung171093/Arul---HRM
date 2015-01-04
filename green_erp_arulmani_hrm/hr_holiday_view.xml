@@ -1194,11 +1194,11 @@
             <field name="view_id" ref="view_tpt_manage_equipment_inventory_tree_vew"/>
         </record>            
          
-        <menuitem action="action_tpt_manage_equipment_inventory_form"
+        <!--<menuitem action="action_tpt_manage_equipment_inventory_form"
             id="menu_action_tpt_manage_equipment_inventory_form"
             parent="menu_hr_leave_management" sequence="31"
             groups="group_vvti_hrm_hr_key_user,group_vvti_hrm_time_user,group_vvti_hrm_hr_manager,group_vvti_hrm_payroll_controller"/>   
-                     
+            -->         
     	<record id="tpt_time_leave_evaluation_tree_view" model="ir.ui.view">
 			<field name="name">tpt.time.leave.evaluation.tree</field>
 			<field name="model">tpt.time.leave.evaluation</field>

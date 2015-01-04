@@ -794,7 +794,7 @@
                 </xpath>
                 <xpath expr="//field[@name='date_of_resignation']" position="after">
 					<field name ="bank_account"/>
-                    <field name="time_record"/>
+                    <field name="time_record" required='1'/>
                 </xpath>
                 <xpath expr="//field[@name='job_id']" position="replace">
                     <field name="job_id" string = "Designation" options="{'create': false, 'create_edit': false}"/>
