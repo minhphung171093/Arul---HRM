@@ -598,6 +598,8 @@ class arul_hr_payroll_executions(osv.osv):
                 day_to = leave_detail.date_to[8:10]
                 for day in range(int(day_from),int(day_to)+1):
                     total_lop += 1
+            shift_ids = self.pool.get('arul.hr.audit.shift.time').search(cr, uid, [('work_date','like',str(year)),('employee_id','=',emp),('state','=','cancel'),('additional_shifts','=',False)])
+            total_lop += len(shift_ids)
             for monthly_shift_schedule_id in monthly_shift_schedule_obj.browse(cr,uid,[kq[0][0]],context=context):
                 if monthly_shift_schedule_id.day_1:
                     if monthly_shift_schedule_id.day_1.code != 'W':

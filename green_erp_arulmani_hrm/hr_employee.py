@@ -1096,7 +1096,7 @@ class employee_leave_detail(osv.osv):
                     date_now = datetime.datetime.strptime(now, DATETIME_FORMAT)
                     timedelta = date_now - join_date
             if line.leave_type_id.code=='LOP':
-                shift_ids = self.pool.get('arul.hr.audit.shift.time').search(cr, uid, [('work_date','like',line.emp_leave_id.year),('employee_id','=',emp),('state','=','cancel')])
+                shift_ids = self.pool.get('arul.hr.audit.shift.time').search(cr, uid, [('work_date','like',line.emp_leave_id.year),('employee_id','=',emp),('state','=','cancel'),('additional_shifts','=',False)])
                 taken_day += len(shift_ids)
             leave_detail_ids = leave_detail_obj.search(cr, uid, [('date_from','like',line.emp_leave_id.year),('employee_id','=',emp),('leave_type_id','=',leave_type),('state','!=','cancel')])
             for detail in leave_detail_obj.browse(cr, uid, leave_detail_ids, context=context):
