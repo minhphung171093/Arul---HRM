@@ -6,3 +6,5 @@ import print_form_are_3
 import print_dispatch_slip
 import export_invoice_report
 import domestic_invoice_report
+import amount_to_text_en
+import amount_to_text_vn

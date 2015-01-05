@@ -10,6 +10,8 @@ from openerp import pooler
 from openerp.osv import osv
 from openerp.tools.translate import _
 import random
+import amount_to_text_vn
+import amount_to_text_en
 DATETIME_FORMAT = "%Y-%m-%d %H:%M:%S"
 DATE_FORMAT = "%Y-%m-%d"
 
@@ -26,6 +28,7 @@ class Parser(report_sxw.rml_parse):
             'get_date': self.get_date,
             'get_total': self.get_total,
             'get_total_amount': self.get_total_amount,
+            'amount_to_text': self.amount_to_text,
         })
     
     def get_date(self, date=False):
@@ -44,7 +47,13 @@ class Parser(report_sxw.rml_parse):
         for line in invoice_line:
             val2 = val2 + line.price_subtotal + line.freight + insurance*line.quantity
         return val2
-            
+    
+    def amount_to_text(self, nbr, lang='en', currency=False):
+        if lang == 'vn':
+            return  amount_to_text_en.amount_to_text(nbr, lang)
+        else:
+            a= currency
+            return amount_to_text_en.amount_to_text(nbr, 'en', lang)        
         
     
 
