@@ -18,7 +18,7 @@ class tpt_form_are_1(osv.osv):
         'name': fields.char('Form No', size = 1024, required = True, states={'cancel': [('readonly', True)], 'done':[('readonly', True)]}),
         'date': fields.date('Date', required = True, states={'cancel': [('readonly', True)], 'done':[('readonly', True)]}),
         'commisionarate_id': fields.many2one('tpt.commisionarate', 'Commisionarate', states={'cancel': [('readonly', True)], 'done':[('readonly', True)]}),
-        'consignment_to': fields.char('Consignment To', size = 1024, states={'cancel': [('readonly', True)], 'done':[('readonly', True)]}),
+        'consignment_to': fields.many2one('res.country', 'Consigment To', states={'cancel': [('readonly', True)], 'done':[('readonly', True)]}),
         'invoice_no_id': fields.many2one('account.invoice','Invoice No', states={'cancel': [('readonly', True)], 'done':[('readonly', True)]}),
         'manufacturer_id': fields.many2one('tpt.organisation','Manufacturer', required = True, states={'cancel': [('readonly', True)], 'done':[('readonly', True)]}),
         'ce_reg_no': fields.char('CE Reg no', size = 1024, states={'cancel': [('readonly', True)], 'done':[('readonly', True)]}),
@@ -69,7 +69,7 @@ class tpt_organisation(osv.osv):
     _name = "tpt.organisation"
       
     _columns = {
-        'name': fields.char('Name Of Commisionarate ', size = 1024, required = True),
+        'name': fields.char('Name Of Manufacturer ', size = 1024, required = True),
                 }
 tpt_organisation()
 
