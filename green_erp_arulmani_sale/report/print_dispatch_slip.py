@@ -24,6 +24,8 @@ class Parser(report_sxw.rml_parse):
         pool = pooler.get_pool(self.cr.dbname)
         self.localcontext.update({
             'get_date': self.get_date,
+            'get_qty_bags': self.get_qty_bags,
+            'get_qty_mt': self.get_qty_mt,
         })
     
     def get_date(self, date=False):
@@ -33,12 +35,24 @@ class Parser(report_sxw.rml_parse):
         return date.strftime('%d/%m/%Y')
     
     def get_qty_bags(self, qty, uom):
-        bags_qty = 0
+        bags_qty = 0.0
         if uom.lower()=='kg':
+            bags_qty = qty*50
+        if uom.lower()=='bags':
             bags_qty = qty
+        if uom.lower()=='mt':
+            bags_qty = qty/20
         return bags_qty
     
-    
+    def get_qty_mt(self, qty, uom):
+        mt_qty = 0.0
+        if uom.lower()=='kg':
+            mt_qty = qty*1000
+        if uom.lower()=='bags':
+            mt_qty = qty*20
+        if uom.lower()=='mt':
+            mt_qty = qty
+        return mt_qty
     
 
     
