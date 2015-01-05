@@ -775,10 +775,10 @@
 	                </header>   
 	            	<sheet>
 		                <group col='4' colspan='2'>
-		                	<field name="department_id" on_change="onchange_department(department_id,section_id)" options="{'create': false, 'create_edit': false}"/>
-							<field name="section_id" domain="[('department_id','=',department_id)]" on_change="onchange_department(department_id,section_id)" options="{'create': false, 'create_edit': false}"/>
-							<field name="employee_id" options="{'create': false, 'create_edit': false}"/>
+		                	<field name="employee_id" on_change="onchange_employee(employee_id)" options="{'create': false, 'create_edit': false}"/>
 							<newline/>
+		                	<field name="department_id" options="{'create': false, 'create_edit': false}"/>
+							<field name="section_id" domain="[('department_id','=',department_id)]" options="{'create': false, 'create_edit': false}"/>
 							<field name="month" on_change="onchange_year_month(month,year)"/>
 							<field name="year" on_change="onchange_year_month(month,year)"/>
 							<field name="date_from" domain="[('name','&lt;=',num_of_month)]" options="{'limit':31,'create': false, 'create_edit': false}"/>

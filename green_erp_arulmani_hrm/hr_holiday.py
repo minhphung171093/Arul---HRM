@@ -3864,6 +3864,16 @@ class shift_change(osv.osv):
                 raise osv.except_osv(_('Warning!'),_('Please Submit request before Reject!'))
         return self.write(cr, uid, ids, {'state': 'rejected'})
     
+    def onchange_employee(self, cr, uid, ids,employee_id=False, context=None):
+        vals = {}
+        if employee_id:
+            employee = self.pool.get('hr.employee').browse(cr, uid, employee_id)
+            vals = {
+                'department_id': employee.department_id and employee.department_id.id or False,
+                'section_id': employee.section_id and employee.section_id.id or False,
+            }
+        return {'value':vals}
+    
     def onchange_department(self, cr, uid, ids,department_id=False,section_id=False, context=None):
         domain = {}
         vals = {'employee_id':False}
