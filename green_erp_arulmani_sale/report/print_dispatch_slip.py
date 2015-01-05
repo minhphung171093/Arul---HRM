@@ -37,19 +37,19 @@ class Parser(report_sxw.rml_parse):
     def get_qty_bags(self, qty, uom):
         bags_qty = 0.0
         if uom.lower()=='kg':
-            bags_qty = qty*50
+            bags_qty = qty/50
         if uom.lower()=='bags':
             bags_qty = qty
         if uom.lower()=='mt':
-            bags_qty = qty/20
+            bags_qty = qty*1000/50
         return bags_qty
     
     def get_qty_mt(self, qty, uom):
         mt_qty = 0.0
         if uom.lower()=='kg':
-            mt_qty = qty*1000
+            mt_qty = qty/1000
         if uom.lower()=='bags':
-            mt_qty = qty*20
+            mt_qty = qty*50/1000
         if uom.lower()=='mt':
             mt_qty = qty
         return mt_qty
