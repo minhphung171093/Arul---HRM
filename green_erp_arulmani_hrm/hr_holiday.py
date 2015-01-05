@@ -100,9 +100,17 @@ class arul_hr_leave_types(osv.osv):
             if leave_ids:  
                 raise osv.except_osv(_('Warning!'),_('The Code is unique!'))
         return True
+    
+    def _check_name(self, cr, uid, ids, context=None):
+        for leave in self.browse(cr, uid, ids, context=context):
+            leave_ids = self.search(cr, uid, [('id','!=',leave.id),('name','=',leave.name)])
+            if leave_ids:  
+                raise osv.except_osv(_('Warning!'),_('The Name is unique!'))
+        return True
 
     _constraints = [
         (_check_code, 'Identical Data', ['code']),
+        (_check_name, 'Identical Data', ['name']),
     ]
 arul_hr_leave_types()
 
@@ -422,7 +430,7 @@ class arul_hr_employee_leave_details(osv.osv):
               'date_from':fields.date('Date From',required=True, states={'done': [('readonly', True)], 'cancel': [('readonly', True)]}),
               'date_to': fields.date('To Date',required=True, states={'done': [('readonly', True)], 'cancel': [('readonly', True)]}),
               'days_total': fields.function(days_total, string='Total Leaves',store=True, multi='sums', help="The total amount.", states={'done': [('readonly', True)], 'cancel': [('readonly', True)]}),
-              'haft_day_leave': fields.boolean('Is Haft Day Leave ?', states={'done': [('readonly', True)], 'cancel': [('readonly', True)]}),
+              'haft_day_leave': fields.boolean('Is Half Day Leave ?', states={'done': [('readonly', True)], 'cancel': [('readonly', True)]}),
               'check_leave_type_pl': fields.boolean('Check Leave Type PL'),
               'available_leave': fields.float('Available Leave',readonly=True),
               'reason':fields.text('Reason', states={'done': [('readonly', True)], 'cancel': [('readonly', True)]}),
