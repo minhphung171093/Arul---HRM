@@ -27,6 +27,7 @@ class Parser(report_sxw.rml_parse):
             'get_date': self.get_date,
             'get_total_amount': self.get_total_amount,
             'amount_to_text': self.amount_to_text,
+            'get_qty_mt': self.get_qty_mt,
         })
     
     def get_date(self, date=False):
@@ -43,6 +44,15 @@ class Parser(report_sxw.rml_parse):
     
     def amount_to_text(self, nbr, lang='en'):
         if lang == 'en':
-            return amount_to_text_en.amount_to_text(nbr, 'en', lang)      
-
+            return amount_to_text_en.amount_to_text(nbr, 'en', lang)    
+          
+    def get_qty_mt(self, uos_id, quantity):
+        mt_qty = 0.0
+        if uos_id.lower()=='kg':
+            mt_qty = quantity/1000
+        if uos_id.lower()=='bags':
+            mt_qty = quantity*50/1000
+        if uos_id.lower()=='mt':
+            mt_qty = quantity
+        return mt_qty
     
