@@ -32,6 +32,7 @@
         'tpt_sale_view.xml',
         'report/print_form_403_view.xml',
         'report/test_report_view.xml',
+        'report/print_form_are_1_view.xml',
         'report/print_form_are_3_view.xml',
         'report/print_dispatch_slip_view.xml',
         'report/export_invoice_report_view.xml',

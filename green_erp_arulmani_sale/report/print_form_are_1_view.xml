@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<openerp>
+	<data>
+    	<record id="form_are_1_report" model="ir.actions.report.xml">
+	        <field name="name">form.are.1.report</field>
+	        <field name="type">ir.actions.report.xml</field>
+	        <field name="model">tpt.form.are.1</field>
+	        <field name="report_name">Print Form A.R.E - 1</field>
+	        <field name="report_type">aeroo</field>
+	        <field name="in_format">oo-ods</field>
+	        <field name="out_format" model="report.mimetypes" search="[('code','=','oo-xls'),('compatible_types','=','oo-ods')]"/>
+	        <field name="parser_loc">green_erp_arulmani_sale/report/print_form_are_1.py</field>
+	        <field name="report_rml">green_erp_arulmani_sale/report/print_form_are_1.ods</field>
+	        <field name="parser_state">loc</field>
+	        <field name="tml_source">file</field>
+	        <field name="attachment_use" eval="0"/>
+    	</record> 
+    	   
+    	<report 
+			auto="False" 
+			menu="True"
+			id="form_are_1_report" 
+			model="tpt.form.are.1" 
+			name="form_are_1_report"
+	        string="Print Form A.R.E - 1"
+	        rml="green_erp_arulmani_sale/report/print_form_are_1.ods"/> 	
+	</data>
+</openerp>
