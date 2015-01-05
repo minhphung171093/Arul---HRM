@@ -319,6 +319,7 @@
 					<field name="out_time" widget="float_time"/>
 					<field name="total_hours" widget="float_time"/>
 					<field name="approval"/>
+					<field name="additional_shifts"/>
 					<field name="state" widget="statusbar" statusbar_visible="draft,done" statusbar_colors='{"draft":"blue","done":"blue"}'/>
 				</tree>
 			</field>
@@ -337,7 +338,7 @@
 	            	<sheet>
 		                <group col='4' colspan='2'>
 							<field name="employee_id" on_change="onchange_category_employee_id(employee_id)" options="{'create': false, 'create_edit': false}"/>
-							<newline/>
+							<field name="additional_shifts"/>
 							<field name="planned_work_shift_id" options="{'create': false, 'create_edit': false}"/>
 							<field name="actual_work_shift_id" options="{'create': false, 'create_edit': false}"/>
 							<field name="work_date"/>

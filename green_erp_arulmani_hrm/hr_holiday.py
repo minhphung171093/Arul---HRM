@@ -193,6 +193,24 @@ class arul_hr_audit_shift_time(osv.osv):
             res[time.id]['total_hours'] = time_total 
         return res
     
+    def _check_additional_shift(self, cr, uid, ids, field_name, arg, context=None):
+        res = {}
+        additional_shifts = False
+        for audit in self.browse(cr, uid, ids, context=context):
+            time_ids = self.pool.get('arul.hr.punch.in.out.time').search(cr, uid, [('employee_id','=',audit.employee_id.id),('work_date','=',audit.work_date)])
+            if time_ids:
+                additional_shifts = True
+            res[audit.id] = additional_shifts 
+        return res
+        
+    def _get_audit(self, cr, uid, ids, context=None):
+        result = {}
+        for line in self.pool.get('arul.hr.punch.in.out.time').browse(cr, uid, ids, context=context):
+            audit_ids = self.pool.get('arul.hr.audit.shift.time').search(cr, uid, [('employee_id','=',line.employee_id.id),('work_date','=',line.work_date)])
+            for audit_id in audit_ids:
+                result[audit_id] = True
+        return result.keys()
+        
     _columns={
               'employee_id':fields.many2one('hr.employee','Employee ID', required = True, states={'done': [('readonly', True)], 'cancel': [('readonly', True)]}),
               'work_date':fields.date('Work Date', required = True, states={'done': [('readonly', True)], 'cancel': [('readonly', True)]}),
@@ -202,6 +220,10 @@ class arul_hr_audit_shift_time(osv.osv):
               'in_time': fields.float('In Time', states={'done': [('readonly', True)], 'cancel': [('readonly', True)]}),
               'out_time': fields.float('Out Time', states={'done': [('readonly', True)], 'cancel': [('readonly', True)]}),
               'total_hours': fields.function(_time_total, string='Total Hours', multi='sums', help="The total amount.", states={'done': [('readonly', True)], 'cancel': [('readonly', True)]}),
+              'additional_shifts': fields.function(_check_additional_shift, string='Additional Shifts', type='boolean', store={
+                   'arul.hr.audit.shift.time': (lambda self, cr, uid, ids, c={}: ids, ['employee_id','work_date'], 10),
+                   'arul.hr.punch.in.out.time': (_get_audit, ['employee_id', 'work_date'], 10),
+                   }),
               'approval': fields.boolean('Select for Approval', readonly =  True, states={'done': [('readonly', True)], 'cancel': [('readonly', True)]}),
               'state':fields.selection([('draft', 'Draft'),('cancel', 'Reject'),('done', 'Approve')],'Status', readonly=True),
               'type':fields.selection([('permission', 'Permission'),('shift', 'Shift')],'Type', readonly=True),
@@ -241,11 +263,58 @@ class arul_hr_audit_shift_time(osv.osv):
                     }
         return {'value': vals}
     def approve_shift_time(self, cr, uid, ids, context=None):
+        employee_leave_obj = self.pool.get('employee.leave')
+        employee_leave_detail_obj = self.pool.get('employee.leave.detail')
+        leave_type_obj = self.pool.get('arul.hr.leave.types')
         for line in self.browse(cr,uid,ids):
 #             emp = self.pool.get('hr.employee')
             emp_attendence_obj = self.pool.get('arul.hr.employee.attendence.details')
             punch_obj = self.pool.get('arul.hr.punch.in.out.time')
             if line.type != 'permission':
+                
+                if line.additional_shifts:
+                    extra_hours = 0.0
+                    c_off_day = 0.0
+                    if line.in_time > line.out_time:
+                        extra_hours = 24-line.in_time + line.out_time
+                    else:
+                        extra_hours = line.out_time - line.in_time
+                    if extra_hours >= 4 and extra_hours < 8:
+                        c_off_day = 0.5
+                    if extra_hours >= 8 and extra_hours < 12:
+                        c_off_day = 1
+                    if extra_hours >= 12 and extra_hours < 16:
+                        c_off_day = 1.5
+                    if extra_hours >= 16:
+                        c_off_day = 2
+                    employee_leave_ids = employee_leave_obj.search(cr, uid, [('year','=',line.work_date[:4]),('employee_id','=',line.employee_id.id)])
+                    leave_type_ids = leave_type_obj.search(cr, uid, [('code','=','C.Off')])
+                    if not leave_type_ids:
+                        raise osv.except_osv(_('Warning!'),_('Can not fine Leave Type C.Off. Please Create Leave Type C.Off before'))
+                    if employee_leave_ids:
+                        employee_leave_detail_ids = employee_leave_detail_obj.search(cr, uid, [('emp_leave_id','in',employee_leave_ids),('leave_type_id','=',leave_type_ids[0])])
+                        if employee_leave_detail_ids:
+                            sql = '''
+                                update employee_leave_detail set total_day = total_day+%s where id = %s
+                            '''%(c_off_day,employee_leave_detail_ids[0])
+                            cr.execute(sql)
+                        else:
+                            employee_leave_detail_obj.create(cr, uid, {
+                                                                       'leave_type_id': leave_type_ids[0],
+                                                                       'emp_leave_id': employee_leave_ids[0],
+                                                                       'total_day': c_off_day,
+                                                                       })
+                    else:
+                        employee_leave_detail_obj.create(cr, uid, {
+                                                                   'employee_id': employee_ids[0],
+                                                                   'year': data1[7:11],
+                                                                   'emp_leave_details_ids': [(0,0,{
+                                                                                               'leave_type_id': leave_type_ids[0],
+                                                                                               'emp_leave_id': employee_leave_ids[0],
+                                                                                               'total_day': c_off_day,
+                                                                                                   })],
+                                                                   })
+                
                 employee_ids = emp_attendence_obj.search(cr, uid, [('employee_id','=',line.employee_id.id)])
                 if employee_ids:
                     
@@ -735,12 +804,72 @@ class arul_hr_permission_onduty(osv.osv):
 arul_hr_permission_onduty()
 
 class arul_hr_punch_in_out_time(osv.osv):
-    _inherit='arul.hr.audit.shift.time'
     _name='arul.hr.punch.in.out.time'
+    
+    def _time_total(self, cr, uid, ids, field_name, arg, context=None):
+        res = {}
+        for time in self.browse(cr, uid, ids, context=context):
+            res[time.id] = {
+                'total_hours': 0.0,
+            }
+            if time.in_time > time.out_time:
+                time_total = 24-time.in_time + time.out_time
+            else:
+                time_total = time.out_time - time.in_time
+            res[time.id]['total_hours'] = time_total 
+        return res
+    
     _columns = {
+        'employee_id':fields.many2one('hr.employee','Employee ID', required = True, states={'done': [('readonly', True)], 'cancel': [('readonly', True)]}),
+        'work_date':fields.date('Work Date', required = True, states={'done': [('readonly', True)], 'cancel': [('readonly', True)]}),
+        'employee_category_id':fields.many2one('vsis.hr.employee.category','Work Group', states={'done': [('readonly', True)], 'cancel': [('readonly', True)]}),
+        'planned_work_shift_id':fields.many2one('arul.hr.capture.work.shift','Planned Work Shift', states={'done': [('readonly', True)], 'cancel': [('readonly', True)]}),
+        'actual_work_shift_id':fields.many2one('arul.hr.capture.work.shift','Actual Work Shift', states={'done': [('readonly', True)], 'cancel': [('readonly', True)]}),
+        'in_time': fields.float('In Time', states={'done': [('readonly', True)], 'cancel': [('readonly', True)]}),
+        'out_time': fields.float('Out Time', states={'done': [('readonly', True)], 'cancel': [('readonly', True)]}),
+        'total_hours': fields.function(_time_total, string='Total Hours', multi='sums', help="The total amount.", states={'done': [('readonly', True)], 'cancel': [('readonly', True)]}),
+        'approval': fields.boolean('Select for Approval', readonly =  True, states={'done': [('readonly', True)], 'cancel': [('readonly', True)]}),
+        'state':fields.selection([('draft', 'Draft'),('cancel', 'Reject'),('done', 'Approve')],'Status', readonly=True),
+        'type':fields.selection([('permission', 'Permission'),('shift', 'Shift')],'Type', readonly=True),
+        'permission_id':fields.many2one('arul.hr.permission.onduty','Permission/On Duty'),
+        'time_evaluate_id': fields.many2one('tpt.time.leave.evaluation','Time Evaluation'),
         'punch_in_out_id':fields.many2one('arul.hr.employee.attendence.details','Punch in/out',ondelete='cascade'),
         'emp_id': fields.related('punch_in_out_id','employee_id',string="Employee",relation='hr.employee',type='many2one',readonly=True,store=True),
     }
+    
+    _defaults = {
+        'state':'draft',
+    }
+    def name_get(self, cr, uid, ids, context=None):
+        res = []
+        if not ids:
+            return res
+        reads = self.read(cr, uid, ids, ['work_date'], context)
+  
+        for record in reads:
+            name = record['work_date']
+            res.append((record['id'], name))
+        return res 
+    def _check_time(self, cr, uid, ids, context=None): 
+        for time in self.browse(cr, uid, ids, context = context):
+            if ((time.in_time > 24 or time.in_time < 0) or (time.out_time > 24 or time.out_time < 0)):
+                raise osv.except_osv(_('Warning!'),_('Input Wrong Time!'))
+                return False
+            #if (time.in_time > time.out_time):
+              #  raise osv.except_osv(_('Warning!'),_('In Time is earlier than Out Time'))
+               # return False
+            return True       
+    _constraints = [
+        (_check_time, _(''), ['in_time', 'out_time']),
+    ]
+    def onchange_category_employee_id(self, cr, uid, ids,employee_id=False, context=None):
+        vals = {}
+        if employee_id:
+            emp = self.pool.get('hr.employee').browse(cr, uid, employee_id)
+            vals = {'employee_category_id':emp.employee_category_id.id,
+                    }
+        return {'value': vals}
+    
 arul_hr_punch_in_out_time()
 
 class arul_hr_employee_attendence_details(osv.osv):
@@ -949,6 +1078,10 @@ class arul_hr_punch_in_out(osv.osv):
                 detail_obj2 = self.pool.get('arul.hr.audit.shift.time')
                 detail_obj3 = self.pool.get('arul.hr.capture.work.shift')
                 detail_obj4 = self.pool.get('arul.hr.punch.in.out.time')
+                shift_obj = self.pool.get('arul.hr.capture.work.shift')
+                employee_leave_obj = self.pool.get('employee.leave')
+                employee_leave_detail_obj = self.pool.get('employee.leave.detail')
+                leave_type_obj = self.pool.get('arul.hr.leave.types')
                 if L:
                     data = L[0]
                     date_old = data[7:11]+'-'+data[11:13]+'-'+data[13:15]
@@ -988,6 +1121,47 @@ class arul_hr_punch_in_out(osv.osv):
                                     work_shift_ids = [row[0] for row in cr.fetchall()]
                                     if work_shift_ids and shift_id:
                                         if shift_id == work_shift_ids[0]:
+                                            
+                                            extra_hours = 0.0
+                                            c_off_day = 0.0
+                                            shift = shift_obj.browse(cr, uid, shift_id)
+                                            extra_hours = out_time - shift.end_time
+                                            if extra_hours >= 4 and extra_hours < 8:
+                                                c_off_day = 0.5
+                                            if extra_hours >= 8 and extra_hours < 12:
+                                                c_off_day = 1
+                                            if extra_hours >= 12 and extra_hours < 16:
+                                                c_off_day = 1.5
+                                            if extra_hours >= 16:
+                                                c_off_day = 2
+                                            employee_leave_ids = employee_leave_obj.search(cr, uid, [('year','=',data1[7:11]),('employee_id','=',employee_ids[0])])
+                                            leave_type_ids = leave_type_obj.search(cr, uid, [('code','=','C.Off')])
+                                            if not leave_type_ids:
+                                                raise osv.except_osv(_('Warning!'),_('Can not fine Leave Type C.Off. Please Create Leave Type C.Off before'))
+                                            if employee_leave_ids:
+                                                employee_leave_detail_ids = employee_leave_detail_obj.search(cr, uid, [('emp_leave_id','in',employee_leave_ids),('leave_type_id','=',leave_type_ids[0])])
+                                                if employee_leave_detail_ids:
+                                                    sql = '''
+                                                        update employee_leave_detail set total_day = total_day+%s where id = %s
+                                                    '''%(c_off_day,employee_leave_detail_ids[0])
+                                                    cr.execute(sql)
+                                                else:
+                                                    employee_leave_detail_obj.create(cr, uid, {
+                                                                                               'leave_type_id': leave_type_ids[0],
+                                                                                               'emp_leave_id': employee_leave_ids[0],
+                                                                                               'total_day': c_off_day,
+                                                                                               })
+                                            else:
+                                                employee_leave_detail_obj.create(cr, uid, {
+                                                                                           'employee_id': employee_ids[0],
+                                                                                           'year': data1[7:11],
+                                                                                           'emp_leave_details_ids': [(0,0,{
+                                                                                                                       'leave_type_id': leave_type_ids[0],
+                                                                                                                       'emp_leave_id': employee_leave_ids[0],
+                                                                                                                       'total_day': c_off_day,
+                                                                                                                           })],
+                                                                                           })
+                                                    
                                             val1['actual_work_shift_id']=shift_id
                                             details_ids=detail_obj.search(cr, uid, [('employee_id','=',employee_ids[0])])
                                             if details_ids:
@@ -1058,9 +1232,50 @@ class arul_hr_punch_in_out(osv.osv):
                                 audit_work_shift_ids = [row[0] for row in cr.fetchall()]
                                 if audit_work_shift_ids and shift_id:
                                     if shift_id == audit_work_shift_ids[0]:
-                                         detail_obj2.write(cr, uid, [audit_shift.id],{'out_time':out_time,
+                                        
+                                        extra_hours = 0.0
+                                        c_off_day = 0.0
+                                        shift = shift_obj.browse(cr, uid, shift_id)
+                                        extra_hours = out_time - shift.end_time
+                                        if extra_hours >= 4 and extra_hours < 8:
+                                            c_off_day = 0.5
+                                        if extra_hours >= 8 and extra_hours < 12:
+                                            c_off_day = 1
+                                        if extra_hours >= 12 and extra_hours < 16:
+                                            c_off_day = 1.5
+                                        if extra_hours >= 16:
+                                            c_off_day = 2
+                                        employee_leave_ids = employee_leave_obj.search(cr, uid, [('year','=',audit_shift.work_date[:4]),('employee_id','=',audit_shift.employee_id.id)])
+                                        leave_type_ids = leave_type_obj.search(cr, uid, [('code','=','C.Off')])
+                                        if not leave_type_ids:
+                                            raise osv.except_osv(_('Warning!'),_('Can not fine Leave Type C.Off. Please Create Leave Type C.Off before'))
+                                        if employee_leave_ids:
+                                            employee_leave_detail_ids = employee_leave_detail_obj.search(cr, uid, [('emp_leave_id','in',employee_leave_ids),('leave_type_id','=',leave_type_ids[0])])
+                                            if employee_leave_detail_ids:
+                                                sql = '''
+                                                    update employee_leave_detail set total_day = total_day+%s where id = %s
+                                                '''%(c_off_day,employee_leave_detail_ids[0])
+                                                cr.execute(sql)
+                                            else:
+                                                employee_leave_detail_obj.create(cr, uid, {
+                                                                                           'leave_type_id': leave_type_ids[0],
+                                                                                           'emp_leave_id': employee_leave_ids[0],
+                                                                                           'total_day': c_off_day,
+                                                                                           })
+                                        else:
+                                            employee_leave_detail_obj.create(cr, uid, {
+                                                                                       'employee_id': employee_ids[0],
+                                                                                       'year': data1[7:11],
+                                                                                       'emp_leave_details_ids': [(0,0,{
+                                                                                                                   'leave_type_id': leave_type_ids[0],
+                                                                                                                   'emp_leave_id': employee_leave_ids[0],
+                                                                                                                   'total_day': c_off_day,
+                                                                                                                       })],
+                                                                                       })
+                                        
+                                        detail_obj2.write(cr, uid, [audit_shift.id],{'out_time':out_time,
                                                                                 'actual_work_shift_id':shift_id,})
-                                         detail_obj2.approve_shift_time(cr, uid, [audit_shift.id])
+                                        detail_obj2.approve_shift_time(cr, uid, [audit_shift.id])
                                     else:
                                         detail_obj2.write(cr, uid,[audit_shift.id],{
                                             'out_time':out_time,
