@@ -28,6 +28,7 @@ class Parser(report_sxw.rml_parse):
             'get_total_amount': self.get_total_amount,
             'amount_to_text': self.amount_to_text,
             'get_qty_mt': self.get_qty_mt,
+            'get_total': self.get_total,
         })
     
     def get_date(self, date=False):
@@ -44,7 +45,11 @@ class Parser(report_sxw.rml_parse):
     
     def amount_to_text(self, nbr, lang='en'):
         if lang == 'en':
-            return amount_to_text_en.amount_to_text(nbr, 'en', lang)    
+            return amount_to_text_en.amount_to_text(nbr, 'en', lang)   
+         
+    def get_total(self, quantity, price_unit, freight, excise_duty_id, sale_tax_id):
+        val = ((quantity*price_unit)+(quantity*price_unit)*(excise_duty_id.amount/100))+(((quantity*price_unit)+(quantity*price_unit)*(excise_duty_id.amount/100))*sale_tax_id.amount/100)+freight
+        return val
           
     def get_qty_mt(self, uos_id, quantity):
         mt_qty = 0.0

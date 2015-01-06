@@ -30,6 +30,7 @@ class Parser(report_sxw.rml_parse):
             'get_total_amount': self.get_total_amount,
             'amount_to_text': self.amount_to_text,
             'get_qty_mt': self.get_qty_mt,
+            'get_pre': self.get_pre,
         })
     
     def get_date(self, date=False):
@@ -54,7 +55,12 @@ class Parser(report_sxw.rml_parse):
             return  amount_to_text_en.amount_to_text(nbr, lang)
         else:
             a= currency
-            return amount_to_text_en.amount_to_text(nbr, 'en', lang)        
+            return amount_to_text_en.amount_to_text(nbr, 'en', lang) 
+        
+    def get_pre(self, pre_carriage_by):
+        if pre_carriage_by.lower()=='sea':
+            pre = 'Sea'
+        return pre
     
     def get_qty_mt(self, qty, uom):
         mt_qty = 0.0
