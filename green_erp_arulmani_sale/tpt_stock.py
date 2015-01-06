@@ -101,7 +101,7 @@ class stock_move(osv.osv):
             }
         return res
     _columns = {
-        'product_type': fields.selection([('product', 'Stockable Product'),('consu', 'Consumable'),('service', 'Service')],'Product Type'),  
+        'product_type':fields.selection([('rutile','Rutile'),('anatase','Anatase')],'Product Type'),
         'application_id': fields.many2one('crm.application','Application'),   
         'prodlot_id': fields.many2one('stock.production.lot', 'System Serial No.', states={'done': [('readonly', True)]}, help="Serial number is used to put a serial number on the production", select=True), 
 #         'sys_batch':fields.many2one('stock.production.lot','System Serial No.'), 
@@ -261,7 +261,7 @@ class account_invoice_line(osv.osv):
         return res
     
     _columns = {
-        'product_type': fields.selection([('product', 'Stockable Product'),('consu', 'Consumable'),('service', 'Service')],'Product Type'),
+        'product_type':fields.selection([('rutile','Rutile'),('anatase','Anatase')],'Product Type'),
         'application_id': fields.many2one('crm.application', 'Application'),
         'freight': fields.float('FreightAmt'),
         'price_subtotal': fields.function(_amount_line, string='Subtotal', digits_compute= dp.get_precision('Account')),

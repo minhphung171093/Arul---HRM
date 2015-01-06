@@ -57,6 +57,9 @@
 				<xpath expr="//form/sheet/notebook/page[@string='Order Lines']/field/tree/field[@name='product_id']"  position="replace">
 					<field name="product_id" on_change="onchange_product_id(product_id)"/>
 				</xpath>
+				<xpath expr="//form/sheet/notebook/page[@string='Order Lines']/field/tree/field[@name='product_uom_qty']"  position="replace">
+					<field name="product_uom_qty" />
+				</xpath>
 				<xpath expr="//form/sheet/notebook/page[@string='Order Lines']/field/tree/field[@name='product_uom']"  position="attributes">
 					<attribute name="readonly">1</attribute>
 				</xpath>
@@ -72,7 +75,7 @@
 				
 
 				<xpath expr="//field[@name='partner_id']"  position="replace">
-					<field name="partner_id" options="{'create': false, 'create_edit': false}" on_change = "onchange_partner_id(partner_id)"/>
+					<field name="partner_id" domain="[('customer','=',1),('is_company','=',1)]" options="{'create': false, 'create_edit': false}" on_change = "onchange_partner_id(partner_id)"/>
 				</xpath>
 	       	</field>
         </record>
