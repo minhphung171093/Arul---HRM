@@ -31,6 +31,7 @@ class Parser(report_sxw.rml_parse):
             'amount_to_text': self.amount_to_text,
             'get_qty_mt': self.get_qty_mt,
             'get_pre': self.get_pre,
+            'get_buyer':self.get_buyer,
         })
     
     def get_date(self, date=False):
@@ -72,5 +73,10 @@ class Parser(report_sxw.rml_parse):
             mt_qty = qty
         return mt_qty
     
+    def get_buyer(self, obj):
+        buyer = ''
+        if obj.partner_id and obj.cons_loca and obj.partner_id.id != obj.cons_loca.id:
+            buyer = (obj.cons_loca and obj.cons_loca.street or '') + ', ' + (obj.cons_loca and obj.cons_loca.street2 or '') + ', ' + (obj.cons_loca and obj.cons_loca.city or '') + ', ' + (obj.cons_loca and (obj.cons_loca.state_id and obj.cons_loca.state_id.name or '') or '') + ', ' + (obj.cons_loca and (obj.cons_loca.country_id and obj.cons_loca.country_id.name or '') or '') + ', ' + (obj.cons_loca and obj.cons_loca.zip or '')
+        return buyer
 
     
