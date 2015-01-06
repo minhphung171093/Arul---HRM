@@ -163,12 +163,64 @@ class sale_order(osv.osv):
     def create(self, cr, uid, vals, context=None):
         if 'document_status' in vals:
             vals['document_status'] = 'draft'
-        return super(sale_order, self).create(cr, uid, vals, context)
+        new_id = super(sale_order, self).create(cr, uid, vals, context)
+        sale = self.browse(cr, uid, new_id)
+        if sale.blanket_id:
+            for blanket_line in sale.blanket_id.blank_order_line:
+                product_id = blanket_line.product_id.id
+                sql = '''
+                    select case when sum(product_uom_qty) > 0
+                        then sum(product_uom_qty)
+                        else 0
+                        end product_uom_qty
+                    from tpt_blank_order_line where product_id = %s
+                '''%(product_id)
+                cr.execute(sql)
+                bo_product_uom_qty = cr.dictfetchone()['product_uom_qty']
+                sql = '''
+                    select case when sum(product_uom_qty) <= %s
+                        then sum(product_uom_qty)
+                        else 0
+                        end product_uom_qty
+                    from sale_order_line where product_id = %s
+                '''%(bo_product_uom_qty,product_id)
+                cr.execute(sql)
+                so_product_uom_qty = cr.dictfetchone()['product_uom_qty']
+                if so_product_uom_qty == 0:
+                    raise osv.except_osv(_('Warning!'),_('Quatity must be less than quatity of Blanket Order'))
+        return new_id
     
     def write(self, cr, uid, ids, vals, context=None):
         if 'document_status' in vals:
             vals['document_status'] = 'draft'
-        return super(sale_order, self).write(cr, uid,ids, vals, context)
+        
+        new_write = super(sale_order, self).write(cr, uid,ids, vals, context)
+        for sale in self.browse(cr, uid, ids):
+            if sale.blanket_id:
+                for blanket_line in sale.blanket_id.blank_order_line:
+                    product_id = blanket_line.product_id.id
+                    sql = '''
+                        select case when sum(product_uom_qty) > 0
+                            then sum(product_uom_qty)
+                            else 0
+                            end product_uom_qty
+                        from tpt_blank_order_line where product_id = %s
+                    '''%(product_id)
+                    cr.execute(sql)
+                    bo_product_uom_qty = cr.dictfetchone()['product_uom_qty']
+                    sql = '''
+                        select case when sum(product_uom_qty) <= %s
+                            then sum(product_uom_qty)
+                            else 0
+                            end product_uom_qty
+                        from sale_order_line where product_id = %s
+                    '''%(bo_product_uom_qty,product_id)
+                    cr.execute(sql)
+                    so_product_uom_qty = cr.dictfetchone()['product_uom_qty']
+                    if so_product_uom_qty == 0:
+                        raise osv.except_osv(_('Warning!'),_('Quatity must be less than quatity of Blanket Order'))
+            
+        return new_write
     
     def onchange_blanket_id(self, cr, uid, ids,blanket_id=False, context=None):
         vals = {}
@@ -281,31 +333,31 @@ sale_order()
 class sale_order_line(osv.osv):
     _inherit = 'sale.order.line'
     
-    def create(self, cr, uid, vals, context=None):
-        if 'product_id' in vals:
-            product = self.pool.get('product.product').browse(cr, uid, vals['product_id'])
-            vals.update({'product_uom':product.uom_id.id})
-        if 'product_uom_qty' in vals:
-            order = self.pool.get('sale.order').browse(cr,uid,vals['order_id'])
-            blanket = self.pool.get('tpt.blanket.order').browse(cr,uid,order.blanket_id.id )
-            for line in blanket.blank_order_line:
-                if (vals['product_id'] == line.product_id.id):
-                    if (vals['product_uom_qty'] > line.product_uom_qty):
-                        raise osv.except_osv(_('Warning!'),_('Quatity must be less than quatity of Blanket Order'))
-        return super(sale_order_line, self).create(cr, uid, vals, context)
-    
-    def write(self, cr, uid, ids, vals, context=None):
-        if 'product_id' in vals:
-            product = self.pool.get('product.product').browse(cr, uid, vals['product_id'])
-            vals.update({'product_uom':product.uom_id.id})
+#     def create(self, cr, uid, vals, context=None):
+#         if 'product_id' in vals:
+#             product = self.pool.get('product.product').browse(cr, uid, vals['product_id'])
+#             vals.update({'product_uom':product.uom_id.id})
 #         if 'product_uom_qty' in vals:
 #             order = self.pool.get('sale.order').browse(cr,uid,vals['order_id'])
 #             blanket = self.pool.get('tpt.blanket.order').browse(cr,uid,order.blanket_id.id )
 #             for line in blanket.blank_order_line:
 #                 if (vals['product_id'] == line.product_id.id):
 #                     if (vals['product_uom_qty'] > line.product_uom_qty):
-#                         raise osv.except_osv(_('Warning!'),_('sdfghj'))
-        return super(sale_order_line, self).write(cr, uid,ids, vals, context)
+#                         raise osv.except_osv(_('Warning!'),_('Quatity must be less than quatity of Blanket Order'))
+#         return super(sale_order_line, self).create(cr, uid, vals, context)
+#     
+#     def write(self, cr, uid, ids, vals, context=None):
+#         if 'product_id' in vals:
+#             product = self.pool.get('product.product').browse(cr, uid, vals['product_id'])
+#             vals.update({'product_uom':product.uom_id.id})
+# #         if 'product_uom_qty' in vals:
+# #             order = self.pool.get('sale.order').browse(cr,uid,vals['order_id'])
+# #             blanket = self.pool.get('tpt.blanket.order').browse(cr,uid,order.blanket_id.id )
+# #             for line in blanket.blank_order_line:
+# #                 if (vals['product_id'] == line.product_id.id):
+# #                     if (vals['product_uom_qty'] > line.product_uom_qty):
+# #                         raise osv.except_osv(_('Warning!'),_('sdfghj'))
+#         return super(sale_order_line, self).write(cr, uid,ids, vals, context)
     
     def _amount_line(self, cr, uid, ids, field_name, arg, context=None):
         subtotal = 0.0
