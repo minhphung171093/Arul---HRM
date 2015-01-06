@@ -28,6 +28,7 @@ class Parser(report_sxw.rml_parse):
             'get_total_amount': self.get_total_amount,
             'amount_to_text': self.amount_to_text,
             'get_qty_mt': self.get_qty_mt,
+            'get_qty_bags': self.get_qty_bags,
             'get_total': self.get_total,
         })
     
@@ -50,6 +51,16 @@ class Parser(report_sxw.rml_parse):
     def get_total(self, quantity, price_unit, freight, excise_duty_id, sale_tax_id):
         val = ((quantity*price_unit)+(quantity*price_unit)*(excise_duty_id.amount/100))+(((quantity*price_unit)+(quantity*price_unit)*(excise_duty_id.amount/100))*sale_tax_id.amount/100)+freight
         return val
+          
+    def get_qty_bags(self, qty, uom):
+        bags_qty = 0.0
+        if uom.lower()=='kg':
+            bags_qty = qty/50
+        if uom.lower()=='bags':
+            bags_qty = qty
+        if uom.lower()=='mt':
+            bags_qty = qty*1000/50
+        return bags_qty
           
     def get_qty_mt(self, uos_id, quantity):
         mt_qty = 0.0

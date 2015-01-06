@@ -30,6 +30,7 @@ class Parser(report_sxw.rml_parse):
             'get_total_amount': self.get_total_amount,
             'amount_to_text': self.amount_to_text,
             'get_qty_mt': self.get_qty_mt,
+            'get_qty_bags': self.get_qty_bags,
             'get_pre': self.get_pre,
             'get_buyer':self.get_buyer,
         })
@@ -63,6 +64,16 @@ class Parser(report_sxw.rml_parse):
         if pre_carriage_by.lower()=='sea':
             pre = 'Sea'
         return pre
+    
+    def get_qty_bags(self, qty, uom):
+        bags_qty = 0.0
+        if uom.lower()=='kg':
+            bags_qty = qty/25
+        if uom.lower()=='bags':
+            bags_qty = qty
+        if uom.lower()=='mt':
+            bags_qty = qty*1000/25
+        return bags_qty
     
     def get_qty_mt(self, qty, uom):
         mt_qty = 0.0
