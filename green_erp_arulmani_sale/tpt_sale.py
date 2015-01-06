@@ -581,8 +581,8 @@ class tpt_batch_request(osv.osv):
     def write(self, cr, uid, ids, vals, context=None):
         if 'sale_order_id' in vals:
             sale = self.pool.get('sale.order').browse(cr, uid, vals['sale_order_id'])
+            product_lines = []
             for line in sale.order_line:
-                product_lines = []
                 rs = {
                         'product_id': line.product_id.id,
                         'product_type': line.product_type,
@@ -641,8 +641,8 @@ class tpt_batch_request(osv.osv):
             vals['name'] = self.pool.get('ir.sequence').get(cr, uid, 'tpt.batch.req.import') or '/'
         if 'sale_order_id' in vals:
             sale = self.pool.get('sale.order').browse(cr, uid, vals['sale_order_id'])
+            product_lines = []
             for line in sale.order_line:
-                product_lines = []
                 rs = {
                         'product_id': line.product_id.id,
                         'product_type': line.product_type,
