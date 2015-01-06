@@ -991,12 +991,21 @@ class tpt_pgi(osv.osv):
     _name = "tpt.pgi"
      
     _columns = {
+        'name': fields.char('Post Googs Issue', size = 1024, readonly=True),
         'do_id':fields.many2one('stock.picking.out','Delivery Order',required = True), 
-        'name':fields.date('DO Date',required = True), 
+        'date':fields.date('DO Date',required = True), 
         'customer_id':fields.many2one('res.partner', 'Customer', required = True), 
         'warehouse':fields.many2one('stock.location','Warehouse'),
         'batch_allotment_line': fields.one2many('tpt.batch.allotment.line', 'pgi_id', 'Product'), 
                 }
+    _defaults = {
+        'name': '/',
+    }
+    
+    def create(self, cr, uid, vals, context=None):
+        if vals.get('name','/')=='/':
+            vals['name'] = self.pool.get('ir.sequence').get(cr, uid, 'tpt.pgi.import') or '/'
+        return super(tpt_pgi, self).create(cr, uid, vals, context=context)
     
     def onchange_do_id(self, cr, uid, ids, do_id=False, context=None):
         vals = {}
@@ -1017,7 +1026,7 @@ class tpt_pgi(osv.osv):
                                       'application_id':line.application_id and line.application_id.id or False,
                                       'sys_batch':line.prodlot_id and line.prodlot_id.id or False,
                                       }))
-            vals = {'name':do.date,'batch_allotment_line': pgi_line,'customer_id':do.partner_id and do.partner_id.id or False,'warehouse':do.warehouse and do.warehouse.id or False}
+            vals = {'date':do.date or False,'batch_allotment_line': pgi_line,'customer_id':do.partner_id and do.partner_id.id or False,'warehouse':do.warehouse and do.warehouse.id or False}
         return {'value':vals}
     
 tpt_pgi()

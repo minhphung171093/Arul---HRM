@@ -9,3 +9,4 @@ import domestic_invoice_report
 import amount_to_text_en
 import amount_to_text_vn
 import print_form_are_1
+import packing_list_report

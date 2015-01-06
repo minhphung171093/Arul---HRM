@@ -684,9 +684,10 @@
                 <form string="Post Goods Issue" version="7.0">
                    <sheet>
                    		<group>
+                   			<field name="name"/>
                         	<field name="do_id" on_change="onchange_do_id(do_id)" domain="[('type','=','out')]" options="{'create': false, 'create_edit': false}"/>
                     		<field name="customer_id" options="{'create': false, 'create_edit': false}"/>
-                    		<field name="name"/>
+                    		<field name="date"/>
                     		<field name="warehouse" options="{'create': false, 'create_edit': false}"/>
 	                    </group>
 	                    <notebook>
@@ -712,9 +713,9 @@
             <field name="model">tpt.pgi</field>
             <field name="arch" type="xml">
                 <tree string="Post Goods Issue">
-                    <!--<field name="do_id"/>-->
+                    <field name="name"/>
             		<field name="customer_id"/>
-            		<field name="name"/>
+            		<field name="date"/>
             		<field name="warehouse"/>
                 </tree>
             </field>

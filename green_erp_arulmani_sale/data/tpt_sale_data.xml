@@ -104,6 +104,23 @@
             <field name="implementation">no_gap</field>
 	
         </record>
+        
+        <!--    Post Goods Issue   -->
+        
+       	<record id="sequence_tpt_pgi_import_code" model="ir.sequence.type">
+            <field name="name">Post Goods Issue Import</field>
+            <field name="code">tpt.pgi.import</field>
+        </record>
+        
+        <record id="sequence_tpt_pgi_import_item" model="ir.sequence">
+            <field name="name">Post Goods Issue Import</field>
+            <field name="code">tpt.pgi.import</field>
+            <field name="prefix">VVTi/PGI/</field>
+            <field name="padding">6</field>
+            <field name="number_next_actual">00000001</field>
+            <field name="implementation">no_gap</field>
+	
+        </record>
 
     </data>
 </openerp>
