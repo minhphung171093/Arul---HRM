@@ -169,7 +169,7 @@
 	            				<field name="division_from" />
 	            				<field name="warehouse_from_id" options="{'create': false, 'create_edit': false}" />
 	            				<field name="to_mr_mess" />
-	            				<field name="invoice_no_id" options="{'create': false, 'create_edit': false}" />
+	            				<field name="invoice_no_id" options="{'create': false, 'create_edit': false}" on_change = "onchange_so_date(invoice_no_id)" />
 	            			</group>
 	            			<group>
 	            				<field name="date" />

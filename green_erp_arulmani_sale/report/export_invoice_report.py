@@ -59,6 +59,7 @@ class Parser(report_sxw.rml_parse):
             return amount_to_text_en.amount_to_text(nbr, 'en', lang) 
         
     def get_pre(self, pre_carriage_by):
+        pre = ''
         if pre_carriage_by.lower()=='sea':
             pre = 'Sea'
         return pre

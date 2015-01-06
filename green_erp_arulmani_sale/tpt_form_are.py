@@ -114,6 +114,13 @@ class tpt_form_are_3(osv.osv):
         'warehousing_date': fields.date('1st Warehousing Date', required = True),
         'duty_rate_line':fields.one2many('tpt.form.are.3.duty.rate','form_are_3_id','Duty Rate'),       
                 }
+    def onchange_so_date(self, cr, uid, ids, invoice_no_id=False, context=None):
+        vals = {}
+        if invoice_no_id:
+            invoice = self.pool.get('account.invoice').browse(cr,uid,invoice_no_id)
+            vals={'invoiced_date':invoice.date_invoice,                  
+                  }
+        return {'value':vals}    
 tpt_form_are_3()
 
 class tpt_form_are_3_duty_rate(osv.osv):
@@ -125,6 +132,7 @@ class tpt_form_are_3_duty_rate(osv.osv):
         'amount_inr': fields.float('Amount(in INR)', required = True),
         'form_are_3_id': fields.many2one('tpt.form.are.3', 'Duty Rate'),
                 }
+    
 tpt_form_are_3_duty_rate()
 
 # vim:expandtab:smartindent:tabstop=4:softtabstop=4:shiftwidth=4:

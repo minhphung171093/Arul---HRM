@@ -26,9 +26,10 @@ class Parser(report_sxw.rml_parse):
             'get_date': self.get_date,
         })
     
-    def get_date(self, date):
-        if date:
+    def get_date(self, date=False):
+        if not date:
             date = time.strftime(DATE_FORMAT)
+        date = datetime.strptime(date, DATE_FORMAT)
         return date.strftime('%d/%m/%Y')
 
     
