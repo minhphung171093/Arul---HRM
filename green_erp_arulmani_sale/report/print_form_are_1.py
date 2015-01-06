@@ -24,6 +24,7 @@ class Parser(report_sxw.rml_parse):
         pool = pooler.get_pool(self.cr.dbname)
         self.localcontext.update({
             'get_date': self.get_date,
+            'get_total': self.get_total,
         })
     
     def get_date(self, date=False):
@@ -31,6 +32,12 @@ class Parser(report_sxw.rml_parse):
             date = time.strftime(DATE_FORMAT)
         date = datetime.strptime(date, DATE_FORMAT)
         return date.strftime('%d/%m/%Y')
-
+    
+    def get_total(self, duty_rate_line):
+        val1 = 0.0
+        for line in duty_rate_line:
+            val1 = val1 + line.amount_inr
+        return val1 
+        
 
     

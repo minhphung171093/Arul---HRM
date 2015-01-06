@@ -377,12 +377,20 @@ class arul_hr_employee_action_history(osv.osv):
     def approve_employee_rehiring(self, cr, uid, ids, context=None):
         employee_obj = self.pool.get('hr.employee')
         for line in self.browse(cr, uid, ids):
-            default = {'employee_id': self.pool.get('ir.sequence').get(cr, uid, 'hr.employee.id'),'active': True,'statutory_ids':[]}
+            default = {
+                       'employee_id': self.pool.get('ir.sequence').get(cr, uid, 'hr.employee.id'),
+                       'active': True,
+                       'statutory_ids':[],
+                       'time_record': False,
+                       'date_of_joining': line.action_date,
+                       'employee_category_id': line.employee_category_id and line.employee_category_id.id or False,
+                       'employee_sub_category_id': line.sub_category_id and line.sub_category_id.id or False,
+                       }
             new_employee_id = employee_obj.copy(cr, uid, line.employee_id.id,default)
-#             sql = '''
-#                 delete from arul_hr_employee_action_history where id in (select id from arul_hr_employee_action_history where employee_id = %s order by id desc limit 1)
-#             '''%(int(line.employee_id.id))
-#             cr.execute(sql)
+            sql = '''
+                delete from arul_hr_employee_action_history where id in (select id from arul_hr_employee_action_history where employee_id = %s order by id desc limit 1)
+            '''%(int(new_employee_id))
+            cr.execute(sql)
 #             employee_obj.write(cr, uid, [line.employee_id.id], {'active': True})
             self.write(cr, uid, [line.id],{'approve_rehiring': True})
         return True
@@ -428,7 +436,7 @@ class hr_employee(osv.osv):
         'section_id': fields.many2one('arul.hr.section','Section',ondelete='restrict'),
         'payroll_area_id': fields.many2one('arul.hr.payroll.area','Payroll Area',ondelete='restrict'),
         'payroll_sub_area_id': fields.many2one('arul.hr.payroll.sub.area','Payroll Sub Area',ondelete='restrict'),
-        'time_record': fields.char('Time Record ID', size=1024, required = True),
+        'time_record': fields.char('Time Record ID', size=1024, required = False),
         'employee_leave_id': fields.one2many('employee.leave','employee_id','Employee Leave',readonly=False),
         'country_stateofbirth_id': fields.many2one('res.country', 'Country',ondelete='restrict'),
         'date_of_retirement': fields.date('Date Of Retirement'),
@@ -554,7 +562,7 @@ class hr_employee(osv.osv):
     def create(self, cr, uid, vals, context=None):
         if context is None:
             context = {}
-        if 'time_record' in vals:
+        if 'time_record' in vals and vals['time_record']:
             time_record = vals['time_record'].replace(" ","")
             vals['time_record'] = time_record
         new_id = super(hr_employee, self).create(cr, uid, vals, context)
@@ -606,7 +614,7 @@ class hr_employee(osv.osv):
         return new_id
     
     def write(self, cr, uid, ids, vals, context=None):
-        if 'time_record' in vals:
+        if 'time_record' in vals and vals['time_record']:
             time_record = vals['time_record'].replace(" ","")
             vals['time_record'] = time_record
         return super(hr_employee, self).write(cr, uid,ids, vals, context)
@@ -1088,7 +1096,7 @@ class employee_leave_detail(osv.osv):
                     date_now = datetime.datetime.strptime(now, DATETIME_FORMAT)
                     timedelta = date_now - join_date
             if line.leave_type_id.code=='LOP':
-                shift_ids = self.pool.get('arul.hr.audit.shift.time').search(cr, uid, [('work_date','like',line.emp_leave_id.year),('employee_id','=',emp),('state','=','cancel')])
+                shift_ids = self.pool.get('arul.hr.audit.shift.time').search(cr, uid, [('work_date','like',line.emp_leave_id.year),('employee_id','=',emp),('state','=','cancel'),('additional_shifts','=',False)])
                 taken_day += len(shift_ids)
             leave_detail_ids = leave_detail_obj.search(cr, uid, [('date_from','like',line.emp_leave_id.year),('employee_id','=',emp),('leave_type_id','=',leave_type),('state','!=','cancel')])
             for detail in leave_detail_obj.browse(cr, uid, leave_detail_ids, context=context):

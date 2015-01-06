@@ -319,6 +319,7 @@
 					<field name="out_time" widget="float_time"/>
 					<field name="total_hours" widget="float_time"/>
 					<field name="approval"/>
+					<field name="additional_shifts"/>
 					<field name="state" widget="statusbar" statusbar_visible="draft,done" statusbar_colors='{"draft":"blue","done":"blue"}'/>
 				</tree>
 			</field>
@@ -337,7 +338,7 @@
 	            	<sheet>
 		                <group col='4' colspan='2'>
 							<field name="employee_id" on_change="onchange_category_employee_id(employee_id)" options="{'create': false, 'create_edit': false}"/>
-							<newline/>
+							<field name="additional_shifts"/>
 							<field name="planned_work_shift_id" options="{'create': false, 'create_edit': false}"/>
 							<field name="actual_work_shift_id" options="{'create': false, 'create_edit': false}"/>
 							<field name="work_date"/>
@@ -406,7 +407,7 @@
 										<field name="in_time" string="Punch In Time" widget="float_time"/>
 										<field name="out_time" string="Punch Out Time" widget="float_time"/>
 										<field name="total_hours" widget="float_time"/>
-										<field name="approval"/>
+										<field name="approval" string="Is Approved?"/>
 										<field name="state" invisible = '1'/>
 									</tree>
 								</field>
@@ -774,10 +775,10 @@
 	                </header>   
 	            	<sheet>
 		                <group col='4' colspan='2'>
-		                	<field name="department_id" on_change="onchange_department(department_id,section_id)" options="{'create': false, 'create_edit': false}"/>
-							<field name="section_id" domain="[('department_id','=',department_id)]" on_change="onchange_department(department_id,section_id)" options="{'create': false, 'create_edit': false}"/>
-							<field name="employee_id" options="{'create': false, 'create_edit': false}"/>
+		                	<field name="employee_id" on_change="onchange_employee(employee_id)" options="{'create': false, 'create_edit': false}"/>
 							<newline/>
+		                	<field name="department_id" options="{'create': false, 'create_edit': false}"/>
+							<field name="section_id" domain="[('department_id','=',department_id)]" options="{'create': false, 'create_edit': false}"/>
 							<field name="month" on_change="onchange_year_month(month,year)"/>
 							<field name="year" on_change="onchange_year_month(month,year)"/>
 							<field name="date_from" domain="[('name','&lt;=',num_of_month)]" options="{'limit':31,'create': false, 'create_edit': false}"/>
@@ -1194,11 +1195,11 @@
             <field name="view_id" ref="view_tpt_manage_equipment_inventory_tree_vew"/>
         </record>            
          
-        <menuitem action="action_tpt_manage_equipment_inventory_form"
+        <!--<menuitem action="action_tpt_manage_equipment_inventory_form"
             id="menu_action_tpt_manage_equipment_inventory_form"
             parent="menu_hr_leave_management" sequence="31"
             groups="group_vvti_hrm_hr_key_user,group_vvti_hrm_time_user,group_vvti_hrm_hr_manager,group_vvti_hrm_payroll_controller"/>   
-                     
+            -->         
     	<record id="tpt_time_leave_evaluation_tree_view" model="ir.ui.view">
 			<field name="name">tpt.time.leave.evaluation.tree</field>
 			<field name="model">tpt.time.leave.evaluation</field>

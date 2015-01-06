@@ -31,7 +31,7 @@
 	            			<field name="name"/>
 							<field name="date"/>
 							<field name="commisionarate_id" options="{'create': false, 'create_edit': false}"/>
-							<field name="consignment_to"/>
+							<field name="consignment_to" options="{'create': false, 'create_edit': false}"/>
 							<field name="invoice_no_id"/>
 	            		</group>
 	            		<notebook>
