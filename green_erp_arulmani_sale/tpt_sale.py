@@ -242,37 +242,38 @@ class sale_order(osv.osv):
         picking_out_obj = self.pool.get('stock.picking.out')
         stock_move_obj = self.pool.get('stock.move')
         picking_out_ids = picking_out_obj.search(cr,uid,[('sale_id','=',ids[0])],context=context)
-        sql = '''
-            select name_consignee_id from sale_order_line where order_id = %s group by name_consignee_id
-        '''%(ids[0])
-        cr.execute(sql)
-        consignee_ids = [row[0] for row in cr.fetchall()]
-        picking_id = picking_out_ids[0]
-        sale = self.browse(cr, uid, ids[0])
-        first_picking_id = False
-        for i,consignee_id in enumerate(consignee_ids):
-            if i==0:
-                first_picking_id = picking_id
-                picking = picking_out_obj.browse(cr, uid, picking_id)
-                picking_out_obj.write(cr, uid, [picking_id], {'cons_loca': consignee_id,'backorder_id':picking_id,'origin':picking.origin,'sale_id':ids[0],'partner_id':sale.partner_id.id})
-            else:
-                sql = '''
-                    select id from sale_order_line where name_consignee_id = %s and order_id = %s
-                '''%(consignee_id,sale.id)
-                cr.execute(sql)
-                order_line_ids = [row[0] for row in cr.fetchall()]
-                default = {'backorder_id':picking_id,'move_lines':[],'cons_loca': consignee_id}
-                picking = picking_out_obj.browse(cr, uid, picking_id)
-                new_picking_id = picking_out_obj.copy(cr, uid, picking_id, default)
-                picking_out_obj.write(cr, uid, [new_picking_id], {'cons_loca': consignee_id,'backorder_id':picking_id,'origin':picking.origin,'sale_id':ids[0],'partner_id':sale.partner_id.id})
-                stock_move_ids = stock_move_obj.search(cr, uid, [('sale_line_id','in',order_line_ids)])
-                stock_move = stock_move_obj.browse(cr,uid,stock_move_ids[0])
-                stock_move_obj.write(cr, uid, stock_move_ids, {'picking_id':new_picking_id,'product_type':stock_move.sale_line_id.product_type,'application_id':stock_move.sale_line_id.application_id and stock_move.sale_line_id.application_id.id or False})
-#                 wf_service.trg_validate(uid, 'stock.picking', new_picking_id, 'button_confirm', cr)
-                picking_id = new_picking_id
-        if first_picking_id:
-            for line in picking_out_obj.browse(cr, uid, first_picking_id).move_lines:
-                stock_move_obj.write(cr, uid, [line.id], {'product_type':line.sale_line_id.product_type,'application_id':line.sale_line_id.application_id and line.sale_line_id.application_id.id or False})
+        if picking_out_ids:
+            sql = '''
+                select name_consignee_id from sale_order_line where order_id = %s group by name_consignee_id
+            '''%(ids[0])
+            cr.execute(sql)
+            consignee_ids = [row[0] for row in cr.fetchall()]
+            picking_id = picking_out_ids[0]
+            sale = self.browse(cr, uid, ids[0])
+            first_picking_id = False
+            for i,consignee_id in enumerate(consignee_ids):
+                if i==0:
+                    first_picking_id = picking_id
+                    picking = picking_out_obj.browse(cr, uid, picking_id)
+                    picking_out_obj.write(cr, uid, [picking_id], {'cons_loca': consignee_id,'backorder_id':picking_id,'origin':picking.origin,'sale_id':ids[0],'partner_id':sale.partner_id.id})
+                else:
+                    sql = '''
+                        select id from sale_order_line where name_consignee_id = %s and order_id = %s
+                    '''%(consignee_id,sale.id)
+                    cr.execute(sql)
+                    order_line_ids = [row[0] for row in cr.fetchall()]
+                    default = {'backorder_id':picking_id,'move_lines':[],'cons_loca': consignee_id}
+                    picking = picking_out_obj.browse(cr, uid, picking_id)
+                    new_picking_id = picking_out_obj.copy(cr, uid, picking_id, default)
+                    picking_out_obj.write(cr, uid, [new_picking_id], {'cons_loca': consignee_id,'backorder_id':picking_id,'origin':picking.origin,'sale_id':ids[0],'partner_id':sale.partner_id.id})
+                    stock_move_ids = stock_move_obj.search(cr, uid, [('sale_line_id','in',order_line_ids)])
+                    stock_move = stock_move_obj.browse(cr,uid,stock_move_ids[0])
+                    stock_move_obj.write(cr, uid, stock_move_ids, {'picking_id':new_picking_id,'product_type':stock_move.sale_line_id.product_type,'application_id':stock_move.sale_line_id.application_id and stock_move.sale_line_id.application_id.id or False})
+    #                 wf_service.trg_validate(uid, 'stock.picking', new_picking_id, 'button_confirm', cr)
+                    picking_id = new_picking_id
+            if first_picking_id:
+                for line in picking_out_obj.browse(cr, uid, first_picking_id).move_lines:
+                    stock_move_obj.write(cr, uid, [line.id], {'product_type':line.sale_line_id.product_type,'application_id':line.sale_line_id.application_id and line.sale_line_id.application_id.id or False})
         return True
     
 sale_order()
