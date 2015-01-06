@@ -328,7 +328,7 @@ class sale_order_line(osv.osv):
         if name_consignee_id :
             line = self.pool.get('res.partner').browse(cr, uid, name_consignee_id)
             vals = {
-                    'location': str(line.street or '') + str(line.street2 or '') + ' , ' + str(line.city or '') + ' , ' + str(line.state_id.name or '') + ' , ' + str(line.country_id.name or '') + ' , ' +str(line.zip or ''),    
+                    'location': str(line.street or '') + str(line.street2 or '') + ' , ' + str(line.city or ''),    
                     }
         return {'value': vals}
     def onchange_product_id(self, cr, uid, ids, product_id = False, context=None):
@@ -457,7 +457,7 @@ class tpt_blanket_order(osv.osv):
             for line in customer.consignee_line:
                 rs = {
                         'name_consignee_id': line.id,
-                        'location': str(line.street or '') + str(line.street2 or '') + ' , ' + str(line.city or '') + ' , ' + str(line.state_id.name or '') + ' , ' + str(line.country_id.name or '') + ' , ' +str(line.zip or ''),
+                        'location': str(line.street or '') + str(line.street2 or '') + ' , ' + str(line.city or ''),
                         
                       }
                 consignee_lines.append((0,0,rs))

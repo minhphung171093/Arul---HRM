@@ -65,7 +65,7 @@
 				</xpath>
 				<xpath expr="//form/sheet/notebook/page[@string='Order Lines']/field/tree/field[@name='price_subtotal']"  position="after">
 					<field name="freight" />
-					<field name="name_consignee_id" on_change = "onchange_consignee_id(name_consignee_id)" options="{'create': false, 'create_edit': false}" domain="[('consignee_parent_id','=',parent.partner_id)]"/>
+					<field name="name_consignee_id" domain="[('consignee_parent_id','=',parent.partner_id)]" on_change = "onchange_consignee_id(name_consignee_id)" options="{'create': false, 'create_edit': false}"/>
 					<field name="location" />
 				</xpath>
 				
@@ -80,6 +80,9 @@
 	       	</field>
         </record>
         
+        <menuitem name="Draft Sales Order" id="sale.menu_sale_quotations"
+        action="sale.action_quotations" parent="base.menu_sales"
+        sequence="4"/>
         
     <record id="view_tpt_blanket_order_tree_vew" model="ir.ui.view">
 			<field name="name">tpt.blanket.order.tree</field>
