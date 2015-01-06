@@ -18,7 +18,7 @@ class stock_picking(osv.osv):
         'transporter':fields.char('Transporter Name', size = 64),
         'truck':fields.char('Truck Number', size = 64),
         'remarks':fields.text('Remarks'),
-        'doc_status':fields.selection([('completed','Completed')],'Document Status'),
+        'doc_status':fields.selection([('draft','Draft'),('waiting','Waiting for Approval'),('completed','Completed(Ready to Process)'),('partially','Partially Delivered'),('close','Closed(Delivered)')],'Document Status'),
         'sale_id': fields.many2one('sale.order', 'Sales Order', ondelete='set null', select=True),
         'do_ref_id': fields.many2one('stock.picking.out','DO Reference'),   
         'move_date': fields.date('Movement Date'),
@@ -109,7 +109,7 @@ class stock_picking_out(osv.osv):
         'transporter':fields.char('Transporter Name', size = 64),
         'truck':fields.char('Truck Number', size = 64),
         'remarks':fields.text('Remarks'),
-        'doc_status':fields.selection([('completed','Completed')],'Document Status'),
+        'doc_status':fields.selection([('draft','Draft'),('waiting','Waiting for Approval'),('completed','Completed(Ready to Process)'),('partially','Partially Delivered'),('close','Closed(Delivered)')],'Document Status'),
         'sale_id': fields.many2one('sale.order', 'Sales Order', ondelete='set null', select=True),
                 }
     def write(self, cr, uid, ids, vals, context=None):
@@ -286,12 +286,27 @@ class account_invoice(osv.osv):
              'model': 'account.invoice',
              'form': self.read(cr, uid, ids[0], context=context)
         }
-        return {
-            'type': 'ir.actions.report.xml',
-            'report_name': 'tpt_export_account_invoice',
-            'datas': datas,
-            'nodestroy' : True
-        }
+        invoice_ids = self.browse(cr, uid, ids[0])
+        if invoice_ids.invoice_type == 'export':
+            return {
+                'type': 'ir.actions.report.xml',
+                'report_name': 'tpt_export_account_invoice',
+#                 'datas': datas,
+#                 'nodestroy' : True
+            }
+        else:
+            return {
+                'type': 'ir.actions.report.xml',
+                'report_name': 'tpt_domestic_account_invoice',
+#                 'datas': datas,
+#                 'nodestroy' : True
+            }
+#         return {
+#             'type': 'ir.actions.report.xml',
+#             'report_name': 'tpt_export_account_invoice',
+#             'datas': datas,
+#             'nodestroy' : True
+#         }
     
 account_invoice()
 

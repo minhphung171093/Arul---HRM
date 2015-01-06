@@ -92,6 +92,9 @@
             <field name="model">account.invoice</field>
             <field name="inherit_id" ref="account.invoice_form"/>
             <field name="arch" type="xml">
+            	<xpath expr="//button[@name='invoice_print']" position="replace">
+            		<button name='invoice_print' string="Print Invoice" type="object"/>
+            	</xpath>
             	<xpath expr="//page[@string='Other Info']/group[@col='4']/group/field[@name='name']" position="replace">
 				</xpath>  
 				<xpath expr="//field[@name='partner_id']" position="before">

@@ -163,12 +163,64 @@ class sale_order(osv.osv):
     def create(self, cr, uid, vals, context=None):
         if 'document_status' in vals:
             vals['document_status'] = 'draft'
-        return super(sale_order, self).create(cr, uid, vals, context)
+        new_id = super(sale_order, self).create(cr, uid, vals, context)
+        sale = self.browse(cr, uid, new_id)
+        if sale.blanket_id:
+            for blanket_line in sale.blanket_id.blank_order_line:
+                product_id = blanket_line.product_id.id
+                sql = '''
+                    select case when sum(product_uom_qty) > 0
+                        then sum(product_uom_qty)
+                        else 0
+                        end product_uom_qty
+                    from tpt_blank_order_line where product_id = %s
+                '''%(product_id)
+                cr.execute(sql)
+                bo_product_uom_qty = cr.dictfetchone()['product_uom_qty']
+                sql = '''
+                    select case when sum(product_uom_qty) <= %s
+                        then sum(product_uom_qty)
+                        else 0
+                        end product_uom_qty
+                    from sale_order_line where product_id = %s
+                '''%(bo_product_uom_qty,product_id)
+                cr.execute(sql)
+                so_product_uom_qty = cr.dictfetchone()['product_uom_qty']
+                if so_product_uom_qty == 0:
+                    raise osv.except_osv(_('Warning!'),_('Quatity must be less than quatity of Blanket Order'))
+        return new_id
     
     def write(self, cr, uid, ids, vals, context=None):
         if 'document_status' in vals:
             vals['document_status'] = 'draft'
-        return super(sale_order, self).write(cr, uid,ids, vals, context)
+        
+        new_write = super(sale_order, self).write(cr, uid,ids, vals, context)
+        for sale in self.browse(cr, uid, ids):
+            if sale.blanket_id:
+                for blanket_line in sale.blanket_id.blank_order_line:
+                    product_id = blanket_line.product_id.id
+                    sql = '''
+                        select case when sum(product_uom_qty) > 0
+                            then sum(product_uom_qty)
+                            else 0
+                            end product_uom_qty
+                        from tpt_blank_order_line where product_id = %s
+                    '''%(product_id)
+                    cr.execute(sql)
+                    bo_product_uom_qty = cr.dictfetchone()['product_uom_qty']
+                    sql = '''
+                        select case when sum(product_uom_qty) <= %s
+                            then sum(product_uom_qty)
+                            else 0
+                            end product_uom_qty
+                        from sale_order_line where product_id = %s
+                    '''%(bo_product_uom_qty,product_id)
+                    cr.execute(sql)
+                    so_product_uom_qty = cr.dictfetchone()['product_uom_qty']
+                    if so_product_uom_qty == 0:
+                        raise osv.except_osv(_('Warning!'),_('Quatity must be less than quatity of Blanket Order'))
+            
+        return new_write
     
     def onchange_blanket_id(self, cr, uid, ids,blanket_id=False, context=None):
         vals = {}
@@ -242,37 +294,38 @@ class sale_order(osv.osv):
         picking_out_obj = self.pool.get('stock.picking.out')
         stock_move_obj = self.pool.get('stock.move')
         picking_out_ids = picking_out_obj.search(cr,uid,[('sale_id','=',ids[0])],context=context)
-        sql = '''
-            select name_consignee_id from sale_order_line where order_id = %s group by name_consignee_id
-        '''%(ids[0])
-        cr.execute(sql)
-        consignee_ids = [row[0] for row in cr.fetchall()]
-        picking_id = picking_out_ids[0]
-        sale = self.browse(cr, uid, ids[0])
-        first_picking_id = False
-        for i,consignee_id in enumerate(consignee_ids):
-            if i==0:
-                first_picking_id = picking_id
-                picking = picking_out_obj.browse(cr, uid, picking_id)
-                picking_out_obj.write(cr, uid, [picking_id], {'cons_loca': consignee_id,'backorder_id':picking_id,'origin':picking.origin,'sale_id':ids[0],'partner_id':sale.partner_id.id})
-            else:
-                sql = '''
-                    select id from sale_order_line where name_consignee_id = %s and order_id = %s
-                '''%(consignee_id,sale.id)
-                cr.execute(sql)
-                order_line_ids = [row[0] for row in cr.fetchall()]
-                default = {'backorder_id':picking_id,'move_lines':[],'cons_loca': consignee_id}
-                picking = picking_out_obj.browse(cr, uid, picking_id)
-                new_picking_id = picking_out_obj.copy(cr, uid, picking_id, default)
-                picking_out_obj.write(cr, uid, [new_picking_id], {'cons_loca': consignee_id,'backorder_id':picking_id,'origin':picking.origin,'sale_id':ids[0],'partner_id':sale.partner_id.id})
-                stock_move_ids = stock_move_obj.search(cr, uid, [('sale_line_id','in',order_line_ids)])
-                stock_move = stock_move_obj.browse(cr,uid,stock_move_ids[0])
-                stock_move_obj.write(cr, uid, stock_move_ids, {'picking_id':new_picking_id,'product_type':stock_move.sale_line_id.product_type,'application_id':stock_move.sale_line_id.application_id and stock_move.sale_line_id.application_id.id or False})
-#                 wf_service.trg_validate(uid, 'stock.picking', new_picking_id, 'button_confirm', cr)
-                picking_id = new_picking_id
-        if first_picking_id:
-            for line in picking_out_obj.browse(cr, uid, first_picking_id).move_lines:
-                stock_move_obj.write(cr, uid, [line.id], {'product_type':line.sale_line_id.product_type,'application_id':line.sale_line_id.application_id and line.sale_line_id.application_id.id or False})
+        if picking_out_ids:
+            sql = '''
+                select name_consignee_id from sale_order_line where order_id = %s group by name_consignee_id
+            '''%(ids[0])
+            cr.execute(sql)
+            consignee_ids = [row[0] for row in cr.fetchall()]
+            picking_id = picking_out_ids[0]
+            sale = self.browse(cr, uid, ids[0])
+            first_picking_id = False
+            for i,consignee_id in enumerate(consignee_ids):
+                if i==0:
+                    first_picking_id = picking_id
+                    picking = picking_out_obj.browse(cr, uid, picking_id)
+                    picking_out_obj.write(cr, uid, [picking_id], {'cons_loca': consignee_id,'backorder_id':picking_id,'origin':picking.origin,'sale_id':ids[0],'partner_id':sale.partner_id.id})
+                else:
+                    sql = '''
+                        select id from sale_order_line where name_consignee_id = %s and order_id = %s
+                    '''%(consignee_id,sale.id)
+                    cr.execute(sql)
+                    order_line_ids = [row[0] for row in cr.fetchall()]
+                    default = {'backorder_id':picking_id,'move_lines':[],'cons_loca': consignee_id}
+                    picking = picking_out_obj.browse(cr, uid, picking_id)
+                    new_picking_id = picking_out_obj.copy(cr, uid, picking_id, default)
+                    picking_out_obj.write(cr, uid, [new_picking_id], {'cons_loca': consignee_id,'backorder_id':picking_id,'origin':picking.origin,'sale_id':ids[0],'partner_id':sale.partner_id.id})
+                    stock_move_ids = stock_move_obj.search(cr, uid, [('sale_line_id','in',order_line_ids)])
+                    stock_move = stock_move_obj.browse(cr,uid,stock_move_ids[0])
+                    stock_move_obj.write(cr, uid, stock_move_ids, {'picking_id':new_picking_id,'product_type':stock_move.sale_line_id.product_type,'application_id':stock_move.sale_line_id.application_id and stock_move.sale_line_id.application_id.id or False})
+    #                 wf_service.trg_validate(uid, 'stock.picking', new_picking_id, 'button_confirm', cr)
+                    picking_id = new_picking_id
+            if first_picking_id:
+                for line in picking_out_obj.browse(cr, uid, first_picking_id).move_lines:
+                    stock_move_obj.write(cr, uid, [line.id], {'product_type':line.sale_line_id.product_type,'application_id':line.sale_line_id.application_id and line.sale_line_id.application_id.id or False})
         return True
     
 sale_order()
@@ -280,31 +333,31 @@ sale_order()
 class sale_order_line(osv.osv):
     _inherit = 'sale.order.line'
     
-    def create(self, cr, uid, vals, context=None):
-        if 'product_id' in vals:
-            product = self.pool.get('product.product').browse(cr, uid, vals['product_id'])
-            vals.update({'product_uom':product.uom_id.id})
-        if 'product_uom_qty' in vals:
-            order = self.pool.get('sale.order').browse(cr,uid,vals['order_id'])
-            blanket = self.pool.get('tpt.blanket.order').browse(cr,uid,order.blanket_id.id )
-            for line in blanket.blank_order_line:
-                if (vals['product_id'] == line.product_id.id):
-                    if (vals['product_uom_qty'] > line.product_uom_qty):
-                        raise osv.except_osv(_('Warning!'),_('Quatity must be less than quatity of Blanket Order'))
-        return super(sale_order_line, self).create(cr, uid, vals, context)
-    
-    def write(self, cr, uid, ids, vals, context=None):
-        if 'product_id' in vals:
-            product = self.pool.get('product.product').browse(cr, uid, vals['product_id'])
-            vals.update({'product_uom':product.uom_id.id})
+#     def create(self, cr, uid, vals, context=None):
+#         if 'product_id' in vals:
+#             product = self.pool.get('product.product').browse(cr, uid, vals['product_id'])
+#             vals.update({'product_uom':product.uom_id.id})
 #         if 'product_uom_qty' in vals:
 #             order = self.pool.get('sale.order').browse(cr,uid,vals['order_id'])
 #             blanket = self.pool.get('tpt.blanket.order').browse(cr,uid,order.blanket_id.id )
 #             for line in blanket.blank_order_line:
 #                 if (vals['product_id'] == line.product_id.id):
 #                     if (vals['product_uom_qty'] > line.product_uom_qty):
-#                         raise osv.except_osv(_('Warning!'),_('sdfghj'))
-        return super(sale_order_line, self).write(cr, uid,ids, vals, context)
+#                         raise osv.except_osv(_('Warning!'),_('Quatity must be less than quatity of Blanket Order'))
+#         return super(sale_order_line, self).create(cr, uid, vals, context)
+#     
+#     def write(self, cr, uid, ids, vals, context=None):
+#         if 'product_id' in vals:
+#             product = self.pool.get('product.product').browse(cr, uid, vals['product_id'])
+#             vals.update({'product_uom':product.uom_id.id})
+# #         if 'product_uom_qty' in vals:
+# #             order = self.pool.get('sale.order').browse(cr,uid,vals['order_id'])
+# #             blanket = self.pool.get('tpt.blanket.order').browse(cr,uid,order.blanket_id.id )
+# #             for line in blanket.blank_order_line:
+# #                 if (vals['product_id'] == line.product_id.id):
+# #                     if (vals['product_uom_qty'] > line.product_uom_qty):
+# #                         raise osv.except_osv(_('Warning!'),_('sdfghj'))
+#         return super(sale_order_line, self).write(cr, uid,ids, vals, context)
     
     def _amount_line(self, cr, uid, ids, field_name, arg, context=None):
         subtotal = 0.0
@@ -1013,12 +1066,21 @@ class tpt_pgi(osv.osv):
     _name = "tpt.pgi"
      
     _columns = {
+        'name': fields.char('Post Googs Issue', size = 1024, readonly=True),
         'do_id':fields.many2one('stock.picking.out','Delivery Order',required = True), 
-        'name':fields.date('DO Date',required = True), 
+        'date':fields.date('DO Date',required = True), 
         'customer_id':fields.many2one('res.partner', 'Customer', required = True), 
         'warehouse':fields.many2one('stock.location','Warehouse'),
         'batch_allotment_line': fields.one2many('tpt.batch.allotment.line', 'pgi_id', 'Product'), 
                 }
+    _defaults = {
+        'name': '/',
+    }
+    
+    def create(self, cr, uid, vals, context=None):
+        if vals.get('name','/')=='/':
+            vals['name'] = self.pool.get('ir.sequence').get(cr, uid, 'tpt.pgi.import') or '/'
+        return super(tpt_pgi, self).create(cr, uid, vals, context=context)
     
     def onchange_do_id(self, cr, uid, ids, do_id=False, context=None):
         vals = {}
@@ -1039,7 +1101,7 @@ class tpt_pgi(osv.osv):
                                       'application_id':line.application_id and line.application_id.id or False,
                                       'sys_batch':line.prodlot_id and line.prodlot_id.id or False,
                                       }))
-            vals = {'name':do.date,'batch_allotment_line': pgi_line,'customer_id':do.partner_id and do.partner_id.id or False,'warehouse':do.warehouse and do.warehouse.id or False}
+            vals = {'date':do.date or False,'batch_allotment_line': pgi_line,'customer_id':do.partner_id and do.partner_id.id or False,'warehouse':do.warehouse and do.warehouse.id or False}
         return {'value':vals}
     
 tpt_pgi()
