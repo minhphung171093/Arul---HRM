@@ -290,14 +290,14 @@ class account_invoice(osv.osv):
         if invoice_ids.invoice_type == 'export':
             return {
                 'type': 'ir.actions.report.xml',
-                'report_name': 'export_account_invoice',
+                'report_name': 'tpt_export_account_invoice',
 #                 'datas': datas,
 #                 'nodestroy' : True
             }
         else:
             return {
                 'type': 'ir.actions.report.xml',
-                'report_name': 'domestic_invoice_report',
+                'report_name': 'tpt_domestic_account_invoice',
 #                 'datas': datas,
 #                 'nodestroy' : True
             }
