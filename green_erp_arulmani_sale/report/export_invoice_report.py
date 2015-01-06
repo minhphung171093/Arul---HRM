@@ -44,13 +44,13 @@ class Parser(report_sxw.rml_parse):
         val1 = 0.0
         for line in invoice_line:
             val1 = val1 + line.price_unit + line.freight/line.quantity + insurance
-        return val1
+        return round(val1, 2)
     
     def get_total_amount(self, invoice_line, insurance):
         val2 = 0.0
         for line in invoice_line:
             val2 = val2 + line.price_subtotal + line.freight + insurance*line.quantity
-        return val2
+        return round(val2, 2)
     
     def amount_to_text(self, nbr, lang='en', currency=False):
         if lang == 'vn':
@@ -73,7 +73,7 @@ class Parser(report_sxw.rml_parse):
             bags_qty = qty
         if uom.lower()=='mt':
             bags_qty = qty*1000/25
-        return bags_qty
+        return round(bags_qty, 2)
     
     def get_qty_mt(self, qty, uom):
         mt_qty = 0.0
@@ -83,7 +83,7 @@ class Parser(report_sxw.rml_parse):
             mt_qty = qty*50/1000
         if uom.lower()=='mt':
             mt_qty = qty
-        return mt_qty
+        return round(mt_qty, 2)
     
     def get_buyer(self, obj):
         buyer = ''
