@@ -450,6 +450,7 @@ class tpt_blanket_order(osv.osv):
                     'payment_term_id':customer.property_payment_term and customer.property_payment_term.id or False,
                     'blank_consignee_line': consignee_lines or False,
                     'incoterm_id':customer.inco_terms_id and customer.inco_terms_id.id or False,
+                    'currency_id':customer.currency_id and customer.currency_id.id or False,
                     }
         return {'value': vals}
     

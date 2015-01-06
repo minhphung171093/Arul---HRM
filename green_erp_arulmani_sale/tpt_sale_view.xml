@@ -178,18 +178,6 @@
                             	</group>  
                             	<div class="oe_clear"/>  
 							</page>
-							<page string = "Consignee">
-								<field name="blank_consignee_line" nolabel='1'>
-									<tree editable='top'>
-										<field name="name_consignee_id" domain="[('consignee_parent_id','=',parent.customer_id)]" options="{'create': false, 'create_edit': false}"/>
-										<field name="location" />
-										<field name="product_id" widget = "selection" on_change="onchange_product_id(product_id)" options="{'create': false, 'create_edit': false}"/>
-										<field name="product_uom_qty" />
-										<field name="uom_po_id" options="{'create': false, 'create_edit': false}"/>
-									</tree>
-								</field>
-							</page>
-						
 						</notebook>
 						
 		         	</sheet>
