@@ -14,6 +14,8 @@ from openerp import netsvc
 class sale_order(osv.osv):
     _inherit = "sale.order"
     
+    _order = "blanket_id"
+    
     def _amount_all(self, cr, uid, ids, field_name, arg, context=None):
         res = {}
         for line in self.browse(cr,uid,ids,context=context):
@@ -282,12 +284,26 @@ class sale_order_line(osv.osv):
         if 'product_id' in vals:
             product = self.pool.get('product.product').browse(cr, uid, vals['product_id'])
             vals.update({'product_uom':product.uom_id.id})
+        if 'product_uom_qty' in vals:
+            order = self.pool.get('sale.order').browse(cr,uid,vals['order_id'])
+            blanket = self.pool.get('tpt.blanket.order').browse(cr,uid,order.blanket_id.id )
+            for line in blanket.blank_order_line:
+                if (vals['product_id'] == line.product_id.id):
+                    if (vals['product_uom_qty'] > line.product_uom_qty):
+                        raise osv.except_osv(_('Warning!'),_('Quatity must be less than quatity of Blanket Order'))
         return super(sale_order_line, self).create(cr, uid, vals, context)
     
     def write(self, cr, uid, ids, vals, context=None):
         if 'product_id' in vals:
             product = self.pool.get('product.product').browse(cr, uid, vals['product_id'])
             vals.update({'product_uom':product.uom_id.id})
+#         if 'product_uom_qty' in vals:
+#             order = self.pool.get('sale.order').browse(cr,uid,vals['order_id'])
+#             blanket = self.pool.get('tpt.blanket.order').browse(cr,uid,order.blanket_id.id )
+#             for line in blanket.blank_order_line:
+#                 if (vals['product_id'] == line.product_id.id):
+#                     if (vals['product_uom_qty'] > line.product_uom_qty):
+#                         raise osv.except_osv(_('Warning!'),_('sdfghj'))
         return super(sale_order_line, self).write(cr, uid,ids, vals, context)
     
     def _amount_line(self, cr, uid, ids, field_name, arg, context=None):
@@ -300,7 +316,7 @@ class sale_order_line(osv.osv):
      
     _columns = {
         'product_id': fields.many2one('product.product', 'Product', required = True),
-        'product_type': fields.selection([('product', 'Stockable Product'),('consu', 'Consumable'),('service', 'Service')],'Product Type'),
+        'product_type':fields.selection([('rutile','Rutile'),('anatase','Anatase')],'Product Type'),
         'application_id': fields.many2one('crm.application', 'Application'),
         'freight': fields.float('Freight'),
         'price_subtotal': fields.function(_amount_line, string='Subtotal', digits_compute= dp.get_precision('Account')),
@@ -320,7 +336,6 @@ class sale_order_line(osv.osv):
         if product_id :
             product = self.pool.get('product.product').browse(cr, uid, product_id)
             vals = {
-                    'product_type':product.type,
                     'product_uom':product.uom_id.id,
                     'price_unit':product.list_price,
                     'name': product.name
@@ -456,6 +471,7 @@ class tpt_blanket_order(osv.osv):
                     'payment_term_id':customer.property_payment_term and customer.property_payment_term.id or False,
                     'blank_consignee_line': consignee_lines or False,
                     'incoterm_id':customer.inco_terms_id and customer.inco_terms_id.id or False,
+                    'currency_id':customer.currency_id and customer.currency_id.id or False,
                     }
         return {'value': vals}
     
@@ -478,7 +494,7 @@ class tpt_blank_order_line(osv.osv):
         'blanket_order_id': fields.many2one('tpt.blanket.order', 'Blank Order', ondelete = 'cascade'),
         'product_id': fields.many2one('product.product', 'Product', required = True),
         'description': fields.text('Description', required = True),
-        'product_type': fields.selection([('product', 'Stockable Product'),('consu', 'Consumable'),('service', 'Service')],'Product Type'),
+        'product_type': fields.selection([('rutile', 'Rutile'),('anatase', 'Anatase')],'Product Type'),
         'application_id': fields.many2one('crm.application', 'Application'),
         'product_uom_qty': fields.float('Quantity'),
         'uom_po_id': fields.many2one('product.uom', 'UOM', readonly = True),
@@ -503,7 +519,7 @@ class tpt_blank_order_line(osv.osv):
         vals = {}
         if product_id:
             product = self.pool.get('product.product').browse(cr, uid, product_id)
-            vals = {'product_type':product.type,
+            vals = {
                     'uom_po_id':product.uom_id.id,
                     'price_unit':product.list_price,
                     'description': product.name
@@ -693,7 +709,7 @@ class tpt_product_information(osv.osv):
     _columns = {
         'product_information_id': fields.many2one('tpt.batch.request', 'Batch Request'),          
         'product_id': fields.many2one('product.product', 'Product'),     
-        'product_type': fields.selection([('product', 'Stockable Product'),('consu', 'Consumable'),('service', 'Service')],'Product Type'),   
+        'product_type':fields.selection([('rutile','Rutile'),('anatase','Anatase')],'Product Type'),   
         'application_id': fields.many2one('crm.application', 'Application'),    
         'product_uom_qty': fields.float('Quantity'),   
         'uom_po_id': fields.many2one('product.uom', 'UOM'),     
@@ -954,7 +970,7 @@ class tpt_batch_allotment_line(osv.osv):
 #         'delivery_order_id':fields.many2one('tpt.delivery.order','Delivery Order',ondelete='cascade'),
         'batch_allotment_id':fields.many2one('tpt.batch.allotment','Batch Allotment',ondelete='cascade'), 
         'product_id': fields.many2one('product.product','Product'),     
-        'product_type': fields.selection([('product', 'Stockable Product'),('consu', 'Consumable'),('service', 'Service')],'Product Type'),   
+        'product_type':fields.selection([('rutile','Rutile'),('anatase','Anatase')],'Product Type'),   
         'application_id': fields.many2one('crm.application','Application'),    
         'product_uom_qty': fields.float('Quantity'),   
         'uom_po_id': fields.many2one('product.uom','UOM'),   
