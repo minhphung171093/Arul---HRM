@@ -29,9 +29,9 @@ from openerp.tools import DEFAULT_SERVER_DATE_FORMAT, DEFAULT_SERVER_DATETIME_FO
 import openerp.addons.decimal_precision as dp
 from openerp import netsvc
 
-class sale_order(osv.osv):
-    _inherit = 'sale.order'
-    
+class crm_sale_order(osv.osv):
+    _name = 'crm.sale.order'
+    _inherit = ['mail.thread', 'ir.needaction_mixin']
     def onchange_quotation_type(self, cr, uid, ids,quotation_type=False, context=None):
         vals = {}
         if quotation_type and quotation_type == 'domestic':
@@ -46,7 +46,7 @@ class sale_order(osv.osv):
         wf_service = netsvc.LocalService("workflow")
         if context is None:
             context = {}
-        sale_order_line_obj = self.pool.get('sale.order.line')
+        sale_order_line_obj = self.pool.get('crm.sale.order.line')
         for sale in self.browse(cr, uid, ids, context=context):
             for inv in sale.invoice_ids:
                 if inv.state not in ('draft', 'cancel'):
@@ -56,7 +56,7 @@ class sale_order(osv.osv):
             for r in self.read(cr, uid, ids, ['invoice_ids']):
                 for inv in r['invoice_ids']:
                     wf_service.trg_validate(uid, 'account.invoice', inv, 'invoice_cancel', cr)
-            sale_order_line_obj.write(cr, uid, [l.id for l in  sale.order_line],
+            sale_order_line_obj.write(cr, uid, [l.id for l in  crm.sale.order_line],
                     {'state': 'cancel'})
             if sale.lead_id:
                 self.pool.get('crm.lead').write(cr, uid, [sale.lead_id.id], {'status':'cancelled'}, context=context)
@@ -74,7 +74,7 @@ class sale_order(osv.osv):
         return {
             'type': 'ir.actions.act_window',
             'name': _('Sales Order'),
-            'res_model': 'sale.order',
+            'res_model': 'crm.sale.order',
             'res_id': id,
             'view_type': 'form',
             'view_mode': 'form',
@@ -129,7 +129,7 @@ class sale_order(osv.osv):
     
     def _get_order(self, cr, uid, ids, context=None):
         result = {}
-        for line in self.pool.get('sale.order.line').browse(cr, uid, ids, context=context):
+        for line in self.pool.get('crm.sale.order.line').browse(cr, uid, ids, context=context):
             result[line.order_id.id] = True
         return result.keys()
     def onchange_lead_id(self, cr, uid, ids,lead_id=False, context=None):
@@ -148,7 +148,17 @@ class sale_order(osv.osv):
                                 })
         return res
     
+    def _get_default_shop(self, cr, uid, context=None):
+        company_id = self.pool.get('res.users').browse(cr, uid, uid, context=context).company_id.id
+        shop_ids = self.pool.get('sale.shop').search(cr, uid, [('company_id','=',company_id)], context=context)
+        if not shop_ids:
+            raise osv.except_osv(_('Error!'), _('There is no default shop for the current user\'s company!'))
+        return shop_ids[0]
+        
     _columns = {
+                'partner_id': fields.many2one('res.partner', 'Customer', readonly=True, states={'draft': [('readonly', False)], 'sent': [('readonly', False)]}, required=True, change_default=True, select=True, track_visibility='always'),
+                'name': fields.char('Order Reference', size=64, required=True,
+            readonly=True, states={'draft': [('readonly', False)], 'sent': [('readonly', False)]}, select=True),
                 'lead_id': fields.many2one('crm.lead','Lead',domain="[('type','=','opportunity')]" ,readonly=True),
                 'quotation_type':fields.selection([('domestic','Domestic'),('export','Export')],'Quotation Type' ,readonly=True),
 #                 'quotation_type':fields.related('lead_group', 'lead_id', type="selection", relation="crm.lead", string="Quotation Type"),
@@ -158,22 +168,23 @@ class sale_order(osv.osv):
                 'commission_amount': fields.function(_commission_amount, string='Commission Amount', digits_compute= dp.get_precision('Account')),
 #                 'currency_id': fields.related('currency_id', 'lead_id', type="many2one", relation="res.currency", string="Currency",required=True),
                 'currency_id': fields.many2one('res.currency','Currency',required=True,readonly=True),
+                'date_order': fields.date('Date', required=True, readonly=True, select=True, states={'draft': [('readonly', False)], 'sent': [('readonly', False)]}),
                 'amount_untaxed': fields.function(_amount_all, digits_compute=dp.get_precision('Account'), string='Untaxed Amount',
                     store={
-                        'sale.order': (lambda self, cr, uid, ids, c={}: ids, ['order_line'], 10),
-                        'sale.order.line': (_get_order, ['price_unit', 'tax_id', 'discount', 'product_uom_qty'], 10),
+                        'crm.sale.order': (lambda self, cr, uid, ids, c={}: ids, ['order_line'], 10),
+                        'crm.sale.order.line': (_get_order, ['price_unit', 'tax_id', 'discount', 'product_uom_qty'], 10),
                     },
                     multi='sums', help="The amount without tax.", track_visibility='always'),
                 'amount_tax': fields.function(_amount_all, digits_compute=dp.get_precision('Account'), string='Taxes',
                     store={
-                        'sale.order': (lambda self, cr, uid, ids, c={}: ids, ['order_line'], 10),
-                        'sale.order.line': (_get_order, ['price_unit', 'tax_id', 'discount', 'product_uom_qty'], 10),
+                        'crm.sale.order': (lambda self, cr, uid, ids, c={}: ids, ['order_line'], 10),
+                        'crm.sale.order.line': (_get_order, ['price_unit', 'tax_id', 'discount', 'product_uom_qty'], 10),
                     },
                     multi='sums', help="The tax amount."),
                 'amount_total': fields.function(_amount_all, digits_compute=dp.get_precision('Account'), string='Total',
                     store={
-                        'sale.order': (lambda self, cr, uid, ids, c={}: ids, ['order_line','commission_rate'], 10),
-                        'sale.order.line': (_get_order, ['price_unit', 'tax_id', 'discount', 'product_uom_qty'], 10),
+                        'crm.sale.order': (lambda self, cr, uid, ids, c={}: ids, ['order_line','commission_rate'], 10),
+                        'crm.sale.order.line': (_get_order, ['price_unit', 'tax_id', 'discount', 'product_uom_qty'], 10),
                     },
                     multi='sums', help="The total amount."),
                 'client_order_ref': fields.char('Customer Reference', size=64,readonly=True, states={'draft': [('readonly', False)], 'sent': [('readonly', False)]}),
@@ -186,17 +197,64 @@ class sale_order(osv.osv):
                 'fiscal_position': fields.many2one('account.fiscal.position', 'Fiscal Position',readonly=True, states={'draft': [('readonly', False)], 'sent': [('readonly', False)]}),
                 'company_id': fields.related('shop_id','company_id',type='many2one',relation='res.company',string='Company',store=True,readonly=True, states={'draft': [('readonly', False)], 'sent': [('readonly', False)]}),
                 'bank_account_id': fields.many2one('res.partner.bank', 'Bank Account', readonly=True, states={'draft': [('readonly', False)], 'sent': [('readonly', False)]}, select=True, track_visibility='onchange'),
-#                 'incoterms_id': fields.many2one('sale.inco.terms', 'Inco terms', readonly=True, states={'draft': [('readonly', False)], 'sent': [('readonly', False)]}, select=True, track_visibility='onchange'),
+                'note': fields.text('Terms and conditions'),
+                'pricelist_id': fields.many2one('product.pricelist', 'Pricelist', required=True, readonly=True, states={'draft': [('readonly', False)], 'sent': [('readonly', False)]}, help="Pricelist for current sales order."),
+                'incoterm': fields.many2one('stock.incoterms', 'Incoterm', help="International Commercial Terms are a series of predefined commercial terms used in international transactions."),
+                'shop_id': fields.many2one('sale.shop', 'Shop', required=True, readonly=True, states={'draft': [('readonly', False)], 'sent': [('readonly', False)]}),
                 'picking_details':fields.char('Picking Details',size=255),
                 'description':fields.text('Description'),
+                'order_line': fields.one2many('crm.sale.order.line', 'order_id', 'Order Lines', readonly=True, states={'draft': [('readonly', False)], 'sent': [('readonly', False)]}),
+                'state': fields.selection([
+                ('draft', 'Draft Quotation'),
+                ('sent', 'Quotation Sent'),
+                ('cancel', 'Cancelled'),
+                ('waiting_date', 'Waiting Schedule'),
+                ('progress', 'Sales Order'),
+                ('manual', 'Sale to Invoice'),
+                ('invoice_except', 'Invoice Exception'),
+                ('done', 'Done'),
+                ], 'Status', readonly=True, track_visibility='onchange',
+                help="Gives the status of the quotation or sales order. \nThe exception status is automatically set when a cancel operation occurs in the processing of a document linked to the sales order. \nThe 'Waiting Schedule' status is set when the invoice is confirmed but waiting for the scheduler to run on the order date.", select=True),
                 }
     _defaults = {
-                 'commission_amount':0.0
+                 'commission_amount':0.0,
+                 'shop_id': _get_default_shop,
+                 'name': lambda obj, cr, uid, context: '/',
+                 'state':'draft',
                  }
-sale_order()
+    _sql_constraints = [
+        ('name_uniq', 'unique(name, company_id)', 'Order Reference must be unique per Company!'),
+    ]
+    
+    def onchange_shop_id(self, cr, uid, ids, shop_id, context=None):
+        v = {}
+        if shop_id:
+            shop = self.pool.get('sale.shop').browse(cr, uid, shop_id, context=context)
+            if shop.project_id.id:
+                v['project_id'] = shop.project_id.id
+            if shop.pricelist_id.id:
+                v['pricelist_id'] = shop.pricelist_id.id
+        return {'value': v}
+    
+    def onchange_pricelist_id(self, cr, uid, ids, pricelist_id, order_lines, context=None):
+        context = context or {}
+        if not pricelist_id:
+            return {}
+        value = {
+            'currency_id': self.pool.get('product.pricelist').browse(cr, uid, pricelist_id, context=context).currency_id.id
+        }
+        if not order_lines:
+            return {'value': value}
+        warning = {
+            'title': _('Pricelist Warning!'),
+            'message' : _('If you change the pricelist of this order (and eventually the currency), prices of existing order lines will not be updated.')
+        }
+        return {'warning': warning, 'value': value}
+    
+crm_sale_order()
 
-class sale_order_line(osv.osv):
-    _inherit = "sale.order.line"
+class crm_sale_order_line(osv.osv):
+    _name = "crm.sale.order.line"
     
     def _amount_line(self, cr, uid, ids, field_name, arg, context=None):
         res = {}
@@ -226,9 +284,28 @@ class sale_order_line(osv.osv):
                 tax = line.sub_tax.amount
             res[line.id] = tax*price_subtotal/100.0
         return res
-    
+
+    def product_uom_change(self, cursor, user, ids, pricelist, product, qty=0,
+            uom=False, qty_uos=0, uos=False, name='', partner_id=False,
+            lang=False, update_tax=True, date_order=False, context=None):
+        context = context or {}
+        lang = lang or ('lang' in context and context['lang'])
+        if not uom:
+            return {'value': {'price_unit': 0.0, 'product_uom' : uom or False}}
+        return self.product_id_change(cursor, user, ids, pricelist, product,
+                qty=qty, uom=uom, qty_uos=qty_uos, uos=uos, name=name,
+                partner_id=partner_id, lang=lang, update_tax=update_tax,
+                date_order=date_order, context=context)
+        
     _columns = {
 #         'categ_ids': fields.many2one('crm.case.categ', 'Grade'),
+        'sequence': fields.integer('Sequence', help="Gives the sequence order when displaying a list of sales order lines."),
+        'order_id': fields.many2one('crm.sale.order', 'Order Reference', required=True, ondelete='cascade', select=True, readonly=True, states={'draft':[('readonly',False)]}),
+        'product_id': fields.many2one('product.product', 'Product', domain=[('sale_ok', '=', True)], change_default=True),
+        'name': fields.text('Description', required=True, readonly=True, states={'draft': [('readonly', False)]}),
+        'application_id': fields.many2one('crm.application','Application'),
+        'product_uom_qty': fields.float('Quantity', digits_compute= dp.get_precision('Product UoS'), required=True, readonly=True, states={'draft': [('readonly', False)]}),
+        'price_unit': fields.float('Unit Price', required=True, digits_compute= dp.get_precision('Product Price'), readonly=True, states={'draft': [('readonly', False)]}),
         'ex_duty': fields.many2one('account.tax', 'Ex.Duty', domain="[('type_tax_use','=','excise_duty')]"),
 #         'price_subtotal': fields.float('Subtotal'),
         'price_subtotal': fields.function(_amount_line, string='Subtotal', digits_compute= dp.get_precision('Account')),
@@ -236,7 +313,20 @@ class sale_order_line(osv.osv):
         'tax': fields.related('sub_tax','amount',type='float',relation='account.tax',string='Tax %',store=True,readonly=True,),
 #         'tax_amt': fields.float('Tax Amt'),
         'tax_amt': fields.function(_amount_tax, string='Tax Amt', digits_compute= dp.get_precision('Account')),
-        'application_id': fields.many2one('crm.application','Application'),
+        'state': fields.selection([('cancel', 'Cancelled'),('draft', 'Draft'),('confirmed', 'Confirmed'),('exception', 'Exception'),('done', 'Done')], 'Status', required=True, readonly=True,
+                help='* The \'Draft\' status is set when the related sales order in draft status. \
+                    \n* The \'Confirmed\' status is set when the related sales order is confirmed. \
+                    \n* The \'Exception\' status is set when the related sales order is set as exception. \
+                    \n* The \'Done\' status is set when the sales order line has been picked. \
+                    \n* The \'Cancelled\' status is set when a user cancel the sales order related.'),
+        'product_uos_qty': fields.float('Quantity (UoS)' ,digits_compute= dp.get_precision('Product UoS'), readonly=True, states={'draft': [('readonly', False)]}),
+        'product_uom': fields.many2one('product.uom', 'Unit of Measure ', required=True, readonly=True, states={'draft': [('readonly', False)]}),
+        'product_uos': fields.many2one('product.uom', 'Product UoS'),
+        'type': fields.selection([('make_to_stock', 'from stock'), ('make_to_order', 'on order')], 'Procurement Method', required=True, readonly=True, states={'draft': [('readonly', False)]},
+         help="From stock: When needed, the product is taken from the stock or we wait for replenishment.\nOn order: When needed, the product is purchased or produced."),
+        'th_weight': fields.float('Weight', readonly=True, states={'draft': [('readonly', False)]}),
+        'address_allotment_id': fields.many2one('res.partner', 'Allotment Partner',help="A partner to whom the particular product needs to be allotted."),
+        'discount': fields.float('Discount (%)', digits_compute= dp.get_precision('Discount'), readonly=True, states={'draft': [('readonly', False)]}),
     }
     
     # Hung sua lai Description la hien product name
@@ -274,8 +364,8 @@ class sale_order_line(osv.osv):
             lang=False, update_tax=True, date_order=False, packaging=False, fiscal_position=False, flag=False, context=None):
         context = context or {}
         lang = lang or context.get('lang',False)
-        if not  partner_id:
-            raise osv.except_osv(_('No Customer Defined!'), _('Before choosing a product,\n select a customer in the sales form.'))
+#         if not  partner_id:
+#             raise osv.except_osv(_('No Customer Defined!'), _('Before choosing a product,\n select a customer in the sales form.'))
         warning = {}
         product_uom_obj = self.pool.get('product.uom')
         partner_obj = self.pool.get('res.partner')
@@ -401,4 +491,4 @@ class sale_order_line(osv.osv):
         'tax_amt':0.0
     }
     
-sale_order_line()
+crm_sale_order_line()
