@@ -247,8 +247,10 @@ class sale_order(osv.osv):
         consignee_ids = [row[0] for row in cr.fetchall()]
         picking_id = picking_out_ids[0]
         sale = self.browse(cr, uid, ids[0])
+        first_picking_id = False
         for i,consignee_id in enumerate(consignee_ids):
             if i==0:
+                first_picking_id = picking_id
                 picking = picking_out_obj.browse(cr, uid, picking_id)
                 picking_out_obj.write(cr, uid, [picking_id], {'cons_loca': consignee_id,'backorder_id':picking_id,'origin':picking.origin,'sale_id':ids[0],'partner_id':sale.partner_id.id})
             else:
@@ -262,9 +264,13 @@ class sale_order(osv.osv):
                 new_picking_id = picking_out_obj.copy(cr, uid, picking_id, default)
                 picking_out_obj.write(cr, uid, [new_picking_id], {'cons_loca': consignee_id,'backorder_id':picking_id,'origin':picking.origin,'sale_id':ids[0],'partner_id':sale.partner_id.id})
                 stock_move_ids = stock_move_obj.search(cr, uid, [('sale_line_id','in',order_line_ids)])
-                stock_move_obj.write(cr, uid, stock_move_ids, {'picking_id':new_picking_id})
+                stock_move = stock_move_obj.browse(cr,uid,stock_move_ids[0])
+                stock_move_obj.write(cr, uid, stock_move_ids, {'picking_id':new_picking_id,'product_type':stock_move.sale_line_id.product_type,'application_id':stock_move.sale_line_id.application_id and stock_move.sale_line_id.application_id.id or False})
 #                 wf_service.trg_validate(uid, 'stock.picking', new_picking_id, 'button_confirm', cr)
                 picking_id = new_picking_id
+        if first_picking_id:
+            for line in picking_out_obj.browse(cr, uid, first_picking_id).move_lines:
+                stock_move_obj.write(cr, uid, [line.id], {'product_type':line.sale_line_id.product_type,'application_id':line.sale_line_id.application_id and line.sale_line_id.application_id.id or False})
         return True
     
 sale_order()
@@ -581,8 +587,8 @@ class tpt_batch_request(osv.osv):
     def write(self, cr, uid, ids, vals, context=None):
         if 'sale_order_id' in vals:
             sale = self.pool.get('sale.order').browse(cr, uid, vals['sale_order_id'])
+            product_lines = []
             for line in sale.order_line:
-                product_lines = []
                 rs = {
                         'product_id': line.product_id.id,
                         'product_type': line.product_type,
@@ -641,8 +647,8 @@ class tpt_batch_request(osv.osv):
             vals['name'] = self.pool.get('ir.sequence').get(cr, uid, 'tpt.batch.req.import') or '/'
         if 'sale_order_id' in vals:
             sale = self.pool.get('sale.order').browse(cr, uid, vals['sale_order_id'])
+            product_lines = []
             for line in sale.order_line:
-                product_lines = []
                 rs = {
                         'product_id': line.product_id.id,
                         'product_type': line.product_type,

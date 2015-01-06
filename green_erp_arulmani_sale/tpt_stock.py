@@ -53,6 +53,52 @@ class stock_picking(osv.osv):
                 vals = {'move_date':False}
         return {'value': vals,'warning':warning}
     
+    def _prepare_invoice(self, cr, uid, picking, partner, inv_type, journal_id, context=None):
+        """ Builds the dict containing the values for the invoice
+            @param picking: picking object
+            @param partner: object of the partner to invoice
+            @param inv_type: type of the invoice ('out_invoice', 'in_invoice', ...)
+            @param journal_id: ID of the accounting journal
+            @return: dict that will be used to create the invoice object
+        """
+        if isinstance(partner, int):
+            partner = self.pool.get('res.partner').browse(cr, uid, partner, context=context)
+        if inv_type in ('out_invoice', 'out_refund'):
+            account_id = partner.property_account_receivable.id
+            payment_term = partner.property_payment_term.id or False
+        else:
+            account_id = partner.property_account_payable.id
+            payment_term = partner.property_supplier_payment_term.id or False
+        comment = self._get_comment_invoice(cr, uid, picking)
+        invoice_vals = {
+            'name': picking.name,
+            'origin': (picking.name or '') + (picking.origin and (':' + picking.origin) or ''),
+            'type': inv_type,
+            'account_id': account_id,
+            'partner_id': partner.id,
+            'comment': comment,
+            'payment_term': payment_term,
+            'fiscal_position': partner.property_account_position.id,
+            'date_invoice': context.get('date_inv', False),
+            'company_id': picking.company_id.id,
+            'user_id': uid,
+            
+            'sale_id': picking.sale_id and picking.sale_id.id or False,
+            'payment_term': picking.sale_id.payment_term_id and picking.sale_id.payment_term_id.id or False,
+            'currency_id': picking.sale_id.currency_id and picking.sale_id.currency_id.id or False,
+            'excise_duty_id': picking.sale_id.excise_duty_id and picking.sale_id.excise_duty_id.id or False,
+            'doc_status': 'completed',
+            'cons_loca': picking.cons_loca and picking.cons_loca.id or False,
+            'delivery_order_id': picking.id,
+            'sale_tax_id': picking.sale_id.sale_tax_id and picking.sale_id.sale_tax_id.id or False,
+        }
+        cur_id = self.get_currency_id(cr, uid, picking)
+        if cur_id:
+            invoice_vals['currency_id'] = cur_id
+        if journal_id:
+            invoice_vals['journal_id'] = journal_id
+        return invoice_vals
+    
 stock_picking()
 
 class stock_picking_out(osv.osv):
