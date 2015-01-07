@@ -281,8 +281,8 @@ class crm_lead(osv.osv):
             context = {}
         context.pop('default_state', False)        
         case_obj = self.pool.get('crm.lead')
-        sale_obj = self.pool.get('sale.order')
-        sale_line_obj = self.pool.get('sale.order.line')
+        crm_sale_obj = self.pool.get('crm.sale.order')
+        crm_sale_line_obj = self.pool.get('crm.sale.order.line')
         partner_obj = self.pool.get('res.partner')
         data = context and context.get('active_ids', []) or []
 
@@ -317,8 +317,8 @@ class crm_lead(osv.osv):
                 'pricelist_id': pricelist,
 #                 'partner_invoice_id': partner_addr['invoice'],
 #                 'partner_shipping_id': partner_addr['delivery'],
-                'partner_invoice_id': partner.id,
-                'partner_shipping_id': partner.id,
+#                 'partner_invoice_id': partner.id,
+#                 'partner_shipping_id': partner.id,
                 'date_order': fields.date.context_today(self,cr,uid,context=context),
                 'fiscal_position': fpos,
                 'payment_term':payment_term,
@@ -330,7 +330,7 @@ class crm_lead(osv.osv):
             }
             if partner.id:
                 vals['user_id'] = partner.user_id and partner.user_id.id or uid
-            new_id = sale_obj.create(cr, uid, vals, context=context)
+            new_id = crm_sale_obj.create(cr, uid, vals, context=context)
             self.pool.get('crm.lead').write(cr, uid, [case.id], {'status':'quotation'}, context=context)
             self.pool.get('crm.lead.history').create(cr, uid,{'lead_id':case.id,'status':'quotation'}, context=context)
             #Hung them order line
@@ -348,11 +348,11 @@ class crm_lead(osv.osv):
                     'delay':7.0,
                     'state':"draft",                        
                     }
-                sale_line_obj.create(cr, uid, vals_line, context=context)
-            sale_order = sale_obj.browse(cr, uid, new_id, context=context)
-            case_obj.write(cr, uid, [case.id], {'ref': 'sale.order,%s' % new_id})
+                crm_sale_line_obj.create(cr, uid, vals_line, context=context)
+            crm_sale_order = crm_sale_obj.browse(cr, uid, new_id, context=context)
+#             case_obj.write(cr, uid, [case.id], {'ref': 'crm.sale.order,%s' % new_id})
             new_ids.append(new_id)
-            message = _("Opportunity has been <b>converted</b> to the quotation <em>%s</em>.") % (sale_order.name)
+            message = _("Opportunity has been <b>converted</b> to the quotation <em>%s</em>.") % (crm_sale_order.name)
             case.message_post(body=message)
             if not new_ids:
                 return {'type': 'ir.actions.act_window_close'}
@@ -361,7 +361,7 @@ class crm_lead(osv.osv):
                     'domain': str([('id', 'in', new_ids)]),
                     'view_type': 'form',
                     'view_mode': 'form',
-                    'res_model': 'sale.order',
+                    'res_model': 'crm.sale.order',
                     'view_id': False,
                     'type': 'ir.actions.act_window',
                     'name' : _('Quotation'),
@@ -372,7 +372,7 @@ class crm_lead(osv.osv):
                     'domain': str([('id', 'in', new_ids)]),
                     'view_type': 'form',
                     'view_mode': 'tree,form',
-                    'res_model': 'sale.order',
+                    'res_model': 'crm.sale.order',
                     'view_id': False,
                     'type': 'ir.actions.act_window',
                     'name' : _('Quotation'),
