@@ -77,6 +77,11 @@
 				<xpath expr="//field[@name='partner_id']"  position="replace">
 					<field name="partner_id" domain="[('customer','=',1),('is_company','=',1)]" options="{'create': false, 'create_edit': false}" on_change = "onchange_partner_id(partner_id)"/>
 				</xpath>
+				
+				<xpath expr="//label[@string='Quotation ']"  position="replace">
+					<label string="Draft Sales Order " attrs="{'invisible': [('state','not in',('draft','sent'))]}"/>
+				</xpath>
+				
 	       	</field>
         </record>
         
