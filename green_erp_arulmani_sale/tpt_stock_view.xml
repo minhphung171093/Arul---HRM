@@ -98,9 +98,12 @@
             	<xpath expr="//page[@string='Other Info']/group[@col='4']/group/field[@name='name']" position="replace">
 				</xpath>  
 				<xpath expr="//field[@name='partner_id']" position="before">
-					<field name="name" string = "Invoice" required = "0" readonly = '1'/>
+					<field name="name" string = "Invoice" required = '0' invisible = '1'/>
 					<field name="delivery_order_id" options="{'create': false, 'create_edit': false}" domain="[('state','=','done')]" on_change = "onchange_delivery_order_id(delivery_order_id)"/>
 				</xpath>  
+				<xpath expr="//field[@name='number']" position="replace">
+					<field name="vvt_number" readonly="1" class="oe_inline"/>
+				</xpath>
 				<xpath expr="//field[@name='fiscal_position']" position="replace">
 					<field name="type" string = "Document Type" readonly = "0"/>
 					<field name="currency_id" options="{'create': false, 'create_edit': false}"/>

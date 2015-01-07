@@ -190,6 +190,7 @@ class account_invoice(osv.osv):
         return result.keys()
     
     _columns = {
+        'vvt_number': fields.char('Number', size=1024),
         'delivery_order_id': fields.many2one('stock.picking.out','Delivery Order', readonly=True),
         'cons_loca': fields.many2one('res.partner','Consignee Location'),
         'sale_id':  fields.many2one('sale.order','Sale Order'), 
@@ -223,7 +224,7 @@ class account_invoice(osv.osv):
             multi='sums', help="The total amount."),
                 }
     _defaults = {
-#         'name': '/',
+        'vvt_number': '/',
     }
     
     def onchange_date_invoice(self, cr, uid, ids, date_invoice=False, context=None):
@@ -270,10 +271,10 @@ class account_invoice(osv.osv):
                     }
         return {'value': vals}
     
-#     def create(self, cr, uid, vals, context=None):
-#         if vals.get('number','/')=='/':
-#             vals['number'] = self.pool.get('ir.sequence').get(cr, uid, 'tpt.customer.invoice.import') or '/'
-#         return super(account_invoice, self).create(cr, uid, vals, context=context)
+    def create(self, cr, uid, vals, context=None):
+        if vals.get('vvt_number','/')=='/':
+            vals['vvt_number'] = self.pool.get('ir.sequence').get(cr, uid, 'tpt.customer.invoice.import') or '/'
+        return super(account_invoice, self).create(cr, uid, vals, context=context)
     
     def invoice_print(self, cr, uid, ids, context=None):
         '''
