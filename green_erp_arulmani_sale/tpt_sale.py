@@ -767,7 +767,7 @@ class tpt_product_information(osv.osv):
      
     _columns = {
         'product_information_id': fields.many2one('tpt.batch.request', 'Batch Request'),          
-        'product_id': fields.many2one('product.product', 'Product'),     
+        'product_id': fields.many2one('product.product', 'Product',required = True),     
         'product_type':fields.selection([('rutile','Rutile'),('anatase','Anatase')],'Product Type'),   
         'application_id': fields.many2one('crm.application', 'Application'),    
         'product_uom_qty': fields.float('Quantity'),   
