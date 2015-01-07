@@ -153,7 +153,7 @@ class sale_order(osv.osv):
             if blanket.blanket_id:
                 blanket_ids = self.search(cr, uid, [('id','!=',blanket.id),('blanket_id','=',blanket.blanket_id.id)])
                 if blanket_ids:
-                    raise osv.except_osv(_('Warning!'),_('The data is not suitable!'))  
+                    raise osv.except_osv(_('Warning!'),_('The Blanket Order was selected!'))  
                     return False
         return True
     _constraints = [
