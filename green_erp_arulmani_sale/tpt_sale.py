@@ -560,12 +560,18 @@ class tpt_blank_order_line(osv.osv):
         if 'product_id' in vals:
             product = self.pool.get('product.product').browse(cr, uid, vals['product_id'])
             vals.update({'uom_po_id':product.uom_id.id})
+        if 'product_uom_qty' in vals:
+            if (vals['product_uom_qty'] < 0):
+                raise osv.except_osv(_('Warning!'),_('Quantity is not allowed as negative values'))
         return super(tpt_blank_order_line, self).create(cr, uid, vals, context)
     
     def write(self, cr, uid, ids, vals, context=None):
         if 'product_id' in vals:
             product = self.pool.get('product.product').browse(cr, uid, vals['product_id'])
             vals.update({'uom_po_id':product.uom_id.id})
+        if 'product_uom_qty' in vals:
+            if (vals['product_uom_qty'] < 0):
+                raise osv.except_osv(_('Warning!'),_('Quantity is not allowed as negative values'))
         return super(tpt_blank_order_line, self).write(cr, uid,ids, vals, context)
     
     def onchange_product_id(self, cr, uid, ids,product_id=False, context=None):
