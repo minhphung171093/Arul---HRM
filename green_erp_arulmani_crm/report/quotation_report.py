@@ -41,10 +41,10 @@ class Parser(report_sxw.rml_parse):
             'get_month_name':self.get_month_name,   
         })
     def get_sale_order(self,quotation_id):
-        sale_order_obj = self.pool.get('sale.order')
-        sale_order_ids = sale_order_obj.search(self.cr, self.uid, [('id','=',quotation_id)])
-        if sale_order_ids:
-            return sale_order_obj.browse(self.cr, self.uid, sale_order_ids[0])
+        crm_sale_order_obj = self.pool.get('crm.sale.order')
+        crm_sale_order_ids = crm_sale_order_obj.search(self.cr, self.uid, [('id','=',quotation_id)])
+        if crm_sale_order_ids:
+            return crm_sale_order_obj.browse(self.cr, self.uid, crm_sale_order_ids[0])
         else:
             return False            
     def length_month(self,year, month):

@@ -5,7 +5,7 @@
     	<record id="quotation_domestic_report" model="ir.actions.report.xml">
 	        <field name="name">quotation_domestic_report</field>
 	        <field name="type">ir.actions.report.xml</field>
-	        <field name="model">sale.order</field>
+	        <field name="model">crm.sale.order</field>
 	        <field name="report_name">quotation_domestic_report</field>
 	        <field name="report_type">aeroo</field>
 	        <field name="in_format">oo-odt</field>
@@ -21,7 +21,7 @@
 			auto="True" 
 			menu="True"
 			id="quotation_domestic_report" 
-			model="sale.order" 
+			model="crm.sale.order" 
 			name="quotation_domestic_report"
 	        string="Quotation Domestic/ Order"
 	        rml="green_erp_arulmani_crm/report/quotation_domestic_report.odt"/>
@@ -29,7 +29,7 @@
 	    <record id="quotation_export_report" model="ir.actions.report.xml">
 	        <field name="name">quotation_export_report</field>
 	        <field name="type">ir.actions.report.xml</field>
-	        <field name="model">sale.order</field>
+	        <field name="model">crm.sale.order</field>
 	        <field name="report_name">quotation_export_report</field>
 	        <field name="report_type">aeroo</field>
 	        <field name="in_format">oo-odt</field>
@@ -45,7 +45,7 @@
 			auto="True" 
 			menu="True"
 			id="quotation_export_report" 
-			model="sale.order" 
+			model="crm.sale.order" 
 			name="quotation_export_report"
 	        string="Quotation Export/ Order"
 	        rml="green_erp_arulmani_crm/report/quotation_export_report.odt"/>		

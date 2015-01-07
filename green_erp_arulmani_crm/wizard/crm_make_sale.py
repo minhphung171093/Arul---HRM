@@ -43,8 +43,8 @@ class crm_make_sale(osv.osv_memory):
         context.pop('default_state', False)        
         
         case_obj = self.pool.get('crm.lead')
-        sale_obj = self.pool.get('sale.order')
-        sale_line_obj = self.pool.get('sale.order.line')
+        crm_sale_obj = self.pool.get('crm.sale.order')
+        crm_sale_line_obj = self.pool.get('crm.sale.order.line')
         partner_obj = self.pool.get('res.partner')
         data = context and context.get('active_ids', []) or []
 
@@ -74,8 +74,8 @@ class crm_make_sale(osv.osv_memory):
                     'shop_id': make.shop_id.id,
                     'partner_id': partner.id,
                     'pricelist_id': pricelist,
-                    'partner_invoice_id': partner_addr['invoice'],
-                    'partner_shipping_id': partner_addr['delivery'],
+#                     'partner_invoice_id': partner_addr['invoice'],
+#                     'partner_shipping_id': partner_addr['delivery'],
                     'date_order': fields.date.context_today(self,cr,uid,context=context),
                     'fiscal_position': fpos,
                     'payment_term':payment_term,
@@ -86,7 +86,7 @@ class crm_make_sale(osv.osv_memory):
                 }
                 if partner.id:
                     vals['user_id'] = partner.user_id and partner.user_id.id or uid
-                new_id = sale_obj.create(cr, uid, vals, context=context)
+                new_id = crm_sale_obj.create(cr, uid, vals, context=context)
                 self.pool.get('crm.lead').write(cr, uid, [case.id], {'status':'quotation'}, context=context)
                 self.pool.get('crm.lead.history').create(cr, uid,{'lead_id':case.id,'status':'quotation'}, context=context)
                 #Hung them order line
@@ -95,20 +95,20 @@ class crm_make_sale(osv.osv_memory):
                         'order_id': new_id,
                         'name': line.product_id.name_template or '/',
                         'product_id':line.product_id.id,
+                        'application_id':line.application_id.id,
                         'price_unit':0.0,
                         'type':'make_to_stock',
                         'product_uom_qty': 0.0,
                         'product_uom':line.uom_id.id,
                         'product_uos_qty':0.0,
-                        'categ_ids': [(6, 0, [categ_id.id for categ_id in line.categ_ids])],
                         'delay':7.0,
                         'state':"draft",                        
                         }
-                    sale_line_obj.create(cr, uid, vals_line, context=context)
-                sale_order = sale_obj.browse(cr, uid, new_id, context=context)
-                case_obj.write(cr, uid, [case.id], {'ref': 'sale.order,%s' % new_id})
+                    crm_sale_line_obj.create(cr, uid, vals_line, context=context)
+                crm_sale_order = crm_sale_obj.browse(cr, uid, new_id, context=context)
+#                 case_obj.write(cr, uid, [case.id], {'ref': 'sale.order,%s' % new_id})
                 new_ids.append(new_id)
-                message = _("Opportunity has been <b>converted</b> to the quotation <em>%s</em>.") % (sale_order.name)
+                message = _("Opportunity has been <b>converted</b> to the quotation <em>%s</em>.") % (crm_sale_order.name)
                 case.message_post(body=message)
             if make.close:
                 case_obj.case_close(cr, uid, data)
@@ -119,7 +119,7 @@ class crm_make_sale(osv.osv_memory):
                     'domain': str([('id', 'in', new_ids)]),
                     'view_type': 'form',
                     'view_mode': 'form',
-                    'res_model': 'sale.order',
+                    'res_model': 'crm.sale.order',
                     'view_id': False,
                     'type': 'ir.actions.act_window',
                     'name' : _('Quotation'),
@@ -130,7 +130,7 @@ class crm_make_sale(osv.osv_memory):
                     'domain': str([('id', 'in', new_ids)]),
                     'view_type': 'form',
                     'view_mode': 'tree,form',
-                    'res_model': 'sale.order',
+                    'res_model': 'crm.sale.order',
                     'view_id': False,
                     'type': 'ir.actions.act_window',
                     'name' : _('Quotation'),
