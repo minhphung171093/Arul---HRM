@@ -97,9 +97,14 @@
             	</xpath>
             	<xpath expr="//page[@string='Other Info']/group[@col='4']/group/field[@name='name']" position="replace">
 				</xpath>  
-				<xpath expr="//field[@name='partner_id']" position="before">
+				<xpath expr="//field[@name='partner_id']" position="replace">
 					<field name="name" string = "Invoice" required = "0" readonly = '1'/>
 					<field name="delivery_order_id" options="{'create': false, 'create_edit': false}" domain="[('state','=','done')]" on_change = "onchange_delivery_order_id(delivery_order_id)"/>
+					<field string="Customer" name="partner_id"
+                                on_change="onchange_partner_id(type,partner_id,date_invoice,payment_term, partner_bank_id,company_id)"
+                                groups="base.group_user" context="{'search_default_customer':1, 'show_address': 1}"
+                                domain="[('customer','=',1),('is_company','=',1)]"
+                                options="{'create': false, 'create_edit': false,'always_reload': True}"/>
 				</xpath>  
 				<xpath expr="//field[@name='fiscal_position']" position="replace">
 					<field name="type" string = "Document Type" readonly = "0"/>
@@ -175,7 +180,8 @@
             	<xpath expr="//field[@name='min_date']"  position="replace">
             		<field name="min_date" invisible="1"/>
             	</xpath>
-            	<xpath expr="//field[@name='partner_id']"  position="after">
+            	<xpath expr="//field[@name='partner_id']"  position="replace">
+                    <field name="partner_id" on_change="onchange_partner_in(partner_id)" string="Customer" domain="[('customer','=',1),('is_company','=',1)]" options="{'create': false, 'create_edit': false}"/>
             		<field name="sale_id" options="{'create': false, 'create_edit': false}"/>
             		<field name="cons_loca" domain="[('consignee_parent_id','=',parent.partner_id)]" options="{'create': false, 'create_edit': false,'always_reload': True}" context="{'show_address': 1}"/>
             		<field name="warehouse" options="{'create': false, 'create_edit': false}"/>

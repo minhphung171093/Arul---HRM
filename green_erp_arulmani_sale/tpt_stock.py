@@ -18,7 +18,7 @@ class stock_picking(osv.osv):
         'transporter':fields.char('Transporter Name', size = 64),
         'truck':fields.char('Truck Number', size = 64),
         'remarks':fields.text('Remarks'),
-        'doc_status':fields.selection([('draft','Draft'),('waiting','Waiting for Approval'),('completed','Completed(Ready to Process)'),('partially','Partially Delivered'),('close','Closed(Delivered)')],'Document Status'),
+        'doc_status':fields.selection([('completed','Completed')],'Document Status'),
         'sale_id': fields.many2one('sale.order', 'Sales Order', ondelete='set null', select=True),
         'do_ref_id': fields.many2one('stock.picking.out','DO Reference'),   
         'move_date': fields.date('Movement Date'),
@@ -109,7 +109,7 @@ class stock_picking_out(osv.osv):
         'transporter':fields.char('Transporter Name', size = 64),
         'truck':fields.char('Truck Number', size = 64),
         'remarks':fields.text('Remarks'),
-        'doc_status':fields.selection([('draft','Draft'),('waiting','Waiting for Approval'),('completed','Completed(Ready to Process)'),('partially','Partially Delivered'),('close','Closed(Delivered)')],'Document Status'),
+        'doc_status':fields.selection([('completed','Completed')],'Document Status'),
         'sale_id': fields.many2one('sale.order', 'Sales Order', ondelete='set null', select=True),
                 }
     def write(self, cr, uid, ids, vals, context=None):

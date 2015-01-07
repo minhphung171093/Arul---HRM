@@ -75,7 +75,7 @@
 				
 
 				<xpath expr="//field[@name='partner_id']"  position="replace">
-					<field name="partner_id" domain="[('customer','=',1),('is_company','=',1)]" options="{'create': false, 'create_edit': false}" on_change = "onchange_partner_id(partner_id)"/>
+					<field name="partner_id" domain="[('customer','=',1),('is_company','=',1)]" options="{'create': false, 'create_edit': false}" on_change = "onchange_partner_id(partner_id,blanket_id)"/>
 				</xpath>
 				
 				<xpath expr="//label[@string='Quotation ']"  position="replace">
@@ -290,7 +290,7 @@
 		                <group>    
 						<field name="name"/>
 						<field name="sale_order_id" domain="[('document_type','in',['scrap','saleorder']),('order_line','!=',False)]" on_change = "onchange_sale_order_id(sale_order_id)" options="{'create': false, 'create_edit': false}"/>
-						<field name="customer_id" options="{'create': false, 'create_edit': false}"/>
+						<field name="customer_id" domain="[('customer','=',1),('is_company','=',1)]" options="{'create': false, 'create_edit': false}"/>
 						<field name="request_date"/>
 						<field name="description"/>
 						</group>
@@ -635,7 +635,7 @@
                         	<field name="batch_request_id" options="{'create': false, 'create_edit': false}" on_change="onchange_batch_request_id(batch_request_id)" attrs="{'readonly':[('state','in',('cancel','confirm'))]}"/>
                     		<field name="name" attrs="{'readonly':[('state','in',('cancel','confirm'))]}"/>
                     		<field name="sale_order_id" options="{'create': false, 'create_edit': false}" attrs="{'readonly':[('state','in',('cancel','confirm'))]}"/>
-                    		<field name="customer_id" options="{'create': false, 'create_edit': false}" attrs="{'readonly':[('state','in',('cancel','confirm'))]}"/>
+                    		<field name="customer_id" domain="[('customer','=',1),('is_company','=',1)]" options="{'create': false, 'create_edit': false}" attrs="{'readonly':[('state','in',('cancel','confirm'))]}"/>
                     		<field name="description" attrs="{'readonly':[('state','in',('cancel','confirm'))]}"/>
 	                    </group>
 	                    <notebook>
@@ -685,7 +685,7 @@
                    		<group>
                    			<field name="name"/>
                         	<field name="do_id" on_change="onchange_do_id(do_id)" domain="[('type','=','out')]" options="{'create': false, 'create_edit': false}"/>
-                    		<field name="customer_id" options="{'create': false, 'create_edit': false}"/>
+                    		<field name="customer_id" domain="[('customer','=',1),('is_company','=',1)]" options="{'create': false, 'create_edit': false}"/>
                     		<field name="date"/>
                     		<field name="warehouse" options="{'create': false, 'create_edit': false}"/>
 	                    </group>

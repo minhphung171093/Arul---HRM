@@ -122,7 +122,7 @@ class sale_order(osv.osv):
                 }
         return {'value':vals,'warning':warning}    
     
-    def onchange_partner_id(self, cr, uid, ids, partner_id=False, context=None):
+    def onchange_partner_id(self, cr, uid, ids, partner_id=False, blanket_id=False, context=None):
         vals = {}
         consignee_lines = []
 #         for blanket in self.browse(cr, uid, ids):
@@ -130,7 +130,7 @@ class sale_order(osv.osv):
 #                 delete from order_line where blanket_order_id = %s
 #             '''%(blanket.id)
 #             cr.execute(sql)
-        if partner_id :
+        if partner_id and not blanket_id:
             part = self.pool.get('res.partner').browse(cr, uid, partner_id)
             vals = {'invoice_address':part.street,
                     'street2':part.street2,
@@ -173,8 +173,8 @@ class sale_order(osv.osv):
                         then sum(product_uom_qty)
                         else 0
                         end product_uom_qty
-                    from tpt_blank_order_line where product_id = %s
-                '''%(product_id)
+                    from tpt_blank_order_line where product_id = %s and blanket_order_id = %s
+                '''%(product_id,sale.blanket_id.id)
                 cr.execute(sql)
                 bo_product_uom_qty = cr.dictfetchone()['product_uom_qty']
                 sql = '''
@@ -182,8 +182,8 @@ class sale_order(osv.osv):
                         then sum(product_uom_qty)
                         else 0
                         end product_uom_qty
-                    from sale_order_line where product_id = %s
-                '''%(bo_product_uom_qty,product_id)
+                    from sale_order_line where product_id = %s and order_id = %s
+                '''%(bo_product_uom_qty,product_id,new_id)
                 cr.execute(sql)
                 so_product_uom_qty = cr.dictfetchone()['product_uom_qty']
                 if so_product_uom_qty == 0:
@@ -204,8 +204,8 @@ class sale_order(osv.osv):
                             then sum(product_uom_qty)
                             else 0
                             end product_uom_qty
-                        from tpt_blank_order_line where product_id = %s
-                    '''%(product_id)
+                        from tpt_blank_order_line where product_id = %s and blanket_order_id = %s
+                    '''%(product_id,sale.blanket_id.id)
                     cr.execute(sql)
                     bo_product_uom_qty = cr.dictfetchone()['product_uom_qty']
                     sql = '''
@@ -213,8 +213,8 @@ class sale_order(osv.osv):
                             then sum(product_uom_qty)
                             else 0
                             end product_uom_qty
-                        from sale_order_line where product_id = %s
-                    '''%(bo_product_uom_qty,product_id)
+                        from sale_order_line where product_id = %s and order_id = %s
+                    '''%(bo_product_uom_qty,product_id,sale.id)
                     cr.execute(sql)
                     so_product_uom_qty = cr.dictfetchone()['product_uom_qty']
                     if so_product_uom_qty == 0:
