@@ -54,9 +54,12 @@
 					<field name="product_type" />
 					<field name="application_id" options="{'create': false, 'create_edit': false}" />
 				</xpath>
-				 <xpath expr="//form/sheet/notebook/page[@string='Order Lines']/field/tree/field[@name='product_id']"  position="attributes">
-					<attribute name='options'>{'create': false, 'create_edit': false}</attribute>  
-				</xpath> 
+			 	<xpath expr="//form/sheet/notebook/page[@string='Order Lines']/field/tree/field[@name='product_id']"  position="attributes">
+					<attribute name='options'>{'create': false, 'create_edit': false}</attribute> 
+				</xpath>  
+			<!--	<xpath expr="//form/sheet/notebook/page[@string='Order Lines']/field/tree/field[@name='product_id']"  position="replace">
+					<field name="product_id" on_change = "onchange_tpt_product_id(product_id, order_id)" options="{'create': false, 'create_edit': false}"/>  
+				</xpath> -->
 				<xpath expr="//form/sheet/notebook/page[@string='Order Lines']/field/tree/field[@name='product_uom']"  position="attributes">
 					<attribute name="readonly">1</attribute>
 				</xpath>
@@ -95,10 +98,30 @@
             </data>
             </field>
         </record>
+        
+        <record id="sale.action_orders" model="ir.actions.act_window">
+            <field name="name">Sales Orders</field>
+            <field name="type">ir.actions.act_window</field>
+            <field name="res_model">sale.order</field>
+            <field name="view_type">form</field>
+            <field name="view_mode">tree,form,calendar,graph</field>
+            <field name="search_view_id" ref="sale.view_sales_order_filter"/>
+            <field name="context">{}</field>
+            <field name="domain">[]</field>
+            <field name="help" type="html">
+              <p class="oe_view_nocontent_create">
+                Click to create a quotation that can be converted into a sales
+                order.
+              </p><p>
+                OpenERP will help you efficiently handle the complete sales flow:
+                quotation, sales order, delivery, invoicing and payment.
+              </p>
+            </field>
+        </record>
             
-        <menuitem name="Draft Sales Order" id="sale.menu_sale_quotations"
+        <menuitem id="sale.menu_sale_quotations"
         action="sale.action_quotations" parent="base.menu_sales"
-        sequence="4"/>
+        sequence="4" groups="green_erp_arulmani_crm.group_invisible"/>
         
     <record id="view_tpt_blanket_order_tree_vew" model="ir.ui.view">
 			<field name="name">tpt.blanket.order.tree</field>

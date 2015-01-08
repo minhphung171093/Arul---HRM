@@ -387,6 +387,15 @@ class sale_order_line(osv.osv):
                     'location': str(line.street or '') + str(line.street2 or '') + ' , ' + str(line.city or ''),    
                     }
         return {'value': vals}
+#     def onchange_tpt_product_id(self, cr, uid, ids,product_id=False, order_id=False, context=None):
+#         product_ids = []
+#         if product_id:
+#             sale = self.pool.get('sale.order').browse(cr, uid, order_id)
+#             blanket = self.pool.get('tpt.blanket.order').browse(cr, uid, sale.blanket_id.id)
+#             for line in blanket.blank_order_line:
+#                 product_ids.append(line.product_id.id)
+#         return {'value': {'designation_id': False }, 'domain':{'product_id':[('id','in',product_ids)]}}
+
 #     def onchange_product_id(self, cr, uid, ids, product_id = False, context=None):
 #         vals = {}
 #         if product_id :

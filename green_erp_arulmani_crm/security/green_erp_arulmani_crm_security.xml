@@ -39,6 +39,10 @@
     <record id="group_readonly" model="res.groups">
         <field name="name">Acess Right Readonly</field>
     </record>
+    
+    <record id="group_invisible" model="res.groups">
+        <field name="name">Invisible</field>
+    </record>
      
 </data>
 </openerp>
