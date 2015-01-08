@@ -252,15 +252,15 @@ class sale_order(osv.osv):
                       }
                 blanket_lines.append((0,0,rs_order))
               
-            for consignee_line in blanket.blank_consignee_line:
-                rs_consignee = {
-                      'name_consignee_id': consignee_line.name_consignee_id or False,
-                      'location': consignee_line.location or False,
-                      'product_id': consignee_line.product_id and consignee_line.product_id.id or False,
-                      'product_uom_qty': consignee_line.product_uom_qty or False,
-                      'uom_po_id': consignee_line.uom_po_id and consignee_line.uom_po_id.id or False,
-                                }
-                consignee_lines.append((0,0,rs_consignee))
+#             for consignee_line in blanket.blank_consignee_line:
+#                 rs_consignee = {
+#                       'name_consignee_id': consignee_line.name_consignee_id or False,
+#                       'location': consignee_line.location or False,
+#                       'product_id': consignee_line.product_id and consignee_line.product_id.id or False,
+#                       'product_uom_qty': consignee_line.product_uom_qty or False,
+#                       'uom_po_id': consignee_line.uom_po_id and consignee_line.uom_po_id.id or False,
+#                                 }
+#                 consignee_lines.append((0,0,rs_consignee))
             
             addr = self.pool.get('res.partner').address_get(cr, uid, [blanket.customer_id.id], ['delivery', 'invoice', 'contact'])
             
@@ -387,16 +387,16 @@ class sale_order_line(osv.osv):
                     'location': str(line.street or '') + str(line.street2 or '') + ' , ' + str(line.city or ''),    
                     }
         return {'value': vals}
-    def onchange_product_id(self, cr, uid, ids, product_id = False, context=None):
-        vals = {}
-        if product_id :
-            product = self.pool.get('product.product').browse(cr, uid, product_id)
-            vals = {
-                    'product_uom':product.uom_id.id,
-                    'price_unit':product.list_price,
-                    'name': product.name
-                    }
-        return {'value': vals}
+#     def onchange_product_id(self, cr, uid, ids, product_id = False, context=None):
+#         vals = {}
+#         if product_id :
+#             product = self.pool.get('product.product').browse(cr, uid, product_id)
+#             vals = {
+#                     'product_uom':product.uom_id.id,
+#                     'price_unit':product.list_price,
+#                     'name': product.name
+#                     }
+#         return {'value': vals}
 sale_order_line()
 
 
