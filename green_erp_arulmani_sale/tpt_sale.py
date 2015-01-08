@@ -187,16 +187,19 @@ class sale_order(osv.osv):
                 cr.execute(sql)
                 so_product_uom_qty = cr.dictfetchone()['product_uom_qty']
                 if so_product_uom_qty == 0:
-                    raise osv.except_osv(_('Warning!'),_('Quatity must be less than quatity of Blanket Order'))
+                    raise osv.except_osv(_('Warning!'),_('Quantity must be less than quantity of Blanket Order'))
         return new_id
     
     def write(self, cr, uid, ids, vals, context=None):
         if 'document_status' in vals:
             vals['document_status'] = 'draft'
-        
         new_write = super(sale_order, self).write(cr, uid,ids, vals, context)
+        
         for sale in self.browse(cr, uid, ids):
             if sale.blanket_id:
+                if sale.date_order:
+                    if (sale.blanket_id.bo_date > sale.date_order):
+                        raise osv.except_osv(_('Warning!'),_('dsfgh'))
                 for blanket_line in sale.blanket_id.blank_order_line:
                     product_id = blanket_line.product_id.id
                     sql = '''
@@ -218,7 +221,7 @@ class sale_order(osv.osv):
                     cr.execute(sql)
                     so_product_uom_qty = cr.dictfetchone()['product_uom_qty']
                     if so_product_uom_qty == 0:
-                        raise osv.except_osv(_('Warning!'),_('Quatity must be less than quatity of Blanket Order'))
+                        raise osv.except_osv(_('Warning!'),_('Quantity must be less than quantity of Blanket Order'))
             
         return new_write
     
@@ -249,15 +252,15 @@ class sale_order(osv.osv):
                       }
                 blanket_lines.append((0,0,rs_order))
               
-            for consignee_line in blanket.blank_consignee_line:
-                rs_consignee = {
-                      'name_consignee_id': consignee_line.name_consignee_id or False,
-                      'location': consignee_line.location or False,
-                      'product_id': consignee_line.product_id and consignee_line.product_id.id or False,
-                      'product_uom_qty': consignee_line.product_uom_qty or False,
-                      'uom_po_id': consignee_line.uom_po_id and consignee_line.uom_po_id.id or False,
-                                }
-                consignee_lines.append((0,0,rs_consignee))
+#             for consignee_line in blanket.blank_consignee_line:
+#                 rs_consignee = {
+#                       'name_consignee_id': consignee_line.name_consignee_id or False,
+#                       'location': consignee_line.location or False,
+#                       'product_id': consignee_line.product_id and consignee_line.product_id.id or False,
+#                       'product_uom_qty': consignee_line.product_uom_qty or False,
+#                       'uom_po_id': consignee_line.uom_po_id and consignee_line.uom_po_id.id or False,
+#                                 }
+#                 consignee_lines.append((0,0,rs_consignee))
             
             addr = self.pool.get('res.partner').address_get(cr, uid, [blanket.customer_id.id], ['delivery', 'invoice', 'contact'])
             
@@ -384,16 +387,16 @@ class sale_order_line(osv.osv):
                     'location': str(line.street or '') + str(line.street2 or '') + ' , ' + str(line.city or ''),    
                     }
         return {'value': vals}
-    def onchange_product_id(self, cr, uid, ids, product_id = False, context=None):
-        vals = {}
-        if product_id :
-            product = self.pool.get('product.product').browse(cr, uid, product_id)
-            vals = {
-                    'product_uom':product.uom_id.id,
-                    'price_unit':product.list_price,
-                    'name': product.name
-                    }
-        return {'value': vals}
+#     def onchange_product_id(self, cr, uid, ids, product_id = False, context=None):
+#         vals = {}
+#         if product_id :
+#             product = self.pool.get('product.product').browse(cr, uid, product_id)
+#             vals = {
+#                     'product_uom':product.uom_id.id,
+#                     'price_unit':product.list_price,
+#                     'name': product.name
+#                     }
+#         return {'value': vals}
 sale_order_line()
 
 
@@ -926,64 +929,64 @@ class tpt_form_403(osv.osv):
     _name = "tpt.form.403"
      
     _columns = {
-        'from_place':fields.char('From Place', size = 1024),
-        'to_place':fields.char('To Place', size = 1024),
-        'from_district':fields.char('From District', size = 1024),
-        'to_district':fields.char('To District', size = 1024),
+        'from_place':fields.char('From Place', size = 256),
+        'to_place':fields.char('To Place', size = 256),
+        'from_district':fields.char('From District', size = 256),
+        'to_district':fields.char('To District', size = 256),
         'name':fields.many2one('account.invoice','Invoice No'),
         'date':fields.related('name', 'date_invoice', type='date', string='Date',readonly=True),
-        'consignor_name':fields.char('Name', size = 1024),
-        'consignor_street': fields.char('Street', size = 1024),
-        'consignor_street2': fields.char('', size = 1024),
-        'consignor_city': fields.char('', size = 1024),
+        'consignor_name':fields.char('Name', size = 256),
+        'consignor_street': fields.char('Street', size = 256),
+        'consignor_street2': fields.char('', size = 256),
+        'consignor_city': fields.char('', size = 256),
         'consignor_country_id': fields.many2one('res.country', ''),
         'consignor_state_id': fields.many2one('res.country.state', ''),
-        'consignor_zip': fields.char('', size = 1024),
+        'consignor_zip': fields.char('', size = 256),
         'consignor_tel':fields.char('Telephone', size = 15),
         'consignor_fax':fields.char('Fax', size = 32),
-        'consignor_certi_no':fields.char('Reg. Certificate No', size = 1024),
-        'consignor_cst_no':fields.char('CST Reg No', size = 1024),
+        'consignor_certi_no':fields.char('Reg. Certificate No', size = 256),
+        'consignor_cst_no':fields.char('CST Reg No', size = 256),
         'consignor_date_1':fields.date('Date'),
         'consignor_date_2':fields.date('Date'),
-        'transporter_name':fields.char('Name', size = 1024),
-        'transporter_street': fields.char('Street', size = 1024),
-        'transporter_street2': fields.char('', size = 1024),
-        'transporter_city': fields.char('', size = 1024),
+        'transporter_name':fields.char('Name', size = 256),
+        'transporter_street': fields.char('Street', size = 256),
+        'transporter_street2': fields.char('', size = 256),
+        'transporter_city': fields.char('', size = 256),
         'transporter_country_id': fields.many2one('res.country', ''),
         'transporter_state_id': fields.many2one('res.country.state', ''),
-        'transporter_zip': fields.char('', size = 1024),
-        'transporter_owner':fields.char('Owner Partner Name', size = 1024),
+        'transporter_zip': fields.char('', size = 256),
+        'transporter_owner':fields.char('Owner Partner Name', size = 256),
         'transporter_vehicle_no':fields.char('Vehicle No', size = 32),
-        'driver_name':fields.char('Name', size = 1024),
-        'driver_street': fields.char('Street', size = 1024),
-        'driver_street2': fields.char('', size = 1024),
-        'driver_city': fields.char('', size = 1024),
+        'driver_name':fields.char('Name', size = 256),
+        'driver_street': fields.char('Street', size = 256),
+        'driver_street2': fields.char('', size = 256),
+        'driver_city': fields.char('', size = 256),
         'driver_country_id': fields.many2one('res.country', ''),
         'driver_state_id': fields.many2one('res.country.state', ''),
-        'driver_zip': fields.char('', size = 1024),
-        'driver_licence':fields.char('Driving Licence Number', size = 1024),
-        'driver_issuing':fields.char('Licence Issuing State', size = 1024),
-        'good_name':fields.char('Name', size = 1024),
-        'good_street': fields.char('Street', size = 1024),
-        'good_street2': fields.char('', size = 1024),
-        'good_city': fields.char('', size = 1024),
+        'driver_zip': fields.char('', size = 256),
+        'driver_licence':fields.char('Driving Licence Number', size = 256),
+        'driver_issuing':fields.char('Licence Issuing State', size = 256),
+        'good_name':fields.char('Name', size = 256),
+        'good_street': fields.char('Street', size = 256),
+        'good_street2': fields.char('', size = 256),
+        'good_city': fields.char('', size = 256),
         'good_country_id': fields.many2one('res.country', ''),
         'good_state_id': fields.many2one('res.country.state', ''),
-        'good_zip': fields.char('', size = 1024),
-        'good_designation':fields.char('Designation', size = 1024),
+        'good_zip': fields.char('', size = 256),
+        'good_designation':fields.char('Designation', size = 256),
         'entry_no':fields.char('Entry no', size = 64),
-        'reason':fields.char('Reason for abnormal Stoppage', size = 1024),
-        'result':fields.char('Result if any', size = 1024, required = True),
+        'reason':fields.char('Reason for abnormal Stoppage', size = 256),
+        'result':fields.char('Result if any', size = 256, required = True),
         'arrival':fields.datetime('Arrival Time', required = True),
         'departure':fields.datetime('Departure Time', required = True),
-        'consignee_street': fields.char('Street', size = 1024),
-        'consignee_street2': fields.char('', size = 1024),
-        'consignee_city': fields.char('', size = 1024),
+        'consignee_street': fields.char('Street', size = 256),
+        'consignee_street2': fields.char('', size = 256),
+        'consignee_city': fields.char('', size = 256),
         'consignee_country_id': fields.many2one('res.country', ''),
         'consignee_state_id': fields.many2one('res.country.state', ''),
-        'consignee_zip': fields.char('', size = 1024),
-        'consignee_certi_no':fields.char('Reg. Certificate No', size = 1024),
-        'consignee_cst_no':fields.char('CST Reg No', size = 1024),
+        'consignee_zip': fields.char('', size = 256),
+        'consignee_certi_no':fields.char('Reg. Certificate No', size = 256),
+        'consignee_cst_no':fields.char('CST Reg No', size = 256),
         'consignee_value':fields.float('Consigned Value'),
         'consignee_line':fields.one2many('tpt.form.403.consignee','form_403_id','Consignee'),
         'inter_state':fields.boolean('Inter State Sale'),
