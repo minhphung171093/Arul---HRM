@@ -11,6 +11,7 @@ import calendar
 import openerp.addons.decimal_precision as dp
 from openerp import netsvc
 
+
 class sale_order(osv.osv):
     _inherit = "sale.order"
     

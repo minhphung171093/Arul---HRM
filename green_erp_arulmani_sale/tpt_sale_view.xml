@@ -54,12 +54,10 @@
 					<field name="product_type" />
 					<field name="application_id" options="{'create': false, 'create_edit': false}" />
 				</xpath>
-			 	<xpath expr="//form/sheet/notebook/page[@string='Order Lines']/field/tree/field[@name='product_id']"  position="attributes">
+			 <!--	<xpath expr="//form/sheet/notebook/page[@string='Order Lines']/field/tree/field[@name='product_id']"  position="attributes">
 					<attribute name='options'>{'create': false, 'create_edit': false}</attribute> 
-				</xpath>  
-			<!--	<xpath expr="//form/sheet/notebook/page[@string='Order Lines']/field/tree/field[@name='product_id']"  position="replace">
-					<field name="product_id" on_change = "onchange_tpt_product_id(product_id, order_id)" options="{'create': false, 'create_edit': false}"/>  
-				</xpath> -->
+				</xpath>  -->
+				
 				<xpath expr="//form/sheet/notebook/page[@string='Order Lines']/field/tree/field[@name='product_uom']"  position="attributes">
 					<attribute name="readonly">1</attribute>
 				</xpath>

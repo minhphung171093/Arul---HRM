@@ -46,9 +46,9 @@ class stock_picking(osv.osv):
     
     def write(self, cr, uid, ids, vals, context=None):
         new_write = super(stock_picking, self).write(cr, uid,ids, vals, context)
-        stock = self.browse(cr,uid,ids)
-        if not stock.move_lines:
-            raise osv.except_osv(_('Warning!'),_('Stock move details is not empty'))  
+        for stock in self.browse(cr,uid,ids):
+            if not stock.move_lines:
+                raise osv.except_osv(_('Warning!'),_('Stock move details is not empty'))  
         return new_write
     
     def onchange_move_date(self, cr, uid, ids, move_date=False, context=None):
