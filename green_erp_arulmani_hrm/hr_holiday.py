@@ -580,10 +580,11 @@ class arul_hr_employee_leave_details(osv.osv):
                 vals.update({'check_leave_type_pl':True,'haft_day_leave':False})
             else:
                 vals.update({'check_leave_type_pl':False})
-        if employee_id and leave_type_id:
+        if employee_id and leave_type_id and date_from:
             leave_details_obj = self.pool.get('employee.leave.detail')
             emp_leave_obj = self.pool.get('employee.leave')
-            year_now = time.strftime('%Y')
+            year_now = date_from[:4]
+#             year_now = time.strftime('%Y')
             emp_leave_ids = emp_leave_obj.search(cr, uid, [('employee_id','=',employee_id),('year','=',year_now)])
             if emp_leave_ids:
                 available_leave = 0.0
@@ -600,7 +601,8 @@ class arul_hr_employee_leave_details(osv.osv):
                 timedelta = timedelta-0.5
             leave_details_obj = self.pool.get('employee.leave.detail')
             emp_leave_obj = self.pool.get('employee.leave')
-            year_now = time.strftime('%Y')
+            year_now = date_from[0:4]
+#             year_now = time.strftime('%Y')
             emp_leave_ids = emp_leave_obj.search(cr, uid, [('employee_id','=',employee_id),('year','=',year_now)])
             if emp_leave_ids:
                 emp_leave = emp_leave_obj.browse(cr, uid, emp_leave_ids[0])

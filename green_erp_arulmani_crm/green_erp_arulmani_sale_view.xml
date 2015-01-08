@@ -21,16 +21,16 @@
             <field name="name">crm.sale.order.form</field>
             <field name="model">crm.sale.order</field>
             <field name="arch" type="xml">
-                	<form string="Sales Order" create="false" version="7.0">
+                	<form string="Quotation" create="false" version="7.0">
 	                    <header>
 	                        <button name="action_button_view_partner" attrs="{'invisible': [('state', '!=', 'draft')]}" string="Confirm Quote" type="object"/>
-	                        <button name="action_cancel" states="done" string="Cancel Quotation" type="object"/>
+	                        <button name="action_cancel" attrs="{'invisible': [('state', '=', 'cancel')]}" string="Cancel Quotation" type="object"/>
+	                        <button name="copy_quotation" states="cancel" string="New Copy of Quotation" type="object"/>
 	                        <field name="state" widget="statusbar" statusbar_visible="draft,done"/>
 	                	</header>	
 	                	<sheet>
                     	<h1>
-	                        <label string="Quotation " attrs="{'invisible': [('state','not in',('draft','sent'))]}"/>
-	                        <label string="Sales Order " attrs="{'invisible': [('state','in',('draft','sent'))]}"/>
+	                        <label string="Quotation "/>
 	                        <field name="name" class="oe_inline" readonly="1"/>
                     	</h1>
                     	<group>
@@ -120,7 +120,7 @@
         </record> 
         
         <record id="action_crm_sale_order" model="ir.actions.act_window">
-            <field name="name">CRM Quotations</field>
+            <field name="name">Quotations</field>
             <field name="res_model">crm.sale.order</field>
             <field name="type">ir.actions.act_window</field>
             <field name="view_type">form</field>
@@ -129,58 +129,30 @@
 
         <menuitem action="action_crm_sale_order" id="vsis_menu_action_crm_sale_order" parent="base.menu_sales" sequence="3"/>
         
-        
-       <!-- <record id="vsis_view_order_tree" model="ir.ui.view">
-            <field name="name">vsis.sale.order.tree</field>
-            <field name="model">sale.order</field>
-            <field name="inherit_id" ref="sale.view_order_tree"/>
-            <field name="priority">2</field>
-            <field name="arch" type="xml">
-            	<xpath expr="//tree[@string='Sales Orders']"  position="replace">
-	                <tree string="Sales Orders" create ="false" fonts="bold:message_unread==True" colors="grey:state=='cancel';blue:state in ('waiting_date','manual');red:state in ('invoice_except','shipping_except')">
-	                    <field name="message_unread" invisible="1"/>
-	                    <field name="name" string="Order Number"/>
-	                    <field name="date_order"/>
-	                    <field name="partner_id"/>
-	                    <field name="user_id"/>
-	                    <field name="amount_total" sum="Total Tax Included"/>
-	                    <field name="state"/>
-	                </tree>
-	            </xpath>
-            </field>
-        </record>-->
-        
-        <!--<record id="vsis_view_sale_inco_terms_tree" model="ir.ui.view">
-            <field name="name">vsis.sale.inco.terms.tree</field>
-            <field name="model">sale.inco.terms</field>
-            <field name="arch" type="xml">
-                <tree string="Incoterms Master">
-                    <field name="code"/>
-                    <field colspan="4" name="name"/>
-                </tree>
-            </field>
-        </record>
-        <record id="vsis_sale_inco_terms_form" model="ir.ui.view">
-            <field name="name">vsis.sale.inco.terms.form</field>
-            <field name="model">sale.inco.terms</field>
-            <field name="arch" type="xml">
-                <form string="Incoterms Master" version="7.0">
-                    <group>
-                        <field name="name"/>
-                        <field name="code"/>
-                    </group>
-                </form>
-            </field>
-        </record>
-        <record id="vsis_action_sale_inco_terms_tree" model="ir.actions.act_window">
-            <field name="name">Incoterms Master</field>
-            <field name="res_model">sale.inco.terms</field>
+        <record id="sale.action_orders" model="ir.actions.act_window">
+            <field name="name">Sales Orders</field>
             <field name="type">ir.actions.act_window</field>
+            <field name="res_model">sale.order</field>
             <field name="view_type">form</field>
-            <field name="view_mode">tree,form</field>
+            <field name="view_mode">tree,form,calendar,graph</field>
+            <field name="search_view_id" ref="sale.view_sales_order_filter"/>
+            <field name="context">{}</field>
+            <field name="domain">[]</field>
+            <field name="help" type="html">
+              <p class="oe_view_nocontent_create">
+                Click to create a quotation that can be converted into a sales
+                order.
+              </p><p>
+                OpenERP will help you efficiently handle the complete sales flow:
+                quotation, sales order, delivery, invoicing and payment.
+              </p>
+            </field>
         </record>
-
-        <menuitem action="vsis_action_sale_inco_terms_tree" id="vsis_menu_action_sale_inco_terms_open" parent="base.menu_sales" sequence="106"/>-->
+            
+        <menuitem id="sale.menu_sale_quotations"
+        action="sale.action_quotations" parent="base.menu_sales"
+        sequence="4" groups="group_invisible"/>
+        
         
         
     </data>
