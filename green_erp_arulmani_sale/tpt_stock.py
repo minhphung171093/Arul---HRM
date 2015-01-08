@@ -34,13 +34,17 @@ class stock_picking(osv.osv):
     def create(self, cr, uid, vals, context=None):
         if vals.get('name','/')=='/':
             vals['name'] = self.pool.get('ir.sequence').get(cr, uid, 'tpt.stock.move.import') or '/'
-        if not vals['move_lines']:
-            raise osv.except_osv(_('Warning!'),_('Stock move details is not empty'))  
-        return super(stock_picking, self).create(cr, uid, vals, context=context)
+#         new_id = super(stock_picking, self).create(cr, uid, vals, context)
+#         stock = self.browse(cr, uid, new_id)
+#         if not stock.move_lines:
+#             raise osv.except_osv(_('Warning!'),_('Stock move details is not empty'))  
+#         return new_id
+        return super(stock_picking, self).create(cr, uid, vals, context)
     
 #     def write(self, cr, uid, ids, vals, context=None):
 #         new_write = super(stock_picking, self).write(cr, uid,ids, vals, context)
-#         if not vals['move_lines']:
+#         stock = self.browse(cr,uid,ids)
+#         if not stock.move_lines:
 #             raise osv.except_osv(_('Warning!'),_('Stock move details is not empty'))  
 #         return new_write
     
