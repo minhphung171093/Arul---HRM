@@ -493,6 +493,39 @@ class arul_hr_employee_leave_details(osv.osv):
             }
         return res
     
+    def _available_leave(self, cr, uid, ids, field_name, arg, context=None):
+        res = {}
+        DATETIME_FORMAT = "%Y-%m-%d"
+        if context is None:
+            context = {}
+        for line in self.browse(cr, uid, ids, context=context):
+            day = 0
+            from_dt = datetime.datetime.strptime(line.date_from, DATETIME_FORMAT)
+            to_dt = datetime.datetime.strptime(line.date_to, DATETIME_FORMAT)
+            timedelta = (to_dt - from_dt).days+1
+            if line.haft_day_leave:
+                timedelta = timedelta-0.5
+            leave_details_obj = self.pool.get('employee.leave.detail')
+            emp_leave_obj = self.pool.get('employee.leave')
+            year_now = line.date_from[0:4]
+            emp_leave_ids = emp_leave_obj.search(cr, uid, [('employee_id','=',line.employee_id.id),('year','=',year_now)])
+            if emp_leave_ids:
+                emp_leave = emp_leave_obj.browse(cr, uid, emp_leave_ids[0])
+                temp = 0
+                for line_leave in emp_leave.emp_leave_details_ids:
+                    if line_leave.leave_type_id.id == line.leave_type_id.id:
+                        temp += 1
+                        day = line_leave.total_day - line_leave.total_taken
+            res[line.id] = day
+        return res
+    
+    def _get_line(self, cr, uid, ids, context=None):
+        result = {}
+        leave_detail_ids = self.pool.get('arul.hr.employee.leave.details').search(cr, uid, [])
+        for line in leave_detail_ids:
+            result[line] = True
+        return result.keys()
+    
     _columns={
               'employee_id':fields.many2one('hr.employee','Employee',required=True, states={'done': [('readonly', True)], 'cancel': [('readonly', True)]}),
               'leave_type_id':fields.many2one('arul.hr.leave.types','Leave Type',required=True, states={'done': [('readonly', True)], 'cancel': [('readonly', True)]}),
@@ -501,7 +534,11 @@ class arul_hr_employee_leave_details(osv.osv):
               'days_total': fields.function(days_total, string='Total Leaves',store=True, multi='sums', help="The total amount.", states={'done': [('readonly', True)], 'cancel': [('readonly', True)]}),
               'haft_day_leave': fields.boolean('Is Half Day Leave ?', states={'done': [('readonly', True)], 'cancel': [('readonly', True)]}),
               'check_leave_type_pl': fields.boolean('Check Leave Type PL'),
-              'available_leave': fields.float('Available Leave',readonly=True),
+#               'available_leave': fields.float('Available Leave',readonly=True),
+                'available_leave': fields.function(_available_leave, string='Available Leave',store={
+                    'arul.hr.employee.leave.details': (_get_line, ['date_from','date_to','employee_id','leave_type_id','haft_day_leave'], 10),
+                    'arul.hr.employee.leave.details': (_get_line, ['state'], 20),                                                                                 
+                    }, states={'done': [('readonly', True)], 'cancel': [('readonly', True)]}),
               'reason':fields.text('Reason', states={'done': [('readonly', True)], 'cancel': [('readonly', True)]}),
               'state':fields.selection([('draft', 'Draft'),('cancel', 'Cancel'),('done', 'Done')],'Status', readonly=True),
             'leave_evaluate_id': fields.many2one('tpt.time.leave.evaluation','Leave Evaluation'),
@@ -592,7 +629,7 @@ class arul_hr_employee_leave_details(osv.osv):
                 for line in emp_leave.emp_leave_details_ids:
                     if line.leave_type_id.id == leave_type_id:
                         available_leave = line.total_day - line.total_taken
-                vals['available_leave'] = available_leave
+#                 vals['available_leave'] = available_leave
         if date_from and date_to and employee_id and leave_type_id:
             from_dt = datetime.datetime.strptime(date_from, DATETIME_FORMAT)
             to_dt = datetime.datetime.strptime(date_to, DATETIME_FORMAT)
@@ -620,7 +657,31 @@ class arul_hr_employee_leave_details(osv.osv):
         return {'value':vals}
     
     def process_leave_request(self, cr, uid, ids, context=None):
+        DATETIME_FORMAT = "%Y-%m-%d"
         for line in self.browse(cr, uid, ids):
+            from_dt = datetime.datetime.strptime(line.date_from, DATETIME_FORMAT)
+            to_dt = datetime.datetime.strptime(line.date_to, DATETIME_FORMAT)
+            timedelta = (to_dt - from_dt).days+1
+            if line.haft_day_leave:
+                timedelta = timedelta-0.5
+            leave_details_obj = self.pool.get('employee.leave.detail')
+            emp_leave_obj = self.pool.get('employee.leave')
+            year_now = line.date_from[0:4]
+#             year_now = time.strftime('%Y')
+            emp_leave_ids = emp_leave_obj.search(cr, uid, [('employee_id','=',line.employee_id.id),('year','=',year_now)])
+            if emp_leave_ids:
+                emp_leave = emp_leave_obj.browse(cr, uid, emp_leave_ids[0])
+                temp = 0
+                for line_leave in emp_leave.emp_leave_details_ids:
+                    if line_leave.leave_type_id.id == line.leave_type_id.id:
+                        temp += 1
+                        day = line_leave.total_day - line_leave.total_taken
+                        if timedelta > day and line_leave.leave_type_id.code!='LOP':
+                            raise osv.except_osv(_('Warning!'),_('The Taken Day Must Be Less Than The Limit'))
+                if temp == 0:
+                    raise osv.except_osv(_('Warning!'),_('Leave Type Is Unlicensed For Employee Category And Employee Sub Category!'))
+            else:
+                raise osv.except_osv(_('Warning!'),_('Employee Has Not Been Licensed Holidays For The Current Year'))
             self.write(cr, uid, [line.id],{'state':'done','leave_evaluate_id': False})
         return True  
     
