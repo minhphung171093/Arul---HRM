@@ -46,5 +46,17 @@
             <field name="prefix">VVT/SAMPLE/</field>
             <field name="padding">4</field>
         </record>
+        
+        <record id="seq_crm_sale_order_name" model="ir.sequence.type">
+            <field name="name">Crm Sale Order</field>
+            <field name="code">crm.sale.order</field>
+        </record>
+        
+        <record id="seq_crm_sale_order_item" model="ir.sequence">
+            <field name="name">Crm Sale Order</field>
+            <field name="code">crm.sale.order</field>
+            <field name="prefix">QO/</field>
+            <field name="padding">4</field>
+        </record>
 	</data>
 </openerp>

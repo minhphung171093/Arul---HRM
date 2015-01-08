@@ -32,6 +32,14 @@ from openerp import netsvc
 class crm_sale_order(osv.osv):
     _name = 'crm.sale.order'
     _inherit = ['mail.thread', 'ir.needaction_mixin']
+    
+    def create(self, cr, user, vals, context=None):
+        if ('name' not in vals) or (vals.get('name')=='/'):
+            seq_obj_name =  self._name
+            vals['name'] = self.pool.get('ir.sequence').get(cr, user, seq_obj_name)
+        new_id = super(crm_sale_order, self).create(cr, user, vals, context)
+        return new_id
+    
     def onchange_quotation_type(self, cr, uid, ids,quotation_type=False, context=None):
         vals = {}
         if quotation_type and quotation_type == 'domestic':
@@ -43,21 +51,11 @@ class crm_sale_order(osv.osv):
         return {'value': vals}
     
     def action_cancel(self, cr, uid, ids, context=None):
-        wf_service = netsvc.LocalService("workflow")
         if context is None:
             context = {}
         sale_order_line_obj = self.pool.get('crm.sale.order.line')
         for sale in self.browse(cr, uid, ids, context=context):
-            for inv in sale.invoice_ids:
-                if inv.state not in ('draft', 'cancel'):
-                    raise osv.except_osv(
-                        _('Cannot cancel this sales order!'),
-                        _('First cancel all invoices attached to this sales order.'))
-            for r in self.read(cr, uid, ids, ['invoice_ids']):
-                for inv in r['invoice_ids']:
-                    wf_service.trg_validate(uid, 'account.invoice', inv, 'invoice_cancel', cr)
-            sale_order_line_obj.write(cr, uid, [l.id for l in  crm.sale.order_line],
-                    {'state': 'cancel'})
+            sale_order_line_obj.write(cr, uid, [l.id for l in  sale.order_line], {'state': 'cancel'})
             if sale.lead_id:
                 self.pool.get('crm.lead').write(cr, uid, [sale.lead_id.id], {'status':'cancelled'}, context=context)
                 self.pool.get('crm.lead.history').create(cr, uid,{'lead_id':sale.lead_id.id,'status':'cancelled'}, context=context)
@@ -84,6 +82,7 @@ class crm_sale_order(osv.osv):
         }
     def action_button_view_partner(self, cr, uid, ids, context=None):
         for sale in self.browse(cr, uid, ids, context=context):
+            self.pool.get('crm.sale.order').write(cr, uid, [sale.id], {'state':'done'}, context=context)
             if sale.lead_id and sale.lead_id.partner_id:
                 partner_id = sale.lead_id.partner_id.id
                 self.pool.get('res.partner').write(cr, uid, [partner_id], {'is_company':True}, context=context)
@@ -156,19 +155,16 @@ class crm_sale_order(osv.osv):
         return shop_ids[0]
         
     _columns = {
-                'partner_id': fields.many2one('res.partner', 'Customer', readonly=True, states={'draft': [('readonly', False)], 'sent': [('readonly', False)]}, required=True, change_default=True, select=True, track_visibility='always'),
+                'partner_id': fields.many2one('res.partner', 'Customer', readonly=True, states={'draft': [('readonly', False)]}, required=True, change_default=True, select=True, track_visibility='always'),
                 'name': fields.char('Order Reference', size=64, required=True,
-            readonly=True, states={'draft': [('readonly', False)], 'sent': [('readonly', False)]}, select=True),
+            readonly=True, states={'draft': [('readonly', False)]}, select=True),
                 'lead_id': fields.many2one('crm.lead','Lead',domain="[('type','=','opportunity')]" ,readonly=True),
                 'quotation_type':fields.selection([('domestic','Domestic'),('export','Export')],'Quotation Type' ,readonly=True),
-#                 'quotation_type':fields.related('lead_group', 'lead_id', type="selection", relation="crm.lead", string="Quotation Type"),
-                'commission_type_id': fields.selection([('percentage','Percentage'),('quantity_wise','Quantity Wise')],'Commission Type',readonly=True, states={'draft': [('readonly', False)], 'sent': [('readonly', False)]}),
-                'commission_rate': fields.float('Commission Rate',readonly=True, states={'draft': [('readonly', False)], 'sent': [('readonly', False)]}),
-#                 'commission_amount':fields.float('Commission Amount',readonly=True, states={'draft': [('readonly', False)], 'sent': [('readonly', False)]}),
+                'commission_type_id': fields.selection([('percentage','Percentage'),('quantity_wise','Quantity Wise')],'Commission Type',readonly=True, states={'draft': [('readonly', False)]}),
+                'commission_rate': fields.float('Commission Rate',readonly=True, states={'draft': [('readonly', False)]}),
                 'commission_amount': fields.function(_commission_amount, string='Commission Amount', digits_compute= dp.get_precision('Account')),
-#                 'currency_id': fields.related('currency_id', 'lead_id', type="many2one", relation="res.currency", string="Currency",required=True),
                 'currency_id': fields.many2one('res.currency','Currency',required=True,readonly=True),
-                'date_order': fields.date('Date', required=True, readonly=True, select=True, states={'draft': [('readonly', False)], 'sent': [('readonly', False)]}),
+                'date_order': fields.date('Date', required=True, readonly=True, select=True, states={'draft': [('readonly', False)]}),
                 'amount_untaxed': fields.function(_amount_all, digits_compute=dp.get_precision('Account'), string='Untaxed Amount',
                     store={
                         'crm.sale.order': (lambda self, cr, uid, ids, c={}: ids, ['order_line'], 10),
@@ -187,34 +183,29 @@ class crm_sale_order(osv.osv):
                         'crm.sale.order.line': (_get_order, ['price_unit', 'tax_id', 'discount', 'product_uom_qty'], 10),
                     },
                     multi='sums', help="The total amount."),
-                'client_order_ref': fields.char('Customer Reference', size=64,readonly=True, states={'draft': [('readonly', False)], 'sent': [('readonly', False)]}),
-                'user_id': fields.many2one('res.users', 'Salesperson', readonly=True, states={'draft': [('readonly', False)], 'sent': [('readonly', False)]}, select=True, track_visibility='onchange'),
-                'section_id': fields.many2one('crm.case.section', 'Sales Team',readonly=True, states={'draft': [('readonly', False)], 'sent': [('readonly', False)]}),
+                'client_order_ref': fields.char('Customer Reference', size=64,readonly=True, states={'draft': [('readonly', False)]}),
+                'user_id': fields.many2one('res.users', 'Salesperson', readonly=True, states={'draft': [('readonly', False)]}, select=True, track_visibility='onchange'),
+                'section_id': fields.many2one('crm.case.section', 'Sales Team',readonly=True, states={'draft': [('readonly', False)]}),
                 'categ_ids': fields.many2many('crm.case.categ', 'sale_order_category_rel', 'order_id', 'category_id', 'Categories', \
-            domain="['|',('section_id','=',section_id),('section_id','=',False), ('object_id.model', '=', 'crm.lead')]",readonly=True, states={'draft': [('readonly', False)], 'sent': [('readonly', False)]}, context="{'object_name': 'crm.lead'}"),
-                'origin': fields.char('Source Document', size=64,readonly=True, states={'draft': [('readonly', False)], 'sent': [('readonly', False)]}, help="Reference of the document that generated this sales order request."),
-                'payment_term': fields.many2one('account.payment.term', 'Payment Term',readonly=True, states={'draft': [('readonly', False)], 'sent': [('readonly', False)]},   ),
-                'fiscal_position': fields.many2one('account.fiscal.position', 'Fiscal Position',readonly=True, states={'draft': [('readonly', False)], 'sent': [('readonly', False)]}),
-                'company_id': fields.related('shop_id','company_id',type='many2one',relation='res.company',string='Company',store=True,readonly=True, states={'draft': [('readonly', False)], 'sent': [('readonly', False)]}),
-                'bank_account_id': fields.many2one('res.partner.bank', 'Bank Account', readonly=True, states={'draft': [('readonly', False)], 'sent': [('readonly', False)]}, select=True, track_visibility='onchange'),
+            domain="['|',('section_id','=',section_id),('section_id','=',False), ('object_id.model', '=', 'crm.lead')]",readonly=True, states={'draft': [('readonly', False)]}, context="{'object_name': 'crm.lead'}"),
+                'origin': fields.char('Source Document', size=64,readonly=True, states={'draft': [('readonly', False)]}, help="Reference of the document that generated this sales order request."),
+                'payment_term': fields.many2one('account.payment.term', 'Payment Term',readonly=True, states={'draft': [('readonly', False)]},   ),
+                'fiscal_position': fields.many2one('account.fiscal.position', 'Fiscal Position',readonly=True, states={'draft': [('readonly', False)]}),
+                'company_id': fields.related('shop_id','company_id',type='many2one',relation='res.company',string='Company',store=True,readonly=True, states={'draft': [('readonly', False)]}),
+                'bank_account_id': fields.many2one('res.partner.bank', 'Bank Account', readonly=True, states={'draft': [('readonly', False)]}, select=True, track_visibility='onchange'),
                 'note': fields.text('Terms and conditions'),
-                'pricelist_id': fields.many2one('product.pricelist', 'Pricelist', required=True, readonly=True, states={'draft': [('readonly', False)], 'sent': [('readonly', False)]}, help="Pricelist for current sales order."),
-                'incoterm': fields.many2one('stock.incoterms', 'Incoterm', help="International Commercial Terms are a series of predefined commercial terms used in international transactions."),
-                'shop_id': fields.many2one('sale.shop', 'Shop', required=True, readonly=True, states={'draft': [('readonly', False)], 'sent': [('readonly', False)]}),
-                'picking_details':fields.char('Picking Details',size=255),
-                'description':fields.text('Description'),
-                'order_line': fields.one2many('crm.sale.order.line', 'order_id', 'Order Lines', readonly=True, states={'draft': [('readonly', False)], 'sent': [('readonly', False)]}),
+                'pricelist_id': fields.many2one('product.pricelist', 'Pricelist', required=True, readonly=True, states={'draft': [('readonly', False)]}, help="Pricelist for current sales order."),
+                'incoterm': fields.many2one('stock.incoterms', 'Incoterm',readonly=True, states={'draft': [('readonly', False)]}, help="International Commercial Terms are a series of predefined commercial terms used in international transactions."),
+                'shop_id': fields.many2one('sale.shop', 'Shop', required=True, readonly=True, states={'draft': [('readonly', False)]}),
+                'picking_details':fields.char('Picking Details',size=255,readonly=True, states={'draft': [('readonly', False)]}),
+                'description':fields.text('Description',readonly=True, states={'draft': [('readonly', False)]}),
+                'order_line': fields.one2many('crm.sale.order.line', 'order_id', 'Order Lines', readonly=True, states={'draft': [('readonly', False)]}),
                 'state': fields.selection([
-                ('draft', 'Draft Quotation'),
-                ('sent', 'Quotation Sent'),
-                ('cancel', 'Cancelled'),
-                ('waiting_date', 'Waiting Schedule'),
-                ('progress', 'Sales Order'),
-                ('manual', 'Sale to Invoice'),
-                ('invoice_except', 'Invoice Exception'),
-                ('done', 'Done'),
-                ], 'Status', readonly=True, track_visibility='onchange',
-                help="Gives the status of the quotation or sales order. \nThe exception status is automatically set when a cancel operation occurs in the processing of a document linked to the sales order. \nThe 'Waiting Schedule' status is set when the invoice is confirmed but waiting for the scheduler to run on the order date.", select=True),
+                                        ('draft', 'Draft Quotation'),
+                                        ('cancel', 'Cancelled'),
+                                        ('done', 'Done'),
+                                        ], 'Status', readonly=True, track_visibility='onchange',
+                                        help="Gives the status of the quotation or sales order. \nThe exception status is automatically set when a cancel operation occurs in the processing of a document linked to the sales order. \nThe 'Waiting Schedule' status is set when the invoice is confirmed but waiting for the scheduler to run on the order date.", select=True),
                 }
     _defaults = {
                  'commission_amount':0.0,
@@ -225,6 +216,9 @@ class crm_sale_order(osv.osv):
     _sql_constraints = [
         ('name_uniq', 'unique(name, company_id)', 'Order Reference must be unique per Company!'),
     ]
+    
+    def button_dummy(self, cr, uid, ids, context=None):
+        return True
     
     def onchange_shop_id(self, cr, uid, ids, shop_id, context=None):
         v = {}
@@ -298,7 +292,6 @@ class crm_sale_order_line(osv.osv):
                 date_order=date_order, context=context)
         
     _columns = {
-#         'categ_ids': fields.many2one('crm.case.categ', 'Grade'),
         'sequence': fields.integer('Sequence', help="Gives the sequence order when displaying a list of sales order lines."),
         'order_id': fields.many2one('crm.sale.order', 'Order Reference', required=True, ondelete='cascade', select=True, readonly=True, states={'draft':[('readonly',False)]}),
         'product_id': fields.many2one('product.product', 'Product', domain=[('sale_ok', '=', True)], change_default=True),
@@ -307,11 +300,9 @@ class crm_sale_order_line(osv.osv):
         'product_uom_qty': fields.float('Quantity', digits_compute= dp.get_precision('Product UoS'), required=True, readonly=True, states={'draft': [('readonly', False)]}),
         'price_unit': fields.float('Unit Price', required=True, digits_compute= dp.get_precision('Product Price'), readonly=True, states={'draft': [('readonly', False)]}),
         'ex_duty': fields.many2one('account.tax', 'Ex.Duty', domain="[('type_tax_use','=','excise_duty')]"),
-#         'price_subtotal': fields.float('Subtotal'),
         'price_subtotal': fields.function(_amount_line, string='Subtotal', digits_compute= dp.get_precision('Account')),
         'sub_tax':fields.many2one('account.tax', 'S.Tax', domain="[('type_tax_use','=','sale')]"),
         'tax': fields.related('sub_tax','amount',type='float',relation='account.tax',string='Tax %',store=True,readonly=True,),
-#         'tax_amt': fields.float('Tax Amt'),
         'tax_amt': fields.function(_amount_tax, string='Tax Amt', digits_compute= dp.get_precision('Account')),
         'state': fields.selection([('cancel', 'Cancelled'),('draft', 'Draft'),('confirmed', 'Confirmed'),('exception', 'Exception'),('done', 'Done')], 'Status', required=True, readonly=True,
                 help='* The \'Draft\' status is set when the related sales order in draft status. \

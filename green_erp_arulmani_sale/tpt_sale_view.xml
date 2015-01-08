@@ -85,6 +85,20 @@
 	       	</field>
         </record>
         
+        <record id="view_order_form_button" model="ir.ui.view">
+            <field name="name">view.order.form.button</field>
+            <field name="model">sale.order</field>
+            <field name="inherit_id" ref="sale_stock.view_order_form_inherit"/>
+            <field name="arch" type="xml">
+            <data>
+            <xpath expr="//button[@name='action_view_delivery']" position="replace">
+            <button name="action_view_delivery" string="Create Delivery Order" type="object" class="oe_highlight"
+                 attrs="{'invisible': ['|','|','|',('picking_ids','=',False),('picking_ids','=',[]), ('state', 'not in', ('progress','manual')),('shipped','=',True)]}" groups="base.group_user"/>
+            </xpath>
+            </data>
+            </field>
+        </record>
+            
         <menuitem name="Draft Sales Order" id="sale.menu_sale_quotations"
         action="sale.action_quotations" parent="base.menu_sales"
         sequence="4"/>
