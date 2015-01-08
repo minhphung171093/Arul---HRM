@@ -52,14 +52,14 @@
 			
 				<xpath expr="//form/sheet/notebook/page[@string='Order Lines']/field/tree/field[@name='name']"  position="after">
 					<field name="product_type" />
-					<field name="application_id" />
+					<field name="application_id" options="{'create': false, 'create_edit': false}" />
 				</xpath>
-				<xpath expr="//form/sheet/notebook/page[@string='Order Lines']/field/tree/field[@name='product_id']"  position="replace">
-					<field name="product_id" on_change="onchange_product_id(product_id)"/>
-				</xpath>
-				<xpath expr="//form/sheet/notebook/page[@string='Order Lines']/field/tree/field[@name='product_uom_qty']"  position="replace">
-					<field name="product_uom_qty" />
-				</xpath>
+			 	<xpath expr="//form/sheet/notebook/page[@string='Order Lines']/field/tree/field[@name='product_id']"  position="attributes">
+					<attribute name='options'>{'create': false, 'create_edit': false}</attribute> 
+				</xpath>  
+			<!--	<xpath expr="//form/sheet/notebook/page[@string='Order Lines']/field/tree/field[@name='product_id']"  position="replace">
+					<field name="product_id" on_change = "onchange_tpt_product_id(product_id, order_id)" options="{'create': false, 'create_edit': false}"/>  
+				</xpath> -->
 				<xpath expr="//form/sheet/notebook/page[@string='Order Lines']/field/tree/field[@name='product_uom']"  position="attributes">
 					<attribute name="readonly">1</attribute>
 				</xpath>
@@ -85,9 +85,43 @@
 	       	</field>
         </record>
         
-        <menuitem name="Draft Sales Order" id="sale.menu_sale_quotations"
+        <record id="view_order_form_button" model="ir.ui.view">
+            <field name="name">view.order.form.button</field>
+            <field name="model">sale.order</field>
+            <field name="inherit_id" ref="sale_stock.view_order_form_inherit"/>
+            <field name="arch" type="xml">
+            <data>
+            <xpath expr="//button[@name='action_view_delivery']" position="replace">
+            <button name="action_view_delivery" string="Create Delivery Order" type="object" class="oe_highlight"
+                 attrs="{'invisible': ['|','|','|',('picking_ids','=',False),('picking_ids','=',[]), ('state', 'not in', ('progress','manual')),('shipped','=',True)]}" groups="base.group_user"/>
+            </xpath>
+            </data>
+            </field>
+        </record>
+        
+        <record id="sale.action_orders" model="ir.actions.act_window">
+            <field name="name">Sales Orders</field>
+            <field name="type">ir.actions.act_window</field>
+            <field name="res_model">sale.order</field>
+            <field name="view_type">form</field>
+            <field name="view_mode">tree,form,calendar,graph</field>
+            <field name="search_view_id" ref="sale.view_sales_order_filter"/>
+            <field name="context">{}</field>
+            <field name="domain">[]</field>
+            <field name="help" type="html">
+              <p class="oe_view_nocontent_create">
+                Click to create a quotation that can be converted into a sales
+                order.
+              </p><p>
+                OpenERP will help you efficiently handle the complete sales flow:
+                quotation, sales order, delivery, invoicing and payment.
+              </p>
+            </field>
+        </record>
+            
+        <menuitem id="sale.menu_sale_quotations"
         action="sale.action_quotations" parent="base.menu_sales"
-        sequence="4"/>
+        sequence="4" groups="green_erp_arulmani_crm.group_invisible"/>
         
     <record id="view_tpt_blanket_order_tree_vew" model="ir.ui.view">
 			<field name="name">tpt.blanket.order.tree</field>
@@ -234,7 +268,7 @@
 	            <form string="Test Report" version="7.0">   
 	            	<sheet>
 		                <group > 
-						<field name="name"/>
+						<field name="name" options="{'create': false, 'create_edit': false}" />
 						<field name="grade"/>
 						<field name="ph"/>
 						<field name="moisture"/>

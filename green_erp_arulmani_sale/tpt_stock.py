@@ -21,7 +21,7 @@ class stock_picking(osv.osv):
         'doc_status':fields.selection([('completed','Completed')],'Document Status'),
         'sale_id': fields.many2one('sale.order', 'Sales Order', ondelete='set null', select=True),
         'do_ref_id': fields.many2one('stock.picking.out','DO Reference'),   
-        'move_date': fields.date('Movement Date'),
+        'move_date': fields.date('Movement Date', required = True),
         'reason': fields.text("Reason for Move"),
 #         'location_sour_id': fields.many2one('stock.location', 'Source Location'),
                 }
@@ -34,7 +34,15 @@ class stock_picking(osv.osv):
     def create(self, cr, uid, vals, context=None):
         if vals.get('name','/')=='/':
             vals['name'] = self.pool.get('ir.sequence').get(cr, uid, 'tpt.stock.move.import') or '/'
+        if not vals['move_lines']:
+            raise osv.except_osv(_('Warning!'),_('Stock move details is not empty'))  
         return super(stock_picking, self).create(cr, uid, vals, context=context)
+    
+#     def write(self, cr, uid, ids, vals, context=None):
+#         new_write = super(stock_picking, self).write(cr, uid,ids, vals, context)
+#         if not vals['move_lines']:
+#             raise osv.except_osv(_('Warning!'),_('Stock move details is not empty'))  
+#         return new_write
     
     def onchange_move_date(self, cr, uid, ids, move_date=False, context=None):
         vals = {}
