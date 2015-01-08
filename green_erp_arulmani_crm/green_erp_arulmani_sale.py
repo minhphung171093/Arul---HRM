@@ -33,12 +33,10 @@ class crm_sale_order(osv.osv):
     _name = 'crm.sale.order'
     _inherit = ['mail.thread', 'ir.needaction_mixin']
     
-    def create(self, cr, user, vals, context=None):
-        if ('name' not in vals) or (vals.get('name')=='/'):
-            seq_obj_name =  self._name
-            vals['name'] = self.pool.get('ir.sequence').get(cr, user, seq_obj_name)
-        new_id = super(crm_sale_order, self).create(cr, user, vals, context)
-        return new_id
+    def create(self, cr, uid, vals, context=None):
+        if vals.get('name','/')=='/':
+            vals['name'] = self.pool.get('ir.sequence').get(cr, uid, 'crm.sale.order') or '/'
+        return super(crm_sale_order, self).create(cr, uid, vals, context=context)
     
     def onchange_quotation_type(self, cr, uid, ids,quotation_type=False, context=None):
         vals = {}
@@ -61,17 +59,26 @@ class crm_sale_order(osv.osv):
                 self.pool.get('crm.lead.history').create(cr, uid,{'lead_id':sale.lead_id.id,'status':'cancelled'}, context=context)
         self.write(cr, uid, ids, {'state': 'cancel'})
         return True
-    def copy_quotation(self, cr, uid, ids, context=None):
-        id = self.copy(cr, uid, ids[0], context=None)
+    def copy(self, cr, uid, id, default=None, context=None):
+        if not default:
+            default = {}
+        default.update({
+            'state': 'draft',
+            'name': self.pool.get('ir.sequence').get(cr, uid, 'crm.sale.order'),
+        })
+        return super(crm_sale_order, self).copy(cr, uid, id, default, context=context)
+    
+    def copy_quotation(self, cr, uid, ids, default=None, context=None):
+        id = self.copy(cr, uid, ids[0],default=None, context=None)
         for sale in self.browse(cr, uid, ids, context=context):
             if sale.lead_id:
                 self.pool.get('crm.lead').write(cr, uid, [sale.lead_id.id], {'status':'quotation'}, context=context)
                 self.pool.get('crm.lead.history').create(cr, uid,{'lead_id':sale.lead_id.id,'status':'quotation'}, context=context)
-        view_ref = self.pool.get('ir.model.data').get_object_reference(cr, uid, 'sale', 'view_order_form')
+        view_ref = self.pool.get('ir.model.data').get_object_reference(cr, uid, 'green_erp_arulmani_crm', 'crm_sale_order_form')
         view_id = view_ref and view_ref[1] or False,
         return {
             'type': 'ir.actions.act_window',
-            'name': _('Sales Order'),
+            'name': _('Quotation'),
             'res_model': 'crm.sale.order',
             'res_id': id,
             'view_type': 'form',
@@ -213,8 +220,15 @@ class crm_sale_order(osv.osv):
                  'name': lambda obj, cr, uid, context: '/',
                  'state':'draft',
                  }
-    _sql_constraints = [
-        ('name_uniq', 'unique(name, company_id)', 'Order Reference must be unique per Company!'),
+    def _check_name(self,cr,uid,ids):
+        obj = self.browse(cr,uid,ids[0])
+        if obj and obj.name:
+            name = self.search(cr, uid, [('name','=',obj.name)])
+            if name and len(name) > 1:
+                return False
+        return True
+    _constraints = [
+        (_check_name, 'The Name must be unique !', ['name']),
     ]
     
     def button_dummy(self, cr, uid, ids, context=None):
