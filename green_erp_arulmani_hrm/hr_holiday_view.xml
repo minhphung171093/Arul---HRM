@@ -520,7 +520,7 @@
 	            <form string="Monthly Work Schedule" version="7.0">
 	            	<header>
 	                    <button name="load_previous_month" states='draft' string="Load Previous Month Schedule" type="object" class="oe_highlight" />
-	                    <button name="approve_current_month" states='load,draft' string="Approve Current Month Schedule" type="object" class="oe_highlight" />
+	                    <button name="approve_current_month" states='load,draft' string="Approve Current Month Schedule" type="object" class="oe_highlight" groups="base.group_erp_manager" />
 	                    <field name="state" widget="statusbar" statusbar_visible="draft,done" statusbar_colors='{"draft":"blue","done":"blue"}'/>
 	                </header> 
 	            	<sheet>
