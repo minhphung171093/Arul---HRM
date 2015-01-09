@@ -44,6 +44,7 @@ class hr_employee_sub_category(osv.osv):
             employee_category_id = context.get('employee_category_id')
             if not employee_category_id:
                 args += [('id','=',-1)]
+                
         return super(hr_employee_sub_category, self).search(cr, uid, args, offset, limit, order, context, count)
     def name_search(self, cr, user, name, args=None, operator='ilike', context=None, limit=100):
         ids = self.search(cr, user, args, context=context, limit=limit)

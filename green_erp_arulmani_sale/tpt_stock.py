@@ -42,7 +42,6 @@ class stock_picking(osv.osv):
         if not stock.move_lines:
             raise osv.except_osv(_('Warning!'),_('Stock move details is not empty'))  
         return new_id
-#         return super(stock_picking, self).create(cr, uid, vals, context)
     
     def write(self, cr, uid, ids, vals, context=None):
         new_write = super(stock_picking, self).write(cr, uid,ids, vals, context)

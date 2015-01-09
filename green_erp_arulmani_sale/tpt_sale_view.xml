@@ -76,7 +76,7 @@
 				
 
 				<xpath expr="//field[@name='partner_id']"  position="replace">
-					<field name="partner_id" domain="[('customer','=',1),('is_company','=',1)]" options="{'create': false, 'create_edit': false}" on_change = "onchange_partner_id(partner_id,blanket_id)"/>
+					<field name="partner_id" domain="[('customer','=',1),('is_company','=',1)]" options="{'create': false, 'create_edit': false}" on_change = "onchange_partner_id(partner_id,blanket_id)" context="{'search_default_customer':1, 'show_address': 1, 'search_partner_id':True, 'blanket_id':blanket_id}" />
 				</xpath>
 				
 				<xpath expr="//label[@string='Quotation ']"  position="replace">

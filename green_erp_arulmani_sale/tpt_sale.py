@@ -22,8 +22,8 @@ class product_product(osv.osv):
             args.append((('categ_id', 'child_of', context['search_default_categ_id'])))
         if context.get('search_blanket_id'):
             sql = '''
-                select product_id from tpt_blank_order_line
-            '''
+                select product_id from tpt_blank_order_line where blanket_order_id in(select id from tpt_blanket_order where id = %s)
+            '''%(context.get('blanket_id'))
             cr.execute(sql)
             blanket_ids = [row[0] for row in cr.fetchall()]
             args += [('id','in',blanket_ids)]
@@ -143,6 +143,7 @@ class sale_order(osv.osv):
         'expected_date': time.strftime('%Y-%m-%d'),
         'order_policy': 'picking',
     }
+    
     def onchange_po_date(self, cr, uid, ids, po_date=False, context=None):
         vals = {}
         current = time.strftime('%Y-%m-%d')
@@ -1085,6 +1086,95 @@ class res_partner(osv.osv):
         'shipping_location': fields.boolean('Is Shipping Location'), 
                  }
      
+     def _search(self, cr, user, args, offset=0, limit=None, order=None, context=None, count=False, access_rights_uid=None):
+       """ Override search() to always show inactive children when searching via ``child_of`` operator. The ORM will
+       always call search() with a simple domain of the form [('parent_id', 'in', [ids])]. """
+       # a special ``domain`` is set on the ``child_ids`` o2m to bypass this logic, as it uses similar domain expressions
+       if len(args) == 1 and len(args[0]) == 3 and args[0][:2] == ('parent_id','in'):
+           context = dict(context or {}, active_test=False)
+       if context is None:
+            context = {}
+       if context.get('search_partner_id'):
+           if context.get('blanket_id'):
+               sql = '''
+                    select customer_id from tpt_blanket_order where id = %s
+                '''%(context.get('blanket_id'))
+               cr.execute(sql)
+               partner_ids = [row[0] for row in cr.fetchall()]
+               args += [('id','in',partner_ids)]
+       return super(res_partner, self)._search(cr, user, args, offset=offset, limit=limit, order=order, context=context,
+                                               count=count, access_rights_uid=access_rights_uid)
+ 
+     def name_search(self, cr, uid, name, args=None, operator='ilike', context=None, limit=100):
+       if not args:
+           args = []
+       if name and operator in ('=', 'ilike', '=ilike', 'like', '=like'):
+ 
+           self.check_access_rights(cr, uid, 'read')
+           where_query = self._where_calc(cr, uid, args, context=context)
+           self._apply_ir_rules(cr, uid, where_query, 'read', context=context)
+           from_clause, where_clause, where_clause_params = where_query.get_sql()
+           where_str = where_clause and (" WHERE %s AND " % where_clause) or ' WHERE '
+ 
+           # search on the name of the contacts and of its company
+           search_name = name
+           if operator in ('ilike', 'like'):
+               search_name = '%%%s%%' % name
+           if operator in ('=ilike', '=like'):
+               operator = operator[1:]
+ 
+           unaccent = get_unaccent_wrapper(cr)
+ 
+           # TODO: simplify this in trunk with `display_name`, once it is stored
+           # Perf note: a CTE expression (WITH ...) seems to have an even higher cost
+           #            than this query with duplicated CASE expressions. The bulk of
+           #            the cost is the ORDER BY, and it is inevitable if we want
+           #            relevant results for the next step, otherwise we'd return
+           #            a random selection of `limit` results.
+ 
+           display_name = """CASE WHEN company.id IS NULL OR res_partner.is_company
+                                  THEN {partner_name}
+                                  ELSE {company_name} || ', ' || {partner_name}
+                              END""".format(partner_name=unaccent('res_partner.name'),
+                                            company_name=unaccent('company.name'))
+ 
+           query = """SELECT res_partner.id
+                        FROM res_partner
+                   LEFT JOIN res_partner company
+                          ON res_partner.parent_id = company.id
+                     {where} ({email} {operator} {percent}
+                          OR {display_name} {operator} {percent})
+                    ORDER BY {display_name}
+                   """.format(where=where_str, operator=operator,
+                              email=unaccent('res_partner.email'),
+                              percent=unaccent('%s'),
+                              display_name=display_name)
+ 
+           where_clause_params += [search_name, search_name]
+           if limit:
+               query += ' limit %s'
+               where_clause_params.append(limit)
+           cr.execute(query, where_clause_params)
+           ids = map(lambda x: x[0], cr.fetchall())
+ 
+           if ids:
+               return self.name_get(cr, uid, ids, context)
+           else:
+               return []
+       return super(res_partner,self).name_search(cr, uid, name, args, operator=operator, context=context, limit=limit)
+# #      def search(self, cr, uid, args, offset=0, limit=None, order=None, context=None, count=False):
+# #         if context is None:
+# #             context = {}
+# #         if context.get('check_blanket_id'):
+# #             blanket_id = context.get('blanket_id')
+# #             if not blanket_id:
+# #                 args += [('id','=',-1)]
+# #         return super(res_partner, self).search(cr, uid, args, offset, limit, order, context, count)
+# #     
+# #      def name_search(self, cr, user, name, args=None, operator='ilike', context=None, limit=100):
+# #         ids = self.search(cr, user, args, context=context, limit=limit)
+# #         return self.name_get(cr, user, ids, context=context)
+    
 res_partner()
 
 class tpt_batch_allotment_line(osv.osv):
