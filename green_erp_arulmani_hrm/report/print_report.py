@@ -54,6 +54,7 @@ class Parser(report_sxw.rml_parse):
         payroll_obj = self.pool.get('arul.hr.payroll.executions')
         for line in payroll_obj.browse(self.cr, self.uid, self.ids[0]).payroll_executions_details_line:
             basic = 0
+            ea = 0
             da = 0
             hra = 0
             conv = 0
@@ -90,6 +91,8 @@ class Parser(report_sxw.rml_parse):
                     la += earning.float
                 if earning.earning_parameters_id.code=='AA':
                     aa += earning.float
+                if earning.earning_parameters_id.code=='EA':
+                    aa += earning.float
                 if earning.earning_parameters_id.code=='TOTAL_EARNING':
                     total_ear += earning.float
                 if earning.earning_parameters_id.code=='NET':
@@ -125,6 +128,7 @@ class Parser(report_sxw.rml_parse):
                 'oa': oa,
                 'la': la,
                 'aa': oa,
+                'ea': ea,
                 'pfd': pfd,
                 'vpf': vpf,
                 'esi_con': esi_con,
