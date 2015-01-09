@@ -11,6 +11,53 @@ import calendar
 import openerp.addons.decimal_precision as dp
 from openerp import netsvc
 
+class product_product(osv.osv):
+    _inherit = "product.product"
+
+    
+    def search(self, cr, uid, args, offset=0, limit=None, order=None, context=None, count=False):
+        if context is None:
+            context = {}
+        if context and context.get('search_default_categ_id', False):
+            args.append((('categ_id', 'child_of', context['search_default_categ_id'])))
+        if context.get('search_blanket_id'):
+            sql = '''
+                select product_id from tpt_blank_order_line
+            '''
+            cr.execute(sql)
+            blanket_ids = [row[0] for row in cr.fetchall()]
+            args += [('id','in',blanket_ids)]
+        return super(product_product, self).search(cr, uid, args, offset=offset, limit=limit, order=order, context=context, count=count)
+    
+    def name_search(self, cr, user, name='', args=None, operator='ilike', context=None, limit=100):
+        if not args:
+            args = []
+        if name:
+            ids = self.search(cr, user, [('default_code','=',name)]+ args, limit=limit, context=context)
+            if not ids:
+                ids = self.search(cr, user, [('ean13','=',name)]+ args, limit=limit, context=context)
+            if not ids:
+                # Do not merge the 2 next lines into one single search, SQL search performance would be abysmal
+                # on a database with thousands of matching products, due to the huge merge+unique needed for the
+                # OR operator (and given the fact that the 'name' lookup results come from the ir.translation table
+                # Performing a quick memory merge of ids in Python will give much better performance
+                ids = set()
+                ids.update(self.search(cr, user, args + [('default_code',operator,name)], limit=limit, context=context))
+                if not limit or len(ids) < limit:
+                    # we may underrun the limit because of dupes in the results, that's fine
+                    ids.update(self.search(cr, user, args + [('name',operator,name)], limit=(limit and (limit-len(ids)) or False) , context=context))
+                ids = list(ids)
+            if not ids:
+                ptrn = re.compile('(\[(.*?)\])')
+                res = ptrn.search(name)
+                if res:
+                    ids = self.search(cr, user, [('default_code','=', res.group(2))] + args, limit=limit, context=context)
+        else:
+            ids = self.search(cr, user, args, limit=limit, context=context)
+        result = self.name_get(cr, user, ids, context=context)
+        return result
+
+product_product()
 
 class sale_order(osv.osv):
     _inherit = "sale.order"
@@ -379,7 +426,20 @@ class sale_order_line(osv.osv):
         'price_subtotal': fields.function(_amount_line, string='Subtotal', digits_compute= dp.get_precision('Account')),
         'name_consignee_id': fields.many2one('res.partner', 'Consignee', required = True),
         'location': fields.char('Location', size = 1024),   
+        'product_uom_qty': fields.float('Quantity', digits=(12,12),digits_compute= dp.get_precision('Product UoS'), required=True, readonly=True, states={'draft': [('readonly', False)]}),
     }
+    def create(self, cr, uid, vals, context=None):
+        if 'freight' in vals:
+            if (vals['freight'] < 0):
+                raise osv.except_osv(_('Warning!'),_('Freight is not negative value'))
+        return super(sale_order_line, self).create(cr, uid, vals, context=context)
+
+    def write(self, cr, uid, ids, vals, context=None):
+        if 'freight' in vals:
+            if (vals['freight'] < 0):
+                raise osv.except_osv(_('Warning!'),_('Freight is not negative value'))
+        return super(sale_order_line, self).write(cr, uid,ids, vals, context)
+
     def onchange_consignee_id(self, cr, uid, ids, name_consignee_id = False, context=None):
         vals = {}
         if name_consignee_id :
