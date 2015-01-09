@@ -8,7 +8,7 @@
             <field name="inherit_id" ref="sale.view_order_form"/>
             <field name="arch" type="xml">
                 <xpath expr="//field[@name='partner_id']" position="after" >
-                		<field name="blanket_id" on_change="onchange_blanket_id(blanket_id)" options="{'create': false, 'create_edit': false}" />
+                		<field name="blanket_id" on_change="onchange_blanket_id(blanket_id)" domain="[('blank_order_line','!=',False)]" options="{'create': false, 'create_edit': false}" />
                 		<field name="invoice_address" placeholder="Street..."/>
                 		<field name="street2"/>
                 		<field name="city" placeholder="City"/>
@@ -16,7 +16,7 @@
                 		<field name="state_id" placeholder="State" options="{'create': false, 'create_edit': false}"/>
                 		<field name="zip" placeholder="ZIP"/> 
                 		<field name="document_type"/>
-                		<field name="payment_term_id" options="{'create': false, 'create_edit': false}"/>
+                		<field name="payment_term_id" on_change="onchange_doc_status(payment_term_id)" options="{'create': false, 'create_edit': false}"/>
                 		<field name="incoterms_id" options="{'create': false, 'create_edit': false}" />
                 		<field name="excise_duty_id" options="{'create': false, 'create_edit': false}"/>
 	        	</xpath>
@@ -54,12 +54,13 @@
 					<field name="product_type" />
 					<field name="application_id" options="{'create': false, 'create_edit': false}" />
 				</xpath>
-			 	<xpath expr="//form/sheet/notebook/page[@string='Order Lines']/field/tree/field[@name='product_id']"  position="attributes">
-					<attribute name='options'>{'create': false, 'create_edit': false}</attribute> 
-				</xpath>  
-			<!--	<xpath expr="//form/sheet/notebook/page[@string='Order Lines']/field/tree/field[@name='product_id']"  position="replace">
-					<field name="product_id" on_change = "onchange_tpt_product_id(product_id, order_id)" options="{'create': false, 'create_edit': false}"/>  
-				</xpath> -->
+				
+			    <xpath expr="//form/sheet/notebook/page[@string='Order Lines']/field/tree/field[@name='product_id']"  position="replace">
+					<field name="product_id" context="{'search_blanket_id':True,'blanket_id':parent.blanket_id, 'partner_id':parent.partner_id, 'quantity':product_uom_qty, 'pricelist':parent.pricelist_id, 'shop':parent.shop_id, 'uom':product_uom}"
+                                                groups="base.group_user"
+                                                on_change="product_id_change(parent.pricelist_id, product_id, product_uom_qty, False, product_uos_qty, False, name, parent.partner_id, False, True, parent.date_order, False, parent.fiscal_position, False, context)" options="{'create': false, 'create_edit': false}"/> 
+				</xpath>
+				
 				<xpath expr="//form/sheet/notebook/page[@string='Order Lines']/field/tree/field[@name='product_uom']"  position="attributes">
 					<attribute name="readonly">1</attribute>
 				</xpath>
@@ -75,7 +76,7 @@
 				
 
 				<xpath expr="//field[@name='partner_id']"  position="replace">
-					<field name="partner_id" domain="[('customer','=',1),('is_company','=',1)]" options="{'create': false, 'create_edit': false}" on_change = "onchange_partner_id(partner_id,blanket_id)"/>
+					<field name="partner_id" domain="[('customer','=',1),('is_company','=',1)]" options="{'create': false, 'create_edit': false}" on_change = "onchange_partner_id(partner_id,blanket_id)" context="{'search_default_customer':1, 'show_address': 1, 'search_partner_id':True, 'blanket_id':blanket_id}" />
 				</xpath>
 				
 				<xpath expr="//label[@string='Quotation ']"  position="replace">
