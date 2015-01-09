@@ -30,6 +30,31 @@ class stock_picking(osv.osv):
         'move_date': time.strftime('%Y-%m-%d'),
         'name': '/',
     }
+    
+    def onchange_do_ref_id(self, cr, uid, ids,do_ref_id=False, context=None):
+        vals = {}
+        move_lines = []
+        for stock in self.browse(cr, uid, ids):
+            sql = '''
+                delete from stock_move where picking_id = %s
+            '''%(stock.id)
+            cr.execute(sql)
+        if do_ref_id:
+            de_order = self.pool.get('stock.picking.out').browse(cr, uid, do_ref_id)
+            for line in de_order.move_lines:
+                rs = {
+                      'product_id': line.product_id and line.product_id.id or False,
+                      'product_qty': line.product_qty or False,
+                      'product_uom': line.product_uom and line.product_uom.id or False,
+                      'prodlot_id': line.prodlot_id and line.prodlot_id.id or False,
+                      }
+                move_lines.append((0,0,rs))
+            
+            vals = {
+                    'move_lines':move_lines
+                    }
+        return {'value': vals}
+    
     def onchange_location(self, cr, uid, ids, location_id = False, context=None):
         if location_id:
             return {'value': {'location_dest_id': False}}
