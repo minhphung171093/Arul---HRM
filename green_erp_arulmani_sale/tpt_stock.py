@@ -30,19 +30,25 @@ class stock_picking(osv.osv):
         'move_date': time.strftime('%Y-%m-%d'),
         'name': '/',
     }
-     
+    def onchange_location(self, cr, uid, ids, location_id = False, context=None):
+        if location_id:
+            return {'value': {'location_dest_id': False}}
+        
     def create(self, cr, uid, vals, context=None):
         if vals.get('name','/')=='/':
             vals['name'] = self.pool.get('ir.sequence').get(cr, uid, 'tpt.stock.move.import') or '/'
-        if not vals['move_lines']:
+        new_id = super(stock_picking, self).create(cr, uid, vals, context)
+        stock = self.browse(cr, uid, new_id)
+        if not stock.move_lines:
             raise osv.except_osv(_('Warning!'),_('Stock move details is not empty'))  
-        return super(stock_picking, self).create(cr, uid, vals, context=context)
+        return new_id
     
-#     def write(self, cr, uid, ids, vals, context=None):
-#         new_write = super(stock_picking, self).write(cr, uid,ids, vals, context)
-#         if not vals['move_lines']:
-#             raise osv.except_osv(_('Warning!'),_('Stock move details is not empty'))  
-#         return new_write
+    def write(self, cr, uid, ids, vals, context=None):
+        new_write = super(stock_picking, self).write(cr, uid,ids, vals, context)
+        for stock in self.browse(cr,uid,ids):
+            if not stock.move_lines:
+                raise osv.except_osv(_('Warning!'),_('Stock move details is not empty'))  
+        return new_write
     
     def onchange_move_date(self, cr, uid, ids, move_date=False, context=None):
         vals = {}
