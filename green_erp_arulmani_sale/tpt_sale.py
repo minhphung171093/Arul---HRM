@@ -142,6 +142,7 @@ class sale_order(osv.osv):
         'po_date': time.strftime('%Y-%m-%d'),
         'expected_date': time.strftime('%Y-%m-%d'),
         'order_policy': 'picking',
+        'document_status':'draft',
     }
     def onchange_po_date(self, cr, uid, ids, po_date=False, context=None):
         vals = {}
@@ -155,7 +156,16 @@ class sale_order(osv.osv):
                     'message': _('PO Date: Allow back date, not allow future date')
                 }
         return {'value':vals,'warning':warning}
-    
+
+    def onchange_doc_status(self, cr, uid, ids, payment_term_id=False, context=None):
+        vals = {}
+        if payment_term_id==1:
+             vals = {'document_status':'waiting'}
+        else:
+            vals = {'document_status':'completed'}
+        return {'value':vals}
+
+  
     def onchange_so_date(self, cr, uid, ids, date_order=False, blanket_id=False, context=None):
         vals = {}
         current = time.strftime('%Y-%m-%d')
@@ -196,81 +206,69 @@ class sale_order(osv.osv):
 #             vals['name'] = self.pool.get('ir.sequence').get(cr, uid, 'tpt.sale.order.import') or '/'
 #         return super(sale_order, self).create(cr, uid, vals, context=context)
     
-    def _check_blanket_order_id(self, cr, uid, ids, context=None):
-        for blanket in self.browse(cr, uid, ids, context=context):
-            if blanket.blanket_id:
-                blanket_ids = self.search(cr, uid, [('id','!=',blanket.id),('blanket_id','=',blanket.blanket_id.id)])
-                if blanket_ids:
-                    raise osv.except_osv(_('Warning!'),_('The Blanket Order was selected!'))  
-                    return False
-        return True
-    _constraints = [
-        (_check_blanket_order_id, 'Identical Data', ['blanket_id']),
-        ]
-    
+#     
     def create(self, cr, uid, vals, context=None):
-        if 'document_status' in vals:
-            vals['document_status'] = 'draft'
+#         if 'document_status' in vals:
+#             vals['document_status'] = 'draft'
         new_id = super(sale_order, self).create(cr, uid, vals, context)
         sale = self.browse(cr, uid, new_id)
         if sale.blanket_id:
             for blanket_line in sale.blanket_id.blank_order_line:
-                product_id = blanket_line.product_id.id
+                sql_so = '''
+                    select id from sale_order where blanket_id = %s
+                '''%(sale.blanket_id.id)
+                cr.execute(sql_so)
+                kq = cr.fetchall()
+                so_ids = []
+                if kq:
+                    for i in kq:
+                        so_ids.append(i[0])
+                    so_ids = str(so_ids).replace("[","(")
+                    so_ids = so_ids.replace("]",")")
                 sql = '''
-                    select case when sum(product_uom_qty) > 0
-                        then sum(product_uom_qty)
-                        else 0
-                        end product_uom_qty
-                    from tpt_blank_order_line where product_id = %s and blanket_order_id = %s
-                '''%(product_id,sale.blanket_id.id)
+                    select sol.product_id, sum(sol.product_uom_qty) as qty
+                    from sale_order_line sol
+                    inner join sale_order so on so.id = sol.order_id
+                    where sol.order_id in %s and sol.product_id = %s
+                    group by sol.product_id
+                '''%(so_ids,blanket_line.product_id.id)
                 cr.execute(sql)
-                bo_product_uom_qty = cr.dictfetchone()['product_uom_qty']
-                sql = '''
-                    select case when sum(product_uom_qty) <= %s
-                        then sum(product_uom_qty)
-                        else 0
-                        end product_uom_qty
-                    from sale_order_line where product_id = %s and order_id = %s
-                '''%(bo_product_uom_qty,product_id,new_id)
-                cr.execute(sql)
-                so_product_uom_qty = cr.dictfetchone()['product_uom_qty']
-                if so_product_uom_qty == 0:
-                    raise osv.except_osv(_('Warning!'),_('Quantity must be less than quantity of Blanket Order'))
+                kq = cr.fetchall()
+                for data in kq:
+                    if blanket_line.product_uom_qty < data[1]:
+                        raise osv.except_osv(_('Warning!'),_('Quantity must be less than quantity of Blanket Order is product %s'%blanket_line.product_id.name_template))
         return new_id
     
     def write(self, cr, uid, ids, vals, context=None):
         if 'document_status' in vals:
             vals['document_status'] = 'draft'
         new_write = super(sale_order, self).write(cr, uid,ids, vals, context)
-        
         for sale in self.browse(cr, uid, ids):
             if sale.blanket_id:
-                if sale.date_order:
-                    if (sale.blanket_id.bo_date > sale.date_order):
-                        raise osv.except_osv(_('Warning!'),_('dsfgh'))
                 for blanket_line in sale.blanket_id.blank_order_line:
-                    product_id = blanket_line.product_id.id
+                    sql_so = '''
+                        select id from sale_order where blanket_id = %s
+                    '''%(sale.blanket_id.id)
+                    cr.execute(sql_so)
+                    kq = cr.fetchall()
+                    so_ids = []
+                    if kq:
+                        for i in kq:
+                            so_ids.append(i[0])
+                        so_ids = str(so_ids).replace("[","(")
+                        so_ids = so_ids.replace("]",")")
                     sql = '''
-                        select case when sum(product_uom_qty) > 0
-                            then sum(product_uom_qty)
-                            else 0
-                            end product_uom_qty
-                        from tpt_blank_order_line where product_id = %s and blanket_order_id = %s
-                    '''%(product_id,sale.blanket_id.id)
+                        select sol.product_id, sum(sol.product_uom_qty) as qty
+                        from sale_order_line sol
+                        inner join sale_order so on so.id = sol.order_id
+                        where sol.order_id in %s and sol.product_id = %s
+                        group by sol.product_id
+                    '''%(so_ids,blanket_line.product_id.id)
                     cr.execute(sql)
-                    bo_product_uom_qty = cr.dictfetchone()['product_uom_qty']
-                    sql = '''
-                        select case when sum(product_uom_qty) <= %s
-                            then sum(product_uom_qty)
-                            else 0
-                            end product_uom_qty
-                        from sale_order_line where product_id = %s and order_id = %s
-                    '''%(bo_product_uom_qty,product_id,sale.id)
-                    cr.execute(sql)
-                    so_product_uom_qty = cr.dictfetchone()['product_uom_qty']
-                    if so_product_uom_qty == 0:
-                        raise osv.except_osv(_('Warning!'),_('Quantity must be less than quantity of Blanket Order'))
-            
+                    kq = cr.fetchall()
+                    for data in kq:
+                        if blanket_line.product_uom_qty < data[1]:
+                            raise osv.except_osv(_('Warning!'),_('Quantity must be less than quantity of Blanket Order is product %s'%blanket_line.product_id.name_template))
         return new_write
     
     def onchange_blanket_id(self, cr, uid, ids,blanket_id=False, context=None):
@@ -285,31 +283,58 @@ class sale_order(osv.osv):
                 '''%(line.id)
                 cr.execute(sql)
             for blanket_line in blanket.blank_order_line:
-                rs_order = {
-                      'product_id': blanket_line.product_id and blanket_line.product_id.id or False,
-                      'name': blanket_line.description or False,
-                      'product_type': blanket_line.product_type or False,
-                      'application_id': blanket_line.application_id and blanket_line.application_id.id or False,
-                      'product_uom_qty': blanket_line.product_uom_qty or False,
-                      'product_uom': blanket_line.uom_po_id and blanket_line.uom_po_id.id or False,
-                      'price_unit': blanket_line.price_unit or False,
-                      'price_subtotal': blanket_line.sub_total or False,
-                      'freight': blanket_line.freight or False,
-                      'state': 'draft',
-                      'type': 'make_to_stock',
-                      }
-                blanket_lines.append((0,0,rs_order))
+                sql_so = '''
+                    select id from sale_order where blanket_id = %s
+                '''%(blanket_id)
+                cr.execute(sql_so)
+                kq = cr.fetchall()
+                so_ids = []
+                if kq:
+                    for i in kq:
+                        so_ids.append(i[0])
+                    so_ids = str(so_ids).replace("[","(")
+                    so_ids = so_ids.replace("]",")")
+                    sql_product = '''
+                        select sol.product_id, sum(sol.product_uom_qty) as qty
+                        from sale_order_line sol
+                        inner join sale_order so on so.id = sol.order_id
+                        where sol.order_id in %s and sol.product_id = %s
+                        group by sol.product_id
+                    '''%(so_ids,blanket_line.product_id.id)
+                    cr.execute(sql_product)
+                    kq = cr.fetchall()
+                    for data in kq:
+                        if blanket_line.product_uom_qty > data[1]:
+                            rs_order = {
+                                  'product_id': blanket_line.product_id and blanket_line.product_id.id or False,
+                                  'name': blanket_line.description or False,
+                                  'product_type': blanket_line.product_type or False,
+                                  'application_id': blanket_line.application_id and blanket_line.application_id.id or False,
+                                  'product_uom_qty': blanket_line.product_uom_qty - data[1] or False,
+                                  'product_uom': blanket_line.uom_po_id and blanket_line.uom_po_id.id or False,
+                                  'price_unit': blanket_line.price_unit or False,
+                                  'price_subtotal': blanket_line.sub_total or False,
+                                  'freight': blanket_line.freight or False,
+                                  'state': 'draft',
+                                  'type': 'make_to_stock',
+                                  }
+                            blanket_lines.append((0,0,rs_order))
+                else:
+                    rs_order = {
+                                  'product_id': blanket_line.product_id and blanket_line.product_id.id or False,
+                                  'name': blanket_line.description or False,
+                                  'product_type': blanket_line.product_type or False,
+                                  'application_id': blanket_line.application_id and blanket_line.application_id.id or False,
+                                  'product_uom_qty': blanket_line.product_uom_qty or False,
+                                  'product_uom': blanket_line.uom_po_id and blanket_line.uom_po_id.id or False,
+                                  'price_unit': blanket_line.price_unit or False,
+                                  'price_subtotal': blanket_line.sub_total or False,
+                                  'freight': blanket_line.freight or False,
+                                  'state': 'draft',
+                                  'type': 'make_to_stock',
+                                  }
+                    blanket_lines.append((0,0,rs_order))
               
-#             for consignee_line in blanket.blank_consignee_line:
-#                 rs_consignee = {
-#                       'name_consignee_id': consignee_line.name_consignee_id or False,
-#                       'location': consignee_line.location or False,
-#                       'product_id': consignee_line.product_id and consignee_line.product_id.id or False,
-#                       'product_uom_qty': consignee_line.product_uom_qty or False,
-#                       'uom_po_id': consignee_line.uom_po_id and consignee_line.uom_po_id.id or False,
-#                                 }
-#                 consignee_lines.append((0,0,rs_consignee))
-            
             addr = self.pool.get('res.partner').address_get(cr, uid, [blanket.customer_id.id], ['delivery', 'invoice', 'contact'])
             
             vals = {'partner_id':blanket.customer_id and blanket.customer_id.id or False,
@@ -337,6 +362,71 @@ class sale_order(osv.osv):
 #                     'sale_consignee_line':consignee_lines or False,
                         }
         return {'value': vals}    
+    
+#     def onchange_blanket_id(self, cr, uid, ids,blanket_id=False, context=None):
+#         vals = {}
+#         blanket_lines = []
+#         consignee_lines = []
+#         if blanket_id:
+#             blanket = self.pool.get('tpt.blanket.order').browse(cr, uid, blanket_id)
+#             for line in self.browse(cr, uid, ids):
+#                 sql = '''
+#                     delete from sale_order_line where order_id = %s
+#                 '''%(line.id)
+#                 cr.execute(sql)
+#             for blanket_line in blanket.blank_order_line:
+#                 rs_order = {
+#                       'product_id': blanket_line.product_id and blanket_line.product_id.id or False,
+#                       'name': blanket_line.description or False,
+#                       'product_type': blanket_line.product_type or False,
+#                       'application_id': blanket_line.application_id and blanket_line.application_id.id or False,
+#                       'product_uom_qty': blanket_line.product_uom_qty or False,
+#                       'product_uom': blanket_line.uom_po_id and blanket_line.uom_po_id.id or False,
+#                       'price_unit': blanket_line.price_unit or False,
+#                       'price_subtotal': blanket_line.sub_total or False,
+#                       'freight': blanket_line.freight or False,
+#                       'state': 'draft',
+#                       'type': 'make_to_stock',
+#                       }
+#                 blanket_lines.append((0,0,rs_order))
+#               
+# #             for consignee_line in blanket.blank_consignee_line:
+# #                 rs_consignee = {
+# #                       'name_consignee_id': consignee_line.name_consignee_id or False,
+# #                       'location': consignee_line.location or False,
+# #                       'product_id': consignee_line.product_id and consignee_line.product_id.id or False,
+# #                       'product_uom_qty': consignee_line.product_uom_qty or False,
+# #                       'uom_po_id': consignee_line.uom_po_id and consignee_line.uom_po_id.id or False,
+# #                                 }
+# #                 consignee_lines.append((0,0,rs_consignee))
+#             
+#             addr = self.pool.get('res.partner').address_get(cr, uid, [blanket.customer_id.id], ['delivery', 'invoice', 'contact'])
+#             
+#             vals = {'partner_id':blanket.customer_id and blanket.customer_id.id or False,
+#                     'invoice_address':blanket.invoice_address or False,
+#                     'street2':blanket.street2 or False,
+#                     'city':blanket.city or False,
+#                     'country_id':blanket.country_id and blanket.country_id.id or False,
+#                     'state_id':blanket.state_id and blanket.state_id.id or False,
+#                     'zip':blanket.zip or False,
+#                     'po_date':blanket.po_date or False,
+#                     'order_type':blanket.order_type or False,
+#                     'po_number':blanket.po_number or False,
+#                     'payment_term_id':blanket.payment_term_id and blanket.payment_term_id.id or False,
+#                     'currency_id':blanket.currency_id and blanket.currency_id.id or False,
+#                     'quotaion_no':blanket.quotaion_no or False,
+#                     'incoterms_id':blanket.incoterm_id and blanket.incoterm_id.id or False,
+#                     'distribution_channel':blanket.channel and blanket.channel.id or False,
+#                     'excise_duty_id':blanket.excise_duty_id and blanket.excise_duty_id.id or False,
+#                     'sale_tax_id':blanket.sale_tax_id and blanket.sale_tax_id.id or False, 
+#                     'reason':blanket.reason or False,
+#                     'amount_untaxed': blanket.amount_untaxed or False,
+#                     'order_line':blanket_lines or False,
+#                     'order_policy': 'picking',
+#                     'partner_invoice_id': addr['invoice'],
+# #                     'sale_consignee_line':consignee_lines or False,
+#                         }
+#         return {'value': vals}    
     
     def action_button_confirm(self, cr, uid, ids, context=None):
         assert len(ids) == 1, 'This option should only be used for a single id at a time.'
