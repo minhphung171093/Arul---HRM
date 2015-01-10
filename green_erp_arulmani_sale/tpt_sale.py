@@ -1046,7 +1046,7 @@ class tpt_batch_allotment(osv.osv):
     _columns = {
         'batch_request_id':fields.many2one('tpt.batch.request','Batch Request No.',required = True), 
         'name':fields.date('Date Requested',required = True), 
-        'sale_order_id':fields.many2one('sale.order','Sale Order'),   
+        'sale_order_id':fields.many2one('sale.order','Sale Order',required = True),   
         'customer_id':fields.many2one('res.partner', 'Customer', required = True), 
         'description':fields.text('Description'),
         'state': fields.selection([('to_approve', 'To Approved'), ('refuse', 'Refused'),('confirm', 'Approve'), ('cancel', 'Cancelled')],'Status'),
@@ -1476,6 +1476,24 @@ class stock_production_lot(osv.osv):
     _columns = {
         'phy_batch_no': fields.char('Physical Serial No.', size = 1024,required = True), 
                 }
+    
+    def search(self, cr, uid, args, offset=0, limit=None, order=None, context=None, count=False):
+        if context is None:
+            context = {}
+        if context.get('search_prodlot_by_batch_alot'):
+            sale_id = context.get('sale_id', False)
+            if sale_id:
+                sql = '''
+                    select sys_batch from tpt_batch_allotment_line where batch_allotment_id in (select id from tpt_batch_allotment where sale_order_id = %s)
+                '''%(sale_id)
+                cr.execute(sql)
+                prodlot_ids = [row[0] for row in cr.fetchall()]
+                args += [('id','in',prodlot_ids)]
+        return super(stock_production_lot, self).search(cr, uid, args, offset=offset, limit=limit, order=order, context=context, count=count)
+    def name_search(self, cr, user, name, args=None, operator='ilike', context=None, limit=100):
+       ids = self.search(cr, user, args, context=context, limit=limit)
+       return self.name_get(cr, user, ids, context=context)
+   
 stock_production_lot()  
 
 # vim:expandtab:smartindent:tabstop=4:softtabstop=4:shiftwidth=4:
