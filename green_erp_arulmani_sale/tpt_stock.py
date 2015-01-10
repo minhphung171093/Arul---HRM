@@ -66,6 +66,28 @@ class stock_picking(osv.osv):
                 }
                 vals = {'move_date':False}
         return {'value': vals,'warning':warning}
+    def print_packing_list(self, cr, uid, ids, context=None):
+        datas = {
+             'ids': ids,
+             'model': 'account.invoice',
+             'form': self.read(cr, uid, ids[0], context=context)
+        }
+        do_ids = self.browse(cr, uid, ids[0])
+        if do_ids.invoice_state == 'invoiced':
+            return {
+                'type': 'ir.actions.report.xml',
+                'report_name': 'tpt_packing_list_report',
+#                 'datas': datas,
+#                 'nodestroy' : True
+            }
+        else:
+            raise osv.except_osv(_('Warning!'),_('This Delivery Order is not created Invoice!'))
+        return {
+                'type': 'ir.actions.report.xml',
+                'report_name': 'tpt_packing_list_report',
+#                 'datas': datas,
+#                 'nodestroy' : True
+            }
     
     def _prepare_invoice(self, cr, uid, picking, partner, inv_type, journal_id, context=None):
         """ Builds the dict containing the values for the invoice
@@ -148,6 +170,28 @@ class stock_picking_out(osv.osv):
             'type': 'ir.actions.report.xml',
             'report_name': 'tpt_print_dispatch_slip',
         }
+    def print_packing_list(self, cr, uid, ids, context=None):
+        datas = {
+             'ids': ids,
+             'model': 'account.invoice',
+             'form': self.read(cr, uid, ids[0], context=context)
+        }
+        do_ids = self.browse(cr, uid, ids[0])
+        if do_ids.invoice_state == 'invoiced':
+            return {
+                'type': 'ir.actions.report.xml',
+                'report_name': 'tpt_packing_list_report',
+#                 'datas': datas,
+#                 'nodestroy' : True
+            }
+        else:
+            raise osv.except_osv(_('Warning!'),_('This Delivery Order is not created Invoice!'))
+        return {
+                'type': 'ir.actions.report.xml',
+                'report_name': 'tpt_packing_list_report',
+#                 'datas': datas,
+#                 'nodestroy' : True
+            }
     
 stock_picking_out()
 
@@ -316,13 +360,6 @@ class account_invoice(osv.osv):
 #                 'datas': datas,
 #                 'nodestroy' : True
             }
-#         return {
-#             'type': 'ir.actions.report.xml',
-#             'report_name': 'tpt_export_account_invoice',
-#             'datas': datas,
-#             'nodestroy' : True
-#         }
-    
 account_invoice()
 
 class account_invoice_line(osv.osv):

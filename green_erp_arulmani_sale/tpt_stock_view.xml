@@ -239,6 +239,7 @@
             	
             	<xpath expr="/form/header//button[@name='%(stock.report_picking_list_out)d']" position="replace">
             		 <button name="print_dispatch_slip" string="Print Dispatch Slip" type="object" states="done" class="oe_highlight"/>
+            		 <button name="print_packing_list" string="Print Packing List" type="object" class="oe_highlight"/>
             	</xpath>
             	
             </field>
