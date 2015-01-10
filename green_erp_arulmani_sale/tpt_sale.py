@@ -106,7 +106,7 @@ class sale_order(osv.osv):
         'reason':fields.text('Reason'),
         'quotaion_no':fields.char('Quotaion No', size = 40),
         'expected_date':fields.date('Expected delivery Date'),
-        'document_status':fields.selection([('draft','Draft'),('waiting','Waiting for Approval'),('completed','Completed(Ready to Process)'),('partially','Partially Delivered'),('close','Closed(Delivered)')],'Document Status'),
+        'document_status':fields.selection([('draft','Draft'),('waiting','Waiting for Approval'),('completed','Completed(Ready to Process)'),('partially','Partially Delivered'),('close','Closed(Delivered)'),('cancelled','Cancelled')],'Document Status'),
         'incoterms_id':fields.many2one('stock.incoterms','Incoterms',required = True),
         'distribution_channel':fields.many2one('crm.case.channel','Distribution Channel',required = True),
         'excise_duty_id': fields.many2one('account.tax', 'Ex.Duty', domain="[('type_tax_use','=','excise_duty')]", required = True),
@@ -208,19 +208,42 @@ class sale_order(osv.osv):
 #         if vals.get('name','/')=='/':
 #             vals['name'] = self.pool.get('ir.sequence').get(cr, uid, 'tpt.sale.order.import') or '/'
 #         return super(sale_order, self).create(cr, uid, vals, context=context)
-    
+   
+    def action_cancel(self, cr, uid, ids, context=None):
+        wf_service = netsvc.LocalService("workflow")
+        if context is None:
+            context = {}
+        sale_order_line_obj = self.pool.get('sale.order.line')
+        for sale in self.browse(cr, uid, ids, context=context):
+            for inv in sale.invoice_ids:
+                if inv.state not in ('draft', 'cancel'):
+                    raise osv.except_osv(
+                        _('Cannot cancel this sales order!'),
+                        _('First cancel all invoices attached to this sales order.'))
+            for r in self.read(cr, uid, ids, ['invoice_ids']):
+                for inv in r['invoice_ids']:
+                    wf_service.trg_validate(uid, 'account.invoice', inv, 'invoice_cancel', cr)
+            sale_order_line_obj.write(cr, uid, [l.id for l in  sale.order_line],
+                    {'state': 'cancel'})
+        self.write(cr, uid, ids, {'state': 'cancel'})
+        sql = '''
+            update sale_order set document_status='cancelled' where id = %s
+        '''%(sale.id)
+        cr.execute(sql)
+        return True 
 #     
     def create(self, cr, uid, vals, context=None):
 #         if 'document_status' in vals:
 #             vals['document_status'] = 'draft'
         new_id = super(sale_order, self).create(cr, uid, vals, context)
         sale = self.browse(cr, uid, new_id)
+#         sale_ids = sale.search(cr,uid,[('state','!=','cancel')])
         if sale.blanket_id:
             flag=False
-            document_status = 'partially'
+#             document_status = 'partially'
             for blanket_line in sale.blanket_id.blank_order_line:
                 sql_so = '''
-                    select id from sale_order where blanket_id = %s
+                    select id from sale_order where blanket_id = %s and state!='cancel'
                 '''%(sale.blanket_id.id)
                 cr.execute(sql_so)
                 kq = cr.fetchall()
@@ -246,11 +269,17 @@ class sale_order(osv.osv):
                     elif blanket_line.product_uom_qty > data[1]:
                         document_status = 'partially'
                         flag=True
-                        self.write(cr,uid,[new_id],{'document_status':document_status})
+                        sql_stt = '''
+                            update sale_order set document_status='partially' where id = %s
+                        '''%(sale.id)
+                        cr.execute(sql_stt)
                     else:
                         document_status = 'close'
                 if flag==False:
-                    self.write(cr,uid,[new_id],{'document_status':document_status})
+                    sql_stt = '''
+                        update sale_order set document_status='close' where id = %s
+                    '''%(sale.id)
+                    cr.execute(sql_stt)
         return new_id
     
     def write(self, cr, uid, ids, vals, context=None):
@@ -263,7 +292,7 @@ class sale_order(osv.osv):
 #                 document_status = 'partially'
                 for blanket_line in sale.blanket_id.blank_order_line:
                     sql_so = '''
-                        select id from sale_order where blanket_id = %s
+                        select id from sale_order where blanket_id = %s and state!='cancel'
                     '''%(sale.blanket_id.id)
                     cr.execute(sql_so)
                     kq = cr.fetchall()
@@ -313,6 +342,8 @@ class sale_order(osv.osv):
 #                         self.write(cr,uid,[new_write],{'document_status':document_status})
         return new_write
     
+
+    
     def onchange_blanket_id(self, cr, uid, ids,blanket_id=False, context=None):
         vals = {}
         blanket_lines = []
@@ -326,7 +357,7 @@ class sale_order(osv.osv):
                 cr.execute(sql)
             for blanket_line in blanket.blank_order_line:
                 sql_so = '''
-                    select id from sale_order where blanket_id = %s
+                    select id from sale_order where blanket_id = %s and state!='cancel'
                 '''%(blanket_id)
                 cr.execute(sql_so)
                 kq = cr.fetchall()
