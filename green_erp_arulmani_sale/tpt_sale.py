@@ -28,34 +28,36 @@ class product_product(osv.osv):
             blanket_ids = [row[0] for row in cr.fetchall()]
             args += [('id','in',blanket_ids)]
         return super(product_product, self).search(cr, uid, args, offset=offset, limit=limit, order=order, context=context, count=count)
-    
-    def name_search(self, cr, user, name='', args=None, operator='ilike', context=None, limit=100):
-        if not args:
-            args = []
-        if name:
-            ids = self.search(cr, user, [('default_code','=',name)]+ args, limit=limit, context=context)
-            if not ids:
-                ids = self.search(cr, user, [('ean13','=',name)]+ args, limit=limit, context=context)
-            if not ids:
-                # Do not merge the 2 next lines into one single search, SQL search performance would be abysmal
-                # on a database with thousands of matching products, due to the huge merge+unique needed for the
-                # OR operator (and given the fact that the 'name' lookup results come from the ir.translation table
-                # Performing a quick memory merge of ids in Python will give much better performance
-                ids = set()
-                ids.update(self.search(cr, user, args + [('default_code',operator,name)], limit=limit, context=context))
-                if not limit or len(ids) < limit:
-                    # we may underrun the limit because of dupes in the results, that's fine
-                    ids.update(self.search(cr, user, args + [('name',operator,name)], limit=(limit and (limit-len(ids)) or False) , context=context))
-                ids = list(ids)
-            if not ids:
-                ptrn = re.compile('(\[(.*?)\])')
-                res = ptrn.search(name)
-                if res:
-                    ids = self.search(cr, user, [('default_code','=', res.group(2))] + args, limit=limit, context=context)
-        else:
-            ids = self.search(cr, user, args, limit=limit, context=context)
-        result = self.name_get(cr, user, ids, context=context)
-        return result
+    def name_search(self, cr, user, name, args=None, operator='ilike', context=None, limit=100):
+       ids = self.search(cr, user, args, context=context, limit=limit)
+       return self.name_get(cr, user, ids, context=context)
+#     def name_search(self, cr, user, name='', args=None, operator='ilike', context=None, limit=100):
+#         if not args:
+#             args = []
+#         if name:
+#             ids = self.search(cr, user, [('default_code','=',name)]+ args, limit=limit, context=context)
+#             if not ids:
+#                 ids = self.search(cr, user, [('ean13','=',name)]+ args, limit=limit, context=context)
+#             if not ids:
+#                 # Do not merge the 2 next lines into one single search, SQL search performance would be abysmal
+#                 # on a database with thousands of matching products, due to the huge merge+unique needed for the
+#                 # OR operator (and given the fact that the 'name' lookup results come from the ir.translation table
+#                 # Performing a quick memory merge of ids in Python will give much better performance
+#                 ids = set()
+#                 ids.update(self.search(cr, user, args + [('default_code',operator,name)], limit=limit, context=context))
+#                 if not limit or len(ids) < limit:
+#                     # we may underrun the limit because of dupes in the results, that's fine
+#                     ids.update(self.search(cr, user, args + [('name',operator,name)], limit=(limit and (limit-len(ids)) or False) , context=context))
+#                 ids = list(ids)
+#             if not ids:
+#                 ptrn = re.compile('(\[(.*?)\])')
+#                 res = ptrn.search(name)
+#                 if res:
+#                     ids = self.search(cr, user, [('default_code','=', res.group(2))] + args, limit=limit, context=context)
+#         else:
+#             ids = self.search(cr, user, args, limit=limit, context=context)
+#         result = self.name_get(cr, user, ids, context=context)
+#         return result
 
 product_product()
 
@@ -1207,16 +1209,16 @@ class tpt_form_403(osv.osv):
 tpt_form_403()
 
 class res_partner(osv.osv):
-     _inherit = "res.partner"
+    _inherit = "res.partner"
       
-     _columns = {
+    _columns = {
         'consignee_parent_id': fields.many2one('res.partner', 'Parent', ondelete = 'cascade'),
         'consignee_line': fields.one2many('res.partner', 'consignee_parent_id', 'Consignee'),
         'bill_location': fields.boolean('Is Bill To Location'), 
         'shipping_location': fields.boolean('Is Shipping Location'), 
                  }
-     
-     def _search(self, cr, user, args, offset=0, limit=None, order=None, context=None, count=False, access_rights_uid=None):
+    
+    def _search(self, cr, user, args, offset=0, limit=None, order=None, context=None, count=False, access_rights_uid=None):
        """ Override search() to always show inactive children when searching via ``child_of`` operator. The ORM will
        always call search() with a simple domain of the form [('parent_id', 'in', [ids])]. """
        # a special ``domain`` is set on the ``child_ids`` o2m to bypass this logic, as it uses similar domain expressions
@@ -1234,64 +1236,67 @@ class res_partner(osv.osv):
                args += [('id','in',partner_ids)]
        return super(res_partner, self)._search(cr, user, args, offset=offset, limit=limit, order=order, context=context,
                                                count=count, access_rights_uid=access_rights_uid)
- 
-     def name_search(self, cr, uid, name, args=None, operator='ilike', context=None, limit=100):
-       if not args:
-           args = []
-       if name and operator in ('=', 'ilike', '=ilike', 'like', '=like'):
- 
-           self.check_access_rights(cr, uid, 'read')
-           where_query = self._where_calc(cr, uid, args, context=context)
-           self._apply_ir_rules(cr, uid, where_query, 'read', context=context)
-           from_clause, where_clause, where_clause_params = where_query.get_sql()
-           where_str = where_clause and (" WHERE %s AND " % where_clause) or ' WHERE '
- 
-           # search on the name of the contacts and of its company
-           search_name = name
-           if operator in ('ilike', 'like'):
-               search_name = '%%%s%%' % name
-           if operator in ('=ilike', '=like'):
-               operator = operator[1:]
- 
-           unaccent = get_unaccent_wrapper(cr)
- 
-           # TODO: simplify this in trunk with `display_name`, once it is stored
-           # Perf note: a CTE expression (WITH ...) seems to have an even higher cost
-           #            than this query with duplicated CASE expressions. The bulk of
-           #            the cost is the ORDER BY, and it is inevitable if we want
-           #            relevant results for the next step, otherwise we'd return
-           #            a random selection of `limit` results.
- 
-           display_name = """CASE WHEN company.id IS NULL OR res_partner.is_company
-                                  THEN {partner_name}
-                                  ELSE {company_name} || ', ' || {partner_name}
-                              END""".format(partner_name=unaccent('res_partner.name'),
-                                            company_name=unaccent('company.name'))
- 
-           query = """SELECT res_partner.id
-                        FROM res_partner
-                   LEFT JOIN res_partner company
-                          ON res_partner.parent_id = company.id
-                     {where} ({email} {operator} {percent}
-                          OR {display_name} {operator} {percent})
-                    ORDER BY {display_name}
-                   """.format(where=where_str, operator=operator,
-                              email=unaccent('res_partner.email'),
-                              percent=unaccent('%s'),
-                              display_name=display_name)
- 
-           where_clause_params += [search_name, search_name]
-           if limit:
-               query += ' limit %s'
-               where_clause_params.append(limit)
-           cr.execute(query, where_clause_params)
-           ids = map(lambda x: x[0], cr.fetchall())
- 
-           if ids:
-               return self.name_get(cr, uid, ids, context)
-           else:
-               return []
-       return super(res_partner,self).name_search(cr, uid, name, args, operator=operator, context=context, limit=limit)
+    def name_search(self, cr, user, name, args=None, operator='ilike', context=None, limit=100):
+       ids = self.search(cr, user, args, context=context, limit=limit)
+       return self.name_get(cr, user, ids, context=context)
+       
+#      def name_search(self, cr, uid, name, args=None, operator='ilike', context=None, limit=100):
+#        if not args:
+#            args = []
+#        if name and operator in ('=', 'ilike', '=ilike', 'like', '=like'):
+#  
+#            self.check_access_rights(cr, uid, 'read')
+#            where_query = self._where_calc(cr, uid, args, context=context)
+#            self._apply_ir_rules(cr, uid, where_query, 'read', context=context)
+#            from_clause, where_clause, where_clause_params = where_query.get_sql()
+#            where_str = where_clause and (" WHERE %s AND " % where_clause) or ' WHERE '
+#  
+#            # search on the name of the contacts and of its company
+#            search_name = name
+#            if operator in ('ilike', 'like'):
+#                search_name = '%%%s%%' % name
+#            if operator in ('=ilike', '=like'):
+#                operator = operator[1:]
+#  
+#            unaccent = get_unaccent_wrapper(cr)
+#  
+#            # TODO: simplify this in trunk with `display_name`, once it is stored
+#            # Perf note: a CTE expression (WITH ...) seems to have an even higher cost
+#            #            than this query with duplicated CASE expressions. The bulk of
+#            #            the cost is the ORDER BY, and it is inevitable if we want
+#            #            relevant results for the next step, otherwise we'd return
+#            #            a random selection of `limit` results.
+#  
+#            display_name = """CASE WHEN company.id IS NULL OR res_partner.is_company
+#                                   THEN {partner_name}
+#                                   ELSE {company_name} || ', ' || {partner_name}
+#                               END""".format(partner_name=unaccent('res_partner.name'),
+#                                             company_name=unaccent('company.name'))
+#  
+#            query = """SELECT res_partner.id
+#                         FROM res_partner
+#                    LEFT JOIN res_partner company
+#                           ON res_partner.parent_id = company.id
+#                      {where} ({email} {operator} {percent}
+#                           OR {display_name} {operator} {percent})
+#                     ORDER BY {display_name}
+#                    """.format(where=where_str, operator=operator,
+#                               email=unaccent('res_partner.email'),
+#                               percent=unaccent('%s'),
+#                               display_name=display_name)
+#  
+#            where_clause_params += [search_name, search_name]
+#            if limit:
+#                query += ' limit %s'
+#                where_clause_params.append(limit)
+#            cr.execute(query, where_clause_params)
+#            ids = map(lambda x: x[0], cr.fetchall())
+#  
+#            if ids:
+#                return self.name_get(cr, uid, ids, context)
+#            else:
+#                return []
+#        return super(res_partner,self).name_search(cr, uid, name, args, operator=operator, context=context, limit=limit)
 # #      def search(self, cr, uid, args, offset=0, limit=None, order=None, context=None, count=False):
 # #         if context is None:
 # #             context = {}

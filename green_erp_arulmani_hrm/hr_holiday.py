@@ -479,11 +479,17 @@ class arul_hr_employee_leave_details(osv.osv):
                 emp_leave = emp_leave_obj.browse(cr, uid, emp_leave_ids[0])
                 temp = 0
                 for line in emp_leave.emp_leave_details_ids:
-                    if line.leave_type_id.id == date.leave_type_id.id:
+                    if line.leave_type_id.id == date.leave_type_id.id and date.leave_type_id.code != 'LOP':
                         temp += 1
                         day = line.total_day - line.total_taken
                         if timedelta > day and line.leave_type_id.code!='LOP':
                             raise osv.except_osv(_('Warning!'),_('The Taken Day Must Be Less Than The Limit!'))
+                    if date.leave_type_id.code == 'LOP':
+                        temp += 1
+                        leave = leave_details_obj.search(cr, uid, [('emp_leave_id','=',emp_leave.id),('leave_type_id','=',date.leave_type_id.id)])
+                        if not leave:
+                            leave_details_obj.create(cr,uid,{'emp_leave_id':emp_leave.id,
+                                                      'leave_type_id':date.leave_type_id.id,}) 
                 if temp == 0:
                     raise osv.except_osv(_('Warning!'),_('Leave Type Is Unlicensed For Employee Category And Employee Sub Category!'))
             else:
@@ -639,6 +645,8 @@ class arul_hr_employee_leave_details(osv.osv):
             leave_details_obj = self.pool.get('employee.leave.detail')
             emp_leave_obj = self.pool.get('employee.leave')
             year_now = date_from[0:4]
+            leave_lop_ids = leave_type_obj.search(cr, uid, [('code','=','LOP')])
+            leave_lop_id = leave_type_obj.browse(cr, uid, leave_lop_ids[0])
 #             year_now = time.strftime('%Y')
             emp_leave_ids = emp_leave_obj.search(cr, uid, [('employee_id','=',employee_id),('year','=',year_now)])
             if emp_leave_ids:
@@ -650,7 +658,7 @@ class arul_hr_employee_leave_details(osv.osv):
                         day = line.total_day - line.total_taken
                         if timedelta > day and line.leave_type_id.code!='LOP':
                             raise osv.except_osv(_('Warning!'),_('The Taken Day Must Be Less Than The Limit'))
-                if temp == 0:
+                if temp == 0 and leave_lop_id.id != leave_type_id:
                     raise osv.except_osv(_('Warning!'),_('Leave Type Is Unlicensed For Employee Category And Employee Sub Category!'))
             else:
                 raise osv.except_osv(_('Warning!'),_('Employee Has Not Been Licensed Holidays For The Current Year'))

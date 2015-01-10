@@ -123,7 +123,7 @@ class stock_picking_out(osv.osv):
         'transporter':fields.char('Transporter Name', size = 64),
         'truck':fields.char('Truck Number', size = 64),
         'remarks':fields.text('Remarks'),
-        'doc_status':fields.selection([('completed','Completed')],'Document Status'),
+        'doc_status':fields.selection([('draft','Drafted'),('waiting','Waiting for Approval'),('completed','Completed'),('cancelled','Cancelled')],'Document Status'),
         'sale_id': fields.many2one('sale.order', 'Sales Order', ondelete='set null', select=True),
                 }
     def write(self, cr, uid, ids, vals, context=None):
@@ -210,7 +210,7 @@ class account_invoice(osv.osv):
         'sale_id':  fields.many2one('sale.order','Sale Order'), 
         'excise_duty_id': fields.many2one('account.tax','Excise Duty', required = False),
         'sale_tax_id': fields.many2one('account.tax','Sales Tax', required = False),
-        'doc_status':fields.selection([('completed','Completed')],'Document Status'),
+        'doc_status':fields.selection([('draft','Drafted'),('waiting','Waiting for Approval'),('completed','Completed'),('cancelled','Cancelled')],'Document Status'),
         'invoice_type':fields.selection([ ('domestic','Domestic'), ('export','Export'), ],'Invoice Type'),
         'vessel_flight_no': fields.char('Vessel/Flight No.', size = 1024),
         'port_of_loading_id': fields.many2one('res.country','Port Of Loading'),
