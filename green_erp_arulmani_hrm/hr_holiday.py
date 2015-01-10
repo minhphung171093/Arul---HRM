@@ -142,16 +142,16 @@ class arul_hr_capture_work_shift(osv.osv):
               'allowance': fields.float('Shift Allowance'),
               }
     
-    def name_get(self, cr, uid, ids, context=None):
-        res = []
-        if not ids:
-            return res
-        reads = self.read(cr, uid, ids, ['code'], context)
-  
-        for record in reads:
-            name = record['code']
-            res.append((record['id'], name))
-        return res    
+#     def name_get(self, cr, uid, ids, context=None):
+#         res = []
+#         if not ids:
+#             return res
+#         reads = self.read(cr, uid, ids, ['code'], context)
+#   
+#         for record in reads:
+#             name = record['code']
+#             res.append((record['id'], name))
+#         return res    
     
     def _check_code(self, cr, uid, ids, context=None):
         for shift in self.browse(cr, uid, ids, context=context):
