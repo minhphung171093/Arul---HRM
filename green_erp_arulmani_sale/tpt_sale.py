@@ -216,6 +216,8 @@ class sale_order(osv.osv):
         new_id = super(sale_order, self).create(cr, uid, vals, context)
         sale = self.browse(cr, uid, new_id)
         if sale.blanket_id:
+            flag=False
+            document_status = 'partially'
             for blanket_line in sale.blanket_id.blank_order_line:
                 sql_so = '''
                     select id from sale_order where blanket_id = %s
@@ -239,15 +241,26 @@ class sale_order(osv.osv):
                 kq = cr.fetchall()
                 for data in kq:
                     if blanket_line.product_uom_qty < data[1]:
+                        document_status = 'partially'
                         raise osv.except_osv(_('Warning!'),_('Quantity must be less than quantity of Blanket Order is product %s'%blanket_line.product_id.name_template))
+                    elif blanket_line.product_uom_qty > data[1]:
+                        document_status = 'partially'
+                        flag=True
+                        self.write(cr,uid,[new_id],{'document_status':document_status})
+                    else:
+                        document_status = 'close'
+                if flag==False:
+                    self.write(cr,uid,[new_id],{'document_status':document_status})
         return new_id
     
     def write(self, cr, uid, ids, vals, context=None):
-        if 'document_status' in vals:
-            vals['document_status'] = 'draft'
+#         if 'document_status' in vals:
+#             vals['document_status'] = 'draft'
         new_write = super(sale_order, self).write(cr, uid,ids, vals, context)
         for sale in self.browse(cr, uid, ids):
             if sale.blanket_id:
+                flag=False
+#                 document_status = 'partially'
                 for blanket_line in sale.blanket_id.blank_order_line:
                     sql_so = '''
                         select id from sale_order where blanket_id = %s
@@ -272,6 +285,32 @@ class sale_order(osv.osv):
                     for data in kq:
                         if blanket_line.product_uom_qty < data[1]:
                             raise osv.except_osv(_('Warning!'),_('Quantity must be less than quantity of Blanket Order is product %s'%blanket_line.product_id.name_template))
+                        elif blanket_line.product_uom_qty > data[1]:
+                            flag=True
+                            sql_stt = '''
+                               update sale_order set document_status='partially' where id = %s
+                                '''%(sale.id)
+ 
+                            cr.execute(sql_stt)
+                        else:
+                            document_status = 'close'
+                    if flag==False:
+                       sql_stt = '''
+                          update sale_order set document_status='close' where id = %s
+                           '''%(sale.id)
+
+                       cr.execute(sql_stt)
+#                         if blanket_line.product_uom_qty < data[1]:
+#                             document_status = 'partially'
+#                             raise osv.except_osv(_('Warning!'),_('Quantity must be less than quantity of Blanket Order is product %s'%blanket_line.product_id.name_template))
+#                         elif blanket_line.product_uom_qty > data[1]:
+#                             document_status = 'partially'
+#                             flag=True
+#                             self.write(cr,uid,[new_write],{'document_status':document_status})
+#                         else:
+#                             document_status = 'close'
+#                     if flag==False:
+#                         self.write(cr,uid,[new_write],{'document_status':document_status})
         return new_write
     
     def onchange_blanket_id(self, cr, uid, ids,blanket_id=False, context=None):
@@ -362,6 +401,7 @@ class sale_order(osv.osv):
                     'order_line':blanket_lines or False,
                     'order_policy': 'picking',
                     'partner_invoice_id': addr['invoice'],
+                    'document_status':'close',
 #                     'sale_consignee_line':consignee_lines or False,
                         }
         return {'value': vals}    
@@ -519,7 +559,7 @@ class sale_order_line(osv.osv):
         'price_subtotal': fields.function(_amount_line, string='Subtotal', digits_compute= dp.get_precision('Account')),
         'name_consignee_id': fields.many2one('res.partner', 'Consignee', required = True),
         'location': fields.char('Location', size = 1024),   
-        'product_uom_qty': fields.float('Quantity', digits=(12,12),digits_compute= dp.get_precision('Product UoS'), required=True, readonly=True, states={'draft': [('readonly', False)]}),
+        'product_uom_qty': fields.float('Quantity', digits=(16,2), required=True, readonly=True, states={'draft': [('readonly', False)]}),
     }
     def create(self, cr, uid, vals, context=None):
         if 'freight' in vals:
