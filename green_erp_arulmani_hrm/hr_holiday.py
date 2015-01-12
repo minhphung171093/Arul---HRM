@@ -1303,7 +1303,7 @@ class arul_hr_punch_in_out(osv.osv):
 #                                 })
                         if data1[:3]=='P20':
                             out_time = float(data1[15:17])+float(data1[17:19])/60+float(data1[19:21])/3600
-                            audit_shift_ids = detail_obj2.search(cr, uid, [('type','=','shift'),('employee_id','=', employee_ids[0]),('state','=','draft')])
+                            audit_shift_ids = detail_obj2.search(cr, uid, [('type','=','shift'),('employee_id','=', employee_ids[0]),('state','=','draft')],order='id desc')
                             
                             if audit_shift_ids :
                                 audit_shift = detail_obj2.browse(cr,uid,audit_shift_ids[0])

@@ -93,7 +93,7 @@
             <field name="arch" type="xml">
             <data>
             <xpath expr="//button[@name='action_view_delivery']" position="replace">
-            <button name="action_view_delivery" string="Create Delivery Order" type="object" class="oe_highlight"
+            <button name="action_view_delivery" string="Create/View Delivery Order" type="object" class="oe_highlight"
                  attrs="{'invisible': ['|','|','|',('picking_ids','=',False),('picking_ids','=',[]), ('state', 'not in', ('progress','manual')),('shipped','=',True)]}" groups="base.group_user"/>
             </xpath>
             </data>
