@@ -2,3 +2,4 @@
 
 import arul_payslip_report
 import print_report
+import gate_pass

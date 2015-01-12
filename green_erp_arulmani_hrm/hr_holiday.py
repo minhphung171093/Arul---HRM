@@ -860,6 +860,17 @@ class arul_hr_permission_onduty(osv.osv):
                 return False
         return True
     
+    def print_gate_pass(self, cr, uid, ids, context=None):
+        datas = {
+             'ids': ids,
+             'model': 'arul.hr.permission.onduty',
+             'form': self.read(cr, uid, ids[0], context=context)
+        }
+        return {
+                'type': 'ir.actions.report.xml',
+                'report_name': 'gate_pass_report',
+            }
+    
     def _check_date_from_to(self, cr, uid, ids, context=None): 
         for permission_onduty in self.browse(cr, uid, ids, context = context):
             if permission_onduty.non_availability_type_id and permission_onduty.to_date < permission_onduty.from_date:

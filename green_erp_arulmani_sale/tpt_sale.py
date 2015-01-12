@@ -21,12 +21,13 @@ class product_product(osv.osv):
         if context and context.get('search_default_categ_id', False):
             args.append((('categ_id', 'child_of', context['search_default_categ_id'])))
         if context.get('search_blanket_id'):
-            sql = '''
-                select product_id from tpt_blank_order_line where blanket_order_id in(select id from tpt_blanket_order where id = %s)
-            '''%(context.get('blanket_id'))
-            cr.execute(sql)
-            blanket_ids = [row[0] for row in cr.fetchall()]
-            args += [('id','in',blanket_ids)]
+            if context.get('blanket_id'):
+                sql = '''
+                    select product_id from tpt_blank_order_line where blanket_order_id in(select id from tpt_blanket_order where id = %s)
+                '''%(context.get('blanket_id'))
+                cr.execute(sql)
+                blanket_ids = [row[0] for row in cr.fetchall()]
+                args += [('id','in',blanket_ids)]
         return super(product_product, self).search(cr, uid, args, offset=offset, limit=limit, order=order, context=context, count=count)
     def name_search(self, cr, user, name, args=None, operator='ilike', context=None, limit=100):
        ids = self.search(cr, user, args, context=context, limit=limit)
@@ -97,7 +98,7 @@ class sale_order(osv.osv):
     _columns = {
 #         'name': fields.char('Order Reference', size=64, required=True, readonly=True, select=True),
         'order_type':fields.selection([('domestic','Domestic'),('export','Export')],'Order Type' ,required=True),
-        'blanket_id':fields.many2one('tpt.blanket.order','Blanket Order'),
+        'blanket_id':fields.many2one('tpt.blanket.order','Blanket Order',required = True),
 #         'so_date':fields.date('SO Date'),
         'po_date':fields.date('PO Date'),
         'payment_term_id': fields.many2one('account.payment.term', 'Payment Term'),

@@ -45,6 +45,7 @@
         'hr_demo_payroll_deduction_parameters.xml',
         'report/arul_payslip_report.xml',
         'report/print_report.xml',
+        'report/gate_pass_view.xml',
 #         'data_category.xml',
         'import_view.xml',
         'green_erp_arulmani_sequence.xml',

@@ -252,6 +252,9 @@
             <field name="model">arul.hr.permission.onduty</field>
             <field name="arch" type="xml">
 	            <form string="Permission and On Duty" version="7.0">   
+	            	<header>
+	                    <button name="print_gate_pass" attrs="{'invisible':['|',('approval','=',False),('non_availability_type_id','!=','permission')]}" string="Print Gate Pass" type="object" class="oe_highlight"/>
+	                </header>
 	            	<sheet>
 		                <group col='4' colspan='2'>    
 			                <field name="employee_id" options="{'create': false, 'create_edit': false}"/>
