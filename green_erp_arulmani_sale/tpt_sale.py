@@ -677,7 +677,7 @@ class sale_order_line(osv.osv):
 
         if not flag:
 #             result['name'] = self.pool.get('product.product').name_get(cr, uid, [product_obj.id], context=context_partner)[0][1]
-            result['name'] = self.pool.get('product.product').browse(cr, uid, product_obj.id).description
+            result['name'] = self.pool.get('product.product').browse(cr, uid, product_obj.id).name
             if product_obj.description_sale:
                 result['name'] += '\n'+product_obj.description_sale
         domain = {}
@@ -925,7 +925,7 @@ class tpt_blank_order_line(osv.osv):
             vals = {
                     'uom_po_id':product.uom_id.id,
                     'price_unit':product.list_price,
-                    'description': product.description
+                    'description': product.name
                     }
         return {'value': vals}
       
