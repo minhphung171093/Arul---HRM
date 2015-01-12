@@ -39,6 +39,7 @@ class Parser(report_sxw.rml_parse):
         self.localcontext.update({
             'get_date': self.get_date,
             'get_shift': self.get_shift,
+            'float_to_time': self.float_to_time,
         })
         
     def get_date(self, date=False):
@@ -55,6 +56,11 @@ class Parser(report_sxw.rml_parse):
         if res and res[0]:
             shift = res[0]
         return shift
+    
+    def float_to_time(self,time_f):
+        if not time_f:
+            return ''
+        return time.strftime('%H:%M', time.gmtime(time_f*3600))
 
 # vim:expandtab:smartindent:tabstop=4:softtabstop=4:shiftwidth=4:
 
