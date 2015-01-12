@@ -632,6 +632,7 @@ class sale_order_line(osv.osv):
 #                     'name': product.name
 #                     }
 #         return {'value': vals}
+    
 sale_order_line()
 
 
