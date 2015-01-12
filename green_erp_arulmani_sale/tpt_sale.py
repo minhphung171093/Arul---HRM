@@ -21,12 +21,13 @@ class product_product(osv.osv):
         if context and context.get('search_default_categ_id', False):
             args.append((('categ_id', 'child_of', context['search_default_categ_id'])))
         if context.get('search_blanket_id'):
-            sql = '''
-                select product_id from tpt_blank_order_line where blanket_order_id in(select id from tpt_blanket_order where id = %s)
-            '''%(context.get('blanket_id'))
-            cr.execute(sql)
-            blanket_ids = [row[0] for row in cr.fetchall()]
-            args += [('id','in',blanket_ids)]
+            if context.get('blanket_id'):
+                sql = '''
+                    select product_id from tpt_blank_order_line where blanket_order_id in(select id from tpt_blanket_order where id = %s)
+                '''%(context.get('blanket_id'))
+                cr.execute(sql)
+                blanket_ids = [row[0] for row in cr.fetchall()]
+                args += [('id','in',blanket_ids)]
         return super(product_product, self).search(cr, uid, args, offset=offset, limit=limit, order=order, context=context, count=count)
     def name_search(self, cr, user, name, args=None, operator='ilike', context=None, limit=100):
        ids = self.search(cr, user, args, context=context, limit=limit)
@@ -97,7 +98,7 @@ class sale_order(osv.osv):
     _columns = {
 #         'name': fields.char('Order Reference', size=64, required=True, readonly=True, select=True),
         'order_type':fields.selection([('domestic','Domestic'),('export','Export')],'Order Type' ,required=True),
-        'blanket_id':fields.many2one('tpt.blanket.order','Blanket Order'),
+        'blanket_id':fields.many2one('tpt.blanket.order','Blanket Order',required = True),
 #         'so_date':fields.date('SO Date'),
         'po_date':fields.date('PO Date'),
         'payment_term_id': fields.many2one('account.payment.term', 'Payment Term'),
@@ -106,7 +107,7 @@ class sale_order(osv.osv):
         'reason':fields.text('Reason'),
         'quotaion_no':fields.char('Quotaion No', size = 40),
         'expected_date':fields.date('Expected delivery Date'),
-        'document_status':fields.selection([('draft','Draft'),('waiting','Waiting for Approval'),('completed','Completed(Ready to Process)'),('partially','Partially Delivered'),('close','Closed(Delivered)')],'Document Status'),
+        'document_status':fields.selection([('draft','Draft'),('waiting','Waiting for Approval'),('completed','Completed(Ready to Process)'),('partially','Partially Delivered'),('close','Closed(Delivered)'),('cancelled','Cancelled')],'Document Status'),
         'incoterms_id':fields.many2one('stock.incoterms','Incoterms',required = True),
         'distribution_channel':fields.many2one('crm.case.channel','Distribution Channel',required = True),
         'excise_duty_id': fields.many2one('account.tax', 'Ex.Duty', domain="[('type_tax_use','=','excise_duty')]", required = True),
@@ -208,17 +209,42 @@ class sale_order(osv.osv):
 #         if vals.get('name','/')=='/':
 #             vals['name'] = self.pool.get('ir.sequence').get(cr, uid, 'tpt.sale.order.import') or '/'
 #         return super(sale_order, self).create(cr, uid, vals, context=context)
-    
+   
+    def action_cancel(self, cr, uid, ids, context=None):
+        wf_service = netsvc.LocalService("workflow")
+        if context is None:
+            context = {}
+        sale_order_line_obj = self.pool.get('sale.order.line')
+        for sale in self.browse(cr, uid, ids, context=context):
+            for inv in sale.invoice_ids:
+                if inv.state not in ('draft', 'cancel'):
+                    raise osv.except_osv(
+                        _('Cannot cancel this sales order!'),
+                        _('First cancel all invoices attached to this sales order.'))
+            for r in self.read(cr, uid, ids, ['invoice_ids']):
+                for inv in r['invoice_ids']:
+                    wf_service.trg_validate(uid, 'account.invoice', inv, 'invoice_cancel', cr)
+            sale_order_line_obj.write(cr, uid, [l.id for l in  sale.order_line],
+                    {'state': 'cancel'})
+        self.write(cr, uid, ids, {'state': 'cancel'})
+        sql = '''
+            update sale_order set document_status='cancelled' where id = %s
+        '''%(sale.id)
+        cr.execute(sql)
+        return True 
 #     
     def create(self, cr, uid, vals, context=None):
 #         if 'document_status' in vals:
 #             vals['document_status'] = 'draft'
         new_id = super(sale_order, self).create(cr, uid, vals, context)
         sale = self.browse(cr, uid, new_id)
+#         sale_ids = sale.search(cr,uid,[('state','!=','cancel')])
         if sale.blanket_id:
+            flag=False
+#             document_status = 'partially'
             for blanket_line in sale.blanket_id.blank_order_line:
                 sql_so = '''
-                    select id from sale_order where blanket_id = %s
+                    select id from sale_order where blanket_id = %s and state!='cancel'
                 '''%(sale.blanket_id.id)
                 cr.execute(sql_so)
                 kq = cr.fetchall()
@@ -239,18 +265,35 @@ class sale_order(osv.osv):
                 kq = cr.fetchall()
                 for data in kq:
                     if blanket_line.product_uom_qty < data[1]:
+                        document_status = 'partially'
                         raise osv.except_osv(_('Warning!'),_('Quantity must be less than quantity of Blanket Order is product %s'%blanket_line.product_id.name_template))
+                    elif blanket_line.product_uom_qty > data[1]:
+                        document_status = 'partially'
+                        flag=True
+                        sql_stt = '''
+                            update sale_order set document_status='partially' where id = %s
+                        '''%(sale.id)
+                        cr.execute(sql_stt)
+                    else:
+                        document_status = 'close'
+                if flag==False:
+                    sql_stt = '''
+                        update sale_order set document_status='close' where id = %s
+                    '''%(sale.id)
+                    cr.execute(sql_stt)
         return new_id
     
     def write(self, cr, uid, ids, vals, context=None):
-        if 'document_status' in vals:
-            vals['document_status'] = 'draft'
+#         if 'document_status' in vals:
+#             vals['document_status'] = 'draft'
         new_write = super(sale_order, self).write(cr, uid,ids, vals, context)
         for sale in self.browse(cr, uid, ids):
             if sale.blanket_id:
+                flag=False
+#                 document_status = 'partially'
                 for blanket_line in sale.blanket_id.blank_order_line:
                     sql_so = '''
-                        select id from sale_order where blanket_id = %s
+                        select id from sale_order where blanket_id = %s and state!='cancel'
                     '''%(sale.blanket_id.id)
                     cr.execute(sql_so)
                     kq = cr.fetchall()
@@ -272,7 +315,35 @@ class sale_order(osv.osv):
                     for data in kq:
                         if blanket_line.product_uom_qty < data[1]:
                             raise osv.except_osv(_('Warning!'),_('Quantity must be less than quantity of Blanket Order is product %s'%blanket_line.product_id.name_template))
+                        elif blanket_line.product_uom_qty > data[1]:
+                            flag=True
+                            sql_stt = '''
+                               update sale_order set document_status='partially' where id = %s
+                                '''%(sale.id)
+ 
+                            cr.execute(sql_stt)
+                        else:
+                            document_status = 'close'
+                    if flag==False:
+                       sql_stt = '''
+                          update sale_order set document_status='close' where id = %s
+                           '''%(sale.id)
+
+                       cr.execute(sql_stt)
+#                         if blanket_line.product_uom_qty < data[1]:
+#                             document_status = 'partially'
+#                             raise osv.except_osv(_('Warning!'),_('Quantity must be less than quantity of Blanket Order is product %s'%blanket_line.product_id.name_template))
+#                         elif blanket_line.product_uom_qty > data[1]:
+#                             document_status = 'partially'
+#                             flag=True
+#                             self.write(cr,uid,[new_write],{'document_status':document_status})
+#                         else:
+#                             document_status = 'close'
+#                     if flag==False:
+#                         self.write(cr,uid,[new_write],{'document_status':document_status})
         return new_write
+    
+
     
     def onchange_blanket_id(self, cr, uid, ids,blanket_id=False, context=None):
         vals = {}
@@ -287,7 +358,7 @@ class sale_order(osv.osv):
                 cr.execute(sql)
             for blanket_line in blanket.blank_order_line:
                 sql_so = '''
-                    select id from sale_order where blanket_id = %s
+                    select id from sale_order where blanket_id = %s and state!='cancel'
                 '''%(blanket_id)
                 cr.execute(sql_so)
                 kq = cr.fetchall()
@@ -362,6 +433,7 @@ class sale_order(osv.osv):
                     'order_line':blanket_lines or False,
                     'order_policy': 'picking',
                     'partner_invoice_id': addr['invoice'],
+                    'document_status':'close',
 #                     'sale_consignee_line':consignee_lines or False,
                         }
         return {'value': vals}    
@@ -519,7 +591,7 @@ class sale_order_line(osv.osv):
         'price_subtotal': fields.function(_amount_line, string='Subtotal', digits_compute= dp.get_precision('Account')),
         'name_consignee_id': fields.many2one('res.partner', 'Consignee', required = True),
         'location': fields.char('Location', size = 1024),   
-        'product_uom_qty': fields.float('Quantity', digits=(12,12),digits_compute= dp.get_precision('Product UoS'), required=True, readonly=True, states={'draft': [('readonly', False)]}),
+        'product_uom_qty': fields.float('Quantity', digits=(16,2), required=True, readonly=True, states={'draft': [('readonly', False)]}),
     }
     def create(self, cr, uid, vals, context=None):
         if 'freight' in vals:
@@ -975,7 +1047,7 @@ class tpt_batch_allotment(osv.osv):
     _columns = {
         'batch_request_id':fields.many2one('tpt.batch.request','Batch Request No.',required = True), 
         'name':fields.date('Date Requested',required = True), 
-        'sale_order_id':fields.many2one('sale.order','Sale Order'),   
+        'sale_order_id':fields.many2one('sale.order','Sale Order',required = True),   
         'customer_id':fields.many2one('res.partner', 'Customer', required = True), 
         'description':fields.text('Description'),
         'state': fields.selection([('to_approve', 'To Approved'), ('refuse', 'Refused'),('confirm', 'Approve'), ('cancel', 'Cancelled')],'Status'),
@@ -1405,6 +1477,24 @@ class stock_production_lot(osv.osv):
     _columns = {
         'phy_batch_no': fields.char('Physical Serial No.', size = 1024,required = True), 
                 }
+    
+    def search(self, cr, uid, args, offset=0, limit=None, order=None, context=None, count=False):
+        if context is None:
+            context = {}
+        if context.get('search_prodlot_by_batch_alot'):
+            sale_id = context.get('sale_id', False)
+            if sale_id:
+                sql = '''
+                    select sys_batch from tpt_batch_allotment_line where batch_allotment_id in (select id from tpt_batch_allotment where sale_order_id = %s)
+                '''%(sale_id)
+                cr.execute(sql)
+                prodlot_ids = [row[0] for row in cr.fetchall()]
+                args += [('id','in',prodlot_ids)]
+        return super(stock_production_lot, self).search(cr, uid, args, offset=offset, limit=limit, order=order, context=context, count=count)
+    def name_search(self, cr, user, name, args=None, operator='ilike', context=None, limit=100):
+       ids = self.search(cr, user, args, context=context, limit=limit)
+       return self.name_get(cr, user, ids, context=context)
+   
 stock_production_lot()  
 
 # vim:expandtab:smartindent:tabstop=4:softtabstop=4:shiftwidth=4:

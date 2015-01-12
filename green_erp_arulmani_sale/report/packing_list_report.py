@@ -29,6 +29,31 @@ class Parser(report_sxw.rml_parse):
             'get_buyer': self.get_buyer,
         })
     
+    def get_invoice_info(self, do_id):
+        port_of_loading_name = ''
+        port_of_discharge_name = ''
+        sql = '''
+            select vvt_number, to_char(date_invoice,'yyyy.mm.dd'), vessel_flight_no, port_of_loading_id, 
+            port_of_discharge_id, mark_container_no, invoice_type from account_invoice where delivery_order_id = %s
+            '''%(do_id)
+        self.cr.execute(sql)
+        vals = self.cr.dictfetchone()
+        port_of_loading_id = vals['port_of_loading_id']
+        port_of_discharge_id = vals['port_of_discharge_id']
+        if port_of_loading_id:
+            self.cr.execute(''' select name from res_country where id = %s '''%(port_of_loading_id))
+            res1 = self.cr.fetchone()
+            port_of_loading_name = res1[0]
+        if port_of_discharge_id:
+            self.cr.execute(''' select name from res_country where id = %s '''%(port_of_discharge_id))
+            res2 = self.cr.fetchone()
+            port_of_discharge_name = res2[0]
+        vals.update({
+                     'port_of_loading_id':port_of_loading_name,
+                     'port_of_discharge_id':port_of_discharge_name,
+                     }) 
+        return vals
+    
     def get_date(self, date=False):
         if not date:
             date = time.strftime(DATETIME_FORMAT)
@@ -59,6 +84,18 @@ class Parser(report_sxw.rml_parse):
             mt_qty = qty*25/1000
         if uom.lower()=='mt':
             mt_qty = qty
+        return mt_qty
+    
+    def get_qty_kg(self, qty, uom, type):
+        mt_qty = 0.0
+        if uom.lower()=='kg':
+            mt_qty = qty
+        if uom.lower()=='bags' and type == 'domestic':
+            mt_qty = qty*50
+        if uom.lower()=='bags' and type == 'export':
+            mt_qty = qty*25
+        if uom.lower()=='mt':
+            mt_qty = qty*1000
         return mt_qty
     
     def get_buyer(self, obj):

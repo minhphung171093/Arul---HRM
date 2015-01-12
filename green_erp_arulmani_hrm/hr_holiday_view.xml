@@ -252,6 +252,9 @@
             <field name="model">arul.hr.permission.onduty</field>
             <field name="arch" type="xml">
 	            <form string="Permission and On Duty" version="7.0">   
+	            	<header>
+	                    <button name="print_gate_pass" attrs="{'invisible':['|',('approval','=',False),('non_availability_type_id','!=','permission')]}" string="Print Gate Pass" type="object" class="oe_highlight"/>
+	                </header>
 	            	<sheet>
 		                <group col='4' colspan='2'>    
 			                <field name="employee_id" options="{'create': false, 'create_edit': false}"/>
@@ -534,7 +537,7 @@
 							<page string = 'Monthly Shift Schedule'>
 								<button name="shift_schedule" string="Shift Schedule" states="draft,load" type="object" class="oe_highlight"/>
 								<field name="monthly_shift_line" nolabel='1' class='oe_green_erp_scroll' context="{'year': year,'month':month}">
-		                    		<tree create='false'>
+		                    		<tree create='false' edit='false'>
 		                    			<field name="num_of_month" invisible="1"/>
 		                    			<field name="employee_id"/>
 		                    			<field name="day_1"/>
@@ -591,135 +594,139 @@
 		                    			</group>
 		                    			<group col='6' colspan='6'>
 			                    			<group colspan='2'>
-					            				<div colspan='2'>
-					            					01. (<field name="name_of_day_1" class="oe_inline"/>):
+				                    			<div>
+					            					01. (<field name="name_of_day_1" class="oe_inline"/>):</div>
+												<div>
 					            					<field name="day_1" options="{'create': false, 'create_edit': false}" class="oe_inline,oe_right"/>
-					            				</div>
-					            				<div colspan='2'>
-					            					02. (<field name="name_of_day_2" class="oe_inline"/>):
+												</div>
+					            				
+					            				<div>
+					            					02. (<field name="name_of_day_2" class="oe_inline"/>):</div><div>
 					            					<field name="day_2" options="{'create': false, 'create_edit': false}" class="oe_inline,oe_right"/>
 					            				</div>
-					            				<div colspan='2'>	
-					            					03. (<field name="name_of_day_3" class="oe_inline"/>):
+					            				<div>	
+					            					03. (<field name="name_of_day_3" class="oe_inline"/>):</div><div>
 				                    				<field name="day_3" options="{'create': false, 'create_edit': false}" class="oe_inline,oe_right"/>
 				                    			</div>
-					            				<div colspan='2'>
-				                    				04. (<field name="name_of_day_4" class="oe_inline"/>):
+					            				<div>
+				                    				04. (<field name="name_of_day_4" class="oe_inline"/>):</div><div>
 				                    				<field name="day_4" options="{'create': false, 'create_edit': false}" class="oe_inline,oe_right"/>
 				                    			</div>
-					            				<div colspan='2'>
-				                    				05. (<field name="name_of_day_5" class="oe_inline"/>):
+				
+				
+					            				<div>
+				                    				05. (<field name="name_of_day_5" class="oe_inline"/>):</div><div>
 				                    				<field name="day_5" options="{'create': false, 'create_edit': false}" class="oe_inline,oe_right"/>
 				                    			</div>
-					            				<div colspan='2'>
-				                    				06. (<field name="name_of_day_6" class="oe_inline"/>):
+					            				<div>
+				                    				06. (<field name="name_of_day_6" class="oe_inline"/>):</div><div>
 				                    				<field name="day_6" options="{'create': false, 'create_edit': false}" class="oe_inline,oe_right"/>
 				                    			</div>
-					            				<div colspan='2'>
-				                    				07. (<field name="name_of_day_7" class="oe_inline"/>):
+					            				<div >
+				                    				07. (<field name="name_of_day_7" class="oe_inline"/>):</div><div>
 				                    				<field name="day_7" options="{'create': false, 'create_edit': false}" class="oe_inline,oe_right"/>
-			                    				</div>
-					            				<div colspan='2'>
-				                    				08. (<field name="name_of_day_8" class="oe_inline"/>):
+				                				</div>
+					            				<div >
+				                    				08. (<field name="name_of_day_8" class="oe_inline"/>):</div><div>
 				                    				<field name="day_8" options="{'create': false, 'create_edit': false}" class="oe_inline,oe_right"/>
 				                    			</div>
-					            				<div colspan='2'>
-				                    				09. (<field name="name_of_day_9" class="oe_inline"/>):
+					            				<div >
+				                    				09. (<field name="name_of_day_9" class="oe_inline"/>):</div><div>
 				                    				<field name="day_9" options="{'create': false, 'create_edit': false}" class="oe_inline,oe_right"/>
 				                    			</div>
-					            				<div colspan='2'>
-				                    				10. (<field name="name_of_day_10" class="oe_inline"/>):
+					            				<div >
+				                    				10. (<field name="name_of_day_10" class="oe_inline"/>):</div><div>
 				                    				<field name="day_10" options="{'create': false, 'create_edit': false}" class="oe_inline,oe_right"/>
 					            				</div>
-			                    			</group>
-			                    			<group colspan='2'>
-			                    				<div colspan='2'>
-					            					11. (<field name="name_of_day_11" class="oe_inline"/>):
+				                			</group>
+				                			<group colspan='2'>
+				                				<div>
+					            					11. (<field name="name_of_day_11" class="oe_inline"/>):</div><div>
 					            					<field name="day_11" options="{'create': false, 'create_edit': false}" class="oe_inline,oe_right"/>
 					            				</div>
-					            				<div colspan='2'>
-					            					12. (<field name="name_of_day_12" class="oe_inline"/>):
+					            				<div >
+					            					12. (<field name="name_of_day_12" class="oe_inline"/>):</div><div>
 					            					<field name="day_12" options="{'create': false, 'create_edit': false}" class="oe_inline,oe_right"/>
 					            				</div>
-					            				<div colspan='2'>	
-					            					13. (<field name="name_of_day_13" class="oe_inline"/>):
+					            				<div>	
+					            					13. (<field name="name_of_day_13" class="oe_inline"/>):</div><div>
 				                    				<field name="day_13" options="{'create': false, 'create_edit': false}" class="oe_inline,oe_right"/>
 				                    			</div>
-					            				<div colspan='2'>
-				                    				14. (<field name="name_of_day_14" class="oe_inline"/>):
+					            				<div>
+				                    				14. (<field name="name_of_day_14" class="oe_inline"/>):</div><div>
 				                    				<field name="day_14" options="{'create': false, 'create_edit': false}" class="oe_inline,oe_right"/>
 				                    			</div>
-					            				<div colspan='2'>
-				                    				15. (<field name="name_of_day_15" class="oe_inline"/>):
+					            				<div>
+				                    				15. (<field name="name_of_day_15" class="oe_inline"/>):</div><div>
 				                    				<field name="day_15" options="{'create': false, 'create_edit': false}" class="oe_inline,oe_right"/>
 				                    			</div>
-					            				<div colspan='2'>
-				                    				16. (<field name="name_of_day_16" class="oe_inline"/>):
+					            				<div>
+				                    				16. (<field name="name_of_day_16" class="oe_inline"/>):</div><div>
 				                    				<field name="day_16" options="{'create': false, 'create_edit': false}" class="oe_inline,oe_right"/>
 				                    			</div>
-					            				<div colspan='2'>
-				                    				17. (<field name="name_of_day_17" class="oe_inline"/>):
+					            				<div>
+				                    				17. (<field name="name_of_day_17" class="oe_inline"/>):</div><div>
 				                    				<field name="day_17" options="{'create': false, 'create_edit': false}" class="oe_inline,oe_right"/>
 				                				</div>
-					            				<div colspan='2'>
-				                    				18. (<field name="name_of_day_18" class="oe_inline"/>):
+					            				<div>
+				                    				18. (<field name="name_of_day_18" class="oe_inline"/>):</div><div>
 				                    				<field name="day_18" options="{'create': false, 'create_edit': false}" class="oe_inline,oe_right"/>
 				                    			</div>
-					            				<div colspan='2'>
-				                    				19. (<field name="name_of_day_19" class="oe_inline"/>):
+					            				<div>
+				                    				19. (<field name="name_of_day_19" class="oe_inline"/>):</div><div>
 				                    				<field name="day_19" options="{'create': false, 'create_edit': false}" class="oe_inline,oe_right"/>
 				                    			</div>
-					            				<div colspan='2'>
-				                    				20. (<field name="name_of_day_20" class="oe_inline"/>):
+					            				<div>
+				                    				20. (<field name="name_of_day_20" class="oe_inline"/>):</div><div>
 				                    				<field name="day_20" options="{'create': false, 'create_edit': false}" class="oe_inline,oe_right"/>
 					            				</div>
 				            				</group>
 				                			<group colspan='2'>
-				                				<div colspan='2'>
-					            					21. (<field name="name_of_day_21" class="oe_inline"/>):
+				                				<div>
+					            					21. (<field name="name_of_day_21" class="oe_inline"/>):</div><div>
 					            					<field name="day_21" options="{'create': false, 'create_edit': false}" class="oe_inline,oe_right"/>
 					            				</div>
-					            				<div colspan='2'>
-					            					22. (<field name="name_of_day_22" class="oe_inline"/>):
+					            				<div>
+					            					22. (<field name="name_of_day_22" class="oe_inline"/>):</div><div>
 					            					<field name="day_22" options="{'create': false, 'create_edit': false}" class="oe_inline,oe_right"/>
 					            				</div>
-					            				<div colspan='2'>	
-					            					23. (<field name="name_of_day_23" class="oe_inline"/>):
+					            				<div>	
+					            					23. (<field name="name_of_day_23" class="oe_inline"/>):</div><div>
 				                    				<field name="day_23" options="{'create': false, 'create_edit': false}" class="oe_inline,oe_right"/>
 				                    			</div>
-					            				<div colspan='2'>
-				                    				24. (<field name="name_of_day_24" class="oe_inline"/>):
+					            				<div>
+				                    				24. (<field name="name_of_day_24" class="oe_inline"/>):</div><div>
 				                    				<field name="day_24" options="{'create': false, 'create_edit': false}" class="oe_inline,oe_right"/>
 				                    			</div>
-					            				<div colspan='2'>
-				                    				25. (<field name="name_of_day_25" class="oe_inline"/>):
+					            				<div>
+				                    				25. (<field name="name_of_day_25" class="oe_inline"/>):</div><div>
 				                    				<field name="day_25" options="{'create': false, 'create_edit': false}" class="oe_inline,oe_right"/>
 				                    			</div>
-					            				<div colspan='2'>
-				                    				26. (<field name="name_of_day_26" class="oe_inline"/>):
+					            				<div>
+				                    				26. (<field name="name_of_day_26" class="oe_inline"/>):</div><div>
 				                    				<field name="day_26" options="{'create': false, 'create_edit': false}" class="oe_inline,oe_right"/>
 				                    			</div>
-					            				<div colspan='2'>
-				                    				27. (<field name="name_of_day_27" class="oe_inline"/>):
+					            				<div>
+				                    				27. (<field name="name_of_day_27" class="oe_inline"/>):</div><div>
 				                    				<field name="day_27" options="{'create': false, 'create_edit': false}" class="oe_inline,oe_right"/>
 				                				</div>
-					            				<div colspan='2'>
-				                    				28. (<field name="name_of_day_28" class="oe_inline"/>):
+					            				<div>
+				                    				28. (<field name="name_of_day_28" class="oe_inline"/>):</div><div>
 				                    				<field name="day_28" options="{'create': false, 'create_edit': false}" class="oe_inline,oe_right"/>
 				                    			</div>
-					            				<div colspan='2' attrs="{'invisible':[('num_of_month','&lt;',29)]}" options="{'create': false, 'create_edit': false}">
-				                    				29. (<field name="name_of_day_29" class="oe_inline"/>):
+					            				<div attrs="{'invisible':[('num_of_month','&lt;',29)]}" options="{'create': false, 'create_edit': false}">
+				                    				29. (<field name="name_of_day_29" class="oe_inline"/>):</div><div attrs="{'invisible':[('num_of_month','&lt;',29)]}">
 				                    				<field name="day_29" options="{'create': false, 'create_edit': false}" class="oe_inline,oe_right"/>
 				                    			</div>
-					            				<div colspan='2' attrs="{'invisible':[('num_of_month','&lt;',30)]}" options="{'create': false, 'create_edit': false}">
-				                    				30. (<field name="name_of_day_30" class="oe_inline"/>):
+					            				<div attrs="{'invisible':[('num_of_month','&lt;',30)]}" options="{'create': false, 'create_edit': false}">
+				                    				30. (<field name="name_of_day_30" class="oe_inline"/>):</div><div attrs="{'invisible':[('num_of_month','&lt;',30)]}">
 				                    				<field name="day_30" options="{'create': false, 'create_edit': false}" class="oe_inline,oe_right"/>
 					            				</div>
-				                				<div colspan='2' attrs="{'invisible':[('num_of_month','&lt;',31)]}" options="{'create': false, 'create_edit': false}">
-				                    				31. (<field name="name_of_day_31" class="oe_inline"/>):
+				                				<div  attrs="{'invisible':[('num_of_month','&lt;',31)]}" options="{'create': false, 'create_edit': false}">
+				                    				31. (<field name="name_of_day_31" class="oe_inline"/>):</div><div attrs="{'invisible':[('num_of_month','&lt;',31)]}">
 				                    				<field name="day_31" options="{'create': false, 'create_edit': false}" class="oe_inline,oe_right"/>
 					            				</div>
-			                    			</group>
+				                			</group>
 		                    			</group>
 		                    		</form>
 		                    	</field>
@@ -860,132 +867,136 @@
             			</group>
             			<group col='6' colspan='6'>
                 			<group colspan='2'>
-                    			<div colspan='2'>
-	            					01. (<field name="name_of_day_1" class="oe_inline"/>):
+                    			<div>
+	            					01. (<field name="name_of_day_1" class="oe_inline"/>):</div>
+								<div>
 	            					<field name="day_1" options="{'create': false, 'create_edit': false}" class="oe_inline,oe_right"/>
-	            				</div>
-	            				<div colspan='2'>
-	            					02. (<field name="name_of_day_2" class="oe_inline"/>):
+								</div>
+	            				
+	            				<div>
+	            					02. (<field name="name_of_day_2" class="oe_inline"/>):</div><div>
 	            					<field name="day_2" options="{'create': false, 'create_edit': false}" class="oe_inline,oe_right"/>
 	            				</div>
-	            				<div colspan='2'>	
-	            					03. (<field name="name_of_day_3" class="oe_inline"/>):
+	            				<div>	
+	            					03. (<field name="name_of_day_3" class="oe_inline"/>):</div><div>
                     				<field name="day_3" options="{'create': false, 'create_edit': false}" class="oe_inline,oe_right"/>
                     			</div>
-	            				<div colspan='2'>
-                    				04. (<field name="name_of_day_4" class="oe_inline"/>):
+	            				<div>
+                    				04. (<field name="name_of_day_4" class="oe_inline"/>):</div><div>
                     				<field name="day_4" options="{'create': false, 'create_edit': false}" class="oe_inline,oe_right"/>
                     			</div>
-	            				<div colspan='2'>
-                    				05. (<field name="name_of_day_5" class="oe_inline"/>):
+
+
+	            				<div>
+                    				05. (<field name="name_of_day_5" class="oe_inline"/>):</div><div>
                     				<field name="day_5" options="{'create': false, 'create_edit': false}" class="oe_inline,oe_right"/>
                     			</div>
-	            				<div colspan='2'>
-                    				06. (<field name="name_of_day_6" class="oe_inline"/>):
+	            				<div>
+                    				06. (<field name="name_of_day_6" class="oe_inline"/>):</div><div>
                     				<field name="day_6" options="{'create': false, 'create_edit': false}" class="oe_inline,oe_right"/>
                     			</div>
-	            				<div colspan='2'>
-                    				07. (<field name="name_of_day_7" class="oe_inline"/>):
+	            				<div >
+                    				07. (<field name="name_of_day_7" class="oe_inline"/>):</div><div>
                     				<field name="day_7" options="{'create': false, 'create_edit': false}" class="oe_inline,oe_right"/>
                 				</div>
-	            				<div colspan='2'>
-                    				08. (<field name="name_of_day_8" class="oe_inline"/>):
+	            				<div >
+                    				08. (<field name="name_of_day_8" class="oe_inline"/>):</div><div>
                     				<field name="day_8" options="{'create': false, 'create_edit': false}" class="oe_inline,oe_right"/>
                     			</div>
-	            				<div colspan='2'>
-                    				09. (<field name="name_of_day_9" class="oe_inline"/>):
+	            				<div >
+                    				09. (<field name="name_of_day_9" class="oe_inline"/>):</div><div>
                     				<field name="day_9" options="{'create': false, 'create_edit': false}" class="oe_inline,oe_right"/>
                     			</div>
-	            				<div colspan='2'>
-                    				10. (<field name="name_of_day_10" class="oe_inline"/>):
+	            				<div >
+                    				10. (<field name="name_of_day_10" class="oe_inline"/>):</div><div>
                     				<field name="day_10" options="{'create': false, 'create_edit': false}" class="oe_inline,oe_right"/>
 	            				</div>
                 			</group>
                 			<group colspan='2'>
-                				<div colspan='2'>
-	            					11. (<field name="name_of_day_11" class="oe_inline"/>):
+                				<div>
+	            					11. (<field name="name_of_day_11" class="oe_inline"/>):</div><div>
 	            					<field name="day_11" options="{'create': false, 'create_edit': false}" class="oe_inline,oe_right"/>
 	            				</div>
-	            				<div colspan='2'>
-	            					12. (<field name="name_of_day_12" class="oe_inline"/>):
+	            				<div >
+	            					12. (<field name="name_of_day_12" class="oe_inline"/>):</div><div>
 	            					<field name="day_12" options="{'create': false, 'create_edit': false}" class="oe_inline,oe_right"/>
 	            				</div>
-	            				<div colspan='2'>	
-	            					13. (<field name="name_of_day_13" class="oe_inline"/>):
+	            				<div>	
+	            					13. (<field name="name_of_day_13" class="oe_inline"/>):</div><div>
                     				<field name="day_13" options="{'create': false, 'create_edit': false}" class="oe_inline,oe_right"/>
                     			</div>
-	            				<div colspan='2'>
-                    				14. (<field name="name_of_day_14" class="oe_inline"/>):
+	            				<div>
+                    				14. (<field name="name_of_day_14" class="oe_inline"/>):</div><div>
                     				<field name="day_14" options="{'create': false, 'create_edit': false}" class="oe_inline,oe_right"/>
                     			</div>
-	            				<div colspan='2'>
-                    				15. (<field name="name_of_day_15" class="oe_inline"/>):
+	            				<div>
+                    				15. (<field name="name_of_day_15" class="oe_inline"/>):</div><div>
                     				<field name="day_15" options="{'create': false, 'create_edit': false}" class="oe_inline,oe_right"/>
                     			</div>
-	            				<div colspan='2'>
-                    				16. (<field name="name_of_day_16" class="oe_inline"/>):
+	            				<div>
+                    				16. (<field name="name_of_day_16" class="oe_inline"/>):</div><div>
                     				<field name="day_16" options="{'create': false, 'create_edit': false}" class="oe_inline,oe_right"/>
                     			</div>
-	            				<div colspan='2'>
-                    				17. (<field name="name_of_day_17" class="oe_inline"/>):
+	            				<div>
+                    				17. (<field name="name_of_day_17" class="oe_inline"/>):</div><div>
                     				<field name="day_17" options="{'create': false, 'create_edit': false}" class="oe_inline,oe_right"/>
                 				</div>
-	            				<div colspan='2'>
-                    				18. (<field name="name_of_day_18" class="oe_inline"/>):
+	            				<div>
+                    				18. (<field name="name_of_day_18" class="oe_inline"/>):</div><div>
                     				<field name="day_18" options="{'create': false, 'create_edit': false}" class="oe_inline,oe_right"/>
                     			</div>
-	            				<div colspan='2'>
-                    				19. (<field name="name_of_day_19" class="oe_inline"/>):
+	            				<div>
+                    				19. (<field name="name_of_day_19" class="oe_inline"/>):</div><div>
                     				<field name="day_19" options="{'create': false, 'create_edit': false}" class="oe_inline,oe_right"/>
                     			</div>
-	            				<div colspan='2'>
-                    				20. (<field name="name_of_day_20" class="oe_inline"/>):
+	            				<div>
+                    				20. (<field name="name_of_day_20" class="oe_inline"/>):</div><div>
                     				<field name="day_20" options="{'create': false, 'create_edit': false}" class="oe_inline,oe_right"/>
 	            				</div>
             				</group>
                 			<group colspan='2'>
-                				<div colspan='2'>
-	            					21. (<field name="name_of_day_21" class="oe_inline"/>):
+                				<div>
+	            					21. (<field name="name_of_day_21" class="oe_inline"/>):</div><div>
 	            					<field name="day_21" options="{'create': false, 'create_edit': false}" class="oe_inline,oe_right"/>
 	            				</div>
-	            				<div colspan='2'>
-	            					22. (<field name="name_of_day_22" class="oe_inline"/>):
+	            				<div>
+	            					22. (<field name="name_of_day_22" class="oe_inline"/>):</div><div>
 	            					<field name="day_22" options="{'create': false, 'create_edit': false}" class="oe_inline,oe_right"/>
 	            				</div>
-	            				<div colspan='2'>	
-	            					23. (<field name="name_of_day_23" class="oe_inline"/>):
+	            				<div>	
+	            					23. (<field name="name_of_day_23" class="oe_inline"/>):</div><div>
                     				<field name="day_23" options="{'create': false, 'create_edit': false}" class="oe_inline,oe_right"/>
                     			</div>
-	            				<div colspan='2'>
-                    				24. (<field name="name_of_day_24" class="oe_inline"/>):
+	            				<div>
+                    				24. (<field name="name_of_day_24" class="oe_inline"/>):</div><div>
                     				<field name="day_24" options="{'create': false, 'create_edit': false}" class="oe_inline,oe_right"/>
                     			</div>
-	            				<div colspan='2'>
-                    				25. (<field name="name_of_day_25" class="oe_inline"/>):
+	            				<div>
+                    				25. (<field name="name_of_day_25" class="oe_inline"/>):</div><div>
                     				<field name="day_25" options="{'create': false, 'create_edit': false}" class="oe_inline,oe_right"/>
                     			</div>
-	            				<div colspan='2'>
-                    				26. (<field name="name_of_day_26" class="oe_inline"/>):
+	            				<div>
+                    				26. (<field name="name_of_day_26" class="oe_inline"/>):</div><div>
                     				<field name="day_26" options="{'create': false, 'create_edit': false}" class="oe_inline,oe_right"/>
                     			</div>
-	            				<div colspan='2'>
-                    				27. (<field name="name_of_day_27" class="oe_inline"/>):
+	            				<div>
+                    				27. (<field name="name_of_day_27" class="oe_inline"/>):</div><div>
                     				<field name="day_27" options="{'create': false, 'create_edit': false}" class="oe_inline,oe_right"/>
                 				</div>
-	            				<div colspan='2'>
-                    				28. (<field name="name_of_day_28" class="oe_inline"/>):
+	            				<div>
+                    				28. (<field name="name_of_day_28" class="oe_inline"/>):</div><div>
                     				<field name="day_28" options="{'create': false, 'create_edit': false}" class="oe_inline,oe_right"/>
                     			</div>
-	            				<div colspan='2' attrs="{'invisible':[('num_of_month','&lt;',29)]}" options="{'create': false, 'create_edit': false}">
-                    				29. (<field name="name_of_day_29" class="oe_inline"/>):
+	            				<div attrs="{'invisible':[('num_of_month','&lt;',29)]}" options="{'create': false, 'create_edit': false}">
+                    				29. (<field name="name_of_day_29" class="oe_inline"/>):</div><div attrs="{'invisible':[('num_of_month','&lt;',29)]}">
                     				<field name="day_29" options="{'create': false, 'create_edit': false}" class="oe_inline,oe_right"/>
                     			</div>
-	            				<div colspan='2' attrs="{'invisible':[('num_of_month','&lt;',30)]}" options="{'create': false, 'create_edit': false}">
-                    				30. (<field name="name_of_day_30" class="oe_inline"/>):
+	            				<div attrs="{'invisible':[('num_of_month','&lt;',30)]}" options="{'create': false, 'create_edit': false}">
+                    				30. (<field name="name_of_day_30" class="oe_inline"/>):</div><div attrs="{'invisible':[('num_of_month','&lt;',30)]}">
                     				<field name="day_30" options="{'create': false, 'create_edit': false}" class="oe_inline,oe_right"/>
 	            				</div>
-                				<div colspan='2' attrs="{'invisible':[('num_of_month','&lt;',31)]}" options="{'create': false, 'create_edit': false}">
-                    				31. (<field name="name_of_day_31" class="oe_inline"/>):
+                				<div  attrs="{'invisible':[('num_of_month','&lt;',31)]}" options="{'create': false, 'create_edit': false}">
+                    				31. (<field name="name_of_day_31" class="oe_inline"/>):</div><div attrs="{'invisible':[('num_of_month','&lt;',31)]}">
                     				<field name="day_31" options="{'create': false, 'create_edit': false}" class="oe_inline,oe_right"/>
 	            				</div>
                 			</group>

@@ -18,7 +18,7 @@
     	   
     	<report 
 			auto="False" 
-			menu="True"
+			menu="False"
 			id="tpt_packing_list_report" 
 			model="stock.picking.out" 
 			name="tpt_packing_list_report"

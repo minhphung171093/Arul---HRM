@@ -556,6 +556,8 @@ class product_product(osv.osv):
     def name_get(self, cr, uid, ids, context=None):
         """Overrides orm name_get method"""
         res = []
+        if isinstance(ids, (int, long)):
+            ids = [ids]
         if not ids:
             return res
         reads = self.read(cr, uid, ids, ['default_code'], context)

@@ -63,16 +63,16 @@ class stock_picking(osv.osv):
         if vals.get('name','/')=='/':
             vals['name'] = self.pool.get('ir.sequence').get(cr, uid, 'tpt.stock.move.import') or '/'
         new_id = super(stock_picking, self).create(cr, uid, vals, context)
-        stock = self.browse(cr, uid, new_id)
-        if not stock.move_lines:
-            raise osv.except_osv(_('Warning!'),_('Stock move details is not empty'))  
+        picking = self.browse(cr, uid, new_id)
+#         if not picking.move_lines:
+#             raise osv.except_osv(_('Warning!'),_('Stock move details is not empty'))  
         return new_id
     
     def write(self, cr, uid, ids, vals, context=None):
         new_write = super(stock_picking, self).write(cr, uid,ids, vals, context)
-        for stock in self.browse(cr,uid,ids):
-            if not stock.move_lines:
-                raise osv.except_osv(_('Warning!'),_('Stock move details is not empty'))  
+#         for stock in self.browse(cr,uid,ids):
+#             if not stock.move_lines:
+#                 raise osv.except_osv(_('Warning!'),_('Stock move details is not empty'))  
         return new_write
     
     def onchange_move_date(self, cr, uid, ids, move_date=False, context=None):
@@ -91,6 +91,28 @@ class stock_picking(osv.osv):
                 }
                 vals = {'move_date':False}
         return {'value': vals,'warning':warning}
+    def print_packing_list(self, cr, uid, ids, context=None):
+        datas = {
+             'ids': ids,
+             'model': 'account.invoice',
+             'form': self.read(cr, uid, ids[0], context=context)
+        }
+        do_ids = self.browse(cr, uid, ids[0])
+        if do_ids.invoice_state == 'invoiced':
+            return {
+                'type': 'ir.actions.report.xml',
+                'report_name': 'tpt_packing_list_report',
+#                 'datas': datas,
+#                 'nodestroy' : True
+            }
+        else:
+            raise osv.except_osv(_('Warning!'),_('This Delivery Order is not created Invoice!'))
+        return {
+                'type': 'ir.actions.report.xml',
+                'report_name': 'tpt_packing_list_report',
+#                 'datas': datas,
+#                 'nodestroy' : True
+            }
     
     def _prepare_invoice(self, cr, uid, picking, partner, inv_type, journal_id, context=None):
         """ Builds the dict containing the values for the invoice
@@ -148,7 +170,7 @@ class stock_picking_out(osv.osv):
         'transporter':fields.char('Transporter Name', size = 64),
         'truck':fields.char('Truck Number', size = 64),
         'remarks':fields.text('Remarks'),
-        'doc_status':fields.selection([('completed','Completed')],'Document Status'),
+        'doc_status':fields.selection([('draft','Drafted'),('waiting','Waiting for Approval'),('completed','Completed'),('cancelled','Cancelled')],'Document Status'),
         'sale_id': fields.many2one('sale.order', 'Sales Order', ondelete='set null', select=True),
                 }
     def write(self, cr, uid, ids, vals, context=None):
@@ -173,6 +195,28 @@ class stock_picking_out(osv.osv):
             'type': 'ir.actions.report.xml',
             'report_name': 'tpt_print_dispatch_slip',
         }
+    def print_packing_list(self, cr, uid, ids, context=None):
+        datas = {
+             'ids': ids,
+             'model': 'account.invoice',
+             'form': self.read(cr, uid, ids[0], context=context)
+        }
+        do_ids = self.browse(cr, uid, ids[0])
+        if do_ids.invoice_state == 'invoiced':
+            return {
+                'type': 'ir.actions.report.xml',
+                'report_name': 'tpt_packing_list_report',
+#                 'datas': datas,
+#                 'nodestroy' : True
+            }
+        else:
+            raise osv.except_osv(_('Warning!'),_('This Delivery Order is not created Invoice!'))
+        return {
+                'type': 'ir.actions.report.xml',
+                'report_name': 'tpt_packing_list_report',
+#                 'datas': datas,
+#                 'nodestroy' : True
+            }
     
 stock_picking_out()
 
@@ -235,7 +279,7 @@ class account_invoice(osv.osv):
         'sale_id':  fields.many2one('sale.order','Sale Order'), 
         'excise_duty_id': fields.many2one('account.tax','Excise Duty', required = False),
         'sale_tax_id': fields.many2one('account.tax','Sales Tax', required = False),
-        'doc_status':fields.selection([('completed','Completed')],'Document Status'),
+        'doc_status':fields.selection([('draft','Drafted'),('waiting','Waiting for Approval'),('completed','Completed'),('cancelled','Cancelled')],'Document Status'),
         'invoice_type':fields.selection([ ('domestic','Domestic'), ('export','Export'), ],'Invoice Type'),
         'vessel_flight_no': fields.char('Vessel/Flight No.', size = 1024),
         'port_of_loading_id': fields.many2one('res.country','Port Of Loading'),
@@ -341,13 +385,6 @@ class account_invoice(osv.osv):
 #                 'datas': datas,
 #                 'nodestroy' : True
             }
-#         return {
-#             'type': 'ir.actions.report.xml',
-#             'report_name': 'tpt_export_account_invoice',
-#             'datas': datas,
-#             'nodestroy' : True
-#         }
-    
 account_invoice()
 
 class account_invoice_line(osv.osv):

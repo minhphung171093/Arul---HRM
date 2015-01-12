@@ -142,16 +142,16 @@ class arul_hr_capture_work_shift(osv.osv):
               'allowance': fields.float('Shift Allowance'),
               }
     
-    def name_get(self, cr, uid, ids, context=None):
-        res = []
-        if not ids:
-            return res
-        reads = self.read(cr, uid, ids, ['code'], context)
-  
-        for record in reads:
-            name = record['code']
-            res.append((record['id'], name))
-        return res    
+#     def name_get(self, cr, uid, ids, context=None):
+#         res = []
+#         if not ids:
+#             return res
+#         reads = self.read(cr, uid, ids, ['code'], context)
+#   
+#         for record in reads:
+#             name = record['code']
+#             res.append((record['id'], name))
+#         return res    
     
     def _check_code(self, cr, uid, ids, context=None):
         for shift in self.browse(cr, uid, ids, context=context):
@@ -860,6 +860,17 @@ class arul_hr_permission_onduty(osv.osv):
                 return False
         return True
     
+    def print_gate_pass(self, cr, uid, ids, context=None):
+        datas = {
+             'ids': ids,
+             'model': 'arul.hr.permission.onduty',
+             'form': self.read(cr, uid, ids[0], context=context)
+        }
+        return {
+                'type': 'ir.actions.report.xml',
+                'report_name': 'gate_pass_report',
+            }
+    
     def _check_date_from_to(self, cr, uid, ids, context=None): 
         for permission_onduty in self.browse(cr, uid, ids, context = context):
             if permission_onduty.non_availability_type_id and permission_onduty.to_date < permission_onduty.from_date:
@@ -1370,7 +1381,17 @@ class arul_hr_punch_in_out(osv.osv):
             except Exception, e:
                 raise osv.except_osv(_('Warning!'), str(e))
 
-
+    def _check_db_datas(self, cr, uid, ids, context=None):
+        for line in self.browse(cr, uid, ids, context=context):
+            punch_in_out_ids = self.search(cr, uid, [('id','!=',line.id),('db_datas','=',line.db_datas)])
+            if punch_in_out_ids:
+                raise osv.except_osv(_('Warning!'),_('The file to import already existed!'))
+                return False
+        return True
+    _constraints = [
+        (_check_db_datas, 'Identical Data', ['db_datas']),
+    ]
+    
 arul_hr_punch_in_out()
 
 class arul_hr_monthly_work_schedule(osv.osv):
