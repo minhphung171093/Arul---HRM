@@ -222,6 +222,7 @@ stock_picking_out()
 
 class stock_move(osv.osv):
     _inherit = "stock.move"
+    
     def get_phy_batch(self, cr, uid, ids, name, arg, context=None):
         res = {}
         for physical in self.browse(cr, uid, ids, context=context):
@@ -229,6 +230,15 @@ class stock_move(osv.osv):
                 'phy_batch': physical.prodlot_id and physical.prodlot_id.phy_batch_no or False,
             }
         return res
+    
+#     def _default_get(self, cr, uid, fields, context=None):
+#         res = super(ketqua_xoso, self).default_get(cr, uid, fields, context=context)
+#         for location in self.browse(cr, uid, ids):
+#             res.update({
+#             'location_id':location.picking_id.location_id.id,
+#             })
+#         return res
+    
     _columns = {
         'product_type':fields.selection([('rutile','Rutile'),('anatase','Anatase')],'Product Type'),
         'application_id': fields.many2one('crm.application','Application'),   
@@ -238,6 +248,16 @@ class stock_move(osv.osv):
         'phy_batch':fields.function(get_phy_batch,type='char', size = 1024,string='Physical Serial No.',multi='sum',store=True),
 
                 }
+#     def _default_location_source(self, cr, uid, ids, context=None):
+#         location_id = False
+#         for location in self.browse(cr, uid, ids):
+#             location_id = location.picking_id.location_id.id
+#         return location_id
+#     _defaults = {
+#         'location_id': _default_location_source,
+#         'location_dest_id': _default_location_destination,
+#         }
+    
     
 stock_move()
 
