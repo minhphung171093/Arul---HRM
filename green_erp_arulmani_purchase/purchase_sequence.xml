@@ -119,6 +119,21 @@
             <field name="padding">6</field>
             <field name="number_next_actual">000001</field>
             <field name="implementation">no_gap</field>
+       </record>
+
+    	<!-- Gate in Pass -->
+		<record id="sequence_gate_in_pass_import_code" model="ir.sequence.type">
+            <field name="name">Gate In Pass Import</field>
+            <field name="code">gate.in.pass.import</field>
+        </record>
+        
+        <record id="sequence_gate_in_pass_import_item" model="ir.sequence">
+            <field name="name">Gate In Pass Import</field>
+            <field name="code">gate.in.pass.import</field>
+            <field name="prefix">VVTI/GIP/</field>
+            <field name="padding">8</field>
+            <field name="number_next_actual">00000001</field>
+            <field name="implementation">no_gap</field>
         </record>
 	</data>
 </openerp>
