@@ -1,6 +1,124 @@
 <?xml version="1.0" encoding="utf-8"?>
 <openerp>
     <data noupdate='1'>
+<!-- Indent Purchase VV Level Based -->
+        <record id="sequence_indent_purchase_1" model="ir.sequence.type">
+            <field name="name">VV Level Based</field>
+            <field name="code">indent.purchase.based</field>
+        </record>
+        
+        <record id="sequence_indent_purchase_1_item" model="ir.sequence">
+            <field name="name">VV Level Based</field>
+            <field name="code">indent.purchase.based</field>
+            <field name="prefix">6</field>
+            <field name="padding">6</field>
+            <field name="number_next_actual">000001</field>
+            <field name="implementation">no_gap</field>
+        </record>
 
+ <!-- Indent Purchase VV Capital -->
+        <record id="sequence_indent_purchase_2" model="ir.sequence.type">
+            <field name="name">VV Capital</field>
+            <field name="code">indent.purchase.capital</field>
+        </record>
+        
+        <record id="sequence_indent_purchase_2_item" model="ir.sequence">
+            <field name="name">VV Capital</field>
+            <field name="code">indent.purchase.capital</field>
+            <field name="prefix">2</field>
+            <field name="padding">6</field>
+            <field name="number_next_actual">000001</field>
+            <field name="implementation">no_gap</field>
+        </record>
+        
+ <!-- Indent Purchase VV Local Purchase -->
+        <record id="sequence_indent_purchase_3" model="ir.sequence.type">
+            <field name="name">VV Local Purchase</field>
+            <field name="code">indent.purchase.local</field>
+        </record>
+        
+        <record id="sequence_indent_purchase_3_item" model="ir.sequence">
+            <field name="name">VV Local Purchase</field>
+            <field name="code">indent.purchase.local</field>
+            <field name="prefix">8</field>
+            <field name="padding">6</field>
+            <field name="number_next_actual">000001</field>
+            <field name="implementation">no_gap</field>
+        </record>
+        
+ <!-- Indent Purchase VV Maintenance -->
+        <record id="sequence_indent_purchase_4" model="ir.sequence.type">
+            <field name="name">VV Maintenance</field>
+            <field name="code">indent.purchase.maintenance</field>
+        </record>
+        
+        <record id="sequence_indent_purchase_4_item" model="ir.sequence">
+            <field name="name">VV Maintenance</field>
+            <field name="code">indent.purchase.maintenance</field>
+            <field name="prefix">1</field>
+            <field name="padding">6</field>
+            <field name="number_next_actual">000001</field>
+            <field name="implementation">no_gap</field>
+        </record>
+        
+ <!-- Indent Purchase VV Consumable -->
+        <record id="sequence_indent_purchase_5" model="ir.sequence.type">
+            <field name="name">VV Consumable</field>
+            <field name="code">indent.purchase.consumable</field>
+        </record>
+        
+        <record id="sequence_indent_purchase_5_item" model="ir.sequence">
+            <field name="name">VV Consumable</field>
+            <field name="code">indent.purchase.consumable</field>
+            <field name="prefix">3</field>
+            <field name="padding">6</field>
+            <field name="number_next_actual">000001</field>
+            <field name="implementation">no_gap</field>
+        </record>
+         
+ <!-- Indent Purchase VV outside Service -->
+        <record id="sequence_indent_purchase_6" model="ir.sequence.type">
+            <field name="name">VV Outside Service</field>
+            <field name="code">indent.purchase.outside</field>
+        </record>
+        
+        <record id="sequence_indent_purchase_6_item" model="ir.sequence">
+            <field name="name">VV Outside Service</field>
+            <field name="code">indent.purchase.outside</field>
+            <field name="prefix">4</field>
+            <field name="padding">6</field>
+            <field name="number_next_actual">000001</field>
+            <field name="implementation">no_gap</field>
+        </record>
+     
+ <!-- Indent Purchase VV Spare (Project) -->
+        <record id="sequence_indent_purchase_7" model="ir.sequence.type">
+            <field name="name">VV Spare (Project)</field>
+            <field name="code">indent.purchase.spare</field>
+        </record>
+        
+        <record id="sequence_indent_purchase_7_item" model="ir.sequence">
+            <field name="name">VV Spare (Project)</field>
+            <field name="code">indent.purchase.spare</field>
+            <field name="prefix">1</field>
+            <field name="padding">6</field>
+            <field name="number_next_actual">000001</field>
+            <field name="implementation">no_gap</field>
+        </record>
+        
+<!-- Indent Purchase VV Service -->
+        <record id="sequence_indent_purchase_8" model="ir.sequence.type">
+            <field name="name">VV Service</field>
+            <field name="code">indent.purchase.service</field>
+        </record>
+        
+        <record id="sequence_indent_purchase_8_item" model="ir.sequence">
+            <field name="name">VV Service</field>
+            <field name="code">indent.purchase.service</field>
+            <field name="prefix">9</field>
+            <field name="padding">6</field>
+            <field name="number_next_actual">000001</field>
+            <field name="implementation">no_gap</field>
+        </record>
 	</data>
 </openerp>
