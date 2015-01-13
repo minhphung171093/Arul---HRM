@@ -11,12 +11,12 @@ import calendar
 import openerp.addons.decimal_precision as dp
 
 
-class gate_in_pass(osv.osv):
-    _name = "gate.in.pass"
+class tpt_gate_in_pass(osv.osv):
+    _name = "tpt.gate.in.pass"
       
     _columns = {
         'name': fields.char('Gate In Pass No', size = 1024, readonly=True),
-        'po_number': fields.char('PO Number', size = 1024),
+        'po_number': fields.many2one('purchase.order', 'PO Number', required = True),
         'supplier_id': fields.many2one('res.partner', 'Supplier', required = True),
         'po_date': fields.datetime('PO Date'),
         'gate_date_time': fields.datetime('Gate In Pass Date & Time'),
@@ -28,8 +28,11 @@ class gate_in_pass(osv.osv):
     
     def create(self, cr, uid, vals, context=None):
         if vals.get('name','/')=='/':
-            vals['name'] = self.pool.get('ir.sequence').get(cr, uid, 'gate.in.pass.import') or '/'
-        return super(gate_in_pass, self).create(cr, uid, vals, context=context)
+            vals['name'] = self.pool.get('ir.sequence').get(cr, uid, 'tpt.gate.in.pass.import') or '/'
+        return super(tpt_gate_in_pass, self).create(cr, uid, vals, context=context)
     
-gate_in_pass()
+tpt_gate_in_pass()
 
+# class gate_in_pass_line(osv.osv):
+#      
+# gate_in_pass_line()
