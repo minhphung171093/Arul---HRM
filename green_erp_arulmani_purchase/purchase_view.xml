@@ -161,7 +161,7 @@
 			<field name="arch" type="xml">
 				<tree string="Gate In Pass">
 					<field name="name"/>
-					<field name="po_number"/>
+					<field name="po_id"/>
 					<field name="po_date"/>
 					<field name="supplier_id"/>
 					<field name="gate_date_time"/>
@@ -176,7 +176,7 @@
 	            <form string="Gate In Pass" version="7.0">   
 	            	<sheet>
 		                <group > 
-			                <field name="po_number" options="{'create': false, 'create_edit': false}"/>
+			                <field name="po_id" on_change = "onchange_po_id(po_id)" options="{'create': false, 'create_edit': false}"/>
 			                <field name="po_date"/>
 			                <field name="supplier_id" domain="[('supplier','=',1)]" options="{'create': false, 'create_edit': false}"/>
 							<field name="name"/>
@@ -185,7 +185,7 @@
 						<notebook>
 							<page string="Product details">
 								<field name="gate_in_pass_line" nolabel='1'>
-									<tree>
+									<tree editable='top'>
 										<field name="po_indent_no" options="{'create': false, 'create_edit': false}"/>
 										<field name="product_id" on_change="onchange_product_id(product_id)" options="{'create': false, 'create_edit': false}"/>
 										<field name="product_qty"/>
