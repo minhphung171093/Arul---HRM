@@ -124,12 +124,6 @@ class Parser(report_sxw.rml_parse):
                             shift = line.day_30 and line.day_30.name or ''
                         if day == 31 :
                             shift = line.day_31 and line.day_31.name or ''
-                
-#         self.cr.execute('''select name from arul_hr_capture_work_shift 
-#                         where (%s between start_time - 0.5 and start_time + 0.25) and (%s >= end_time-0.25)'''%(start,end))
-#         res = self.cr.fetchone()
-#         if res and res[0]:
-#             shift = res[0]
         return shift
     
     def float_to_time(self,time_f):
