@@ -38,7 +38,7 @@ class tpt_gate_in_pass_line(osv.osv):
     _name = "tpt.gate.in.pass.line"
     _columns = {
         'gate_in_pass_id': fields.many2one('tpt.gate.in.pass','Gate In Pass',ondelete = 'cascade'),
-        'po_indent_no': fields.many2one('purchase.order', 'PO Indent No'),
+#         'po_indent_no': fields.many2one('purchase.order', 'PO Indent No'),
         'product_id': fields.many2one('product.product', 'Product'),
         'product_qty': fields.float('Quantity'),
         'uom_po_id': fields.many2one('product.uom', 'UOM'),
