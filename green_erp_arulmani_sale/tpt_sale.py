@@ -1031,11 +1031,11 @@ class tpt_batch_request(osv.osv):
     
     def _check_sale_order_id(self, cr, uid, ids, context=None):
         for request in self.browse(cr, uid, ids, context=context):
-            request_ids = self.search(cr, uid, [('id','!=',request.id),('sale_order_id','=',request.sale_order_id.id)])
+            request_ids = self.search(cr, uid, [('id','!=',request.id),('sale_order_id','=',request.sale_order_id.id),('state', '!=', 'cancel')])
             if request_ids:
                 raise osv.except_osv(_('Warning!'),_('Sale Order ID already exists!'))
                 return False
-        return True
+            return True
 
     _constraints = [
         (_check_sale_order_id, 'Identical Data', ['sale_order_id']),
