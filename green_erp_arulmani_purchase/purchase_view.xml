@@ -155,36 +155,49 @@
 			</field>
 		</record>
 		
-		<record id="view_gate_in_pass_tree" model="ir.ui.view">
-			<field name="name">gate.in.pass.tree</field>
-			<field name="model">gate.in.pass</field>
+		<record id="view_tpt_gate_in_pass_tree" model="ir.ui.view">
+			<field name="name">tpt.gate.in.pass.tree</field>
+			<field name="model">tpt.gate.in.pass</field>
 			<field name="arch" type="xml">
 				<tree string="Gate In Pass">
-					<field name="name" />
+					<field name="name"/>
 					<field name="po_number"/>
 					<field name="po_date"/>
-					<field name="supplier_id" />
+					<field name="supplier_id"/>
 					<field name="gate_date_time"/>
 				</tree>
 			</field>
 		</record>
 		
-		<record id="view_gate_in_pass_form" model="ir.ui.view">
-            <field name="name">gate.in.pass.form</field>
-            <field name="model">gate.in.pass</field>
+		<record id="view_tpt_gate_in_pass_form" model="ir.ui.view">
+            <field name="name">tpt.gate.in.pass.form</field>
+            <field name="model">tpt.gate.in.pass</field>
             <field name="arch" type="xml">
 	            <form string="Gate In Pass" version="7.0">   
 	            	<sheet>
 		                <group > 
-		                <field name="po_number"/>
-		                <field name="supplier_id"/>
-		                <field name="po_date"/>
-						<field name="name"/>
-						<field name="gate_date_time"/>
+			                <field name="po_number" options="{'create': false, 'create_edit': false}"/>
+			                <field name="po_date"/>
+			                <field name="supplier_id" domain="[('supplier','=',1)]" options="{'create': false, 'create_edit': false}"/>
+							<field name="name"/>
+							<field name="gate_date_time"/>
 						</group>
 				    </sheet>
 		         </form>
 			</field>
 		</record>
+		
+		<record id="action_view_tpt_gate_in_pass_tree" model="ir.actions.act_window">
+            <field name="name">Gate In Pass</field>
+            <field name="type">ir.actions.act_window</field>
+            <field name="res_model">tpt.gate.in.pass</field>
+            <field name="view_type">form</field>
+            <field name="view_mode">tree,form</field>
+            <field name="view_id" ref="view_tpt_gate_in_pass_tree"/>
+        </record>
+        
+        <menuitem action="action_view_tpt_gate_in_pass_tree"
+            id="menu_action_view_tpt_gate_in_pass_tree"
+            parent="purchase.menu_procurement_management" sequence="20"/>
     </data>
 </openerp>
