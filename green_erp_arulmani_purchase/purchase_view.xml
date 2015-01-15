@@ -84,6 +84,18 @@
 				<xpath expr="//page[@string='Inventory']" position="attributes">
 					<attribute name='invisible'>1</attribute>
 				</xpath>
+				<xpath expr="//page[@string='Accounting']" position="after">
+					<page string="Inventory">
+                            <field name="inventory_line" >
+                                <tree string="Inventory">
+                                    <field name="warehouse_id"/>
+                                    <field name="prodlot_id" />
+                                    <field name="hand_quantity"/>
+                                    <field name="uom_id" />
+                                </tree>
+                            </field>
+                       </page>
+				</xpath>
 			</field>
 		</record>
 		

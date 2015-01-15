@@ -31,6 +31,24 @@ class stock_picking(osv.osv):
         'name': '/',
     }
     
+#     def create(self, cr, uid, vals, context=None):
+#         new_id = super(stock_picking, self).create(cr, uid, vals, context)
+#         picking = self.browse(cr, uid, new_id)
+#         sql = '''
+#                     update stock_move set location_id = %s where picking_id = %s 
+#                 '''%(picking.location_id.id, picking.id)
+#         cr.execute(sql)
+#         return new_id
+    
+#     def write(self, cr, uid, ids, vals, context=None):
+#         new_write = super(stock_picking, self).write(cr, uid,ids, vals, context)
+#         for picking in self.browse(cr, uid, ids):
+#             sql = '''
+#                     update stock_move set location_id = %s where picking_id = %s 
+#                 '''%(picking.location_id.id, picking.id)
+#             cr.execute(sql)
+#         return new_write
+    
     def onchange_do_ref_id(self, cr, uid, ids,do_ref_id=False, context=None):
         vals = {}
         move_lines = []
@@ -60,19 +78,26 @@ class stock_picking(osv.osv):
             return {'value': {'location_dest_id': False}}
         
     def create(self, cr, uid, vals, context=None):
+        result = False
         if vals.get('name','/')=='/':
             vals['name'] = self.pool.get('ir.sequence').get(cr, uid, 'tpt.stock.move.import') or '/'
         new_id = super(stock_picking, self).create(cr, uid, vals, context)
         picking = self.browse(cr, uid, new_id)
-#         if not picking.move_lines:
-#             raise osv.except_osv(_('Warning!'),_('Stock move details is not empty'))  
+        if picking.type == 'internal':
+            sql = '''
+                        update stock_move set location_id = %s, location_dest_id = %s where picking_id = %s 
+                    '''%(picking.location_id.id, picking.location_dest_id.id, picking.id)
+            cr.execute(sql)
         return new_id
     
     def write(self, cr, uid, ids, vals, context=None):
         new_write = super(stock_picking, self).write(cr, uid,ids, vals, context)
-#         for stock in self.browse(cr,uid,ids):
-#             if not stock.move_lines:
-#                 raise osv.except_osv(_('Warning!'),_('Stock move details is not empty'))  
+        for picking in self.browse(cr, uid, ids):
+            if picking.type == 'internal':
+                sql = '''
+                        update stock_move set location_id = %s, location_dest_id = %s where picking_id = %s 
+                    '''%(picking.location_id.id, picking.location_dest_id.id, picking.id)
+                cr.execute(sql)
         return new_write
     
     def onchange_move_date(self, cr, uid, ids, move_date=False, context=None):
@@ -248,15 +273,6 @@ class stock_move(osv.osv):
         'phy_batch':fields.function(get_phy_batch,type='char', size = 1024,string='Physical Serial No.',multi='sum',store=True),
 
                 }
-#     def _default_location_source(self, cr, uid, ids, context=None):
-#         location_id = False
-#         for location in self.browse(cr, uid, ids):
-#             location_id = location.picking_id.location_id.id
-#         return location_id
-#     _defaults = {
-#         'location_id': _default_location_source,
-#         'location_dest_id': _default_location_destination,
-#         }
     
     
 stock_move()
