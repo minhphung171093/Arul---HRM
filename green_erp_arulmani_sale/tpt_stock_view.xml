@@ -57,9 +57,9 @@
 					</div>
 				</xpath> 
 				<xpath expr="//group[@string='Locations']" position="replace">
-					<group string="Locations" invisible = '1' groups="stock.group_locations">
-                                <field name="location_id" />
-                                <field name="location_dest_id"/>
+					<group string="Locations" groups="stock.group_locations">
+                                <field name="location_id" domain="[('usage','&lt;&gt;','view')]"/>
+                                <field name="location_dest_id" domain="[('usage','in', ['internal', 'supplier', 'customer'])]"/>
                     </group>
 				</xpath>
 			</field>
