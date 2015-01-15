@@ -238,6 +238,7 @@ class sale_order(osv.osv):
 #             vals['document_status'] = 'draft'
         new_id = super(sale_order, self).create(cr, uid, vals, context)
         sale = self.browse(cr, uid, new_id)
+#             sale.blanket_id.state = 'done'
 #         sale_ids = sale.search(cr,uid,[('state','!=','cancel')])
         if sale.blanket_id:
             flag=False
@@ -276,6 +277,10 @@ class sale_order(osv.osv):
                         cr.execute(sql_stt)
                     else:
                         document_status = 'close'
+#                         sql_bo = '''
+#                           update tpt_blanket_order set state='done' where id = %s
+#                            '''%(sale.blanket_id.id)
+#                         cr.execute(sql_bo)
                 if flag==False:
                     sql_stt = '''
                         update sale_order set document_status='close' where id = %s
@@ -285,7 +290,7 @@ class sale_order(osv.osv):
                           update tpt_blanket_order set flag2=True where id = %s
                            '''%(sale.blanket_id.id)
                     cr.execute(sql_stt2)
-                
+                    
                     
         return new_id
     
