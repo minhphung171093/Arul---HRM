@@ -173,13 +173,46 @@ product_category()
 
 class product_product(osv.osv):
     _inherit = "product.product"
+    
+    def _inventory(self, cr, uid, ids, field_names=None, arg=None, context=None):
+        result = {}
+        if not ids: return result
+
+#         context['only_with_stock'] = True
+        inventory_obj = self.pool.get('tpt.product.inventory')
+        for id in ids:
+            result.setdefault(id, [])
+            sql = 'delete from tpt_product_inventory where product_id=%s'%(id)
+            cr.execute(sql)
+            sql = '''
+                select foo.loc,foo.prodlot_id,foo.id as uom,sum(foo.product_qty) as ton_sl from 
+                    (select l2.id as loc,st.prodlot_id,pu.id,st.product_qty
+                        from stock_move st 
+                            inner join stock_location l2 on st.location_dest_id= l2.id
+                            inner join product_uom pu on st.product_uom = pu.id
+                        where st.state='done' and st.product_id=2 and l2.usage = 'internal'
+                    union all
+                    select l1.id as loc,st.prodlot_id,pu.id,st.product_qty*-1
+                        from stock_move st 
+                            inner join stock_location l1 on st.location_id= l1.id
+                            inner join product_uom pu on st.product_uom = pu.id
+                        where st.state='done' and st.product_id=%s and l1.usage = 'internal'
+                    )foo
+                    group by foo.loc,foo.prodlot_id,foo.id
+            '''%(id)
+            cr.execute(sql)
+            for inventory in cr.dictfetchall():
+                result[id].append((0,0,{'warehouse_id':inventory['loc'],'prodlot_id':inventory['prodlot_id'],'hand_quantity':inventory['ton_sl'],'uom_id':inventory['uom']}))
+        return result
+    
     _columns = {
         'description':fields.text('Description'),
         'batch_appli_ok':fields.boolean('Is Batch Applicable'),
         'default_code' : fields.char('Internal Reference', required = True, size=64, select=True),
         'cate_name': fields.char('Cate Name',size=64),
-        'inventory_line':fields.one2many('tpt.product.inventory','product_id','Inventory')
+        'inventory_line':fields.function(_inventory, method=True,type='one2many', relation='tpt.product.inventory', string='Inventory'),
         }
+    
     _defaults = {
         'categ_id': False,
         'sale_ok': False,
