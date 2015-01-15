@@ -248,15 +248,16 @@ class tpt_product_inventory(osv.osv):
     
 tpt_product_inventory()
 
-class gate_in_pass(osv.osv):
-    _name = "gate.in.pass"
+class tpt_gate_in_pass(osv.osv):
+    _name = "tpt.gate.in.pass"
       
     _columns = {
         'name': fields.char('Gate In Pass No', size = 1024, readonly=True),
-        'po_number': fields.char('PO Number', size = 1024),
+        'po_id': fields.many2one('purchase.order', 'PO Number', required = True),
         'supplier_id': fields.many2one('res.partner', 'Supplier', required = True),
         'po_date': fields.datetime('PO Date'),
         'gate_date_time': fields.datetime('Gate In Pass Date & Time'),
+        'gate_in_pass_line': fields.one2many('tpt.gate.in.pass.line', 'gate_in_pass_id', 'Product Details'),
                 }
     _defaults={
                'name':'/',
@@ -265,10 +266,34 @@ class gate_in_pass(osv.osv):
     
     def create(self, cr, uid, vals, context=None):
         if vals.get('name','/')=='/':
-            vals['name'] = self.pool.get('ir.sequence').get(cr, uid, 'gate.in.pass.import') or '/'
-        return super(gate_in_pass, self).create(cr, uid, vals, context=context)
+            vals['name'] = self.pool.get('ir.sequence').get(cr, uid, 'tpt.gate.in.pass.import') or '/'
+        return super(tpt_gate_in_pass, self).create(cr, uid, vals, context=context)
     
-gate_in_pass()
+    def onchange_po_id(self, cr, uid, ids,po_id=False):
+        res = {'value':{
+                        'supplier_id':False,
+                        'po_date':False,
+                        'gate_in_pass_line':[],
+                      }
+               }
+        if po_id:
+            po = self.pool.get('purchase.order').browse(cr, uid, po_id)
+            gate_in_pass_line = []
+            for line in po.order_line:
+                gate_in_pass_line.append({
+#                             'po_indent_no': line.
+                          'product_id': line.product_id.id,
+                          'product_qty':line.product_qty,
+                          'uom_po_id': line.product_uom.id,
+                    })
+        res['value'].update({
+                    'supplier_id':po.partner_id and po.partner_id.id or False,
+                    'po_date':po.date_order or False,
+                    'gate_in_pass_line': gate_in_pass_line,
+        })
+        return res
+    
+tpt_gate_in_pass()
 
 class tpt_purchase_quotation(osv.osv):
     _name = "tpt.purchase.quotation"
@@ -392,3 +417,25 @@ class tpt_purchase_quotation_line(osv.osv):
     
 tpt_purchase_quotation_line()
 
+class tpt_gate_in_pass_line(osv.osv):
+    _name = "tpt.gate.in.pass.line"
+    _columns = {
+        'gate_in_pass_id': fields.many2one('tpt.gate.in.pass','Gate In Pass',ondelete = 'cascade'),
+        'po_indent_no': fields.many2one('tpt.purchase.indent', 'PO Indent No'),
+        'product_id': fields.many2one('product.product', 'Product'),
+        'product_qty': fields.float('Quantity'),
+        'uom_po_id': fields.many2one('product.uom', 'UOM'),
+                }
+    _defaults={
+               'product_qty': 1,
+    }
+    def onchange_product_id(self, cr, uid, ids,product_id=False, context=None):
+        vals = {}
+        if product_id:
+            product = self.pool.get('product.product').browse(cr, uid, product_id)
+            vals = {
+                    'uom_po_id':product.uom_id.id,
+                    }
+        return {'value': vals}
+      
+tpt_gate_in_pass_line()
