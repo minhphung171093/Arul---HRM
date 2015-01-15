@@ -272,13 +272,32 @@ class arul_hr_audit_shift_time(osv.osv):
             punch_obj = self.pool.get('arul.hr.punch.in.out.time')
             if line.type != 'permission':
                 
-                if line.additional_shifts:
+                if line.in_time > line.out_time:
+                    extra_hours = 24-line.in_time + line.out_time
+                else:
+                    extra_hours = line.out_time - line.in_time
+                
+                if extra_hours<8 and line.employee_id.employee_category_id and line.employee_id.employee_category_id.code!='S1':
+                    permission_ids = self.pool.get('arul.hr.permission.onduty').search(cr, uid, [('non_availability_type_id','=','permission'),('date','=',line.work_date),('employee_id','=',line.employee_id.id)])
+                    on_duty_ids = self.pool.get('arul.hr.permission.onduty').search(cr, uid, [('non_availability_type_id','=','on_duty'),('from_date','<=',line.work_date),('to_date','>=',line.work_date),('employee_id','=',line.employee_id.id)])
+                    if not permission_ids and not on_duty_ids:
+                        res = self.pool.get('ir.model.data').get_object_reference(cr, uid, 
+                                        'green_erp_arulmani_hrm', 'alert_permission_form_view')
+                        return {
+                                'name': 'Alert Permission',
+                                'view_type': 'form',
+                                'view_mode': 'form',
+                                'view_id': res[1],
+                                'res_model': 'alert.form',
+                                'domain': [],
+                                'context': {'default_message':'No Permission/On Duty Entry is made','audit_id':line.id},
+                                'type': 'ir.actions.act_window',
+                                'target': 'new',
+                            }
+                
+                if line.additional_shifts or (extra_hours>8 and line.employee_id.employee_category_id and line.employee_id.employee_category_id.code!='S1'):
                     extra_hours = 0.0
                     c_off_day = 0.0
-                    if line.in_time > line.out_time:
-                        extra_hours = 24-line.in_time + line.out_time
-                    else:
-                        extra_hours = line.out_time - line.in_time
                     if extra_hours >= 4 and extra_hours < 8:
                         c_off_day = 0.5
                     if extra_hours >= 8 and extra_hours < 12:
@@ -782,6 +801,15 @@ class arul_hr_permission_onduty(osv.osv):
             day = permission.date[8:10]
             month = permission.date[5:7]
             year = permission.date[:4]
+            if permission.non_availability_type_id=='permission' and permission.employee_id.employee_category_id and permission.employee_id.employee_category_id.code != 'S1':
+                sql = '''
+                    select count(id) as num_of_permission from arul_hr_permission_onduty where non_availability_type_id='permission' and employee_id=%s
+                        and id!=%s and EXTRACT(year from date)='%s' and EXTRACT(month from date)='%s'
+                '''%(permission.employee_id.id,permission.id,year,month)
+                cr.execute(sql)
+                p = cr.dictfetchone()
+                if p and p['num_of_permission']==2:
+                    raise osv.except_osv(_('Warning!'),_('Employee %s have 2 permission for this month!')%(permission.employee_id.name+' '+(permission.employee_id.last_name or '')))
             shift_id = punch_obj.get_work_shift(cr, uid, permission.employee_id.id, int(day), int(month), year)
             self.pool.get('arul.hr.audit.shift.time').create(cr, SUPERUSER_ID, {
                 'employee_id':permission.employee_id.id,

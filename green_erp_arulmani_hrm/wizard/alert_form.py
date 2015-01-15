@@ -93,4 +93,91 @@ class alert_form(osv.osv_memory):
         shift_change_ids = context.get('active_ids')
         self.pool.get('shift.change').reject(cr, uid, shift_change_ids)
         return {'type': 'ir.actions.act_window_close'}
+    
+    def permission_ok(self, cr, uid, ids, context=None):
+        emp_attendence_obj = self.pool.get('arul.hr.employee.attendence.details')
+        punch_obj = self.pool.get('arul.hr.punch.in.out.time')
+        employee_leave_obj = self.pool.get('employee.leave')
+        leave_detail_obj = self.pool.get('arul.hr.employee.leave.details')
+        audit_id = context.get('audit_id')
+        audit = self.pool.get('arul.hr.audit.shift.time').browse(cr, uid, audit_id)
+        
+        year = audit.work_date[:4]
+        employee_leave_ids = employee_leave_obj.search(cr, uid, [('employee_id','=',audit.employee_id.id),('year','=',year)])
+        if employee_leave_ids:
+            for detail in employee_leave_obj.browse(cr, uid, employee_leave_ids[0]).emp_leave_details_ids:
+                if detail.leave_type_id.code == 'CL' and (detail.total_day-detail.total_taken>=0.5):
+                    leave_detail_id = leave_detail_obj.create(cr, uid, {
+                                        'employee_id': audit.employee_id.id,
+                                        'leave_type_id': detail.leave_type_id.id,
+                                        'date_from': audit.work_date,
+                                        'date_to': audit.work_date,
+                                        'haft_day_leave': True,
+                                        'state': 'draft',
+                                    })
+                    leave_detail_obj.process_leave_request(cr, uid, [leave_detail_id])
+                    break
+                if detail.leave_type_id.code == 'SL' and (detail.total_day-detail.total_taken>=0.5):
+                    leave_detail_id = leave_detail_obj.create(cr, uid, {
+                                        'employee_id': audit.employee_id.id,
+                                        'leave_type_id': detail.leave_type_id.id,
+                                        'date_from': audit.work_date,
+                                        'date_to': audit.work_date,
+                                        'haft_day_leave': True,
+                                        'state': 'draft',
+                                    })
+                    leave_detail_obj.process_leave_request(cr, uid, [leave_detail_id])
+                    break
+                if detail.leave_type_id.code == 'PL' and (detail.total_day-detail.total_taken>=1):
+                    leave_detail_id = leave_detail_obj.create(cr, uid, {
+                                        'employee_id': audit.employee_id.id,
+                                        'leave_type_id': detail.leave_type_id.id,
+                                        'date_from': audit.work_date,
+                                        'date_to': audit.work_date,
+                                        'haft_day_leave': False,
+                                        'state': 'draft',
+                                    })
+                    leave_detail_obj.process_leave_request(cr, uid, [leave_detail_id])
+                    break
+                if detail.leave_type_id.code == 'LOP':
+                    leave_detail_id = leave_detail_obj.create(cr, uid, {
+                                        'employee_id': audit.employee_id.id,
+                                        'leave_type_id': detail.leave_type_id.id,
+                                        'date_from': audit.work_date,
+                                        'date_to': audit.work_date,
+                                        'haft_day_leave': True,
+                                        'state': 'draft',
+                                    })
+                    leave_detail_obj.process_leave_request(cr, uid, [leave_detail_id])
+                    break
+        employee_ids = emp_attendence_obj.search(cr, uid, [('employee_id','=',audit.employee_id.id)])
+        if employee_ids:
+            val2={'punch_in_out_id':employee_ids[0], 
+                  'employee_id': audit.employee_id.id,
+                  'work_date':audit.work_date, 
+                  'planned_work_shift_id':audit.planned_work_shift_id.id,
+                  'actual_work_shift_id':audit.actual_work_shift_id.id,
+                  'in_time':audit.in_time,
+                  'out_time':audit.out_time,
+                  'approval':1
+                    }
+            punch_obj.create(cr,uid,val2) 
+        else:
+            val1={
+                  'employee_id':audit.employee_id.id,
+                  'work_date':audit.work_date,
+                  'planned_work_shift_id':audit.planned_work_shift_id.id,
+                  'actual_work_shift_id':audit.actual_work_shift_id.id,
+                  'in_time':audit.in_time,
+                  'out_time':audit.out_time,
+                  'approval':1
+                  }
+            emp_attendence_obj.create(cr,uid,{'employee_id':audit.employee_id.id,
+                                              'employee_category_id':audit.employee_id.employee_category_id and audit.employee_id.employee_category_id.id or False,
+                                              'sub_category_id':audit.employee_id.employee_sub_category_id and audit.employee_id.employee_sub_category_id.id or False,
+                                              'department_id':audit.employee_id.department_id and audit.employee_id.department_id.id or False,
+                                              'designation_id':audit.employee_id.job_id and audit.employee_id.job_id.id or False,
+                                              'punch_in_out_audit':[(0,0,val1)]})
+        self.pool.get('arul.hr.audit.shift.time').write(cr, uid, [audit_id],{'approval': True, 'state':'done', 'time_evaluate_id':False})
+        return {'type': 'ir.actions.act_window_close'}
 alert_form()

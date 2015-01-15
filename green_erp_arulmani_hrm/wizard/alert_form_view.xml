@@ -110,6 +110,23 @@
 	        <field name="context">{'default_message':'Approve or Reject?'}</field>
 	        <field name="target">new</field>
 	    </record>
+	    
+	    <record id="alert_permission_form_view" model="ir.ui.view">
+	        <field name="name">alert.form</field>
+	        <field name="model">alert.form</field>
+	        <field eval="20" name="priority"/>
+	        <field name="arch" type="xml">
+	            <form string="Alert" version="7.0">
+	                <field name="message"  nolabel="1" />
+	                <footer>
+	                    <button name="permission_ok" type='object' string="OK" class="oe_highlight"/>
+	                    or
+	                    <button string="Cancel" class="oe_highlight" special="cancel" />
+	                </footer>
+	            </form>
+	        </field>
+    	</record>
+	    
     </data>
 </openerp>
 

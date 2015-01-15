@@ -1,6 +1,74 @@
 <?xml version="1.0" encoding="utf-8"?>
 <openerp>
     <data>
+	   	<record id="view_tpt_purchase_indent_tree" model="ir.ui.view">
+			<field name="name">tpt.purchase.indent.tree</field>
+			<field name="model">tpt.purchase.indent</field>
+			<field name="arch" type="xml">
+				<tree string="Purchase Indent">
+						<field name="name"/>
+						<field name="date_indent"/>
+						<field name="document_type"/>
+						<field name="intdent_cate"/>
+						<field name="raised_from_id"  />
+						<field name="raised_by_id" options="{'create': false, 'create_edit': false}" />
+						<field name="date_expect"/>
+						<field name="reason"/>
+				</tree>
+			</field>
+		</record>
+		
+		<record id="view_tpt_purchase_indent_form" model="ir.ui.view">
+            <field name="name">tpt.purchase.indent.form</field>
+            <field name="model">tpt.purchase.indent</field>
+            <field name="arch" type="xml">
+	            <form string="Purchase Indent" version="7.0">   
+	            	<sheet>
+	            	<group col="1">
+		                <group col="4" colspan="2" >    
+							<field name="name"/>
+							<field name="date_indent" on_change="onchange_date_expect(date_indent)" />
+							<field name="document_type" />
+							<field name="intdent_cate" />
+							<field name="raised_from_id" options="{'create': false, 'create_edit': false}" />
+							<field name="raised_by_id" options="{'create': false, 'create_edit': false}"  />
+							<field name="date_expect"/>
+						</group>
+						<group >
+							<field name="select_normal" widget = "radio" attrs="{'invisible': [('intdent_cate', '!=', 'normal')],'required':[('intdent_cate','=','normal')]}" />
+							<field name="supplier_id" options="{'create': false, 'create_edit': false}" attrs="{'invisible': [('select_normal', '!=', 'special')],'required':[('select_normal','=','special')]}"   />
+							<field name="reason" attrs="{'invisible': [('select_normal', '!=', 'special')]}" />
+						</group>
+						</group>
+						<notebook>
+							<page string = "Products">
+								<field name="purchase_product_line" nolabel='1'>
+									<tree editable='bottom'>
+										<field name="product_id" widget = "selection" on_change="onchange_indent_product_id(product_id)" options="{'create': false, 'create_edit': false}"/>
+										<field name="product_uom_qty" />
+										<field name="uom_po_id" edit='false' options="{'create': false, 'create_edit': false}"/>
+									</tree>
+								</field>
+							</page>
+						</notebook>
+		         	</sheet>
+		         </form>
+			</field>
+		</record>
+          
+		<record id="action_view_tpt_purchase_indent_form" model="ir.actions.act_window">
+            <field name="name">Purchase Indent</field>
+            <field name="type">ir.actions.act_window</field>
+            <field name="res_model">tpt.purchase.indent</field>
+            <field name="view_type">form</field>
+            <field name="view_mode">tree,form</field>
+            <field name="view_id" ref="view_tpt_purchase_indent_tree"/>
+        </record>
+        
+        <menuitem action="action_view_tpt_purchase_indent_form"
+            id="menu_action_view_tpt_purchase_indent_form"
+            parent="purchase.menu_procurement_management" sequence="13"/>
+		
 		<record id="tpt_supplier_purchase_form" model="ir.ui.view">
             <field name="name">tpt.supplier.purchase.form</field>
             <field name="model">res.partner</field>
@@ -99,36 +167,61 @@
 			</field>
 		</record>
 		
-		<record id="view_gate_in_pass_tree" model="ir.ui.view">
-			<field name="name">gate.in.pass.tree</field>
-			<field name="model">gate.in.pass</field>
+		<record id="view_tpt_gate_in_pass_tree" model="ir.ui.view">
+			<field name="name">tpt.gate.in.pass.tree</field>
+			<field name="model">tpt.gate.in.pass</field>
 			<field name="arch" type="xml">
 				<tree string="Gate In Pass">
-					<field name="name" />
-					<field name="po_number"/>
+					<field name="name"/>
+					<field name="po_id"/>
 					<field name="po_date"/>
-					<field name="supplier_id" />
+					<field name="supplier_id"/>
 					<field name="gate_date_time"/>
 				</tree>
 			</field>
 		</record>
 		
-		<record id="view_gate_in_pass_form" model="ir.ui.view">
-            <field name="name">gate.in.pass.form</field>
-            <field name="model">gate.in.pass</field>
+		<record id="view_tpt_gate_in_pass_form" model="ir.ui.view">
+            <field name="name">tpt.gate.in.pass.form</field>
+            <field name="model">tpt.gate.in.pass</field>
             <field name="arch" type="xml">
 	            <form string="Gate In Pass" version="7.0">   
 	            	<sheet>
 		                <group > 
-		                <field name="po_number"/>
-		                <field name="supplier_id"/>
-		                <field name="po_date"/>
-						<field name="name"/>
-						<field name="gate_date_time"/>
+			                <field name="po_id" on_change = "onchange_po_id(po_id)" options="{'create': false, 'create_edit': false}"/>
+			                <field name="po_date"/>
+			                <field name="supplier_id" domain="[('supplier','=',1)]" options="{'create': false, 'create_edit': false}"/>
+							<field name="name"/>
+							<field name="gate_date_time"/>
 						</group>
+						<notebook>
+							<page string="Product details">
+								<field name="gate_in_pass_line" nolabel='1'>
+									<tree editable='top'>
+										<field name="po_indent_no" options="{'create': false, 'create_edit': false}"/>
+										<field name="product_id" on_change="onchange_product_id(product_id)" options="{'create': false, 'create_edit': false}"/>
+										<field name="product_qty"/>
+										<field name="uom_po_id"/>
+									</tree>
+								</field>
+							</page>
+						</notebook>
 				    </sheet>
 		         </form>
 			</field>
 		</record>
+		
+		<record id="action_view_tpt_gate_in_pass_tree" model="ir.actions.act_window">
+            <field name="name">Gate In Pass</field>
+            <field name="type">ir.actions.act_window</field>
+            <field name="res_model">tpt.gate.in.pass</field>
+            <field name="view_type">form</field>
+            <field name="view_mode">tree,form</field>
+            <field name="view_id" ref="view_tpt_gate_in_pass_tree"/>
+        </record>
+        
+        <menuitem action="action_view_tpt_gate_in_pass_tree"
+            id="menu_action_view_tpt_gate_in_pass_tree"
+            parent="purchase.menu_procurement_management" sequence="20"/>
     </data>
 </openerp>
