@@ -275,6 +275,14 @@ class sale_order(osv.osv):
                             update sale_order set document_status='partially' where id = %s
                         '''%(sale.id)
                         cr.execute(sql_stt)
+                        sql_stt3 = '''
+                          update tpt_blanket_order set flag2=False where id = %s
+                           '''%(sale.blanket_id.id)
+                        cr.execute(sql_stt3)
+                        sql_stt5 = '''
+                              update tpt_blanket_order set state='draft' where id = %s
+                               '''%(sale.blanket_id.id)
+                        cr.execute(sql_stt5)
                     else:
                         document_status = 'close'
 #                         sql_bo = '''
@@ -290,8 +298,10 @@ class sale_order(osv.osv):
                           update tpt_blanket_order set flag2=True where id = %s
                            '''%(sale.blanket_id.id)
                     cr.execute(sql_stt2)
-                    
-                    
+                    sql_stt4 = '''
+                              update tpt_blanket_order set state='done' where id = %s
+                               '''%(sale.blanket_id.id)
+                    cr.execute(sql_stt4)
         return new_id
     
     def write(self, cr, uid, ids, vals, context=None):
@@ -333,6 +343,14 @@ class sale_order(osv.osv):
                                 '''%(sale.id)
  
                             cr.execute(sql_stt)
+                            sql_stt3 = '''
+                              update tpt_blanket_order set flag2=False where id = %s
+                               '''%(sale.blanket_id.id)
+                            cr.execute(sql_stt3)
+                            sql_stt5 = '''
+                              update tpt_blanket_order set state='draft' where id = %s
+                               '''%(sale.blanket_id.id)
+                            cr.execute(sql_stt5)
                         else:
                             document_status = 'close'
                     if flag==False:
@@ -344,6 +362,10 @@ class sale_order(osv.osv):
                           update tpt_blanket_order set flag2=True where id = %s
                            '''%(sale.blanket_id.id)
                        cr.execute(sql_stt2)
+                       sql_stt4 = '''
+                              update tpt_blanket_order set state='done' where id = %s
+                               '''%(sale.blanket_id.id)
+                       cr.execute(sql_stt4)
 #                         if blanket_line.product_uom_qty < data[1]:
 #                             document_status = 'partially'
 #                             raise osv.except_osv(_('Warning!'),_('Quantity must be less than quantity of Blanket Order is product %s'%blanket_line.product_id.name_template))
@@ -1111,14 +1133,15 @@ class tpt_batch_request(osv.osv):
         if sale_order_id:
             sale = self.pool.get('sale.order').browse(cr, uid, sale_order_id)
             for line in sale.order_line:
-                rs = {
-                      'product_id': line.product_id and line.product_id.id or False,
-                      'product_type': line.product_type or False,
-                      'application_id': line.application_id and line.application_id.id or False,
-                      'product_uom_qty': line.product_uom_qty or False,
-                      'uom_po_id': line.product_uom and line.product_uom.id or False,
-                      }
-                product_information_line.append((0,0,rs))
+                if line.product_id.track_production and line.product_id.track_incoming and line.product_id.track_outgoing:
+                    rs = {
+                          'product_id': line.product_id and line.product_id.id or False,
+                          'product_type': line.product_type or False,
+                          'application_id': line.application_id and line.application_id.id or False,
+                          'product_uom_qty': line.product_uom_qty or False,
+                          'uom_po_id': line.product_uom and line.product_uom.id or False,
+                          }
+                    product_information_line.append((0,0,rs))
             
             vals = {'customer_id': sale.partner_id and sale.partner_id.id or False,
                     'product_information_line':product_information_line
@@ -1532,7 +1555,7 @@ class tpt_pgi(osv.osv):
         'name': fields.char('Post Googs Issue', size = 1024, readonly=True),
         'do_id':fields.many2one('stock.picking.out','Delivery Order',required = True), 
         'date':fields.date('DO Date',required = True), 
-        'customer_id':fields.many2one('res.partner', 'Customer', required = True), 
+        'customer_id':fields.many2one('res.partner', 'Customer', readonly=True), 
         'warehouse':fields.many2one('stock.location','Warehouse'),
         'batch_allotment_line': fields.one2many('tpt.batch.allotment.line', 'pgi_id', 'Product'), 
                 }
@@ -1543,7 +1566,16 @@ class tpt_pgi(osv.osv):
     def create(self, cr, uid, vals, context=None):
         if vals.get('name','/')=='/':
             vals['name'] = self.pool.get('ir.sequence').get(cr, uid, 'tpt.pgi.import') or '/'
+        if 'batch_allotment_line' in vals:
+            do = self.pool.get('stock.picking.out').browse(cr, uid, vals['do_id'])
+            vals.update({'customer_id':do.partner_id and do.partner_id.id or False})
         return super(tpt_pgi, self).create(cr, uid, vals, context=context)
+    
+    def write(self, cr, uid, ids, vals, context=None):
+        if 'batch_allotment_line' in vals:
+            do = self.pool.get('stock.picking.out').browse(cr, uid, vals['do_id'])
+            vals.update({'customer_id':do.partner_id and do.partner_id.id or False})
+        return super(tpt_pgi, self).write(cr, uid,ids, vals, context)
     
     def onchange_do_id(self, cr, uid, ids, do_id=False, context=None):
         vals = {}
