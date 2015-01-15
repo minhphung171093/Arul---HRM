@@ -135,5 +135,20 @@
             <field name="number_next_actual">00000001</field>
             <field name="implementation">no_gap</field>
         </record>
+        
+<!-- Purchase Quotation -->
+        <record id="sequence_purchase_quotation" model="ir.sequence.type">
+            <field name="name">Purchase Quotation</field>
+            <field name="code">purchase.quotation</field>
+        </record>
+        
+        <record id="sequence_purchase_quotation_item" model="ir.sequence">
+            <field name="name">Purchase Quotation</field>
+            <field name="code">purchase.quotation</field>
+            <field name="prefix">Q1</field>
+            <field name="padding">6</field>
+            <field name="number_next_actual">000001</field>
+            <field name="implementation">no_gap</field>
+       </record>   
 	</data>
 </openerp>

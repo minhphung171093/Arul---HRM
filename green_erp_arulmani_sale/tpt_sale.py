@@ -138,7 +138,8 @@ class sale_order(osv.osv):
             multi='sums', help="The total amount."),
         'partner_invoice_id': fields.many2one('res.partner', 'Invoice Address', readonly=True, required=False, states={'draft': [('readonly', False)], 'sent': [('readonly', False)]}, help="Invoice address for current sales order."),
         'partner_shipping_id': fields.many2one('res.partner', 'Delivery Address', readonly=True, required=False, states={'draft': [('readonly', False)], 'sent': [('readonly', False)]}, help="Delivery address for current sales order."),
-        'sale_consignee_line':fields.one2many('tpt.sale.order.consignee','sale_order_consignee_id','Consignee')
+        'sale_consignee_line':fields.one2many('tpt.sale.order.consignee','sale_order_consignee_id','Consignee'),
+        
     }
     _defaults = {
 #                  'name': lambda obj, cr, uid, context: '/',
@@ -146,6 +147,7 @@ class sale_order(osv.osv):
         'expected_date': time.strftime('%Y-%m-%d'),
         'order_policy': 'picking',
         'document_status':'draft',
+#         'flag2':False,
     }
     
     def onchange_po_date(self, cr, uid, ids, po_date=False, context=None):
@@ -205,10 +207,6 @@ class sale_order(osv.osv):
                     }
         return {'value': vals}    
         
-#     def create(self, cr, uid, vals, context=None):
-#         if vals.get('name','/')=='/':
-#             vals['name'] = self.pool.get('ir.sequence').get(cr, uid, 'tpt.sale.order.import') or '/'
-#         return super(sale_order, self).create(cr, uid, vals, context=context)
    
     def action_cancel(self, cr, uid, ids, context=None):
         wf_service = netsvc.LocalService("workflow")
@@ -234,6 +232,8 @@ class sale_order(osv.osv):
         return True 
 #     
     def create(self, cr, uid, vals, context=None):
+        if vals.get('name','/')=='/':
+            vals['name'] = self.pool.get('ir.sequence').get(cr, uid, 'tpt.sale.order.import') or '/'
 #         if 'document_status' in vals:
 #             vals['document_status'] = 'draft'
         new_id = super(sale_order, self).create(cr, uid, vals, context)
@@ -281,6 +281,12 @@ class sale_order(osv.osv):
                         update sale_order set document_status='close' where id = %s
                     '''%(sale.id)
                     cr.execute(sql_stt)
+                    sql_stt2 = '''
+                          update tpt_blanket_order set flag2=True where id = %s
+                           '''%(sale.blanket_id.id)
+                    cr.execute(sql_stt2)
+                
+                    
         return new_id
     
     def write(self, cr, uid, ids, vals, context=None):
@@ -328,8 +334,11 @@ class sale_order(osv.osv):
                        sql_stt = '''
                           update sale_order set document_status='close' where id = %s
                            '''%(sale.id)
-
                        cr.execute(sql_stt)
+                       sql_stt2 = '''
+                          update tpt_blanket_order set flag2=True where id = %s
+                           '''%(sale.blanket_id.id)
+                       cr.execute(sql_stt2)
 #                         if blanket_line.product_uom_qty < data[1]:
 #                             document_status = 'partially'
 #                             raise osv.except_osv(_('Warning!'),_('Quantity must be less than quantity of Blanket Order is product %s'%blanket_line.product_id.name_template))
@@ -814,6 +823,7 @@ class tpt_blanket_order(osv.osv):
         
         'blank_consignee_line': fields.one2many('tpt.consignee', 'blanket_consignee_id', 'Consignee', states={'cancel': [('readonly', True)], 'done':[('readonly', True)]}), 
         'state':fields.selection([('draft', 'Draft'),('cancel', 'Cancel'),('done', 'Approve')],'Status', readonly=True),
+        'flag2':fields.boolean(''),
     }
     
     
@@ -822,6 +832,7 @@ class tpt_blanket_order(osv.osv):
         'name': '/',
         'document_type': 'blankedorder',
         'bo_date': time.strftime('%Y-%m-%d'),
+        'flag2':False,
     }
     
 #     def _check_bo_date(self, cr, uid, ids, context=None):
@@ -899,8 +910,10 @@ class tpt_blank_order_line(osv.osv):
         'sub_total': fields.function(subtotal_blanket_orderline, store = True, multi='deltas' ,string='SubTotal'),
         'freight': fields.float('Freight'),
                 }
-    
     def create(self, cr, uid, vals, context=None):
+        if 'freight' in vals:
+            if (vals['freight'] < 0):
+                raise osv.except_osv(_('Warning!'),_('Freight is not negative value'))
         if 'product_id' in vals:
             product = self.pool.get('product.product').browse(cr, uid, vals['product_id'])
             vals.update({'uom_po_id':product.uom_id.id})
@@ -910,6 +923,9 @@ class tpt_blank_order_line(osv.osv):
         return super(tpt_blank_order_line, self).create(cr, uid, vals, context)
     
     def write(self, cr, uid, ids, vals, context=None):
+        if 'freight' in vals:
+            if (vals['freight'] < 0):
+                raise osv.except_osv(_('Warning!'),_('Freight is not negative value'))
         if 'product_id' in vals:
             product = self.pool.get('product.product').browse(cr, uid, vals['product_id'])
             vals.update({'uom_po_id':product.uom_id.id})
