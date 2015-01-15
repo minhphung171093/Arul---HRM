@@ -256,8 +256,8 @@
 							<page string = "Quotation Lines">
 								<field name="purchase_quotation_line" nolabel='1'>
 									<tree editable='top'>
-										<field name="po_indent_id" domain="[('state','=','done')]" options="{'create': false, 'create_edit': false}" />
-										<field name="product_id" context="{'search_product':True, 'po_indent_id':po_indent_id }" on_change = "onchange_quotation_product_id(product_id)" options="{'create': false, 'create_edit': false}" />
+										<field name="po_indent_id" on_change = "onchange_po_indent_id(po_indent_id)" domain="[('state','=','done')]" options="{'create': false, 'create_edit': false}" />
+										<field name="product_id" context="{'search_product':True, 'po_indent_id':po_indent_id }" on_change = "onchange_quotation_product_id(product_id, po_indent_id)" options="{'create': false, 'create_edit': false}" />
 										<field name="product_uom_qty" />
 										<field name="uom_po_id" edit='false' options="{'create': false, 'create_edit': false}"/>
 										<field name="price_unit" />
