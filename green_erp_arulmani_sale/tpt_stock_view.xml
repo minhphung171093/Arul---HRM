@@ -264,7 +264,7 @@
 		                        string="Scrap Products" type="action"
 		                        icon="terp-gtk-jump-to-ltr" context="{'scrap': True}"
 		                        states="draft,waiting,confirmed,assigned" invisible="1"/>
-		                    <field name="prodlot_id" groups="stock.group_production_lot" context="{'search_prodlot_by_batch_alot':1,'sale_id':parent.sale_id}"/>
+		                    <field name="prodlot_id" groups="stock.group_production_lot" context="{'search_prodlot_by_batch_alot':1,'sale_id':parent.sale_id}" options="{'create': false, 'create_edit': false}"/>
 		                    <field name="phy_batch"/>
 		                    <button name="%(stock.track_line)d" string="Split in Serial Numbers" type="action"
 		                        icon="gtk-justify-fill" attrs="{'invisible': [('prodlot_id','&lt;&gt;',False)]}"
