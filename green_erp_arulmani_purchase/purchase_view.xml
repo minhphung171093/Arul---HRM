@@ -14,6 +14,7 @@
 						<field name="raised_by_id" options="{'create': false, 'create_edit': false}" />
 						<field name="date_expect"/>
 						<field name="reason"/>
+						<field name="state" widget="statusbar" statusbar_visible="draft,cancel,done" statusbar_colors='{"draft":"blue","cancel":"blue"}'/>
 				</tree>
 			</field>
 		</record>
@@ -23,6 +24,11 @@
             <field name="model">tpt.purchase.indent</field>
             <field name="arch" type="xml">
 	            <form string="Purchase Indent" version="7.0">   
+	             <header>
+	            		<button name="bt_approve" states='draft' string="Approve" type="object" class="oe_highlight" />
+	                    <button name="bt_cancel" states='draft' string="Close" type="object" class="oe_highlight" />
+	                    <field name="state" widget="statusbar" statusbar_visible="draft,cancel,done" statusbar_colors='{"draft":"blue","cancel":"blue"}'/>
+	            </header>    
 	            	<sheet>
 	            	<group col="1">
 		                <group col="4" colspan="2" >    
@@ -44,7 +50,7 @@
 							<page string = "Products">
 								<field name="purchase_product_line" nolabel='1'>
 									<tree editable='bottom'>
-										<field name="product_id" widget = "selection" on_change="onchange_indent_product_id(product_id)" options="{'create': false, 'create_edit': false}"/>
+										<field name="product_id" widget = "selection"  options="{'create': false, 'create_edit': false}"/>
 										<field name="product_uom_qty" />
 										<field name="uom_po_id" edit='false' options="{'create': false, 'create_edit': false}"/>
 									</tree>
@@ -223,5 +229,82 @@
         <menuitem action="action_view_tpt_gate_in_pass_tree"
             id="menu_action_view_tpt_gate_in_pass_tree"
             parent="purchase.menu_procurement_management" sequence="20"/>
+
+
+    <record id="view_tpt_purchase_quotation_tree" model="ir.ui.view">
+			<field name="name">tpt.purchase.quotation.tree</field>
+			<field name="model">tpt.purchase.quotation</field>
+			<field name="arch" type="xml">
+				<tree string="Purchase Quotation">
+						<field name="name" />
+						<field name="date_quotation" />
+						<field name="supplier_id" />
+						<field name="supplier_location_id" />
+						<field name="quotation_cate" />
+						<field name="quotation_ref" />
+						<field name="tax_id" />
+				</tree>
+			</field>
+	</record>
+		
+
+		<record id="view_tpt_purchase_quotation_form" model="ir.ui.view">
+            <field name="name">tpt.purchase.quotation.form</field>
+            <field name="model">tpt.purchase.quotation</field>
+            <field name="arch" type="xml">
+	            <form string="Purchase Quotation" version="7.0">
+	            	<sheet>
+                   	 <group col="4" colspan="2" >
+                   	 	<field name="name" />
+						<field name="date_quotation" />
+						<field name="supplier_id" options="{'create': false, 'create_edit': false}" on_change = "onchange_supplier_location(supplier_id)" />
+						<field name="supplier_location_id" options="{'create': false, 'create_edit': false}"  />
+						<field name="quotation_cate" />
+						<newline/>
+						<field name="quotation_ref" />
+						<field name="tax_id" options="{'create': false, 'create_edit': false}" domain="[('type_tax_use','=','purchase')]" />
+                    </group >
+						<notebook>
+							<page string = "Quotation Lines">
+								<field name="purchase_quotation_line" nolabel='1'>
+									<tree editable='top'>
+										<field name="po_indent_id" domain="[('state','=','done')]" options="{'create': false, 'create_edit': false}" />
+										<field name="product_id" context="{'search_product':True, 'po_indent_id':po_indent_id }" on_change = "onchange_quotation_product_id(product_id)" options="{'create': false, 'create_edit': false}" />
+										<field name="product_uom_qty" />
+										<field name="uom_po_id" edit='false' options="{'create': false, 'create_edit': false}"/>
+										<field name="price_unit" />
+										<field name="sub_total" />  
+									</tree>
+								</field>
+								<group class="oe_subtotal_footer oe_right" colspan="2" name="sale_total">
+                                	<field name="amount_untaxed" widget="monetary" />
+                                	<field name="amount_tax" widget="monetary" />     
+                                		<div class="oe_subtotal_footer_separator oe_inline">
+                                     		<label for="amount_total"/>  
+                                		</div>
+                                 	<field name="amount_total" nolabel="1" class="oe_subtotal_footer_separator" widget="monetary" />  
+                            	</group>  
+                            	<div class="oe_clear"/>  
+							</page>
+						</notebook>
+						
+		         	</sheet>
+		         </form>
+			</field>
+		</record>
+          
+		<record id="action_view_tpt_purchase_quotation_form" model="ir.actions.act_window">
+            <field name="name">Purchase Quotation</field>
+            <field name="type">ir.actions.act_window</field>
+            <field name="res_model">tpt.purchase.quotation</field>
+            <field name="view_type">form</field>
+            <field name="view_mode">tree,form</field>
+            <field name="view_id" ref="view_tpt_purchase_quotation_tree"/>
+        </record>
+        
+        <menuitem action="action_view_tpt_purchase_quotation_form"
+            id="menu_action_view_tpt_purchase_quotation_form"
+            parent="purchase.menu_procurement_management" sequence="25"/>
+		
     </data>
 </openerp>
