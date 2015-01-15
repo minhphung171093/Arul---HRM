@@ -274,6 +274,14 @@ class sale_order(osv.osv):
                             update sale_order set document_status='partially' where id = %s
                         '''%(sale.id)
                         cr.execute(sql_stt)
+                        sql_stt3 = '''
+                          update tpt_blanket_order set flag2=False where id = %s
+                           '''%(sale.blanket_id.id)
+                        cr.execute(sql_stt3)
+                        sql_stt5 = '''
+                              update tpt_blanket_order set state='draft' where id = %s
+                               '''%(sale.blanket_id.id)
+                        cr.execute(sql_stt5)
                     else:
                         document_status = 'close'
                 if flag==False:
@@ -285,6 +293,10 @@ class sale_order(osv.osv):
                           update tpt_blanket_order set flag2=True where id = %s
                            '''%(sale.blanket_id.id)
                     cr.execute(sql_stt2)
+                    sql_stt4 = '''
+                              update tpt_blanket_order set state='done' where id = %s
+                               '''%(sale.blanket_id.id)
+                    cr.execute(sql_stt4)
                 
                     
         return new_id
@@ -328,6 +340,14 @@ class sale_order(osv.osv):
                                 '''%(sale.id)
  
                             cr.execute(sql_stt)
+                            sql_stt3 = '''
+                              update tpt_blanket_order set flag2=False where id = %s
+                               '''%(sale.blanket_id.id)
+                            cr.execute(sql_stt3)
+                            sql_stt5 = '''
+                              update tpt_blanket_order set state='draft' where id = %s
+                               '''%(sale.blanket_id.id)
+                            cr.execute(sql_stt5)
                         else:
                             document_status = 'close'
                     if flag==False:
@@ -339,6 +359,10 @@ class sale_order(osv.osv):
                           update tpt_blanket_order set flag2=True where id = %s
                            '''%(sale.blanket_id.id)
                        cr.execute(sql_stt2)
+                       sql_stt4 = '''
+                              update tpt_blanket_order set state='done' where id = %s
+                               '''%(sale.blanket_id.id)
+                       cr.execute(sql_stt4)
 #                         if blanket_line.product_uom_qty < data[1]:
 #                             document_status = 'partially'
 #                             raise osv.except_osv(_('Warning!'),_('Quantity must be less than quantity of Blanket Order is product %s'%blanket_line.product_id.name_template))
