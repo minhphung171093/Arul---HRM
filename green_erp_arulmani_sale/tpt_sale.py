@@ -238,6 +238,7 @@ class sale_order(osv.osv):
 #             vals['document_status'] = 'draft'
         new_id = super(sale_order, self).create(cr, uid, vals, context)
         sale = self.browse(cr, uid, new_id)
+#             sale.blanket_id.state = 'done'
 #         sale_ids = sale.search(cr,uid,[('state','!=','cancel')])
         if sale.blanket_id:
             flag=False
@@ -275,13 +276,9 @@ class sale_order(osv.osv):
                         '''%(sale.id)
                         cr.execute(sql_stt)
                         sql_stt3 = '''
-                          update tpt_blanket_order set flag2=False where id = %s
+                          update tpt_blanket_order set state='draft', flag2=False where id = %s
                            '''%(sale.blanket_id.id)
                         cr.execute(sql_stt3)
-                        sql_stt5 = '''
-                              update tpt_blanket_order set state='draft' where id = %s
-                               '''%(sale.blanket_id.id)
-                        cr.execute(sql_stt5)
                     else:
                         document_status = 'close'
                 if flag==False:
@@ -290,15 +287,9 @@ class sale_order(osv.osv):
                     '''%(sale.id)
                     cr.execute(sql_stt)
                     sql_stt2 = '''
-                          update tpt_blanket_order set flag2=True where id = %s
+                          update tpt_blanket_order set flag2=True, state='done' where id = %s
                            '''%(sale.blanket_id.id)
                     cr.execute(sql_stt2)
-                    sql_stt4 = '''
-                              update tpt_blanket_order set state='done' where id = %s
-                               '''%(sale.blanket_id.id)
-                    cr.execute(sql_stt4)
-                
-                    
         return new_id
     
     def write(self, cr, uid, ids, vals, context=None):
@@ -835,7 +826,7 @@ class tpt_blanket_order(osv.osv):
              states={'cancel': [('readonly', True)], 'done':[('readonly', True)]}),
         
         'blank_consignee_line': fields.one2many('tpt.consignee', 'blanket_consignee_id', 'Consignee', states={'cancel': [('readonly', True)], 'done':[('readonly', True)]}), 
-        'state':fields.selection([('draft', 'Draft'),('cancel', 'Cancel'),('done', 'Approve')],'Status', readonly=True),
+        'state':fields.selection([('draft', 'Draft'),('cancel', 'Cancel'),('done', 'Closed')],'Status', readonly=True),
         'flag2':fields.boolean(''),
     }
     

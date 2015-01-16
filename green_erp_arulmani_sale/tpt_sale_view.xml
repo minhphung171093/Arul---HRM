@@ -140,7 +140,6 @@
             <field name="arch" type="xml">
 	            <form string="Blanket Order" version="7.0">
 	            <header>
-	            		<button name="bt_approve" states='draft' string="Approve" type="object" class="oe_highlight" />
 	                    <button name="bt_cancel" states='draft' string="Cancel" type="object" class="oe_highlight" />
 	                    <field name="state" widget="statusbar" statusbar_visible="draft,cancel,done" statusbar_colors='{"draft":"blue","cancel":"blue"}'/>
 	            </header>    
