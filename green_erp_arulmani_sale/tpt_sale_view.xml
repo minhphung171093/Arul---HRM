@@ -171,7 +171,7 @@
 						<field name="bo_date" />
 						<field name="po_date" />
 						<field name="po_number" />
-						<field name="exp_delivery_date" />
+						<field name="exp_delivery_date" on_change = "onchange_exp_delivery_date(exp_delivery_date)"/>
 						<field name="quotaion_no" />
 						<field name="channel" options="{'create': false, 'create_edit': false}"/>
 						<field name="sale_tax_id" domain="[('type_tax_use','=','sale')]" options="{'create': false, 'create_edit': false}"/>
