@@ -8,7 +8,7 @@
             <field name="inherit_id" ref="sale.view_order_form"/>
             <field name="arch" type="xml">
                 <xpath expr="//field[@name='partner_id']" position="after" >
-                		<field name="blanket_id" on_change="onchange_blanket_id(blanket_id)" domain="[('blank_order_line','!=',False), ('flag2','=',False), ('state','!=','cancel')]" options="{'create': false, 'create_edit': false}" />
+                		<field name="blanket_id" on_change="onchange_blanket_id(blanket_id)" domain="[('blank_order_line','!=',False), ('state','=','draft')]" options="{'create': false, 'create_edit': false}" />
                 		<field name="invoice_address" placeholder="Street..."/>
                 		<field name="street2"/>
                 		<field name="city" placeholder="City"/>
@@ -86,6 +86,10 @@
 				
 				<xpath expr="//label[@string='Quotation ']"  position="replace">
 					<label string="Draft Sales Order " attrs="{'invisible': [('state','not in',('draft','sent'))]}"/>
+				</xpath>
+				
+				<xpath expr="//button[@name='action_cancel']"  position="attributes">
+					<attribute name='invisible'>1</attribute>
 				</xpath>
 				
 	       	</field>
@@ -306,7 +310,7 @@
 	            	<sheet>
 		                <group>    
 						<field name="name"/>
-						<field name="sale_order_id" domain="[('document_type','in',['scrap','saleorder']),('order_line','!=',False)]" on_change = "onchange_sale_order_id(sale_order_id)" options="{'create': false, 'create_edit': false}"/>
+						<field name="sale_order_id" domain="[('document_type','in',['scrap','saleorder']),('order_line','!=',False),('state','!=','cancel')]" on_change = "onchange_sale_order_id(sale_order_id)" options="{'create': false, 'create_edit': false}"/>
 						<field name="customer_id" domain="[('customer','=',1),('is_company','=',1)]" options="{'create': false, 'create_edit': false}"/>
 						<field name="request_date"/>
 						<field name="description"/>
@@ -362,7 +366,7 @@
             <field name="name">tpt.form.403.form</field>
             <field name="model">tpt.form.403</field>
             <field name="arch" type="xml">
-	            <form string="Form 403" version="7.0">   
+	            <form string="Form 403" version="7.0" >   
 	            	<sheet>
 		                <group col="1">  
 		                	<group col="4" colspan="2">
