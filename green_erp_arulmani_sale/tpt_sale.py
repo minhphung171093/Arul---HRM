@@ -363,17 +363,6 @@ class sale_order(osv.osv):
                               update tpt_blanket_order set state='done' where id = %s
                                '''%(sale.blanket_id.id)
                        cr.execute(sql_stt4)
-#                         if blanket_line.product_uom_qty < data[1]:
-#                             document_status = 'partially'
-#                             raise osv.except_osv(_('Warning!'),_('Quantity must be less than quantity of Blanket Order is product %s'%blanket_line.product_id.name_template))
-#                         elif blanket_line.product_uom_qty > data[1]:
-#                             document_status = 'partially'
-#                             flag=True
-#                             self.write(cr,uid,[new_write],{'document_status':document_status})
-#                         else:
-#                             document_status = 'close'
-#                     if flag==False:
-#                         self.write(cr,uid,[new_write],{'document_status':document_status})
         return new_write
     
 
