@@ -107,7 +107,12 @@ class sale_order(osv.osv):
         'reason':fields.text('Reason'),
         'quotaion_no':fields.char('Quotaion No', size = 40),
         'expected_date':fields.date('Expected delivery Date'),
-        'document_status':fields.selection([('draft','Draft'),('waiting','Waiting for Approval'),('completed','Completed(Ready to Process)'),('partially','Partially Delivered'),('close','Closed(Delivered)'),('cancelled','Cancelled')],'Document Status'),
+        'document_status':fields.selection([('draft','Draft'),
+                                            ('waiting','Waiting for Approval'),
+                                            ('completed','Completed(Ready to Process)'),
+                                            ('partially','Partially Delivered'),
+                                            ('close','Closed(Delivered)'),
+                                            ('cancelled','Cancelled')],'Document Status', readonly = True),
         'incoterms_id':fields.many2one('stock.incoterms','Incoterms',required = True),
         'distribution_channel':fields.many2one('crm.case.channel','Distribution Channel',required = True),
         'excise_duty_id': fields.many2one('account.tax', 'Ex.Duty', domain="[('type_tax_use','=','excise_duty')]", required = True),
@@ -224,12 +229,28 @@ class sale_order(osv.osv):
                     wf_service.trg_validate(uid, 'account.invoice', inv, 'invoice_cancel', cr)
             sale_order_line_obj.write(cr, uid, [l.id for l in  sale.order_line],
                     {'state': 'cancel'})
+            sale_order_ids = self.pool.get('tpt.batch.request').search(cr,uid,[('sale_order_id', '=',sale.id )])
+            if sale_order_ids:
+                raise osv.except_osv(_('Warning!'),_('Sale Order has already existed on Batch Request'))
         self.write(cr, uid, ids, {'state': 'cancel'})
         sql = '''
-            update sale_order set document_status='cancelled' where id = %s
-        '''%(sale.id)
+             update sale_order set document_status='cancelled' where id = %s
+            '''%(sale.id)
         cr.execute(sql)
-        return True 
+        sql_stt3 = '''
+              update tpt_blanket_order set state='draft' where id = %s
+               '''%(sale.blanket_id.id)
+        cr.execute(sql_stt3)
+#         for line in self.browse(cr, uid, ids):
+#             sale_order_ids = self.pool.get('sale.order').search(cr,uid,[('blanket_id', '=',line.id )])
+#             if sale_order_ids:
+#                 raise osv.except_osv(_('Warning!'),_('Blanket Order has already existed on Sale Order'))
+#             self.write(cr, uid, ids,{'state':'cancel'})
+        return True
+#         sql = '''
+#             update sale_order set document_status='cancelled' where id = %s
+#         '''%(sale.id)
+#         cr.execute(sql)
 #     
     def create(self, cr, uid, vals, context=None):
         if vals.get('name','/')=='/':
@@ -255,15 +276,15 @@ class sale_order(osv.osv):
                         so_ids.append(i[0])
                     so_ids = str(so_ids).replace("[","(")
                     so_ids = so_ids.replace("]",")")
-                sql = '''
-                    select sol.product_id, sum(sol.product_uom_qty) as qty
-                    from sale_order_line sol
-                    inner join sale_order so on so.id = sol.order_id
-                    where sol.order_id in %s and sol.product_id = %s
-                    group by sol.product_id
-                '''%(so_ids,blanket_line.product_id.id)
-                cr.execute(sql)
-                kq = cr.fetchall()
+                    sql = '''
+                        select sol.product_id, sum(sol.product_uom_qty) as qty
+                        from sale_order_line sol
+                        inner join sale_order so on so.id = sol.order_id
+                        where sol.order_id in %s and sol.product_id = %s
+                        group by sol.product_id
+                    '''%(so_ids,blanket_line.product_id.id)
+                    cr.execute(sql)
+                    kq = cr.fetchall()
                 for data in kq:
                     if blanket_line.product_uom_qty < data[1]:
                         document_status = 'partially'
@@ -276,7 +297,7 @@ class sale_order(osv.osv):
                         '''%(sale.id)
                         cr.execute(sql_stt)
                         sql_stt3 = '''
-                          update tpt_blanket_order set state='draft', flag2=False where id = %s
+                          update tpt_blanket_order set state='draft' where id = %s
                            '''%(sale.blanket_id.id)
                         cr.execute(sql_stt3)
                     else:
@@ -287,7 +308,7 @@ class sale_order(osv.osv):
                     '''%(sale.id)
                     cr.execute(sql_stt)
                     sql_stt2 = '''
-                          update tpt_blanket_order set flag2=True, state='done' where id = %s
+                          update tpt_blanket_order set state='done' where id = %s
                            '''%(sale.blanket_id.id)
                     cr.execute(sql_stt2)
         return new_id
@@ -312,15 +333,15 @@ class sale_order(osv.osv):
                             so_ids.append(i[0])
                         so_ids = str(so_ids).replace("[","(")
                         so_ids = so_ids.replace("]",")")
-                    sql = '''
-                        select sol.product_id, sum(sol.product_uom_qty) as qty
-                        from sale_order_line sol
-                        inner join sale_order so on so.id = sol.order_id
-                        where sol.order_id in %s and sol.product_id = %s
-                        group by sol.product_id
-                    '''%(so_ids,blanket_line.product_id.id)
-                    cr.execute(sql)
-                    kq = cr.fetchall()
+                        sql = '''
+                            select sol.product_id, sum(sol.product_uom_qty) as qty
+                            from sale_order_line sol
+                            inner join sale_order so on so.id = sol.order_id
+                            where sol.order_id in %s and sol.product_id = %s
+                            group by sol.product_id
+                        '''%(so_ids,blanket_line.product_id.id)
+                        cr.execute(sql)
+                        kq = cr.fetchall()
                     for data in kq:
                         if blanket_line.product_uom_qty < data[1]:
                             raise osv.except_osv(_('Warning!'),_('Quantity must be less than quantity of Blanket Order is product %s'%blanket_line.product_id.name_template))
@@ -332,13 +353,13 @@ class sale_order(osv.osv):
  
                             cr.execute(sql_stt)
                             sql_stt3 = '''
-                              update tpt_blanket_order set flag2=False where id = %s
-                               '''%(sale.blanket_id.id)
-                            cr.execute(sql_stt3)
-                            sql_stt5 = '''
                               update tpt_blanket_order set state='draft' where id = %s
                                '''%(sale.blanket_id.id)
-                            cr.execute(sql_stt5)
+                            cr.execute(sql_stt3)
+#                             sql_stt5 = '''
+#                               update tpt_blanket_order set state='draft' where id = %s
+#                                '''%(sale.blanket_id.id)
+#                             cr.execute(sql_stt5)
                         else:
                             document_status = 'close'
                     if flag==False:
@@ -347,24 +368,13 @@ class sale_order(osv.osv):
                            '''%(sale.id)
                        cr.execute(sql_stt)
                        sql_stt2 = '''
-                          update tpt_blanket_order set flag2=True where id = %s
+                          update tpt_blanket_order set state='done' where id = %s
                            '''%(sale.blanket_id.id)
                        cr.execute(sql_stt2)
-                       sql_stt4 = '''
-                              update tpt_blanket_order set state='done' where id = %s
-                               '''%(sale.blanket_id.id)
-                       cr.execute(sql_stt4)
-#                         if blanket_line.product_uom_qty < data[1]:
-#                             document_status = 'partially'
-#                             raise osv.except_osv(_('Warning!'),_('Quantity must be less than quantity of Blanket Order is product %s'%blanket_line.product_id.name_template))
-#                         elif blanket_line.product_uom_qty > data[1]:
-#                             document_status = 'partially'
-#                             flag=True
-#                             self.write(cr,uid,[new_write],{'document_status':document_status})
-#                         else:
-#                             document_status = 'close'
-#                     if flag==False:
-#                         self.write(cr,uid,[new_write],{'document_status':document_status})
+#                        sql_stt4 = '''
+#                               update tpt_blanket_order set state='done' where id = %s
+#                                '''%(sale.blanket_id.id)
+#                        cr.execute(sql_stt4)
         return new_write
     
 
@@ -859,6 +869,9 @@ class tpt_blanket_order(osv.osv):
     
     def bt_cancel(self, cr, uid, ids, context=None):
         for line in self.browse(cr, uid, ids):
+            sale_order_ids = self.pool.get('sale.order').search(cr,uid,[('blanket_id', '=',line.id )])
+            if sale_order_ids:
+                raise osv.except_osv(_('Warning!'),_('Blanket Order has already existed on Sale Order'))
             self.write(cr, uid, ids,{'state':'cancel'})
         return True   
     
