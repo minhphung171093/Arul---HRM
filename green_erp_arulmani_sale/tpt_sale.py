@@ -809,12 +809,12 @@ class tpt_blanket_order(osv.osv):
     _columns = {
         'name': fields.char('Blanked Order', size = 1024, readonly=True),
         'customer_id': fields.many2one('res.partner', 'Customer', required = True, states={'cancel': [('readonly', True)], 'done':[('readonly', True)]}),
-        'invoice_address': fields.char('Invoice Address', size = 1024, states={'cancel': [('readonly', True)], 'done':[('readonly', True)]}),
-        'street2': fields.char('', size = 1024, states={'cancel': [('readonly', True)], 'done':[('readonly', True)]}),
-        'city': fields.char('', size = 1024, states={'cancel': [('readonly', True)], 'done':[('readonly', True)]}),
-        'country_id': fields.many2one('res.country', '', states={'cancel': [('readonly', True)], 'done':[('readonly', True)]}),
-        'state_id': fields.many2one('res.country.state', '', states={'cancel': [('readonly', True)], 'done':[('readonly', True)]}),
-        'zip': fields.char('', size = 1024, states={'cancel': [('readonly', True)], 'done':[('readonly', True)]}),
+        'invoice_address': fields.char('Invoice Address', size = 1024, readonly=True, states={'cancel': [('readonly', True)], 'done':[('readonly', True)]}),
+        'street2': fields.char('', size = 1024, readonly=True, states={'cancel': [('readonly', True)], 'done':[('readonly', True)]}),
+        'city': fields.char('', size = 1024, readonly=True, states={'cancel': [('readonly', True)], 'done':[('readonly', True)]}),
+        'country_id': fields.many2one('res.country', '', readonly=True, states={'cancel': [('readonly', True)], 'done':[('readonly', True)]}),
+        'state_id': fields.many2one('res.country.state', '', readonly=True, states={'cancel': [('readonly', True)], 'done':[('readonly', True)]}),
+        'zip': fields.char('', size = 1024, readonly=True, states={'cancel': [('readonly', True)], 'done':[('readonly', True)]}),
         'payment_term_id': fields.many2one('account.payment.term', 'Payment Term', states={'cancel': [('readonly', True)], 'done':[('readonly', True)]}),
         'currency_id': fields.many2one('res.currency', 'Currency', states={'cancel': [('readonly', True)], 'done':[('readonly', True)]}),
         'bo_date': fields.date('BO Date', required = True, readonly = True,  states={'cancel': [('readonly', True)], 'done':[('readonly', True)]}),
@@ -860,6 +860,18 @@ class tpt_blanket_order(osv.osv):
         'flag2':False,
     }
     
+    def onchange_exp_delivery_date(self, cr, uid, ids, exp_delivery_date=False, context=None):
+        vals = {}
+        current = time.strftime('%Y-%m-%d')
+        warning = {}
+        if exp_delivery_date:
+            if exp_delivery_date < current:
+                vals = {'exp_delivery_date':current}
+                warning = {
+                    'title': _('Warning!'),
+                    'message': _('Expected delivery Date: Allow future date, not allow back date')
+                }
+        return {'value':vals,'warning':warning}
 #     def _check_bo_date(self, cr, uid, ids, context=None):
         
     def bt_approve(self, cr, uid, ids, context=None):
@@ -878,7 +890,30 @@ class tpt_blanket_order(osv.osv):
     def create(self, cr, uid, vals, context=None):
         if vals.get('name','/')=='/':
             vals['name'] = self.pool.get('ir.sequence').get(cr, uid, 'tpt.blanked.order.import') or '/'
+        if 'customer_id' in vals:
+            customer = self.pool.get('res.partner').browse(cr, uid, vals['customer_id'])
+            vals.update({
+                        'invoice_address': customer.street or False,
+                        'street2': customer.street2 or False,
+                        'city': customer.city or False,
+                        'country_id': customer.country_id and customer.country_id.id or False,
+                        'state_id': customer.state_id and customer.state_id.id or False,
+                        'zip': customer.zip or False,
+                         })
         return super(tpt_blanket_order, self).create(cr, uid, vals, context=context)
+    
+    def write(self, cr, uid, ids, vals, context=None):
+        if 'customer_id' in vals:
+            customer = self.pool.get('res.partner').browse(cr, uid, vals['customer_id'])
+            vals.update({
+                        'invoice_address': customer.street or False,
+                        'street2': customer.street2 or False,
+                        'city': customer.city or False,
+                        'country_id': customer.country_id and customer.country_id.id or False,
+                        'state_id': customer.state_id and customer.state_id.id or False,
+                        'zip': customer.zip or False,
+                         })
+        return super(tpt_blanket_order, self).write(cr, uid, ids, vals, context=context)
     
     def onchange_customer_id(self, cr, uid, ids,customer_id=False, context=None):
         vals = {}
@@ -938,6 +973,19 @@ class tpt_blank_order_line(osv.osv):
         'sub_total': fields.function(subtotal_blanket_orderline, store = True, multi='deltas' ,string='SubTotal'),
         'freight': fields.float('Freight'),
                 }
+    
+    def _check_product(self, cr, uid, ids, context=None):
+        for product in self.browse(cr, uid, ids, context=context):
+            product_ids = self.search(cr, uid, [('id','!=',product.id),('product_id','=',product.product_id.id),('blanket_order_id', '=',product.blanket_order_id.id)])
+            if product_ids:
+                raise osv.except_osv(_('Warning!'),_('Product %s was existed in same Blanket Order!'%(product.product_id.name)))
+                return False
+            return True
+        
+    _constraints = [
+        (_check_product, 'Identical Data', ['blanket_order_id', 'product_id']),
+    ]       
+    
     def create(self, cr, uid, vals, context=None):
         if 'freight' in vals:
             if (vals['freight'] < 0):

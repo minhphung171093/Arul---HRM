@@ -34,8 +34,11 @@
             <field name="model">stock.move</field>
             <field name="inherit_id" ref="stock.view_move_picking_form"/>
             <field name="arch" type="xml">
+            	<xpath expr="//field[@name='product_id']" position="replace">
+					<field name="product_id" context="{'search_do_ref_id':True,'do_ref_id':parent.do_ref_id}" on_change="onchange_product_id(product_id,location_id,location_dest_id, parent.partner_id)"/>
+				</xpath>
             	<xpath expr="//field[@name='name']" position="replace">
-					<field name="name" required = '0' invisible="1"/>
+					<field name="name" required = '0' invisible = '1'/>
 				</xpath> 
             	<xpath expr="//field[@name='date']" position="replace">
 					<field name="date" required = '0' invisible = '1' />
@@ -60,7 +63,7 @@
 					</div>
 				</xpath> 
 				<xpath expr="//group[@string='Locations']" position="replace">
-					<group string="Locations" groups="stock.group_locations">
+					<group string="Locations" invisible = '1' groups="stock.group_locations">
                                 <field name="location_id" required = '0' domain="[('usage','&lt;&gt;','view')]"/>
                                 <field name="location_dest_id" required = '0' domain="[('usage','in', ['internal', 'supplier', 'customer'])]"/>
                     </group>
