@@ -383,10 +383,10 @@ class tpt_purchase_quotation(osv.osv):
                 'tpt.purchase.quotation.line': (_get_order, ['price_unit', 'sub_total', 'product_uom_qty'], 10), },
              states={'cancel': [('readonly', True)], 'done':[('readonly', True)]}),
         
-#         'state':fields.selection([('draft', 'Draft'),('cancel', 'Cancel'),('done', 'Approve')],'Status', readonly=True),
+        'state':fields.selection([('draft', 'Draft'),('cancel', 'Cancel'),('done', 'Approve')],'Status', readonly=True),
     }
     _defaults = {
-#         'state': 'draft',
+        'state': 'draft',
         'name': '/',
         'date_quotation':fields.datetime.now,
         }  
@@ -409,7 +409,7 @@ class tpt_purchase_quotation(osv.osv):
 #         if context is None:
 #             context = {}
 #         if context.get('check_supplier_location_id'):
-#             supplier_id = context.get('supplier_id')
+#             supplier_id = context.get('supplier_id')8754
 #             if not supplier_id:
 #                 args += [('id','=',-1)]
 #                 
@@ -421,6 +421,7 @@ class tpt_purchase_quotation_line(osv.osv):
     _name = "tpt.purchase.quotation.line"
     def subtotal_purchase_quotation_line(self, cr, uid, ids, field_name, args, context=None):
         res = {}
+        subtotal = 0.0
         for line in self.browse(cr,uid,ids,context=context):
             res[line.id] = {
                'sub_total' : 0.0,
@@ -432,20 +433,35 @@ class tpt_purchase_quotation_line(osv.osv):
         'purchase_quotation_id':fields.many2one('tpt.purchase.quotation','Purchase Quotitation', ondelete = 'cascade'),
         'po_indent_id':fields.many2one('tpt.purchase.indent','PO Indent',required = True),
         'product_id': fields.many2one('product.product', 'Product'),
-        'product_uom_qty': fields.float('Quantity'),   
-        'uom_po_id': fields.many2one('product.uom', 'UOM'),
+        'product_uom_qty': fields.float('Quantity', readonly=True),   
+        'uom_po_id': fields.many2one('product.uom', 'UOM', readonly=True),
         'price_unit': fields.float('Unit Price'),
-        'sub_total': fields.function(subtotal_purchase_quotation_line, store = True, multi='deltas' ,string='SubTotal'),
+        'sub_total': fields.function(subtotal_purchase_quotation_line, multi='deltas' ,string='SubTotal'),
         }
     
-#     def create(self, cr, uid, vals, context=None):
-#         if 'product_id' in vals:
-#             product = self.pool.get('product.product').browse(cr, uid, vals['product_id'])
-#             vals.update({'uom_po_id':product.uom_id.id})
-#         if 'product_uom_qty' in vals:
-#             if (vals['product_uom_qty'] < 0):
-#                 raise osv.except_osv(_('Warning!'),_('Quantity is not allowed as negative values'))
-#         return super(tpt_purchase_product, self).create(cr, uid, vals, context)    
+    def create(self, cr, uid, vals, context=None):
+        if 'po_indent_id' in vals:
+            if 'product_id' in vals:
+                indent = self.pool.get('tpt.purchase.indent').browse(cr, uid, vals['po_indent_id'])
+                for line in indent.purchase_product_line:
+                    if vals['product_id'] == line.product_id.id:
+                        vals.update({
+                                'uom_po_id':line.uom_po_id.id,
+                                'product_uom_qty':line.product_uom_qty,
+                                })
+        return super(tpt_purchase_quotation_line, self).create(cr, uid, vals, context)    
+  
+    def write(self, cr, uid, vals, context=None):
+        if 'po_indent_id' in vals:
+            if 'product_id' in vals:
+                indent = self.pool.get('tpt.purchase.indent').browse(cr, uid, vals['po_indent_id'])
+                for line in indent.purchase_product_line:
+                    if vals['product_id'] == line.product_id.id:
+                        vals.update({
+                                'uom_po_id':line.uom_po_id.id,
+                                'product_uom_qty':line.product_uom_qty,
+                                })
+        return super(tpt_purchase_quotation_line, self).create(cr, uid, vals, context)    
     
     def onchange_po_indent_id(self, cr, uid, ids,po_indent_id=False, context=None):
         if po_indent_id:
@@ -467,7 +483,7 @@ class tpt_purchase_quotation_line(osv.osv):
 
     def _check_quotation(self, cr, uid, ids, context=None):
         for quotation in self.browse(cr, uid, ids, context=context):
-            quotation_ids = self.search(cr, uid, [('id','!=',quotation.id),('po_indent_id','=',quotation.po_indent_id.id),('product_id', '=',quotation.product_id.id)])
+            quotation_ids = self.search(cr, uid, [('id','!=',quotation.id),('po_indent_id','=',quotation.po_indent_id.id),('product_id', '=',quotation.product_id.id),('purchase_quotation_id','=',quotation.purchase_quotation_id.id)])
             if quotation_ids:
                 raise osv.except_osv(_('Warning!'),_('PO Indent and Product were existed !'))
                 return False
