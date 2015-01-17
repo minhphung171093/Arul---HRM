@@ -161,7 +161,7 @@
                     		<field name="street2"/>
                     		<field name="city" placeholder="City"/>
                     		<field name="country_id" placeholder="Country" options="{'create': false, 'create_edit': false}"/>
-                    		<field name="state_id" placeholder="State" options="{'create': false, 'create_edit': false}"/>
+                    		<field name="state_id" placeholder="State" domain="[('country_id','=', country_id)]" options="{'create': false, 'create_edit': false}"/>
                     		<field name="zip" placeholder="ZIP"/>
                     	</div>
                     	<field name="document_type" />
@@ -304,7 +304,7 @@
 	            <form string="Batch Request" version="7.0">   
 	            <header>
 	            	<button name="bt_approve" states='draft' string="Approve" type="object" class="oe_highlight" />
-                    <button name="bt_cancel" states='draft' string="Cancel" type="object" class="oe_highlight" />
+                    <button name="bt_cancel" string="Cancel" type="object" class="oe_highlight" />
                     <field name="state" widget="statusbar" statusbar_visible="draft,cancel,done" statusbar_colors='{"draft":"blue","cancel":"blue"}'/>
 	            </header>
 	            	<sheet>
@@ -653,7 +653,7 @@
                     </header>
                    <sheet>
                    		<group>
-                        	<field name="batch_request_id" options="{'create': false, 'create_edit': false}" on_change="onchange_batch_request_id(batch_request_id)" attrs="{'readonly':[('state','in',('cancel','confirm'))]}"/>
+                        	<field name="batch_request_id" context="{'search_default_batch_request_by_allot':1}" options="{'create': false, 'create_edit': false}" on_change="onchange_batch_request_id(batch_request_id)" attrs="{'readonly':[('state','in',('cancel','confirm'))]}"/>
                     		<field name="name" attrs="{'readonly':[('state','in',('cancel','confirm'))]}"/>
                     		<field name="sale_order_id" options="{'create': false, 'create_edit': false}" attrs="{'readonly':[('state','in',('cancel','confirm'))]}"/>
                     		<field name="customer_id" domain="[('customer','=',1),('is_company','=',1)]" options="{'create': false, 'create_edit': false}" attrs="{'readonly':[('state','in',('cancel','confirm'))]}"/>

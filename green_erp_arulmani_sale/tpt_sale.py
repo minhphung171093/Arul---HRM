@@ -98,7 +98,7 @@ class sale_order(osv.osv):
     _columns = {
 #         'name': fields.char('Order Reference', size=64, required=True, readonly=True, select=True),
         'order_type':fields.selection([('domestic','Domestic'),('export','Export')],'Order Type' ,required=True),
-        'blanket_id':fields.many2one('tpt.blanket.order','Blanket Order',required = True),
+        'blanket_id':fields.many2one('tpt.blanket.order','Blanket Order'),
 #         'so_date':fields.date('SO Date'),
         'po_date':fields.date('PO Date'),
         'payment_term_id': fields.many2one('account.payment.term', 'Payment Term'),
@@ -1121,7 +1121,7 @@ class tpt_batch_request(osv.osv):
     
     def bt_cancel(self, cr, uid, ids, context=None):
         for line in self.browse(cr, uid, ids):
-            batch_allotment_ids = self.pool.get('tpt.batch.allotment').search(cr,uid,[('batch_request_id', '=',line.id )])
+            batch_allotment_ids = self.pool.get('tpt.batch.allotment').search(cr,uid,[('batch_request_id','=',line.id),('state','!=','cancel')])
             if batch_allotment_ids:
                 raise osv.except_osv(_('Warning!'),_('Batch Request has already existed on Batch Allotment'))
         return self.write(cr, uid, ids,{'state':'cancel'})
@@ -1201,6 +1201,23 @@ class tpt_batch_request(osv.osv):
                     'product_information_line':product_information_line
                     }
         return {'value': vals}
+    
+    def search(self, cr, uid, args, offset=0, limit=None, order=None, context=None, count=False):
+        if context is None:
+            context = {}
+        if context.get('search_default_batch_request_by_allot'):
+            sql = '''
+                select id from tpt_batch_request
+                where state != 'cancel' and id not in (select batch_request_id from tpt_batch_allotment al,tpt_batch_request re where al.batch_request_id = re.id and al.state != 'cancel')
+            '''
+            cr.execute(sql)
+            request_ids = [row[0] for row in cr.fetchall()]
+            args += [('id','in',request_ids)]
+        return super(tpt_batch_request, self).search(cr, uid, args, offset=offset, limit=limit, order=order, context=context, count=count)
+    
+    def name_search(self, cr, user, name, args=None, operator='ilike', context=None, limit=100):
+       ids = self.search(cr, user, args, context=context, limit=limit)
+       return self.name_get(cr, user, ids, context=context)
     
 tpt_batch_request()
 
@@ -1698,7 +1715,8 @@ class stock_production_lot(osv.osv):
             sale_id = context.get('sale_id', False)
             if sale_id:
                 sql = '''
-                    select sys_batch from tpt_batch_allotment_line where batch_allotment_id in (select id from tpt_batch_allotment where sale_order_id = %s)
+                    select sys_batch from tpt_batch_allotment_line line, tpt_batch_allotment mast
+                    where mast.id = line.batch_allotment_id and batch_allotment_id in (select id from tpt_batch_allotment where sale_order_id = %s and state != 'cancel')
                 '''%(sale_id)
                 cr.execute(sql)
                 prodlot_ids = [row[0] for row in cr.fetchall()]

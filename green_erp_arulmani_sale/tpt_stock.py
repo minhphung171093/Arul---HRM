@@ -13,13 +13,13 @@ import openerp.addons.decimal_precision as dp
 class stock_picking(osv.osv):
     _inherit = "stock.picking"
     _columns = {
-        'cons_loca':fields.many2one('res.partner','Consignee Location'),
+        'cons_loca':fields.many2one('res.partner','Consignee Location',readonly = True),
         'warehouse':fields.many2one('stock.location','Warehouse'),
         'transporter':fields.char('Transporter Name', size = 64),
         'truck':fields.char('Truck Number', size = 64),
         'remarks':fields.text('Remarks'),
         'doc_status':fields.selection([('draft','Drafted'),('waiting','Waiting for Approval'),('completed','Completed'),('cancelled','Cancelled')],'Document Status'),
-        'sale_id': fields.many2one('sale.order', 'Sales Order', ondelete='set null', select=True),
+        'sale_id': fields.many2one('sale.order', 'Sales Order',readonly = True, ondelete='set null', select=True),
         'do_ref_id': fields.many2one('stock.picking.out','DO Reference'),   
         'move_date': fields.date('Movement Date', required = True),
         'reason': fields.text("Reason for Move"),
@@ -201,7 +201,7 @@ class stock_picking(osv.osv):
             'payment_term': picking.sale_id.payment_term_id and picking.sale_id.payment_term_id.id or False,
             'currency_id': picking.sale_id.currency_id and picking.sale_id.currency_id.id or False,
             'excise_duty_id': picking.sale_id.excise_duty_id and picking.sale_id.excise_duty_id.id or False,
-            'doc_status': 'completed',
+            'doc_status': picking.doc_status,
             'cons_loca': picking.cons_loca and picking.cons_loca.id or False,
             'delivery_order_id': picking.id,
             'sale_tax_id': picking.sale_id.sale_tax_id and picking.sale_id.sale_tax_id.id or False,
@@ -218,13 +218,13 @@ stock_picking()
 class stock_picking_out(osv.osv):
     _inherit = "stock.picking.out"
     _columns = {
-        'cons_loca':fields.many2one('res.partner','Consignee Location'),
+        'cons_loca':fields.many2one('res.partner','Consignee Location',readonly = True),
         'warehouse':fields.many2one('stock.location','Warehouse'),
         'transporter':fields.char('Transporter Name', size = 64),
         'truck':fields.char('Truck Number', size = 64),
         'remarks':fields.text('Remarks'),
         'doc_status':fields.selection([('draft','Drafted'),('waiting','Waiting for Approval'),('completed','Completed'),('cancelled','Cancelled')],'Document Status'),
-        'sale_id': fields.many2one('sale.order', 'Sales Order', ondelete='set null', select=True),
+        'sale_id': fields.many2one('sale.order', 'Sales Order', readonly = True,ondelete='set null', select=True),
                 }
     def write(self, cr, uid, ids, vals, context=None):
         stock = self.browse(cr, uid, ids[0])
