@@ -17,7 +17,7 @@
                 		<field name="zip" placeholder="ZIP"/> 
                 		<field name="document_type"/>
                 		
-                		<field name="payment_term_id" on_change="onchange_doc_status(payment_term_id)" options="{'create': false, 'create_edit': false}"/>
+                		<field name="payment_term_id"  options="{'create': false, 'create_edit': false}"/>
                 		<field name="incoterms_id" options="{'create': false, 'create_edit': false}" />
                 		<field name="excise_duty_id" options="{'create': false, 'create_edit': false}"/>
 	        	</xpath>
