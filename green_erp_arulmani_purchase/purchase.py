@@ -190,7 +190,7 @@ class product_product(osv.osv):
                         from stock_move st 
                             inner join stock_location l2 on st.location_dest_id= l2.id
                             inner join product_uom pu on st.product_uom = pu.id
-                        where st.state='done' and st.product_id=2 and l2.usage = 'internal'
+                        where st.state='done' and st.product_id=%s and l2.usage = 'internal'
                     union all
                     select l1.id as loc,st.prodlot_id,pu.id,st.product_qty*-1
                         from stock_move st 
@@ -199,7 +199,7 @@ class product_product(osv.osv):
                         where st.state='done' and st.product_id=%s and l1.usage = 'internal'
                     )foo
                     group by foo.loc,foo.prodlot_id,foo.id
-            '''%(id)
+            '''%(id,id)
             cr.execute(sql)
             for inventory in cr.dictfetchall():
                 new_id = inventory_obj.create(cr, uid, {'warehouse_id':inventory['loc'],'prodlot_id':inventory['prodlot_id'],'hand_quantity':inventory['ton_sl'],'uom_id':inventory['uom']})
