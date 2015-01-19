@@ -271,7 +271,7 @@ class arul_hr_audit_shift_time(osv.osv):
             emp_attendence_obj = self.pool.get('arul.hr.employee.attendence.details')
             punch_obj = self.pool.get('arul.hr.punch.in.out.time')
             if line.type != 'permission':
-                
+                extra_hours = 0.0
                 if line.in_time > line.out_time:
                     extra_hours = 24-line.in_time + line.out_time
                 else:
@@ -296,7 +296,6 @@ class arul_hr_audit_shift_time(osv.osv):
                             }
                 
                 if line.additional_shifts or (extra_hours>8 and line.employee_id.employee_category_id and line.employee_id.employee_category_id.code!='S1'):
-                    extra_hours = 0.0
                     c_off_day = 0.0
                     if extra_hours >= 4 and extra_hours < 8:
                         c_off_day = 0.5
