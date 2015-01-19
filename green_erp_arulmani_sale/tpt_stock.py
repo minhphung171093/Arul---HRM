@@ -126,6 +126,31 @@ class stock_picking(osv.osv):
                         update stock_move set location_id = %s, location_dest_id = %s where picking_id = %s 
                     '''%(picking.location_id.id, picking.location_dest_id.id, picking.id)
                 cr.execute(sql)
+            if picking.do_ref_id:
+                for do_ref_line in picking.do_ref_id.move_lines:
+                    sql_do = '''
+                        select id from stock_picking where do_ref_id = %s 
+                    '''%(picking.do_ref_id.id)
+                    cr.execute(sql_do)
+                    kq = cr.fetchall()
+                    do_ids = []
+                    if kq:
+                        for i in kq:
+                            do_ids.append(i[0])
+                        do_ids = str(do_ids).replace("[","(")
+                        do_ids = do_ids.replace("]",")")
+                    sql = '''
+                        select sm.product_id, sum(sm.product_qty) as qty
+                        from stock_move sm
+                        inner join stock_picking sp on sp.id = sm.picking_id
+                        where sm.picking_id in %s and sm.product_id = %s
+                        group by sm.product_id
+                    '''%(do_ids,do_ref_line.product_id.id)
+                    cr.execute(sql)
+                    kq = cr.fetchall()
+                    for data in kq:
+                        if do_ref_line.product_qty < data[1]:
+                            raise osv.except_osv(_('Warning!'),_('The Entered quantity is not available on the product %s'%do_ref_line.product_id.name_template))    
         return new_write
     
     def onchange_move_date(self, cr, uid, ids, move_date=False, context=None):
