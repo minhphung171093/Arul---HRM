@@ -11,18 +11,6 @@ from datetime import date
 import calendar
 import openerp.addons.decimal_precision as dp
 
-# -*- coding: utf-8 -*-
-from openerp import tools
-from openerp.osv import osv, fields
-from openerp.tools.translate import _
-import time
-from openerp import SUPERUSER_ID
-from openerp.tools import DEFAULT_SERVER_DATE_FORMAT, DEFAULT_SERVER_DATETIME_FORMAT, DATETIME_FORMATS_MAP, float_compare
-from datetime import datetime
-import datetime
-import calendar
-import openerp.addons.decimal_precision as dp
-
 class stock_picking(osv.osv):
     _inherit = "stock.picking"
     _columns = {
@@ -31,6 +19,20 @@ class stock_picking(osv.osv):
         'po_date': fields.datetime('PO Date'),        
                 }
     
+    def _prepare_invoice(self, cr, uid, picking, partner, inv_type, journal_id, context=None):
+        """ Builds the dict containing the values for the invoice
+            @param picking: picking object
+            @param partner: object of the partner to invoice
+            @param inv_type: type of the invoice ('out_invoice', 'in_invoice', ...)
+            @param journal_id: ID of the accounting journal
+            @return: dict that will be used to create the invoice object
+        """
+        invoice_vals = super(stock_picking,self)._prepare_invoice(cr, uid, picking, partner, inv_type, journal_id, context)
+        if picking.type=='in':
+            invoice_vals.update({
+                             'origin': picking.name or '',
+                             })
+        return invoice_vals
 stock_picking()
 
 class stock_picking_in(osv.osv):
