@@ -30,6 +30,7 @@
     'data': [
         'purchase_sequence.xml',
         'purchase_view.xml',
+        'stock_view.xml',
     ],
     'css' : [
     ],

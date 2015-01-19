@@ -1247,7 +1247,7 @@ class arul_hr_punch_in_out(osv.osv):
                                             employee_leave_ids = employee_leave_obj.search(cr, uid, [('year','=',data1[7:11]),('employee_id','=',employee_ids[0])])
                                             leave_type_ids = leave_type_obj.search(cr, uid, [('code','=','C.Off')])
                                             if not leave_type_ids:
-                                                raise osv.except_osv(_('Warning!'),_('Can not fine Leave Type C.Off. Please Create Leave Type C.Off before'))
+                                                raise osv.except_osv(_('Warning!'),_('Can not find Leave Type C.Off. Please Create Leave Type C.Off before'))
                                             if employee_leave_ids:
                                                 employee_leave_detail_ids = employee_leave_detail_obj.search(cr, uid, [('emp_leave_id','in',employee_leave_ids),('leave_type_id','=',leave_type_ids[0])])
                                                 if employee_leave_detail_ids:
