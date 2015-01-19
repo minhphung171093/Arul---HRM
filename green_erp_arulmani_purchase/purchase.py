@@ -202,7 +202,8 @@ class product_product(osv.osv):
             '''%(id)
             cr.execute(sql)
             for inventory in cr.dictfetchall():
-                result[id].append((0,0,{'warehouse_id':inventory['loc'],'prodlot_id':inventory['prodlot_id'],'hand_quantity':inventory['ton_sl'],'uom_id':inventory['uom']}))
+                new_id = inventory_obj.create(cr, uid, {'warehouse_id':inventory['loc'],'prodlot_id':inventory['prodlot_id'],'hand_quantity':inventory['ton_sl'],'uom_id':inventory['uom']})
+                result[id].append(new_id)
         return result
     
     _columns = {
