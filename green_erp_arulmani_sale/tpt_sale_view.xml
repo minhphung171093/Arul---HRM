@@ -8,7 +8,7 @@
             <field name="inherit_id" ref="sale.view_order_form"/>
             <field name="arch" type="xml">
                 <xpath expr="//field[@name='partner_id']" position="after" >
-                		<field name="blanket_id" on_change="onchange_blanket_id(blanket_id)" domain="[('blank_order_line','!=',False), ('flag2','=',False), ('state','!=','cancel')]" options="{'create': false, 'create_edit': false}" />
+                		<field name="blanket_id" on_change="onchange_blanket_id(blanket_id)" domain="[('blank_order_line','!=',False), ('state','=','draft')]" options="{'create': false, 'create_edit': false}" />
                 		<field name="invoice_address" placeholder="Street..."/>
                 		<field name="street2"/>
                 		<field name="city" placeholder="City"/>
@@ -88,6 +88,10 @@
 					<label string="Draft Sales Order " attrs="{'invisible': [('state','not in',('draft','sent'))]}"/>
 				</xpath>
 				
+				<xpath expr="//button[@name='action_cancel']"  position="attributes">
+					<attribute name='invisible'>1</attribute>
+				</xpath>
+				
 	       	</field>
         </record>
         
@@ -142,7 +146,6 @@
             <field name="arch" type="xml">
 	            <form string="Blanket Order" version="7.0">
 	            <header>
-	            		<button name="bt_approve" states='draft' string="Approve" type="object" class="oe_highlight" />
 	                    <button name="bt_cancel" states='draft' string="Cancel" type="object" class="oe_highlight" />
 	                    <field name="state" widget="statusbar" statusbar_visible="draft,cancel,done" statusbar_colors='{"draft":"blue","cancel":"blue"}'/>
 	            </header>    
@@ -160,7 +163,7 @@
                     		<field name="street2"/>
                     		<field name="city" placeholder="City"/>
                     		<field name="country_id" placeholder="Country" options="{'create': false, 'create_edit': false}"/>
-                    		<field name="state_id" placeholder="State" options="{'create': false, 'create_edit': false}"/>
+                    		<field name="state_id" placeholder="State" domain="[('country_id','=', country_id)]" options="{'create': false, 'create_edit': false}"/>
                     		<field name="zip" placeholder="ZIP"/>
                     	</div>
                     	<field name="document_type" />
@@ -174,7 +177,7 @@
 						<field name="bo_date" />
 						<field name="po_date" />
 						<field name="po_number" />
-						<field name="exp_delivery_date" />
+						<field name="exp_delivery_date" on_change = "onchange_exp_delivery_date(exp_delivery_date)"/>
 						<field name="quotaion_no" />
 						<field name="channel" options="{'create': false, 'create_edit': false}"/>
 						<field name="sale_tax_id" domain="[('type_tax_use','=','sale')]" options="{'create': false, 'create_edit': false}"/>
@@ -303,13 +306,13 @@
 	            <form string="Batch Request" version="7.0">   
 	            <header>
 	            	<button name="bt_approve" states='draft' string="Approve" type="object" class="oe_highlight" />
-                    <button name="bt_cancel" states='draft' string="Cancel" type="object" class="oe_highlight" />
+                    <button name="bt_cancel" string="Cancel" type="object" class="oe_highlight" />
                     <field name="state" widget="statusbar" statusbar_visible="draft,cancel,done" statusbar_colors='{"draft":"blue","cancel":"blue"}'/>
 	            </header>
 	            	<sheet>
 		                <group>    
 						<field name="name"/>
-						<field name="sale_order_id" domain="[('document_type','in',['scrap','saleorder']),('order_line','!=',False)]" on_change = "onchange_sale_order_id(sale_order_id)" options="{'create': false, 'create_edit': false}"/>
+						<field name="sale_order_id" domain="[('document_type','in',['scrap','saleorder']),('order_line','!=',False),('state','!=','cancel')]" on_change = "onchange_sale_order_id(sale_order_id)" options="{'create': false, 'create_edit': false}"/>
 						<field name="customer_id" domain="[('customer','=',1),('is_company','=',1)]" options="{'create': false, 'create_edit': false}"/>
 						<field name="request_date"/>
 						<field name="description"/>
@@ -365,7 +368,7 @@
             <field name="name">tpt.form.403.form</field>
             <field name="model">tpt.form.403</field>
             <field name="arch" type="xml">
-	            <form string="Form 403" version="7.0">   
+	            <form string="Form 403" version="7.0" >   
 	            	<sheet>
 		                <group col="1">  
 		                	<group col="4" colspan="2">
@@ -652,7 +655,7 @@
                     </header>
                    <sheet>
                    		<group>
-                        	<field name="batch_request_id" options="{'create': false, 'create_edit': false}" on_change="onchange_batch_request_id(batch_request_id)" attrs="{'readonly':[('state','in',('cancel','confirm'))]}"/>
+                        	<field name="batch_request_id" context="{'search_default_batch_request_by_allot':1}" options="{'create': false, 'create_edit': false}" on_change="onchange_batch_request_id(batch_request_id)" attrs="{'readonly':[('state','in',('cancel','confirm'))]}"/>
                     		<field name="name" attrs="{'readonly':[('state','in',('cancel','confirm'))]}"/>
                     		<field name="sale_order_id" options="{'create': false, 'create_edit': false}" attrs="{'readonly':[('state','in',('cancel','confirm'))]}"/>
                     		<field name="customer_id" domain="[('customer','=',1),('is_company','=',1)]" options="{'create': false, 'create_edit': false}" attrs="{'readonly':[('state','in',('cancel','confirm'))]}"/>

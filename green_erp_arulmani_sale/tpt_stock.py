@@ -13,13 +13,13 @@ import openerp.addons.decimal_precision as dp
 class stock_picking(osv.osv):
     _inherit = "stock.picking"
     _columns = {
-        'cons_loca':fields.many2one('res.partner','Consignee Location'),
+        'cons_loca':fields.many2one('res.partner','Consignee Location',readonly = True),
         'warehouse':fields.many2one('stock.location','Warehouse'),
         'transporter':fields.char('Transporter Name', size = 64),
         'truck':fields.char('Truck Number', size = 64),
         'remarks':fields.text('Remarks'),
-        'doc_status':fields.selection([('completed','Completed')],'Document Status'),
-        'sale_id': fields.many2one('sale.order', 'Sales Order', ondelete='set null', select=True),
+        'doc_status':fields.selection([('draft','Drafted'),('waiting','Waiting for Approval'),('completed','Completed'),('cancelled','Cancelled')],'Document Status'),
+        'sale_id': fields.many2one('sale.order', 'Sales Order',readonly = True, ondelete='set null', select=True),
         'do_ref_id': fields.many2one('stock.picking.out','DO Reference'),   
         'move_date': fields.date('Movement Date', required = True),
         'reason': fields.text("Reason for Move"),
@@ -65,6 +65,9 @@ class stock_picking(osv.osv):
                       'product_qty': line.product_qty or False,
                       'product_uom': line.product_uom and line.product_uom.id or False,
                       'prodlot_id': line.prodlot_id and line.prodlot_id.id or False,
+                      'name': line.product_id and line.product_id.name or False,
+                      'location_id': 1,
+                      'location_dest_id': 1,
                       }
                 move_lines.append((0,0,rs))
             
@@ -88,6 +91,31 @@ class stock_picking(osv.osv):
                         update stock_move set location_id = %s, location_dest_id = %s where picking_id = %s 
                     '''%(picking.location_id.id, picking.location_dest_id.id, picking.id)
             cr.execute(sql)
+        if picking.do_ref_id:
+            for do_ref_line in picking.do_ref_id.move_lines:
+                sql_do = '''
+                    select id from stock_picking where do_ref_id = %s 
+                '''%(picking.do_ref_id.id)
+                cr.execute(sql_do)
+                kq = cr.fetchall()
+                do_ids = []
+                if kq:
+                    for i in kq:
+                        do_ids.append(i[0])
+                    do_ids = str(do_ids).replace("[","(")
+                    do_ids = do_ids.replace("]",")")
+                sql = '''
+                    select sm.product_id, sum(sm.product_qty) as qty
+                    from stock_move sm
+                    inner join stock_picking sp on sp.id = sm.picking_id
+                    where sm.picking_id in %s and sm.product_id = %s
+                    group by sm.product_id
+                '''%(do_ids,do_ref_line.product_id.id)
+                cr.execute(sql)
+                kq = cr.fetchall()
+                for data in kq:
+                    if do_ref_line.product_qty < data[1]:
+                        raise osv.except_osv(_('Warning!'),_('The Entered quantity is not available on the product %s'%do_ref_line.product_id.name_template))    
         return new_id
     
     def write(self, cr, uid, ids, vals, context=None):
@@ -173,7 +201,7 @@ class stock_picking(osv.osv):
             'payment_term': picking.sale_id.payment_term_id and picking.sale_id.payment_term_id.id or False,
             'currency_id': picking.sale_id.currency_id and picking.sale_id.currency_id.id or False,
             'excise_duty_id': picking.sale_id.excise_duty_id and picking.sale_id.excise_duty_id.id or False,
-            'doc_status': 'completed',
+            'doc_status': picking.doc_status,
             'cons_loca': picking.cons_loca and picking.cons_loca.id or False,
             'delivery_order_id': picking.id,
             'sale_tax_id': picking.sale_id.sale_tax_id and picking.sale_id.sale_tax_id.id or False,
@@ -190,13 +218,13 @@ stock_picking()
 class stock_picking_out(osv.osv):
     _inherit = "stock.picking.out"
     _columns = {
-        'cons_loca':fields.many2one('res.partner','Consignee Location'),
+        'cons_loca':fields.many2one('res.partner','Consignee Location',readonly = True),
         'warehouse':fields.many2one('stock.location','Warehouse'),
         'transporter':fields.char('Transporter Name', size = 64),
         'truck':fields.char('Truck Number', size = 64),
         'remarks':fields.text('Remarks'),
         'doc_status':fields.selection([('draft','Drafted'),('waiting','Waiting for Approval'),('completed','Completed'),('cancelled','Cancelled')],'Document Status'),
-        'sale_id': fields.many2one('sale.order', 'Sales Order', ondelete='set null', select=True),
+        'sale_id': fields.many2one('sale.order', 'Sales Order', readonly = True,ondelete='set null', select=True),
                 }
     def write(self, cr, uid, ids, vals, context=None):
         stock = self.browse(cr, uid, ids[0])
@@ -271,8 +299,12 @@ class stock_move(osv.osv):
 #         'sys_batch':fields.many2one('stock.production.lot','System Serial No.'), 
 #         'phy_batch':fields.char('Physical Batch No.', size = 1024)
         'phy_batch':fields.function(get_phy_batch,type='char', size = 1024,string='Physical Serial No.',multi='sum',store=True),
-
                 }
+    
+#     _defaults = {
+#         'location_id': 1,
+#         'location_dest_id': 1,
+#     }
     
     
 stock_move()
@@ -442,3 +474,24 @@ class account_invoice_line(osv.osv):
        } 
     
 account_invoice_line()
+
+class product_product(osv.osv):
+    _inherit = "product.product"
+
+    def search(self, cr, uid, args, offset=0, limit=None, order=None, context=None, count=False):
+        if context is None:
+            context = {}
+        if context.get('search_do_ref_id'):
+            if context.get('do_ref_id'):
+                sql = '''
+                    select product_id from stock_move where picking_id in(select id from stock_picking where id = %s)
+                '''%(context.get('do_ref_id'))
+                cr.execute(sql)
+                picking_ids = [row[0] for row in cr.fetchall()]
+                args += [('id','in',picking_ids)]
+        return super(product_product, self).search(cr, uid, args, offset=offset, limit=limit, order=order, context=context, count=count)
+    def name_search(self, cr, user, name, args=None, operator='ilike', context=None, limit=100):
+       ids = self.search(cr, user, args, context=context, limit=limit)
+       return self.name_get(cr, user, ids, context=context)
+   
+product_product()
