@@ -149,6 +149,15 @@
             <field name="padding">6</field>
             <field name="number_next_actual">000001</field>
             <field name="implementation">no_gap</field>
-       </record>   
+       </record> 
+       
+<!-- Incoming Shipments -->
+		<record id="stock.seq_picking_in" model="ir.sequence">
+            <field name="name">Picking IN</field>
+            <field name="code">stock.picking.in</field>
+            <field name="prefix">VVTi/GRN/</field>
+            <field name="padding">8</field>
+            <field name="company_id" eval="False"/>
+        </record>  
 	</data>
 </openerp>

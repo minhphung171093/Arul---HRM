@@ -1786,7 +1786,7 @@ class arul_hr_payroll_executions(osv.osv):
                         'payroll_executions_id': line.id,
                         'employee_id': p.id,
                         'department_id':p.department_id and p.department_id.id or False,
-#                         'designation_id':p.department_id and (p.department_id.designation_id and p.department_id.designation_id.id or False) or False,
+                        'designation_id':p.job_id and p.job_id.id or False,
                         'year':line.year,
                         'month':line.month,
                         'company_id': p.company_id and p.company_id.id or False,

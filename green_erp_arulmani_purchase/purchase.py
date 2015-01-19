@@ -190,7 +190,7 @@ class product_product(osv.osv):
                         from stock_move st 
                             inner join stock_location l2 on st.location_dest_id= l2.id
                             inner join product_uom pu on st.product_uom = pu.id
-                        where st.state='done' and st.product_id=2 and l2.usage = 'internal'
+                        where st.state='done' and st.product_id=%s and l2.usage = 'internal'
                     union all
                     select l1.id as loc,st.prodlot_id,pu.id,st.product_qty*-1
                         from stock_move st 
@@ -199,10 +199,11 @@ class product_product(osv.osv):
                         where st.state='done' and st.product_id=%s and l1.usage = 'internal'
                     )foo
                     group by foo.loc,foo.prodlot_id,foo.id
-            '''%(id)
+            '''%(id,id)
             cr.execute(sql)
             for inventory in cr.dictfetchall():
-                result[id].append((0,0,{'warehouse_id':inventory['loc'],'prodlot_id':inventory['prodlot_id'],'hand_quantity':inventory['ton_sl'],'uom_id':inventory['uom']}))
+                new_id = inventory_obj.create(cr, uid, {'warehouse_id':inventory['loc'],'prodlot_id':inventory['prodlot_id'],'hand_quantity':inventory['ton_sl'],'uom_id':inventory['uom']})
+                result[id].append(new_id)
         return result
     
     _columns = {
@@ -517,3 +518,42 @@ class tpt_gate_in_pass_line(osv.osv):
         return {'value': vals}
       
 tpt_gate_in_pass_line()
+
+class purchase_order(osv.osv):
+    _inherit = "purchase.order"
+    
+#     def _prepare_order_picking(self, cr, uid, order, context=None):
+#         return {
+#             'name': self.pool.get('ir.sequence').get(cr, uid, 'stock.picking.in'),
+#             'origin': order.name + ((order.origin and (':' + order.origin)) or ''),
+#             'date': self.date_to_datetime(cr, uid, order.date_order, context),
+#             'partner_id': order.partner_id.id,
+#             'invoice_state': '2binvoiced' if order.invoice_method == 'picking' else 'none',
+#             'type': 'in',
+#             'purchase_id': order.id,
+#             'company_id': order.company_id.id,
+#             'move_lines' : [],
+#         }
+# 
+#     def _prepare_order_line_move(self, cr, uid, order, order_line, picking_id, context=None):
+#         return {
+#             'name': order_line.name or '',
+#             'product_id': order_line.product_id.id,
+#             'product_qty': order_line.product_qty,
+#             'product_uos_qty': order_line.product_qty,
+#             'product_uom': order_line.product_uom.id,
+#             'product_uos': order_line.product_uom.id,
+#             'date': self.date_to_datetime(cr, uid, order.date_order, context),
+#             'date_expected': self.date_to_datetime(cr, uid, order_line.date_planned, context),
+#             'location_id': order.partner_id.property_stock_supplier.id,
+#             'location_dest_id': order.location_id.id,
+#             'picking_id': picking_id,
+#             'partner_id': order.dest_address_id.id or order.partner_id.id,
+#             'move_dest_id': order_line.move_dest_id.id,
+#             'state': 'draft',
+#             'type':'in',
+#             'purchase_line_id': order_line.id,
+#             'company_id': order.company_id.id,
+#             'price_unit': order_line.price_unit
+#         }
+purchase_order()

@@ -120,7 +120,7 @@
 				
 				<xpath expr="//page[@string='Products']" position="replace">
 					<page string="Stock Move Details">
-						<field name="move_lines" string="Stock Move" context="{'address_in_id': partner_id, 'form_view_ref':'stock.view_move_picking_form', 'tree_view_ref':'stock.view_move_picking_tree', 'picking_type': 'internal'}" options='{"reload_on_button": true}'/>
+						<field name="move_lines" string="Stock Move" context="{'default_location_id':location_id,'default_location_dest_id':location_dest_id,'address_in_id': partner_id, 'form_view_ref':'stock.view_move_picking_form', 'tree_view_ref':'stock.view_move_picking_tree', 'picking_type': 'internal'}" options='{"reload_on_button": true}'/>
                         <field name="note" placeholder="Add an internal note..." class="oe_inline" invisible = "1"/>
 					</page>
 				</xpath> 

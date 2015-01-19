@@ -10,7 +10,7 @@ from openerp import pooler
 from openerp.osv import osv
 from openerp.tools.translate import _
 import random
-import amount_to_text_en
+from green_erp_arulmani_sale.report import amount_to_text_en
 DATETIME_FORMAT = "%Y-%m-%d %H:%M:%S"
 DATE_FORMAT = "%Y-%m-%d"
 
