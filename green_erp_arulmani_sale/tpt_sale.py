@@ -812,7 +812,7 @@ class tpt_blanket_order(osv.osv):
         return result.keys()
 
     _columns = {
-        'name': fields.char('Blanked Order', size = 1024, readonly=True),
+        'name': fields.char('Blanket Order', size = 1024, readonly=True),
         'customer_id': fields.many2one('res.partner', 'Customer', required = True, states={'cancel': [('readonly', True)], 'done':[('readonly', True)]}),
         'invoice_address': fields.char('Invoice Address', size = 1024, readonly=True, states={'cancel': [('readonly', True)], 'done':[('readonly', True)]}),
         'street2': fields.char('', size = 1024, readonly=True, states={'cancel': [('readonly', True)], 'done':[('readonly', True)]}),
