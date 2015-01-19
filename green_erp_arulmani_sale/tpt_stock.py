@@ -91,35 +91,31 @@ class stock_picking(osv.osv):
                         update stock_move set location_id = %s, location_dest_id = %s where picking_id = %s 
                     '''%(picking.location_id.id, picking.location_dest_id.id, picking.id)
             cr.execute(sql)
-        
-#         if picking.do_ref_id:
-#             for do_ref_line in picking.do_ref_id.move_lines:
-#                 sql_do = '''
-#                     select id from stock_picking where do_ref_id = %s 
-#                 '''%(picking.do_ref_id.id)
-#                 cr.execute(sql_do)
-#                 kq = cr.fetchall()
-#                 do_ids = []
-#                 if kq:
-#                     for i in kq:
-#                         do_ids.append(i[0])
-#                     do_ids = str(do_ids).replace("[","(")
-#                     do_ids = do_ids.replace("]",")")
-#                 sql = '''
-#                     select sm.product_id, sum(sm.product_qty) as qty
-#                     from stock_move sm
-#                     inner join stock_picking sp on sp.id = sm.picking_id
-#                     where sm.picking_id in %s and sm.product_id = %s
-#                     group by sm.product_id
-#                 '''%(do_ids,do_ref_line.product_id.id)
-#                 cr.execute(sql)
-#                 kq = cr.fetchall()
-#                 for data in kq:
-#                     if do_ref_line.product_qty < data[1]:
-#                         raise osv.except_osv(_('Warning!'),_('The Entered quantity is not available on the product %s'%do_ref_line.product_id.name_template))    
+            
+            sql = '''
+                    select product_id, prodlot_id, product_uom,sum(product_qty) as product_qty from stock_move where picking_id = %s group by product_id, prodlot_id, product_uom
+                '''%(picking.id)
+            cr.execute(sql)
+            for move_line in cr.dictfetchall():
+                sql = '''
+                    select case when sum(foo.product_qty)>0 then sum(foo.product_qty) else 0 end ton_sl from 
+                        (select st.product_qty
+                            from stock_move st 
+                            where st.state='done' and st.product_id=%s and st.location_dest_id = %s and prodlot_id = %s
+                        union all
+                        select st.product_qty*-1
+                            from stock_move st 
+                            where st.state='done' and st.product_id=%s and st.location_id = %s and prodlot_id = %s
+                        )foo
+                '''%(move_line['product_id'],picking.location_id.id,move_line['prodlot_id'] or 'null',move_line['product_id'],picking.location_id.id,move_line['prodlot_id'] or 'null')
+                cr.execute(sql)
+                ton_sl = cr.dictfetchone()['ton_sl']
+                if move_line['product_qty'] > ton_sl:
+                    raise osv.except_osv(_('Warning!'),_('You are moving %s but only %s available for this product and serial number.' %(move_line['product_qty'], ton_sl)))
         return new_id
     
     def write(self, cr, uid, ids, vals, context=None):
+        inventory_obj = self.pool.get('stock.move')
         new_write = super(stock_picking, self).write(cr, uid,ids, vals, context)
         for picking in self.browse(cr, uid, ids):
             if picking.type == 'internal':
@@ -127,31 +123,27 @@ class stock_picking(osv.osv):
                         update stock_move set location_id = %s, location_dest_id = %s where picking_id = %s 
                     '''%(picking.location_id.id, picking.location_dest_id.id, picking.id)
                 cr.execute(sql)
-#             if picking.do_ref_id:
-#                 for do_ref_line in picking.do_ref_id.move_lines:
-#                     sql_do = '''
-#                         select id from stock_picking where do_ref_id = %s 
-#                     '''%(picking.do_ref_id.id)
-#                     cr.execute(sql_do)
-#                     kq = cr.fetchall()
-#                     do_ids = []
-#                     if kq:
-#                         for i in kq:
-#                             do_ids.append(i[0])
-#                         do_ids = str(do_ids).replace("[","(")
-#                         do_ids = do_ids.replace("]",")")
-#                     sql = '''
-#                         select sm.product_id, sum(sm.product_qty) as qty
-#                         from stock_move sm
-#                         inner join stock_picking sp on sp.id = sm.picking_id
-#                         where sm.picking_id in %s and sm.product_id = %s
-#                         group by sm.product_id
-#                     '''%(do_ids,do_ref_line.product_id.id)
-#                     cr.execute(sql)
-#                     kq = cr.fetchall()
-#                     for data in kq:
-#                         if do_ref_line.product_qty < data[1]:
-#                             raise osv.except_osv(_('Warning!'),_('The Entered quantity is not available on the product %s'%do_ref_line.product_id.name_template))    
+                
+                sql = '''
+                    select product_id, prodlot_id, product_uom,sum(product_qty) as product_qty from stock_move where picking_id = %s group by product_id, prodlot_id, product_uom
+                '''%(picking.id)
+                cr.execute(sql)
+                for move_line in cr.dictfetchall():
+                    sql = '''
+                        select case when sum(foo.product_qty)>0 then sum(foo.product_qty) else 0 end ton_sl from 
+                            (select st.product_qty
+                                from stock_move st 
+                                where st.state='done' and st.product_id=%s and st.location_dest_id = %s and prodlot_id = %s
+                            union all
+                            select st.product_qty*-1
+                                from stock_move st 
+                                where st.state='done' and st.product_id=%s and st.location_id = %s and prodlot_id = %s
+                            )foo
+                    '''%(move_line['product_id'],picking.location_id.id,move_line['prodlot_id'] or 'null',move_line['product_id'],picking.location_id.id,move_line['prodlot_id'] or 'null')
+                    cr.execute(sql)
+                    ton_sl = cr.dictfetchone()['ton_sl']
+                    if move_line['product_qty'] > ton_sl:
+                        raise osv.except_osv(_('Warning!'),_('You are moving %s but only %s available for this product and serial number.' %(move_line['product_qty'], ton_sl)))
         return new_write
     
     def onchange_move_date(self, cr, uid, ids, move_date=False, context=None):

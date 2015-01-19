@@ -63,7 +63,7 @@
 					</div>
 				</xpath> 
 				<xpath expr="//group[@string='Locations']" position="replace">
-					<group string="Locations" invisible = '0' groups="stock.group_locations">
+					<group string="Locations" invisible = '1' groups="stock.group_locations">
                                 <field name="location_id" required = '0' domain="[('usage','&lt;&gt;','view')]"/>
                                 <field name="location_dest_id" required = '0' domain="[('usage','in', ['internal', 'supplier', 'customer'])]"/>
                     </group>
