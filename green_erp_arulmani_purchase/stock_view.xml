@@ -1,0 +1,104 @@
+<?xml version="1.0" encoding="utf-8"?>
+<openerp>
+    <data>
+    	<record id="tpt_stock_picking_in_tree" model="ir.ui.view">
+            <field name="name">stock.picking.in.tree</field>
+            <field name="model">stock.picking.in</field>
+            <field name="inherit_id" ref="stock.view_picking_in_tree"/>
+            <field name="arch" type="xml">
+            	<tree colors="blue:state == 'draft';grey:state == 'done';red:state not in ('cancel', 'done') and date &lt; current_date" string="Picking list" position="replace">
+	                <tree colors="blue:state == 'draft';grey:state == 'done';red:state not in ('cancel', 'done') and date &lt; current_date" string="Picking list">
+	                    <field name="name"/>
+	                    <field name="partner_id" string="Supplier"/>
+	                    <field name="purchase_id"/>
+	                    <field name="backorder_id" invisible="1"/>
+	                    <field name="origin" invisible="1"/>
+	                    <field name="date" string="GRN Date"/>
+	                    <field name="document_type"/>
+	                    <field name="warehouse"/>
+	                    <field name="min_date" invisible="1"/>
+	                    <field name="invoice_state" invisible="1" groups="account.group_account_invoice"/>
+	                    <field name="stock_journal_id" invisible="1" widget="selection" groups="account.group_account_user"/>
+	                    <field name="state" invisible="1"/>
+	                </tree>
+	            </tree>
+            </field>
+        </record>
+	   	<record id="tpt_stock_picking_in_form" model="ir.ui.view">
+            <field name="name">stock.picking.in.form</field>
+            <field name="model">stock.picking.in</field>
+            <field name="inherit_id" ref="stock.view_picking_in_form"/>
+            <field name="arch" type="xml">
+            	<xpath expr="//field[@name='stock_journal_id']"  position="replace">
+            		<field name="stock_journal_id" invisible="1"/>
+            	</xpath>
+            	<xpath expr="//field[@name='origin']"  position="replace">
+            		<field name="origin" invisible="1"/>
+            	</xpath>
+            	<xpath expr="//field[@name='min_date']"  position="replace">
+            		<field name="min_date" invisible="1"/>
+            	</xpath>
+            	<xpath expr="//field[@name='date']" position="attributes">
+					<attribute name='string'>GRN Date</attribute>
+				</xpath>
+				<xpath expr="//field[@name='backorder_id']" position="attributes">
+					<attribute name='invisible'>1</attribute>
+				</xpath>
+				<xpath expr="//field[@name='purchase_id']" position="attributes">
+					<attribute name='options'>{'create': false, 'create_edit': false}</attribute>
+				</xpath>
+            	<xpath expr="//field[@name='purchase_id']"  position="after">
+            		<field name="po_date"/>
+            	</xpath>
+                <xpath expr="//field[@name='partner_id']" position="replace">
+                    <field name="partner_id" options="{'create': false, 'create_edit': false}" on_change="onchange_partner_in(partner_id)" string="Supplier" domain="[('supplier','=',True)]" context="{'default_supplier':1,'default_customer':0}"/>
+                    <field name="document_type"/>
+                    <field name="warehouse" options="{'create': false, 'create_edit': false}"/>
+                </xpath>
+                <xpath expr="//field[@name='move_lines']" position="replace">
+                    <field name="move_lines" string="Stock Move" context="{'address_in_id': partner_id, 'picking_type': 'in', 'form_view_ref':'stock.view_move_picking_form', 'tree_view_ref':'stock.view_move_picking_tree'}" options='{"reload_on_button": true}'>
+						<tree editable='top' colors="grey:state == 'cancel';red:(state not in ('cancel','done')) and date > current_date" string="Moves">
+		                    <field name="name" invisible="1"/>
+		                    <field name="picking_id" string="Reference" invisible="1"/>
+		                    <field name="origin" invisible="1"/>
+		                    <field name="type" invisible="1" on_change="onchange_move_type(type)"/>
+		                    <field name="create_date" invisible="1" groups="base.group_no_one"/>
+		                    <field name="po_indent_id" options="{'create': false, 'create_edit': false}"/>
+		                    <field name="product_id" options="{'create': false, 'create_edit': false}" on_change="onchange_product_id(product_id,location_id,location_dest_id, False)"/>
+		                    <field name="product_qty" on_change="onchange_quantity(product_id, product_qty, product_uom, product_uos)"/>
+		                    <field name="product_uom" string="UOM" groups="product.group_uom"/>
+		                    <field name="action_taken"/>
+		                    <field name="product_uos" invisible="1" groups="product.group_uos"/>
+		                    <button name="%(stock.move_scrap)d"
+		                        string="Scrap Products" type="action"
+		                        icon="terp-gtk-jump-to-ltr" context="{'scrap': True}"
+		                        states="draft,waiting,confirmed,assigned" invisible="1"/>
+		                    <field name="prodlot_id" invisible="1" groups="stock.group_production_lot" context="{'search_prodlot_by_batch_alot':1,'sale_id':parent.sale_id}" options="{'create': false, 'create_edit': false}"/>
+		                    <button name="%(stock.track_line)d" string="Split in Serial Numbers" type="action"
+		                        icon="gtk-justify-fill" attrs="{'invisible': [('prodlot_id','&lt;&gt;',False)]}"
+		                        states="draft,waiting,confirmed,assigned,done"
+		                        invisible="1"
+		                        groups="stock.group_tracking_lot"/>
+		                    <field name="tracking_id" invisible="1" groups="stock.group_tracking_lot"/>
+		                    <button name="setlast_tracking" string="Put in current pack" type="object"
+		                        groups="product.group_stock_packaging"
+		                        icon="terp-accessories-archiver" attrs="{'invisible': [('tracking_id','&lt;&gt;',False)]}"
+		                        states="draft,assigned,confirmed,done" invisible="1"/>
+		                    <button name="%(stock.split_into)d" string="Put in a new pack" type="action"
+		                        groups="product.group_stock_packaging"
+		                        icon="terp-accessories-archiver+"
+		                        states="draft,assigned,confirmed,done" invisible="1"/>
+		                    <field name="location_id" invisible="1" groups="stock.group_locations"/>
+		                    <field name="location_dest_id" invisible="1" groups="stock.group_locations"/>
+		                    <field name="date" invisible="1" groups="base.group_no_one"/>
+		                    <field name="date_expected" invisible="1"/>
+		                    <field name="state" invisible="1"/>
+		                    <button name="action_done" states="confirmed,assigned" string="Process" type="object" icon="gtk-go-forward" help="Done" invisible="1"/>
+		                </tree>  
+		            </field>                  
+                </xpath>
+            </field>
+        </record>
+		
+    </data>
+</openerp>
