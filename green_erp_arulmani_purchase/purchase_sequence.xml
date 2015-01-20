@@ -120,6 +120,97 @@
             <field name="number_next_actual">000001</field>
             <field name="implementation">no_gap</field>
        </record>
+       
+<!-- Purchase Order VV Asset PO -->
+        <record id="sequence_purchase_order_asset_7" model="ir.sequence.type">
+            <field name="name"> VV Asset PO</field>
+            <field name="code">purchase.order.asset</field>
+        </record>
+        
+        <record id="sequence_purchase_order_asset_item" model="ir.sequence">
+            <field name="name"> VV Asset PO</field>
+            <field name="code">purchase.order.asset</field>
+            <field name="prefix">47</field>
+            <field name="padding">6</field>
+            <field name="number_next_actual">000001</field>
+            <field name="implementation">no_gap</field>
+        </record>
+
+ <!-- Purchase Order VV Standard PO -->
+        <record id="sequence_purchase_order_standard_6" model="ir.sequence.type">
+            <field name="name">VV Standard PO</field>
+            <field name="code">purchase.order.standard</field>
+        </record>
+        
+        <record id="sequence_purchase_order_standard_item" model="ir.sequence">
+            <field name="name">VV Standard PO</field>
+            <field name="code">purchase.order.standard</field>
+            <field name="prefix">45</field>
+            <field name="padding">6</field>
+            <field name="number_next_actual">000001</field>
+            <field name="implementation">no_gap</field>
+        </record>
+        
+ <!-- Purchase Order VV Local PO -->
+        <record id="sequence_purchase_order_local_5" model="ir.sequence.type">
+            <field name="name">VV Local PO</field>
+            <field name="code">purchase.order.local</field>
+        </record>
+        
+        <record id="sequence_purchase_order_local_item" model="ir.sequence">
+            <field name="name">VV Local PO</field>
+            <field name="code">purchase.order.local</field>
+            <field name="prefix">48</field>
+            <field name="padding">6</field>
+            <field name="number_next_actual">000001</field>
+            <field name="implementation">no_gap</field>
+        </record>
+      
+<!-- Purchase Order VV Return PO -->
+        <record id="sequence_purchase_order_return_4" model="ir.sequence.type">
+            <field name="name">VV Return PO</field>
+            <field name="code">purchase.order.return</field>
+        </record>
+        
+        <record id="sequence_purchase_order_return_item" model="ir.sequence">
+            <field name="name">VV Return PO</field>
+            <field name="code">purchase.order.return</field>
+            <field name="prefix">44</field>
+            <field name="padding">6</field>
+            <field name="number_next_actual">000001</field>
+            <field name="implementation">no_gap</field>
+        </record>
+        
+ <!-- Purchase Order VV Service PO -->
+        <record id="sequence_purchase_order_service_3" model="ir.sequence.type">
+            <field name="name">VV Service PO</field>
+            <field name="code">purchase.order.service</field>
+        </record>
+        
+        <record id="sequence_purchase_order_service_item" model="ir.sequence">
+            <field name="name">VV Service PO</field>
+            <field name="code">purchase.order.service</field>
+            <field name="prefix">46</field>
+            <field name="padding">6</field>
+            <field name="number_next_actual">000001</field>
+            <field name="implementation">no_gap</field>
+        </record>
+        
+ <!-- Purchase Order VV Out Service PO -->
+        <record id="sequence_purchase_order_out_service_2" model="ir.sequence.type">
+            <field name="name">VV Out Service PO</field>
+            <field name="code">purchase.order.out.service</field>
+        </record>
+        
+        <record id="sequence_purchase_order_out_service_item" model="ir.sequence">
+            <field name="name">VV Out Service PO</field>
+            <field name="code">purchase.order.out.service</field>
+            <field name="prefix">49</field>
+            <field name="padding">6</field>
+            <field name="number_next_actual">000001</field>
+            <field name="implementation">no_gap</field>
+        </record>
+         
 
     	<!-- Gate in Pass -->
 		<record id="sequence_tpt_gate_in_pass_import_code" model="ir.sequence.type">

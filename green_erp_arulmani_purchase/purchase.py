@@ -7,9 +7,9 @@ from openerp import SUPERUSER_ID
 from openerp.tools import DEFAULT_SERVER_DATE_FORMAT, DEFAULT_SERVER_DATETIME_FORMAT, DATETIME_FORMATS_MAP, float_compare
 from datetime import datetime
 import datetime
-from datetime import date
 import calendar
 import openerp.addons.decimal_precision as dp
+from openerp import netsvc
 
 class tpt_purchase_indent(osv.osv):
     _name = 'tpt.purchase.indent'
@@ -228,13 +228,19 @@ class product_product(osv.osv):
     def search(self, cr, uid, args, offset=0, limit=None, order=None, context=None, count=False):
         if context is None:
             context = {}
-#         if context and context.get('search_default_categ_id', False):
-#             args.append((('categ_id', 'child_of', context['search_default_categ_id'])))
         if context.get('search_product'):
             if context.get('po_indent_id'):
                 sql = '''
                     select product_id from tpt_purchase_product where purchase_indent_id in(select id from tpt_purchase_indent where id = %s)
                 '''%(context.get('po_indent_id'))
+                cr.execute(sql)
+                product_ids = [row[0] for row in cr.fetchall()]
+                args += [('id','in',product_ids)]
+        if context.get('search_po_product'):
+            if context.get('po_indent_no'):
+                sql = '''
+                    select product_id from tpt_purchase_product where purchase_indent_id in(select id from tpt_purchase_indent where id = %s)
+                '''%(context.get('po_indent_no'))
                 cr.execute(sql)
                 product_ids = [row[0] for row in cr.fetchall()]
                 args += [('id','in',product_ids)]
@@ -445,6 +451,7 @@ tpt_purchase_quotation()
 
 class tpt_purchase_quotation_line(osv.osv):
     _name = "tpt.purchase.quotation.line"
+    
     def subtotal_purchase_quotation_line(self, cr, uid, ids, field_name, args, context=None):
         res = {}
         subtotal = 0.0
@@ -557,16 +564,116 @@ tpt_spec_parameters_line()
 
 class purchase_order(osv.osv):
     _inherit = "purchase.order"
+    
+    def _amount_all(self, cr, uid, ids, field_name, arg, context=None):
+        res = {}
+        for line in self.browse(cr,uid,ids,context=context):
+            res[line.id] = {
+                'amount_untaxed': 0.0,
+                'amount_tax': 0.0,
+                'amount_total': 0.0,
+            }
+            val1 = 0.0
+            val2 = 0.0
+            val3 = 0.0
+            for po in line.order_line:
+                val1 += po.price_subtotal
+            res[line.id]['amount_untaxed'] = val1
+            val2 = val1 * line.purchase_tax_id.amount / 100
+            res[line.id]['amount_tax'] = val2
+            val3 = val1 + val2
+            res[line.id]['amount_total'] = val3
+        return res
+    
+    def _get_order(self, cr, uid, ids, context=None):
+        result = {}
+        for line in self.pool.get('purchase.order.line').browse(cr, uid, ids, context=context):
+            result[line.order_id.id] = True
+        return result.keys()
     _columns = {
         'po_document_type':fields.selection([('asset','VV Asset PO'),('standard','VV Standard PO'),('local','VV Local PO'),('return','VV Return PO'),('service','VV Service PO'),('out','VV Out Service PO')],'PO Document Type'),
         'quotation_no': fields.many2one('tpt.purchase.quotation', 'Quotation No'),
         'purchase_tax_id': fields.many2one('account.tax', 'Taxes', domain="[('type_tax_use','=','purchase')]", required = True), 
+        'amount_untaxed': fields.function(_amount_all, digits_compute= dp.get_precision('Account'), string='Untaxed Amount',
+            store={
+                'purchase.order.line': (_get_order, None, 10),
+            }, multi="sums", help="The amount without tax", track_visibility='always'),
+        'amount_tax': fields.function(_amount_all, digits_compute= dp.get_precision('Account'), string='Taxes',
+            store={
+                'purchase.order.line': (_get_order, None, 10),
+            }, multi="sums", help="The tax amount"),
+        'amount_total': fields.function(_amount_all, digits_compute= dp.get_precision('Account'), string='Total',
+            store={
+                'purchase.order.line': (_get_order, None, 10),
+            }, multi="sums",help="The total amount"),
                 }
     _default = {
         'name':'/',
                }
+   
+    def onchange_quotation_no(self, cr, uid, ids,quotation_no=False, context=None):
+        vals = {}
+        po_line = []
+        if quotation_no:
+            quotation = self.pool.get('tpt.purchase.quotation').browse(cr, uid, quotation_no)
+            for line in quotation.purchase_quotation_line:
+                rs = {
+                      'po_indent_no': line.po_indent_id and line.product_id.id or False,
+                      'product_id': line.product_id and line.product_id.id or False,
+                      'product_qty': line.product_uom_qty or False,
+                      'product_uom': line.uom_po_id and line.uom_po_id.id or False,
+                      'price_unit': line.price_unit or False,
+                      'price_subtotal': line.sub_total or False,
+                      'date_planned':quotation.date_quotation or False,
+                      }
+                po_line.append((0,0,rs))
+            vals = {
+                    'partner_id':quotation.supplier_id and quotation.supplier_id.id or '',
+                    'partner_ref':quotation.quotation_ref or '',
+                    'purchase_tax_id':quotation.tax_id and quotation.tax_id.id or '',
+                    'order_line': po_line,
+                    }
+        return {'value': vals}
+    
     def create(self, cr, uid, vals, context=None):
-        if 'document_type' in vals:
+        new_id = super(purchase_order, self).create(cr, uid, vals, context)
+        new = self.browse(cr, uid, new_id)
+        sql = '''
+            select code from account_fiscalyear where '%s' between date_start and date_stop
+        '''%(time.strftime('%Y-%m-%d'))
+        cr.execute(sql)
+        fiscalyear = cr.dictfetchone()
+        if not fiscalyear:
+            raise osv.except_osv(_('Warning!'),_('Financial year has not been configured. !'))
+        if (new.po_document_type=='asset'):
+            sequence = self.pool.get('ir.sequence').get(cr, uid, 'purchase.order.asset')
+            sql = '''update purchase_order set name='%s' where id =%s'''%(sequence+'/'+fiscalyear['code']or '/',new_id)
+            cr.execute(sql)
+        if (new.po_document_type=='standard'):
+            sequence = self.pool.get('ir.sequence').get(cr, uid, 'purchase.order.standard')
+            sql = '''update purchase_order set name='%s' where id =%s'''%(sequence+'/'+fiscalyear['code']or '/',new_id)
+            cr.execute(sql)
+        if (new.po_document_type=='local'):
+            sequence = self.pool.get('ir.sequence').get(cr, uid, 'purchase.order.local')
+            sql = '''update purchase_order set name='%s' where id =%s'''%(sequence+'/'+fiscalyear['code']or '/',new_id)
+            cr.execute(sql)
+        if (new.po_document_type=='return'):
+            sequence = self.pool.get('ir.sequence').get(cr, uid, 'purchase.order.return')
+            sql = '''update purchase_order set name='%s' where id =%s'''%(sequence+'/'+fiscalyear['code']or '/',new_id)
+            cr.execute(sql)
+        if (new.po_document_type=='service'):
+            sequence = self.pool.get('ir.sequence').get(cr, uid, 'purchase.order.service')
+            sql = '''update purchase_order set name='%s' where id =%s'''%(sequence+'/'+fiscalyear['code']or '/',new_id)
+            cr.execute(sql)
+        if (new.po_document_type=='out'):
+            sequence = self.pool.get('ir.sequence').get(cr, uid, 'purchase.order.out.service')
+            sql = '''update purchase_order set name='%s' where id =%s'''%(sequence+'/'+fiscalyear['code']or '/',new_id)
+            cr.execute(sql)
+        return new_id
+    
+    def write(self, cr, uid, ids, vals, context=None):
+        new_write = super(purchase_order, self).write(cr, uid, ids, vals, context)
+        for new in self.browse(cr, uid, ids):
             sql = '''
                 select code from account_fiscalyear where '%s' between date_start and date_stop
             '''%(time.strftime('%Y-%m-%d'))
@@ -574,40 +681,31 @@ class purchase_order(osv.osv):
             fiscalyear = cr.dictfetchone()
             if not fiscalyear:
                 raise osv.except_osv(_('Warning!'),_('Financial year has not been configured. !'))
-            else:
-                if (vals['document_type']=='base'):
-                    if vals.get('name','/')=='/':
-                        sequence = self.pool.get('ir.sequence').get(cr, uid, 'indent.purchase.based')
-                        vals['name'] =  sequence and sequence+'/'+fiscalyear['code'] or '/'
-                if (vals['document_type']=='capital'):
-                    if vals.get('name','/')=='/':
-                        sequence = self.pool.get('ir.sequence').get(cr, uid, 'indent.purchase.capital')
-                        vals['name'] =  sequence and sequence +'/'+fiscalyear['code']or '/'
-                if (vals['document_type']=='local'):
-                    if vals.get('name','/')=='/':
-                        sequence = self.pool.get('ir.sequence').get(cr, uid, 'indent.purchase.capital')
-                        vals['name'] =  sequence and sequence +'/'+fiscalyear['code']or '/'
-                if (vals['document_type']=='maintenance'):
-                    if vals.get('name','/')=='/':
-                        sequence = self.pool.get('ir.sequence').get(cr, uid, 'indent.purchase.maintenance')
-                        vals['name'] =  sequence and sequence +'/'+fiscalyear['code']or '/'
-                if (vals['document_type']=='consumable'):
-                    if vals.get('name','/')=='/':
-                        sequence = self.pool.get('ir.sequence').get(cr, uid, 'indent.purchase.consumable')
-                        vals['name'] =  sequence and sequence +'/'+fiscalyear['code']or '/'
-                if (vals['document_type']=='outside'):
-                    if vals.get('name','/')=='/':
-                        sequence = self.pool.get('ir.sequence').get(cr, uid, 'indent.purchase.outside')
-                        vals['name'] =  sequence and sequence +'/'+fiscalyear['code']or '/'
-                if (vals['document_type']=='spare'):
-                    if vals.get('name','/')=='/':
-                        sequence = self.pool.get('ir.sequence').get(cr, uid, 'indent.purchase.spare')
-                        vals['name'] =  sequence and sequence +'/'+fiscalyear['code']or '/'
-                if (vals['document_type']=='service'):
-                    if vals.get('name','/')=='/':
-                        sequence = self.pool.get('ir.sequence').get(cr, uid, 'indent.purchase.service')
-                        vals['name'] =  sequence and sequence +'/'+fiscalyear['code']or '/'
-        return super(tpt_purchase_indent, self).create(cr, uid, vals, context=context)    
+            if (new.po_document_type=='asset'):
+                sequence = self.pool.get('ir.sequence').get(cr, uid, 'purchase.order.asset')
+                sql = '''update purchase_order set name='%s' where id =%s'''%(sequence+'/'+fiscalyear['code']or '/',new.id)
+                cr.execute(sql)
+            if (new.po_document_type=='standard'):
+                sequence = self.pool.get('ir.sequence').get(cr, uid, 'purchase.order.standard')
+                sql = '''update purchase_order set name='%s' where id =%s'''%(sequence+'/'+fiscalyear['code']or '/',new.id)
+                cr.execute(sql)
+            if (new.po_document_type=='local'):
+                sequence = self.pool.get('ir.sequence').get(cr, uid, 'purchase.order.local')
+                sql = '''update purchase_order set name='%s' where id =%s'''%(sequence+'/'+fiscalyear['code']or '/',new.id)
+                cr.execute(sql)
+            if (new.po_document_type=='return'):
+                sequence = self.pool.get('ir.sequence').get(cr, uid, 'purchase.order.return')
+                sql = '''update purchase_order set name='%s' where id =%s'''%(sequence+'/'+fiscalyear['code']or '/',new.id)
+                cr.execute(sql)
+            if (new.po_document_type=='service'):
+                sequence = self.pool.get('ir.sequence').get(cr, uid, 'purchase.order.service')
+                sql = '''update purchase_order set name='%s' where id =%s'''%(sequence+'/'+fiscalyear['code']or '/',new.id)
+                cr.execute(sql)
+            if (new.po_document_type=='out'):
+                sequence = self.pool.get('ir.sequence').get(cr, uid, 'purchase.order.out.service')
+                sql = '''update purchase_order set name='%s' where id =%s'''%(sequence+'/'+fiscalyear['code']or '/',new.id)
+                cr.execute(sql)
+        return new_write
     
 #     def _prepare_order_picking(self, cr, uid, order, context=None):
 #         return {
@@ -647,8 +745,63 @@ purchase_order()
 
 class purchase_order_line(osv.osv):
     _inherit = "purchase.order.line"
+    
+    
     _columns = {
-        'po_indent_no' : fields.many2one('tpt.purchase.indent', 'PO Indent No'),
+        'po_indent_no' : fields.many2one('tpt.purchase.indent', 'PO Indent No', required = True),
                 }
-
+    
+    def onchange_po_indent_no(self, cr, uid, ids,po_indent_no=False, context=None):
+        if po_indent_no:
+            return {'value': {'product_id': False}}    
+    
+#     def onchange_product_id(self, cr, uid, ids,product_id=False, po_indent_no=False, context=None):
+#         vals = {}
+#         if po_indent_no and product_id: 
+#             po = self.pool.get('tpt.purchase.indent').browse(cr, uid, po_indent_no)
+#             product = self.pool.get('product.product').browse(cr, uid, product_id)
+#             for line in po.purchase_product_line:
+#                 if product_id == line.product_id.id:
+#                     vals = {
+#                             'price_unit':product.standard_price,
+#                             'uom_po_id':line.uom_po_id and line.uom_po_id.id or False,
+#                             'product_uom_qty':line.product_uom_qty or False,
+#                             }
+#         return {'value': vals}   
 purchase_order_line()
+
+class tpt_good_return_request(osv.osv):
+    _name = "tpt.good.return.request"
+    
+    _columns = {
+        'grn_no_id' : fields.many2one('stock.picking.in', 'GRN No', required = True),
+        'request_date': fields.date('Request Date'),
+        'product_detail_line': fields.one2many('tpt.product.detail.line', 'request_id', 'Product Detail'),
+                }
+    _defaults = {
+        'request_date': time.strftime('%Y-%m-%d'),
+    }
+    
+    def bt_approve(self, cr, uid, ids, context=None):
+#         for line in self.browse(cr, uid, ids):
+#             self.write(cr, uid, ids,{'state':'done'})
+        return True 
+    
+tpt_good_return_request()
+
+class tpt_product_detail_line(osv.osv):
+    _name = "tpt.product.detail.line"
+    
+    _columns = {
+        'request_id': fields.many2one('tpt.good.return.request', 'Request', ondelete = 'cascade'),        
+        'product_id': fields.many2one('product.product', 'Product'),
+        'product_qty': fields.float('Quantity'),
+        'uom_po_id': fields.many2one('product.uom', 'UOM'),
+        'state':fields.selection([('reject', 'Reject')],'Status', readonly=True),
+        'reason': fields.text('Reason'),
+        }
+    _defaults = {
+        'state': 'reject',
+    }
+tpt_product_detail_line()
+
