@@ -405,7 +405,37 @@ class tpt_purchase_quotation(osv.osv):
                     'supplier_location_id':supplier.city,
                     }
         return {'value': vals}
-    
+
+#     def bt_approve(self, cr, uid, ids, context=None):
+#         for line in self.browse(cr, uid, ids):
+#             self.write(cr, uid, ids,{'state':'done'})
+#         return True   
+#     
+#     def bt_cancel(self, cr, uid, ids, context=None):
+#         for line in self.browse(cr, uid, ids):
+#             self.write(cr, uid, ids,{'state':'cancel'})
+#         return True   
+
+    def bt_tick_mark(self, cr, uid, ids, context=None):
+        res = self.pool.get('ir.model.data').get_object_reference(cr, uid, 
+                                        'green_erp_arulmani_purchase', 'tick_purchase_chart_form_view')
+        return {
+                    'name': 'Purchase Chart',
+                    'view_type': 'form',
+                    'view_mode': 'form',
+                    'view_id': res[1],
+                    'res_model': 'tick.purchase.chart',
+                    'domain': [],
+                    'context': {'default_message':'Do you want to confirm the Quotation to Purchase order?'},
+                    'type': 'ir.actions.act_window',
+                    'target': 'new',
+                }
+
+    def bt_cross_mark(self, cr, uid, ids, context=None):
+        for line in self.browse(cr, uid, ids):
+            self.write(cr, uid, ids,{'state':'done'})
+        return True    
+   
 #     def search(self, cr, uid, args, offset=0, limit=None, order=None, context=None, count=False):
 #         if context is None:
 #             context = {}

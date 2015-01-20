@@ -29,6 +29,7 @@
     'depends': ['purchase'],
     'data': [
         'purchase_sequence.xml',
+        'wizard/tick_purchase_chart_view.xml',
         'purchase_view.xml',
         'stock_view.xml',
     ],
