@@ -81,7 +81,7 @@ def amount_to_text(number, currency):
     end_word = english_number(int(list[1]))
     cents_number = int(list[1])
     cents_name = (cents_number > 1) and 'Cents' or 'Cent'
-    final_result = start_word.title() +' '+units_name+' and ' + str.lower(end_word) +' '+str.lower(cents_name)
+    final_result = start_word.title() +' '+units_name+' and ' + str.lower(end_word)
     return final_result
 
 
@@ -99,7 +99,7 @@ def amount_to_text(nbr, lang='en', currency='euro'):
     Example:
         1654: thousands six cent cinquante-quatre.
     """
-    import netsvcamount_to_text
+#     import netsvcamount_to_text
 #    if nbr > 10000000:
 #        netsvc.Logger().notifyChannel('translate', netsvc.LOG_WARNING, _("Number too large '%d', can not translate it"))
 #        return str(nbr)

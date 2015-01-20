@@ -211,7 +211,16 @@ class product_product(osv.osv):
         'batch_appli_ok':fields.boolean('Is Batch Applicable'),
         'default_code' : fields.char('Internal Reference', required = True, size=64, select=True),
         'cate_name': fields.char('Cate Name',size=64),
+        'supplier_id':fields.many2one('res.partner', 'Supplier'),
+        'po_price': fields.float('PO Price'),
+        'invoice_address': fields.char('Invoice Address', size = 1024),
+        'street2': fields.char('', size = 1024),
+        'city': fields.char('', size = 1024),
+        'country_id': fields.many2one('res.country', ''),
+        'state_id': fields.many2one('res.country.state', ''),
+        'zip': fields.char('', size = 1024),
         'inventory_line':fields.function(_inventory, method=True,type='one2many', relation='tpt.product.inventory', string='Inventory'),
+        'spec_parameter_line':fields.one2many('tpt.spec.parameters.line', 'product_id', 'Spec Parameters'),
         }
     
     _defaults = {
@@ -260,6 +269,12 @@ class product_product(osv.osv):
                     'batch_appli_ok':False,
                     'cate_name':'finish',
                     }
+            elif category.cate_name == 'raw':
+                vals = {'sale_ok':False,
+                    'purchase_ok':True,
+                    'batch_appli_ok':False,
+                    'cate_name':'raw',
+                    }
             else :
                 vals = {'sale_ok':False,
                     'purchase_ok':True,
@@ -273,7 +288,7 @@ class tpt_product_inventory(osv.osv):
     _name = "tpt.product.inventory"
     
     _columns = {
-        'product_id':fields.many2one('product.product', 'Product'),
+        'product_id':fields.many2one('product.product', 'Product', ondelete = 'cascade'),
         'warehouse_id':fields.many2one('stock.location', 'Warehouse'),
         'prodlot_id':fields.many2one('stock.production.lot', 'System Batch Number'),
         'hand_quantity' : fields.float('On hand Quantity'),
@@ -519,6 +534,17 @@ class tpt_gate_in_pass_line(osv.osv):
       
 tpt_gate_in_pass_line()
 
+class tpt_spec_parameters_line(osv.osv):
+    _name = "tpt.spec.parameters.line"
+    _columns = {
+        'product_id': fields.many2one('product.product','Product',ondelete = 'cascade'),
+        'name': fields.char('Testing Parameters', size = 1024, required = True),
+        'required_spec': fields.float('Required Specifications'),
+        'uom_po_id': fields.many2one('product.uom', 'UOM'),
+                }
+      
+tpt_spec_parameters_line()
+
 class purchase_order(osv.osv):
     _inherit = "purchase.order"
     
@@ -557,3 +583,5 @@ class purchase_order(osv.osv):
 #             'price_unit': order_line.price_unit
 #         }
 purchase_order()
+
+

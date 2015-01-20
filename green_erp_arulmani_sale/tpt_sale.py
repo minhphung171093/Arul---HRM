@@ -825,7 +825,7 @@ class tpt_blanket_order(osv.osv):
         'bo_date': fields.date('BO Date', required = True, readonly = True,  states={'cancel': [('readonly', True)], 'done':[('readonly', True)]}),
         'po_date': fields.date('PO Date', required = True, states={'cancel': [('readonly', True)], 'done':[('readonly', True)]}),
         'po_number': fields.char('PO Number', size = 1024, states={'cancel': [('readonly', True)], 'done':[('readonly', True)]}),
-        'quotaion_no': fields.char('Quotaion No', size = 1024, states={'cancel': [('readonly', True)], 'done':[('readonly', True)]}),
+        'quotaion_no': fields.char('Quotation No', size = 1024, states={'cancel': [('readonly', True)], 'done':[('readonly', True)]}),
         'excise_duty_id': fields.many2one('account.tax', 'Excise Duty', domain="[('type_tax_use','=','excise_duty')]", required = True, states={'cancel': [('readonly', True)], 'done':[('readonly', True)]}),
         'sale_tax_id': fields.many2one('account.tax', 'Sale Tax', domain="[('type_tax_use','=','sale')]", required = True, states={'cancel': [('readonly', True)], 'done':[('readonly', True)]}), 
         'incoterm_id': fields.many2one('stock.incoterms', 'Incoterms', required = True, states={'cancel': [('readonly', True)], 'done':[('readonly', True)]}),
