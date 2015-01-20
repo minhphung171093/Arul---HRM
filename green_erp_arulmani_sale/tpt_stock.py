@@ -347,7 +347,7 @@ class account_invoice(osv.osv):
                 freight = freight + invoiceline.freight
                 val1 = val1 + invoiceline.price_subtotal
                 res[line.id]['amount_untaxed'] = val1
-                val2 = val1 * (line.sale_tax_id.amount and line.sale_tax_id.amount / 100 or 1)
+                val2 = val1 * (line.sale_tax_id.amount and line.sale_tax_id.amount / 100 or 0)
                 res[line.id]['amount_tax'] = val2
                 val3 = val1 + val2 + freight
                 res[line.id]['amount_total'] = val3
