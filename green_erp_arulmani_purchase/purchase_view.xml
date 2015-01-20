@@ -86,6 +86,25 @@
 			</field>
 		</record>
 		
+		<record id="tpt_purchase_order_form" model="ir.ui.view">
+            <field name="name">tpt.purchase.order.form</field>
+            <field name="model">purchase.order</field>
+            <field name="inherit_id" ref="purchase.purchase_order_form"/>
+            <field name="arch" type="xml">
+            	<xpath expr="//field[@name='partner_id']" position="before">
+            		<field name="po_document_type" />
+					<field name="name" string = 'PO Document No' />
+				</xpath> 
+				<xpath expr="//field[@name='date_order']" position="after">
+					<field name="quotation_no" options="{'create': false, 'create_edit': false}"/>
+					<field name="purchase_tax_id" options="{'create': false, 'create_edit': false}"/>
+				</xpath> 
+				<xpath expr="//field[@name='warehouse_id']" position="attributes">
+					<attribute name='invisible'>1</attribute>
+				</xpath> 
+			</field>
+		</record>
+		
 		<record id="tpt_product_category_form" model="ir.ui.view">
             <field name="name">tpt.product.category.form</field>
             <field name="model">product.category</field>
@@ -176,7 +195,7 @@
 					<page string="Purchase" attrs="{'invisible': [('cate_name', '!=', 'raw')]}">
 						<group>
 							<group>
-								<field name="supplier_id" domain="[('supplier','=',1)]" options="{'create': false, 'create_edit': false}"/>
+								<field name="supplier_id" on_change = "onchange_supplier_id(supplier_id)" domain="[('supplier','=',1)]" options="{'create': false, 'create_edit': false}"/>
 		                		<field name="po_price"/>
 							</group>
 							<group>
@@ -291,7 +310,7 @@
                    	 <group col="4" colspan="2" >
                    	 	<field name="name" />
 						<field name="date_quotation" />
-						<field name="supplier_id" options="{'create': false, 'create_edit': false}" on_change = "onchange_supplier_location(supplier_id)" />
+						<field name="supplier_id" domain="[('supplier','=',1)]" options="{'create': false, 'create_edit': false}" on_change = "onchange_supplier_location(supplier_id)" />
 						<field name="supplier_location_id" options="{'create': false, 'create_edit': false}"  />
 						<field name="quotation_cate" />
 						<newline/>

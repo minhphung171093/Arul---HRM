@@ -56,9 +56,6 @@ class tpt_purchase_indent(osv.osv):
             self.write(cr, uid, ids,{'state':'cancel'})
         return True   
 
-
-
-    
     def create(self, cr, uid, vals, context=None):
         if 'document_type' in vals:
             sql = '''
@@ -258,6 +255,19 @@ class product_product(osv.osv):
     _constraints = [
         (_check_product, 'Identical Data', ['name', 'default_code']),
     ] 
+    
+    def onchange_supplier_id(self, cr, uid, ids, supplier_id=False):
+        vals = {}
+        if supplier_id:
+            supplier = self.pool.get('res.partner').browse(cr, uid, supplier_id)
+            vals = {'invoice_address':supplier.street,
+                'street2':supplier.street2,
+                'city':supplier.city,
+                'country_id':supplier.country_id and supplier.country_id.id or '',
+                'state_id':supplier.state_id and supplier.state_id.id or '',
+                'zip':supplier.zip,
+                }
+        return {'value': vals}   
     
     def onchange_category_product_id(self, cr, uid, ids, categ_id=False):
         vals = {}
@@ -552,6 +562,52 @@ class purchase_order(osv.osv):
         'quotation_no': fields.many2one('tpt.purchase.quotation', 'Quotation No'),
         'purchase_tax_id': fields.many2one('account.tax', 'Taxes', domain="[('type_tax_use','=','purchase')]", required = True), 
                 }
+    _default = {
+        'name':'/',
+               }
+    def create(self, cr, uid, vals, context=None):
+        if 'document_type' in vals:
+            sql = '''
+                select code from account_fiscalyear where '%s' between date_start and date_stop
+            '''%(time.strftime('%Y-%m-%d'))
+            cr.execute(sql)
+            fiscalyear = cr.dictfetchone()
+            if not fiscalyear:
+                raise osv.except_osv(_('Warning!'),_('Financial year has not been configured. !'))
+            else:
+                if (vals['document_type']=='base'):
+                    if vals.get('name','/')=='/':
+                        sequence = self.pool.get('ir.sequence').get(cr, uid, 'indent.purchase.based')
+                        vals['name'] =  sequence and sequence+'/'+fiscalyear['code'] or '/'
+                if (vals['document_type']=='capital'):
+                    if vals.get('name','/')=='/':
+                        sequence = self.pool.get('ir.sequence').get(cr, uid, 'indent.purchase.capital')
+                        vals['name'] =  sequence and sequence +'/'+fiscalyear['code']or '/'
+                if (vals['document_type']=='local'):
+                    if vals.get('name','/')=='/':
+                        sequence = self.pool.get('ir.sequence').get(cr, uid, 'indent.purchase.capital')
+                        vals['name'] =  sequence and sequence +'/'+fiscalyear['code']or '/'
+                if (vals['document_type']=='maintenance'):
+                    if vals.get('name','/')=='/':
+                        sequence = self.pool.get('ir.sequence').get(cr, uid, 'indent.purchase.maintenance')
+                        vals['name'] =  sequence and sequence +'/'+fiscalyear['code']or '/'
+                if (vals['document_type']=='consumable'):
+                    if vals.get('name','/')=='/':
+                        sequence = self.pool.get('ir.sequence').get(cr, uid, 'indent.purchase.consumable')
+                        vals['name'] =  sequence and sequence +'/'+fiscalyear['code']or '/'
+                if (vals['document_type']=='outside'):
+                    if vals.get('name','/')=='/':
+                        sequence = self.pool.get('ir.sequence').get(cr, uid, 'indent.purchase.outside')
+                        vals['name'] =  sequence and sequence +'/'+fiscalyear['code']or '/'
+                if (vals['document_type']=='spare'):
+                    if vals.get('name','/')=='/':
+                        sequence = self.pool.get('ir.sequence').get(cr, uid, 'indent.purchase.spare')
+                        vals['name'] =  sequence and sequence +'/'+fiscalyear['code']or '/'
+                if (vals['document_type']=='service'):
+                    if vals.get('name','/')=='/':
+                        sequence = self.pool.get('ir.sequence').get(cr, uid, 'indent.purchase.service')
+                        vals['name'] =  sequence and sequence +'/'+fiscalyear['code']or '/'
+        return super(tpt_purchase_indent, self).create(cr, uid, vals, context=context)    
     
 #     def _prepare_order_picking(self, cr, uid, order, context=None):
 #         return {
