@@ -1261,12 +1261,11 @@ class arul_hr_punch_in_out(osv.osv):
                                                                                                'total_day': c_off_day,
                                                                                                })
                                             else:
-                                                employee_leave_detail_obj.create(cr, uid, {
+                                                employee_leave_obj.create(cr, uid, {
                                                                                            'employee_id': employee_ids[0],
                                                                                            'year': data1[7:11],
                                                                                            'emp_leave_details_ids': [(0,0,{
                                                                                                                        'leave_type_id': leave_type_ids[0],
-                                                                                                                       'emp_leave_id': employee_leave_ids[0],
                                                                                                                        'total_day': c_off_day,
                                                                                                                            })],
                                                                                            })
@@ -1372,12 +1371,11 @@ class arul_hr_punch_in_out(osv.osv):
                                                                                            'total_day': c_off_day,
                                                                                            })
                                         else:
-                                            employee_leave_detail_obj.create(cr, uid, {
+                                            employee_leave_obj.create(cr, uid, {
                                                                                        'employee_id': employee_ids[0],
                                                                                        'year': data1[7:11],
                                                                                        'emp_leave_details_ids': [(0,0,{
                                                                                                                    'leave_type_id': leave_type_ids[0],
-                                                                                                                   'emp_leave_id': employee_leave_ids[0],
                                                                                                                    'total_day': c_off_day,
                                                                                                                        })],
                                                                                        })
