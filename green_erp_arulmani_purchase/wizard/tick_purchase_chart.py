@@ -29,12 +29,13 @@ class tick_purchase_chart(osv.osv_memory):
         vals = purchase_order_obj.onchange_partner_id(cr, uid, [q_id],chart.supplier_id.id)['value']
         tick = self.browse(cr, uid, ids[0])
         
-        for line in chart.:
-            purchase_line.append((0,0,{
-                                        
-                                       }))
+#         for line in chart.purchase_quotation_line:
+#             purchase_line.append((0,0,{
+#                                        ''
+#                                        
+#                                        }))
         vals.update({
-                     'po_document_type': tick.po_document_type,
+                    'po_document_type': tick.po_document_type,
                     'quotation_no':chart.id,
                     'partner_id':chart.supplier_id.id,
                     'partner_ref':chart.quotation_ref,
@@ -45,6 +46,13 @@ class tick_purchase_chart(osv.osv_memory):
                     'order_line': purchase_line,
                     })
         new_po_id = purchase_order_obj.create(cr, uid, vals)
+        sql = '''
+            update tpt_purchase_quotation set state = 'done' where id = %s
+        '''%(chart.id)
+        cr.execute(sql)
+        
+        
+        
         res = self.pool.get('ir.model.data').get_object_reference(cr, uid, 
                                         'purchase', 'purchase_order_form')
         return {

@@ -880,3 +880,24 @@ class tpt_product_detail_line(osv.osv):
     }
 tpt_product_detail_line()
 
+# class tpt_quanlity_inspection(osv.osv):
+#     _name = "tpt.quanlity.inspection"
+#     _columns = {
+#         'name' : fields.char('GRN No',size = 1024,required = True),
+#         'date':fields.date('Create Date'),
+#         'supplier_id':fields.many2one('res.partner','Supplier',required = True),
+#         'product_id': fields.many2one('product.product', 'Product',required = True),
+#         'reason':fields.text('Season'),
+#         'specification_line':fields.one2many('tpt.product.specification','specification_id','Product Specification')
+#                 }
+# tpt_quanlity_inspection()
+# class tpt_product_specification(osv.osv):
+#     _name = "tpt.product.specification"
+#     _columns = {
+#         'name' : fields.char('Parameters',size = 1024,required = True),
+#         'value' : fields.char('Value',size = 1024,required = True),
+#         'exp_value' : fields.char('Experimental Value',size = 1024,required = True),
+#         'specification_id':fields.many2one('res.partner','Supplier',required = True),
+# 
+#                 }
+# tpt_product_specification()
