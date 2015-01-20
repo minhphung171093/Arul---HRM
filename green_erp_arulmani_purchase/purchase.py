@@ -100,6 +100,51 @@ class tpt_purchase_indent(osv.osv):
                         vals['name'] =  sequence and sequence +'/'+fiscalyear['code']or '/'
         return super(tpt_purchase_indent, self).create(cr, uid, vals, context=context)    
     
+    def write(self, cr, uid, ids, vals, context=None):
+        if 'document_type' in vals:
+            sql = '''
+                select code from account_fiscalyear where '%s' between date_start and date_stop
+            '''%(time.strftime('%Y-%m-%d'))
+            cr.execute(sql)
+            fiscalyear = cr.dictfetchone()
+            if not fiscalyear:
+                raise osv.except_osv(_('Warning!'),_('Financial year has not been configured. !'))
+            else:
+                if (vals['document_type']=='base'):
+                    if vals.get('name','/')=='/':
+                        sequence = self.pool.get('ir.sequence').get(cr, uid, 'indent.purchase.based')
+                        vals['name'] =  sequence and sequence+'/'+fiscalyear['code'] or '/'
+                if (vals['document_type']=='capital'):
+                    if vals.get('name','/')=='/':
+                        sequence = self.pool.get('ir.sequence').get(cr, uid, 'indent.purchase.capital')
+                        vals['name'] =  sequence and sequence +'/'+fiscalyear['code']or '/'
+                if (vals['document_type']=='local'):
+                    if vals.get('name','/')=='/':
+                        sequence = self.pool.get('ir.sequence').get(cr, uid, 'indent.purchase.capital')
+                        vals['name'] =  sequence and sequence +'/'+fiscalyear['code']or '/'
+                if (vals['document_type']=='maintenance'):
+                    if vals.get('name','/')=='/':
+                        sequence = self.pool.get('ir.sequence').get(cr, uid, 'indent.purchase.maintenance')
+                        vals['name'] =  sequence and sequence +'/'+fiscalyear['code']or '/'
+                if (vals['document_type']=='consumable'):
+                    if vals.get('name','/')=='/':
+                        sequence = self.pool.get('ir.sequence').get(cr, uid, 'indent.purchase.consumable')
+                        vals['name'] =  sequence and sequence +'/'+fiscalyear['code']or '/'
+                if (vals['document_type']=='outside'):
+                    if vals.get('name','/')=='/':
+                        sequence = self.pool.get('ir.sequence').get(cr, uid, 'indent.purchase.outside')
+                        vals['name'] =  sequence and sequence +'/'+fiscalyear['code']or '/'
+                if (vals['document_type']=='spare'):
+                    if vals.get('name','/')=='/':
+                        sequence = self.pool.get('ir.sequence').get(cr, uid, 'indent.purchase.spare')
+                        vals['name'] =  sequence and sequence +'/'+fiscalyear['code']or '/'
+                if (vals['document_type']=='service'):
+                    if vals.get('name','/')=='/':
+                        sequence = self.pool.get('ir.sequence').get(cr, uid, 'indent.purchase.service')
+                        vals['name'] =  sequence and sequence +'/'+fiscalyear['code']or '/'
+      
+        return super(tpt_purchase_indent, self).write(cr, uid,ids, vals, context)
+    
     def onchange_date_expect(self, cr, uid, ids,date_indent=False, context=None):
         vals = {}
         kq=''
@@ -436,7 +481,37 @@ class tpt_purchase_quotation(osv.osv):
                     'supplier_location_id':supplier.city,
                     }
         return {'value': vals}
-    
+
+#     def bt_approve(self, cr, uid, ids, context=None):
+#         for line in self.browse(cr, uid, ids):
+#             self.write(cr, uid, ids,{'state':'done'})
+#         return True   
+#     
+#     def bt_cancel(self, cr, uid, ids, context=None):
+#         for line in self.browse(cr, uid, ids):
+#             self.write(cr, uid, ids,{'state':'cancel'})
+#         return True   
+
+    def bt_tick_mark(self, cr, uid, ids, context=None):
+        res = self.pool.get('ir.model.data').get_object_reference(cr, uid, 
+                                        'green_erp_arulmani_purchase', 'tick_purchase_chart_form_view')
+        return {
+                    'name': 'Purchase Chart',
+                    'view_type': 'form',
+                    'view_mode': 'form',
+                    'view_id': res[1],
+                    'res_model': 'tick.purchase.chart',
+                    'domain': [],
+                    'context': {'default_message':'Do you want to confirm the Quotation to Purchase order?'},
+                    'type': 'ir.actions.act_window',
+                    'target': 'new',
+                }
+
+    def bt_cross_mark(self, cr, uid, ids, context=None):
+        for line in self.browse(cr, uid, ids):
+            self.write(cr, uid, ids,{'state':'cancel'})
+        return True    
+   
 #     def search(self, cr, uid, args, offset=0, limit=None, order=None, context=None, count=False):
 #         if context is None:
 #             context = {}

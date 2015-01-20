@@ -146,7 +146,34 @@
 		
 		<menuitem name="Stock Move" action="stock.action_picking_tree6" id="stock.menu_action_picking_tree6" parent="stock.menu_stock_warehouse_mgmt" sequence="2" groups="stock.group_locations"/>
 		
-        
+       <record id="tpt_invoice_tree" model="ir.ui.view">
+            <field name="name">tpt.invoice.tree</field>
+            <field name="model">account.invoice</field>
+            <field name="inherit_id" ref="account.invoice_tree"/>
+            <field name="arch" type="xml">
+            	<tree colors="blue:state == 'draft';black:state in ('proforma','proforma2','open');gray:state == 'cancel'" string="Invoice" position="replace">
+	                <tree colors="blue:state == 'draft';black:state in ('proforma','proforma2','open');gray:state == 'cancel'" string="Invoice">
+	                    <field name="partner_id" groups="base.group_user"/>
+	                    <field name="date_invoice"/>
+	                    <field name="number" invisible="1"/>
+	                    <field name="reference" invisible="1"/>
+	                    <field name="name" invisible="1"/>
+	                    <field name="journal_id" invisible="1"/>
+	                    <field name="period_id" invisible="1" groups="account.group_account_user"/>
+	                    <field name="company_id" groups="base.group_multi_company" widget="selection"/>
+	                    <field name="user_id" invisible="1"/>
+	                    <field name="date_due" invisible="1"/>
+	                    <field name="origin" invisible="1"/>
+	                    <field name="currency_id" invisible="1" groups="base.group_multi_currency"/>
+	                    <field name="residual" invisible="1" sum="Residual Amount"/>
+	                    <field name="amount_untaxed" sum="Untaxed Amount"/>
+	                    <field name="amount_total" sum="Total Amount"/>
+	                    <field name="state" invisible="1"/>
+	                </tree>
+	           	</tree>
+            </field>
+        </record>
+       
        <record id="tpt_customer_invoice_form" model="ir.ui.view">
             <field name="name">tpt.customer.invoice.form</field>
             <field name="model">account.invoice</field>
@@ -189,7 +216,7 @@
 					<field name="account_id" required = "0" invisible = "1"/>
 					<field name="sale_id" options="{'create': false, 'create_edit': false}"/>
 					<field name="payment_term" options="{'create': false, 'create_edit': false}"/>
-					<field name="sale_tax_id" options="{'create': false, 'create_edit': false}" domain="[('type_tax_use','=','sale')]"/>
+					<field name="sale_tax_id" domain="[('type_tax_use','=','sale')]" options="{'create': false, 'create_edit': false}"/>
 					<field name="invoice_type" />
 					<field name="vessel_flight_no" />
 					<field name="port_of_discharge_id" options="{'create': false, 'create_edit': false}"/>

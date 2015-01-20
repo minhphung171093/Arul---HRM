@@ -277,7 +277,20 @@ class arul_hr_audit_shift_time(osv.osv):
                 else:
                     extra_hours = line.out_time - line.in_time
                 
-                if extra_hours<8 and line.employee_id.employee_category_id and line.employee_id.employee_category_id.code!='S1':
+                if line.actual_work_shift_id:
+                    if line.actual_work_shift_id.start_time > line.actual_work_shift_id.end_time:
+                        shift_hours = 24-line.actual_work_shift_id.start_time + line.actual_work_shift_id.end_time
+                    else:
+                        shift_hours = line.actual_work_shift_id.end_time - line.actual_work_shift_id.start_time
+                elif line.planned_work_shift_id:
+                    if line.planned_work_shift_id.start_time > line.planned_work_shift_id.end_time:
+                        shift_hours = 24-line.planned_work_shift_id.start_time + line.planned_work_shift_id.end_time
+                    else:
+                        shift_hours = line.planned_work_shift_id.end_time - line.planned_work_shift_id.start_time
+                else:
+                    raise osv.except_osv(_('Warning!'),_('Please select the actual work shift first!'))
+                
+                if extra_hours<shift_hours and line.employee_id.employee_category_id and line.employee_id.employee_category_id.code!='S1':
                     permission_ids = self.pool.get('arul.hr.permission.onduty').search(cr, uid, [('non_availability_type_id','=','permission'),('date','=',line.work_date),('employee_id','=',line.employee_id.id)])
                     on_duty_ids = self.pool.get('arul.hr.permission.onduty').search(cr, uid, [('non_availability_type_id','=','on_duty'),('from_date','<=',line.work_date),('to_date','>=',line.work_date),('employee_id','=',line.employee_id.id)])
                     if not permission_ids and not on_duty_ids:
@@ -736,13 +749,23 @@ class arul_hr_employee_leave_details(osv.osv):
         if day and day.employee_id and day.date_from and day.date_to:
             date_from = datetime.datetime.strptime(day.date_from, "%Y-%m-%d")
             date_to = datetime.datetime.strptime(day.date_to, "%Y-%m-%d")
-            sql = '''
-                select id from arul_hr_employee_leave_details where id != %s and employee_id = %s and (date_from = '%s' or date_to = '%s')
-            '''%(day.id,day.employee_id.id,date_from.strftime('%Y-%m-%d'),date_to.strftime('%Y-%m-%d'))
-            cr.execute(sql)
-            leave_ids = [row[0] for row in cr.fetchall()]
-            if leave_ids:  
-                raise osv.except_osv(_('Warning!'),_('The Employee requested leave day for these date!'))
+            if not day.haft_day_leave:
+                sql = '''
+                    select id from arul_hr_employee_leave_details where id != %s and employee_id = %s and (('%s' between date_from and date_to) or ('%s' between date_from and date_to))
+                '''%(day.id,day.employee_id.id,date_from.strftime('%Y-%m-%d'),date_to.strftime('%Y-%m-%d'))
+                cr.execute(sql)
+                leave_ids = [row[0] for row in cr.fetchall()]
+#                 leave_ids.remove(day.id)
+                if leave_ids:  
+                    raise osv.except_osv(_('Warning!'),_('The Employee requested leave day for these date!'))
+            else:
+                sql = '''
+                    select id from arul_hr_employee_leave_details where id != %s and employee_id = %s and date_to = '%s' and haft_day_leave = True
+                '''%(day.id,day.employee_id.id,date_to.strftime('%Y-%m-%d'))
+                cr.execute(sql)
+                leave_ids = [row[0] for row in cr.fetchall()]
+                if len(leave_ids) > 1:  
+                    raise osv.except_osv(_('Warning!'),_('The Employee requested leave day for these date!'))
         return True   
     _constraints = [
         (_check_days, _(''), ['date_from', 'date_to']),
