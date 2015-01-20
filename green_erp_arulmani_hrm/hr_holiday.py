@@ -271,7 +271,7 @@ class arul_hr_audit_shift_time(osv.osv):
             emp_attendence_obj = self.pool.get('arul.hr.employee.attendence.details')
             punch_obj = self.pool.get('arul.hr.punch.in.out.time')
             if line.type != 'permission':
-                
+                extra_hours = 0.0
                 if line.in_time > line.out_time:
                     extra_hours = 24-line.in_time + line.out_time
                 else:
@@ -296,7 +296,6 @@ class arul_hr_audit_shift_time(osv.osv):
                             }
                 
                 if line.additional_shifts or (extra_hours>8 and line.employee_id.employee_category_id and line.employee_id.employee_category_id.code!='S1'):
-                    extra_hours = 0.0
                     c_off_day = 0.0
                     if extra_hours >= 4 and extra_hours < 8:
                         c_off_day = 0.5
@@ -1262,12 +1261,11 @@ class arul_hr_punch_in_out(osv.osv):
                                                                                                'total_day': c_off_day,
                                                                                                })
                                             else:
-                                                employee_leave_detail_obj.create(cr, uid, {
+                                                employee_leave_obj.create(cr, uid, {
                                                                                            'employee_id': employee_ids[0],
                                                                                            'year': data1[7:11],
                                                                                            'emp_leave_details_ids': [(0,0,{
                                                                                                                        'leave_type_id': leave_type_ids[0],
-                                                                                                                       'emp_leave_id': employee_leave_ids[0],
                                                                                                                        'total_day': c_off_day,
                                                                                                                            })],
                                                                                            })
@@ -1373,12 +1371,11 @@ class arul_hr_punch_in_out(osv.osv):
                                                                                            'total_day': c_off_day,
                                                                                            })
                                         else:
-                                            employee_leave_detail_obj.create(cr, uid, {
+                                            employee_leave_obj.create(cr, uid, {
                                                                                        'employee_id': employee_ids[0],
                                                                                        'year': data1[7:11],
                                                                                        'emp_leave_details_ids': [(0,0,{
                                                                                                                    'leave_type_id': leave_type_ids[0],
-                                                                                                                   'emp_leave_id': employee_leave_ids[0],
                                                                                                                    'total_day': c_off_day,
                                                                                                                        })],
                                                                                        })
