@@ -296,6 +296,7 @@
 						<field name="quotation_cate" />
 						<field name="quotation_ref" />
 						<field name="tax_id" />
+						<field name="state" />
 				</tree>
 			</field>
 	</record>
@@ -306,6 +307,9 @@
             <field name="model">tpt.purchase.quotation</field>
             <field name="arch" type="xml">
 	            <form string="Purchase Quotation" version="7.0">
+	            <header>
+	                    <field name="state" widget="statusbar" statusbar_visible="draft,cancel,done" statusbar_colors='{"draft":"blue","cancel":"blue"}'/>
+	            </header>    
 	            	<sheet>
                    	 <group col="4" colspan="2" >
                    	 	<field name="name" />
@@ -376,8 +380,8 @@
 			<field name="name">tpt.purchase.chart.tree</field>
 			<field name="model">tpt.purchase.quotation</field>
 			<field name="arch" type="xml">
-				<tree string="Purchase Chart">
-						<field name="name" domain="[('state','=','draft')]" />
+				<tree string="Comparison Chart">
+						<field name="name"/>
 						<field name="supplier_id" />
 						<field name="supplier_location_id" />
 						<field name="quotation_cate" />
@@ -396,7 +400,10 @@
             <field name="name">tpt.purchase.chart.form</field>
             <field name="model">tpt.purchase.quotation</field>
             <field name="arch" type="xml">
-	            <form string="Purchase Chart" version="7.0">
+	            <form string="Comparison Chart" version="7.0">
+	            <header>
+	                    <field name="state" widget="statusbar" statusbar_visible="draft,cancel,done" statusbar_colors='{"draft":"blue","cancel":"blue"}'/>
+	            </header>    
 	            	<sheet>
                    	 <group col="4" colspan="2" >
                    	 	<field name="name" />
@@ -438,11 +445,12 @@
 		</record>
           
 		<record id="action_view_tpt_purchase_chart_form" model="ir.actions.act_window">
-            <field name="name">Purchase Chart</field>
+            <field name="name">Comparison Chart</field>
             <field name="type">ir.actions.act_window</field>
             <field name="res_model">tpt.purchase.quotation</field>
             <field name="view_type">form</field>
             <field name="view_mode">tree,form</field>
+            <field name="domain">[('state','=','draft')]</field>
             <field name="view_id" ref="view_tpt_purchase_chart_form"/>
         </record>
         
