@@ -22,9 +22,10 @@
 			id="tpt_print_dispatch_slip" 
 			model="stock.picking.out" 
 			name="tpt_print_dispatch_slip"
-	        string="Print Dispatch Slip"
+	        string="DISPATCH ADVISE"
 	        rml="green_erp_arulmani_sale/report/print_dispatch_slip.odt"/>
 	        
 	    <report menu="False" id="report_picking_list_out" model="stock.picking.out" name="stock.picking.list.out" string="Delivery Slip" rml="stock/report/picking.rml"/>
+	    <report id="stock.report_picking_list_out" menu="False" model="stock.picking.out" name="stock.picking.list.out" string="Delivery Slip" rml="stock/report/picking.rml"/>
 	</data>
 </openerp>

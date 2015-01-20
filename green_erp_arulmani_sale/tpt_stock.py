@@ -23,6 +23,7 @@ class stock_picking(osv.osv):
         'do_ref_id': fields.many2one('stock.picking.out','DO Reference'),   
         'move_date': fields.date('Movement Date', required = True),
         'reason': fields.text("Reason for Move"),
+        
 #         'location_sour_id': fields.many2one('stock.location', 'Source Location'),
                 }
     
@@ -193,6 +194,7 @@ class stock_picking(osv.osv):
             @param journal_id: ID of the accounting journal
             @return: dict that will be used to create the invoice object
         """
+        invoice_vals = super(stock_picking,self)._prepare_invoice(cr, uid, picking, partner, inv_type, journal_id, context)
         if isinstance(partner, int):
             partner = self.pool.get('res.partner').browse(cr, uid, partner, context=context)
         if inv_type in ('out_invoice', 'out_refund'):
@@ -346,7 +348,7 @@ class account_invoice(osv.osv):
                 freight = freight + invoiceline.freight
                 val1 = val1 + invoiceline.price_subtotal
                 res[line.id]['amount_untaxed'] = val1
-                val2 = val1 * (line.sale_tax_id.amount and line.sale_tax_id.amount / 100 or 1)
+                val2 = val1 * (line.sale_tax_id.amount and line.sale_tax_id.amount / 100 or 0)
                 res[line.id]['amount_tax'] = val2
                 val3 = val1 + val2 + freight
                 res[line.id]['amount_total'] = val3

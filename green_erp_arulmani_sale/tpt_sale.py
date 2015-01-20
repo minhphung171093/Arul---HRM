@@ -101,7 +101,7 @@ class sale_order(osv.osv):
         'blanket_id':fields.many2one('tpt.blanket.order','Blanket Order'),
 #         'so_date':fields.date('SO Date'),
         'po_date':fields.date('PO Date'),
-        'payment_term_id': fields.many2one('account.payment.term', 'Payment Term'),
+        'payment_term_id': fields.many2one('account.payment.term', 'Payment Term',required = True),
         'document_type':fields.selection([('saleorder','Sale Order'),('return','Return Sales Order'),('scrap','Scrap Sales')],'Document Type' ,required=True),
         'po_number':fields.char('PO Number', size = 20),
         'reason':fields.text('Reason'),
@@ -168,13 +168,13 @@ class sale_order(osv.osv):
                 }
         return {'value':vals,'warning':warning}
 
-    def onchange_doc_status(self, cr, uid, ids, payment_term_id=False, context=None):
-        vals = {}
-        if payment_term_id==1:
-             vals = {'document_status':'waiting'}
-        else:
-            vals = {'document_status':'completed'}
-        return {'value':vals}
+#     def onchange_doc_status(self, cr, uid, ids, payment_term_id=False, context=None):
+#         vals = {}
+#         if payment_term_id==1:
+#              vals = {'document_status':'waiting'}
+#         else:
+#             vals = {'document_status':'completed'}
+#         return {'value':vals}
 
   
     def onchange_so_date(self, cr, uid, ids, date_order=False, blanket_id=False, context=None):
@@ -541,6 +541,17 @@ class sale_order(osv.osv):
         assert len(ids) == 1, 'This option should only be used for a single id at a time.'
         wf_service = netsvc.LocalService('workflow')
         wf_service.trg_validate(uid, 'sale.order', ids[0], 'order_confirm', cr)
+        sale = self.browse(cr, uid, ids[0])
+        if (sale.payment_term_id.id == 1):
+            sql = '''
+                update sale_order set document_status='waiting' where id=%s
+            '''%(sale.id)
+            cr.execute(sql)
+        else:
+            sql = '''
+                update sale_order set document_status='completed' where id=%s
+            '''%(sale.id)
+            cr.execute(sql)
         picking_out_obj = self.pool.get('stock.picking.out')
         stock_move_obj = self.pool.get('stock.move')
         doc_status = 'draft'  
@@ -552,7 +563,6 @@ class sale_order(osv.osv):
             cr.execute(sql)
             consignee_ids = [row[0] for row in cr.fetchall()]
             picking_id = picking_out_ids[0]
-            sale = self.browse(cr, uid, ids[0])
             limit = sale.partner_id and sale.partner_id.credit_limit or False
             amount = sale.amount_total or False
             if limit and amount and amount >= limit:
@@ -632,16 +642,25 @@ class sale_order_line(osv.osv):
         'location': fields.char('Location', size = 1024),   
         'product_uom_qty': fields.float('Quantity', digits=(16,2), required=True, readonly=True, states={'draft': [('readonly', False)]}),
     }
+    _defaults ={
+      'product_uom_qty':0,
+     }
     def create(self, cr, uid, vals, context=None):
         if 'freight' in vals:
             if (vals['freight'] < 0):
                 raise osv.except_osv(_('Warning!'),_('Freight is not negative value'))
+        if 'product_uom_qty' in vals:
+            if (vals['product_uom_qty'] < 0):
+                raise osv.except_osv(_('Warning!'),_('Quantity is not negative value'))
         return super(sale_order_line, self).create(cr, uid, vals, context=context)
 
     def write(self, cr, uid, ids, vals, context=None):
         if 'freight' in vals:
             if (vals['freight'] < 0):
                 raise osv.except_osv(_('Warning!'),_('Freight is not negative value'))
+        if 'product_uom_qty' in vals:
+            if (vals['product_uom_qty'] < 0):
+                raise osv.except_osv(_('Warning!'),_('Quantity is not negative value'))
         return super(sale_order_line, self).write(cr, uid,ids, vals, context)
 
     def onchange_consignee_id(self, cr, uid, ids, name_consignee_id = False, context=None):

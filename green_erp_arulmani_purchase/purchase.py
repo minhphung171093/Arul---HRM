@@ -547,6 +547,11 @@ tpt_spec_parameters_line()
 
 class purchase_order(osv.osv):
     _inherit = "purchase.order"
+    _columns = {
+        'po_document_type':fields.selection([('asset','VV Asset PO'),('standard','VV Standard PO'),('local','VV Local PO'),('return','VV Return PO'),('service','VV Service PO'),('out','VV Out Service PO')],'PO Document Type'),
+        'quotation_no': fields.many2one('tpt.purchase.quotation', 'Quotation No'),
+        'purchase_tax_id': fields.many2one('account.tax', 'Taxes', domain="[('type_tax_use','=','purchase')]", required = True), 
+                }
     
 #     def _prepare_order_picking(self, cr, uid, order, context=None):
 #         return {
@@ -584,4 +589,10 @@ class purchase_order(osv.osv):
 #         }
 purchase_order()
 
+class purchase_order_line(osv.osv):
+    _inherit = "purchase.order.line"
+    _columns = {
+        'po_indent_no' : fields.many2one('tpt.purchase.indent', 'PO Indent No'),
+                }
 
+purchase_order_line()

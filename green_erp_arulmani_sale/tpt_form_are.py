@@ -88,7 +88,7 @@ class tpt_form_are_3(osv.osv):
     _name = "tpt.form.are.3"
       
     _columns = {
-        'name': fields.char('SI.No',size = 32, required = True),
+        'name': fields.char('SI.No',size = 32, required = True, readonly =True),
         'range_from': fields.char('From Range',size =1024),
         'range_to': fields.char('To Range',size = 1024),
         'reg_no_from': fields.char('From CE Reg No',size =1024),
@@ -114,6 +114,10 @@ class tpt_form_are_3(osv.osv):
         'warehousing_date': fields.date('1st Warehousing Date', required = True),
         'duty_rate_line':fields.one2many('tpt.form.are.3.duty.rate','form_are_3_id','Duty Rate'),       
                 }
+    _defaults={
+               'name':'/',
+    }
+    
     def onchange_so_date(self, cr, uid, ids, invoice_no_id=False, context=None):
         vals = {}
         if invoice_no_id:
@@ -121,6 +125,11 @@ class tpt_form_are_3(osv.osv):
             vals={'invoiced_date':invoice.date_invoice,                  
                   }
         return {'value':vals}    
+
+    def create(self, cr, uid, vals, context=None):
+        if vals.get('name','/')=='/':
+            vals['name'] = self.pool.get('ir.sequence').get(cr, uid, 'tpt.form.area.3.import') or '/'
+        return super(tpt_form_are_3, self).create(cr, uid, vals, context=context)
 tpt_form_are_3()
 
 class tpt_form_are_3_duty_rate(osv.osv):
