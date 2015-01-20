@@ -56,9 +56,6 @@ class tpt_purchase_indent(osv.osv):
             self.write(cr, uid, ids,{'state':'cancel'})
         return True   
 
-
-
-    
     def create(self, cr, uid, vals, context=None):
         if 'document_type' in vals:
             sql = '''
@@ -211,7 +208,16 @@ class product_product(osv.osv):
         'batch_appli_ok':fields.boolean('Is Batch Applicable'),
         'default_code' : fields.char('Internal Reference', required = True, size=64, select=True),
         'cate_name': fields.char('Cate Name',size=64),
+        'supplier_id':fields.many2one('res.partner', 'Supplier'),
+        'po_price': fields.float('PO Price'),
+        'invoice_address': fields.char('Invoice Address', size = 1024),
+        'street2': fields.char('', size = 1024),
+        'city': fields.char('', size = 1024),
+        'country_id': fields.many2one('res.country', ''),
+        'state_id': fields.many2one('res.country.state', ''),
+        'zip': fields.char('', size = 1024),
         'inventory_line':fields.function(_inventory, method=True,type='one2many', relation='tpt.product.inventory', string='Inventory'),
+        'spec_parameter_line':fields.one2many('tpt.spec.parameters.line', 'product_id', 'Spec Parameters'),
         }
     
     _defaults = {
@@ -250,6 +256,19 @@ class product_product(osv.osv):
         (_check_product, 'Identical Data', ['name', 'default_code']),
     ] 
     
+    def onchange_supplier_id(self, cr, uid, ids, supplier_id=False):
+        vals = {}
+        if supplier_id:
+            supplier = self.pool.get('res.partner').browse(cr, uid, supplier_id)
+            vals = {'invoice_address':supplier.street,
+                'street2':supplier.street2,
+                'city':supplier.city,
+                'country_id':supplier.country_id and supplier.country_id.id or '',
+                'state_id':supplier.state_id and supplier.state_id.id or '',
+                'zip':supplier.zip,
+                }
+        return {'value': vals}   
+    
     def onchange_category_product_id(self, cr, uid, ids, categ_id=False):
         vals = {}
         if categ_id:
@@ -259,6 +278,12 @@ class product_product(osv.osv):
                     'purchase_ok':False,
                     'batch_appli_ok':False,
                     'cate_name':'finish',
+                    }
+            elif category.cate_name == 'raw':
+                vals = {'sale_ok':False,
+                    'purchase_ok':True,
+                    'batch_appli_ok':False,
+                    'cate_name':'raw',
                     }
             else :
                 vals = {'sale_ok':False,
@@ -273,7 +298,7 @@ class tpt_product_inventory(osv.osv):
     _name = "tpt.product.inventory"
     
     _columns = {
-        'product_id':fields.many2one('product.product', 'Product'),
+        'product_id':fields.many2one('product.product', 'Product', ondelete = 'cascade'),
         'warehouse_id':fields.many2one('stock.location', 'Warehouse'),
         'prodlot_id':fields.many2one('stock.production.lot', 'System Batch Number'),
         'hand_quantity' : fields.float('On hand Quantity'),
@@ -519,6 +544,17 @@ class tpt_gate_in_pass_line(osv.osv):
       
 tpt_gate_in_pass_line()
 
+class tpt_spec_parameters_line(osv.osv):
+    _name = "tpt.spec.parameters.line"
+    _columns = {
+        'product_id': fields.many2one('product.product','Product',ondelete = 'cascade'),
+        'name': fields.char('Testing Parameters', size = 1024, required = True),
+        'required_spec': fields.float('Required Specifications'),
+        'uom_po_id': fields.many2one('product.uom', 'UOM'),
+                }
+      
+tpt_spec_parameters_line()
+
 class purchase_order(osv.osv):
     _inherit = "purchase.order"
     _columns = {
@@ -526,6 +562,52 @@ class purchase_order(osv.osv):
         'quotation_no': fields.many2one('tpt.purchase.quotation', 'Quotation No'),
         'purchase_tax_id': fields.many2one('account.tax', 'Taxes', domain="[('type_tax_use','=','purchase')]", required = True), 
                 }
+    _default = {
+        'name':'/',
+               }
+    def create(self, cr, uid, vals, context=None):
+        if 'document_type' in vals:
+            sql = '''
+                select code from account_fiscalyear where '%s' between date_start and date_stop
+            '''%(time.strftime('%Y-%m-%d'))
+            cr.execute(sql)
+            fiscalyear = cr.dictfetchone()
+            if not fiscalyear:
+                raise osv.except_osv(_('Warning!'),_('Financial year has not been configured. !'))
+            else:
+                if (vals['document_type']=='base'):
+                    if vals.get('name','/')=='/':
+                        sequence = self.pool.get('ir.sequence').get(cr, uid, 'indent.purchase.based')
+                        vals['name'] =  sequence and sequence+'/'+fiscalyear['code'] or '/'
+                if (vals['document_type']=='capital'):
+                    if vals.get('name','/')=='/':
+                        sequence = self.pool.get('ir.sequence').get(cr, uid, 'indent.purchase.capital')
+                        vals['name'] =  sequence and sequence +'/'+fiscalyear['code']or '/'
+                if (vals['document_type']=='local'):
+                    if vals.get('name','/')=='/':
+                        sequence = self.pool.get('ir.sequence').get(cr, uid, 'indent.purchase.capital')
+                        vals['name'] =  sequence and sequence +'/'+fiscalyear['code']or '/'
+                if (vals['document_type']=='maintenance'):
+                    if vals.get('name','/')=='/':
+                        sequence = self.pool.get('ir.sequence').get(cr, uid, 'indent.purchase.maintenance')
+                        vals['name'] =  sequence and sequence +'/'+fiscalyear['code']or '/'
+                if (vals['document_type']=='consumable'):
+                    if vals.get('name','/')=='/':
+                        sequence = self.pool.get('ir.sequence').get(cr, uid, 'indent.purchase.consumable')
+                        vals['name'] =  sequence and sequence +'/'+fiscalyear['code']or '/'
+                if (vals['document_type']=='outside'):
+                    if vals.get('name','/')=='/':
+                        sequence = self.pool.get('ir.sequence').get(cr, uid, 'indent.purchase.outside')
+                        vals['name'] =  sequence and sequence +'/'+fiscalyear['code']or '/'
+                if (vals['document_type']=='spare'):
+                    if vals.get('name','/')=='/':
+                        sequence = self.pool.get('ir.sequence').get(cr, uid, 'indent.purchase.spare')
+                        vals['name'] =  sequence and sequence +'/'+fiscalyear['code']or '/'
+                if (vals['document_type']=='service'):
+                    if vals.get('name','/')=='/':
+                        sequence = self.pool.get('ir.sequence').get(cr, uid, 'indent.purchase.service')
+                        vals['name'] =  sequence and sequence +'/'+fiscalyear['code']or '/'
+        return super(tpt_purchase_indent, self).create(cr, uid, vals, context=context)    
     
 #     def _prepare_order_picking(self, cr, uid, order, context=None):
 #         return {
