@@ -108,6 +108,23 @@
 	
         </record>
         
+        		<!--    From A.R.E - 3     -->
+        
+        <record id="sequence_tpt_form_are_3_import_code" model="ir.sequence.type">
+            <field name="name">From ARE - 3</field>
+            <field name="code">tpt.form.area.3.import</field>
+        </record>
+        
+        <record id="sequence_tpt_form_are_3_import_item" model="ir.sequence">
+            <field name="name">From ARE - 3</field>
+            <field name="code">tpt.form.area.3.import</field>
+            <field name="prefix">VVTi/ARE3/</field>
+            <field name="padding">6</field>
+            <field name="number_next_actual">000001</field>
+            <field name="implementation">no_gap</field>
+	
+        </record>
+        
         <!--    Post Goods Issue   -->
         
        	<record id="sequence_tpt_pgi_import_code" model="ir.sequence.type">
