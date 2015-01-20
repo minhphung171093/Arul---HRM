@@ -82,20 +82,21 @@ class stock_picking(osv.osv):
             }, context=context)
         return res
     
-#     def _prepare_invoice(self, cr, uid, picking, partner, inv_type, journal_id, context=None):
-#         """ Builds the dict containing the values for the invoice
-#             @param picking: picking object
-#             @param partner: object of the partner to invoice
-#             @param inv_type: type of the invoice ('out_invoice', 'in_invoice', ...)
-#             @param journal_id: ID of the accounting journal
-#             @return: dict that will be used to create the invoice object
-#         """
-#         invoice_vals = super(stock_picking,self)._prepare_invoice(cr, uid, picking, partner, inv_type, journal_id, context)
-#         if picking.type=='in':
-#             invoice_vals.update({
-#                                 'sale_tax_id':picking.purchase_id and ,
-#                                  })
-#         return invoice_vals
+    def _prepare_invoice(self, cr, uid, picking, partner, inv_type, journal_id, context=None):
+        """ Builds the dict containing the values for the invoice
+            @param picking: picking object
+            @param partner: object of the partner to invoice
+            @param inv_type: type of the invoice ('out_invoice', 'in_invoice', ...)
+            @param journal_id: ID of the accounting journal
+            @return: dict that will be used to create the invoice object
+        """
+        invoice_vals = super(stock_picking,self)._prepare_invoice(cr, uid, picking, partner, inv_type, journal_id, context)
+        if picking.type=='in':
+            invoice_vals.update({
+                                 'grn_no':picking.id,
+                                'sale_tax_id':picking.purchase_id and picking.purchase_id.purchase_tax_id or False,
+                                 })
+        return invoice_vals
     
     def _prepare_invoice_line(self, cr, uid, group, picking, move_line, invoice_id,
         invoice_vals, context=None):
@@ -133,21 +134,37 @@ class stock_picking(osv.osv):
         uos_id = move_line.product_uos and move_line.product_uos.id or False
         if not uos_id and invoice_vals['type'] in ('out_invoice', 'out_refund'):
             uos_id = move_line.product_uom.id
-
-        return {
-            'name': name,
-            'origin': origin,
-            'invoice_id': invoice_id,
-            'uos_id': uos_id,
-            'product_id': move_line.product_id.id,
-            'account_id': account_id,
-            'price_unit': self._get_price_unit_invoice(cr, uid, move_line, invoice_vals['type']),
-            'discount': self._get_discount_invoice(cr, uid, move_line),
-            'quantity': move_line.product_uos_qty or move_line.product_qty,
-            'invoice_line_tax_id': [(6, 0, [])],
-#             'invoice_line_tax_id': [(6, 0, self._get_taxes_invoice(cr, uid, move_line, invoice_vals['type']))],
-            'account_analytic_id': self._get_account_analytic_invoice(cr, uid, picking, move_line),
-        }
+        tax_id = picking.purchase_id and picking.purchase_id.purchase_tax_id or False
+        if tax_id:
+            return {
+                'name': name,
+                'origin': origin,
+                'invoice_id': invoice_id,
+                'uos_id': uos_id,
+                'product_id': move_line.product_id.id,
+                'account_id': account_id,
+                'price_unit': self._get_price_unit_invoice(cr, uid, move_line, invoice_vals['type']),
+                'discount': self._get_discount_invoice(cr, uid, move_line),
+                'quantity': move_line.product_uos_qty or move_line.product_qty,
+                'invoice_line_tax_id': [(6, 0, [tax_id])],
+    #             'invoice_line_tax_id': [(6, 0, self._get_taxes_invoice(cr, uid, move_line, invoice_vals['type']))],
+                'account_analytic_id': self._get_account_analytic_invoice(cr, uid, picking, move_line),
+            }
+        else:
+            return {
+                'name': name,
+                'origin': origin,
+                'invoice_id': invoice_id,
+                'uos_id': uos_id,
+                'product_id': move_line.product_id.id,
+                'account_id': account_id,
+                'price_unit': self._get_price_unit_invoice(cr, uid, move_line, invoice_vals['type']),
+                'discount': self._get_discount_invoice(cr, uid, move_line),
+                'quantity': move_line.product_uos_qty or move_line.product_qty,
+#                 'invoice_line_tax_id': [(6, 0, [picking.purchase_id.purchase_tax_id])],
+    #             'invoice_line_tax_id': [(6, 0, self._get_taxes_invoice(cr, uid, move_line, invoice_vals['type']))],
+                'account_analytic_id': self._get_account_analytic_invoice(cr, uid, picking, move_line),
+            }
 
 stock_picking()
 
