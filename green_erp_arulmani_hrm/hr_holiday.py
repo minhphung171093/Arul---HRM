@@ -186,10 +186,13 @@ class arul_hr_audit_shift_time(osv.osv):
             res[time.id] = {
                 'total_hours': 0.0,
             }
-            if time.in_time > time.out_time:
-                time_total = 24-time.in_time + time.out_time
+            if time.in_time != 0 and time.out_time!=0:
+                if time.in_time > time.out_time:
+                    time_total = 24-time.in_time + time.out_time
+                else:
+                    time_total = time.out_time - time.in_time
             else:
-                time_total = time.out_time - time.in_time
+                time_total=0
             res[time.id]['total_hours'] = time_total 
         return res
     
