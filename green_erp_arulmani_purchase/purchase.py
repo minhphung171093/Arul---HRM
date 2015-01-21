@@ -843,8 +843,9 @@ class purchase_order_line(osv.osv):
     def onchange_po_indent_no(self, cr, uid, ids,po_indent_no=False, context=None):
         if po_indent_no:
             return {'value': {'product_id': False}}    
+        
     
-#     def onchange_product_id(self, cr, uid, ids,product_id=False, po_indent_no=False, context=None):
+#     def onchange_product_id(self, cr, uid, ids, product_id=False, po_indent_no=False, context=None):
 #         vals = {}
 #         if po_indent_no and product_id: 
 #             po = self.pool.get('tpt.purchase.indent').browse(cr, uid, po_indent_no)
