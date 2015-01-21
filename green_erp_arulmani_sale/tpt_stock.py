@@ -291,7 +291,7 @@ class stock_picking(osv.osv):
             'account_analytic_id': self._get_account_analytic_invoice(cr, uid, picking, move_line),
             'product_type':move_line.product_type or False,
             'application_id':move_line.application_id or False,
-#             'freight':,
+            'freight':move_line.freight or False,
         }
     def do_partial(self, cr, uid, ids, partial_datas, context=None):
         """ Makes partial picking and moves done.
