@@ -29,11 +29,15 @@ class tick_purchase_chart(osv.osv_memory):
         vals = purchase_order_obj.onchange_partner_id(cr, uid, [q_id],chart.supplier_id.id)['value']
         tick = self.browse(cr, uid, ids[0])
         
-#         for line in chart.purchase_quotation_line:
-#             purchase_line.append((0,0,{
-#                                        ''
-#                                        
-#                                        }))
+        for line in chart.purchase_quotation_line:
+            purchase_line.append((0,0,{
+                                        'po_indent_no':line.po_indent_id.id,
+                                       'product_id':line.product_id.id,
+                                       'product_qty':line.product_uom_qty,
+                                       'product_uom':line.uom_po_id.id,
+                                       'price_unit':line.price_unit,
+#                                         'name':'/',
+                                       }))
         vals.update({
                     'po_document_type': tick.po_document_type,
                     'quotation_no':chart.id,
