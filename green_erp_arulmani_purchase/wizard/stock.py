@@ -36,4 +36,8 @@ class stock_partial_picking(osv.osv_memory):
             res.update(move_ids=moves)
         if 'date' in fields:
             res.update(date=time.strftime(DEFAULT_SERVER_DATETIME_FORMAT))
+            
+
+                
+            
         return res
