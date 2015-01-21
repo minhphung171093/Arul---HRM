@@ -191,26 +191,66 @@ class sale_order(osv.osv):
                 }
         return {'value':vals,'warning':warning}    
     
-    def onchange_partner_id(self, cr, uid, ids, partner_id=False, blanket_id=False, context=None):
-        vals = {}
+    def onchange_partner_id(self, cr, uid, ids, part=False, blanket_id=False, context=None):
+        if not part:
+            return {'value': {'partner_invoice_id': False, 'partner_shipping_id': False,  'payment_term': False, 'fiscal_position': False}}
+
+        part = self.pool.get('res.partner').browse(cr, uid, part, context=context)
+        addr = self.pool.get('res.partner').address_get(cr, uid, [part.id], ['delivery', 'invoice', 'contact'])
+        pricelist = part.property_product_pricelist and part.property_product_pricelist.id or False
+        payment_term = part.property_payment_term and part.property_payment_term.id or False
+        fiscal_position = part.property_account_position and part.property_account_position.id or False
+        dedicated_salesman = part.user_id and part.user_id.id or uid
+        val = {
+            'partner_invoice_id': addr['invoice'],
+            'partner_shipping_id': addr['delivery'],
+            'payment_term': payment_term,
+            'fiscal_position': fiscal_position,
+            'user_id': dedicated_salesman,
+        }
+        if pricelist:
+            val['pricelist_id'] = pricelist
+            
         consignee_lines = []
 #         for blanket in self.browse(cr, uid, ids):
 #             sql = '''
 #                 delete from order_line where blanket_order_id = %s
 #             '''%(blanket.id)
 #             cr.execute(sql)
-        if partner_id and not blanket_id:
-            part = self.pool.get('res.partner').browse(cr, uid, partner_id)
-            vals = {'invoice_address':part.street,
+        if part and not blanket_id:
+            part = self.pool.get('res.partner').browse(cr, uid, part)
+            val.update({'invoice_address':part.street,
                     'street2':part.street2,
                     'city':part.city,
-                    'country_id':part.country_id.id,
-                    'state_id':part.state_id.id,
+                    'country_id':part.country_id and part.country_id.id or False,
+                    'state_id':part.state_id and part.state_id.id or False,
                     'zip':part.zip,
-                    'payment_term_id':part.property_payment_term.id,
+                    'payment_term_id':part.property_payment_term and part.property_payment_term.id or False,
                     'incoterms_id':part.inco_terms_id and part.inco_terms_id.id or False,
-                    }
-        return {'value': vals}    
+                    }) 
+        
+        return {'value': val}
+    
+#     def onchange_partner_id(self, cr, uid, ids, partner_id=False, blanket_id=False, context=None):
+#         vals = {}
+#         consignee_lines = []
+# #         for blanket in self.browse(cr, uid, ids):
+# #             sql = '''
+# #                 delete from order_line where blanket_order_id = %s
+# #             '''%(blanket.id)
+# #             cr.execute(sql)
+#         if partner_id and not blanket_id:
+#             part = self.pool.get('res.partner').browse(cr, uid, partner_id)
+#             vals = {'invoice_address':part.street,
+#                     'street2':part.street2,
+#                     'city':part.city,
+#                     'country_id':part.country_id.id,
+#                     'state_id':part.state_id.id,
+#                     'zip':part.zip,
+#                     'payment_term_id':part.property_payment_term.id,
+#                     'incoterms_id':part.inco_terms_id and part.inco_terms_id.id or False,
+#                     }
+#         return {'value': vals}    
         
    
     def action_cancel(self, cr, uid, ids, context=None):

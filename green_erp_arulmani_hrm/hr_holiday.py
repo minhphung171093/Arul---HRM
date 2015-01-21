@@ -265,6 +265,225 @@ class arul_hr_audit_shift_time(osv.osv):
             vals = {'employee_category_id':emp.employee_category_id.id,
                     }
         return {'value': vals}
+    def approve_shift_time_multi(self, cr, uid, ids, context=None):
+        employee_leave_obj = self.pool.get('employee.leave')
+        employee_leave_detail_obj = self.pool.get('employee.leave.detail')
+        leave_type_obj = self.pool.get('arul.hr.leave.types')
+        for line in self.browse(cr,uid,ids):
+#             emp = self.pool.get('hr.employee')
+            emp_attendence_obj = self.pool.get('arul.hr.employee.attendence.details')
+            punch_obj = self.pool.get('arul.hr.punch.in.out.time')
+            if line.type != 'permission':
+                extra_hours = 0.0
+                if line.in_time > line.out_time:
+                    extra_hours = 24-line.in_time + line.out_time
+                else:
+                    extra_hours = line.out_time - line.in_time
+                
+                if line.actual_work_shift_id:
+                    if line.actual_work_shift_id.start_time > line.actual_work_shift_id.end_time:
+                        shift_hours = 24-line.actual_work_shift_id.start_time + line.actual_work_shift_id.end_time
+                    else:
+                        shift_hours = line.actual_work_shift_id.end_time - line.actual_work_shift_id.start_time
+                elif line.planned_work_shift_id:
+                    if line.planned_work_shift_id.start_time > line.planned_work_shift_id.end_time:
+                        shift_hours = 24-line.planned_work_shift_id.start_time + line.planned_work_shift_id.end_time
+                    else:
+                        shift_hours = line.planned_work_shift_id.end_time - line.planned_work_shift_id.start_time
+                else:
+                    shift_hours = 8
+                
+                if extra_hours<shift_hours and line.employee_id.employee_category_id and line.employee_id.employee_category_id.code!='S1':
+                    permission_ids = self.pool.get('arul.hr.permission.onduty').search(cr, uid, [('non_availability_type_id','=','permission'),('date','=',line.work_date),('employee_id','=',line.employee_id.id)])
+                    on_duty_ids = self.pool.get('arul.hr.permission.onduty').search(cr, uid, [('non_availability_type_id','=','on_duty'),('from_date','<=',line.work_date),('to_date','>=',line.work_date),('employee_id','=',line.employee_id.id)])
+                    if not permission_ids and not on_duty_ids:
+                        continue
+                
+                if line.additional_shifts or (extra_hours>8 and line.employee_id.employee_category_id and line.employee_id.employee_category_id.code!='S1'):
+                    c_off_day = 0.0
+                    if line.additional_shifts:
+                        if extra_hours >= 4 and extra_hours < 8:
+                            c_off_day = 0.5
+                        if extra_hours >= 8 and extra_hours < 12:
+                            c_off_day = 1
+                        if extra_hours >= 12 and extra_hours < 16:
+                            c_off_day = 1.5
+                        if extra_hours >= 16:
+                            c_off_day = 2
+                    else:
+                        extra_hours = extra_hours-shift_hours
+                        if extra_hours >= 4 and extra_hours < 8:
+                            c_off_day = 0.5
+                        if extra_hours >= 8 and extra_hours < 12:
+                            c_off_day = 1
+                        if extra_hours >= 12 and extra_hours < 16:
+                            c_off_day = 1.5
+                        if extra_hours >= 16:
+                            c_off_day = 2
+                    employee_leave_ids = employee_leave_obj.search(cr, uid, [('year','=',line.work_date[:4]),('employee_id','=',line.employee_id.id)])
+                    leave_type_ids = leave_type_obj.search(cr, uid, [('code','=','C.Off')])
+                    if not leave_type_ids:
+                        raise osv.except_osv(_('Warning!'),_('Can not fine Leave Type C.Off. Please Create Leave Type C.Off before'))
+                    if employee_leave_ids:
+                        employee_leave_detail_ids = employee_leave_detail_obj.search(cr, uid, [('emp_leave_id','in',employee_leave_ids),('leave_type_id','=',leave_type_ids[0])])
+                        if employee_leave_detail_ids:
+                            sql = '''
+                                update employee_leave_detail set total_day = total_day+%s where id = %s
+                            '''%(c_off_day,employee_leave_detail_ids[0])
+                            cr.execute(sql)
+                        else:
+                            employee_leave_detail_obj.create(cr, uid, {
+                                                                       'leave_type_id': leave_type_ids[0],
+                                                                       'emp_leave_id': employee_leave_ids[0],
+                                                                       'total_day': c_off_day,
+                                                                       })
+                    else:
+                        employee_leave_detail_obj.create(cr, uid, {
+                                                                   'employee_id': employee_ids[0],
+                                                                   'year': data1[7:11],
+                                                                   'emp_leave_details_ids': [(0,0,{
+                                                                                               'leave_type_id': leave_type_ids[0],
+                                                                                               'emp_leave_id': employee_leave_ids[0],
+                                                                                               'total_day': c_off_day,
+                                                                                                   })],
+                                                                   })
+                
+                employee_ids = emp_attendence_obj.search(cr, uid, [('employee_id','=',line.employee_id.id)])
+                if employee_ids:
+                    
+                    val2={'punch_in_out_id':employee_ids[0], 
+                          'employee_id': line.employee_id.id,
+                          'work_date':line.work_date, 
+                          'planned_work_shift_id':line.planned_work_shift_id.id,
+                          'actual_work_shift_id':line.actual_work_shift_id.id,
+                          'in_time':line.in_time,
+                          'out_time':line.out_time,
+                          'approval':1
+                            }
+                    punch_obj.create(cr,uid,val2) 
+                else:
+                    val1={
+                          'employee_id':line.employee_id.id,
+                          'work_date':line.work_date,
+                          'planned_work_shift_id':line.planned_work_shift_id.id,
+                          'actual_work_shift_id':line.actual_work_shift_id.id,
+                          'in_time':line.in_time,
+                          'out_time':line.out_time,
+                          'approval':1
+                          }
+                    emp_attendence_obj.create(cr,uid,{'employee_id':line.employee_id.id,
+                                                      'employee_category_id':line.employee_id.employee_category_id and line.employee_id.employee_category_id.id or False,
+                                                      'sub_category_id':line.employee_id.employee_sub_category_id and line.employee_id.employee_sub_category_id.id or False,
+                                                      'department_id':line.employee_id.department_id and line.employee_id.department_id.id or False,
+                                                      'designation_id':line.employee_id.job_id and line.employee_id.job_id.id or False,
+                                                      'punch_in_out_line':[(0,0,val1)]}) 
+            else:
+                line_id=line.permission_id
+                emp_attendence_obj = self.pool.get('arul.hr.employee.attendence.details')
+                punch_obj = self.pool.get('arul.hr.permission.onduty')
+                detail_obj4 = self.pool.get('arul.hr.punch.in.out.time')
+                emp_attendence_ids = emp_attendence_obj.search(cr, uid, [('employee_id','=',line_id.employee_id.id)])
+                if emp_attendence_ids:
+                    if(line_id.non_availability_type_id == 'on_duty'):
+                        if(line_id.time_total > 8)and(line_id.time_total < 12):
+                            val={'permission_onduty_id':emp_attendence_ids[0],'planned_work_shift_id':line.planned_work_shift_id.id,'actual_work_shift_id':line.actual_work_shift_id.id,'work_date':line_id.date,'in_time':line_id.start_time,'out_time':line_id.end_time,'approval':1}
+#                             sql = '''
+#                                 select id from arul_hr_capture_work_shift where (start_time between %s and start_time+1/6) and (end_time between end_time-1/6 and %s)
+#                             '''%(line_id.start_time - 1,line_id.end_time + 1)
+#                             cr.execute(sql)
+#                             work_shift_ids = [row[0] for row in cr.fetchall()]
+#                             if work_shift_ids :
+#                                 val['planned_work_shift_id']=work_shift_ids[0]
+                            details_ids=emp_attendence_obj.search(cr, uid, [('employee_id','=',line_id.employee_id.id)])
+                            if details_ids:
+                                val4={'punch_in_out_id':details_ids[0],'employee_id':line_id.employee_id.id,'planned_work_shift_id':line.planned_work_shift_id.id,'actual_work_shift_id':line.actual_work_shift_id.id,'work_date':line_id.date,'in_time':line_id.start_time,'out_time':line_id.end_time,'approval':1}
+                                detail_obj4.create(cr, uid, val4)
+                            else:
+                                emp_attendence_obj.create(cr, uid, {'employee_id':line_id.employee_id.id,
+                                                                    'punch_in_out_line':[(0,0,val)],
+                                                                    'employee_category_id':line.employee_id.employee_category_id and line.employee_id.employee_category_id.id or False,
+                                                                    'sub_category_id':line.employee_id.employee_sub_category_id and line.employee_id.employee_sub_category_id.id or False,
+                                                                    'department_id':line.employee_id.department_id and line.employee_id.department_id.id or False,
+                                                                    'designation_id':line.employee_id.job_id and line.employee_id.job_id.id or False})
+                        if(line_id.time_total > 12)and(line_id.time_total < 16):
+                            val={'permission_onduty_id':emp_attendence_ids[0],'planned_work_shift_id':line.planned_work_shift_id.id,'actual_work_shift_id':line.actual_work_shift_id.id,'work_date':line_id.date,'in_time':line_id.start_time,'out_time':line_id.end_time,'approval':1}
+#                             sql = '''
+#                                 select id from arul_hr_capture_work_shift where (start_time between %s and start_time+1/6) and (end_time between end_time-1/6 and %s)
+#                             '''%(line_id.start_time - 1,line_id.end_time + 1)
+#                             cr.execute(sql)
+#                             work_shift_ids = [row[0] for row in cr.fetchall()]
+#                             if work_shift_ids :
+#                             val['planned_work_shift_id']=work_shift_ids[0]
+                            details_ids=emp_attendence_obj.search(cr, uid, [('employee_id','=',line_id.employee_id.id)])
+                            if details_ids:
+                                val4={'punch_in_out_id':details_ids[0],'employee_id':line_id.employee_id.id,'planned_work_shift_id':line.planned_work_shift_id.id,'actual_work_shift_id':line.actual_work_shift_id.id,'work_date':line_id.date,'in_time':line_id.start_time,'out_time':line_id.end_time,'approval':1}
+                                detail_obj4.create(cr, uid, val4)
+                            else:
+                                emp_attendence_obj.create(cr, uid, {'employee_id':line_id.employee_id.id,
+                                                                    'punch_in_out_line':[(0,0,val)],
+                                                                    'employee_category_id':line_id.employee_id.employee_category_id and line_id.employee_id.employee_category_id.id or False,
+                                                                    'sub_category_id':line_id.employee_id.employee_sub_category_id and line_id.employee_id.employee_sub_category_id.id or False,
+                                                                    'department_id':line_id.employee_id.department_id and line_id.employee_id.department_id.id or False,
+                                                                    'designation_id':line_id.employee_id.job_id and line_id.employee_id.job_id.id or False})
+        
+                            
+                    val2={'permission_onduty_id':emp_attendence_ids[0], 'approval':1,
+                            }
+                    punch_obj.write(cr,uid,[line_id.id],val2) 
+                else:
+                    detail_vals = {'employee_id':line_id.employee_id.id,
+                                   'employee_category_id':line_id.employee_id.employee_category_id and line_id.employee_id.employee_category_id.id or False,
+                                    'sub_category_id':line_id.employee_id.employee_sub_category_id and line_id.employee_id.employee_sub_category_id.id or False,
+                                    'department_id':line_id.employee_id.department_id and line_id.employee_id.department_id.id or False,
+                                    'designation_id':line_id.employee_id.job_id and line_id.employee_id.job_id.id or False
+#                                    'designation_id':line_id.employee_id.department_id and line_id.employee_id.department_id.designation_id.id or False
+                                   }
+                    emp_attendence_id = emp_attendence_obj.create(cr,uid,detail_vals)
+                    if(line_id.non_availability_type_id == 'on_duty'):
+                        if(line_id.time_total > 8)and(line_id.time_total < 12):
+                            val={'permission_onduty_id':emp_attendence_id,'planned_work_shift_id':line.planned_work_shift_id.id,'actual_work_shift_id':line.actual_work_shift_id.id,'work_date':line_id.date,'in_time':line_id.start_time,'out_time':line_id.end_time,'approval':1}
+#                             sql = '''
+#                                 select id from arul_hr_capture_work_shift where (start_time between %s and start_time+1/6) and (end_time between end_time-1/6 and %s)
+#                             '''%(line_id.start_time - 1,line_id.end_time + 1)
+#                             cr.execute(sql)
+#                             work_shift_ids = [row[0] for row in cr.fetchall()]
+#                             if work_shift_ids :
+#                                 val['planned_work_shift_id']=work_shift_ids[0]
+                            details_ids=emp_attendence_obj.search(cr, uid, [('employee_id','=',line_id.employee_id.id)])
+                            if details_ids:
+                                val4={'punch_in_out_id':details_ids[0],'employee_id':line_id.employee_id.id,'planned_work_shift_id':line.planned_work_shift_id.id,'actual_work_shift_id':line.actual_work_shift_id.id,'work_date':line_id.date,'in_time':line_id.start_time,'out_time':line_id.end_time,'approval':1}
+                                detail_obj4.create(cr, uid, val4)
+                            else:
+                                emp_attendence_obj.create(cr, uid, {'employee_id':line_id.employee_id.id,
+                                                                    'punch_in_out_line':[(0,0,val)],
+                                                                    'employee_category_id':line_id.employee_id.employee_category_id and line_id.employee_id.employee_category_id.id or False,
+                                                                    'sub_category_id':line_id.employee_id.employee_sub_category_id and line_id.employee_id.employee_sub_category_id.id or False,
+                                                                    'department_id':line_id.employee_id.department_id and line_id.employee_id.department_id.id or False,
+                                                                    'designation_id':line_id.employee_id.job_id and line_id.employee_id.job_id.id or False})
+                        if(line_id.time_total > 12)and(line_id.time_total < 16):
+                            val={'permission_onduty_id':emp_attendence_id,'planned_work_shift_id':line.planned_work_shift_id.id,'actual_work_shift_id':line.actual_work_shift_id.id,'work_date':line_id.date,'in_time':line_id.start_time,'out_time':line_id.end_time,'approval':1}
+#                             sql = '''
+#                                 select id from arul_hr_capture_work_shift where (start_time between %s and start_time+1/6) and (end_time between end_time-1/6 and %s)
+#                             '''%(line_id.start_time - 1,line_id.end_time + 1)
+#                             cr.execute(sql)
+#                             work_shift_ids = [row[0] for row in cr.fetchall()]
+#                             if work_shift_ids :
+#                                 val['planned_work_shift_id']=work_shift_ids[0]
+                            details_ids=emp_attendence_obj.search(cr, uid, [('employee_id','=',line_id.employee_id.id)])
+                            if details_ids:
+                                val4={'punch_in_out_id':details_ids[0],'employee_id':line_id.employee_id.id,'planned_work_shift_id':line.planned_work_shift_id.id,'actual_work_shift_id':line.actual_work_shift_id.id,'work_date':line_id.date,'in_time':line_id.start_time,'out_time':line_id.end_time,'approval':1}
+                                detail_obj4.create(cr, uid, val4)
+                            else:
+                                emp_attendence_obj.create(cr, uid, {'employee_id':line_id.employee_id.id,
+                                                                    'punch_in_out_line':[(0,0,val)],
+                                                                    'employee_category_id':line_id.employee_id.employee_category_id and line_id.employee_id.employee_category_id.id or False,
+                                                                    'sub_category_id':line_id.employee_id.employee_sub_category_id and line_id.employee_id.employee_sub_category_id.id or False,
+                                                                    'department_id':line_id.employee_id.department_id and line_id.employee_id.department_id.id or False,
+                                                                    'designation_id':line_id.employee_id.job_id and line_id.employee_id.job_id.id or False})
+                    punch_obj.write(cr,uid,[line_id.id],{'permission_onduty_id':emp_attendence_id,'approval':1}) 
+            self.write(cr, uid, [line.id],{'approval': True, 'state':'done', 'time_evaluate_id':False})
+        return True
+    
     def approve_shift_time(self, cr, uid, ids, context=None):
         employee_leave_obj = self.pool.get('employee.leave')
         employee_leave_detail_obj = self.pool.get('employee.leave.detail')
@@ -495,6 +714,7 @@ class arul_hr_audit_shift_time(osv.osv):
                     punch_obj.write(cr,uid,[line_id.id],{'permission_onduty_id':emp_attendence_id,'approval':1}) 
             self.write(cr, uid, [line.id],{'approval': True, 'state':'done', 'time_evaluate_id':False})
         return True
+    
     def reject_shift_time(self, cr, uid, ids, context=None):
         for line in self.browse(cr, uid, ids):
             self.write(cr, uid, [line.id],{'approval': False, 'state':'cancel', 'time_evaluate_id':False})
