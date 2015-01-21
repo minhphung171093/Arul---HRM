@@ -149,6 +149,9 @@ class stock_picking(osv.osv):
                 'invoice_line_tax_id': [(6, 0, [tax_id])],
     #             'invoice_line_tax_id': [(6, 0, self._get_taxes_invoice(cr, uid, move_line, invoice_vals['type']))],
                 'account_analytic_id': self._get_account_analytic_invoice(cr, uid, picking, move_line),
+#                 'product_type':move_line.product_type or False,
+#                 'application_id':move_line.application_id or False,
+#                 'freight':move_line.freight or False,
             }
         else:
             return {
@@ -164,6 +167,9 @@ class stock_picking(osv.osv):
 #                 'invoice_line_tax_id': [(6, 0, [picking.purchase_id.purchase_tax_id])],
     #             'invoice_line_tax_id': [(6, 0, self._get_taxes_invoice(cr, uid, move_line, invoice_vals['type']))],
                 'account_analytic_id': self._get_account_analytic_invoice(cr, uid, picking, move_line),
+#                 'product_type':move_line.product_type or False,
+#                 'application_id':move_line.application_id or False,
+#                 'freight':move_line.freight or False,
             }
 
 stock_picking()
