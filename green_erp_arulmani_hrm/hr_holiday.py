@@ -288,7 +288,7 @@ class arul_hr_audit_shift_time(osv.osv):
                     else:
                         shift_hours = line.planned_work_shift_id.end_time - line.planned_work_shift_id.start_time
                 else:
-                    raise osv.except_osv(_('Warning!'),_('Please select the actual work shift first!'))
+                    shift_hours = 8
                 
                 if extra_hours<shift_hours and line.employee_id.employee_category_id and line.employee_id.employee_category_id.code!='S1':
                     permission_ids = self.pool.get('arul.hr.permission.onduty').search(cr, uid, [('non_availability_type_id','=','permission'),('date','=',line.work_date),('employee_id','=',line.employee_id.id)])
@@ -310,14 +310,25 @@ class arul_hr_audit_shift_time(osv.osv):
                 
                 if line.additional_shifts or (extra_hours>8 and line.employee_id.employee_category_id and line.employee_id.employee_category_id.code!='S1'):
                     c_off_day = 0.0
-                    if extra_hours >= 4 and extra_hours < 8:
-                        c_off_day = 0.5
-                    if extra_hours >= 8 and extra_hours < 12:
-                        c_off_day = 1
-                    if extra_hours >= 12 and extra_hours < 16:
-                        c_off_day = 1.5
-                    if extra_hours >= 16:
-                        c_off_day = 2
+                    if line.additional_shifts:
+                        if extra_hours >= 4 and extra_hours < 8:
+                            c_off_day = 0.5
+                        if extra_hours >= 8 and extra_hours < 12:
+                            c_off_day = 1
+                        if extra_hours >= 12 and extra_hours < 16:
+                            c_off_day = 1.5
+                        if extra_hours >= 16:
+                            c_off_day = 2
+                    else:
+                        extra_hours = extra_hours-shift_hours
+                        if extra_hours >= 4 and extra_hours < 8:
+                            c_off_day = 0.5
+                        if extra_hours >= 8 and extra_hours < 12:
+                            c_off_day = 1
+                        if extra_hours >= 12 and extra_hours < 16:
+                            c_off_day = 1.5
+                        if extra_hours >= 16:
+                            c_off_day = 2
                     employee_leave_ids = employee_leave_obj.search(cr, uid, [('year','=',line.work_date[:4]),('employee_id','=',line.employee_id.id)])
                     leave_type_ids = leave_type_obj.search(cr, uid, [('code','=','C.Off')])
                     if not leave_type_ids:
