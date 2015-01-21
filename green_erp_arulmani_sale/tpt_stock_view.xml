@@ -198,7 +198,6 @@
 				</xpath>
 				<xpath expr="//field[@name='fiscal_position']" position="replace">
 					<field name="type" string = "Document Type" readonly = "0"/>
-					<field name="currency_id" options="{'create': false, 'create_edit': false}"/>
 					<field name="excise_duty_id" options="{'create': false, 'create_edit': false}" domain="[('type_tax_use','=','excise_duty')]"/>
 					<field name="doc_status" />
 					<field name="pre_carriage_by" />
@@ -211,6 +210,9 @@
 				</xpath>
 				<xpath expr="//field[@name='date_invoice']" position="attributes">
 					<attribute name="on_change">onchange_date_invoice(date_invoice)</attribute>
+				</xpath>
+				<xpath expr="//field[@name='currency_id']" position="attributes">
+					<attribute name="readonly">1</attribute>
 				</xpath>
 				<xpath expr="//field[@name='account_id']" position="replace">
 					<field name="account_id" required = "0" invisible = "1"/>
