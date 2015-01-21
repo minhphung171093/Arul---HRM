@@ -682,6 +682,7 @@ class purchase_order(osv.osv):
                 'purchase.order.line': (_get_order, None, 10),
             }, multi="sums",help="The total amount"),
                 }
+    
     _default = {
         'name':'/',
                }
@@ -693,7 +694,7 @@ class purchase_order(osv.osv):
             quotation = self.pool.get('tpt.purchase.quotation').browse(cr, uid, quotation_no)
             for line in quotation.purchase_quotation_line:
                 rs = {
-                      'po_indent_no': line.po_indent_id and line.product_id.id or False,
+                      'po_indent_no': line.po_indent_id and line.po_indent_id.id or False,
                       'product_id': line.product_id and line.product_id.id or False,
                       'product_qty': line.product_uom_qty or False,
                       'product_uom': line.uom_po_id and line.uom_po_id.id or False,
@@ -744,6 +745,17 @@ class purchase_order(osv.osv):
             sequence = self.pool.get('ir.sequence').get(cr, uid, 'purchase.order.out.service')
             sql = '''update purchase_order set name='%s' where id =%s'''%(sequence+'/'+fiscalyear['code']or '/',new_id)
             cr.execute(sql)
+            
+        date_order = datetime.datetime.strptime(new.date_order,'%Y-%m-%d')
+        date_order_month = date_order.month
+        date_order_year = date_order.year
+        sql = '''
+                select sum(amount_total) as total from purchase_order where EXTRACT(month from date_order) = %s and EXTRACT(year from date_order) = %s
+        '''%(date_order_month,date_order_year)
+        cr.execute(sql)
+        amount_total = cr.dictfetchone()
+        if (amount_total['total'] > 2000000):
+            raise osv.except_osv(_('Warning!'),_('The Emergency Purchase reaches 2 Lakhs Limit (2,000,000) in the current month. This can be processed only when the next month starts'))
         return new_id
     
     def write(self, cr, uid, ids, vals, context=None):
@@ -825,7 +837,9 @@ class purchase_order_line(osv.osv):
     _columns = {
         'po_indent_no' : fields.many2one('tpt.purchase.indent', 'PO Indent No', required = True),
                 }
-    
+    _defaults = {
+                 'date_planned':time.strftime('%Y-%m-%d'),
+                 }
     def onchange_po_indent_no(self, cr, uid, ids,po_indent_no=False, context=None):
         if po_indent_no:
             return {'value': {'product_id': False}}    
@@ -880,24 +894,54 @@ class tpt_product_detail_line(osv.osv):
     }
 tpt_product_detail_line()
 
-# class tpt_quanlity_inspection(osv.osv):
-#     _name = "tpt.quanlity.inspection"
-#     _columns = {
-#         'name' : fields.char('GRN No',size = 1024,required = True),
-#         'date':fields.date('Create Date'),
-#         'supplier_id':fields.many2one('res.partner','Supplier',required = True),
-#         'product_id': fields.many2one('product.product', 'Product',required = True),
-#         'reason':fields.text('Season'),
-#         'specification_line':fields.one2many('tpt.product.specification','specification_id','Product Specification')
-#                 }
-# tpt_quanlity_inspection()
-# class tpt_product_specification(osv.osv):
-#     _name = "tpt.product.specification"
-#     _columns = {
-#         'name' : fields.char('Parameters',size = 1024,required = True),
-#         'value' : fields.char('Value',size = 1024,required = True),
-#         'exp_value' : fields.char('Experimental Value',size = 1024,required = True),
-#         'specification_id':fields.many2one('res.partner','Supplier',required = True),
-# 
-#                 }
-# tpt_product_specification()
+class tpt_quanlity_inspection(osv.osv):
+    _name = "tpt.quanlity.inspection"
+    _columns = {
+        'name' : fields.many2one('stock.picking.in','GRN No',required = True),
+        'date':fields.datetime('Create Date'),
+        'supplier_id':fields.many2one('res.partner','Supplier',required = True),
+        'product_id': fields.many2one('product.product', 'Product',required = True),
+        'reason':fields.text('Season'),
+        'specification_line':fields.one2many('tpt.product.specification','specification_id','Product Specification'),
+        'qty':fields.float('Qty'),
+        'state':fields.selection([('draft', 'Draft'),('cancel', 'Rejected'),('done', 'Approved')],'Status', readonly=True),
+                }
+    _defaults = {
+        'state':'draft',
+                 }
+
+#     def onchange_grn_no(self, cr, uid, ids,name=False, context=None):
+#         vals = {}
+#         po_line = []
+#         if name:
+#             grn = self.pool.get('tpt.quanlity.inspection').browse(cr, uid, name)
+#             for line in quotation.purchase_quotation_line:
+#                 rs = {
+#                       'po_indent_no': line.po_indent_id and line.product_id.id or False,
+#                       'product_id': line.product_id and line.product_id.id or False,
+#                       'product_qty': line.product_uom_qty or False,
+#                       'product_uom': line.uom_po_id and line.uom_po_id.id or False,
+#                       'price_unit': line.price_unit or False,
+#                       'price_subtotal': line.sub_total or False,
+#                       'date_planned':quotation.date_quotation or False,
+#                       }
+#                 po_line.append((0,0,rs))
+#             vals = {
+#                     'partner_id':quotation.supplier_id and quotation.supplier_id.id or '',
+#                     'partner_ref':quotation.quotation_ref or '',
+#                     'purchase_tax_id':quotation.tax_id and quotation.tax_id.id or '',
+#                     'order_line': po_line,
+#                     }
+#         return {'value': vals}
+
+tpt_quanlity_inspection()
+class tpt_product_specification(osv.osv):
+    _name = "tpt.product.specification"
+    _columns = {
+        'name' : fields.char('Parameters',size = 1024,required = True),
+        'value' : fields.char('Value',size = 1024,required = True),
+        'exp_value' : fields.char('Experimental Value',size = 1024),
+        'specification_id':fields.many2one('res.partner','Supplier'),
+ 
+                }
+tpt_product_specification()
