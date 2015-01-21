@@ -76,7 +76,7 @@ class alert_form(osv.osv_memory):
     
     def approve_audit(self, cr, uid, ids, context=None):
         audit_ids = context.get('active_ids')
-        self.pool.get('arul.hr.audit.shift.time').approve_shift_time(cr, uid, audit_ids)
+        self.pool.get('arul.hr.audit.shift.time').approve_shift_time_multi(cr, uid, audit_ids)
         return {'type': 'ir.actions.act_window_close'}
     
     def reject_audit(self, cr, uid, ids, context=None):
