@@ -682,6 +682,7 @@ class purchase_order(osv.osv):
                 'purchase.order.line': (_get_order, None, 10),
             }, multi="sums",help="The total amount"),
                 }
+    
     _default = {
         'name':'/',
                }
@@ -744,6 +745,17 @@ class purchase_order(osv.osv):
             sequence = self.pool.get('ir.sequence').get(cr, uid, 'purchase.order.out.service')
             sql = '''update purchase_order set name='%s' where id =%s'''%(sequence+'/'+fiscalyear['code']or '/',new_id)
             cr.execute(sql)
+            
+        date_order = datetime.datetime.strptime(new.date_order,'%Y-%m-%d')
+        date_order_month = date_order.month
+        date_order_year = date_order.year
+        sql = '''
+                select sum(amount_total) as total from purchase_order where EXTRACT(month from date_order) = %s and EXTRACT(year from date_order) = %s
+        '''%(date_order_month,date_order_year)
+        cr.execute(sql)
+        amount_total = cr.dictfetchone()
+        if (amount_total['total'] > 2000000):
+            raise osv.except_osv(_('Warning!'),_('The Emergency Purchase reaches 2 Lakhs Limit (2,000,000) in the current month. This can be processed only when the next month starts'))
         return new_id
     
     def write(self, cr, uid, ids, vals, context=None):
