@@ -23,9 +23,11 @@ class Parser(report_sxw.rml_parse):
         super(Parser, self).__init__(cr, uid, name, context=context)
         pool = pooler.get_pool(self.cr.dbname)
         self.localcontext.update({
+            'get_invoice_info':self.get_invoice_info,
             'get_date': self.get_date,
             'get_qty_bags': self.get_qty_bags,
             'get_qty_mt': self.get_qty_mt,
+            'get_qty_kg':self.get_qty_kg,
             'get_buyer': self.get_buyer,
         })
     

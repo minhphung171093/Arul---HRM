@@ -186,10 +186,13 @@ class arul_hr_audit_shift_time(osv.osv):
             res[time.id] = {
                 'total_hours': 0.0,
             }
-            if time.in_time > time.out_time:
-                time_total = 24-time.in_time + time.out_time
+            if time.in_time != 0 and time.out_time!=0:
+                if time.in_time > time.out_time:
+                    time_total = 24-time.in_time + time.out_time
+                else:
+                    time_total = time.out_time - time.in_time
             else:
-                time_total = time.out_time - time.in_time
+                time_total=0
             res[time.id]['total_hours'] = time_total 
         return res
     
@@ -288,7 +291,7 @@ class arul_hr_audit_shift_time(osv.osv):
                     else:
                         shift_hours = line.planned_work_shift_id.end_time - line.planned_work_shift_id.start_time
                 else:
-                    raise osv.except_osv(_('Warning!'),_('Please select the actual work shift first!'))
+                    shift_hours = 8
                 
                 if extra_hours<shift_hours and line.employee_id.employee_category_id and line.employee_id.employee_category_id.code!='S1':
                     permission_ids = self.pool.get('arul.hr.permission.onduty').search(cr, uid, [('non_availability_type_id','=','permission'),('date','=',line.work_date),('employee_id','=',line.employee_id.id)])
@@ -310,14 +313,25 @@ class arul_hr_audit_shift_time(osv.osv):
                 
                 if line.additional_shifts or (extra_hours>8 and line.employee_id.employee_category_id and line.employee_id.employee_category_id.code!='S1'):
                     c_off_day = 0.0
-                    if extra_hours >= 4 and extra_hours < 8:
-                        c_off_day = 0.5
-                    if extra_hours >= 8 and extra_hours < 12:
-                        c_off_day = 1
-                    if extra_hours >= 12 and extra_hours < 16:
-                        c_off_day = 1.5
-                    if extra_hours >= 16:
-                        c_off_day = 2
+                    if line.additional_shifts:
+                        if extra_hours >= 4 and extra_hours < 8:
+                            c_off_day = 0.5
+                        if extra_hours >= 8 and extra_hours < 12:
+                            c_off_day = 1
+                        if extra_hours >= 12 and extra_hours < 16:
+                            c_off_day = 1.5
+                        if extra_hours >= 16:
+                            c_off_day = 2
+                    else:
+                        extra_hours = extra_hours-shift_hours
+                        if extra_hours >= 4 and extra_hours < 8:
+                            c_off_day = 0.5
+                        if extra_hours >= 8 and extra_hours < 12:
+                            c_off_day = 1
+                        if extra_hours >= 12 and extra_hours < 16:
+                            c_off_day = 1.5
+                        if extra_hours >= 16:
+                            c_off_day = 2
                     employee_leave_ids = employee_leave_obj.search(cr, uid, [('year','=',line.work_date[:4]),('employee_id','=',line.employee_id.id)])
                     leave_type_ids = leave_type_obj.search(cr, uid, [('code','=','C.Off')])
                     if not leave_type_ids:
@@ -759,12 +773,32 @@ class arul_hr_employee_leave_details(osv.osv):
                 if leave_ids:  
                     raise osv.except_osv(_('Warning!'),_('The Employee requested leave day for these date!'))
             else:
-                sql = '''
+                sql1 = '''
+                    select id from arul_hr_employee_leave_details where id != %s and employee_id = %s and (('%s' between date_from and date_to) or ('%s' between date_from and date_to)) and haft_day_leave = False
+                '''%(day.id,day.employee_id.id,date_from.strftime('%Y-%m-%d'),date_to.strftime('%Y-%m-%d'))
+                cr.execute(sql1)
+                leave_f_ids = [row[0] for row in cr.fetchall()]
+                sql2 = '''
                     select id from arul_hr_employee_leave_details where id != %s and employee_id = %s and date_to = '%s' and haft_day_leave = True
                 '''%(day.id,day.employee_id.id,date_to.strftime('%Y-%m-%d'))
-                cr.execute(sql)
+                cr.execute(sql2)
+                leave_t_ids = [row[0] for row in cr.fetchall()]
+                sql3 = '''
+                    select id from arul_hr_employee_leave_details where id != %s and employee_id = %s and (('%s' between date_from and date_to) or ('%s' between date_from and date_to)) and ('%s' != date_to) and haft_day_leave = True
+                '''%(day.id,day.employee_id.id,date_from.strftime('%Y-%m-%d'),date_to.strftime('%Y-%m-%d'),date_to.strftime('%Y-%m-%d'))
+                cr.execute(sql3)
                 leave_ids = [row[0] for row in cr.fetchall()]
-                if len(leave_ids) > 1:  
+                sql4 = '''
+                    select id from arul_hr_employee_leave_details where id != %s and employee_id = %s and date_to = '%s' and haft_day_leave = True and ('%s' between date_from and date_to)
+                '''%(day.id,day.employee_id.id,date_to.strftime('%Y-%m-%d'),date_from.strftime('%Y-%m-%d'))
+                cr.execute(sql4)
+                leave_4_ids = [row[0] for row in cr.fetchall()]
+                sql5 = '''
+                    select id from arul_hr_employee_leave_details where id != %s and employee_id = %s and date_to = '%s' and haft_day_leave = True and (date_from between '%s' and '%s' )
+                '''%(day.id,day.employee_id.id,date_to.strftime('%Y-%m-%d'),date_from.strftime('%Y-%m-%d'),date_to.strftime('%Y-%m-%d'))
+                cr.execute(sql5)
+                leave_5_ids = [row[0] for row in cr.fetchall()]
+                if leave_f_ids or len(leave_t_ids) > 1 or leave_ids or leave_4_ids or leave_5_ids:  
                     raise osv.except_osv(_('Warning!'),_('The Employee requested leave day for these date!'))
         return True   
     _constraints = [
