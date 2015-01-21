@@ -35,7 +35,7 @@
             <field name="inherit_id" ref="stock.view_move_picking_form"/>
             <field name="arch" type="xml">
             	<xpath expr="//field[@name='product_id']" position="replace">
-					<field name="product_id" context="{'search_do_ref_id':True,'do_ref_id':parent.do_ref_id}" on_change="onchange_product_id(product_id,location_id,location_dest_id, parent.partner_id)"/>
+					<field name="product_id"  context="{'search_do_ref_id':True,'do_ref_id':parent.do_ref_id}" on_change="onchange_product_id(product_id,location_id,location_dest_id, parent.partner_id)"/>
 				</xpath>
             	<xpath expr="//field[@name='name']" position="replace">
 					<field name="name" required = '0' invisible = '1'/>
@@ -273,16 +273,19 @@
             	<xpath expr="//field[@name='date']" position="attributes">
 					<attribute name='required'>1</attribute>
 				</xpath>
+				<xpath expr="//field[@name='date']" position="attributes">
+					<attribute name='readonly'>1</attribute>
+				</xpath>
 				<xpath expr="//field[@name='backorder_id']" position="attributes">
 					<attribute name="invisible">1</attribute>
 				</xpath>
             	<xpath expr="//field[@name='partner_id']"  position="replace">
                     <field name="partner_id" on_change="onchange_partner_in(partner_id)" string="Customer" domain="[('customer','=',1),('is_company','=',1)]" readonly = "1" options="{'create': false, 'create_edit': false}"/>
-            		<field name="sale_id" required = '1' domain="[('state','=','progress')]" options="{'create': false, 'create_edit': false}"/>
-            		<field name="cons_loca" required = "1" domain="[('consignee_parent_id','=',partner_id)]" options="{'create': false, 'create_edit': false,'always_reload': True}" context="{'show_address': 1}"/>
-            		<field name="warehouse" required = "1" domain="[('usage','=','internal')]" options="{'create': false, 'create_edit': false}"/>
-            		<field name="transporter" required = "1"/>
-            		<field name="truck" required = "1"/>
+            		<field name="sale_id" readonly="1" domain="[('state','=','progress')]" options="{'create': false, 'create_edit': false}"/>
+            		<field name="cons_loca" readonly ="1" domain="[('consignee_parent_id','=',partner_id)]" options="{'create': false, 'create_edit': false,'always_reload': True}" context="{'show_address': 1}"/>
+            		<field name="warehouse" required ="1" domain="[('usage','=','internal')]" options="{'create': false, 'create_edit': false}"/>
+            		<field name="transporter" required ="1"/>
+            		<field name="truck" required ="1"/>
             		<field name="remarks"/>
             		<field name="doc_status"/>
             	</xpath>

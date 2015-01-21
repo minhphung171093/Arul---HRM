@@ -565,7 +565,7 @@ class sale_order(osv.osv):
             picking_id = picking_out_ids[0]
             limit = sale.partner_id and sale.partner_id.credit_limit or False
             amount = sale.amount_total or False
-            if limit and amount and amount >= limit:
+            if (limit > 0 or limit == 0) and amount and amount >= limit:
                 doc_status = 'waiting'
             first_picking_id = False
             for i,consignee_id in enumerate(consignee_ids):
@@ -1603,10 +1603,23 @@ class tpt_batch_allotment_line(osv.osv):
         'application_id': fields.many2one('crm.application','Application'),    
         'product_uom_qty': fields.float('Quantity'),   
         'uom_po_id': fields.many2one('product.uom','UOM'),   
-        'sys_batch':fields.many2one('stock.production.lot','System Serial No.'), 
+        'sys_batch':fields.many2one('stock.production.lot','System Serial No.',required=True), 
 #         'phy_batch':fields.char('Physical Batch No.', size = 1024)
         'phy_batch':fields.function(get_phy_batch,type='char', size = 1024,string='Physical Serial No.',multi='sum',store=True),
                 }
+    
+    def create(self, cr, uid, vals, context=None):
+        if 'product_uom_qty' in vals:
+            if (vals['product_uom_qty'] < 0):
+                raise osv.except_osv(_('Warning!'),_('Quantity is not allowed as negative values'))
+        return super(tpt_batch_allotment_line, self).create(cr, uid, vals, context)
+    
+    def write(self, cr, uid, ids, vals, context=None):
+        if 'product_uom_qty' in vals:
+            if (vals['product_uom_qty'] < 0):
+                raise osv.except_osv(_('Warning!'),_('Quantity is not allowed as negative values'))
+        return super(tpt_batch_allotment_line, self).write(cr, uid,ids, vals, context)
+    
     def onchange_sys_batch(self, cr, uid, ids,sys_batch=False,qty=False,batch_allotment_line=False,context=None):
 #         res = {'value':{
 #                         'sys_batch':False
