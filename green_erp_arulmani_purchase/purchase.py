@@ -694,7 +694,7 @@ class purchase_order(osv.osv):
             quotation = self.pool.get('tpt.purchase.quotation').browse(cr, uid, quotation_no)
             for line in quotation.purchase_quotation_line:
                 rs = {
-                      'po_indent_no': line.po_indent_id and line.product_id.id or False,
+                      'po_indent_no': line.po_indent_id and line.po_indent_id.id or False,
                       'product_id': line.product_id and line.product_id.id or False,
                       'product_qty': line.product_uom_qty or False,
                       'product_uom': line.uom_po_id and line.uom_po_id.id or False,
