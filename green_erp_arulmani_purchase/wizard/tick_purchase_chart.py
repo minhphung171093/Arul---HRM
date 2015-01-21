@@ -36,7 +36,7 @@ class tick_purchase_chart(osv.osv_memory):
                                        'product_qty':line.product_uom_qty,
                                        'product_uom':line.uom_po_id.id,
                                        'price_unit':line.price_unit,
-                                        'name':'/',
+#                                         'name':'/',
                                        }))
         vals.update({
                     'po_document_type': tick.po_document_type,
