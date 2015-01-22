@@ -434,16 +434,16 @@ class tpt_purchase_quotation(osv.osv):
             result[line.purchase_quotation_id.id] = True
         return result.keys()
     _columns = {
-        'name':fields.char('Quotation No ', size = 1024, readonly = True),
-        'date_quotation':fields.date('Quotation Date'),
-        'supplier_id': fields.many2one('res.partner', 'Supplier',required = True),
-        'supplier_location_id': fields.char( 'Supplier Location', size = 1024),
+        'name':fields.char('Quotation No ', size = 1024, readonly = True ,states={'cancel': [('readonly', True)], 'done':[('readonly', True)]}),
+        'date_quotation':fields.date('Quotation Date',states={'cancel': [('readonly', True)], 'done':[('readonly', True)]}),
+        'supplier_id': fields.many2one('res.partner', 'Supplier',required = True,states={'cancel': [('readonly', True)], 'done':[('readonly', True)]}),
+        'supplier_location_id': fields.char( 'Supplier Location', size = 1024 ,states={'cancel': [('readonly', True)], 'done':[('readonly', True)]}),
         'quotation_cate':fields.selection([('single','Single Quotation'),
                                   ('special','Special Quotation'),
                                   ('multiple','Multiple Quotation')],'Quotation Category'),
         'quotation_ref':fields.char('Quotation Reference',size = 1024),
-        'tax_id': fields.many2one('account.tax', 'Taxes',required=True),
-        'purchase_quotation_line':fields.one2many('tpt.purchase.quotation.line','purchase_quotation_id','Quotation Line'),
+        'tax_id': fields.many2one('account.tax', 'Taxes',required=True ,states={'cancel': [('readonly', True)], 'done':[('readonly', True)]}),
+        'purchase_quotation_line':fields.one2many('tpt.purchase.quotation.line','purchase_quotation_id','Quotation Line' ,states={'cancel': [('readonly', True)], 'done':[('readonly', True)]}),
         'amount_untaxed': fields.function(amount_all_quotation_line, multi='sums',string='Untaxed Amount',
                                          store={
                 'tpt.purchase.quotation': (lambda self, cr, uid, ids, c={}: ids, ['purchase_quotation_line'], 10),
@@ -901,14 +901,14 @@ tpt_product_detail_line()
 class tpt_quanlity_inspection(osv.osv):
     _name = "tpt.quanlity.inspection"
     _columns = {
-        'name' : fields.many2one('stock.picking.in','GRN No',required = True,readonly = True),
-        'need_inspec_id':fields.many2one('stock.move','Need Inspec'),
-        'date':fields.datetime('Create Date',readonly = True),
-        'supplier_id':fields.many2one('res.partner','Supplier',required = True,readonly = True),
-        'product_id': fields.many2one('product.product', 'Product',required = True,readonly = True),
-        'reason':fields.text('Season'),
+        'name' : fields.many2one('stock.picking.in','GRN No',required = True,readonly = True,states={'cancel': [('readonly', True)], 'done':[('readonly', True)]}),
+        'need_inspec_id':fields.many2one('stock.move','Need Inspec',states={'cancel': [('readonly', True)], 'done':[('readonly', True)]}),
+        'date':fields.datetime('Create Date',readonly = True,states={'cancel': [('readonly', True)], 'done':[('readonly', True)]}),
+        'supplier_id':fields.many2one('res.partner','Supplier',required = True,readonly = True,states={'cancel': [('readonly', True)], 'done':[('readonly', True)]}),
+        'product_id': fields.many2one('product.product', 'Product',required = True,readonly = True,states={'cancel': [('readonly', True)], 'done':[('readonly', True)]}),
+        'reason':fields.text('Season',states={'cancel': [('readonly', True)], 'done':[('readonly', True)]}),
         'specification_line':fields.one2many('tpt.product.specification','specification_id','Product Specification'),
-        'qty':fields.float('Qty'),
+        'qty':fields.float('Qty',states={'cancel': [('readonly', True)], 'done':[('readonly', True)]}),
         'state':fields.selection([('draft', 'Draft'),('cancel', 'Rejected'),('done', 'Approved')],'Status', readonly=True),
                 }
     _defaults = {
