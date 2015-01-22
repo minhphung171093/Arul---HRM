@@ -1022,12 +1022,12 @@ class tpt_good_return_request(osv.osv):
     
     _columns = {
         'grn_no_id' : fields.many2one('stock.picking.in', 'GRN No', required = True, states={'done':[('readonly', True)]}), 
-        'request_date': fields.date('Request Date', states={'done':[('readonly', True)]}), 
+        'request_date': fields.datetime('Request Date', states={'done':[('readonly', True)]}), 
         'product_detail_line': fields.one2many('tpt.product.detail.line', 'request_id', 'Product Detail', states={'done':[('readonly', True)]}), 
         'state':fields.selection([('draft', 'Draft'),('done', 'Done')],'Status', readonly=True),
                 }
     _defaults = {
-        'request_date': time.strftime('%Y-%m-%d'),
+        'request_date': time.strftime('%Y-%m-%d %H:%M:%S'),
         'state': 'draft',
     }
     
@@ -1094,7 +1094,7 @@ class tpt_quanlity_inspection(osv.osv):
         'date':fields.datetime('Create Date',readonly = True,states={'cancel': [('readonly', True)], 'done':[('readonly', True)]}),
         'supplier_id':fields.many2one('res.partner','Supplier',required = True,readonly = True,states={'cancel': [('readonly', True)], 'done':[('readonly', True)]}),
         'product_id': fields.many2one('product.product', 'Product',required = True,readonly = True,states={'cancel': [('readonly', True)], 'done':[('readonly', True)]}),
-        'reason':fields.text('Season',states={'cancel': [('readonly', True)], 'done':[('readonly', True)]}),
+        'reason':fields.text('Reason',states={'cancel': [('readonly', True)], 'done':[('readonly', True)]}),
         'specification_line':fields.one2many('tpt.product.specification','specification_id','Product Specification'),
         'qty':fields.float('Qty',states={'cancel': [('readonly', True)], 'done':[('readonly', True)]}),
         'state':fields.selection([('draft', 'Draft'),('cancel', 'Rejected'),('done', 'Approved')],'Status', readonly=True),
