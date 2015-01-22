@@ -950,3 +950,41 @@ class tpt_product_specification(osv.osv):
  
                 }
 tpt_product_specification()
+
+class tpt_gate_out_pass(osv.osv):
+    _name = "tpt.gate.out.pass"
+      
+    _columns = {
+        'name': fields.char('Gate Out Pass No', size = 1024, readonly=True),
+        'po_id': fields.many2one('purchase.order', 'PO Number', required = True),
+        'supplier_id': fields.many2one('res.partner', 'Supplier', required = True),
+        'grn_id': fields.many2one('stock.picking.in','GRN No', required = True), 
+        'gate_date_time': fields.datetime('Gate Out Pass Date & Time'),
+        'gate_out_pass_line': fields.one2many('tpt.gate.out.pass.line', 'gate_out_pass_id', 'Product Details'),
+                }
+    _defaults={
+               'name':'/',
+               'gate_date_time': time.strftime("%Y-%m-%d %H:%M:%S"),
+    }
+    
+    def create(self, cr, uid, vals, context=None):
+        if vals.get('name','/')=='/':
+            vals['name'] = self.pool.get('ir.sequence').get(cr, uid, 'tpt.gate.out.pass.import') or '/'
+        return super(tpt_gate_out_pass, self).create(cr, uid, vals, context=context)
+    
+tpt_gate_out_pass()
+
+class tpt_gate_out_pass_line(osv.osv):
+    _name = "tpt.gate.out.pass.line"
+    _columns = {
+        'gate_out_pass_id': fields.many2one('tpt.gate.out.pass','Gate Out Pass',ondelete = 'cascade'),
+        'product_id': fields.many2one('product.product', 'Product'),
+        'product_qty': fields.float('Quantity'),
+        'uom_po_id': fields.many2one('product.uom', 'UOM'),
+        'reason': fields.char('Reason for Rejection', size = 1024),
+                }
+    _defaults={
+               'product_qty': 1,
+    }
+      
+tpt_gate_out_pass_line()

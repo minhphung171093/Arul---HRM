@@ -622,6 +622,63 @@
         <menuitem action="action_view_tpt_quanlity_inspection_form"
             id="menu_action_view_tpt_quanlity_inspection_form"
             parent="purchase.menu_procurement_management" sequence="29"/> 
+            
+        <record id="view_tpt_gate_out_pass_tree" model="ir.ui.view">
+			<field name="name">tpt.gate.out.pass.tree</field>
+			<field name="model">tpt.gate.out.pass</field>
+			<field name="arch" type="xml">
+				<tree string="Gate Out Pass">
+					<field name="name"/>
+                	<field name="grn_id"/>
+                	<field name="gate_date_time"/>
+	                <field name="po_id"/>
+	                <field name="supplier_id"/>
+				</tree>
+			</field>
+		</record>
+		
+        <record id="view_tpt_gate_out_pass_form" model="ir.ui.view">
+            <field name="name">tpt.gate.out.pass.form</field>
+            <field name="model">tpt.gate.out.pass</field>
+            <field name="arch" type="xml">
+	            <form string="Gate Out Pass" version="7.0">   
+	            	<sheet>
+		                <group > 
+		                	<field name="name"/>
+		                	<field name="grn_id" options="{'create': false, 'create_edit': false}"/>
+		                	<field name="gate_date_time"/>
+			                <field name="po_id" options="{'create': false, 'create_edit': false}"/>
+			                <field name="supplier_id" domain="[('supplier','=',1)]" options="{'create': false, 'create_edit': false}"/>
+						</group>
+						<notebook>
+							<page string="Product details">
+								<field name="gate_out_pass_line" nolabel='1'>
+									<tree editable='top'>
+										<field name="product_id" options="{'create': false, 'create_edit': false}"/>
+										<field name="product_qty"/>
+										<field name="uom_po_id" options="{'create': false, 'create_edit': false}"/>
+										<field name="reason"/>
+									</tree>
+								</field>
+							</page>
+						</notebook>
+				    </sheet>
+		         </form>
+			</field>
+		</record>
+		
+		<record id="action_view_tpt_gate_out_pass_tree" model="ir.actions.act_window">
+            <field name="name">Gate Out Pass</field>
+            <field name="type">ir.actions.act_window</field>
+            <field name="res_model">tpt.gate.out.pass</field>
+            <field name="view_type">form</field>
+            <field name="view_mode">tree,form</field>
+            <field name="view_id" ref="view_tpt_gate_out_pass_tree"/>
+        </record>
+        
+        <menuitem action="action_view_tpt_gate_out_pass_tree"
+            id="menu_action_view_tpt_gate_out_pass_tree"
+            parent="purchase.menu_procurement_management" sequence="22"/>
 		
     </data>
 </openerp>
