@@ -10,6 +10,7 @@ import datetime
 from datetime import date
 import calendar
 import openerp.addons.decimal_precision as dp
+from openerp import netsvc
 
 class stock_picking(osv.osv):
     _inherit = "stock.picking"
@@ -94,7 +95,7 @@ class stock_picking(osv.osv):
         if picking.type=='in':
             invoice_vals.update({
                                  'grn_no':picking.id,
-                                'sale_tax_id':picking.purchase_id and picking.purchase_id.purchase_tax_id or False,
+                                'sale_tax_id':picking.purchase_id and picking.purchase_id.purchase_tax_id and picking.purchase_id.purchase_tax_id.id or False,
                                  })
         return invoice_vals
     
@@ -108,6 +109,7 @@ class stock_picking(osv.osv):
             @param: invoice_vals: dict used to created the invoice
             @return: dict that will be used to create the invoice line
         """
+        invoice_line_vals = super(stock_picking,self)._prepare_invoice_line(cr, uid, group, picking, move_line, invoice_id,invoice_vals, context)
         if group:
             name = (picking.name or '') + '-' + move_line.name
         else:
@@ -115,7 +117,7 @@ class stock_picking(osv.osv):
         origin = move_line.picking_id.name or ''
         if move_line.picking_id.origin:
             origin += ':' + move_line.picking_id.origin
-
+ 
         if invoice_vals['type'] in ('out_invoice', 'out_refund'):
             account_id = move_line.product_id.property_account_income.id
             if not account_id:
@@ -134,9 +136,9 @@ class stock_picking(osv.osv):
         uos_id = move_line.product_uos and move_line.product_uos.id or False
         if not uos_id and invoice_vals['type'] in ('out_invoice', 'out_refund'):
             uos_id = move_line.product_uom.id
-        tax_id = picking.purchase_id and picking.purchase_id.purchase_tax_id or False
+        tax_id = picking.purchase_id and picking.purchase_id.purchase_tax_id and picking.purchase_id.purchase_tax_id.id or False
         if tax_id:
-            return {
+            invoice_line_vals.update({
                 'name': name,
                 'origin': origin,
                 'invoice_id': invoice_id,
@@ -152,9 +154,9 @@ class stock_picking(osv.osv):
 #                 'product_type':move_line.product_type or False,
 #                 'application_id':move_line.application_id or False,
 #                 'freight':move_line.freight or False,
-            }
+            })
         else:
-            return {
+            invoice_line_vals.update({
                 'name': name,
                 'origin': origin,
                 'invoice_id': invoice_id,
@@ -170,7 +172,8 @@ class stock_picking(osv.osv):
 #                 'product_type':move_line.product_type or False,
 #                 'application_id':move_line.application_id or False,
 #                 'freight':move_line.freight or False,
-            }
+            })
+        return invoice_line_vals
 
     def do_partial(self, cr, uid, ids, partial_datas, context=None):
         """ Makes partial picking and moves done.
