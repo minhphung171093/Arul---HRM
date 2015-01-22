@@ -186,13 +186,6 @@ class tpt_purchase_product(osv.osv):
     
 tpt_purchase_product()
 
-class res_partner(osv.osv):
-    _inherit = "res.partner"
-    _columns = {
-        'supplier_code':fields.char('Supplier Code', size = 1024),
-        }
-res_partner()
-
 class product_category(osv.osv):
     _inherit = "product.category"
     _columns = {
@@ -1159,3 +1152,37 @@ class tpt_gate_out_pass_line(osv.osv):
     }
       
 tpt_gate_out_pass_line()
+class tpt_pur_organi_code(osv.osv):
+    _name = "tpt.pur.organi.code"
+    _columns = {
+        'name': fields.char('Name', size = 1024),
+                }
+tpt_pur_organi_code()
+
+class tpt_vendor_group(osv.osv):
+    _name = "tpt.vendor.group"
+    _columns = {
+        'name': fields.char('Name', size = 1024),
+                }
+tpt_vendor_group()
+
+class tpt_vendor_sub_group(osv.osv):
+    _name = "tpt.vendor.sub.group"
+    _columns = {
+        'name': fields.char('Name', size = 1024),
+                }
+tpt_vendor_sub_group()
+
+class res_partner(osv.osv):
+    _inherit = "res.partner"   
+    _columns = {
+        'vendor_code':fields.char('Vendor Code', size = 256),
+        'contact_per':fields.char('Contact Person', size = 1024),
+        'vendor_tag':fields.char('Tag', size = 1024),
+        'pur_orgin_code_id':fields.many2one('tpt.pur.organi.code','Purchase Organisation Code'),
+        'vendor_group_id':fields.many2one('tpt.vendor.group','Vendor Group'),
+        'vendor_sub_group_id':fields.many2one('tpt.vendor.sub.group','Vendor Sub Group'),   
+                
+                }
+    
+res_partner()    
