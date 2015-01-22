@@ -282,6 +282,11 @@
             <field name="model">tpt.gate.in.pass</field>
             <field name="arch" type="xml">
 	            <form string="Gate In Pass" version="7.0">   
+	            	<header>
+			            	<button name="bt_approve" states='draft' string="Approve" type="object" class="oe_highlight" />
+		                    <button name="bt_cancel" string="Cancel" type="object" class="oe_highlight" />
+		                    <field name="state" widget="statusbar" statusbar_visible="draft,cancel,done" statusbar_colors='{"draft":"blue","cancel":"blue"}'/>
+			        </header>
 	            	<sheet>
 		                <group > 
 			                <field name="po_id" on_change = "onchange_po_id(po_id)" options="{'create': false, 'create_edit': false}"/>
@@ -647,6 +652,11 @@
             <field name="model">tpt.gate.out.pass</field>
             <field name="arch" type="xml">
 	            <form string="Gate Out Pass" version="7.0">   
+	            	<header>
+			            	<button name="bt_approve" states='draft' string="Approve" type="object" class="oe_highlight" />
+		                    <button name="bt_cancel" string="Cancel" type="object" class="oe_highlight" />
+		                    <field name="state" widget="statusbar" statusbar_visible="draft,cancel,done" statusbar_colors='{"draft":"blue","cancel":"blue"}'/>
+		            </header>
 	            	<sheet>
 		                <group > 
 		                	<field name="name"/>
