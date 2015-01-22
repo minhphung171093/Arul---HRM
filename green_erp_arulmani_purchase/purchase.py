@@ -757,7 +757,13 @@ class purchase_order(osv.osv):
         amount_total = cr.dictfetchone()
         if (amount_total['total'] > 2000000):
             raise osv.except_osv(_('Warning!'),_('The Emergency Purchase reaches 2 Lakhs Limit (2,000,000) in the current month. This can be processed only when the next month starts'))
+        if new.po_document_type == 'local':
+            if new.quotation_no and new.quotation_no.quotation_cate:
+                if (new.amount_total > 5000):
+                    raise osv.except_osv(_('Warning!'),_('Can not process because Total > 5000 for VV Local PO'))
+                
         return new_id
+    
     
     def write(self, cr, uid, ids, vals, context=None):
         new_write = super(purchase_order, self).write(cr, uid, ids, vals, context)
@@ -793,6 +799,22 @@ class purchase_order(osv.osv):
                 sequence = self.pool.get('ir.sequence').get(cr, uid, 'purchase.order.out.service')
                 sql = '''update purchase_order set name='%s' where id =%s'''%(sequence+'/'+fiscalyear['code']or '/',new.id)
                 cr.execute(sql)
+            date_order = datetime.datetime.strptime(new.date_order,'%Y-%m-%d')
+            
+        date_order_month = date_order.month
+        date_order_year = date_order.year
+        sql = '''
+                select sum(amount_total) as total from purchase_order where EXTRACT(month from date_order) = %s and EXTRACT(year from date_order) = %s
+        '''%(date_order_month,date_order_year)
+        cr.execute(sql)
+        amount_total = cr.dictfetchone()
+        if (amount_total['total'] > 2000000):
+            raise osv.except_osv(_('Warning!'),_('The Emergency Purchase reaches 2 Lakhs Limit (2,000,000) in the current month. This can be processed only when the next month starts'))
+        
+            if new.po_document_type == 'local':
+                if new.quotation_no and new.quotation_no.quotation_cate:
+                    if (new.amount_total > 5000):
+                        raise osv.except_osv(_('Warning!'),_('Can not process because Total > 5000 for VV Local PO'))
         return new_write
     
 #     def _prepare_order_picking(self, cr, uid, order, context=None):
@@ -845,25 +867,25 @@ class purchase_order_line(osv.osv):
         if po_indent_no:
             return {'value': {'product_id': False}}    
         
-    def onchange_product_uom(self, cr, uid, ids, pricelist_id, product_id, qty, uom_id,
-            partner_id, date_order=False, fiscal_position_id=False, date_planned=False,
-            name=False, price_unit=False, context=None):
-        """
-        onchange handler of product_uom.
-        """
-        if context is None:
-            context = {}
-        if not uom_id:
-            return {'value': {'price_unit': price_unit or 0.0, 'name': name or '', 'product_uom' : uom_id or False}}
-        context = dict(context, purchase_uom_check=True)
-        return self.onchange_product_id(cr, uid, ids, pricelist_id, product_id, qty, uom_id,
-            partner_id, date_order=date_order, fiscal_position_id=fiscal_position_id, date_planned=date_planned,
-            name=name, price_unit=price_unit, context=context)
+#     def onchange_product_uom(self, cr, uid, ids, pricelist_id, product_id, qty, uom_id,
+#             partner_id, date_order=False, fiscal_position_id=False, date_planned=False,
+#             name=False, price_unit=False, context=None):
+#         """
+#         onchange handler of product_uom.
+#         """
+#         if context is None:
+#             context = {}
+#         if not uom_id:
+#             return {'value': {'price_unit': price_unit or 0.0, 'name': name or '', 'product_uom' : uom_id or False}}
+#         context = dict(context, purchase_uom_check=True)
+#         return self.onchange_product_id(cr, uid, ids, pricelist_id, product_id, qty, uom_id,
+#             partner_id, date_order=date_order, fiscal_position_id=fiscal_position_id, date_planned=date_planned,
+#             name=name, price_unit=price_unit, context=context)
  
   
     def onchange_product_id(self, cr, uid, ids, pricelist_id, product_id, qty, uom_id,
             partner_id, date_order=False, fiscal_position_id=False, date_planned=False,
-            name=False, price_unit=False, context=None,  po_indent_no = False):
+            name=False, price_unit=False,  po_indent_no = False, context=None):
         """
         onchange handler of product_id.
         """
@@ -871,19 +893,11 @@ class purchase_order_line(osv.osv):
             context = {}
  
         res = {'value': {'price_unit': price_unit or 0.0, 'name': name or '', 'product_uom' : uom_id or False}}
-        if po_indent_no: 
-            vals = {}
-            if product_id:
-                po = self.pool.get('tpt.purchase.indent').browse(cr, uid, po_indent_no)
-                product = self.pool.get('product.product').browse(cr, uid, product_id)
-                for line in po.purchase_product_line:
-                    if product_id == line.product_id.id:
-                        vals = {
-                                'price_unit':product.standard_price,
-                                'uom_po_id':line.uom_po_id and line.uom_po_id.id or False,
-                                'product_uom_qty':line.product_uom_qty or False,
-                                }
-                        return {'value': vals}  
+        
+        
+        
+                    
+                    
         if not product_id:
             return res
  
@@ -963,10 +977,19 @@ class purchase_order_line(osv.osv):
         taxes_ids = account_fiscal_position.map_tax(cr, uid, fpos, taxes)
         res['value'].update({'price_unit': price, 'taxes_id': taxes_ids})
  
+        if po_indent_no and product_id: 
+            indent = self.pool.get('tpt.purchase.indent').browse(cr, uid, po_indent_no)
+            product = self.pool.get('product.product').browse(cr, uid, product_id)
+            for line in indent.purchase_product_line:
+                if product_id == line.product_id.id:
+                    res['value'].update( {
+                            'price_unit':product.standard_price,
+                            'product_uom':line.uom_po_id and line.uom_po_id.id or False,
+                            'product_qty':line.product_uom_qty or False,
+                            })
+ 
         return res
  
-    product_id_change = onchange_product_id
-    product_uom_change = onchange_product_uom    
       
 #     def onchange_product_id(self, cr, uid, ids, product_id=False, po_indent_no=False, context=None):
 #         vals = {}
@@ -987,17 +1010,30 @@ class tpt_good_return_request(osv.osv):
     _name = "tpt.good.return.request"
     
     _columns = {
-        'grn_no_id' : fields.many2one('stock.picking.in', 'GRN No', required = True),
-        'request_date': fields.date('Request Date'),
-        'product_detail_line': fields.one2many('tpt.product.detail.line', 'request_id', 'Product Detail'),
+        'grn_no_id' : fields.many2one('stock.picking.in', 'GRN No', required = True, states={'done':[('readonly', True)]}), 
+        'request_date': fields.date('Request Date', states={'done':[('readonly', True)]}), 
+        'product_detail_line': fields.one2many('tpt.product.detail.line', 'request_id', 'Product Detail', states={'done':[('readonly', True)]}), 
+        'state':fields.selection([('draft', 'Draft'),('done', 'Done')],'Status', readonly=True),
                 }
     _defaults = {
         'request_date': time.strftime('%Y-%m-%d'),
+        'state': 'draft',
     }
     
+    def name_get(self, cr, uid, ids, context=None):
+        res = []
+        if not ids:
+            return res
+        reads = self.read(cr, uid, ids, ['grn_no_id'], context)
+  
+        for record in reads:
+            name = record['grn_no_id']
+            res.append((record['id'], name))
+        return res 
+    
     def bt_approve(self, cr, uid, ids, context=None):
-#         for line in self.browse(cr, uid, ids):
-#             self.write(cr, uid, ids,{'state':'done'})
+        for line in self.browse(cr, uid, ids):
+            self.write(cr, uid, ids,{'state':'done'})
         return True 
     
 tpt_good_return_request()

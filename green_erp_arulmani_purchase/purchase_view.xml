@@ -134,7 +134,10 @@
 					<field name="po_indent_no" on_change = "onchange_po_indent_no(po_indent_no)" domain="[('intdent_cate','=','emergency')]" options="{'create': false, 'create_edit': false}"/>
 				</xpath>
 				<xpath expr="//page[@string='PO Line']/field/tree/field[@name='product_id']" position="replace">
-					<field name="product_id" required = '1' context="{'search_po_product':True, 'po_indent_no':po_indent_no }" options="{'create': false, 'create_edit': false}" on_change="onchange_product_id(product_id, 0, False,parent.partner_id, parent.date_order,parent.fiscal_position,date_planned,name,price_unit,context,po_indent_no)"/>
+					<field name="product_id" required = '1' context="{'search_po_product':True, 'po_indent_no':po_indent_no }" options="{'create': false, 'create_edit': false}" on_change="onchange_product_id(parent.pricelist_id,product_id,0,False,parent.partner_id, parent.date_order,parent.fiscal_position,date_planned,name,price_unit,po_indent_no,context)"/>
+				</xpath>
+				<xpath expr="//page[@string='PO Line']/field/tree/field[@name='product_qty']" position="replace">
+					<field name="product_qty" on_change="onchange_product_id(parent.pricelist_id,product_id,product_qty,product_uom,parent.partner_id,parent.date_order,parent.fiscal_position,date_planned,name,price_unit,po_indent_no,context)"/>
 				</xpath>
 			</field>
 		</record>
@@ -417,6 +420,7 @@
 				<tree string="Goods Return Request">
 					<field name="grn_no_id"/>
 					<field name="request_date"/>
+					<field name="state" widget="statusbar" statusbar_visible="draft,done" statusbar_colors='{"draft":"blue"}'/>
 				</tree>
 			</field>
 		</record>
@@ -427,11 +431,12 @@
             <field name="arch" type="xml">
 	            <form string="Goods Return Request" version="7.0">   
 	            <header>
-	                    <button name="bt_approve" string="Approve Request" type="object" class="oe_highlight" />
+	                    <button name="bt_approve" states='draft' string="Approve Request" type="object" class="oe_highlight" />
+	                    <field name="state" widget="statusbar" statusbar_visible="draft,done" statusbar_colors='{"draft":"blue"}'/>
 	            </header>
 	            	<sheet>
 		                <group > 
-			                <field name="grn_no_id" options="{'create': false, 'create_edit': false}"/>
+			                <field name="grn_no_id" domain="[('type','=','in')]" options="{'create': false, 'create_edit': false}"/>
 							<field name="request_date"/>
 						</group>
 						<notebook>
