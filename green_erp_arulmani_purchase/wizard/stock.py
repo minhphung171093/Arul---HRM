@@ -103,7 +103,7 @@ class stock_partial_picking(osv.osv_memory):
                                                                   product_currency=wizard_line.currency.id)
         stock_picking.do_partial(cr, uid, [partial.picking_id.id], partial_data, context=context)
         
-        a_ids = stock_move.search(cr, uid,[('picking_id','=',[partial.picking_id.id]),('action_taken','=','need')])
+        a_ids = stock_move.search(cr, uid,[('picking_id','=',[partial.picking_id.id]),('action_taken','=','need'),('state','not in',['done','cancel'])])
         for line in stock_move.browse(cr,uid,a_ids):
             product_line = []
             if line.product_id.categ_id.cate_name=='raw':

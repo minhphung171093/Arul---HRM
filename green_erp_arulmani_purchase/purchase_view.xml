@@ -273,6 +273,11 @@
             <field name="model">tpt.gate.in.pass</field>
             <field name="arch" type="xml">
 	            <form string="Gate In Pass" version="7.0">   
+	            	<header>
+			            	<button name="bt_approve" states='draft' string="Approve" type="object" class="oe_highlight" />
+		                    <button name="bt_cancel" string="Cancel" type="object" class="oe_highlight" />
+		                    <field name="state" widget="statusbar" statusbar_visible="draft,cancel,done" statusbar_colors='{"draft":"blue","cancel":"blue"}'/>
+			        </header>
 	            	<sheet>
 		                <group > 
 			                <field name="po_id" on_change = "onchange_po_id(po_id)" options="{'create': false, 'create_edit': false}"/>
@@ -427,7 +432,7 @@
 	            </header>
 	            	<sheet>
 		                <group > 
-			                <field name="grn_no_id" domain="[('type','=','in')]" options="{'create': false, 'create_edit': false}"/>
+			                <field name="grn_no_id" on_change = "onchange_grn_no_id(grn_no_id)" domain="[('type','=','in')]" options="{'create': false, 'create_edit': false}"/>
 							<field name="request_date"/>
 						</group>
 						<notebook>
@@ -638,10 +643,15 @@
             <field name="model">tpt.gate.out.pass</field>
             <field name="arch" type="xml">
 	            <form string="Gate Out Pass" version="7.0">   
+	            	<header>
+			            	<button name="bt_approve" states='draft' string="Approve" type="object" class="oe_highlight" />
+		                    <button name="bt_cancel" string="Cancel" type="object" class="oe_highlight" />
+		                    <field name="state" widget="statusbar" statusbar_visible="draft,cancel,done" statusbar_colors='{"draft":"blue","cancel":"blue"}'/>
+		            </header>
 	            	<sheet>
 		                <group > 
 		                	<field name="name"/>
-		                	<field name="grn_id" options="{'create': false, 'create_edit': false}"/>
+		                	<field name="grn_id" context="{'search_default_grn_by_return_req':1}" on_change="onchange_grn_id(grn_id)" options="{'create': false, 'create_edit': false}"/>
 		                	<field name="gate_date_time"/>
 			                <field name="po_id" options="{'create': false, 'create_edit': false}"/>
 			                <field name="supplier_id" domain="[('supplier','=',1)]" options="{'create': false, 'create_edit': false}"/>

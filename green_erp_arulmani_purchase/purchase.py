@@ -360,12 +360,20 @@ class tpt_gate_in_pass(osv.osv):
         'supplier_id': fields.many2one('res.partner', 'Supplier', required = True),
         'po_date': fields.datetime('PO Date'),
         'gate_date_time': fields.datetime('Gate In Pass Date & Time'),
+        'state':fields.selection([('draft', 'Draft'),('cancel', 'Cancel'),('done', 'Approve')],'Status', readonly=True, states={'cancel': [('readonly', True)], 'done':[('readonly', True)]}),
         'gate_in_pass_line': fields.one2many('tpt.gate.in.pass.line', 'gate_in_pass_id', 'Product Details'),
                 }
     _defaults={
                'name':'/',
                'gate_date_time': time.strftime("%Y-%m-%d %H:%M:%S"),
+               'state': 'draft',
     }
+    
+    def bt_approve(self, cr, uid, ids, context=None):
+        return self.write(cr, uid, ids,{'state':'done'})
+    
+    def bt_cancel(self, cr, uid, ids, context=None):
+        return self.write(cr, uid, ids,{'state':'cancel'})
     
     def create(self, cr, uid, vals, context=None):
         if vals.get('name','/')=='/':
@@ -1007,12 +1015,12 @@ class tpt_good_return_request(osv.osv):
     
     _columns = {
         'grn_no_id' : fields.many2one('stock.picking.in', 'GRN No', required = True, states={'done':[('readonly', True)]}), 
-        'request_date': fields.date('Request Date', states={'done':[('readonly', True)]}), 
+        'request_date': fields.datetime('Request Date', states={'done':[('readonly', True)]}), 
         'product_detail_line': fields.one2many('tpt.product.detail.line', 'request_id', 'Product Detail', states={'done':[('readonly', True)]}), 
         'state':fields.selection([('draft', 'Draft'),('done', 'Done')],'Status', readonly=True),
                 }
     _defaults = {
-        'request_date': time.strftime('%Y-%m-%d'),
+        'request_date': time.strftime('%Y-%m-%d %H:%M:%S'),
         'state': 'draft',
     }
     
@@ -1026,6 +1034,27 @@ class tpt_good_return_request(osv.osv):
             name = record['grn_no_id']
             res.append((record['id'], name))
         return res 
+    
+    def onchange_grn_no_id(self, cr, uid, ids,grn_no_id=False,context=None):
+        vals = {}
+        if grn_no_id :
+            details = []
+            picking = self.pool.get('stock.picking.in').browse(cr, uid, grn_no_id)
+            stock = self.pool.get('stock.move')
+            stock_ids = stock.search(cr,uid,[('picking_id','=',grn_no_id), ('state', '=', 'cancel')])
+            for line in stock.browse(cr,uid,stock_ids):
+                quality_ids = self.pool.get('tpt.quanlity.inspection').search(cr,uid,[('need_inspec_id','=',line.id)])
+                for quality in self.pool.get('tpt.quanlity.inspection').browse(cr,uid,quality_ids):
+                    rs = {
+                          'product_id':line.product_id and line.product_id.id or False,
+                          'product_qty': line.product_qty or False,
+                          'uom_po_id': line.product_uom and line.product_uom.id or False,
+                          'state': 'reject',
+                          'reason': quality.reason,
+                          }
+                details.append((0,0,rs))
+                     
+        return {'value': {'product_detail_line': details}}
     
     def bt_approve(self, cr, uid, ids, context=None):
         for line in self.browse(cr, uid, ids):
@@ -1058,7 +1087,7 @@ class tpt_quanlity_inspection(osv.osv):
         'date':fields.datetime('Create Date',readonly = True,states={'cancel': [('readonly', True)], 'done':[('readonly', True)]}),
         'supplier_id':fields.many2one('res.partner','Supplier',required = True,readonly = True,states={'cancel': [('readonly', True)], 'done':[('readonly', True)]}),
         'product_id': fields.many2one('product.product', 'Product',required = True,readonly = True,states={'cancel': [('readonly', True)], 'done':[('readonly', True)]}),
-        'reason':fields.text('Season',states={'cancel': [('readonly', True)], 'done':[('readonly', True)]}),
+        'reason':fields.text('Reason',states={'cancel': [('readonly', True)], 'done':[('readonly', True)]}),
         'specification_line':fields.one2many('tpt.product.specification','specification_id','Product Specification'),
         'qty':fields.float('Qty',states={'cancel': [('readonly', True)], 'done':[('readonly', True)]}),
         'state':fields.selection([('draft', 'Draft'),('cancel', 'Rejected'),('done', 'Approved')],'Status', readonly=True),
@@ -1075,8 +1104,10 @@ class tpt_quanlity_inspection(osv.osv):
     
     def bt_reject(self,cr,uid,ids,context=None):
         move_obj = self.pool.get('stock.move')
+        picking_obj = self.pool.get('stock.picking')
         for line in self.browse(cr,uid,ids):
             move_obj.action_cancel(cr, uid, [line.need_inspec_id.id])
+            picking_obj.do_partial(cr, uid, [line.name.id], {})
         return self.write(cr, uid, ids, {'state':'cancel'})
 
 #     def onchange_grn_no(self, cr, uid, ids,name=False, context=None):
@@ -1125,16 +1156,48 @@ class tpt_gate_out_pass(osv.osv):
         'grn_id': fields.many2one('stock.picking.in','GRN No', required = True), 
         'gate_date_time': fields.datetime('Gate Out Pass Date & Time'),
         'gate_out_pass_line': fields.one2many('tpt.gate.out.pass.line', 'gate_out_pass_id', 'Product Details'),
+        'state':fields.selection([('draft', 'Draft'),('cancel', 'Cancel'),('done', 'Approve')],'Status', readonly=True, states={'cancel': [('readonly', True)], 'done':[('readonly', True)]}),
                 }
     _defaults={
                'name':'/',
                'gate_date_time': time.strftime("%Y-%m-%d %H:%M:%S"),
+               'state': 'draft',
     }
     
     def create(self, cr, uid, vals, context=None):
         if vals.get('name','/')=='/':
             vals['name'] = self.pool.get('ir.sequence').get(cr, uid, 'tpt.gate.out.pass.import') or '/'
         return super(tpt_gate_out_pass, self).create(cr, uid, vals, context=context)
+    
+    def bt_approve(self, cr, uid, ids, context=None):
+        return self.write(cr, uid, ids,{'state':'done'})
+    
+    def bt_cancel(self, cr, uid, ids, context=None):
+        return self.write(cr, uid, ids,{'state':'cancel'})
+    def onchange_grn_id(self, cr, uid, ids,grn_id=False):
+        res = {'value':{
+                        'supplier_id':False,
+                        'po_id':False,
+                        'gate_out_pass_line':[],
+                      }
+               }
+        if grn_id:
+            gate_out_pass_line = []
+            good_req_ids = self.pool.get('tpt.good.return.request').search(cr, uid,[('grn_no_id','=',grn_id)])
+            good_req_id = self.pool.get('tpt.good.return.request').browse(cr,uid,good_req_ids[0])
+            for line in good_req_id.product_detail_line:
+                gate_out_pass_line.append({
+                          'product_id': line.product_id and line.product_id.id or False,
+                          'product_qty':line.product_qty or False,
+                          'uom_po_id': line.uom_po_id and line.uom_po_id.id or False,
+                          'reason': line.reason or False,
+                    })
+        res['value'].update({
+                    'supplier_id': good_req_id.grn_no_id and good_req_id.grn_no_id.partner_id and good_req_id.grn_no_id.partner_id.id or False,
+                    'po_id': good_req_id.grn_no_id and good_req_id.grn_no_id.purchase_id and good_req_id.grn_no_id.purchase_id.id or False,
+                    'gate_out_pass_line': gate_out_pass_line,
+        })
+        return res
     
 tpt_gate_out_pass()
 
