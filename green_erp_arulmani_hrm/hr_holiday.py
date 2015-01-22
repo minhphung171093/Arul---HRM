@@ -998,13 +998,17 @@ class arul_hr_employee_leave_details(osv.osv):
                 if leave_ids or leave_1_ids:  
                     raise osv.except_osv(_('Warning!'),_('The Employee requested leave day for these date!'))
             else:
-                sql2 = '''
-                    select id from arul_hr_employee_leave_details where id != %s and employee_id = %s and date_to = '%s' and date_from = date_to and haft_day_leave = True
-                '''%(day.id,day.employee_id.id,date_to.strftime('%Y-%m-%d'))
-                cr.execute(sql2)
-                leave_t_ids = [row[0] for row in cr.fetchall()]
-                if leave_ids or leave_1_ids or len(leave_t_ids) > 1:  
-                    raise osv.except_osv(_('Warning!'),_('The Employee requested leave day for these date!'))
+                if date_from == date_to:
+                    sql2 = '''
+                        select id from arul_hr_employee_leave_details where id != %s and employee_id = %s and date_to = '%s' and haft_day_leave = True
+                    '''%(day.id,day.employee_id.id,date_to.strftime('%Y-%m-%d'))
+                    cr.execute(sql2)
+                    leave_t_ids = [row[0] for row in cr.fetchall()]
+                    if len(leave_t_ids) > 1:  
+                        raise osv.except_osv(_('Warning!'),_('The Employee requested leave day for these date!'))
+                else:
+                    if leave_ids or leave_1_ids:  
+                        raise osv.except_osv(_('Warning!'),_('The Employee requested leave day for these date!'))
         return True   
     _constraints = [
         (_check_days, _(''), ['date_from', 'date_to']),
