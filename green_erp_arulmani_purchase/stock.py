@@ -10,6 +10,7 @@ import datetime
 from datetime import date
 import calendar
 import openerp.addons.decimal_precision as dp
+from openerp import netsvc
 
 class stock_picking(osv.osv):
     _inherit = "stock.picking"
@@ -19,68 +20,68 @@ class stock_picking(osv.osv):
         'po_date': fields.datetime('PO Date'),        
                 }
     
-    def action_invoice_create(self, cr, uid, ids, journal_id=False,
-            group=False, type='out_invoice', context=None):
-        """ Creates invoice based on the invoice state selected for picking.
-        @param journal_id: Id of journal
-        @param group: Whether to create a group invoice or not
-        @param type: Type invoice to be created
-        @return: Ids of created invoices for the pickings
-        """
-        if context is None:
-            context = {}
-
-        invoice_obj = self.pool.get('account.invoice')
-        invoice_line_obj = self.pool.get('account.invoice.line')
-        partner_obj = self.pool.get('res.partner')
-        invoices_group = {}
-        res = {}
-        inv_type = type
-        for picking in self.browse(cr, uid, ids, context=context):
-            if picking.invoice_state != '2binvoiced':
-                continue
-            partner = self._get_partner_to_invoice(cr, uid, picking, context=context)
-            if isinstance(partner, int):
-                partner = partner_obj.browse(cr, uid, [partner], context=context)[0]
-            if not partner:
-                raise osv.except_osv(_('Error, no partner!'),
-                    _('Please put a partner on the picking list if you want to generate invoice.'))
-
-            if not inv_type:
-                inv_type = self._get_invoice_type(picking)
-
-            if group and partner.id in invoices_group:
-                invoice_id = invoices_group[partner.id]
-                invoice = invoice_obj.browse(cr, uid, invoice_id)
-                invoice_vals_group = self._prepare_invoice_group(cr, uid, picking, partner, invoice, context=context)
-                invoice_obj.write(cr, uid, [invoice_id], invoice_vals_group, context=context)
-            else:
-                invoice_vals = self._prepare_invoice(cr, uid, picking, partner, inv_type, journal_id, context=context)
-                invoice_id = invoice_obj.create(cr, uid, invoice_vals, context=context)
-                invoices_group[partner.id] = invoice_id
-            res[picking.id] = invoice_id
-            for move_line in picking.move_lines:
-                if move_line.state == 'cancel':
-                    continue
-                if move_line.scrapped:
-                    # do no invoice scrapped products
-                    continue
-                vals = self._prepare_invoice_line(cr, uid, group, picking, move_line,
-                                invoice_id, invoice_vals, context=context)
-                if vals:
-                    invoice_line_id = invoice_line_obj.create(cr, uid, vals, context=context)
-                    self._invoice_line_hook(cr, uid, move_line, invoice_line_id)
-
-            invoice_obj.button_compute(cr, uid, [invoice_id], context=context,
-                    set_total=(inv_type in ('in_invoice', 'in_refund')))
-            self.write(cr, uid, [picking.id], {
-                'invoice_state': 'invoiced',
-                }, context=context)
-            self._invoice_hook(cr, uid, picking, invoice_id)
-        self.write(cr, uid, res.keys(), {
-            'invoice_state': 'invoiced',
-            }, context=context)
-        return res
+#     def action_invoice_create(self, cr, uid, ids, journal_id=False,
+#             group=False, type='out_invoice', context=None):
+#         """ Creates invoice based on the invoice state selected for picking.
+#         @param journal_id: Id of journal
+#         @param group: Whether to create a group invoice or not
+#         @param type: Type invoice to be created
+#         @return: Ids of created invoices for the pickings
+#         """
+#         if context is None:
+#             context = {}
+# 
+#         invoice_obj = self.pool.get('account.invoice')
+#         invoice_line_obj = self.pool.get('account.invoice.line')
+#         partner_obj = self.pool.get('res.partner')
+#         invoices_group = {}
+#         res = {}
+#         inv_type = type
+#         for picking in self.browse(cr, uid, ids, context=context):
+#             if picking.invoice_state != '2binvoiced':
+#                 continue
+#             partner = self._get_partner_to_invoice(cr, uid, picking, context=context)
+#             if isinstance(partner, int):
+#                 partner = partner_obj.browse(cr, uid, [partner], context=context)[0]
+#             if not partner:
+#                 raise osv.except_osv(_('Error, no partner!'),
+#                     _('Please put a partner on the picking list if you want to generate invoice.'))
+# 
+#             if not inv_type:
+#                 inv_type = self._get_invoice_type(picking)
+# 
+#             if group and partner.id in invoices_group:
+#                 invoice_id = invoices_group[partner.id]
+#                 invoice = invoice_obj.browse(cr, uid, invoice_id)
+#                 invoice_vals_group = self._prepare_invoice_group(cr, uid, picking, partner, invoice, context=context)
+#                 invoice_obj.write(cr, uid, [invoice_id], invoice_vals_group, context=context)
+#             else:
+#                 invoice_vals = self._prepare_invoice(cr, uid, picking, partner, inv_type, journal_id, context=context)
+#                 invoice_id = invoice_obj.create(cr, uid, invoice_vals, context=context)
+#                 invoices_group[partner.id] = invoice_id
+#             res[picking.id] = invoice_id
+#             for move_line in picking.move_lines:
+#                 if move_line.state == 'cancel':
+#                     continue
+#                 if move_line.scrapped:
+#                     # do no invoice scrapped products
+#                     continue
+#                 vals = self._prepare_invoice_line(cr, uid, group, picking, move_line,
+#                                 invoice_id, invoice_vals, context=context)
+#                 if vals:
+#                     invoice_line_id = invoice_line_obj.create(cr, uid, vals, context=context)
+#                     self._invoice_line_hook(cr, uid, move_line, invoice_line_id)
+# 
+#             invoice_obj.button_compute(cr, uid, [invoice_id], context=context,
+#                     set_total=(inv_type in ('in_invoice', 'in_refund')))
+#             self.write(cr, uid, [picking.id], {
+#                 'invoice_state': 'invoiced',
+#                 }, context=context)
+#             self._invoice_hook(cr, uid, picking, invoice_id)
+#         self.write(cr, uid, res.keys(), {
+#             'invoice_state': 'invoiced',
+#             }, context=context)
+#         return res
     
     def _prepare_invoice(self, cr, uid, picking, partner, inv_type, journal_id, context=None):
         """ Builds the dict containing the values for the invoice
@@ -94,7 +95,7 @@ class stock_picking(osv.osv):
         if picking.type=='in':
             invoice_vals.update({
                                  'grn_no':picking.id,
-                                'sale_tax_id':picking.purchase_id and picking.purchase_id.purchase_tax_id or False,
+                                'sale_tax_id':picking.purchase_id and picking.purchase_id.purchase_tax_id and picking.purchase_id.purchase_tax_id.id or False,
                                  })
         return invoice_vals
     
@@ -108,6 +109,7 @@ class stock_picking(osv.osv):
             @param: invoice_vals: dict used to created the invoice
             @return: dict that will be used to create the invoice line
         """
+        invoice_line_vals = super(stock_picking,self)._prepare_invoice_line(cr, uid, group, picking, move_line, invoice_id,invoice_vals, context)
         if group:
             name = (picking.name or '') + '-' + move_line.name
         else:
@@ -115,7 +117,7 @@ class stock_picking(osv.osv):
         origin = move_line.picking_id.name or ''
         if move_line.picking_id.origin:
             origin += ':' + move_line.picking_id.origin
-
+ 
         if invoice_vals['type'] in ('out_invoice', 'out_refund'):
             account_id = move_line.product_id.property_account_income.id
             if not account_id:
@@ -134,9 +136,9 @@ class stock_picking(osv.osv):
         uos_id = move_line.product_uos and move_line.product_uos.id or False
         if not uos_id and invoice_vals['type'] in ('out_invoice', 'out_refund'):
             uos_id = move_line.product_uom.id
-        tax_id = picking.purchase_id and picking.purchase_id.purchase_tax_id or False
+        tax_id = picking.purchase_id and picking.purchase_id.purchase_tax_id and picking.purchase_id.purchase_tax_id.id or False
         if tax_id:
-            return {
+            invoice_line_vals.update({
                 'name': name,
                 'origin': origin,
                 'invoice_id': invoice_id,
@@ -149,9 +151,12 @@ class stock_picking(osv.osv):
                 'invoice_line_tax_id': [(6, 0, [tax_id])],
     #             'invoice_line_tax_id': [(6, 0, self._get_taxes_invoice(cr, uid, move_line, invoice_vals['type']))],
                 'account_analytic_id': self._get_account_analytic_invoice(cr, uid, picking, move_line),
-            }
+#                 'product_type':move_line.product_type or False,
+#                 'application_id':move_line.application_id or False,
+#                 'freight':move_line.freight or False,
+            })
         else:
-            return {
+            invoice_line_vals.update({
                 'name': name,
                 'origin': origin,
                 'invoice_id': invoice_id,
@@ -164,7 +169,11 @@ class stock_picking(osv.osv):
 #                 'invoice_line_tax_id': [(6, 0, [picking.purchase_id.purchase_tax_id])],
     #             'invoice_line_tax_id': [(6, 0, self._get_taxes_invoice(cr, uid, move_line, invoice_vals['type']))],
                 'account_analytic_id': self._get_account_analytic_invoice(cr, uid, picking, move_line),
-            }
+#                 'product_type':move_line.product_type or False,
+#                 'application_id':move_line.application_id or False,
+#                 'freight':move_line.freight or False,
+            })
+        return invoice_line_vals
 
 
 stock_picking()

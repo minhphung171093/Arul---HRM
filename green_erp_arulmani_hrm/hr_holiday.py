@@ -983,43 +983,32 @@ class arul_hr_employee_leave_details(osv.osv):
         if day and day.employee_id and day.date_from and day.date_to:
             date_from = datetime.datetime.strptime(day.date_from, "%Y-%m-%d")
             date_to = datetime.datetime.strptime(day.date_to, "%Y-%m-%d")
-            if not day.haft_day_leave:
-                sql = '''
-                    select id from arul_hr_employee_leave_details where id != %s and employee_id = %s and (('%s' between date_from and date_to) or ('%s' between date_from and date_to))
-                '''%(day.id,day.employee_id.id,date_from.strftime('%Y-%m-%d'),date_to.strftime('%Y-%m-%d'))
-                cr.execute(sql)
-                leave_ids = [row[0] for row in cr.fetchall()]
+            sql = '''
+                select id from arul_hr_employee_leave_details where id != %s and employee_id = %s and (('%s' between date_from and date_to) or ('%s' between date_from and date_to))
+            '''%(day.id,day.employee_id.id,date_from.strftime('%Y-%m-%d'),date_to.strftime('%Y-%m-%d'))
+            cr.execute(sql)
+            leave_ids = [row[0] for row in cr.fetchall()]
 #                 leave_ids.remove(day.id)
-                if leave_ids:  
+            sql = '''
+                select id from arul_hr_employee_leave_details where id != %s and employee_id = %s and ((date_from between '%s' and '%s') and (date_to between '%s' and '%s'))
+            '''%(day.id,day.employee_id.id,date_from.strftime('%Y-%m-%d'),date_to.strftime('%Y-%m-%d'),date_from.strftime('%Y-%m-%d'),date_to.strftime('%Y-%m-%d'))
+            cr.execute(sql)
+            leave_1_ids = [row[0] for row in cr.fetchall()]
+            if not day.haft_day_leave:
+                if leave_ids or leave_1_ids:  
                     raise osv.except_osv(_('Warning!'),_('The Employee requested leave day for these date!'))
             else:
-                sql1 = '''
-                    select id from arul_hr_employee_leave_details where id != %s and employee_id = %s and (('%s' between date_from and date_to) or ('%s' between date_from and date_to)) and haft_day_leave = False
-                '''%(day.id,day.employee_id.id,date_from.strftime('%Y-%m-%d'),date_to.strftime('%Y-%m-%d'))
-                cr.execute(sql1)
-                leave_f_ids = [row[0] for row in cr.fetchall()]
-                sql2 = '''
-                    select id from arul_hr_employee_leave_details where id != %s and employee_id = %s and date_to = '%s' and haft_day_leave = True
-                '''%(day.id,day.employee_id.id,date_to.strftime('%Y-%m-%d'))
-                cr.execute(sql2)
-                leave_t_ids = [row[0] for row in cr.fetchall()]
-                sql3 = '''
-                    select id from arul_hr_employee_leave_details where id != %s and employee_id = %s and (('%s' between date_from and date_to) or ('%s' between date_from and date_to)) and ('%s' != date_to) and haft_day_leave = True
-                '''%(day.id,day.employee_id.id,date_from.strftime('%Y-%m-%d'),date_to.strftime('%Y-%m-%d'),date_to.strftime('%Y-%m-%d'))
-                cr.execute(sql3)
-                leave_ids = [row[0] for row in cr.fetchall()]
-                sql4 = '''
-                    select id from arul_hr_employee_leave_details where id != %s and employee_id = %s and date_to = '%s' and haft_day_leave = True and ('%s' between date_from and date_to)
-                '''%(day.id,day.employee_id.id,date_to.strftime('%Y-%m-%d'),date_from.strftime('%Y-%m-%d'))
-                cr.execute(sql4)
-                leave_4_ids = [row[0] for row in cr.fetchall()]
-                sql5 = '''
-                    select id from arul_hr_employee_leave_details where id != %s and employee_id = %s and date_to = '%s' and haft_day_leave = True and (date_from between '%s' and '%s' )
-                '''%(day.id,day.employee_id.id,date_to.strftime('%Y-%m-%d'),date_from.strftime('%Y-%m-%d'),date_to.strftime('%Y-%m-%d'))
-                cr.execute(sql5)
-                leave_5_ids = [row[0] for row in cr.fetchall()]
-                if leave_f_ids or len(leave_t_ids) > 1 or leave_ids or leave_4_ids or leave_5_ids:  
-                    raise osv.except_osv(_('Warning!'),_('The Employee requested leave day for these date!'))
+                if date_from == date_to:
+                    sql2 = '''
+                        select id from arul_hr_employee_leave_details where id != %s and employee_id = %s and date_to = '%s' and haft_day_leave = True
+                    '''%(day.id,day.employee_id.id,date_to.strftime('%Y-%m-%d'))
+                    cr.execute(sql2)
+                    leave_t_ids = [row[0] for row in cr.fetchall()]
+                    if len(leave_t_ids) > 1:  
+                        raise osv.except_osv(_('Warning!'),_('The Employee requested leave day for these date!'))
+                else:
+                    if leave_ids or leave_1_ids:  
+                        raise osv.except_osv(_('Warning!'),_('The Employee requested leave day for these date!'))
         return True   
     _constraints = [
         (_check_days, _(''), ['date_from', 'date_to']),
