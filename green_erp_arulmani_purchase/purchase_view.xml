@@ -75,16 +75,7 @@
             id="menu_action_view_tpt_purchase_indent_form"
             parent="purchase.menu_procurement_management" sequence="13"/>
 		
-		<record id="tpt_supplier_purchase_form" model="ir.ui.view">
-            <field name="name">tpt.supplier.purchase.form</field>
-            <field name="model">res.partner</field>
-            <field name="inherit_id" ref="base.view_partner_form"/>
-            <field name="arch" type="xml">
-            	<xpath expr="//field[@name='website']" position="after">
-					<field name="supplier_code" />
-				</xpath> 
-			</field>
-		</record>
+
 		
 		<record id="tpt_purchase_order_form" model="ir.ui.view">
             <field name="name">tpt.purchase.order.form</field>
@@ -714,6 +705,144 @@
               </p>
             </field>
         </record>
+
+		<record id="view_tpt_pur_organi_code_tree" model="ir.ui.view">
+			<field name="name">tpt.pur.organi.code.tree</field>
+			<field name="model">tpt.pur.organi.code</field>
+			<field name="arch" type="xml">
+				<tree string="Purchase Organisation">
+					<field name="name"/>
+				</tree>
+			</field>
+		</record>
 		
+		<record id="view_tpt_pur_organi_code_form" model="ir.ui.view">
+            <field name="name">tpt.pur.organi.code.form</field>
+            <field name="model">tpt.pur.organi.code</field>
+            <field name="arch" type="xml">
+	            <form string="Purchase Organisation" version="7.0">   
+	            	<sheet>
+	            		<group>
+	            			<field name="name"/>
+	            		</group>
+				    </sheet>
+		         </form>
+			</field>
+		</record>
+		
+		<record id="action_view_tpt_pur_organi_code_form" model="ir.actions.act_window">
+            <field name="name">Purchase Organisation</field>
+            <field name="type">ir.actions.act_window</field>
+            <field name="res_model">tpt.pur.organi.code</field>
+            <field name="view_type">form</field>
+            <field name="view_mode">tree,form</field>
+            <field name="view_id" ref="view_tpt_pur_organi_code_tree"/>
+        </record>
+        
+        <menuitem action="action_view_tpt_pur_organi_code_form"
+            id="menu_action_view_tpt_pur_organi_code_form"
+            parent="purchase.menu_procurement_management" sequence="200"/>
+            
+		<record id="view_tpt_vendor_group_tree" model="ir.ui.view">
+			<field name="name">tpt.vendor.group.tree</field>
+			<field name="model">tpt.vendor.group</field>
+			<field name="arch" type="xml">
+				<tree string="Vendor Group">
+					<field name="name"/>
+				</tree>
+			</field>
+		</record>
+		
+		<record id="view_tpt_vendor_group_form" model="ir.ui.view">
+            <field name="name">tpt.vendor.group.form</field>
+            <field name="model">tpt.vendor.group</field>
+            <field name="arch" type="xml">
+	            <form string="Vendor Group" version="7.0">   
+	            	<sheet>
+	            		<group>
+	            			<field name="name"/>
+	            		</group>
+				    </sheet>
+		         </form>
+			</field>
+		</record>
+		
+		<record id="action_view_tpt_vendor_group_form" model="ir.actions.act_window">
+            <field name="name">Vendor Group</field>
+            <field name="type">ir.actions.act_window</field>
+            <field name="res_model">tpt.vendor.group</field>
+            <field name="view_type">form</field>
+            <field name="view_mode">tree,form</field>
+            <field name="view_id" ref="view_tpt_vendor_group_tree"/>
+        </record>
+        
+        <menuitem action="action_view_tpt_vendor_group_form"
+            id="menu_action_view_tpt_vendor_group_form"
+            parent="purchase.menu_procurement_management" sequence="300"/>
+
+		<record id="view_tpt_vendor_sub_group_tree" model="ir.ui.view">
+			<field name="name">tpt.vendor.sub.group.tree</field>
+			<field name="model">tpt.vendor.sub.group</field>
+			<field name="arch" type="xml">
+				<tree string="Vendor Sub Group">
+					<field name="name"/>
+				</tree>
+			</field>
+		</record>
+		
+		<record id="view_tpt_vendor_sub_group_form" model="ir.ui.view">
+            <field name="name">tpt.vendor.sub.group.form</field>
+            <field name="model">tpt.vendor.sub.group</field>
+            <field name="arch" type="xml">
+	            <form string="Vendor Sub Group" version="7.0">   
+	            	<sheet>
+	            		<group>
+	            			<field name="name"/>
+	            		</group>
+				    </sheet>
+		         </form>
+			</field>
+		</record>
+		
+		<record id="action_view_tpt_vendor_sub_group_form" model="ir.actions.act_window">
+            <field name="name">Vendor Sub Group</field>
+            <field name="type">ir.actions.act_window</field>
+            <field name="res_model">tpt.vendor.sub.group</field>
+            <field name="view_type">form</field>
+            <field name="view_mode">tree,form</field>
+            <field name="view_id" ref="view_tpt_vendor_sub_group_tree"/>
+        </record>
+        
+        <menuitem action="action_view_tpt_vendor_sub_group_form"
+            id="menu_action_view_tpt_vendor_sub_group_form"
+            parent="purchase.menu_procurement_management" sequence="400"/>
+
+        <record id="tpt_view_partner_form" model="ir.ui.view">
+            <field name="name">tpt.partner.view.form.inherit</field>
+            <field name="model">res.partner</field>
+            <field name="inherit_id" ref="base.view_partner_form"/>
+            <field name="arch" type="xml">
+                <data>
+                	<xpath expr="//field[@name='phone']" position="before">
+                        <field name="contact_per" placeholder="Contact Person " attrs="{'invisible': [('supplier','=',False)]}" />
+                    </xpath>
+                    <xpath expr="//field[@name='website']" position="before">
+                        <field name="vendor_tag" placeholder="Tag ... " attrs="{'invisible': [('supplier','=',False)]}" />
+                    	<field name="vendor_group_id" options="{'create': false, 'create_edit': false}" attrs="{'invisible': [('supplier','=',False)]}" />
+                    	<field name="pur_orgin_code_id" options="{'create': false, 'create_edit': false}" attrs="{'invisible': [('supplier','=',False)]}" />
+                    </xpath>
+                    
+                    <xpath expr="//field[@name='name']" position="before">
+                        <field name="vendor_code" placeholder="Vendor Code" attrs="{'invisible': [('supplier','=',False)]}" />
+                    </xpath>
+                    
+                     <xpath expr="//field[@name='email']" position="after">
+                        <field name="vendor_sub_group_id"  attrs="{'invisible': [('supplier','=',False)]}" options="{'create': false, 'create_edit': false}" />
+                    </xpath>
+                </data>
+            </field>
+        </record>
+
+
     </data>
 </openerp>
