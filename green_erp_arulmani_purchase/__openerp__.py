@@ -28,9 +28,9 @@
     'website' : 'http://www. tenthplanet.in',
     'depends': ['purchase','stock','green_erp_arulmani_sale'],
     'data': [
-#         'purchase_sequence.xml',
-#         'wizard/tick_purchase_chart_view.xml',
-#         'purchase_view.xml',
+        'purchase_sequence.xml',
+        'wizard/tick_purchase_chart_view.xml',
+        'purchase_view.xml',
         'stock_view.xml',
     ],
     'css' : [
