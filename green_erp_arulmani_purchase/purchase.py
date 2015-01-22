@@ -898,11 +898,11 @@ tpt_product_detail_line()
 class tpt_quanlity_inspection(osv.osv):
     _name = "tpt.quanlity.inspection"
     _columns = {
-        'name' : fields.many2one('stock.picking.in','GRN No',required = True),
+        'name' : fields.many2one('stock.picking.in','GRN No',required = True,readonly = True),
         'need_inspec_id':fields.many2one('stock.move','Need Inspec'),
-        'date':fields.datetime('Create Date'),
-        'supplier_id':fields.many2one('res.partner','Supplier',required = True),
-        'product_id': fields.many2one('product.product', 'Product',required = True),
+        'date':fields.datetime('Create Date',readonly = True),
+        'supplier_id':fields.many2one('res.partner','Supplier',required = True,readonly = True),
+        'product_id': fields.many2one('product.product', 'Product',required = True,readonly = True),
         'reason':fields.text('Season'),
         'specification_line':fields.one2many('tpt.product.specification','specification_id','Product Specification'),
         'qty':fields.float('Qty'),
@@ -911,6 +911,18 @@ class tpt_quanlity_inspection(osv.osv):
     _defaults = {
         'state':'draft',
                  }
+
+    def bt_approve(self,cr,uid,ids,context=None):
+        move_obj = self.pool.get('stock.move')
+        for line in self.browse(cr,uid,ids):
+            move_obj.action_done(cr, uid, [line.need_inspec_id.id])
+        return self.write(cr, uid, ids, {'state':'done'})
+    
+    def bt_reject(self,cr,uid,ids,context=None):
+        move_obj = self.pool.get('stock.move')
+        for line in self.browse(cr,uid,ids):
+            move_obj.action_cancel(cr, uid, [line.need_inspec_id.id])
+        return self.write(cr, uid, ids, {'state':'cancel'})
 
 #     def onchange_grn_no(self, cr, uid, ids,name=False, context=None):
 #         vals = {}
@@ -941,7 +953,7 @@ class tpt_product_specification(osv.osv):
     _name = "tpt.product.specification"
     _columns = {
         'name' : fields.char('Parameters',size = 1024,required = True),
-        'value' : fields.char('Value',size = 1024,required = True),
+        'value' : fields.float('Value',required = True),
         'exp_value' : fields.char('Experimental Value',size = 1024),
         'specification_id':fields.many2one('res.partner','Supplier'),
  
