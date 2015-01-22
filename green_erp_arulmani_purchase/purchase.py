@@ -1034,14 +1034,26 @@ class tpt_good_return_request(osv.osv):
             res.append((record['id'], name))
         return res 
     
-#     def onchange_grn_no_id(self, cr, uid, ids,grn_no_id=False,context=None):
-#         res = {}
-#         if grn_no_id :
-#             picking = self.pool.get('stock.picking.in').browse(cr, uid, grn_no_id)
-#             for line in picking.move_lines:
-#                 if line.action_taken == "need":
-#                     
-#         return res
+    def onchange_grn_no_id(self, cr, uid, ids,grn_no_id=False,context=None):
+        vals = {}
+        if grn_no_id :
+            details = []
+            picking = self.pool.get('stock.picking.in').browse(cr, uid, grn_no_id)
+            stock = self.pool.get('stock.move')
+            stock_ids = stock.search(cr,uid,[('picking_id','=',grn_no_id), ('state', '=', 'cancel')])
+            for line in stock.browse(cr,uid,stock_ids):
+                quality_ids = self.pool.get('tpt.quanlity.inspection').search(cr,uid,[('need_inspec_id','=',line.id)])
+                for quality in self.pool.get('tpt.quanlity.inspection').browse(cr,uid,quality_ids):
+                    rs = {
+                          'product_id':line.product_id and line.product_id.id or False,
+                          'product_qty': line.product_qty or False,
+                          'uom_po_id': line.product_uom and line.product_uom.id or False,
+                          'state': 'reject',
+                          'reason': quality.reason,
+                          }
+                details.append((0,0,rs))
+                     
+        return {'value': {'product_detail_line': details}}
     
     def bt_approve(self, cr, uid, ids, context=None):
         for line in self.browse(cr, uid, ids):
