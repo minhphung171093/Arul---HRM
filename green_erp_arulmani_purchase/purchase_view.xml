@@ -817,27 +817,27 @@
             id="menu_action_view_tpt_vendor_sub_group_form"
             parent="purchase.menu_procurement_management" sequence="400"/>
 
-        <record id="tpt_view_partner_form_inherit" model="ir.ui.view">
+        <record id="tpt_view_partner_form" model="ir.ui.view">
             <field name="name">tpt.partner.view.form.inherit</field>
             <field name="model">res.partner</field>
             <field name="inherit_id" ref="base.view_partner_form"/>
             <field name="arch" type="xml">
                 <data>
                 	<xpath expr="//field[@name='phone']" position="before">
-                        <field name="contact_per" placeholder="Contact Person " attrs="{'invisible': [('supplier', '!=', True)]}" />
+                        <field name="contact_per" placeholder="Contact Person " attrs="{'invisible': [('supplier','=',False)]}" />
                     </xpath>
                     <xpath expr="//field[@name='website']" position="before">
-                        <field name="vendor_tag" placeholder="Tag ... " attrs="{'invisible': [('supplier', '!=', True)]}" />
-                    	<field name="vendor_group_id" options="{'create': false, 'create_edit': false}" attrs="{'invisible': [('supplier', '!=', True)]}" />
-                    	<field name="pur_orgin_code_id" options="{'create': false, 'create_edit': false}" attrs="{'invisible': [('supplier', '!=', True)]}" />
+                        <field name="vendor_tag" placeholder="Tag ... " attrs="{'invisible': [('supplier','=',False)]}" />
+                    	<field name="vendor_group_id" options="{'create': false, 'create_edit': false}" attrs="{'invisible': [('supplier','=',False)]}" />
+                    	<field name="pur_orgin_code_id" options="{'create': false, 'create_edit': false}" attrs="{'invisible': [('supplier','=',False)]}" />
                     </xpath>
                     
                     <xpath expr="//field[@name='name']" position="before">
-                        <field name="vendor_code" placeholder="Vendor Code" attrs="{'invisible': [('supplier', '!=', True)]}" />
+                        <field name="vendor_code" placeholder="Vendor Code" attrs="{'invisible': [('supplier','=',False)]}" />
                     </xpath>
                     
                      <xpath expr="//field[@name='email']" position="after">
-                        <field name="vendor_sub_group_id"  attrs="{'invisible': [('supplier', '!=', True)]}" options="{'create': false, 'create_edit': false}" />
+                        <field name="vendor_sub_group_id"  attrs="{'invisible': [('supplier','=',False)]}" options="{'create': false, 'create_edit': false}" />
                     </xpath>
                 </data>
             </field>
