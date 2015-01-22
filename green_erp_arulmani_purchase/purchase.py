@@ -817,40 +817,43 @@ class purchase_order(osv.osv):
                         raise osv.except_osv(_('Warning!'),_('Can not process because Total > 5000 for VV Local PO'))
         return new_write
     
-#     def _prepare_order_picking(self, cr, uid, order, context=None):
-#         return {
-#             'name': self.pool.get('ir.sequence').get(cr, uid, 'stock.picking.in'),
-#             'origin': order.name + ((order.origin and (':' + order.origin)) or ''),
-#             'date': self.date_to_datetime(cr, uid, order.date_order, context),
-#             'partner_id': order.partner_id.id,
-#             'invoice_state': '2binvoiced' if order.invoice_method == 'picking' else 'none',
-#             'type': 'in',
-#             'purchase_id': order.id,
-#             'company_id': order.company_id.id,
-#             'move_lines' : [],
-#         }
-# 
-#     def _prepare_order_line_move(self, cr, uid, order, order_line, picking_id, context=None):
-#         return {
-#             'name': order_line.name or '',
-#             'product_id': order_line.product_id.id,
-#             'product_qty': order_line.product_qty,
-#             'product_uos_qty': order_line.product_qty,
-#             'product_uom': order_line.product_uom.id,
-#             'product_uos': order_line.product_uom.id,
-#             'date': self.date_to_datetime(cr, uid, order.date_order, context),
-#             'date_expected': self.date_to_datetime(cr, uid, order_line.date_planned, context),
-#             'location_id': order.partner_id.property_stock_supplier.id,
-#             'location_dest_id': order.location_id.id,
-#             'picking_id': picking_id,
-#             'partner_id': order.dest_address_id.id or order.partner_id.id,
-#             'move_dest_id': order_line.move_dest_id.id,
-#             'state': 'draft',
-#             'type':'in',
-#             'purchase_line_id': order_line.id,
-#             'company_id': order.company_id.id,
-#             'price_unit': order_line.price_unit
-#         }
+    def _prepare_order_picking(self, cr, uid, order, context=None):
+        return {
+            'name': self.pool.get('ir.sequence').get(cr, uid, 'stock.picking.in'),
+            'origin': order.name + ((order.origin and (':' + order.origin)) or ''),
+            'date': self.date_to_datetime(cr, uid, order.date_order, context),
+            'partner_id': order.partner_id.id,
+            'invoice_state': '2binvoiced' if order.invoice_method == 'picking' else 'none',
+            'type': 'in',
+            'purchase_id': order.id,
+            'company_id': order.company_id.id,
+            'move_lines' : [],
+            'document_type': order.po_document_type or False,
+            'po_date': order.date_order or False,
+        }
+ 
+    def _prepare_order_line_move(self, cr, uid, order, order_line, picking_id, context=None):
+        return {
+            'name': order_line.name or '',
+            'product_id': order_line.product_id.id,
+            'product_qty': order_line.product_qty,
+            'product_uos_qty': order_line.product_qty,
+            'product_uom': order_line.product_uom.id,
+            'product_uos': order_line.product_uom.id,
+            'date': self.date_to_datetime(cr, uid, order.date_order, context),
+            'date_expected': self.date_to_datetime(cr, uid, order_line.date_planned, context),
+            'location_id': order.partner_id.property_stock_supplier.id,
+            'location_dest_id': order.location_id.id,
+            'picking_id': picking_id,
+            'partner_id': order.dest_address_id.id or order.partner_id.id,
+            'move_dest_id': order_line.move_dest_id.id,
+            'state': 'draft',
+            'type':'in',
+            'purchase_line_id': order_line.id,
+            'company_id': order.company_id.id,
+            'price_unit': order_line.price_unit,
+            'po_indent_id': order_line.po_indent_no and order_line.po_indent_no.id or False,
+        }
 purchase_order()
 
 class purchase_order_line(osv.osv):
@@ -1106,3 +1109,41 @@ class tpt_product_specification(osv.osv):
  
                 }
 tpt_product_specification()
+
+class tpt_gate_out_pass(osv.osv):
+    _name = "tpt.gate.out.pass"
+      
+    _columns = {
+        'name': fields.char('Gate Out Pass No', size = 1024, readonly=True),
+        'po_id': fields.many2one('purchase.order', 'PO Number', required = True),
+        'supplier_id': fields.many2one('res.partner', 'Supplier', required = True),
+        'grn_id': fields.many2one('stock.picking.in','GRN No', required = True), 
+        'gate_date_time': fields.datetime('Gate Out Pass Date & Time'),
+        'gate_out_pass_line': fields.one2many('tpt.gate.out.pass.line', 'gate_out_pass_id', 'Product Details'),
+                }
+    _defaults={
+               'name':'/',
+               'gate_date_time': time.strftime("%Y-%m-%d %H:%M:%S"),
+    }
+    
+    def create(self, cr, uid, vals, context=None):
+        if vals.get('name','/')=='/':
+            vals['name'] = self.pool.get('ir.sequence').get(cr, uid, 'tpt.gate.out.pass.import') or '/'
+        return super(tpt_gate_out_pass, self).create(cr, uid, vals, context=context)
+    
+tpt_gate_out_pass()
+
+class tpt_gate_out_pass_line(osv.osv):
+    _name = "tpt.gate.out.pass.line"
+    _columns = {
+        'gate_out_pass_id': fields.many2one('tpt.gate.out.pass','Gate Out Pass',ondelete = 'cascade'),
+        'product_id': fields.many2one('product.product', 'Product'),
+        'product_qty': fields.float('Quantity'),
+        'uom_po_id': fields.many2one('product.uom', 'UOM'),
+        'reason': fields.char('Reason for Rejection', size = 1024),
+                }
+    _defaults={
+               'product_qty': 1,
+    }
+      
+tpt_gate_out_pass_line()

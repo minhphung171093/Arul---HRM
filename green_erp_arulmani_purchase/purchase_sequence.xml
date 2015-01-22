@@ -250,5 +250,20 @@
             <field name="padding">8</field>
             <field name="company_id" eval="False"/>
         </record>  
+        
+        <!-- Gate Out Pass -->
+		<record id="sequence_tpt_gate_out_pass_import_code" model="ir.sequence.type">
+            <field name="name">Gate Out Pass Import</field>
+            <field name="code">tpt.gate.out.pass.import</field>
+        </record>
+        
+        <record id="sequence_tpt_gate_in_pass_import_item" model="ir.sequence">
+            <field name="name">Gate Out Pass Import</field>
+            <field name="code">tpt.gate.out.pass.import</field>
+            <field name="prefix">VVTI/GOP/</field>
+            <field name="padding">8</field>
+            <field name="number_next_actual">00000001</field>
+            <field name="implementation">no_gap</field>
+        </record>
 	</data>
 </openerp>

@@ -388,7 +388,7 @@
 		</record>
           
 		<record id="action_view_tpt_purchase_quotation_form" model="ir.actions.act_window">
-            <field name="name">Purchase Quotation</field>
+            <field name="name">Quotations</field>
             <field name="type">ir.actions.act_window</field>
             <field name="res_model">tpt.purchase.quotation</field>
             <field name="view_type">form</field>
@@ -409,9 +409,9 @@
             <field name="act_window_id" ref="action_view_tpt_purchase_quotation_form"/>
         </record>
         
-        <menuitem action="action_view_tpt_purchase_quotation_form"
-            id="menu_action_view_tpt_purchase_quotation_form"
-            parent="purchase.menu_procurement_management" sequence="25"/>
+        <menuitem action="action_view_tpt_purchase_quotation_form" id="purchase.menu_purchase_rfq"
+            parent="purchase.menu_procurement_management"
+            sequence="0"/>
             
 		<record id="view_tpt_good_return_request_tree" model="ir.ui.view">
 			<field name="name">tpt.good.return.request.tree</field>
@@ -627,6 +627,83 @@
         <menuitem action="action_view_tpt_quanlity_inspection_form"
             id="menu_action_view_tpt_quanlity_inspection_form"
             parent="purchase.menu_procurement_management" sequence="29"/> 
+            
+        <record id="view_tpt_gate_out_pass_tree" model="ir.ui.view">
+			<field name="name">tpt.gate.out.pass.tree</field>
+			<field name="model">tpt.gate.out.pass</field>
+			<field name="arch" type="xml">
+				<tree string="Gate Out Pass">
+					<field name="name"/>
+                	<field name="grn_id"/>
+                	<field name="gate_date_time"/>
+	                <field name="po_id"/>
+	                <field name="supplier_id"/>
+				</tree>
+			</field>
+		</record>
+		
+        <record id="view_tpt_gate_out_pass_form" model="ir.ui.view">
+            <field name="name">tpt.gate.out.pass.form</field>
+            <field name="model">tpt.gate.out.pass</field>
+            <field name="arch" type="xml">
+	            <form string="Gate Out Pass" version="7.0">   
+	            	<sheet>
+		                <group > 
+		                	<field name="name"/>
+		                	<field name="grn_id" options="{'create': false, 'create_edit': false}"/>
+		                	<field name="gate_date_time"/>
+			                <field name="po_id" options="{'create': false, 'create_edit': false}"/>
+			                <field name="supplier_id" domain="[('supplier','=',1)]" options="{'create': false, 'create_edit': false}"/>
+						</group>
+						<notebook>
+							<page string="Product details">
+								<field name="gate_out_pass_line" nolabel='1'>
+									<tree editable='top'>
+										<field name="product_id" options="{'create': false, 'create_edit': false}"/>
+										<field name="product_qty"/>
+										<field name="uom_po_id" options="{'create': false, 'create_edit': false}"/>
+										<field name="reason"/>
+									</tree>
+								</field>
+							</page>
+						</notebook>
+				    </sheet>
+		         </form>
+			</field>
+		</record>
+		
+		<record id="action_view_tpt_gate_out_pass_tree" model="ir.actions.act_window">
+            <field name="name">Gate Out Pass</field>
+            <field name="type">ir.actions.act_window</field>
+            <field name="res_model">tpt.gate.out.pass</field>
+            <field name="view_type">form</field>
+            <field name="view_mode">tree,form</field>
+            <field name="view_id" ref="view_tpt_gate_out_pass_tree"/>
+        </record>
+        
+        <menuitem action="action_view_tpt_gate_out_pass_tree"
+            id="menu_action_view_tpt_gate_out_pass_tree"
+            parent="purchase.menu_procurement_management" sequence="22"/>
+		
+		<record id="purchase.purchase_form_action" model="ir.actions.act_window">
+            <field name="name">Purchase Orders</field>
+            <field name="type">ir.actions.act_window</field>
+            <field name="res_model">purchase.order</field>
+            <field name="view_mode">tree,form,graph,calendar</field>
+            <field name="context">{}</field>
+            <field name="domain">[]</field>
+            <field name="search_view_id" ref="purchase.view_purchase_order_filter"/>
+            <field name="help" type="html">
+              <p class="oe_view_nocontent_create">
+                Click to create a quotation that will be converted into a purchase order. 
+              </p><p>
+                Use this menu to search within your purchase orders by
+                references, supplier, products, etc. For each purchase order,
+                you can track the related discussion with the supplier, control
+                the products received and control the supplier invoices.
+              </p>
+            </field>
+        </record>
 		
     </data>
 </openerp>

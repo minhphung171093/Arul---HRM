@@ -187,7 +187,7 @@
 				<xpath expr="//field[@name='partner_id']" position="replace">
 					<field name="name" string = "Invoice" required = '0' invisible = '1'/>
 					<field name="delivery_order_id" options="{'create': false, 'create_edit': false}" domain="[('state','=','done')]" on_change = "onchange_delivery_order_id(delivery_order_id)"/>
-					<field string="Customer" name="partner_id"
+					<field string="Customer" name="partner_id" readonly="1"
                                 on_change="onchange_partner_id(type,partner_id,date_invoice,payment_term, partner_bank_id,company_id)"
                                 groups="base.group_user" context="{'search_default_customer':1, 'show_address': 1}"
                                 domain="[('customer','=',1),('is_company','=',1)]"
@@ -216,7 +216,7 @@
 				</xpath>
 				<xpath expr="//field[@name='account_id']" position="replace">
 					<field name="account_id" required = "0" invisible = "1"/>
-					<field name="sale_id" options="{'create': false, 'create_edit': false}"/>
+					<field name="sale_id" readonly="1" options="{'create': false, 'create_edit': false}"/>
 					<field name="payment_term" options="{'create': false, 'create_edit': false}"/>
 					<field name="sale_tax_id" domain="[('type_tax_use','=','sale')]" options="{'create': false, 'create_edit': false}"/>
 					<field name="invoice_type" />
