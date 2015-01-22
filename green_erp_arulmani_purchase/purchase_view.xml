@@ -441,7 +441,7 @@
 	            </header>
 	            	<sheet>
 		                <group > 
-			                <field name="grn_no_id" domain="[('type','=','in')]" options="{'create': false, 'create_edit': false}"/>
+			                <field name="grn_no_id" on_change = "onchange_grn_no_id(grn_no_id)" domain="[('type','=','in')]" options="{'create': false, 'create_edit': false}"/>
 							<field name="request_date"/>
 						</group>
 						<notebook>
