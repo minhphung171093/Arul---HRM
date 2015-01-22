@@ -1082,8 +1082,10 @@ class tpt_quanlity_inspection(osv.osv):
     
     def bt_reject(self,cr,uid,ids,context=None):
         move_obj = self.pool.get('stock.move')
+        picking_obj = self.pool.get('stock.picking')
         for line in self.browse(cr,uid,ids):
             move_obj.action_cancel(cr, uid, [line.need_inspec_id.id])
+            picking_obj.do_partial(cr, uid, [line.name.id], {})
         return self.write(cr, uid, ids, {'state':'cancel'})
 
 #     def onchange_grn_no(self, cr, uid, ids,name=False, context=None):
