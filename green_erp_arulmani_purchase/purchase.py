@@ -367,12 +367,20 @@ class tpt_gate_in_pass(osv.osv):
         'supplier_id': fields.many2one('res.partner', 'Supplier', required = True),
         'po_date': fields.datetime('PO Date'),
         'gate_date_time': fields.datetime('Gate In Pass Date & Time'),
+        'state':fields.selection([('draft', 'Draft'),('cancel', 'Cancel'),('done', 'Approve')],'Status', readonly=True, states={'cancel': [('readonly', True)], 'done':[('readonly', True)]}),
         'gate_in_pass_line': fields.one2many('tpt.gate.in.pass.line', 'gate_in_pass_id', 'Product Details'),
                 }
     _defaults={
                'name':'/',
                'gate_date_time': time.strftime("%Y-%m-%d %H:%M:%S"),
+               'state': 'draft',
     }
+    
+    def bt_approve(self, cr, uid, ids, context=None):
+        return self.write(cr, uid, ids,{'state':'done'})
+    
+    def bt_cancel(self, cr, uid, ids, context=None):
+        return self.write(cr, uid, ids,{'state':'cancel'})
     
     def create(self, cr, uid, vals, context=None):
         if vals.get('name','/')=='/':
@@ -1103,8 +1111,10 @@ class tpt_quanlity_inspection(osv.osv):
     
     def bt_reject(self,cr,uid,ids,context=None):
         move_obj = self.pool.get('stock.move')
+        picking_obj = self.pool.get('stock.picking')
         for line in self.browse(cr,uid,ids):
             move_obj.action_cancel(cr, uid, [line.need_inspec_id.id])
+            picking_obj.do_partial(cr, uid, [line.name.id], {})
         return self.write(cr, uid, ids, {'state':'cancel'})
 
 #     def onchange_grn_no(self, cr, uid, ids,name=False, context=None):
@@ -1153,16 +1163,24 @@ class tpt_gate_out_pass(osv.osv):
         'grn_id': fields.many2one('stock.picking.in','GRN No', required = True), 
         'gate_date_time': fields.datetime('Gate Out Pass Date & Time'),
         'gate_out_pass_line': fields.one2many('tpt.gate.out.pass.line', 'gate_out_pass_id', 'Product Details'),
+        'state':fields.selection([('draft', 'Draft'),('cancel', 'Cancel'),('done', 'Approve')],'Status', readonly=True, states={'cancel': [('readonly', True)], 'done':[('readonly', True)]}),
                 }
     _defaults={
                'name':'/',
                'gate_date_time': time.strftime("%Y-%m-%d %H:%M:%S"),
+               'state': 'draft',
     }
     
     def create(self, cr, uid, vals, context=None):
         if vals.get('name','/')=='/':
             vals['name'] = self.pool.get('ir.sequence').get(cr, uid, 'tpt.gate.out.pass.import') or '/'
         return super(tpt_gate_out_pass, self).create(cr, uid, vals, context=context)
+    
+    def bt_approve(self, cr, uid, ids, context=None):
+        return self.write(cr, uid, ids,{'state':'done'})
+    
+    def bt_cancel(self, cr, uid, ids, context=None):
+        return self.write(cr, uid, ids,{'state':'cancel'})
     
 tpt_gate_out_pass()
 
