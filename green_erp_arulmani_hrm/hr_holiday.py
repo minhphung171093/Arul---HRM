@@ -296,7 +296,8 @@ class arul_hr_audit_shift_time(osv.osv):
                 if extra_hours<shift_hours and line.employee_id.employee_category_id and line.employee_id.employee_category_id.code!='S1':
                     permission_ids = self.pool.get('arul.hr.permission.onduty').search(cr, uid, [('non_availability_type_id','=','permission'),('date','=',line.work_date),('employee_id','=',line.employee_id.id)])
                     on_duty_ids = self.pool.get('arul.hr.permission.onduty').search(cr, uid, [('non_availability_type_id','=','on_duty'),('from_date','<=',line.work_date),('to_date','>=',line.work_date),('employee_id','=',line.employee_id.id)])
-                    if not permission_ids and not on_duty_ids:
+                    leave_detail_ids = self.pool.get('arul.hr.employee.leave.details').search(cr, uid, [('date_from','<=',line.work_date),('date_to','>=',line.work_date),('employee_id','=',line.employee_id.id),('state','=','done')])
+                    if not permission_ids and not on_duty_ids and not leave_detail_ids:
                         continue
                 
                 if line.additional_shifts or (extra_hours>8 and line.employee_id.employee_category_id and line.employee_id.employee_category_id.code!='S1'):
