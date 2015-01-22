@@ -391,10 +391,10 @@ class tpt_gate_in_pass(osv.osv):
             gate_in_pass_line = []
             for line in po.order_line:
                 gate_in_pass_line.append({
-#                             'po_indent_no': line.
-                          'product_id': line.product_id.id,
-                          'product_qty':line.product_qty,
-                          'uom_po_id': line.product_uom.id,
+                            'po_indent_no': line.po_indent_no and line.po_indent_no.id or False,
+                          'product_id': line.product_id and line.product_id.id or False,
+                          'product_qty':line.product_qty or False,
+                          'uom_po_id': line.product_uom and line.product_uom.id or False,
                     })
         res['value'].update({
                     'supplier_id':po.partner_id and po.partner_id.id or False,
@@ -701,6 +701,7 @@ class purchase_order(osv.osv):
                       'price_unit': line.price_unit or False,
                       'price_subtotal': line.sub_total or False,
                       'date_planned':quotation.date_quotation or False,
+                      'name':'/'
                       }
                 po_line.append((0,0,rs))
             vals = {
@@ -1021,6 +1022,7 @@ class tpt_quanlity_inspection(osv.osv):
     _name = "tpt.quanlity.inspection"
     _columns = {
         'name' : fields.many2one('stock.picking.in','GRN No',required = True),
+        'need_inspec_id':fields.many2one('stock.move','Need Inspec'),
         'date':fields.datetime('Create Date'),
         'supplier_id':fields.many2one('res.partner','Supplier',required = True),
         'product_id': fields.many2one('product.product', 'Product',required = True),
@@ -1038,17 +1040,17 @@ class tpt_quanlity_inspection(osv.osv):
 #         po_line = []
 #         if name:
 #             grn = self.pool.get('tpt.quanlity.inspection').browse(cr, uid, name)
-#             for line in quotation.purchase_quotation_line:
-#                 rs = {
-#                       'po_indent_no': line.po_indent_id and line.product_id.id or False,
-#                       'product_id': line.product_id and line.product_id.id or False,
-#                       'product_qty': line.product_uom_qty or False,
-#                       'product_uom': line.uom_po_id and line.uom_po_id.id or False,
-#                       'price_unit': line.price_unit or False,
-#                       'price_subtotal': line.sub_total or False,
-#                       'date_planned':quotation.date_quotation or False,
-#                       }
-#                 po_line.append((0,0,rs))
+# #             for line in quotation.purchase_quotation_line:
+# #                 rs = {
+# #                       'po_indent_no': line.po_indent_id and line.product_id.id or False,
+# #                       'product_id': line.product_id and line.product_id.id or False,
+# #                       'product_qty': line.product_uom_qty or False,
+# #                       'product_uom': line.uom_po_id and line.uom_po_id.id or False,
+# #                       'price_unit': line.price_unit or False,
+# #                       'price_subtotal': line.sub_total or False,
+# #                       'date_planned':quotation.date_quotation or False,
+# #                       }
+# #                 po_line.append((0,0,rs))
 #             vals = {
 #                     'partner_id':quotation.supplier_id and quotation.supplier_id.id or '',
 #                     'partner_ref':quotation.quotation_ref or '',
