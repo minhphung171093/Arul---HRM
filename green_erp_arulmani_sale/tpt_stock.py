@@ -202,28 +202,28 @@ class stock_picking(osv.osv):
             @return: dict that will be used to create the invoice object
         """
         invoice_vals = super(stock_picking,self)._prepare_invoice(cr, uid, picking, partner, inv_type, journal_id, context)
-        if isinstance(partner, int):
-            partner = self.pool.get('res.partner').browse(cr, uid, partner, context=context)
-        if inv_type in ('out_invoice', 'out_refund'):
-            account_id = partner.property_account_receivable.id
-            payment_term = partner.property_payment_term.id or False
-        else:
-            account_id = partner.property_account_payable.id
-            payment_term = partner.property_supplier_payment_term.id or False
-        comment = self._get_comment_invoice(cr, uid, picking)
-        invoice_vals = {
-            'name': picking.name,
-            'origin': (picking.name or '') + (picking.origin and (':' + picking.origin) or ''),
-            'type': inv_type,
-            'account_id': account_id,
-            'partner_id': partner.id,
-            'comment': comment,
-#             'payment_term': payment_term,
-            'fiscal_position': partner.property_account_position.id,
-            'date_invoice': context.get('date_inv', False),
-            'company_id': picking.company_id.id,
-            'user_id': uid,
-            
+#         if isinstance(partner, int):
+#             partner = self.pool.get('res.partner').browse(cr, uid, partner, context=context)
+#         if inv_type in ('out_invoice', 'out_refund'):
+#             account_id = partner.property_account_receivable.id
+#             payment_term = partner.property_payment_term.id or False
+#         else:
+#             account_id = partner.property_account_payable.id
+#             payment_term = partner.property_supplier_payment_term.id or False
+#         comment = self._get_comment_invoice(cr, uid, picking)
+        invoice_vals.update({
+#             'name': picking.name,
+#             'origin': (picking.name or '') + (picking.origin and (':' + picking.origin) or ''),
+#             'type': inv_type,
+#             'account_id': account_id,
+#             'partner_id': partner.id,
+#             'comment': comment,
+# #             'payment_term': payment_term,
+#             'fiscal_position': partner.property_account_position.id,
+#             'date_invoice': context.get('date_inv', False),
+#             'company_id': picking.company_id.id,
+#             'user_id': uid,
+#             
             'sale_id': picking.sale_id and picking.sale_id.id or False,
             'payment_term': picking.sale_id.payment_term_id and picking.sale_id.payment_term_id.id or False,
             'currency_id': picking.sale_id.currency_id and picking.sale_id.currency_id.id or False,
@@ -232,7 +232,7 @@ class stock_picking(osv.osv):
             'cons_loca': picking.cons_loca and picking.cons_loca.id or False,
             'delivery_order_id': picking.id,
             'sale_tax_id': picking.sale_id.sale_tax_id and picking.sale_id.sale_tax_id.id or False,
-        }
+        })
         cur_id = self.get_currency_id(cr, uid, picking)
         if cur_id:
             invoice_vals['currency_id'] = cur_id
@@ -240,17 +240,17 @@ class stock_picking(osv.osv):
             invoice_vals['journal_id'] = journal_id
         return invoice_vals
     
-#     def _prepare_invoice_line(self, cr, uid, group, picking, move_line, invoice_id,
-#         invoice_vals, context=None):
-#         """ Builds the dict containing the values for the invoice line
-#             @param group: True or False
-#             @param picking: picking object
-#             @param: move_line: move_line object
-#             @param: invoice_id: ID of the related invoice
-#             @param: invoice_vals: dict used to created the invoice
-#             @return: dict that will be used to create the invoice line
-#         """
-# #         invoice_vals = super(stock_picking,self)._prepare_invoice_line(cr, uid, group, picking, move_line, invoice_id,invoice_vals, context)
+    def _prepare_invoice_line(self, cr, uid, group, picking, move_line, invoice_id,
+        invoice_vals, context=None):
+        """ Builds the dict containing the values for the invoice line
+            @param group: True or False
+            @param picking: picking object
+            @param: move_line: move_line object
+            @param: invoice_id: ID of the related invoice
+            @param: invoice_vals: dict used to created the invoice
+            @return: dict that will be used to create the invoice line
+        """
+        invoice_line_vals = super(stock_picking,self)._prepare_invoice_line(cr, uid, group, picking, move_line, invoice_id,invoice_vals, context)
 #         if group:
 #             name = (picking.name or '') + '-' + move_line.name
 #         else:
@@ -258,7 +258,7 @@ class stock_picking(osv.osv):
 #         origin = move_line.picking_id.name or ''
 #         if move_line.picking_id.origin:
 #             origin += ':' + move_line.picking_id.origin
-# 
+#  
 #         if invoice_vals['type'] in ('out_invoice', 'out_refund'):
 #             account_id = move_line.product_id.property_account_income.id
 #             if not account_id:
@@ -277,8 +277,8 @@ class stock_picking(osv.osv):
 #         uos_id = move_line.product_uos and move_line.product_uos.id or False
 #         if not uos_id and invoice_vals['type'] in ('out_invoice', 'out_refund'):
 #             uos_id = move_line.product_uom.id
-# 
-#         return {
+        if picking.type=='out':
+            invoice_line_vals.update({
 #             'name': name,
 #             'origin': origin,
 #             'invoice_id': invoice_id,
@@ -290,10 +290,12 @@ class stock_picking(osv.osv):
 #             'quantity': move_line.product_uos_qty or move_line.product_qty,
 #             'invoice_line_tax_id': [(6, 0, self._get_taxes_invoice(cr, uid, move_line, invoice_vals['type']))],
 #             'account_analytic_id': self._get_account_analytic_invoice(cr, uid, picking, move_line),
-#             'product_type':move_line.product_type or False,
-#             'application_id':move_line.application_id or False,
-#             'freight':move_line.freight or False,
-#         }
+                'product_type':move_line.sale_line_id and move_line.sale_line_id.product_type or False,
+                'application_id':move_line.sale_line_id and move_line.sale_line_id.application_id and move_line.sale_line_id.application_id.id or False,
+                'freight':move_line.sale_line_id and move_line.sale_line_id.freight or False,
+            })
+        return invoice_line_vals
+        
     def do_partial(self, cr, uid, ids, partial_datas, context=None):
         """ Makes partial picking and moves done.
         @param partial_datas : Dictionary containing details of partial picking
