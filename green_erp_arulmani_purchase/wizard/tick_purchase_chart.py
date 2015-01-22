@@ -26,6 +26,7 @@ class tick_purchase_chart(osv.osv_memory):
         chart = self.pool.get('tpt.purchase.quotation').browse(cr, uid, q_id)
         location_ids=self.pool.get('stock.warehouse').search(cr, uid,[('company_id','=',chart.supplier_id.company_id.id)])
         location = self.pool.get('stock.warehouse').browse(cr, uid, location_ids[0])
+        
         vals = purchase_order_obj.onchange_partner_id(cr, uid, [q_id],chart.supplier_id.id)['value']
         tick = self.browse(cr, uid, ids[0])
         
