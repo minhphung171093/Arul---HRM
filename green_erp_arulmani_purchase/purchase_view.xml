@@ -660,7 +660,7 @@
 	            	<sheet>
 		                <group > 
 		                	<field name="name"/>
-		                	<field name="grn_id" options="{'create': false, 'create_edit': false}"/>
+		                	<field name="grn_id" context="{'search_default_grn_by_return_req':1}" on_change="onchange_grn_id(grn_id)" options="{'create': false, 'create_edit': false}"/>
 		                	<field name="gate_date_time"/>
 			                <field name="po_id" options="{'create': false, 'create_edit': false}"/>
 			                <field name="supplier_id" domain="[('supplier','=',1)]" options="{'create': false, 'create_edit': false}"/>

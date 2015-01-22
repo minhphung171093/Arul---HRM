@@ -1158,6 +1158,30 @@ class tpt_gate_out_pass(osv.osv):
     
     def bt_cancel(self, cr, uid, ids, context=None):
         return self.write(cr, uid, ids,{'state':'cancel'})
+    def onchange_grn_id(self, cr, uid, ids,grn_id=False):
+        res = {'value':{
+                        'supplier_id':False,
+                        'po_id':False,
+                        'gate_out_pass_line':[],
+                      }
+               }
+        if grn_id:
+            gate_out_pass_line = []
+            good_req_ids = self.pool.get('tpt.good.return.request').search(cr, uid,[('grn_no_id','=',grn_id)])
+            good_req_id = self.pool.get('tpt.good.return.request').browse(cr,uid,good_req_ids[0])
+            for line in good_req_id.product_detail_line:
+                gate_out_pass_line.append({
+                          'product_id': line.product_id and line.product_id.id or False,
+                          'product_qty':line.product_qty or False,
+                          'uom_po_id': line.uom_po_id and line.uom_po_id.id or False,
+                          'reason': line.reason or False,
+                    })
+        res['value'].update({
+                    'supplier_id': good_req_id.grn_no_id and good_req_id.grn_no_id.partner_id and good_req_id.grn_no_id.partner_id.id or False,
+                    'po_id': good_req_id.grn_no_id and good_req_id.grn_no_id.purchase_id and good_req_id.grn_no_id.purchase_id.id or False,
+                    'gate_out_pass_line': gate_out_pass_line,
+        })
+        return res
     
 tpt_gate_out_pass()
 
