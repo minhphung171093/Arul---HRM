@@ -1034,6 +1034,15 @@ class tpt_good_return_request(osv.osv):
             res.append((record['id'], name))
         return res 
     
+#     def onchange_grn_no_id(self, cr, uid, ids,grn_no_id=False,context=None):
+#         res = {}
+#         if grn_no_id :
+#             picking = self.pool.get('stock.picking.in').browse(cr, uid, grn_no_id)
+#             for line in picking.move_lines:
+#                 if line.action_taken == "need":
+#                     
+#         return res
+    
     def bt_approve(self, cr, uid, ids, context=None):
         for line in self.browse(cr, uid, ids):
             self.write(cr, uid, ids,{'state':'done'})
