@@ -174,8 +174,7 @@ class stock_picking(osv.osv):
 #                 'freight':move_line.freight or False,
             })
         return invoice_line_vals
-
-
+    
 stock_picking()
 
 class stock_picking_in(osv.osv):
@@ -185,6 +184,24 @@ class stock_picking_in(osv.osv):
         'warehouse':fields.many2one('stock.location','Warehouse'),
         'po_date': fields.datetime('PO Date'),   
                 }
+    
+    def search(self, cr, uid, args, offset=0, limit=None, order=None, context=None, count=False):
+        if context is None:
+            context = {}
+        if context.get('search_default_grn_by_return_req'):
+            sql = '''
+                select id from stock_picking
+                where state != 'draft' and state != 'cancel' and id not in (select grn_id from tpt_gate_out_pass where state != 'cancel')
+                and id in (select grn_no_id from tpt_good_return_request where state = 'done')
+            '''
+            cr.execute(sql)
+            request_ids = [row[0] for row in cr.fetchall()]
+            args += [('id','in',request_ids)]
+        return super(stock_picking_in, self).search(cr, uid, args, offset=offset, limit=limit, order=order, context=context, count=count)
+    
+    def name_search(self, cr, user, name, args=None, operator='ilike', context=None, limit=100):
+       ids = self.search(cr, user, args, context=context, limit=limit)
+       return self.name_get(cr, user, ids, context=context)
     
 stock_picking_in()
 

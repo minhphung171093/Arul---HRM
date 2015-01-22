@@ -186,13 +186,6 @@ class tpt_purchase_product(osv.osv):
     
 tpt_purchase_product()
 
-class res_partner(osv.osv):
-    _inherit = "res.partner"
-    _columns = {
-        'supplier_code':fields.char('Supplier Code', size = 1024),
-        }
-res_partner()
-
 class product_category(osv.osv):
     _inherit = "product.category"
     _columns = {
@@ -1181,6 +1174,30 @@ class tpt_gate_out_pass(osv.osv):
     
     def bt_cancel(self, cr, uid, ids, context=None):
         return self.write(cr, uid, ids,{'state':'cancel'})
+    def onchange_grn_id(self, cr, uid, ids,grn_id=False):
+        res = {'value':{
+                        'supplier_id':False,
+                        'po_id':False,
+                        'gate_out_pass_line':[],
+                      }
+               }
+        if grn_id:
+            gate_out_pass_line = []
+            good_req_ids = self.pool.get('tpt.good.return.request').search(cr, uid,[('grn_no_id','=',grn_id)])
+            good_req_id = self.pool.get('tpt.good.return.request').browse(cr,uid,good_req_ids[0])
+            for line in good_req_id.product_detail_line:
+                gate_out_pass_line.append({
+                          'product_id': line.product_id and line.product_id.id or False,
+                          'product_qty':line.product_qty or False,
+                          'uom_po_id': line.uom_po_id and line.uom_po_id.id or False,
+                          'reason': line.reason or False,
+                    })
+        res['value'].update({
+                    'supplier_id': good_req_id.grn_no_id and good_req_id.grn_no_id.partner_id and good_req_id.grn_no_id.partner_id.id or False,
+                    'po_id': good_req_id.grn_no_id and good_req_id.grn_no_id.purchase_id and good_req_id.grn_no_id.purchase_id.id or False,
+                    'gate_out_pass_line': gate_out_pass_line,
+        })
+        return res
     
 tpt_gate_out_pass()
 
@@ -1198,3 +1215,37 @@ class tpt_gate_out_pass_line(osv.osv):
     }
       
 tpt_gate_out_pass_line()
+class tpt_pur_organi_code(osv.osv):
+    _name = "tpt.pur.organi.code"
+    _columns = {
+        'name': fields.char('Name', size = 1024),
+                }
+tpt_pur_organi_code()
+
+class tpt_vendor_group(osv.osv):
+    _name = "tpt.vendor.group"
+    _columns = {
+        'name': fields.char('Name', size = 1024),
+                }
+tpt_vendor_group()
+
+class tpt_vendor_sub_group(osv.osv):
+    _name = "tpt.vendor.sub.group"
+    _columns = {
+        'name': fields.char('Name', size = 1024),
+                }
+tpt_vendor_sub_group()
+
+class res_partner(osv.osv):
+    _inherit = "res.partner"   
+    _columns = {
+        'vendor_code':fields.char('Vendor Code', size = 256),
+        'contact_per':fields.char('Contact Person', size = 1024),
+        'vendor_tag':fields.char('Tag', size = 1024),
+        'pur_orgin_code_id':fields.many2one('tpt.pur.organi.code','Purchase Organisation Code'),
+        'vendor_group_id':fields.many2one('tpt.vendor.group','Vendor Group'),
+        'vendor_sub_group_id':fields.many2one('tpt.vendor.sub.group','Vendor Sub Group'),   
+                
+                }
+    
+res_partner()    
