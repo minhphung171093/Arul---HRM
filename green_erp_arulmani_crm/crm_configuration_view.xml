@@ -113,7 +113,8 @@
                     	<field name="ref" invisible="1"/>
                     </xpath>
                     
-                    <xpath expr="//field[@name='title']" position="after">
+                    <xpath expr="//field[@name='title']" position="replace">
+                    	<field name="title" domain="[('domain', '=', 'contact')]" options="{&quot;no_open&quot;: True,'create': false, 'create_edit': false}"/>
                         <field name="pan_tin" />
                         <field name="sin"/>
                         <field name="cst"/>
@@ -131,7 +132,8 @@
                         
                     </xpath>
                     
-                    <xpath expr="//field[@name='credit_limit']" position="after">
+                    <xpath expr="//field[@name='credit_limit']" position="replace">
+                        <field name="credit_limit" invisible="1"/>
                         <field name="credit_exposure"/>
                         <field name="vat"/>
                     </xpath>

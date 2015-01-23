@@ -603,7 +603,7 @@ class sale_order(osv.osv):
             cr.execute(sql)
             consignee_ids = [row[0] for row in cr.fetchall()]
             picking_id = picking_out_ids[0]
-            limit = sale.partner_id and sale.partner_id.credit_limit or False
+            limit = sale.partner_id and sale.partner_id.credit_limit_used or False
             amount = sale.amount_total or False
             if (limit > 0 or limit == 0) and amount and amount >= limit:
                 doc_status = 'waiting'
