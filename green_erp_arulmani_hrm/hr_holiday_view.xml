@@ -323,6 +323,7 @@
 					<field name="total_hours" widget="float_time"/>
 					<field name="approval"/>
 					<field name="additional_shifts"/>
+					<field name="type"/>
 					<field name="state" widget="statusbar" statusbar_visible="draft,done" statusbar_colors='{"draft":"blue","done":"blue"}'/>
 				</tree>
 			</field>
