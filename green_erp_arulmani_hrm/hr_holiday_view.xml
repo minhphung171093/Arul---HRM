@@ -350,6 +350,7 @@
 							<field name="in_time" widget="float_time"/>
 							<field name="out_time" widget="float_time"/>
 							<field name="total_hours" widget="float_time"/>
+							<field name="type"/>
 							<field name="approval"/>
 						</group>    	
 		         	</sheet>
