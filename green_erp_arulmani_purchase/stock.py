@@ -210,7 +210,8 @@ class stock_move(osv.osv):
     
     _columns = {
         'action_taken':fields.selection([('direct','Direct Stock Update'),('move','Move to Consumption'),('need','Need Inspection')],'Action to be Taken'),
-        'po_indent_id': fields.many2one('tpt.purchase.indent','PO Indent No'),   
+        'po_indent_id': fields.many2one('tpt.purchase.indent','PO Indent No'),
+        'inspec': fields.boolean('Inspec'),  
                 }
     
 stock_move()

@@ -229,7 +229,7 @@ class arul_hr_audit_shift_time(osv.osv):
                    }),
               'approval': fields.boolean('Select for Approval', readonly =  True, states={'done': [('readonly', True)], 'cancel': [('readonly', True)]}),
               'state':fields.selection([('draft', 'Draft'),('cancel', 'Reject'),('done', 'Approve')],'Status', readonly=True),
-              'type':fields.selection([('permission', 'Permission'),('shift', 'Shift')],'Type', readonly=True),
+              'type':fields.selection([('permission', 'Permission'),('shift', 'Waiting'),('punch', 'Punch In/Out')],'Type', readonly=True),
               'permission_id':fields.many2one('arul.hr.permission.onduty','Permission/On Duty'),
               'time_evaluate_id': fields.many2one('tpt.time.leave.evaluation','Time Evaluation'),
               }
@@ -1217,7 +1217,7 @@ class arul_hr_punch_in_out_time(osv.osv):
         'total_hours': fields.function(_time_total, string='Total Hours', multi='sums', help="The total amount.", states={'done': [('readonly', True)], 'cancel': [('readonly', True)]}),
         'approval': fields.boolean('Select for Approval', readonly =  True, states={'done': [('readonly', True)], 'cancel': [('readonly', True)]}),
         'state':fields.selection([('draft', 'Draft'),('cancel', 'Reject'),('done', 'Approve')],'Status', readonly=True),
-        'type':fields.selection([('permission', 'Permission'),('shift', 'Shift')],'Type', readonly=True),
+        'type':fields.selection([('permission', 'Permission'),('shift', 'Waiting'),('punch', 'Punch In/Out')],'Type', readonly=True),
         'permission_id':fields.many2one('arul.hr.permission.onduty','Permission/On Duty'),
         'time_evaluate_id': fields.many2one('tpt.time.leave.evaluation','Time Evaluation'),
         'punch_in_out_id':fields.many2one('arul.hr.employee.attendence.details','Punch in/out',ondelete='cascade'),
@@ -1501,6 +1501,8 @@ class arul_hr_punch_in_out(osv.osv):
                                 if employee_code_2==employee_code and in_out=='P20':
                                     out_time=float(data2[15:17])+float(data2[17:19])/60+float(data2[19:21])/3600
                                     val1['out_time']=out_time
+#                                     val1['type']='fullshift'
+                                # cho phep di lam som nua tieng hoac di tre 15 phut va ve som 15 phut 
                                     sql = '''
                                         select id from arul_hr_capture_work_shift where (%s between start_time - 0.5 and start_time + 0.25) and (%s >= end_time-0.25)
                                     '''%(in_time,out_time)
@@ -1565,6 +1567,7 @@ class arul_hr_punch_in_out(osv.osv):
                                             val1['actual_work_shift_id']=work_shift_ids[0]
                                             val1['approval']=False  
                                             val1['employee_category_id'] = employee.employee_category_id.id
+                                            val1['type']='punch'
                                             detail_obj2.create(cr, uid,val1)
 #                                         if work_shift_ids and shift_id and shift_id == work_shift_ids[0]:
 #                                             val1['actual_work_shift_id']=shift_id
@@ -1583,6 +1586,7 @@ class arul_hr_punch_in_out(osv.osv):
                                     else:
                                         val1['approval']=False  
                                         val1['employee_category_id'] = employee.employee_category_id.id
+                                        val1['type']='punch'
                                         detail_obj2.create(cr, uid,val1)
                                     temp +=1
                                     test =  L.pop(i+j+1)
@@ -1677,7 +1681,7 @@ class arul_hr_punch_in_out(osv.osv):
                                 })
                                  
                             else :
-                                val2={'employee_id':employee_ids[0],'planned_work_shift_id':shift_id,'work_date':date,'in_time':0,'out_time':out_time,'employee_category_id':employee.employee_category_id.id}
+                                val2={'type':'punch','employee_id':employee_ids[0],'planned_work_shift_id':shift_id,'work_date':date,'in_time':0,'out_time':out_time,'employee_category_id':employee.employee_category_id.id}
                                 detail_obj2.create(cr, uid,val2)
                             
                 self.write(cr, uid, [line.id], {'state':'done'})
