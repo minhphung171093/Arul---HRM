@@ -1501,7 +1501,6 @@ class arul_hr_punch_in_out(osv.osv):
                                 if employee_code_2==employee_code and in_out=='P20':
                                     out_time=float(data2[15:17])+float(data2[17:19])/60+float(data2[19:21])/3600
                                     val1['out_time']=out_time
-#                                     val1['type']='fullshift'
                                 # cho phep di lam som nua tieng hoac di tre 15 phut va ve som 15 phut 
                                     sql = '''
                                         select id from arul_hr_capture_work_shift where (%s between start_time - 0.5 and start_time + 0.25) and (%s >= end_time-0.25)
@@ -1667,6 +1666,7 @@ class arul_hr_punch_in_out(osv.osv):
                                         detail_obj2.approve_shift_time(cr, uid, [audit_shift.id])
                                     else:
                                         detail_obj2.write(cr, uid,[audit_shift.id],{
+                                            'type':'punch',
                                             'out_time':out_time,
                                             'actual_work_shift_id':audit_work_shift_ids[0],
                                     })
@@ -1678,6 +1678,7 @@ class arul_hr_punch_in_out(osv.osv):
                                 else:
                                     detail_obj2.write(cr, uid,[audit_shift.id],{
                                     'out_time':out_time,
+                                    'type':'punch',
                                 })
                                  
                             else :
@@ -1691,7 +1692,7 @@ class arul_hr_punch_in_out(osv.osv):
     def _check_db_datas(self, cr, uid, ids, context=None):
         for line in self.browse(cr, uid, ids, context=context):
             punch_in_out_ids = self.search(cr, uid, [('id','!=',line.id),('db_datas','=',line.db_datas)])
-            name_file_ids = self.search(cr, uid, [('id','!=',line.id),('datas','=',line.datas)])
+            name_file_ids = self.search(cr, uid, [('id','!=',line.id),('datas_fname','=',line.datas_fname)])
             if punch_in_out_ids or name_file_ids:
                 raise osv.except_osv(_('Warning!'),_('The file to import already existed!'))
                 return False
