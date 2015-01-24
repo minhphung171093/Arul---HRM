@@ -1691,7 +1691,8 @@ class arul_hr_punch_in_out(osv.osv):
     def _check_db_datas(self, cr, uid, ids, context=None):
         for line in self.browse(cr, uid, ids, context=context):
             punch_in_out_ids = self.search(cr, uid, [('id','!=',line.id),('db_datas','=',line.db_datas)])
-            if punch_in_out_ids:
+            name_file_ids = self.search(cr, uid, [('id','!=',line.id),('datas','=',line.datas)])
+            if punch_in_out_ids or name_file_ids:
                 raise osv.except_osv(_('Warning!'),_('The file to import already existed!'))
                 return False
         return True
