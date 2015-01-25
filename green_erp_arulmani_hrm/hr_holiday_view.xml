@@ -308,6 +308,26 @@
             id="menu_action_arul_hr_permission_onduty_form"
             parent="menu_hr_leave_management" sequence="23"/>
 		
+		<record id="view_arul_hr_audit_shift_time_search_vew" model="ir.ui.view">
+        	<field name="name">arul.hr.audit.shift.time.search</field>
+            <field name="model">arul.hr.audit.shift.time</field>
+            <field name="arch" type="xml">
+                <search string="Audit Shift Time">
+                	<field name="employee_id"/>
+					<field name="work_date"/>
+					<field name="employee_category_id"/>
+					<field name="planned_work_shift_id"/>
+					<field name="actual_work_shift_id"/>
+					<filter string="Executive (S1)" name="employee_category_s1" domain="[('employee_category_id.code','=','S1')]"/>
+            		<filter string="Staff(s2)" name="employee_category_s2" domain="[('employee_category_id.code','=','S2')]"/>
+            		<filter string="Workers (S3)" name="employee_category_s3" domain="[('employee_category_id.code','=','S3')]"/>
+					<group expand="0" string="Group By...">
+                        <filter string="Work Group" icon="terp-gtk-select-all" domain="[]" context="{'group_by':'employee_category_id'}"/>
+                    </group>
+                </search>
+            </field>
+        </record>
+		
         <record id="view_arul_hr_audit_shift_time_tree_vew" model="ir.ui.view">
 			<field name="name">arul.hr.audit.shift.time.tree</field>
 			<field name="model">arul.hr.audit.shift.time</field>
