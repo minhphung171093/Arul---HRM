@@ -323,6 +323,7 @@
             		<filter string="Workers (S3)" name="employee_category_s3" domain="[('employee_category_id.code','=','S3')]"/>
 					<group expand="0" string="Group By...">
                         <filter string="Work Group" icon="terp-gtk-select-all" domain="[]" context="{'group_by':'employee_category_id'}"/>
+                        <filter string="Type" icon="terp-gtk-select-all" domain="[]" context="{'group_by':'type'}"/>
                     </group>
                 </search>
             </field>
