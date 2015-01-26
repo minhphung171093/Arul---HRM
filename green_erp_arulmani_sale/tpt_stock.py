@@ -467,6 +467,48 @@ class stock_picking(osv.osv):
         self.write(cr, uid, ids, {'state': 'cancel', 'invoice_state': 'none','doc_status':'cancelled'})
         return True
     
+    def has_valuation_moves(self, cr, uid, move):
+        return self.pool.get('account.move').search(cr, uid, [
+            ('ref', '=', move.picking_id.name),
+            ])
+    
+    def action_revert_done(self, cr, uid, ids, context=None):
+        move_ids = []
+        invoice_ids = []
+        if not len(ids):
+            return False
+        
+        sql ='''
+        select count(id) as id from stock_picking where id =%s
+        and invoice_state ='invoiced'
+        '''%(ids[0])
+        cr.execute(sql)
+        if cr.dictfetchone()['id']:
+            raise osv.except_osv(
+                _('Warning'),
+                _('You must first cancel all Invoice order(s) attached to this sales order.'))
+                
+        for picking in self.browse(cr, uid, ids, context):
+            for line in picking.move_lines:
+                if self.has_valuation_moves(cr, uid, line):
+                    raise osv.except_osv(
+                        _('Error'),
+                        _('Line %s has valuation moves (%s). \
+                            Remove them first') % (line.name,
+                                                   line.picking_id.name))
+                line.write({'state': 'draft'})
+            self.write(cr, uid, [picking.id], {'state': 'draft'})
+            wf_service = netsvc.LocalService("workflow")
+            # Deleting the existing instance of workflow
+            wf_service.trg_delete(uid, 'stock.picking', picking.id, cr)
+            wf_service.trg_create(uid, 'stock.picking', picking.id, cr)
+        for (id, name) in self.name_get(cr, uid, ids):
+            message = _(
+                "The stock picking '%s' has been set in draft state."
+                ) % (name,)
+            self.log(cr, uid, id, message)
+        return True
+    
 stock_picking()
 
 class stock_picking_out(osv.osv):
@@ -525,6 +567,11 @@ class stock_picking_out(osv.osv):
 #                 'nodestroy' : True
             }
     
+    def action_revert_done(self, cr, uid, ids, context=None):
+        #override in order to redirect to stock.picking object
+        return self.pool.get('stock.picking').action_revert_done(
+            cr, uid, ids, context=context)
+    
 stock_picking_out()
 
 class stock_move(osv.osv):
@@ -546,6 +593,23 @@ class stock_move(osv.osv):
 #             })
 #         return res
     
+    def _get_product_info(self, cr, uid, ids, field_name, arg, context=None):
+        res = {}
+        uom_obj = self.pool.get('product.uom')
+        for line in self.browse(cr, uid, ids, context=context):
+            res[line.id] = {
+                            'primary_qty': 0.0,
+                            }
+            if line.product_id and line.product_uom:
+                if line.product_uom.id != line.product_id.uom_id.id:
+                    if line.product_id.__hasattr__('uom_ids'):
+                        res[line.id]['primary_qty'] = uom_obj._compute_qty(cr, uid, line.product_uom.id, line.product_qty, line.product_id.uom_id.id, product_id=line.product_id.id)
+                    else:
+                        res[line.id]['primary_qty'] = uom_obj._compute_qty(cr, uid, line.product_uom.id, line.product_qty, line.product_id.uom_id.id)
+                else:
+                    res[line.id]['primary_qty'] = line.product_qty
+        return res
+    
     _columns = {
         'product_type':fields.selection([('rutile','Rutile'),('anatase','Anatase')],'Product Type'),
         'application_id': fields.many2one('crm.application','Application'),   
@@ -553,6 +617,11 @@ class stock_move(osv.osv):
 #         'sys_batch':fields.many2one('stock.production.lot','System Serial No.'), 
 #         'phy_batch':fields.char('Physical Batch No.', size = 1024)
         'phy_batch':fields.function(get_phy_batch,type='char', size = 1024,string='Physical Serial No.',multi='sum',store=True),
+        'primary_qty': fields.function(_get_product_info, string='Primary Qty', digits_compute= dp.get_precision('Product Unit of Measure'), type='float',
+            store={
+                'stock.move': (lambda self, cr, uid, ids, c={}: ids, ['product_id','product_uom','product_qty'], 10),
+            }, readonly=True, multi='pro_info'),
+        
                 }
     
 #     _defaults = {
