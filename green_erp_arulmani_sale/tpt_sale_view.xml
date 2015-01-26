@@ -612,6 +612,7 @@
                                         <h1><field name="name" style="width: 70%%"/></h1>
                                     </div>
                                     <group>
+                                    	<field name="zip" placeholder="ZIP" style="width: 20%%"/>
                                     	<group>
 		                                    <label for="street" string="Address"/>
 		                                        <div>
@@ -620,8 +621,9 @@
 		                                            <div class="address_format">
 		                                                <field name="city" placeholder="City" style="width: 40%%"/>
 		                                                <field name="state_id" class="oe_no_button" placeholder="State" style="width: 37%%" options='{"no_open": True}' on_change="onchange_state(state_id)"/>
-		                                                <field name="zip" placeholder="ZIP" style="width: 20%%"/>
+		                                                
 		                                            </div>
+		                                            
 		                                            <field name="country_id" placeholder="Country" class="oe_no_button" options='{"no_open": True}'/>
 		                                        </div>
                                         		<field name="bill_location"/>
