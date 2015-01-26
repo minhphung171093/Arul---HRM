@@ -522,8 +522,23 @@ class stock_picking_out(osv.osv):
         'doc_status':fields.selection([('draft','Drafted'),('waiting','Waiting for Approval'),('completed','Completed'),('cancelled','Cancelled')],'Document Status'),
         'sale_id': fields.many2one('sale.order', 'Sales Order', readonly = True,ondelete='set null', select=True),
                 }
+    
     def write(self, cr, uid, ids, vals, context=None):
-        stock = self.browse(cr, uid, ids[0])
+        new_write = super(stock_picking_out, self).write(cr, uid, ids, vals, context)
+        for stock in self.browse(cr, uid, ids):
+            sql = '''
+                        select product_id, sum(product_qty) as picking_product_qty from stock_move where picking_id = %s group by product_id
+                    '''%(stock.id)
+            cr.execute(sql)
+            for picking_line in cr.dictfetchall():
+                sql = '''
+                        select product_id, sum(product_uom_qty) as sale_product_qty from sale_order_line where order_id = %s group by product_id
+                    '''%(stock.sale_id.id)
+                cr.execute(sql)
+                for order_line in cr.dictfetchall():
+                    if (picking_line['product_id']==order_line['product_id']):
+                        if (picking_line['picking_product_qty'] > order_line['sale_product_qty']):
+                            raise osv.except_osv(_('Warning!'),_('You are input %s quantity in delivery order but only %s quantity in sale order for this product.' %(picking_line['picking_product_qty'], order_line['sale_product_qty'])))
         if 'warehouse' in vals:
             location_id = vals['warehouse']
             sql = '''
@@ -532,7 +547,7 @@ class stock_picking_out(osv.osv):
                 WHERE picking_id = %s;
                 '''%(location_id,stock.id)
             cr.execute(sql)
-        return super(stock_picking_out, self).write(cr, uid,ids, vals, context)
+        return new_write
     
     def print_dispatch_slip(self, cr, uid, ids, context=None):
         datas = {

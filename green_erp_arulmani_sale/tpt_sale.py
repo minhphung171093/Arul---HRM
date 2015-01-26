@@ -1411,15 +1411,25 @@ class tpt_batch_allotment(osv.osv):
                 if (allot_line['product_id']==request_line['product_id']):
                     if (allot_line['allot_product_qty'] > request_line['request_product_qty']):
                         raise osv.except_osv(_('Warning!'),_('You are input %s quantity in batch allotment but only %s quantity in batch request for this product.' %(allot_line['allot_product_qty'], request_line['request_product_qty'])))
-            
-#                 if (line.product_id == allot_line['product_id']):
-#                     if (line.product_id.product_uom_qty < allot_line['product_qty']):
-#                         raise osv.except_osv(_('Warning!'),_('You are input %s quantity in batch allotment but only %s quantity in batch request for this product.' %(allot_line['product_qty'], line.product_id.product_uom_qty)))
-        return super(tpt_batch_allotment, self).create(cr, uid, vals, context)
+        return new_id
     
     def write(self, cr, uid, ids, vals, context=None):
-        
-        return super(tpt_batch_allotment, self).write(cr, uid,ids, vals, context)
+        new_write = super(tpt_batch_allotment, self).write(cr, uid, ids, vals, context)
+        for batch in self.browse(cr, uid, ids):
+            sql = '''
+                    select product_id, sum(product_uom_qty) as allot_product_qty from tpt_batch_allotment_line where batch_allotment_id = %s group by product_id
+                '''%(batch.id)
+            cr.execute(sql)
+            for allot_line in cr.dictfetchall():
+                sql = '''
+                        select product_id, sum(product_uom_qty) as request_product_qty from tpt_product_information where product_information_id = %s group by product_id
+                    '''%(batch.batch_request_id.id)
+                cr.execute(sql)
+                for request_line in cr.dictfetchall():
+                    if (allot_line['product_id']==request_line['product_id']):
+                        if (allot_line['allot_product_qty'] > request_line['request_product_qty']):
+                            raise osv.except_osv(_('Warning!'),_('You are input %s quantity in batch allotment but only %s quantity in batch request for this product.' %(allot_line['allot_product_qty'], request_line['request_product_qty'])))
+        return new_write
     def confirm(self, cr, uid, ids, context=None):
         return self.write(cr, uid, ids, {'state': 'confirm'})
 #         sale_obj = self.pool.get('sale.order')
