@@ -8,7 +8,7 @@
             <field name="inherit_id" ref="sale.view_order_form"/>
             <field name="arch" type="xml">
                 <xpath expr="//field[@name='partner_id']" position="after" >
-                		<field name="blanket_id" on_change="onchange_blanket_id(blanket_id)" domain="[('blank_order_line','!=',False), ('state','=','draft')]" options="{'create': false, 'create_edit': false}" />
+                		<field name="blanket_id" on_change="onchange_blanket_id(blanket_id)" domain="[('blank_order_line','!=',False), ('state','=','draft')]" options="{'create': false, 'create_edit': false}" required = "1" />
                 		<field name="invoice_address" placeholder="Street..."/>
                 		<field name="street2"/>
                 		<field name="city" placeholder="City"/>
@@ -312,7 +312,7 @@
 	            	<sheet>
 		                <group>    
 						<field name="name"/>
-						<field name="sale_order_id" domain="[('document_type','in',['scrap','saleorder']),('state','in',['progress']),('order_line','!=',False),('state','!=','cancel')]" on_change = "onchange_sale_order_id(sale_order_id)" options="{'create': false, 'create_edit': false}"/>
+						<field name="sale_order_id" domain="[('document_type','in',['scrap','saleorder']),('state','in',['progress']),('order_line','!=',False),('state','!=','cancel'),('payment_term_id','in',['Immediate Payment','Immediate'])]" on_change = "onchange_sale_order_id(sale_order_id)" options="{'create': false, 'create_edit': false}"/>
 						<field name="customer_id" domain="[('customer','=',1),('is_company','=',1)]" options="{'create': false, 'create_edit': false}"/>
 						<field name="request_date"/>
 						<field name="description"/>
@@ -612,6 +612,7 @@
                                         <h1><field name="name" style="width: 70%%"/></h1>
                                     </div>
                                     <group>
+                                    	<field name="zip" placeholder="ZIP" style="width: 20%%"/>
                                     	<group>
 		                                    <label for="street" string="Address"/>
 		                                        <div>
@@ -620,8 +621,9 @@
 		                                            <div class="address_format">
 		                                                <field name="city" placeholder="City" style="width: 40%%"/>
 		                                                <field name="state_id" class="oe_no_button" placeholder="State" style="width: 37%%" options='{"no_open": True}' on_change="onchange_state(state_id)"/>
-		                                                <field name="zip" placeholder="ZIP" style="width: 20%%"/>
+		                                                
 		                                            </div>
+		                                            
 		                                            <field name="country_id" placeholder="Country" class="oe_no_button" options='{"no_open": True}'/>
 		                                        </div>
                                         		<field name="bill_location"/>

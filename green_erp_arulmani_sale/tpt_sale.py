@@ -235,6 +235,7 @@ class sale_order(osv.osv):
                     'zip':part.zip,
                     'payment_term_id':part.property_payment_term and part.property_payment_term.id or False,
                     'incoterms_id':part.inco_terms_id and part.inco_terms_id.id or False,
+                    'order_line':False,
                     }) 
         
         return {'value': val}
@@ -515,7 +516,7 @@ class sale_order(osv.osv):
                     'order_line':blanket_lines or False,
                     'order_policy': 'picking',
                     'partner_invoice_id': addr['invoice'],
-                    'document_status':'close',
+#                     'document_status':'close',
 #                     'sale_consignee_line':consignee_lines or False,
                         }
         return {'value': vals}    
@@ -723,21 +724,29 @@ class sale_order_line(osv.osv):
       'product_uom_qty':0,
      }
     def create(self, cr, uid, vals, context=None):
+        if ('freight'and 'product_uom_qty') in vals:
+            if (vals['freight'] < 0 and vals['product_uom_qty'] < 0 ):
+                raise osv.except_osv(_('Warning!'),_('Freight and Quantity is not negative value'))
         if 'freight' in vals:
             if (vals['freight'] < 0):
                 raise osv.except_osv(_('Warning!'),_('Freight is not negative value'))
         if 'product_uom_qty' in vals:
             if (vals['product_uom_qty'] < 0):
                 raise osv.except_osv(_('Warning!'),_('Quantity is not negative value'))
+ 
         return super(sale_order_line, self).create(cr, uid, vals, context=context)
 
     def write(self, cr, uid, ids, vals, context=None):
+        if ('freight'and 'product_uom_qty') in vals:
+            if (vals['freight'] < 0 and vals['product_uom_qty'] < 0 ):
+                raise osv.except_osv(_('Warning!'),_('Freight and Quantity is not negative value'))
         if 'freight' in vals:
             if (vals['freight'] < 0):
                 raise osv.except_osv(_('Warning!'),_('Freight is not negative value'))
         if 'product_uom_qty' in vals:
             if (vals['product_uom_qty'] < 0):
                 raise osv.except_osv(_('Warning!'),_('Quantity is not negative value'))
+
         return super(sale_order_line, self).write(cr, uid,ids, vals, context)
 
     def onchange_consignee_id(self, cr, uid, ids, name_consignee_id = False, context=None):

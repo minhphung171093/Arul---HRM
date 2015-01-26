@@ -551,7 +551,13 @@ class stock_picking_out(osv.osv):
              'form': self.read(cr, uid, ids[0], context=context)
         }
         do_ids = self.browse(cr, uid, ids[0])
-        if do_ids.invoice_state == 'invoiced':
+        sql = '''
+            select id from account_invoice where delivery_order_id = %s
+        '''%(do_ids.id)
+        cr.execute(sql)
+        invoice_ids = [row[0] for row in cr.fetchall()]
+#         if do_ids.invoice_state == 'invoiced':
+        if invoice_ids:
             return {
                 'type': 'ir.actions.report.xml',
                 'report_name': 'tpt_packing_list_report',
