@@ -28,6 +28,14 @@ class product_product(osv.osv):
                 cr.execute(sql)
                 blanket_ids = [row[0] for row in cr.fetchall()]
                 args += [('id','in',blanket_ids)]
+        if context.get('search_batch_request'):
+            if context.get('batch_request_id'):
+                sql = '''
+                    select product_id from tpt_product_information where product_information_id in(select id from tpt_batch_request where id = %s)
+                '''%(context.get('batch_request_id'))
+                cr.execute(sql)
+                request_ids = [row[0] for row in cr.fetchall()]
+                args += [('id','in',request_ids)]
         return super(product_product, self).search(cr, uid, args, offset=offset, limit=limit, order=order, context=context, count=count)
     def name_search(self, cr, user, name, args=None, operator='ilike', context=None, limit=100):
        ids = self.search(cr, user, args, context=context, limit=limit)
@@ -581,7 +589,33 @@ class sale_order(osv.osv):
         assert len(ids) == 1, 'This option should only be used for a single id at a time.'
         
         sale = self.browse(cr, uid, ids[0])
-        
+        sql = '''
+                select product_id, sum(product_uom_qty) as product_qty from sale_order_line where order_id = %s group by product_id
+                '''%(sale.id)
+        cr.execute(sql)
+        for order_line in cr.dictfetchall():
+            sql = '''
+            SELECT sum(onhand_qty) onhand_qty
+            From
+            (SELECT
+                   
+                case when loc1.usage != 'internal' and loc2.usage = 'internal'
+                then stm.primary_qty
+                else
+                case when loc1.usage = 'internal' and loc2.usage != 'internal'
+                then -1*stm.primary_qty 
+                else 0.0 end
+                end onhand_qty
+                        
+            FROM stock_move stm 
+                join stock_location loc1 on stm.location_id=loc1.id
+                join stock_location loc2 on stm.location_dest_id=loc2.id
+            WHERE stm.state= 'done' and product_id=%s)foo
+            '''%(order_line['product_id'])
+            cr.execute(sql)
+            onhand_qty = cr.dictfetchone()['onhand_qty']
+            if (order_line['product_qty'] > onhand_qty):
+                raise osv.except_osv(_('Warning!'),_('You are confirm %s but only %s available for this product in stock.' %(order_line['product_qty'], onhand_qty)))
         
         wf_service = netsvc.LocalService('workflow')
         wf_service.trg_validate(uid, 'sale.order', ids[0], 'order_confirm', cr)
@@ -1352,7 +1386,25 @@ class tpt_batch_allotment(osv.osv):
               'state': 'to_approve',
     }
     def create(self, cr, uid, vals, context=None):
-        
+        new_id = super(tpt_batch_allotment, self).create(cr, uid, vals, context)
+        batch = self.browse(cr, uid, new_id)
+        sql = '''
+                    select product_id, sum(product_uom_qty) as allot_product_qty from tpt_batch_allotment_line where batch_allotment_id = %s group by product_id
+                '''%(batch.id)
+        cr.execute(sql)
+        for allot_line in cr.dictfetchall():
+            sql = '''
+                    select product_id, sum(product_uom_qty) as request_product_qty from tpt_product_information where product_information_id = %s group by product_id
+                '''%(batch.batch_request_id.id)
+            cr.execute(sql)
+            for request_line in cr.dictfetchall():
+                if (allot_line['product_id']==request_line['product_id']):
+                    if (allot_line['allot_product_qty'] > request_line['request_product_qty']):
+                        raise osv.except_osv(_('Warning!'),_('You are input %s quantity in batch allotment but only %s quantity in batch request for this product.' %(allot_line['allot_product_qty'], request_line['request_product_qty'])))
+            
+#                 if (line.product_id == allot_line['product_id']):
+#                     if (line.product_id.product_uom_qty < allot_line['product_qty']):
+#                         raise osv.except_osv(_('Warning!'),_('You are input %s quantity in batch allotment but only %s quantity in batch request for this product.' %(allot_line['product_qty'], line.product_id.product_uom_qty)))
         return super(tpt_batch_allotment, self).create(cr, uid, vals, context)
     
     def write(self, cr, uid, ids, vals, context=None):
