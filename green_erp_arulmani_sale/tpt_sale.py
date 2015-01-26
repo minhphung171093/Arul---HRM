@@ -582,7 +582,7 @@ class sale_order(osv.osv):
         wf_service = netsvc.LocalService('workflow')
         wf_service.trg_validate(uid, 'sale.order', ids[0], 'order_confirm', cr)
         sale = self.browse(cr, uid, ids[0])
-        if (sale.payment_term_id.id == 1):
+        if (sale.payment_term_id.name == 'Immediate Payment' or sale.payment_term_id.name == 'Immediate'):
             sql = '''
                 update sale_order set document_status='waiting' where id=%s
             '''%(sale.id)
@@ -603,7 +603,7 @@ class sale_order(osv.osv):
             cr.execute(sql)
             consignee_ids = [row[0] for row in cr.fetchall()]
             picking_id = picking_out_ids[0]
-            limit = sale.partner_id and sale.partner_id.credit_limit or False
+            limit = sale.partner_id and sale.partner_id.credit_limit_used or False
             amount = sale.amount_total or False
             if (limit > 0 or limit == 0) and amount and amount >= limit:
                 doc_status = 'waiting'

@@ -684,7 +684,7 @@
         
         <menuitem action="action_view_tpt_gate_out_pass_tree"
             id="menu_action_view_tpt_gate_out_pass_tree"
-            parent="purchase.menu_procurement_management" sequence="22"/>
+            parent="purchase.menu_procurement_management" sequence="32"/>
 		
 		<record id="purchase.purchase_form_action" model="ir.actions.act_window">
             <field name="name">Purchase Orders</field>

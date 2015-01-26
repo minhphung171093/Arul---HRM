@@ -1239,6 +1239,7 @@ tpt_vendor_sub_group()
 class res_partner(osv.osv):
     _inherit = "res.partner"   
     _columns = {
+        'supplier_code':fields.char('Vendor Code', size = 256),
         'vendor_code':fields.char('Vendor Code', size = 256),
         'contact_per':fields.char('Contact Person', size = 1024),
         'vendor_tag':fields.char('Tag', size = 1024),

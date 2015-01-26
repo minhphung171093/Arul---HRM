@@ -229,7 +229,7 @@ class arul_hr_audit_shift_time(osv.osv):
                    }),
               'approval': fields.boolean('Select for Approval', readonly =  True, states={'done': [('readonly', True)], 'cancel': [('readonly', True)]}),
               'state':fields.selection([('draft', 'Draft'),('cancel', 'Reject'),('done', 'Approve')],'Status', readonly=True),
-              'type':fields.selection([('permission', 'Permission'),('shift', 'Shift')],'Type', readonly=True),
+              'type':fields.selection([('permission', 'Permission'),('shift', 'Waiting'),('punch', 'Punch In/Out')],'Type', readonly=True),
               'permission_id':fields.many2one('arul.hr.permission.onduty','Permission/On Duty'),
               'time_evaluate_id': fields.many2one('tpt.time.leave.evaluation','Time Evaluation'),
               }
@@ -293,13 +293,19 @@ class arul_hr_audit_shift_time(osv.osv):
                 else:
                     shift_hours = 8
                 
+                flag = 0
+                if line.planned_work_shift_id and line.planned_work_shift_id.code=='W':
+                    flag = 1
+                    shift_hours = 0
+                
                 if extra_hours<shift_hours and line.employee_id.employee_category_id and line.employee_id.employee_category_id.code!='S1':
                     permission_ids = self.pool.get('arul.hr.permission.onduty').search(cr, uid, [('non_availability_type_id','=','permission'),('date','=',line.work_date),('employee_id','=',line.employee_id.id)])
                     on_duty_ids = self.pool.get('arul.hr.permission.onduty').search(cr, uid, [('non_availability_type_id','=','on_duty'),('from_date','<=',line.work_date),('to_date','>=',line.work_date),('employee_id','=',line.employee_id.id)])
-                    if not permission_ids and not on_duty_ids:
+                    leave_detail_ids = self.pool.get('arul.hr.employee.leave.details').search(cr, uid, [('date_from','<=',line.work_date),('date_to','>=',line.work_date),('employee_id','=',line.employee_id.id),('state','=','done')])
+                    if not permission_ids and not on_duty_ids and not leave_detail_ids:
                         continue
                 
-                if line.additional_shifts or (extra_hours>8 and line.employee_id.employee_category_id and line.employee_id.employee_category_id.code!='S1'):
+                if flag==1 or line.additional_shifts or (extra_hours>8 and line.employee_id.employee_category_id and line.employee_id.employee_category_id.code!='S1'):
                     c_off_day = 0.0
                     if line.additional_shifts:
                         if extra_hours >= 4 and extra_hours < 8:
@@ -512,6 +518,11 @@ class arul_hr_audit_shift_time(osv.osv):
                 else:
                     shift_hours = 8
                 
+                flag = 0
+                if line.planned_work_shift_id and line.planned_work_shift_id.code=='W':
+                    flag = 1
+                    shift_hours = 0
+                
                 if extra_hours<shift_hours and line.employee_id.employee_category_id and line.employee_id.employee_category_id.code!='S1':
                     permission_ids = self.pool.get('arul.hr.permission.onduty').search(cr, uid, [('non_availability_type_id','=','permission'),('date','=',line.work_date),('employee_id','=',line.employee_id.id)])
                     on_duty_ids = self.pool.get('arul.hr.permission.onduty').search(cr, uid, [('non_availability_type_id','=','on_duty'),('from_date','<=',line.work_date),('to_date','>=',line.work_date),('employee_id','=',line.employee_id.id)])
@@ -531,7 +542,7 @@ class arul_hr_audit_shift_time(osv.osv):
                                 'target': 'new',
                             }
                 
-                if line.additional_shifts or (extra_hours>8 and line.employee_id.employee_category_id and line.employee_id.employee_category_id.code!='S1'):
+                if flag==1 or line.additional_shifts or (extra_hours>8 and line.employee_id.employee_category_id and line.employee_id.employee_category_id.code!='S1'):
                     c_off_day = 0.0
                     if line.additional_shifts:
                         if extra_hours >= 4 and extra_hours < 8:
@@ -1206,7 +1217,7 @@ class arul_hr_punch_in_out_time(osv.osv):
         'total_hours': fields.function(_time_total, string='Total Hours', multi='sums', help="The total amount.", states={'done': [('readonly', True)], 'cancel': [('readonly', True)]}),
         'approval': fields.boolean('Select for Approval', readonly =  True, states={'done': [('readonly', True)], 'cancel': [('readonly', True)]}),
         'state':fields.selection([('draft', 'Draft'),('cancel', 'Reject'),('done', 'Approve')],'Status', readonly=True),
-        'type':fields.selection([('permission', 'Permission'),('shift', 'Shift')],'Type', readonly=True),
+        'type':fields.selection([('permission', 'Permission'),('shift', 'Waiting'),('punch', 'Punch In/Out')],'Type', readonly=True),
         'permission_id':fields.many2one('arul.hr.permission.onduty','Permission/On Duty'),
         'time_evaluate_id': fields.many2one('tpt.time.leave.evaluation','Time Evaluation'),
         'punch_in_out_id':fields.many2one('arul.hr.employee.attendence.details','Punch in/out',ondelete='cascade'),
@@ -1490,6 +1501,7 @@ class arul_hr_punch_in_out(osv.osv):
                                 if employee_code_2==employee_code and in_out=='P20':
                                     out_time=float(data2[15:17])+float(data2[17:19])/60+float(data2[19:21])/3600
                                     val1['out_time']=out_time
+                                # cho phep di lam som nua tieng hoac di tre 15 phut va ve som 15 phut 
                                     sql = '''
                                         select id from arul_hr_capture_work_shift where (%s between start_time - 0.5 and start_time + 0.25) and (%s >= end_time-0.25)
                                     '''%(in_time,out_time)
@@ -1554,6 +1566,7 @@ class arul_hr_punch_in_out(osv.osv):
                                             val1['actual_work_shift_id']=work_shift_ids[0]
                                             val1['approval']=False  
                                             val1['employee_category_id'] = employee.employee_category_id.id
+                                            val1['type']='punch'
                                             detail_obj2.create(cr, uid,val1)
 #                                         if work_shift_ids and shift_id and shift_id == work_shift_ids[0]:
 #                                             val1['actual_work_shift_id']=shift_id
@@ -1572,6 +1585,7 @@ class arul_hr_punch_in_out(osv.osv):
                                     else:
                                         val1['approval']=False  
                                         val1['employee_category_id'] = employee.employee_category_id.id
+                                        val1['type']='punch'
                                         detail_obj2.create(cr, uid,val1)
                                     temp +=1
                                     test =  L.pop(i+j+1)
@@ -1652,6 +1666,7 @@ class arul_hr_punch_in_out(osv.osv):
                                         detail_obj2.approve_shift_time(cr, uid, [audit_shift.id])
                                     else:
                                         detail_obj2.write(cr, uid,[audit_shift.id],{
+                                            'type':'punch',
                                             'out_time':out_time,
                                             'actual_work_shift_id':audit_work_shift_ids[0],
                                     })
@@ -1663,10 +1678,11 @@ class arul_hr_punch_in_out(osv.osv):
                                 else:
                                     detail_obj2.write(cr, uid,[audit_shift.id],{
                                     'out_time':out_time,
+                                    'type':'punch',
                                 })
                                  
                             else :
-                                val2={'employee_id':employee_ids[0],'planned_work_shift_id':shift_id,'work_date':date,'in_time':0,'out_time':out_time,'employee_category_id':employee.employee_category_id.id}
+                                val2={'type':'punch','employee_id':employee_ids[0],'planned_work_shift_id':shift_id,'work_date':date,'in_time':0,'out_time':out_time,'employee_category_id':employee.employee_category_id.id}
                                 detail_obj2.create(cr, uid,val2)
                             
                 self.write(cr, uid, [line.id], {'state':'done'})
@@ -1676,7 +1692,8 @@ class arul_hr_punch_in_out(osv.osv):
     def _check_db_datas(self, cr, uid, ids, context=None):
         for line in self.browse(cr, uid, ids, context=context):
             punch_in_out_ids = self.search(cr, uid, [('id','!=',line.id),('db_datas','=',line.db_datas)])
-            if punch_in_out_ids:
+            name_file_ids = self.search(cr, uid, [('id','!=',line.id),('datas_fname','=',line.datas_fname)])
+            if punch_in_out_ids or name_file_ids:
                 raise osv.except_osv(_('Warning!'),_('The file to import already existed!'))
                 return False
         return True
