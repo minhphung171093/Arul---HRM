@@ -65,16 +65,18 @@ class Parser(report_sxw.rml_parse):
     
     def get_qty_bags(self, qty, uom, type):
         bags_qty = 0.0
-        if uom.lower()=='kg' and type == 'domestic':
-            bags_qty = qty/50 + 'NOS OF HDPE LINED BAGS (50KGS BAGS)'
-        if uom.lower()=='kg' and type == 'export':
-            bags_qty = qty/25 + 'NOS OF HDPE LINED BAGS (25KGS BAGS)'
-        if uom.lower()=='bags':
-            bags_qty = qty
-        if uom.lower()=='tonne' and type == 'domestic':
-            bags_qty = qty*1000/50 + 'NOS OF HDPE LINED BAGS (50KGS BAGS)'
-        if uom.lower()=='tonne' and type == 'export':
-            bags_qty = qty*1000/25 + 'NOS OF HDPE LINED BAGS (25KGS BAGS)'
+        if uom:
+            unit = uom.replace(' ','')
+            if unit.lower()=='kg' and type == 'domestic':
+                bags_qty = qty/50 + 'NOS OF HDPE LINED BAGS (50KGS BAGS)'
+            if unit.lower()=='kg' and type == 'export':
+                bags_qty = qty/25 + 'NOS OF HDPE LINED BAGS (25KGS BAGS)'
+            if unit.lower()=='bags':
+                bags_qty = qty
+            if unit.lower()=='tonne' and type == 'domestic':
+                bags_qty = qty*1000/50 + 'NOS OF HDPE LINED BAGS (50KGS BAGS)'
+            if unit.lower()=='tonne' and type == 'export':
+                bags_qty = qty*1000/25 + 'NOS OF HDPE LINED BAGS (25KGS BAGS)'
         return bags_qty
     
     def get_qty_mt(self, qty, uom, type):
