@@ -579,9 +579,12 @@ class sale_order(osv.osv):
     
     def action_button_confirm(self, cr, uid, ids, context=None):
         assert len(ids) == 1, 'This option should only be used for a single id at a time.'
+        
+        sale = self.browse(cr, uid, ids[0])
+        
+        
         wf_service = netsvc.LocalService('workflow')
         wf_service.trg_validate(uid, 'sale.order', ids[0], 'order_confirm', cr)
-        sale = self.browse(cr, uid, ids[0])
         if (sale.payment_term_id.name == 'Immediate Payment' or sale.payment_term_id.name == 'Immediate'):
             sql = '''
                 update sale_order set document_status='waiting' where id=%s
@@ -878,7 +881,7 @@ class tpt_blanket_order(osv.osv):
         'city': fields.char('', size = 1024, readonly=True, states={'cancel': [('readonly', True)], 'done':[('readonly', True)]}),
         'country_id': fields.many2one('res.country', '', readonly=True, states={'cancel': [('readonly', True)], 'done':[('readonly', True)]}),
         'state_id': fields.many2one('res.country.state', '', readonly=True, states={'cancel': [('readonly', True)], 'done':[('readonly', True)]}),
-        'zip': fields.char('', size = 1024, readonly=True, states={'cancel': [('readonly', True)], 'done':[('readonly', True)]}),
+        'zip': fields.char('', size = 1024, states={'cancel': [('readonly', True)], 'done':[('readonly', True)]}),
         'payment_term_id': fields.many2one('account.payment.term', 'Payment Term', states={'cancel': [('readonly', True)], 'done':[('readonly', True)]}),
         'currency_id': fields.many2one('res.currency', 'Currency', states={'cancel': [('readonly', True)], 'done':[('readonly', True)]}),
         'bo_date': fields.date('BO Date', required = True, readonly = True,  states={'cancel': [('readonly', True)], 'done':[('readonly', True)]}),
@@ -1051,27 +1054,39 @@ class tpt_blank_order_line(osv.osv):
     ]       
     
     def create(self, cr, uid, vals, context=None):
-        if 'freight' in vals:
-            if (vals['freight'] < 0):
-                raise osv.except_osv(_('Warning!'),_('Freight is not negative value'))
         if 'product_id' in vals:
             product = self.pool.get('product.product').browse(cr, uid, vals['product_id'])
             vals.update({'uom_po_id':product.uom_id.id})
+        if ('freight'and 'product_uom_qty') in vals:
+            if (vals['freight'] < 0 and vals['product_uom_qty'] < 0 ):
+                raise osv.except_osv(_('Warning!'),_('Freight and Quantity is not negative value'))
+        if 'freight' in vals:
+            if (vals['freight'] < 0):
+                raise osv.except_osv(_('Warning!'),_('Freight is not negative value'))
         if 'product_uom_qty' in vals:
             if (vals['product_uom_qty'] < 0):
-                raise osv.except_osv(_('Warning!'),_('Quantity is not allowed as negative values'))
+                raise osv.except_osv(_('Warning!'),_('Quantity field should not have negative value'))
+        if 'price_unit' in vals:
+            if (vals['price_unit'] < 0):
+                raise osv.except_osv(_('Warning!'),_('Unit Price is not allowed as negative values'))
         return super(tpt_blank_order_line, self).create(cr, uid, vals, context)
     
     def write(self, cr, uid, ids, vals, context=None):
-        if 'freight' in vals:
-            if (vals['freight'] < 0):
-                raise osv.except_osv(_('Warning!'),_('Freight is not negative value'))
         if 'product_id' in vals:
             product = self.pool.get('product.product').browse(cr, uid, vals['product_id'])
             vals.update({'uom_po_id':product.uom_id.id})
+        if ('freight'and 'product_uom_qty') in vals:
+            if (vals['freight'] < 0 and vals['product_uom_qty'] < 0 ):
+                raise osv.except_osv(_('Warning!'),_('Freight and Quantity is not negative value'))
+        if 'freight' in vals:
+            if (vals['freight'] < 0):
+                raise osv.except_osv(_('Warning!'),_('Freight is not negative value'))
         if 'product_uom_qty' in vals:
             if (vals['product_uom_qty'] < 0):
-                raise osv.except_osv(_('Warning!'),_('Quantity is not allowed as negative values'))
+                raise osv.except_osv(_('Warning!'),_('Quantity field should not have negative value'))
+        if 'price_unit' in vals:
+            if (vals['price_unit'] < 0):
+                raise osv.except_osv(_('Warning!'),_('Unit Price is not allowed as negative values'))
         return super(tpt_blank_order_line, self).write(cr, uid,ids, vals, context)
     
     def onchange_product_id(self, cr, uid, ids,product_id=False, context=None):
