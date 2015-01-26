@@ -31,7 +31,7 @@
             
     	<report 
 			auto="False" 
-			menu="True"
+			menu="False"
 			id="tpt_export_account_invoice" 
 			model="account.invoice" 
 			name="tpt_export_account_invoice"

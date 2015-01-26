@@ -232,6 +232,7 @@ class stock_picking(osv.osv):
             'cons_loca': picking.cons_loca and picking.cons_loca.id or False,
             'delivery_order_id': picking.id,
             'sale_tax_id': picking.sale_id.sale_tax_id and picking.sale_id.sale_tax_id.id or False,
+            'invoice_type': picking.sale_id and picking.sale_id.order_type or False,
         })
         cur_id = self.get_currency_id(cr, uid, picking)
         if cur_id:

@@ -28,6 +28,7 @@ class Parser(report_sxw.rml_parse):
             'get_month_name': self.get_month_name,
             'get_qty_mt': self.get_qty_mt,
             'get_state':self.get_state,
+            'get_bill_loc':self.get_bill_loc,
             
         })
     
@@ -62,7 +63,23 @@ class Parser(report_sxw.rml_parse):
             a+=o.state_id.name+', '
         a+=o.country_id and o.country_id.name or ''
         return a
-    
+
+    def get_bill_loc(self, obj):
+        cons = ''
+        if obj.customer_id:
+            if obj.customer_id.street:
+                cons += (obj.customer_id.street or '') + ', \n'
+            if obj.customer_id.street2:
+                cons += (obj.customer_id.street2 or '') + ', \n'
+            if obj.customer_id.city:
+                cons += (obj.customer_id.city or '') + ', \n'
+            if obj.customer_id.state_id:
+                cons += (obj.customer_id.state_id.name or '') + ', \n'
+            if obj.customer_id.country_id:
+                cons += (obj.customer_id.country_id.name or '') + ', \n'
+            if obj.customer_id.zip:
+                cons += obj.customer_id.zip or ''
+        return cons
     
     
     
