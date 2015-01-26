@@ -27,6 +27,7 @@ class Parser(report_sxw.rml_parse):
             'length_month': self.length_month,
             'get_month_name': self.get_month_name,
             'get_qty_mt': self.get_qty_mt,
+            'get_state':self.get_state,
             
         })
     
@@ -54,3 +55,16 @@ class Parser(report_sxw.rml_parse):
         if uom.lower()=='mt':
             mt_qty = qty
         return mt_qty
+    
+    def get_state(self,o):
+        a=''
+        if o.state_id:
+            a+=o.state_id.name+', '
+        a+=o.country_id and o.country_id.name or ''
+        return a
+    
+    
+    
+    
+    
+    
