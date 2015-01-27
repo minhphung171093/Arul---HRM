@@ -740,17 +740,17 @@ class sale_order_line(osv.osv):
         return super(sale_order_line, self).create(cr, uid, vals, context=context)
 
     def write(self, cr, uid, ids, vals, context=None):
-        if ('freight'and 'product_uom_qty') in vals:
-            if (vals['freight'] < 0 and vals['product_uom_qty'] < 0 ):
-                raise osv.except_osv(_('Warning!'),_('Freight and Quantity is not negative value'))
-        if 'freight' in vals:
-            if (vals['freight'] < 0):
-                raise osv.except_osv(_('Warning!'),_('Freight is not negative value'))
-        if 'product_uom_qty' in vals:
-            if (vals['product_uom_qty'] < 0):
+        new_write = super(sale_order_line, self).write(cr, uid,ids, vals, context)
+        for line in self.browse(cr,uid,ids):
+            
+            if (line.freight < 0 and line.product_uom_qty < 0 ):
+                    raise osv.except_osv(_('Warning!'),_('Freight and Quantity is not negative value'))
+            if (line.freight < 0):
+                    raise osv.except_osv(_('Warning!'),_('Freight is not negative value'))
+            if (line.product_uom_qty < 0):
                 raise osv.except_osv(_('Warning!'),_('Quantity is not negative value'))
 
-        return super(sale_order_line, self).write(cr, uid,ids, vals, context)
+        return new_write
 
     def onchange_consignee_id(self, cr, uid, ids, name_consignee_id = False, context=None):
         vals = {}
