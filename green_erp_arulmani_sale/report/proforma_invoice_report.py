@@ -47,15 +47,19 @@ class Parser(report_sxw.rml_parse):
         d = _months[month]
         return d
 
-    def get_qty_mt(self, qty, uom):
+    def get_qty_mt(self, qty, uom, type):
         mt_qty = 0.0
-        if uom.lower()=='kg':
-            mt_qty = qty/1000
-        if uom.lower()=='bags':
-            mt_qty = qty*50/1000
-        if uom.lower()=='mt':
-            mt_qty = qty
-        return mt_qty
+        if uom:
+            unit = uom.replace(' ','')
+            if unit.lower()=='kg':
+                mt_qty = qty/1000
+            if unit.lower()=='bags' and type == 'domestic':
+                mt_qty = qty*50/1000
+            if unit.lower()=='bags' and type == 'export':
+                mt_qty = qty*25/1000
+            if unit.lower()=='tonne':
+                mt_qty = qty
+        return round(mt_qty, 2)
     
     def get_state(self,o):
         a=''
