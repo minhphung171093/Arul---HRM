@@ -52,25 +52,37 @@ class Parser(report_sxw.rml_parse):
         val = ((quantity*price_unit)+(quantity*price_unit)*(excise_duty_id.amount/100))+(((quantity*price_unit)+(quantity*price_unit)*(excise_duty_id.amount/100))*sale_tax_id.amount/100)+freight
         return round(val, 2)
           
-    def get_qty_bags(self, qty, uom):
+    def get_qty_bags(self, qty, uom, type):
         bags_qty = 0.0
         if uom:
-            if uom.lower()=='kg':
-                bags_qty = qty/50
-            if uom.lower()=='bags':
+            unit = uom.replace(' ','')
+            if unit.lower()=='kg' and type == 'domestic':
+                rs = round(qty/50,2)
+                bags_qty = str(rs) + ' NOS OF HDPE LINED BAGS (50KGS BAGS)'
+            if unit.lower()=='kg' and type == 'export':
+                rs = round(qty/25,2)
+                bags_qty = str(rs) + ' NOS OF HDPE LINED BAGS (25KGS BAGS)'
+            if unit.lower()=='bags':
                 bags_qty = qty
-            if uom.lower()=='mt':
-                bags_qty = qty*1000/50
-        return round(bags_qty, 2)
+            if unit.lower()=='tonne' and type == 'domestic':
+                rs = round(qty*1000/50,2)
+                bags_qty = str(rs) + ' NOS OF HDPE LINED BAGS (50KGS BAGS)'
+            if unit.lower()=='tonne' and type == 'export':
+                rs = round(qty*1000/25,2)
+                bags_qty = str(rs) + ' NOS OF HDPE LINED BAGS (25KGS BAGS)'
+        return bags_qty
           
-    def get_qty_mt(self, uos_id, quantity):
+    def get_qty_mt(self, qty, uom, type):
         mt_qty = 0.0
-        if uos_id:
-            if uos_id.lower()=='kg':
-                mt_qty = quantity/1000
-            if uos_id.lower()=='bags':
-                mt_qty = quantity*50/1000
-            if uos_id.lower()=='mt':
-                mt_qty = quantity
+        if uom:
+            unit = uom.replace(' ','')
+            if unit.lower()=='kg':
+                mt_qty = qty/1000
+            if unit.lower()=='bags' and type == 'domestic':
+                mt_qty = qty*50/1000
+            if unit.lower()=='bags' and type == 'export':
+                mt_qty = qty*25/1000
+            if unit.lower()=='tonne':
+                mt_qty = qty
         return round(mt_qty, 2)
     
