@@ -590,33 +590,35 @@ class sale_order(osv.osv):
         assert len(ids) == 1, 'This option should only be used for a single id at a time.'
         
         sale = self.browse(cr, uid, ids[0])
-        sql = '''
-                select product_id, sum(product_uom_qty) as product_qty from sale_order_line where order_id = %s group by product_id
-                '''%(sale.id)
-        cr.execute(sql)
-        for order_line in cr.dictfetchall():
-            sql = '''
-            SELECT sum(onhand_qty) onhand_qty
-            From
-            (SELECT
-                   
-                case when loc1.usage != 'internal' and loc2.usage = 'internal'
-                then stm.primary_qty
-                else
-                case when loc1.usage = 'internal' and loc2.usage != 'internal'
-                then -1*stm.primary_qty 
-                else 0.0 end
-                end onhand_qty
-                        
-            FROM stock_move stm 
-                join stock_location loc1 on stm.location_id=loc1.id
-                join stock_location loc2 on stm.location_dest_id=loc2.id
-            WHERE stm.state= 'done' and product_id=%s)foo
-            '''%(order_line['product_id'])
-            cr.execute(sql)
-            onhand_qty = cr.dictfetchone()['onhand_qty']
-            if (order_line['product_qty'] > onhand_qty):
-                raise osv.except_osv(_('Warning!'),_('You are confirm %s but only %s available for this product in stock.' %(order_line['product_qty'], onhand_qty)))
+        for line in sale.order_line:
+            if (line.product_id.track_production==True and line.product_id.track_incoming==True and line.product_id.track_outgoing==True):
+                sql = '''
+                        select product_id, sum(product_uom_qty) as product_qty from sale_order_line where order_id = %s group by product_id
+                        '''%(sale.id)
+                cr.execute(sql)
+                for order_line in cr.dictfetchall():
+                    sql = '''
+                    SELECT sum(onhand_qty) onhand_qty
+                    From
+                    (SELECT
+                           
+                        case when loc1.usage != 'internal' and loc2.usage = 'internal'
+                        then stm.primary_qty
+                        else
+                        case when loc1.usage = 'internal' and loc2.usage != 'internal'
+                        then -1*stm.primary_qty 
+                        else 0.0 end
+                        end onhand_qty
+                                
+                    FROM stock_move stm 
+                        join stock_location loc1 on stm.location_id=loc1.id
+                        join stock_location loc2 on stm.location_dest_id=loc2.id
+                    WHERE stm.state= 'done' and product_id=%s)foo
+                    '''%(order_line['product_id'])
+                    cr.execute(sql)
+                    onhand_qty = cr.dictfetchone()['onhand_qty']
+                    if (order_line['product_qty'] > onhand_qty):
+                        raise osv.except_osv(_('Warning!'),_('You are confirm %s but only %s available for this product in stock.' %(order_line['product_qty'], onhand_qty)))
         
         wf_service = netsvc.LocalService('workflow')
         wf_service.trg_validate(uid, 'sale.order', ids[0], 'order_confirm', cr)
