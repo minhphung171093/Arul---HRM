@@ -736,7 +736,9 @@ class sale_order_line(osv.osv):
         if 'product_uom_qty' in vals:
             if (vals['product_uom_qty'] < 0):
                 raise osv.except_osv(_('Warning!'),_('Quantity is not negative value'))
- 
+        if 'price_unit' in vals:
+            if (vals['price_unit'] < 0):
+                raise osv.except_osv(_('Warning!'),_('Unit Price is not allowed as negative values'))
         return super(sale_order_line, self).create(cr, uid, vals, context=context)
 
     def write(self, cr, uid, ids, vals, context=None):
@@ -749,7 +751,8 @@ class sale_order_line(osv.osv):
                     raise osv.except_osv(_('Warning!'),_('Freight is not negative value'))
             if (line.product_uom_qty < 0):
                 raise osv.except_osv(_('Warning!'),_('Quantity is not negative value'))
-
+            if (line.price_unit < 0):
+                raise osv.except_osv(_('Warning!'),_('Unit Price is not allowed as negative values'))
         return new_write
 
     def onchange_consignee_id(self, cr, uid, ids, name_consignee_id = False, context=None):
@@ -1118,22 +1121,21 @@ class tpt_blank_order_line(osv.osv):
         return super(tpt_blank_order_line, self).create(cr, uid, vals, context)
     
     def write(self, cr, uid, ids, vals, context=None):
+        new_write = super(tpt_blank_order_line, self).write(cr, uid,ids, vals, context)
         if 'product_id' in vals:
             product = self.pool.get('product.product').browse(cr, uid, vals['product_id'])
             vals.update({'uom_po_id':product.uom_id.id})
-        if ('freight'and 'product_uom_qty') in vals:
-            if (vals['freight'] < 0 and vals['product_uom_qty'] < 0 ):
-                raise osv.except_osv(_('Warning!'),_('Freight and Quantity is not negative value'))
-        if 'freight' in vals:
-            if (vals['freight'] < 0):
-                raise osv.except_osv(_('Warning!'),_('Freight is not negative value'))
-        if 'product_uom_qty' in vals:
-            if (vals['product_uom_qty'] < 0):
-                raise osv.except_osv(_('Warning!'),_('Quantity field should not have negative value'))
-        if 'price_unit' in vals:
-            if (vals['price_unit'] < 0):
+        for line in self.browse(cr,uid,ids):
+            if (line.freight < 0 and line.product_uom_qty < 0 ):
+                    raise osv.except_osv(_('Warning!'),_('Freight and Quantity is not negative value'))
+            if (line.freight < 0):
+                    raise osv.except_osv(_('Warning!'),_('Freight is not negative value'))
+            if (line.product_uom_qty < 0):
+                raise osv.except_osv(_('Warning!'),_('Quantity is not negative value'))
+            if (line.price_unit < 0):
                 raise osv.except_osv(_('Warning!'),_('Unit Price is not allowed as negative values'))
-        return super(tpt_blank_order_line, self).write(cr, uid,ids, vals, context)
+        
+        return new_write
     
     def onchange_product_id(self, cr, uid, ids,product_id=False, context=None):
         vals = {}
