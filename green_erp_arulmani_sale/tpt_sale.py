@@ -667,6 +667,7 @@ class sale_order(osv.osv):
                     stock_move = stock_move_obj.browse(cr,uid,stock_move_ids[0])
                     stock_move_obj.write(cr, uid, stock_move_ids, {'picking_id':new_picking_id,'product_type':stock_move.sale_line_id.product_type,'application_id':stock_move.sale_line_id.application_id and stock_move.sale_line_id.application_id.id or False})
     #                 wf_service.trg_validate(uid, 'stock.picking', new_picking_id, 'button_confirm', cr)
+                    picking_out_obj.draft_force_assign(cr, uid, [new_picking_id])
                     picking_id = new_picking_id
             if first_picking_id:
                 for line in picking_out_obj.browse(cr, uid, first_picking_id).move_lines:
