@@ -290,7 +290,7 @@
                     <field name="partner_id" on_change="onchange_partner_in(partner_id)" string="Customer" domain="[('customer','=',1),('is_company','=',1)]" readonly = "1" options="{'create': false, 'create_edit': false}"/>
             		<field name="sale_id" readonly="1" domain="[('state','=','progress')]" options="{'create': false, 'create_edit': false}"/>
             		<field name="cons_loca" readonly ="1" domain="[('consignee_parent_id','=',partner_id)]" options="{'create': false, 'create_edit': false,'always_reload': True}" context="{'show_address': 1}"/>
-            		<field name="warehouse" required ="1" domain="[('usage','=','internal')]" options="{'create': false, 'create_edit': false}"/>
+            		<field name="warehouse" required ="1" domain="[('usage','=','internal'),('chained_location_type','&lt;&gt;','customer')]" options="{'create': false, 'create_edit': false}"/>
             		<field name="transporter" required ="1"/>
             		<field name="truck" required ="1"/>
             		<field name="remarks"/>
