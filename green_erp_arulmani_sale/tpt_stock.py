@@ -455,6 +455,14 @@ class stock_picking(osv.osv):
             delivered_pack = self.browse(cr, uid, delivered_pack_id, context=context)
             res[pick.id] = {'delivered_picking': delivered_pack.id or False}
             self.write(cr, uid, [delivered_pack_id], {'doc_status':'completed'}, context)
+            if delivered_pack.sale_id:
+                sp_ids = self.search(cr, uid, [('id','!=',delivered_pack.id),('state','!=','done'),('sale_id','=',delivered_pack.sale_id.id)])
+                if sp_ids:
+                    sql = '''
+                        update sale_order set document_status='partially' where id = %s
+                    '''%(delivered_pack.sale_id.id)
+                    cr.execute(sql)
+            
         return res
     
     def action_cancel(self, cr, uid, ids, context=None):
