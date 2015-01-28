@@ -105,7 +105,7 @@
 				</xpath> 
 				<xpath expr="//form/sheet/group/group/field[@name='stock_journal_id']" position="replace">
 					<field name="stock_journal_id" widget="selection" groups="account.group_account_user" invisible = "1"/>
-					<field name="location_id" domain="[('usage','in', ['internal'])]" on_change="onchange_location(location_id)" required = '1' string = "Source Location" options="{'create': false, 'create_edit': false}"/>
+					<field name="location_id" domain="[('usage','in', ['internal']),('chained_location_type','&lt;&gt;','customer')]" on_change="onchange_location(location_id)" required = '1' string = "Source Location" options="{'create': false, 'create_edit': false}"/>
 					<field name="reason"/>
 				</xpath> 
 				<xpath expr="//field[@name='date']" position="replace">
@@ -115,7 +115,7 @@
 				<xpath expr="//field[@name='origin']" position="replace">
 					<field name="origin" placeholder="e.g. PO0032" class="oe_inline" invisible = "1"/>
 					<field name="move_date" required = '1' on_change="onchange_move_date(move_date)"/>
-					<field name="location_dest_id" required = '1' domain="[('id','!=',location_id), ('usage','in', ['internal'])]" string = "Destination Location" options="{'create': false, 'create_edit': false}"/>
+					<field name="location_dest_id" required = '1' domain="[('id','!=',location_id), ('usage','in', ['internal']),('chained_location_type','&lt;&gt;','customer')]" string = "Destination Location" options="{'create': false, 'create_edit': false}"/>
 				</xpath> 
 				
 				<xpath expr="//page[@string='Products']" position="replace">
