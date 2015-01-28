@@ -290,29 +290,14 @@ class sale_order(osv.osv):
               update tpt_blanket_order set state='draft' where id = %s
                '''%(sale.blanket_id.id)
         cr.execute(sql_stt3)
-#         for line in self.browse(cr, uid, ids):
-#             sale_order_ids = self.pool.get('sale.order').search(cr,uid,[('blanket_id', '=',line.id )])
-#             if sale_order_ids:
-#                 raise osv.except_osv(_('Warning!'),_('Blanket Order has already existed on Sale Order'))
-#             self.write(cr, uid, ids,{'state':'cancel'})
-        return True
-#         sql = '''
-#             update sale_order set document_status='cancelled' where id = %s
-#         '''%(sale.id)
-#         cr.execute(sql)
-#     
+        
     def create(self, cr, uid, vals, context=None):
         if vals.get('name','/')=='/':
             vals['name'] = self.pool.get('ir.sequence').get(cr, uid, 'tpt.sale.order.import') or '/'
-#         if 'document_status' in vals:
-#             vals['document_status'] = 'draft'
         new_id = super(sale_order, self).create(cr, uid, vals, context)
         sale = self.browse(cr, uid, new_id)
-#             sale.blanket_id.state = 'done'
-#         sale_ids = sale.search(cr,uid,[('state','!=','cancel')])
         if sale.blanket_id:
             flag=False
-#             document_status = 'partially'
             for blanket_line in sale.blanket_id.blank_order_line:
                 sql_so = '''
                     select id from sale_order where blanket_id = %s and state!='cancel'
@@ -341,10 +326,10 @@ class sale_order(osv.osv):
                     elif blanket_line.product_uom_qty > data[1]:
                         document_status = 'partially'
                         flag=True
-                        sql_stt = '''
-                            update sale_order set document_status='partially' where id = %s
-                        '''%(sale.id)
-                        cr.execute(sql_stt)
+#                         sql_stt = '''
+#                             update sale_order set document_status='partially' where id = %s
+#                         '''%(sale.id)
+#                         cr.execute(sql_stt)
                         sql_stt3 = '''
                           update tpt_blanket_order set state='draft' where id = %s
                            '''%(sale.blanket_id.id)
@@ -352,10 +337,10 @@ class sale_order(osv.osv):
                     else:
                         document_status = 'close'
                 if flag==False:
-                    sql_stt = '''
-                        update sale_order set document_status='close' where id = %s
-                    '''%(sale.id)
-                    cr.execute(sql_stt)
+#                     sql_stt = '''
+#                         update sale_order set document_status='close' where id = %s
+#                     '''%(sale.id)
+#                     cr.execute(sql_stt)
                     sql_stt2 = '''
                           update tpt_blanket_order set state='done' where id = %s
                            '''%(sale.blanket_id.id)
@@ -363,13 +348,17 @@ class sale_order(osv.osv):
         return new_id
     
     def write(self, cr, uid, ids, vals, context=None):
-#         if 'document_status' in vals:
-#             vals['document_status'] = 'draft'
+
         new_write = super(sale_order, self).write(cr, uid,ids, vals, context)
         for sale in self.browse(cr, uid, ids):
+            if 'shipped' in vals:
+                if (vals['shipped'] == True):
+                    sql = '''
+                         update sale_order set document_status='close' where id = %s
+                    '''%(sale.id)
+                    cr.execute(sql)
             if sale.blanket_id:
                 flag=False
-#                 document_status = 'partially'
                 for blanket_line in sale.blanket_id.blank_order_line:
                     sql_so = '''
                         select id from sale_order where blanket_id = %s and state!='cancel'
@@ -396,34 +385,26 @@ class sale_order(osv.osv):
                             raise osv.except_osv(_('Warning!'),_('Quantity must be less than quantity of Blanket Order is product %s'%blanket_line.product_id.name_template))
                         elif blanket_line.product_uom_qty > data[1]:
                             flag=True
-                            sql_stt = '''
-                               update sale_order set document_status='partially' where id = %s
-                                '''%(sale.id)
- 
-                            cr.execute(sql_stt)
+#                             sql_stt = '''
+#                                update sale_order set document_status='partially' where id = %s
+#                                 '''%(sale.id)
+#  
+#                             cr.execute(sql_stt)
                             sql_stt3 = '''
                               update tpt_blanket_order set state='draft' where id = %s
                                '''%(sale.blanket_id.id)
                             cr.execute(sql_stt3)
-#                             sql_stt5 = '''
-#                               update tpt_blanket_order set state='draft' where id = %s
-#                                '''%(sale.blanket_id.id)
-#                             cr.execute(sql_stt5)
                         else:
                             document_status = 'close'
                     if flag==False:
-                       sql_stt = '''
-                          update sale_order set document_status='close' where id = %s
-                           '''%(sale.id)
-                       cr.execute(sql_stt)
+#                        sql_stt = '''
+#                           update sale_order set document_status='close' where id = %s
+#                            '''%(sale.id)
+#                        cr.execute(sql_stt)
                        sql_stt2 = '''
                           update tpt_blanket_order set state='done' where id = %s
                            '''%(sale.blanket_id.id)
                        cr.execute(sql_stt2)
-#                        sql_stt4 = '''
-#                               update tpt_blanket_order set state='done' where id = %s
-#                                '''%(sale.blanket_id.id)
-#                        cr.execute(sql_stt4)
         return new_write
     
 
