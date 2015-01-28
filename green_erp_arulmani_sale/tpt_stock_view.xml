@@ -105,7 +105,7 @@
 				</xpath> 
 				<xpath expr="//form/sheet/group/group/field[@name='stock_journal_id']" position="replace">
 					<field name="stock_journal_id" widget="selection" groups="account.group_account_user" invisible = "1"/>
-					<field name="location_id" domain="[('usage','in', ['internal'])]" on_change="onchange_location(location_id)" required = '1' string = "Source Location" options="{'create': false, 'create_edit': false}"/>
+					<field name="location_id" domain="[('usage','in', ['internal']),('chained_location_type','&lt;&gt;','customer')]" on_change="onchange_location(location_id)" required = '1' string = "Source Location" options="{'create': false, 'create_edit': false}"/>
 					<field name="reason"/>
 				</xpath> 
 				<xpath expr="//field[@name='date']" position="replace">
@@ -115,7 +115,7 @@
 				<xpath expr="//field[@name='origin']" position="replace">
 					<field name="origin" placeholder="e.g. PO0032" class="oe_inline" invisible = "1"/>
 					<field name="move_date" required = '1' on_change="onchange_move_date(move_date)"/>
-					<field name="location_dest_id" required = '1' domain="[('id','!=',location_id), ('usage','in', ['internal'])]" string = "Destination Location" options="{'create': false, 'create_edit': false}"/>
+					<field name="location_dest_id" required = '1' domain="[('id','!=',location_id), ('usage','in', ['internal']),('chained_location_type','&lt;&gt;','customer')]" string = "Destination Location" options="{'create': false, 'create_edit': false}"/>
 				</xpath> 
 				
 				<xpath expr="//page[@string='Products']" position="replace">
@@ -257,7 +257,18 @@
 				</xpath>
             </field>
         </record>    
-            	
+        
+        <record id="tpt_stock_partial_picking_form" model="ir.ui.view">
+            <field name="name">tpt.stock.partial.picking.form</field>
+            <field name="model">stock.partial.picking</field>
+            <field name="inherit_id" ref="stock.stock_partial_picking_form"/>
+            <field name="arch" type="xml">
+            	<xpath expr="//field[@name='prodlot_id']"  position="attributes">
+            		<attribute name='string'>Batch Number</attribute>
+            	</xpath>
+            </field>
+        </record>
+            
      	<record id="tpt_stock_picking_out_form" model="ir.ui.view">
             <field name="name">tpt.stock.picking.out.form</field>
             <field name="model">stock.picking.out</field>
@@ -290,7 +301,7 @@
                     <field name="partner_id" on_change="onchange_partner_in(partner_id)" string="Customer" domain="[('customer','=',1),('is_company','=',1)]" readonly = "1" options="{'create': false, 'create_edit': false}"/>
             		<field name="sale_id" readonly="1" domain="[('state','=','progress')]" options="{'create': false, 'create_edit': false}"/>
             		<field name="cons_loca" readonly ="1" domain="[('consignee_parent_id','=',partner_id)]" options="{'create': false, 'create_edit': false,'always_reload': True}" context="{'show_address': 1}"/>
-            		<field name="warehouse" required ="1" domain="[('usage','=','internal')]" options="{'create': false, 'create_edit': false}"/>
+            		<field name="warehouse" required ="1" domain="[('usage','=','internal'),('chained_location_type','&lt;&gt;','customer')]" options="{'create': false, 'create_edit': false}"/>
             		<field name="transporter" required ="1"/>
             		<field name="truck" required ="1"/>
             		<field name="remarks"/>
@@ -314,8 +325,8 @@
 		                        string="Scrap Products" type="action"
 		                        icon="terp-gtk-jump-to-ltr" context="{'scrap': True}"
 		                        states="draft,waiting,confirmed,assigned" invisible="1"/>
-		                    <field name="prodlot_id" groups="stock.group_production_lot" context="{'search_prodlot_by_batch_alot':1,'sale_id':parent.sale_id}" options="{'create': false, 'create_edit': false}"/>
-		                    <field name="phy_batch"/>
+		                    <field name="prodlot_id" string = "System Batch Number" groups="stock.group_production_lot" context="{'search_prodlot_by_batch_alot':1,'sale_id':parent.sale_id}" options="{'create': false, 'create_edit': false}"/>
+		                    <field name="phy_batch" string = "Physical Batch Number"/>
 		                    <button name="%(stock.track_line)d" string="Split in Serial Numbers" type="action"
 		                        icon="gtk-justify-fill" attrs="{'invisible': [('prodlot_id','&lt;&gt;',False)]}"
 		                        states="draft,waiting,confirmed,assigned,done"

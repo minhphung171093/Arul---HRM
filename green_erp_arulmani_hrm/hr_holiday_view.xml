@@ -1040,6 +1040,7 @@
 			<field name="arch" type="xml">
 				<tree string="Punch In/Punch Out">
 					<field name ="name"/>
+					<field name ="datas_fname"/>
 					<field name="state"/>
 				</tree>
 			</field>
