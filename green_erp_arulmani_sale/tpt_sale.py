@@ -1734,9 +1734,9 @@ class tpt_batch_allotment_line(osv.osv):
         'application_id': fields.many2one('crm.application','Application'),    
         'product_uom_qty': fields.float('Quantity'),   
         'uom_po_id': fields.many2one('product.uom','UOM'),   
-        'sys_batch':fields.many2one('stock.production.lot','System Serial No.',required=True), 
+        'sys_batch':fields.many2one('stock.production.lot','System Batch Number',required=True), 
 #         'phy_batch':fields.char('Physical Batch No.', size = 1024)
-        'phy_batch':fields.function(get_phy_batch,type='char', size = 1024,string='Physical Serial No.',multi='sum',store=True),
+        'phy_batch':fields.function(get_phy_batch,type='char', size = 1024,string='Physical Batch Number',multi='sum',store=True),
                 }
     
     def create(self, cr, uid, vals, context=None):

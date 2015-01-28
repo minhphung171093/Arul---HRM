@@ -257,7 +257,18 @@
 				</xpath>
             </field>
         </record>    
-            	
+        
+        <record id="tpt_stock_partial_picking_form" model="ir.ui.view">
+            <field name="name">tpt.stock.partial.picking.form</field>
+            <field name="model">stock.partial.picking</field>
+            <field name="inherit_id" ref="stock.stock_partial_picking_form"/>
+            <field name="arch" type="xml">
+            	<xpath expr="//field[@name='prodlot_id']"  position="attributes">
+            		<attribute name='string'>Batch Number</attribute>
+            	</xpath>
+            </field>
+        </record>
+            
      	<record id="tpt_stock_picking_out_form" model="ir.ui.view">
             <field name="name">tpt.stock.picking.out.form</field>
             <field name="model">stock.picking.out</field>
@@ -314,8 +325,8 @@
 		                        string="Scrap Products" type="action"
 		                        icon="terp-gtk-jump-to-ltr" context="{'scrap': True}"
 		                        states="draft,waiting,confirmed,assigned" invisible="1"/>
-		                    <field name="prodlot_id" groups="stock.group_production_lot" context="{'search_prodlot_by_batch_alot':1,'sale_id':parent.sale_id}" options="{'create': false, 'create_edit': false}"/>
-		                    <field name="phy_batch"/>
+		                    <field name="prodlot_id" string = "System Batch Number" groups="stock.group_production_lot" context="{'search_prodlot_by_batch_alot':1,'sale_id':parent.sale_id}" options="{'create': false, 'create_edit': false}"/>
+		                    <field name="phy_batch" string = "Physical Batch Number"/>
 		                    <button name="%(stock.track_line)d" string="Split in Serial Numbers" type="action"
 		                        icon="gtk-justify-fill" attrs="{'invisible': [('prodlot_id','&lt;&gt;',False)]}"
 		                        states="draft,waiting,confirmed,assigned,done"
