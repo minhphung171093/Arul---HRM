@@ -92,7 +92,7 @@ class Parser(report_sxw.rml_parse):
                 if earning.earning_parameters_id.code=='AA':
                     aa += earning.float
                 if earning.earning_parameters_id.code=='EA':
-                    aa += earning.float
+                    ea += earning.float
                 if earning.earning_parameters_id.code=='TOTAL_EARNING':
                     total_ear += earning.float
                 if earning.earning_parameters_id.code=='NET':
@@ -127,7 +127,7 @@ class Parser(report_sxw.rml_parse):
                 'spa': spa,
                 'oa': oa,
                 'la': la,
-                'aa': oa,
+                'aa': aa,
                 'ea': ea,
                 'pfd': pfd,
                 'vpf': vpf,
@@ -135,7 +135,7 @@ class Parser(report_sxw.rml_parse):
                 'fd': fd,
                 'loan': loan,
                 'id': id,
-                'pt': id,
+                'pt': pt,
                 'lwf': lwf,
                 'lop': lop,
                 'total_ear': total_ear,
