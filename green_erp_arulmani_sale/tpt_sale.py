@@ -653,7 +653,7 @@ class sale_order(osv.osv):
                 if i==0:
                     first_picking_id = picking_id
                     picking = picking_out_obj.browse(cr, uid, picking_id)
-                    picking_out_obj.write(cr, uid, [picking_id], {'cons_loca': consignee_id,'backorder_id':picking_id,'origin':picking.origin,'sale_id':ids[0],'partner_id':sale.partner_id.id,'doc_status':doc_status})
+                    picking_out_obj.write(cr, uid, [picking_id], {'cons_loca': consignee_id,'backorder_id':picking_id,'origin':picking.origin,'sale_id':ids[0],'partner_id':sale.partner_id.id,'doc_status':'draft'})
                 else:
                     sql = '''
                         select id from sale_order_line where name_consignee_id = %s and order_id = %s
@@ -663,7 +663,7 @@ class sale_order(osv.osv):
                     default = {'backorder_id':picking_id,'move_lines':[],'cons_loca': consignee_id}
                     picking = picking_out_obj.browse(cr, uid, picking_id)
                     new_picking_id = picking_out_obj.copy(cr, uid, picking_id, default)
-                    picking_out_obj.write(cr, uid, [new_picking_id], {'cons_loca': consignee_id,'backorder_id':picking_id,'origin':picking.origin,'sale_id':ids[0],'partner_id':sale.partner_id.id,'doc_status':doc_status})
+                    picking_out_obj.write(cr, uid, [new_picking_id], {'cons_loca': consignee_id,'backorder_id':picking_id,'origin':picking.origin,'sale_id':ids[0],'partner_id':sale.partner_id.id,'doc_status':'draft'})
                     stock_move_ids = stock_move_obj.search(cr, uid, [('sale_line_id','in',order_line_ids)])
                     stock_move = stock_move_obj.browse(cr,uid,stock_move_ids[0])
                     stock_move_obj.write(cr, uid, stock_move_ids, {'picking_id':new_picking_id,'product_type':stock_move.sale_line_id.product_type,'application_id':stock_move.sale_line_id.application_id and stock_move.sale_line_id.application_id.id or False})

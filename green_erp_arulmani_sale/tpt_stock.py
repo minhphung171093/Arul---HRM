@@ -510,6 +510,14 @@ class stock_picking(osv.osv):
             # Deleting the existing instance of workflow
             wf_service.trg_delete(uid, 'stock.picking', picking.id, cr)
             wf_service.trg_create(uid, 'stock.picking', picking.id, cr)
+            # them dong nay de doi trang thai cua DO sang Waiting Availability, 
+            # de cac nut Confirm ko hien nua, nhung hien da co van de
+            wf_service.trg_validate(uid, 'stock.picking', picking.id, 'button_confirm', cr)
+            ###
+            sql = '''
+                update stock_picking set doc_status='draft' where id = %s
+                '''%(picking.id)
+            cr.execute(sql)
         for (id, name) in self.name_get(cr, uid, ids):
             message = _(
                 "The stock picking '%s' has been set in draft state."
@@ -520,7 +528,24 @@ class stock_picking(osv.osv):
     def action_process(self, cr, uid, ids, context=None):
         if context is None:
             context = {}
-        
+        for picking in self.browse(cr, uid, ids, context):
+            sale = picking.sale_id and picking.sale_id.amount_total or 0.00
+            limit = picking.partner_id and picking.partner_id.credit_limit_used or 0.00
+            used = limit = picking.partner_id and picking.partner_id.credit or 0.00
+            if limit <= (sale + used):
+                ### sau khi cancel va reopen lai DO, debug co vao duoc ham 
+                ###nhung sql ko duoc thuc thi, chi raise thong bao ben duoi
+                sql = '''
+                    update stock_picking set doc_status='waiting' where id = %s
+                    '''%(picking.id)
+                cr.execute(sql)
+                ###
+                raise osv.except_osv(_('Warning!'),_('Sale Order Amount is not greater than Customer Credit Limit!'))
+            else:
+                sql = '''
+                    update stock_picking set doc_status='completed' where id = %s
+                    '''%(picking.id)
+                cr.execute(sql)
         """Open the partial picking wizard"""
         context.update({
             'active_model': self._name,
@@ -537,14 +562,20 @@ class stock_picking(osv.osv):
             'nodestroy': True,
         }
     
-#     def allow_cancel(self, cr, uid, ids, context=None):
-#         for pick in self.browse(cr, uid, ids, context=context):
-#             if not pick.move_lines:
-#                 return True
-#             for move in pick.move_lines:
-#                 if move.state == 'done':
-#                     raise osv.except_osv(_('Error!'), _('You cannot cancel the picking as some moves have been done. You should cancel the picking lines.'))
-#         return True
+    def allow_cancel(self, cr, uid, ids, context=None):
+        for pick in self.browse(cr, uid, ids, context=context):
+            if not pick.move_lines:
+                # update document status
+                sql = '''
+                    update stock_picking set doc_status='cancelled' where id = %s
+                    '''%(picking.id)
+                cr.execute(sql)
+                ###
+                return True
+            for move in pick.move_lines:
+                if move.state == 'done':
+                    raise osv.except_osv(_('Error!'), _('You cannot cancel the picking as some moves have been done. You should cancel the picking lines.'))
+        return True
     
 stock_picking()
 
@@ -559,6 +590,10 @@ class stock_picking_out(osv.osv):
         'doc_status':fields.selection([('draft','Drafted'),('waiting','Waiting for Approval'),('completed','Completed'),('cancelled','Cancelled')],'Document Status'),
         'sale_id': fields.many2one('sale.order', 'Sales Order', readonly = True,ondelete='set null', select=True),
                 }
+    
+    def action_process(self, cr, uid, ids, context=None):
+        return self.pool.get('stock.picking').action_process(
+            cr, uid, ids, context=context)
     
     def write(self, cr, uid, ids, vals, context=None):
         new_write = super(stock_picking_out, self).write(cr, uid, ids, vals, context)
