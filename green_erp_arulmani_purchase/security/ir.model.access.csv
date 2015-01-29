@@ -1,0 +1,5 @@
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+access_vvti_purchase_1,"tpt.spec.parameters.line","model_tpt_spec_parameters_line","green_erp_arulmani_sale.group_vvti_sale_user","True","True","True","True"
+access_vvti_purchase_2,"tpt.spec.parameters.line","model_tpt_product_inventory","green_erp_arulmani_sale.group_vvti_sale_user","True","True","True","True"
+access_vvti_purchase_3,"tpt.spec.parameters.line","model_tpt_spec_parameters_line","green_erp_arulmani_sale.group_vvti_sale_store_key_user","True","True","True","True"
+access_vvti_purchase_4,"tpt.spec.parameters.line","model_tpt_product_inventory","green_erp_arulmani_sale.group_vvti_sale_store_key_user","True","True","True","True"
