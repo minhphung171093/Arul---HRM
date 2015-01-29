@@ -37,6 +37,9 @@
 				<xpath expr="//field[@name='client_order_ref']"  position="replace">
 					<field name="client_order_ref" invisible="1" />
 				</xpath>
+				<xpath expr="//button[@name='cancel']"  position="replace">
+					<button name="cancel" states="draft,sent" string="Cancel Sale Order" groups="base.group_user"/>
+				</xpath>
 				<xpath expr="//field[@name='partner_shipping_id']"  position="replace">
 					<field name="partner_shipping_id" required="0" invisible="1" />
 				</xpath>
