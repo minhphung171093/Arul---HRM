@@ -517,6 +517,40 @@ class stock_picking(osv.osv):
             self.log(cr, uid, id, message)
         return True
     
+#     def action_assign(self, cr, uid, ids, *args):
+#         """ Changes state of picking to available if all moves are confirmed.
+#         @return: True
+#         """
+#         wf_service = netsvc.LocalService("workflow")
+#         for pick in self.browse(cr, uid, ids):
+#             if pick.state == 'draft':
+#                 wf_service.trg_validate(uid, 'stock.picking', pick.id, 'button_confirm', cr)
+#             move_ids = [x.id for x in pick.move_lines if x.state == 'confirmed']
+#             if not move_ids:
+#                 raise osv.except_osv(_('Warning!'),_('Not enough stock, unable to reserve the products.'))
+#             self.pool.get('stock.move').action_assign(cr, uid, move_ids)
+#         return True
+# 
+#     def force_assign(self, cr, uid, ids, *args):
+#         """ Changes state of picking to available if moves are confirmed or waiting.
+#         @return: True
+#         """
+#         wf_service = netsvc.LocalService("workflow")
+#         for pick in self.browse(cr, uid, ids):
+#             move_ids = [x.id for x in pick.move_lines if x.state in ['confirmed','waiting']]
+#             self.pool.get('stock.move').force_assign(cr, uid, move_ids)
+#             wf_service.trg_write(uid, 'stock.picking', pick.id, cr)
+#         return True
+
+#     def allow_cancel(self, cr, uid, ids, context=None):
+#         for pick in self.browse(cr, uid, ids, context=context):
+#             if not pick.move_lines:
+#                 return True
+#             for move in pick.move_lines:
+#                 if move.state == 'done':
+#                     raise osv.except_osv(_('Error!'), _('You cannot cancel the picking as some moves have been done. You should cancel the picking lines.'))
+#         return True
+    
 stock_picking()
 
 class stock_picking_out(osv.osv):
