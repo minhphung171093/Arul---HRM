@@ -898,6 +898,14 @@ class product_product(osv.osv):
                 cr.execute(sql)
                 picking_ids = [row[0] for row in cr.fetchall()]
                 args += [('id','in',picking_ids)]
+        if context.get('search_pro_by_so'): 
+            if context.get('sale_id'):
+                sql = '''
+                    select product_id from sale_order_line where order_id  = %s
+                '''%(context.get('sale_id'))
+                cr.execute(sql)
+                product_ids = [row[0] for row in cr.fetchall()]
+                args += [('id','in',product_ids)]
         return super(product_product, self).search(cr, uid, args, offset=offset, limit=limit, order=order, context=context, count=count)
     def name_search(self, cr, user, name, args=None, operator='ilike', context=None, limit=100):
        ids = self.search(cr, user, args, context=context, limit=limit)
