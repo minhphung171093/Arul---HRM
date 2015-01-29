@@ -534,19 +534,11 @@ class stock_picking(osv.osv):
             limit = picking.partner_id and picking.partner_id.credit_limit_used or False
             used = picking.partner_id and picking.partner_id.credit or False
             if limit and sale > 0.00 and limit <= (sale + used):
-                ### sau khi cancel va reopen lai DO, debug co vao duoc ham 
-                ###nhung sql ko duoc thuc thi, chi raise thong bao ben duoi
                 sql = '''
                     update stock_picking set doc_status='waiting' where id = %s
                     '''%(picking.id)
                 cr.execute(sql)
-                ###
                 raise osv.except_osv(_('Warning!'),_('Sale Order Amount is not greater than Customer Credit Limit!'))
-            else:
-                sql = '''
-                    update stock_picking set doc_status='completed' where id = %s
-                    '''%(picking.id)
-                cr.execute(sql)
         """Open the partial picking wizard"""
         context.update({
             'active_model': self._name,
