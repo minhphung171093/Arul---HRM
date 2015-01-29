@@ -23,5 +23,10 @@
             groups="base.group_no_one,group_vvti_sale_admin"
             name="Payment Modes"
             parent="base.menu_crm_config_lead"/>
+        <menuitem name="Warehouse"
+            id="stock.menu_stock_root"
+            groups="stock.group_stock_manager,stock.group_stock_user,group_vvti_sale_store_key_user"
+            sequence="70"/>
+        
     </data>
 </openerp>

@@ -512,7 +512,8 @@ class stock_picking(osv.osv):
             wf_service.trg_create(uid, 'stock.picking', picking.id, cr)
             # them dong nay de doi trang thai cua DO sang Waiting Availability, 
             # de cac nut Confirm ko hien nua, nhung hien da co van de
-            wf_service.trg_validate(uid, 'stock.picking', picking.id, 'button_confirm', cr)
+            self.draft_force_assign(cr, uid, [picking.id])
+#             wf_service.trg_validate(uid, 'stock.picking', picking.id, 'button_confirm', cr)
             ###
             sql = '''
                 update stock_picking set doc_status='draft' where id = %s
