@@ -529,10 +529,10 @@ class stock_picking(osv.osv):
         if context is None:
             context = {}
         for picking in self.browse(cr, uid, ids, context):
-            sale = picking.sale_id and picking.sale_id.amount_total or 0.00
-            limit = picking.partner_id and picking.partner_id.credit_limit_used or 0.00
-            used = limit = picking.partner_id and picking.partner_id.credit or 0.00
-            if limit <= (sale + used):
+            sale = picking.sale_id and picking.sale_id.amount_total or False
+            limit = picking.partner_id and picking.partner_id.credit_limit_used or False
+            used = limit = picking.partner_id and picking.partner_id.credit or False
+            if limit and sale > 0.00 and limit <= (sale + used):
                 ### sau khi cancel va reopen lai DO, debug co vao duoc ham 
                 ###nhung sql ko duoc thuc thi, chi raise thong bao ben duoi
                 sql = '''
