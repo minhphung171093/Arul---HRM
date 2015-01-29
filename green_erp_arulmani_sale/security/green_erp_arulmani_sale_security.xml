@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="utf-8"?>
+<openerp>
+	<data noupdate="0">
+		<record model="ir.module.category" id="module_category_vvti_sale">
+	        <field name="name">VVTI - SALE</field>
+	        <field name="sequence">0</field>
+	    </record>
+	    
+	    <record id="group_vvti_sale_user" model="res.groups">
+	        <field name="name">Sales User</field>
+	        <field name="category_id" ref="module_category_vvti_sale"/>
+	        <field name="users" eval="[(4, ref('base.user_root'))]"/>
+	        <field name="implied_ids" eval="[(4, ref('base.group_sale_manager')),(4, ref('stock.group_stock_manager'))]"/>
+	    </record>
+	    
+	    <record id="group_vvti_sale_manager" model="res.groups">
+	        <field name="name">Sales Manager</field>
+	        <field name="category_id" ref="module_category_vvti_sale"/>
+	        <field name="users" eval="[(4, ref('base.user_root'))]"/>
+	        <field name="implied_ids" eval="[(4, ref('group_vvti_sale_user'))]"/>
+	    </record>
+	    
+	    <record id="group_vvti_sale_gm" model="res.groups">
+	        <field name="name">Sales GM</field>
+	        <field name="category_id" ref="module_category_vvti_sale"/>
+	        <field name="users" eval="[(4, ref('base.user_root'))]"/>
+	        <field name="implied_ids" eval="[(4, ref('group_vvti_sale_manager'))]"/>
+	    </record>
+	    
+	    <record id="group_vvti_sale_store_key_user" model="res.groups">
+	        <field name="name">Store Key User</field>
+	        <field name="category_id" ref="module_category_vvti_sale"/>
+	        <field name="users" eval="[(4, ref('base.user_root'))]"/>
+	    </record>
+	    
+	    <record id="group_vvti_sale_admin" model="res.groups">
+	        <field name="name">Admin</field>
+	        <field name="category_id" ref="module_category_vvti_sale"/>
+	        <field name="users" eval="[(4, ref('base.user_root'))]"/>
+	        <field name="implied_ids" eval="[(4, ref('group_vvti_sale_gm')),(4, ref('group_vvti_sale_store_key_user'))]"/>
+	    </record>
+	    
+	</data>
+</openerp>

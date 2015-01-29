@@ -28,6 +28,8 @@
     'website' : 'http://www. tenthplanet.in',
     'depends': ['green_erp_arulmani_hrm','green_erp_arulmani_crm','sale_stock','stock'],
     'data': [
+        'security/green_erp_arulmani_sale_security.xml',
+        'security/ir.model.access.csv',
         'data/tpt_sale_data.xml',
         'tpt_sale_view.xml',
         'report/print_form_403_view.xml',
@@ -42,7 +44,7 @@
         'tpt_stock_view.xml',
         'sale_sequence.xml',
         'tpt_form_are_view.xml',
-        
+        'menu_inherit_view.xml',
     ],
     'css' : [
     ],

@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<openerp>
+    <data>
+        <menuitem action="green_erp_arulmani_crm.vsis_action_crm_application" id="green_erp_arulmani_crm.vsis_menu_crm_application" parent="green_erp_arulmani_crm.menu_vvti_master" sequence="5" groups="base.group_erp_manager,green_erp_arulmani_crm.group_readonly,group_vvti_sale_admin"/>        
+        <menuitem action="stock.action_incoterms_tree" id="stock.menu_action_incoterm_open" parent="green_erp_arulmani_crm.menu_vvti_master" sequence="7" groups="base.group_erp_manager,green_erp_arulmani_crm.group_readonly,group_vvti_sale_admin"/>        
+        <menuitem id="account.next_id_27" name="Taxes" parent="green_erp_arulmani_crm.menu_vvti_master" sequence="6" groups="base.group_erp_manager,green_erp_arulmani_crm.group_readonly,group_vvti_sale_admin"/>        
+        <menuitem action="green_erp_arulmani_crm.vsis_action_price_group" id="green_erp_arulmani_crm.vsis_menu_price_group" sequence="21" parent="green_erp_arulmani_crm.menu_vvti_master" groups="base.group_erp_manager,green_erp_arulmani_crm.group_readonly,group_vvti_sale_admin"/> 
+        <menuitem action="green_erp_arulmani_crm.vsis_action_tax_category" id="green_erp_arulmani_crm.vsis_menu_tax_category" sequence="24" parent="green_erp_arulmani_crm.menu_vvti_master" groups="base.group_erp_manager,green_erp_arulmani_crm.group_readonly,group_vvti_sale_admin"/> 
+        <menuitem action="green_erp_arulmani_crm.vsis_action_tax_number_1" id="green_erp_arulmani_crm.vsis_menu_tax_number_1" sequence="25" parent="green_erp_arulmani_crm.menu_vvti_master" groups="base.group_erp_manager,green_erp_arulmani_crm.group_readonly,group_vvti_sale_admin"/>
+        <record model="ir.ui.menu" id="product.menu_product_uom_form_action">
+		    <field name="groups_id" eval="[(6, 0, [ref('group_vvti_sale_admin')])]" />
+		</record>
+        <menuitem action="product.product_normal_action_sell" id="product.menu_products" parent="green_erp_arulmani_crm.menu_vvti_master" sequence="4" groups="base.group_erp_manager,green_erp_arulmani_crm.group_readonly,group_vvti_sale_admin"/>        
+        <record model="ir.ui.menu" id="stock.menu_action_warehouse_form">
+		    <field name="groups_id" eval="[(6, 0, [ref('group_vvti_sale_admin')])]" />
+		</record>
+		<record model="ir.ui.menu" id="stock.menu_action_location_form">
+		    <field name="groups_id" eval="[(6, 0, [ref('group_vvti_sale_admin')])]" />
+		</record>
+        <menuitem action="account.action_payment_term_form" id="account.menu_action_payment_term_form" parent="green_erp_arulmani_crm.menu_vvti_master" sequence="9" groups="base.group_erp_manager,green_erp_arulmani_crm.group_readonly,group_vvti_sale_admin"/>            
+		<menuitem action="crm.action_crm_payment_mode"
+            id="crm.menu_crm_payment_mode_act"
+            groups="base.group_no_one,group_vvti_sale_admin"
+            name="Payment Modes"
+            parent="base.menu_crm_config_lead"/>
+    </data>
+</openerp>
