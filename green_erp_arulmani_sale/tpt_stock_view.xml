@@ -58,6 +58,7 @@
             	<xpath expr="//field[@name='tracking_id']" position="replace">
 					<field name="tracking_id" invisible = '1' groups="stock.group_tracking_lot" class="oe_inline"/>
 				</xpath> 
+				
 				<xpath expr="//group[@string='Traceability']/div" position="replace">
 					<div invisible = '1'>
 					</div>
@@ -138,6 +139,9 @@
 		</record>
 		
 		<menuitem name="Stock Move" action="stock.action_picking_tree6" id="stock.menu_action_picking_tree6" parent="stock.menu_stock_warehouse_mgmt" sequence="2" groups="stock.group_locations"/>
+		<menuitem name="Batch Number" action="stock.action_production_lot_form" id="stock.menu_action_production_lot_form"
+            parent="stock.menu_traceability" groups="stock.group_production_lot"
+            sequence="1"/>
 		
        <record id="tpt_invoice_tree" model="ir.ui.view">
             <field name="name">tpt.invoice.tree</field>
