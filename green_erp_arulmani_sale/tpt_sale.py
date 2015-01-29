@@ -152,7 +152,8 @@ class sale_order(osv.osv):
         'partner_invoice_id': fields.many2one('res.partner', 'Invoice Address', readonly=True, required=False, states={'draft': [('readonly', False)], 'sent': [('readonly', False)]}, help="Invoice address for current sales order."),
         'partner_shipping_id': fields.many2one('res.partner', 'Delivery Address', readonly=True, required=False, states={'draft': [('readonly', False)], 'sent': [('readonly', False)]}, help="Delivery address for current sales order."),
         'sale_consignee_line':fields.one2many('tpt.sale.order.consignee','sale_order_consignee_id','Consignee'),
-        
+        'flag_t':fields.boolean('Flag',readonly =True ),
+        'flag_p':fields.boolean('Flag',readonly =True ),
     }
     _defaults = {
 #                  'name': lambda obj, cr, uid, context: '/',
@@ -160,7 +161,8 @@ class sale_order(osv.osv):
         'expected_date': time.strftime('%Y-%m-%d'),
         'order_policy': 'picking',
         'document_status':'draft',
-#         'flag2':False,
+        'flag_t':False,
+        'flag_p':False,
     }
     
     def onchange_po_date(self, cr, uid, ids, po_date=False, context=None):
@@ -566,6 +568,19 @@ class sale_order(osv.osv):
 # #                     'sale_consignee_line':consignee_lines or False,
 #                         }
 #         return {'value': vals}    
+ 
+    def action_button_confirm_approve(self, cr, uid, ids, context=None):
+        sale = self.browse(cr, uid, ids[0])
+        if (sale.payment_term_id.name == 'Immediate Payment' or sale.payment_term_id.name == 'Immediate') and sale.shipped == True and sale.invoiced == True:
+            sql = '''
+                update sale_order set document_status='completed',flag_t='t' where id=%s
+            '''%(sale.id)
+            cr.execute(sql)
+        sql = '''
+            update sale_order set flag_t='t' where id=%s
+        '''%(sale.id)
+        cr.execute(sql)
+        return True
     
     def action_button_confirm(self, cr, uid, ids, context=None):
         assert len(ids) == 1, 'This option should only be used for a single id at a time.'
@@ -603,6 +618,11 @@ class sale_order(osv.osv):
         
         wf_service = netsvc.LocalService('workflow')
         wf_service.trg_validate(uid, 'sale.order', ids[0], 'order_confirm', cr)
+#         if sale.payment_term_id:
+#             sql = '''
+#                 update sale_order set document_status='waiting' where id=%s
+#             '''%(sale.id)
+#             cr.execute(sql)
         if (sale.payment_term_id.name == 'Immediate Payment' or sale.payment_term_id.name == 'Immediate'):
             sql = '''
                 update sale_order set document_status='waiting' where id=%s
@@ -610,7 +630,7 @@ class sale_order(osv.osv):
             cr.execute(sql)
         else:
             sql = '''
-                update sale_order set document_status='completed' where id=%s
+                update sale_order set document_status='completed',flag_p='t' where id=%s
             '''%(sale.id)
             cr.execute(sql)
         picking_out_obj = self.pool.get('stock.picking.out')
