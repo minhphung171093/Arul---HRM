@@ -63,7 +63,6 @@
                 	
                 	
                 	<xpath expr="//field[@name='country_id']" position="replace">
-                        <!--<field name="zip" invisible="1" placeholder="ZIP" style="width: 25%%" attrs="{'readonly': [('use_parent_address','=',True)]}"/>-->
                     </xpath>
                     
                 	<xpath expr="//field[@name='city']" position="replace">
