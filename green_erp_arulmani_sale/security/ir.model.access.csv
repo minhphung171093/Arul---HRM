@@ -39,3 +39,6 @@ access_vvti_sale_23,"tpt.test.report","green_erp_arulmani_sale.model_tpt_test_re
 access_vvti_sale_24,"price.group","green_erp_arulmani_crm.model_price_group","green_erp_arulmani_sale.group_vvti_sale_admin","True","True","True","True"
 access_vvti_sale_25,"tax.category","green_erp_arulmani_crm.model_tax_category","green_erp_arulmani_sale.group_vvti_sale_admin","True","True","True","True"
 access_vvti_sale_26,"tax.number.1","green_erp_arulmani_crm.model_tax_number_1","green_erp_arulmani_sale.group_vvti_sale_admin","True","True","True","True"
+access_vvti_sale_27,"stock.move","green_erp_arulmani_sale.model_stock_move","green_erp_arulmani_sale.group_vvti_sale_store_key_user","True","False","False","False"
+access_vvti_sale_28,"stock.production.lot.revision","stock.model_stock_production_lot_revision","green_erp_arulmani_sale.group_vvti_sale_store_key_user","True","True","True","False"
+access_vvti_sale_29,"stock.inventory.line","stock.model_stock_inventory_line","green_erp_arulmani_sale.group_vvti_sale_store_key_user","True","True","True","False"

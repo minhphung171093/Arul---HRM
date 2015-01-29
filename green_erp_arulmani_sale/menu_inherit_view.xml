@@ -27,6 +27,18 @@
             id="stock.menu_stock_root"
             groups="stock.group_stock_manager,stock.group_stock_user,group_vvti_sale_store_key_user"
             sequence="70"/>
-        
+            
+        <record model="ir.ui.menu" id="stock.menu_stock_products_moves">
+		    <field name="groups_id" eval="[(6, 0, [ref('group_vvti_sale_user')])]" />
+		</record>
+		<record model="ir.ui.menu" id="stock.menu_action_move_form2">
+		    <field name="groups_id" eval="[(6, 0, [ref('group_vvti_sale_user')])]" />
+		</record>
+		<record model="ir.ui.menu" id="stock.menu_action_location_tree">
+		    <field name="groups_id" eval="[(6, 0, [ref('group_vvti_sale_user')])]" />
+		</record>
+		<record model="ir.ui.menu" id="stock.menu_stock_product">
+		    <field name="groups_id" eval="[(6, 0, [ref('group_vvti_sale_user')])]" />
+		</record>
     </data>
 </openerp>
