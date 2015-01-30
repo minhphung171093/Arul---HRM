@@ -264,6 +264,9 @@
             		<attribute name='string'>Batch Number</attribute>
             		<attribute name='readonly'>1</attribute>
             	</xpath>
+            	<xpath expr="//field[@name='product_id']"  position="attributes">
+            		<attribute name='readonly'>1</attribute>
+            	</xpath>
             </field>
         </record>
             
@@ -273,12 +276,16 @@
             <field name="inherit_id" ref="stock.view_picking_out_form"/>
             <field name="arch" type="xml">
             	<button name="%(stock.act_stock_return_picking)d" position="after">
+            		<button name="management_confirm" string="Management Confirm" attrs="{'invisible': ['|',('doc_status','!=','waiting'),('flag_confirm','!=',False)]}" type="object" icon="gtk-apply" 
+	                confirm="This Delivery Order is reached the credit limit. Do you want to confirm this Delivery Order?"
+	                />
 	                <button name="action_revert_done" string="Reopen" states="done,cancel" type="object" icon="gtk-cancel" 
-	                confirm="Are you sure you want to reopen this stock picking?"
+	                confirm="Do you want to reopen this Delivery Order?"
 	                />
 	            </button>
             	<xpath expr="//field[@name='stock_journal_id']"  position="replace">
             		<field name="stock_journal_id" invisible="1"/>
+            		<field name="flag_confirm" invisible="1"/>
             	</xpath>
             	<xpath expr="//field[@name='origin']"  position="replace">
             		<field name="origin" invisible="1"/>

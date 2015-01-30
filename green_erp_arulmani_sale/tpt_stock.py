@@ -24,6 +24,7 @@ class stock_picking(osv.osv):
         'do_ref_id': fields.many2one('stock.picking.out','DO Reference'),   
         'move_date': fields.date('Movement Date', required = True),
         'reason': fields.text("Reason for Move"),
+        'flag_confirm': fields.boolean('Flag', readonly =  True),
         
 #         'location_sour_id': fields.many2one('stock.location', 'Source Location'),
                 }
@@ -510,11 +511,7 @@ class stock_picking(osv.osv):
             # Deleting the existing instance of workflow
             wf_service.trg_delete(uid, 'stock.picking', picking.id, cr)
             wf_service.trg_create(uid, 'stock.picking', picking.id, cr)
-            # them dong nay de doi trang thai cua DO sang Waiting Availability, 
-            # de cac nut Confirm ko hien nua, nhung hien da co van de
             self.draft_force_assign(cr, uid, [picking.id])
-#             wf_service.trg_validate(uid, 'stock.picking', picking.id, 'button_confirm', cr)
-            ###
             sql = '''
                 update stock_picking set doc_status='draft' where id = %s
                 '''%(picking.id)
@@ -530,15 +527,23 @@ class stock_picking(osv.osv):
         if context is None:
             context = {}
         for picking in self.browse(cr, uid, ids, context):
-            sale = picking.sale_id and picking.sale_id.amount_total or False
-            limit = picking.partner_id and picking.partner_id.credit_limit_used or False
-            used = picking.partner_id and picking.partner_id.credit or False
-            if limit and sale > 0.00 and limit <= (sale + used):
+            sale = picking.sale_id and picking.sale_id.amount_total or 0
+            limit = picking.partner_id and picking.partner_id.credit_limit_used or 0
+            used = picking.partner_id and picking.partner_id.credit or 0
+            if not picking.flag_confirm and limit <= (sale + used):
                 sql = '''
                     update stock_picking set doc_status='waiting' where id = %s
                     '''%(picking.id)
                 cr.execute(sql)
-                raise osv.except_osv(_('Warning!'),_('Sale Order Amount is not greater than Customer Credit Limit!'))
+                return {
+                    'view_type': 'form',
+                    'view_mode': 'form',
+                    'res_model': 'alert.form',
+                    'type': 'ir.actions.act_window',
+                    'target': 'new',
+                    'context': context,
+                    'nodestroy': True,
+                }
         """Open the partial picking wizard"""
         context.update({
             'active_model': self._name,
@@ -558,16 +563,23 @@ class stock_picking(osv.osv):
     def allow_cancel(self, cr, uid, ids, context=None):
         for pick in self.browse(cr, uid, ids, context=context):
             if not pick.move_lines:
-                # update document status
-                sql = '''
-                    update stock_picking set doc_status='cancelled' where id = %s
-                    '''%(picking.id)
-                cr.execute(sql)
-                ###
                 return True
+            sql = '''
+                    update stock_picking set doc_status='cancelled', flag_confirm = False where id = %s
+                '''%(pick.id)
+            cr.execute(sql)
             for move in pick.move_lines:
                 if move.state == 'done':
                     raise osv.except_osv(_('Error!'), _('You cannot cancel the picking as some moves have been done. You should cancel the picking lines.'))
+        return True
+    
+    def management_confirm(self, cr, uid, ids, context=None):
+        for picking in self.browse(cr, uid, ids, context=context):
+            if picking.doc_status == 'waiting':
+                sql = '''
+                    update stock_picking set flag_confirm = True, doc_status='completed' where id = %s
+                    '''%(picking.id)
+                cr.execute(sql)
         return True
     
 stock_picking()
@@ -582,6 +594,7 @@ class stock_picking_out(osv.osv):
         'remarks':fields.text('Remarks'),
         'doc_status':fields.selection([('draft','Drafted'),('waiting','Waiting for Approval'),('completed','Completed'),('cancelled','Cancelled')],'Document Status'),
         'sale_id': fields.many2one('sale.order', 'Sales Order', readonly = True,ondelete='set null', select=True),
+        'flag_confirm': fields.boolean('Flag', readonly =  True),
                 }
     
     def action_process(self, cr, uid, ids, context=None):
@@ -656,6 +669,10 @@ class stock_picking_out(osv.osv):
     def action_revert_done(self, cr, uid, ids, context=None):
         #override in order to redirect to stock.picking object
         return self.pool.get('stock.picking').action_revert_done(
+            cr, uid, ids, context=context)
+    
+    def management_confirm(self, cr, uid, ids, context=None):
+        return self.pool.get('stock.picking').management_confirm(
             cr, uid, ids, context=context)
     
 stock_picking_out()
