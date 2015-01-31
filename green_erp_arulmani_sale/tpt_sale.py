@@ -327,25 +327,25 @@ class sale_order(osv.osv):
                     '''%(so_ids,blanket_line.product_id.id)
                     cr.execute(sql)
                     kq = cr.fetchall()
-                for data in kq:
-                    if blanket_line.product_uom_qty < data[1]:
-                        document_status = 'partially'
-                        #Start TPT
-                        #raise osv.except_osv(_('Warning!'),_('Quantity must be less than quantity of Blanket Order is product %s'%blanket_line.product_id.name_template))
-                        #End TPT
-                    elif blanket_line.product_uom_qty > data[1]:
-                        document_status = 'partially'
-                        flag=True
-#                         sql_stt = '''
-#                             update sale_order set document_status='partially' where id = %s
-#                         '''%(sale.id)
-#                         cr.execute(sql_stt)
-                        sql_stt3 = '''
-                          update tpt_blanket_order set state='draft' where id = %s
-                           '''%(sale.blanket_id.id)
-                        cr.execute(sql_stt3)
-                    else:
-                        document_status = 'close'
+#                 for data in kq:
+#                     if blanket_line.product_uom_qty < data[1]:
+#                         document_status = 'partially'
+#                         #Start TPT
+#                         #raise osv.except_osv(_('Warning!'),_('Quantity must be less than quantity of Blanket Order is product %s'%blanket_line.product_id.name_template))
+#                         #End TPT
+#                     elif blanket_line.product_uom_qty > data[1]:
+#                         document_status = 'partially'
+#                         flag=True
+# #                         sql_stt = '''
+# #                             update sale_order set document_status='partially' where id = %s
+# #                         '''%(sale.id)
+# #                         cr.execute(sql_stt)
+#                         sql_stt3 = '''
+#                           update tpt_blanket_order set state='draft' where id = %s
+#                            '''%(sale.blanket_id.id)
+#                         cr.execute(sql_stt3)
+#                     else:
+#                         document_status = 'close'
                 if flag==False:
 #                     sql_stt = '''
 #                         update sale_order set document_status='close' where id = %s
@@ -410,22 +410,22 @@ class sale_order(osv.osv):
                         '''%(so_ids,blanket_line.product_id.id)
                         cr.execute(sql)
                         kq = cr.fetchall()
-                    for data in kq:
-                        if blanket_line.product_uom_qty < data[1]:
-                            raise osv.except_osv(_('Warning!'),_('Quantity must be less than quantity of Blanket Order is product %s'%blanket_line.product_id.name_template))
-                        elif blanket_line.product_uom_qty > data[1]:
-                            flag=True
-#                             sql_stt = '''
-#                                update sale_order set document_status='partially' where id = %s
-#                                 '''%(sale.id)
-#  
-#                             cr.execute(sql_stt)
-                            sql_stt3 = '''
-                              update tpt_blanket_order set state='draft' where id = %s
-                               '''%(sale.blanket_id.id)
-                            cr.execute(sql_stt3)
-                        else:
-                            document_status = 'close'
+#                     for data in kq:
+#                         if blanket_line.product_uom_qty < data[1]:
+#                             raise osv.except_osv(_('Warning!'),_('Quantity must be less than quantity of Blanket Order is product %s'%blanket_line.product_id.name_template))
+#                         elif blanket_line.product_uom_qty > data[1]:
+#                             flag=True
+# #                             sql_stt = '''
+# #                                update sale_order set document_status='partially' where id = %s
+# #                                 '''%(sale.id)
+# #  
+# #                             cr.execute(sql_stt)
+#                             sql_stt3 = '''
+#                               update tpt_blanket_order set state='draft' where id = %s
+#                                '''%(sale.blanket_id.id)
+#                             cr.execute(sql_stt3)
+#                         else:
+#                             document_status = 'close'
                     if flag==False:
 #                        sql_stt = '''
 #                           update sale_order set document_status='close' where id = %s
