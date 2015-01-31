@@ -58,7 +58,7 @@ class Parser(report_sxw.rml_parse):
         payroll_obj = self.pool.get('arul.hr.payroll.executions.details')
         res = []
         for emp_id in emp_ids :
-            payroll_ids = payroll_obj.search(self.cr, self.uid,[('month','=',month),('year','=',year),('employee_id','=',emp_id),('payroll_executions_id.state','=','confirm')])
+            payroll_ids = payroll_obj.search(self.cr, self.uid,[('month','=',month),('year','=',year),('employee_id','=',emp_id),('payroll_executions_id.state','in',['confirm','approve'])])
             basic = 0
             hra = 0
             conv = 0
