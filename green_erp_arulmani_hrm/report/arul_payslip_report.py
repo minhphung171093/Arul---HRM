@@ -126,7 +126,7 @@ class Parser(report_sxw.rml_parse):
                     'emp_name': payroll.employee_id.name + ' ' + (payroll.employee_id.last_name and payroll.employee_id.last_name or ''),
                     'emp_code':payroll.employee_id.employee_id,
                     'emp_designation':payroll.designation_id.name,
-                    'emp_doj': payroll.employee_id.date_of_joining,
+                    'emp_doj': payroll.employee_id.date_of_joining and (payroll.employee_id.date_of_joining[8:10]+'/'+payroll.employee_id.date_of_joining[5:7]+'/'+payroll.employee_id.date_of_joining[:4]) or '',
                     'basic': basic,
                     'hra': hra,
                     'conv': conv,
