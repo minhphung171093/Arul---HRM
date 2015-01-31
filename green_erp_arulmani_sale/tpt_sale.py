@@ -14,7 +14,6 @@ from openerp import netsvc
 class product_product(osv.osv):
     _inherit = "product.product"
 
-    
     def search(self, cr, uid, args, offset=0, limit=None, order=None, context=None, count=False):
         if context is None:
             context = {}
