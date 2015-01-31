@@ -9,6 +9,9 @@
             <field name="arch" type="xml">
                 <xpath expr="//field[@name='partner_id']" position="after" >
                 		<field name="blanket_id" on_change="onchange_blanket_id(blanket_id)" domain="[('blank_order_line','!=',False), ('state','=','approve')]" options="{'create': false, 'create_edit': false}" required = "1" />
+        		<!-- Start:TPT - modified By @Balamurugan@ on 21/01/2015 - To Add Blanket Order Line field-->
+				<field name="blanket_line_id" domain="[('blanket_order_id','=',blanket_id),('state','!=','done')]" options="{'create': false, 'create_edit': false}" on_change="onchange_blanketorderline_id(blanket_line_id)" required="1"/>
+				<!-- End:TPT-->
                 		<field name="invoice_address" placeholder="Street..."/>
                 		<field name="street2"/>
                 		<field name="city" placeholder="City"/>
@@ -61,6 +64,23 @@
 					<field name="application_id" options="{'create': false, 'create_edit': false}" />
 				</xpath>
 				
+				<!--Start:TPT to make Product Description, UOM, Unit Price as readonly field-->
+				<xpath expr="//form/sheet/notebook/page[@string='Order Lines']/field/tree/field[@name='name']"  position="attributes">
+					<attribute name="readonly">1</attribute>
+				</xpath>
+				<xpath expr="//form/sheet/notebook/page[@string='Order Lines']/field/tree/field[@name='product_uom']"  position="attributes">
+					<attribute name="readonly">1</attribute>
+				</xpath>
+				<xpath expr="//form/sheet/notebook/page[@string='Order Lines']/field/tree/field[@name='product_uom']"  position="attributes">
+					<attribute name="readonly">1</attribute>
+				</xpath>
+				
+				<xpath expr="//form/sheet/notebook/page[@string='Order Lines']/field/tree/field[@name='price_unit']"  position="attributes">
+					<attribute name="readonly">1</attribute>
+				</xpath>
+
+				<!--End:TPT  -->
+				
 			    <xpath expr="//form/sheet/notebook/page[@string='Order Lines']/field/tree/field[@name='product_id']"  position="replace">
 					<field name="product_id" context="{'search_blanket_id':True,'blanket_id':parent.blanket_id, 'partner_id':parent.partner_id, 'quantity':product_uom_qty, 'pricelist':parent.pricelist_id, 'shop':parent.shop_id, 'uom':product_uom}"
                                                 groups="base.group_user"
@@ -75,7 +95,7 @@
 					<attribute name="readonly">1</attribute>
 				</xpath>-->
 				<xpath expr="//form/sheet/notebook/page[@string='Order Lines']/field/tree/field[@name='price_subtotal']"  position="after">
-					<field name="freight" />
+					<!--<field name="freight" />-->
 					<field name="name_consignee_id" domain="[('consignee_parent_id','=',parent.partner_id)]" on_change = "onchange_consignee_id(name_consignee_id)" options="{'create': false, 'create_edit': false}"/>
 					<field name="location" />
 					
@@ -103,7 +123,12 @@
 					<button name="action_button_confirm" states="sent" string="Confirm Sale" class="oe_highlight" type="object" groups="green_erp_arulmani_sale.group_vvti_sale_manager"/>
 					<button name='action_button_confirm_approve' string="Approve" type="object" class="oe_highlight" attrs="{'invisible':['|','|',('invoiced','=',False),('flag_t','=',True),('flag_p','=',True)]}" />
 				</xpath>
-				
+				<!--Start:TPT - To add Freight after the position of SubTotal-->
+				<xpath expr="//form/sheet/notebook/page[@string='Order Lines']/field/tree/field[@name='price_subtotal']"  position="after">					
+					<field name="freight" />
+					
+				</xpath>
+				<!--End:TPT  -->
 	       	</field>
         </record>
         
@@ -204,14 +229,18 @@
 							<page string = "Order Lines">
 								<field name="blank_order_line" nolabel='1'>
 									<tree editable='top'>
-										<field name="product_id" widget = "selection" on_change="onchange_product_id(product_id)" options="{'create': false, 'create_edit': false}"/>
+										<field name="product_id" widget = "selection" on_change="onchange_product_id(product_id)" options="{'create': false, 'create_edit': false}" domain="[('cate_name','=','finish')]"/><!-- Finished Product Filter-->
 										<field name="description"/>
-										<field name="product_type" />
+										<field name="product_type" edit='false'/>
 										<field name="application_id" options="{'create': false, 'create_edit': false}"/>
 										<field name="product_uom_qty" />
 										<field name="uom_po_id" edit='false' options="{'create': false, 'create_edit': false}"/>
-										<field name="price_unit" />
-										<field name="sub_total" />  
+										<field name="price_unit" edit='false'/><!-- User can't edit this field-->
+										<!-- Start:TPT - SubTotal is Commented, And Consignee Name & their Location is added-->
+										<!--<field name="sub_total" /> -->
+										<field name="name_consignee_id" domain="[('consignee_parent_id','=',parent.customer_id)]" on_change = "onchange_consignee_id(name_consignee_id)" options="{'create': false, 'create_edit': false}"/>
+										<field name="location" /> 
+										<!-- End:TPT-->
 										<field name="freight" />
 									</tree>
 								</field>
