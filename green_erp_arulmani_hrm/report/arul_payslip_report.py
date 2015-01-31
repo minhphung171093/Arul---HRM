@@ -58,7 +58,7 @@ class Parser(report_sxw.rml_parse):
         payroll_obj = self.pool.get('arul.hr.payroll.executions.details')
         res = []
         for emp_id in emp_ids :
-            payroll_ids = payroll_obj.search(self.cr, self.uid,[('month','=',month),('year','=',year),('employee_id','=',emp_id),('payroll_executions_id.state','=','approve')])
+            payroll_ids = payroll_obj.search(self.cr, self.uid,[('month','=',month),('year','=',year),('employee_id','=',emp_id),('payroll_executions_id.state','=','confirm')])
             basic = 0
             hra = 0
             conv = 0
@@ -87,8 +87,8 @@ class Parser(report_sxw.rml_parse):
                 sql = '''
                         select case when sum(employee_amt)!=0 then sum(employee_amt) else 0 end total_fd from meals_details where emp_id = %s and meals_id in (select id from meals_deduction where meals_for='employees' and EXTRACT(year FROM meals_date) = %s and EXTRACT(month FROM meals_date) = %s)
                     '''%(emp_id,year,int(month))
-                cr.execute(sql)
-                total_fd = cr.dictfetchone()['total_fd']
+                self.cr.execute(sql)
+                total_fd = self.cr.dictfetchone()['total_fd']
                 
                 for earning in payroll.earning_structure_line:
                     if earning.earning_parameters_id.code=='BASIC':
