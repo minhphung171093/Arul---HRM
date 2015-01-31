@@ -15,7 +15,7 @@ class product_product(osv.osv):
     _inherit = "product.product"
 # START TPT
     _columns = {
-               'cate_name': fields.char('Cate Name',size=64),       
+                'cate_name': fields.char('Cate Name',size=64),       
     }
 #END TPT
     def search(self, cr, uid, args, offset=0, limit=None, order=None, context=None, count=False):
