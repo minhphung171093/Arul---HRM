@@ -1138,12 +1138,14 @@ class tpt_blank_order_line(osv.osv):
         if context.get('search_blanket_line'):
             blanket_id = context.get('blanket_id')
             blanket_line_id = context.get('blanket_line_id')
-            sql = '''
-                select id from tpt_blank_order_line
-                    where blanket_order_id = %s and id not in (select blanket_line_id from sale_order where blanket_id=%s)
-            '''%(blanket_id,blanket_id)
-            cr.execute(sql)
-            blanket_line_ids = [row[0] for row in cr.fetchall()]
+            blanket_line_ids = []
+            if blanket_id:
+                sql = '''
+                    select id from tpt_blank_order_line
+                        where blanket_order_id = %s and id not in (select blanket_line_id from sale_order where blanket_id=%s)
+                '''%(blanket_id,blanket_id)
+                cr.execute(sql)
+                blanket_line_ids = [row[0] for row in cr.fetchall()]
             if blanket_line_id:
                 blanket_line_ids.append(blanket_line_id)
             args += [('id','in',blanket_line_ids)]
