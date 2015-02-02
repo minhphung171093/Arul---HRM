@@ -3947,315 +3947,316 @@ class shift_change(osv.osv):
                     for num in range(line.date_from.name,line.date_to.name+1):
                         if num==1:
                             date = datetime.datetime(int(line.year),int(line.month),1)
-                            if date_now >= datetime.datetime.strftime(date, '%Y-%m-%d'):
-                                raise osv.except_osv(_('Warning!'),_('Can not change Work Monthly Schedule for past day!'))
+                            ### An trong vong 2 thang sau do mo ra lai 31-01-2015
+#                             if date_now >= datetime.datetime.strftime(date, '%Y-%m-%d'):
+#                                 raise osv.except_osv(_('Warning!'),_('Can not change Work Monthly Schedule for past day!'))
                             monthly_shift_obj.write(cr, uid, [monthly_shift.id], {'day_1':line.shift_id.id})
                         if num==2:
                             date = datetime.datetime(int(line.year),int(line.month),2)
-                            if date_now >= datetime.datetime.strftime(date, '%Y-%m-%d'):
-                                raise osv.except_osv(_('Warning!'),_('Can not change Work Monthly Schedule for past day!'))
+#                             if date_now >= datetime.datetime.strftime(date, '%Y-%m-%d'):
+#                                 raise osv.except_osv(_('Warning!'),_('Can not change Work Monthly Schedule for past day!'))
                             monthly_shift_obj.write(cr, uid, [monthly_shift.id], {'day_2':line.shift_id.id})
                         if num==3:
                             date = datetime.datetime(int(line.year),int(line.month),3)
-                            if date_now >= datetime.datetime.strftime(date, '%Y-%m-%d'):
-                                raise osv.except_osv(_('Warning!'),_('Can not change Work Monthly Schedule for past day!'))
+#                             if date_now >= datetime.datetime.strftime(date, '%Y-%m-%d'):
+#                                 raise osv.except_osv(_('Warning!'),_('Can not change Work Monthly Schedule for past day!'))
                             monthly_shift_obj.write(cr, uid, [monthly_shift.id], {'day_3':line.shift_id.id})
                         if num==4:
                             date = datetime.datetime(int(line.year),int(line.month),4)
-                            if date_now >= datetime.datetime.strftime(date, '%Y-%m-%d'):
-                                raise osv.except_osv(_('Warning!'),_('Can not change Work Monthly Schedule for past day!'))
+#                             if date_now >= datetime.datetime.strftime(date, '%Y-%m-%d'):
+#                                 raise osv.except_osv(_('Warning!'),_('Can not change Work Monthly Schedule for past day!'))
                             monthly_shift_obj.write(cr, uid, [monthly_shift.id], {'day_4':line.shift_id.id})
                         if num==5:
                             date = datetime.datetime(int(line.year),int(line.month),5)
-                            if date_now >= datetime.datetime.strftime(date, '%Y-%m-%d'):
-                                raise osv.except_osv(_('Warning!'),_('Can not change Work Monthly Schedule for past day!'))
+#                             if date_now >= datetime.datetime.strftime(date, '%Y-%m-%d'):
+#                                 raise osv.except_osv(_('Warning!'),_('Can not change Work Monthly Schedule for past day!'))
                             monthly_shift_obj.write(cr, uid, [monthly_shift.id], {'day_5':line.shift_id.id})
                         if num==6:
                             date = datetime.datetime(int(line.year),int(line.month),6)
-                            if date_now >= datetime.datetime.strftime(date, '%Y-%m-%d'):
-                                raise osv.except_osv(_('Warning!'),_('Can not change Work Monthly Schedule for past day!'))
+#                             if date_now >= datetime.datetime.strftime(date, '%Y-%m-%d'):
+#                                 raise osv.except_osv(_('Warning!'),_('Can not change Work Monthly Schedule for past day!'))
                             monthly_shift_obj.write(cr, uid, [monthly_shift.id], {'day_6':line.shift_id.id})
                         if num==7:
                             date = datetime.datetime(int(line.year),int(line.month),7)
-                            if date_now >= datetime.datetime.strftime(date, '%Y-%m-%d'):
-                                raise osv.except_osv(_('Warning!'),_('Can not change Work Monthly Schedule for past day!'))
+#                             if date_now >= datetime.datetime.strftime(date, '%Y-%m-%d'):
+#                                 raise osv.except_osv(_('Warning!'),_('Can not change Work Monthly Schedule for past day!'))
                             monthly_shift_obj.write(cr, uid, [monthly_shift.id], {'day_7':line.shift_id.id})
                         if num==8:
                             date = datetime.datetime(int(line.year),int(line.month),8)
-                            if date_now >= datetime.datetime.strftime(date, '%Y-%m-%d'):
-                                raise osv.except_osv(_('Warning!'),_('Can not change Work Monthly Schedule for past day!'))
+#                             if date_now >= datetime.datetime.strftime(date, '%Y-%m-%d'):
+#                                 raise osv.except_osv(_('Warning!'),_('Can not change Work Monthly Schedule for past day!'))
                             monthly_shift_obj.write(cr, uid, [monthly_shift.id], {'day_8':line.shift_id.id})
                         if num==9:
                             date = datetime.datetime(int(line.year),int(line.month),9)
-                            if date_now >= datetime.datetime.strftime(date, '%Y-%m-%d'):
-                                raise osv.except_osv(_('Warning!'),_('Can not change Work Monthly Schedule for past day!'))
+#                             if date_now >= datetime.datetime.strftime(date, '%Y-%m-%d'):
+#                                 raise osv.except_osv(_('Warning!'),_('Can not change Work Monthly Schedule for past day!'))
                             monthly_shift_obj.write(cr, uid, [monthly_shift.id], {'day_9':line.shift_id.id})
                         if num==10:
                             date = datetime.datetime(int(line.year),int(line.month),10)
-                            if date_now >= datetime.datetime.strftime(date, '%Y-%m-%d'):
-                                raise osv.except_osv(_('Warning!'),_('Can not change Work Monthly Schedule for past day!'))
+#                             if date_now >= datetime.datetime.strftime(date, '%Y-%m-%d'):
+#                                 raise osv.except_osv(_('Warning!'),_('Can not change Work Monthly Schedule for past day!'))
                             monthly_shift_obj.write(cr, uid, [monthly_shift.id], {'day_10':line.shift_id.id})
                         if num==11:
                             date = datetime.datetime(int(line.year),int(line.month),11)
-                            if date_now >= datetime.datetime.strftime(date, '%Y-%m-%d'):
-                                raise osv.except_osv(_('Warning!'),_('Can not change Work Monthly Schedule for past day!'))
+#                             if date_now >= datetime.datetime.strftime(date, '%Y-%m-%d'):
+#                                 raise osv.except_osv(_('Warning!'),_('Can not change Work Monthly Schedule for past day!'))
                             monthly_shift_obj.write(cr, uid, [monthly_shift.id], {'day_11':line.shift_id.id})
                         if num==12:
                             date = datetime.datetime(int(line.year),int(line.month),12)
-                            if date_now >= datetime.datetime.strftime(date, '%Y-%m-%d'):
-                                raise osv.except_osv(_('Warning!'),_('Can not change Work Monthly Schedule for past day!'))
+#                             if date_now >= datetime.datetime.strftime(date, '%Y-%m-%d'):
+#                                 raise osv.except_osv(_('Warning!'),_('Can not change Work Monthly Schedule for past day!'))
                             monthly_shift_obj.write(cr, uid, [monthly_shift.id], {'day_12':line.shift_id.id})
                         if num==13:
                             date = datetime.datetime(int(line.year),int(line.month),13)
-                            if date_now >= datetime.datetime.strftime(date, '%Y-%m-%d'):
-                                raise osv.except_osv(_('Warning!'),_('Can not change Work Monthly Schedule for past day!'))
+#                             if date_now >= datetime.datetime.strftime(date, '%Y-%m-%d'):
+#                                 raise osv.except_osv(_('Warning!'),_('Can not change Work Monthly Schedule for past day!'))
                             monthly_shift_obj.write(cr, uid, [monthly_shift.id], {'day_13':line.shift_id.id})
                         if num==14:
                             date = datetime.datetime(int(line.year),int(line.month),14)
-                            if date_now >= datetime.datetime.strftime(date, '%Y-%m-%d'):
-                                raise osv.except_osv(_('Warning!'),_('Can not change Work Monthly Schedule for past day!'))
+#                             if date_now >= datetime.datetime.strftime(date, '%Y-%m-%d'):
+#                                 raise osv.except_osv(_('Warning!'),_('Can not change Work Monthly Schedule for past day!'))
                             monthly_shift_obj.write(cr, uid, [monthly_shift.id], {'day_14':line.shift_id.id})
                         if num==15:
                             date = datetime.datetime(int(line.year),int(line.month),15)
-                            if date_now >= datetime.datetime.strftime(date, '%Y-%m-%d'):
-                                raise osv.except_osv(_('Warning!'),_('Can not change Work Monthly Schedule for past day!'))
+#                             if date_now >= datetime.datetime.strftime(date, '%Y-%m-%d'):
+#                                 raise osv.except_osv(_('Warning!'),_('Can not change Work Monthly Schedule for past day!'))
                             monthly_shift_obj.write(cr, uid, [monthly_shift.id], {'day_15':line.shift_id.id})
                         if num==16:
                             date = datetime.datetime(int(line.year),int(line.month),16)
-                            if date_now >= datetime.datetime.strftime(date, '%Y-%m-%d'):
-                                raise osv.except_osv(_('Warning!'),_('Can not change Work Monthly Schedule for past day!'))
+#                             if date_now >= datetime.datetime.strftime(date, '%Y-%m-%d'):
+#                                 raise osv.except_osv(_('Warning!'),_('Can not change Work Monthly Schedule for past day!'))
                             monthly_shift_obj.write(cr, uid, [monthly_shift.id], {'day_16':line.shift_id.id})
                         if num==17:
                             date = datetime.datetime(int(line.year),int(line.month),17)
-                            if date_now >= datetime.datetime.strftime(date, '%Y-%m-%d'):
-                                raise osv.except_osv(_('Warning!'),_('Can not change Work Monthly Schedule for past day!'))
+#                             if date_now >= datetime.datetime.strftime(date, '%Y-%m-%d'):
+#                                 raise osv.except_osv(_('Warning!'),_('Can not change Work Monthly Schedule for past day!'))
                             monthly_shift_obj.write(cr, uid, [monthly_shift.id], {'day_17':line.shift_id.id})
                         if num==18:
                             date = datetime.datetime(int(line.year),int(line.month),18)
-                            if date_now >= datetime.datetime.strftime(date, '%Y-%m-%d'):
-                                raise osv.except_osv(_('Warning!'),_('Can not change Work Monthly Schedule for past day!'))
+#                             if date_now >= datetime.datetime.strftime(date, '%Y-%m-%d'):
+#                                 raise osv.except_osv(_('Warning!'),_('Can not change Work Monthly Schedule for past day!'))
                             monthly_shift_obj.write(cr, uid, [monthly_shift.id], {'day_18':line.shift_id.id})
                         if num==19:
                             date = datetime.datetime(int(line.year),int(line.month),19)
-                            if date_now >= datetime.datetime.strftime(date, '%Y-%m-%d'):
-                                raise osv.except_osv(_('Warning!'),_('Can not change Work Monthly Schedule for past day!'))
+#                             if date_now >= datetime.datetime.strftime(date, '%Y-%m-%d'):
+#                                 raise osv.except_osv(_('Warning!'),_('Can not change Work Monthly Schedule for past day!'))
                             monthly_shift_obj.write(cr, uid, [monthly_shift.id], {'day_19':line.shift_id.id})
                         if num==20:
                             date = datetime.datetime(int(line.year),int(line.month),20)
-                            if date_now >= datetime.datetime.strftime(date, '%Y-%m-%d'):
-                                raise osv.except_osv(_('Warning!'),_('Can not change Work Monthly Schedule for past day!'))
+#                             if date_now >= datetime.datetime.strftime(date, '%Y-%m-%d'):
+#                                 raise osv.except_osv(_('Warning!'),_('Can not change Work Monthly Schedule for past day!'))
                             monthly_shift_obj.write(cr, uid, [monthly_shift.id], {'day_20':line.shift_id.id})
                         if num==21:
                             date = datetime.datetime(int(line.year),int(line.month),21)
-                            if date_now >= datetime.datetime.strftime(date, '%Y-%m-%d'):
-                                raise osv.except_osv(_('Warning!'),_('Can not change Work Monthly Schedule for past day!'))
+#                             if date_now >= datetime.datetime.strftime(date, '%Y-%m-%d'):
+#                                 raise osv.except_osv(_('Warning!'),_('Can not change Work Monthly Schedule for past day!'))
                             monthly_shift_obj.write(cr, uid, [monthly_shift.id], {'day_21':line.shift_id.id})
                         if num==22:
                             date = datetime.datetime(int(line.year),int(line.month),22)
-                            if date_now >= datetime.datetime.strftime(date, '%Y-%m-%d'):
-                                raise osv.except_osv(_('Warning!'),_('Can not change Work Monthly Schedule for past day!'))
+#                             if date_now >= datetime.datetime.strftime(date, '%Y-%m-%d'):
+#                                 raise osv.except_osv(_('Warning!'),_('Can not change Work Monthly Schedule for past day!'))
                             monthly_shift_obj.write(cr, uid, [monthly_shift.id], {'day_22':line.shift_id.id})
                         if num==23:
                             date = datetime.datetime(int(line.year),int(line.month),23)
-                            if date_now >= datetime.datetime.strftime(date, '%Y-%m-%d'):
-                                raise osv.except_osv(_('Warning!'),_('Can not change Work Monthly Schedule for past day!'))
+#                             if date_now >= datetime.datetime.strftime(date, '%Y-%m-%d'):
+#                                 raise osv.except_osv(_('Warning!'),_('Can not change Work Monthly Schedule for past day!'))
                             monthly_shift_obj.write(cr, uid, [monthly_shift.id], {'day_23':line.shift_id.id})
                         if num==24:
                             date = datetime.datetime(int(line.year),int(line.month),24)
-                            if date_now >= datetime.datetime.strftime(date, '%Y-%m-%d'):
-                                raise osv.except_osv(_('Warning!'),_('Can not change Work Monthly Schedule for past day!'))
+#                             if date_now >= datetime.datetime.strftime(date, '%Y-%m-%d'):
+#                                 raise osv.except_osv(_('Warning!'),_('Can not change Work Monthly Schedule for past day!'))
                             monthly_shift_obj.write(cr, uid, [monthly_shift.id], {'day_24':line.shift_id.id})
                         if num==25:
                             date = datetime.datetime(int(line.year),int(line.month),25)
-                            if date_now >= datetime.datetime.strftime(date, '%Y-%m-%d'):
-                                raise osv.except_osv(_('Warning!'),_('Can not change Work Monthly Schedule for past day!'))
+#                             if date_now >= datetime.datetime.strftime(date, '%Y-%m-%d'):
+#                                 raise osv.except_osv(_('Warning!'),_('Can not change Work Monthly Schedule for past day!'))
                             monthly_shift_obj.write(cr, uid, [monthly_shift.id], {'day_25':line.shift_id.id})
                         if num==26:
                             date = datetime.datetime(int(line.year),int(line.month),26)
-                            if date_now >= datetime.datetime.strftime(date, '%Y-%m-%d'):
-                                raise osv.except_osv(_('Warning!'),_('Can not change Work Monthly Schedule for past day!'))
+#                             if date_now >= datetime.datetime.strftime(date, '%Y-%m-%d'):
+#                                 raise osv.except_osv(_('Warning!'),_('Can not change Work Monthly Schedule for past day!'))
                             monthly_shift_obj.write(cr, uid, [monthly_shift.id], {'day_26':line.shift_id.id})
                         if num==27:
                             date = datetime.datetime(int(line.year),int(line.month),27)
-                            if date_now >= datetime.datetime.strftime(date, '%Y-%m-%d'):
-                                raise osv.except_osv(_('Warning!'),_('Can not change Work Monthly Schedule for past day!'))
+#                             if date_now >= datetime.datetime.strftime(date, '%Y-%m-%d'):
+#                                 raise osv.except_osv(_('Warning!'),_('Can not change Work Monthly Schedule for past day!'))
                             monthly_shift_obj.write(cr, uid, [monthly_shift.id], {'day_27':line.shift_id.id})
                         if num==28:
                             date = datetime.datetime(int(line.year),int(line.month),28)
-                            if date_now >= datetime.datetime.strftime(date, '%Y-%m-%d'):
-                                raise osv.except_osv(_('Warning!'),_('Can not change Work Monthly Schedule for past day!'))
+#                             if date_now >= datetime.datetime.strftime(date, '%Y-%m-%d'):
+#                                 raise osv.except_osv(_('Warning!'),_('Can not change Work Monthly Schedule for past day!'))
                             monthly_shift_obj.write(cr, uid, [monthly_shift.id], {'day_28':line.shift_id.id})
                         if num==29:
                             date = datetime.datetime(int(line.year),int(line.month),29)
-                            if date_now >= datetime.datetime.strftime(date, '%Y-%m-%d'):
-                                raise osv.except_osv(_('Warning!'),_('Can not change Work Monthly Schedule for past day!'))
+#                             if date_now >= datetime.datetime.strftime(date, '%Y-%m-%d'):
+#                                 raise osv.except_osv(_('Warning!'),_('Can not change Work Monthly Schedule for past day!'))
                             monthly_shift_obj.write(cr, uid, [monthly_shift.id], {'day_29':line.shift_id.id})
                         if num==30:
                             date = datetime.datetime(int(line.year),int(line.month),30)
-                            if date_now >= datetime.datetime.strftime(date, '%Y-%m-%d'):
-                                raise osv.except_osv(_('Warning!'),_('Can not change Work Monthly Schedule for past day!'))
+#                             if date_now >= datetime.datetime.strftime(date, '%Y-%m-%d'):
+#                                 raise osv.except_osv(_('Warning!'),_('Can not change Work Monthly Schedule for past day!'))
                             monthly_shift_obj.write(cr, uid, [monthly_shift.id], {'day_30':line.shift_id.id})
                         if num==31:
                             date = datetime.datetime(int(line.year),int(line.month),31)
-                            if date_now >= datetime.datetime.strftime(date, '%Y-%m-%d'):
-                                raise osv.except_osv(_('Warning!'),_('Can not change Work Monthly Schedule for past day!'))
+#                             if date_now >= datetime.datetime.strftime(date, '%Y-%m-%d'):
+#                                 raise osv.except_osv(_('Warning!'),_('Can not change Work Monthly Schedule for past day!'))
                             monthly_shift_obj.write(cr, uid, [monthly_shift.id], {'day_31':line.shift_id.id})
                 else:
                     for num in range(line.date_from.name,line.date_to.name+1):
                         if num==1 and monthly_shift.name_of_day_1 != 'Sunday':
                             date = datetime.datetime(int(line.year),int(line.month),1)
-                            if date_now >= datetime.datetime.strftime(date, '%Y-%m-%d'):
-                                raise osv.except_osv(_('Warning!'),_('Can not change Work Monthly Schedule for past day!'))
+#                             if date_now >= datetime.datetime.strftime(date, '%Y-%m-%d'):
+#                                 raise osv.except_osv(_('Warning!'),_('Can not change Work Monthly Schedule for past day!'))
                             monthly_shift_obj.write(cr, uid, [monthly_shift.id], {'day_1':line.shift_id.id})
                         if num==2 and monthly_shift.name_of_day_2 != 'Sunday':
                             date = datetime.datetime(int(line.year),int(line.month),2)
-                            if date_now >= datetime.datetime.strftime(date, '%Y-%m-%d'):
-                                raise osv.except_osv(_('Warning!'),_('Can not change Work Monthly Schedule for past day!'))
+#                             if date_now >= datetime.datetime.strftime(date, '%Y-%m-%d'):
+#                                 raise osv.except_osv(_('Warning!'),_('Can not change Work Monthly Schedule for past day!'))
                             monthly_shift_obj.write(cr, uid, [monthly_shift.id], {'day_2':line.shift_id.id})
                         if num==3 and monthly_shift.name_of_day_3 != 'Sunday':
                             date = datetime.datetime(int(line.year),int(line.month),3)
-                            if date_now >= datetime.datetime.strftime(date, '%Y-%m-%d'):
-                                raise osv.except_osv(_('Warning!'),_('Can not change Work Monthly Schedule for past day!'))
+#                             if date_now >= datetime.datetime.strftime(date, '%Y-%m-%d'):
+#                                 raise osv.except_osv(_('Warning!'),_('Can not change Work Monthly Schedule for past day!'))
                             monthly_shift_obj.write(cr, uid, [monthly_shift.id], {'day_3':line.shift_id.id})
                         if num==4 and monthly_shift.name_of_day_4 != 'Sunday':
                             date = datetime.datetime(int(line.year),int(line.month),4)
-                            if date_now >= datetime.datetime.strftime(date, '%Y-%m-%d'):
-                                raise osv.except_osv(_('Warning!'),_('Can not change Work Monthly Schedule for past day!'))
+#                             if date_now >= datetime.datetime.strftime(date, '%Y-%m-%d'):
+#                                 raise osv.except_osv(_('Warning!'),_('Can not change Work Monthly Schedule for past day!'))
                             monthly_shift_obj.write(cr, uid, [monthly_shift.id], {'day_4':line.shift_id.id})
                         if num==5 and monthly_shift.name_of_day_5 != 'Sunday':
                             date = datetime.datetime(int(line.year),int(line.month),5)
-                            if date_now >= datetime.datetime.strftime(date, '%Y-%m-%d'):
-                                raise osv.except_osv(_('Warning!'),_('Can not change Work Monthly Schedule for past day!'))
+#                             if date_now >= datetime.datetime.strftime(date, '%Y-%m-%d'):
+#                                 raise osv.except_osv(_('Warning!'),_('Can not change Work Monthly Schedule for past day!'))
                             monthly_shift_obj.write(cr, uid, [monthly_shift.id], {'day_5':line.shift_id.id})
                         if num==6 and monthly_shift.name_of_day_6 != 'Sunday':
                             date = datetime.datetime(int(line.year),int(line.month),6)
-                            if date_now >= datetime.datetime.strftime(date, '%Y-%m-%d'):
-                                raise osv.except_osv(_('Warning!'),_('Can not change Work Monthly Schedule for past day!'))
+#                             if date_now >= datetime.datetime.strftime(date, '%Y-%m-%d'):
+#                                 raise osv.except_osv(_('Warning!'),_('Can not change Work Monthly Schedule for past day!'))
                             monthly_shift_obj.write(cr, uid, [monthly_shift.id], {'day_6':line.shift_id.id})
                         if num==7 and monthly_shift.name_of_day_7 != 'Sunday':
                             date = datetime.datetime(int(line.year),int(line.month),7)
-                            if date_now >= datetime.datetime.strftime(date, '%Y-%m-%d'):
-                                raise osv.except_osv(_('Warning!'),_('Can not change Work Monthly Schedule for past day!'))
+#                             if date_now >= datetime.datetime.strftime(date, '%Y-%m-%d'):
+#                                 raise osv.except_osv(_('Warning!'),_('Can not change Work Monthly Schedule for past day!'))
                             monthly_shift_obj.write(cr, uid, [monthly_shift.id], {'day_7':line.shift_id.id})
                         if num==8 and monthly_shift.name_of_day_8 != 'Sunday':
                             date = datetime.datetime(int(line.year),int(line.month),8)
-                            if date_now >= datetime.datetime.strftime(date, '%Y-%m-%d'):
-                                raise osv.except_osv(_('Warning!'),_('Can not change Work Monthly Schedule for past day!'))
+#                             if date_now >= datetime.datetime.strftime(date, '%Y-%m-%d'):
+#                                 raise osv.except_osv(_('Warning!'),_('Can not change Work Monthly Schedule for past day!'))
                             monthly_shift_obj.write(cr, uid, [monthly_shift.id], {'day_8':line.shift_id.id})
                         if num==9 and monthly_shift.name_of_day_9 != 'Sunday':
                             date = datetime.datetime(int(line.year),int(line.month),9)
-                            if date_now >= datetime.datetime.strftime(date, '%Y-%m-%d'):
-                                raise osv.except_osv(_('Warning!'),_('Can not change Work Monthly Schedule for past day!'))
+#                             if date_now >= datetime.datetime.strftime(date, '%Y-%m-%d'):
+#                                 raise osv.except_osv(_('Warning!'),_('Can not change Work Monthly Schedule for past day!'))
                             monthly_shift_obj.write(cr, uid, [monthly_shift.id], {'day_9':line.shift_id.id})
                         if num==10 and monthly_shift.name_of_day_10 != 'Sunday':
                             date = datetime.datetime(int(line.year),int(line.month),10)
-                            if date_now >= datetime.datetime.strftime(date, '%Y-%m-%d'):
-                                raise osv.except_osv(_('Warning!'),_('Can not change Work Monthly Schedule for past day!'))
+#                             if date_now >= datetime.datetime.strftime(date, '%Y-%m-%d'):
+#                                 raise osv.except_osv(_('Warning!'),_('Can not change Work Monthly Schedule for past day!'))
                             monthly_shift_obj.write(cr, uid, [monthly_shift.id], {'day_10':line.shift_id.id})
                         if num==11 and monthly_shift.name_of_day_11 != 'Sunday':
                             date = datetime.datetime(int(line.year),int(line.month),11)
-                            if date_now >= datetime.datetime.strftime(date, '%Y-%m-%d'):
-                                raise osv.except_osv(_('Warning!'),_('Can not change Work Monthly Schedule for past day!'))
+#                             if date_now >= datetime.datetime.strftime(date, '%Y-%m-%d'):
+#                                 raise osv.except_osv(_('Warning!'),_('Can not change Work Monthly Schedule for past day!'))
                             monthly_shift_obj.write(cr, uid, [monthly_shift.id], {'day_11':line.shift_id.id})
                         if num==12 and monthly_shift.name_of_day_12 != 'Sunday':
                             date = datetime.datetime(int(line.year),int(line.month),12)
-                            if date_now >= datetime.datetime.strftime(date, '%Y-%m-%d'):
-                                raise osv.except_osv(_('Warning!'),_('Can not change Work Monthly Schedule for past day!'))
+#                             if date_now >= datetime.datetime.strftime(date, '%Y-%m-%d'):
+#                                 raise osv.except_osv(_('Warning!'),_('Can not change Work Monthly Schedule for past day!'))
                             monthly_shift_obj.write(cr, uid, [monthly_shift.id], {'day_12':line.shift_id.id})
                         if num==13 and monthly_shift.name_of_day_13 != 'Sunday':
                             date = datetime.datetime(int(line.year),int(line.month),13)
-                            if date_now >= datetime.datetime.strftime(date, '%Y-%m-%d'):
-                                raise osv.except_osv(_('Warning!'),_('Can not change Work Monthly Schedule for past day!'))
+#                             if date_now >= datetime.datetime.strftime(date, '%Y-%m-%d'):
+#                                 raise osv.except_osv(_('Warning!'),_('Can not change Work Monthly Schedule for past day!'))
                             monthly_shift_obj.write(cr, uid, [monthly_shift.id], {'day_13':line.shift_id.id})
                         if num==14 and monthly_shift.name_of_day_14 != 'Sunday':
                             date = datetime.datetime(int(line.year),int(line.month),14)
-                            if date_now >= datetime.datetime.strftime(date, '%Y-%m-%d'):
-                                raise osv.except_osv(_('Warning!'),_('Can not change Work Monthly Schedule for past day!'))
+#                             if date_now >= datetime.datetime.strftime(date, '%Y-%m-%d'):
+#                                 raise osv.except_osv(_('Warning!'),_('Can not change Work Monthly Schedule for past day!'))
                             monthly_shift_obj.write(cr, uid, [monthly_shift.id], {'day_14':line.shift_id.id})
                         if num==15 and monthly_shift.name_of_day_15 != 'Sunday':
                             date = datetime.datetime(int(line.year),int(line.month),15)
-                            if date_now >= datetime.datetime.strftime(date, '%Y-%m-%d'):
-                                raise osv.except_osv(_('Warning!'),_('Can not change Work Monthly Schedule for past day!'))
+#                             if date_now >= datetime.datetime.strftime(date, '%Y-%m-%d'):
+#                                 raise osv.except_osv(_('Warning!'),_('Can not change Work Monthly Schedule for past day!'))
                             monthly_shift_obj.write(cr, uid, [monthly_shift.id], {'day_15':line.shift_id.id})
                         if num==16 and monthly_shift.name_of_day_16 != 'Sunday':
                             date = datetime.datetime(int(line.year),int(line.month),16)
-                            if date_now >= datetime.datetime.strftime(date, '%Y-%m-%d'):
-                                raise osv.except_osv(_('Warning!'),_('Can not change Work Monthly Schedule for past day!'))
+#                             if date_now >= datetime.datetime.strftime(date, '%Y-%m-%d'):
+#                                 raise osv.except_osv(_('Warning!'),_('Can not change Work Monthly Schedule for past day!'))
                             monthly_shift_obj.write(cr, uid, [monthly_shift.id], {'day_16':line.shift_id.id})
                         if num==17 and monthly_shift.name_of_day_17 != 'Sunday':
                             date = datetime.datetime(int(line.year),int(line.month),17)
-                            if date_now >= datetime.datetime.strftime(date, '%Y-%m-%d'):
-                                raise osv.except_osv(_('Warning!'),_('Can not change Work Monthly Schedule for past day!'))
+#                             if date_now >= datetime.datetime.strftime(date, '%Y-%m-%d'):
+#                                 raise osv.except_osv(_('Warning!'),_('Can not change Work Monthly Schedule for past day!'))
                             monthly_shift_obj.write(cr, uid, [monthly_shift.id], {'day_17':line.shift_id.id})
                         if num==18 and monthly_shift.name_of_day_18 != 'Sunday':
                             date = datetime.datetime(int(line.year),int(line.month),18)
-                            if date_now >= datetime.datetime.strftime(date, '%Y-%m-%d'):
-                                raise osv.except_osv(_('Warning!'),_('Can not change Work Monthly Schedule for past day!'))
+#                             if date_now >= datetime.datetime.strftime(date, '%Y-%m-%d'):
+#                                 raise osv.except_osv(_('Warning!'),_('Can not change Work Monthly Schedule for past day!'))
                             monthly_shift_obj.write(cr, uid, [monthly_shift.id], {'day_18':line.shift_id.id})
                         if num==19 and monthly_shift.name_of_day_19 != 'Sunday':
                             date = datetime.datetime(int(line.year),int(line.month),19)
-                            if date_now >= datetime.datetime.strftime(date, '%Y-%m-%d'):
-                                raise osv.except_osv(_('Warning!'),_('Can not change Work Monthly Schedule for past day!'))
+#                             if date_now >= datetime.datetime.strftime(date, '%Y-%m-%d'):
+#                                 raise osv.except_osv(_('Warning!'),_('Can not change Work Monthly Schedule for past day!'))
                             monthly_shift_obj.write(cr, uid, [monthly_shift.id], {'day_19':line.shift_id.id})
                         if num==20 and monthly_shift.name_of_day_20 != 'Sunday':
                             date = datetime.datetime(int(line.year),int(line.month),20)
-                            if date_now >= datetime.datetime.strftime(date, '%Y-%m-%d'):
-                                raise osv.except_osv(_('Warning!'),_('Can not change Work Monthly Schedule for past day!'))
+#                             if date_now >= datetime.datetime.strftime(date, '%Y-%m-%d'):
+#                                 raise osv.except_osv(_('Warning!'),_('Can not change Work Monthly Schedule for past day!'))
                             monthly_shift_obj.write(cr, uid, [monthly_shift.id], {'day_20':line.shift_id.id})
                         if num==21 and monthly_shift.name_of_day_21 != 'Sunday':
                             date = datetime.datetime(int(line.year),int(line.month),21)
-                            if date_now >= datetime.datetime.strftime(date, '%Y-%m-%d'):
-                                raise osv.except_osv(_('Warning!'),_('Can not change Work Monthly Schedule for past day!'))
+#                             if date_now >= datetime.datetime.strftime(date, '%Y-%m-%d'):
+#                                 raise osv.except_osv(_('Warning!'),_('Can not change Work Monthly Schedule for past day!'))
                             monthly_shift_obj.write(cr, uid, [monthly_shift.id], {'day_21':line.shift_id.id})
                         if num==22 and monthly_shift.name_of_day_22 != 'Sunday':
                             date = datetime.datetime(int(line.year),int(line.month),22)
-                            if date_now >= datetime.datetime.strftime(date, '%Y-%m-%d'):
-                                raise osv.except_osv(_('Warning!'),_('Can not change Work Monthly Schedule for past day!'))
+#                             if date_now >= datetime.datetime.strftime(date, '%Y-%m-%d'):
+#                                 raise osv.except_osv(_('Warning!'),_('Can not change Work Monthly Schedule for past day!'))
                             monthly_shift_obj.write(cr, uid, [monthly_shift.id], {'day_22':line.shift_id.id})
                         if num==23 and monthly_shift.name_of_day_23 != 'Sunday':
                             date = datetime.datetime(int(line.year),int(line.month),23)
-                            if date_now >= datetime.datetime.strftime(date, '%Y-%m-%d'):
-                                raise osv.except_osv(_('Warning!'),_('Can not change Work Monthly Schedule for past day!'))
+#                             if date_now >= datetime.datetime.strftime(date, '%Y-%m-%d'):
+#                                 raise osv.except_osv(_('Warning!'),_('Can not change Work Monthly Schedule for past day!'))
                             monthly_shift_obj.write(cr, uid, [monthly_shift.id], {'day_23':line.shift_id.id})
                         if num==24 and monthly_shift.name_of_day_24 != 'Sunday':
                             date = datetime.datetime(int(line.year),int(line.month),24)
-                            if date_now >= datetime.datetime.strftime(date, '%Y-%m-%d'):
-                                raise osv.except_osv(_('Warning!'),_('Can not change Work Monthly Schedule for past day!'))
+#                             if date_now >= datetime.datetime.strftime(date, '%Y-%m-%d'):
+#                                 raise osv.except_osv(_('Warning!'),_('Can not change Work Monthly Schedule for past day!'))
                             monthly_shift_obj.write(cr, uid, [monthly_shift.id], {'day_24':line.shift_id.id})
                         if num==25 and monthly_shift.name_of_day_25 != 'Sunday':
                             date = datetime.datetime(int(line.year),int(line.month),25)
-                            if date_now >= datetime.datetime.strftime(date, '%Y-%m-%d'):
-                                raise osv.except_osv(_('Warning!'),_('Can not change Work Monthly Schedule for past day!'))
+#                             if date_now >= datetime.datetime.strftime(date, '%Y-%m-%d'):
+#                                 raise osv.except_osv(_('Warning!'),_('Can not change Work Monthly Schedule for past day!'))
                             monthly_shift_obj.write(cr, uid, [monthly_shift.id], {'day_25':line.shift_id.id})
                         if num==26 and monthly_shift.name_of_day_26 != 'Sunday':
                             date = datetime.datetime(int(line.year),int(line.month),26)
-                            if date_now >= datetime.datetime.strftime(date, '%Y-%m-%d'):
-                                raise osv.except_osv(_('Warning!'),_('Can not change Work Monthly Schedule for past day!'))
+#                             if date_now >= datetime.datetime.strftime(date, '%Y-%m-%d'):
+#                                 raise osv.except_osv(_('Warning!'),_('Can not change Work Monthly Schedule for past day!'))
                             monthly_shift_obj.write(cr, uid, [monthly_shift.id], {'day_26':line.shift_id.id})
                         if num==27 and monthly_shift.name_of_day_27 != 'Sunday':
                             date = datetime.datetime(int(line.year),int(line.month),27)
-                            if date_now >= datetime.datetime.strftime(date, '%Y-%m-%d'):
-                                raise osv.except_osv(_('Warning!'),_('Can not change Work Monthly Schedule for past day!'))
+#                             if date_now >= datetime.datetime.strftime(date, '%Y-%m-%d'):
+#                                 raise osv.except_osv(_('Warning!'),_('Can not change Work Monthly Schedule for past day!'))
                             monthly_shift_obj.write(cr, uid, [monthly_shift.id], {'day_27':line.shift_id.id})
                         if num==28 and monthly_shift.name_of_day_28 != 'Sunday':
                             date = datetime.datetime(int(line.year),int(line.month),28)
-                            if date_now >= datetime.datetime.strftime(date, '%Y-%m-%d'):
-                                raise osv.except_osv(_('Warning!'),_('Can not change Work Monthly Schedule for past day!'))
+#                             if date_now >= datetime.datetime.strftime(date, '%Y-%m-%d'):
+#                                 raise osv.except_osv(_('Warning!'),_('Can not change Work Monthly Schedule for past day!'))
                             monthly_shift_obj.write(cr, uid, [monthly_shift.id], {'day_28':line.shift_id.id})
                         if num==29 and monthly_shift.name_of_day_29 != 'Sunday':
                             date = datetime.datetime(int(line.year),int(line.month),29)
-                            if date_now >= datetime.datetime.strftime(date, '%Y-%m-%d'):
-                                raise osv.except_osv(_('Warning!'),_('Can not change Work Monthly Schedule for past day!'))
+#                             if date_now >= datetime.datetime.strftime(date, '%Y-%m-%d'):
+#                                 raise osv.except_osv(_('Warning!'),_('Can not change Work Monthly Schedule for past day!'))
                             monthly_shift_obj.write(cr, uid, [monthly_shift.id], {'day_29':line.shift_id.id})
                         if num==30 and monthly_shift.name_of_day_30 != 'Sunday':
                             date = datetime.datetime(int(line.year),int(line.month),30)
-                            if date_now >= datetime.datetime.strftime(date, '%Y-%m-%d'):
-                                raise osv.except_osv(_('Warning!'),_('Can not change Work Monthly Schedule for past day!'))
+#                             if date_now >= datetime.datetime.strftime(date, '%Y-%m-%d'):
+#                                 raise osv.except_osv(_('Warning!'),_('Can not change Work Monthly Schedule for past day!'))
                             monthly_shift_obj.write(cr, uid, [monthly_shift.id], {'day_30':line.shift_id.id})
                         if num==31 and monthly_shift.name_of_day_31 != 'Sunday':
                             date = datetime.datetime(int(line.year),int(line.month),31)
-                            if date_now >= datetime.datetime.strftime(date, '%Y-%m-%d'):
-                                raise osv.except_osv(_('Warning!'),_('Can not change Work Monthly Schedule for past day!'))
+#                             if date_now >= datetime.datetime.strftime(date, '%Y-%m-%d'):
+#                                 raise osv.except_osv(_('Warning!'),_('Can not change Work Monthly Schedule for past day!'))
                             monthly_shift_obj.write(cr, uid, [monthly_shift.id], {'day_31':line.shift_id.id})
         return self.write(cr, uid, ids, {'state': 'approved'})
     
