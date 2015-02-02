@@ -29,21 +29,23 @@ class tpt_purchase_indent(osv.osv):
         'intdent_cate':fields.selection([
                                 ('emergency','Emergency Indent'),
                                 ('normal','Normal Indent')],'Indent Category',required = True, states={'cancel': [('readonly', True)], 'done':[('readonly', True)]}),
-        'raised_from_id':fields.many2one('hr.department','Indent Raised From',required = True,  states={'cancel': [('readonly', True)], 'done':[('readonly', True)]}),
-        'raised_by_id':fields.many2one('hr.employee','Raised By', states={'cancel': [('readonly', True)], 'done':[('readonly', True)]}),
+        'department_id':fields.many2one('hr.department','Department',required = True,  states={'cancel': [('readonly', True)], 'done':[('readonly', True)]}),
+        'create_uid':fields.many2one('res.users','Raised By', states={'cancel': [('readonly', True)], 'done':[('readonly', True)]}),
         'date_expect':fields.date('Expected Date', states={'cancel': [('readonly', True)], 'done':[('readonly', True)]}),
         'select_normal':fields.selection([('single','Single Quotation'),
                                           ('special','Special Quotation'),
                                           ('multiple','Multiple Quotation')],'Select', states={'cancel': [('readonly', True)], 'done':[('readonly', True)]}),
         'supplier_id':fields.many2one('res.partner','Supplier',  states={'cancel': [('readonly', True)], 'done':[('readonly', True)]}),
         'reason':fields.text('Reason', states={'cancel': [('readonly', True)], 'done':[('readonly', True)]}),
-        'purchase_product_line':fields.one2many('tpt.purchase.product','purchase_indent_id','Product', states={'cancel': [('readonly', True)], 'done':[('readonly', True)]}),
+        'purchase_product_line':fields.one2many('tpt.purchase.product','purchase_indent_id','Materials', states={'cancel': [('readonly', True)], 'done':[('readonly', True)]}),
         'state':fields.selection([('draft', 'Draft'),('cancel', 'Closed'),('done', 'Approve')],'Status', readonly=True),
     }
     _defaults = {
         'state':'draft',
         'date_indent': fields.datetime.now,
         'name': '/',
+        'intdent_cate':'normal',
+        'document_type':'base',
     }
     
     def bt_approve(self, cr, uid, ids, context=None):
@@ -76,7 +78,7 @@ class tpt_purchase_indent(osv.osv):
                         vals['name'] =  sequence and sequence +'/'+fiscalyear['code']or '/'
                 if (vals['document_type']=='local'):
                     if vals.get('name','/')=='/':
-                        sequence = self.pool.get('ir.sequence').get(cr, uid, 'indent.purchase.capital')
+                        sequence = self.pool.get('ir.sequence').get(cr, uid, 'indent.purchase.local')
                         vals['name'] =  sequence and sequence +'/'+fiscalyear['code']or '/'
                 if (vals['document_type']=='maintenance'):
                     if vals.get('name','/')=='/':
@@ -120,7 +122,7 @@ class tpt_purchase_indent(osv.osv):
                         vals['name'] =  sequence and sequence +'/'+fiscalyear['code']or '/'
                 if (vals['document_type']=='local'):
                     if vals.get('name','/')=='/':
-                        sequence = self.pool.get('ir.sequence').get(cr, uid, 'indent.purchase.capital')
+                        sequence = self.pool.get('ir.sequence').get(cr, uid, 'indent.purchase.local')
                         vals['name'] =  sequence and sequence +'/'+fiscalyear['code']or '/'
                 if (vals['document_type']=='maintenance'):
                     if vals.get('name','/')=='/':
@@ -172,15 +174,19 @@ class tpt_purchase_indent(osv.osv):
     def name_search(self, cr, user, name, args=None, operator='ilike', context=None, limit=100):
        ids = self.search(cr, user, args, context=context, limit=limit)
        return self.name_get(cr, user, ids, context=context)
-   
+
 tpt_purchase_indent()
 class tpt_purchase_product(osv.osv):
     _name = 'tpt.purchase.product'
     _columns = {
         'purchase_indent_id':fields.many2one('tpt.purchase.indent','Purchase Product'),
-        'product_id': fields.many2one('product.product', 'Product',required = True),
-        'product_uom_qty': fields.float('Quantity'),   
+        'product_id': fields.many2one('product.product', 'Material Code',required = True),
+        'dec_material':fields.text('Material Decription',required = True),
+        'product_uom_qty': fields.float('PO Qty'),   
         'uom_po_id': fields.many2one('product.uom', 'UOM', readonly = True),
+        'pending_qty': fields.float('Pending Qty'), 
+        'recom_vendor_id': fields.many2one('res.partner', 'Recommended Vendor'),
+        'release_by':fields.selection([('1','Store Level'),('2','HOD Level')],'Released By',required = True)
         }  
 
     def create(self, cr, uid, vals, context=None):
@@ -487,8 +493,7 @@ class tpt_purchase_quotation(osv.osv):
         'date_quotation':fields.date('Quotation Date',states={'cancel': [('readonly', True)], 'done':[('readonly', True)]}),
         'supplier_id': fields.many2one('res.partner', 'Supplier',required = True,states={'cancel': [('readonly', True)], 'done':[('readonly', True)]}),
         'supplier_location_id': fields.char( 'Supplier Location', size = 1024 ,states={'cancel': [('readonly', True)], 'done':[('readonly', True)]}),
-        'quotation_cate':fields.selection([('single','Single Quotation'),
-                                  ('special','Special Quotation'),
+        'quotation_cate':fields.selection([
                                   ('multiple','Multiple Quotation')],'Quotation Category'),
         'quotation_ref':fields.char('Quotation Reference',size = 1024),
         'tax_id': fields.many2one('account.tax', 'Taxes',required=True ,states={'cancel': [('readonly', True)], 'done':[('readonly', True)]}),
@@ -1132,10 +1137,10 @@ class tpt_good_return_request(osv.osv):
     _name = "tpt.good.return.request"
     
     _columns = {
-        'grn_no_id' : fields.many2one('stock.picking.in', 'GRN No', required = True, states={'done':[('readonly', True)]}), 
-        'request_date': fields.datetime('Request Date', states={'done':[('readonly', True)]}), 
-        'product_detail_line': fields.one2many('tpt.product.detail.line', 'request_id', 'Product Detail', states={'done':[('readonly', True)]}), 
-        'state':fields.selection([('draft', 'Draft'),('done', 'Done')],'Status', readonly=True),
+        'grn_no_id' : fields.many2one('stock.picking.in', 'GRN No', required = True, states={'cancel': [('readonly', True)],'done':[('readonly', True)]}), 
+        'request_date': fields.datetime('Request Date', states={'cancel': [('readonly', True)],'done':[('readonly', True)]}), 
+        'product_detail_line': fields.one2many('tpt.product.detail.line', 'request_id', 'Product Detail', states={'cancel': [('readonly', True)],'done':[('readonly', True)]}), 
+        'state':fields.selection([('draft', 'Draft'),('cancel', 'Cancelled'),('done', 'Done')],'Status', readonly=True),
                 }
     _defaults = {
         'request_date': time.strftime('%Y-%m-%d %H:%M:%S'),
@@ -1178,7 +1183,11 @@ class tpt_good_return_request(osv.osv):
         for line in self.browse(cr, uid, ids):
             self.write(cr, uid, ids,{'state':'done'})
         return True 
-    
+
+    def bt_cancel(self, cr, uid, ids, context=None):
+        for line in self.browse(cr, uid, ids):
+            self.write(cr, uid, ids,{'state':'cancel'})
+        return True     
 tpt_good_return_request()
 
 class tpt_product_detail_line(osv.osv):
@@ -1342,16 +1351,82 @@ tpt_pur_organi_code()
 
 class tpt_vendor_group(osv.osv):
     _name = "tpt.vendor.group"
+    _order = "code"
     _columns = {
-        'name': fields.char('Name', size = 1024),
+                
+        'name': fields.char('Name', size = 1024, required=True),
+        'code':fields.char('Code',size = 256,required = True),
+        'active':fields.boolean('Active'),
+        'vendor_sub_line':fields.one2many('tpt.vendor.sub.group','vendor_group_id','Vendor Sub Group'),
                 }
+    
+    _defaults = {
+        'active': True,
+    }
+    
+    def create(self, cr, uid, vals, context=None):
+        if 'code' in vals:
+            name = vals['code'].replace(" ","")
+            vals['code'] = name
+        return super(tpt_vendor_group, self).create(cr, uid, vals, context)
+    
+    def write(self, cr, uid, ids, vals, context=None):
+        if 'code' in vals:
+            name = vals['code'].replace(" ","")
+            vals['code'] = name
+        return super(tpt_vendor_group, self).write(cr, uid,ids, vals, context)
+
+
+
+    def _check_code_id(self, cr, uid, ids, context=None):
+        for vendor in self.browse(cr, uid, ids, context=context):
+            sql = '''
+                select id from tpt_vendor_group where id != %s and (lower(code) = lower('%s') or lower(name) = lower('%s'))
+            '''%(vendor.id,vendor.code,vendor.name)
+            cr.execute(sql)
+            vendor_ids = [row[0] for row in cr.fetchall()]
+            if vendor_ids:  
+                return False
+        return True
+    _constraints = [
+        (_check_code_id, 'Identical Data', ['code','name']),
+    ]
+    
 tpt_vendor_group()
 
 class tpt_vendor_sub_group(osv.osv):
     _name = "tpt.vendor.sub.group"
     _columns = {
-        'name': fields.char('Name', size = 1024),
+        'name': fields.char('Name', size = 1024,required=True),
+        'code':fields.char('Code',size = 256,required = True),
+        'vendor_group_id':fields.many2one('tpt.vendor.group','Vendor Group',required = True),
                 }
+    
+    def create(self, cr, uid, vals, context=None):
+        if 'code' in vals:
+            name = vals['code'].replace(" ","")
+            vals['code'] = name
+        return super(tpt_vendor_sub_group, self).create(cr, uid, vals, context)
+    
+    def write(self, cr, uid, ids, vals, context=None):
+        if 'code' in vals:
+            name = vals['code'].replace(" ","")
+            vals['code'] = name
+        return super(tpt_vendor_sub_group, self).write(cr, uid,ids, vals, context)
+
+    def _check_code_id(self, cr, uid, ids, context=None):
+        for vendor in self.browse(cr, uid, ids, context=context):
+            sql = '''
+                select id from tpt_vendor_sub_group where id != %s and (lower(code) = lower('%s') or lower(name) = lower('%s'))
+            '''%(vendor.id,vendor.code,vendor.name)
+            cr.execute(sql)
+            vendor_ids = [row[0] for row in cr.fetchall()]
+            if vendor_ids:  
+                return False
+        return True
+    _constraints = [
+        (_check_code_id, 'Identical Data', ['code','name']),
+    ]
 tpt_vendor_sub_group()
 
 class res_partner(osv.osv):
@@ -1362,9 +1437,28 @@ class res_partner(osv.osv):
         'contact_per':fields.char('Contact Person', size = 1024),
         'vendor_tag':fields.char('Tag', size = 1024),
         'pur_orgin_code_id':fields.many2one('tpt.pur.organi.code','Purchase Organisation Code'),
-        'vendor_group_id':fields.many2one('tpt.vendor.group','Vendor Group', required = True),
-        'vendor_sub_group_id':fields.many2one('tpt.vendor.sub.group','Vendor Sub Group'),   
+        'vendor_group_id':fields.many2one('tpt.vendor.group','Vendor Class (Group)', required = True),
+        'vendor_sub_group_id':fields.many2one('tpt.vendor.sub.group','Vendor Sub Class (Sub Group)'),   
                 
                 }
+    def onchange_vendor_group_id(self, cr, uid, ids,vendor_group_id=False, context=None):
+        return {'value': {'vendor_sub_group_id': False}}
+
+    def search(self, cr, uid, args, offset=0, limit=None, order=None, context=None, count=False):
+        if context is None:
+            context = {}
+        if context.get('search_recom_product'):
+            if context.get('product_id'):
+                sql = '''
+                    select name from product_supplierinfo where product_id in (select id from product_product where id = %s)
+                '''%(context.get('product_id'))
+                cr.execute(sql)
+                product_ids = [row[0] for row in cr.fetchall()]
+                args += [('id','in',product_ids)]
+        return super(res_partner, self).search(cr, uid, args, offset=offset, limit=limit, order=order, context=context, count=count) 
     
+    def name_search(self, cr, user, name, args=None, operator='ilike', context=None, limit=100):
+       ids = self.search(cr, user, args, context=context, limit=limit)
+       return self.name_get(cr, user, ids, context=context)   
+  
 res_partner()    
