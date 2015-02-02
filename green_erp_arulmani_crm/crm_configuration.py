@@ -118,7 +118,7 @@ class res_partner(osv.osv):
         'account_assign_group_id': fields.many2one('account.assign.group','Account Assign Group'), 
         'customer_statistics_group_id': fields.many2one('customer.statistics.group','Customer Statistics Group'),       
         'price_group_id': fields.many2one('price.group','Price Group'),
-        'inco_terms_id': fields.many2one('stock.incoterms', 'Inco term'),
+        'inco_terms_id': fields.many2one('stock.incoterms', 'Incoterm'),
         'division_code_id': fields.many2one('division.code','Division Code'),
         'tax_category_id': fields.many2one('tax.category','Tax Category'), 
         'tax_number_1_id': fields.many2one('tax.number.1','Tax Number 1'),

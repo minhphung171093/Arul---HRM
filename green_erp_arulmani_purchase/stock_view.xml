@@ -47,6 +47,9 @@
 				<xpath expr="//field[@name='purchase_id']" position="attributes">
 					<attribute name='options'>{'create': false, 'create_edit': false}</attribute>
 				</xpath>
+				<xpath expr="//field[@name='purchase_id']" position="attributes">
+					<attribute name='on_change'>onchange_purchase_id(purchase_id)</attribute>
+				</xpath>
             	<xpath expr="//field[@name='purchase_id']"  position="after">
             		<field name="po_date"/>
             	</xpath>

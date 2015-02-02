@@ -11,7 +11,7 @@
 						<field name="document_type"/>
 						<field name="intdent_cate"/>
 						<field name="department_id"  />
-						<field name="raised_by_id" options="{'create': false, 'create_edit': false}" />
+						<field name="create_uid" options="{'create': false, 'create_edit': false}" />
 						<field name="date_expect"/>
 						<field name="reason"/>
 						<field name="state" widget="statusbar" statusbar_visible="draft,cancel,done" statusbar_colors='{"draft":"blue","cancel":"blue"}'/>
@@ -37,7 +37,7 @@
 							<field name="document_type" />
 							<field name="intdent_cate" />
 							<field name="department_id" options="{'create': false, 'create_edit': false}" />
-							<field name="raised_by_id" options="{'create': false, 'create_edit': false}"  />
+							<field name="create_uid" options="{'create': false, 'create_edit': false}"  />
 							<field name="date_expect"/>
 						</group>
 						<group >
@@ -47,12 +47,16 @@
 						</group>
 						</group>
 						<notebook>
-							<page string = "Products">
+							<page string = "Materials">
 								<field name="purchase_product_line" nolabel='1'>
 									<tree editable='bottom'>
 										<field name="product_id" widget = "selection"  options="{'create': false, 'create_edit': false}"/>
+										<field name="dec_material" />
 										<field name="product_uom_qty" />
+										<field name="recom_vendor_id" context="{'search_recom_product':True, 'product_id':product_id }" options="{'create': false, 'create_edit': false}" />
+										<field name="pending_qty" />
 										<field name="uom_po_id" edit='false' options="{'create': false, 'create_edit': false}"/>
+										<field name="release_by" />
 									</tree>
 								</field>
 							</page>
@@ -103,8 +107,11 @@
 					<attribute name='string'>PO Line</attribute>
 				</xpath> 
 				<xpath expr="//page[@string='PO Line']/field/tree/field[@name='name']" position="attributes">
-					<attribute name='invisible'>1</attribute>
+					<attribute name='invisible'>0</attribute>
 				</xpath> 
+				<xpath expr="//page[@string='PO Line']/field/tree/field[@name='name']" position="attributes">
+					<attribute name='required'>1</attribute>
+				</xpath>
 				<xpath expr="//page[@string='PO Line']/field/tree/field[@name='date_planned']" position="attributes">
 					<attribute name='required'>0</attribute>
 				</xpath> 
@@ -115,9 +122,6 @@
 				<xpath expr="//page[@string='PO Line']/field/tree/field[@name='taxes_id']" position="attributes">
 					<attribute name='invisible'>1</attribute>
 				</xpath> 
-				<xpath expr="//page[@string='PO Line']/field/tree/field[@name='name']" position="attributes">
-					<attribute name='required'>0</attribute>
-				</xpath>
 				<xpath expr="//page[@string='PO Line']/field/tree/field[@name='product_uom']" position="replace">
 					<field name="product_uom" string = 'UOM' groups="product.group_uom" on_change="onchange_product_uom(parent.pricelist_id,product_id,product_qty,product_uom,parent.partner_id, parent.date_order,parent.fiscal_position,date_planned,name,price_unit,context)"/>
 				</xpath> 
@@ -141,10 +145,11 @@
 				<xpath expr="//label[@for='name']" position="replace">
 					<label for="name" string = 'Category Code' class="oe_edit_only"/>
 				</xpath> 
-				<xpath expr="//field[@name='parent_id']" position="after">
+				<xpath expr="//field[@name='parent_id']" position="before">
 					<field name="cate_name"/>
 				</xpath> 
-				<xpath expr="//field[@name='type']" position="after">
+				<xpath expr="//field[@name='type']" position="before">
+					<newline/>
 					<field name="description"/>
 				</xpath> 
 			</field>
@@ -280,7 +285,7 @@
 			        </header>
 	            	<sheet>
 		                <group > 
-			                <field name="po_id" on_change = "onchange_po_id(po_id)" options="{'create': false, 'create_edit': false}"/>
+			                <field name="po_id" domain="[('state','=','approved')]" on_change = "onchange_po_id(po_id)" options="{'create': false, 'create_edit': false}"/>
 			                <field name="po_date"/>
 			                <field name="supplier_id" domain="[('supplier','=',1)]" options="{'create': false, 'create_edit': false}"/>
 							<field name="name"/>
@@ -433,7 +438,7 @@
 	            </header>
 	            	<sheet>
 		                <group > 
-			                <field name="grn_no_id"   on_change = "onchange_grn_no_id(grn_no_id)" domain="[('type','=','in')]" options="{'create': false, 'create_edit': false}"/>
+			                <field name="grn_no_id" on_change = "onchange_grn_no_id(grn_no_id)" context="{'search_grn_no_id':True}" domain="[('type','=','in')]" options="{'create': false, 'create_edit': false}"/>
 							<field name="request_date"/>
 						</group>
 						<notebook>
@@ -849,8 +854,12 @@
                     	<field name="pur_orgin_code_id" options="{'create': false, 'create_edit': false}" attrs="{'invisible': [('supplier','=',False)]}" />
                     </xpath>
                     
+                    <xpath expr="//field[@name='title']" position="replace">
+                    </xpath>
+                    
                     <xpath expr="//field[@name='name']" position="before">
                         <field name="vendor_code" placeholder="Vendor Code" attrs="{'invisible': [('supplier','=',False)]}" />
+                    	<field name="title" domain="[('domain', '=', 'contact')]" options="{&quot;no_open&quot;: True}" attrs="{'invisible': [('is_company','=', True)]}"/>
                     </xpath>
                     
                      <xpath expr="//field[@name='email']" position="after">
@@ -860,9 +869,18 @@
             </field>
         </record>
 
-   	 <menuitem id="base.menu_procurement_management_supplier_name" name="Vendor"
-        parent="purchase.menu_procurement_management"
-        action="base.action_partner_supplier_form" sequence="15"/>
-
+   	 	<menuitem id="base.menu_procurement_management_supplier_name" name="Vendor"
+	        parent="purchase.menu_procurement_management"
+	        action="base.action_partner_supplier_form" sequence="15"/>
+	        
+     <menuitem action="stock.action_picking_tree4" id="purchase.menu_action_picking_tree4" parent="purchase.menu_procurement_management_inventory"
+            name="GRN" sequence="9"/> 
+        
+   <!--     <menuitem name="Material Category"
+            action="product.product_category_action_form" id="purchase.menu_product_category_config_purchase"
+            parent="purchase.menu_product_in_config_purchase" sequence="1" />
+            
+		<menuitem name="Material" id="purchase.menu_procurement_partner_contact_form" action="product.product_normal_action_puchased"
+          parent="purchase.menu_procurement_management_product"/>   -->
     </data>
 </openerp>

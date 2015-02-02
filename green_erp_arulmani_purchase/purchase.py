@@ -30,14 +30,14 @@ class tpt_purchase_indent(osv.osv):
                                 ('emergency','Emergency Indent'),
                                 ('normal','Normal Indent')],'Indent Category',required = True, states={'cancel': [('readonly', True)], 'done':[('readonly', True)]}),
         'department_id':fields.many2one('hr.department','Department',required = True,  states={'cancel': [('readonly', True)], 'done':[('readonly', True)]}),
-        'raised_by_id':fields.many2one('hr.employee','Raised By', states={'cancel': [('readonly', True)], 'done':[('readonly', True)]}),
+        'create_uid':fields.many2one('res.users','Raised By', states={'cancel': [('readonly', True)], 'done':[('readonly', True)]}),
         'date_expect':fields.date('Expected Date', states={'cancel': [('readonly', True)], 'done':[('readonly', True)]}),
         'select_normal':fields.selection([('single','Single Quotation'),
                                           ('special','Special Quotation'),
                                           ('multiple','Multiple Quotation')],'Select', states={'cancel': [('readonly', True)], 'done':[('readonly', True)]}),
         'supplier_id':fields.many2one('res.partner','Supplier',  states={'cancel': [('readonly', True)], 'done':[('readonly', True)]}),
         'reason':fields.text('Reason', states={'cancel': [('readonly', True)], 'done':[('readonly', True)]}),
-        'purchase_product_line':fields.one2many('tpt.purchase.product','purchase_indent_id','Product', states={'cancel': [('readonly', True)], 'done':[('readonly', True)]}),
+        'purchase_product_line':fields.one2many('tpt.purchase.product','purchase_indent_id','Materials', states={'cancel': [('readonly', True)], 'done':[('readonly', True)]}),
         'state':fields.selection([('draft', 'Draft'),('cancel', 'Closed'),('done', 'Approve')],'Status', readonly=True),
     }
     _defaults = {
@@ -158,14 +158,19 @@ class tpt_purchase_indent(osv.osv):
             dates = cr.dictfetchone()['date_indent']
         return {'value': {'date_expect':dates}}
 
+
 tpt_purchase_indent()
 class tpt_purchase_product(osv.osv):
     _name = 'tpt.purchase.product'
     _columns = {
         'purchase_indent_id':fields.many2one('tpt.purchase.indent','Purchase Product'),
-        'product_id': fields.many2one('product.product', 'Product',required = True),
-        'product_uom_qty': fields.float('Quantity'),   
+        'product_id': fields.many2one('product.product', 'Material Code',required = True),
+        'dec_material':fields.text('Material Decription',required = True),
+        'product_uom_qty': fields.float('PO Qty'),   
         'uom_po_id': fields.many2one('product.uom', 'UOM', readonly = True),
+        'pending_qty': fields.float('Pending Qty'), 
+        'recom_vendor_id': fields.many2one('res.partner', 'Recommended Vendor'),
+        'release_by':fields.selection([('1','Store Level'),('2','HOD Level')],'Released By',required = True)
         }  
 
     def create(self, cr, uid, vals, context=None):
@@ -192,19 +197,50 @@ class product_category(osv.osv):
     _inherit = "product.category"
     _columns = {
         'cate_name':fields.selection([('raw','Raw Materials'),('finish','Finished Product'),('spares','Spares'),('consum','Consumables')], 'Category Name', required = True),
-        'description':fields.text('Description'),
+        'description':fields.text('Description',size = 256),
         }
+    
+    def create(self, cr, uid, vals, context=None):
+        if 'name' in vals:
+            name = vals['name'].replace(" ","")
+            vals['name'] = name
+        return super(product_category, self).create(cr, uid, vals, context)
+    
+    def write(self, cr, uid, ids, vals, context=None):
+        if 'name' in vals:
+            name = vals['name'].replace(" ","")
+            vals['name'] = name
+        return super(product_category, self).write(cr, uid,ids, vals, context)
+    
+#     def _check_code_id(self, cr, uid, ids, context=None):
+#         for cost in self.browse(cr, uid, ids, context=context):
+#             sql = '''
+#                 select id from product_category where id != %s and lower(name) = lower('%s')
+#             '''%(cost.id,cost.name)
+#             cr.execute(sql)
+#             cost_ids = [row[0] for row in cr.fetchall()]
+#             if cost_ids:  
+#                 return False
+#         return True
     
     def _check_product_category(self, cr, uid, ids, context=None):
         for pro_cate in self.browse(cr, uid, ids, context=context):
-            pro_cate_ids = self.search(cr, uid, [('id','!=',pro_cate.id),('name','=',pro_cate.name),('cate_name', '=',pro_cate.cate_name)])
-            if pro_cate_ids:
+            sql = '''
+                 select id from product_category where id != %s and lower(name) = lower('%s') and cate_name = '%s'
+             '''%(pro_cate.id,pro_cate.name,pro_cate.cate_name)
+            cr.execute(sql)
+            code_ids = [row[0] for row in cr.fetchall()]
+            if code_ids:
                 raise osv.except_osv(_('Warning!'),_(' Product Category Code and Name should be unique!'))
+#             pro_cate_ids = self.search(cr, uid, [('id','!=',pro_cate.id),('name','=',pro_cate.name),('cate_name', '=',pro_cate.cate_name)])
+#             if pro_cate_ids:
+#                 raise osv.except_osv(_('Warning!'),_(' Product Category Code and Name should be unique!'))    
                 return False
             return True
         
     _constraints = [
         (_check_product_category, 'Identical Data', ['name', 'cate_name']),
+#         (_check_code_id, 'Identical Data', ['name']),
     ]    
 product_category()
 
@@ -545,7 +581,7 @@ class tpt_purchase_quotation_line(osv.osv):
         'product_id': fields.many2one('product.product', 'Product'),
         'product_uom_qty': fields.float('Quantity', readonly=True),   
         'uom_po_id': fields.many2one('product.uom', 'UOM', readonly=True),
-        'price_unit': fields.float('Unit Price'),
+        'price_unit': fields.float('Unit Price', readonly=True),
         'sub_total': fields.function(subtotal_purchase_quotation_line, multi='deltas' ,string='SubTotal'),
         }
     
@@ -703,7 +739,7 @@ class purchase_order(osv.osv):
                       'price_unit': line.price_unit or False,
                       'price_subtotal': line.sub_total or False,
                       'date_planned':quotation.date_quotation or False,
-                      'name':'/'
+#                       'name':'/'
                       }
                 po_line.append((0,0,rs))
             vals = {
@@ -899,10 +935,6 @@ class purchase_order_line(osv.osv):
  
         res = {'value': {'price_unit': price_unit or 0.0, 'name': name or '', 'product_uom' : uom_id or False}}
         
-        
-        
-                    
-                    
         if not product_id:
             return res
  
@@ -1011,6 +1043,27 @@ class purchase_order_line(osv.osv):
 #         return {'value': vals}   
 purchase_order_line()
 
+class stock_picking_in(osv.osv):
+    _inherit = "stock.picking.in"
+    
+    def search(self, cr, uid, args, offset=0, limit=None, order=None, context=None, count=False):
+        if context is None:
+            context = {}
+        if context.get('search_grn_no_id'):
+            sql = '''
+                select picking_id from stock_move where state = 'cancel' group by picking_id
+            '''
+            cr.execute(sql)
+            picking_ids = [row[0] for row in cr.fetchall()]
+            args += [('id','in',picking_ids)]
+        return super(stock_picking_in, self).search(cr, uid, args, offset=offset, limit=limit, order=order, context=context, count=count)
+    
+    def name_search(self, cr, user, name, args=None, operator='ilike', context=None, limit=100):
+       ids = self.search(cr, user, args, context=context, limit=limit)
+       return self.name_get(cr, user, ids, context=context)
+    
+stock_picking_in()    
+    
 class tpt_good_return_request(osv.osv):
     _name = "tpt.good.return.request"
     
@@ -1310,16 +1363,33 @@ tpt_vendor_sub_group()
 class res_partner(osv.osv):
     _inherit = "res.partner"   
     _columns = {
-        'supplier_code':fields.char('Vendor Code', size = 256),
-        'vendor_code':fields.char('Vendor Code', size = 256),
+#         'supplier_code':fields.char('Vendor Code', size = 256),
+        'vendor_code':fields.char('Vendor Code', size = 20, required = True),
         'contact_per':fields.char('Contact Person', size = 1024),
         'vendor_tag':fields.char('Tag', size = 1024),
         'pur_orgin_code_id':fields.many2one('tpt.pur.organi.code','Purchase Organisation Code'),
-        'vendor_group_id':fields.many2one('tpt.vendor.group','Vendor Group'),
-        'vendor_sub_group_id':fields.many2one('tpt.vendor.sub.group','Vendor Sub Group'),   
+        'vendor_group_id':fields.many2one('tpt.vendor.group','Vendor Class (Group)', required = True),
+        'vendor_sub_group_id':fields.many2one('tpt.vendor.sub.group','Vendor Sub Class (Sub Group)'),   
                 
                 }
     def onchange_vendor_group_id(self, cr, uid, ids,vendor_group_id=False, context=None):
         return {'value': {'vendor_sub_group_id': False}}
+
+    def search(self, cr, uid, args, offset=0, limit=None, order=None, context=None, count=False):
+        if context is None:
+            context = {}
+        if context.get('search_recom_product'):
+            if context.get('product_id'):
+                sql = '''
+                    select name from product_supplierinfo where product_id in (select id from product_product where id = %s)
+                '''%(context.get('product_id'))
+                cr.execute(sql)
+                product_ids = [row[0] for row in cr.fetchall()]
+                args += [('id','in',product_ids)]
+        return super(res_partner, self).search(cr, uid, args, offset=offset, limit=limit, order=order, context=context, count=count) 
     
+    def name_search(self, cr, user, name, args=None, operator='ilike', context=None, limit=100):
+       ids = self.search(cr, user, args, context=context, limit=limit)
+       return self.name_get(cr, user, ids, context=context)   
+  
 res_partner()    
