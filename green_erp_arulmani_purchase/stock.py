@@ -180,10 +180,35 @@ stock_picking()
 class stock_picking_in(osv.osv):
     _inherit = "stock.picking.in"
     _columns = {
-        'document_type':fields.selection([('asset','VV Asset PO'),('standard','VV Standard PO'),('local','VV Local PO')],'PO Document Type'),
+        'document_type':fields.selection([('asset','VV Asset PO'),('standard','VV Standard PO'),('local','VV Local PO')],'PO Document Type',readonly = True),
         'warehouse':fields.many2one('stock.location','Warehouse'),
-        'po_date': fields.datetime('PO Date'),   
+        'po_date': fields.datetime('PO Date', readonly = True),   
                 }
+    
+    def onchange_purchase_id(self, cr, uid, ids,purchase_id=False, context=None):
+        vals = {}
+        product_line = []
+        for picking in self.browse(cr, uid, ids):
+            sql = '''
+                delete from stock_move where picking_id = %s
+            '''%(picking.id)
+            cr.execute(sql)
+        if purchase_id:
+            purchase = self.pool.get('purchase.order').browse(cr, uid, purchase_id)
+            for line in purchase.order_line:
+                rs = {
+                      'po_indent_id': line.po_indent_no and line.po_indent_no.id or False,
+                      'product_id': line.product_id and line.product_id.id or False,
+                      'product_qty': line.product_qty or False,
+                      'product_uom': line.product_uom and line.product_uom.id or False,
+                      }
+                product_line.append((0,0,rs))
+            
+            vals = {
+                    'partner_id': purchase.partner_id and purchase.partner_id.id or False,
+                    'move_lines':product_line,
+                    }
+        return {'value': vals}
     
     def search(self, cr, uid, args, offset=0, limit=None, order=None, context=None, count=False):
         if context is None:
