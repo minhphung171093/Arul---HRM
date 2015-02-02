@@ -262,7 +262,8 @@
             <field name="arch" type="xml">
             	<xpath expr="//field[@name='prodlot_id']"  position="attributes">
             		<attribute name='string'>Batch Number</attribute>
-            		<attribute name='readonly'>1</attribute>
+            		<attribute name='readonly'>context.get('default_type',False) and context.get('default_type')=='out' and 1 or 0</attribute>
+            		<attribute name='options'>{'create': false, 'create_edit': false}</attribute>
             	</xpath>
             	<xpath expr="//field[@name='product_id']"  position="attributes">
             		<attribute name='readonly'>1</attribute>

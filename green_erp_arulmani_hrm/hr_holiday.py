@@ -1764,6 +1764,8 @@ class arul_hr_monthly_work_schedule(osv.osv):
                 for work in work_schedule_pre.monthly_shift_line:
                     work_vals.append((0,0,{
                                            'employee_id': work.employee_id.id,
+                                           'year': work.year,
+                                           'month': work.month,
                                            'day_1': work.day_1.id,
                                            'day_2': work.day_2.id,
                                            'day_3': work.day_3.id,
