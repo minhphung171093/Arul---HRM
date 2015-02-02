@@ -10,7 +10,7 @@
 						<field name="date_indent"/>
 						<field name="document_type"/>
 						<field name="intdent_cate"/>
-						<field name="raised_from_id"  />
+						<field name="department_id"  />
 						<field name="raised_by_id" options="{'create': false, 'create_edit': false}" />
 						<field name="date_expect"/>
 						<field name="reason"/>
@@ -36,7 +36,7 @@
 							<field name="date_indent" on_change="onchange_date_expect(date_indent)" />
 							<field name="document_type" />
 							<field name="intdent_cate" />
-							<field name="raised_from_id" options="{'create': false, 'create_edit': false}" />
+							<field name="department_id" options="{'create': false, 'create_edit': false}" />
 							<field name="raised_by_id" options="{'create': false, 'create_edit': false}"  />
 							<field name="date_expect"/>
 						</group>
@@ -480,7 +480,7 @@
 						<field name="state" invisible="1" />
 						<field name="amount_total"/>
 						<button name = "bt_tick_mark" icon = "STOCK_APPLY" states = "draft" string="Tick" type="object" />
-						<button name = "bt_cross_mark" icon = "STOCK_CANCEL" states = "draft" string="Cross" type="object" /> 
+						<button name = "bt_cross_mark" confirm = "Do you want to cancel the Quotation ?" icon = "STOCK_CANCEL" states = "draft" string="Cross" type="object" /> 
 				</tree>
 			</field>
 		</record>
@@ -749,6 +749,7 @@
 			<field name="arch" type="xml">
 				<tree string="Vendor Group">
 					<field name="name"/>
+					<field name="code"/>
 				</tree>
 			</field>
 		</record>
@@ -761,7 +762,19 @@
 	            	<sheet>
 	            		<group>
 	            			<field name="name"/>
+	            			<field name="code"/>
+	            			<field name="active"/>
 	            		</group>
+	            		<notebook>
+							<page string = "Vendor Sub Group">
+								<field name="vendor_sub_line" nolabel='1'>
+									<tree editable='bottom'>
+										<field name="name"/>
+	            						<field name="code"/>
+									</tree>
+								</field>
+							</page>
+						</notebook>
 				    </sheet>
 		         </form>
 			</field>
@@ -786,6 +799,7 @@
 			<field name="arch" type="xml">
 				<tree string="Vendor Sub Group">
 					<field name="name"/>
+					<field name="code"/>
 				</tree>
 			</field>
 		</record>
@@ -798,6 +812,8 @@
 	            	<sheet>
 	            		<group>
 	            			<field name="name"/>
+	            			<field name="code"/>
+	            			<field name="vendor_group_id" options="{'create': false, 'create_edit': false}" />
 	            		</group>
 				    </sheet>
 		         </form>
@@ -828,7 +844,7 @@
                     </xpath>
                     <xpath expr="//field[@name='website']" position="before">
                         <field name="vendor_tag" placeholder="Tag ... " attrs="{'invisible': [('supplier','=',False)]}" />
-                    	<field name="vendor_group_id" options="{'create': false, 'create_edit': false}" attrs="{'invisible': [('supplier','=',False)]}" />
+                    	<field name="vendor_group_id" on_change="onchange_vendor_group_id(vendor_group_id)" options="{'create': false, 'create_edit': false}" attrs="{'invisible': [('supplier','=',False)]}" />
                     	<field name="pur_orgin_code_id" options="{'create': false, 'create_edit': false}" attrs="{'invisible': [('supplier','=',False)]}" />
                     </xpath>
                     
@@ -837,7 +853,7 @@
                     </xpath>
                     
                      <xpath expr="//field[@name='email']" position="after">
-                        <field name="vendor_sub_group_id"  attrs="{'invisible': [('supplier','=',False)]}" options="{'create': false, 'create_edit': false}" />
+                        <field name="vendor_sub_group_id" domain="[('vendor_group_id','=',vendor_group_id)]" attrs="{'invisible': [('supplier','=',False)]}" options="{'create': false, 'create_edit': false}" />
                     </xpath>
                 </data>
             </field>

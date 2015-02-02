@@ -29,7 +29,7 @@ class tpt_purchase_indent(osv.osv):
         'intdent_cate':fields.selection([
                                 ('emergency','Emergency Indent'),
                                 ('normal','Normal Indent')],'Indent Category',required = True, states={'cancel': [('readonly', True)], 'done':[('readonly', True)]}),
-        'raised_from_id':fields.many2one('hr.department','Indent Raised From',required = True,  states={'cancel': [('readonly', True)], 'done':[('readonly', True)]}),
+        'department_id':fields.many2one('hr.department','Department',required = True,  states={'cancel': [('readonly', True)], 'done':[('readonly', True)]}),
         'raised_by_id':fields.many2one('hr.employee','Raised By', states={'cancel': [('readonly', True)], 'done':[('readonly', True)]}),
         'date_expect':fields.date('Expected Date', states={'cancel': [('readonly', True)], 'done':[('readonly', True)]}),
         'select_normal':fields.selection([('single','Single Quotation'),
@@ -44,6 +44,8 @@ class tpt_purchase_indent(osv.osv):
         'state':'draft',
         'date_indent': fields.datetime.now,
         'name': '/',
+        'intdent_cate':'normal',
+        'document_type':'base',
     }
     
     def bt_approve(self, cr, uid, ids, context=None):
@@ -76,7 +78,7 @@ class tpt_purchase_indent(osv.osv):
                         vals['name'] =  sequence and sequence +'/'+fiscalyear['code']or '/'
                 if (vals['document_type']=='local'):
                     if vals.get('name','/')=='/':
-                        sequence = self.pool.get('ir.sequence').get(cr, uid, 'indent.purchase.capital')
+                        sequence = self.pool.get('ir.sequence').get(cr, uid, 'indent.purchase.local')
                         vals['name'] =  sequence and sequence +'/'+fiscalyear['code']or '/'
                 if (vals['document_type']=='maintenance'):
                     if vals.get('name','/')=='/':
@@ -120,7 +122,7 @@ class tpt_purchase_indent(osv.osv):
                         vals['name'] =  sequence and sequence +'/'+fiscalyear['code']or '/'
                 if (vals['document_type']=='local'):
                     if vals.get('name','/')=='/':
-                        sequence = self.pool.get('ir.sequence').get(cr, uid, 'indent.purchase.capital')
+                        sequence = self.pool.get('ir.sequence').get(cr, uid, 'indent.purchase.local')
                         vals['name'] =  sequence and sequence +'/'+fiscalyear['code']or '/'
                 if (vals['document_type']=='maintenance'):
                     if vals.get('name','/')=='/':
@@ -439,8 +441,7 @@ class tpt_purchase_quotation(osv.osv):
         'date_quotation':fields.date('Quotation Date',states={'cancel': [('readonly', True)], 'done':[('readonly', True)]}),
         'supplier_id': fields.many2one('res.partner', 'Supplier',required = True,states={'cancel': [('readonly', True)], 'done':[('readonly', True)]}),
         'supplier_location_id': fields.char( 'Supplier Location', size = 1024 ,states={'cancel': [('readonly', True)], 'done':[('readonly', True)]}),
-        'quotation_cate':fields.selection([('single','Single Quotation'),
-                                  ('special','Special Quotation'),
+        'quotation_cate':fields.selection([
                                   ('multiple','Multiple Quotation')],'Quotation Category'),
         'quotation_ref':fields.char('Quotation Reference',size = 1024),
         'tax_id': fields.many2one('account.tax', 'Taxes',required=True ,states={'cancel': [('readonly', True)], 'done':[('readonly', True)]}),
@@ -1224,16 +1225,82 @@ tpt_pur_organi_code()
 
 class tpt_vendor_group(osv.osv):
     _name = "tpt.vendor.group"
+    _order = "code"
     _columns = {
-        'name': fields.char('Name', size = 1024),
+                
+        'name': fields.char('Name', size = 1024, required=True),
+        'code':fields.char('Code',size = 256,required = True),
+        'active':fields.boolean('Active'),
+        'vendor_sub_line':fields.one2many('tpt.vendor.sub.group','vendor_group_id','Vendor Sub Group'),
                 }
+    
+    _defaults = {
+        'active': True,
+    }
+    
+    def create(self, cr, uid, vals, context=None):
+        if 'code' in vals:
+            name = vals['code'].replace(" ","")
+            vals['code'] = name
+        return super(tpt_vendor_group, self).create(cr, uid, vals, context)
+    
+    def write(self, cr, uid, ids, vals, context=None):
+        if 'code' in vals:
+            name = vals['code'].replace(" ","")
+            vals['code'] = name
+        return super(tpt_vendor_group, self).write(cr, uid,ids, vals, context)
+
+
+
+    def _check_code_id(self, cr, uid, ids, context=None):
+        for vendor in self.browse(cr, uid, ids, context=context):
+            sql = '''
+                select id from tpt_vendor_group where id != %s and (lower(code) = lower('%s') or lower(name) = lower('%s'))
+            '''%(vendor.id,vendor.code,vendor.name)
+            cr.execute(sql)
+            vendor_ids = [row[0] for row in cr.fetchall()]
+            if vendor_ids:  
+                return False
+        return True
+    _constraints = [
+        (_check_code_id, 'Identical Data', ['code','name']),
+    ]
+    
 tpt_vendor_group()
 
 class tpt_vendor_sub_group(osv.osv):
     _name = "tpt.vendor.sub.group"
     _columns = {
-        'name': fields.char('Name', size = 1024),
+        'name': fields.char('Name', size = 1024,required=True),
+        'code':fields.char('Code',size = 256,required = True),
+        'vendor_group_id':fields.many2one('tpt.vendor.group','Vendor Group',required = True),
                 }
+    
+    def create(self, cr, uid, vals, context=None):
+        if 'code' in vals:
+            name = vals['code'].replace(" ","")
+            vals['code'] = name
+        return super(tpt_vendor_sub_group, self).create(cr, uid, vals, context)
+    
+    def write(self, cr, uid, ids, vals, context=None):
+        if 'code' in vals:
+            name = vals['code'].replace(" ","")
+            vals['code'] = name
+        return super(tpt_vendor_sub_group, self).write(cr, uid,ids, vals, context)
+
+    def _check_code_id(self, cr, uid, ids, context=None):
+        for vendor in self.browse(cr, uid, ids, context=context):
+            sql = '''
+                select id from tpt_vendor_sub_group where id != %s and (lower(code) = lower('%s') or lower(name) = lower('%s'))
+            '''%(vendor.id,vendor.code,vendor.name)
+            cr.execute(sql)
+            vendor_ids = [row[0] for row in cr.fetchall()]
+            if vendor_ids:  
+                return False
+        return True
+    _constraints = [
+        (_check_code_id, 'Identical Data', ['code','name']),
+    ]
 tpt_vendor_sub_group()
 
 class res_partner(osv.osv):
@@ -1248,5 +1315,7 @@ class res_partner(osv.osv):
         'vendor_sub_group_id':fields.many2one('tpt.vendor.sub.group','Vendor Sub Group'),   
                 
                 }
+    def onchange_vendor_group_id(self, cr, uid, ids,vendor_group_id=False, context=None):
+        return {'value': {'vendor_sub_group_id': False}}
     
 res_partner()    

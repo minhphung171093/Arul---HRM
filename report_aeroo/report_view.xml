@@ -300,7 +300,7 @@
     </record>
 
     <record model="ir.actions.act_window.view" id="act_aeroo_report_xml_form_view">
-        <field name="sequence" eval="1"/>
+        <field name="sequence" eval="2"/>
         <field name="view_mode">form</field>
         <field name="view_id" ref="act_report_xml_view1"/>
         <field name="act_window_id" ref="action_aeroo_report_xml_tree"/>

@@ -13,7 +13,11 @@ from openerp import netsvc
 
 class product_product(osv.osv):
     _inherit = "product.product"
-
+# START TPT
+    _columns = {
+               'cate_name': fields.char('Cate Name',size=64),       
+    }
+#END TPT
     def search(self, cr, uid, args, offset=0, limit=None, order=None, context=None, count=False):
         if context is None:
             context = {}
@@ -153,6 +157,9 @@ class sale_order(osv.osv):
         'sale_consignee_line':fields.one2many('tpt.sale.order.consignee','sale_order_consignee_id','Consignee'),
         'flag_t':fields.boolean('Flag',readonly =True ),
         'flag_p':fields.boolean('Flag',readonly =True ),
+        # Start:TPT 
+        'blanket_line_id':fields.many2one('tpt.blank.order.line','Blanket Order Line'),
+        # End:TPT
     }
     _defaults = {
 #                  'name': lambda obj, cr, uid, context: '/',
@@ -320,23 +327,25 @@ class sale_order(osv.osv):
                     '''%(so_ids,blanket_line.product_id.id)
                     cr.execute(sql)
                     kq = cr.fetchall()
-                for data in kq:
-                    if blanket_line.product_uom_qty < data[1]:
-                        document_status = 'partially'
-                        raise osv.except_osv(_('Warning!'),_('Quantity must be less than quantity of Blanket Order is product %s'%blanket_line.product_id.name_template))
-                    elif blanket_line.product_uom_qty > data[1]:
-                        document_status = 'partially'
-                        flag=True
-#                         sql_stt = '''
-#                             update sale_order set document_status='partially' where id = %s
-#                         '''%(sale.id)
-#                         cr.execute(sql_stt)
-                        sql_stt3 = '''
-                          update tpt_blanket_order set state='draft' where id = %s
-                           '''%(sale.blanket_id.id)
-                        cr.execute(sql_stt3)
-                    else:
-                        document_status = 'close'
+#                 for data in kq:
+#                     if blanket_line.product_uom_qty < data[1]:
+#                         document_status = 'partially'
+#                         #Start TPT
+#                         #raise osv.except_osv(_('Warning!'),_('Quantity must be less than quantity of Blanket Order is product %s'%blanket_line.product_id.name_template))
+#                         #End TPT
+#                     elif blanket_line.product_uom_qty > data[1]:
+#                         document_status = 'partially'
+#                         flag=True
+# #                         sql_stt = '''
+# #                             update sale_order set document_status='partially' where id = %s
+# #                         '''%(sale.id)
+# #                         cr.execute(sql_stt)
+#                         sql_stt3 = '''
+#                           update tpt_blanket_order set state='draft' where id = %s
+#                            '''%(sale.blanket_id.id)
+#                         cr.execute(sql_stt3)
+#                     else:
+#                         document_status = 'close'
                 if flag==False:
 #                     sql_stt = '''
 #                         update sale_order set document_status='close' where id = %s
@@ -345,7 +354,27 @@ class sale_order(osv.osv):
                     sql_stt2 = '''
                           update tpt_blanket_order set state='done' where id = %s
                            '''%(sale.blanket_id.id)
-                    cr.execute(sql_stt2)
+                    #Start:TPT
+#                     cr.execute(sql_stt2)
+                    sql_stt3 = '''
+                          update tpt_blank_order_line set state='done' where id = %s
+                           '''%(sale.blanket_line_id.id)
+                    cr.execute(sql_stt3)   
+                    sql6 = ''' select count(*) from sale_order where blanket_id=%s '''%(sale.blanket_id.id)
+                    cr.execute(sql6)  
+                    c1 = cr.fetchone()
+                    sql7 =''' select count(*) from tpt_blank_order_line where blanket_order_id=%s '''%(sale.blanket_id.id)
+                    cr.execute(sql7)  
+                    c2 = cr.fetchone()
+                    if c1==c2:
+                        sql_stt4 = '''
+                            update tpt_blanket_order set state = 'done'
+                            FROM (select id,blanket_order_id FROM tpt_blank_order_line where state='done')
+                            AS subquery
+                            WHERE tpt_blanket_order.id=subquery.blanket_order_id and  blanket_order_id=%s
+                                '''%(sale.blanket_id.id)
+                        cr.execute(sql_stt4)  
+                    #End:TPT
         return new_id
     
     def write(self, cr, uid, ids, vals, context=None):
@@ -381,22 +410,22 @@ class sale_order(osv.osv):
                         '''%(so_ids,blanket_line.product_id.id)
                         cr.execute(sql)
                         kq = cr.fetchall()
-                    for data in kq:
-                        if blanket_line.product_uom_qty < data[1]:
-                            raise osv.except_osv(_('Warning!'),_('Quantity must be less than quantity of Blanket Order is product %s'%blanket_line.product_id.name_template))
-                        elif blanket_line.product_uom_qty > data[1]:
-                            flag=True
-#                             sql_stt = '''
-#                                update sale_order set document_status='partially' where id = %s
-#                                 '''%(sale.id)
-#  
-#                             cr.execute(sql_stt)
-                            sql_stt3 = '''
-                              update tpt_blanket_order set state='draft' where id = %s
-                               '''%(sale.blanket_id.id)
-                            cr.execute(sql_stt3)
-                        else:
-                            document_status = 'close'
+#                     for data in kq:
+#                         if blanket_line.product_uom_qty < data[1]:
+#                             raise osv.except_osv(_('Warning!'),_('Quantity must be less than quantity of Blanket Order is product %s'%blanket_line.product_id.name_template))
+#                         elif blanket_line.product_uom_qty > data[1]:
+#                             flag=True
+# #                             sql_stt = '''
+# #                                update sale_order set document_status='partially' where id = %s
+# #                                 '''%(sale.id)
+# #  
+# #                             cr.execute(sql_stt)
+#                             sql_stt3 = '''
+#                               update tpt_blanket_order set state='draft' where id = %s
+#                                '''%(sale.blanket_id.id)
+#                             cr.execute(sql_stt3)
+#                         else:
+#                             document_status = 'close'
                     if flag==False:
 #                        sql_stt = '''
 #                           update sale_order set document_status='close' where id = %s
@@ -405,7 +434,27 @@ class sale_order(osv.osv):
                        sql_stt2 = '''
                           update tpt_blanket_order set state='done' where id = %s
                            '''%(sale.blanket_id.id)
-                       cr.execute(sql_stt2)
+                       #Start:TPT
+                       #cr.execute(sql_stt2) COMMENTED BY TPT
+                       sql_stt3 = '''
+                          update tpt_blank_order_line set state='done' where id = %s
+                           '''%(sale.blanket_line_id.id)
+                       cr.execute(sql_stt3)   
+                       sql6 = ''' select count(*) from sale_order where blanket_id=%s '''%(sale.blanket_id.id)
+                       cr.execute(sql6)  
+                       c1 = cr.fetchone()
+                       sql7 =''' select count(*) from tpt_blank_order_line where blanket_order_id=%s '''%(sale.blanket_id.id)
+                       cr.execute(sql7)  
+                       c2 = cr.fetchone()
+                       if c1==c2:
+                            sql_stt4 = '''
+                            update tpt_blanket_order set state = 'done'
+                            FROM (select id,blanket_order_id FROM tpt_blank_order_line where state='done')
+                            AS subquery
+                            WHERE tpt_blanket_order.id=subquery.blanket_order_id and  blanket_order_id=%s
+                                '''%(sale.blanket_id.id)
+                       cr.execute(sql_stt4)  
+                    #End:TPT
         return new_write
     
 
@@ -457,7 +506,10 @@ class sale_order(osv.osv):
                                   'state': 'draft',
                                   'type': 'make_to_stock',
                                   }
-                            blanket_lines.append((0,0,rs_order))
+                            #Start TPT
+                            # this line commented by TPT to avoid loading BO Line on selection of Blanket Order
+#                             blanket_lines.append((0,0,rs_order))
+                            #END TPT
                 else:
                     rs_order = {
                                   'product_id': blanket_line.product_id and blanket_line.product_id.id or False,
@@ -472,7 +524,10 @@ class sale_order(osv.osv):
                                   'state': 'draft',
                                   'type': 'make_to_stock',
                                   }
-                    blanket_lines.append((0,0,rs_order))
+                    #Start TPT
+                    # this line commented by TPT to avoid loading BO Line on selection of Blanket Order
+#                     blanket_lines.append((0,0,rs_order))
+                    #END TPT
               
             addr = self.pool.get('res.partner').address_get(cr, uid, [blanket.customer_id.id], ['delivery', 'invoice', 'contact'])
             
@@ -502,6 +557,55 @@ class sale_order(osv.osv):
 #                     'sale_consignee_line':consignee_lines or False,
                         }
         return {'value': vals}    
+    
+    # Start:TPT - Added By @Balamurugan@ on 21/01/2015 - To load selected BO Line under SO Line Tab
+
+    def onchange_blanketorderline_id(self, cr, uid, ids, blanket_line_id=False, context=None):
+        vals = {}
+        blanket_lines = []
+        consignee_lines = []
+        if blanket_line_id:
+            #blanket = self.pool.get('tpt.blanket.order').browse(cr, uid, blanket_id)
+            blanket_line = self.pool.get('tpt.blank.order.line').browse(cr, uid, blanket_line_id)
+            #print blanket.blanket_order
+            #blanketorder_lines = self.pool.get('tpt.blanket.order.line').browse(cr, uid, blanket_id)
+            
+           
+            rs_order = {
+                                  'product_id': blanket_line.product_id and blanket_line.product_id.id or False,
+                                  'name': blanket_line.description or False,
+                                  'product_type': blanket_line.product_type or False,
+                                  'application_id': blanket_line.application_id and blanket_line.application_id.id or False,
+                                  'product_uom_qty': blanket_line.product_uom_qty  or False,
+                                  'product_uom': blanket_line.uom_po_id and blanket_line.uom_po_id.id or False,
+                                  'price_unit': blanket_line.price_unit or False,
+                                  'price_subtotal': blanket_line.sub_total or False,
+                                  'freight': blanket_line.freight or False,
+                                  'state': 'draft',
+                                  'type': 'make_to_stock',
+                                  'name_consignee_id' : blanket_line.name_consignee_id.id,
+                                  'location':blanket_line.location,
+                                   
+                            }
+            blanket_lines.append((0,0,rs_order))
+
+           # addr = self.pool.get('res.partner').address_get(cr, uid, [blanket.customer_id.id], ['delivery', 'invoice', 'contact'])
+            
+            vals = {
+
+                    'order_line':blanket_lines or False,
+                    'order_policy': 'picking',
+                   # 'partner_invoice_id': addr['invoice'],
+#                     'document_status':'close',
+                    #'product_id': blanketorderline.product_id.id,
+                    
+                     #'blanket_line_id':blanket_lines.blanket_line_id,
+                    ###'blanket_line_id':blanket_lines or False,
+#                     'sale_consignee_line':consignee_lines or False,
+                        }
+        return {'value': vals}    
+
+    #End:TPT
     
 #     def onchange_blanket_id(self, cr, uid, ids,blanket_id=False, context=None):
 #         vals = {}
@@ -924,46 +1028,46 @@ class tpt_blanket_order(osv.osv):
 
     _columns = {
         'name': fields.char('Blanket Order', size = 1024, readonly=True),
-        'customer_id': fields.many2one('res.partner', 'Customer', required = True, states={'cancel': [('readonly', True)], 'done':[('readonly', True)]}),
-        'invoice_address': fields.char('Invoice Address', size = 1024, readonly=True, states={'cancel': [('readonly', True)], 'done':[('readonly', True)]}),
-        'street2': fields.char('', size = 1024, readonly=True, states={'cancel': [('readonly', True)], 'done':[('readonly', True)]}),
-        'city': fields.char('', size = 1024, readonly=True, states={'cancel': [('readonly', True)], 'done':[('readonly', True)]}),
-        'country_id': fields.many2one('res.country', '', readonly=True, states={'cancel': [('readonly', True)], 'done':[('readonly', True)]}),
-        'state_id': fields.many2one('res.country.state', '', readonly=True, states={'cancel': [('readonly', True)], 'done':[('readonly', True)]}),
-        'zip': fields.char('', size = 1024, readonly=True, states={'cancel': [('readonly', True)], 'done':[('readonly', True)]}),
-        'payment_term_id': fields.many2one('account.payment.term', 'Payment Term', states={'cancel': [('readonly', True)], 'done':[('readonly', True)]}),
-        'currency_id': fields.many2one('res.currency', 'Currency', states={'cancel': [('readonly', True)], 'done':[('readonly', True)]}),
-        'bo_date': fields.date('BO Date', required = True, readonly = True,  states={'cancel': [('readonly', True)], 'done':[('readonly', True)]}),
-        'po_date': fields.date('PO Date', required = True, states={'cancel': [('readonly', True)], 'done':[('readonly', True)]}),
-        'po_number': fields.char('PO Number', size = 1024, states={'cancel': [('readonly', True)], 'done':[('readonly', True)]}),
-        'quotaion_no': fields.char('Quotation No', size = 1024, states={'cancel': [('readonly', True)], 'done':[('readonly', True)]}),
-        'excise_duty_id': fields.many2one('account.tax', 'Excise Duty', domain="[('type_tax_use','=','excise_duty')]", required = True, states={'cancel': [('readonly', True)], 'done':[('readonly', True)]}),
-        'sale_tax_id': fields.many2one('account.tax', 'Sale Tax', domain="[('type_tax_use','=','sale')]", required = True, states={'cancel': [('readonly', True)], 'done':[('readonly', True)]}), 
-        'incoterm_id': fields.many2one('stock.incoterms', 'Incoterms', required = True, states={'cancel': [('readonly', True)], 'done':[('readonly', True)]}),
-        'reason': fields.text('Reason', states={'cancel': [('readonly', True)], 'done':[('readonly', True)]}),
-        'exp_delivery_date': fields.date('Expected delivery Date', required = True, states={'cancel': [('readonly', True)], 'done':[('readonly', True)]}),
-        'channel': fields.many2one('crm.case.channel', 'Distribution Channel', states={'cancel': [('readonly', True)], 'done':[('readonly', True)]}),
-        'order_type':fields.selection([('domestic','Domestic'),('export','Export')],'Order Type' ,required=True, states={'cancel': [('readonly', True)], 'done':[('readonly', True)]}),
-        'document_type':fields.selection([('blankedorder','Blanked Order')], 'Document Type',required=True, states={'cancel': [('readonly', True)], 'done':[('readonly', True)]}),
-        'blank_order_line': fields.one2many('tpt.blank.order.line', 'blanket_order_id', 'Sale Order', states={'cancel': [('readonly', True)], 'done':[('readonly', True)]}),
+        'customer_id': fields.many2one('res.partner', 'Customer', required = True, states={'cancel': [('readonly', True)], 'done':[('readonly', True)], 'approve':[('readonly', True)]}),
+        'invoice_address': fields.char('Invoice Address', size = 1024, readonly=True, states={'cancel': [('readonly', True)], 'done':[('readonly', True)], 'approve':[('readonly', True)]}),
+        'street2': fields.char('', size = 1024, readonly=True, states={'cancel': [('readonly', True)], 'done':[('readonly', True)], 'approve':[('readonly', True)]}),
+        'city': fields.char('', size = 1024, readonly=True, states={'cancel': [('readonly', True)], 'done':[('readonly', True)], 'approve':[('readonly', True)]}),
+        'country_id': fields.many2one('res.country', '', readonly=True, states={'cancel': [('readonly', True)], 'done':[('readonly', True)], 'approve':[('readonly', True)]}),
+        'state_id': fields.many2one('res.country.state', '', readonly=True, states={'cancel': [('readonly', True)], 'done':[('readonly', True)], 'approve':[('readonly', True)]}),
+        'zip': fields.char('', size = 1024, readonly=True, states={'cancel': [('readonly', True)], 'done':[('readonly', True)], 'approve':[('readonly', True)]}),
+        'payment_term_id': fields.many2one('account.payment.term', 'Payment Term', states={'cancel': [('readonly', True)], 'done':[('readonly', True)], 'approve':[('readonly', True)]}),
+        'currency_id': fields.many2one('res.currency', 'Currency', states={'cancel': [('readonly', True)], 'done':[('readonly', True)], 'approve':[('readonly', True)]}),
+        'bo_date': fields.date('BO Date', required = True, readonly = True,  states={'cancel': [('readonly', True)], 'done':[('readonly', True)], 'approve':[('readonly', True)]}),
+        'po_date': fields.date('PO Date', required = True, states={'cancel': [('readonly', True)], 'done':[('readonly', True)], 'approve':[('readonly', True)]}),
+        'po_number': fields.char('PO Number', size = 1024, states={'cancel': [('readonly', True)], 'done':[('readonly', True)], 'approve':[('readonly', True)]}),
+        'quotaion_no': fields.char('Quotation No', size = 1024, states={'cancel': [('readonly', True)], 'done':[('readonly', True)], 'approve':[('readonly', True)]}),
+        'excise_duty_id': fields.many2one('account.tax', 'Excise Duty', domain="[('type_tax_use','=','excise_duty')]", required = True, states={'cancel': [('readonly', True)], 'done':[('readonly', True)], 'approve':[('readonly', True)]}),
+        'sale_tax_id': fields.many2one('account.tax', 'Sale Tax', domain="[('type_tax_use','=','sale')]", required = True, states={'cancel': [('readonly', True)], 'done':[('readonly', True)], 'approve':[('readonly', True)]}), 
+        'incoterm_id': fields.many2one('stock.incoterms', 'Incoterms', required = True, states={'cancel': [('readonly', True)], 'done':[('readonly', True)], 'approve':[('readonly', True)]}),
+        'reason': fields.text('Reason', states={'cancel': [('readonly', True)], 'done':[('readonly', True)], 'approve':[('readonly', True)]}),
+        'exp_delivery_date': fields.date('Expected delivery Date', required = True, states={'cancel': [('readonly', True)], 'done':[('readonly', True)], 'approve':[('readonly', True)]}),
+        'channel': fields.many2one('crm.case.channel', 'Distribution Channel', states={'cancel': [('readonly', True)], 'done':[('readonly', True)], 'approve':[('readonly', True)]}),
+        'order_type':fields.selection([('domestic','Domestic'),('export','Export')],'Order Type' ,required=True, states={'cancel': [('readonly', True)], 'done':[('readonly', True)], 'approve':[('readonly', True)]}),
+        'document_type':fields.selection([('blankedorder','Blanked Order')], 'Document Type',required=True, states={'cancel': [('readonly', True)], 'done':[('readonly', True)], 'approve':[('readonly', True)]}),
+        'blank_order_line': fields.one2many('tpt.blank.order.line', 'blanket_order_id', 'Sale Order', states={'cancel': [('readonly', True)], 'done':[('readonly', True)], 'approve':[('readonly', True)]}),
         'amount_untaxed': fields.function(amount_all_blanket_orderline, multi='sums',string='Untaxed Amount',
                                          store={
                 'tpt.blanket.order': (lambda self, cr, uid, ids, c={}: ids, ['blank_order_line'], 10),
                 'tpt.blank.order.line': (_get_order, ['price_unit', 'sub_total', 'product_uom_qty'], 10),}, 
-            states={'cancel': [('readonly', True)], 'done':[('readonly', True)]}),
+            states={'cancel': [('readonly', True)], 'done':[('readonly', True)], 'approve':[('readonly', True)]}),
         'amount_tax': fields.function(amount_all_blanket_orderline, multi='sums',string='Taxes',
                                       store={
                 'tpt.blanket.order': (lambda self, cr, uid, ids, c={}: ids, ['blank_order_line'], 10),
                 'tpt.blank.order.line': (_get_order, ['price_unit', 'sub_total', 'product_uom_qty'], 10), }, 
-            states={'cancel': [('readonly', True)], 'done':[('readonly', True)]}),
+            states={'cancel': [('readonly', True)], 'done':[('readonly', True)], 'approve':[('readonly', True)]}),
         'amount_total': fields.function(amount_all_blanket_orderline, multi='sums',string='Total',
                                         store={
                 'tpt.blanket.order': (lambda self, cr, uid, ids, c={}: ids, ['blank_order_line'], 10),
                 'tpt.blank.order.line': (_get_order, ['price_unit', 'sub_total', 'product_uom_qty'], 10), },
-             states={'cancel': [('readonly', True)], 'done':[('readonly', True)]}),
+             states={'cancel': [('readonly', True)], 'done':[('readonly', True)], 'approve':[('readonly', True)]}),
         
-        'blank_consignee_line': fields.one2many('tpt.consignee', 'blanket_consignee_id', 'Consignee', states={'cancel': [('readonly', True)], 'done':[('readonly', True)]}), 
-        'state':fields.selection([('draft', 'Draft'),('cancel', 'Cancel'),('done', 'Closed')],'Status', readonly=True),
+        'blank_consignee_line': fields.one2many('tpt.consignee', 'blanket_consignee_id', 'Consignee', states={'cancel': [('readonly', True)], 'done':[('readonly', True)], 'approve':[('readonly', True)]}), 
+        'state':fields.selection([('draft', 'Draft'),('cancel', 'Cancel'),('done', 'Closed'), ('approve', 'Approve')],'Status', readonly=True),
         'flag2':fields.boolean(''),
     }
     
@@ -992,7 +1096,7 @@ class tpt_blanket_order(osv.osv):
         
     def bt_approve(self, cr, uid, ids, context=None):
         for line in self.browse(cr, uid, ids):
-            self.write(cr, uid, ids,{'state':'done'})
+            self.write(cr, uid, ids,{'state':'approve'})
         return True   
     
     def bt_cancel(self, cr, uid, ids, context=None):
@@ -1077,6 +1181,17 @@ class tpt_blank_order_line(osv.osv):
             res[line.id]['sub_total'] = subtotal
         return res
     
+    # Start:TPT - TO LOAD LOCATION DETAILS ON SELECTION OF CONSIGNEE
+    def onchange_consignee_id(self, cr, uid, ids, name_consignee_id = False, context=None):
+        vals = {}
+        if name_consignee_id :
+            line = self.pool.get('res.partner').browse(cr, uid, name_consignee_id)
+            vals = {
+                    'location': str(line.street or '') + str(line.street2 or '') + ' , ' + str(line.city or ''),    
+                    }
+        return {'value': vals}
+    # End:TPT
+    
     _columns = {
         'blanket_order_id': fields.many2one('tpt.blanket.order', 'Blank Order', ondelete = 'cascade'),
         'product_id': fields.many2one('product.product', 'Product', required = True),
@@ -1088,16 +1203,40 @@ class tpt_blank_order_line(osv.osv):
         'price_unit': fields.float('Unit Price'),
         'sub_total': fields.function(subtotal_blanket_orderline, store = True, multi='deltas' ,string='SubTotal'),
         'freight': fields.float('Freight'),
+        #Start:TPT - Added By @Balamurugan@ - TO ADD THE FOLLOWING FIELDS UNDER BO LINE 
+        'name': fields.char('Blanket Order Line No', size = 1024, readonly=True),# ADDED BY TPT
+        'name_consignee_id': fields.many2one('res.partner', 'Consignee', required = True),
+        'location': fields.char('Location', size = 1024), 
+        'state':fields.selection([('draft', 'Draft'),('cancel', 'Cancel'),('done', 'Closed')],'Status', readonly=True), 
+        'flag2':fields.boolean(''),
+        #End:TPT
                 }
-    
+    #Start:TPT Added By @Balamurugan@
+    _defaults = {
+        'state': 'draft',       
+        'flag2':False,        
+    }
+    #End:TPT
     def _check_product(self, cr, uid, ids, context=None):
         for product in self.browse(cr, uid, ids, context=context):
-            product_ids = self.search(cr, uid, [('id','!=',product.id),('product_id','=',product.product_id.id),('blanket_order_id', '=',product.blanket_order_id.id)])
+            #Start:TPT - COMMENTED TO AVOID THIS WARNING - NOW USER CAN SELECT SAME PRODUCT UNDER BLANKET ORDER
+            #product_ids = self.search(cr, uid, [('id','!=',product.id),('product_id','=',product.product_id.id),('blanket_order_id', '=',product.blanket_order_id.id)])            
+            #if product_ids:
+            #    raise osv.except_osv(_('Warning!'),_('Product %s was existed in same Blanket Order!'%(product.product_id.name)))
+            #   return False
+            product_ids = self.search(cr, uid, [('id','!=',product.id),('product_id','!=',product.product_id.id),('blanket_order_id', '=',product.blanket_order_id.id)])
             if product_ids:
-                raise osv.except_osv(_('Warning!'),_('Product %s was existed in same Blanket Order!'%(product.product_id.name)))
+                raise osv.except_osv(_('Warning!'),_('Different Products are not allowed in same Blanket Order!'))           
                 return False
+
             return True
-        
+            
+#             product_ids = self.search(cr, uid, [('id','!=',product.id),('product_id','=',product.product_id.id),('blanket_order_id', '=',product.blanket_order_id.id)])
+#             if product_ids:
+#                 raise osv.except_osv(_('Warning!'),_('Product %s was existed in same Blanket Order!'%(product.product_id.name)))
+#                 return False
+#             return True
+            #End:TPT
     _constraints = [
         (_check_product, 'Identical Data', ['blanket_order_id', 'product_id']),
     ]       
@@ -1118,6 +1257,27 @@ class tpt_blank_order_line(osv.osv):
         if 'price_unit' in vals:
             if (vals['price_unit'] < 0):
                 raise osv.except_osv(_('Warning!'),_('Unit Price is not allowed as negative values'))
+            
+        # Start:TPT - Added By @Balamurugan@ - To Show BO Line in the form of "ConsigneeName_ProductCode_Quantity "  in BO Line field under Sales Order Header - while create operation
+        sql_stt4 = '''
+                            select name from res_partner where id = %s
+                                '''%(vals['name_consignee_id'])
+        cr.execute(sql_stt4) 
+        #prodname = cr.fetchone()
+        consignee_name = str(cr.fetchone()).replace("(u'","")
+        consignee_name = consignee_name.replace("',)","")
+           
+        sql_stt5 = '''
+                            select default_code from product_product where id = %s
+                                '''%(vals['product_id'])
+        cr.execute(sql_stt5) 
+        #prodname = cr.fetchone()
+        prod_code = str(cr.fetchone()).replace("(u'","")
+        prod_code = prod_code.replace("',)","")
+
+        vals['name'] = consignee_name +'_'+prod_code+'_'+str(vals['product_uom_qty'])
+        # END:TPT
+        
         return super(tpt_blank_order_line, self).create(cr, uid, vals, context)
     
     def write(self, cr, uid, ids, vals, context=None):
@@ -1135,6 +1295,26 @@ class tpt_blank_order_line(osv.osv):
             if (line.price_unit < 0):
                 raise osv.except_osv(_('Warning!'),_('Unit Price is not allowed as negative values'))
         
+        # Start:TPT   Added By @Balamurugan@ - To Show BO Line in the form of "ConsigneeName_ProductCode_Quantity "  in BO Line field under Sales Order Header - while edit operation  
+        sql_stt4 = '''
+                            select name from res_partner where id = %s
+                                '''%(vals['name_consignee_id'])
+        cr.execute(sql_stt4) 
+        #prodname = cr.fetchone()
+        consignee_name = str(cr.fetchone()).replace("(u'","")
+        consignee_name = consignee_name.replace("',)","")
+           
+        sql_stt5 = '''
+                            select default_code from product_product where id = %s
+                                '''%(vals['product_id'])
+        cr.execute(sql_stt5) 
+        #prodname = cr.fetchone()
+        prod_code = str(cr.fetchone()).replace("(u'","")
+        prod_code = prod_code.replace("',)","")
+
+        vals['name'] = consignee_name +'_'+prod_code+'_'+str(vals['product_uom_qty'])
+        # END:TPT
+        
         return new_write
     
     def onchange_product_id(self, cr, uid, ids,product_id=False, context=None):
@@ -1144,7 +1324,13 @@ class tpt_blank_order_line(osv.osv):
             vals = {
                     'uom_po_id':product.uom_id.id,
                     'price_unit':product.list_price,
-                    'description': product.name
+                    'description': product.name,
+                    #Start TPT
+                    # Changes start by Yuvaraj_TPT on 27-01-2015, product type value populate based on chosen product.
+        #### chua co product_type in product master
+#                     'product_type': product.product_type,
+                    # Changes end by Yuvaraj_TPT on 27-01-2015, product type value populate based on chosen product.
+                    #END TPT
                     }
         return {'value': vals}
       
