@@ -13,11 +13,11 @@ from openerp import netsvc
 
 class product_product(osv.osv):
     _inherit = "product.product"
-# START TPT
+    
     _columns = {
-               'cate_name': fields.char('Cate Name',size=64),       
+                'cate_name': fields.char('Cate Name',size=64),       
     }
-#END TPT
+    
     def search(self, cr, uid, args, offset=0, limit=None, order=None, context=None, count=False):
         if context is None:
             context = {}
@@ -157,9 +157,7 @@ class sale_order(osv.osv):
         'sale_consignee_line':fields.one2many('tpt.sale.order.consignee','sale_order_consignee_id','Consignee'),
         'flag_t':fields.boolean('Flag',readonly =True ),
         'flag_p':fields.boolean('Flag',readonly =True ),
-        # Start:TPT 
         'blanket_line_id':fields.many2one('tpt.blank.order.line','Blanket Order Line'),
-        # End:TPT
     }
     _defaults = {
 #                  'name': lambda obj, cr, uid, context: '/',
@@ -248,6 +246,35 @@ class sale_order(osv.osv):
         
         return {'value': val}
     
+    def onchange_blanketorderline_id(self, cr, uid, ids, blanket_line_id=False, context=None):
+        vals = {}
+        for id in ids:
+            sql = '''
+                delete from sale_order_line where order_id = %s
+            '''%(id)
+            cr.execute(sql)
+        if blanket_line_id:
+            blanket_line = self.pool.get('tpt.blank.order.line').browse(cr, uid, blanket_line_id)
+            rs_order = {
+                  'product_id': blanket_line.product_id and blanket_line.product_id.id or False,
+                  'name': blanket_line.description or False,
+                  'product_type': blanket_line.product_type or False,
+                  'application_id': blanket_line.application_id and blanket_line.application_id.id or False,
+                  'product_uom_qty': blanket_line.product_uom_qty  or False,
+                  'product_uom': blanket_line.uom_po_id and blanket_line.uom_po_id.id or False,
+                  'price_unit': blanket_line.price_unit or False,
+                  'price_subtotal': blanket_line.sub_total or False,
+                  'freight': blanket_line.freight or False,
+                  'state': 'draft',
+                  'type': 'make_to_stock',
+                  'name_consignee_id' : blanket_line.name_consignee_id.id,
+                  'location':blanket_line.location,
+                            }
+            vals = {
+                    'order_line': [(0,0,rs_order)],
+                    'order_policy': 'picking',
+                        }
+        return {'value': vals}   
 #     def onchange_partner_id(self, cr, uid, ids, partner_id=False, blanket_id=False, context=None):
 #         vals = {}
 #         consignee_lines = []
@@ -304,81 +331,22 @@ class sale_order(osv.osv):
             vals['name'] = self.pool.get('ir.sequence').get(cr, uid, 'tpt.sale.order.import') or '/'
         new_id = super(sale_order, self).create(cr, uid, vals, context)
         sale = self.browse(cr, uid, new_id)
-        if sale.blanket_id:
-            flag=False
-            for blanket_line in sale.blanket_id.blank_order_line:
-                sql_so = '''
-                    select id from sale_order where blanket_id = %s and state!='cancel'
-                '''%(sale.blanket_id.id)
-                cr.execute(sql_so)
-                kq = cr.fetchall()
-                so_ids = []
-                if kq:
-                    for i in kq:
-                        so_ids.append(i[0])
-                    so_ids = str(so_ids).replace("[","(")
-                    so_ids = so_ids.replace("]",")")
-                    sql = '''
-                        select sol.product_id, sum(sol.product_uom_qty) as qty
-                        from sale_order_line sol
-                        inner join sale_order so on so.id = sol.order_id
-                        where sol.order_id in %s and sol.product_id = %s
-                        group by sol.product_id
-                    '''%(so_ids,blanket_line.product_id.id)
-                    cr.execute(sql)
-                    kq = cr.fetchall()
-#                 for data in kq:
-#                     if blanket_line.product_uom_qty < data[1]:
-#                         document_status = 'partially'
-#                         #Start TPT
-#                         #raise osv.except_osv(_('Warning!'),_('Quantity must be less than quantity of Blanket Order is product %s'%blanket_line.product_id.name_template))
-#                         #End TPT
-#                     elif blanket_line.product_uom_qty > data[1]:
-#                         document_status = 'partially'
-#                         flag=True
-# #                         sql_stt = '''
-# #                             update sale_order set document_status='partially' where id = %s
-# #                         '''%(sale.id)
-# #                         cr.execute(sql_stt)
-#                         sql_stt3 = '''
-#                           update tpt_blanket_order set state='draft' where id = %s
-#                            '''%(sale.blanket_id.id)
-#                         cr.execute(sql_stt3)
-#                     else:
-#                         document_status = 'close'
-                if flag==False:
-#                     sql_stt = '''
-#                         update sale_order set document_status='close' where id = %s
-#                     '''%(sale.id)
-#                     cr.execute(sql_stt)
-                    sql_stt2 = '''
-                          update tpt_blanket_order set state='done' where id = %s
-                           '''%(sale.blanket_id.id)
-                    #Start:TPT
-#                     cr.execute(sql_stt2)
-                    sql_stt3 = '''
-                          update tpt_blank_order_line set state='done' where id = %s
-                           '''%(sale.blanket_line_id.id)
-                    cr.execute(sql_stt3)   
-                    sql6 = ''' select count(*) from sale_order where blanket_id=%s '''%(sale.blanket_id.id)
-                    cr.execute(sql6)  
-                    c1 = cr.fetchone()
-                    sql7 =''' select count(*) from tpt_blank_order_line where blanket_order_id=%s '''%(sale.blanket_id.id)
-                    cr.execute(sql7)  
-                    c2 = cr.fetchone()
-                    if c1==c2:
-                        sql_stt4 = '''
-                            update tpt_blanket_order set state = 'done'
-                            FROM (select id,blanket_order_id FROM tpt_blank_order_line where state='done')
-                            AS subquery
-                            WHERE tpt_blanket_order.id=subquery.blanket_order_id and  blanket_order_id=%s
-                                '''%(sale.blanket_id.id)
-                        cr.execute(sql_stt4)  
-                    #End:TPT
+        for line in sale.order_line:
+            if line.product_uom_qty > sale.blanket_line_id.product_uom_qty:
+                raise osv.except_osv(_('Warning!'),_('Quantity must be less than blanket order line quantity!'))
+        temp = 0
+        for blanket_line in sale.blanket_id.blank_order_line:
+            sale_ids = self.search(cr, uid, [('blanket_line_id','=',blanket_line.id)])
+            if sale_ids:
+                temp += 1
+        if temp==len(sale.blanket_id.blank_order_line):
+            sql = '''
+                update tpt_blanket_order set state = 'done' where id=%s 
+            '''%(sale.blanket_id.id)
+            cr.execute(sql)
         return new_id
     
     def write(self, cr, uid, ids, vals, context=None):
-
         new_write = super(sale_order, self).write(cr, uid,ids, vals, context)
         for sale in self.browse(cr, uid, ids):
             if 'shipped' in vals:
@@ -387,78 +355,21 @@ class sale_order(osv.osv):
                          update sale_order set document_status='close' where id = %s
                     '''%(sale.id)
                     cr.execute(sql)
-            if sale.blanket_id:
-                flag=False
-                for blanket_line in sale.blanket_id.blank_order_line:
-                    sql_so = '''
-                        select id from sale_order where blanket_id = %s and state!='cancel'
-                    '''%(sale.blanket_id.id)
-                    cr.execute(sql_so)
-                    kq = cr.fetchall()
-                    so_ids = []
-                    if kq:
-                        for i in kq:
-                            so_ids.append(i[0])
-                        so_ids = str(so_ids).replace("[","(")
-                        so_ids = so_ids.replace("]",")")
-                        sql = '''
-                            select sol.product_id, sum(sol.product_uom_qty) as qty
-                            from sale_order_line sol
-                            inner join sale_order so on so.id = sol.order_id
-                            where sol.order_id in %s and sol.product_id = %s
-                            group by sol.product_id
-                        '''%(so_ids,blanket_line.product_id.id)
-                        cr.execute(sql)
-                        kq = cr.fetchall()
-#                     for data in kq:
-#                         if blanket_line.product_uom_qty < data[1]:
-#                             raise osv.except_osv(_('Warning!'),_('Quantity must be less than quantity of Blanket Order is product %s'%blanket_line.product_id.name_template))
-#                         elif blanket_line.product_uom_qty > data[1]:
-#                             flag=True
-# #                             sql_stt = '''
-# #                                update sale_order set document_status='partially' where id = %s
-# #                                 '''%(sale.id)
-# #  
-# #                             cr.execute(sql_stt)
-#                             sql_stt3 = '''
-#                               update tpt_blanket_order set state='draft' where id = %s
-#                                '''%(sale.blanket_id.id)
-#                             cr.execute(sql_stt3)
-#                         else:
-#                             document_status = 'close'
-                    if flag==False:
-#                        sql_stt = '''
-#                           update sale_order set document_status='close' where id = %s
-#                            '''%(sale.id)
-#                        cr.execute(sql_stt)
-                       sql_stt2 = '''
-                          update tpt_blanket_order set state='done' where id = %s
-                           '''%(sale.blanket_id.id)
-                       #Start:TPT
-                       #cr.execute(sql_stt2) COMMENTED BY TPT
-                       sql_stt3 = '''
-                          update tpt_blank_order_line set state='done' where id = %s
-                           '''%(sale.blanket_line_id.id)
-                       cr.execute(sql_stt3)   
-                       sql6 = ''' select count(*) from sale_order where blanket_id=%s '''%(sale.blanket_id.id)
-                       cr.execute(sql6)  
-                       c1 = cr.fetchone()
-                       sql7 =''' select count(*) from tpt_blank_order_line where blanket_order_id=%s '''%(sale.blanket_id.id)
-                       cr.execute(sql7)  
-                       c2 = cr.fetchone()
-                       if c1==c2:
-                            sql_stt4 = '''
-                            update tpt_blanket_order set state = 'done'
-                            FROM (select id,blanket_order_id FROM tpt_blank_order_line where state='done')
-                            AS subquery
-                            WHERE tpt_blanket_order.id=subquery.blanket_order_id and  blanket_order_id=%s
-                                '''%(sale.blanket_id.id)
-                       cr.execute(sql_stt4)  
-                    #End:TPT
+            for line in sale.order_line:
+                if line.product_uom_qty > sale.blanket_line_id.product_uom_qty:
+                    raise osv.except_osv(_('Warning!'),_('Quantity must be less than blanket order line quantity!'))
+            temp=0
+            for blanket_line in sale.blanket_id.blank_order_line:
+                sale_ids = self.search(cr, uid, [('blanket_line_id','=',blanket_line.id)])
+                if sale_ids:
+                    temp += 1
+            if temp==len(sale.blanket_id.blank_order_line):
+                sql = '''
+                    update tpt_blanket_order set state = 'done' where id=%s 
+                '''%(sale.blanket_id.id)
+                cr.execute(sql)
         return new_write
-    
 
-    
     def onchange_blanket_id(self, cr, uid, ids,blanket_id=False, context=None):
         vals = {}
         blanket_lines = []
@@ -506,10 +417,7 @@ class sale_order(osv.osv):
                                   'state': 'draft',
                                   'type': 'make_to_stock',
                                   }
-                            #Start TPT
-                            # this line commented by TPT to avoid loading BO Line on selection of Blanket Order
-#                             blanket_lines.append((0,0,rs_order))
-                            #END TPT
+                            blanket_lines.append((0,0,rs_order))
                 else:
                     rs_order = {
                                   'product_id': blanket_line.product_id and blanket_line.product_id.id or False,
@@ -524,10 +432,7 @@ class sale_order(osv.osv):
                                   'state': 'draft',
                                   'type': 'make_to_stock',
                                   }
-                    #Start TPT
-                    # this line commented by TPT to avoid loading BO Line on selection of Blanket Order
-#                     blanket_lines.append((0,0,rs_order))
-                    #END TPT
+                    blanket_lines.append((0,0,rs_order))
               
             addr = self.pool.get('res.partner').address_get(cr, uid, [blanket.customer_id.id], ['delivery', 'invoice', 'contact'])
             
@@ -550,62 +455,14 @@ class sale_order(osv.osv):
                     'sale_tax_id':blanket.sale_tax_id and blanket.sale_tax_id.id or False, 
                     'reason':blanket.reason or False,
                     'amount_untaxed': blanket.amount_untaxed or False,
-                    'order_line':blanket_lines or False,
+                    'order_line':[],
+                    'blanket_line_id': False,
                     'order_policy': 'picking',
                     'partner_invoice_id': addr['invoice'],
 #                     'document_status':'close',
 #                     'sale_consignee_line':consignee_lines or False,
                         }
         return {'value': vals}    
-    
-    # Start:TPT - Added By @Balamurugan@ on 21/01/2015 - To load selected BO Line under SO Line Tab
-
-    def onchange_blanketorderline_id(self, cr, uid, ids, blanket_line_id=False, context=None):
-        vals = {}
-        blanket_lines = []
-        consignee_lines = []
-        if blanket_line_id:
-            #blanket = self.pool.get('tpt.blanket.order').browse(cr, uid, blanket_id)
-            blanket_line = self.pool.get('tpt.blank.order.line').browse(cr, uid, blanket_line_id)
-            #print blanket.blanket_order
-            #blanketorder_lines = self.pool.get('tpt.blanket.order.line').browse(cr, uid, blanket_id)
-            
-           
-            rs_order = {
-                                  'product_id': blanket_line.product_id and blanket_line.product_id.id or False,
-                                  'name': blanket_line.description or False,
-                                  'product_type': blanket_line.product_type or False,
-                                  'application_id': blanket_line.application_id and blanket_line.application_id.id or False,
-                                  'product_uom_qty': blanket_line.product_uom_qty  or False,
-                                  'product_uom': blanket_line.uom_po_id and blanket_line.uom_po_id.id or False,
-                                  'price_unit': blanket_line.price_unit or False,
-                                  'price_subtotal': blanket_line.sub_total or False,
-                                  'freight': blanket_line.freight or False,
-                                  'state': 'draft',
-                                  'type': 'make_to_stock',
-                                  'name_consignee_id' : blanket_line.name_consignee_id.id,
-                                  'location':blanket_line.location,
-                                   
-                            }
-            blanket_lines.append((0,0,rs_order))
-
-           # addr = self.pool.get('res.partner').address_get(cr, uid, [blanket.customer_id.id], ['delivery', 'invoice', 'contact'])
-            
-            vals = {
-
-                    'order_line':blanket_lines or False,
-                    'order_policy': 'picking',
-                   # 'partner_invoice_id': addr['invoice'],
-#                     'document_status':'close',
-                    #'product_id': blanketorderline.product_id.id,
-                    
-                     #'blanket_line_id':blanket_lines.blanket_line_id,
-                    ###'blanket_line_id':blanket_lines or False,
-#                     'sale_consignee_line':consignee_lines or False,
-                        }
-        return {'value': vals}    
-
-    #End:TPT
     
 #     def onchange_blanket_id(self, cr, uid, ids,blanket_id=False, context=None):
 #         vals = {}
@@ -1120,7 +977,15 @@ class tpt_blanket_order(osv.osv):
                         'state_id': customer.state_id and customer.state_id.id or False,
                         'zip': customer.zip or False,
                          })
-        return super(tpt_blanket_order, self).create(cr, uid, vals, context=context)
+        new_id = super(tpt_blanket_order, self).create(cr, uid, vals, context=context)
+        blanket = self.browse(cr, uid, new_id)
+        con_ids = []
+        for con_line in blanket.customer_id.consignee_line:
+            con_ids.append(con_line.id)
+        for blanket_line in blanket.blank_order_line:
+            if blanket_line.name_consignee_id.id not in con_ids:
+                raise osv.except_osv(_('Warning!'),_('This consignee "%s" does not belong to the selected customer "%s"!')%(blanket_line.name_consignee_id.name,blanket.customer_id.name))
+        return new_id
     
     def write(self, cr, uid, ids, vals, context=None):
         if 'customer_id' in vals:
@@ -1133,7 +998,15 @@ class tpt_blanket_order(osv.osv):
                         'state_id': customer.state_id and customer.state_id.id or False,
                         'zip': customer.zip or False,
                          })
-        return super(tpt_blanket_order, self).write(cr, uid, ids, vals, context=context)
+        new_write = super(tpt_blanket_order, self).write(cr, uid, ids, vals, context=context) 
+        for blanket in self.browse(cr, uid, ids):
+            con_ids = []
+            for con_line in blanket.customer_id.consignee_line:
+                con_ids.append(con_line.id)
+            for blanket_line in blanket.blank_order_line:
+                if blanket_line.name_consignee_id.id not in con_ids:
+                    raise osv.except_osv(_('Warning!'),_('This consignee "%s" does not belong to the selected customer "%s"!')%(blanket_line.name_consignee_id.name,blanket.customer_id.name))
+        return new_write
     
     def onchange_customer_id(self, cr, uid, ids,customer_id=False, context=None):
         vals = {}
@@ -1181,17 +1054,6 @@ class tpt_blank_order_line(osv.osv):
             res[line.id]['sub_total'] = subtotal
         return res
     
-    # Start:TPT - TO LOAD LOCATION DETAILS ON SELECTION OF CONSIGNEE
-    def onchange_consignee_id(self, cr, uid, ids, name_consignee_id = False, context=None):
-        vals = {}
-        if name_consignee_id :
-            line = self.pool.get('res.partner').browse(cr, uid, name_consignee_id)
-            vals = {
-                    'location': str(line.street or '') + str(line.street2 or '') + ' , ' + str(line.city or ''),    
-                    }
-        return {'value': vals}
-    # End:TPT
-    
     _columns = {
         'blanket_order_id': fields.many2one('tpt.blanket.order', 'Blank Order', ondelete = 'cascade'),
         'product_id': fields.many2one('product.product', 'Product', required = True),
@@ -1203,43 +1065,38 @@ class tpt_blank_order_line(osv.osv):
         'price_unit': fields.float('Unit Price'),
         'sub_total': fields.function(subtotal_blanket_orderline, store = True, multi='deltas' ,string='SubTotal'),
         'freight': fields.float('Freight'),
-        #Start:TPT - Added By @Balamurugan@ - TO ADD THE FOLLOWING FIELDS UNDER BO LINE 
-        'name': fields.char('Blanket Order Line No', size = 1024, readonly=True),# ADDED BY TPT
         'name_consignee_id': fields.many2one('res.partner', 'Consignee', required = True),
         'location': fields.char('Location', size = 1024), 
-        'state':fields.selection([('draft', 'Draft'),('cancel', 'Cancel'),('done', 'Closed')],'Status', readonly=True), 
-        'flag2':fields.boolean(''),
-        #End:TPT
                 }
-    #Start:TPT Added By @Balamurugan@
-    _defaults = {
-        'state': 'draft',       
-        'flag2':False,        
-    }
-    #End:TPT
+    
     def _check_product(self, cr, uid, ids, context=None):
         for product in self.browse(cr, uid, ids, context=context):
-            #Start:TPT - COMMENTED TO AVOID THIS WARNING - NOW USER CAN SELECT SAME PRODUCT UNDER BLANKET ORDER
-            #product_ids = self.search(cr, uid, [('id','!=',product.id),('product_id','=',product.product_id.id),('blanket_order_id', '=',product.blanket_order_id.id)])            
-            #if product_ids:
-            #    raise osv.except_osv(_('Warning!'),_('Product %s was existed in same Blanket Order!'%(product.product_id.name)))
-            #   return False
             product_ids = self.search(cr, uid, [('id','!=',product.id),('product_id','!=',product.product_id.id),('blanket_order_id', '=',product.blanket_order_id.id)])
             if product_ids:
                 raise osv.except_osv(_('Warning!'),_('Different Products are not allowed in same Blanket Order!'))           
                 return False
-
             return True
-            
-#             product_ids = self.search(cr, uid, [('id','!=',product.id),('product_id','=',product.product_id.id),('blanket_order_id', '=',product.blanket_order_id.id)])
-#             if product_ids:
-#                 raise osv.except_osv(_('Warning!'),_('Product %s was existed in same Blanket Order!'%(product.product_id.name)))
-#                 return False
-#             return True
-            #End:TPT
+        
     _constraints = [
         (_check_product, 'Identical Data', ['blanket_order_id', 'product_id']),
     ]       
+    
+    def name_get(self, cr, uid, ids, context=None):
+        res = []
+        if isinstance(ids, (int, long)):
+            ids = [ids]
+        if not ids:
+            return res
+        reads = self.read(cr, uid, ids, ['name_consignee_id','product_id','product_uom_qty'], context)
+        for record in reads:
+            name = ''
+            if record['name_consignee_id']:
+                name += record['name_consignee_id'][1]+'_'
+            if record['product_id']:
+                name += record['product_id'][1]+'_'
+            name += str(record['product_uom_qty'])
+            res.append((record['id'], name))
+        return res
     
     def create(self, cr, uid, vals, context=None):
         if 'product_id' in vals:
@@ -1257,27 +1114,6 @@ class tpt_blank_order_line(osv.osv):
         if 'price_unit' in vals:
             if (vals['price_unit'] < 0):
                 raise osv.except_osv(_('Warning!'),_('Unit Price is not allowed as negative values'))
-            
-        # Start:TPT - Added By @Balamurugan@ - To Show BO Line in the form of "ConsigneeName_ProductCode_Quantity "  in BO Line field under Sales Order Header - while create operation
-        sql_stt4 = '''
-                            select name from res_partner where id = %s
-                                '''%(vals['name_consignee_id'])
-        cr.execute(sql_stt4) 
-        #prodname = cr.fetchone()
-        consignee_name = str(cr.fetchone()).replace("(u'","")
-        consignee_name = consignee_name.replace("',)","")
-           
-        sql_stt5 = '''
-                            select default_code from product_product where id = %s
-                                '''%(vals['product_id'])
-        cr.execute(sql_stt5) 
-        #prodname = cr.fetchone()
-        prod_code = str(cr.fetchone()).replace("(u'","")
-        prod_code = prod_code.replace("',)","")
-
-        vals['name'] = consignee_name +'_'+prod_code+'_'+str(vals['product_uom_qty'])
-        # END:TPT
-        
         return super(tpt_blank_order_line, self).create(cr, uid, vals, context)
     
     def write(self, cr, uid, ids, vals, context=None):
@@ -1295,27 +1131,30 @@ class tpt_blank_order_line(osv.osv):
             if (line.price_unit < 0):
                 raise osv.except_osv(_('Warning!'),_('Unit Price is not allowed as negative values'))
         
-        # Start:TPT   Added By @Balamurugan@ - To Show BO Line in the form of "ConsigneeName_ProductCode_Quantity "  in BO Line field under Sales Order Header - while edit operation  
-        sql_stt4 = '''
-                            select name from res_partner where id = %s
-                                '''%(vals['name_consignee_id'])
-        cr.execute(sql_stt4) 
-        #prodname = cr.fetchone()
-        consignee_name = str(cr.fetchone()).replace("(u'","")
-        consignee_name = consignee_name.replace("',)","")
-           
-        sql_stt5 = '''
-                            select default_code from product_product where id = %s
-                                '''%(vals['product_id'])
-        cr.execute(sql_stt5) 
-        #prodname = cr.fetchone()
-        prod_code = str(cr.fetchone()).replace("(u'","")
-        prod_code = prod_code.replace("',)","")
-
-        vals['name'] = consignee_name +'_'+prod_code+'_'+str(vals['product_uom_qty'])
-        # END:TPT
-        
         return new_write
+    
+    def search(self, cr, uid, args, offset=0, limit=None, order=None, context=None, count=False):
+        if context is None:
+            context = {}
+        if context.get('search_blanket_line'):
+            blanket_id = context.get('blanket_id')
+            blanket_line_id = context.get('blanket_line_id')
+            blanket_line_ids = []
+            if blanket_id:
+                sql = '''
+                    select id from tpt_blank_order_line
+                        where blanket_order_id = %s and id not in (select blanket_line_id from sale_order where blanket_id=%s)
+                '''%(blanket_id,blanket_id)
+                cr.execute(sql)
+                blanket_line_ids = [row[0] for row in cr.fetchall()]
+            if blanket_line_id:
+                blanket_line_ids.append(blanket_line_id)
+            args += [('id','in',blanket_line_ids)]
+        return super(tpt_blank_order_line, self).search(cr, uid, args, offset=offset, limit=limit, order=order, context=context, count=count)
+    
+    def name_search(self, cr, user, name, args=None, operator='ilike', context=None, limit=100):
+       ids = self.search(cr, user, args, context=context, limit=limit)
+       return self.name_get(cr, user, ids, context=context)
     
     def onchange_product_id(self, cr, uid, ids,product_id=False, context=None):
         vals = {}
@@ -1324,16 +1163,19 @@ class tpt_blank_order_line(osv.osv):
             vals = {
                     'uom_po_id':product.uom_id.id,
                     'price_unit':product.list_price,
-                    'description': product.name,
-                    #Start TPT
-                    # Changes start by Yuvaraj_TPT on 27-01-2015, product type value populate based on chosen product.
-        #### chua co product_type in product master
-#                     'product_type': product.product_type,
-                    # Changes end by Yuvaraj_TPT on 27-01-2015, product type value populate based on chosen product.
-                    #END TPT
+                    'description': product.name
                     }
         return {'value': vals}
-      
+    
+    def onchange_consignee_id(self, cr, uid, ids, name_consignee_id = False, context=None):
+        vals = {}
+        if name_consignee_id :
+            line = self.pool.get('res.partner').browse(cr, uid, name_consignee_id)
+            vals = {
+                    'location': str(line.street or '') + str(line.street2 or '') + ' , ' + str(line.city or ''),    
+                    }
+        return {'value': vals}
+    
 tpt_blank_order_line()
 
 class tpt_consignee(osv.osv):

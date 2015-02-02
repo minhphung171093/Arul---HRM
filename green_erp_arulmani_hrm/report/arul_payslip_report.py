@@ -58,7 +58,7 @@ class Parser(report_sxw.rml_parse):
         payroll_obj = self.pool.get('arul.hr.payroll.executions.details')
         res = []
         for emp_id in emp_ids :
-            payroll_ids = payroll_obj.search(self.cr, self.uid,[('month','=',month),('year','=',year),('employee_id','=',emp_id),('payroll_executions_id.state','=','approve')])
+            payroll_ids = payroll_obj.search(self.cr, self.uid,[('month','=',month),('year','=',year),('employee_id','=',emp_id),('payroll_executions_id.state','in',['confirm','approve'])])
             basic = 0
             hra = 0
             conv = 0
@@ -76,12 +76,20 @@ class Parser(report_sxw.rml_parse):
             loan = 0
             epf = 0
             lwf = 0
+            total_fd = 0
             if payroll_ids:
                 payroll = payroll_obj.browse(self.cr, self.uid, payroll_ids[0])
                 epf = payroll.emp_pf_con
                 esi_limit = payroll.emp_esi_limit
                 esi_con = payroll.emp_esi_con
                 lwf = payroll.emp_lwf_amt
+                
+                sql = '''
+                        select case when sum(employee_amt)!=0 then sum(employee_amt) else 0 end total_fd from meals_details where emp_id = %s and meals_id in (select id from meals_deduction where meals_for='employees' and EXTRACT(year FROM meals_date) = %s and EXTRACT(month FROM meals_date) = %s)
+                    '''%(emp_id,year,int(month))
+                self.cr.execute(sql)
+                total_fd = self.cr.dictfetchone()['total_fd']
+                
                 for earning in payroll.earning_structure_line:
                     if earning.earning_parameters_id.code=='BASIC':
                         basic += earning.float
@@ -118,7 +126,7 @@ class Parser(report_sxw.rml_parse):
                     'emp_name': payroll.employee_id.name + ' ' + (payroll.employee_id.last_name and payroll.employee_id.last_name or ''),
                     'emp_code':payroll.employee_id.employee_id,
                     'emp_designation':payroll.designation_id.name,
-                    'emp_doj': payroll.employee_id.date_of_joining,
+                    'emp_doj': payroll.employee_id.date_of_joining and (payroll.employee_id.date_of_joining[8:10]+'/'+payroll.employee_id.date_of_joining[5:7]+'/'+payroll.employee_id.date_of_joining[:4]) or '',
                     'basic': basic,
                     'hra': hra,
                     'conv': conv,
@@ -136,6 +144,7 @@ class Parser(report_sxw.rml_parse):
                     'loan': loan ,
                     'epf': epf,
                     'lwf':lwf,
+                    'total_fd':total_fd,
                 
                 })
         return res
