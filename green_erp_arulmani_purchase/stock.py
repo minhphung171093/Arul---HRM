@@ -191,7 +191,7 @@ class stock_picking_in(osv.osv):
         if context.get('search_default_grn_by_return_req'):
             sql = '''
                 select id from stock_picking
-                where state != 'draft' and state != 'cancel' and id not in (select grn_id from tpt_gate_out_pass where state != 'cancel')
+                where state != 'draft' and id not in (select grn_id from tpt_gate_out_pass where state != 'cancel')
                 and id in (select grn_no_id from tpt_good_return_request where state = 'done')
             '''
             cr.execute(sql)

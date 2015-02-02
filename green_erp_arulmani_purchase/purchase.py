@@ -1015,10 +1015,10 @@ class tpt_good_return_request(osv.osv):
     _name = "tpt.good.return.request"
     
     _columns = {
-        'grn_no_id' : fields.many2one('stock.picking.in', 'GRN No', required = True, states={'done':[('readonly', True)]}), 
-        'request_date': fields.datetime('Request Date', states={'done':[('readonly', True)]}), 
-        'product_detail_line': fields.one2many('tpt.product.detail.line', 'request_id', 'Product Detail', states={'done':[('readonly', True)]}), 
-        'state':fields.selection([('draft', 'Draft'),('done', 'Done')],'Status', readonly=True),
+        'grn_no_id' : fields.many2one('stock.picking.in', 'GRN No', required = True, states={'cancel': [('readonly', True)],'done':[('readonly', True)]}), 
+        'request_date': fields.datetime('Request Date', states={'cancel': [('readonly', True)],'done':[('readonly', True)]}), 
+        'product_detail_line': fields.one2many('tpt.product.detail.line', 'request_id', 'Product Detail', states={'cancel': [('readonly', True)],'done':[('readonly', True)]}), 
+        'state':fields.selection([('draft', 'Draft'),('cancel', 'Cancelled'),('done', 'Done')],'Status', readonly=True),
                 }
     _defaults = {
         'request_date': time.strftime('%Y-%m-%d %H:%M:%S'),
@@ -1061,7 +1061,11 @@ class tpt_good_return_request(osv.osv):
         for line in self.browse(cr, uid, ids):
             self.write(cr, uid, ids,{'state':'done'})
         return True 
-    
+
+    def bt_cancel(self, cr, uid, ids, context=None):
+        for line in self.browse(cr, uid, ids):
+            self.write(cr, uid, ids,{'state':'cancel'})
+        return True     
 tpt_good_return_request()
 
 class tpt_product_detail_line(osv.osv):

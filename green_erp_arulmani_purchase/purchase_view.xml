@@ -428,11 +428,12 @@
 	            <form string="Goods Return Request" version="7.0">   
 	            <header>
 	                    <button name="bt_approve" states='draft' string="Approve Request" type="object" class="oe_highlight" />
-	                    <field name="state" widget="statusbar" statusbar_visible="draft,done" statusbar_colors='{"draft":"blue"}'/>
+	                    <button name="bt_cancel" states='draft' string="Cancel Request" type="object" class="oe_highlight" />
+	                    <field name="state" widget="statusbar" statusbar_visible="draft,cancel,done" statusbar_colors='{"draft":"blue"}'/>
 	            </header>
 	            	<sheet>
 		                <group > 
-			                <field name="grn_no_id" on_change = "onchange_grn_no_id(grn_no_id)" domain="[('type','=','in')]" options="{'create': false, 'create_edit': false}"/>
+			                <field name="grn_no_id"   on_change = "onchange_grn_no_id(grn_no_id)" domain="[('type','=','in')]" options="{'create': false, 'create_edit': false}"/>
 							<field name="request_date"/>
 						</group>
 						<notebook>
@@ -470,7 +471,7 @@
 			<field name="name">tpt.purchase.chart.tree</field>
 			<field name="model">tpt.purchase.quotation</field>
 			<field name="arch" type="xml">
-				<tree string="Comparison Chart">
+				<tree string="Comparison Chart" create='false' >
 						<field name="name"/>
 						<field name="supplier_id" />
 						<field name="supplier_location_id" />
@@ -489,7 +490,7 @@
             <field name="name">tpt.purchase.chart.form</field>
             <field name="model">tpt.purchase.quotation</field>
             <field name="arch" type="xml">
-	            <form string="Comparison Chart" version="7.0">
+	            <form string="Comparison Chart" version="7.0" create='false' edit = 'false' >
 	            <header>
 	                    <field name="state" widget="statusbar" statusbar_visible="draft,cancel,done" statusbar_colors='{"draft":"blue","cancel":"blue"}'/>
 	            </header>    
@@ -859,6 +860,9 @@
             </field>
         </record>
 
+   	 <menuitem id="base.menu_procurement_management_supplier_name" name="Vendor"
+        parent="purchase.menu_procurement_management"
+        action="base.action_partner_supplier_form" sequence="15"/>
 
     </data>
 </openerp>
