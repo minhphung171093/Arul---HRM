@@ -103,8 +103,11 @@
 					<attribute name='string'>PO Line</attribute>
 				</xpath> 
 				<xpath expr="//page[@string='PO Line']/field/tree/field[@name='name']" position="attributes">
-					<attribute name='invisible'>1</attribute>
+					<attribute name='invisible'>0</attribute>
 				</xpath> 
+				<xpath expr="//page[@string='PO Line']/field/tree/field[@name='name']" position="attributes">
+					<attribute name='required'>1</attribute>
+				</xpath>
 				<xpath expr="//page[@string='PO Line']/field/tree/field[@name='date_planned']" position="attributes">
 					<attribute name='required'>0</attribute>
 				</xpath> 
@@ -115,9 +118,6 @@
 				<xpath expr="//page[@string='PO Line']/field/tree/field[@name='taxes_id']" position="attributes">
 					<attribute name='invisible'>1</attribute>
 				</xpath> 
-				<xpath expr="//page[@string='PO Line']/field/tree/field[@name='name']" position="attributes">
-					<attribute name='required'>0</attribute>
-				</xpath>
 				<xpath expr="//page[@string='PO Line']/field/tree/field[@name='product_uom']" position="replace">
 					<field name="product_uom" string = 'UOM' groups="product.group_uom" on_change="onchange_product_uom(parent.pricelist_id,product_id,product_qty,product_uom,parent.partner_id, parent.date_order,parent.fiscal_position,date_planned,name,price_unit,context)"/>
 				</xpath> 
@@ -141,10 +141,11 @@
 				<xpath expr="//label[@for='name']" position="replace">
 					<label for="name" string = 'Category Code' class="oe_edit_only"/>
 				</xpath> 
-				<xpath expr="//field[@name='parent_id']" position="after">
+				<xpath expr="//field[@name='parent_id']" position="before">
 					<field name="cate_name"/>
 				</xpath> 
-				<xpath expr="//field[@name='type']" position="after">
+				<xpath expr="//field[@name='type']" position="before">
+					<newline/>
 					<field name="description"/>
 				</xpath> 
 			</field>
@@ -280,7 +281,7 @@
 			        </header>
 	            	<sheet>
 		                <group > 
-			                <field name="po_id" on_change = "onchange_po_id(po_id)" options="{'create': false, 'create_edit': false}"/>
+			                <field name="po_id" domain="[('state','=','approved')]" on_change = "onchange_po_id(po_id)" options="{'create': false, 'create_edit': false}"/>
 			                <field name="po_date"/>
 			                <field name="supplier_id" domain="[('supplier','=',1)]" options="{'create': false, 'create_edit': false}"/>
 							<field name="name"/>
@@ -832,8 +833,12 @@
                     	<field name="pur_orgin_code_id" options="{'create': false, 'create_edit': false}" attrs="{'invisible': [('supplier','=',False)]}" />
                     </xpath>
                     
+                    <xpath expr="//field[@name='title']" position="replace">
+                    </xpath>
+                    
                     <xpath expr="//field[@name='name']" position="before">
                         <field name="vendor_code" placeholder="Vendor Code" attrs="{'invisible': [('supplier','=',False)]}" />
+                    	<field name="title" domain="[('domain', '=', 'contact')]" options="{&quot;no_open&quot;: True}" attrs="{'invisible': [('is_company','=', True)]}"/>
                     </xpath>
                     
                      <xpath expr="//field[@name='email']" position="after">
@@ -842,7 +847,13 @@
                 </data>
             </field>
         </record>
-
-
+        
+   <!--     <menuitem name="Material Category"
+            action="product.product_category_action_form" id="purchase.menu_product_category_config_purchase"
+            parent="purchase.menu_product_in_config_purchase" sequence="1" />
+            
+		<menuitem name="Material" id="purchase.menu_procurement_partner_contact_form" action="product.product_normal_action_puchased"
+          parent="purchase.menu_procurement_management_product"/>   -->
+          
     </data>
 </openerp>

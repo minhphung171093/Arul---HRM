@@ -190,19 +190,50 @@ class product_category(osv.osv):
     _inherit = "product.category"
     _columns = {
         'cate_name':fields.selection([('raw','Raw Materials'),('finish','Finished Product'),('spares','Spares'),('consum','Consumables')], 'Category Name', required = True),
-        'description':fields.text('Description'),
+        'description':fields.text('Description',size = 256),
         }
+    
+    def create(self, cr, uid, vals, context=None):
+        if 'name' in vals:
+            name = vals['name'].replace(" ","")
+            vals['name'] = name
+        return super(product_category, self).create(cr, uid, vals, context)
+    
+    def write(self, cr, uid, ids, vals, context=None):
+        if 'name' in vals:
+            name = vals['name'].replace(" ","")
+            vals['name'] = name
+        return super(product_category, self).write(cr, uid,ids, vals, context)
+    
+#     def _check_code_id(self, cr, uid, ids, context=None):
+#         for cost in self.browse(cr, uid, ids, context=context):
+#             sql = '''
+#                 select id from product_category where id != %s and lower(name) = lower('%s')
+#             '''%(cost.id,cost.name)
+#             cr.execute(sql)
+#             cost_ids = [row[0] for row in cr.fetchall()]
+#             if cost_ids:  
+#                 return False
+#         return True
     
     def _check_product_category(self, cr, uid, ids, context=None):
         for pro_cate in self.browse(cr, uid, ids, context=context):
-            pro_cate_ids = self.search(cr, uid, [('id','!=',pro_cate.id),('name','=',pro_cate.name),('cate_name', '=',pro_cate.cate_name)])
-            if pro_cate_ids:
+            sql = '''
+                 select id from product_category where id != %s and lower(name) = lower('%s') and cate_name = '%s'
+             '''%(pro_cate.id,pro_cate.name,pro_cate.cate_name)
+            cr.execute(sql)
+            code_ids = [row[0] for row in cr.fetchall()]
+            if code_ids:
                 raise osv.except_osv(_('Warning!'),_(' Product Category Code and Name should be unique!'))
+#             pro_cate_ids = self.search(cr, uid, [('id','!=',pro_cate.id),('name','=',pro_cate.name),('cate_name', '=',pro_cate.cate_name)])
+#             if pro_cate_ids:
+#                 raise osv.except_osv(_('Warning!'),_(' Product Category Code and Name should be unique!'))    
                 return False
             return True
         
     _constraints = [
         (_check_product_category, 'Identical Data', ['name', 'cate_name']),
+#         (_check_code_id, 'Identical Data', ['name']),
     ]    
 product_category()
 
@@ -702,7 +733,7 @@ class purchase_order(osv.osv):
                       'price_unit': line.price_unit or False,
                       'price_subtotal': line.sub_total or False,
                       'date_planned':quotation.date_quotation or False,
-                      'name':'/'
+#                       'name':'/'
                       }
                 po_line.append((0,0,rs))
             vals = {
@@ -898,10 +929,6 @@ class purchase_order_line(osv.osv):
  
         res = {'value': {'price_unit': price_unit or 0.0, 'name': name or '', 'product_uom' : uom_id or False}}
         
-        
-        
-                    
-                    
         if not product_id:
             return res
  
@@ -1239,12 +1266,12 @@ tpt_vendor_sub_group()
 class res_partner(osv.osv):
     _inherit = "res.partner"   
     _columns = {
-        'supplier_code':fields.char('Vendor Code', size = 256),
-        'vendor_code':fields.char('Vendor Code', size = 256),
+#         'supplier_code':fields.char('Vendor Code', size = 256),
+        'vendor_code':fields.char('Vendor Code', size = 20, required = True),
         'contact_per':fields.char('Contact Person', size = 1024),
         'vendor_tag':fields.char('Tag', size = 1024),
         'pur_orgin_code_id':fields.many2one('tpt.pur.organi.code','Purchase Organisation Code'),
-        'vendor_group_id':fields.many2one('tpt.vendor.group','Vendor Group'),
+        'vendor_group_id':fields.many2one('tpt.vendor.group','Vendor Group', required = True),
         'vendor_sub_group_id':fields.many2one('tpt.vendor.sub.group','Vendor Sub Group'),   
                 
                 }
