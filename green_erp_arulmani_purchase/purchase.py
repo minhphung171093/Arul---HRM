@@ -155,7 +155,24 @@ class tpt_purchase_indent(osv.osv):
             cr.execute(sql)
             dates = cr.dictfetchone()['date_indent']
         return {'value': {'date_expect':dates}}
-
+    
+    def search(self, cr, uid, args, offset=0, limit=None, order=None, context=None, count=False):
+        if context is None:
+            context = {}
+        if context.get('search_po_indent_no'):
+            if context.get('quotation_no'):
+                sql = '''
+                    select po_indent_id from tpt_purchase_quotation_line where purchase_quotation_id in(select id from tpt_purchase_quotation where id = %s)
+                '''%(context.get('quotation_no'))
+                cr.execute(sql)
+                quotation_ids = [row[0] for row in cr.fetchall()]
+                args += [('id','in',quotation_ids)]
+        return super(tpt_purchase_indent, self).search(cr, uid, args, offset=offset, limit=limit, order=order, context=context, count=count)
+    
+    def name_search(self, cr, user, name, args=None, operator='ilike', context=None, limit=100):
+       ids = self.search(cr, user, args, context=context, limit=limit)
+       return self.name_get(cr, user, ids, context=context)
+   
 tpt_purchase_indent()
 class tpt_purchase_product(osv.osv):
     _name = 'tpt.purchase.product'
@@ -794,6 +811,23 @@ class purchase_order(osv.osv):
                 if (new.amount_total > 5000):
                     raise osv.except_osv(_('Warning!'),_('Can not process because Total > 5000 for VV Local PO'))
                 
+        if 'quotation_no' in vals:
+            for line in new.order_line:
+                if line.po_indent_no and line.product_id:
+                    sql = '''
+                                select po_indent_no, product_id, sum(product_qty) as po_product_qty from purchase_order_line where order_id = %s group by po_indent_no, product_id
+                            '''%(new.id)
+                    cr.execute(sql)
+                    for purchase_line in cr.dictfetchall():
+                        sql = '''
+                                select case when sum(product_uom_qty) <%s then 1 else 0 end quotation_product_qty 
+                                from tpt_purchase_quotation_line
+                                where po_indent_id=%s and product_id=%s and purchase_quotation_id=%s
+                            '''%(purchase_line['po_product_qty'], purchase_line['po_indent_no'], purchase_line['product_id'], new.quotation_no.id)
+                        cr.execute(sql)
+                        quantity = cr.dictfetchone()
+                        if (quantity['quotation_product_qty']==1):
+                            raise osv.except_osv(_('Warning!'),_('You are input %s quantity in Purchase Order but quantity in Quotation do not enough for this Purchase Indent and Product .' %(purchase_line['po_product_qty'])))        
         return new_id
     
     
@@ -847,8 +881,44 @@ class purchase_order(osv.osv):
                 if new.quotation_no and new.quotation_no.quotation_cate:
                     if (new.amount_total > 5000):
                         raise osv.except_osv(_('Warning!'),_('Can not process because Total > 5000 for VV Local PO'))
+                    
+        if 'quotation_no' in vals:
+            for line in new.order_line:
+                if line.po_indent_no and line.product_id:
+                    sql = '''
+                                select po_indent_no, product_id, sum(product_qty) as po_product_qty from purchase_order_line where order_id = %s group by po_indent_no, product_id
+                            '''%(new.id)
+                    cr.execute(sql)
+                    for purchase_line in cr.dictfetchall():
+                        sql = '''
+                                select case when sum(product_uom_qty) <%s then 1 else 0 end quotation_product_qty 
+                                from tpt_purchase_quotation_line
+                                where po_indent_id=%s and product_id=%s and purchase_quotation_id=%s
+                            '''%(purchase_line['po_product_qty'], purchase_line['po_indent_no'], purchase_line['product_id'], new.quotation_no.id)
+                        cr.execute(sql)
+                        quantity = cr.dictfetchone()
+                        if (quantity['quotation_product_qty']==1):
+                            raise osv.except_osv(_('Warning!'),_('You are input %s quantity in Purchase Order but quantity in Quotation do not enough for this Purchase Indent and Product .' %(purchase_line['po_product_qty'])))        
+                        
         return new_write
     
+    def search(self, cr, uid, args, offset=0, limit=None, order=None, context=None, count=False):
+        if context is None:
+            context = {}
+        if context.get('search_po_id'):
+            sql = '''
+                select id from purchase_order 
+                where state != 'cancel' and id not in (select po_id from tpt_gate_in_pass gate,purchase_order po where gate.po_id = po.id and gate.state != 'cancel')
+            '''
+            cr.execute(sql)
+            po_ids = [row[0] for row in cr.fetchall()]
+            args += [('id','in',po_ids)]
+        return super(purchase_order, self).search(cr, uid, args, offset=offset, limit=limit, order=order, context=context, count=count)
+    
+    def name_search(self, cr, user, name, args=None, operator='ilike', context=None, limit=100):
+       ids = self.search(cr, user, args, context=context, limit=limit)
+       return self.name_get(cr, user, ids, context=context)
+   
     def _prepare_order_picking(self, cr, uid, order, context=None):
         return {
             'name': self.pool.get('ir.sequence').get(cr, uid, 'stock.picking.in'),

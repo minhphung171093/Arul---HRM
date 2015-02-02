@@ -122,13 +122,13 @@
 					<field name="product_uom" string = 'UOM' groups="product.group_uom" on_change="onchange_product_uom(parent.pricelist_id,product_id,product_qty,product_uom,parent.partner_id, parent.date_order,parent.fiscal_position,date_planned,name,price_unit,context)"/>
 				</xpath> 
 				<xpath expr="//page[@string='PO Line']/field/tree/field[@name='product_id']" position="before">
-					<field name="po_indent_no" on_change = "onchange_po_indent_no(po_indent_no)" domain="[('intdent_cate','=','emergency')]" options="{'create': false, 'create_edit': false}"/>
+					<field name="po_indent_no" context="{'search_po_indent_no':True, 'quotation_no':parent.quotation_no }" on_change = "onchange_po_indent_no(po_indent_no)" domain="[('intdent_cate','=','emergency')]" options="{'create': false, 'create_edit': false}"/>
 				</xpath>
 				<xpath expr="//page[@string='PO Line']/field/tree/field[@name='product_id']" position="replace">
 					<field name="product_id" required = '1' context="{'search_po_product':True, 'po_indent_no':po_indent_no }" options="{'create': false, 'create_edit': false}" on_change="onchange_product_id(parent.pricelist_id,product_id,0,False,parent.partner_id, parent.date_order,parent.fiscal_position,date_planned,name,price_unit,po_indent_no,context)"/>
 				</xpath>
 				<xpath expr="//page[@string='PO Line']/field/tree/field[@name='product_qty']" position="replace">
-					<field name="product_qty" on_change="onchange_product_id(parent.pricelist_id,product_id,product_qty,product_uom,parent.partner_id,parent.date_order,parent.fiscal_position,date_planned,name,price_unit,po_indent_no,context)"/>
+					<field name="product_qty" />
 				</xpath>
 			</field>
 		</record>
@@ -276,12 +276,12 @@
 	            <form string="Gate In Pass" version="7.0">   
 	            	<header>
 			            	<button name="bt_approve" states='draft' string="Approve" type="object" class="oe_highlight" />
-		                    <button name="bt_cancel" string="Cancel" type="object" class="oe_highlight" />
+		                    <button name="bt_cancel" states='draft' string="Cancel" type="object" class="oe_highlight" />
 		                    <field name="state" widget="statusbar" statusbar_visible="draft,cancel,done" statusbar_colors='{"draft":"blue","cancel":"blue"}'/>
 			        </header>
 	            	<sheet>
 		                <group > 
-			                <field name="po_id" domain="[('state','=','approved')]" on_change = "onchange_po_id(po_id)" options="{'create': false, 'create_edit': false}"/>
+			                <field name="po_id" context="{'search_po_id':True}" domain="[('state','=','approved')]" on_change = "onchange_po_id(po_id)" options="{'create': false, 'create_edit': false}"/>
 			                <field name="po_date"/>
 			                <field name="supplier_id" domain="[('supplier','=',1)]" options="{'create': false, 'create_edit': false}"/>
 							<field name="name"/>
