@@ -1460,5 +1460,77 @@ class res_partner(osv.osv):
     def name_search(self, cr, user, name, args=None, operator='ilike', context=None, limit=100):
        ids = self.search(cr, user, args, context=context, limit=limit)
        return self.name_get(cr, user, ids, context=context)   
-  
-res_partner()    
+res_partner()   
+
+class tpt_material_request(osv.osv):
+    _name = "tpt.material.request"
+    _columns = {
+        'name': fields.char('Material Request No', size = 1024,readonly = True,states={'done':[('readonly', True)]}),
+        'date_request':fields.date('Material Request Date',required = True,states={'done':[('readonly', True)]}),
+        'date_expec':fields.date('Expected Date',states={'done':[('readonly', True)]}),
+        'department_id':fields.many2one('hr.department','Department',required = True,  states={ 'done':[('readonly', True)]}),
+        'create_uid':fields.many2one('res.users','Request Raised By', states={'done':[('readonly', True)]}),
+        'material_request_line':fields.one2many('tpt.material.request.line','material_request_id','Vendor Group',states={'done':[('readonly', True)]}),
+        'state':fields.selection([('draft', 'Draft'),('done', 'Approve')],'Status', readonly=True),
+                }
+    _defaults = {
+        'state':'draft',      
+        'name': '/',
+        'date_request': fields.datetime.now,
+    }
+    def create(self, cr, uid, vals, context=None):
+        if vals.get('name','/')=='/':
+            sql = '''
+                select code from account_fiscalyear where '%s' between date_start and date_stop
+            '''%(time.strftime('%Y-%m-%d'))
+            cr.execute(sql)
+            fiscalyear = cr.dictfetchone()
+            if not fiscalyear:
+                raise osv.except_osv(_('Warning!'),_('Financial year has not been configured. !'))
+            else:
+                sequence = self.pool.get('ir.sequence').get(cr, uid, 'tpt.material.request.import')
+                vals['name'] =  sequence and sequence+'/'+fiscalyear['code'] or '/'
+        return super(tpt_material_request, self).create(cr, uid, vals, context)
+     
+    def write(self, cr, uid, ids, vals, context=None):
+        if vals.get('name','/')=='/':
+            sql = '''
+                select code from account_fiscalyear where '%s' between date_start and date_stop
+            '''%(time.strftime('%Y-%m-%d'))
+            cr.execute(sql)
+            fiscalyear = cr.dictfetchone()
+            if not fiscalyear:
+                raise osv.except_osv(_('Warning!'),_('Financial year has not been configured. !'))
+            else:
+                sequence = self.pool.get('ir.sequence').get(cr, uid, 'tpt.material.request.import')
+                vals['name'] =  sequence and sequence+'/'+fiscalyear['code'] or '/'
+        return super(tpt_material_request, self).write(cr, uid,ids, vals, context)
+
+    def bt_approve(self, cr, uid, ids, context=None):
+        for line in self.browse(cr, uid, ids):
+            self.write(cr, uid, ids,{'state':'done'})
+        return True   
+
+    def onchange_date_expect(self, cr, uid, ids,date_request=False, context=None):
+        vals = {}
+        if date_request :
+            sql='''
+            select date(date('%s')+INTERVAL '1 month 1days') as date_request
+            '''%(date_request)
+            cr.execute(sql)
+            dates = cr.dictfetchone()['date_request']
+        return {'value': {'date_expec':dates}}
+tpt_material_request()
+
+
+class tpt_material_request_line(osv.osv):
+    _name = "tpt.material.request.line"
+    _columns = {
+        'product_id': fields.many2one('product.product', 'Material Code',required = True),
+        'dec_material':fields.text('Material Decription',required = True),
+        'product_uom_qty': fields.float('Requested Qty'),   
+        'uom_po_id': fields.many2one('product.uom', 'UOM', readonly = True),
+        'material_request_id': fields.many2one('tpt.material.request', 'Material'),
+                }
+tpt_material_request_line()
+ 

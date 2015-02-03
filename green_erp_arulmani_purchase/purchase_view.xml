@@ -882,5 +882,68 @@
             
 		<menuitem name="Material" id="purchase.menu_procurement_partner_contact_form" action="product.product_normal_action_puchased"
           parent="purchase.menu_procurement_management_product"/>   -->
+          
+          
+	   	<record id="view_tpt_material_request_tree" model="ir.ui.view">
+			<field name="name">tpt.material.request.tree</field>
+			<field name="model">tpt.material.request</field>
+			<field name="arch" type="xml">
+				<tree string="Material Request">
+						<field name="name"/>
+						<field name="date_request"/>
+						<field name="date_expec"/>
+						<field name="department_id"  />
+						<field name="create_uid" options="{'create': false, 'create_edit': false}" />
+						<field name="state" widget="statusbar" statusbar_visible="draft,done" statusbar_colors='{"draft":"blue"}'/>
+				</tree>
+			</field>
+		</record>
+		
+		<record id="view_tpt_material_request_form" model="ir.ui.view">
+            <field name="name">tpt.material.request.form</field>
+            <field name="model">tpt.material.request</field>
+            <field name="arch" type="xml">
+	            <form string="Material Request" version="7.0">   
+	             <header>
+	            		<button name="bt_approve" states='draft' string="Approve" type="object" class="oe_highlight" />
+	                    <field name="state" widget="statusbar" statusbar_visible="draft,done" statusbar_colors='{"draft":"blue"}'/>
+	            </header>    
+	            	<sheet>
+		                <group col="4" colspan="2" >    
+							<field name="name"/>
+							<field name="date_request" on_change="onchange_date_expect(date_request)" />
+							<field name="department_id" options="{'create': false, 'create_edit': false}" />
+							<field name="create_uid" options="{'create': false, 'create_edit': false}"  />
+							<field name="date_expec"/>
+						</group>
+						<notebook>
+							<page string = "Materials">
+								<field name="material_request_line" nolabel='1'>
+									<tree editable='bottom'>
+										<field name="product_id" widget = "selection"  options="{'create': false, 'create_edit': false}"/>
+										<field name="dec_material" />
+										<field name="product_uom_qty" />
+										<field name="uom_po_id" edit='false' options="{'create': false, 'create_edit': false}"/>
+									</tree>
+								</field>
+							</page>
+						</notebook>
+		         	</sheet>
+		         </form>
+			</field>
+		</record>
+          
+		<record id="action_view_tpt_material_request_form" model="ir.actions.act_window">
+            <field name="name">Material Request</field>
+            <field name="type">ir.actions.act_window</field>
+            <field name="res_model">tpt.material.request</field>
+            <field name="view_type">form</field>
+            <field name="view_mode">tree,form</field>
+            <field name="view_id" ref="view_tpt_material_request_tree"/>
+        </record>
+        
+        <menuitem action="action_view_tpt_material_request_form"
+            id="menu_action_view_tpt_material_request_form"
+            parent="purchase.menu_procurement_management" sequence="20"/>
     </data>
 </openerp>
