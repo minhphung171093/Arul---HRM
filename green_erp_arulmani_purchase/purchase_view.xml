@@ -987,7 +987,7 @@
      	<menuitem action="stock.action_picking_tree4" id="purchase.menu_action_picking_tree4" parent="purchase.menu_procurement_management_inventory"
             name="GRN" sequence="9"/> 
         
-        <!-- Category Action for Sale/Purchase -->
+        <!-- Category Action for Sale/Purchase/warehouse -->
         <record id="product.product_category_action_form" model="ir.actions.act_window">
             <field name="name">Product Categories</field>
             <field name="type">ir.actions.act_window</field>
@@ -1010,5 +1010,13 @@
             <field name="view_id" ref="product.product_category_list_view"/>
         </record>
         
+        <record id="tpt_warehouse_product_category_action_form" model="ir.actions.act_window">
+            <field name="name">Product Categories</field>
+            <field name="type">ir.actions.act_window</field>
+            <field name="res_model">product.category</field>
+            <field name="view_type">form</field>
+            <field name="search_view_id" ref="product.product_category_search_view"/>
+            <field name="view_id" ref="product.product_category_list_view"/>
+        </record>
     </data>
 </openerp>
