@@ -1467,6 +1467,53 @@ class tpt_quality_parameters(osv.osv):
     ]
 tpt_quality_parameters()
 
+class tpt_request_for_quotation(osv.osv):
+    _name = "tpt.request.for.quotation"
+    
+    _columns = {
+        'name': fields.char('RFQ No', size = 1024,readonly=True, required = True ),
+        'rfq_date': fields.datetime('RFQ Date'),
+        'rfq_category': fields.selection([('single','Single'),('mutiple','Multiple'),('special','Special')],'RFQ Category'),   
+        'create_on': fields.datetime('Created on'),
+        'expect_quote_date': fields.date('Expected Quote Date'),
+        'rfq_line': fields.one2many('tpt.rfq.line', 'rfq_id', 'RFQ Line'), 
+        'rfq_supplier': fields.one2many('tpt.rfq.supplier', 'rfq_id', 'Supplier Line'), 
+                }
+    _defaults={
+               'name':'/',
+    }
+    
+    def create(self, cr, uid, vals, context=None):
+        if vals.get('name','/')=='/':
+            vals['name'] = self.pool.get('ir.sequence').get(cr, uid, 'tpt.rfq.import') or '/'
+        return super(tpt_request_for_quotation, self).create(cr, uid, vals, context=context)
+    
+tpt_request_for_quotation()
+
+class tpt_rfq_line(osv.osv):
+    _name = 'tpt.rfq.line'
+    _columns = {
+        'rfq_id': fields.many2one('tpt.request.for.quotation','RFQ'),
+        'po_indent_id':fields.many2one('tpt.purchase.indent','PO Indent', required = True),
+        'product_id': fields.many2one('product.product', 'Material',required = True),
+        'product_uom_qty': fields.float('Quantity'),   
+        'uom_id': fields.many2one('product.uom', 'UOM', readonly = True),
+        }  
+
+tpt_rfq_line()
+
+class tpt_rfq_supplier(osv.osv):
+    _name = 'tpt.rfq.supplier'
+    _columns = {
+        'rfq_id': fields.many2one('tpt.request.for.quotation','RFQ'),
+        'vendor_id':fields.many2one('res.partner','Vendor Name', required = True),
+        'state_id': fields.many2one('res.country.state', 'Vendor Location'),
+        'quotation_no_id': fields.many2one('tpt.purchase.quotation', 'Quotation No'),
+#         'uom_po_id': fields.many2one('product.uom', 'UOM', readonly = True),
+        }  
+
+tpt_rfq_supplier()
+
 class res_partner(osv.osv):
     _inherit = "res.partner"   
     _columns = {
