@@ -40,12 +40,47 @@ class Parser(report_sxw.rml_parse):
             'get_month':self.get_month,
             'get_year':self.get_year,
             'get_emp':self.get_emp,
+            'get_fh_name': self.get_fh_name,
+            'get_month_name': self.get_month_name,
+            'get_statutory': self.get_statutory,
         })
-        
+    
+    def get_fh_name(self, employee_id):
+        name = ''
+        if employee_id:
+            employee = self.pool.get('hr.employee').browse(self.cr, self.uid, employee_id)
+            for line in employee.family_ids:
+                if line.relation_type == 'father':
+                    name = line.name
+                    break
+        return name
+    
+    def get_statutory(self, employee_id):
+        res = {
+            'pf_no': '',
+            'esi_no': '',
+        }
+        if employee_id:
+            employee = self.pool.get('hr.employee').browse(self.cr, self.uid, employee_id)
+            pf_no = ''
+            esi_no = ''
+            for line in employee.statutory_ids:
+                pf_no = line.name
+                esi_no = line.esi_no
+                break
+            res.update({'pf_no': pf_no,'esi_no': esi_no})
+        return res
+    
+    def get_month_name(self, month):
+        month = int(month)
+        _months = {1:_("January"), 2:_("February"), 3:_("March"), 4:_("April"), 5:_("May"), 6:_("June"), 7:_("July"), 8:_("August"), 9:_("September"), 10:_("October"), 11:_("November"), 12:_("December")}
+        d = _months[month]
+        return d
+    
     def get_month(self):
         wizard_data = self.localcontext['data']['form']
-        return wizard_data['month']
-
+        return self.get_month_name(wizard_data['month'])
+    
     def get_year(self):
         wizard_data = self.localcontext['data']['form']
         return wizard_data['year']
@@ -123,6 +158,7 @@ class Parser(report_sxw.rml_parse):
                            
 
                 res.append({
+                    'emp_id': emp_id,
                     'emp_name': payroll.employee_id.name + ' ' + (payroll.employee_id.last_name and payroll.employee_id.last_name or ''),
                     'emp_code':payroll.employee_id.employee_id,
                     'emp_designation':payroll.designation_id.name,
