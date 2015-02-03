@@ -1386,6 +1386,7 @@ class tpt_vendor_group(osv.osv):
             cr.execute(sql)
             vendor_ids = [row[0] for row in cr.fetchall()]
             if vendor_ids:  
+                raise osv.except_osv(_('Warning!'),_('Name or Code in Vendor Group should be unique!'))
                 return False
         return True
     _constraints = [
@@ -1422,6 +1423,7 @@ class tpt_vendor_sub_group(osv.osv):
             cr.execute(sql)
             vendor_ids = [row[0] for row in cr.fetchall()]
             if vendor_ids:  
+                raise osv.except_osv(_('Warning!'),_('Name or Code in Vendor Sub Group should be unique!'))
                 return False
         return True
     _constraints = [
