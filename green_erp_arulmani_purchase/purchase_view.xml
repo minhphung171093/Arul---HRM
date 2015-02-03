@@ -10,8 +10,8 @@
 						<field name="date_indent"/>
 						<field name="document_type"/>
 						<field name="intdent_cate"/>
-						<field name="raised_from_id"  />
-						<field name="raised_by_id" options="{'create': false, 'create_edit': false}" />
+						<field name="department_id"  />
+						<field name="create_uid" options="{'create': false, 'create_edit': false}" />
 						<field name="date_expect"/>
 						<field name="reason"/>
 						<field name="state" widget="statusbar" statusbar_visible="draft,cancel,done" statusbar_colors='{"draft":"blue","cancel":"blue"}'/>
@@ -36,8 +36,8 @@
 							<field name="date_indent" on_change="onchange_date_expect(date_indent)" />
 							<field name="document_type" />
 							<field name="intdent_cate" />
-							<field name="raised_from_id" options="{'create': false, 'create_edit': false}" />
-							<field name="raised_by_id" options="{'create': false, 'create_edit': false}"  />
+							<field name="department_id" options="{'create': false, 'create_edit': false}" />
+							<field name="create_uid" options="{'create': false, 'create_edit': false}"  />
 							<field name="date_expect"/>
 						</group>
 						<group >
@@ -47,12 +47,16 @@
 						</group>
 						</group>
 						<notebook>
-							<page string = "Products">
+							<page string = "Materials">
 								<field name="purchase_product_line" nolabel='1'>
 									<tree editable='bottom'>
 										<field name="product_id" widget = "selection"  options="{'create': false, 'create_edit': false}"/>
+										<field name="dec_material" />
 										<field name="product_uom_qty" />
+										<field name="recom_vendor_id" context="{'search_recom_product':True, 'product_id':product_id }" options="{'create': false, 'create_edit': false}" />
+										<field name="pending_qty" />
 										<field name="uom_po_id" edit='false' options="{'create': false, 'create_edit': false}"/>
+										<field name="release_by" />
 									</tree>
 								</field>
 							</page>
@@ -122,13 +126,13 @@
 					<field name="product_uom" string = 'UOM' groups="product.group_uom" on_change="onchange_product_uom(parent.pricelist_id,product_id,product_qty,product_uom,parent.partner_id, parent.date_order,parent.fiscal_position,date_planned,name,price_unit,context)"/>
 				</xpath> 
 				<xpath expr="//page[@string='PO Line']/field/tree/field[@name='product_id']" position="before">
-					<field name="po_indent_no" on_change = "onchange_po_indent_no(po_indent_no)" domain="[('intdent_cate','=','emergency')]" options="{'create': false, 'create_edit': false}"/>
+					<field name="po_indent_no" context="{'search_po_indent_no':True, 'quotation_no':parent.quotation_no }" on_change = "onchange_po_indent_no(po_indent_no)" domain="[('intdent_cate','=','emergency')]" options="{'create': false, 'create_edit': false}"/>
 				</xpath>
 				<xpath expr="//page[@string='PO Line']/field/tree/field[@name='product_id']" position="replace">
 					<field name="product_id" required = '1' context="{'search_po_product':True, 'po_indent_no':po_indent_no }" options="{'create': false, 'create_edit': false}" on_change="onchange_product_id(parent.pricelist_id,product_id,0,False,parent.partner_id, parent.date_order,parent.fiscal_position,date_planned,name,price_unit,po_indent_no,context)"/>
 				</xpath>
 				<xpath expr="//page[@string='PO Line']/field/tree/field[@name='product_qty']" position="replace">
-					<field name="product_qty" on_change="onchange_product_id(parent.pricelist_id,product_id,product_qty,product_uom,parent.partner_id,parent.date_order,parent.fiscal_position,date_planned,name,price_unit,po_indent_no,context)"/>
+					<field name="product_qty" />
 				</xpath>
 			</field>
 		</record>
@@ -282,12 +286,12 @@
 	            <form string="Gate In Pass" version="7.0">   
 	            	<header>
 			            	<button name="bt_approve" states='draft' string="Approve" type="object" class="oe_highlight" />
-		                    <button name="bt_cancel" string="Cancel" type="object" class="oe_highlight" />
+		                    <button name="bt_cancel" states='draft' string="Cancel" type="object" class="oe_highlight" />
 		                    <field name="state" widget="statusbar" statusbar_visible="draft,cancel,done" statusbar_colors='{"draft":"blue","cancel":"blue"}'/>
 			        </header>
 	            	<sheet>
 		                <group > 
-			                <field name="po_id" domain="[('state','=','approved')]" on_change = "onchange_po_id(po_id)" options="{'create': false, 'create_edit': false}"/>
+			                <field name="po_id" context="{'search_po_id':True}" domain="[('state','=','approved')]" on_change = "onchange_po_id(po_id)" options="{'create': false, 'create_edit': false}"/>
 			                <field name="po_date"/>
 			                <field name="supplier_id" domain="[('supplier','=',1)]" options="{'create': false, 'create_edit': false}"/>
 							<field name="name"/>
@@ -435,7 +439,8 @@
 	            <form string="Goods Return Request" version="7.0">   
 	            <header>
 	                    <button name="bt_approve" states='draft' string="Approve Request" type="object" class="oe_highlight" />
-	                    <field name="state" widget="statusbar" statusbar_visible="draft,done" statusbar_colors='{"draft":"blue"}'/>
+	                    <button name="bt_cancel" states='draft' string="Cancel Request" type="object" class="oe_highlight" />
+	                    <field name="state" widget="statusbar" statusbar_visible="draft,cancel,done" statusbar_colors='{"draft":"blue"}'/>
 	            </header>
 	            	<sheet>
 		                <group > 
@@ -477,7 +482,7 @@
 			<field name="name">tpt.purchase.chart.tree</field>
 			<field name="model">tpt.purchase.quotation</field>
 			<field name="arch" type="xml">
-				<tree string="Comparison Chart">
+				<tree string="Comparison Chart" create='false' >
 						<field name="name"/>
 						<field name="supplier_id" />
 						<field name="supplier_location_id" />
@@ -487,7 +492,7 @@
 						<field name="state" invisible="1" />
 						<field name="amount_total"/>
 						<button name = "bt_tick_mark" icon = "STOCK_APPLY" states = "draft" string="Tick" type="object" />
-						<button name = "bt_cross_mark" icon = "STOCK_CANCEL" states = "draft" string="Cross" type="object" /> 
+						<button name = "bt_cross_mark" confirm = "Do you want to cancel the Quotation ?" icon = "STOCK_CANCEL" states = "draft" string="Cross" type="object" /> 
 				</tree>
 			</field>
 		</record>
@@ -496,7 +501,7 @@
             <field name="name">tpt.purchase.chart.form</field>
             <field name="model">tpt.purchase.quotation</field>
             <field name="arch" type="xml">
-	            <form string="Comparison Chart" version="7.0">
+	            <form string="Comparison Chart" version="7.0" create='false' edit = 'false' >
 	            <header>
 	                    <field name="state" widget="statusbar" statusbar_visible="draft,cancel,done" statusbar_colors='{"draft":"blue","cancel":"blue"}'/>
 	            </header>    
@@ -756,6 +761,7 @@
 			<field name="arch" type="xml">
 				<tree string="Vendor Group">
 					<field name="name"/>
+					<field name="code"/>
 				</tree>
 			</field>
 		</record>
@@ -768,7 +774,19 @@
 	            	<sheet>
 	            		<group>
 	            			<field name="name"/>
+	            			<field name="code"/>
+	            			<field name="active"/>
 	            		</group>
+	            		<notebook>
+							<page string = "Vendor Sub Group">
+								<field name="vendor_sub_line" nolabel='1'>
+									<tree editable='bottom'>
+										<field name="name"/>
+	            						<field name="code"/>
+									</tree>
+								</field>
+							</page>
+						</notebook>
 				    </sheet>
 		         </form>
 			</field>
@@ -793,6 +811,7 @@
 			<field name="arch" type="xml">
 				<tree string="Vendor Sub Group">
 					<field name="name"/>
+					<field name="code"/>
 				</tree>
 			</field>
 		</record>
@@ -805,6 +824,8 @@
 	            	<sheet>
 	            		<group>
 	            			<field name="name"/>
+	            			<field name="code"/>
+	            			<field name="vendor_group_id" options="{'create': false, 'create_edit': false}" />
 	            		</group>
 				    </sheet>
 		         </form>
@@ -823,6 +844,47 @@
         <menuitem action="action_view_tpt_vendor_sub_group_form"
             id="menu_action_view_tpt_vendor_sub_group_form"
             parent="purchase.menu_procurement_management" sequence="400"/>
+            
+        <record id="view_tpt_quality_parameters_tree" model="ir.ui.view">
+			<field name="name">tpt.quality.parameters.tree</field>
+			<field name="model">tpt.quality.parameters</field>
+			<field name="arch" type="xml">
+				<tree string="Quality Parameters">
+					<field name="name"/>
+					<field name="code"/>
+					<field name="description"/>
+				</tree>
+			</field>
+		</record>
+		
+		<record id="view_tpt_quality_parameters_form" model="ir.ui.view">
+            <field name="name">tpt.quality.parameters.form</field>
+            <field name="model">tpt.quality.parameters</field>
+            <field name="arch" type="xml">
+	            <form string="Quality Parameters" version="7.0">   
+	            	<sheet>
+	            		<group>
+	            			<field name="name"/>
+	            			<field name="code"/>
+	            			<field name="description" />
+	            		</group>
+				    </sheet>
+		         </form>
+			</field>
+		</record>
+		
+		<record id="action_view_tpt_quality_parameters_form" model="ir.actions.act_window">
+            <field name="name">Quality Parameters</field>
+            <field name="type">ir.actions.act_window</field>
+            <field name="res_model">tpt.quality.parameters</field>
+            <field name="view_type">form</field>
+            <field name="view_mode">tree,form</field>
+            <field name="view_id" ref="view_tpt_quality_parameters_tree"/>
+        </record>
+        
+        <menuitem action="action_view_tpt_quality_parameters_form"
+            id="menu_action_view_tpt_quality_parameters_form"
+            parent="purchase.menu_procurement_management" sequence="500"/>
 
         <record id="tpt_view_partner_form" model="ir.ui.view">
             <field name="name">tpt.partner.view.form.inherit</field>
@@ -835,7 +897,7 @@
                     </xpath>
                     <xpath expr="//field[@name='website']" position="before">
                         <field name="vendor_tag" placeholder="Tag ... " attrs="{'invisible': [('supplier','=',False)]}" />
-                    	<field name="vendor_group_id" options="{'create': false, 'create_edit': false}" attrs="{'invisible': [('supplier','=',False)]}" />
+                    	<field name="vendor_group_id" on_change="onchange_vendor_group_id(vendor_group_id)" options="{'create': false, 'create_edit': false}" attrs="{'invisible': [('supplier','=',False)]}" />
                     	<field name="pur_orgin_code_id" options="{'create': false, 'create_edit': false}" attrs="{'invisible': [('supplier','=',False)]}" />
                     </xpath>
                     
@@ -844,15 +906,22 @@
                     
                     <xpath expr="//field[@name='name']" position="before">
                         <field name="vendor_code" placeholder="Vendor Code" attrs="{'invisible': [('supplier','=',False)]}" />
-                    	<field name="title" domain="[('domain', '=', 'contact')]" options="{&quot;no_open&quot;: True}" attrs="{'invisible': [('is_company','=', True)]}"/>
+                    	<field name="title" placeholder="Title" domain="[('domain', '=', 'contact')]" options="{&quot;no_open&quot;: True}" attrs="{'invisible': [('is_company','=', True)]}"/>
                     </xpath>
                     
                      <xpath expr="//field[@name='email']" position="after">
-                        <field name="vendor_sub_group_id"  attrs="{'invisible': [('supplier','=',False)]}" options="{'create': false, 'create_edit': false}" />
+                        <field name="vendor_sub_group_id" domain="[('vendor_group_id','=',vendor_group_id)]" attrs="{'invisible': [('supplier','=',False)]}" options="{'create': false, 'create_edit': false}" />
                     </xpath>
                 </data>
             </field>
         </record>
+
+   	 	<menuitem id="base.menu_procurement_management_supplier_name" name="Vendor"
+	        parent="purchase.menu_procurement_management"
+	        action="base.action_partner_supplier_form" sequence="15"/>
+	        
+     <menuitem action="stock.action_picking_tree4" id="purchase.menu_action_picking_tree4" parent="purchase.menu_procurement_management_inventory"
+            name="GRN" sequence="9"/> 
         
         <!-- Category Action for Sale/Purchase -->
        <!-- <record id="product.product_category_action" model="ir.actions.act_window">
@@ -895,6 +964,5 @@
             
 		<!--<menuitem name="Material" id="purchase.menu_procurement_partner_contact_form" action="product.product_normal_action_puchased"
           parent="purchase.menu_procurement_management_product"/>   -->
-          
     </data>
 </openerp>
