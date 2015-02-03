@@ -898,6 +898,7 @@
 					<field name="rfq_category"/>
 					<field name="create_on"/>
 					<field name="expect_quote_date"/>
+					<field name="state" widget="statusbar" statusbar_visible="draft,cancel,done" statusbar_colors='{"draft":"blue","cancel":"blue"}'/>
 				</tree>
 			</field>
 		</record>
@@ -906,7 +907,12 @@
             <field name="name">tpt.request.for.quotation.form</field>
             <field name="model">tpt.request.for.quotation</field>
             <field name="arch" type="xml">
-	            <form string="Request For Quotation" version="7.0">   
+	            <form string="Request For Quotation" version="7.0"> 
+	            <header>
+	            		<button name="bt_approve" states='draft' string="Approve" type="object" class="oe_highlight" />
+	                    <button name="bt_cancel" states='draft' string="Cancel" type="object" class="oe_highlight" />
+	                    <field name="state" widget="statusbar" statusbar_visible="draft,cancel,done" statusbar_colors='{"draft":"blue","cancel":"blue"}'/>
+	            </header>   
 	            	<sheet>
 	            		<group col="4" colspan="2">
 	            			<field name="name"/>
@@ -934,6 +940,7 @@
 										<field name="vendor_id" domain="[('supplier','=',1)]" on_change = "onchange_rfq_vendor_id(vendor_id)" options="{'create': false, 'create_edit': false}"/>
 										<field name="state_id" options="{'create': false, 'create_edit': false}"/>
 										<field name="quotation_no_id" options="{'create': false, 'create_edit': false}"/>
+										<button name = "bt_print" icon = "gtk-print" string="Print" type="object" />
 									</tree>
 								</field>
 							</page>

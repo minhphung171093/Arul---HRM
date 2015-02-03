@@ -1500,17 +1500,24 @@ class tpt_request_for_quotation(osv.osv):
     _name = "tpt.request.for.quotation"
     
     _columns = {
-        'name': fields.char('RFQ No', size = 1024,readonly=True, required = True ),
-        'rfq_date': fields.datetime('RFQ Date'),
-        'rfq_category': fields.selection([('single','Single'),('mutiple','Multiple'),('special','Special')],'RFQ Category', required = True),   
-        'create_on': fields.datetime('Created on'),
-        'expect_quote_date': fields.date('Expected Quote Date'),
-        'rfq_line': fields.one2many('tpt.rfq.line', 'rfq_id', 'RFQ Line'), 
-        'rfq_supplier': fields.one2many('tpt.rfq.supplier', 'rfq_id', 'Supplier Line'), 
+        'name': fields.char('RFQ No', size = 1024,readonly=True, required = True , states={'cancel': [('readonly', True)], 'done':[('readonly', True)]}),
+        'rfq_date': fields.datetime('RFQ Date', states={'cancel': [('readonly', True)], 'done':[('readonly', True)]}),
+        'rfq_category': fields.selection([('single','Single'),('mutiple','Multiple'),('special','Special')],'RFQ Category', required = True, states={'cancel': [('readonly', True)], 'done':[('readonly', True)]}),
+        'create_on': fields.datetime('Created on', states={'cancel': [('readonly', True)], 'done':[('readonly', True)]}),
+        'expect_quote_date': fields.date('Expected Quote Date', states={'cancel': [('readonly', True)], 'done':[('readonly', True)]}),
+        'rfq_line': fields.one2many('tpt.rfq.line', 'rfq_id', 'RFQ Line', states={'cancel': [('readonly', True)], 'done':[('readonly', True)]}),
+        'rfq_supplier': fields.one2many('tpt.rfq.supplier', 'rfq_id', 'Supplier Line', states={'cancel': [('readonly', True)], 'done':[('readonly', True)]}),
+        'state':fields.selection([('draft', 'Draft'),('cancel', 'Cancel'),('done', 'Approve')],'Status', readonly=True, states={'cancel': [('readonly', True)], 'done':[('readonly', True)]}),       
                 }
     _defaults={
                'name':'/',
+               'state': 'draft',
     }
+    def bt_approve(self, cr, uid, ids, context=None):
+        return self.write(cr, uid, ids,{'state':'done'})
+    
+    def bt_cancel(self, cr, uid, ids, context=None):
+        return self.write(cr, uid, ids,{'state':'cancel'})
     
     def create(self, cr, uid, vals, context=None):
         if vals.get('name','/')=='/':
@@ -1522,6 +1529,15 @@ class tpt_request_for_quotation(osv.osv):
                 if (len(rfq.rfq_supplier) > 1):
                     raise osv.except_osv(_('Warning!'),_('You must choose RFQ category is multiple if you want more than one vendors!'))
         return new_id
+    
+    def write(self, cr, uid, ids, vals, context=None):
+        new_write = super(tpt_request_for_quotation, self).write(cr, uid,ids, vals, context)
+        for rfq in self.browse(cr,uid,ids):
+            if rfq.rfq_category:
+                if rfq.rfq_category != 'mutiple':
+                    if (len(rfq.rfq_supplier) > 1):
+                        raise osv.except_osv(_('Warning!'),_('You must choose RFQ category is multiple if you want more than one vendors!'))
+        return new_write
     
 tpt_request_for_quotation()
 
@@ -1596,6 +1612,21 @@ class tpt_rfq_supplier(osv.osv):
                             }
         return {'value': vals}   
     
+    def bt_print(self, cr, uid, ids, context=None):
+        assert len(ids) == 1, 'This option should only be used for a single id at a time.'
+        self.write(cr, uid, ids, {'sent': True}, context=context)
+        datas = {
+             'ids': ids,
+             'model': 'tpt.rfq.supplier',
+             'form': self.read(cr, uid, ids[0], context=context)
+        }
+        return {
+            'type': 'ir.actions.report.xml',
+            'report_name': 'tpt_rfq_supplier',
+#                 'datas': datas,
+#                 'nodestroy' : True
+        }
+    
 tpt_rfq_supplier()
 
 class res_partner(osv.osv):
@@ -1648,6 +1679,7 @@ class tpt_material_request(osv.osv):
         'date_request': fields.datetime.now,
     }
     def create(self, cr, uid, vals, context=None):
+        new_id = super(tpt_material_request, self).create(cr, uid, vals, context)
         if vals.get('name','/')=='/':
             sql = '''
                 select code from account_fiscalyear where '%s' between date_start and date_stop
@@ -1659,7 +1691,35 @@ class tpt_material_request(osv.osv):
             else:
                 sequence = self.pool.get('ir.sequence').get(cr, uid, 'tpt.material.request.import')
                 vals['name'] =  sequence and sequence+'/'+fiscalyear['code'] or '/'
-        return super(tpt_material_request, self).create(cr, uid, vals, context)
+        material = self.browse(cr,uid,new_id)
+        sql = '''
+                select product_id, sum(product_uom_qty) as product_qty from tpt_material_request_line where material_request_id = %s group by product_id
+                '''%(material.id)
+        cr.execute(sql)
+        for order_line in cr.dictfetchall():
+            sql = '''
+            SELECT sum(onhand_qty) onhand_qty
+            From
+            (SELECT
+                   
+                case when loc1.usage != 'internal' and loc2.usage = 'internal'
+                then stm.primary_qty
+                else
+                case when loc1.usage = 'internal' and loc2.usage != 'internal'
+                then -1*stm.primary_qty 
+                else 0.0 end
+                end onhand_qty
+                        
+            FROM stock_move stm 
+                join stock_location loc1 on stm.location_id=loc1.id
+                join stock_location loc2 on stm.location_dest_id=loc2.id
+            WHERE stm.state= 'done' and product_id=%s)foo
+            '''%(order_line['product_id'])
+            cr.execute(sql)
+            onhand_qty = cr.dictfetchone()['onhand_qty']
+            if (order_line['product_qty'] > onhand_qty):
+                raise osv.except_osv(_('Warning!'),_('You are confirm %s but only %s available for this product in stock.' %(order_line['product_qty'], onhand_qty)))
+        return new_id
      
     def write(self, cr, uid, ids, vals, context=None):
         if vals.get('name','/')=='/':
@@ -1673,7 +1733,36 @@ class tpt_material_request(osv.osv):
             else:
                 sequence = self.pool.get('ir.sequence').get(cr, uid, 'tpt.material.request.import')
                 vals['name'] =  sequence and sequence+'/'+fiscalyear['code'] or '/'
-        return super(tpt_material_request, self).write(cr, uid,ids, vals, context)
+        new_write = super(tpt_material_request, self).write(cr, uid,ids, vals, context)
+        for material in self.browse(cr,uid,ids):
+            sql = '''
+                select product_id, sum(product_uom_qty) as product_qty from tpt_material_request_line where material_request_id = %s group by product_id
+                '''%(material.id)
+            cr.execute(sql)
+            for order_line in cr.dictfetchall():
+                sql = '''
+                SELECT sum(onhand_qty) onhand_qty
+                From
+                (SELECT
+                       
+                    case when loc1.usage != 'internal' and loc2.usage = 'internal'
+                    then stm.primary_qty
+                    else
+                    case when loc1.usage = 'internal' and loc2.usage != 'internal'
+                    then -1*stm.primary_qty 
+                    else 0.0 end
+                    end onhand_qty
+                            
+                FROM stock_move stm 
+                    join stock_location loc1 on stm.location_id=loc1.id
+                    join stock_location loc2 on stm.location_dest_id=loc2.id
+                WHERE stm.state= 'done' and product_id=%s)foo
+                '''%(order_line['product_id'])
+                cr.execute(sql)
+                onhand_qty = cr.dictfetchone()['onhand_qty']
+                if (order_line['product_qty'] > onhand_qty):
+                    raise osv.except_osv(_('Warning!'),_('You are confirm %s but only %s available for this product in stock.' %(order_line['product_qty'], onhand_qty)))
+        return new_write
 
     def bt_approve(self, cr, uid, ids, context=None):
         for line in self.browse(cr, uid, ids):
