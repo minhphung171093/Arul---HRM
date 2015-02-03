@@ -1386,6 +1386,7 @@ class tpt_vendor_group(osv.osv):
             cr.execute(sql)
             vendor_ids = [row[0] for row in cr.fetchall()]
             if vendor_ids:  
+                raise osv.except_osv(_('Warning!'),_('Name or Code in Vendor Group should be unique!'))
                 return False
         return True
     _constraints = [
@@ -1422,12 +1423,49 @@ class tpt_vendor_sub_group(osv.osv):
             cr.execute(sql)
             vendor_ids = [row[0] for row in cr.fetchall()]
             if vendor_ids:  
+                raise osv.except_osv(_('Warning!'),_('Name or Code in Vendor Sub Group should be unique!'))
                 return False
         return True
     _constraints = [
         (_check_code_id, 'Identical Data', ['code','name']),
     ]
 tpt_vendor_sub_group()
+
+class tpt_quality_parameters(osv.osv):
+    _name = "tpt.quality.parameters"
+    _columns = {
+        'name': fields.char('Parameter Name', size = 1024,required=True),
+        'code':fields.char('Parameter Code',size = 256,required = True),
+        'description':fields.text('Description'),
+                }
+    
+    def create(self, cr, uid, vals, context=None):
+        if 'code' in vals:
+            name = vals['code'].replace(" ","")
+            vals['code'] = name
+        return super(tpt_quality_parameters, self).create(cr, uid, vals, context)
+    
+    def write(self, cr, uid, ids, vals, context=None):
+        if 'code' in vals:
+            name = vals['code'].replace(" ","")
+            vals['code'] = name
+        return super(tpt_quality_parameters, self).write(cr, uid,ids, vals, context)
+
+    def _check_code_id(self, cr, uid, ids, context=None):
+        for parameter in self.browse(cr, uid, ids, context=context):
+            sql = '''
+                select id from tpt_quality_parameters where id != %s and (lower(code) = lower('%s') or lower(name) = lower('%s'))
+            '''%(parameter.id,parameter.code,parameter.name)
+            cr.execute(sql)
+            parameter_ids = [row[0] for row in cr.fetchall()]
+            if parameter_ids:  
+                raise osv.except_osv(_('Warning!'),_('Name or Code in Quality Parameters should be unique!'))
+                return False
+        return True
+    _constraints = [
+        (_check_code_id, 'Identical Data', ['code','name']),
+    ]
+tpt_quality_parameters()
 
 class res_partner(osv.osv):
     _inherit = "res.partner"   
