@@ -1661,6 +1661,7 @@ class tpt_material_request(osv.osv):
         'date_request': fields.datetime.now,
     }
     def create(self, cr, uid, vals, context=None):
+        new_id = super(tpt_material_request, self).create(cr, uid, vals, context)
         if vals.get('name','/')=='/':
             sql = '''
                 select code from account_fiscalyear where '%s' between date_start and date_stop
@@ -1672,7 +1673,35 @@ class tpt_material_request(osv.osv):
             else:
                 sequence = self.pool.get('ir.sequence').get(cr, uid, 'tpt.material.request.import')
                 vals['name'] =  sequence and sequence+'/'+fiscalyear['code'] or '/'
-        return super(tpt_material_request, self).create(cr, uid, vals, context)
+        material = self.browse(cr,uid,new_id)
+        sql = '''
+                select product_id, sum(product_uom_qty) as product_qty from tpt_material_request_line where material_request_id = %s group by product_id
+                '''%(material.id)
+        cr.execute(sql)
+        for order_line in cr.dictfetchall():
+            sql = '''
+            SELECT sum(onhand_qty) onhand_qty
+            From
+            (SELECT
+                   
+                case when loc1.usage != 'internal' and loc2.usage = 'internal'
+                then stm.primary_qty
+                else
+                case when loc1.usage = 'internal' and loc2.usage != 'internal'
+                then -1*stm.primary_qty 
+                else 0.0 end
+                end onhand_qty
+                        
+            FROM stock_move stm 
+                join stock_location loc1 on stm.location_id=loc1.id
+                join stock_location loc2 on stm.location_dest_id=loc2.id
+            WHERE stm.state= 'done' and product_id=%s)foo
+            '''%(order_line['product_id'])
+            cr.execute(sql)
+            onhand_qty = cr.dictfetchone()['onhand_qty']
+            if (order_line['product_qty'] > onhand_qty):
+                raise osv.except_osv(_('Warning!'),_('You are confirm %s but only %s available for this product in stock.' %(order_line['product_qty'], onhand_qty)))
+        return new_id
      
     def write(self, cr, uid, ids, vals, context=None):
         if vals.get('name','/')=='/':
@@ -1686,7 +1715,36 @@ class tpt_material_request(osv.osv):
             else:
                 sequence = self.pool.get('ir.sequence').get(cr, uid, 'tpt.material.request.import')
                 vals['name'] =  sequence and sequence+'/'+fiscalyear['code'] or '/'
-        return super(tpt_material_request, self).write(cr, uid,ids, vals, context)
+        new_write = super(tpt_material_request, self).write(cr, uid,ids, vals, context)
+        for material in self.browse(cr,uid,ids):
+            sql = '''
+                select product_id, sum(product_uom_qty) as product_qty from tpt_material_request_line where material_request_id = %s group by product_id
+                '''%(material.id)
+            cr.execute(sql)
+            for order_line in cr.dictfetchall():
+                sql = '''
+                SELECT sum(onhand_qty) onhand_qty
+                From
+                (SELECT
+                       
+                    case when loc1.usage != 'internal' and loc2.usage = 'internal'
+                    then stm.primary_qty
+                    else
+                    case when loc1.usage = 'internal' and loc2.usage != 'internal'
+                    then -1*stm.primary_qty 
+                    else 0.0 end
+                    end onhand_qty
+                            
+                FROM stock_move stm 
+                    join stock_location loc1 on stm.location_id=loc1.id
+                    join stock_location loc2 on stm.location_dest_id=loc2.id
+                WHERE stm.state= 'done' and product_id=%s)foo
+                '''%(order_line['product_id'])
+                cr.execute(sql)
+                onhand_qty = cr.dictfetchone()['onhand_qty']
+                if (order_line['product_qty'] > onhand_qty):
+                    raise osv.except_osv(_('Warning!'),_('You are confirm %s but only %s available for this product in stock.' %(order_line['product_qty'], onhand_qty)))
+        return new_write
 
     def bt_approve(self, cr, uid, ids, context=None):
         for line in self.browse(cr, uid, ids):
