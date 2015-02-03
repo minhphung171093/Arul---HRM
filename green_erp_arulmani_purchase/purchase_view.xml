@@ -882,9 +882,73 @@
             <field name="view_id" ref="view_tpt_quality_parameters_tree"/>
         </record>
         
-        <menuitem action="action_view_tpt_quality_parameters_form"
-            id="menu_action_view_tpt_quality_parameters_form"
-            parent="purchase.menu_procurement_management" sequence="500"/>
+        <record id="view_tpt_request_for_quotation_tree" model="ir.ui.view">
+			<field name="name">tpt.request.for.quotation.tree</field>
+			<field name="model">tpt.request.for.quotation</field>
+			<field name="arch" type="xml">
+				<tree string="Request For Quotation">
+					<field name="name"/>
+					<field name="rfq_date"/>
+					<field name="rfq_category"/>
+					<field name="create_on"/>
+					<field name="expect_quote_date"/>
+				</tree>
+			</field>
+		</record>
+		
+		<record id="view_tpt_request_for_quotation_form" model="ir.ui.view">
+            <field name="name">tpt.request.for.quotation.form</field>
+            <field name="model">tpt.request.for.quotation</field>
+            <field name="arch" type="xml">
+	            <form string="Request For Quotation" version="7.0">   
+	            	<sheet>
+	            		<group col="4" colspan="2">
+	            			<field name="name"/>
+							<field name="rfq_date"/>
+							<field name="rfq_category"/>
+							<field name="create_on"/>
+							<field name="expect_quote_date"/>
+	            		</group>
+	            		<notebook>
+							<page string = "RFQ Line">
+							<field name="rfq_line" nolabel='1'>
+									<tree editable='bottom'>
+										<field name="po_indent_id" options="{'create': false, 'create_edit': false}"/>
+										<field name="product_id" options="{'create': false, 'create_edit': false}"/>
+										<field name="product_uom_qty" />
+										<field name="uom_id" options="{'create': false, 'create_edit': false}"/>
+									</tree>
+								</field>
+							</page>
+						</notebook>
+						<notebook>
+							<page string = "Suppliers">
+							<field name="rfq_supplier" nolabel='1'>
+									<tree editable='bottom'>
+										<field name="vendor_id" options="{'create': false, 'create_edit': false}"/>
+										<field name="state_id" options="{'create': false, 'create_edit': false}"/>
+										<field name="quotation_no_id" options="{'create': false, 'create_edit': false}"/>
+									</tree>
+								</field>
+							</page>
+						</notebook>
+				    </sheet>
+		         </form>
+			</field>
+		</record>
+		
+		<record id="action_view_tpt_request_for_quotation_form" model="ir.actions.act_window">
+            <field name="name">Request For Quotation</field>
+            <field name="type">ir.actions.act_window</field>
+            <field name="res_model">tpt.request.for.quotation</field>
+            <field name="view_type">form</field>
+            <field name="view_mode">tree,form</field>
+            <field name="view_id" ref="view_tpt_request_for_quotation_tree"/>
+        </record>
+        
+        <menuitem action="action_view_tpt_request_for_quotation_form"
+            id="menu_action_view_tpt_request_for_quotation_form"
+            parent="purchase.menu_procurement_management" sequence="550"/>
 
         <record id="tpt_view_partner_form" model="ir.ui.view">
             <field name="name">tpt.partner.view.form.inherit</field>
