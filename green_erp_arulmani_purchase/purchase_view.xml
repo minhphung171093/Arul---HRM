@@ -148,15 +148,16 @@
 				</xpath>
 				<xpath expr="//label[@for='name']" position="replace">
 					<label for="name" string = 'Category Code' class="oe_edit_only"/>
+					<field name="tpt_type" invisible="1"/>
 				</xpath> 
 				<xpath expr="//field[@name='parent_id']" position="before">
+					
 					<field name="cate_name"/>
+					
 				</xpath> 
 				<xpath expr="//field[@name='type']" position="before">
+					<newline/>
 					<field name="description"/>
-				</xpath> 
-				<xpath expr="//field[@name='type']" position="after">
-					<field name="tpt_type" invisible="1"/>
 				</xpath> 
 			</field>
 		</record>
@@ -812,6 +813,7 @@
 				<tree string="Vendor Sub Group">
 					<field name="name"/>
 					<field name="code"/>
+					<field name="vendor_group_id" options="{'create': false, 'create_edit': false}" />
 				</tree>
 			</field>
 		</record>
@@ -882,6 +884,10 @@
             <field name="view_id" ref="view_tpt_quality_parameters_tree"/>
         </record>
         
+        <menuitem action="action_view_tpt_quality_parameters_form"
+            id="menu_action_view_tpt_quality_parameters_form"
+            parent="purchase.menu_procurement_management" sequence="500"/>
+        
         <record id="view_tpt_request_for_quotation_tree" model="ir.ui.view">
 			<field name="name">tpt.request.for.quotation.tree</field>
 			<field name="model">tpt.request.for.quotation</field>
@@ -913,8 +919,8 @@
 							<page string = "RFQ Line">
 							<field name="rfq_line" nolabel='1'>
 									<tree editable='bottom'>
-										<field name="po_indent_id" options="{'create': false, 'create_edit': false}"/>
-										<field name="product_id" options="{'create': false, 'create_edit': false}"/>
+										<field name="po_indent_id" on_change = "onchange_rfq_indent_id(po_indent_id)" options="{'create': false, 'create_edit': false}"/>
+										<field name="product_id" context="{'search_rfq_product':True, 'po_indent_id':po_indent_id }" on_change = "onchange_rfq_product_id(product_id, po_indent_id)" options="{'create': false, 'create_edit': false}"/>
 										<field name="product_uom_qty" />
 										<field name="uom_id" options="{'create': false, 'create_edit': false}"/>
 									</tree>
@@ -925,7 +931,7 @@
 							<page string = "Suppliers">
 							<field name="rfq_supplier" nolabel='1'>
 									<tree editable='bottom'>
-										<field name="vendor_id" options="{'create': false, 'create_edit': false}"/>
+										<field name="vendor_id" domain="[('supplier','=',1)]" on_change = "onchange_rfq_vendor_id(vendor_id)" options="{'create': false, 'create_edit': false}"/>
 										<field name="state_id" options="{'create': false, 'create_edit': false}"/>
 										<field name="quotation_no_id" options="{'create': false, 'create_edit': false}"/>
 									</tree>
