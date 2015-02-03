@@ -59,6 +59,7 @@ class tpt_purchase_indent(osv.osv):
         return True   
 
     def create(self, cr, uid, vals, context=None):
+          
         if 'document_type' in vals:
             sql = '''
                 select code from account_fiscalyear where '%s' between date_start and date_stop
@@ -100,7 +101,12 @@ class tpt_purchase_indent(osv.osv):
                     if vals.get('name','/')=='/':
                         sequence = self.pool.get('ir.sequence').get(cr, uid, 'indent.purchase.service')
                         vals['name'] =  sequence and sequence +'/'+fiscalyear['code']or '/'
-        return super(tpt_purchase_indent, self).create(cr, uid, vals, context=context)    
+        new_id = super(tpt_purchase_indent, self).create(cr, uid, vals, context=context)   
+        indent = self.browse(cr,uid, new_id)
+        if indent.select_normal != 'multiple':
+            if (len(indent.purchase_product_line)>1):
+                raise osv.except_osv(_('Warning!'),_(' You must choose Select is multiple if you want more than one product!'))
+        return new_id
     
     def write(self, cr, uid, ids, vals, context=None):
         if 'document_type' in vals:
@@ -144,8 +150,12 @@ class tpt_purchase_indent(osv.osv):
                     if vals.get('name','/')=='/':
                         sequence = self.pool.get('ir.sequence').get(cr, uid, 'indent.purchase.service')
                         vals['name'] =  sequence and sequence +'/'+fiscalyear['code']or '/'
-      
-        return super(tpt_purchase_indent, self).write(cr, uid,ids, vals, context)
+        new_write = super(tpt_purchase_indent, self).write(cr, uid, vals, context=context)
+        for indent in self.browse(cr,uid,ids):
+            if indent.select_normal != 'multiple':
+                if (len(indent.purchase_product_line)>1):
+                    raise osv.except_osv(_('Warning!'),_(' You must choose Select is multiple if you want more than one product!'))
+        return new_write
     
     def onchange_date_expect(self, cr, uid, ids,date_indent=False, context=None):
         vals = {}
@@ -190,22 +200,30 @@ class tpt_purchase_product(osv.osv):
         }  
 
     def create(self, cr, uid, vals, context=None):
+        
         if 'product_id' in vals:
             product = self.pool.get('product.product').browse(cr, uid, vals['product_id'])
             vals.update({'uom_po_id':product.uom_id.id})
+        new_id = super(tpt_purchase_product, self).create(cr, uid, vals, context)
         if 'product_uom_qty' in vals:
             if (vals['product_uom_qty'] < 0):
                 raise osv.except_osv(_('Warning!'),_('Quantity is not allowed as negative values'))
-        return super(tpt_purchase_product, self).create(cr, uid, vals, context)
+        if 'pending_qty' in vals:
+            if (vals['pending_qty'] < 0):
+                raise osv.except_osv(_('Warning!'),_('Pending Quantity is not allowed as negative values'))
+        return new_id
     
     def write(self, cr, uid, ids, vals, context=None):
         if 'product_id' in vals:
             product = self.pool.get('product.product').browse(cr, uid, vals['product_id'])
             vals.update({'uom_po_id':product.uom_id.id})
-        if 'product_uom_qty' in vals:
-            if (vals['product_uom_qty'] < 0):
+        new_write = super(tpt_purchase_product, self).write(cr, uid,ids, vals, context)
+        for line in self.browse(cr,uid,ids):
+            if line.product_uom_qty < 0:
                 raise osv.except_osv(_('Warning!'),_('Quantity is not allowed as negative values'))
-        return super(tpt_purchase_product, self).write(cr, uid,ids, vals, context)
+            if line.pending_qty < 0:
+                raise osv.except_osv(_('Warning!'),_('Pending Quantity is not allowed as negative values'))
+        return new_write
     
 tpt_purchase_product()
 
@@ -1683,5 +1701,24 @@ class tpt_material_request_line(osv.osv):
         'uom_po_id': fields.many2one('product.uom', 'UOM', readonly = True),
         'material_request_id': fields.many2one('tpt.material.request', 'Material'),
                 }
+    def create(self, cr, uid, vals, context=None):
+        if 'product_id' in vals:
+            product = self.pool.get('product.product').browse(cr, uid, vals['product_id'])
+            vals.update({'uom_po_id':product.uom_id.id})    
+        new_id = super(tpt_material_request_line, self).create(cr, uid, vals, context)
+        if 'product_uom_qty' in vals:
+            if (vals['product_uom_qty'] < 0):
+                raise osv.except_osv(_('Warning!'),_('Quantity is not allowed as negative values'))
+        return new_id
+
+    def write(self, cr, uid, ids, vals, context=None):
+        if 'product_id' in vals:
+            product = self.pool.get('product.product').browse(cr, uid, vals['product_id'])
+            vals.update({'uom_po_id':product.uom_id.id})    
+        new_write = super(tpt_material_request_line, self).write(cr, uid,ids, vals, context)
+        for line in self.browse(cr,uid,ids):
+            if line.product_uom_qty < 0:
+                raise osv.except_osv(_('Warning!'),_('Quantity is not allowed as negative values'))
+        return new_write
 tpt_material_request_line()
  
