@@ -138,6 +138,10 @@
             <field name="model">product.category</field>
             <field name="inherit_id" ref="product.product_category_form_view"/>
             <field name="arch" type="xml">
+            	<xpath expr="//label[@for='name']" position="before">
+            		<h1> <label string = 'Material Category' attrs="{'invisible':[('tpt_type','!=','purchase')]}" class="oe_edit_only"/> </h1>
+            		<h1> <label string = 'Product Category' attrs="{'invisible':[('tpt_type','!=','sale')]}" class="oe_edit_only"/> </h1>
+				</xpath>
 				<xpath expr="//label[@for='name']" position="replace">
 					<label for="name" string = 'Category Code' class="oe_edit_only"/>
 				</xpath> 
@@ -145,8 +149,10 @@
 					<field name="cate_name"/>
 				</xpath> 
 				<xpath expr="//field[@name='type']" position="before">
-					<newline/>
 					<field name="description"/>
+				</xpath> 
+				<xpath expr="//field[@name='type']" position="after">
+					<field name="tpt_type" invisible="1"/>
 				</xpath> 
 			</field>
 		</record>
@@ -848,11 +854,46 @@
             </field>
         </record>
         
-   <!--     <menuitem name="Material Category"
-            action="product.product_category_action_form" id="purchase.menu_product_category_config_purchase"
-            parent="purchase.menu_product_in_config_purchase" sequence="1" />
+        <!-- Category Action for Sale/Purchase -->
+       <!-- <record id="product.product_category_action" model="ir.actions.act_window">
+            <field name="name">Products by Category</field>
+            <field name="type">ir.actions.act_window</field>
+            <field name="res_model">product.category</field>
+            <field name="domain">[('parent_id','=',False),('tpt_type','=','sale')]</field>
+            <field name="view_type">tree</field>
+            <field name="context">{'default_tpt_type':'sale'}</field>
+            <field name="view_id" ref="product.product_category_tree_view"/>
+            <field name="help" type="html">
+              <p>
+                Here is a list of all your products classified by category. You
+                can click a category to get the list of all products linked to
+                this category or to a child of this category.
+              </p>
+            </field>
+        </record>
+        
+        <record id="tpt_purchase_product_category_action_form" model="ir.actions.act_window">
+            <field name="name">Material Category</field>
+            <field name="type">ir.actions.act_window</field>
+            <field name="res_model">product.category</field>
+            <field name="domain">[('parent_id','=',False),('tpt_type','=','purchase')]</field>
+            <field name="view_type">tree</field>
+            <field name="context">{'default_tpt_type':'purchase'}</field>
+            <field name="view_id" ref="product.product_category_tree_view"/>
+            <field name="help" type="html">
+              <p>
+                Here is a list of all your products classified by category. You
+                can click a category to get the list of all products linked to
+                this category or to a child of this category.
+              </p>
+            </field>
+        </record>
+        
+        <menuitem name="Material Category"
+            action="tpt_purchase_product_category_action_form" id="purchase.menu_product_category_config_purchase"
+            parent="purchase.menu_product_in_config_purchase"/>-->
             
-		<menuitem name="Material" id="purchase.menu_procurement_partner_contact_form" action="product.product_normal_action_puchased"
+		<!--<menuitem name="Material" id="purchase.menu_procurement_partner_contact_form" action="product.product_normal_action_puchased"
           parent="purchase.menu_procurement_management_product"/>   -->
           
     </data>
