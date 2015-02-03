@@ -2,7 +2,7 @@
 <openerp>
     <data>
 		<menuitem
-            action="product.product_category_action_form" id="menu_product_category_config_purchase"
-            parent="purchase.menu_product_in_config_purchase" sequence="1" />
+            action="tpt_purchase_product_category_action_form" id="purchase.menu_product_category_config_purchase"
+            parent="purchase.menu_product_in_config_purchase" name="Material Categories" sequence="1" />
     </data>
 </openerp>
