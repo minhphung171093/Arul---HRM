@@ -31,6 +31,7 @@
         'security/green_erp_arulmani_purchase_security.xml',
         'security/ir.model.access.csv',
         'purchase_sequence.xml',
+        'report/print_rfq_view.xml',
         'wizard/tick_purchase_chart_view.xml',
         'purchase_view.xml',
         'stock_view.xml',

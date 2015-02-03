@@ -59,6 +59,7 @@ class tpt_purchase_indent(osv.osv):
         return True   
 
     def create(self, cr, uid, vals, context=None):
+          
         if 'document_type' in vals:
             sql = '''
                 select code from account_fiscalyear where '%s' between date_start and date_stop
@@ -100,7 +101,12 @@ class tpt_purchase_indent(osv.osv):
                     if vals.get('name','/')=='/':
                         sequence = self.pool.get('ir.sequence').get(cr, uid, 'indent.purchase.service')
                         vals['name'] =  sequence and sequence +'/'+fiscalyear['code']or '/'
-        return super(tpt_purchase_indent, self).create(cr, uid, vals, context=context)    
+        new_id = super(tpt_purchase_indent, self).create(cr, uid, vals, context=context)   
+        indent = self.browse(cr,uid, new_id)
+        if indent.select_normal != 'multiple':
+            if (len(indent.purchase_product_line)>1):
+                raise osv.except_osv(_('Warning!'),_(' You must choose Select is multiple if you want more than one product!'))
+        return new_id
     
     def write(self, cr, uid, ids, vals, context=None):
         if 'document_type' in vals:
@@ -144,8 +150,12 @@ class tpt_purchase_indent(osv.osv):
                     if vals.get('name','/')=='/':
                         sequence = self.pool.get('ir.sequence').get(cr, uid, 'indent.purchase.service')
                         vals['name'] =  sequence and sequence +'/'+fiscalyear['code']or '/'
-      
-        return super(tpt_purchase_indent, self).write(cr, uid,ids, vals, context)
+        new_write = super(tpt_purchase_indent, self).write(cr, uid, vals, context=context)
+        for indent in self.browse(cr,uid,ids):
+            if indent.select_normal != 'multiple':
+                if (len(indent.purchase_product_line)>1):
+                    raise osv.except_osv(_('Warning!'),_(' You must choose Select is multiple if you want more than one product!'))
+        return new_write
     
     def onchange_date_expect(self, cr, uid, ids,date_indent=False, context=None):
         vals = {}
@@ -190,22 +200,30 @@ class tpt_purchase_product(osv.osv):
         }  
 
     def create(self, cr, uid, vals, context=None):
+        
         if 'product_id' in vals:
             product = self.pool.get('product.product').browse(cr, uid, vals['product_id'])
             vals.update({'uom_po_id':product.uom_id.id})
+        new_id = super(tpt_purchase_product, self).create(cr, uid, vals, context)
         if 'product_uom_qty' in vals:
             if (vals['product_uom_qty'] < 0):
                 raise osv.except_osv(_('Warning!'),_('Quantity is not allowed as negative values'))
-        return super(tpt_purchase_product, self).create(cr, uid, vals, context)
+        if 'pending_qty' in vals:
+            if (vals['pending_qty'] < 0):
+                raise osv.except_osv(_('Warning!'),_('Pending Quantity is not allowed as negative values'))
+        return new_id
     
     def write(self, cr, uid, ids, vals, context=None):
         if 'product_id' in vals:
             product = self.pool.get('product.product').browse(cr, uid, vals['product_id'])
             vals.update({'uom_po_id':product.uom_id.id})
-        if 'product_uom_qty' in vals:
-            if (vals['product_uom_qty'] < 0):
+        new_write = super(tpt_purchase_product, self).write(cr, uid,ids, vals, context)
+        for line in self.browse(cr,uid,ids):
+            if line.product_uom_qty < 0:
                 raise osv.except_osv(_('Warning!'),_('Quantity is not allowed as negative values'))
-        return super(tpt_purchase_product, self).write(cr, uid,ids, vals, context)
+            if line.pending_qty < 0:
+                raise osv.except_osv(_('Warning!'),_('Pending Quantity is not allowed as negative values'))
+        return new_write
     
 tpt_purchase_product()
 
@@ -1515,17 +1533,24 @@ class tpt_request_for_quotation(osv.osv):
     _name = "tpt.request.for.quotation"
     
     _columns = {
-        'name': fields.char('RFQ No', size = 1024,readonly=True, required = True ),
-        'rfq_date': fields.datetime('RFQ Date'),
-        'rfq_category': fields.selection([('single','Single'),('mutiple','Multiple'),('special','Special')],'RFQ Category', required = True),   
-        'create_on': fields.datetime('Created on'),
-        'expect_quote_date': fields.date('Expected Quote Date'),
-        'rfq_line': fields.one2many('tpt.rfq.line', 'rfq_id', 'RFQ Line'), 
-        'rfq_supplier': fields.one2many('tpt.rfq.supplier', 'rfq_id', 'Supplier Line'), 
+        'name': fields.char('RFQ No', size = 1024,readonly=True, required = True , states={'cancel': [('readonly', True)], 'done':[('readonly', True)]}),
+        'rfq_date': fields.datetime('RFQ Date', states={'cancel': [('readonly', True)], 'done':[('readonly', True)]}),
+        'rfq_category': fields.selection([('single','Single'),('mutiple','Multiple'),('special','Special')],'RFQ Category', required = True, states={'cancel': [('readonly', True)], 'done':[('readonly', True)]}),
+        'create_on': fields.datetime('Created on', states={'cancel': [('readonly', True)], 'done':[('readonly', True)]}),
+        'expect_quote_date': fields.date('Expected Quote Date', states={'cancel': [('readonly', True)], 'done':[('readonly', True)]}),
+        'rfq_line': fields.one2many('tpt.rfq.line', 'rfq_id', 'RFQ Line', states={'cancel': [('readonly', True)], 'done':[('readonly', True)]}),
+        'rfq_supplier': fields.one2many('tpt.rfq.supplier', 'rfq_id', 'Supplier Line', states={'cancel': [('readonly', True)], 'done':[('readonly', True)]}),
+        'state':fields.selection([('draft', 'Draft'),('cancel', 'Cancel'),('done', 'Approve')],'Status', readonly=True, states={'cancel': [('readonly', True)], 'done':[('readonly', True)]}),       
                 }
     _defaults={
                'name':'/',
+               'state': 'draft',
     }
+    def bt_approve(self, cr, uid, ids, context=None):
+        return self.write(cr, uid, ids,{'state':'done'})
+    
+    def bt_cancel(self, cr, uid, ids, context=None):
+        return self.write(cr, uid, ids,{'state':'cancel'})
     
     def create(self, cr, uid, vals, context=None):
         if vals.get('name','/')=='/':
@@ -1537,6 +1562,15 @@ class tpt_request_for_quotation(osv.osv):
                 if (len(rfq.rfq_supplier) > 1):
                     raise osv.except_osv(_('Warning!'),_('You must choose RFQ category is multiple if you want more than one vendors!'))
         return new_id
+    
+    def write(self, cr, uid, ids, vals, context=None):
+        new_write = super(tpt_request_for_quotation, self).write(cr, uid,ids, vals, context)
+        for rfq in self.browse(cr,uid,ids):
+            if rfq.rfq_category:
+                if rfq.rfq_category != 'mutiple':
+                    if (len(rfq.rfq_supplier) > 1):
+                        raise osv.except_osv(_('Warning!'),_('You must choose RFQ category is multiple if you want more than one vendors!'))
+        return new_write
     
 tpt_request_for_quotation()
 
@@ -1611,6 +1645,21 @@ class tpt_rfq_supplier(osv.osv):
                             }
         return {'value': vals}   
     
+    def bt_print(self, cr, uid, ids, context=None):
+        assert len(ids) == 1, 'This option should only be used for a single id at a time.'
+        self.write(cr, uid, ids, {'sent': True}, context=context)
+        datas = {
+             'ids': ids,
+             'model': 'tpt.rfq.supplier',
+             'form': self.read(cr, uid, ids[0], context=context)
+        }
+        return {
+            'type': 'ir.actions.report.xml',
+            'report_name': 'tpt_rfq_supplier',
+#                 'datas': datas,
+#                 'nodestroy' : True
+        }
+    
 tpt_rfq_supplier()
 
 class res_partner(osv.osv):
@@ -1644,5 +1693,154 @@ class res_partner(osv.osv):
     def name_search(self, cr, user, name, args=None, operator='ilike', context=None, limit=100):
        ids = self.search(cr, user, args, context=context, limit=limit)
        return self.name_get(cr, user, ids, context=context)   
-  
-res_partner()    
+res_partner()   
+
+class tpt_material_request(osv.osv):
+    _name = "tpt.material.request"
+    _columns = {
+        'name': fields.char('Material Request No', size = 1024,readonly = True,states={'done':[('readonly', True)]}),
+        'date_request':fields.date('Material Request Date',required = True,states={'done':[('readonly', True)]}),
+        'date_expec':fields.date('Expected Date',states={'done':[('readonly', True)]}),
+        'department_id':fields.many2one('hr.department','Department',required = True,  states={ 'done':[('readonly', True)]}),
+        'create_uid':fields.many2one('res.users','Request Raised By', states={'done':[('readonly', True)]}),
+        'material_request_line':fields.one2many('tpt.material.request.line','material_request_id','Vendor Group',states={'done':[('readonly', True)]}),
+        'state':fields.selection([('draft', 'Draft'),('done', 'Approve')],'Status', readonly=True),
+                }
+    _defaults = {
+        'state':'draft',      
+        'name': '/',
+        'date_request': fields.datetime.now,
+    }
+    def create(self, cr, uid, vals, context=None):
+        new_id = super(tpt_material_request, self).create(cr, uid, vals, context)
+        if vals.get('name','/')=='/':
+            sql = '''
+                select code from account_fiscalyear where '%s' between date_start and date_stop
+            '''%(time.strftime('%Y-%m-%d'))
+            cr.execute(sql)
+            fiscalyear = cr.dictfetchone()
+            if not fiscalyear:
+                raise osv.except_osv(_('Warning!'),_('Financial year has not been configured. !'))
+            else:
+                sequence = self.pool.get('ir.sequence').get(cr, uid, 'tpt.material.request.import')
+                vals['name'] =  sequence and sequence+'/'+fiscalyear['code'] or '/'
+        material = self.browse(cr,uid,new_id)
+        sql = '''
+                select product_id, sum(product_uom_qty) as product_qty from tpt_material_request_line where material_request_id = %s group by product_id
+                '''%(material.id)
+        cr.execute(sql)
+        for order_line in cr.dictfetchall():
+            sql = '''
+            SELECT sum(onhand_qty) onhand_qty
+            From
+            (SELECT
+                   
+                case when loc1.usage != 'internal' and loc2.usage = 'internal'
+                then stm.primary_qty
+                else
+                case when loc1.usage = 'internal' and loc2.usage != 'internal'
+                then -1*stm.primary_qty 
+                else 0.0 end
+                end onhand_qty
+                        
+            FROM stock_move stm 
+                join stock_location loc1 on stm.location_id=loc1.id
+                join stock_location loc2 on stm.location_dest_id=loc2.id
+            WHERE stm.state= 'done' and product_id=%s)foo
+            '''%(order_line['product_id'])
+            cr.execute(sql)
+            onhand_qty = cr.dictfetchone()['onhand_qty']
+            if (order_line['product_qty'] > onhand_qty):
+                raise osv.except_osv(_('Warning!'),_('You are confirm %s but only %s available for this product in stock.' %(order_line['product_qty'], onhand_qty)))
+        return new_id
+     
+    def write(self, cr, uid, ids, vals, context=None):
+        if vals.get('name','/')=='/':
+            sql = '''
+                select code from account_fiscalyear where '%s' between date_start and date_stop
+            '''%(time.strftime('%Y-%m-%d'))
+            cr.execute(sql)
+            fiscalyear = cr.dictfetchone()
+            if not fiscalyear:
+                raise osv.except_osv(_('Warning!'),_('Financial year has not been configured. !'))
+            else:
+                sequence = self.pool.get('ir.sequence').get(cr, uid, 'tpt.material.request.import')
+                vals['name'] =  sequence and sequence+'/'+fiscalyear['code'] or '/'
+        new_write = super(tpt_material_request, self).write(cr, uid,ids, vals, context)
+        for material in self.browse(cr,uid,ids):
+            sql = '''
+                select product_id, sum(product_uom_qty) as product_qty from tpt_material_request_line where material_request_id = %s group by product_id
+                '''%(material.id)
+            cr.execute(sql)
+            for order_line in cr.dictfetchall():
+                sql = '''
+                SELECT sum(onhand_qty) onhand_qty
+                From
+                (SELECT
+                       
+                    case when loc1.usage != 'internal' and loc2.usage = 'internal'
+                    then stm.primary_qty
+                    else
+                    case when loc1.usage = 'internal' and loc2.usage != 'internal'
+                    then -1*stm.primary_qty 
+                    else 0.0 end
+                    end onhand_qty
+                            
+                FROM stock_move stm 
+                    join stock_location loc1 on stm.location_id=loc1.id
+                    join stock_location loc2 on stm.location_dest_id=loc2.id
+                WHERE stm.state= 'done' and product_id=%s)foo
+                '''%(order_line['product_id'])
+                cr.execute(sql)
+                onhand_qty = cr.dictfetchone()['onhand_qty']
+                if (order_line['product_qty'] > onhand_qty):
+                    raise osv.except_osv(_('Warning!'),_('You are confirm %s but only %s available for this product in stock.' %(order_line['product_qty'], onhand_qty)))
+        return new_write
+
+    def bt_approve(self, cr, uid, ids, context=None):
+        for line in self.browse(cr, uid, ids):
+            self.write(cr, uid, ids,{'state':'done'})
+        return True   
+
+    def onchange_date_expect(self, cr, uid, ids,date_request=False, context=None):
+        vals = {}
+        if date_request :
+            sql='''
+            select date(date('%s')+INTERVAL '1 month 1days') as date_request
+            '''%(date_request)
+            cr.execute(sql)
+            dates = cr.dictfetchone()['date_request']
+        return {'value': {'date_expec':dates}}
+tpt_material_request()
+
+
+class tpt_material_request_line(osv.osv):
+    _name = "tpt.material.request.line"
+    _columns = {
+        'product_id': fields.many2one('product.product', 'Material Code',required = True),
+        'dec_material':fields.text('Material Decription',required = True),
+        'product_uom_qty': fields.float('Requested Qty'),   
+        'uom_po_id': fields.many2one('product.uom', 'UOM', readonly = True),
+        'material_request_id': fields.many2one('tpt.material.request', 'Material'),
+                }
+    def create(self, cr, uid, vals, context=None):
+        if 'product_id' in vals:
+            product = self.pool.get('product.product').browse(cr, uid, vals['product_id'])
+            vals.update({'uom_po_id':product.uom_id.id})    
+        new_id = super(tpt_material_request_line, self).create(cr, uid, vals, context)
+        if 'product_uom_qty' in vals:
+            if (vals['product_uom_qty'] < 0):
+                raise osv.except_osv(_('Warning!'),_('Quantity is not allowed as negative values'))
+        return new_id
+
+    def write(self, cr, uid, ids, vals, context=None):
+        if 'product_id' in vals:
+            product = self.pool.get('product.product').browse(cr, uid, vals['product_id'])
+            vals.update({'uom_po_id':product.uom_id.id})    
+        new_write = super(tpt_material_request_line, self).write(cr, uid,ids, vals, context)
+        for line in self.browse(cr,uid,ids):
+            if line.product_uom_qty < 0:
+                raise osv.except_osv(_('Warning!'),_('Quantity is not allowed as negative values'))
+        return new_write
+tpt_material_request_line()
+ 

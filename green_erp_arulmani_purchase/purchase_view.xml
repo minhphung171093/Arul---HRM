@@ -916,6 +916,7 @@
 					<field name="rfq_category"/>
 					<field name="create_on"/>
 					<field name="expect_quote_date"/>
+					<field name="state" widget="statusbar" statusbar_visible="draft,cancel,done" statusbar_colors='{"draft":"blue","cancel":"blue"}'/>
 				</tree>
 			</field>
 		</record>
@@ -924,7 +925,12 @@
             <field name="name">tpt.request.for.quotation.form</field>
             <field name="model">tpt.request.for.quotation</field>
             <field name="arch" type="xml">
-	            <form string="Request For Quotation" version="7.0">   
+	            <form string="Request For Quotation" version="7.0"> 
+	            <header>
+	            		<button name="bt_approve" states='draft' string="Approve" type="object" class="oe_highlight" />
+	                    <button name="bt_cancel" states='draft' string="Cancel" type="object" class="oe_highlight" />
+	                    <field name="state" widget="statusbar" statusbar_visible="draft,cancel,done" statusbar_colors='{"draft":"blue","cancel":"blue"}'/>
+	            </header>   
 	            	<sheet>
 	            		<group col="4" colspan="2">
 	            			<field name="name"/>
@@ -952,6 +958,7 @@
 										<field name="vendor_id" domain="[('supplier','=',1)]" on_change = "onchange_rfq_vendor_id(vendor_id)" options="{'create': false, 'create_edit': false}"/>
 										<field name="state_id" options="{'create': false, 'create_edit': false}"/>
 										<field name="quotation_no_id" options="{'create': false, 'create_edit': false}"/>
+										<button name = "bt_print" icon = "gtk-print" string="Print" type="object" />
 									</tree>
 								</field>
 							</page>
@@ -1011,7 +1018,70 @@
      	<menuitem action="stock.action_picking_tree4" id="purchase.menu_action_picking_tree4" parent="purchase.menu_procurement_management_inventory"
             name="GRN" sequence="9"/> 
         
-        <!-- Category Action for Sale/Purchase/warehouse -->
+	   	<record id="view_tpt_material_request_tree" model="ir.ui.view">
+			<field name="name">tpt.material.request.tree</field>
+			<field name="model">tpt.material.request</field>
+			<field name="arch" type="xml">
+				<tree string="Material Request">
+						<field name="name"/>
+						<field name="date_request"/>
+						<field name="date_expec"/>
+						<field name="department_id"  />
+						<field name="create_uid" options="{'create': false, 'create_edit': false}" />
+						<field name="state" widget="statusbar" statusbar_visible="draft,done" statusbar_colors='{"draft":"blue"}'/>
+				</tree>
+			</field>
+		</record>
+		
+		<record id="view_tpt_material_request_form" model="ir.ui.view">
+            <field name="name">tpt.material.request.form</field>
+            <field name="model">tpt.material.request</field>
+            <field name="arch" type="xml">
+	            <form string="Material Request" version="7.0">   
+	             <header>
+	            		<button name="bt_approve" states='draft' string="Approve" type="object" class="oe_highlight" />
+	                    <field name="state" widget="statusbar" statusbar_visible="draft,done" statusbar_colors='{"draft":"blue"}'/>
+	            </header>    
+	            	<sheet>
+		                <group col="4" colspan="2" >    
+							<field name="name"/>
+							<field name="date_request" on_change="onchange_date_expect(date_request)" />
+							<field name="department_id" options="{'create': false, 'create_edit': false}" />
+							<field name="create_uid" options="{'create': false, 'create_edit': false}"  />
+							<field name="date_expec"/>
+						</group>
+						<notebook>
+							<page string = "Materials">
+								<field name="material_request_line" nolabel='1'>
+									<tree editable='bottom'>
+										<field name="product_id" widget = "selection"  options="{'create': false, 'create_edit': false}"/>
+										<field name="dec_material" />
+										<field name="product_uom_qty" />
+										<field name="uom_po_id" edit='false' options="{'create': false, 'create_edit': false}"/>
+									</tree>
+								</field>
+							</page>
+						</notebook>
+		         	</sheet>
+		         </form>
+			</field>
+		</record>
+          
+		<record id="action_view_tpt_material_request_form" model="ir.actions.act_window">
+            <field name="name">Material Request</field>
+            <field name="type">ir.actions.act_window</field>
+            <field name="res_model">tpt.material.request</field>
+            <field name="view_type">form</field>
+            <field name="view_mode">tree,form</field>
+            <field name="view_id" ref="view_tpt_material_request_tree"/>
+        </record>
+        
+        <menuitem action="action_view_tpt_material_request_form"
+            id="menu_action_view_tpt_material_request_form"
+            parent="purchase.menu_procurement_management" sequence="20"/>
+
+
+        <!-- Category Action for Sale/Purchase -->
         <record id="product.product_category_action_form" model="ir.actions.act_window">
             <field name="name">Product Categories</field>
             <field name="type">ir.actions.act_window</field>
