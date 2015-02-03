@@ -203,7 +203,7 @@
             <field name="arch" type="xml">
 				<xpath expr="//label[@for='sale_ok']" position="after">
 					<field name="cate_name" invisible='1'/>
-					<field name="batch_appli_ok" attrs="{'invisible':[('cate_name','!=','finish')]}"/>
+					<field name="batch_appli_ok" on_change="onchange_batch_appli_ok(batch_appli_ok)" attrs="{'invisible':[('cate_name','!=','finish')]}"/>
 					<label for = "batch_appli_ok" attrs="{'invisible':[('cate_name','!=','finish')]}"/>
 				</xpath>
 				<xpath expr="//div[@class='oe_title']" position="inside">
@@ -223,7 +223,7 @@
 					<page string="Specification Parameters" attrs="{'invisible': [('cate_name', '!=', 'raw')]}">
                             <field name="spec_parameter_line" nolabel = '1'>
                             	<tree editable='bottom'>
-                                    <field name="name"/>
+                                    <field name="name" options="{'create': false, 'create_edit': false}"/>
                                     <field name="required_spec" />
                                     <field name="uom_po_id" options="{'create': false, 'create_edit': false}"/>
 	                            </tree>
@@ -231,7 +231,7 @@
                     </page>
 				</xpath>
 				
-				<xpath expr="//page[@string='Information']" position="before">
+				<!--<xpath expr="//page[@string='Information']" position="before">
 					<page string="Purchase" attrs="{'invisible': [('cate_name', '!=', 'raw')]}">
 						<group>
 							<group>
@@ -249,7 +249,7 @@
 	                		
 	                	</group>
                     </page>
-				</xpath>
+				</xpath>-->
 				
 				<xpath expr="//page[@string='Accounting']" position="after">
 					<page string="Inventory">
@@ -262,6 +262,24 @@
                                 </tree>
                             </field>
                     </page>
+				</xpath>
+				
+				<xpath expr="//field[@name='type']" position="attributes">
+					<attribute name='attrs'>{'invisible': [('cate_name','=','finish')]}</attribute>
+				</xpath>
+				
+				<xpath expr="//field[@name='uom_id']" position="before">
+					<field name="tpt_product_type" attrs="{'invisible': [('cate_name','!=','finish')]}"/>
+				</xpath>
+				
+				<xpath expr="//group[@name='delay']" position="before">
+					<group name="MRP">
+                        <field name="mrp_control" on_change="onchange_mrp_control(mrp_control)"/>
+                        <field name="min_stock" attrs="{'readonly': [('mrp_control','=',False)]}"/>
+						<field name="max_stock" attrs="{'readonly': [('mrp_control','=',False)]}"/>
+						<field name="re_stock" attrs="{'readonly': [('mrp_control','=',False)]}"/>
+						<field name="po_text"/>
+	                </group>
 				</xpath>
 			</field>
 		</record>

@@ -313,6 +313,12 @@ class product_product(osv.osv):
         'zip': fields.char('', size = 1024),
         'inventory_line':fields.function(_inventory, method=True,type='one2many', relation='tpt.product.inventory', string='Inventory'),
         'spec_parameter_line':fields.one2many('tpt.spec.parameters.line', 'product_id', 'Spec Parameters'),
+        'tpt_product_type':fields.selection([('rutile','Rutile'),('anatase','Anatase')],'Product Type'),
+        'min_stock': fields.char('Min. Stock Level', size = 1024),
+        'max_stock': fields.char('Max. Stock Level', size = 1024),
+        're_stock': fields.char('Reorder Level', size = 1024),
+        'po_text': fields.char('PO Text', size = 1024),
+        'mrp_control':fields.boolean('MRP Control Type'),
         }
     
     _defaults = {
@@ -400,7 +406,34 @@ class product_product(osv.osv):
                     'batch_appli_ok':False,
                     'cate_name':category.cate_name,
                     }
-        return {'value': vals}   
+        return {'value': vals}  
+    
+    def onchange_mrp_control(self, cr, uid, ids,mrp_control=False,context=None):
+        res = {'value':{
+                        'min_stock':False,
+                        'max_stock':False,
+                        're_stock':False,
+                      }
+               }
+        for mrp in self.browse(cr, uid, ids, context=context):
+            if mrp_control:
+                res['value'].update({
+                        'min_stock':mrp.min_stock,
+                        'max_stock':mrp.max_stock,
+                        're_stock':mrp.re_stock,
+                        })
+            else:
+                return res
+        return res 
+    
+    def onchange_batch_appli_ok(self, cr, uid, ids,batch_appli_ok=False,context=None):
+        res = {'value':{
+                        'track_production':batch_appli_ok,
+                        'track_incoming':batch_appli_ok,
+                        'track_outgoing':batch_appli_ok,
+                      }
+               }
+        return res 
 product_product()
 
 class tpt_product_inventory(osv.osv):
@@ -695,7 +728,7 @@ class tpt_spec_parameters_line(osv.osv):
     _name = "tpt.spec.parameters.line"
     _columns = {
         'product_id': fields.many2one('product.product','Product',ondelete = 'cascade'),
-        'name': fields.char('Testing Parameters', size = 1024, required = True),
+        'name': fields.many2one('tpt.quality.parameters','Testing Parameters',required=True,ondelete='restrict'),
         'required_spec': fields.float('Required Specifications'),
         'uom_po_id': fields.many2one('product.uom', 'UOM'),
                 }
