@@ -214,8 +214,11 @@ class product_category(osv.osv):
     _columns = {
         'cate_name':fields.selection([('raw','Raw Materials'),('finish','Finished Product'),('spares','Spares'),('consum','Consumables')], 'Category Name', required = True),
         'description':fields.text('Description',size = 256),
+        'tpt_type':fields.selection([('sale','Sale'),('purchase','Purchase')], 'Type'),
         }
-    
+#     _defaults = {
+#         'tpt_type': 'purchase',
+#                  }
     def create(self, cr, uid, vals, context=None):
         if 'name' in vals:
             name = vals['name'].replace(" ","")
@@ -333,6 +336,14 @@ class product_product(osv.osv):
                 sql = '''
                     select product_id from tpt_purchase_product where purchase_indent_id in(select id from tpt_purchase_indent where id = %s)
                 '''%(context.get('po_indent_no'))
+                cr.execute(sql)
+                product_ids = [row[0] for row in cr.fetchall()]
+                args += [('id','in',product_ids)]
+        if context.get('search_rfq_product'):
+            if context.get('po_indent_id'):
+                sql = '''
+                    select product_id from tpt_purchase_product where purchase_indent_id in(select id from tpt_purchase_indent where id = %s)
+                '''%(context.get('po_indent_id'))
                 cr.execute(sql)
                 product_ids = [row[0] for row in cr.fetchall()]
                 args += [('id','in',product_ids)]
@@ -1386,6 +1397,7 @@ class tpt_vendor_group(osv.osv):
             cr.execute(sql)
             vendor_ids = [row[0] for row in cr.fetchall()]
             if vendor_ids:  
+                raise osv.except_osv(_('Warning!'),_('Name or Code in Vendor Group should be unique!'))
                 return False
         return True
     _constraints = [
@@ -1422,12 +1434,151 @@ class tpt_vendor_sub_group(osv.osv):
             cr.execute(sql)
             vendor_ids = [row[0] for row in cr.fetchall()]
             if vendor_ids:  
+                raise osv.except_osv(_('Warning!'),_('Name or Code in Vendor Sub Group should be unique!'))
                 return False
         return True
     _constraints = [
         (_check_code_id, 'Identical Data', ['code','name']),
     ]
 tpt_vendor_sub_group()
+
+class tpt_quality_parameters(osv.osv):
+    _name = "tpt.quality.parameters"
+    _columns = {
+        'name': fields.char('Parameter Name', size = 1024,required=True),
+        'code':fields.char('Parameter Code',size = 256,required = True),
+        'description':fields.text('Description'),
+                }
+    
+    def create(self, cr, uid, vals, context=None):
+        if 'code' in vals:
+            name = vals['code'].replace(" ","")
+            vals['code'] = name
+        return super(tpt_quality_parameters, self).create(cr, uid, vals, context)
+    
+    def write(self, cr, uid, ids, vals, context=None):
+        if 'code' in vals:
+            name = vals['code'].replace(" ","")
+            vals['code'] = name
+        return super(tpt_quality_parameters, self).write(cr, uid,ids, vals, context)
+
+    def _check_code_id(self, cr, uid, ids, context=None):
+        for parameter in self.browse(cr, uid, ids, context=context):
+            sql = '''
+                select id from tpt_quality_parameters where id != %s and (lower(code) = lower('%s') or lower(name) = lower('%s'))
+            '''%(parameter.id,parameter.code,parameter.name)
+            cr.execute(sql)
+            parameter_ids = [row[0] for row in cr.fetchall()]
+            if parameter_ids:  
+                raise osv.except_osv(_('Warning!'),_('Name or Code in Quality Parameters should be unique!'))
+                return False
+        return True
+    _constraints = [
+        (_check_code_id, 'Identical Data', ['code','name']),
+    ]
+tpt_quality_parameters()
+
+class tpt_request_for_quotation(osv.osv):
+    _name = "tpt.request.for.quotation"
+    
+    _columns = {
+        'name': fields.char('RFQ No', size = 1024,readonly=True, required = True ),
+        'rfq_date': fields.datetime('RFQ Date'),
+        'rfq_category': fields.selection([('single','Single'),('mutiple','Multiple'),('special','Special')],'RFQ Category', required = True),   
+        'create_on': fields.datetime('Created on'),
+        'expect_quote_date': fields.date('Expected Quote Date'),
+        'rfq_line': fields.one2many('tpt.rfq.line', 'rfq_id', 'RFQ Line'), 
+        'rfq_supplier': fields.one2many('tpt.rfq.supplier', 'rfq_id', 'Supplier Line'), 
+                }
+    _defaults={
+               'name':'/',
+    }
+    
+    def create(self, cr, uid, vals, context=None):
+        if vals.get('name','/')=='/':
+            vals['name'] = self.pool.get('ir.sequence').get(cr, uid, 'tpt.rfq.import') or '/'
+        new_id = super(tpt_request_for_quotation, self).create(cr, uid, vals, context)
+        rfq = self.browse(cr,uid,new_id)
+        if rfq.rfq_category:
+            if rfq.rfq_category != 'mutiple':
+                if (len(rfq.rfq_supplier) > 1):
+                    raise osv.except_osv(_('Warning!'),_('You must choose RFQ category is multiple if you want more than one vendors!'))
+        return new_id
+    
+tpt_request_for_quotation()
+
+class tpt_rfq_line(osv.osv):
+    _name = 'tpt.rfq.line'
+    _columns = {
+        'rfq_id': fields.many2one('tpt.request.for.quotation','RFQ'),
+        'po_indent_id':fields.many2one('tpt.purchase.indent','PO Indent', required = True),
+        'product_id': fields.many2one('product.product', 'Material',required = True),
+        'product_uom_qty': fields.float('Quantity', readonly = True),   
+        'uom_id': fields.many2one('product.uom', 'UOM', readonly = True),
+        }  
+    
+    def create(self, cr, uid, vals, context=None):
+        if 'po_indent_id' in vals:
+            if 'product_id' in vals:
+                indent = self.pool.get('tpt.purchase.indent').browse(cr, uid, vals['po_indent_id'])
+                for line in indent.purchase_product_line:
+                    if vals['product_id'] == line.product_id.id:
+                        vals.update({
+                                'uom_id':line.uom_po_id.id,
+                                'product_uom_qty':line.product_uom_qty,
+                                })
+        return super(tpt_rfq_line, self).create(cr, uid, vals, context)    
+  
+    def write(self, cr, uid, vals, context=None):
+        if 'po_indent_id' in vals:
+            if 'product_id' in vals:
+                indent = self.pool.get('tpt.purchase.indent').browse(cr, uid, vals['po_indent_id'])
+                for line in indent.purchase_product_line:
+                    if vals['product_id'] == line.product_id.id:
+                        vals.update({
+                                'uom_id':line.uom_po_id.id,
+                                'product_uom_qty':line.product_uom_qty,
+                                })
+        return super(tpt_rfq_line, self).create(cr, uid, vals, context)    
+    
+    def onchange_rfq_indent_id(self, cr, uid, ids,po_indent_id=False, context=None):
+        if po_indent_id:
+            return {'value': {'product_id': False}}  
+        
+    def onchange_rfq_product_id(self, cr, uid, ids,product_id=False, po_indent_id=False, context=None):
+        vals = {}
+        if po_indent_id and product_id: 
+            indent = self.pool.get('tpt.purchase.indent').browse(cr, uid, po_indent_id)
+            product = self.pool.get('product.product').browse(cr, uid, product_id)
+            for line in indent.purchase_product_line:
+                if product_id == line.product_id.id:
+                    vals = {
+                            'uom_id':line.uom_po_id and line.uom_po_id.id or False,
+                            'product_uom_qty':line.product_uom_qty or False,
+                            }
+        return {'value': vals}   
+tpt_rfq_line()
+
+class tpt_rfq_supplier(osv.osv):
+    _name = 'tpt.rfq.supplier'
+    _columns = {
+        'rfq_id': fields.many2one('tpt.request.for.quotation','RFQ'),
+        'vendor_id':fields.many2one('res.partner','Vendor Name', required = True),
+        'state_id': fields.many2one('res.country.state', 'Vendor Location'),
+        'quotation_no_id': fields.many2one('tpt.purchase.quotation', 'Quotation No'),
+#         'uom_po_id': fields.many2one('product.uom', 'UOM', readonly = True),
+        }  
+    
+    def onchange_rfq_vendor_id(self, cr, uid, ids,vendor_id=False, context=None):
+        vals = {}
+        if vendor_id: 
+            vendor = self.pool.get('res.partner').browse(cr, uid, vendor_id)
+            vals = {
+                    'state_id':vendor.state_id and vendor.state_id.id or False,
+                            }
+        return {'value': vals}   
+    
+tpt_rfq_supplier()
 
 class res_partner(osv.osv):
     _inherit = "res.partner"   

@@ -142,11 +142,18 @@
             <field name="model">product.category</field>
             <field name="inherit_id" ref="product.product_category_form_view"/>
             <field name="arch" type="xml">
+            	<xpath expr="//label[@for='name']" position="before">
+            		<h1> <label string = 'Material Category' attrs="{'invisible':[('tpt_type','!=','purchase')]}" class="oe_edit_only"/> </h1>
+            		<h1> <label string = 'Product Category' attrs="{'invisible':[('tpt_type','!=','sale')]}" class="oe_edit_only"/> </h1>
+				</xpath>
 				<xpath expr="//label[@for='name']" position="replace">
 					<label for="name" string = 'Category Code' class="oe_edit_only"/>
+					<field name="tpt_type" invisible="1"/>
 				</xpath> 
 				<xpath expr="//field[@name='parent_id']" position="before">
+					
 					<field name="cate_name"/>
+					
 				</xpath> 
 				<xpath expr="//field[@name='type']" position="before">
 					<newline/>
@@ -806,6 +813,7 @@
 				<tree string="Vendor Sub Group">
 					<field name="name"/>
 					<field name="code"/>
+					<field name="vendor_group_id" options="{'create': false, 'create_edit': false}" />
 				</tree>
 			</field>
 		</record>
@@ -838,6 +846,115 @@
         <menuitem action="action_view_tpt_vendor_sub_group_form"
             id="menu_action_view_tpt_vendor_sub_group_form"
             parent="purchase.menu_procurement_management" sequence="400"/>
+            
+        <record id="view_tpt_quality_parameters_tree" model="ir.ui.view">
+			<field name="name">tpt.quality.parameters.tree</field>
+			<field name="model">tpt.quality.parameters</field>
+			<field name="arch" type="xml">
+				<tree string="Quality Parameters">
+					<field name="name"/>
+					<field name="code"/>
+					<field name="description"/>
+				</tree>
+			</field>
+		</record>
+		
+		<record id="view_tpt_quality_parameters_form" model="ir.ui.view">
+            <field name="name">tpt.quality.parameters.form</field>
+            <field name="model">tpt.quality.parameters</field>
+            <field name="arch" type="xml">
+	            <form string="Quality Parameters" version="7.0">   
+	            	<sheet>
+	            		<group>
+	            			<field name="name"/>
+	            			<field name="code"/>
+	            			<field name="description" />
+	            		</group>
+				    </sheet>
+		         </form>
+			</field>
+		</record>
+		
+		<record id="action_view_tpt_quality_parameters_form" model="ir.actions.act_window">
+            <field name="name">Quality Parameters</field>
+            <field name="type">ir.actions.act_window</field>
+            <field name="res_model">tpt.quality.parameters</field>
+            <field name="view_type">form</field>
+            <field name="view_mode">tree,form</field>
+            <field name="view_id" ref="view_tpt_quality_parameters_tree"/>
+        </record>
+        
+        <menuitem action="action_view_tpt_quality_parameters_form"
+            id="menu_action_view_tpt_quality_parameters_form"
+            parent="purchase.menu_procurement_management" sequence="500"/>
+        
+        <record id="view_tpt_request_for_quotation_tree" model="ir.ui.view">
+			<field name="name">tpt.request.for.quotation.tree</field>
+			<field name="model">tpt.request.for.quotation</field>
+			<field name="arch" type="xml">
+				<tree string="Request For Quotation">
+					<field name="name"/>
+					<field name="rfq_date"/>
+					<field name="rfq_category"/>
+					<field name="create_on"/>
+					<field name="expect_quote_date"/>
+				</tree>
+			</field>
+		</record>
+		
+		<record id="view_tpt_request_for_quotation_form" model="ir.ui.view">
+            <field name="name">tpt.request.for.quotation.form</field>
+            <field name="model">tpt.request.for.quotation</field>
+            <field name="arch" type="xml">
+	            <form string="Request For Quotation" version="7.0">   
+	            	<sheet>
+	            		<group col="4" colspan="2">
+	            			<field name="name"/>
+							<field name="rfq_date"/>
+							<field name="rfq_category"/>
+							<field name="create_on"/>
+							<field name="expect_quote_date"/>
+	            		</group>
+	            		<notebook>
+							<page string = "RFQ Line">
+							<field name="rfq_line" nolabel='1'>
+									<tree editable='bottom'>
+										<field name="po_indent_id" on_change = "onchange_rfq_indent_id(po_indent_id)" options="{'create': false, 'create_edit': false}"/>
+										<field name="product_id" context="{'search_rfq_product':True, 'po_indent_id':po_indent_id }" on_change = "onchange_rfq_product_id(product_id, po_indent_id)" options="{'create': false, 'create_edit': false}"/>
+										<field name="product_uom_qty" />
+										<field name="uom_id" options="{'create': false, 'create_edit': false}"/>
+									</tree>
+								</field>
+							</page>
+						</notebook>
+						<notebook>
+							<page string = "Suppliers">
+							<field name="rfq_supplier" nolabel='1'>
+									<tree editable='bottom'>
+										<field name="vendor_id" domain="[('supplier','=',1)]" on_change = "onchange_rfq_vendor_id(vendor_id)" options="{'create': false, 'create_edit': false}"/>
+										<field name="state_id" options="{'create': false, 'create_edit': false}"/>
+										<field name="quotation_no_id" options="{'create': false, 'create_edit': false}"/>
+									</tree>
+								</field>
+							</page>
+						</notebook>
+				    </sheet>
+		         </form>
+			</field>
+		</record>
+		
+		<record id="action_view_tpt_request_for_quotation_form" model="ir.actions.act_window">
+            <field name="name">Request For Quotation</field>
+            <field name="type">ir.actions.act_window</field>
+            <field name="res_model">tpt.request.for.quotation</field>
+            <field name="view_type">form</field>
+            <field name="view_mode">tree,form</field>
+            <field name="view_id" ref="view_tpt_request_for_quotation_tree"/>
+        </record>
+        
+        <menuitem action="action_view_tpt_request_for_quotation_form"
+            id="menu_action_view_tpt_request_for_quotation_form"
+            parent="purchase.menu_procurement_management" sequence="550"/>
 
         <record id="tpt_view_partner_form" model="ir.ui.view">
             <field name="name">tpt.partner.view.form.inherit</field>
@@ -859,7 +976,7 @@
                     
                     <xpath expr="//field[@name='name']" position="before">
                         <field name="vendor_code" placeholder="Vendor Code" attrs="{'invisible': [('supplier','=',False)]}" />
-                    	<field name="title" domain="[('domain', '=', 'contact')]" options="{&quot;no_open&quot;: True}" attrs="{'invisible': [('is_company','=', True)]}"/>
+                    	<field name="title" placeholder="Title" domain="[('domain', '=', 'contact')]" options="{&quot;no_open&quot;: True}" attrs="{'invisible': [('is_company','=', True)]}"/>
                     </xpath>
                     
                      <xpath expr="//field[@name='email']" position="after">
@@ -873,7 +990,7 @@
 	        parent="purchase.menu_procurement_management"
 	        action="base.action_partner_supplier_form" sequence="15"/>
 	        
-     <menuitem action="stock.action_picking_tree4" id="purchase.menu_action_picking_tree4" parent="purchase.menu_procurement_management_inventory"
+     	<menuitem action="stock.action_picking_tree4" id="purchase.menu_action_picking_tree4" parent="purchase.menu_procurement_management_inventory"
             name="GRN" sequence="9"/> 
         
    <!--     <menuitem name="Material Category"
@@ -945,5 +1062,30 @@
         <menuitem action="action_view_tpt_material_request_form"
             id="menu_action_view_tpt_material_request_form"
             parent="purchase.menu_procurement_management" sequence="20"/>
+
+
+        <!-- Category Action for Sale/Purchase -->
+        <record id="product.product_category_action_form" model="ir.actions.act_window">
+            <field name="name">Product Categories</field>
+            <field name="type">ir.actions.act_window</field>
+            <field name="res_model">product.category</field>
+            <field name="domain">[('tpt_type','=','sale')]</field>
+            <field name="view_type">form</field>
+            <field name="context">{'default_tpt_type':'sale'}</field>
+            <field name="search_view_id" ref="product.product_category_search_view"/>
+            <field name="view_id" ref="product.product_category_list_view"/>
+        </record>
+        
+        <record id="tpt_purchase_product_category_action_form" model="ir.actions.act_window">
+            <field name="name">Material Categories</field>
+            <field name="type">ir.actions.act_window</field>
+            <field name="res_model">product.category</field>
+            <field name="domain">[('tpt_type','=','purchase')]</field>
+            <field name="view_type">form</field>
+            <field name="context">{'default_tpt_type':'purchase'}</field>
+            <field name="search_view_id" ref="product.product_category_search_view"/>
+            <field name="view_id" ref="product.product_category_list_view"/>
+        </record>
+        
     </data>
 </openerp>

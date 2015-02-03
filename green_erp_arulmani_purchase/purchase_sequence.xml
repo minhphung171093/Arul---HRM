@@ -280,5 +280,21 @@
             <field name="number_next_actual">000001</field>
             <field name="implementation">no_gap</field>
         </record>
+
+	<!-- Request For Quotation -->
+        <record id="sequence_tpt_request_for_quotation_import_code" model="ir.sequence.type">
+            <field name="name">Request For Quotation</field>
+            <field name="code">tpt.rfq.import</field>
+        </record>
+        
+        <record id="sequence_tpt_request_for_quotation_import_item" model="ir.sequence">
+            <field name="name">Request For Quotation</field>
+            <field name="code">tpt.rfq.import</field>
+            <field name="prefix">RFQ</field>
+            <field name="padding">7</field>
+            <field name="number_next_actual">1000001</field>
+            <field name="implementation">no_gap</field>
+        </record>
+        
 	</data>
 </openerp>
