@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<openerp>
+	<data>
+    	<record id="tpt_rfq_supplier" model="ir.actions.report.xml">
+	        <field name="name">tpt.rfq.supplier</field>
+	        <field name="type">ir.actions.report.xml</field>
+	        <field name="model">tpt.rfq.supplier</field>
+	        <field name="report_name">Print RFQ</field>
+	        <field name="report_type">aeroo</field>
+	        <field name="in_format">oo-odt</field>
+	        <field name="out_format" model="report.mimetypes" search="[('code','=','oo-pdf'),('compatible_types','=','oo-odt')]"/>
+	        <field name="parser_loc">green_erp_arulmani_purchase/report/print_rfq.py</field>
+	        <field name="report_rml">green_erp_arulmani_purchase/report/print_rfq.odt</field>
+	        <field name="parser_state">loc</field>
+	        <field name="tml_source">file</field>
+	        <field name="attachment_use" eval="0"/>
+    	</record> 
+    	   
+    	<report 
+			auto="False" 
+			menu="False"
+			id="tpt_rfq_supplier" 
+			model="tpt.rfq.supplier" 
+			name="tpt_rfq_supplier"
+	        string="Print RFQ"
+	        rml="green_erp_arulmani_purchase/report/print_rfq.odt"/> 	
+	</data>
+</openerp>

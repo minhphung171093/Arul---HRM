@@ -1482,17 +1482,24 @@ class tpt_request_for_quotation(osv.osv):
     _name = "tpt.request.for.quotation"
     
     _columns = {
-        'name': fields.char('RFQ No', size = 1024,readonly=True, required = True ),
-        'rfq_date': fields.datetime('RFQ Date'),
-        'rfq_category': fields.selection([('single','Single'),('mutiple','Multiple'),('special','Special')],'RFQ Category', required = True),   
-        'create_on': fields.datetime('Created on'),
-        'expect_quote_date': fields.date('Expected Quote Date'),
-        'rfq_line': fields.one2many('tpt.rfq.line', 'rfq_id', 'RFQ Line'), 
-        'rfq_supplier': fields.one2many('tpt.rfq.supplier', 'rfq_id', 'Supplier Line'), 
+        'name': fields.char('RFQ No', size = 1024,readonly=True, required = True , states={'cancel': [('readonly', True)], 'done':[('readonly', True)]}),
+        'rfq_date': fields.datetime('RFQ Date', states={'cancel': [('readonly', True)], 'done':[('readonly', True)]}),
+        'rfq_category': fields.selection([('single','Single'),('mutiple','Multiple'),('special','Special')],'RFQ Category', required = True, states={'cancel': [('readonly', True)], 'done':[('readonly', True)]}),
+        'create_on': fields.datetime('Created on', states={'cancel': [('readonly', True)], 'done':[('readonly', True)]}),
+        'expect_quote_date': fields.date('Expected Quote Date', states={'cancel': [('readonly', True)], 'done':[('readonly', True)]}),
+        'rfq_line': fields.one2many('tpt.rfq.line', 'rfq_id', 'RFQ Line', states={'cancel': [('readonly', True)], 'done':[('readonly', True)]}),
+        'rfq_supplier': fields.one2many('tpt.rfq.supplier', 'rfq_id', 'Supplier Line', states={'cancel': [('readonly', True)], 'done':[('readonly', True)]}),
+        'state':fields.selection([('draft', 'Draft'),('cancel', 'Cancel'),('done', 'Approve')],'Status', readonly=True, states={'cancel': [('readonly', True)], 'done':[('readonly', True)]}),       
                 }
     _defaults={
                'name':'/',
+               'state': 'draft',
     }
+    def bt_approve(self, cr, uid, ids, context=None):
+        return self.write(cr, uid, ids,{'state':'done'})
+    
+    def bt_cancel(self, cr, uid, ids, context=None):
+        return self.write(cr, uid, ids,{'state':'cancel'})
     
     def create(self, cr, uid, vals, context=None):
         if vals.get('name','/')=='/':
@@ -1504,6 +1511,15 @@ class tpt_request_for_quotation(osv.osv):
                 if (len(rfq.rfq_supplier) > 1):
                     raise osv.except_osv(_('Warning!'),_('You must choose RFQ category is multiple if you want more than one vendors!'))
         return new_id
+    
+    def write(self, cr, uid, ids, vals, context=None):
+        new_write = super(tpt_request_for_quotation, self).write(cr, uid,ids, vals, context)
+        for rfq in self.browse(cr,uid,ids):
+            if rfq.rfq_category:
+                if rfq.rfq_category != 'mutiple':
+                    if (len(rfq.rfq_supplier) > 1):
+                        raise osv.except_osv(_('Warning!'),_('You must choose RFQ category is multiple if you want more than one vendors!'))
+        return new_write
     
 tpt_request_for_quotation()
 
@@ -1577,6 +1593,21 @@ class tpt_rfq_supplier(osv.osv):
                     'state_id':vendor.state_id and vendor.state_id.id or False,
                             }
         return {'value': vals}   
+    
+    def bt_print(self, cr, uid, ids, context=None):
+        assert len(ids) == 1, 'This option should only be used for a single id at a time.'
+        self.write(cr, uid, ids, {'sent': True}, context=context)
+        datas = {
+             'ids': ids,
+             'model': 'tpt.rfq.supplier',
+             'form': self.read(cr, uid, ids[0], context=context)
+        }
+        return {
+            'type': 'ir.actions.report.xml',
+            'report_name': 'tpt_rfq_supplier',
+#                 'datas': datas,
+#                 'nodestroy' : True
+        }
     
 tpt_rfq_supplier()
 
