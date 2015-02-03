@@ -214,8 +214,11 @@ class product_category(osv.osv):
     _columns = {
         'cate_name':fields.selection([('raw','Raw Materials'),('finish','Finished Product'),('spares','Spares'),('consum','Consumables')], 'Category Name', required = True),
         'description':fields.text('Description',size = 256),
+        'tpt_type':fields.selection([('sale','Sale'),('purchase','Purchase')], 'Type'),
         }
-    
+#     _defaults = {
+#         'tpt_type': 'purchase',
+#                  }
     def create(self, cr, uid, vals, context=None):
         if 'name' in vals:
             name = vals['name'].replace(" ","")
