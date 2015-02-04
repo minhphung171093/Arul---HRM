@@ -1666,11 +1666,11 @@ class res_partner(osv.osv):
     _inherit = "res.partner"   
     _columns = {
 #         'supplier_code':fields.char('Vendor Code', size = 256),
-        'vendor_code':fields.char('Vendor Code', size = 20, required = True),
+        'vendor_code':fields.char('Vendor Code', size = 20),
         'contact_per':fields.char('Contact Person', size = 1024),
         'vendor_tag':fields.char('Tag', size = 1024),
         'pur_orgin_code_id':fields.many2one('tpt.pur.organi.code','Purchase Organisation Code'),
-        'vendor_group_id':fields.many2one('tpt.vendor.group','Vendor Class (Group)', required = True),
+        'vendor_group_id':fields.many2one('tpt.vendor.group','Vendor Class (Group)'),
         'vendor_sub_group_id':fields.many2one('tpt.vendor.sub.group','Vendor Sub Class (Sub Group)'),   
                 
                 }
@@ -1843,4 +1843,106 @@ class tpt_material_request_line(osv.osv):
                 raise osv.except_osv(_('Warning!'),_('Quantity is not allowed as negative values'))
         return new_write
 tpt_material_request_line()
- 
+
+class tpt_material_issue(osv.osv):
+    _name = "tpt.material.issue"
+    _columns = {
+        'name': fields.many2one('tpt.material.request','Material Issue No',required = True,states={'done':[('readonly', True)]}),
+        'date_request':fields.date('Material Request Date',states={'done':[('readonly', True)]}),
+        'date_expec':fields.date('Material Issue Date',states={'done':[('readonly', True)]}),
+        'department_id':fields.many2one('hr.department','Department',required = True,  states={ 'done':[('readonly', True)]}),
+        'material_issue_line':fields.one2many('tpt.material.issue.line','material_issue_id','Vendor Group',states={'done':[('readonly', True)]}),
+        'state':fields.selection([('draft', 'Draft'),('done', 'Approve')],'Status', readonly=True),
+                }
+    _defaults = {
+        'state':'draft',      
+    }
+
+#     def create(self, cr, uid, vals, context=None):
+#         if 'name' in vals:
+#             request = self.pool.get('tpt.material.request').browse(cr, uid, vals['name'])
+#             vals.update({'date_request': request.date_request or False,
+#                     })
+#         return super(tpt_material_issue, self).create(cr, uid, vals, context=context)
+# 
+#     def write(self, cr, uid, ids, vals, context=None):
+#         if 'name' in vals:
+#             request = self.pool.get('tpt.material.request').browse(cr, uid, vals['name'])
+#             vals.update({'date_request': request.date_request or False,
+#                     })
+#         return super(tpt_material_issue, self).write(cr, uid,ids, vals, context)
+   
+    def onchange_material(self, cr, uid, ids,name=False, context=None):
+        vals = {}
+        product_information_line = []
+        for issue in self.browse(cr, uid, ids):
+            sql = '''
+                delete from tpt_material_issue_line where material_issue_id = %s
+            '''%(issue.id)
+            cr.execute(sql)
+        if name:
+            request = self.pool.get('tpt.material.request').browse(cr, uid, name)
+            for line in request.material_request_line:
+                rs = {
+                      'product_id': line.product_id and line.product_id.id or False,
+                      'product_uom_qty': line.product_uom_qty or False,
+                      'uom_po_id': line.uom_po_id and line.uom_po_id.id or False,
+                      'dec_material':line.dec_material or False,
+                      'product_isu_qty': line.product_uom_qty or False,
+                      
+                      }
+                product_information_line.append((0,0,rs))
+            vals = {'date_request': request.date_request or False,
+                    'date_expec':request.date_expec or False,
+                    'department_id':request.department_id and request.department_id.id or False,
+                    'material_issue_line':product_information_line
+                    }
+        return {'value': vals}
+
+    def bt_approve(self, cr, uid, ids, context=None):
+        for line in self.browse(cr, uid, ids):
+            self.write(cr, uid, ids,{'state':'done'})
+        return True   
+
+    def onchange_date_expect(self, cr, uid, ids,date_request=False, context=None):
+        vals = {}
+        if date_request :
+            sql='''
+            select date(date('%s')+INTERVAL '1 month 1days') as date_request
+            '''%(date_request)
+            cr.execute(sql)
+            dates = cr.dictfetchone()['date_request']
+        return {'value': {'date_expec':dates}}    
+tpt_material_issue()
+
+class tpt_material_issue_line(osv.osv):
+    _name = "tpt.material.issue.line"
+    _columns = {
+        'product_id': fields.many2one('product.product', 'Material Code',readonly = True),
+        'dec_material':fields.text('Material Decription',readonly = True),
+        'product_uom_qty': fields.float('Requested Qty',readonly = True),  
+        'product_isu_qty': fields.float('Issue Qty',required = True), 
+        'uom_po_id': fields.many2one('product.uom', 'UOM', readonly = True),
+        'material_issue_id': fields.many2one('tpt.material.issue', 'Material'),
+                }
+    def create(self, cr, uid, vals, context=None):
+        if 'product_id' in vals:
+            product = self.pool.get('product.product').browse(cr, uid, vals['product_id'])
+            vals.update({'uom_po_id':product.uom_id.id})    
+        new_id = super(tpt_material_issue_line, self).create(cr, uid, vals, context)
+        if 'product_isu_qty' in vals:
+            if (vals['product_isu_qty'] < 0):
+                raise osv.except_osv(_('Warning!'),_('Issue Quantity is not allowed as negative values'))
+        return new_id
+
+    def write(self, cr, uid, ids, vals, context=None):
+        if 'product_id' in vals:
+            product = self.pool.get('product.product').browse(cr, uid, vals['product_id'])
+            vals.update({'uom_po_id':product.uom_id.id})    
+        new_write = super(tpt_material_issue_line, self).write(cr, uid,ids, vals, context)
+        for line in self.browse(cr,uid,ids):
+            if line.product_isu_qty < 0:
+                raise osv.except_osv(_('Warning!'),_('Issue Quantity is not allowed as negative values'))
+        return new_write
+tpt_material_issue_line()
+
