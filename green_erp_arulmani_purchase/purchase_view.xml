@@ -36,7 +36,7 @@
 							<field name="date_indent" on_change="onchange_date_expect(date_indent)" />
 							<field name="document_type" />
 							<field name="intdent_cate" />
-							<field name="department_id" options="{'create': false, 'create_edit': false}" />
+							<field name="department_id" required='1' options="{'create': false, 'create_edit': false}" />
 							<field name="create_uid" options="{'create': false, 'create_edit': false}"  />
 							<field name="date_expect"/>
 						</group>
@@ -50,13 +50,13 @@
 							<page string = "Materials">
 								<field name="purchase_product_line" nolabel='1'>
 									<tree editable='bottom'>
-										<field name="product_id" widget = "selection"  options="{'create': false, 'create_edit': false}"/>
-										<field name="dec_material" />
+										<field name="product_id" widget = "selection" required='1' options="{'create': false, 'create_edit': false}"/>
+										<field name="dec_material" required='1'/>
 										<field name="product_uom_qty" />
 										<field name="recom_vendor_id" context="{'search_recom_product':True, 'product_id':product_id }" options="{'create': false, 'create_edit': false}" />
 										<field name="pending_qty" />
 										<field name="uom_po_id" edit='false' options="{'create': false, 'create_edit': false}"/>
-										<field name="release_by" />
+										<field name="release_by" required='1'/>
 									</tree>
 								</field>
 							</page>
@@ -1062,7 +1062,7 @@
 								<field name="material_request_line" nolabel='1'>
 									<tree editable='bottom'>
 										<field name="product_id" widget = "selection"  options="{'create': false, 'create_edit': false}"/>
-										<field name="dec_material" />
+										<field name="dec_material"/>
 										<field name="product_uom_qty" />
 										<field name="uom_po_id" edit='false' options="{'create': false, 'create_edit': false}"/>
 									</tree>

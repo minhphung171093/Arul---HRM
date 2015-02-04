@@ -29,7 +29,7 @@ class tpt_purchase_indent(osv.osv):
         'intdent_cate':fields.selection([
                                 ('emergency','Emergency Indent'),
                                 ('normal','Normal Indent')],'Indent Category',required = True, states={'cancel': [('readonly', True)], 'done':[('readonly', True)]}),
-        'department_id':fields.many2one('hr.department','Department',required = True,  states={'cancel': [('readonly', True)], 'done':[('readonly', True)]}),
+        'department_id':fields.many2one('hr.department','Department', states={'cancel': [('readonly', True)], 'done':[('readonly', True)]}),
         'create_uid':fields.many2one('res.users','Raised By', states={'cancel': [('readonly', True)], 'done':[('readonly', True)]}),
         'date_expect':fields.date('Expected Date', states={'cancel': [('readonly', True)], 'done':[('readonly', True)]}),
         'select_normal':fields.selection([('single','Single Quotation'),
@@ -190,13 +190,13 @@ class tpt_purchase_product(osv.osv):
     _name = 'tpt.purchase.product'
     _columns = {
         'purchase_indent_id':fields.many2one('tpt.purchase.indent','Purchase Product'),
-        'product_id': fields.many2one('product.product', 'Material Code',required = True),
-        'dec_material':fields.text('Material Decription',required = True),
+        'product_id': fields.many2one('product.product', 'Material Code'),
+        'dec_material':fields.text('Material Description'),
         'product_uom_qty': fields.float('PO Qty'),   
         'uom_po_id': fields.many2one('product.uom', 'UOM', readonly = True),
         'pending_qty': fields.float('Pending Qty'), 
         'recom_vendor_id': fields.many2one('res.partner', 'Recommended Vendor'),
-        'release_by':fields.selection([('1','Store Level'),('2','HOD Level')],'Released By',required = True)
+        'release_by':fields.selection([('1','Store Level'),('2','HOD Level')],'Released By')
         }  
 
     def create(self, cr, uid, vals, context=None):
@@ -332,9 +332,9 @@ class product_product(osv.osv):
         'inventory_line':fields.function(_inventory, method=True,type='one2many', relation='tpt.product.inventory', string='Inventory'),
         'spec_parameter_line':fields.one2many('tpt.spec.parameters.line', 'product_id', 'Spec Parameters'),
         'tpt_product_type':fields.selection([('rutile','Rutile'),('anatase','Anatase')],'Product Type'),
-        'min_stock': fields.char('Min. Stock Level', size = 1024),
-        'max_stock': fields.char('Max. Stock Level', size = 1024),
-        're_stock': fields.char('Reorder Level', size = 1024),
+        'min_stock': fields.float('Min. Stock Level'),
+        'max_stock': fields.float('Max. Stock Level'),
+        're_stock': fields.float('Reorder Level'),
         'po_text': fields.char('PO Text', size = 1024),
         'mrp_control':fields.boolean('MRP Control Type'),
         }
@@ -427,21 +427,15 @@ class product_product(osv.osv):
         return {'value': vals}  
     
     def onchange_mrp_control(self, cr, uid, ids,mrp_control=False,context=None):
-        res = {'value':{
+        res = {'value':{}}
+        if not mrp_control:
+            for id in ids:
+                cr.execute('update product_product set min_stock=null,max_stock=null,re_stock=null where id=%s',(id,))
+            res['value'].update({
                         'min_stock':False,
                         'max_stock':False,
                         're_stock':False,
-                      }
-               }
-        for mrp in self.browse(cr, uid, ids, context=context):
-            if mrp_control:
-                res['value'].update({
-                        'min_stock':mrp.min_stock,
-                        'max_stock':mrp.max_stock,
-                        're_stock':mrp.re_stock,
-                        })
-            else:
-                return res
+                      })
         return res 
     
     def onchange_batch_appli_ok(self, cr, uid, ids,batch_appli_ok=False,context=None):
