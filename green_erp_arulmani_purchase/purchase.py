@@ -1666,11 +1666,11 @@ class res_partner(osv.osv):
     _inherit = "res.partner"   
     _columns = {
 #         'supplier_code':fields.char('Vendor Code', size = 256),
-        'vendor_code':fields.char('Vendor Code', size = 20, required = True),
+        'vendor_code':fields.char('Vendor Code', size = 20),
         'contact_per':fields.char('Contact Person', size = 1024),
         'vendor_tag':fields.char('Tag', size = 1024),
         'pur_orgin_code_id':fields.many2one('tpt.pur.organi.code','Purchase Organisation Code'),
-        'vendor_group_id':fields.many2one('tpt.vendor.group','Vendor Class (Group)', required = True),
+        'vendor_group_id':fields.many2one('tpt.vendor.group','Vendor Class (Group)'),
         'vendor_sub_group_id':fields.many2one('tpt.vendor.sub.group','Vendor Sub Class (Sub Group)'),   
                 
                 }

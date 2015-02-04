@@ -999,7 +999,7 @@
                     </xpath>
                     <xpath expr="//field[@name='website']" position="before">
                         <field name="vendor_tag" placeholder="Tag ... " attrs="{'invisible': [('supplier','=',False)]}" />
-                    	<field name="vendor_group_id" on_change="onchange_vendor_group_id(vendor_group_id)" options="{'create': false, 'create_edit': false}" attrs="{'invisible': [('supplier','=',False)]}" />
+                    	<field name="vendor_group_id" on_change="onchange_vendor_group_id(vendor_group_id)" options="{'create': false, 'create_edit': false}" attrs="{'invisible': [('supplier','=',False)],'required':[('supplier','!=',False)]}" />
                     	<field name="pur_orgin_code_id" options="{'create': false, 'create_edit': false}" attrs="{'invisible': [('supplier','=',False)]}" />
                     </xpath>
                     
@@ -1007,12 +1007,12 @@
                     </xpath>
                     
                     <xpath expr="//field[@name='name']" position="before">
-                        <field name="vendor_code" placeholder="Vendor Code" attrs="{'invisible': [('supplier','=',False)]}" />
+                        <field name="vendor_code"  placeholder="Vendor Code" attrs="{'invisible': [('supplier','=',False)],'required':[('supplier','!=',False)]}" />
                     	<field name="title" placeholder="Title" domain="[('domain', '=', 'contact')]" options="{&quot;no_open&quot;: True}" attrs="{'invisible': [('is_company','=', True)]}"/>
                     </xpath>
                     
                      <xpath expr="//field[@name='email']" position="after">
-                        <field name="vendor_sub_group_id" domain="[('vendor_group_id','=',vendor_group_id)]" attrs="{'invisible': [('supplier','=',False)]}" options="{'create': false, 'create_edit': false}" />
+                        <field name="vendor_sub_group_id"  domain="[('vendor_group_id','=',vendor_group_id)]" attrs="{'invisible': [('supplier','=',False)],'required':[('supplier','!=',False)]}" options="{'create': false, 'create_edit': false}" />
                     </xpath>
                 </data>
             </field>
