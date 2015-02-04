@@ -196,6 +196,23 @@
 			</field>
 		</record>   
 		
+		<record id="view_normal_procurement_locations_form_inherit" model="ir.ui.view">
+            <field name="name">product.normal.procurement.locations.inherit</field>
+            <field name="model">product.product</field>
+            <field name="inherit_id" ref="stock.view_normal_procurement_locations_form"/>
+            <field name="arch" type="xml">
+            	<xpath expr="//group[@name='delay']" position="before">
+					<group name="MRP">
+                        <field name="mrp_control" on_change="onchange_mrp_control(mrp_control)"/>
+                        <field name="min_stock" attrs="{'readonly': [('mrp_control','=',False)]}"/>
+						<field name="max_stock" attrs="{'readonly': [('mrp_control','=',False)]}"/>
+						<field name="re_stock" attrs="{'readonly': [('mrp_control','=',False)]}"/>
+						<field name="po_text"/>
+	                </group>
+				</xpath>
+            </field>
+		</record>
+            
 		<record id="tpt_product_form" model="ir.ui.view">
             <field name="name">tpt.product.form</field>
             <field name="model">product.product</field>
@@ -203,7 +220,7 @@
             <field name="arch" type="xml">
 				<xpath expr="//label[@for='sale_ok']" position="after">
 					<field name="cate_name" invisible='1'/>
-					<field name="batch_appli_ok" attrs="{'invisible':[('cate_name','!=','finish')]}"/>
+					<field name="batch_appli_ok" on_change="onchange_batch_appli_ok(batch_appli_ok)" attrs="{'invisible':[('cate_name','!=','finish')]}"/>
 					<label for = "batch_appli_ok" attrs="{'invisible':[('cate_name','!=','finish')]}"/>
 				</xpath>
 				<xpath expr="//div[@class='oe_title']" position="inside">
@@ -223,7 +240,7 @@
 					<page string="Specification Parameters" attrs="{'invisible': [('cate_name', '!=', 'raw')]}">
                             <field name="spec_parameter_line" nolabel = '1'>
                             	<tree editable='bottom'>
-                                    <field name="name"/>
+                                    <field name="name" options="{'create': false, 'create_edit': false}"/>
                                     <field name="required_spec" />
                                     <field name="uom_po_id" options="{'create': false, 'create_edit': false}"/>
 	                            </tree>
@@ -231,7 +248,7 @@
                     </page>
 				</xpath>
 				
-				<xpath expr="//page[@string='Information']" position="before">
+				<!--<xpath expr="//page[@string='Information']" position="before">
 					<page string="Purchase" attrs="{'invisible': [('cate_name', '!=', 'raw')]}">
 						<group>
 							<group>
@@ -249,7 +266,7 @@
 	                		
 	                	</group>
                     </page>
-				</xpath>
+				</xpath>-->
 				
 				<xpath expr="//page[@string='Accounting']" position="after">
 					<page string="Inventory">
@@ -262,6 +279,14 @@
                                 </tree>
                             </field>
                     </page>
+				</xpath>
+				
+				<xpath expr="//field[@name='type']" position="attributes">
+					<attribute name='attrs'>{'invisible': [('cate_name','=','finish')]}</attribute>
+				</xpath>
+				
+				<xpath expr="//field[@name='uom_id']" position="before">
+					<field name="tpt_product_type" attrs="{'invisible': [('cate_name','!=','finish')]}"/>
 				</xpath>
 			</field>
 		</record>
@@ -1000,14 +1025,6 @@
      	<menuitem action="stock.action_picking_tree4" id="purchase.menu_action_picking_tree4" parent="purchase.menu_procurement_management_inventory"
             name="GRN" sequence="9"/> 
         
-   <!--     <menuitem name="Material Category"
-            action="product.product_category_action_form" id="purchase.menu_product_category_config_purchase"
-            parent="purchase.menu_product_in_config_purchase" sequence="1" />
-            
-		<menuitem name="Material" id="purchase.menu_procurement_partner_contact_form" action="product.product_normal_action_puchased"
-          parent="purchase.menu_procurement_management_product"/>   -->
-          
-          
 	   	<record id="view_tpt_material_request_tree" model="ir.ui.view">
 			<field name="name">tpt.material.request.tree</field>
 			<field name="model">tpt.material.request</field>
@@ -1155,5 +1172,13 @@
             id="menu_action_view_tpt_material_issue_form"
             parent="purchase.menu_procurement_management" sequence="25"/>
        
+        <record id="tpt_warehouse_product_category_action_form" model="ir.actions.act_window">
+            <field name="name">Product Categories</field>
+            <field name="type">ir.actions.act_window</field>
+            <field name="res_model">product.category</field>
+            <field name="view_type">form</field>
+            <field name="search_view_id" ref="product.product_category_search_view"/>
+            <field name="view_id" ref="product.product_category_list_view"/>
+        </record>
     </data>
 </openerp>
