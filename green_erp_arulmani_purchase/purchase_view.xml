@@ -196,6 +196,23 @@
 			</field>
 		</record>   
 		
+		<record id="view_normal_procurement_locations_form_inherit" model="ir.ui.view">
+            <field name="name">product.normal.procurement.locations.inherit</field>
+            <field name="model">product.product</field>
+            <field name="inherit_id" ref="stock.view_normal_procurement_locations_form"/>
+            <field name="arch" type="xml">
+            	<xpath expr="//group[@name='delay']" position="before">
+					<group name="MRP">
+                        <field name="mrp_control" on_change="onchange_mrp_control(mrp_control)"/>
+                        <field name="min_stock" attrs="{'readonly': [('mrp_control','=',False)]}"/>
+						<field name="max_stock" attrs="{'readonly': [('mrp_control','=',False)]}"/>
+						<field name="re_stock" attrs="{'readonly': [('mrp_control','=',False)]}"/>
+						<field name="po_text"/>
+	                </group>
+				</xpath>
+            </field>
+		</record>
+            
 		<record id="tpt_product_form" model="ir.ui.view">
             <field name="name">tpt.product.form</field>
             <field name="model">product.product</field>
@@ -270,16 +287,6 @@
 				
 				<xpath expr="//field[@name='uom_id']" position="before">
 					<field name="tpt_product_type" attrs="{'invisible': [('cate_name','!=','finish')]}"/>
-				</xpath>
-				
-				<xpath expr="//group[@name='delay']" position="before">
-					<group name="MRP">
-                        <field name="mrp_control" on_change="onchange_mrp_control(mrp_control)"/>
-                        <field name="min_stock" attrs="{'readonly': [('mrp_control','=',False)]}"/>
-						<field name="max_stock" attrs="{'readonly': [('mrp_control','=',False)]}"/>
-						<field name="re_stock" attrs="{'readonly': [('mrp_control','=',False)]}"/>
-						<field name="po_text"/>
-	                </group>
 				</xpath>
 			</field>
 		</record>
