@@ -38,32 +38,42 @@ class tpt_mrp_process(osv.osv):
                     where mrp_process_id = %s
                 '''%(mrp.id)
             cr.execute(sql)
-        sql = '''
-                select product_product.id, uom_po_id
-                from product_product, product_template
-                where mrp_control = True and max_stock >= re_stock and product_product.id = product_template.id
-            '''
-        cr.execute(sql)
-        prod_ids = cr.dictfetchall()
-        if prod_ids:
-            for prod in prod_ids:
-                mrp_process_line.append((0,0,{'product_id':prod['id'],
-                                              'uom_po_id':prod['uom_po_id'],
-                                              }))
+            sql = '''
+                    select product_product.id, uom_po_id
+                    from product_product, product_template
+                    where mrp_control = True and max_stock >= re_stock and product_product.id = product_template.id
+                    and product_product.id not in (select product_id from tpt_purchase_indent,tpt_purchase_product where tpt_purchase_indent.id = tpt_purchase_product.purchase_indent_id 
+                                                        and tpt_purchase_indent.state != 'cancel')
+                    and product_product.id not in (select product_id from stock_picking,stock_move,tpt_purchase_indent where stock_picking.id = stock_move.picking_id
+                    and stock_picking.state not in ('done','cancel') and type='in' 
+                    and po_indent_id != null and tpt_purchase_indent.id = stock_move.po_indent_id and tpt_purchase_indent.state = 'done')
+                '''
+            cr.execute(sql)
+            prod_ids = cr.dictfetchall()
+            if prod_ids:
+                for prod in prod_ids:
+                    mrp_process_line.append((0,0,{'product_id':prod['id'],
+                                                  'uom_po_id':prod['uom_po_id'],
+                                                  }))
         return self.write(cr,uid,ids,{'mrp_process_line':mrp_process_line})
     
     def bt_generate_indent(self, cr, uid, ids, context=None):
         purchase_product_line = []
         depa_id = False
+        count = 0
         po_indent_obj = self.pool.get('tpt.purchase.indent')
         for mrp in self.browse(cr, uid, ids):
             if mrp.mrp_process_line:
                 for line in mrp.mrp_process_line:
                     if line.select:
+                        count+=1
                         purchase_product_line.append((0,0,{'product_id':line.product_id.id,
                                                            'product_uom_qty':line.product_uom_qty or False,
                                                            'uom_po_id':line.uom_po_id and line.uom_po_id.id or False,
                                                            }))
+            else: count = 0
+            if count == 0:
+                raise osv.except_osv(_('Warning!'),_('Can not be generate indent without selected product'))
             sql = '''
                 select id from hr_department where name = 'PRODUCTION'
                 '''
