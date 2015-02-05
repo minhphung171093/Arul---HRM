@@ -150,7 +150,7 @@ class tpt_purchase_indent(osv.osv):
                     if vals.get('name','/')=='/':
                         sequence = self.pool.get('ir.sequence').get(cr, uid, 'indent.purchase.service')
                         vals['name'] =  sequence and sequence +'/'+fiscalyear['code']or '/'
-        new_write = super(tpt_purchase_indent, self).write(cr, uid, vals, context=context)
+        new_write = super(tpt_purchase_indent, self).write(cr, uid,ids, vals, context)
         for indent in self.browse(cr,uid,ids):
             if indent.select_normal != 'multiple':
                 if (len(indent.purchase_product_line)>1):
@@ -519,24 +519,65 @@ tpt_gate_in_pass()
 class tpt_purchase_quotation(osv.osv):
     _name = "tpt.purchase.quotation"
     
-    def amount_all_quotation_line(self, cr, uid, ids, field_name, args, context=None):
+#     def amount_all_quotation_line(self, cr, uid, ids, field_name, args, context=None):
+#         res = {}
+#         for line in self.browse(cr,uid,ids,context=context):
+#             res[line.id] = {
+#                 'amount_line': 0.0,
+#                 'amount_basic': 0.0,
+#                 'amount_p_f': 0.0,
+#                 'amount_ed': 0.0,
+#                 'amount_total_tax': 0.0,
+#                 'amount_fright': 0.0,
+#                 'amount_gross': 0.0,
+#                 'amount_net': 0.0,
+#                 'amount_unit_net': 0.0,
+#             }
+#             amount_line = 0.0
+#             amount_basic = 0.0
+#             amount_p_f=0.0
+#             amount_ed=0.0
+#             amount_total_tax=0.0
+#             amount_fright=0.0
+#             amount_gross=0.0
+#             amount_net=0.0
+#             amount_unit_net=0.0
+#             qty = 0.0
+#             for quotation in line.purchase_quotation_line:
+#                 qty += quotation.product_uom_qty
+#                 amount_basic += (quotation.product_uom_qty * quotation.price_unit) - ( (quotation.product_uom_qty * quotation.price_unit)*quotation.disc/100)
+#                 if 'p_f_type' == 1 :
+#                     amount_p_f += amount_basic * quotation.p_f/100
+#                 else:
+#                     amount_p_f += quotation.p_f
+#                 if 'e_d_type' == 1 :
+#                     amount_e_d += amount_basic + amount_p_f * quotation.e_d/100
+#                 else:
+#                     amount_e_d += quotation.e_d
+#                 amount_total_tax += (amount_basic + amount_p_f + amount_e_d)*quotation.tax_id.amount / 100
+#                 if 'fright_type' == 1 :
+#                     amount_fright += (amount_basic + amount_p_f + quotation.e_d + amount_total_tax) * quotation.fright/100
+#                 else:
+#                     amount_fright += quotation.fright
+#                 amount_line +=  amount_basic + amount_p_f + quotation.e_d + amount_total_tax + amount_fright
+#             amount_gross = amount_line + amount_p_f + amount_e_d + amount_total_tax
+#             amount_net = amount_gross - amount_e_d - amount_total_tax
+#             amount_unit_net = amount_net/qty
+#             res[line.id]['amount_line'] = amount_line
+#             res[line.id]['amount_basic'] = amount_basic
+#             res[line.id]['amount_p_f'] = amount_p_f
+#             res[line.id]['amount_ed'] = amount_ed
+#             res[line.id]['amount_total_tax'] = amount_total_tax
+#             res[line.id]['amount_fright'] = amount_fright
+#             res[line.id]['amount_gross'] = amount_gross
+#             res[line.id]['amount_net'] = amount_net
+#             res[line.id]['amount_unit_net'] = amount_unit_net
+#         return res
+    
+    def _get_supplier_name(self, cr, uid, ids, field_name, args, context=None):
         res = {}
         for line in self.browse(cr,uid,ids,context=context):
-            res[line.id] = {
-                'amount_untaxed': 0.0,
-                'amount_tax': 0.0,
-                'amount_total': 0.0,
-            }
-            val1 = 0.0
-            val2 = 0.0
-            val3 = 0.0
-            for quotation in line.purchase_quotation_line:
-                val1 += quotation.sub_total
-            res[line.id]['amount_untaxed'] = val1
-            val2 = val1 * line.tax_id.amount / 100
-            res[line.id]['amount_tax'] = val2
-            val3 = val1 + val2
-            res[line.id]['amount_total'] = val3
+            res[line.id] = line.supplier_id and (line.supplier_id.name + '' +(line.supplier_id.last_name or '')) or ''
         return res
     
     def _get_order(self, cr, uid, ids, context=None):
@@ -547,36 +588,67 @@ class tpt_purchase_quotation(osv.osv):
     _columns = {
         'name':fields.char('Quotation No ', size = 1024, readonly = True ,states={'cancel': [('readonly', True)], 'done':[('readonly', True)]}),
         'date_quotation':fields.date('Quotation Date',states={'cancel': [('readonly', True)], 'done':[('readonly', True)]}),
-        'supplier_id': fields.many2one('res.partner', 'Supplier',required = True,states={'cancel': [('readonly', True)], 'done':[('readonly', True)]}),
-        'supplier_location_id': fields.char( 'Supplier Location', size = 1024 ,states={'cancel': [('readonly', True)], 'done':[('readonly', True)]}),
+        'rfq_no_id':fields.many2one('tpt.request.for.quotation','RFQ No', required = True),
+        'supplier_id': fields.many2one('res.partner', 'Vendor Code',required = True,states={'cancel': [('readonly', True)], 'done':[('readonly', True)]}),
+        'supplier_name_id': fields.function(_get_supplier_name, type='char',string="Vendor Name"),
+        'supplier_location_id': fields.many2one( 'res.country.state','Vendor Location' ,states={'cancel': [('readonly', True)], 'done':[('readonly', True)]}),
         'quotation_cate':fields.selection([
                                   ('multiple','Multiple Quotation')],'Quotation Category'),
         'quotation_ref':fields.char('Quotation Reference',size = 1024),
-        'tax_id': fields.many2one('account.tax', 'Taxes',required=True ,states={'cancel': [('readonly', True)], 'done':[('readonly', True)]}),
+#         'tax_id': fields.many2one('account.tax', 'Taxes',required=True ,states={'cancel': [('readonly', True)], 'done':[('readonly', True)]}),
         'purchase_quotation_line':fields.one2many('tpt.purchase.quotation.line','purchase_quotation_id','Quotation Line' ,states={'cancel': [('readonly', True)], 'done':[('readonly', True)]}),
-        'amount_untaxed': fields.function(amount_all_quotation_line, multi='sums',string='Untaxed Amount',
-                                         store={
-                'tpt.purchase.quotation': (lambda self, cr, uid, ids, c={}: ids, ['purchase_quotation_line'], 10),
-                'tpt.purchase.quotation.line': (_get_order, ['price_unit', 'sub_total', 'product_uom_qty'], 10),}, 
-            states={'cancel': [('readonly', True)], 'done':[('readonly', True)]}),
-        'amount_tax': fields.function(amount_all_quotation_line, multi='sums',string='Taxes',
-                                      store={
-                'tpt.purchase.quotation': (lambda self, cr, uid, ids, c={}: ids, ['purchase_quotation_line'], 10),
-                'tpt.purchase.quotation.line': (_get_order, ['price_unit', 'sub_total', 'product_uom_qty'], 10), }, 
-            states={'cancel': [('readonly', True)], 'done':[('readonly', True)]}),
-        'amount_total': fields.function(amount_all_quotation_line, multi='sums',string='Total',
-                                        store={
-                'tpt.purchase.quotation': (lambda self, cr, uid, ids, c={}: ids, ['purchase_quotation_line'], 10),
-                'tpt.purchase.quotation.line': (_get_order, ['price_unit', 'sub_total', 'product_uom_qty'], 10), },
-             states={'cancel': [('readonly', True)], 'done':[('readonly', True)]}),
+#         'amount_untaxed': fields.function(amount_all_quotation_line, multi='sums',string='Untaxed Amount',
+#                                          store={
+#                 'tpt.purchase.quotation': (lambda self, cr, uid, ids, c={}: ids, ['purchase_quotation_line'], 10),
+#                 'tpt.purchase.quotation.line': (_get_order, ['price_unit', 'sub_total', 'product_uom_qty'], 10),}, 
+#             states={'cancel': [('readonly', True)], 'done':[('readonly', True)]}),
+#         'amount_tax': fields.function(amount_all_quotation_line, multi='sums',string='Taxes',
+#                                       store={
+#                 'tpt.purchase.quotation': (lambda self, cr, uid, ids, c={}: ids, ['purchase_quotation_line'], 10),
+#                 'tpt.purchase.quotation.line': (_get_order, ['price_unit', 'sub_total', 'product_uom_qty'], 10), }, 
+#             states={'cancel': [('readonly', True)], 'done':[('readonly', True)]}),
+#         'amount_total': fields.function(amount_all_quotation_line, multi='sums',string='Total',
+#                                         store={
+#                 'tpt.purchase.quotation': (lambda self, cr, uid, ids, c={}: ids, ['purchase_quotation_line'], 10),
+#                 'tpt.purchase.quotation.line': (_get_order, ['price_unit', 'sub_total', 'product_uom_qty'], 10), },
+#              states={'cancel': [('readonly', True)], 'done':[('readonly', True)]}),
+        
         
         'state':fields.selection([('draft', 'Draft'),('cancel', 'Cancel'),('done', 'Approve')],'Status', readonly=True),
+        'for_basis':fields.char('For Basis',size = 1024),
+        'schedule':fields.char('Delivery Schedule',size = 1024),
     }
     _defaults = {
         'state': 'draft',
         'name': '/',
         'date_quotation':fields.datetime.now,
+        'quotation_cate':'multiple',
         }  
+    
+    def onchange_rfq_no_id(self, cr, uid, ids,rfq_no_id=False,product_id=False):
+        res = {'value':{
+                        'purchase_quotation_line':[],
+                      }
+               }
+        if rfq_no_id:
+            rfq = self.pool.get('tpt.request.for.quotation').browse(cr, uid, rfq_no_id)
+            rfq_no_line = []
+#             if product_id:
+#                 product = self.pool.get('product.product').browse(cr, uid, product_id)
+            
+            for line in rfq.rfq_line:
+                rfq_no_line.append({
+                            'po_indent_id': line.po_indent_id and line.po_indent_id.id or False,
+                            'product_id': line.product_id and line.product_id.id or False,
+                            'product_uom_qty':line.product_uom_qty or False,
+                            'uom_id': line.uom_id and line.uom_id.id or False,
+#                             'price_unit':product.standard_price or False,
+                    })
+        res['value'].update({
+                    'purchase_quotation_line': rfq_no_line,
+        })
+        return res
+
     
     def create(self, cr, uid, vals, context=None):
         if vals.get('name','/')=='/':
@@ -588,7 +660,8 @@ class tpt_purchase_quotation(osv.osv):
         if supplier_id :
             supplier = self.pool.get('res.partner').browse(cr, uid, supplier_id)
             vals = {
-                    'supplier_location_id':supplier.city,
+                    'supplier_location_id':supplier.state_id and supplier.state_id.id or False,
+                    'supplier_name_id': supplier.name + '' +(supplier.last_name or ''),
                     }
         return {'value': vals}
 
@@ -637,24 +710,25 @@ tpt_purchase_quotation()
 class tpt_purchase_quotation_line(osv.osv):
     _name = "tpt.purchase.quotation.line"
     
-    def subtotal_purchase_quotation_line(self, cr, uid, ids, field_name, args, context=None):
+    def line_net_line(self, cr, uid, ids, field_name, args, context=None):
         res = {}
-        subtotal = 0.0
-        for line in self.browse(cr,uid,ids,context=context):
-            res[line.id] = {
-               'sub_total' : 0.0,
-               }
-            subtotal = (line.product_uom_qty * line.price_unit)
-            res[line.id]['sub_total'] = subtotal
         return res
     _columns = {
         'purchase_quotation_id':fields.many2one('tpt.purchase.quotation','Purchase Quotitation', ondelete = 'cascade'),
-        'po_indent_id':fields.many2one('tpt.purchase.indent','PO Indent',required = True),
-        'product_id': fields.many2one('product.product', 'Product'),
-        'product_uom_qty': fields.float('Quantity', readonly=True),   
-        'uom_po_id': fields.many2one('product.uom', 'UOM', readonly=True),
-        'price_unit': fields.float('Unit Price', readonly=True),
-        'sub_total': fields.function(subtotal_purchase_quotation_line, multi='deltas' ,string='SubTotal'),
+        'po_indent_id':fields.many2one('tpt.purchase.indent','Indent', readonly = True),
+        'product_id': fields.many2one('product.product', 'Material Name',readonly = True),
+        'product_uom_qty': fields.float('Qty', readonly = True),   
+        'uom_id': fields.many2one('product.uom', 'UOM', readonly = True),
+        'price_unit': fields.float('Unit Price', required=True),
+        'disc': fields.float('Disc'),
+        'p_f': fields.float('P&F'),
+        'p_f_type':fields.selection([('1','%'),('2','Rs')],('P&F Type')),
+        'e_d': fields.float('ED'),
+        'e_d_type':fields.selection([('1','%'),('2','Rs')],('ED Type')),
+        'tax_id': fields.many2one('account.tax', 'Taxes',required = True),
+        'fright': fields.float('Fright'),
+        'fright_type':fields.selection([('1','%'),('2','Rs')],('Fright Type')),
+        'line_net': fields.function(line_net_line, multi='deltas' ,string='Net Line'),
         }
     
     def create(self, cr, uid, vals, context=None):
@@ -752,22 +826,22 @@ class purchase_order(osv.osv):
     
     def _amount_all(self, cr, uid, ids, field_name, arg, context=None):
         res = {}
-        for line in self.browse(cr,uid,ids,context=context):
-            res[line.id] = {
-                'amount_untaxed': 0.0,
-                'amount_tax': 0.0,
-                'amount_total': 0.0,
-            }
-            val1 = 0.0
-            val2 = 0.0
-            val3 = 0.0
-            for po in line.order_line:
-                val1 += po.price_subtotal
-            res[line.id]['amount_untaxed'] = val1
-            val2 = val1 * line.purchase_tax_id.amount / 100
-            res[line.id]['amount_tax'] = val2
-            val3 = val1 + val2
-            res[line.id]['amount_total'] = val3
+#         for line in self.browse(cr,uid,ids,context=context):
+#             res[line.id] = {
+#                 'amount_untaxed': 0.0,
+#                 'amount_tax': 0.0,
+#                 'amount_total': 0.0,
+#             }
+#             val1 = 0.0
+#             val2 = 0.0
+#             val3 = 0.0
+#             for po in line.order_line:
+#                 val1 += po.price_subtotal
+#             res[line.id]['amount_untaxed'] = val1
+#             val2 = val1 * line.purchase_tax_id.amount / 100
+#             res[line.id]['amount_tax'] = val2
+#             val3 = val1 + val2
+#             res[line.id]['amount_total'] = val3
         return res
     
     def _get_order(self, cr, uid, ids, context=None):
@@ -778,7 +852,19 @@ class purchase_order(osv.osv):
     _columns = {
         'po_document_type':fields.selection([('asset','VV Asset PO'),('standard','VV Standard PO'),('local','VV Local PO'),('return','VV Return PO'),('service','VV Service PO'),('out','VV Out Service PO')],'PO Document Type'),
         'quotation_no': fields.many2one('tpt.purchase.quotation', 'Quotation No'),
-        'purchase_tax_id': fields.many2one('account.tax', 'Taxes', domain="[('type_tax_use','=','purchase')]", required = True), 
+        'po_indent_no' : fields.many2one('tpt.purchase.indent', 'PO Indent No'),
+        'state_id': fields.many2one('res.country.state', 'Vendor Location'),
+        'for_basis': fields.char('For Basis', size = 1024),
+        'mode_dis': fields.char('Mode Of Dispatch', size = 1024),
+        'ecc_no': fields.char('ECC No', size = 1024),
+        'deli_sche': fields.char('Delivery Schedule', size = 1024),
+        
+        #ham function
+        'p_f_charge': fields.float('P&F charges'),
+        'excise_duty': fields.float('Excise Duty'),
+        'fright': fields.float('Fright'),
+        
+        
         'amount_untaxed': fields.function(_amount_all, digits_compute= dp.get_precision('Account'), string='Untaxed Amount',
             store={
                 'purchase.order.line': (_get_order, None, 10),
@@ -799,29 +885,64 @@ class purchase_order(osv.osv):
    
     def onchange_quotation_no(self, cr, uid, ids,quotation_no=False, context=None):
         vals = {}
-        po_line = []
         if quotation_no:
+            for line in self.browse(cr, uid, ids):
+                sql = '''
+                    delete from purchase_order_line where order_id = %s
+                '''%(line.id)
+                cr.execute(sql)
+#         po_line = []
+#         if quotation_no:
+#             quotation = self.pool.get('tpt.purchase.quotation').browse(cr, uid, quotation_no)
+#             for line in quotation.purchase_quotation_line:
+#                 rs = {
+#                       'po_indent_no': line.po_indent_id and line.po_indent_id.id or False,
+#                       'product_id': line.product_id and line.product_id.id or False,
+#                       'product_qty': line.product_uom_qty or False,
+#                       'product_uom': line.uom_po_id and line.uom_po_id.id or False,
+#                       'price_unit': line.price_unit or False,
+#                       'price_subtotal': line.sub_total or False,
+#                       'date_planned':quotation.date_quotation or False,
+# #                       'name':'/'
+#                       }
+#                 po_line.append((0,0,rs))
+#             vals = {
+#                     'partner_id':quotation.supplier_id and quotation.supplier_id.id or '',
+#                     'partner_ref':quotation.quotation_ref or '',
+#                     'purchase_tax_id':quotation.tax_id and quotation.tax_id.id or '',
+#                     'order_line': po_line,
+#                     }
+        return {'value': {'po_indent_no': False,'order_line': []}}
+    
+    def onchange_po_indent_no(self, cr, uid, ids,quotation_no=False, po_indent_no=False, context=None):
+        vals = {}
+        po_line = []
+        if quotation_no and po_indent_no:
+            for indent in self.browse(cr, uid, ids):
+                sql = '''
+                    delete from purchase_order_line where order_id = %s
+                '''%(indent.id)
+                cr.execute(sql)
             quotation = self.pool.get('tpt.purchase.quotation').browse(cr, uid, quotation_no)
             for line in quotation.purchase_quotation_line:
-                rs = {
-                      'po_indent_no': line.po_indent_id and line.po_indent_id.id or False,
-                      'product_id': line.product_id and line.product_id.id or False,
-                      'product_qty': line.product_uom_qty or False,
-                      'product_uom': line.uom_po_id and line.uom_po_id.id or False,
-                      'price_unit': line.price_unit or False,
-                      'price_subtotal': line.sub_total or False,
-                      'date_planned':quotation.date_quotation or False,
-#                       'name':'/'
-                      }
-                po_line.append((0,0,rs))
+                if po_indent_no==line.po_indent_id.id:
+                    rs = {
+                          'product_id': line.product_id and line.product_id.id or False,
+                          'product_qty': line.product_uom_qty or False,
+                          'product_uom': line.uom_po_id and line.uom_po_id.id or False,
+                          'price_unit': line.price_unit or False,
+#                           'taxes_id':quotation.tax_id and quotation.tax_id.id or '',
+#                           'price_subtotal': line.sub_total or False,
+                          'date_planned':quotation.date_quotation or False,
+    #                       'name':'/'
+                          }
+                    po_line.append((0,0,rs))
             vals = {
                     'partner_id':quotation.supplier_id and quotation.supplier_id.id or '',
                     'partner_ref':quotation.quotation_ref or '',
-                    'purchase_tax_id':quotation.tax_id and quotation.tax_id.id or '',
                     'order_line': po_line,
                     }
         return {'value': vals}
-    
     def create(self, cr, uid, vals, context=None):
         new_id = super(purchase_order, self).create(cr, uid, vals, context)
         new = self.browse(cr, uid, new_id)
@@ -871,12 +992,11 @@ class purchase_order(osv.osv):
             if new.quotation_no and new.quotation_no.quotation_cate:
                 if (new.amount_total > 5000):
                     raise osv.except_osv(_('Warning!'),_('Can not process because Total > 5000 for VV Local PO'))
-                
-        if 'quotation_no' in vals:
-            for line in new.order_line:
-                if line.po_indent_no and line.product_id:
+        for line in new.order_line:        
+            if new.quotation_no and new.po_indent_no:
+                if line.product_id:
                     sql = '''
-                                select po_indent_no, product_id, sum(product_qty) as po_product_qty from purchase_order_line where order_id = %s group by po_indent_no, product_id
+                                select product_id, sum(product_qty) as po_product_qty from purchase_order_line where order_id = %s group by product_id
                             '''%(new.id)
                     cr.execute(sql)
                     for purchase_line in cr.dictfetchall():
@@ -884,7 +1004,7 @@ class purchase_order(osv.osv):
                                 select case when sum(product_uom_qty) <%s then 1 else 0 end quotation_product_qty 
                                 from tpt_purchase_quotation_line
                                 where po_indent_id=%s and product_id=%s and purchase_quotation_id=%s
-                            '''%(purchase_line['po_product_qty'], purchase_line['po_indent_no'], purchase_line['product_id'], new.quotation_no.id)
+                            '''%(purchase_line['po_product_qty'], new.po_indent_no.id, purchase_line['product_id'], new.quotation_no.id)
                         cr.execute(sql)
                         quantity = cr.dictfetchone()
                         if (quantity['quotation_product_qty']==1):
@@ -928,38 +1048,53 @@ class purchase_order(osv.osv):
                 cr.execute(sql)
             date_order = datetime.datetime.strptime(new.date_order,'%Y-%m-%d')
             
-        date_order_month = date_order.month
-        date_order_year = date_order.year
-        sql = '''
-                select sum(amount_total) as total from purchase_order where EXTRACT(month from date_order) = %s and EXTRACT(year from date_order) = %s
-        '''%(date_order_month,date_order_year)
-        cr.execute(sql)
-        amount_total = cr.dictfetchone()
-        if (amount_total['total'] > 2000000):
-            raise osv.except_osv(_('Warning!'),_('The Emergency Purchase reaches 2 Lakhs Limit (2,000,000) in the current month. This can be processed only when the next month starts'))
-        
-            if new.po_document_type == 'local':
-                if new.quotation_no and new.quotation_no.quotation_cate:
-                    if (new.amount_total > 5000):
-                        raise osv.except_osv(_('Warning!'),_('Can not process because Total > 5000 for VV Local PO'))
-                    
-        if 'quotation_no' in vals:
-            for line in new.order_line:
-                if line.po_indent_no and line.product_id:
+            date_order_month = date_order.month
+            date_order_year = date_order.year
+            sql = '''
+                    select sum(amount_total) as total from purchase_order where EXTRACT(month from date_order) = %s and EXTRACT(year from date_order) = %s
+            '''%(date_order_month,date_order_year)
+            cr.execute(sql)
+            amount_total = cr.dictfetchone()
+            if (amount_total['total'] > 2000000):
+                raise osv.except_osv(_('Warning!'),_('The Emergency Purchase reaches 2 Lakhs Limit (2,000,000) in the current month. This can be processed only when the next month starts'))
+            
+                if new.po_document_type == 'local':
+                    if new.quotation_no and new.quotation_no.quotation_cate:
+                        if (new.amount_total > 5000):
+                            raise osv.except_osv(_('Warning!'),_('Can not process because Total > 5000 for VV Local PO'))
+                        
+            
+            if new.quotation_no and new.po_indent_no:
+                sql = '''
+                            select product_id, sum(product_qty) as po_product_qty from purchase_order_line where order_id = %s group by product_id
+                        '''%(new.id)
+                cr.execute(sql)
+                for purchase_line in cr.dictfetchall():
                     sql = '''
-                                select po_indent_no, product_id, sum(product_qty) as po_product_qty from purchase_order_line where order_id = %s group by po_indent_no, product_id
-                            '''%(new.id)
+                            select case when sum(product_uom_qty) <%s then 1 else 0 end quotation_product_qty 
+                            from tpt_purchase_quotation_line
+                            where po_indent_id=%s and product_id=%s and purchase_quotation_id=%s
+                        '''%(purchase_line['po_product_qty'], new.po_indent_no.id, purchase_line['product_id'], new.quotation_no.id)
                     cr.execute(sql)
-                    for purchase_line in cr.dictfetchall():
-                        sql = '''
-                                select case when sum(product_uom_qty) <%s then 1 else 0 end quotation_product_qty 
-                                from tpt_purchase_quotation_line
-                                where po_indent_id=%s and product_id=%s and purchase_quotation_id=%s
-                            '''%(purchase_line['po_product_qty'], purchase_line['po_indent_no'], purchase_line['product_id'], new.quotation_no.id)
-                        cr.execute(sql)
-                        quantity = cr.dictfetchone()
-                        if (quantity['quotation_product_qty']==1):
-                            raise osv.except_osv(_('Warning!'),_('You are input %s quantity in Purchase Order but quantity in Quotation do not enough for this Purchase Indent and Product .' %(purchase_line['po_product_qty'])))        
+                    quantity = cr.dictfetchone()
+                    if (quantity['quotation_product_qty']==1):
+                        raise osv.except_osv(_('Warning!'),_('You are input %s quantity in Purchase Order but quantity in Quotation do not enough for this Purchase Indent and Product .' %(purchase_line['po_product_qty'])))
+#                 for line in new.order_line:
+#                     if line.product_id:
+#                         sql = '''
+#                                     select product_id, sum(product_qty) as po_product_qty from purchase_order_line where order_id = %s group by product_id
+#                                 '''%(new.id)
+#                         cr.execute(sql)
+#                         for purchase_line in cr.dictfetchall():
+#                             sql = '''
+#                                     select case when sum(product_uom_qty) <%s then 1 else 0 end quotation_product_qty 
+#                                     from tpt_purchase_quotation_line
+#                                     where po_indent_id=%s and product_id=%s and purchase_quotation_id=%s
+#                                 '''%(purchase_line['po_product_qty'], new.po_indent_no.id, purchase_line['product_id'], new.quotation_no.id)
+#                             cr.execute(sql)
+#                             quantity = cr.dictfetchone()
+#                             if (quantity['quotation_product_qty']==1):
+#                                 raise osv.except_osv(_('Warning!'),_('You are input %s quantity in Purchase Order but quantity in Quotation do not enough for this Purchase Indent and Product .' %(purchase_line['po_product_qty'])))        
                         
         return new_write
     
@@ -1021,10 +1156,17 @@ purchase_order()
 
 class purchase_order_line(osv.osv):
     _inherit = "purchase.order.line"
-    
-    
     _columns = {
-        'po_indent_no' : fields.many2one('tpt.purchase.indent', 'PO Indent No'),
+#                 'purchase_tax_id': fields.many2one('account.tax', 'Taxes', domain="[('type_tax_use','=','purchase')]", required = True), 
+                'discount': fields.float('DISC'),
+                'p_f': fields.float('P&F'),
+                'p_f_type':fields.selection([('percent','%')],'P&F Type'),
+                'ed': fields.float('ED'),
+                'ed_type':fields.selection([('percent','%')],'ED Type'),
+                'fright': fields.float('Fright'),
+                'fright_type':fields.selection([('rs','Rs.')],'Fright Type'),
+                # ham function line_net
+                'line_net': fields.float('Line Net'),
                 }
     _defaults = {
                  'date_planned':time.strftime('%Y-%m-%d'),
@@ -1630,6 +1772,9 @@ class tpt_rfq_supplier(osv.osv):
 #         'uom_po_id': fields.many2one('product.uom', 'UOM', readonly = True),
         }  
     
+
+
+    
     def onchange_rfq_vendor_id(self, cr, uid, ids,vendor_id=False, context=None):
         vals = {}
         if vendor_id: 
@@ -1671,9 +1816,35 @@ class res_partner(osv.osv):
     def onchange_vendor_group_id(self, cr, uid, ids,vendor_group_id=False, context=None):
         return {'value': {'vendor_sub_group_id': False}}
 
+#     def search(self, cr, uid, args, offset=0, limit=None, order=None, context=None, count=False):
+#         if context is None:
+#             context = {}
+#         if context.get('search_supplier_code'):
+#             if context.get('product_id'):
+#                 sql = '''
+#                     select vendor_id from tpt_rfq_supplier where quotation_no_id in (select id from tpt_request_for_quotation where id = %s)
+#                 '''%(context.get('product_id'))
+#                 cr.execute(sql)
+#                 product_ids = [row[0] for row in cr.fetchall()]
+#                 args += [('id','in',product_ids)]
+#         return super(res_partner, self).search(cr, uid, args, offset=offset, limit=limit, order=order, context=context, count=count) 
+# #     
+# #     def name_search(self, cr, user, name, args=None, operator='ilike', context=None, limit=100):
+# #        ids = self.search(cr, user, args, context=context, limit=limit)
+# #        return self.name_get(cr, user, ids, context=context)
+
     def search(self, cr, uid, args, offset=0, limit=None, order=None, context=None, count=False):
         if context is None:
             context = {}
+        if context.get('search_supplier_code'):
+            if context.get('rfq_no_id'):
+                sql = '''
+                    select vendor_id from tpt_rfq_supplier where rfq_id = %s
+                '''%(context.get('rfq_no_id'))
+                cr.execute(sql)
+                partner_ids = [row[0] for row in cr.fetchall()]
+                args += [('id','in',partner_ids)]
+                
         if context.get('search_recom_product'):
             if context.get('product_id'):
                 sql = '''
@@ -1686,7 +1857,24 @@ class res_partner(osv.osv):
     
     def name_search(self, cr, user, name, args=None, operator='ilike', context=None, limit=100):
        ids = self.search(cr, user, args, context=context, limit=limit)
-       return self.name_get(cr, user, ids, context=context)   
+       return self.name_get(cr, user, ids, context=context)
+   
+    def name_get(self, cr, uid, ids, context=None):
+        """Overrides orm name_get method"""
+        res = []
+        if isinstance(ids, (int, long)):
+            ids = [ids]
+        if not ids:
+            return res
+        res = super(res_partner,self).name_get(cr, uid, ids, context)
+        if context.get('search_supplier_code'):
+            res = []
+            reads = self.read(cr, uid, ids, ['vendor_code'], context)
+            for record in reads:
+                name = record['vendor_code']
+                res.append((record['id'], name))
+        return res
+   
 res_partner()   
 
 class tpt_material_request(osv.osv):
@@ -1706,7 +1894,6 @@ class tpt_material_request(osv.osv):
         'date_request': fields.datetime.now,
     }
     def create(self, cr, uid, vals, context=None):
-        new_id = super(tpt_material_request, self).create(cr, uid, vals, context)
         if vals.get('name','/')=='/':
             sql = '''
                 select code from account_fiscalyear where '%s' between date_start and date_stop
@@ -1718,6 +1905,7 @@ class tpt_material_request(osv.osv):
             else:
                 sequence = self.pool.get('ir.sequence').get(cr, uid, 'tpt.material.request.import')
                 vals['name'] =  sequence and sequence+'/'+fiscalyear['code'] or '/'
+        new_id = super(tpt_material_request, self).create(cr, uid, vals, context)
         material = self.browse(cr,uid,new_id)
         sql = '''
                 select product_id, sum(product_uom_qty) as product_qty from tpt_material_request_line where material_request_id = %s group by product_id

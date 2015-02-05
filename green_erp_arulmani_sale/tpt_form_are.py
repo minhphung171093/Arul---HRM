@@ -15,7 +15,7 @@ class tpt_form_are_1(osv.osv):
     _name = "tpt.form.are.1"
       
     _columns = {
-        'name': fields.char('Form No', size = 1024, required = True, states={'cancel': [('readonly', True)], 'done':[('readonly', True)]}),
+        'name': fields.char('Form No', size = 1024, readonly = True, states={'cancel': [('readonly', True)], 'done':[('readonly', True)]}),
         'date': fields.date('Date', required = True, states={'cancel': [('readonly', True)], 'done':[('readonly', True)]}),
         'commisionarate_id': fields.many2one('tpt.commisionarate', 'Commisionarate', states={'cancel': [('readonly', True)], 'done':[('readonly', True)]}),
         'consignment_to': fields.many2one('res.country', 'Consigment To', states={'cancel': [('readonly', True)], 'done':[('readonly', True)]}),
@@ -104,7 +104,7 @@ class tpt_form_are_3(osv.osv):
         'good_description':fields.char('Good Description',size = 1024),
         'remarks':fields.char('Remarks',size = 1024),
         'package_description':fields.char('No. & Package Description',size = 1024),
-        'tranport':fields.char('Tranport Manner',size = 1024),
+        'tranport':fields.char('Transport Manner',size = 1024),
         'gross_weight':fields.float('Package gross weight'),
         'good_qty':fields.float('Good Qty'),
         'value':fields.float('Value'),

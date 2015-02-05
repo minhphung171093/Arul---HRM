@@ -80,7 +80,6 @@
             parent="purchase.menu_procurement_management" sequence="13"/>
 		
 
-		
 		<record id="tpt_purchase_order_form" model="ir.ui.view">
             <field name="name">tpt.purchase.order.form</field>
             <field name="model">purchase.order</field>
@@ -89,10 +88,21 @@
             	<xpath expr="//field[@name='partner_id']" position="before">
             		<field name="po_document_type" />
 					<field name="name" readonly = '1' string = 'PO Document No' />
+					<field name="po_indent_no" on_change = "onchange_po_indent_no(quotation_no, po_indent_no)" context="{'search_po_indent_no':True, 'quotation_no':quotation_no }" options="{'create': false, 'create_edit': false}"/>
 				</xpath> 
 				<xpath expr="//field[@name='date_order']" position="after">
 					<field name="quotation_no" on_change = "onchange_quotation_no(quotation_no)" options="{'create': false, 'create_edit': false}"/>
-					<field name="purchase_tax_id" options="{'create': false, 'create_edit': false}"/>
+					<field name="state_id" options="{'create': false, 'create_edit': false}"/>
+					<field name="ecc_no" />
+					<field name="payment_term_id" options="{'create': false, 'create_edit': false}" widget="selection"/>
+					<field name="deli_sche" />
+		<!--			<field name="purchase_tax_id" options="{'create': false, 'create_edit': false}"/> -->
+				</xpath> 
+				<xpath expr="//field[@name='partner_ref']" position="after">
+            		<field name="for_basis" />
+					<field name="mode_dis" />
+				</xpath>
+				<xpath expr="//page[@string='Incoming Shipments &amp; Invoices']/group/group/field[@name='payment_term_id']" position="replace">
 				</xpath> 
 				<xpath expr="//field[@name='warehouse_id']" position="attributes">
 					<attribute name='invisible'>1</attribute>
@@ -102,6 +112,9 @@
 				</xpath> 
 				<xpath expr="//field[@name='partner_id']" position="attributes">
 					<attribute name='options'>{'create': false, 'create_edit': false}</attribute>
+				</xpath> 
+				<xpath expr="//field[@name='partner_id']" position="attributes">
+					<attribute name='string'>Vendor</attribute>
 				</xpath> 
 				<xpath expr="//page[@string='Purchase Order']" position="attributes">
 					<attribute name='string'>PO Line</attribute>
@@ -120,20 +133,40 @@
 					<attribute name='invisible'>1</attribute>
 				</xpath> 
 				<xpath expr="//page[@string='PO Line']/field/tree/field[@name='taxes_id']" position="attributes">
-					<attribute name='invisible'>1</attribute>
+					<attribute name='invisible'>0</attribute>
 				</xpath> 
 				<xpath expr="//page[@string='PO Line']/field/tree/field[@name='product_uom']" position="replace">
 					<field name="product_uom" string = 'UOM' groups="product.group_uom" on_change="onchange_product_uom(parent.pricelist_id,product_id,product_qty,product_uom,parent.partner_id, parent.date_order,parent.fiscal_position,date_planned,name,price_unit,context)"/>
 				</xpath> 
-				<xpath expr="//page[@string='PO Line']/field/tree/field[@name='product_id']" position="before">
+		<!--		<xpath expr="//page[@string='PO Line']/field/tree/field[@name='product_id']" position="before">
 					<field name="po_indent_no" context="{'search_po_indent_no':True, 'quotation_no':parent.quotation_no }" on_change = "onchange_po_indent_no(po_indent_no)" domain="[('intdent_cate','=','emergency')]" options="{'create': false, 'create_edit': false}"/>
-				</xpath>
+				</xpath> -->
 				<xpath expr="//page[@string='PO Line']/field/tree/field[@name='product_id']" position="replace">
-					<field name="product_id" required = '1' context="{'search_po_product':True, 'po_indent_no':po_indent_no }" options="{'create': false, 'create_edit': false}" on_change="onchange_product_id(parent.pricelist_id,product_id,0,False,parent.partner_id, parent.date_order,parent.fiscal_position,date_planned,name,price_unit,po_indent_no,context)"/>
+					<field name="product_id" required = '1' context="{'search_po_product':True, 'po_indent_no':parent.po_indent_no }" options="{'create': false, 'create_edit': false}" on_change="onchange_product_id(parent.pricelist_id,product_id,0,False,parent.partner_id, parent.date_order,parent.fiscal_position,date_planned,name,price_unit,po_indent_no,context)"/>
 				</xpath>
 				<xpath expr="//page[@string='PO Line']/field/tree/field[@name='product_qty']" position="replace">
 					<field name="product_qty" />
 				</xpath>
+				<xpath expr="//page[@string='PO Line']/group/field[@name='amount_untaxed']" position="after">
+					<field name="p_f_charge" widget="monetary"/>
+					<field name="excise_duty" widget="monetary"/>
+				</xpath>
+				<xpath expr="//page[@string='PO Line']/group/field[@name='amount_tax']" position="after">
+					<field name="fright" widget="monetary"/>
+				</xpath>
+				<xpath expr="//page[@string='PO Line']/field/tree/field[@name='price_unit']" position="after">
+					<field name="discount"/>
+					<field name="p_f"/>
+					<field name="p_f_type"/>
+					<field name="ed"/>
+					<field name="ed_type"/>
+				</xpath> 
+				<xpath expr="//page[@string='PO Line']/field/tree/field[@name='taxes_id']" position="after">
+					<field name="fright"/>
+					<field name="fright_type"/>
+					<field name="line_net"/>
+				</xpath> 
+				
 			</field>
 		</record>
 		
@@ -361,11 +394,12 @@
 				<tree string="Purchase Quotation">
 						<field name="name" />
 						<field name="date_quotation" />
+						<field name="rfq_no_id" />
 						<field name="supplier_id" />
+						<field name="supplier_name_id" />
 						<field name="supplier_location_id" />
 						<field name="quotation_cate" />
 						<field name="quotation_ref" />
-						<field name="tax_id" />
 						<field name="state" />
 				</tree>
 			</field>
@@ -384,37 +418,39 @@
                    	 <group col="4" colspan="2" >
                    	 	<field name="name" />
 						<field name="date_quotation" />
-						<field name="supplier_id" domain="[('supplier','=',1)]" options="{'create': false, 'create_edit': false}" on_change = "onchange_supplier_location(supplier_id)" />
+						<field name="rfq_no_id" on_change = "onchange_rfq_no_id(rfq_no_id)" options="{'create': false, 'create_edit': false}" />
+						<field name="supplier_id" domain="[('supplier','=',1)]" options="{'create': false, 'create_edit': false}" on_change = "onchange_supplier_location(supplier_id)" context="{'search_supplier_code':1,'rfq_no_id':rfq_no_id}"/>
+						<field name="supplier_name_id"/>
 						<field name="supplier_location_id" options="{'create': false, 'create_edit': false}"  />
 						<field name="quotation_cate" />
-						<newline/>
 						<field name="quotation_ref" />
-						<field name="tax_id" options="{'create': false, 'create_edit': false}" domain="[('type_tax_use','=','purchase')]" />
                     </group >
 						<notebook>
 							<page string = "Quotation Lines">
 								<field name="purchase_quotation_line" nolabel='1'>
-									<tree editable='top'>
-										<field name="po_indent_id" on_change = "onchange_po_indent_id(po_indent_id)" domain="[('state','=','done')]" options="{'create': false, 'create_edit': false}" />
+									<tree editable='top' create = 'false'>
+										<field name="po_indent_id" on_change = "onchange_po_indent_id(po_indent_id)" options="{'create': false, 'create_edit': false}" />
 										<field name="product_id" context="{'search_product':True, 'po_indent_id':po_indent_id }" on_change = "onchange_quotation_product_id(product_id, po_indent_id)" options="{'create': false, 'create_edit': false}" />
 										<field name="product_uom_qty" />
-										<field name="uom_po_id" edit='false' options="{'create': false, 'create_edit': false}"/>
+										<field name="uom_id" edit='false' options="{'create': false, 'create_edit': false}"/>
 										<field name="price_unit" />
-										<field name="sub_total" />  
+										<field name="disc" /> 
+										<field name="p_f" /> 
+										<field name="p_f_type" /> 
+										<field name="e_d" /> 
+										<field name="e_d_type" /> 
+										<field name="tax_id" /> 
+										<field name="fright" />  
+										<field name="fright_type" />
+										<field name="line_net" />  
 									</tree>
 								</field>
-								<group class="oe_subtotal_footer oe_right" colspan="2" name="sale_total">
-                                	<field name="amount_untaxed" widget="monetary" />
-                                	<field name="amount_tax" widget="monetary" />     
-                                		<div class="oe_subtotal_footer_separator oe_inline">
-                                     		<label for="amount_total"/>  
-                                		</div>
-                                 	<field name="amount_total" nolabel="1" class="oe_subtotal_footer_separator" widget="monetary" />  
-                            	</group>  
-                            	<div class="oe_clear"/>  
 							</page>
 						</notebook>
-						
+						<group col="4" colspan="2" >
+	                   	 	<field name="for_basis" />
+							<field name="schedule" />
+                    </group >
 		         	</sheet>
 		         </form>
 			</field>
@@ -426,20 +462,8 @@
             <field name="res_model">tpt.purchase.quotation</field>
             <field name="view_type">form</field>
             <field name="view_mode">tree,form</field>
-            <field name="view_id" ref="view_tpt_purchase_quotation_form"/>
-        </record>
-        
-       <record id="action_view_tpt_purchase_quotation_form1" model="ir.actions.act_window.view">
-            <field eval="0" name="sequence"/>
-            <field name="view_mode">tree</field>
+            <field name="context">{'search_supplier_code':1}</field>
             <field name="view_id" ref="view_tpt_purchase_quotation_tree"/>
-            <field name="act_window_id" ref="action_view_tpt_purchase_quotation_form"/>
-        </record>
-        <record id="action_view_tpt_purchase_quotation_form2" model="ir.actions.act_window.view">
-            <field eval="1" name="sequence"/>
-            <field name="view_mode">form</field>
-            <field name="view_id" ref="view_tpt_purchase_quotation_form"/>
-            <field name="act_window_id" ref="action_view_tpt_purchase_quotation_form"/>
         </record>
         
         <menuitem action="action_view_tpt_purchase_quotation_form" id="purchase.menu_purchase_rfq"
@@ -504,7 +528,7 @@
             id="menu_action_view_tpt_good_return_request"
             parent="purchase.menu_procurement_management" sequence="30"/>
        
-		<record id="view_tpt_purchase_chart_tree" model="ir.ui.view">
+	<!--	<record id="view_tpt_purchase_chart_tree" model="ir.ui.view">
 			<field name="name">tpt.purchase.chart.tree</field>
 			<field name="model">tpt.purchase.quotation</field>
 			<field name="arch" type="xml">
@@ -596,7 +620,7 @@
         
         <menuitem action="action_view_tpt_purchase_chart_form"
             id="menu_action_view_tpt_purchase_chart_form"
-            parent="purchase.menu_procurement_management" sequence="27"/>            
+            parent="purchase.menu_procurement_management" sequence="27"/> -->            
 
             
 	  	<record id="view_tpt_quanlity_inspection_tree" model="ir.ui.view">

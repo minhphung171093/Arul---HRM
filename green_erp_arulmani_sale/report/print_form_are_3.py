@@ -24,6 +24,7 @@ class Parser(report_sxw.rml_parse):
         pool = pooler.get_pool(self.cr.dbname)
         self.localcontext.update({
             'get_date': self.get_date,
+            'get_amount': self.get_amount,
         })
     
     def get_date(self, date=False):
@@ -32,4 +33,13 @@ class Parser(report_sxw.rml_parse):
         date = datetime.strptime(date, DATE_FORMAT)
         return date.strftime('%d/%m/%Y')
 
-    
+    def get_amount(self,value=False):
+        value = float(value)
+        if not value:
+            value = 0.0
+        value=str(value)
+        return value.split('.')
+        
+        
+        
+        

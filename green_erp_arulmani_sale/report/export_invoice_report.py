@@ -56,7 +56,7 @@ class Parser(report_sxw.rml_parse):
             return  amount_to_text_en.amount_to_text(nbr, lang)
         else:
             a= currency
-            return amount_to_text_en.amount_to_text(nbr, 'en', lang) 
+            return amount_to_text_en.amount_to_text(nbr, lang, 'usd') 
         
     def get_pre(self, pre_carriage_by):
         pre = ''
