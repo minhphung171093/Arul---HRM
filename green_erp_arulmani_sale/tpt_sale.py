@@ -1334,6 +1334,19 @@ class tpt_test_report(osv.osv):
                     })
         return {'value': vals}
     
+    def test_report_print(self, cr, uid, ids, context=None):
+        test = self.browse(cr, uid, ids[0])
+        if test.name.name == 'TITANIUM DIOXIDE-ANATASE' or test.name.default_code == 'TiO2':
+            return {
+                'type': 'ir.actions.report.xml',
+                'report_name': 'test_report_tio2',
+            }
+        else:
+            return {
+                'type': 'ir.actions.report.xml',
+                'report_name': 'test_report',
+            }
+    
 tpt_test_report()
 
 class tpt_test_report_line(osv.osv):
