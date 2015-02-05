@@ -25,6 +25,7 @@ class stock_picking(osv.osv):
         'move_date': fields.date('Movement Date', required = True),
         'reason': fields.text("Reason for Move"),
         'flag_confirm': fields.boolean('Flag', readonly =  True),
+        'bag_detail':fields.char('Bag Details', size = 64),
         
 #         'location_sour_id': fields.many2one('stock.location', 'Source Location'),
                 }
@@ -595,6 +596,7 @@ class stock_picking_out(osv.osv):
         'doc_status':fields.selection([('draft','Drafted'),('waiting','Waiting for Approval'),('completed','Completed'),('cancelled','Cancelled')],'Document Status'),
         'sale_id': fields.many2one('sale.order', 'Sales Order', readonly = True,ondelete='set null', select=True),
         'flag_confirm': fields.boolean('Flag', readonly =  True),
+        'bag_detail':fields.char('Bag Details', size = 64),
                 }
     
     def action_process(self, cr, uid, ids, context=None):
