@@ -26,7 +26,7 @@ class stock_picking(osv.osv):
         'reason': fields.text("Reason for Move"),
         'flag_confirm': fields.boolean('Flag', readonly =  True),
         'bag_detail':fields.char('Bag Details', size = 64),
-        
+        'tpt_log_line': fields.one2many('tpt.log','delivery_order_id', 'Logs'),
 #         'location_sour_id': fields.many2one('stock.location', 'Source Location'),
                 }
     
@@ -597,6 +597,7 @@ class stock_picking_out(osv.osv):
         'sale_id': fields.many2one('sale.order', 'Sales Order', readonly = True,ondelete='set null', select=True),
         'flag_confirm': fields.boolean('Flag', readonly =  True),
         'bag_detail':fields.char('Bag Details', size = 64),
+        'tpt_log_line': fields.one2many('tpt.log','delivery_order_id', 'Logs'),
                 }
     
     def action_process(self, cr, uid, ids, context=None):
@@ -776,7 +777,7 @@ class account_invoice(osv.osv):
         'excise_duty_id': fields.many2one('account.tax','Excise Duty', required = False, readonly=True, states={'draft':[('readonly',False)]}),
         'sale_tax_id': fields.many2one('account.tax','Sale Tax', required = False, readonly=True, states={'draft':[('readonly',False)]}),
         'doc_status':fields.selection([('draft','Drafted'),('waiting','Waiting for Approval'),('completed','Completed'),('cancelled','Cancelled')],'Document Status'),
-        'invoice_type':fields.selection([ ('domestic','Domestic'), ('export','Export'), ],'Invoice Type', readonly=True, states={'draft':[('readonly',False)]}),
+        'invoice_type':fields.selection([ ('domestic','Domestic/Indirect Export'), ('export','Export'), ],'Invoice Type', readonly=True, states={'draft':[('readonly',False)]}),
         'vessel_flight_no': fields.char('Vessel/Flight No.', size = 1024, readonly=True, states={'draft':[('readonly',False)]}),
         'port_of_loading_id': fields.many2one('res.country','Port Of Loading', readonly=True, states={'draft':[('readonly',False)]}),
         'port_of_discharge_id': fields.many2one('res.country','Port Of Discharge', readonly=True, states={'draft':[('readonly',False)]}),

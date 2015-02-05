@@ -70,6 +70,7 @@
                                 <field name="location_dest_id" required = '0' domain="[('usage','in', ['internal', 'supplier', 'customer'])]"/>
                     </group>
 				</xpath>
+				
 			</field>
 		</record>
 		
@@ -132,8 +133,6 @@
 				<xpath expr="//page[@string='Additional Info']" position="attributes">
 					<attribute name="invisible">1</attribute>
 				</xpath>
-				
-				
 				
 			</field>
 		</record>
@@ -314,6 +313,7 @@
             		<field name="truck" required ="1"/>
             		<field name="remarks"/>
             		<field name="doc_status" readonly='1'/>
+            		<field name="bag_detail" required ="1"/>
             	</xpath>
             	<xpath expr="//field[@name='move_lines']"  position="replace">
             		<field name="move_lines" string="Stock Move" context="{'address_out_id': partner_id, 'picking_type': 'out', 'form_view_ref':'stock.view_move_picking_form', 'tree_view_ref':'stock.view_move_picking_tree'}" options='{"reload_on_button": true}'>
@@ -364,6 +364,16 @@
             		 <button name="print_packing_list" string="Print Packing List" type="object" class="oe_highlight"/>
             	</xpath>
             	
+            	<xpath expr="//page[@string='Products']" position="after">
+            		<page string="Delivery Logs">
+						<field name="tpt_log_line" nolabel='1'>
+							<tree editable='top'>
+								<field name="name"/>
+								<field name="current_date"/>
+							</tree>
+						</field>
+					</page>
+            	</xpath>
             </field>
         </record>
     </data>
