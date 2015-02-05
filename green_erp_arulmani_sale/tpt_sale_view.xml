@@ -271,7 +271,10 @@
             <field name="name">tpt.test.report.form</field>
             <field name="model">tpt.test.report</field>
             <field name="arch" type="xml">
-	            <form string="Test Report" version="7.0">   
+	            <form string="Test Report" version="7.0">
+	            	<header>
+	            		<button name="test_report_print" class="oe_highlight" string="Pint" type="object"/>
+	            	</header>
 	            	<sheet>
 		                <group> 
 							<field name="name" on_change="onchange_product(name)" options="{'create': false, 'create_edit': false}" domain="['|',('name','in',['TITANIUM DIOXIDE-ANATASE','FERROUS SULPHATE']),('default_code','in',['FSH','TiO2'])]"/>
