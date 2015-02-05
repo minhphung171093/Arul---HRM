@@ -196,7 +196,7 @@
 				<xpath expr="//field[@name='fiscal_position']" position="replace">
 					<field name="type" string = "Document Type" readonly = "0"/>
 					<field name="excise_duty_id" options="{'create': false, 'create_edit': false}" domain="[('type_tax_use','=','excise_duty')]"/>
-					<field name="doc_status" />
+					<field name="doc_status" readonly='1'/>
 					<field name="pre_carriage_by" />
 					<field name="port_of_loading_id" options="{'create': false, 'create_edit': false}"/>
 					<field name="mark_container_no" />
@@ -311,7 +311,7 @@
             		<field name="transporter" required ="1"/>
             		<field name="truck" required ="1"/>
             		<field name="remarks"/>
-            		<field name="doc_status"/>
+            		<field name="doc_status" readonly='1'/>
             	</xpath>
             	<xpath expr="//field[@name='move_lines']"  position="replace">
             		<field name="move_lines" string="Stock Move" context="{'address_out_id': partner_id, 'picking_type': 'out', 'form_view_ref':'stock.view_move_picking_form', 'tree_view_ref':'stock.view_move_picking_tree'}" options='{"reload_on_button": true}'>

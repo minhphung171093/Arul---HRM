@@ -112,8 +112,7 @@
                     	<field name="ref" invisible="1"/>
                     </xpath>
                     
-                    <xpath expr="//field[@name='title']" position="replace">
-                    	<field name="title" domain="[('domain', '=', 'contact')]" options="{&quot;no_open&quot;: True,'create': false, 'create_edit': false}"/>
+                    <xpath expr="//field[@name='email']" position="after">
                         <field name="pan_tin" />
                         <field name="sin"/>
                         <field name="cst"/>

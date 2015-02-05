@@ -238,7 +238,21 @@ class stock_move(osv.osv):
         'po_indent_id': fields.many2one('tpt.purchase.indent','PO Indent No'),
         'inspec': fields.boolean('Inspec'),  
                 }
-    
+    def onchange_action_taken(self, cr, uid, ids,action_taken=False,product_id=False,context=None):
+        vals = {}
+        if action_taken and product_id:
+            product = self.pool.get('product.product').browse(cr, uid, product_id)
+            cate = product.categ_id and product.categ_id.cate_name or False
+            if  action_taken == 'move' and (cate == 'raw' or cate == 'spares'):
+                warning = {  
+                          'title': _('Warning!'),  
+                          'message': _('The action "Move to Consumption" can not be taken for this product!'),  
+                          }  
+                vals['action_taken']=False
+                return {'value': vals,'warning':warning}
+            else:
+                vals['action_taken']= action_taken
+        return {'value': vals}
 stock_move()
 
 class account_invoice(osv.osv):

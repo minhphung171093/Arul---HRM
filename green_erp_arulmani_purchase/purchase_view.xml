@@ -36,7 +36,7 @@
 							<field name="date_indent" on_change="onchange_date_expect(date_indent)" />
 							<field name="document_type" />
 							<field name="intdent_cate" />
-							<field name="department_id" options="{'create': false, 'create_edit': false}" />
+							<field name="department_id" required='1' options="{'create': false, 'create_edit': false}" />
 							<field name="create_uid" options="{'create': false, 'create_edit': false}"  />
 							<field name="date_expect"/>
 						</group>
@@ -50,13 +50,13 @@
 							<page string = "Materials">
 								<field name="purchase_product_line" nolabel='1'>
 									<tree editable='bottom'>
-										<field name="product_id" widget = "selection"  options="{'create': false, 'create_edit': false}"/>
-										<field name="dec_material" />
+										<field name="product_id" widget = "selection" required='1' options="{'create': false, 'create_edit': false}"/>
+										<field name="dec_material" required='1'/>
 										<field name="product_uom_qty" />
 										<field name="recom_vendor_id" context="{'search_recom_product':True, 'product_id':product_id }" options="{'create': false, 'create_edit': false}" />
 										<field name="pending_qty" />
 										<field name="uom_po_id" edit='false' options="{'create': false, 'create_edit': false}"/>
-										<field name="release_by" />
+										<field name="release_by" required='1'/>
 									</tree>
 								</field>
 							</page>
@@ -229,6 +229,23 @@
 			</field>
 		</record>   
 		
+		<record id="view_normal_procurement_locations_form_inherit" model="ir.ui.view">
+            <field name="name">product.normal.procurement.locations.inherit</field>
+            <field name="model">product.product</field>
+            <field name="inherit_id" ref="stock.view_normal_procurement_locations_form"/>
+            <field name="arch" type="xml">
+            	<xpath expr="//group[@name='delay']" position="before">
+					<group name="MRP">
+                        <field name="mrp_control" on_change="onchange_mrp_control(mrp_control)"/>
+                        <field name="min_stock" attrs="{'readonly': [('mrp_control','=',False)]}"/>
+						<field name="max_stock" attrs="{'readonly': [('mrp_control','=',False)]}"/>
+						<field name="re_stock" attrs="{'readonly': [('mrp_control','=',False)]}"/>
+						<field name="po_text"/>
+	                </group>
+				</xpath>
+            </field>
+		</record>
+            
 		<record id="tpt_product_form" model="ir.ui.view">
             <field name="name">tpt.product.form</field>
             <field name="model">product.product</field>
@@ -236,7 +253,7 @@
             <field name="arch" type="xml">
 				<xpath expr="//label[@for='sale_ok']" position="after">
 					<field name="cate_name" invisible='1'/>
-					<field name="batch_appli_ok" attrs="{'invisible':[('cate_name','!=','finish')]}"/>
+					<field name="batch_appli_ok" on_change="onchange_batch_appli_ok(batch_appli_ok)" attrs="{'invisible':[('cate_name','!=','finish')]}"/>
 					<label for = "batch_appli_ok" attrs="{'invisible':[('cate_name','!=','finish')]}"/>
 				</xpath>
 				<xpath expr="//div[@class='oe_title']" position="inside">
@@ -256,7 +273,7 @@
 					<page string="Specification Parameters" attrs="{'invisible': [('cate_name', '!=', 'raw')]}">
                             <field name="spec_parameter_line" nolabel = '1'>
                             	<tree editable='bottom'>
-                                    <field name="name"/>
+                                    <field name="name" options="{'create': false, 'create_edit': false}"/>
                                     <field name="required_spec" />
                                     <field name="uom_po_id" options="{'create': false, 'create_edit': false}"/>
 	                            </tree>
@@ -264,7 +281,7 @@
                     </page>
 				</xpath>
 				
-				<xpath expr="//page[@string='Information']" position="before">
+				<!--<xpath expr="//page[@string='Information']" position="before">
 					<page string="Purchase" attrs="{'invisible': [('cate_name', '!=', 'raw')]}">
 						<group>
 							<group>
@@ -282,7 +299,7 @@
 	                		
 	                	</group>
                     </page>
-				</xpath>
+				</xpath>-->
 				
 				<xpath expr="//page[@string='Accounting']" position="after">
 					<page string="Inventory">
@@ -295,6 +312,14 @@
                                 </tree>
                             </field>
                     </page>
+				</xpath>
+				
+				<xpath expr="//field[@name='type']" position="attributes">
+					<attribute name='attrs'>{'invisible': [('cate_name','=','finish')]}</attribute>
+				</xpath>
+				
+				<xpath expr="//field[@name='uom_id']" position="before">
+					<field name="tpt_product_type" attrs="{'invisible': [('cate_name','!=','finish')]}"/>
 				</xpath>
 			</field>
 		</record>
@@ -1007,7 +1032,7 @@
                     </xpath>
                     <xpath expr="//field[@name='website']" position="before">
                         <field name="vendor_tag" placeholder="Tag ... " attrs="{'invisible': [('supplier','=',False)]}" />
-                    	<field name="vendor_group_id" on_change="onchange_vendor_group_id(vendor_group_id)" options="{'create': false, 'create_edit': false}" attrs="{'invisible': [('supplier','=',False)]}" />
+                    	<field name="vendor_group_id" on_change="onchange_vendor_group_id(vendor_group_id)" options="{'create': false, 'create_edit': false}" attrs="{'invisible': [('supplier','=',False)],'required':[('supplier','!=',False)]}" />
                     	<field name="pur_orgin_code_id" options="{'create': false, 'create_edit': false}" attrs="{'invisible': [('supplier','=',False)]}" />
                     </xpath>
                     
@@ -1015,12 +1040,12 @@
                     </xpath>
                     
                     <xpath expr="//field[@name='name']" position="before">
-                        <field name="vendor_code" placeholder="Vendor Code" attrs="{'invisible': [('supplier','=',False)]}" />
-                    	<field name="title" placeholder="Title" domain="[('domain', '=', 'contact')]" options="{&quot;no_open&quot;: True}" attrs="{'invisible': [('is_company','=', True)]}"/>
+                        <field name="vendor_code"  placeholder="Vendor Code" attrs="{'invisible': [('supplier','=',False)],'required':[('supplier','!=',False)]}" />
+                    	<field name="title" placeholder="Title" domain="[('domain', '=', 'contact')]" options="{&quot;no_open&quot;: True}"/>
                     </xpath>
                     
                      <xpath expr="//field[@name='email']" position="after">
-                        <field name="vendor_sub_group_id" domain="[('vendor_group_id','=',vendor_group_id)]" attrs="{'invisible': [('supplier','=',False)]}" options="{'create': false, 'create_edit': false}" />
+                        <field name="vendor_sub_group_id"  domain="[('vendor_group_id','=',vendor_group_id)]" attrs="{'invisible': [('supplier','=',False)],'required':[('supplier','!=',False)]}" options="{'create': false, 'create_edit': false}" />
                     </xpath>
                 </data>
             </field>
@@ -1033,14 +1058,6 @@
      	<menuitem action="stock.action_picking_tree4" id="purchase.menu_action_picking_tree4" parent="purchase.menu_procurement_management_inventory"
             name="GRN" sequence="9"/> 
         
-   <!--     <menuitem name="Material Category"
-            action="product.product_category_action_form" id="purchase.menu_product_category_config_purchase"
-            parent="purchase.menu_product_in_config_purchase" sequence="1" />
-            
-		<menuitem name="Material" id="purchase.menu_procurement_partner_contact_form" action="product.product_normal_action_puchased"
-          parent="purchase.menu_procurement_management_product"/>   -->
-          
-          
 	   	<record id="view_tpt_material_request_tree" model="ir.ui.view">
 			<field name="name">tpt.material.request.tree</field>
 			<field name="model">tpt.material.request</field>
@@ -1078,7 +1095,7 @@
 								<field name="material_request_line" nolabel='1'>
 									<tree editable='bottom'>
 										<field name="product_id" widget = "selection"  options="{'create': false, 'create_edit': false}"/>
-										<field name="dec_material" />
+										<field name="dec_material"/>
 										<field name="product_uom_qty" />
 										<field name="uom_po_id" edit='false' options="{'create': false, 'create_edit': false}"/>
 									</tree>
@@ -1126,6 +1143,75 @@
             <field name="search_view_id" ref="product.product_category_search_view"/>
             <field name="view_id" ref="product.product_category_list_view"/>
         </record>
+
+	   	<record id="view_tpt_material_issue_tree" model="ir.ui.view">
+			<field name="name">tpt.material.issue.tree</field>
+			<field name="model">tpt.material.issue</field>
+			<field name="arch" type="xml">
+				<tree string="Material Issue">
+						<field name="name"/>
+						<field name="date_request"/>
+						<field name="date_expec"/>
+						<field name="department_id"  />
+						<field name="state" widget="statusbar" statusbar_visible="draft,done" statusbar_colors='{"draft":"blue"}'/>
+				</tree>
+			</field>
+		</record>
+		
+		<record id="view_tpt_material_issue_form" model="ir.ui.view">
+            <field name="name">tpt.material.issue.form</field>
+            <field name="model">tpt.material.issue</field>
+            <field name="arch" type="xml">
+	            <form string="Material Issue" version="7.0">   
+	             <header>
+	            		<button name="bt_approve" states='draft' string="Issue Goods" type="object" class="oe_highlight" />
+	                    <field name="state" widget="statusbar" statusbar_visible="draft,done" statusbar_colors='{"draft":"blue"}'/>
+	            </header>    
+	            	<sheet>
+		                <group col="4" colspan="2" >    
+							<field name="name" domain="[('state','=','done')]" on_change="onchange_material(name)" options="{'create': false, 'create_edit': false}" />
+							<field name="date_request" on_change="onchange_date_expect(date_request)" />
+							<field name="date_expec"/>
+							<field name="department_id" options="{'create': false, 'create_edit': false}" />
+						</group>
+						<notebook>
+							<page string = "Materials">
+								<field name="material_issue_line"  nolabel='1'>
+									<tree editable='bottom' create='false' >
+										<field name="product_id" widget = "selection"  options="{'create': false, 'create_edit': false}"/>
+										<field name="dec_material" />
+										<field name="product_uom_qty" />
+										<field name="uom_po_id" edit='false' options="{'create': false, 'create_edit': false}"/>
+										<field name="product_isu_qty" />
+									</tree>
+								</field>
+							</page>
+						</notebook>
+		         	</sheet>
+		         </form>
+			</field>
+		</record>
+          
+		<record id="action_view_tpt_material_issue_form" model="ir.actions.act_window">
+            <field name="name">Material Issue</field>
+            <field name="type">ir.actions.act_window</field>
+            <field name="res_model">tpt.material.issue</field>
+            <field name="view_type">form</field>
+            <field name="view_mode">tree,form</field>
+            <field name="view_id" ref="view_tpt_material_issue_tree"/>
+        </record>
         
+        <menuitem action="action_view_tpt_material_issue_form"
+            id="menu_action_view_tpt_material_issue_form"
+            parent="purchase.menu_procurement_management" sequence="25"/>
+       
+        <record id="tpt_warehouse_product_category_action_form" model="ir.actions.act_window">
+            <field name="name">Product Categories</field>
+            <field name="type">ir.actions.act_window</field>
+            <field name="res_model">product.category</field>
+            <field name="view_type">form</field>
+            <field name="search_view_id" ref="product.product_category_search_view"/>
+            <field name="view_id" ref="product.product_category_list_view"/>
+        </record>
     </data>
 </openerp>
