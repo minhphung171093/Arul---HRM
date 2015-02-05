@@ -21,7 +21,7 @@
 	             	<button name="bt_approve" states='draft' string="Approve" type="object" class="oe_highlight" />
 	             	<button name="bt_cancel" states='draft' string="Cancel" type="object" class="oe_highlight" />
             		<button name="bt_run_mrp" states='approve' string="Run MRP Process" type="object" class="oe_highlight" />
-            		<button name="bt_generate_indent" tring="Generate Indent" type="object" class="oe_highlight" attrs="{'invisible': ['|',('flag','=',True),('state','not in',('approve'))]}" />
+            		<button name="bt_generate_indent" string="Generate Indent" type="object" class="oe_highlight" attrs="{'invisible': ['|',('flag','=',True),('state','not in',('approve'))]}"/>
                     <field name="state" widget="statusbar" statusbar_visible="draft,cancel,approve" statusbar_colors='{"draft":"blue","cancel":"blue"}'/>
 	            </header>    
 	            	<sheet>
