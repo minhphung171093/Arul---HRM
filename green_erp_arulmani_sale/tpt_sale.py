@@ -155,6 +155,7 @@ class sale_order(osv.osv):
         'partner_invoice_id': fields.many2one('res.partner', 'Invoice Address', readonly=True, required=False, states={'draft': [('readonly', False)], 'sent': [('readonly', False)]}, help="Invoice address for current sales order."),
         'partner_shipping_id': fields.many2one('res.partner', 'Delivery Address', readonly=True, required=False, states={'draft': [('readonly', False)], 'sent': [('readonly', False)]}, help="Delivery address for current sales order."),
         'sale_consignee_line':fields.one2many('tpt.sale.order.consignee','sale_order_consignee_id','Consignee'),
+        'tpt_log_line': fields.one2many('tpt.log','sale_order_id', 'Logs'),
         'flag_t':fields.boolean('Flag',readonly =True ),
         'flag_p':fields.boolean('Flag',readonly =True ),
         'blanket_line_id':fields.many2one('tpt.blank.order.line','Blanket Order Line'),
@@ -679,6 +680,19 @@ class sale_order(osv.osv):
         return True
     
 sale_order()
+
+class tpt_log(osv.osv):
+    _name='tpt.log'
+    _columns = {
+        'name': fields.text('Remarks',required=True),
+        'current_date': fields.date('Current Date',required=True),
+        'sale_order_id': fields.many2one('sale.order', 'Sale Order',ondelete='cascade'),
+        'delivery_order_id': fields.many2one('stock.picking', 'Delivery Order',ondelete='cascade'),
+    }
+    _defaults = {
+        'current_date': time.strftime('%Y-%m-%d'),
+    }
+tpt_log()
 
 class sale_order_line(osv.osv):
     _inherit = 'sale.order.line'

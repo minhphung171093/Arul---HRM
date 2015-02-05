@@ -103,6 +103,17 @@
 					<button name='action_button_confirm_approve' string="Approve" type="object" class="oe_highlight" attrs="{'invisible':['|','|',('invoiced','=',False),('flag_t','=',True),('flag_p','=',True)]}" />
 				</xpath>
 				
+				<xpath expr="//page[@string='Order Lines']"  position="after">
+					<page string="Sales Logs">
+						<field name="tpt_log_line" nolabel='1'>
+							<tree editable='top'>
+								<field name="name"/>
+								<field name="current_date"/>
+							</tree>
+						</field>
+					</page>
+				</xpath>
+				
 	       	</field>
         </record>
         
