@@ -150,7 +150,7 @@ class tpt_purchase_indent(osv.osv):
                     if vals.get('name','/')=='/':
                         sequence = self.pool.get('ir.sequence').get(cr, uid, 'indent.purchase.service')
                         vals['name'] =  sequence and sequence +'/'+fiscalyear['code']or '/'
-        new_write = super(tpt_purchase_indent, self).write(cr, uid, vals, context=context)
+        new_write = super(tpt_purchase_indent, self).write(cr, uid,ids, vals, context)
         for indent in self.browse(cr,uid,ids):
             if indent.select_normal != 'multiple':
                 if (len(indent.purchase_product_line)>1):

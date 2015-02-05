@@ -25,7 +25,15 @@ class Parser(report_sxw.rml_parse):
         self.localcontext.update({
             'get_date': self.get_date,
             'get_total': self.get_total,
+            'get_amount':self.get_amount,
         })
+    
+    def get_amount(self,value=False):
+        value = float(value)
+        if not value:
+            value = 0.0
+        value=str(value)
+        return value.split('.')
     
     def get_date(self, date=False):
         if not date:
