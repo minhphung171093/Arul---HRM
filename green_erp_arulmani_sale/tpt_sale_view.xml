@@ -9,7 +9,7 @@
             <field name="arch" type="xml">
                 <xpath expr="//field[@name='partner_id']" position="after" >
                 		<field name="blanket_id" on_change="onchange_blanket_id(blanket_id)" domain="[('blank_order_line','!=',False), ('state','=','approve')]" options="{'create': false, 'create_edit': false}" required = "1" />
-                		<field name="blanket_line_id" domain="[('blanket_order_id','=',blanket_id)]" options="{'create': false, 'create_edit': false}" on_change="onchange_blanketorderline_id(blanket_line_id)" required="1" context="{'search_blanket_line':1,'blanket_line_id':blanket_line_id,'blanket_id':blanket_id}"/>
+                		<field name="blanket_line_id" domain="[('blanket_order_id','=',blanket_id)]" options="{'create': false, 'create_edit': false}" on_change="onchange_blanketorderline_id(blanket_line_id)" required="1" context="{'search_blanket_line':1,'blanket_id':blanket_id}"/>
                 		<field name="invoice_address" placeholder="Street..."/>
                 		<field name="street2"/>
                 		<field name="city" placeholder="City"/>
@@ -47,7 +47,9 @@
 				<xpath expr="//field[@name='partner_invoice_id']"  position="replace">
 					<field name="partner_invoice_id" required="0" invisible="1" />
 				</xpath>
-
+				<xpath expr="//field[@name='order_line']/tree"  position="attributes">
+					<attribute name="create">false</attribute>
+				</xpath>
 				<xpath expr="//field[@name='date_order']"  position="before">
 					<field name="order_type" />
 				</xpath>
@@ -72,9 +74,9 @@
 					<field name="product_uom_qty" context="{'partner_id':parent.partner_id, 'quantity':product_uom_qty, 'pricelist':parent.pricelist_id, 'shop':parent.shop_id, 'uom':product_uom}"/> 
 				</xpath>
 				
-				<!--<xpath expr="//form/sheet/notebook/page[@string='Order Lines']/field/tree/field[@name='product_uom']"  position="attributes">
+				<xpath expr="//form/sheet/notebook/page[@string='Order Lines']/field/tree/field[@name='product_uom']"  position="attributes">
 					<attribute name="readonly">1</attribute>
-				</xpath>-->
+				</xpath>
 				<xpath expr="//form/sheet/notebook/page[@string='Order Lines']/field/tree/field[@name='price_subtotal']"  position="after">
 					<field name="freight" />
 					<field name="name_consignee_id" domain="[('consignee_parent_id','=',parent.partner_id)]" on_change = "onchange_consignee_id(name_consignee_id)" options="{'create': false, 'create_edit': false}"/>
@@ -95,10 +97,6 @@
 					<label string="Draft Sales Order " attrs="{'invisible': [('state','not in',('draft','sent'))]}"/>
 				</xpath>
 				
-				<xpath expr="//button[@name='action_cancel']"  position="attributes">
-					<attribute name='invisible'>1</attribute>
-				</xpath>
-				
 				<xpath expr="//button[@name='action_button_confirm']"  position="replace">
 					<button name="action_button_confirm" states="draft" string="Confirm Sale" type="object" groups="green_erp_arulmani_sale.group_vvti_sale_manager"/>
 					<button name="action_button_confirm" states="sent" string="Confirm Sale" class="oe_highlight" type="object" groups="green_erp_arulmani_sale.group_vvti_sale_manager"/>
@@ -117,8 +115,6 @@
 	            	<xpath expr="//button[@name='action_view_delivery']" position="replace">
 			            <button name="action_view_delivery" string="Create/View Delivery Order" type="object" class="oe_highlight"
 			                 attrs="{'invisible': ['|','|','|',('picking_ids','=',False),('picking_ids','=',[]), ('state', 'not in', ('progress','manual')),('shipped','=',True)]}" groups="base.group_user"/>
-		            </xpath>
-		            <xpath expr="//button[@name='action_cancel']" position="replace">
 		            </xpath>
 	            </data>
             </field>
@@ -205,12 +201,12 @@
 							<page string = "Order Lines">
 								<field name="blank_order_line" nolabel='1'>
 									<tree editable='top'>
-										<field name="product_id" widget = "selection" on_change="onchange_product_id(product_id)" options="{'create': false, 'create_edit': false}" domain="[('cate_name','=','finish')]"/>
+										<field name="product_id" on_change="onchange_product_id(product_id)" options="{'create': false, 'create_edit': false}" domain="[('cate_name','=','finish')]"/>
 										<field name="description"/>
 										<field name="product_type" />
 										<field name="application_id" options="{'create': false, 'create_edit': false}"/>
 										<field name="product_uom_qty" />
-										<field name="uom_po_id" edit='false' options="{'create': false, 'create_edit': false}"/>
+										<field name="uom_po_id" options="{'create': false, 'create_edit': false}" readonly='1'/>
 										<field name="price_unit" />
 										<field name="sub_total" invisible='1'/> 
 										<field name="name_consignee_id" domain="[('consignee_parent_id','=',parent.customer_id)]" on_change = "onchange_consignee_id(name_consignee_id)" options="{'create': false, 'create_edit': false}"/>
@@ -629,7 +625,6 @@
                                         <h1><field name="name" style="width: 70%%"/></h1>
                                     </div>
                                     <group>
-                                    	<field name="zip" placeholder="ZIP" style="width: 20%%"/>
                                     	<group>
 		                                    <label for="street" string="Address"/>
 		                                        <div>
@@ -642,6 +637,7 @@
 		                                            </div>
 		                                            
 		                                            <field name="country_id" placeholder="Country" class="oe_no_button" options='{"no_open": True}'/>
+		                                            <field name="zip" placeholder="ZIP" style="width: 20%%"/>
 		                                        </div>
                                         		<field name="bill_location"/>
                                     	</group>
@@ -658,7 +654,10 @@
 						</field>
 					</page>
 	        	</xpath>
-        
+        		
+        		<xpath expr="//field[@name='credit']" position="attributes">
+        			<attribute name='string'>Credit Used</attribute>
+        		</xpath>
             </field>
         </record> 
         

@@ -530,7 +530,7 @@ class stock_picking(osv.osv):
             sale = picking.sale_id and picking.sale_id.amount_total or 0
             limit = picking.partner_id and picking.partner_id.credit_limit_used or 0
             used = picking.partner_id and picking.partner_id.credit or 0
-            if not picking.flag_confirm and limit <= (sale + used):
+            if not picking.flag_confirm and limit <= (sale + used) and picking.sale_id.payment_term_id.name not in ['Immediate Payment','Immediate']:
                 sql = '''
                     update stock_picking set doc_status='waiting' where id = %s
                     '''%(picking.id)
@@ -538,7 +538,7 @@ class stock_picking(osv.osv):
                 return {
                     'view_type': 'form',
                     'view_mode': 'form',
-                    'res_model': 'alert.form',
+                    'res_model': 'alert.warning.form',
                     'type': 'ir.actions.act_window',
                     'target': 'new',
                     'context': context,
@@ -769,18 +769,18 @@ class account_invoice(osv.osv):
     _columns = {
         'vvt_number': fields.char('Number', size=1024),
         'delivery_order_id': fields.many2one('stock.picking.out','Delivery Order', readonly=True),
-        'cons_loca': fields.many2one('res.partner','Consignee Location'),
-        'sale_id':  fields.many2one('sale.order','Sale Order'), 
-        'excise_duty_id': fields.many2one('account.tax','Excise Duty', required = False),
-        'sale_tax_id': fields.many2one('account.tax','Sale Tax', required = False),
+        'cons_loca': fields.many2one('res.partner','Consignee Location', readonly=True, states={'draft':[('readonly',False)]}),
+        'sale_id':  fields.many2one('sale.order','Sale Order', readonly=True, states={'draft':[('readonly',False)]}), 
+        'excise_duty_id': fields.many2one('account.tax','Excise Duty', required = False, readonly=True, states={'draft':[('readonly',False)]}),
+        'sale_tax_id': fields.many2one('account.tax','Sale Tax', required = False, readonly=True, states={'draft':[('readonly',False)]}),
         'doc_status':fields.selection([('draft','Drafted'),('waiting','Waiting for Approval'),('completed','Completed'),('cancelled','Cancelled')],'Document Status'),
-        'invoice_type':fields.selection([ ('domestic','Domestic'), ('export','Export'), ],'Invoice Type'),
-        'vessel_flight_no': fields.char('Vessel/Flight No.', size = 1024),
-        'port_of_loading_id': fields.many2one('res.country','Port Of Loading'),
-        'port_of_discharge_id': fields.many2one('res.country','Port Of Discharge'),
-        'mark_container_no': fields.char('Marks & No Container No.', size = 1024),
-        'insurance': fields.float('Insurance'),
-        'pre_carriage_by': fields.selection([('sea','Sea')],'Pre Carriage By'),
+        'invoice_type':fields.selection([ ('domestic','Domestic'), ('export','Export'), ],'Invoice Type', readonly=True, states={'draft':[('readonly',False)]}),
+        'vessel_flight_no': fields.char('Vessel/Flight No.', size = 1024, readonly=True, states={'draft':[('readonly',False)]}),
+        'port_of_loading_id': fields.many2one('res.country','Port Of Loading', readonly=True, states={'draft':[('readonly',False)]}),
+        'port_of_discharge_id': fields.many2one('res.country','Port Of Discharge', readonly=True, states={'draft':[('readonly',False)]}),
+        'mark_container_no': fields.char('Marks & No Container No.', size = 1024, readonly=True, states={'draft':[('readonly',False)]}),
+        'insurance': fields.float('Insurance', readonly=True, states={'draft':[('readonly',False)]}),
+        'pre_carriage_by': fields.selection([('sea','Sea')],'Pre Carriage By', readonly=True, states={'draft':[('readonly',False)]}),
         'amount_untaxed': fields.function(_amount_all, digits_compute=dp.get_precision('Account'), string='Untaxed Amount',
             store={
                 'account.invoice': (lambda self, cr, uid, ids, c={}: ids, ['invoice_line'], 20),

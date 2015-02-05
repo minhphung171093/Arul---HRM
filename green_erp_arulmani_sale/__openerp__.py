@@ -42,6 +42,7 @@
         'report/packing_list_report_view.xml',
         'report/proforma_invoice_report_view.xml',
         'wizard/alert_form_view.xml',
+        'wizard/stock_move_view.xml',
         'tpt_stock_view.xml',
         'sale_sequence.xml',
         'tpt_form_are_view.xml',
