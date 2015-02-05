@@ -75,13 +75,19 @@ def english_number(val):
 
 def amount_to_text(number, currency):
     number = '%.2f' % number
-    units_name = currency
+    if currency=='inr':
+        units_name = 'RUPEES'
+    else:
+        units_name = 'USD'
     list = str(number).split('.')
     start_word = english_number(int(list[0]))
     end_word = english_number(int(list[1]))
     cents_number = int(list[1])
     cents_name = (cents_number > 1) and 'Cents' or 'Cent'
-    final_result = start_word.title() +' '+units_name+' and ' + str.lower(end_word)
+    if currency=='usd':
+        final_result =units_name +' '+ start_word.title() +' and ' + str.lower(end_word)
+    else:
+        final_result = start_word.title() +' '+units_name+' and ' + str.lower(end_word) +' PAISA ONLY'
     return final_result
 
 

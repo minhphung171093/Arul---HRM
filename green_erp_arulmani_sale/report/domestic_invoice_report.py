@@ -29,6 +29,7 @@ class Parser(report_sxw.rml_parse):
             'amount_to_text': self.amount_to_text,
             'get_qty_mt': self.get_qty_mt,
             'get_qty_bags': self.get_qty_bags,
+#             'get_qty_bags_gross': self.get_qty_bags_gross,
             'get_total': self.get_total,
         })
     
@@ -36,7 +37,7 @@ class Parser(report_sxw.rml_parse):
         if not date:
             date = time.strftime(DATE_FORMAT)
         date = datetime.strptime(date, DATE_FORMAT)
-        return date.strftime('%d/%m/%Y')
+        return date.strftime('%d.%m.%Y')
     
     def get_total_amount(self, invoice_line, excise_duty_id, sale_tax_id):
         val = 0.0
@@ -46,7 +47,7 @@ class Parser(report_sxw.rml_parse):
     
     def amount_to_text(self, nbr, lang='en'):
         if lang == 'en':
-            return amount_to_text_en.amount_to_text(nbr, 'en', lang)   
+            return amount_to_text_en.amount_to_text(nbr, lang, 'inr').upper()
          
     def get_total(self, quantity, price_unit, freight, excise_duty_id, sale_tax_id):
         val = ((quantity*price_unit)+(quantity*price_unit)*(excise_duty_id.amount/100))+(((quantity*price_unit)+(quantity*price_unit)*(excise_duty_id.amount/100))*sale_tax_id.amount/100)+freight
@@ -71,6 +72,22 @@ class Parser(report_sxw.rml_parse):
                 rs = round(qty*1000/25,2)
                 bags_qty = str(rs) + ' NOS OF HDPE LINED BAGS (25KGS BAGS)'
         return bags_qty
+    
+#     def get_qty_bags_gross(self, qty, uom, type):
+#         rs = 0.0
+#         if uom:
+#             unit = uom.replace(' ','')
+#             if unit.lower()=='kg' and type == 'domestic':
+#                 rs = round(qty/50,2)
+#             if unit.lower()=='kg' and type == 'export':
+#                 rs = round(qty/25,2)
+#             if unit.lower()=='bags':
+#                 rs = qty
+#             if unit.lower()=='tonne' and type == 'domestic':
+#                 rs = round(qty*1000/50,2)
+#             if unit.lower()=='tonne' and type == 'export':
+#                 rs = round(qty*1000/25,2)
+#         return rs
           
     def get_qty_mt(self, qty, uom, type):
         mt_qty = 0.0
