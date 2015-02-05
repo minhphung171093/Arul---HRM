@@ -53,7 +53,7 @@ def _convert_nnn(val):
     if rem > 0:
         word = to_19[rem] + ' Hundred'
         if mod > 0:
-            word = word + ' '
+            word = word + ' and '
     if mod > 0:
         word = word + _convert_nn(mod)
     return word
