@@ -733,7 +733,19 @@ class purchase_order(osv.osv):
     _columns = {
         'po_document_type':fields.selection([('asset','VV Asset PO'),('standard','VV Standard PO'),('local','VV Local PO'),('return','VV Return PO'),('service','VV Service PO'),('out','VV Out Service PO')],'PO Document Type'),
         'quotation_no': fields.many2one('tpt.purchase.quotation', 'Quotation No'),
-        'purchase_tax_id': fields.many2one('account.tax', 'Taxes', domain="[('type_tax_use','=','purchase')]", required = True), 
+        'po_indent_no' : fields.many2one('tpt.purchase.indent', 'PO Indent No'),
+        'state_id': fields.many2one('res.country.state', 'Vendor Location'),
+        'for_basis': fields.char('For Basis', size = 1024),
+        'mode_dis': fields.char('Mode Of Dispatch', size = 1024),
+        'ecc_no': fields.char('ECC No', size = 1024),
+        'deli_sche': fields.char('Delivery Schedule', size = 1024),
+        
+        #ham function
+        'p_f_charge': fields.float('P&F charges'),
+        'excise_duty': fields.float('Excise Duty'),
+        'fright': fields.float('Fright'),
+        
+        
         'amount_untaxed': fields.function(_amount_all, digits_compute= dp.get_precision('Account'), string='Untaxed Amount',
             store={
                 'purchase.order.line': (_get_order, None, 10),
@@ -826,9 +838,8 @@ class purchase_order(osv.osv):
             if new.quotation_no and new.quotation_no.quotation_cate:
                 if (new.amount_total > 5000):
                     raise osv.except_osv(_('Warning!'),_('Can not process because Total > 5000 for VV Local PO'))
-                
-        if 'quotation_no' in vals:
-            for line in new.order_line:
+        for line in new.order_line:        
+            if new.quotation_no:
                 if line.po_indent_no and line.product_id:
                     sql = '''
                                 select po_indent_no, product_id, sum(product_qty) as po_product_qty from purchase_order_line where order_id = %s group by po_indent_no, product_id
@@ -976,10 +987,17 @@ purchase_order()
 
 class purchase_order_line(osv.osv):
     _inherit = "purchase.order.line"
-    
-    
     _columns = {
-        'po_indent_no' : fields.many2one('tpt.purchase.indent', 'PO Indent No'),
+                'purchase_tax_id': fields.many2one('account.tax', 'Taxes', domain="[('type_tax_use','=','purchase')]", required = True), 
+                'discount': fields.float('DISC'),
+                'p_f': fields.float('P&F'),
+                'p_f_type':fields.selection([('percent','%')],'P&F Type'),
+                'ed': fields.float('ED'),
+                'ed_type':fields.selection([('percent','%')],'ED Type'),
+                'fright': fields.float('Fright'),
+                'fright_type':fields.selection([('rs','Rs.')],'Fright Type'),
+                # ham function line_net
+                'line_net': fields.float('Line Net'),
                 }
     _defaults = {
                  'date_planned':time.strftime('%Y-%m-%d'),
@@ -1661,7 +1679,6 @@ class tpt_material_request(osv.osv):
         'date_request': fields.datetime.now,
     }
     def create(self, cr, uid, vals, context=None):
-        new_id = super(tpt_material_request, self).create(cr, uid, vals, context)
         if vals.get('name','/')=='/':
             sql = '''
                 select code from account_fiscalyear where '%s' between date_start and date_stop
@@ -1673,6 +1690,7 @@ class tpt_material_request(osv.osv):
             else:
                 sequence = self.pool.get('ir.sequence').get(cr, uid, 'tpt.material.request.import')
                 vals['name'] =  sequence and sequence+'/'+fiscalyear['code'] or '/'
+        new_id = super(tpt_material_request, self).create(cr, uid, vals, context)
         material = self.browse(cr,uid,new_id)
         sql = '''
                 select product_id, sum(product_uom_qty) as product_qty from tpt_material_request_line where material_request_id = %s group by product_id
