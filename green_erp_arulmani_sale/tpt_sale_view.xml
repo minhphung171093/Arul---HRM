@@ -150,7 +150,7 @@
 						<field name="po_date" /> 
 						<field name="po_number" />
 						<field name="exp_delivery_date" />
-						<field name="quotaion_no" />
+						<field name="quotaion_no" invisible='1'/>
 						<field name="channel" />
 						<field name="sale_tax_id" options="{'create': false, 'create_edit': false}"/>
 						<field name="order_type" />
@@ -199,7 +199,7 @@
 						<field name="po_date" />
 						<field name="po_number" />
 						<field name="exp_delivery_date" on_change = "onchange_exp_delivery_date(exp_delivery_date)"/>
-						<field name="quotaion_no" />
+						<field name="quotaion_no" invisible='1'/>
 						<field name="channel" options="{'create': false, 'create_edit': false}"/>
 						<field name="sale_tax_id" domain="[('type_tax_use','=','sale')]" options="{'create': false, 'create_edit': false}"/>
 						<field name="order_type" />
@@ -223,6 +223,7 @@
 										<field name="name_consignee_id" domain="[('consignee_parent_id','=',parent.customer_id)]" on_change = "onchange_consignee_id(name_consignee_id)" options="{'create': false, 'create_edit': false}"/>
 										<field name="location" />  
 										<field name="freight" />
+										<field name="expected_date" />
 									</tree>
 								</field>
 								<group class="oe_subtotal_footer oe_right" colspan="2" name="sale_total">
@@ -261,14 +262,7 @@
 			<field name="model">tpt.test.report</field>
 			<field name="arch" type="xml">
 				<tree string="Test Report">
-						<field name="name"/>
-						<field name="grade"/>
-						<field name="ph"/>
-						<field name="moisture"/>
-						<field name="iron"/>
-						<field name="purity"/>
-						<field name="ferric"/>
-						<field name="acid"/>
+					<field name="name"/>
 				</tree>
 			</field>
 		</record>
@@ -279,15 +273,21 @@
             <field name="arch" type="xml">
 	            <form string="Test Report" version="7.0">   
 	            	<sheet>
-		                <group > 
-						<field name="name" options="{'create': false, 'create_edit': false}" />
-						<field name="grade"/>
-						<field name="ph"/>
-						<field name="moisture"/>
-						<field name="iron"/>
-						<field name="purity"/>
-						<field name="ferric"/>
-						<field name="acid"/>
+		                <group> 
+							<field name="name" on_change="onchange_product(name)" options="{'create': false, 'create_edit': false}" domain="['|',('name','in',['TITANIUM DIOXIDE-ANATASE','FERROUS SULPHATE']),('default_code','in',['FSH','TiO2'])]"/>
+							<field name="is_tio2" invisible='1'/>
+						</group>
+						<group col='4' colspan='2' attrs="{'invisible':[('is_tio2','=',False)]}">
+							<field name="date_of_manufacture"/>
+							<field name="date_of_expiry"/>
+						</group>
+						<group string="Line">
+							<field name="report_line" nolabel='1'>
+								<tree editable='top'>
+									<field name="name"/>
+									<field name="value"/>
+								</tree>
+							</field>						
 						</group>
 				    </sheet>
 		         </form>

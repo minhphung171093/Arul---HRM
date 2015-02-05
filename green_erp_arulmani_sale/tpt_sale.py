@@ -279,6 +279,7 @@ class sale_order(osv.osv):
             vals = {
                     'order_line': [(0,0,rs_order)],
                     'order_policy': 'picking',
+                    'expected_date': blanket_line.expected_date,
                         }
         return {'value': vals}   
 #     def onchange_partner_id(self, cr, uid, ids, partner_id=False, blanket_id=False, context=None):
@@ -961,7 +962,7 @@ class tpt_blanket_order(osv.osv):
         'reason': fields.text('Reason', states={'cancel': [('readonly', True)], 'done':[('readonly', True)], 'approve':[('readonly', True)]}),
         'exp_delivery_date': fields.date('Expected delivery Date', required = True, states={'cancel': [('readonly', True)], 'done':[('readonly', True)], 'approve':[('readonly', True)]}),
         'channel': fields.many2one('crm.case.channel', 'Distribution Channel', states={'cancel': [('readonly', True)], 'done':[('readonly', True)], 'approve':[('readonly', True)]}),
-        'order_type':fields.selection([('domestic','Domestic'),('export','Export')],'Order Type' ,required=True, states={'cancel': [('readonly', True)], 'done':[('readonly', True)], 'approve':[('readonly', True)]}),
+        'order_type':fields.selection([('domestic','Domestic/Indirect Export'),('export','Export')],'Order Type' ,required=True, states={'cancel': [('readonly', True)], 'done':[('readonly', True)], 'approve':[('readonly', True)]}),
         'document_type':fields.selection([('blankedorder','Blanket Order')], 'Document Type',required=True, states={'cancel': [('readonly', True)], 'done':[('readonly', True)], 'approve':[('readonly', True)]}),
         'blank_order_line': fields.one2many('tpt.blank.order.line', 'blanket_order_id', 'Sale Order', states={'cancel': [('readonly', True)], 'done':[('readonly', True)], 'approve':[('readonly', True)]}),
         'amount_untaxed': fields.function(amount_all_blanket_orderline, multi='sums',string='Untaxed Amount',
@@ -1129,9 +1130,12 @@ class tpt_blank_order_line(osv.osv):
         'sub_total': fields.function(subtotal_blanket_orderline, store = True, multi='deltas' ,string='SubTotal'),
         'freight': fields.float('Freight'),
         'name_consignee_id': fields.many2one('res.partner', 'Consignee', required = True),
-        'location': fields.char('Location', size = 1024), 
+        'location': fields.char('Location', size = 1024),
+        'expected_date':fields.date('Expected delivery Date'),
                 }
-    
+    _defaults = {
+        'expected_date': time.strftime('%Y-%m-%d'),
+    }
     def _check_product(self, cr, uid, ids, context=None):
         for product in self.browse(cr, uid, ids, context=context):
             product_ids = self.search(cr, uid, [('id','!=',product.id),('product_id','!=',product.product_id.id),('blanket_order_id', '=',product.blanket_order_id.id)])
@@ -1290,15 +1294,57 @@ class tpt_test_report(osv.osv):
       
     _columns = {
         'name': fields.many2one('product.product', 'Product', required = True),
-        'grade':fields.char('Grade', size = 1024),
-        'ph':fields.char('pH(5% of Slurry)', size = 1024),
-        'moisture':fields.char('Moisture, % by mass', size = 1024),
-        'iron':fields.char(' Iron, % by mass', size = 1024),
-        'purity':fields.char(' Purity as FSH, % by mass', size = 1024),
-        'ferric':fields.char('Ferric Iron, % by mass', size = 1024),
-        'acid':fields.char('Free Acid, % by mass', size = 1024),
+        'report_line': fields.one2many('tpt.test.report.line', 'report_id', 'Line'),
+        'date_of_manufacture': fields.date('Date of Manufacture'),
+        'date_of_expiry': fields.date('Date of Expiry'),
+        'is_tio2': fields.boolean('Is TiO2'),
                 }
+    
+    def onchange_product(self, cr, uid, ids,product_id=False, context=None):
+        vals = {'report_line':[],'is_tio2':False}
+        report_line = []
+        if product_id:
+            for id in ids:
+                sql = '''
+                    delete from tpt_test_report_line where report_id = %s
+                '''%(id)
+                cr.execute(sql)
+            product = self.pool.get('product.product').browse(cr, uid, product_id)
+            if product.name == 'TITANIUM DIOXIDE-ANATASE' or product.default_code == 'TiO2': 
+                for line in ['Texture','pH of Pigments Slurry','Bulk Density gm/ml (Tapped)','Residue on 45 micron IS sieve, % by mass','Iron, ppm by mass','Solubility, % by mass',
+                             'Purity as TiO2 % by mass','LOI @ B00^C % by mass','Phosphate, % by mass','Volatile Matter, % by mass','FTIR Correlation Coefficient %','L*','a*','b*',
+                             '457 Brightness',
+                             ]:
+                    rs = {
+                          'name': line,
+                          }
+                    report_line.append((0,0,rs))
+                vals.update({'is_tio2': True})
+            if product.name == 'FERROUS SULPHATE' or product.default_code == 'FSH': 
+                for line in ['Grade of the product','pH value with 5% of Slurry','Content of Moisture, % by mass','Content of Iron, % by mass',
+                             'Purity as FSH, % by mass','Content of Ferric Iron, % by mass','Free Acid value, % by mass'
+                             ]:
+                    rs = {
+                          'name': line,
+                          }
+                    report_line.append((0,0,rs))
+                vals.update({'is_tio2': False})
+            vals.update({
+                    'report_line':report_line,
+                    })
+        return {'value': vals}
+    
 tpt_test_report()
+
+class tpt_test_report_line(osv.osv):
+    _name = "tpt.test.report.line"
+      
+    _columns = {
+        'report_id': fields.many2one('tpt.test.report', 'Test Report', ondelete='cascade'),
+        'name':fields.char('Name', size = 1024,required=True),
+        'value':fields.char('Value', size = 1024),
+                }
+tpt_test_report_line()
 
 class tpt_batch_request(osv.osv):
     _name = "tpt.batch.request"
