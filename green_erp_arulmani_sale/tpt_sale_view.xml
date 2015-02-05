@@ -654,7 +654,10 @@
 						</field>
 					</page>
 	        	</xpath>
-        
+        		
+        		<xpath expr="//field[@name='credit']" position="attributes">
+        			<attribute name='string'>Credit Used</attribute>
+        		</xpath>
             </field>
         </record> 
         

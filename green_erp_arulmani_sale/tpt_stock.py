@@ -530,7 +530,7 @@ class stock_picking(osv.osv):
             sale = picking.sale_id and picking.sale_id.amount_total or 0
             limit = picking.partner_id and picking.partner_id.credit_limit_used or 0
             used = picking.partner_id and picking.partner_id.credit or 0
-            if not picking.flag_confirm and limit <= (sale + used):
+            if not picking.flag_confirm and limit <= (sale + used) and picking.sale_id.payment_term_id.name not in ['Immediate Payment','Immediate']:
                 sql = '''
                     update stock_picking set doc_status='waiting' where id = %s
                     '''%(picking.id)
@@ -538,7 +538,7 @@ class stock_picking(osv.osv):
                 return {
                     'view_type': 'form',
                     'view_mode': 'form',
-                    'res_model': 'alert.form',
+                    'res_model': 'alert.warning.form',
                     'type': 'ir.actions.act_window',
                     'target': 'new',
                     'context': context,
