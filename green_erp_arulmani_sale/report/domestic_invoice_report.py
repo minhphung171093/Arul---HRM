@@ -31,6 +31,7 @@ class Parser(report_sxw.rml_parse):
             'get_qty_bags': self.get_qty_bags,
 #             'get_qty_bags_gross': self.get_qty_bags_gross,
             'get_total': self.get_total,
+            'get_total_example': self.get_total_example,
         })
     
     def get_date(self, date=False):
@@ -52,6 +53,7 @@ class Parser(report_sxw.rml_parse):
     def get_total(self, quantity, price_unit, freight, excise_duty_id, sale_tax_id):
         val = ((quantity*price_unit)+(quantity*price_unit)*(excise_duty_id.amount/100))+(((quantity*price_unit)+(quantity*price_unit)*(excise_duty_id.amount/100))*sale_tax_id.amount/100)+freight
         return round(val, 2)
+    
           
     def get_qty_bags(self, qty, uom, type):
         bags_qty = 0.0
@@ -102,4 +104,25 @@ class Parser(report_sxw.rml_parse):
             if unit.lower()=='tonne':
                 mt_qty = qty
         return round(mt_qty, 2)
+    
+    def get_total_example(self,invoice_line,excise_duty_id,sale_tax_id):
+        rate = 0.0
+        gross = 0.0
+        basic_ed = 0.0
+        edu_cess = 0.0
+        sec_edu_cess = 0.0
+        total = 0.0
+        cst = 0.0
+        total_amount = 0.0
+        for line in invoice_line:
+            qty_mt = self.get_qty_mt(line.quantity,line.uos_id.name,'domestic')
+            rate = round(qty_mt*line.price_unit,2)
+            gross = round(qty_mt * rate,2)
+            basic_ed = round((gross*excise_duty_id/100),2)
+            edu_cess = round(basic_ed * 2 / 100,2)
+            sec_edu_cess =  round(basic_ed * 1 / 100, 2)
+            total = round(gross + basic_ed + edu_cess + sec_edu_cess, 2)
+            cst = round(total * sale_tax_id / 100,2)
+            total_amount = round(gross + basic_ed + edu_cess + sec_edu_cess + total +cst, 2)
+        return round(total_amount,2)
     
