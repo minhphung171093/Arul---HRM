@@ -661,6 +661,8 @@ class tpt_purchase_quotation(osv.osv):
         'state':fields.selection([('draft', 'Draft'),('cancel', 'Cancel'),('done', 'Approve')],'Status', readonly=True),
         'for_basis':fields.char('For Basis',size = 1024),
         'schedule':fields.char('Delivery Schedule',size = 1024),
+        'comparison_chart_id':fields.many2one('tpt.comparison.chart','Comparison Chart'),
+        'payment_term_id': fields.related('supplier_id','property_supplier_payment_term',type='many2one',relation='account.payment.term', string='Payment Term'),
     }
     _defaults = {
         'state': 'draft',
@@ -708,17 +710,7 @@ class tpt_purchase_quotation(osv.osv):
                     'supplier_name_id': supplier.name + '' +(supplier.last_name or ''),
                     }
         return {'value': vals}
-
-#     def bt_approve(self, cr, uid, ids, context=None):
-#         for line in self.browse(cr, uid, ids):
-#             self.write(cr, uid, ids,{'state':'done'})
-#         return True   
-#     
-#     def bt_cancel(self, cr, uid, ids, context=None):
-#         for line in self.browse(cr, uid, ids):
-#             self.write(cr, uid, ids,{'state':'cancel'})
-#         return True   
-
+    
     def bt_tick_mark(self, cr, uid, ids, context=None):
         res = self.pool.get('ir.model.data').get_object_reference(cr, uid, 
                                         'green_erp_arulmani_purchase', 'tick_purchase_chart_form_view')
@@ -736,8 +728,20 @@ class tpt_purchase_quotation(osv.osv):
 
     def bt_cross_mark(self, cr, uid, ids, context=None):
         for line in self.browse(cr, uid, ids):
-            self.write(cr, uid, ids,{'state':'cancel'})
-        return True    
+            self.write(cr, uid, ids,{'state':'cancel','comparison_chart_id':False})
+        return True
+
+#     def bt_approve(self, cr, uid, ids, context=None):
+#         for line in self.browse(cr, uid, ids):
+#             self.write(cr, uid, ids,{'state':'done'})
+#         return True   
+#     
+#     def bt_cancel(self, cr, uid, ids, context=None):
+#         for line in self.browse(cr, uid, ids):
+#             self.write(cr, uid, ids,{'state':'cancel'})
+#         return True   
+
+
    
 #     def search(self, cr, uid, args, offset=0, limit=None, order=None, context=None, count=False):
 #         if context is None:
@@ -839,6 +843,8 @@ class tpt_purchase_quotation_line(osv.osv):
                             }
         return {'value': vals}   
 
+
+
     def _check_quotation(self, cr, uid, ids, context=None):
         for quotation in self.browse(cr, uid, ids, context=context):
             quotation_ids = self.search(cr, uid, [('id','!=',quotation.id),('po_indent_id','=',quotation.po_indent_id.id),('product_id', '=',quotation.product_id.id),('purchase_quotation_id','=',quotation.purchase_quotation_id.id)])
@@ -852,6 +858,39 @@ class tpt_purchase_quotation_line(osv.osv):
     ]       
     
 tpt_purchase_quotation_line()
+
+class tpt_comparison_chart(osv.osv):
+    _name = "tpt.comparison.chart"
+      
+    _columns = {
+        'name':fields.many2one('tpt.request.for.quotation','RFQ No', required = True),
+        'date':fields.date('Create Date', size = 1024,required=True),
+        'quotation_cate':fields.selection([
+                                  ('multiple','Multiple Quotation')],'Quotation Category'),
+        'create_uid':fields.many2one('res.users','Created By'),
+        'comparison_chart_line':fields.one2many('tpt.purchase.quotation','comparison_chart_id','Line')
+                }
+    
+    def onchange_request_quotation(self, cr, uid, ids,name=False, context=None):
+        vals = {}
+        if name :
+            quotation_ids = self.pool.get('tpt.purchase.quotation').search(cr, uid, [('rfq_no_id','=',name),('state','=','draft')])
+            vals = {'comparison_chart_line':[(6,0,quotation_ids)]}
+        return {'value': vals}
+
+    def create(self, cr, uid, vals, context=None):
+        if vals.get('name',False):
+            quotation_ids = self.pool.get('tpt.purchase.quotation').search(cr, uid, [('rfq_no_id','=',vals['name']),('state','=','draft')])
+            vals.update({'comparison_chart_line':[(6,0,quotation_ids)]})
+        return super(tpt_comparison_chart, self).create(cr, uid, vals, context=context)
+    
+    def write(self, cr, uid,ids, vals, context=None):
+        if vals.get('name',False):
+            quotation_ids = self.pool.get('tpt.purchase.quotation').search(cr, uid, [('rfq_no_id','=',vals['name']),('state','=','draft')])
+            vals.update({'comparison_chart_line':[(6,0,quotation_ids)]})
+        return super(tpt_comparison_chart, self).write(cr, uid,ids, vals, context=context)
+
+tpt_comparison_chart()
 
 class tpt_gate_in_pass_line(osv.osv):
     _name = "tpt.gate.in.pass.line"

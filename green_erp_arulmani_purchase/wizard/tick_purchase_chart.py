@@ -20,7 +20,6 @@ class tick_purchase_chart(osv.osv_memory):
                 }
             
     def tick_ok(self, cr, uid, ids, context=None):
-        purchase_line = []
         purchase_order_obj = self.pool.get('purchase.order')
         q_id = context.get('active_id')
         chart = self.pool.get('tpt.purchase.quotation').browse(cr, uid, q_id)
@@ -31,28 +30,28 @@ class tick_purchase_chart(osv.osv_memory):
         tick = self.browse(cr, uid, ids[0])
         
         for line in chart.purchase_quotation_line:
-            purchase_line.append((0,0,{
-                                        'po_indent_no':line.po_indent_id.id,
+            purchase_line = [(0,0,{
+#                                         'po_indent_no':line.po_indent_id.id,
                                        'product_id':line.product_id.id,
                                        'product_qty':line.product_uom_qty,
                                        'product_uom':line.uom_po_id.id,
                                        'price_unit':line.price_unit,
                                         'name':'/',
-                                       }))
-        vals.update({
-                    'po_document_type': tick.po_document_type,
-                    'quotation_no':chart.id,
-                    'partner_id':chart.supplier_id.id,
-                    'partner_ref':chart.quotation_ref,
-                    'purchase_tax_id':chart.tax_id.id,
-                    'date_order':chart.date_quotation,
-                    'location_id':location.lot_stock_id.id,
-                    'invoice_method': 'picking',
-                    'order_line': purchase_line,
-                    })
-        new_po_id = purchase_order_obj.create(cr, uid, vals)
+                                       })]
+            vals.update({
+                        'po_document_type': tick.po_document_type,
+                        'quotation_no':chart.id,
+                        'partner_id':chart.supplier_id and chart.supplier_id.id,
+                        'partner_ref':chart.quotation_ref,
+                        'date_order':chart.date_quotation,
+                        'state_id':chart.supplier_id.state and chart.supplier_id.state.id,
+                        'invoice_method': 'picking',
+                        'po_indent_no':line.po_indent_id.id,
+                        'order_line': purchase_line,
+                        })
+            new_po_id = purchase_order_obj.create(cr, uid, vals)
         sql = '''
-            update tpt_purchase_quotation set state = 'done' where id = %s
+            update tpt_purchase_quotation set state = 'done', comparison_chart_id='f' where id = %s
         '''%(chart.id)
         cr.execute(sql)
         

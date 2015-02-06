@@ -1249,6 +1249,9 @@ class tpt_blank_order_line(osv.osv):
     
 tpt_blank_order_line()
 
+
+
+
 class tpt_consignee(osv.osv):
     _name = "tpt.consignee"
     
