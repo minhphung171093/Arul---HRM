@@ -981,10 +981,10 @@ class purchase_order(osv.osv):
 # #             res[line.id]['amount_gross'] = amount_gross
 # #             res[line.id]['amount_net'] = amount_net
 # #             res[line.id]['amount_unit_net'] = amount_unit_net
-#         return res
+        return res
 #     
-#     def _amount_all(self, cr, uid, ids, field_name, arg, context=None):
-#         res = {}
+    def _amount_all(self, cr, uid, ids, field_name, arg, context=None):
+        res = {}
 # #         for line in self.browse(cr,uid,ids,context=context):
 # #             res[line.id] = {
 # #                 'amount_untaxed': 0.0,
@@ -1035,7 +1035,7 @@ class purchase_order(osv.osv):
                 'purchase.order.line': (_get_order, ['product_qty', 'product_uom', 'price_unit','discount','p_f','p_f_type',   
                                                                 'ed', 'ed_type','taxes_id','fright','fright_type'], 10)}),
                 
-        'p_f_charge': fields.function(amount_all_quotation_line, multi='sums',string='P & F charges',
+        'p_f_charge': fields.function(amount_all_po_line, multi='sums',string='P & F charges',
                                         store={
                'purchase.order': (lambda self, cr, uid, ids, c={}: ids, ['order_line'], 10),   
             'purchase.order.line': (_get_order, ['product_qty', 'product_uom', 'price_unit','discount','p_f','p_f_type',   

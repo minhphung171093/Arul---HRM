@@ -27,7 +27,7 @@ class tick_purchase_chart(osv.osv_memory):
         location = self.pool.get('stock.warehouse').browse(cr, uid, location_ids[0])
         
         tick = self.browse(cr, uid, ids[0])
-        
+        new_po_ids = []
         for line in chart.purchase_quotation_line:
             line_vals = purchase_order_obj.onchange_po_indent_no(cr, uid, [],chart.id,line.po_indent_id.id)['value']['order_line']
             purchase_line = [(0,0,{
@@ -57,6 +57,7 @@ class tick_purchase_chart(osv.osv_memory):
                         'location_id':location.lot_stock_id.id,
                         })
             new_po_id = purchase_order_obj.create(cr, uid, vals)
+            new_po_ids.append(new_po_id)
         sql = '''
             update tpt_purchase_quotation set state = 'done', comparison_chart_id=null where id = %s
         '''%(chart.id)
@@ -65,17 +66,17 @@ class tick_purchase_chart(osv.osv_memory):
         
         
         res = self.pool.get('ir.model.data').get_object_reference(cr, uid, 
-                                        'purchase', 'purchase_order_form')
+                                        'purchase', 'purchase_order_tree')
         return {
                     'name': 'Purchase Order',
                     'view_type': 'form',
-                    'view_mode': 'form',
-                    'view_id': res[1],
+                    'view_mode': 'tree,form',
                     'res_model': 'purchase.order',
                     'domain': [],
                     'type': 'ir.actions.act_window',
                     'target': 'current',
-                    'res_id': new_po_id,
+                    'res_id': new_po_ids,
+                    'domain': [('id', 'in', new_po_ids)],
                 }
         
 tick_purchase_chart()
