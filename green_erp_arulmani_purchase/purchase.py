@@ -1105,8 +1105,8 @@ class purchase_order(osv.osv):
                     'p_f_charge': quotation.amount_p_f or '',
                     'excise_duty': quotation.amount_ed or '',
                     'fright': quotation.amount_fright or '',
-                    'amount_untaxed': quotation.amount_basic or '',
-                    'amount_tax': quotation.amount_total_tax or '',
+#                     'amount_untaxed': quotation.amount_basic or '',
+#                     'amount_tax': quotation.amount_total_tax or '',
                     'order_line': po_line,
                     }
         return {'value': vals}
