@@ -1008,7 +1008,6 @@ class purchase_order(osv.osv):
                           'fright_type': line.fright_type or False,
                           'line_net': line.line_net or False,
 #                           'taxes_id': line.tax_id and line.tax_id.id or False,
-#                           'taxes_id':quotation.tax_id and quotation.tax_id.id or '',
 #                           'price_subtotal': line.sub_total or False,
                           'date_planned':quotation.date_quotation or False,
                           'name':'/'
