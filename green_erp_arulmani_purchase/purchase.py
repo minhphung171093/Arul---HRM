@@ -893,7 +893,7 @@ class purchase_order(osv.osv):
                 cr.execute(sql)
 #         po_line = []
 #         if quotation_no:
-#             quotation = self.pool.get('tpt.purchase.quotation').browse(cr, uid, quotation_no)
+            quotation = self.pool.get('tpt.purchase.quotation').browse(cr, uid, quotation_no)
 #             for line in quotation.purchase_quotation_line:
 #                 rs = {
 #                       'po_indent_no': line.po_indent_id and line.po_indent_id.id or False,
@@ -906,13 +906,15 @@ class purchase_order(osv.osv):
 # #                       'name':'/'
 #                       }
 #                 po_line.append((0,0,rs))
-#             vals = {
-#                     'partner_id':quotation.supplier_id and quotation.supplier_id.id or '',
-#                     'partner_ref':quotation.quotation_ref or '',
-#                     'purchase_tax_id':quotation.tax_id and quotation.tax_id.id or '',
-#                     'order_line': po_line,
-#                     }
-        return {'value': {'po_indent_no': False,'order_line': []}}
+            vals = {
+                    'partner_id':quotation.supplier_id and quotation.supplier_id.id or '',
+                    'for_basic':quotation.for_basic or '',
+                    'state_id':quotation.supplier_location_id and quotation.supplier_location_id.id or '',
+                    'deli_sche': quotation.schedule or '',
+                    'po_indent_no': False,
+                    'order_line': [],
+                    }
+        return {'value': vals}
     
     def onchange_po_indent_no(self, cr, uid, ids,quotation_no=False, po_indent_no=False, context=None):
         vals = {}
@@ -934,7 +936,7 @@ class purchase_order(osv.osv):
 #                           'taxes_id':quotation.tax_id and quotation.tax_id.id or '',
 #                           'price_subtotal': line.sub_total or False,
                           'date_planned':quotation.date_quotation or False,
-    #                       'name':'/'
+                          'name':'/'
                           }
                     po_line.append((0,0,rs))
             vals = {

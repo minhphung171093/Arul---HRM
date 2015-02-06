@@ -120,7 +120,7 @@
 					<attribute name='string'>PO Line</attribute>
 				</xpath> 
 				<xpath expr="//page[@string='PO Line']/field/tree/field[@name='name']" position="attributes">
-					<attribute name='invisible'>0</attribute>
+					<attribute name='invisible'>1</attribute>
 				</xpath> 
 				<xpath expr="//page[@string='PO Line']/field/tree/field[@name='name']" position="attributes">
 					<attribute name='required'>1</attribute>
@@ -133,7 +133,7 @@
 					<attribute name='invisible'>1</attribute>
 				</xpath> 
 				<xpath expr="//page[@string='PO Line']/field/tree/field[@name='taxes_id']" position="attributes">
-					<attribute name='invisible'>0</attribute>
+					<attribute name='invisible'>1</attribute>
 				</xpath> 
 				<xpath expr="//page[@string='PO Line']/field/tree/field[@name='product_uom']" position="replace">
 					<field name="product_uom" string = 'UOM' groups="product.group_uom" on_change="onchange_product_uom(parent.pricelist_id,product_id,product_qty,product_uom,parent.partner_id, parent.date_order,parent.fiscal_position,date_planned,name,price_unit,context)"/>
