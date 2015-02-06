@@ -95,13 +95,13 @@ class Parser(report_sxw.rml_parse):
         mt_qty = 0.0
         if uom:
             unit = uom.replace(' ','')
-            if unit.lower()=='kg':
+            if unit.lower() in ['kg','kgs']:
                 mt_qty = qty/1000
             if unit.lower()=='bags' and type == 'domestic':
                 mt_qty = qty*50/1000
             if unit.lower()=='bags' and type == 'export':
                 mt_qty = qty*25/1000
-            if unit.lower()=='tonne':
+            if unit.lower() in ['tonne','mt','metricton','metrictons']:
                 mt_qty = qty
         return round(mt_qty, 2)
     
@@ -123,6 +123,6 @@ class Parser(report_sxw.rml_parse):
             sec_edu_cess =  round(basic_ed * 1 / 100, 2)
             total = round(gross + basic_ed + edu_cess + sec_edu_cess, 2)
             cst = round(total * sale_tax_id / 100,2)
-            total_amount = round(gross + basic_ed + edu_cess + sec_edu_cess + total +cst, 2)
+            total_amount += round(gross + basic_ed + edu_cess + sec_edu_cess + total +cst, 2)
         return round(total_amount,2)
     

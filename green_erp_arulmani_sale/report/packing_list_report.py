@@ -83,13 +83,13 @@ class Parser(report_sxw.rml_parse):
         mt_qty = 0.0
         if uom:
             unit = uom.replace(' ','')
-            if unit.lower()=='kg':
+            if unit.lower() in ['kg','kgs']:
                 mt_qty = qty/1000
             if unit.lower()=='bags' and type == 'domestic':
                 mt_qty = qty*50/1000
             if unit.lower()=='bags' and type == 'export':
                 mt_qty = qty*25/1000
-            if unit.lower()=='tonne':
+            if unit.lower() in ['tonne','mt','metricton','metrictons']:
                 mt_qty = qty
         return mt_qty
     
@@ -97,13 +97,13 @@ class Parser(report_sxw.rml_parse):
         mt_qty = 0.0
         if uom:
             unit = uom.replace(' ','')
-            if unit.lower()=='kg':
+            if unit.lower() in ['kg','kgs']:
                 mt_qty = qty
             if unit.lower()=='bags' and type == 'domestic':
                 mt_qty = qty*50
             if unit.lower()=='bags' and type == 'export':
                 mt_qty = qty*25
-            if unit.lower()=='tonne':
+            if unit.lower() in ['tonne','mt','metricton','metrictons']:
                 mt_qty = qty*1000
         return mt_qty
     
