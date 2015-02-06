@@ -1032,7 +1032,7 @@
                     
                     <xpath expr="//field[@name='name']" position="before">
                         <field name="vendor_code"  placeholder="Vendor Code" attrs="{'invisible': [('supplier','=',False)],'required':[('supplier','!=',False)]}" />
-                    	<field name="title" placeholder="Title" domain="[('domain', '=', 'contact')]" options="{&quot;no_open&quot;: True}"/>
+                    	<field name="title" placeholder="Title" domain="[('domain', '=', 'contact')]" options="{&quot;no_open&quot;: True,'create': false, 'create_edit': false}"/>
                     </xpath>
                     
                      <xpath expr="//field[@name='email']" position="after">
