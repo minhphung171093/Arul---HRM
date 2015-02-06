@@ -120,8 +120,11 @@
 					<attribute name='string'>PO Line</attribute>
 				</xpath> 
 				<xpath expr="//page[@string='PO Line']/field/tree/field[@name='name']" position="attributes">
-					<attribute name='invisible'>0</attribute>
+					<attribute name='invisible'>1</attribute>
 				</xpath> 
+				<xpath expr="//page[@string='PO Line']/field/tree/field[@name='price_subtotal']" position="attributes">
+					<attribute name='invisible'>1</attribute>
+				</xpath>
 				<xpath expr="//page[@string='PO Line']/field/tree/field[@name='name']" position="attributes">
 					<attribute name='required'>1</attribute>
 				</xpath>
@@ -166,7 +169,10 @@
 					<field name="fright_type"/>
 					<field name="line_net"/>
 				</xpath> 
-				
+				<xpath expr="//page[@string='PO Line']/field/tree[@string='Purchase Order Lines']" position="attributes">
+					<attribute name="create">false</attribute>
+					
+				</xpath>
 			</field>
 		</record>
 		
@@ -1080,7 +1086,7 @@
                     
                     <xpath expr="//field[@name='name']" position="before">
                         <field name="vendor_code"  placeholder="Vendor Code" attrs="{'invisible': [('supplier','=',False)],'required':[('supplier','!=',False)]}" />
-                    	<field name="title" placeholder="Title" domain="[('domain', '=', 'contact')]" options="{&quot;no_open&quot;: True}"/>
+                    	<field name="title" placeholder="Title" domain="[('domain', '=', 'contact')]" options="{&quot;no_open&quot;: True,'create': false, 'create_edit': false}"/>
                     </xpath>
                     
                      <xpath expr="//field[@name='email']" position="after">
