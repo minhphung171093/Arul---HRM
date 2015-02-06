@@ -931,77 +931,52 @@ class purchase_order(osv.osv):
     
     def amount_all_po_line(self, cr, uid, ids, field_name, args, context=None):
         res = {}
-#         for line in self.browse(cr,uid,ids,context=context):
-#             res[line.id] = {
-# #                 'amount_line': 0.0,
-#                 'amount_untaxed': 0.0,
-#                 'p_f_charge': 0.0,
-#                 'amount_ed': 0.0,
-# #                 'amount_total_tax': 0.0,
-# #                 'amount_fright': 0.0,
-#             }
-#             amount_line = 0.0
-#             amount_untaxed = 0.0
-#             p_f_charge=0.0
-# #             amount_ed=0.0
-# #             amount_total_tax=0.0
-# #             amount_fright=0.0
-#             qty = 0.0
-#             for po in line.order_line:
-#                 qty += po.product_qty
-#                 basic = (po.product_qty * po.price_unit) - ( (po.product_qty * po.price_unit)*po.discount/100)
-#                 amount_untaxed += basic
-#                 if po.p_f_type == 1 :
-#                     p_f = basic * po.p_f/100
-#                 else:
-#                     p_f = po.p_f
-#                 p_f_charge += p_f
-#                 if po.e_d_type == 1 :
-#                     ed = (basic + p_f) * po.e_d/100
-#                 else:
-#                     ed = po.e_d
-#                 amount_ed += ed
-#                 total_tax = (basic + p_f + ed)*(po.tax_id and po.tax_id.amount or 0) / 100
-#                 amount_total_tax += total_tax
-#                 if po.fright_type == 1 :
-#                     amount_fright += (basic + p_f + ed + total_tax) * po.fright/100
-#                 else:
-#                     amount_fright += po.fright
-# #                 amount_line +=  amount_basic + p_f_charge + quotation.e_d + amount_total_tax + amount_fright
-#             amount_line += amount_basic
-#             amount_gross = amount_line + p_f_charge + amount_ed + amount_total_tax
-#             amount_net = amount_gross - amount_ed - amount_total_tax
-#             amount_unit_net = amount_net/qty
-#             res[line.id]['amount_line'] = amount_line
-#             res[line.id]['amount_untaxed'] = amount_untaxed
-#             res[line.id]['p_f_charge'] = p_f_charge
-# #             res[line.id]['amount_ed'] = amount_ed
-# #             res[line.id]['amount_total_tax'] = amount_total_tax
-# #             res[line.id]['amount_fright'] = amount_fright
-# #             res[line.id]['amount_gross'] = amount_gross
-# #             res[line.id]['amount_net'] = amount_net
-# #             res[line.id]['amount_unit_net'] = amount_unit_net
-#         return res
-#     
-#     def _amount_all(self, cr, uid, ids, field_name, arg, context=None):
-#         res = {}
-# #         for line in self.browse(cr,uid,ids,context=context):
-# #             res[line.id] = {
-# #                 'amount_untaxed': 0.0,
-# #                 'amount_tax': 0.0,
-# #                 'amount_total': 0.0,
-# #             }
-# #             val1 = 0.0
-# #             val2 = 0.0
-# #             val3 = 0.0
-# #             for po in line.order_line:
-# #                 val1 += po.price_subtotal
-# #             res[line.id]['amount_untaxed'] = val1
-# #             val2 = val1 * line.purchase_tax_id.amount / 100
-# #             res[line.id]['amount_tax'] = val2
-# #             val3 = val1 + val2
-# #             res[line.id]['amount_total'] = val3
+        for line in self.browse(cr,uid,ids,context=context):
+            res[line.id] = {
+                'amount_untaxed': 0.0,
+                'p_f_charge': 0.0,
+                'excise_duty': 0.0,
+                'amount_tax': 0.0,
+                'fright': 0.0,
+            }
+            amount_untaxed = 0.0
+            p_f_charge=0.0
+            excise_duty=0.0
+            amount_total_tax=0.0
+            fright=0.0
+            qty = 0.0
+            for po in line.order_line:
+                tax = 0
+                qty += po.product_qty
+                basic = (po.product_qty * po.price_unit) - ( (po.product_qty * po.price_unit)*po.discount/100)
+                amount_untaxed += basic
+                if po.p_f_type == 1 :
+                    p_f = basic * po.p_f/100
+                else:
+                    p_f = po.p_f
+                p_f_charge += p_f
+                if po.ed_type == 1 :
+                    ed = (basic + p_f) * po.ed/100
+                else:
+                    ed = po.ed
+                excise_duty += ed
+                tax_amounts = [r.amount for r in po.taxes_id]
+                for tax_amount in tax_amounts:
+                    tax += tax_amount/100
+                amount_total_tax += basic*tax
+                total_tax = (basic + p_f + ed)*(tax)
+                if po.fright_type == 1 :
+                    fright += (basic + p_f + ed + amount_total_tax) * po.fright/100
+                else:
+                    fright += po.fright
+            res[line.id]['amount_untaxed'] = amount_untaxed
+            res[line.id]['p_f_charge'] = p_f_charge
+            res[line.id]['excise_duty'] = excise_duty
+            res[line.id]['amount_tax'] = amount_total_tax
+            res[line.id]['fright'] = fright
+            res[line.id]['amount_total'] = amount_untaxed+p_f_charge+excise_duty+amount_total_tax+fright
         return res
+    
     
     def _get_order(self, cr, uid, ids, context=None):
         result = {}
@@ -1019,15 +994,6 @@ class purchase_order(osv.osv):
         'deli_sche': fields.char('Delivery Schedule', size = 1024),
         
         #ham function
-        'excise_duty': fields.float('Excise Duty'),
-        'fright': fields.float('Fright'),
-        
-#         'amount_basic': fields.function(amount_all_quotation_line, multi='sums',string='Basic Amounts',
-#                                       store={
-#                 'tpt.purchase.quotation': (lambda self, cr, uid, ids, c={}: ids, ['purchase_quotation_line'], 10),
-#                 'tpt.purchase.quotation.line': (_get_order, ['product_uom_qty', 'uom_id', 'price_unit','disc','p_f','p_f_type',   
-#                                                                 'e_d', 'e_d_type','tax_id','fright','fright_type'], 10), }, 
-#             states={'cancel': [('readonly', True)], 'done':[('readonly', True)]}),
         
         'amount_untaxed': fields.function(amount_all_po_line, multi='sums', string='Untaxed Amount',
             store={
@@ -1035,22 +1001,35 @@ class purchase_order(osv.osv):
                 'purchase.order.line': (_get_order, ['product_qty', 'product_uom', 'price_unit','discount','p_f','p_f_type',   
                                                                 'ed', 'ed_type','taxes_id','fright','fright_type'], 10)}),
                 
-        'p_f_charge': fields.function(amount_all_quotation_line, multi='sums',string='P & F charges',
+        'p_f_charge': fields.function(amount_all_po_line, multi='sums',string='P & F charges',
                                         store={
                'purchase.order': (lambda self, cr, uid, ids, c={}: ids, ['order_line'], 10),   
             'purchase.order.line': (_get_order, ['product_qty', 'product_uom', 'price_unit','discount','p_f','p_f_type',   
                                                                 'ed', 'ed_type','taxes_id','fright','fright_type'], 10)}),
-          
+         'excise_duty': fields.function(amount_all_po_line, multi='sums',string='Excise Duty',
+                                        store={
+               'purchase.order': (lambda self, cr, uid, ids, c={}: ids, ['order_line'], 10),   
+            'purchase.order.line': (_get_order, ['product_qty', 'product_uom', 'price_unit','discount','p_f','p_f_type',   
+                                                                'ed', 'ed_type','taxes_id','fright','fright_type'], 10)}),  
+        'fright': fields.function(amount_all_po_line, multi='sums',string='Fright',
+                                        store={
+               'purchase.order': (lambda self, cr, uid, ids, c={}: ids, ['order_line'], 10),   
+            'purchase.order.line': (_get_order, ['product_qty', 'product_uom', 'price_unit','discount','p_f','p_f_type',   
+                                                                'ed', 'ed_type','taxes_id','fright','fright_type'], 10)}), 
                 
-        'amount_tax': fields.function(_amount_all, digits_compute= dp.get_precision('Account'), string='Taxes',
+        'amount_tax': fields.function(amount_all_po_line, string='Taxes',
             store={
-                'purchase.order.line': (_get_order, None, 10),
+                'purchase.order': (lambda self, cr, uid, ids, c={}: ids, ['order_line'], 10),   
+            'purchase.order.line': (_get_order, ['product_qty', 'product_uom', 'price_unit','discount','p_f','p_f_type',   
+                                                                'ed', 'ed_type','taxes_id','fright','fright_type'], 10) 
             }, multi="sums", help="The tax amount"),
-        'amount_total': fields.function(_amount_all, digits_compute= dp.get_precision('Account'), string='Total',
+        'amount_total': fields.function(amount_all_po_line, string='Total',
             store={
-                'purchase.order.line': (_get_order, None, 10),
+               'purchase.order': (lambda self, cr, uid, ids, c={}: ids, ['order_line'], 10),   
+            'purchase.order.line': (_get_order, ['product_qty', 'product_uom', 'price_unit','discount','p_f','p_f_type',   
+                                                                'ed', 'ed_type','taxes_id','fright','fright_type'], 10) 
             }, multi="sums",help="The total amount"),
-                }
+        }
     
     _default = {
         'name':'/',
