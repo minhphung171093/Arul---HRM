@@ -42,11 +42,15 @@ class tpt_mrp_process(osv.osv):
                     select product_product.id, uom_po_id
                     from product_product, product_template
                     where mrp_control = True and max_stock >= re_stock and product_product.id = product_template.id
-                    and product_product.id not in (select product_id from tpt_purchase_indent,tpt_purchase_product where tpt_purchase_indent.id = tpt_purchase_product.purchase_indent_id 
-                                                        and tpt_purchase_indent.state != 'cancel')
-                    and product_product.id not in (select product_id from stock_picking,stock_move,tpt_purchase_indent where stock_picking.id = stock_move.picking_id
-                    and stock_picking.state not in ('done','cancel') and type='in' 
-                    and po_indent_id != null and tpt_purchase_indent.id = stock_move.po_indent_id and tpt_purchase_indent.state = 'done')
+                    and (product_product.id not in (select product_id from tpt_purchase_indent,tpt_purchase_product 
+                            where tpt_purchase_indent.id = tpt_purchase_product.purchase_indent_id 
+                            and tpt_purchase_indent.state != 'cancel' 
+                            and tpt_purchase_indent.id not in (select po_indent_id from stock_move))
+                        or product_product.id in (select product_id from tpt_purchase_indent,tpt_purchase_product 
+                            where tpt_purchase_indent.id = tpt_purchase_product.purchase_indent_id 
+                            and tpt_purchase_indent.state != 'cancel' 
+                            and tpt_purchase_indent.id in (select po_indent_id from stock_move
+                            where state = 'done')))
                 '''
             cr.execute(sql)
             prod_ids = cr.dictfetchall()
@@ -105,4 +109,7 @@ class tpt_mrp_process_line(osv.osv):
         'uom_po_id': fields.many2one('product.uom', 'UOM', readonly = True),
         'mrp_process_id': fields.many2one('tpt.mrp.process', 'Material'),
                 }
+    _defaults={
+               'product_uom_qty': 1.00,
+    }
 tpt_mrp_process_line()
