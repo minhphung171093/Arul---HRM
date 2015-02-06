@@ -95,7 +95,7 @@ class stock_picking(osv.osv):
         if picking.type=='in':
             invoice_vals.update({
                                  'grn_no':picking.id,
-                                'sale_tax_id':picking.purchase_id and picking.purchase_id.purchase_tax_id and picking.purchase_id.purchase_tax_id.id or False,
+#                                 'sale_tax_id':picking.purchase_id and picking.purchase_id.purchase_tax_id and picking.purchase_id.purchase_tax_id.id or False,
                                  })
         return invoice_vals
     
@@ -136,43 +136,43 @@ class stock_picking(osv.osv):
         uos_id = move_line.product_uos and move_line.product_uos.id or False
         if not uos_id and invoice_vals['type'] in ('out_invoice', 'out_refund'):
             uos_id = move_line.product_uom.id
-        tax_id = picking.purchase_id and picking.purchase_id.purchase_tax_id and picking.purchase_id.purchase_tax_id.id or False
-        if tax_id:
-            invoice_line_vals.update({
-                'name': name,
-                'origin': origin,
-                'invoice_id': invoice_id,
-                'uos_id': uos_id,
-                'product_id': move_line.product_id.id,
-                'account_id': account_id,
-                'price_unit': self._get_price_unit_invoice(cr, uid, move_line, invoice_vals['type']),
-                'discount': self._get_discount_invoice(cr, uid, move_line),
-                'quantity': move_line.product_uos_qty or move_line.product_qty,
-                'invoice_line_tax_id': [(6, 0, [tax_id])],
-    #             'invoice_line_tax_id': [(6, 0, self._get_taxes_invoice(cr, uid, move_line, invoice_vals['type']))],
-                'account_analytic_id': self._get_account_analytic_invoice(cr, uid, picking, move_line),
+#         tax_id = picking.purchase_id and picking.purchase_id.purchase_tax_id and picking.purchase_id.purchase_tax_id.id or False
+#         if tax_id:
+        invoice_line_vals.update({
+            'name': name,
+            'origin': origin,
+            'invoice_id': invoice_id,
+            'uos_id': uos_id,
+            'product_id': move_line.product_id.id,
+            'account_id': account_id,
+            'price_unit': self._get_price_unit_invoice(cr, uid, move_line, invoice_vals['type']),
+            'discount': self._get_discount_invoice(cr, uid, move_line),
+            'quantity': move_line.product_uos_qty or move_line.product_qty,
+#                 'invoice_line_tax_id': [(6, 0, [tax_id])],
+            'invoice_line_tax_id': [(6, 0, self._get_taxes_invoice(cr, uid, move_line, invoice_vals['type']))],
+            'account_analytic_id': self._get_account_analytic_invoice(cr, uid, picking, move_line),
 #                 'product_type':move_line.product_type or False,
 #                 'application_id':move_line.application_id or False,
 #                 'freight':move_line.freight or False,
-            })
-        else:
-            invoice_line_vals.update({
-                'name': name,
-                'origin': origin,
-                'invoice_id': invoice_id,
-                'uos_id': uos_id,
-                'product_id': move_line.product_id.id,
-                'account_id': account_id,
-                'price_unit': self._get_price_unit_invoice(cr, uid, move_line, invoice_vals['type']),
-                'discount': self._get_discount_invoice(cr, uid, move_line),
-                'quantity': move_line.product_uos_qty or move_line.product_qty,
-#                 'invoice_line_tax_id': [(6, 0, [picking.purchase_id.purchase_tax_id])],
-    #             'invoice_line_tax_id': [(6, 0, self._get_taxes_invoice(cr, uid, move_line, invoice_vals['type']))],
-                'account_analytic_id': self._get_account_analytic_invoice(cr, uid, picking, move_line),
-#                 'product_type':move_line.product_type or False,
-#                 'application_id':move_line.application_id or False,
-#                 'freight':move_line.freight or False,
-            })
+        })
+#         else:
+#             invoice_line_vals.update({
+#                 'name': name,
+#                 'origin': origin,
+#                 'invoice_id': invoice_id,
+#                 'uos_id': uos_id,
+#                 'product_id': move_line.product_id.id,
+#                 'account_id': account_id,
+#                 'price_unit': self._get_price_unit_invoice(cr, uid, move_line, invoice_vals['type']),
+#                 'discount': self._get_discount_invoice(cr, uid, move_line),
+#                 'quantity': move_line.product_uos_qty or move_line.product_qty,
+# #                 'invoice_line_tax_id': [(6, 0, [picking.purchase_id.purchase_tax_id])],
+#     #             'invoice_line_tax_id': [(6, 0, self._get_taxes_invoice(cr, uid, move_line, invoice_vals['type']))],
+#                 'account_analytic_id': self._get_account_analytic_invoice(cr, uid, picking, move_line),
+# #                 'product_type':move_line.product_type or False,
+# #                 'application_id':move_line.application_id or False,
+# #                 'freight':move_line.freight or False,
+#             })
         return invoice_line_vals
     
 stock_picking()
@@ -259,7 +259,7 @@ class account_invoice(osv.osv):
     _inherit = "account.invoice"
     
     _columns = {
-        'grn_no': fields.many2one('stock.picking.in','GRN No'), 
+        'grn_no': fields.many2one('stock.picking.in','GRN No',readonly = True), 
                 }
     
 account_invoice()

@@ -116,7 +116,7 @@ class Parser(report_sxw.rml_parse):
         total_amount = 0.0
         for line in invoice_line:
             qty_mt = self.get_qty_mt(line.quantity,line.uos_id.name,'domestic')
-            rate = round(qty_mt*line.price_unit,2)
+            rate = line.price_unit or 0
             gross = round(qty_mt * rate,2)
             basic_ed = round((gross*excise_duty_id/100),2)
             edu_cess = round(basic_ed * 2 / 100,2)

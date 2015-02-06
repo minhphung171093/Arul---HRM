@@ -52,12 +52,13 @@
 				</xpath>
 				<xpath expr="//field[@name='purchase_id']" position="attributes">
 					<attribute name='on_change'>onchange_purchase_id(purchase_id)</attribute>
+					<attribute name='readonly'>1</attribute>
 				</xpath>
-            	<xpath expr="//field[@name='purchase_id']"  position="after">
+            	<xpath expr="//field[@name='purchase_id']" position="after">
             		<field name="po_date"/>
             	</xpath>
                 <xpath expr="//field[@name='partner_id']" position="replace">
-                    <field name="partner_id" options="{'create': false, 'create_edit': false}" on_change="onchange_partner_in(partner_id)" string="Supplier" domain="[('supplier','=',True)]" context="{'default_supplier':1,'default_customer':0}"/>
+                    <field name="partner_id" readonly="1" options="{'create': false, 'create_edit': false}" on_change="onchange_partner_in(partner_id)" string="Supplier" domain="[('supplier','=',True)]" context="{'default_supplier':1,'default_customer':0}"/>
                     <field name="document_type"/>
                     <field name="warehouse" options="{'create': false, 'create_edit': false}"/>
                 </xpath>
@@ -111,6 +112,9 @@
             <field name="model">account.invoice</field>
             <field name="inherit_id" ref="account.invoice_supplier_form"/>
             <field name="arch" type="xml">
+            	<xpath expr="//field[@name='partner_id']" position="attributes">
+					<attribute name="readonly">1</attribute>
+				</xpath>
             	<xpath expr="//field[@name='partner_id']"  position="before">
             		<field name="grn_no" options="{'create': false, 'create_edit': false}"/>
             	</xpath>
@@ -126,6 +130,9 @@
 				<xpath expr="//field[@name='supplier_invoice_number']" position="attributes">
 					<attribute name="invisible">1</attribute>
 				</xpath>
+				<xpath expr="//label[@for='reference_type']" position="replace">
+					<label string=""/>
+				</xpath> 
 				<xpath expr="//field[@name='reference_type']" position="attributes">
 					<attribute name="invisible">1</attribute>
 				</xpath>

@@ -1216,7 +1216,7 @@ class purchase_order(osv.osv):
             'purchase_line_id': order_line.id,
             'company_id': order.company_id.id,
             'price_unit': order_line.price_unit,
-            'po_indent_id': order_line.po_indent_no and order_line.po_indent_no.id or False,
+            'po_indent_id': order.po_indent_no and order.po_indent_no.id or False,
         }
 purchase_order()
 
