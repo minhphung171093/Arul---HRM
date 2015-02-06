@@ -519,60 +519,60 @@ tpt_gate_in_pass()
 class tpt_purchase_quotation(osv.osv):
     _name = "tpt.purchase.quotation"
     
-#     def amount_all_quotation_line(self, cr, uid, ids, field_name, args, context=None):
-#         res = {}
-#         for line in self.browse(cr,uid,ids,context=context):
-#             res[line.id] = {
-#                 'amount_line': 0.0,
-#                 'amount_basic': 0.0,
-#                 'amount_p_f': 0.0,
-#                 'amount_ed': 0.0,
-#                 'amount_total_tax': 0.0,
-#                 'amount_fright': 0.0,
-#                 'amount_gross': 0.0,
-#                 'amount_net': 0.0,
-#                 'amount_unit_net': 0.0,
-#             }
-#             amount_line = 0.0
-#             amount_basic = 0.0
-#             amount_p_f=0.0
-#             amount_ed=0.0
-#             amount_total_tax=0.0
-#             amount_fright=0.0
-#             amount_gross=0.0
-#             amount_net=0.0
-#             amount_unit_net=0.0
-#             qty = 0.0
-#             for quotation in line.purchase_quotation_line:
-#                 qty += quotation.product_uom_qty
-#                 amount_basic += (quotation.product_uom_qty * quotation.price_unit) - ( (quotation.product_uom_qty * quotation.price_unit)*quotation.disc/100)
-#                 if 'p_f_type' == 1 :
-#                     amount_p_f += amount_basic * quotation.p_f/100
-#                 else:
-#                     amount_p_f += quotation.p_f
-#                 if 'e_d_type' == 1 :
-#                     amount_e_d += amount_basic + amount_p_f * quotation.e_d/100
-#                 else:
-#                     amount_e_d += quotation.e_d
-#                 amount_total_tax += (amount_basic + amount_p_f + amount_e_d)*quotation.tax_id.amount / 100
-#                 if 'fright_type' == 1 :
-#                     amount_fright += (amount_basic + amount_p_f + quotation.e_d + amount_total_tax) * quotation.fright/100
-#                 else:
-#                     amount_fright += quotation.fright
-#                 amount_line +=  amount_basic + amount_p_f + quotation.e_d + amount_total_tax + amount_fright
-#             amount_gross = amount_line + amount_p_f + amount_e_d + amount_total_tax
-#             amount_net = amount_gross - amount_e_d - amount_total_tax
-#             amount_unit_net = amount_net/qty
-#             res[line.id]['amount_line'] = amount_line
-#             res[line.id]['amount_basic'] = amount_basic
-#             res[line.id]['amount_p_f'] = amount_p_f
-#             res[line.id]['amount_ed'] = amount_ed
-#             res[line.id]['amount_total_tax'] = amount_total_tax
-#             res[line.id]['amount_fright'] = amount_fright
-#             res[line.id]['amount_gross'] = amount_gross
-#             res[line.id]['amount_net'] = amount_net
-#             res[line.id]['amount_unit_net'] = amount_unit_net
-#         return res
+    def amount_all_quotation_line(self, cr, uid, ids, field_name, args, context=None):
+        res = {}
+        for line in self.browse(cr,uid,ids,context=context):
+            res[line.id] = {
+                'amount_line': 0.0,
+                'amount_basic': 0.0,
+                'amount_p_f': 0.0,
+                'amount_ed': 0.0,
+                'amount_total_tax': 0.0,
+                'amount_fright': 0.0,
+                'amount_gross': 0.0,
+                'amount_net': 0.0,
+                'amount_unit_net': 0.0,
+            }
+            amount_line = 0.0
+            amount_basic = 0.0
+            amount_p_f=0.0
+            amount_ed=0.0
+            amount_total_tax=0.0
+            amount_fright=0.0
+            amount_gross=0.0
+            amount_net=0.0
+            amount_unit_net=0.0
+            qty = 0.0
+            for quotation in line.purchase_quotation_line:
+                qty += quotation.product_uom_qty
+                amount_basic += (quotation.product_uom_qty * quotation.price_unit) - ( (quotation.product_uom_qty * quotation.price_unit)*quotation.disc/100)
+                if 'p_f_type' == 1 :
+                    amount_p_f += amount_basic * quotation.p_f/100
+                else:
+                    amount_p_f += quotation.p_f
+                if 'e_d_type' == 1 :
+                    amount_ed += amount_basic + amount_p_f * quotation.e_d/100
+                else:
+                    amount_ed += quotation.e_d
+                amount_total_tax += (amount_basic + amount_p_f + amount_ed)*quotation.tax_id.amount / 100
+                if 'fright_type' == 1 :
+                    amount_fright += (amount_basic + amount_p_f + quotation.e_d + amount_total_tax) * quotation.fright/100
+                else:
+                    amount_fright += quotation.fright
+                amount_line +=  amount_basic + amount_p_f + quotation.e_d + amount_total_tax + amount_fright
+            amount_gross = amount_line + amount_p_f + amount_ed + amount_total_tax
+            amount_net = amount_gross - amount_ed - amount_total_tax
+            amount_unit_net = amount_net/qty
+            res[line.id]['amount_line'] = amount_line
+            res[line.id]['amount_basic'] = amount_basic
+            res[line.id]['amount_p_f'] = amount_p_f
+            res[line.id]['amount_ed'] = amount_ed
+            res[line.id]['amount_total_tax'] = amount_total_tax
+            res[line.id]['amount_fright'] = amount_fright
+            res[line.id]['amount_gross'] = amount_gross
+            res[line.id]['amount_net'] = amount_net
+            res[line.id]['amount_unit_net'] = amount_unit_net
+        return res
     
     def _get_supplier_name(self, cr, uid, ids, field_name, args, context=None):
         res = {}
@@ -597,21 +597,51 @@ class tpt_purchase_quotation(osv.osv):
         'quotation_ref':fields.char('Quotation Reference',size = 1024),
 #         'tax_id': fields.many2one('account.tax', 'Taxes',required=True ,states={'cancel': [('readonly', True)], 'done':[('readonly', True)]}),
         'purchase_quotation_line':fields.one2many('tpt.purchase.quotation.line','purchase_quotation_id','Quotation Line' ,states={'cancel': [('readonly', True)], 'done':[('readonly', True)]}),
-#         'amount_untaxed': fields.function(amount_all_quotation_line, multi='sums',string='Untaxed Amount',
-#                                          store={
-#                 'tpt.purchase.quotation': (lambda self, cr, uid, ids, c={}: ids, ['purchase_quotation_line'], 10),
-#                 'tpt.purchase.quotation.line': (_get_order, ['price_unit', 'sub_total', 'product_uom_qty'], 10),}, 
-#             states={'cancel': [('readonly', True)], 'done':[('readonly', True)]}),
-#         'amount_tax': fields.function(amount_all_quotation_line, multi='sums',string='Taxes',
-#                                       store={
-#                 'tpt.purchase.quotation': (lambda self, cr, uid, ids, c={}: ids, ['purchase_quotation_line'], 10),
-#                 'tpt.purchase.quotation.line': (_get_order, ['price_unit', 'sub_total', 'product_uom_qty'], 10), }, 
-#             states={'cancel': [('readonly', True)], 'done':[('readonly', True)]}),
-#         'amount_total': fields.function(amount_all_quotation_line, multi='sums',string='Total',
-#                                         store={
-#                 'tpt.purchase.quotation': (lambda self, cr, uid, ids, c={}: ids, ['purchase_quotation_line'], 10),
-#                 'tpt.purchase.quotation.line': (_get_order, ['price_unit', 'sub_total', 'product_uom_qty'], 10), },
-#              states={'cancel': [('readonly', True)], 'done':[('readonly', True)]}),
+        'amount_line': fields.function(amount_all_quotation_line, multi='sums',string='Untaxed Amount',
+                                         store={
+                'tpt.purchase.quotation': (lambda self, cr, uid, ids, c={}: ids, ['purchase_quotation_line'], 10),
+                'tpt.purchase.quotation.line': (_get_order, ['price_unit', 'sub_total', 'product_uom_qty'], 10),}, 
+            states={'cancel': [('readonly', True)], 'done':[('readonly', True)]}),
+        'amount_basic': fields.function(amount_all_quotation_line, multi='sums',string='Taxes',
+                                      store={
+                'tpt.purchase.quotation': (lambda self, cr, uid, ids, c={}: ids, ['purchase_quotation_line'], 10),
+                'tpt.purchase.quotation.line': (_get_order, ['price_unit', 'sub_total', 'product_uom_qty'], 10), }, 
+            states={'cancel': [('readonly', True)], 'done':[('readonly', True)]}),
+        'amount_p_f': fields.function(amount_all_quotation_line, multi='sums',string='Total',
+                                        store={
+                'tpt.purchase.quotation': (lambda self, cr, uid, ids, c={}: ids, ['purchase_quotation_line'], 10),
+                'tpt.purchase.quotation.line': (_get_order, ['price_unit', 'sub_total', 'product_uom_qty'], 10), },
+             states={'cancel': [('readonly', True)], 'done':[('readonly', True)]}),
+        'amount_ed': fields.function(amount_all_quotation_line, multi='sums',string='Untaxed Amount',
+                                         store={
+                'tpt.purchase.quotation': (lambda self, cr, uid, ids, c={}: ids, ['purchase_quotation_line'], 10),
+                'tpt.purchase.quotation.line': (_get_order, ['price_unit', 'sub_total', 'product_uom_qty'], 10),}, 
+            states={'cancel': [('readonly', True)], 'done':[('readonly', True)]}),
+        'amount_total_tax': fields.function(amount_all_quotation_line, multi='sums',string='Taxes',
+                                      store={
+                'tpt.purchase.quotation': (lambda self, cr, uid, ids, c={}: ids, ['purchase_quotation_line'], 10),
+                'tpt.purchase.quotation.line': (_get_order, ['price_unit', 'sub_total', 'product_uom_qty'], 10), }, 
+            states={'cancel': [('readonly', True)], 'done':[('readonly', True)]}),
+        'amount_p_f': fields.function(amount_all_quotation_line, multi='sums',string='Total',
+                                        store={
+                'tpt.purchase.quotation': (lambda self, cr, uid, ids, c={}: ids, ['purchase_quotation_line'], 10),
+                'tpt.purchase.quotation.line': (_get_order, ['price_unit', 'sub_total', 'product_uom_qty'], 10), },
+             states={'cancel': [('readonly', True)], 'done':[('readonly', True)]}),
+        'amount_line': fields.function(amount_all_quotation_line, multi='sums',string='Untaxed Amount',
+                                         store={
+                'tpt.purchase.quotation': (lambda self, cr, uid, ids, c={}: ids, ['purchase_quotation_line'], 10),
+                'tpt.purchase.quotation.line': (_get_order, ['price_unit', 'sub_total', 'product_uom_qty'], 10),}, 
+            states={'cancel': [('readonly', True)], 'done':[('readonly', True)]}),
+        'amount_basic': fields.function(amount_all_quotation_line, multi='sums',string='Taxes',
+                                      store={
+                'tpt.purchase.quotation': (lambda self, cr, uid, ids, c={}: ids, ['purchase_quotation_line'], 10),
+                'tpt.purchase.quotation.line': (_get_order, ['price_unit', 'sub_total', 'product_uom_qty'], 10), }, 
+            states={'cancel': [('readonly', True)], 'done':[('readonly', True)]}),
+        'amount_p_f': fields.function(amount_all_quotation_line, multi='sums',string='Total',
+                                        store={
+                'tpt.purchase.quotation': (lambda self, cr, uid, ids, c={}: ids, ['purchase_quotation_line'], 10),
+                'tpt.purchase.quotation.line': (_get_order, ['price_unit', 'sub_total', 'product_uom_qty'], 10), },
+             states={'cancel': [('readonly', True)], 'done':[('readonly', True)]}),
         
         
         'state':fields.selection([('draft', 'Draft'),('cancel', 'Cancel'),('done', 'Approve')],'Status', readonly=True),
