@@ -557,7 +557,7 @@ class tpt_purchase_quotation(osv.osv):
                 else:
                     ed = quotation.e_d
                 amount_ed += ed
-                total_tax = (basic + p_f + ed)*quotation.tax_id.amount / 100
+                total_tax = (basic + p_f + ed)*(quotation.tax_id and quotation.tax_id.amount or 0) / 100
                 amount_total_tax += total_tax
                 if quotation.fright_type == 1 :
                     amount_fright += (basic + p_f + ed + total_tax) * quotation.fright/100
@@ -776,7 +776,7 @@ class tpt_purchase_quotation_line(osv.osv):
                amount_fright = (amount_basic + amount_p_f + amount_ed) * (line.fright/100)
             else:
                 amount_fright = line.fright
-            amount_total_tax = line.tax_id.amount/100
+            amount_total_tax = line.tax_id and line.tax_id.amount/100 or 0
             res[line.id] = amount_total_tax+amount_fright+amount_ed+amount_p_f+amount_basic
         return res
     _columns = {
