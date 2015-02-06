@@ -661,6 +661,8 @@ class tpt_purchase_quotation(osv.osv):
         'state':fields.selection([('draft', 'Draft'),('cancel', 'Cancel'),('done', 'Approve')],'Status', readonly=True),
         'for_basis':fields.char('For Basis',size = 1024),
         'schedule':fields.char('Delivery Schedule',size = 1024),
+        'comparison_chart_id':fields.many2one('tpt.comparison.chart','Comparison Chart'),
+        'payment_term_id': fields.related('supplier_id','property_supplier_payment_term',type='many2one',relation='account.payment.term', string='Payment Term'),
     }
     _defaults = {
         'state': 'draft',
@@ -708,17 +710,7 @@ class tpt_purchase_quotation(osv.osv):
                     'supplier_name_id': supplier.name + '' +(supplier.last_name or ''),
                     }
         return {'value': vals}
-
-#     def bt_approve(self, cr, uid, ids, context=None):
-#         for line in self.browse(cr, uid, ids):
-#             self.write(cr, uid, ids,{'state':'done'})
-#         return True   
-#     
-#     def bt_cancel(self, cr, uid, ids, context=None):
-#         for line in self.browse(cr, uid, ids):
-#             self.write(cr, uid, ids,{'state':'cancel'})
-#         return True   
-
+    
     def bt_tick_mark(self, cr, uid, ids, context=None):
         res = self.pool.get('ir.model.data').get_object_reference(cr, uid, 
                                         'green_erp_arulmani_purchase', 'tick_purchase_chart_form_view')
@@ -736,8 +728,20 @@ class tpt_purchase_quotation(osv.osv):
 
     def bt_cross_mark(self, cr, uid, ids, context=None):
         for line in self.browse(cr, uid, ids):
-            self.write(cr, uid, ids,{'state':'cancel'})
-        return True    
+            self.write(cr, uid, ids,{'state':'cancel','comparison_chart_id':False})
+        return True
+
+#     def bt_approve(self, cr, uid, ids, context=None):
+#         for line in self.browse(cr, uid, ids):
+#             self.write(cr, uid, ids,{'state':'done'})
+#         return True   
+#     
+#     def bt_cancel(self, cr, uid, ids, context=None):
+#         for line in self.browse(cr, uid, ids):
+#             self.write(cr, uid, ids,{'state':'cancel'})
+#         return True   
+
+
    
 #     def search(self, cr, uid, args, offset=0, limit=None, order=None, context=None, count=False):
 #         if context is None:
@@ -839,6 +843,8 @@ class tpt_purchase_quotation_line(osv.osv):
                             }
         return {'value': vals}   
 
+
+
     def _check_quotation(self, cr, uid, ids, context=None):
         for quotation in self.browse(cr, uid, ids, context=context):
             quotation_ids = self.search(cr, uid, [('id','!=',quotation.id),('po_indent_id','=',quotation.po_indent_id.id),('product_id', '=',quotation.product_id.id),('purchase_quotation_id','=',quotation.purchase_quotation_id.id)])
@@ -852,6 +858,39 @@ class tpt_purchase_quotation_line(osv.osv):
     ]       
     
 tpt_purchase_quotation_line()
+
+class tpt_comparison_chart(osv.osv):
+    _name = "tpt.comparison.chart"
+      
+    _columns = {
+        'name':fields.many2one('tpt.request.for.quotation','RFQ No', required = True),
+        'date':fields.date('Create Date', size = 1024,required=True),
+        'quotation_cate':fields.selection([
+                                  ('multiple','Multiple Quotation')],'Quotation Category'),
+        'create_uid':fields.many2one('res.users','Created By'),
+        'comparison_chart_line':fields.one2many('tpt.purchase.quotation','comparison_chart_id','Line')
+                }
+    
+    def onchange_request_quotation(self, cr, uid, ids,name=False, context=None):
+        vals = {}
+        if name :
+            quotation_ids = self.pool.get('tpt.purchase.quotation').search(cr, uid, [('rfq_no_id','=',name),('state','=','draft')])
+            vals = {'comparison_chart_line':[(6,0,quotation_ids)]}
+        return {'value': vals}
+
+    def create(self, cr, uid, vals, context=None):
+        if vals.get('name',False):
+            quotation_ids = self.pool.get('tpt.purchase.quotation').search(cr, uid, [('rfq_no_id','=',vals['name']),('state','=','draft')])
+            vals.update({'comparison_chart_line':[(6,0,quotation_ids)]})
+        return super(tpt_comparison_chart, self).create(cr, uid, vals, context=context)
+    
+    def write(self, cr, uid,ids, vals, context=None):
+        if vals.get('name',False):
+            quotation_ids = self.pool.get('tpt.purchase.quotation').search(cr, uid, [('rfq_no_id','=',vals['name']),('state','=','draft')])
+            vals.update({'comparison_chart_line':[(6,0,quotation_ids)]})
+        return super(tpt_comparison_chart, self).write(cr, uid,ids, vals, context=context)
+
+tpt_comparison_chart()
 
 class tpt_gate_in_pass_line(osv.osv):
     _name = "tpt.gate.in.pass.line"
@@ -890,25 +929,54 @@ tpt_spec_parameters_line()
 class purchase_order(osv.osv):
     _inherit = "purchase.order"
     
-    def _amount_all(self, cr, uid, ids, field_name, arg, context=None):
+    def amount_all_po_line(self, cr, uid, ids, field_name, args, context=None):
         res = {}
-#         for line in self.browse(cr,uid,ids,context=context):
-#             res[line.id] = {
-#                 'amount_untaxed': 0.0,
-#                 'amount_tax': 0.0,
-#                 'amount_total': 0.0,
-#             }
-#             val1 = 0.0
-#             val2 = 0.0
-#             val3 = 0.0
-#             for po in line.order_line:
-#                 val1 += po.price_subtotal
-#             res[line.id]['amount_untaxed'] = val1
-#             val2 = val1 * line.purchase_tax_id.amount / 100
-#             res[line.id]['amount_tax'] = val2
-#             val3 = val1 + val2
-#             res[line.id]['amount_total'] = val3
+        for line in self.browse(cr,uid,ids,context=context):
+            res[line.id] = {
+                'amount_untaxed': 0.0,
+                'p_f_charge': 0.0,
+                'excise_duty': 0.0,
+                'amount_tax': 0.0,
+                'fright': 0.0,
+            }
+            amount_untaxed = 0.0
+            p_f_charge=0.0
+            excise_duty=0.0
+            amount_total_tax=0.0
+            fright=0.0
+            qty = 0.0
+            for po in line.order_line:
+                tax = 0
+                qty += po.product_qty
+                basic = (po.product_qty * po.price_unit) - ( (po.product_qty * po.price_unit)*po.discount/100)
+                amount_untaxed += basic
+                if po.p_f_type == 1 :
+                    p_f = basic * po.p_f/100
+                else:
+                    p_f = po.p_f
+                p_f_charge += p_f
+                if po.ed_type == 1 :
+                    ed = (basic + p_f) * po.ed/100
+                else:
+                    ed = po.ed
+                excise_duty += ed
+                tax_amounts = [r.amount for r in po.taxes_id]
+                for tax_amount in tax_amounts:
+                    tax += tax_amount/100
+                amount_total_tax += basic*tax
+                total_tax = (basic + p_f + ed)*(tax)
+                if po.fright_type == 1 :
+                    fright += (basic + p_f + ed + amount_total_tax) * po.fright/100
+                else:
+                    fright += po.fright
+            res[line.id]['amount_untaxed'] = amount_untaxed
+            res[line.id]['p_f_charge'] = p_f_charge
+            res[line.id]['excise_duty'] = excise_duty
+            res[line.id]['amount_tax'] = amount_total_tax
+            res[line.id]['fright'] = fright
+            res[line.id]['amount_total'] = amount_untaxed+p_f_charge+excise_duty+amount_total_tax+fright
         return res
+    
     
     def _get_order(self, cr, uid, ids, context=None):
         result = {}
@@ -916,9 +984,9 @@ class purchase_order(osv.osv):
             result[line.order_id.id] = True
         return result.keys()
     _columns = {
-        'po_document_type':fields.selection([('asset','VV Asset PO'),('standard','VV Standard PO'),('local','VV Local PO'),('return','VV Return PO'),('service','VV Service PO'),('out','VV Out Service PO')],'PO Document Type'),
-        'quotation_no': fields.many2one('tpt.purchase.quotation', 'Quotation No'),
-        'po_indent_no' : fields.many2one('tpt.purchase.indent', 'PO Indent No'),
+        'po_document_type':fields.selection([('asset','VV Asset PO'),('standard','VV Standard PO'),('local','VV Local PO'),('return','VV Return PO'),('service','VV Service PO'),('out','VV Out Service PO')],'PO Document Type', required = True),
+        'quotation_no': fields.many2one('tpt.purchase.quotation', 'Quotation No', required = True),
+        'po_indent_no' : fields.many2one('tpt.purchase.indent', 'PO Indent No', required = True),
         'state_id': fields.many2one('res.country.state', 'Vendor Location'),
         'for_basis': fields.char('For Basis', size = 1024),
         'mode_dis': fields.char('Mode Of Dispatch', size = 1024),
@@ -926,24 +994,42 @@ class purchase_order(osv.osv):
         'deli_sche': fields.char('Delivery Schedule', size = 1024),
         
         #ham function
-        'p_f_charge': fields.float('P&F charges'),
-        'excise_duty': fields.float('Excise Duty'),
-        'fright': fields.float('Fright'),
         
-        
-        'amount_untaxed': fields.function(_amount_all, digits_compute= dp.get_precision('Account'), string='Untaxed Amount',
+        'amount_untaxed': fields.function(amount_all_po_line, multi='sums', string='Untaxed Amount',
             store={
-                'purchase.order.line': (_get_order, None, 10),
-            }, multi="sums", help="The amount without tax", track_visibility='always'),
-        'amount_tax': fields.function(_amount_all, digits_compute= dp.get_precision('Account'), string='Taxes',
+                'purchase.order': (lambda self, cr, uid, ids, c={}: ids, ['order_line'], 10),   
+                'purchase.order.line': (_get_order, ['product_qty', 'product_uom', 'price_unit','discount','p_f','p_f_type',   
+                                                                'ed', 'ed_type','taxes_id','fright','fright_type'], 10)}),
+                
+        'p_f_charge': fields.function(amount_all_po_line, multi='sums',string='P & F charges',
+                                        store={
+               'purchase.order': (lambda self, cr, uid, ids, c={}: ids, ['order_line'], 10),   
+            'purchase.order.line': (_get_order, ['product_qty', 'product_uom', 'price_unit','discount','p_f','p_f_type',   
+                                                                'ed', 'ed_type','taxes_id','fright','fright_type'], 10)}),
+         'excise_duty': fields.function(amount_all_po_line, multi='sums',string='Excise Duty',
+                                        store={
+               'purchase.order': (lambda self, cr, uid, ids, c={}: ids, ['order_line'], 10),   
+            'purchase.order.line': (_get_order, ['product_qty', 'product_uom', 'price_unit','discount','p_f','p_f_type',   
+                                                                'ed', 'ed_type','taxes_id','fright','fright_type'], 10)}),  
+        'fright': fields.function(amount_all_po_line, multi='sums',string='Fright',
+                                        store={
+               'purchase.order': (lambda self, cr, uid, ids, c={}: ids, ['order_line'], 10),   
+            'purchase.order.line': (_get_order, ['product_qty', 'product_uom', 'price_unit','discount','p_f','p_f_type',   
+                                                                'ed', 'ed_type','taxes_id','fright','fright_type'], 10)}), 
+                
+        'amount_tax': fields.function(amount_all_po_line, string='Taxes',
             store={
-                'purchase.order.line': (_get_order, None, 10),
+                'purchase.order': (lambda self, cr, uid, ids, c={}: ids, ['order_line'], 10),   
+            'purchase.order.line': (_get_order, ['product_qty', 'product_uom', 'price_unit','discount','p_f','p_f_type',   
+                                                                'ed', 'ed_type','taxes_id','fright','fright_type'], 10) 
             }, multi="sums", help="The tax amount"),
-        'amount_total': fields.function(_amount_all, digits_compute= dp.get_precision('Account'), string='Total',
+        'amount_total': fields.function(amount_all_po_line, string='Total',
             store={
-                'purchase.order.line': (_get_order, None, 10),
+               'purchase.order': (lambda self, cr, uid, ids, c={}: ids, ['order_line'], 10),   
+            'purchase.order.line': (_get_order, ['product_qty', 'product_uom', 'price_unit','discount','p_f','p_f_type',   
+                                                                'ed', 'ed_type','taxes_id','fright','fright_type'], 10) 
             }, multi="sums",help="The total amount"),
-                }
+        }
     
     _default = {
         'name':'/',
@@ -959,7 +1045,7 @@ class purchase_order(osv.osv):
                 cr.execute(sql)
 #         po_line = []
 #         if quotation_no:
-#             quotation = self.pool.get('tpt.purchase.quotation').browse(cr, uid, quotation_no)
+            quotation = self.pool.get('tpt.purchase.quotation').browse(cr, uid, quotation_no)
 #             for line in quotation.purchase_quotation_line:
 #                 rs = {
 #                       'po_indent_no': line.po_indent_id and line.po_indent_id.id or False,
@@ -972,13 +1058,15 @@ class purchase_order(osv.osv):
 # #                       'name':'/'
 #                       }
 #                 po_line.append((0,0,rs))
-#             vals = {
-#                     'partner_id':quotation.supplier_id and quotation.supplier_id.id or '',
-#                     'partner_ref':quotation.quotation_ref or '',
-#                     'purchase_tax_id':quotation.tax_id and quotation.tax_id.id or '',
-#                     'order_line': po_line,
-#                     }
-        return {'value': {'po_indent_no': False,'order_line': []}}
+            vals = {
+                    'partner_id':quotation.supplier_id and quotation.supplier_id.id or '',
+                    'for_basis':quotation.for_basis or '',
+                    'state_id':quotation.supplier_location_id and quotation.supplier_location_id.id or '',
+                    'deli_sche': quotation.schedule or '',
+                    'po_indent_no': False,
+                    'order_line': [],
+                    }
+        return {'value': vals}
     
     def onchange_po_indent_no(self, cr, uid, ids,quotation_no=False, po_indent_no=False, context=None):
         vals = {}
@@ -995,17 +1083,30 @@ class purchase_order(osv.osv):
                     rs = {
                           'product_id': line.product_id and line.product_id.id or False,
                           'product_qty': line.product_uom_qty or False,
-                          'product_uom': line.uom_po_id and line.uom_po_id.id or False,
+                          'product_uom': line.uom_id and line.uom_id.id or False,
                           'price_unit': line.price_unit or False,
-#                           'taxes_id':quotation.tax_id and quotation.tax_id.id or '',
+                          'discount': line.disc or False,
+                          'p_f': line.p_f or False,
+                          'p_f_type': line.p_f_type or False,
+                          'ed': line.e_d or False,
+                          'ed_type': line.e_d_type or False,
+                          'fright': line.fright or False,
+                          'fright_type': line.fright_type or False,
+                          'line_net': line.line_net or False,
+                          'taxes_id': [(6,0,[line.tax_id and line.tax_id.id])],
 #                           'price_subtotal': line.sub_total or False,
                           'date_planned':quotation.date_quotation or False,
-    #                       'name':'/'
+                          'name':'/'
                           }
                     po_line.append((0,0,rs))
             vals = {
                     'partner_id':quotation.supplier_id and quotation.supplier_id.id or '',
                     'partner_ref':quotation.quotation_ref or '',
+                    'p_f_charge': quotation.amount_p_f or '',
+                    'excise_duty': quotation.amount_ed or '',
+                    'fright': quotation.amount_fright or '',
+#                     'amount_untaxed': quotation.amount_basic or '',
+#                     'amount_tax': quotation.amount_total_tax or '',
                     'order_line': po_line,
                     }
         return {'value': vals}
@@ -1222,17 +1323,47 @@ purchase_order()
 
 class purchase_order_line(osv.osv):
     _inherit = "purchase.order.line"
+    
+    def line_net_line_po(self, cr, uid, ids, field_name, args, context=None):
+        res = {}
+        amount_basic = 0.0
+        amount_p_f=0.0
+        amount_ed=0.0
+        
+        amount_fright=0.0
+         
+        for line in self.browse(cr,uid,ids,context=context):
+            amount_total_tax=0.0
+            amount_basic = (line.product_qty * line.price_unit)-((line.product_qty * line.price_unit)*line.discount)
+            if line.p_f_type == 1:
+               amount_p_f = amount_basic * (line.p_f/100)
+            else:
+                amount_p_f = line.p_f
+            if line.ed_type == 1:
+               amount_ed = (amount_basic + amount_p_f) * (line.ed/100)
+            else:
+                amount_ed = line.ed
+            if line.fright_type == 1:
+               amount_fright = (amount_basic + amount_p_f + amount_ed) * (line.fright/100)
+            else:
+                amount_fright = line.fright
+            tax_amounts = [r.amount for r in line.taxes_id]
+            for tax in tax_amounts:
+                amount_total_tax += tax/100
+            res[line.id] = amount_total_tax+amount_fright+amount_ed+amount_p_f+amount_basic
+        return res
+    
     _columns = {
 #                 'purchase_tax_id': fields.many2one('account.tax', 'Taxes', domain="[('type_tax_use','=','purchase')]", required = True), 
                 'discount': fields.float('DISC'),
                 'p_f': fields.float('P&F'),
-                'p_f_type':fields.selection([('percent','%')],'P&F Type'),
+                'p_f_type':fields.selection([('1','%'),('2','Rs')],('P&F Type')),
                 'ed': fields.float('ED'),
-                'ed_type':fields.selection([('percent','%')],'ED Type'),
+                'ed_type':fields.selection([('1','%'),('2','Rs')],('ED Type')),
                 'fright': fields.float('Fright'),
-                'fright_type':fields.selection([('rs','Rs.')],'Fright Type'),
+                'fright_type':fields.selection([('1','%'),('2','Rs')],('Fright Type')),
                 # ham function line_net
-                'line_net': fields.float('Line Net'),
+                'line_net': fields.function(line_net_line_po, string='Line Net'),
                 }
     _defaults = {
                  'date_planned':time.strftime('%Y-%m-%d'),

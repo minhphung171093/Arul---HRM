@@ -120,8 +120,11 @@
 					<attribute name='string'>PO Line</attribute>
 				</xpath> 
 				<xpath expr="//page[@string='PO Line']/field/tree/field[@name='name']" position="attributes">
-					<attribute name='invisible'>0</attribute>
+					<attribute name='invisible'>1</attribute>
 				</xpath> 
+				<xpath expr="//page[@string='PO Line']/field/tree/field[@name='price_subtotal']" position="attributes">
+					<attribute name='invisible'>1</attribute>
+				</xpath>
 				<xpath expr="//page[@string='PO Line']/field/tree/field[@name='name']" position="attributes">
 					<attribute name='required'>1</attribute>
 				</xpath>
@@ -166,7 +169,10 @@
 					<field name="fright_type"/>
 					<field name="line_net"/>
 				</xpath> 
-				
+				<xpath expr="//page[@string='PO Line']/field/tree[@string='Purchase Order Lines']" position="attributes">
+					<attribute name="create">false</attribute>
+					
+				</xpath>
 			</field>
 		</record>
 		
@@ -439,7 +445,7 @@
 										<field name="p_f_type" /> 
 										<field name="e_d" /> 
 										<field name="e_d_type" /> 
-										<field name="tax_id" /> 
+										<field name="tax_id" options="{'create': false, 'create_edit': false}" /> 
 										<field name="fright" />  
 										<field name="fright_type" />
 										<field name="line_net" />  
@@ -537,68 +543,110 @@
             id="menu_action_view_tpt_good_return_request"
             parent="purchase.menu_procurement_management" sequence="30"/>
        
-	<!--	<record id="view_tpt_purchase_chart_tree" model="ir.ui.view">
-			<field name="name">tpt.purchase.chart.tree</field>
-			<field name="model">tpt.purchase.quotation</field>
+		<record id="view_tpt_purchase_chart_tree" model="ir.ui.view">
+			<field name="name">tpt.comparison.chart.tree</field>
+			<field name="model">tpt.comparison.chart</field>
 			<field name="arch" type="xml">
-				<tree string="Comparison Chart" create='false' >
+				<tree string="Comparison Chart" >
 						<field name="name"/>
-						<field name="supplier_id" />
-						<field name="supplier_location_id" />
+						<field name="date" />
 						<field name="quotation_cate" />
-						<field name="amount_untaxed" />
-						<field name="tax_id" />
-						<field name="state" invisible="1" />
-						<field name="amount_total"/>
-						<button name = "bt_tick_mark" icon = "STOCK_APPLY" states = "draft" string="Tick" type="object" />
-						<button name = "bt_cross_mark" confirm = "Do you want to cancel the Quotation ?" icon = "STOCK_CANCEL" states = "draft" string="Cross" type="object" /> 
+						<field name="create_uid" />
 				</tree>
 			</field>
 		</record>
 
+
 		<record id="view_tpt_purchase_chart_form" model="ir.ui.view">
-            <field name="name">tpt.purchase.chart.form</field>
-            <field name="model">tpt.purchase.quotation</field>
+            <field name="name">tpt.comparison.chart.form</field>
+            <field name="model">tpt.comparison.chart</field>
             <field name="arch" type="xml">
-	            <form string="Comparison Chart" version="7.0" create='false' edit = 'false' >
-	            <header>
-	                    <field name="state" widget="statusbar" statusbar_visible="draft,cancel,done" statusbar_colors='{"draft":"blue","cancel":"blue"}'/>
-	            </header>    
+	            <form string="Comparison Chart" version="7.0" >
 	            	<sheet>
-                   	 <group col="4" colspan="2" >
-                   	 	<field name="name" />
-						<field name="date_quotation" />
-						<field name="supplier_id" domain="[('supplier','=',1)]" options="{'create': false, 'create_edit': false}" on_change = "onchange_supplier_location(supplier_id)" />
-						<field name="supplier_location_id" options="{'create': false, 'create_edit': false}"  />
-						<field name="quotation_cate" />
-						<newline/>
-						<field name="quotation_ref" />
-						<field name="tax_id" options="{'create': false, 'create_edit': false}" domain="[('type_tax_use','=','purchase')]" />
-                    </group >
-						<notebook>
-							<page string = "Quotation Lines">
-								<field name="purchase_quotation_line" nolabel='1'>
-									<tree editable='top'>
-										<field name="po_indent_id" on_change = "onchange_po_indent_id(po_indent_id)" domain="[('state','=','done')]" options="{'create': false, 'create_edit': false}" />
-										<field name="product_id" context="{'search_product':True, 'po_indent_id':po_indent_id }" on_change = "onchange_quotation_product_id(product_id, po_indent_id)" options="{'create': false, 'create_edit': false}" />
-										<field name="product_uom_qty" />
-										<field name="uom_po_id" edit='false' options="{'create': false, 'create_edit': false}"/>
-										<field name="price_unit" />
-										<field name="sub_total" />  
-									</tree>
-								</field>
-								<group class="oe_subtotal_footer oe_right" colspan="2" name="sale_total">
-                                	<field name="amount_untaxed" widget="monetary" />
-                                	<field name="amount_tax" widget="monetary" />     
-                                		<div class="oe_subtotal_footer_separator oe_inline">
-                                     		<label for="amount_total"/>  
-                                		</div>
-                                 	<field name="amount_total" nolabel="1" class="oe_subtotal_footer_separator" widget="monetary" />  
-                            	</group>  
-                            	<div class="oe_clear"/>  
-							</page>
+	                   	 <group col="4" colspan="2" >
+	                   	 	<field name="name" on_change="onchange_request_quotation(name)" options="{'create': false, 'create_edit': false}" />
+							<field name="date" />
+							<field name="quotation_cate" />
+							<field name="create_uid" />
+	                    </group >
+	                    <notebook>
+						<page>
+							<div col='4' colspan='4' class="oe_green_erp_scroll">
+							<field name="comparison_chart_line" nolabel='1'>
+								<tree string="Comparison Chart" create='false'>
+									<field name="name"  />
+									<field name="date_quotation" />
+									<field name="supplier_id" />
+									<field name="supplier_location_id" />
+									<field name="amount_basic" />
+									<field name="amount_p_f" />
+									<field name="amount_ed" />
+									<field name="amount_total_tax"/>
+									<field name="amount_fright" />
+									<field name="amount_gross" />
+									<field name="amount_net" />
+									<field name="payment_term_id" />
+									<field name="schedule"/>
+									<field name="state" invisible="1" />
+									<button name = "bt_tick_mark" icon = "STOCK_APPLY" states = "draft" string="Tick" type="object" />
+									<button name = "bt_cross_mark" confirm = "Do you want to cancel the Quotation ?" icon = "STOCK_CANCEL" states = "draft" string="Cross" type="object" /> 
+								</tree>
+								<form string="Purchase Quotation" version="7.0" create='false' edit='false'>
+						            <header>
+						                    <field name="state" widget="statusbar" statusbar_visible="draft,cancel,done" statusbar_colors='{"draft":"blue","cancel":"blue"}'/>
+						            </header>    
+					            	<sheet>
+					                   	 <group col="4" colspan="2" >
+					                   	 	<field name="name" />
+											<field name="date_quotation" />
+											<field name="rfq_no_id" on_change = "onchange_rfq_no_id(rfq_no_id)" options="{'create': false, 'create_edit': false}" />
+											<field name="supplier_id" domain="[('supplier','=',1)]" options="{'create': false, 'create_edit': false}" on_change = "onchange_supplier_location(supplier_id)" context="{'search_supplier_code':1,'rfq_no_id':rfq_no_id}"/>
+											<field name="supplier_name_id"/>
+											<field name="supplier_location_id" options="{'create': false, 'create_edit': false}"  />
+											<field name="quotation_cate" />
+											<field name="quotation_ref" />
+					                    </group >
+											<notebook>
+												<page string = "Quotation Lines">
+													<field name="purchase_quotation_line" nolabel='1'>
+														<tree editable='top' create = 'false'>
+															<field name="po_indent_id" on_change = "onchange_po_indent_id(po_indent_id)" options="{'create': false, 'create_edit': false}" />
+															<field name="product_id" context="{'search_product':True, 'po_indent_id':po_indent_id }" on_change = "onchange_quotation_product_id(product_id, po_indent_id)" options="{'create': false, 'create_edit': false}" />
+															<field name="product_uom_qty" />
+															<field name="uom_id" edit='false' options="{'create': false, 'create_edit': false}"/>
+															<field name="price_unit" />
+															<field name="disc" /> 
+															<field name="p_f" /> 
+															<field name="p_f_type" /> 
+															<field name="e_d" /> 
+															<field name="e_d_type" /> 
+															<field name="tax_id" options="{'create': false, 'create_edit': false}" /> 
+															<field name="fright" />  
+															<field name="fright_type" />
+															<field name="line_net" />  
+														</tree>
+													</field>
+												</page>
+											</notebook>
+											<group col="4" colspan="2" >
+						                   	 	<field name="for_basis" />
+												<field name="schedule" />
+												<field name="amount_line" />
+												<field name="amount_basic" />
+												<field name="amount_p_f" />
+												<field name="amount_ed" />
+												<field name="amount_total_tax" />
+												<field name="amount_fright" />
+												<field name="amount_gross" />
+												<field name="amount_net" />
+												<field name="amount_unit_net" />
+					                    </group >
+						         	</sheet>
+						         </form>
+							</field>
+							</div>
+						</page>
 						</notebook>
-						
 		         	</sheet>
 		         </form>
 			</field>
@@ -607,29 +655,26 @@
 		<record id="action_view_tpt_purchase_chart_form" model="ir.actions.act_window">
             <field name="name">Comparison Chart</field>
             <field name="type">ir.actions.act_window</field>
-            <field name="res_model">tpt.purchase.quotation</field>
+            <field name="res_model">tpt.comparison.chart</field>
             <field name="view_type">form</field>
             <field name="view_mode">tree,form</field>
-            <field name="domain">[('state','=','draft')]</field>
             <field name="view_id" ref="view_tpt_purchase_chart_form"/>
         </record>
-        
-       <record id="action_view_tpt_purchase_chart_form1" model="ir.actions.act_window.view">
-            <field eval="2" name="sequence"/>
+        <record id="action_view_tpt_purchase_chart_form1" model="ir.actions.act_window.view">
+            <field eval="0" name="sequence"/>
             <field name="view_mode">tree</field>
             <field name="view_id" ref="view_tpt_purchase_chart_tree"/>
             <field name="act_window_id" ref="action_view_tpt_purchase_chart_form"/>
         </record>
         <record id="action_view_tpt_purchase_chart_form2" model="ir.actions.act_window.view">
-            <field eval="3" name="sequence"/>
+            <field eval="1" name="sequence"/>
             <field name="view_mode">form</field>
             <field name="view_id" ref="view_tpt_purchase_chart_form"/>
             <field name="act_window_id" ref="action_view_tpt_purchase_chart_form"/>
         </record>
-        
         <menuitem action="action_view_tpt_purchase_chart_form"
             id="menu_action_view_tpt_purchase_chart_form"
-            parent="purchase.menu_procurement_management" sequence="27"/> -->            
+            parent="purchase.menu_procurement_management" sequence="27"/>           
 
             
 	  	<record id="view_tpt_quanlity_inspection_tree" model="ir.ui.view">
