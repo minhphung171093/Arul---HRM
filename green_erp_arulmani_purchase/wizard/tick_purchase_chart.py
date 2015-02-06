@@ -52,7 +52,7 @@ class tick_purchase_chart(osv.osv_memory):
                     })
         new_po_id = purchase_order_obj.create(cr, uid, vals)
         sql = '''
-            update tpt_purchase_quotation set state = 'done' where id = %s
+            update tpt_purchase_quotation set state = 'done', comparison_chart_id='f' where id = %s
         '''%(chart.id)
         cr.execute(sql)
         
