@@ -450,6 +450,15 @@
 						<group col="4" colspan="2" >
 	                   	 	<field name="for_basis" />
 							<field name="schedule" />
+							<field name="amount_line" />
+							<field name="amount_basic" />
+							<field name="amount_p_f" />
+							<field name="amount_ed" />
+							<field name="amount_total_tax" />
+							<field name="amount_fright" />
+							<field name="amount_gross" />
+							<field name="amount_net" />
+							<field name="amount_unit_net" />
                     </group >
 		         	</sheet>
 		         </form>
