@@ -598,7 +598,8 @@ class tpt_purchase_quotation(osv.osv):
         'supplier_name_id': fields.function(_get_supplier_name, type='char',string="Vendor Name"),
         'supplier_location_id': fields.many2one( 'res.country.state','Vendor Location' ,states={'cancel': [('readonly', True)], 'done':[('readonly', True)]}),
         'quotation_cate':fields.selection([
-                                  ('multiple','Multiple Quotation')],'Quotation Category'),
+                                ('single','Single Quotation'),
+                                ('multiple','Multiple Quotation'),('special','Special Quotation')],'Quotation Category'),
         'quotation_ref':fields.char('Quotation Reference',size = 1024),
 #         'tax_id': fields.many2one('account.tax', 'Taxes',required=True ,states={'cancel': [('readonly', True)], 'done':[('readonly', True)]}),
         'purchase_quotation_line':fields.one2many('tpt.purchase.quotation.line','purchase_quotation_id','Quotation Line' ,states={'cancel': [('readonly', True)], 'done':[('readonly', True)]}),
@@ -671,30 +672,70 @@ class tpt_purchase_quotation(osv.osv):
         'quotation_cate':'multiple',
         }  
     
-    def onchange_rfq_no_id(self, cr, uid, ids,rfq_no_id=False,product_id=False):
-        res = {'value':{
-                        'purchase_quotation_line':[],
-                      }
-               }
+    
+    def search(self, cr, uid, args, offset=0, limit=None, order=None, context=None, count=False):
+        if context is None:
+            context = {}
+        if context.get('search_quotation_no'):
+            sql = '''
+                select id from tpt_purchase_quotation
+                where state != 'cancel' and id in (select quotation_no from purchase_order po,tpt_purchase_quotation pq where po.quotation_no = pq.id and po.state != 'cancel')
+            '''
+            cr.execute(sql)
+            purchase_ids = [row[0] for row in cr.fetchall()]
+            args += [('id','in',purchase_ids)]
+        return super(tpt_purchase_quotation, self).search(cr, uid, args, offset=offset, limit=limit, order=order, context=context, count=count)
+    def name_search(self, cr, user, name, args=None, operator='ilike', context=None, limit=100):
+       ids = self.search(cr, user, args, context=context, limit=limit)
+       return self.name_get(cr, user, ids, context=context)
+
+#     def onchange_rfq_no_id(self, cr, uid, ids,rfq_no_id=False,product_id=False):
+#         res = {'value':{
+#                         'purchase_quotation_line':[],
+#                       }
+#                }
+#         if rfq_no_id:
+#             rfq = self.pool.get('tpt.request.for.quotation').browse(cr, uid, rfq_no_id)
+#             rfq_no_line = []
+# #             if product_id:
+# #                 product = self.pool.get('product.product').browse(cr, uid, product_id)
+#             
+#             for line in rfq.rfq_line:
+#                 rfq_no_line.append({
+#                             'po_indent_id': line.po_indent_id and line.po_indent_id.id or False,
+#                             'product_id': line.product_id and line.product_id.id or False,
+#                             'product_uom_qty':line.product_uom_qty or False,
+#                             'uom_id': line.uom_id and line.uom_id.id or False,
+#                             'price_unit':line.product_id and line.product_id.standard_price or False,
+#                     })
+#         res['value'].update({
+#                     'purchase_quotation_line': rfq_no_line,
+#         })
+#         return res
+    
+    def onchange_rfq_no_id(self, cr, uid, ids,rfq_no_id=False):
+        res = {}
+        rfq_no_line = []
         if rfq_no_id:
+            for quotation in self.browse(cr, uid, ids):
+                sql = '''
+                    delete from tpt_purchase_quotation_line where purchase_quotation_id = %s
+                '''%(quotation.id)
+                cr.execute(sql)
             rfq = self.pool.get('tpt.request.for.quotation').browse(cr, uid, rfq_no_id)
             rfq_no_line = []
 #             if product_id:
 #                 product = self.pool.get('product.product').browse(cr, uid, product_id)
             
             for line in rfq.rfq_line:
-                rfq_no_line.append({
+                rfq_no_line.append((0,0,{
                             'po_indent_id': line.po_indent_id and line.po_indent_id.id or False,
                             'product_id': line.product_id and line.product_id.id or False,
                             'product_uom_qty':line.product_uom_qty or False,
                             'uom_id': line.uom_id and line.uom_id.id or False,
-#                             'price_unit':product.standard_price or False,
-                    })
-        res['value'].update({
-                    'purchase_quotation_line': rfq_no_line,
-        })
-        return res
-
+                            'price_unit':line.product_id and line.product_id.standard_price or False,
+                    }))
+        return {'value': {'purchase_quotation_line': rfq_no_line}}
     
     def create(self, cr, uid, vals, context=None):
         if vals.get('name','/')=='/':
@@ -789,7 +830,7 @@ class tpt_purchase_quotation_line(osv.osv):
         'product_id': fields.many2one('product.product', 'Material Name',readonly = True),
         'product_uom_qty': fields.float('Qty', readonly = True),   
         'uom_id': fields.many2one('product.uom', 'UOM', readonly = True),
-        'price_unit': fields.float('Unit Price', required=True),
+        'price_unit': fields.float('Unit Price', required=True, readonly = True),
         'disc': fields.float('Disc'),
         'p_f': fields.float('P&F'),
         'p_f_type':fields.selection([('1','%'),('2','Rs')],('P&F Type')),
@@ -985,7 +1026,7 @@ class purchase_order(osv.osv):
         return result.keys()
     _columns = {
         'po_document_type':fields.selection([('asset','VV Asset PO'),('standard','VV Standard PO'),('local','VV Local PO'),('return','VV Return PO'),('service','VV Service PO'),('out','VV Out Service PO')],'PO Document Type', required = True),
-        'quotation_no': fields.many2one('tpt.purchase.quotation', 'Quotation No', required = True),
+        'quotation_no': fields.many2one('tpt.purchase.quotation', 'Quotation No'),
         'po_indent_no' : fields.many2one('tpt.purchase.indent', 'PO Indent No', required = True),
         'state_id': fields.many2one('res.country.state', 'Vendor Location'),
         'for_basis': fields.char('For Basis', size = 1024),
@@ -1071,6 +1112,24 @@ class purchase_order(osv.osv):
     def onchange_po_indent_no(self, cr, uid, ids,quotation_no=False, po_indent_no=False, context=None):
         vals = {}
         po_line = []
+        if po_indent_no and not quotation_no:
+            indent_lines = []
+            indent_ids = []
+            for line in self.browse(cr, uid, ids):
+                sql = '''
+                    delete from purchase_order_line where order_id = %s
+                '''%(line.id)
+                cr.execute(sql)
+            indent = self.pool.get('tpt.purchase.indent').browse(cr, uid, po_indent_no)
+            indent_ids = self.pool.get('tpt.purchase.indent').search(cr, uid, [('intdent_cate','=','emergency')])
+            for indent_line in indent.purchase_product_line:
+                rs = {
+                      'product_id': indent_line.product_id and indent_line.product_id.id or False,
+                      'product_qty': indent_line.product_uom_qty or False,
+                      'product_uom': indent_line.uom_po_id and indent_line.uom_po_id.id or False,
+                      }
+                indent_lines.append((0,0,rs))
+            return {'value':{'order_line': indent_lines}, 'domain':{'po_indent_no':[('id','in',indent_ids)]}}
         if quotation_no and po_indent_no:
             for indent in self.browse(cr, uid, ids):
                 sql = '''
@@ -1109,7 +1168,7 @@ class purchase_order(osv.osv):
 #                     'amount_tax': quotation.amount_total_tax or '',
                     'order_line': po_line,
                     }
-        return {'value': vals}
+            return {'value': vals}
     def create(self, cr, uid, vals, context=None):
         new_id = super(purchase_order, self).create(cr, uid, vals, context)
         new = self.browse(cr, uid, new_id)
@@ -1897,13 +1956,12 @@ class tpt_request_for_quotation(osv.osv):
         return new_id
     
     def write(self, cr, uid, ids, vals, context=None):
-        new_write = super(tpt_request_for_quotation, self).write(cr, uid,ids, vals, context)
         for rfq in self.browse(cr,uid,ids):
             if rfq.rfq_category:
                 if rfq.rfq_category != 'mutiple':
                     if (len(rfq.rfq_supplier) > 1):
                         raise osv.except_osv(_('Warning!'),_('You must choose RFQ category is multiple if you want more than one vendors!'))
-        return new_write
+        return super(tpt_request_for_quotation, self).write(cr, uid,ids, vals, context)
     
 tpt_request_for_quotation()
 
@@ -1929,7 +1987,7 @@ class tpt_rfq_line(osv.osv):
                                 })
         return super(tpt_rfq_line, self).create(cr, uid, vals, context)    
   
-    def write(self, cr, uid, vals, context=None):
+    def write(self, cr, uid, ids, vals, context=None):
         if 'po_indent_id' in vals:
             if 'product_id' in vals:
                 indent = self.pool.get('tpt.purchase.indent').browse(cr, uid, vals['po_indent_id'])
@@ -1939,7 +1997,7 @@ class tpt_rfq_line(osv.osv):
                                 'uom_id':line.uom_po_id.id,
                                 'product_uom_qty':line.product_uom_qty,
                                 })
-        return super(tpt_rfq_line, self).create(cr, uid, vals, context)    
+        return super(tpt_rfq_line, self).write(cr, uid, ids, vals, context)    
     
     def onchange_rfq_indent_id(self, cr, uid, ids,po_indent_id=False, context=None):
         if po_indent_id:

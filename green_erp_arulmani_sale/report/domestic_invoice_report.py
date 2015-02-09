@@ -35,6 +35,7 @@ class Parser(report_sxw.rml_parse):
             'get_total': self.get_total,
             'get_ed_example': self.get_ed_example,
             'get_total_example': self.get_total_example,
+            'get_excise_duty': self.get_excise_duty,
         })
     
     def get_date(self, date=False):
@@ -124,8 +125,11 @@ class Parser(report_sxw.rml_parse):
             qty_mt = self.get_qty_mt(line.quantity,line.uos_id.name,'domestic')
             rate = line.price_unit or 0
             gross = round(qty_mt * rate,2)
-            basic_ed += round((gross*excise_duty_id/100),2)
+            basic_ed += round((gross*round(excise_duty_id,0)/100),2)
         return round(basic_ed,0)
+    
+    def get_excise_duty(self, excise_duty_id):
+        return round(excise_duty_id,0)
     
     def get_total_example(self,invoice_line,excise_duty_id,sale_tax_id):
         rate = 0.0
@@ -140,11 +144,11 @@ class Parser(report_sxw.rml_parse):
             qty_mt = self.get_qty_mt(line.quantity,line.uos_id.name,'domestic')
             rate = line.price_unit or 0
             gross = round(qty_mt * rate,2)
-            basic_ed = round((gross*excise_duty_id/100),2)
+            basic_ed = round((gross*round(excise_duty_id,0)/100),2)
             edu_cess = round(basic_ed * 2 / 100,2)
             sec_edu_cess =  round(basic_ed * 1 / 100, 2)
             total = round(gross + basic_ed + edu_cess + sec_edu_cess, 2)
             cst = round(total * sale_tax_id / 100,2)
-            total_amount += round(gross + basic_ed + edu_cess + sec_edu_cess + total +cst, 2)
+            total_amount += round(total +cst, 2)
         return round(total_amount,0)
     
