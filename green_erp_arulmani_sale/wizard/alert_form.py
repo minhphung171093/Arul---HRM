@@ -11,7 +11,7 @@ from openerp.tools import DEFAULT_SERVER_DATE_FORMAT, DEFAULT_SERVER_DATETIME_FO
 class alert_warning_form(osv.osv_memory):
     _name = "alert.warning.form"
     _columns = {    
-                'name': fields.char(string="Title", size=100, readonly=True),
+                'name': fields.char(string="Title", size=1024, readonly=True),
                 }
 
     

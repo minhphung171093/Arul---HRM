@@ -697,7 +697,7 @@
 		                    <page string="Product Information" autofocus="autofocus">
 	                            <field name="batch_allotment_line" nolabel='1' attrs="{'readonly':[('state','in',('cancel','confirm'))]}">
 	                            	<tree editable='bottom'>
-	                            		<field name="product_id" domain="[('track_production','=','True'),('track_incoming','=','True'),('track_outgoing','=','True')]" context="{'search_batch_request':True,'batch_request_id':parent.batch_request_id}" options="{'create': false, 'create_edit': false}"/>
+	                            		<field name="product_id" on_change="onchange_product_id(product_id,parent.batch_request_id)" domain="[('track_production','=','True'),('track_incoming','=','True'),('track_outgoing','=','True')]" context="{'search_batch_request':True,'batch_request_id':parent.batch_request_id}" options="{'create': false, 'create_edit': false}"/>
 										<field name="product_type" />
 										<field name="application_id" options="{'create': false, 'create_edit': false}"/>
 										<field name="product_uom_qty" on_change="onchange_sys_batch(sys_batch,product_uom_qty)"/>
