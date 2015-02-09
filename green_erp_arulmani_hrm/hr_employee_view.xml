@@ -1316,7 +1316,8 @@
 		
 		<menuitem action="action_employee_edit_active"
             id="menu_action_employee_edit_active"
-            parent="hr.menu_hr_main" sequence="10"/>
+            parent="hr.menu_hr_main" sequence="10"
+            groups="group_vvti_hrm_admin"/>
 		
     </data>
 </openerp>
