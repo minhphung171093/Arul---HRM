@@ -55,7 +55,10 @@ class Parser(report_sxw.rml_parse):
 #             return amount_to_text_en.amount_to_text(nbr, lang, 'inr').upper()
         
     def amount_to_text(self, number):
-        return Number2Words().convertNumberToWords(number).upper()
+        text = Number2Words().convertNumberToWords(number).upper()
+        if text and len(text)>3 and text[:3]=='AND':
+            text = text[3:]
+        return text
          
     def get_total(self, quantity, price_unit, freight, excise_duty_id, sale_tax_id):
         val = ((quantity*price_unit)+(quantity*price_unit)*(excise_duty_id.amount/100))+(((quantity*price_unit)+(quantity*price_unit)*(excise_duty_id.amount/100))*sale_tax_id.amount/100)+freight
@@ -108,7 +111,7 @@ class Parser(report_sxw.rml_parse):
                 mt_qty = qty*50/1000
             if unit.lower()=='bags' and type == 'export':
                 mt_qty = qty*25/1000
-            if unit.lower() in ['tonne','mt','metricton','metrictons']:
+            if unit.lower() in ['tonne','tonnes','mt','metricton','metrictons']:
                 mt_qty = qty
         return round(mt_qty, 2)
     

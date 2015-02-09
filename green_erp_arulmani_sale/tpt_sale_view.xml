@@ -100,7 +100,7 @@
 				<xpath expr="//button[@name='action_button_confirm']"  position="replace">
 					<button name="action_button_confirm" states="draft" string="Confirm Sale" type="object" groups="green_erp_arulmani_sale.group_vvti_sale_manager"/>
 					<button name="action_button_confirm" states="sent" string="Confirm Sale" class="oe_highlight" type="object" groups="green_erp_arulmani_sale.group_vvti_sale_manager"/>
-					<button name='action_button_confirm_approve' string="Approve" type="object" class="oe_highlight" attrs="{'invisible':['|','|',('invoiced','=',False),('flag_t','=',True),('flag_p','=',True)]}" />
+					<button name='action_button_confirm_approve' string="Approve" type="object" class="oe_highlight" attrs="{'invisible':['|','|',('invoiced','=',False),('flag_t','=',True),('flag_p','=',True)]}" groups="green_erp_arulmani_sale.group_vvti_sale_admin"/>
 				</xpath>
 				
 				<xpath expr="//page[@string='Order Lines']"  position="after">
@@ -697,7 +697,7 @@
 		                    <page string="Product Information" autofocus="autofocus">
 	                            <field name="batch_allotment_line" nolabel='1' attrs="{'readonly':[('state','in',('cancel','confirm'))]}">
 	                            	<tree editable='bottom'>
-	                            		<field name="product_id" domain="[('track_production','=','True'),('track_incoming','=','True'),('track_outgoing','=','True')]" context="{'search_batch_request':True,'batch_request_id':parent.batch_request_id}" options="{'create': false, 'create_edit': false}"/>
+	                            		<field name="product_id" on_change="onchange_product_id(product_id,parent.batch_request_id)" domain="[('track_production','=','True'),('track_incoming','=','True'),('track_outgoing','=','True')]" context="{'search_batch_request':True,'batch_request_id':parent.batch_request_id}" options="{'create': false, 'create_edit': false}"/>
 										<field name="product_type" />
 										<field name="application_id" options="{'create': false, 'create_edit': false}"/>
 										<field name="product_uom_qty" on_change="onchange_sys_batch(sys_batch,product_uom_qty)"/>

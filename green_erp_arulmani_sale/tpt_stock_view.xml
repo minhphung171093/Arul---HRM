@@ -243,10 +243,12 @@
 					<field name="application_id" options="{'create': false, 'create_edit': false}"/>
 				</xpath>
 				
-				<xpath expr="//form/sheet/notebook/page[@string='Invoice Lines']/field/tree/field[@name='account_id']"  position="replace">
+				<xpath expr="//form/sheet/notebook/page[@string='Invoice Lines']/field/tree/field[@name='account_id']"  position="attributes">
+					<attribute name="invisible">1</attribute>
 				</xpath>
 				
-				<xpath expr="//form/sheet/notebook/page[@string='Invoice Lines']/field/tree/field[@name='invoice_line_tax_id']"  position="replace">
+				<xpath expr="//form/sheet/notebook/page[@string='Invoice Lines']/field/tree/field[@name='invoice_line_tax_id']"  position="attributes">
+					<attribute name="invisible">1</attribute>
 				</xpath>
 				
 				<xpath expr="//form/sheet/notebook/page[@string='Invoice Lines']/field/tree/field[@name='price_subtotal']"  position="replace">
@@ -278,11 +280,11 @@
             <field name="inherit_id" ref="stock.view_picking_out_form"/>
             <field name="arch" type="xml">
             	<button name="%(stock.act_stock_return_picking)d" position="after">
-            		<button name="management_confirm" string="Management Confirm" attrs="{'invisible': ['|',('doc_status','!=','waiting'),('flag_confirm','!=',False)]}" type="object" icon="gtk-apply" 
-	                confirm="This Delivery Order is reached the credit limit. Do you want to confirm this Delivery Order?"
-	                />
+            		<button name="management_confirm" string="Management Confirm" attrs="{'invisible': ['|',('doc_status','!=','waiting'),('flag_confirm','=',True)]}" type="object" icon="gtk-apply" 
+		                confirm="This Delivery Order is reached the credit limit. Do you want to confirm this Delivery Order?"
+		                groups="green_erp_arulmani_sale.group_vvti_sale_admin"/>
 	                <button name="action_revert_done" string="Reopen" states="done,cancel" type="object" icon="gtk-cancel" 
-	                confirm="Do you want to reopen this Delivery Order?"
+	                	confirm="Do you want to reopen this Delivery Order?"
 	                />
 	            </button>
             	<xpath expr="//field[@name='stock_journal_id']"  position="replace">

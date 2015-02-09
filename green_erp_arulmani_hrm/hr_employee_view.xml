@@ -1291,5 +1291,33 @@
             </field>
 		</record>
 		
+		<record id="employee_edit_active_tree_view" model="ir.ui.view">
+			<field name="name">hr.employee.tree</field>
+			<field name="model">hr.employee</field>
+			<field name="arch" type="xml">
+				<tree string="Employee" editable='top'>
+					<field name ="employee_id" readonly='1'/>
+                	<field name ="name" readonly='1'/>
+                	<field name ="last_name" readonly='1'/>
+                	<field name ="active"/>
+				</tree>
+			</field>
+		</record>
+		
+		<record id="action_employee_edit_active" model="ir.actions.act_window">
+            <field name="name">Activate/Deactivate Employee</field>
+			<field name="type">ir.actions.act_window</field>
+            <field name="res_model">hr.employee</field>
+            <field name="view_type">form</field>
+            <field name="view_mode">tree</field>
+            <field name="view_id" ref="employee_edit_active_tree_view"/>
+            <field name="search_view_id" ref="hr.view_employee_filter"/>
+        </record>
+		
+		<menuitem action="action_employee_edit_active"
+            id="menu_action_employee_edit_active"
+            parent="hr.menu_hr_main" sequence="10"
+            groups="group_vvti_hrm_admin"/>
+		
     </data>
 </openerp>

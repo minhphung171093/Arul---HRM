@@ -446,6 +446,40 @@ class product_product(osv.osv):
                       }
                }
         return res 
+    
+    def create(self, cr, uid, vals, context=None):
+        if vals.get('batch_appli_ok'):
+            vals.update({
+                        'track_production':True,
+                        'track_incoming':True,
+                        'track_outgoing':True,
+                        })
+        else:
+            vals.update({
+                        'track_production':False,
+                        'track_incoming':False,
+                        'track_outgoing':False,
+                        })
+        new_id = super(product_product, self).create(cr, uid, vals, context)
+        return new_id
+        
+    def write(self, cr, uid,ids, vals, context=None):
+        if 'batch_appli_ok' in vals:
+            batch = vals.get('batch_appli_ok')
+            if batch:
+                vals.update({
+                        'track_production':True,
+                        'track_incoming':True,
+                        'track_outgoing':True,
+                        })
+            else:
+                vals.update({
+                        'track_production':False,
+                        'track_incoming':False,
+                        'track_outgoing':False,
+                        })
+        return super(product_product, self).write(cr,uid,ids,vals,context) 
+        
 product_product()
 
 class tpt_product_inventory(osv.osv):
