@@ -296,6 +296,7 @@ class stock_picking(osv.osv):
                 'product_type':move_line.sale_line_id and move_line.sale_line_id.product_type or False,
                 'application_id':move_line.sale_line_id and move_line.sale_line_id.application_id and move_line.sale_line_id.application_id.id or False,
                 'freight':move_line.sale_line_id and move_line.sale_line_id.freight or False,
+                'invoice_line_tax_id': [(6, 0, [picking.sale_id and picking.sale_id.sale_tax_id and picking.sale_id.sale_tax_id.id])],
             })
         return invoice_line_vals
         
@@ -754,13 +755,18 @@ class account_invoice(osv.osv):
             val3 = 0.0
             freight = 0.0
             for invoiceline in line.invoice_line:
-                freight = freight + invoiceline.freight
-                val1 = val1 + invoiceline.price_subtotal
-                res[line.id]['amount_untaxed'] = val1
-                val2 = val1 * (line.sale_tax_id.amount and line.sale_tax_id.amount / 100 or 0)
-                res[line.id]['amount_tax'] = val2
-                val3 = val1 + val2 + freight
-                res[line.id]['amount_total'] = val3
+                freight += invoiceline.freight
+                val1 += invoiceline.price_subtotal
+                val2 += invoiceline.price_subtotal * (line.sale_tax_id.amount and line.sale_tax_id.amount / 100 or 0)
+#                 val3 = val1 + val2 + freight
+            res[line.id]['amount_untaxed'] = val1
+            res[line.id]['amount_tax'] = val2
+            res[line.id]['amount_total'] = val1+val2+freight
+            for taxline in line.tax_line:
+                sql='''
+                    update account_invoice_tax set amount=%s where id=%s
+                '''%(val2+freight,taxline.id)
+                cr.execute(sql)
         return res
     
     def _get_invoice_line(self, cr, uid, ids, context=None):

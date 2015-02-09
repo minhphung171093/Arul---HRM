@@ -243,10 +243,12 @@
 					<field name="application_id" options="{'create': false, 'create_edit': false}"/>
 				</xpath>
 				
-				<xpath expr="//form/sheet/notebook/page[@string='Invoice Lines']/field/tree/field[@name='account_id']"  position="replace">
+				<xpath expr="//form/sheet/notebook/page[@string='Invoice Lines']/field/tree/field[@name='account_id']"  position="attributes">
+					<attribute name="invisible">1</attribute>
 				</xpath>
 				
-				<xpath expr="//form/sheet/notebook/page[@string='Invoice Lines']/field/tree/field[@name='invoice_line_tax_id']"  position="replace">
+				<xpath expr="//form/sheet/notebook/page[@string='Invoice Lines']/field/tree/field[@name='invoice_line_tax_id']"  position="attributes">
+					<attribute name="invisible">1</attribute>
 				</xpath>
 				
 				<xpath expr="//form/sheet/notebook/page[@string='Invoice Lines']/field/tree/field[@name='price_subtotal']"  position="replace">
