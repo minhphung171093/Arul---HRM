@@ -100,7 +100,7 @@
 				<xpath expr="//button[@name='action_button_confirm']"  position="replace">
 					<button name="action_button_confirm" states="draft" string="Confirm Sale" type="object" groups="green_erp_arulmani_sale.group_vvti_sale_manager"/>
 					<button name="action_button_confirm" states="sent" string="Confirm Sale" class="oe_highlight" type="object" groups="green_erp_arulmani_sale.group_vvti_sale_manager"/>
-					<button name='action_button_confirm_approve' string="Approve" type="object" class="oe_highlight" attrs="{'invisible':['|','|',('invoiced','=',False),('flag_t','=',True),('flag_p','=',True)]}" />
+					<button name='action_button_confirm_approve' string="Approve" type="object" class="oe_highlight" attrs="{'invisible':['|','|',('invoiced','=',False),('flag_t','=',True),('flag_p','=',True)]}" groups="green_erp_arulmani_sale.group_vvti_sale_admin"/>
 				</xpath>
 				
 				<xpath expr="//page[@string='Order Lines']"  position="after">

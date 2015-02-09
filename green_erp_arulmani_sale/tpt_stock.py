@@ -90,7 +90,7 @@ class stock_picking(osv.osv):
             vals['name'] = self.pool.get('ir.sequence').get(cr, uid, 'tpt.stock.move.import') or '/'
         new_id = super(stock_picking, self).create(cr, uid, vals, context)
         picking = self.browse(cr, uid, new_id)
-        if picking.type == 'internal':
+        if picking.type == 'internal' and picking.location_id and picking.location_dest_id:
             sql = '''
                         update stock_move set location_id = %s, location_dest_id = %s where picking_id = %s 
                     '''%(picking.location_id.id, picking.location_dest_id.id, picking.id)
@@ -122,7 +122,7 @@ class stock_picking(osv.osv):
         inventory_obj = self.pool.get('stock.move')
         new_write = super(stock_picking, self).write(cr, uid,ids, vals, context)
         for picking in self.browse(cr, uid, ids):
-            if picking.type == 'internal':
+            if picking.type == 'internal' and picking.location_id and picking.location_dest_id:
                 sql = '''
                         update stock_move set location_id = %s, location_dest_id = %s where picking_id = %s 
                     '''%(picking.location_id.id, picking.location_dest_id.id, picking.id)
