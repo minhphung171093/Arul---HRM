@@ -536,6 +536,7 @@ class stock_picking(osv.osv):
                     update stock_picking set doc_status='waiting' where id = %s
                     '''%(picking.id)
                 cr.execute(sql)
+                context.update({'default_name':'Not able to process DO due to exceed of credit limit. Need management approval to proceed further!'})
                 return {
                     'view_type': 'form',
                     'view_mode': 'form',
@@ -545,6 +546,22 @@ class stock_picking(osv.osv):
                     'context': context,
                     'nodestroy': True,
                 }
+            if not picking.flag_confirm and limit == 0 and used == 0:
+                sql = '''
+                    update stock_picking set doc_status='waiting' where id = %s
+                    '''%(picking.id)
+                cr.execute(sql)
+                context.update({'default_name':'Credit limit and Credit used are 0. Need management approval to proceed further!'})
+                return {
+                    'view_type': 'form',
+                    'view_mode': 'form',
+                    'res_model': 'alert.warning.form',
+                    'type': 'ir.actions.act_window',
+                    'target': 'new',
+                    'context': context,
+                    'nodestroy': True,
+                }
+#                 raise osv.except_osv(_('Warning!'), _('Credit limit and Credit used are 0. Need management approval to proceed further!'))
         """Open the partial picking wizard"""
         context.update({
             'active_model': self._name,
@@ -882,6 +899,34 @@ class account_invoice(osv.osv):
 #                 'datas': datas,
 #                 'nodestroy' : True
             }
+    def action_cancel(self, cr, uid, ids, context=None):
+        super(account_invoice,self).action_cancel(cr, uid, ids, context)
+#         if context is None:
+#             context = {}
+#         account_move_obj = self.pool.get('account.move')
+#         invoices = self.read(cr, uid, ids, ['move_id', 'payment_ids'])
+#         move_ids = [] # ones that we will need to remove
+#         for i in invoices:
+#             if i['move_id']:
+#                 move_ids.append(i['move_id'][0])
+#             if i['payment_ids']:
+#                 account_move_line_obj = self.pool.get('account.move.line')
+#                 pay_ids = account_move_line_obj.browse(cr, uid, i['payment_ids'])
+#                 for move_line in pay_ids:
+#                     if move_line.reconcile_partial_id and move_line.reconcile_partial_id.line_partial_ids:
+#                         raise osv.except_osv(_('Error!'), _('You cannot cancel an invoice which is partially paid. You need to unreconcile related payment entries first.'))
+
+        # First, set the invoices as cancelled and detach the move ids
+        self.write(cr, uid, ids, {'doc_status':'cancelled'})
+#         if move_ids:
+#             # second, invalidate the move(s)
+#             account_move_obj.button_cancel(cr, uid, move_ids, context=context)
+#             # delete the move this invoice was pointing to
+#             # Note that the corresponding move_lines and move_reconciles
+#             # will be automatically deleted too
+#             account_move_obj.unlink(cr, uid, move_ids, context=context)
+#         self._log_event(cr, uid, ids, -1.0, 'Cancel Invoice')
+        return True
 account_invoice()
 
 class account_invoice_line(osv.osv):
