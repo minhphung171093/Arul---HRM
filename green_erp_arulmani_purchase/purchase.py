@@ -787,7 +787,23 @@ class tpt_purchase_quotation(osv.osv):
     def create(self, cr, uid, vals, context=None):
         if vals.get('name','/')=='/':
             vals['name'] = self.pool.get('ir.sequence').get(cr, uid, 'purchase.quotation') or '/'
-        return super(tpt_purchase_quotation, self).create(cr, uid, vals, context=context)  
+        new_id = super(tpt_purchase_quotation, self).create(cr, uid, vals, context)
+        quotation = self.browse(cr,uid,new_id)
+        if quotation.quotation_cate:
+            if quotation.quotation_cate != 'multiple':
+                if (len(quotation.purchase_quotation_line) > 1):
+                    raise osv.except_osv(_('Warning!'),_('You must choose Quotation category is multiple if you want more than one vendors!'))
+        return new_id  
+    
+    def write(self, cr, uid, ids, vals, context=None):
+        new_write = super(tpt_purchase_quotation, self).write(cr, uid,ids, vals, context)
+        for quotation in self.browse(cr,uid,ids):
+            if quotation.quotation_cate:
+                if quotation.quotation_cate != 'multiple':
+                    if (len(quotation.purchase_quotation_line) > 1):
+                        raise osv.except_osv(_('Warning!'),_('You must choose Quotation category is multiple if you want more than one vendors!'))
+        return new_write    
+    
     
     def onchange_supplier_location(self, cr, uid, ids,supplier_id=False, context=None):
         vals = {}
@@ -855,7 +871,7 @@ class tpt_purchase_quotation_line(osv.osv):
         amount_fright=0.0
         
         for line in self.browse(cr,uid,ids,context=context):
-            amount_basic = (line.product_uom_qty * line.price_unit)-((line.product_uom_qty * line.price_unit)*line.disc)
+            amount_basic = (line.product_uom_qty * line.price_unit)-((line.product_uom_qty * line.price_unit)*line.disc/100)
             if line.p_f_type == 1:
                amount_p_f = amount_basic * (line.p_f/100)
             else:
@@ -877,7 +893,7 @@ class tpt_purchase_quotation_line(osv.osv):
         'product_id': fields.many2one('product.product', 'Material Name',readonly = True),
         'product_uom_qty': fields.float('Qty', readonly = True),   
         'uom_id': fields.many2one('product.uom', 'UOM', readonly = True),
-        'price_unit': fields.float('Unit Price', required=True, readonly = True),
+        'price_unit': fields.float('Unit Price', required=True),
         'disc': fields.float('Disc'),
         'p_f': fields.float('P&F'),
         'p_f_type':fields.selection([('1','%'),('2','Rs')],('P&F Type')),

@@ -26,4 +26,22 @@ class Parser(report_sxw.rml_parse):
             
         })
     
-    
+    def get_vendor(self,o,num):
+        res = {
+               'rate': 0,
+               'value': 0,
+               }
+        quotation_obj = self.pool.get('tpt.purchase.quotation')
+        sql = '''
+            select id from tpt_purchase_quotation where comparison_chart_id = %s and tpt_purchase_quotation.select = 'True'
+        '''%(o.id)
+        self.cr.execute(sql)
+        quotation_ids = [row[0] for row in self.cr.fetchall()]
+#         if len(quotation_ids)>=num:
+            
+        
+        
+        
+        
+        
+        
