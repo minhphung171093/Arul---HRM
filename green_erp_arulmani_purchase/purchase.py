@@ -45,7 +45,7 @@ class tpt_purchase_indent(osv.osv):
         'date_indent': fields.datetime.now,
         'name': '/',
         'intdent_cate':'normal',
-        'document_type':'base',
+#         'document_type':'base',
     }
     
     def bt_approve(self, cr, uid, ids, context=None):
@@ -167,6 +167,18 @@ class tpt_purchase_indent(osv.osv):
             cr.execute(sql)
             dates = cr.dictfetchone()['date_indent']
         return {'value': {'date_expect':dates}}
+    
+    def onchange_document_type(self, cr, uid, ids,document_type=False, context=None):
+        vals = {}
+        if document_type:
+            if document_type == 'base':
+                warning = {  
+                          'title': _('Warning!'),  
+                          'message': _('VV Level Based PR is not created by handle!   '),  
+                          }  
+                vals['document_type']=False
+                return {'value': vals,'warning':warning}
+        return {'value': vals}
     
     def search(self, cr, uid, args, offset=0, limit=None, order=None, context=None, count=False):
         if context is None:
@@ -714,6 +726,7 @@ class tpt_purchase_quotation(osv.osv):
         'schedule':fields.char('Delivery Schedule',size = 1024),
         'comparison_chart_id':fields.many2one('tpt.comparison.chart','Comparison Chart'),
         'payment_term_id': fields.related('supplier_id','property_supplier_payment_term',type='many2one',relation='account.payment.term', string='Payment Term'),
+        'select':fields.boolean('Select'),
     }
     _defaults = {
         'state': 'draft',
@@ -790,7 +803,23 @@ class tpt_purchase_quotation(osv.osv):
     def create(self, cr, uid, vals, context=None):
         if vals.get('name','/')=='/':
             vals['name'] = self.pool.get('ir.sequence').get(cr, uid, 'purchase.quotation') or '/'
-        return super(tpt_purchase_quotation, self).create(cr, uid, vals, context=context)  
+        new_id = super(tpt_purchase_quotation, self).create(cr, uid, vals, context)
+        quotation = self.browse(cr,uid,new_id)
+        if quotation.quotation_cate:
+            if quotation.quotation_cate != 'multiple':
+                if (len(quotation.purchase_quotation_line) > 1):
+                    raise osv.except_osv(_('Warning!'),_('You must choose Quotation category is multiple if you want more than one vendors!'))
+        return new_id  
+    
+    def write(self, cr, uid, ids, vals, context=None):
+        new_write = super(tpt_purchase_quotation, self).write(cr, uid,ids, vals, context)
+        for quotation in self.browse(cr,uid,ids):
+            if quotation.quotation_cate:
+                if quotation.quotation_cate != 'multiple':
+                    if (len(quotation.purchase_quotation_line) > 1):
+                        raise osv.except_osv(_('Warning!'),_('You must choose Quotation category is multiple if you want more than one vendors!'))
+        return new_write    
+    
     
     def onchange_supplier_location(self, cr, uid, ids,supplier_id=False, context=None):
         vals = {}
@@ -858,7 +887,7 @@ class tpt_purchase_quotation_line(osv.osv):
         amount_fright=0.0
         
         for line in self.browse(cr,uid,ids,context=context):
-            amount_basic = (line.product_uom_qty * line.price_unit)-((line.product_uom_qty * line.price_unit)*line.disc)
+            amount_basic = (line.product_uom_qty * line.price_unit)-((line.product_uom_qty * line.price_unit)*line.disc/100)
             if line.p_f_type == 1:
                amount_p_f = amount_basic * (line.p_f/100)
             else:
@@ -880,7 +909,7 @@ class tpt_purchase_quotation_line(osv.osv):
         'product_id': fields.many2one('product.product', 'Material Name',readonly = True),
         'product_uom_qty': fields.float('Qty', readonly = True),   
         'uom_id': fields.many2one('product.uom', 'UOM', readonly = True),
-        'price_unit': fields.float('Unit Price', required=True, readonly = True),
+        'price_unit': fields.float('Unit Price', required=True),
         'disc': fields.float('Disc'),
         'p_f': fields.float('P&F'),
         'p_f_type':fields.selection([('1','%'),('2','Rs')],('P&F Type')),
@@ -980,6 +1009,39 @@ class tpt_comparison_chart(osv.osv):
             quotation_ids = self.pool.get('tpt.purchase.quotation').search(cr, uid, [('rfq_no_id','=',vals['name']),('state','=','draft')])
             vals.update({'comparison_chart_line':[(6,0,quotation_ids)]})
         return super(tpt_comparison_chart, self).write(cr, uid,ids, vals, context=context)
+
+    def bt_load(self, cr, uid, ids, context=None):
+        for line in self.browse(cr, uid, ids):
+            quotation_ids = self.pool.get('tpt.purchase.quotation').search(cr, uid, [('rfq_no_id','=',line.name.id),('state','=','draft')])
+            vals={'comparison_chart_line':[(6,0,quotation_ids)]}
+            self.write(cr, uid,[line.id], vals, context=context)
+        return True
+
+    def bt_print(self, cr, uid, ids, context=None):
+        assert len(ids) == 1, 'This option should only be used for a single id at a time.'
+        sql = '''
+            select case when count(*)!=0 then count(*) else 0 end total_select from tpt_purchase_quotation where comparison_chart_id = %s and tpt_purchase_quotation.select = 'True'
+        '''%(ids[0])
+        cr.execute(sql)
+        total_select=cr.dictfetchone()['total_select']
+        if total_select > 4:
+            raise osv.except_osv(_('Warning!'),_('Should not choose more than 4 lines from Quotation !'))
+#             warning = {  
+#                           'title': _('Warning!'),  
+#                           'message': _('VV Level Based PR is not created by handle!   '),  
+#                           }  
+#             return {'warning':warning}
+        datas = {
+             'ids': ids,
+             'model': 'tpt.comparison.chart',
+             'form': self.read(cr, uid, ids[0], context=context)
+        }
+        return {
+            'type': 'ir.actions.report.xml',
+            'report_name': 'tpt_comparison_chart',
+#                 'datas': datas,
+#                 'nodestroy' : True
+        }
 
 tpt_comparison_chart()
 
@@ -1991,6 +2053,24 @@ class tpt_request_for_quotation(osv.osv):
                'name':'/',
                'state': 'draft',
     }
+    
+    def search(self, cr, uid, args, offset=0, limit=None, order=None, context=None, count=False):
+        if context is None:
+            context = {}
+        if context.get('search_rfq_id'):
+            sql = '''
+                select id from tpt_request_for_quotation 
+                where state != 'cancel' and id not in (select cc.name from tpt_comparison_chart cc ,tpt_request_for_quotation rfq where cc.name = rfq.id)
+            '''
+            cr.execute(sql)
+            po_ids = [row[0] for row in cr.fetchall()]
+            args += [('id','in',po_ids)]
+        return super(tpt_request_for_quotation, self).search(cr, uid, args, offset=offset, limit=limit, order=order, context=context, count=count)    
+
+    def name_search(self, cr, user, name, args=None, operator='ilike', context=None, limit=100):
+       ids = self.search(cr, user, args, context=context, limit=limit)
+       return self.name_get(cr, user, ids, context=context)
+      
     def bt_approve(self, cr, uid, ids, context=None):
         return self.write(cr, uid, ids,{'state':'done'})
     
