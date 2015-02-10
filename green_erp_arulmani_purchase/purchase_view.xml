@@ -34,7 +34,7 @@
 		                <group col="4" colspan="2" >    
 							<field name="name"/>
 							<field name="date_indent" on_change="onchange_date_expect(date_indent)" />
-							<field name="document_type" />
+							<field name="document_type" on_change="onchange_document_type(document_type)" />
 							<field name="intdent_cate" />
 							<field name="department_id" required='1' options="{'create': false, 'create_edit': false}" />
 							<field name="create_uid" options="{'create': false, 'create_edit': false}"  />
@@ -50,7 +50,7 @@
 							<page string = "Materials">
 								<field name="purchase_product_line" nolabel='1'>
 									<tree editable='bottom'>
-										<field name="product_id" widget = "selection" required='1' options="{'create': false, 'create_edit': false}"/>
+										<field name="product_id" domain="[('purchase_ok','=',True)]" widget = "selection" required='1' options="{'create': false, 'create_edit': false}"/>
 										<field name="dec_material" required='1'/>
 										<field name="product_uom_qty" />
 										<field name="recom_vendor_id" context="{'search_recom_product':True, 'product_id':product_id }" options="{'create': false, 'create_edit': false}" />
@@ -562,9 +562,13 @@
             <field name="model">tpt.comparison.chart</field>
             <field name="arch" type="xml">
 	            <form string="Comparison Chart" version="7.0" >
+	            <header>
+	            		<button name="bt_print" string="View/Print Comparison Chart" type="object" class="oe_highlight" />
+	            		<button name="bt_load" string="Load Comparison Chart" type="object" class="oe_highlight" />
+	            </header>    
 	            	<sheet>
 	                   	 <group col="4" colspan="2" >
-	                   	 	<field name="name" on_change="onchange_request_quotation(name)" options="{'create': false, 'create_edit': false}" />
+	                   	 	<field name="name" on_change="onchange_request_quotation(name)" options="{'create': false, 'create_edit': false}" context="{'search_rfq_id':True}" />
 							<field name="date" />
 							<field name="quotation_cate" />
 							<field name="create_uid" />
@@ -573,20 +577,21 @@
 						<page>
 							<div col='4' colspan='4' class="oe_green_erp_scroll">
 							<field name="comparison_chart_line" nolabel='1'>
-								<tree string="Comparison Chart" create='false'>
-									<field name="name"  />
-									<field name="date_quotation" />
-									<field name="supplier_id" />
-									<field name="supplier_location_id" />
-									<field name="amount_basic" />
-									<field name="amount_p_f" />
-									<field name="amount_ed" />
-									<field name="amount_total_tax"/>
-									<field name="amount_fright" />
-									<field name="amount_gross" />
-									<field name="amount_net" />
-									<field name="payment_term_id" />
-									<field name="schedule"/>
+								<tree string="Comparison Chart" editable='top' create='false' delete='false'>
+									<field name="select" readonly = '0'  />
+									<field name="name"  readonly = '1'/>
+									<field name="date_quotation" readonly = '1'/>
+									<field name="supplier_id" readonly = '1'/>
+									<field name="supplier_location_id" readonly = '1'/>
+									<field name="amount_basic" readonly = '1'/>
+									<field name="amount_p_f" readonly = '1'/>
+									<field name="amount_ed" readonly = '1'/>
+									<field name="amount_total_tax" readonly = '1'/>
+									<field name="amount_fright" readonly = '1'/>
+									<field name="amount_gross" readonly = '1'/>
+									<field name="amount_net" readonly = '1'/>
+									<field name="payment_term_id" readonly = '1'/>
+									<field name="schedule" readonly = '1'/>
 									<field name="state" invisible="1" />
 									<button name = "bt_tick_mark" icon = "STOCK_APPLY" states = "draft" string="Tick" type="object" />
 									<button name = "bt_cross_mark" confirm = "Do you want to cancel the Quotation ?" icon = "STOCK_CANCEL" states = "draft" string="Cross" type="object" /> 
