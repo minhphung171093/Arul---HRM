@@ -230,7 +230,7 @@ class stock_picking(osv.osv):
             'payment_term': picking.sale_id.payment_term_id and picking.sale_id.payment_term_id.id or False,
             'currency_id': picking.sale_id.currency_id and picking.sale_id.currency_id.id or False,
             'excise_duty_id': picking.sale_id.excise_duty_id and picking.sale_id.excise_duty_id.id or False,
-            'doc_status': picking.doc_status,
+            'doc_status': 'draft',
             'cons_loca': picking.cons_loca and picking.cons_loca.id or False,
             'delivery_order_id': picking.id,
             'sale_tax_id': picking.sale_id.sale_tax_id and picking.sale_id.sale_tax_id.id or False,
@@ -562,7 +562,6 @@ class stock_picking(osv.osv):
                     'context': context,
                     'nodestroy': True,
                 }
-#                 raise osv.except_osv(_('Warning!'), _('Credit limit and Credit used are 0. Need management approval to proceed further!'))
         """Open the partial picking wizard"""
         context.update({
             'active_model': self._name,
@@ -596,7 +595,7 @@ class stock_picking(osv.osv):
         for picking in self.browse(cr, uid, ids, context=context):
             if picking.doc_status == 'waiting':
                 sql = '''
-                    update stock_picking set flag_confirm = True, doc_status='completed' where id = %s
+                    update stock_picking set flag_confirm = True where id = %s
                     '''%(picking.id)
                 cr.execute(sql)
         return True
@@ -752,7 +751,32 @@ class stock_move(osv.osv):
 #         'location_id': 1,
 #         'location_dest_id': 1,
 #     }
-    
+    def onchange_sys_batch(self, cr, uid, ids,sys_batch=False,qty=False,context=None):
+        vals = {}
+        if context is None:
+            context={}
+        if sys_batch and qty:
+            if context.get('search_prodlot_by_batch_alot'):
+                sale_id = context.get('sale_id', False)
+                if sale_id:
+                    batch_obj = self.pool.get('tpt.batch.allotment')
+                    batch_ids = batch_obj.search(cr, uid, [('sale_order_id','=',sale_id)])
+                    batch_id = batch_obj.browse(cr, uid, batch_ids)
+                    if batch_id:
+                        for batch in batch_id:
+                            if batch.batch_allotment_line:
+                                for line in batch.batch_allotment_line:
+                                    if line.sys_batch != sys_batch:
+                                        if line.product_uom_qty < qty:
+                                            warning = {  
+                                                      'title': _('Warning!'),  
+                                                      'message': _('The product quantity on Delivery Order is not greater than the product quantity on the Batch Allotment!\n Need to split it, please click on Split button on Product Line'),  
+                                                      }  
+                                            vals['prodlot_id']=False
+                                            return {'value': vals,'warning':warning}
+                                        else:
+                                            vals['prodlot_id']= sys_batch
+        return {'value': vals}
     
 stock_move()
 
@@ -905,34 +929,31 @@ class account_invoice(osv.osv):
 #                 'datas': datas,
 #                 'nodestroy' : True
             }
-    def action_cancel(self, cr, uid, ids, context=None):
-        super(account_invoice,self).action_cancel(cr, uid, ids, context)
-#         if context is None:
-#             context = {}
-#         account_move_obj = self.pool.get('account.move')
-#         invoices = self.read(cr, uid, ids, ['move_id', 'payment_ids'])
-#         move_ids = [] # ones that we will need to remove
-#         for i in invoices:
-#             if i['move_id']:
-#                 move_ids.append(i['move_id'][0])
-#             if i['payment_ids']:
-#                 account_move_line_obj = self.pool.get('account.move.line')
-#                 pay_ids = account_move_line_obj.browse(cr, uid, i['payment_ids'])
-#                 for move_line in pay_ids:
-#                     if move_line.reconcile_partial_id and move_line.reconcile_partial_id.line_partial_ids:
-#                         raise osv.except_osv(_('Error!'), _('You cannot cancel an invoice which is partially paid. You need to unreconcile related payment entries first.'))
-
-        # First, set the invoices as cancelled and detach the move ids
-        self.write(cr, uid, ids, {'doc_status':'cancelled'})
-#         if move_ids:
-#             # second, invalidate the move(s)
-#             account_move_obj.button_cancel(cr, uid, move_ids, context=context)
-#             # delete the move this invoice was pointing to
-#             # Note that the corresponding move_lines and move_reconciles
-#             # will be automatically deleted too
-#             account_move_obj.unlink(cr, uid, move_ids, context=context)
-#         self._log_event(cr, uid, ids, -1.0, 'Cancel Invoice')
-        return True
+    
+    def write(self, cr, uid, ids, vals, context=None):
+        for id in ids:
+            if 'state' in vals:
+                if (vals['state'] == 'draft'):
+                    sql = '''
+                        update account_invoice set doc_status='draft' where id=%s
+                    '''%(id)
+                    cr.execute(sql)
+                if (vals['state'] == 'cancel'):
+                    sql = '''
+                        update account_invoice set doc_status='cancelled' where id=%s
+                    '''%(id)
+                    cr.execute(sql)
+                if (vals['state'] == 'open'):
+                    sql = '''
+                        update account_invoice set doc_status='waiting' where id=%s
+                    '''%(id)
+                    cr.execute(sql)
+                if (vals['state'] == 'paid'):
+                    sql = '''
+                        update account_invoice set doc_status='completed' where id=%s
+                    '''%(id)
+                    cr.execute(sql)
+        return super(account_invoice, self).write(cr, uid,ids, vals, context)
 account_invoice()
 
 class account_invoice_line(osv.osv):

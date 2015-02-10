@@ -1572,7 +1572,7 @@ class tpt_batch_allotment(osv.osv):
             for request_line in cr.dictfetchall():
                 if (allot_line['product_id']==request_line['product_id']):
                     if (allot_line['allot_product_qty'] != request_line['request_product_qty']):
-                        raise osv.except_osv(_('Warning!'),_('The product quantity in batch allotment must as same as the product quantity in batch request!'))
+                        raise osv.except_osv(_('Warning!'),_('The product quantity in batch allotment must be as same as the product quantity in batch request!'))
         return new_id
     
     def write(self, cr, uid, ids, vals, context=None):
@@ -1590,7 +1590,7 @@ class tpt_batch_allotment(osv.osv):
                 for request_line in cr.dictfetchall():
                     if (allot_line['product_id']==request_line['product_id']):
                         if (allot_line['allot_product_qty'] != request_line['request_product_qty']):
-                            raise osv.except_osv(_('Warning!'),_('The product quantity in batch allotment must as same as the product quantity in batch request!'))
+                            raise osv.except_osv(_('Warning!'),_('The product quantity in batch allotment must be as same as the product quantity in batch request!'))
         return new_write
     def confirm(self, cr, uid, ids, context=None):
         return self.write(cr, uid, ids, {'state': 'confirm'})
@@ -1661,13 +1661,23 @@ class tpt_batch_allotment(osv.osv):
         for batch in self.browse(cr, uid, ids):
             if batch.sale_order_id:
                 sql='''
-                    select id from stock_picking do where do.sale_id = %s and do.state = 'done' 
+                    select id from stock_picking where sale_id = %s
                 '''%(batch.sale_order_id.id)
                 cr.execute(sql)
-                do_ids = cr.fetchone()
-                if do_ids:
+                do_ids = cr.fetchall()
+                if len(do_ids)>1:
                     raise osv.except_osv(_('Warning!'),_('Delivery Order of this Batch Allotment is delivered. Can not cancel!'))
-                else: 
+                elif len(do_ids)==1:
+                    sql='''
+                        select case when count(*)=1 then count(*) else 0 end num_re from stock_picking where id = %s and state='done'
+                    '''%(do_ids[0])
+                    cr.execute(sql)
+                    num_re = cr.dictfetchone()['num_re']
+                    if num_re==1:
+                        raise osv.except_osv(_('Warning!'),_('Delivery Order of this Batch Allotment is delivered. Can not cancel!'))
+                    else:
+                        write_id = self.write(cr, uid, ids, {'state': 'cancel'})
+                else:
                     write_id = self.write(cr, uid, ids, {'state': 'cancel'})
         return write_id
     def onchange_batch_request_id(self, cr, uid, ids,batch_request_id=False):
@@ -1975,6 +1985,18 @@ class tpt_batch_allotment_line(osv.osv):
                             'uom_po_id':False,
                              })
         return res
+    
+    def _check_batch_allotment_line(self, cr, uid, ids, context=None):
+        for batch in self.browse(cr, uid, ids, context=context):
+            quotation_ids = self.search(cr, uid, [('id','!=',batch.id),('sys_batch','=',batch.sys_batch.id),('batch_allotment_id','=',batch.batch_allotment_id.id)])
+            if quotation_ids:
+                raise osv.except_osv(_('Warning!'),_('Can not select more than one time for System Batch Number!'))
+                return False
+            return True
+        
+    _constraints = [
+        (_check_batch_allotment_line, 'Identical Data', ['sys_batch']),
+    ]  
 
 tpt_batch_allotment_line()
 
