@@ -120,6 +120,10 @@
 					<field name="location_dest_id" required = '1' domain="[('id','!=',location_id), ('usage','in', ['internal']),('chained_location_type','&lt;&gt;','customer')]" string = "Destination Location" options="{'create': false, 'create_edit': false}"/>
 				</xpath> 
 				
+				<xpath expr="//field[@name='invoice_state']" position="replace">
+					<field name="invoice_state" invisible="1"/>
+				</xpath> 
+				
 				<xpath expr="//page[@string='Products']" position="replace">
 					<page string="Stock Move Details">
 						<field name="move_lines" string="Stock Move" context="{'default_location_id':location_id,'default_location_dest_id':location_dest_id,'address_in_id': partner_id, 'form_view_ref':'stock.view_move_picking_form', 'tree_view_ref':'stock.view_move_picking_tree', 'picking_type': 'internal'}" options='{"reload_on_button": true}'/>
@@ -279,6 +283,11 @@
             <field name="model">stock.picking.out</field>
             <field name="inherit_id" ref="stock.view_picking_out_form"/>
             <field name="arch" type="xml">
+            
+            	<xpath expr="//field[@name='invoice_state']" position="replace">
+					<field name="invoice_state" invisible="1"/>
+				</xpath> 
+            	
             	<button name="%(stock.act_stock_return_picking)d" position="after">
             		<button name="management_confirm" string="Management Confirm" attrs="{'invisible': ['|',('doc_status','!=','waiting'),('flag_confirm','=',True)]}" type="object" icon="gtk-apply" 
 		                confirm="This Delivery Order is reached the credit limit. Do you want to confirm this Delivery Order?"
@@ -335,7 +344,7 @@
 		                        string="Scrap Products" type="action"
 		                        icon="terp-gtk-jump-to-ltr" context="{'scrap': True}"
 		                        states="draft,waiting,confirmed,assigned" invisible="1"/>
-		                    <field name="prodlot_id" string = "System Batch Number" groups="stock.group_production_lot" context="{'search_prodlot_by_batch_alot':1,'sale_id':parent.sale_id}" options="{'create': false, 'create_edit': false}"/>
+		                    <field name="prodlot_id" string = "System Batch Number" groups="stock.group_production_lot" on_change="onchange_sys_batch(prodlot_id,product_qty,context)" context="{'search_prodlot_by_batch_alot':1,'sale_id':parent.sale_id}" options="{'create': false, 'create_edit': false}"/>
 		                    <field name="phy_batch" string = "Physical Batch Number"/>
 		                    <button name="%(stock.track_line)d" string="Split in Serial Numbers" type="action"
 		                        icon="gtk-justify-fill" attrs="{'invisible': [('prodlot_id','!=',False)]}"

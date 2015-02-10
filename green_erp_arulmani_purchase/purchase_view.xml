@@ -34,7 +34,7 @@
 		                <group col="4" colspan="2" >    
 							<field name="name"/>
 							<field name="date_indent" on_change="onchange_date_expect(date_indent)" />
-							<field name="document_type" />
+							<field name="document_type" on_change="onchange_document_type(document_type)" />
 							<field name="intdent_cate" />
 							<field name="department_id" required='1' options="{'create': false, 'create_edit': false}" />
 							<field name="create_uid" options="{'create': false, 'create_edit': false}"  />
@@ -50,7 +50,7 @@
 							<page string = "Materials">
 								<field name="purchase_product_line" nolabel='1'>
 									<tree editable='bottom'>
-										<field name="product_id" widget = "selection" required='1' options="{'create': false, 'create_edit': false}"/>
+										<field name="product_id" domain="[('purchase_ok','=',True)]" widget = "selection" required='1' options="{'create': false, 'create_edit': false}"/>
 										<field name="dec_material" required='1'/>
 										<field name="product_uom_qty" />
 										<field name="recom_vendor_id" context="{'search_recom_product':True, 'product_id':product_id }" options="{'create': false, 'create_edit': false}" />
@@ -88,7 +88,7 @@
             	<xpath expr="//field[@name='partner_id']" position="before">
             		<field name="po_document_type" />
 					<field name="name" readonly = '1' string = 'PO Document No' />
-					<field name="po_indent_no" on_change = "onchange_po_indent_no(quotation_no, po_indent_no)" context="{'search_po_indent_no':True, 'quotation_no':quotation_no }" options="{'create': false, 'create_edit': false}"/>
+					<field name="po_indent_no" on_change = "onchange_po_indent_no(quotation_no, po_indent_no)" context="{'search_po_indent_no':True, 'quotation_no':quotation_no, 'search_po_indent_no_emergency':True }" options="{'create': false, 'create_edit': false}"/>
 				</xpath> 
 				<xpath expr="//field[@name='date_order']" position="after">
 					<field name="quotation_no" context="{'search_quotation_no':True}" on_change = "onchange_quotation_no(quotation_no)" options="{'create': false, 'create_edit': false}"/>
@@ -126,7 +126,7 @@
 					<attribute name='invisible'>1</attribute>
 				</xpath>
 				<xpath expr="//page[@string='PO Line']/field/tree/field[@name='name']" position="attributes">
-					<attribute name='required'>1</attribute>
+					<attribute name='required'>0</attribute>
 				</xpath>
 				<xpath expr="//page[@string='PO Line']/field/tree/field[@name='date_planned']" position="attributes">
 					<attribute name='required'>0</attribute>
@@ -251,6 +251,20 @@
 				</xpath>
             </field>
 		</record>
+		
+		<record id="tpt_view_product_supplier_inherit_form" model="ir.ui.view">
+            <field name="name">tpt.view.product.supplier.inherit.form</field>
+            <field name="model">product.product</field>
+            <field name="inherit_id" ref="purchase.view_product_supplier_inherit"/>
+            <field name="arch" type="xml">
+				<xpath expr="//field[@name='purchase_ok']" position="replace">
+					<field name="purchase_ok" attrs="{'invisible':[('cate_name','=','finish')]}"/>
+				</xpath>
+				<xpath expr="//label[@for='purchase_ok']" position="replace">
+					<label for="purchase_ok" attrs="{'invisible':[('cate_name','=','finish')]}"/>
+				</xpath>
+			</field>
+		</record>
             
 		<record id="tpt_product_form" model="ir.ui.view">
             <field name="name">tpt.product.form</field>
@@ -261,6 +275,12 @@
 					<field name="cate_name" invisible='1'/>
 					<field name="batch_appli_ok" on_change="onchange_batch_appli_ok(batch_appli_ok)" attrs="{'invisible':[('cate_name','!=','finish')]}"/>
 					<label for = "batch_appli_ok" attrs="{'invisible':[('cate_name','!=','finish')]}"/>
+				</xpath>
+				<xpath expr="//label[@for='sale_ok']" position="replace">
+					<label for = "sale_ok" attrs="{'invisible':[('cate_name','!=','finish')]}"/>
+				</xpath>
+				<xpath expr="//field[@name='sale_ok']" position="replace">
+					<field name= "sale_ok" attrs="{'invisible':[('cate_name','!=','finish')]}"/>
 				</xpath>
 				<xpath expr="//div[@class='oe_title']" position="inside">
 					<group>
@@ -366,7 +386,7 @@
 							<page string="Product details">
 								<field name="gate_in_pass_line" nolabel='1'>
 									<tree editable='top'>
-										<field name="po_indent_no" options="{'create': false, 'create_edit': false}"/>
+										<field name="po_indent_no" context="{'search_po_indent_no_gate_in_pass':True, 'po_id':parent.po_id}" options="{'create': false, 'create_edit': false}"/>
 										<field name="product_id" on_change="onchange_product_id(product_id)" options="{'create': false, 'create_edit': false}"/>
 										<field name="product_qty"/>
 										<field name="uom_po_id"/>
@@ -418,6 +438,8 @@
             <field name="arch" type="xml">
 	            <form string="Purchase Quotation" version="7.0">
 	            <header>
+	            		<button name = "bt_tick_mark" attrs="{'invisible': ['|',('quotation_cate','=','multiple'),('state','!=','draft')]}" icon = "STOCK_APPLY" string="Approve" type="object" />
+						<button name = "bt_cross_mark" confirm = "Do you want to cancel the Quotation ?" icon = "STOCK_CANCEL" states = "draft" string="Cancel" type="object" /> 
 	                    <field name="state" widget="statusbar" statusbar_visible="draft,cancel,done" statusbar_colors='{"draft":"blue","cancel":"blue"}'/>
 	            </header>    
 	            	<sheet>
@@ -562,9 +584,13 @@
             <field name="model">tpt.comparison.chart</field>
             <field name="arch" type="xml">
 	            <form string="Comparison Chart" version="7.0" >
+	            <header>
+	            		<button name="bt_print" string="View/Print Comparison Chart" type="object" class="oe_highlight" />
+	            		<button name="bt_load" string="Load Comparison Chart" type="object" class="oe_highlight" />
+	            </header>    
 	            	<sheet>
 	                   	 <group col="4" colspan="2" >
-	                   	 	<field name="name" on_change="onchange_request_quotation(name)" options="{'create': false, 'create_edit': false}" />
+	                   	 	<field name="name" on_change="onchange_request_quotation(name)" options="{'create': false, 'create_edit': false}" context="{'search_rfq_id':True}" />
 							<field name="date" />
 							<field name="quotation_cate" />
 							<field name="create_uid" />
@@ -573,20 +599,21 @@
 						<page>
 							<div col='4' colspan='4' class="oe_green_erp_scroll">
 							<field name="comparison_chart_line" nolabel='1'>
-								<tree string="Comparison Chart" create='false'>
-									<field name="name"  />
-									<field name="date_quotation" />
-									<field name="supplier_id" />
-									<field name="supplier_location_id" />
-									<field name="amount_basic" />
-									<field name="amount_p_f" />
-									<field name="amount_ed" />
-									<field name="amount_total_tax"/>
-									<field name="amount_fright" />
-									<field name="amount_gross" />
-									<field name="amount_net" />
-									<field name="payment_term_id" />
-									<field name="schedule"/>
+								<tree string="Comparison Chart" editable='top' create='false' delete='false'>
+									<field name="select" readonly = '0'  />
+									<field name="name"  readonly = '1'/>
+									<field name="date_quotation" readonly = '1'/>
+									<field name="supplier_id" readonly = '1'/>
+									<field name="supplier_location_id" readonly = '1'/>
+									<field name="amount_basic" readonly = '1'/>
+									<field name="amount_p_f" readonly = '1'/>
+									<field name="amount_ed" readonly = '1'/>
+									<field name="amount_total_tax" readonly = '1'/>
+									<field name="amount_fright" readonly = '1'/>
+									<field name="amount_gross" readonly = '1'/>
+									<field name="amount_net" readonly = '1'/>
+									<field name="payment_term_id" readonly = '1'/>
+									<field name="schedule" readonly = '1'/>
 									<field name="state" invisible="1" />
 									<button name = "bt_tick_mark" icon = "STOCK_APPLY" states = "draft" string="Tick" type="object" />
 									<button name = "bt_cross_mark" confirm = "Do you want to cancel the Quotation ?" icon = "STOCK_CANCEL" states = "draft" string="Cross" type="object" /> 
@@ -1258,5 +1285,8 @@
             <field name="search_view_id" ref="product.product_category_search_view"/>
             <field name="view_id" ref="product.product_category_list_view"/>
         </record>
+        
+        <menuitem name = 'GRN' action="stock.action_picking_tree4" id="stock.menu_action_picking_tree4" parent="stock.menu_stock_warehouse_mgmt" sequence="1"/>
+        
     </data>
 </openerp>
