@@ -45,7 +45,7 @@ class tpt_purchase_indent(osv.osv):
         'date_indent': fields.datetime.now,
         'name': '/',
         'intdent_cate':'normal',
-        'document_type':'base',
+#         'document_type':'base',
     }
     
     def bt_approve(self, cr, uid, ids, context=None):
@@ -168,6 +168,18 @@ class tpt_purchase_indent(osv.osv):
             dates = cr.dictfetchone()['date_indent']
         return {'value': {'date_expect':dates}}
     
+    def onchange_document_type(self, cr, uid, ids,document_type=False, context=None):
+        vals = {}
+        if document_type:
+            if document_type == 'base':
+                warning = {  
+                          'title': _('Warning!'),  
+                          'message': _('VV Level Based PR is not created by handle!   '),  
+                          }  
+                vals['document_type']=False
+                return {'value': vals,'warning':warning}
+        return {'value': vals}
+    
     def search(self, cr, uid, args, offset=0, limit=None, order=None, context=None, count=False):
         if context is None:
             context = {}
@@ -179,6 +191,22 @@ class tpt_purchase_indent(osv.osv):
                 cr.execute(sql)
                 quotation_ids = [row[0] for row in cr.fetchall()]
                 args += [('id','in',quotation_ids)]
+        if not context.get('quotation_no'):
+            if context.get('search_po_indent_no_emergency'):
+                sql = '''
+                    select id from tpt_purchase_indent where intdent_cate = 'emergency' and state = 'draft'
+                '''
+                cr.execute(sql)
+                emergency_ids = [row[0] for row in cr.fetchall()]
+                args += [('id','in',emergency_ids)]
+        if context.get('search_po_indent_no_gate_in_pass'):
+            if context.get('po_id'):
+                sql = '''
+                    select po_indent_no from purchase_order where id = %s
+                '''%(context.get('po_id'))
+                cr.execute(sql)
+                gate_ids = [row[0] for row in cr.fetchall()]
+                args += [('id','in',gate_ids)]
         return super(tpt_purchase_indent, self).search(cr, uid, args, offset=offset, limit=limit, order=order, context=context, count=count)
     
     def name_search(self, cr, user, name, args=None, operator='ilike', context=None, limit=100):
@@ -536,7 +564,7 @@ class tpt_gate_in_pass(osv.osv):
             gate_in_pass_line = []
             for line in po.order_line:
                 gate_in_pass_line.append({
-                            'po_indent_no': line.po_indent_no and line.po_indent_no.id or False,
+                            'po_indent_no': po.po_indent_no and po.po_indent_no.id or False,
                           'product_id': line.product_id and line.product_id.id or False,
                           'product_qty':line.product_qty or False,
                           'uom_po_id': line.product_uom and line.product_uom.id or False,
@@ -698,6 +726,7 @@ class tpt_purchase_quotation(osv.osv):
         'schedule':fields.char('Delivery Schedule',size = 1024),
         'comparison_chart_id':fields.many2one('tpt.comparison.chart','Comparison Chart'),
         'payment_term_id': fields.related('supplier_id','property_supplier_payment_term',type='many2one',relation='account.payment.term', string='Payment Term'),
+        'select':fields.boolean('Select'),
     }
     _defaults = {
         'state': 'draft',
@@ -713,7 +742,7 @@ class tpt_purchase_quotation(osv.osv):
         if context.get('search_quotation_no'):
             sql = '''
                 select id from tpt_purchase_quotation
-                where state != 'cancel' and id in (select quotation_no from purchase_order po,tpt_purchase_quotation pq where po.quotation_no = pq.id and po.state != 'cancel')
+                where state != 'cancel' and id not in (select quotation_no from purchase_order where state not in ('draft','cancel') and quotation_no is not null)
             '''
             cr.execute(sql)
             purchase_ids = [row[0] for row in cr.fetchall()]
@@ -723,58 +752,74 @@ class tpt_purchase_quotation(osv.osv):
        ids = self.search(cr, user, args, context=context, limit=limit)
        return self.name_get(cr, user, ids, context=context)
 
-#     def onchange_rfq_no_id(self, cr, uid, ids,rfq_no_id=False,product_id=False):
-#         res = {'value':{
-#                         'purchase_quotation_line':[],
-#                       }
-#                }
+    def onchange_rfq_no_id(self, cr, uid, ids,rfq_no_id=False,product_id=False):
+        res = {'value':{
+                        'purchase_quotation_line':[],
+                      }
+               }
+        if rfq_no_id:
+            rfq = self.pool.get('tpt.request.for.quotation').browse(cr, uid, rfq_no_id)
+            rfq_no_line = []
+#             if product_id:
+#                 product = self.pool.get('product.product').browse(cr, uid, product_id)
+             
+            for line in rfq.rfq_line:
+                rfq_no_line.append({
+                            'po_indent_id': line.po_indent_id and line.po_indent_id.id or False,
+                            'product_id': line.product_id and line.product_id.id or False,
+                            'product_uom_qty':line.product_uom_qty or False,
+                            'uom_id': line.uom_id and line.uom_id.id or False,
+                            'price_unit':line.product_id and line.product_id.standard_price or False,
+                    })
+        res['value'].update({
+                    'purchase_quotation_line': rfq_no_line,
+        })
+        return res
+    
+#     def onchange_rfq_no_id(self, cr, uid, ids,rfq_no_id=False):
+#         res = {}
+#         rfq_no_line = []
 #         if rfq_no_id:
+#             for quotation in self.browse(cr, uid, ids):
+#                 sql = '''
+#                     delete from tpt_purchase_quotation_line where purchase_quotation_id = %s
+#                 '''%(quotation.id)
+#                 cr.execute(sql)
 #             rfq = self.pool.get('tpt.request.for.quotation').browse(cr, uid, rfq_no_id)
 #             rfq_no_line = []
 # #             if product_id:
 # #                 product = self.pool.get('product.product').browse(cr, uid, product_id)
 #             
 #             for line in rfq.rfq_line:
-#                 rfq_no_line.append({
+#                 rfq_no_line.append((0,0,{
 #                             'po_indent_id': line.po_indent_id and line.po_indent_id.id or False,
 #                             'product_id': line.product_id and line.product_id.id or False,
 #                             'product_uom_qty':line.product_uom_qty or False,
 #                             'uom_id': line.uom_id and line.uom_id.id or False,
 #                             'price_unit':line.product_id and line.product_id.standard_price or False,
-#                     })
-#         res['value'].update({
-#                     'purchase_quotation_line': rfq_no_line,
-#         })
-#         return res
-    
-    def onchange_rfq_no_id(self, cr, uid, ids,rfq_no_id=False):
-        res = {}
-        rfq_no_line = []
-        if rfq_no_id:
-            for quotation in self.browse(cr, uid, ids):
-                sql = '''
-                    delete from tpt_purchase_quotation_line where purchase_quotation_id = %s
-                '''%(quotation.id)
-                cr.execute(sql)
-            rfq = self.pool.get('tpt.request.for.quotation').browse(cr, uid, rfq_no_id)
-            rfq_no_line = []
-#             if product_id:
-#                 product = self.pool.get('product.product').browse(cr, uid, product_id)
-            
-            for line in rfq.rfq_line:
-                rfq_no_line.append((0,0,{
-                            'po_indent_id': line.po_indent_id and line.po_indent_id.id or False,
-                            'product_id': line.product_id and line.product_id.id or False,
-                            'product_uom_qty':line.product_uom_qty or False,
-                            'uom_id': line.uom_id and line.uom_id.id or False,
-                            'price_unit':line.product_id and line.product_id.standard_price or False,
-                    }))
-        return {'value': {'purchase_quotation_line': rfq_no_line}}
+#                     }))
+#         return {'value': {'purchase_quotation_line': rfq_no_line}}
     
     def create(self, cr, uid, vals, context=None):
         if vals.get('name','/')=='/':
             vals['name'] = self.pool.get('ir.sequence').get(cr, uid, 'purchase.quotation') or '/'
-        return super(tpt_purchase_quotation, self).create(cr, uid, vals, context=context)  
+        new_id = super(tpt_purchase_quotation, self).create(cr, uid, vals, context)
+        quotation = self.browse(cr,uid,new_id)
+        if quotation.quotation_cate:
+            if quotation.quotation_cate != 'multiple':
+                if (len(quotation.purchase_quotation_line) > 1):
+                    raise osv.except_osv(_('Warning!'),_('You must choose Quotation category is multiple if you want more than one vendors!'))
+        return new_id  
+    
+    def write(self, cr, uid, ids, vals, context=None):
+        new_write = super(tpt_purchase_quotation, self).write(cr, uid,ids, vals, context)
+        for quotation in self.browse(cr,uid,ids):
+            if quotation.quotation_cate:
+                if quotation.quotation_cate != 'multiple':
+                    if (len(quotation.purchase_quotation_line) > 1):
+                        raise osv.except_osv(_('Warning!'),_('You must choose Quotation category is multiple if you want more than one vendors!'))
+        return new_write    
+    
     
     def onchange_supplier_location(self, cr, uid, ids,supplier_id=False, context=None):
         vals = {}
@@ -842,7 +887,7 @@ class tpt_purchase_quotation_line(osv.osv):
         amount_fright=0.0
         
         for line in self.browse(cr,uid,ids,context=context):
-            amount_basic = (line.product_uom_qty * line.price_unit)-((line.product_uom_qty * line.price_unit)*line.disc)
+            amount_basic = (line.product_uom_qty * line.price_unit)-((line.product_uom_qty * line.price_unit)*line.disc/100)
             if line.p_f_type == 1:
                amount_p_f = amount_basic * (line.p_f/100)
             else:
@@ -864,7 +909,7 @@ class tpt_purchase_quotation_line(osv.osv):
         'product_id': fields.many2one('product.product', 'Material Name',readonly = True),
         'product_uom_qty': fields.float('Qty', readonly = True),   
         'uom_id': fields.many2one('product.uom', 'UOM', readonly = True),
-        'price_unit': fields.float('Unit Price', required=True, readonly = True),
+        'price_unit': fields.float('Unit Price', required=True),
         'disc': fields.float('Disc'),
         'p_f': fields.float('P&F'),
         'p_f_type':fields.selection([('1','%'),('2','Rs')],('P&F Type')),
@@ -964,6 +1009,39 @@ class tpt_comparison_chart(osv.osv):
             quotation_ids = self.pool.get('tpt.purchase.quotation').search(cr, uid, [('rfq_no_id','=',vals['name']),('state','=','draft')])
             vals.update({'comparison_chart_line':[(6,0,quotation_ids)]})
         return super(tpt_comparison_chart, self).write(cr, uid,ids, vals, context=context)
+
+    def bt_load(self, cr, uid, ids, context=None):
+        for line in self.browse(cr, uid, ids):
+            quotation_ids = self.pool.get('tpt.purchase.quotation').search(cr, uid, [('rfq_no_id','=',line.name.id),('state','=','draft')])
+            vals={'comparison_chart_line':[(6,0,quotation_ids)]}
+            self.write(cr, uid,[line.id], vals, context=context)
+        return True
+
+    def bt_print(self, cr, uid, ids, context=None):
+        assert len(ids) == 1, 'This option should only be used for a single id at a time.'
+        sql = '''
+            select case when count(*)!=0 then count(*) else 0 end total_select from tpt_purchase_quotation where comparison_chart_id = %s and tpt_purchase_quotation.select = 'True'
+        '''%(ids[0])
+        cr.execute(sql)
+        total_select=cr.dictfetchone()['total_select']
+        if total_select > 4:
+            raise osv.except_osv(_('Warning!'),_('Should not choose more than 4 lines from Quotation !'))
+#             warning = {  
+#                           'title': _('Warning!'),  
+#                           'message': _('VV Level Based PR is not created by handle!   '),  
+#                           }  
+#             return {'warning':warning}
+        datas = {
+             'ids': ids,
+             'model': 'tpt.comparison.chart',
+             'form': self.read(cr, uid, ids[0], context=context)
+        }
+        return {
+            'type': 'ir.actions.report.xml',
+            'report_name': 'tpt_comparison_chart',
+#                 'datas': datas,
+#                 'nodestroy' : True
+        }
 
 tpt_comparison_chart()
 
@@ -1148,22 +1226,23 @@ class purchase_order(osv.osv):
         po_line = []
         if po_indent_no and not quotation_no:
             indent_lines = []
-            indent_ids = []
+#             indent_ids = []
             for line in self.browse(cr, uid, ids):
                 sql = '''
                     delete from purchase_order_line where order_id = %s
                 '''%(line.id)
                 cr.execute(sql)
             indent = self.pool.get('tpt.purchase.indent').browse(cr, uid, po_indent_no)
-            indent_ids = self.pool.get('tpt.purchase.indent').search(cr, uid, [('intdent_cate','=','emergency')])
+#             indent_ids = self.pool.get('tpt.purchase.indent').search(cr, uid, [('intdent_cate','=','emergency'),('state', '=', 'draft')])
             for indent_line in indent.purchase_product_line:
                 rs = {
                       'product_id': indent_line.product_id and indent_line.product_id.id or False,
                       'product_qty': indent_line.product_uom_qty or False,
                       'product_uom': indent_line.uom_po_id and indent_line.uom_po_id.id or False,
+                      'name': '/',
                       }
                 indent_lines.append((0,0,rs))
-            return {'value':{'order_line': indent_lines}, 'domain':{'po_indent_no':[('id','in',indent_ids)]}}
+            return {'value':{'order_line': indent_lines}}
         if quotation_no and po_indent_no:
             for indent in self.browse(cr, uid, ids):
                 sql = '''
@@ -1238,16 +1317,18 @@ class purchase_order(osv.osv):
             sql = '''update purchase_order set name='%s' where id =%s'''%(sequence+'/'+fiscalyear['code']or '/',new_id)
             cr.execute(sql)
             
-        date_order = datetime.datetime.strptime(new.date_order,'%Y-%m-%d')
-        date_order_month = date_order.month
-        date_order_year = date_order.year
-        sql = '''
-                select sum(amount_total) as total from purchase_order where EXTRACT(month from date_order) = %s and EXTRACT(year from date_order) = %s
-        '''%(date_order_month,date_order_year)
-        cr.execute(sql)
-        amount_total = cr.dictfetchone()
-        if (amount_total['total'] > 2000000):
-            raise osv.except_osv(_('Warning!'),_('The Emergency Purchase reaches 2 Lakhs Limit (2,000,000) in the current month. This can be processed only when the next month starts'))
+        if not new.quotation_no and new.po_indent_no:    
+            date_order = datetime.datetime.strptime(new.date_order,'%Y-%m-%d')
+            date_order_month = date_order.month
+            date_order_year = date_order.year
+            sql = '''
+                    select sum(amount_total) as total from purchase_order where EXTRACT(month from date_order) = %s and EXTRACT(year from date_order) = %s
+            '''%(date_order_month,date_order_year)
+            cr.execute(sql)
+            amount_total = cr.dictfetchone()
+            if (amount_total['total'] > 200000):
+                raise osv.except_osv(_('Warning!'),_('You are confirm %s the Emergency Purchase reaches 2 Lakhs Limit (2,00,000) in the current month. This can be processed only when the next month starts'%(amount_total['total'])))
+        
         if new.po_document_type == 'local':
             if new.quotation_no and new.quotation_no.quotation_cate:
                 if (new.amount_total > 5000):
@@ -1308,22 +1389,22 @@ class purchase_order(osv.osv):
                 cr.execute(sql)
             date_order = datetime.datetime.strptime(new.date_order,'%Y-%m-%d')
             
-            date_order_month = date_order.month
-            date_order_year = date_order.year
-            sql = '''
-                    select sum(amount_total) as total from purchase_order where EXTRACT(month from date_order) = %s and EXTRACT(year from date_order) = %s
-            '''%(date_order_month,date_order_year)
-            cr.execute(sql)
-            amount_total = cr.dictfetchone()
-            if (amount_total['total'] > 2000000):
-                raise osv.except_osv(_('Warning!'),_('The Emergency Purchase reaches 2 Lakhs Limit (2,000,000) in the current month. This can be processed only when the next month starts'))
-            
+            if not new.quotation_no and new.po_indent_no:
+                date_order_month = date_order.month
+                date_order_year = date_order.year
+                sql = '''
+                        select sum(amount_total) as total from purchase_order where EXTRACT(month from date_order) = %s and EXTRACT(year from date_order) = %s
+                '''%(date_order_month,date_order_year)
+                cr.execute(sql)
+                amount_total = cr.dictfetchone()
+                if (amount_total['total'] > 200000):
+                    raise osv.except_osv(_('Warning!'),_('You are confirm %s the Emergency Purchase reaches 2 Lakhs Limit (2,00,000) in the current month. This can be processed only when the next month starts'%(amount_total['total'])))
+                
                 if new.po_document_type == 'local':
                     if new.quotation_no and new.quotation_no.quotation_cate:
                         if (new.amount_total > 5000):
                             raise osv.except_osv(_('Warning!'),_('Can not process because Total > 5000 for VV Local PO'))
                         
-            
             if new.quotation_no and new.po_indent_no:
                 sql = '''
                             select product_id, sum(product_qty) as po_product_qty from purchase_order_line where order_id = %s group by product_id
@@ -1364,7 +1445,7 @@ class purchase_order(osv.osv):
         if context.get('search_po_id'):
             sql = '''
                 select id from purchase_order 
-                where state != 'cancel' and id not in (select po_id from tpt_gate_in_pass gate,purchase_order po where gate.po_id = po.id and gate.state != 'cancel')
+                where state != 'cancel' and id not in (select po_id from tpt_gate_in_pass gate where gate.state != 'draft' and po_id is not null)
             '''
             cr.execute(sql)
             po_ids = [row[0] for row in cr.fetchall()]
@@ -1972,6 +2053,24 @@ class tpt_request_for_quotation(osv.osv):
                'name':'/',
                'state': 'draft',
     }
+    
+    def search(self, cr, uid, args, offset=0, limit=None, order=None, context=None, count=False):
+        if context is None:
+            context = {}
+        if context.get('search_rfq_id'):
+            sql = '''
+                select id from tpt_request_for_quotation 
+                where state != 'cancel' and id not in (select cc.name from tpt_comparison_chart cc ,tpt_request_for_quotation rfq where cc.name = rfq.id)
+            '''
+            cr.execute(sql)
+            po_ids = [row[0] for row in cr.fetchall()]
+            args += [('id','in',po_ids)]
+        return super(tpt_request_for_quotation, self).search(cr, uid, args, offset=offset, limit=limit, order=order, context=context, count=count)    
+
+    def name_search(self, cr, user, name, args=None, operator='ilike', context=None, limit=100):
+       ids = self.search(cr, user, args, context=context, limit=limit)
+       return self.name_get(cr, user, ids, context=context)
+      
     def bt_approve(self, cr, uid, ids, context=None):
         return self.write(cr, uid, ids,{'state':'done'})
     
@@ -1990,12 +2089,13 @@ class tpt_request_for_quotation(osv.osv):
         return new_id
     
     def write(self, cr, uid, ids, vals, context=None):
+        new_write = super(tpt_request_for_quotation, self).write(cr, uid,ids, vals, context)
         for rfq in self.browse(cr,uid,ids):
             if rfq.rfq_category:
                 if rfq.rfq_category != 'mutiple':
                     if (len(rfq.rfq_supplier) > 1):
                         raise osv.except_osv(_('Warning!'),_('You must choose RFQ category is multiple if you want more than one vendors!'))
-        return super(tpt_request_for_quotation, self).write(cr, uid,ids, vals, context)
+        return new_write
     
 tpt_request_for_quotation()
 
