@@ -11,6 +11,8 @@ from openerp.osv import osv
 from openerp.tools.translate import _
 import random
 from green_erp_arulmani_sale.report import amount_to_text_en
+from green_erp_arulmani_sale.report import amount_to_text_indian
+from amount_to_text_indian import Number2Words
 DATETIME_FORMAT = "%Y-%m-%d %H:%M:%S"
 DATE_FORMAT = "%Y-%m-%d"
 
@@ -31,7 +33,9 @@ class Parser(report_sxw.rml_parse):
             'get_qty_bags': self.get_qty_bags,
 #             'get_qty_bags_gross': self.get_qty_bags_gross,
             'get_total': self.get_total,
+            'get_ed_example': self.get_ed_example,
             'get_total_example': self.get_total_example,
+            'get_excise_duty': self.get_excise_duty,
         })
     
     def get_date(self, date=False):
@@ -46,9 +50,15 @@ class Parser(report_sxw.rml_parse):
             val = val + ((line.quantity*line.price_unit)+(line.quantity*line.price_unit)*(excise_duty_id.amount/100))+(((line.quantity*line.price_unit)+(line.quantity*line.price_unit)*(excise_duty_id.amount/100))*sale_tax_id.amount/100)+line.freight
         return round(val, 2)
     
-    def amount_to_text(self, nbr, lang='en'):
-        if lang == 'en':
-            return amount_to_text_en.amount_to_text(nbr, lang, 'inr').upper()
+#     def amount_to_text(self, nbr, lang='en'):
+#         if lang == 'en':
+#             return amount_to_text_en.amount_to_text(nbr, lang, 'inr').upper()
+        
+    def amount_to_text(self, number):
+        text = Number2Words().convertNumberToWords(number).upper()
+        if text and len(text)>3 and text[:3]=='AND':
+            text = text[3:]
+        return text
          
     def get_total(self, quantity, price_unit, freight, excise_duty_id, sale_tax_id):
         val = ((quantity*price_unit)+(quantity*price_unit)*(excise_duty_id.amount/100))+(((quantity*price_unit)+(quantity*price_unit)*(excise_duty_id.amount/100))*sale_tax_id.amount/100)+freight
@@ -101,9 +111,28 @@ class Parser(report_sxw.rml_parse):
                 mt_qty = qty*50/1000
             if unit.lower()=='bags' and type == 'export':
                 mt_qty = qty*25/1000
-            if unit.lower() in ['tonne','mt','metricton','metrictons']:
+            if unit.lower() in ['tonne','tonnes','mt','metricton','metrictons']:
                 mt_qty = qty
         return round(mt_qty, 2)
+    
+    def get_ed_example(self,invoice_line,excise_duty_id,sale_tax_id):
+        rate = 0.0
+        gross = 0.0
+        basic_ed = 0.0
+        edu_cess = 0.0
+        sec_edu_cess = 0.0
+        total = 0.0
+        cst = 0.0
+        total_amount = 0.0
+        for line in invoice_line:
+            qty_mt = self.get_qty_mt(line.quantity,line.uos_id.name,'domestic')
+            rate = line.price_unit or 0
+            gross = round(qty_mt * rate,2)
+            basic_ed += round((gross*round(excise_duty_id,0)/100),2)
+        return round(basic_ed,0)
+    
+    def get_excise_duty(self, excise_duty_id):
+        return round(excise_duty_id,0)
     
     def get_total_example(self,invoice_line,excise_duty_id,sale_tax_id):
         rate = 0.0
@@ -118,11 +147,11 @@ class Parser(report_sxw.rml_parse):
             qty_mt = self.get_qty_mt(line.quantity,line.uos_id.name,'domestic')
             rate = line.price_unit or 0
             gross = round(qty_mt * rate,2)
-            basic_ed = round((gross*excise_duty_id/100),2)
+            basic_ed = round((gross*round(excise_duty_id,0)/100),2)
             edu_cess = round(basic_ed * 2 / 100,2)
             sec_edu_cess =  round(basic_ed * 1 / 100, 2)
             total = round(gross + basic_ed + edu_cess + sec_edu_cess, 2)
             cst = round(total * sale_tax_id / 100,2)
-            total_amount += round(gross + basic_ed + edu_cess + sec_edu_cess + total +cst, 2)
-        return round(total_amount,2)
+            total_amount += round(total +cst, 2)
+        return round(total_amount,0)
     

@@ -136,19 +136,19 @@ class sale_order(osv.osv):
         'zip': fields.char('', size = 1024),
         'amount_untaxed': fields.function(_amount_all, digits_compute=dp.get_precision('Account'), string='Untaxed Amount',
             store={
-                'sale.order': (lambda self, cr, uid, ids, c={}: ids, ['order_line'], 10),
+                'sale.order': (lambda self, cr, uid, ids, c={}: ids, ['order_line','sale_tax_id'], 10),
                 'sale.order.line': (_get_order, ['price_unit', 'tax_id', 'discount', 'product_uom_qty'], 10),
             },
             multi='sums', help="The amount without tax.", track_visibility='always'),
         'amount_tax': fields.function(_amount_all, digits_compute=dp.get_precision('Account'), string='Taxes',
             store={
-                'sale.order': (lambda self, cr, uid, ids, c={}: ids, ['order_line'], 10),
+                'sale.order': (lambda self, cr, uid, ids, c={}: ids, ['order_line','sale_tax_id'], 10),
                 'sale.order.line': (_get_order, ['price_unit', 'tax_id', 'discount', 'product_uom_qty'], 10),
             },
             multi='sums', help="The tax amount."),
         'amount_total': fields.function(_amount_all, digits_compute=dp.get_precision('Account'), string='Total',
             store={
-                'sale.order': (lambda self, cr, uid, ids, c={}: ids, ['order_line'], 10),
+                'sale.order': (lambda self, cr, uid, ids, c={}: ids, ['order_line','sale_tax_id'], 10),
                 'sale.order.line': (_get_order, ['price_unit', 'tax_id', 'discount', 'product_uom_qty'], 10),
             },
             multi='sums', help="The total amount."),
@@ -257,7 +257,7 @@ class sale_order(osv.osv):
         if blanket_line_id:
             blanket_line = self.pool.get('tpt.blank.order.line').browse(cr, uid, blanket_line_id)
             sql = '''
-                select case when sum(product_uom_qty)!=0 then sum(product_uom_qty) else 0 end product_uom_qty from sale_order_line where order_id in (select id from sale_order where blanket_line_id=%s)
+                select case when sum(product_uom_qty)!=0 then sum(product_uom_qty) else 0 end product_uom_qty from sale_order_line where order_id in (select id from sale_order where blanket_line_id=%s and state!='cancel')
             '''%(blanket_line.id)
             cr.execute(sql)
             product_uom_qty = cr.dictfetchone()['product_uom_qty']
@@ -320,7 +320,7 @@ class sale_order(osv.osv):
                     wf_service.trg_validate(uid, 'account.invoice', inv, 'invoice_cancel', cr)
             sale_order_line_obj.write(cr, uid, [l.id for l in  sale.order_line],
                     {'state': 'cancel'})
-            sale_order_ids = self.pool.get('tpt.batch.request').search(cr,uid,[('sale_order_id', '=',sale.id )])
+            sale_order_ids = self.pool.get('tpt.batch.request').search(cr,uid,[('sale_order_id', '=',sale.id ),('state','!=','cancel')])
             if sale_order_ids:
                 raise osv.except_osv(_('Warning!'),_('Sale Order has already existed on Batch Request'))
         self.write(cr, uid, ids, {'state': 'cancel'})
@@ -328,11 +328,12 @@ class sale_order(osv.osv):
              update sale_order set document_status='cancelled' where id = %s
             '''%(sale.id)
         cr.execute(sql)
-        sql_stt3 = '''
-              update tpt_blanket_order set state='draft' where id = %s
-               '''%(sale.blanket_id.id)
-        cr.execute(sql_stt3)
-        
+#         sql_stt3 = '''
+#               update tpt_blanket_order set state='draft' where id = %s
+#                '''%(sale.blanket_id.id)
+#         cr.execute(sql_stt3)
+        return True
+    
     def create(self, cr, uid, vals, context=None):
         if vals.get('name','/')=='/':
             vals['name'] = self.pool.get('ir.sequence').get(cr, uid, 'tpt.sale.order.import') or '/'
@@ -340,7 +341,7 @@ class sale_order(osv.osv):
         sale = self.browse(cr, uid, new_id)
         
         sql = '''
-            select case when sum(product_uom_qty)!=0 then sum(product_uom_qty) else 0 end product_uom_qty from sale_order_line where order_id in (select id from sale_order where blanket_line_id=%s and id!=%s)
+            select case when sum(product_uom_qty)!=0 then sum(product_uom_qty) else 0 end product_uom_qty from sale_order_line where order_id in (select id from sale_order where blanket_line_id=%s and id!=%s and state!='cancel')
         '''%(sale.blanket_line_id.id,sale.id)
         cr.execute(sql)
         product_uom_qty = cr.dictfetchone()['product_uom_qty']
@@ -350,7 +351,7 @@ class sale_order(osv.osv):
         
         sql = '''
             select case when sum(product_uom_qty)!=0 then sum(product_uom_qty) else 0 end product_uom_qty
-                from sale_order_line where order_id in (select id from sale_order where blanket_id=%s)
+                from sale_order_line where order_id in (select id from sale_order where blanket_id=%s and state!='cancel')
         '''%(sale.blanket_id.id)
         cr.execute(sql)
         product_uom_qty_sale = cr.dictfetchone()['product_uom_qty']
@@ -383,7 +384,7 @@ class sale_order(osv.osv):
                     cr.execute(sql)
             sql = '''
                 select case when sum(product_uom_qty)!=0 then sum(product_uom_qty) else 0 end product_uom_qty from sale_order_line
-                    where order_id in (select id from sale_order where blanket_line_id=%s and id!=%s)
+                    where order_id in (select id from sale_order where blanket_line_id=%s and id!=%s and state!='cancel')
             '''%(sale.blanket_line_id.id,sale.id)
             cr.execute(sql)
             product_uom_qty = cr.dictfetchone()['product_uom_qty']
@@ -393,7 +394,7 @@ class sale_order(osv.osv):
             
             sql = '''
                 select case when sum(product_uom_qty)!=0 then sum(product_uom_qty) else 0 end product_uom_qty
-                    from sale_order_line where order_id in (select id from sale_order where blanket_id=%s)
+                    from sale_order_line where order_id in (select id from sale_order where blanket_id=%s and state!='cancel')
             '''%(sale.blanket_id.id)
             cr.execute(sql)
             product_uom_qty_sale = cr.dictfetchone()['product_uom_qty']
@@ -591,35 +592,35 @@ class sale_order(osv.osv):
         assert len(ids) == 1, 'This option should only be used for a single id at a time.'
         
         sale = self.browse(cr, uid, ids[0])
-        for line in sale.order_line:
-            if (line.product_id.track_production==True and line.product_id.track_incoming==True and line.product_id.track_outgoing==True):
-                sql = '''
-                        select product_id, sum(product_uom_qty) as product_qty from sale_order_line where order_id = %s group by product_id
-                        '''%(sale.id)
-                cr.execute(sql)
-                for order_line in cr.dictfetchall():
-                    sql = '''
-                    SELECT sum(onhand_qty) onhand_qty
-                    From
-                    (SELECT
-                           
-                        case when loc1.usage != 'internal' and loc2.usage = 'internal'
-                        then stm.primary_qty
-                        else
-                        case when loc1.usage = 'internal' and loc2.usage != 'internal'
-                        then -1*stm.primary_qty 
-                        else 0.0 end
-                        end onhand_qty
-                                
-                    FROM stock_move stm 
-                        join stock_location loc1 on stm.location_id=loc1.id
-                        join stock_location loc2 on stm.location_dest_id=loc2.id
-                    WHERE stm.state= 'done' and product_id=%s)foo
-                    '''%(order_line['product_id'])
-                    cr.execute(sql)
-                    onhand_qty = cr.dictfetchone()['onhand_qty']
-                    if (order_line['product_qty'] > onhand_qty):
-                        raise osv.except_osv(_('Warning!'),_('You are confirm %s but only %s available for this product in stock.' %(order_line['product_qty'], onhand_qty)))
+#         for line in sale.order_line:
+#             if (line.product_id.track_production==True and line.product_id.track_incoming==True and line.product_id.track_outgoing==True):
+#                 sql = '''
+#                         select product_id, sum(product_uom_qty) as product_qty from sale_order_line where order_id = %s group by product_id
+#                         '''%(sale.id)
+#                 cr.execute(sql)
+#                 for order_line in cr.dictfetchall():
+#                     sql = '''
+#                     SELECT sum(onhand_qty) onhand_qty
+#                     From
+#                     (SELECT
+#                            
+#                         case when loc1.usage != 'internal' and loc2.usage = 'internal'
+#                         then stm.primary_qty
+#                         else
+#                         case when loc1.usage = 'internal' and loc2.usage != 'internal'
+#                         then -1*stm.primary_qty 
+#                         else 0.0 end
+#                         end onhand_qty
+#                                 
+#                     FROM stock_move stm 
+#                         join stock_location loc1 on stm.location_id=loc1.id
+#                         join stock_location loc2 on stm.location_dest_id=loc2.id
+#                     WHERE stm.state= 'done' and product_id=%s)foo
+#                     '''%(order_line['product_id'])
+#                     cr.execute(sql)
+#                     onhand_qty = cr.dictfetchone()['onhand_qty']
+#                     if (order_line['product_qty'] > onhand_qty):
+#                         raise osv.except_osv(_('Warning!'),_('You are confirm %s but only %s available for this product in stock.' %(order_line['product_qty'], onhand_qty)))
         
         wf_service = netsvc.LocalService('workflow')
         wf_service.trg_validate(uid, 'sale.order', ids[0], 'order_confirm', cr)
@@ -967,17 +968,17 @@ class tpt_blanket_order(osv.osv):
         'blank_order_line': fields.one2many('tpt.blank.order.line', 'blanket_order_id', 'Sale Order', states={'cancel': [('readonly', True)], 'done':[('readonly', True)], 'approve':[('readonly', True)]}),
         'amount_untaxed': fields.function(amount_all_blanket_orderline, multi='sums',string='Untaxed Amount',
                                          store={
-                'tpt.blanket.order': (lambda self, cr, uid, ids, c={}: ids, ['blank_order_line'], 10),
+                'tpt.blanket.order': (lambda self, cr, uid, ids, c={}: ids, ['blank_order_line','sale_tax_id'], 10),
                 'tpt.blank.order.line': (_get_order, ['price_unit', 'sub_total', 'product_uom_qty'], 10),}, 
             states={'cancel': [('readonly', True)], 'done':[('readonly', True)], 'approve':[('readonly', True)]}),
         'amount_tax': fields.function(amount_all_blanket_orderline, multi='sums',string='Taxes',
                                       store={
-                'tpt.blanket.order': (lambda self, cr, uid, ids, c={}: ids, ['blank_order_line'], 10),
+                'tpt.blanket.order': (lambda self, cr, uid, ids, c={}: ids, ['blank_order_line', 'sale_tax_id'], 10),
                 'tpt.blank.order.line': (_get_order, ['price_unit', 'sub_total', 'product_uom_qty'], 10), }, 
             states={'cancel': [('readonly', True)], 'done':[('readonly', True)], 'approve':[('readonly', True)]}),
         'amount_total': fields.function(amount_all_blanket_orderline, multi='sums',string='Total',
                                         store={
-                'tpt.blanket.order': (lambda self, cr, uid, ids, c={}: ids, ['blank_order_line'], 10),
+                'tpt.blanket.order': (lambda self, cr, uid, ids, c={}: ids, ['blank_order_line', 'sale_tax_id'], 10),
                 'tpt.blank.order.line': (_get_order, ['price_unit', 'sub_total', 'product_uom_qty'], 10), },
              states={'cancel': [('readonly', True)], 'done':[('readonly', True)], 'approve':[('readonly', True)]}),
         
@@ -1210,7 +1211,7 @@ class tpt_blank_order_line(osv.osv):
                 blanketline_ids = self.pool.get('tpt.blank.order.line').search(cr, uid, [('blanket_order_id','=',blanket_id)])
                 for blanketline in self.pool.get('tpt.blank.order.line').browse(cr, uid, blanketline_ids):
                     sql = '''
-                        select case when sum(product_uom_qty)!=0 then sum(product_uom_qty) else 0 end product_uom_qty from sale_order_line where order_id in (select id from sale_order where blanket_line_id=%s)
+                        select case when sum(product_uom_qty)!=0 then sum(product_uom_qty) else 0 end product_uom_qty from sale_order_line where order_id in (select id from sale_order where blanket_line_id=%s and state!='cancel')
                     '''%(blanketline.id)
                     cr.execute(sql)
                     product_uom_qty = cr.dictfetchone()['product_uom_qty']
@@ -1570,8 +1571,8 @@ class tpt_batch_allotment(osv.osv):
             cr.execute(sql)
             for request_line in cr.dictfetchall():
                 if (allot_line['product_id']==request_line['product_id']):
-                    if (allot_line['allot_product_qty'] > request_line['request_product_qty']):
-                        raise osv.except_osv(_('Warning!'),_('You are input %s quantity in batch allotment but only %s quantity in batch request for this product.' %(allot_line['allot_product_qty'], request_line['request_product_qty'])))
+                    if (allot_line['allot_product_qty'] != request_line['request_product_qty']):
+                        raise osv.except_osv(_('Warning!'),_('The product quantity in batch allotment must as same as the product quantity in batch request!'))
         return new_id
     
     def write(self, cr, uid, ids, vals, context=None):
@@ -1588,8 +1589,8 @@ class tpt_batch_allotment(osv.osv):
                 cr.execute(sql)
                 for request_line in cr.dictfetchall():
                     if (allot_line['product_id']==request_line['product_id']):
-                        if (allot_line['allot_product_qty'] > request_line['request_product_qty']):
-                            raise osv.except_osv(_('Warning!'),_('You are input %s quantity in batch allotment but only %s quantity in batch request for this product.' %(allot_line['allot_product_qty'], request_line['request_product_qty'])))
+                        if (allot_line['allot_product_qty'] != request_line['request_product_qty']):
+                            raise osv.except_osv(_('Warning!'),_('The product quantity in batch allotment must as same as the product quantity in batch request!'))
         return new_write
     def confirm(self, cr, uid, ids, context=None):
         return self.write(cr, uid, ids, {'state': 'confirm'})
@@ -1657,7 +1658,18 @@ class tpt_batch_allotment(osv.osv):
     def refuse(self, cr, uid, ids, context=None):
         return self.write(cr, uid, ids, {'state': 'refuse'})
     def cancelled(self, cr, uid, ids, context=None):
-        return self.write(cr, uid, ids, {'state': 'cancel'})
+        for batch in self.browse(cr, uid, ids):
+            if batch.sale_order_id:
+                sql='''
+                    select id from stock_picking do where do.sale_id = %s and do.state = 'done' 
+                '''%(batch.sale_order_id.id)
+                cr.execute(sql)
+                do_ids = cr.fetchone()
+                if do_ids:
+                    raise osv.except_osv(_('Warning!'),_('Delivery Order of this Batch Allotment is delivered. Can not cancel!'))
+                else: 
+                    write_id = self.write(cr, uid, ids, {'state': 'cancel'})
+        return write_id
     def onchange_batch_request_id(self, cr, uid, ids,batch_request_id=False):
         res = {'value':{
                         'name':False,
@@ -1938,6 +1950,32 @@ class tpt_batch_allotment_line(osv.osv):
                 vals['sys_batch']= sys_batch
                 vals['phy_batch']= batch.phy_batch_no
         return {'value': vals}
+    
+    def onchange_product_id(self, cr, uid, ids,product_id=False,request_id=False,context=None):
+        res = {'value':{
+                        'product_type':False,
+                        'application_id':False,
+                        'uom_po_id':False,
+                        }}
+        if product_id and request_id:
+            product_info_obj = self.pool.get('tpt.product.information')
+            product_info_ids = product_info_obj.search(cr, uid, [('product_id','=',product_id),('product_information_id','=',request_id)])
+            product_info_id = product_info_obj.browse(cr, uid, product_info_ids)
+            if product_info_id:
+                for product in product_info_id:
+                    res['value'].update({
+                                         'product_type':product.product_type or False,
+                                        'application_id':product.application_id or False,
+                                        'uom_po_id':product.uom_po_id and product.uom_po_id.id or False,
+                                         })
+        else:
+            res['value'].update({
+                             'product_type':False,
+                            'application_id':False,
+                            'uom_po_id':False,
+                             })
+        return res
+
 tpt_batch_allotment_line()
 
 class tpt_pgi(osv.osv):

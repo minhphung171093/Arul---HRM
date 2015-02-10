@@ -63,7 +63,7 @@ class Parser(report_sxw.rml_parse):
                 mt_qty = qty*50/1000
             if unit.lower()=='bags' and type == 'export':
                 mt_qty = qty*25/1000
-            if unit.lower() in ['tonne','mt','metricton','metrictons']:
+            if unit.lower() in ['tonne','tonnes','mt','metricton','metrictons']:
                 mt_qty = qty
         return mt_qty
     

@@ -7,8 +7,8 @@
 	        <field eval="20" name="priority"/>
 	        <field name="arch" type="xml">
 	            <form string="Alert" version="7.0">
-	            	<label string="Not able to process DO due to exceed of credit limit. Need management approval to proceed further!"/>
-	                <field name="name" nolabel="1" invisible="1"/>
+	            	<!--<label string="Not able to process DO due to exceed of credit limit. Need management approval to proceed further!"/>-->
+	                <field name="name" nolabel="1" invisible="0"/>
 	                <footer>
 	                    <button string="Ok" class="oe_highlight" special="cancel" />
 	                </footer>
