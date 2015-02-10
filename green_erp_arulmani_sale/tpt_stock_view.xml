@@ -120,8 +120,8 @@
 					<field name="location_dest_id" required = '1' domain="[('id','!=',location_id), ('usage','in', ['internal']),('chained_location_type','&lt;&gt;','customer')]" string = "Destination Location" options="{'create': false, 'create_edit': false}"/>
 				</xpath> 
 				
-				<xpath expr="//field[@name='invoice_state']" position="attributes">
-					<attribute name="invisible">1</attribute>
+				<xpath expr="//field[@name='invoice_state']" position="replace">
+					<field name="invoice_state" invisible="1"/>
 				</xpath> 
 				
 				<xpath expr="//page[@string='Products']" position="replace">
@@ -283,6 +283,11 @@
             <field name="model">stock.picking.out</field>
             <field name="inherit_id" ref="stock.view_picking_out_form"/>
             <field name="arch" type="xml">
+            
+            	<xpath expr="//field[@name='invoice_state']" position="replace">
+					<field name="invoice_state" invisible="1"/>
+				</xpath> 
+            	
             	<button name="%(stock.act_stock_return_picking)d" position="after">
             		<button name="management_confirm" string="Management Confirm" attrs="{'invisible': ['|',('doc_status','!=','waiting'),('flag_confirm','=',True)]}" type="object" icon="gtk-apply" 
 		                confirm="This Delivery Order is reached the credit limit. Do you want to confirm this Delivery Order?"
