@@ -972,6 +972,7 @@ class tpt_import_leave_balance(osv.osv):
                     leave_type_coff_ids = leave_type_obj.search(cr, uid, [('code','=','C.Off')])
                     if not leave_type_cl_ids or not leave_type_sl_ids or not leave_type_pl_ids or not leave_type_coff_ids:
                         raise osv.except_osv(_('Warning!'), ' Line: '+str(dem+1))
+                    dem += 1
                     employee_leave_obj.create(cr, uid, {
                         'employee_id': emp_id,
                         'year': year,
