@@ -305,12 +305,12 @@ class product_category(osv.osv):
     def _check_product_category(self, cr, uid, ids, context=None):
         for pro_cate in self.browse(cr, uid, ids, context=context):
             sql = '''
-                 select id from product_category where id != %s and cate_name = '%s'
-             '''%(pro_cate.id,pro_cate.cate_name)
+                 select id from product_category where id != %s and (cate_name = '%s' or name = '%s')
+             '''%(pro_cate.id,pro_cate.cate_name, pro_cate.name)
             cr.execute(sql)
             code_ids = [row[0] for row in cr.fetchall()]
             if code_ids:
-                raise osv.except_osv(_('Warning!'),_(' Product Category Name should be unique!'))
+                raise osv.except_osv(_('Warning!'),_(' Product Category Name or Code should be unique!'))
 #             pro_cate_ids = self.search(cr, uid, [('id','!=',pro_cate.id),('name','=',pro_cate.name),('cate_name', '=',pro_cate.cate_name)])
 #             if pro_cate_ids:
 #                 raise osv.except_osv(_('Warning!'),_(' Product Category Code and Name should be unique!'))    
@@ -330,6 +330,7 @@ class product_category(osv.osv):
  
         for record in reads:
             cate_name = record['cate_name']
+            name = ''
             if cate_name == 'raw':
                 name = 'Raw Materials'
             if cate_name == 'finish':
