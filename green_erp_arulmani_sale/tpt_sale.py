@@ -1136,6 +1136,7 @@ class tpt_blank_order_line(osv.osv):
                 }
     _defaults = {
         'expected_date': time.strftime('%Y-%m-%d'),
+        'product_uom_qty': 1,
     }
     def _check_product(self, cr, uid, ids, context=None):
         for product in self.browse(cr, uid, ids, context=context):
