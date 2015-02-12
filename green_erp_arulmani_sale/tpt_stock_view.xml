@@ -385,6 +385,11 @@
 						</field>
 					</page>
             	</xpath>
+            	
+            	<xpath expr="//button[@name='force_assign']" position="attributes">
+					<attribute name="invisible">1</attribute>
+				</xpath>
+            	
             </field>
         </record>
     </data>
