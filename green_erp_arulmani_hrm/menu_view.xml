@@ -148,5 +148,12 @@
             <menuitem action="action_tpt_cost_center_form"
 	            id="menu_action_tpt_cost_center_form"
 	            parent="menu_vvti_hr_global_master" sequence="15"/>
+	            
+	            
+	    <menuitem id="green_erp_arulmani_crm.menu_list_employee_report"
+	    	name="List Employee Report"
+	    	action="green_erp_arulmani_crm.action_list_employee_report"
+	    	parent="hr.menu_hr_main" sequence="22"
+	    	groups="group_vvti_hrm_hr_key_user,group_vvti_hrm_time_user,group_vvti_hrm_hr_manager,group_vvti_hrm_payroll_controller"/>
     </data>
 </openerp>
