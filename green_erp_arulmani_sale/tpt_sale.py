@@ -1386,14 +1386,15 @@ class tpt_batch_request(osv.osv):
             sale = self.pool.get('sale.order').browse(cr, uid, vals['sale_order_id'])
             product_lines = []
             for line in sale.order_line:
-                rs = {
-                        'product_id': line.product_id.id,
-                        'product_type': line.product_type,
-                        'application_id': line.application_id.id,
-                        'product_uom_qty': line.product_uom_qty,
-                        'uom_po_id': line.product_uom.id,
-                      }
-                product_lines.append((0,0,rs))
+                if line.product_id.track_production and line.product_id.track_incoming and line.product_id.track_outgoing:
+                    rs = {
+                            'product_id': line.product_id.id,
+                            'product_type': line.product_type,
+                            'application_id': line.application_id.id,
+                            'product_uom_qty': line.product_uom_qty,
+                            'uom_po_id': line.product_uom.id,
+                          }
+                    product_lines.append((0,0,rs))
             vals.update({'customer_id':sale.partner_id.id, 'product_information_line': product_lines})
         return super(tpt_batch_request, self).write(cr, uid,ids, vals, context)
     
@@ -1446,14 +1447,15 @@ class tpt_batch_request(osv.osv):
             sale = self.pool.get('sale.order').browse(cr, uid, vals['sale_order_id'])
             product_lines = []
             for line in sale.order_line:
-                rs = {
-                        'product_id': line.product_id.id,
-                        'product_type': line.product_type,
-                        'application_id': line.application_id.id,
-                        'product_uom_qty': line.product_uom_qty,
-                        'uom_po_id': line.product_uom.id,
-                      }
-                product_lines.append((0,0,rs))
+                if line.product_id.track_production and line.product_id.track_incoming and line.product_id.track_outgoing:
+                    rs = {
+                            'product_id': line.product_id.id,
+                            'product_type': line.product_type,
+                            'application_id': line.application_id.id,
+                            'product_uom_qty': line.product_uom_qty,
+                            'uom_po_id': line.product_uom.id,
+                          }
+                    product_lines.append((0,0,rs))
             vals.update({'customer_id':sale.partner_id.id, 'product_information_line': product_lines})
         return super(tpt_batch_request, self).create(cr, uid, vals, context=context)
     
@@ -1558,6 +1560,17 @@ class tpt_batch_allotment(osv.osv):
     _defaults = {
               'state': 'to_approve',
     }
+    
+    def unlink(self, cr, uid, ids, context=None):
+        stat = self.read(cr, uid, ids, ['state'], context=context)
+        unlink_ids = []
+        for t in stat:
+            if t['state'] in ('cancel','to_approve'):
+                unlink_ids.append(t['id'])
+            else:
+                raise osv.except_osv(_('Warning!'), _('This Batch Allotment can not be deleted!'))
+        return super(tpt_batch_allotment, self).unlink(cr, uid, ids, context=context)
+    
     def create(self, cr, uid, vals, context=None):
         new_id = super(tpt_batch_allotment, self).create(cr, uid, vals, context)
         batch = self.browse(cr, uid, new_id)
@@ -2098,7 +2111,7 @@ class stock_production_lot(osv.osv):
             if sale_id:
                 sql = '''
                     select sys_batch from tpt_batch_allotment_line line, tpt_batch_allotment mast
-                    where mast.id = line.batch_allotment_id and batch_allotment_id in (select id from tpt_batch_allotment where sale_order_id = %s and state != 'cancel')
+                    where mast.id = line.batch_allotment_id and batch_allotment_id in (select id from tpt_batch_allotment where sale_order_id = %s and state = 'confirm')
                 '''%(sale_id)
                 cr.execute(sql)
                 prodlot_ids = [row[0] for row in cr.fetchall()]

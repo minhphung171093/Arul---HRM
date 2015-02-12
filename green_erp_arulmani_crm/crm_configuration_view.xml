@@ -98,13 +98,13 @@
                         <field name="sales_organization_code_id" widget="selection" attrs="{'invisible': [('customer', '=',False)]}" />
                         <field name="division_code_id" widget="selection" attrs="{'invisible': [('customer', '=',False)]}" />
                         <field name="tax_category_id" widget="selection"/> 
-                        <field name="tax_number_1_id" widget="selection"/> 
+                        <!--<field name="tax_number_1_id" widget="selection"/>--> 
                         <field name="credit_control_area_id" widget="selection" attrs="{'invisible': [('customer', '=',False)]}" /> 
-                        <field name="shipping_conditions_id" widget="selection" attrs="{'invisible': [('customer', '=',False)]}" /> 
-                        <field name="cust_pric_procedure_id" widget="selection" attrs="{'invisible': [('customer', '=',False)]}" /> 
+                        <!--<field name="shipping_conditions_id" widget="selection" attrs="{'invisible': [('customer', '=',False)]}" />--> 
+                        <!--<field name="cust_pric_procedure_id" widget="selection" attrs="{'invisible': [('customer', '=',False)]}" />--> 
                         <field name="customer_group_id" widget="selection" attrs="{'invisible': [('customer', '=',False)]}" /> 
-                        <field name="order_probability_id" widget="selection" attrs="{'invisible': [('customer', '=',False)]}" /> 
-                         <field name="reconciliation_acct_id" widget="selection"/> 
+                        <!--<field name="order_probability_id" widget="selection" attrs="{'invisible': [('customer', '=',False)]}" />--> 
+                        <!--<field name="reconciliation_acct_id" widget="selection"/>--> 
                         
                     </xpath>
                     
@@ -115,18 +115,18 @@
                     <xpath expr="//field[@name='email']" position="after">
                         <field name="pan_tin" />
                         <field name="sin"/>
-                        <field name="cst"/>
+                        <!--<field name="cst"/>-->
                         <field name="language_id" widget="selection" attrs="{'invisible': [('customer', '=',False)]}" />
                         <field name="customer_account_group_id" widget="selection" attrs="{'invisible': [('customer', '=',False)]}" />
-                        <field name="sort_key_id" widget="selection" attrs="{'invisible': [('customer', '=',False)]}" />
-                        <field name="tax_classification_id" widget="selection" attrs="{'invisible': [('customer', '=',False)]}" />
-                        <field name="tax_number_2_id" widget="selection" attrs="{'invisible': [('customer', '=',False)]}" />
+                        <!--<field name="sort_key_id" widget="selection" attrs="{'invisible': [('customer', '=',False)]}" />-->
+                        <!--<field name="tax_classification_id" widget="selection" attrs="{'invisible': [('customer', '=',False)]}" />-->
+                        <!--<field name="tax_number_2_id" widget="selection" attrs="{'invisible': [('customer', '=',False)]}" />-->
                         <field name="credit_limit_used" attrs="{'invisible': [('customer', '=',False)]}" />
-                        <field name="account_assign_group_id" widget="selection" attrs="{'invisible': [('customer', '=',False)]}" /> 
-                        <field name="customer_statistics_group_id" widget="selection" attrs="{'invisible': [('customer', '=',False)]}" />
-                        <field name="price_group_id" widget="selection" attrs="{'invisible': [('customer', '=',False)]}" /> 
+                        <!--<field name="account_assign_group_id" widget="selection" attrs="{'invisible': [('customer', '=',False)]}" />--> 
+                        <!--<field name="customer_statistics_group_id" widget="selection" attrs="{'invisible': [('customer', '=',False)]}" />-->
+                        <!--<field name="price_group_id" widget="selection" attrs="{'invisible': [('customer', '=',False)]}" />-->
                         <field name="inco_terms_id" widget="selection"  /> 
-                        <field name="sychronized" attrs="{'invisible': [('customer', '=',False)]}" /> 
+                        <!--<field name="sychronized" attrs="{'invisible': [('customer', '=',False)]}" />-->
                         
                     </xpath>
                     
