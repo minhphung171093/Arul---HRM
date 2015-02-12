@@ -24,13 +24,13 @@ class tpt_form_are_1(osv.osv):
         'ce_reg_no': fields.char('CE Reg no', size = 1024, states={'cancel': [('readonly', True)], 'done':[('readonly', True)]}),
         'package_description':fields.char('No. & Package Description',size = 1024, states={'cancel': [('readonly', True)], 'done':[('readonly', True)]}),
         'marks_package': fields.char('Marks & No on Packages', size = 1024, states={'cancel': [('readonly', True)], 'done':[('readonly', True)]}),
-        'gross_weight':fields.float('Gross Weight', states={'cancel': [('readonly', True)], 'done':[('readonly', True)]}),
+        'gross_weight':fields.float('Gross Weight', digits=(16,2), states={'cancel': [('readonly', True)], 'done':[('readonly', True)]}),
         'net_weight':fields.float('Net Weight', states={'cancel': [('readonly', True)], 'done':[('readonly', True)]}),
-        'quantity':fields.float('Quantity', states={'cancel': [('readonly', True)], 'done':[('readonly', True)]}),
+        'quantity':fields.float('Quantity', digits=(16,2), states={'cancel': [('readonly', True)], 'done':[('readonly', True)]}),
         'description_goods': fields.char('Description of Goods',size = 1024, states={'cancel': [('readonly', True)], 'done':[('readonly', True)]}),
-        'value':fields.float('Value', states={'cancel': [('readonly', True)], 'done':[('readonly', True)]}),
+        'value':fields.float('Value', digits=(16,2), states={'cancel': [('readonly', True)], 'done':[('readonly', True)]}),
         'invoiced_date': fields.date('Invoiced Date', required = True, states={'cancel': [('readonly', True)], 'done':[('readonly', True)]}),
-        'rebate_claimed_amt': fields.float('Rebate Claimed Amt', states={'cancel': [('readonly', True)], 'done':[('readonly', True)]}),
+        'rebate_claimed_amt': fields.float('Rebate Claimed Amt', digits=(16,2), states={'cancel': [('readonly', True)], 'done':[('readonly', True)]}),
         'remarks': fields.char('Remarks',size = 1024, states={'cancel': [('readonly', True)], 'done':[('readonly', True)]}),
         'duty_rate_line':fields.one2many('tpt.form.are.1.duty.rate','form_are_1_id','Duty Rate'),   
         'state':fields.selection([('draft', 'Draft'),('cancel', 'Cancel'),('done', 'Approve')],'Status', readonly=True, states={'cancel': [('readonly', True)], 'done':[('readonly', True)]}),
@@ -77,9 +77,9 @@ class tpt_form_are_1_duty_rate(osv.osv):
     _name = "tpt.form.are.1.duty.rate"
       
     _columns = {
-        'duty_rate': fields.float('Duty Rate in %', required = True),
-        'amount_usd': fields.float('Amount(in USD)', required = True),
-        'amount_inr': fields.float('Amount(in INR)', required = True),
+        'duty_rate': fields.float('Duty Rate in %', digits=(16,2), required = True),
+        'amount_usd': fields.float('Amount(in USD)', digits=(16,2), required = True),
+        'amount_inr': fields.float('Amount(in INR)', digits=(16,2), required = True),
         'form_are_1_id': fields.many2one('tpt.form.are.1', 'Duty Rate'),
                 }
 tpt_form_are_1_duty_rate()
@@ -136,9 +136,9 @@ class tpt_form_are_3_duty_rate(osv.osv):
     _name = "tpt.form.are.3.duty.rate"
       
     _columns = {
-        'duty_rate': fields.float('Duty Rate in %', required = True),
-        'amount_usd': fields.float('Amount(in USD)', required = True),
-        'amount_inr': fields.float('Amount(in INR)', required = True),
+        'duty_rate': fields.float('Duty Rate in %', digits=(16,2), required = True),
+        'amount_usd': fields.float('Amount(in USD)', digits=(16,2), required = True),
+        'amount_inr': fields.float('Amount(in INR)', digits=(16,2), required = True),
         'form_are_3_id': fields.many2one('tpt.form.are.3', 'Duty Rate'),
                 }
     
