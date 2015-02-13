@@ -644,19 +644,19 @@ class tpt_purchase_quotation(osv.osv):
                 qty += quotation.product_uom_qty
                 basic = (quotation.product_uom_qty * quotation.price_unit) - ( (quotation.product_uom_qty * quotation.price_unit)*quotation.disc/100)
                 amount_basic += basic
-                if quotation.p_f_type == 1 :
+                if quotation.p_f_type == '1' :
                     p_f = basic * quotation.p_f/100
                 else:
                     p_f = quotation.p_f
                 amount_p_f += p_f
-                if quotation.e_d_type == 1 :
+                if quotation.e_d_type == '1' :
                     ed = (basic + p_f) * quotation.e_d/100
                 else:
                     ed = quotation.e_d
                 amount_ed += ed
                 total_tax = (basic + p_f + ed)*(quotation.tax_id and quotation.tax_id.amount or 0) / 100
                 amount_total_tax += total_tax
-                if quotation.fright_type == 1 :
+                if quotation.fright_type == '1' :
                     amount_fright += (basic + p_f + ed + total_tax) * quotation.fright/100
                 else:
                     amount_fright += quotation.fright
@@ -923,15 +923,15 @@ class tpt_purchase_quotation_line(osv.osv):
         
         for line in self.browse(cr,uid,ids,context=context):
             amount_basic = (line.product_uom_qty * line.price_unit)-((line.product_uom_qty * line.price_unit)*line.disc/100)
-            if line.p_f_type == 1:
+            if line.p_f_type == '1':
                amount_p_f = amount_basic * (line.p_f/100)
             else:
                 amount_p_f = line.p_f
-            if line.e_d_type == 1:
+            if line.e_d_type == '1':
                amount_ed = (amount_basic + amount_p_f) * (line.e_d/100)
             else:
                 amount_ed = line.e_d
-            if line.fright_type == 1:
+            if line.fright_type == '1':
                amount_fright = (amount_basic + amount_p_f + amount_ed) * (line.fright/100)
             else:
                 amount_fright = line.fright
