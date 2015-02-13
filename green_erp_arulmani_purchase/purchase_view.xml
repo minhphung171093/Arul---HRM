@@ -26,7 +26,7 @@
 	            <form string="Purchase Indent" version="7.0">   
 	             <header>
 	            		<button name="bt_approve" states='draft' string="Approve" type="object" class="oe_highlight" />
-	                    <button name="bt_cancel" states='draft' string="Close" type="object" class="oe_highlight" />
+	                    <button name="bt_cancel" states='draft,done' string="Close" type="object" class="oe_highlight" />
 	                    <field name="state" widget="statusbar" statusbar_visible="draft,cancel,done" statusbar_colors='{"draft":"blue","cancel":"blue"}'/>
 	            </header>    
 	            	<sheet>
@@ -41,8 +41,8 @@
 							<field name="date_expect"/>
 						</group>
 						<group >
-							<field name="select_normal" widget = "radio" attrs="{'invisible': [('intdent_cate', '!=', 'normal')],'required':[('intdent_cate','=','normal')]}" />
-							<field name="supplier_id" domain="[('supplier','=',1)]" options="{'create': false, 'create_edit': false}" attrs="{'invisible': [('select_normal', '!=', 'special')],'required':[('select_normal','=','special')]}"   />
+							<field name="select_normal" invisible = '1' widget = "radio" attrs="{'invisible': [('intdent_cate', '!=', 'normal')]}" />
+							<field name="supplier_id" domain="[('supplier','=',1)]" options="{'create': false, 'create_edit': false}" attrs="{'invisible': [('select_normal', '!=', 'special')]}"   />
 							<field name="reason" attrs="{'invisible': [('select_normal', '!=', 'special')]}" />
 						</group>
 						</group>
@@ -360,6 +360,7 @@
 					<field name="po_date"/>
 					<field name="supplier_id"/>
 					<field name="gate_date_time"/>
+					<field name="state" widget="statusbar" statusbar_visible="draft,cancel,done" statusbar_colors='{"draft":"blue","cancel":"blue"}'/>
 				</tree>
 			</field>
 		</record>
@@ -590,7 +591,7 @@
 	            </header>    
 	            	<sheet>
 	                   	 <group col="4" colspan="2" >
-	                   	 	<field name="name" on_change="onchange_request_quotation(name)" options="{'create': false, 'create_edit': false}" context="{'search_rfq_id':True}" />
+	                   	 	<field name="name" domain="[('rfq_category','=','mutiple')]" on_change="onchange_request_quotation(name)" options="{'create': false, 'create_edit': false}" context="{'search_rfq_id':True}" />
 							<field name="date" />
 							<field name="quotation_cate" />
 							<field name="create_uid" />
@@ -1040,7 +1041,7 @@
 	            <form string="Request For Quotation" version="7.0"> 
 	            <header>
 	            		<button name="bt_approve" states='draft' string="Approve" type="object" class="oe_highlight" />
-	                    <button name="bt_cancel" states='draft' string="Cancel" type="object" class="oe_highlight" />
+	                    <button name="bt_cancel" states='draft,done' string="Cancel" type="object" class="oe_highlight" />
 	                    <field name="state" widget="statusbar" statusbar_visible="draft,cancel,done" statusbar_colors='{"draft":"blue","cancel":"blue"}'/>
 	            </header>   
 	            	<sheet>
@@ -1055,7 +1056,7 @@
 							<page string = "RFQ Line">
 							<field name="rfq_line" nolabel='1'>
 									<tree editable='bottom'>
-										<field name="po_indent_id" on_change = "onchange_rfq_indent_id(po_indent_id)" options="{'create': false, 'create_edit': false}"/>
+										<field name="po_indent_id" domain="[('state','=','done')]" on_change = "onchange_rfq_indent_id(po_indent_id)" options="{'create': false, 'create_edit': false}"/>
 										<field name="product_id" context="{'search_rfq_product':True, 'po_indent_id':po_indent_id }" on_change = "onchange_rfq_product_id(product_id, po_indent_id)" options="{'create': false, 'create_edit': false}"/>
 										<field name="product_uom_qty" />
 										<field name="uom_id" options="{'create': false, 'create_edit': false}"/>

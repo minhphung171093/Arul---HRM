@@ -55,6 +55,12 @@ class tpt_purchase_indent(osv.osv):
     
     def bt_cancel(self, cr, uid, ids, context=None):
         for line in self.browse(cr, uid, ids):
+            rfq_ids = self.pool.get('tpt.rfq.line').search(cr,uid,[('po_indent_id','=',line.id)])
+            po_ids = self.pool.get('purchase.order').search(cr,uid,[('po_indent_no','=',line.id)])
+            if po_ids:
+                raise osv.except_osv(_('Warning!'),_('Purchase Indent was existed at the Purchase Order.!'))
+            if rfq_ids:
+                raise osv.except_osv(_('Warning!'),_('Purchase Indent was existed at the request for quotation.!'))
             self.write(cr, uid, ids,{'state':'cancel'})
         return True   
 
@@ -102,10 +108,10 @@ class tpt_purchase_indent(osv.osv):
                         sequence = self.pool.get('ir.sequence').get(cr, uid, 'indent.purchase.service')
                         vals['name'] =  sequence and sequence +'/'+fiscalyear['code']or '/'
         new_id = super(tpt_purchase_indent, self).create(cr, uid, vals, context=context)   
-        indent = self.browse(cr,uid, new_id)
-        if indent.select_normal != 'multiple':
-            if (len(indent.purchase_product_line)>1):
-                raise osv.except_osv(_('Warning!'),_(' You must choose Select is multiple if you want more than one product!'))
+#         indent = self.browse(cr,uid, new_id)
+#         if indent.select_normal != 'multiple':
+#             if (len(indent.purchase_product_line)>1):
+#                 raise osv.except_osv(_('Warning!'),_(' You must choose Select is multiple if you want more than one product!'))
         return new_id
     
     def write(self, cr, uid, ids, vals, context=None):
@@ -151,10 +157,10 @@ class tpt_purchase_indent(osv.osv):
                         sequence = self.pool.get('ir.sequence').get(cr, uid, 'indent.purchase.service')
                         vals['name'] =  sequence and sequence +'/'+fiscalyear['code']or '/'
         new_write = super(tpt_purchase_indent, self).write(cr, uid,ids, vals, context)
-        for indent in self.browse(cr,uid,ids):
-            if indent.select_normal != 'multiple':
-                if (len(indent.purchase_product_line)>1):
-                    raise osv.except_osv(_('Warning!'),_(' You must choose Select is multiple if you want more than one product!'))
+#         for indent in self.browse(cr,uid,ids):
+#             if indent.select_normal != 'multiple':
+#                 if (len(indent.purchase_product_line)>1):
+#                     raise osv.except_osv(_('Warning!'),_(' You must choose Select is multiple if you want more than one product!'))
         return new_write
     
     def onchange_date_expect(self, cr, uid, ids,date_indent=False, context=None):
@@ -194,7 +200,7 @@ class tpt_purchase_indent(osv.osv):
         if not context.get('quotation_no'):
             if context.get('search_po_indent_no_emergency'):
                 sql = '''
-                    select id from tpt_purchase_indent where intdent_cate = 'emergency' and state = 'draft'
+                    select id from tpt_purchase_indent where intdent_cate = 'emergency' and state = 'done'
                 '''
                 cr.execute(sql)
                 emergency_ids = [row[0] for row in cr.fetchall()]
@@ -562,13 +568,13 @@ class tpt_gate_in_pass(osv.osv):
     _name = "tpt.gate.in.pass"
       
     _columns = {
-        'name': fields.char('Gate In Pass No', size = 1024, readonly=True),
-        'po_id': fields.many2one('purchase.order', 'PO Number', required = True),
-        'supplier_id': fields.many2one('res.partner', 'Supplier', required = True),
-        'po_date': fields.datetime('PO Date'),
-        'gate_date_time': fields.datetime('Gate In Pass Date & Time'),
+        'name': fields.char('Gate In Pass No', size = 1024, readonly=True, states={'cancel': [('readonly', True)], 'done':[('readonly', True)]}),
+        'po_id': fields.many2one('purchase.order', 'PO Number', required = True, states={'cancel': [('readonly', True)], 'done':[('readonly', True)]}),
+        'supplier_id': fields.many2one('res.partner', 'Supplier', required = True, states={'cancel': [('readonly', True)], 'done':[('readonly', True)]}),
+        'po_date': fields.datetime('PO Date', states={'cancel': [('readonly', True)], 'done':[('readonly', True)]}),
+        'gate_date_time': fields.datetime('Gate In Pass Date & Time', states={'cancel': [('readonly', True)], 'done':[('readonly', True)]}),
         'state':fields.selection([('draft', 'Draft'),('cancel', 'Cancel'),('done', 'Approve')],'Status', readonly=True, states={'cancel': [('readonly', True)], 'done':[('readonly', True)]}),
-        'gate_in_pass_line': fields.one2many('tpt.gate.in.pass.line', 'gate_in_pass_id', 'Product Details'),
+        'gate_in_pass_line': fields.one2many('tpt.gate.in.pass.line', 'gate_in_pass_id', 'Product Details', states={'cancel': [('readonly', True)], 'done':[('readonly', True)]}),
                 }
     _defaults={
                'name':'/',
@@ -644,19 +650,19 @@ class tpt_purchase_quotation(osv.osv):
                 qty += quotation.product_uom_qty
                 basic = (quotation.product_uom_qty * quotation.price_unit) - ( (quotation.product_uom_qty * quotation.price_unit)*quotation.disc/100)
                 amount_basic += basic
-                if quotation.p_f_type == 1 :
+                if quotation.p_f_type == '1' :
                     p_f = basic * quotation.p_f/100
                 else:
                     p_f = quotation.p_f
                 amount_p_f += p_f
-                if quotation.e_d_type == 1 :
+                if quotation.e_d_type == '1' :
                     ed = (basic + p_f) * quotation.e_d/100
                 else:
                     ed = quotation.e_d
                 amount_ed += ed
                 total_tax = (basic + p_f + ed)*(quotation.tax_id and quotation.tax_id.amount or 0) / 100
                 amount_total_tax += total_tax
-                if quotation.fright_type == 1 :
+                if quotation.fright_type == '1' :
                     amount_fright += (basic + p_f + ed + total_tax) * quotation.fright/100
                 else:
                     amount_fright += quotation.fright
@@ -696,7 +702,7 @@ class tpt_purchase_quotation(osv.osv):
         'supplier_location_id': fields.many2one( 'res.country.state','Vendor Location' ,states={'cancel': [('readonly', True)], 'done':[('readonly', True)]}),
         'quotation_cate':fields.selection([
                                 ('single','Single Quotation'),
-                                ('multiple','Multiple Quotation'),('special','Special Quotation')],'Quotation Category'),
+                                ('multiple','Multiple Quotation'),('special','Special Quotation')],'Quotation Category', required = True),
         'quotation_ref':fields.char('Quotation Reference',size = 1024),
 #         'tax_id': fields.many2one('account.tax', 'Taxes',required=True ,states={'cancel': [('readonly', True)], 'done':[('readonly', True)]}),
         'purchase_quotation_line':fields.one2many('tpt.purchase.quotation.line','purchase_quotation_id','Quotation Line' ,states={'cancel': [('readonly', True)], 'done':[('readonly', True)]}),
@@ -883,6 +889,9 @@ class tpt_purchase_quotation(osv.osv):
 
     def bt_cross_mark(self, cr, uid, ids, context=None):
         for line in self.browse(cr, uid, ids):
+            po_ids = self.pool.get('purchase.order').search(cr,uid,[('quotation_no','=',line.id)])
+            if po_ids:
+                raise osv.except_osv(_('Warning!'),_('Quotation was existed at the Purchase Order.!'))
             self.write(cr, uid, ids,{'state':'cancel','comparison_chart_id':False})
         return True
 
@@ -923,15 +932,15 @@ class tpt_purchase_quotation_line(osv.osv):
         
         for line in self.browse(cr,uid,ids,context=context):
             amount_basic = (line.product_uom_qty * line.price_unit)-((line.product_uom_qty * line.price_unit)*line.disc/100)
-            if line.p_f_type == 1:
+            if line.p_f_type == '1':
                amount_p_f = amount_basic * (line.p_f/100)
             else:
                 amount_p_f = line.p_f
-            if line.e_d_type == 1:
+            if line.e_d_type == '1':
                amount_ed = (amount_basic + amount_p_f) * (line.e_d/100)
             else:
                 amount_ed = line.e_d
-            if line.fright_type == 1:
+            if line.fright_type == '1':
                amount_fright = (amount_basic + amount_p_f + amount_ed) * (line.fright/100)
             else:
                 amount_fright = line.fright
@@ -1363,6 +1372,20 @@ class purchase_order(osv.osv):
             amount_total = cr.dictfetchone()
             if (amount_total['total'] > 200000):
                 raise osv.except_osv(_('Warning!'),_('You are confirm %s the Emergency Purchase reaches 2 Lakhs Limit (2,00,000) in the current month. This can be processed only when the next month starts'%(amount_total['total'])))
+            sql = '''
+                            select product_id, sum(product_qty) as po_product_qty from purchase_order_line where order_id = %s group by product_id
+                        '''%(new.id)
+            cr.execute(sql)
+            for purchase_line in cr.dictfetchall():
+                sql = '''
+                        select case when sum(product_uom_qty) <%s then 1 else 0 end indent_product_qty 
+                        from tpt_purchase_product
+                        where product_id=%s and purchase_indent_id in (select id from tpt_purchase_indent where id = %s)
+                    '''%(purchase_line['po_product_qty'], purchase_line['product_id'], new.po_indent_no.id)
+                cr.execute(sql)
+                quantity = cr.dictfetchone()
+                if (quantity['indent_product_qty']==1):
+                    raise osv.except_osv(_('Warning!'),_('You are input %s quantity in Purchase Order but quantity in Purchase Indent do not enough for this Product .' %(purchase_line['po_product_qty'])))        
         
         if new.po_document_type == 'local':
             if new.quotation_no and new.quotation_no.quotation_cate:
@@ -1435,10 +1458,28 @@ class purchase_order(osv.osv):
                 if (amount_total['total'] > 200000):
                     raise osv.except_osv(_('Warning!'),_('You are confirm %s the Emergency Purchase reaches 2 Lakhs Limit (2,00,000) in the current month. This can be processed only when the next month starts'%(amount_total['total'])))
                 
-                if new.po_document_type == 'local':
-                    if new.quotation_no and new.quotation_no.quotation_cate:
-                        if (new.amount_total > 5000):
-                            raise osv.except_osv(_('Warning!'),_('Can not process because Total > 5000 for VV Local PO'))
+                sql = '''
+                            select product_id, sum(product_qty) as po_product_qty from purchase_order_line where order_id = %s group by product_id
+                        '''%(new.id)
+                cr.execute(sql)
+                for purchase_line in cr.dictfetchall():
+                    sql = '''
+                            select case when sum(product_uom_qty) <%s then 1 else 0 end indent_product_qty 
+                            from tpt_purchase_product
+                            where product_id=%s and purchase_indent_id in (select id from tpt_purchase_indent where id = %s)
+                        '''%(purchase_line['po_product_qty'], purchase_line['product_id'], new.po_indent_no.id)
+                    cr.execute(sql)
+                    quantity = cr.dictfetchone()
+                    if (quantity['indent_product_qty']==1):
+                        raise osv.except_osv(_('Warning!'),_('You are input %s quantity in Purchase Order but quantity in Purchase Indent do not enough for this Product .' %(purchase_line['po_product_qty'])))        
+            
+            
+            
+            if new.po_document_type == 'local':
+                if new.quotation_no and new.quotation_no.quotation_cate:
+                    if (new.amount_total > 5000):
+                        raise osv.except_osv(_('Warning!'),_('Can not process because Total > 5000 for VV Local PO'))
+                
                         
             if new.quotation_no and new.po_indent_no:
                 sql = '''
@@ -2110,7 +2151,15 @@ class tpt_request_for_quotation(osv.osv):
         return self.write(cr, uid, ids,{'state':'done'})
     
     def bt_cancel(self, cr, uid, ids, context=None):
-        return self.write(cr, uid, ids,{'state':'cancel'})
+        for line in self.browse(cr, uid, ids):
+            quotation_ids = self.pool.get('tpt.purchase.quotation').search(cr,uid,[('rfq_no_id','=',line.id)])
+            chart_ids = self.pool.get('tpt.comparison.chart').search(cr,uid,[('name','=',line.id)])
+            if quotation_ids:
+                raise osv.except_osv(_('Warning!'),_('RFQ was existed at the Quotation.!'))
+            if chart_ids:
+                raise osv.except_osv(_('Warning!'),_('RFQ was existed at the Comparison Chart.!'))
+            self.write(cr, uid, ids,{'state':'cancel'})
+        return True   
     
     def create(self, cr, uid, vals, context=None):
         if vals.get('name','/')=='/':
@@ -2137,7 +2186,7 @@ tpt_request_for_quotation()
 class tpt_rfq_line(osv.osv):
     _name = 'tpt.rfq.line'
     _columns = {
-        'rfq_id': fields.many2one('tpt.request.for.quotation','RFQ'),
+        'rfq_id': fields.many2one('tpt.request.for.quotation','RFQ',ondelete='cascade'),
         'po_indent_id':fields.many2one('tpt.purchase.indent','PO Indent', required = True),
         'product_id': fields.many2one('product.product', 'Material',required = True),
         'product_uom_qty': fields.float('Quantity', readonly = True),   
