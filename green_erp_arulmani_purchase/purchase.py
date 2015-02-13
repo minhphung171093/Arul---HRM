@@ -194,7 +194,7 @@ class tpt_purchase_indent(osv.osv):
         if not context.get('quotation_no'):
             if context.get('search_po_indent_no_emergency'):
                 sql = '''
-                    select id from tpt_purchase_indent where intdent_cate = 'emergency' and state = 'draft'
+                    select id from tpt_purchase_indent where intdent_cate = 'emergency' and state = 'done'
                 '''
                 cr.execute(sql)
                 emergency_ids = [row[0] for row in cr.fetchall()]
