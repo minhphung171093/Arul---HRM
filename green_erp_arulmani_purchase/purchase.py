@@ -399,7 +399,7 @@ class product_product(osv.osv):
         're_stock': fields.float('Reorder Level'),
         'po_text': fields.char('PO Text', size = 1024),
         'mrp_control':fields.boolean('MRP Control Type'),
-        'description':fields.text('Description', size = 256),
+        'tpt_description':fields.text('Description', size = 256),
         }
     
     _defaults = {
