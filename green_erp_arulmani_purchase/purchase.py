@@ -55,6 +55,12 @@ class tpt_purchase_indent(osv.osv):
     
     def bt_cancel(self, cr, uid, ids, context=None):
         for line in self.browse(cr, uid, ids):
+            rfq_ids = self.pool.get('tpt.rfq.line').search(cr,uid,[('po_indent_id','=',line.id)])
+            po_ids = self.pool.get('purchase.order').search(cr,uid,[('po_indent_no','=',line.id)])
+            if po_ids:
+                raise osv.except_osv(_('Warning!'),_('Purchase Indent was existed at the Purchase Order.!'))
+            if rfq_ids:
+                raise osv.except_osv(_('Warning!'),_('Purchase Indent was existed at the request for quotation.!'))
             self.write(cr, uid, ids,{'state':'cancel'})
         return True   
 
@@ -102,10 +108,10 @@ class tpt_purchase_indent(osv.osv):
                         sequence = self.pool.get('ir.sequence').get(cr, uid, 'indent.purchase.service')
                         vals['name'] =  sequence and sequence +'/'+fiscalyear['code']or '/'
         new_id = super(tpt_purchase_indent, self).create(cr, uid, vals, context=context)   
-        indent = self.browse(cr,uid, new_id)
-        if indent.select_normal != 'multiple':
-            if (len(indent.purchase_product_line)>1):
-                raise osv.except_osv(_('Warning!'),_(' You must choose Select is multiple if you want more than one product!'))
+#         indent = self.browse(cr,uid, new_id)
+#         if indent.select_normal != 'multiple':
+#             if (len(indent.purchase_product_line)>1):
+#                 raise osv.except_osv(_('Warning!'),_(' You must choose Select is multiple if you want more than one product!'))
         return new_id
     
     def write(self, cr, uid, ids, vals, context=None):
@@ -151,10 +157,10 @@ class tpt_purchase_indent(osv.osv):
                         sequence = self.pool.get('ir.sequence').get(cr, uid, 'indent.purchase.service')
                         vals['name'] =  sequence and sequence +'/'+fiscalyear['code']or '/'
         new_write = super(tpt_purchase_indent, self).write(cr, uid,ids, vals, context)
-        for indent in self.browse(cr,uid,ids):
-            if indent.select_normal != 'multiple':
-                if (len(indent.purchase_product_line)>1):
-                    raise osv.except_osv(_('Warning!'),_(' You must choose Select is multiple if you want more than one product!'))
+#         for indent in self.browse(cr,uid,ids):
+#             if indent.select_normal != 'multiple':
+#                 if (len(indent.purchase_product_line)>1):
+#                     raise osv.except_osv(_('Warning!'),_(' You must choose Select is multiple if you want more than one product!'))
         return new_write
     
     def onchange_date_expect(self, cr, uid, ids,date_indent=False, context=None):
@@ -883,6 +889,9 @@ class tpt_purchase_quotation(osv.osv):
 
     def bt_cross_mark(self, cr, uid, ids, context=None):
         for line in self.browse(cr, uid, ids):
+            po_ids = self.pool.get('purchase.order').search(cr,uid,[('quotation_no','=',line.id)])
+            if po_ids:
+                raise osv.except_osv(_('Warning!'),_('Quotation was existed at the Purchase Order.!'))
             self.write(cr, uid, ids,{'state':'cancel','comparison_chart_id':False})
         return True
 
@@ -2110,7 +2119,15 @@ class tpt_request_for_quotation(osv.osv):
         return self.write(cr, uid, ids,{'state':'done'})
     
     def bt_cancel(self, cr, uid, ids, context=None):
-        return self.write(cr, uid, ids,{'state':'cancel'})
+        for line in self.browse(cr, uid, ids):
+            quotation_ids = self.pool.get('tpt.purchase.quotation').search(cr,uid,[('rfq_no_id','=',line.id)])
+            chart_ids = self.pool.get('tpt.comparison.chart').search(cr,uid,[('name','=',line.id)])
+            if quotation_ids:
+                raise osv.except_osv(_('Warning!'),_('RFQ was existed at the Quotation.!'))
+            if chart_ids:
+                raise osv.except_osv(_('Warning!'),_('RFQ was existed at the Comparison Chart.!'))
+            self.write(cr, uid, ids,{'state':'cancel'})
+        return True   
     
     def create(self, cr, uid, vals, context=None):
         if vals.get('name','/')=='/':
@@ -2137,7 +2154,7 @@ tpt_request_for_quotation()
 class tpt_rfq_line(osv.osv):
     _name = 'tpt.rfq.line'
     _columns = {
-        'rfq_id': fields.many2one('tpt.request.for.quotation','RFQ'),
+        'rfq_id': fields.many2one('tpt.request.for.quotation','RFQ',ondelete='cascade'),
         'po_indent_id':fields.many2one('tpt.purchase.indent','PO Indent', required = True),
         'product_id': fields.many2one('product.product', 'Material',required = True),
         'product_uom_qty': fields.float('Quantity', readonly = True),   

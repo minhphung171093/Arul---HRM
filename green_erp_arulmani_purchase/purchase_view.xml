@@ -26,7 +26,7 @@
 	            <form string="Purchase Indent" version="7.0">   
 	             <header>
 	            		<button name="bt_approve" states='draft' string="Approve" type="object" class="oe_highlight" />
-	                    <button name="bt_cancel" states='draft' string="Close" type="object" class="oe_highlight" />
+	                    <button name="bt_cancel" states='draft,done' string="Close" type="object" class="oe_highlight" />
 	                    <field name="state" widget="statusbar" statusbar_visible="draft,cancel,done" statusbar_colors='{"draft":"blue","cancel":"blue"}'/>
 	            </header>    
 	            	<sheet>
@@ -41,8 +41,8 @@
 							<field name="date_expect"/>
 						</group>
 						<group >
-							<field name="select_normal" widget = "radio" attrs="{'invisible': [('intdent_cate', '!=', 'normal')],'required':[('intdent_cate','=','normal')]}" />
-							<field name="supplier_id" domain="[('supplier','=',1)]" options="{'create': false, 'create_edit': false}" attrs="{'invisible': [('select_normal', '!=', 'special')],'required':[('select_normal','=','special')]}"   />
+							<field name="select_normal" invisible = '1' widget = "radio" attrs="{'invisible': [('intdent_cate', '!=', 'normal')]}" />
+							<field name="supplier_id" domain="[('supplier','=',1)]" options="{'create': false, 'create_edit': false}" attrs="{'invisible': [('select_normal', '!=', 'special')]}"   />
 							<field name="reason" attrs="{'invisible': [('select_normal', '!=', 'special')]}" />
 						</group>
 						</group>
@@ -1040,7 +1040,7 @@
 	            <form string="Request For Quotation" version="7.0"> 
 	            <header>
 	            		<button name="bt_approve" states='draft' string="Approve" type="object" class="oe_highlight" />
-	                    <button name="bt_cancel" states='draft' string="Cancel" type="object" class="oe_highlight" />
+	                    <button name="bt_cancel" states='draft,done' string="Cancel" type="object" class="oe_highlight" />
 	                    <field name="state" widget="statusbar" statusbar_visible="draft,cancel,done" statusbar_colors='{"draft":"blue","cancel":"blue"}'/>
 	            </header>   
 	            	<sheet>
