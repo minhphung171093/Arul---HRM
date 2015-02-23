@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<openerp>
+    <data noupdate='1'>
+<!-- Production Batching (TIO2) -->
+        <record id="sequence_batching_tio2" model="ir.sequence.type">
+            <field name="name">Batching (TIO2)</field>
+            <field name="code">batching.tio2</field>
+        </record>
+        
+        <record id="sequence_batching_tio2_item" model="ir.sequence">
+            <field name="name">Batching (TIO2)</field>
+            <field name="code">batching.tio2</field>
+            <field name="prefix">%(year)s%(month)s%(day)s</field>
+            <field name="padding">2</field>
+            <field name="implementation">standard</field>
+        </record>
+	</data>
+</openerp>

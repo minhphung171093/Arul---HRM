@@ -1,0 +1,265 @@
+<?xml version="1.0" encoding="utf-8"?>
+<openerp>
+    <data>
+	   	<record id="tpt_tio2_batch_split_tree_view" model="ir.ui.view">
+			<field name="name">tpt.tio2.batch.split.tree</field>
+			<field name="model">tpt.tio2.batch.split</field>
+			<field name="arch" type="xml">
+				<tree string="TiO2 - Batch Split">
+					<field name="product_id"/>
+					<field name="name"/>
+					<field name="mrp_id"/>
+					<field name="location_id"/>
+					<field name="available"/>
+					<field name="state"/>
+				</tree>
+			</field>
+		</record>
+		
+		<record id="tpt_tio2_batch_split_form_view" model="ir.ui.view">
+            <field name="name">tpt.tio2.batch.split.form</field>
+            <field name="model">tpt.tio2.batch.split</field>
+            <field name="arch" type="xml">
+	            <form string="TiO2 - Batch Split" version="7.0">   
+	            	<header>
+	            		<button name="bt_generate" states='draft' string="Generate Batch" type="object" class="oe_highlight" />
+	                    <button name="bt_confirm" states='generate' string="Confirm Batch" type="object" class="oe_highlight" />
+	                    <field name="state" widget="statusbar" statusbar_visible="draft,generate,confirm"/>
+		            </header>    
+	            	<sheet>
+		            	<group>
+			                <group>    
+								<field name="product_id" options="{'create': false, 'create_edit': false}" domain="['|',('name','in',['TITANIUM DIOXIDE-ANATASE','TiO2']),('default_code','in',['TITANIUM DIOXIDE-ANATASE','TiO2'])]"/>
+								<field name="mrp_id" context="{'search_mrp_tio2_batch': True, 'mrp_id': mrp_id, 'product_id': product_id}" on_change="onchange_mrp_id(mrp_id)" domain="[('product_id','=',product_id),('state','=','done')]" options="{'create': false, 'create_edit': false}"/>
+								<field name="stating_batch_no"/>
+							</group>
+							<group >
+								<field name="name"/>
+								<field name="location_id" domain="[('usage','=','internal')]" options="{'create': false, 'create_edit': false}"/>
+								<field name="available"/>
+							</group>
+						</group>
+						<notebook>
+							<page string = "Generated Batches">
+								<field name="batch_split_line" nolabel='1'>
+									<tree editable='bottom' create='false' edit="false" delete="false">
+										<field name="sequence"/>
+										<field name="product_id" options="{'create': false, 'create_edit': false}"/>
+										<field name="qty"/>
+										<field name="uom_id" options="{'create': false, 'create_edit': false}"/>
+										<field name="prodlot_id" options="{'create': false, 'create_edit': false}"/>
+									</tree>
+								</field>
+							</page>
+						</notebook>
+		         	</sheet>
+		         </form>
+			</field>
+		</record>
+          
+		<record id="action_tpt_tio2_batch_split" model="ir.actions.act_window">
+            <field name="name">TiO2 - Batch Split</field>
+            <field name="type">ir.actions.act_window</field>
+            <field name="res_model">tpt.tio2.batch.split</field>
+            <field name="view_type">form</field>
+            <field name="view_mode">tree,form</field>
+            <field name="view_id" ref="tpt_tio2_batch_split_tree_view"/>
+        </record>
+        
+        <menuitem action="action_tpt_tio2_batch_split"
+            id="menu_action_tpt_tio2_batch_split"
+            parent="mrp.menu_mrp_manufacturing" sequence="13"/>
+		
+		<record id="tpt_fsh_batch_split_tree_view" model="ir.ui.view">
+			<field name="name">tpt.fsh.batch.split.tree</field>
+			<field name="model">tpt.fsh.batch.split</field>
+			<field name="arch" type="xml">
+				<tree string="FSH - Batch Split">
+					<field name="product_id"/>
+					<field name="name"/>
+					<field name="mrp_id"/>
+					<field name="location_id"/>
+					<field name="available"/>
+					<field name="state"/>
+				</tree>
+			</field>
+		</record>
+		
+		<record id="tpt_fsh_batch_split_form_view" model="ir.ui.view">
+            <field name="name">tpt.fsh.batch.split.form</field>
+            <field name="model">tpt.fsh.batch.split</field>
+            <field name="arch" type="xml">
+	            <form string="FSH - Batch Split" version="7.0">   
+	            	<header>
+	                    <button name="bt_confirm" states='draft' string="Confirm Batch" type="object" class="oe_highlight" />
+	                    <field name="state" widget="statusbar" statusbar_visible="draft,confirm"/>
+		            </header>    
+	            	<sheet>
+		            	<group>
+			                <group>    
+								<field name="product_id" options="{'create': false, 'create_edit': false}" domain="['|',('name','in',['FERROUS SULPHATE','FSH']),('default_code','in',['FERROUS SULPHATE','FSH'])]"/>
+								<field name="mrp_id" context="{'search_mrp_fsh_batch': True, 'mrp_id': mrp_id, 'product_id': product_id}" on_change="onchange_mrp_id(mrp_id)" domain="[('product_id','=',product_id),('state','=','done')]" options="{'create': false, 'create_edit': false}"/>
+								<field name="location_id" domain="[('usage','=','internal')]" options="{'create': false, 'create_edit': false}"/>
+							</group>
+							<group >
+								<field name="name"/>
+								<field name="available"/>
+							</group>
+						</group>
+						<notebook>
+							<page string = "Batch Split">
+								<field name="batch_split_line" nolabel='1' context="{'default_product_id': product_id}">
+									<tree editable='bottom'>
+										<field name="product_id" domain="['|',('name','in',['FERROUS SULPHATE','FSH']),('default_code','in',['FERROUS SULPHATE','FSH'])]" on_change="onchange_product_id(product_id)" options="{'create': false, 'create_edit': false}"/>
+										<field name="prodlot_id" domain="[('name','in',['Argi','Wet','Drier'])]" options="{'create': false, 'create_edit': false}"/>
+										<field name="qty"/>
+										<field name="uom_id" options="{'create': false, 'create_edit': false}"/>
+									</tree>
+								</field>
+							</page>
+						</notebook>
+		         	</sheet>
+		         </form>
+			</field>
+		</record>
+          
+		<record id="action_tpt_fsh_batch_split" model="ir.actions.act_window">
+            <field name="name">FSH - Batch Split</field>
+            <field name="type">ir.actions.act_window</field>
+            <field name="res_model">tpt.fsh.batch.split</field>
+            <field name="view_type">form</field>
+            <field name="view_mode">tree,form</field>
+            <field name="view_id" ref="tpt_fsh_batch_split_tree_view"/>
+        </record>
+        
+        <menuitem action="action_tpt_fsh_batch_split"
+            id="menu_action_tpt_fsh_batch_split"
+            parent="mrp.menu_mrp_manufacturing" sequence="13"/>
+		
+		<record id="tpt_activities_tree_view" model="ir.ui.view">
+			<field name="name">tpt.activities.tree</field>
+			<field name="model">tpt.activities</field>
+			<field name="arch" type="xml">
+				<tree string="Activities">
+					<field name="name"/>
+        			<field name="code"/>
+        			<field name="description"/>
+				</tree>
+			</field>
+		</record>
+		
+		<record id="tpt_activities_form_view" model="ir.ui.view">
+            <field name="name">tpt.activities.form</field>
+            <field name="model">tpt.activities</field>
+            <field name="arch" type="xml">
+	            <form string="Activities" version="7.0">   
+	            	<sheet>
+	            		<group>
+	            			<field name="name"/>
+	            			<field name="code"/>
+	            			<field name="description"/>
+	            		</group>
+				    </sheet>
+		         </form>
+			</field>
+		</record>
+		
+		<record id="action_tpt_activities" model="ir.actions.act_window">
+            <field name="name">Activities</field>
+            <field name="type">ir.actions.act_window</field>
+            <field name="res_model">tpt.activities</field>
+            <field name="view_type">form</field>
+            <field name="view_mode">tree,form</field>
+            <field name="view_id" ref="tpt_activities_tree_view"/>
+        </record>
+        
+        <menuitem action="action_tpt_activities"
+            id="menu_action_tpt_activities"
+            parent="mrp.menu_mrp_manufacturing" sequence="17"/>
+		
+		<record id="crm_application_form_view_inherit" model="ir.ui.view">
+            <field name="name">crm.application.form.inherit</field>
+            <field name="model">crm.application</field>
+            <field name="inherit_id" ref="green_erp_arulmani_crm.crm_application_form_view"/>
+            <field name="arch" type="xml">
+                <data>
+                	<xpath expr="//field[@name='code']" position="after">
+                        <field name="product_id" options="{'create': false, 'create_edit': false}"/>
+                    </xpath>
+                    <xpath expr="//group" position="after">
+                        <notebook>
+                        	<page string='Testing Parameters'>
+                        		<field name="application_line" nolabel='1'>
+                        			<tree editable='top'>
+                        				<field name="parameters_id" options="{'create': false, 'create_edit': false}"/>
+                        				<field name="standard_value"/>
+                        			</tree>
+                        		</field>
+                        	</page>
+                        </notebook>
+                    </xpath>
+                </data>
+            </field>
+        </record>
+		
+		<menuitem action="green_erp_arulmani_crm.vsis_action_crm_application"
+            id="menu_vsis_action_crm_application_production"
+            parent="mrp.menu_mrp_manufacturing" sequence="17"/>
+        
+        <record id="mrp_bom_form_view_inherit" model="ir.ui.view">
+            <field name="name">mrp.bom.form.inherit</field>
+            <field name="model">mrp.bom</field>
+            <field name="inherit_id" ref="mrp.mrp_bom_form_view"/>
+            <field name="arch" type="xml">
+                <data>
+                	<xpath expr="//field[@name='bom_lines']/tree" position="replace">
+                        <tree string="Components" editable="bottom">
+	                        <field name="product_id" options="{'create': false, 'create_edit': false}" context="{'default_supply_method':'produce'}" on_change="onchange_product_id(product_id, name)"/>
+	                        <field name="name" string="Description"/>
+	                        <field name="product_qty" string="Quantity"/>
+	                        <field name="product_uom" string="UOM" options="{'create': false, 'create_edit': false}" on_change="onchange_uom(product_id, product_uom)" groups="product.group_uom"/>
+	                        <field name="cost_type"/>
+                        	<field name="product_cost"/>
+	                        <field name="date_start" invisible="1"/>
+	                        <field name="date_stop" invisible="1"/>
+	                    </tree>
+                    </xpath>
+                </data>
+            </field>
+        </record>
+        
+        <record id="mrp_subproduct_view_inherit" model="ir.ui.view">
+            <field name="name">mrp.bom.form.inherit</field>
+            <field name="model">mrp.bom</field>
+            <field name="inherit_id" ref="mrp_byproduct.mrp_subproduct_view"/>
+            <field name="arch" type="xml">
+                <data>
+                	<xpath expr="//field[@name='sub_products']/tree" position="replace">
+                		<tree string="Byproducts"  editable="top">
+	                        <field name="product_id" options="{'create': false, 'create_edit': false}" on_change="onchange_product_id(product_id)"/>
+	                        <field name="description"/>
+		                    <field name="product_qty" string="Quantity"/>
+		                    <field name="product_uom" string="UOM" options="{'create': false, 'create_edit': false}" on_change="onchange_uom(product_id, product_uom)" groups="product.group_uom"/>
+		                    <field name="subproduct_type" invisible='1'/>
+	                    </tree>
+                    </xpath>
+                    <xpath expr="//page[@string='Byproducts']" position="after">
+                    	<page string="Activities">
+	                    	<field name="activities_line" nplabel='1'>
+		                		<tree string="Activities" editable="top">
+			                        <field name="activities_id" options="{'create': false, 'create_edit': false}"/>
+			                        <field name="description"/>
+				                    <field name="product_qty"/>
+				                    <field name="product_uom" options="{'create': false, 'create_edit': false}"/>
+				                    <field name="cost_type"/>
+				                    <field name="product_cost"/>
+			                    </tree>
+		                    </field>
+	                    </page>
+                    </xpath>
+                </data>
+            </field>
+        </record>
+        
+    </data>
+</openerp>
