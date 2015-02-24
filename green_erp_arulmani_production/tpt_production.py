@@ -277,10 +277,28 @@ class mrp_bom(osv.osv):
                 res[master.id]['product_cost'] = master.product_id.standard_price
         return res
     
+    def sum_finish_function(self, cr, uid, ids, field_name, args, context=None):
+        res = {}
+        for master in self.browse(cr,uid,ids,context=context):
+            result = 0.0
+            sql='''
+                    select sum(product_cost) as product_cost from mrp_bom where bom_id = %s
+                '''%(master.id)
+            cr.execute(sql)
+            product_cost = cr.dictfetchone()['product_cost']
+            sql='''
+                    select sum(product_cost) as product_cost_acti from tpt_activities_line where bom_id = %s
+                '''%(master.id)
+            cr.execute(sql)
+            product_cost_acti = cr.dictfetchone()['product_cost_acti']
+            res[master.id] = product_cost+product_cost_acti
+        return res
+    
     _columns = {
         'cost_type': fields.selection([('variable','Variable'),('fixed','Fixed')], 'Cost Type'),
         'activities_line': fields.one2many('tpt.activities.line', 'bom_id', 'Activities'),
         'product_cost': fields.function(_norms, store = True, multi='sums', string='Product Cost'),
+        'finish_product_cost': fields.function(sum_finish_function, string='Finish Product Cost'),
 #         'product_cost': fields.float('Product Cost'),
     }
     

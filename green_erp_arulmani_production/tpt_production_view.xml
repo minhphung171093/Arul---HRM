@@ -224,6 +224,11 @@
 	                        <field name="date_stop" invisible="1"/>
 	                    </tree>
                     </xpath>
+                    
+                    <xpath expr="//label[@for='product_uos_qty']" position="before">
+                        <field name="finish_product_cost" />
+                    </xpath>
+                    
                 </data>
             </field>
         </record>
