@@ -25,8 +25,10 @@
                     <field name="state" widget="statusbar" statusbar_visible="draft,cancel,approve" statusbar_colors='{"draft":"blue","cancel":"blue"}'/>
 	            </header>    
 	            	<sheet>
-						<field name="name"/>
-						<field name="flag" invisible='1'/>
+	            		<group>
+							<field name="name"/>
+							<field name="flag" invisible='1'/>
+						</group>
 						<notebook>
 							<page string = "MRP Line">
 								<field name="mrp_process_line" nolabel='1'>

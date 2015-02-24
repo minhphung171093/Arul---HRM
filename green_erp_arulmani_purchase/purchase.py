@@ -51,7 +51,7 @@ class tpt_purchase_indent(osv.osv):
     def bt_approve(self, cr, uid, ids, context=None):
         for line in self.browse(cr, uid, ids):
             self.write(cr, uid, ids,{'state':'done'})
-        return True   
+        return True 
     
     def bt_cancel(self, cr, uid, ids, context=None):
         for line in self.browse(cr, uid, ids):
@@ -405,7 +405,7 @@ class product_product(osv.osv):
         're_stock': fields.float('Reorder Level'),
         'po_text': fields.char('PO Text', size = 1024),
         'mrp_control':fields.boolean('MRP Control Type'),
-        'description':fields.text('Description', size = 256),
+        'tpt_description':fields.text('Description', size = 256),
         }
     
     _defaults = {
