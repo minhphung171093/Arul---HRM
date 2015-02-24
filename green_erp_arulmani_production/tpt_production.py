@@ -280,18 +280,20 @@ class mrp_bom(osv.osv):
     def sum_finish_function(self, cr, uid, ids, field_name, args, context=None):
         res = {}
         for master in self.browse(cr,uid,ids,context=context):
-            result = 0.0
+            product_cost = 0.0
+            product_cost_acti=0.0
             sql='''
-                    select sum(product_cost) as product_cost from mrp_bom where bom_id = %s
+                    select case when sum(product_cost)!=0 then sum(product_cost) else 0 end product_cost from mrp_bom where bom_id = %s
                 '''%(master.id)
             cr.execute(sql)
             product_cost = cr.dictfetchone()['product_cost']
             sql='''
-                    select sum(product_cost) as product_cost_acti from tpt_activities_line where bom_id = %s
+                    select case when sum(product_cost)!=0 then sum(product_cost) else 0 end product_cost_acti from tpt_activities_line where bom_id = %s
                 '''%(master.id)
             cr.execute(sql)
             product_cost_acti = cr.dictfetchone()['product_cost_acti']
-            res[master.id] = product_cost+product_cost_acti
+            result = product_cost + product_cost_acti
+            res[master.id] = result
         return res
     
     _columns = {
