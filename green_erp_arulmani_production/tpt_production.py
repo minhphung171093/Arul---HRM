@@ -26,6 +26,7 @@ class tpt_tio2_batch_split(osv.osv):
     _defaults = {
         'state': 'draft',
         'name': time.strftime('%Y-%m-%d'),
+        'stating_batch_no': '/',
     }
     
     def bt_generate(self, cr, uid, ids, context=None):
@@ -76,6 +77,12 @@ class tpt_tio2_batch_split(osv.osv):
             v = {'available': mrp.product_qty,'location_id': mrp.location_dest_id.id}
             return {'value': v}
         return {}
+    
+    def create(self, cr, uid, vals, context=None):
+        if vals.get('stating_batch_no','/')=='/':
+            vals['stating_batch_no'] = self.pool.get('ir.sequence').get(cr, uid, 'batching.tio2') or '/'
+        new_id = super(tpt_tio2_batch_split, self).create(cr, uid, vals, context=context)
+        return new_id
     
 tpt_tio2_batch_split()
 
@@ -252,11 +259,47 @@ crm_application_line()
 
 class mrp_bom(osv.osv):
     _inherit = 'mrp.bom'
+     
+#     def _norms(self, cr, uid, ids, field_name, args, context=None):
+#         res = {}
+#         for master in self.browse(cr,uid,ids,context=context):
+#             res[master.id] = {
+#                     'product_cost': 0.0,
+#                 }  
+#             sql='''
+#                 select product_id, sum(product_qty) as product_qty, sum(line_net) as line_net from purchase_order_line where product_id = %s group by product_id
+#             '''%(master.product_id.id)
+#             cr.execute(sql)
+#             for product in cr.dictfetchall():
+#                 res[master.id]['product_cost'] = product['line_net']/product['product_qty']
+#         return res
+    
     _columns = {
         'cost_type': fields.selection([('variable','Variable'),('fixed','Fixed')], 'Cost Type'),
-        'product_cost': fields.float('Product Cost'),
         'activities_line': fields.one2many('tpt.activities.line', 'bom_id', 'Activities'),
+#         'product_cost': fields.function(_norms, store = True, multi='sums', string='Product Cost'),
+        'product_cost': fields.float('Product Cost'),
     }
+    
+    def onchange_cost_type(self, cr, uid, ids, product_id=False, cost_type=False, context=None):
+        vals = {}
+        if product_id:
+            product = self.pool.get('product.product').browse(cr, uid, product_id)
+            if cost_type == 'fixed':
+                vals = {
+                        'product_cost': product.standard_price
+                        }
+            if cost_type == 'variable':
+                sql='''
+                    select product_id, sum(product_qty) as product_qty, sum(line_net) as line_net from purchase_order_line where product_id = %s group by product_id
+                '''%(product_id)
+                cr.execute(sql)
+                for status in cr.dictfetchall():
+                    vals = {
+                            'product_cost': status['line_net']/status['product_qty']
+                            }
+            
+        return {'value': vals}   
 
 mrp_bom()
 
@@ -429,3 +472,18 @@ class stock_move(osv.osv):
         'app_quantity': fields.float('Appllied Quantity'),
     }
 stock_move()
+# class tpt_quality_verification(osv.osv):
+#     _name = 'tpt.quality.verification'
+#     _columns = {
+#         'product_id': fields.many2one('product.product', 'Product', required=True),
+#         'name': fields.date('Created Date'),
+#         'mrp_id': fields.many2one('mrp.production', 'Production Decl. No', required=True),
+#         'location_id': fields.many2one('stock.location', 'Warehouse Location', required=True),
+#         'available': fields.related('mrp_id', 'product_qty',string='Available Stock',store=True,readonly=True),
+#         'stating_batch_no': fields.char('Stating Batch No', size=100),
+#         'batch_split_line': fields.one2many('tpt.batch.split.line', 'tio2_id', 'Batch Split Line'),
+#         'state':fields.selection([('draft', 'Draft'),('generate', 'Generated'),('confirm', 'Confirm')],'Status', readonly=True),
+#     }
+#     
+# tpt_quality_verification()
+

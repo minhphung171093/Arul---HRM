@@ -218,7 +218,7 @@
 	                        <field name="name" string="Description"/>
 	                        <field name="product_qty" string="Quantity"/>
 	                        <field name="product_uom" string="UOM" options="{'create': false, 'create_edit': false}" on_change="onchange_uom(product_id, product_uom)" groups="product.group_uom"/>
-	                        <field name="cost_type"/>
+	                        <field name="cost_type" on_change = "onchange_cost_type(product_id, cost_type)"/>
                         	<field name="product_cost"/>
 	                        <field name="date_start" invisible="1"/>
 	                        <field name="date_stop" invisible="1"/>
