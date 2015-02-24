@@ -346,7 +346,43 @@ tpt_activities_line()
 
 class mrp_production(osv.osv):
     _inherit = 'mrp.production'
+    _columns = {
+            'move_lines': fields.many2many('stock.move', 'mrp_production_move_ids', 'production_id', 'move_id', 'Products to Consume',
+            domain=[('state','not in', ('done', 'cancel'))], readonly=False, states={'draft':[('readonly',False)]}),
+    }
+    _defaults={
+        'name': '/',
+    }
 
+
+    def create(self, cr, uid, vals, context=None):
+        sql = '''
+            select code from account_fiscalyear where '%s' between date_start and date_stop
+        '''%(time.strftime('%Y-%m-%d'))
+        cr.execute(sql)
+        fiscalyear = cr.dictfetchone()
+        if not fiscalyear:
+            raise osv.except_osv(_('Warning!'),_('Financial year has not been configured. !'))
+        else:
+            if vals.get('name','/')=='/':
+                sequence = self.pool.get('ir.sequence').get(cr, uid, 'production.declaration')
+                vals['name'] =  sequence and 'PRD'+'/'+fiscalyear['code']+'/'+sequence or '/'
+        new_id = super(mrp_production, self).create(cr, uid, vals, context=context)   
+        return new_id
+    def write(self, cr, uid, ids, vals, context=None):
+        sql = '''
+            select code from account_fiscalyear where '%s' between date_start and date_stop
+        '''%(time.strftime('%Y-%m-%d'))
+        cr.execute(sql)
+        fiscalyear = cr.dictfetchone()
+        if not fiscalyear:
+            raise osv.except_osv(_('Warning!'),_('Financial year has not been configured. !'))
+        else:
+            if vals.get('name','/')=='/':
+                sequence = self.pool.get('ir.sequence').get(cr, uid, 'production.declaration')
+                vals['name'] =  sequence and 'PRD'+'/'+fiscalyear['code']+'/'+sequence or '/'
+        new_write = super(mrp_production, self).write(cr, uid,ids, vals, context)
+        return new_write
     def _make_production_produce_line(self, cr, uid, production, context=None):
         stock_move = self.pool.get('stock.move')
         source_location_id = production.product_id.property_stock_production.id
@@ -433,6 +469,12 @@ class stock_production_lot(osv.osv):
     
 stock_production_lot()
 
+class stock_move(osv.osv):
+    _inherit = 'stock.move'
+    _columns = {
+        'app_quantity': fields.float('Appllied Quantity'),
+    }
+stock_move()
 # class tpt_quality_verification(osv.osv):
 #     _name = 'tpt.quality.verification'
 #     _columns = {
