@@ -931,6 +931,9 @@ class tpt_purchase_quotation_line(osv.osv):
         amount_fright=0.0
         
         for line in self.browse(cr,uid,ids,context=context):
+            res[line.id] = {
+                    'line_net': 0.0,
+                }  
             amount_basic = (line.product_uom_qty * line.price_unit)-((line.product_uom_qty * line.price_unit)*line.disc/100)
             if line.p_f_type == '1':
                amount_p_f = amount_basic * (line.p_f/100)
@@ -945,8 +948,10 @@ class tpt_purchase_quotation_line(osv.osv):
             else:
                 amount_fright = line.fright
             amount_total_tax = line.tax_id and line.tax_id.amount/100 or 0
-            res[line.id] = amount_total_tax+amount_fright+amount_ed+amount_p_f+amount_basic
+            line_net = amount_total_tax+amount_fright+amount_ed+amount_p_f+amount_basic
+            res[line.id]['line_net'] = line_net
         return res
+    
     _columns = {
         'purchase_quotation_id':fields.many2one('tpt.purchase.quotation','Purchase Quotitation', ondelete = 'cascade'),
         'po_indent_id':fields.many2one('tpt.purchase.indent','Indent', readonly = True),
@@ -962,7 +967,7 @@ class tpt_purchase_quotation_line(osv.osv):
         'tax_id': fields.many2one('account.tax', 'Taxes',required = True),
         'fright': fields.float('Fright'),
         'fright_type':fields.selection([('1','%'),('2','Rs')],('Fright Type')),
-        'line_net': fields.function(line_net_line,string='Net Line'),
+        'line_net': fields.function(line_net_line, store = True, multi='deltas' ,string='SubTotal'),
         }
     
     def create(self, cr, uid, vals, context=None):
@@ -1645,6 +1650,9 @@ class purchase_order_line(osv.osv):
         amount_fright=0.0
          
         for line in self.browse(cr,uid,ids,context=context):
+            res[line.id] = {
+                    'line_net': 0.0,
+                }  
             amount_total_tax=0.0
             amount_basic = (line.product_qty * line.price_unit)-((line.product_qty * line.price_unit)*line.discount)
             if line.p_f_type == 1:
@@ -1662,7 +1670,7 @@ class purchase_order_line(osv.osv):
             tax_amounts = [r.amount for r in line.taxes_id]
             for tax in tax_amounts:
                 amount_total_tax += tax/100
-            res[line.id] = amount_total_tax+amount_fright+amount_ed+amount_p_f+amount_basic
+            res[line.id]['line_net'] = amount_total_tax+amount_fright+amount_ed+amount_p_f+amount_basic
         return res
     
     _columns = {
@@ -1675,7 +1683,7 @@ class purchase_order_line(osv.osv):
                 'fright': fields.float('Fright'),
                 'fright_type':fields.selection([('1','%'),('2','Rs')],('Fright Type')),
                 # ham function line_net
-                'line_net': fields.function(line_net_line_po, string='Line Net'),
+                'line_net': fields.function(line_net_line_po, store = True, multi='deltas' ,string='Line Net'),
                 }
     _defaults = {
                  'date_planned':time.strftime('%Y-%m-%d'),

@@ -252,11 +252,47 @@ crm_application_line()
 
 class mrp_bom(osv.osv):
     _inherit = 'mrp.bom'
+     
+#     def _norms(self, cr, uid, ids, field_name, args, context=None):
+#         res = {}
+#         for master in self.browse(cr,uid,ids,context=context):
+#             res[master.id] = {
+#                     'product_cost': 0.0,
+#                 }  
+#             sql='''
+#                 select product_id, sum(product_qty) as product_qty, sum(line_net) as line_net from purchase_order_line where product_id = %s group by product_id
+#             '''%(master.product_id.id)
+#             cr.execute(sql)
+#             for product in cr.dictfetchall():
+#                 res[master.id]['product_cost'] = product['line_net']/product['product_qty']
+#         return res
+    
     _columns = {
         'cost_type': fields.selection([('variable','Variable'),('fixed','Fixed')], 'Cost Type'),
-        'product_cost': fields.float('Product Cost'),
         'activities_line': fields.one2many('tpt.activities.line', 'bom_id', 'Activities'),
+#         'product_cost': fields.function(_norms, store = True, multi='sums', string='Product Cost'),
+        'product_cost': fields.float('Product Cost'),
     }
+    
+    def onchange_cost_type(self, cr, uid, ids, product_id=False, cost_type=False, context=None):
+        vals = {}
+        if product_id:
+            product = self.pool.get('product.product').browse(cr, uid, product_id)
+            if cost_type == 'fixed':
+                vals = {
+                        'product_cost': product.standard_price
+                        }
+            if cost_type == 'variable':
+                sql='''
+                    select product_id, sum(product_qty) as product_qty, sum(line_net) as line_net from purchase_order_line where product_id = %s group by product_id
+                '''%(product_id)
+                cr.execute(sql)
+                for status in cr.dictfetchall():
+                    vals = {
+                            'product_cost': status['line_net']/status['product_qty']
+                            }
+            
+        return {'value': vals}   
 
 mrp_bom()
 
