@@ -26,6 +26,7 @@ class tpt_tio2_batch_split(osv.osv):
     _defaults = {
         'state': 'draft',
         'name': time.strftime('%Y-%m-%d'),
+        'stating_batch_no': '/',
     }
     
     def bt_generate(self, cr, uid, ids, context=None):
@@ -76,6 +77,12 @@ class tpt_tio2_batch_split(osv.osv):
             v = {'available': mrp.product_qty,'location_id': mrp.location_dest_id.id}
             return {'value': v}
         return {}
+    
+    def create(self, cr, uid, vals, context=None):
+        if vals.get('stating_batch_no','/')=='/':
+            vals['stating_batch_no'] = self.pool.get('ir.sequence').get(cr, uid, 'batching.tio2') or '/'
+        new_id = super(tpt_tio2_batch_split, self).create(cr, uid, vals, context=context)
+        return new_id
     
 tpt_tio2_batch_split()
 
@@ -422,4 +429,19 @@ class stock_production_lot(osv.osv):
                     self.create(cr, 1, {'name': lot_name, 'phy_batch_no': lot_name, 'product_id': product_ids[0]})
     
 stock_production_lot()
+
+# class tpt_quality_verification(osv.osv):
+#     _name = 'tpt.quality.verification'
+#     _columns = {
+#         'product_id': fields.many2one('product.product', 'Product', required=True),
+#         'name': fields.date('Created Date'),
+#         'mrp_id': fields.many2one('mrp.production', 'Production Decl. No', required=True),
+#         'location_id': fields.many2one('stock.location', 'Warehouse Location', required=True),
+#         'available': fields.related('mrp_id', 'product_qty',string='Available Stock',store=True,readonly=True),
+#         'stating_batch_no': fields.char('Stating Batch No', size=100),
+#         'batch_split_line': fields.one2many('tpt.batch.split.line', 'tio2_id', 'Batch Split Line'),
+#         'state':fields.selection([('draft', 'Draft'),('generate', 'Generated'),('confirm', 'Confirm')],'Status', readonly=True),
+#     }
+#     
+# tpt_quality_verification()
 
