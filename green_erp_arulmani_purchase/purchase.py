@@ -1296,9 +1296,14 @@ class purchase_order(osv.osv):
             quotation = self.pool.get('tpt.purchase.quotation').browse(cr, uid, quotation_no)
             for line in quotation.purchase_quotation_line:
                 if po_indent_no==line.po_indent_id.id:
+                    sql = '''
+                    select case when sum(product_qty)!=0 then sum(product_qty) else 0 end product_qty from purchase_order_line where order_id in (select id from purchase_order where po_indent_no=%s and state!='cancel')
+                    '''%(line.po_indent_id.id)
+                    cr.execute(sql)
+                    product_qty = cr.dictfetchone()['product_qty']
                     rs = {
                           'product_id': line.product_id and line.product_id.id or False,
-                          'product_qty': line.product_uom_qty or False,
+                          'product_qty': line.product_uom_qty-product_qty or False,
                           'product_uom': line.uom_id and line.uom_id.id or False,
                           'price_unit': line.price_unit or False,
                           'discount': line.disc or False,
@@ -1315,6 +1320,27 @@ class purchase_order(osv.osv):
                           'name':'/'
                           }
                     po_line.append((0,0,rs))
+#             for line in quotation.purchase_quotation_line:
+#                 if po_indent_no==line.po_indent_id.id:
+#                     rs = {
+#                           'product_id': line.product_id and line.product_id.id or False,
+#                           'product_qty': line.product_uom_qty or False,
+#                           'product_uom': line.uom_id and line.uom_id.id or False,
+#                           'price_unit': line.price_unit or False,
+#                           'discount': line.disc or False,
+#                           'p_f': line.p_f or False,
+#                           'p_f_type': line.p_f_type or False,
+#                           'ed': line.e_d or False,
+#                           'ed_type': line.e_d_type or False,
+#                           'fright': line.fright or False,
+#                           'fright_type': line.fright_type or False,
+#                           'line_net': line.line_net or False,
+#                           'taxes_id': [(6,0,[line.tax_id and line.tax_id.id])],
+# #                           'price_subtotal': line.sub_total or False,
+#                           'date_planned':quotation.date_quotation or False,
+#                           'name':'/'
+#                           }
+#                     po_line.append((0,0,rs))
             vals = {
                     'partner_id':quotation.supplier_id and quotation.supplier_id.id or '',
                     'partner_ref':quotation.quotation_ref or '',
@@ -1360,6 +1386,24 @@ class purchase_order(osv.osv):
             sequence = self.pool.get('ir.sequence').get(cr, uid, 'purchase.order.out.service')
             sql = '''update purchase_order set name='%s' where id =%s'''%(sequence+'/'+fiscalyear['code']or '/',new_id)
             cr.execute(sql)
+        
+        if new.quotation_no and new.po_indent_no:
+            quotation = self.pool.get('tpt.purchase.quotation').browse(cr, uid, new.quotation_no)
+            sql = '''
+                select case when sum(product_qty)!=0 then sum(product_qty) else 0 end product_qty_po from purchase_order_line where order_id in (select id from purchase_order where po_indent_no=%s and state!='cancel')
+            '''%(new.po_indent_no.id)
+            cr.execute(sql)
+            product_qty_po = cr.dictfetchone()['product_qty_po']
+            sql = '''
+                select case when sum(product_uom_qty)!=0 then sum(product_uom_qty) else 0 end product_qty_quotation from tpt_purchase_quotation_line where po_indent_id = %s
+            '''%(new.po_indent_no.id)
+            cr.execute(sql)
+            product_qty_quotation = cr.dictfetchone()['product_qty_quotation']
+            if product_qty_po==product_qty_quotation:
+                sql = '''
+                    update tpt_purchase_indent set state = 'cancel' where id=%s 
+                '''%(new.po_indent_no.id)
+                cr.execute(sql)
             
         if not new.quotation_no and new.po_indent_no:    
             date_order = datetime.datetime.strptime(new.date_order,'%Y-%m-%d')
@@ -1446,6 +1490,24 @@ class purchase_order(osv.osv):
                 sql = '''update purchase_order set name='%s' where id =%s'''%(sequence+'/'+fiscalyear['code']or '/',new.id)
                 cr.execute(sql)
             date_order = datetime.datetime.strptime(new.date_order,'%Y-%m-%d')
+            
+            if new.quotation_no and new.po_indent_no:
+                quotation = self.pool.get('tpt.purchase.quotation').browse(cr, uid, new.quotation_no)
+                sql = '''
+                    select case when sum(product_qty)!=0 then sum(product_qty) else 0 end product_qty_po from purchase_order_line where order_id in (select id from purchase_order where po_indent_no=%s and state!='cancel')
+                '''%(new.po_indent_no.id)
+                cr.execute(sql)
+                product_qty_po = cr.dictfetchone()['product_qty_po']
+                sql = '''
+                    select case when sum(product_uom_qty)!=0 then sum(product_uom_qty) else 0 end product_qty_quotation from tpt_purchase_quotation_line where po_indent_id = %s
+                '''%(new.po_indent_no.id)
+                cr.execute(sql)
+                product_qty_quotation = cr.dictfetchone()['product_qty_quotation']
+                if product_qty_po==product_qty_quotation:
+                    sql = '''
+                        update tpt_purchase_quotation set state = 'cancel' where id=%s 
+                    '''%(new.quotation_no.id)
+                    cr.execute(sql)
             
             if not new.quotation_no and new.po_indent_no:
                 date_order_month = date_order.month
