@@ -260,6 +260,71 @@
                 </data>
             </field>
         </record>
+
+        <record id="mrp_production_form_view_inherit" model="ir.ui.view">
+            <field name="name">mrp.production.form.inherit</field>
+            <field name="model">mrp.production</field>
+            <field name="inherit_id" ref="mrp.mrp_production_form_view"/>
+            <field name="arch" type="xml">
+                <data>
+                	<xpath expr="//h1" position="replace">
+						<h1>Production Declaration <field name="name" readonly="1" class="oe_inline"/> </h1>
+                    </xpath>
+   	
+                	<xpath expr="//form/sheet/notebook/page[@string='Consumed Products']/group/group[@string='Products to Consume']/field[@name='move_lines']/tree[@string='Products to Consume']" position="replace">
+                    	<tree colors="blue:state == 'draft';black:state in ('picking_except','confirmed','ready','in_production');gray:state in ('cancel','done') " string="Products to Consume" editable='top' >
+                    		 				<field name="product_id" readonly="1" />
+                                            <field name="product_qty" readonly="1" string="Quantity"/>
+                                            <field name="product_uom" readonly="1" string="Unit of Measure" groups="product.group_uom"/>
+                                            <field name="prodlot_id" groups="stock.group_production_lot" context="{'product_id': product_id}"/>
+                                            <field name="state" invisible="1"/>
+                                            <button name="%(stock.move_consume)d"
+                                                string="Consume Products" type="action"
+                                                icon="gtk-go-forward" context="{'consume': True}"
+                                                states="draft,waiting,confirmed,assigned"/>
+                                            <button
+                                                   name="%(stock.track_line)d"
+                                                   string="Split in Serial Numbers"
+                                                   type="action" icon="gtk-justify-fill"
+                                                   states="draft,waiting,confirmed,assigned" 
+                                                   groups="stock.group_production_lot"/>
+                                            <button name="%(stock.move_scrap)d"
+                                                string="Scrap Products" type="action"
+                                                icon="terp-gtk-jump-to-ltr" context="{'scrap': True}"
+                                                states="draft,waiting,confirmed,assigned"/>
+                          </tree>
+                    </xpath>
+               		<xpath expr="//group[@string='Consumed Products']" position="attributes">
+						<attribute name='invisible'>1</attribute>
+                    </xpath>
+                    <xpath expr="//form/sheet/notebook/page[@string='Consumed Products']/group/group[@string='Products to Consume']/field/tree/field[@name='product_id']" position="replace">
+						<field name="product_id" string="Materials " />
+                    </xpath>
+                    <xpath expr="//form/sheet/notebook/page[@string='Consumed Products']/group/group[@string='Products to Consume']/field/tree/field[@name='product_qty']" position="replace">
+						<field name="product_qty" string="Required Quantity " />
+                    </xpath>
+                    <xpath expr="//form/sheet/notebook/page[@string='Consumed Products']/group/group[@string='Products to Consume']/field/tree/field[@name='product_uom']" position="replace">
+						<field name="product_uom" string="UOM" />
+                    </xpath>
+                    <xpath expr="//form/sheet/notebook/page[@string='Consumed Products']/group/group[@string='Products to Consume']/field/tree/field[@name='prodlot_id']" position="attributes">
+						<attribute name='invisible'>1</attribute>
+                    </xpath>
+                    <xpath expr="//form/sheet/notebook/page[@string='Consumed Products']/group/group[@string='Products to Consume']/field/tree/button[@name='%(stock.move_consume)d']" position="attributes">
+						<attribute name='invisible'>1</attribute>
+                    </xpath>
+                    <xpath expr="//form/sheet/notebook/page[@string='Consumed Products']/group/group[@string='Products to Consume']/field/tree/button[@name='%(stock.move_scrap)d']" position="attributes">
+						<attribute name='invisible'>1</attribute>
+                    </xpath>
+                    <xpath expr="//form/sheet/notebook/page[@string='Consumed Products']/group/group[@string='Products to Consume']/field/tree/button[@name='%(stock.track_line)d']" position="attributes">
+						<attribute name='invisible'>1</attribute>
+                    </xpath>
+                    <xpath expr="//form/sheet/notebook/page[@string='Consumed Products']/group/group[@string='Products to Consume']/field/tree/field[@name='product_uom']" position="after">
+                    	<field name="app_quantity" />
+                    </xpath>
+  
+                </data>
+            </field>
+        </record>
         
     </data>
 </openerp>

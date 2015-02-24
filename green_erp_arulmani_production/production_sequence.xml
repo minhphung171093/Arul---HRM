@@ -14,5 +14,18 @@
             <field name="padding">2</field>
             <field name="implementation">standard</field>
         </record>
+<!-- Production Declaration-->
+        <record id="sequence_declaration" model="ir.sequence.type">
+            <field name="name">Production Declaration</field>
+            <field name="code">production.declaration</field>
+        </record>
+        
+        <record id="sequence_declaration_item" model="ir.sequence">
+            <field name="name">Production Declaration</field>
+            <field name="code">production.declaration</field>
+            <field name="padding">5</field>
+            <field name="number_next_actual">00001</field>
+            <field name="implementation">no_gap</field>
+        </record>
 	</data>
 </openerp>
