@@ -355,9 +355,9 @@ class mrp_bom(osv.osv):
     _columns = {
         'cost_type': fields.selection([('variable','Variable'),('fixed','Fixed')], 'Cost Type'),
         'activities_line': fields.one2many('tpt.activities.line', 'bom_id', 'Activities'),
-        'product_cost': fields.function(_norms, store = True, multi='sums', string='Product Cost'),
+#         'product_cost': fields.function(_norms, store = True, multi='sums', string='Product Cost'),
         'finish_product_cost': fields.function(sum_finish_function, string='Finish Product Cost'),
-#         'product_cost': fields.float('Product Cost'),
+        'product_cost': fields.float('Product Cost'),
     }
     
     def onchange_cost_type(self, cr, uid, ids, product_id=False, cost_type=False, context=None):
@@ -366,7 +366,7 @@ class mrp_bom(osv.osv):
             product = self.pool.get('product.product').browse(cr, uid, product_id)
             if cost_type == 'fixed':
                 vals = {
-                        'product_cost': product.standard_price
+                        'product_cost': 0.0
                         }
             if cost_type == 'variable':
                 sql='''

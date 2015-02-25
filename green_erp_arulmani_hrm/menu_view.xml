@@ -155,5 +155,9 @@
 	    	action="green_erp_arulmani_crm.action_list_employee_report"
 	    	parent="hr.menu_hr_main" sequence="22"
 	    	groups="group_vvti_hrm_hr_key_user,group_vvti_hrm_time_user,group_vvti_hrm_hr_manager,group_vvti_hrm_payroll_controller"/>
+	    	
+	    <menuitem action="action_time_evaluation_report"
+            id="menu_action_time_evaluation_report"
+            parent="menu_hr_leave_management" sequence="35"/>
     </data>
 </openerp>
