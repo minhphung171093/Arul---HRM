@@ -237,11 +237,23 @@ tpt_activities()
 class crm_application(osv.osv):
     _inherit = 'crm.application'
     _columns = {
-        'product_id': fields.many2one('product.product', 'Product'),
+        'product_id': fields.many2one('product.product', 'Product', required = True),
         'application_line': fields.one2many('crm.application.line', 'application_id', 'Application Line'),
     }
     _defaults = {
     }
+    
+    def _check_product_id(self, cr, uid, ids, context=None):
+        for product in self.browse(cr, uid, ids, context=context):
+            product_ids = self.search(cr, uid, [('id','!=',product.id),('product_id','=',product.product_id.id)])
+            if product_ids:
+                raise osv.except_osv(_('Warning!'),_('Different Products are not allowed in same Application Master!'))           
+                return False
+            return True
+        
+    _constraints = [
+        (_check_product_id, 'Identical Data', ['product_id']),
+    ]       
     
 crm_application()
 
