@@ -605,6 +605,21 @@ class tpt_quality_verification(osv.osv):
             cr.execute(sql)
         
         return self.write(cr, uid, ids,{'state':'done'})
+    
+    def onchange_applicable_id(self, cr, uid, ids,applicable_id=False,context=None):
+        vals = {}
+        if applicable_id :
+            details = []
+            appli = self.pool.get('crm.application').browse(cr, uid, applicable_id)
+            for para in appli.application_line:
+                rs = {
+                      'parameters_id':para.parameters_id and para.parameters_id.id or False,
+                      'standard_value': para.standard_value or False,
+                      }
+                details.append((0,0,rs))
+                     
+        return {'value': {'batch_quality_line': details}}    
+
 tpt_quality_verification()
 
 # class tpt_batch_quality_verification_line(osv.osv):

@@ -357,15 +357,15 @@
 	            		<group>
 	            			<field name="phy_batch_no"/>
 	            			<field name="name"/>
-	            			<field name="applicable_id" options="{'create': false, 'create_edit': false}" />
+	            			<field name="applicable_id" on_change = "onchange_applicable_id(applicable_id)" domain="[('product_id','=',product_id)]" options="{'create': false, 'create_edit': false}" />
 	            		</group>
 	            		</group>
 	            		<notebook>
 							<page string = "Batch Quality Verification Results">
 								<field name="batch_quality_line" nolabel='1' >
-									<tree>
-										<field name="parameters_id" options="{'create': false, 'create_edit': false}"/>
-										<field name="standard_value"/>
+									<tree editable = 'bottom'>
+										<field name="parameters_id" readonly = '1' options="{'create': false, 'create_edit': false}"/>
+										<field name="standard_value" readonly = '1' />
 										<field name="exp_value" />
 									</tree>
 								</field>
