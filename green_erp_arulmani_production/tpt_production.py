@@ -552,7 +552,7 @@ class stock_production_lot(osv.osv):
             context = {}
         if context.get('search_batch_no_tio2'):
             sql = '''
-                select id from stock_production_lot where product_id in (select id from product_product where name in ('TITANIUM DIOXIDE-ANATASE','TiO2') or default_code in ('TITANIUM DIOXIDE-ANATASE','TiO2'))
+                select id from stock_production_lot where product_id in (select id from product_product where name_template in ('TITANIUM DIOXIDE-ANATASE','TiO2') or default_code in ('TITANIUM DIOXIDE-ANATASE','TiO2'))
             '''
             cr.execute(sql)
             mrp_ids = [row[0] for row in cr.fetchall()]
@@ -618,6 +618,14 @@ class tpt_quality_verification(osv.osv):
         
         return self.write(cr, uid, ids,{'state':'done'})
     
+    def onchange_prod_batch_id(self, cr, uid, ids,prod_batch_id=False,context=None):
+        vals = {}
+        if prod_batch_id:
+            prod_batch = self.pool.get('stock.production.lot').browse(cr, uid, prod_batch_id)
+            vals = {'warehouse_id': prod_batch.location_id and prod_batch.location_id.id or False,
+                    'product_id': prod_batch.product_id and prod_batch.product_id.id or False}
+        return {'value': vals}
+    
     def onchange_applicable_id(self, cr, uid, ids,applicable_id=False,context=None):
         vals = {}
         if applicable_id :
@@ -630,7 +638,7 @@ class tpt_quality_verification(osv.osv):
                       }
                 details.append((0,0,rs))
                      
-        return {'value': {'batch_quality_line': details}}   
+        return {'value': {'batch_quality_line': details}}
 
 tpt_quality_verification()
 
