@@ -218,12 +218,17 @@
 	                        <field name="name" string="Description"/>
 	                        <field name="product_qty" string="Quantity"/>
 	                        <field name="product_uom" string="UOM" options="{'create': false, 'create_edit': false}" on_change="onchange_uom(product_id, product_uom)" groups="product.group_uom"/>
-	                        <field name="cost_type"/>
+	                        <field name="cost_type" on_change = "onchange_cost_type(product_id, cost_type)"/>
                         	<field name="product_cost"/>
 	                        <field name="date_start" invisible="1"/>
 	                        <field name="date_stop" invisible="1"/>
 	                    </tree>
                     </xpath>
+                    
+                    <xpath expr="//label[@for='product_uos_qty']" position="before">
+                        <field name="finish_product_cost" />
+                    </xpath>
+                    
                 </data>
             </field>
         </record>
@@ -257,6 +262,60 @@
 		                    </field>
 	                    </page>
                     </xpath>
+                </data>
+            </field>
+        </record>
+
+		<record id="view_move_form_inherit" model="ir.ui.view">
+            <field name="name">stock.move.inherit</field>
+            <field name="model">stock.move</field>
+            <field name="inherit_id" ref="stock.view_move_form"/>
+            <field name="arch" type="xml">
+                <data>
+                	<xpath expr="//field[@name='name']" position="after">
+                		<field name="app_quantity" />
+                    </xpath>
+                </data>
+            </field>
+        </record>
+
+        <record id="mrp_production_form_view_inherit" model="ir.ui.view">
+            <field name="name">mrp.production.form.inherit</field>
+            <field name="model">mrp.production</field>
+            <field name="inherit_id" ref="mrp.mrp_production_form_view"/>
+            <field name="arch" type="xml">
+                <data>
+                	<xpath expr="//h1" position="replace">
+						<h1>Production Declaration <field name="name" readonly="1" class="oe_inline"/> </h1>
+                    </xpath>
+               		<xpath expr="//group[@string='Consumed Products']" position="attributes">
+						<attribute name='invisible'>1</attribute>
+                    </xpath>
+                    <xpath expr="//form/sheet/notebook/page[@string='Consumed Products']/group/group[@string='Products to Consume']/field/tree/field[@name='product_id']" position="replace">
+						<field name="product_id" string="Materials " />
+                    </xpath>
+                    <xpath expr="//form/sheet/notebook/page[@string='Consumed Products']/group/group[@string='Products to Consume']/field/tree/field[@name='product_qty']" position="replace">
+						<field name="product_qty" string="Required Quantity " />
+                    </xpath>
+                    <xpath expr="//form/sheet/notebook/page[@string='Consumed Products']/group/group[@string='Products to Consume']/field/tree/field[@name='product_uom']" position="replace">
+						<field name="product_uom" string="UOM" />
+                    </xpath>
+                    <xpath expr="//form/sheet/notebook/page[@string='Consumed Products']/group/group[@string='Products to Consume']/field/tree/field[@name='prodlot_id']" position="attributes">
+						<attribute name='invisible'>1</attribute>
+                    </xpath>
+                    <xpath expr="//form/sheet/notebook/page[@string='Consumed Products']/group/group[@string='Products to Consume']/field/tree/button[@name='%(stock.move_consume)d']" position="attributes">
+						<attribute name='invisible'>1</attribute>
+                    </xpath>
+                    <xpath expr="//form/sheet/notebook/page[@string='Consumed Products']/group/group[@string='Products to Consume']/field/tree/button[@name='%(stock.move_scrap)d']" position="attributes">
+						<attribute name='invisible'>1</attribute>
+                    </xpath>
+                    <xpath expr="//form/sheet/notebook/page[@string='Consumed Products']/group/group[@string='Products to Consume']/field/tree/button[@name='%(stock.track_line)d']" position="attributes">
+						<attribute name='invisible'>1</attribute>
+                    </xpath>
+                    <xpath expr="//form/sheet/notebook/page[@string='Consumed Products']/group/group[@string='Products to Consume']/field/tree/field[@name='product_uom']" position="after">
+                    	<field name="app_quantity" />
+                    </xpath>
+  
                 </data>
             </field>
         </record>

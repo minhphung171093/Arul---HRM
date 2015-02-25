@@ -300,11 +300,70 @@ crm_application_line()
 
 class mrp_bom(osv.osv):
     _inherit = 'mrp.bom'
+     
+    def _norms(self, cr, uid, ids, field_name, args, context=None):
+        res = {}
+        for master in self.browse(cr,uid,ids,context=context):
+            res[master.id] = {
+                    'product_cost': 0.0,
+                } 
+            if master.cost_type == 'variable' :
+                sql='''
+                    select product_id, sum(product_qty) as product_qty, sum(line_net) as line_net from purchase_order_line where product_id = %s group by product_id
+                '''%(master.product_id.id)
+                cr.execute(sql)
+                for product in cr.dictfetchall():
+                    res[master.id]['product_cost'] = product['line_net']/product['product_qty']
+            if master.cost_type == 'fixed':
+                res[master.id]['product_cost'] = master.product_id.standard_price
+        return res
+    
+    def sum_finish_function(self, cr, uid, ids, field_name, args, context=None):
+        res = {}
+        for master in self.browse(cr,uid,ids,context=context):
+            product_cost = 0.0
+            product_cost_acti=0.0
+            sql='''
+                    select case when sum(product_cost)!=0 then sum(product_cost) else 0 end product_cost from mrp_bom where bom_id = %s
+                '''%(master.id)
+            cr.execute(sql)
+            product_cost = cr.dictfetchone()['product_cost']
+            sql='''
+                    select case when sum(product_cost)!=0 then sum(product_cost) else 0 end product_cost_acti from tpt_activities_line where bom_id = %s
+                '''%(master.id)
+            cr.execute(sql)
+            product_cost_acti = cr.dictfetchone()['product_cost_acti']
+            result = product_cost + product_cost_acti
+            res[master.id] = result
+        return res
+    
     _columns = {
         'cost_type': fields.selection([('variable','Variable'),('fixed','Fixed')], 'Cost Type'),
-        'product_cost': fields.float('Product Cost'),
         'activities_line': fields.one2many('tpt.activities.line', 'bom_id', 'Activities'),
+        'product_cost': fields.function(_norms, store = True, multi='sums', string='Product Cost'),
+        'finish_product_cost': fields.function(sum_finish_function, string='Finish Product Cost'),
+#         'product_cost': fields.float('Product Cost'),
     }
+    
+    def onchange_cost_type(self, cr, uid, ids, product_id=False, cost_type=False, context=None):
+        vals = {}
+        if product_id:
+            product = self.pool.get('product.product').browse(cr, uid, product_id)
+            if cost_type == 'fixed':
+                vals = {
+                        'product_cost': product.standard_price
+                        }
+            if cost_type == 'variable':
+                sql='''
+                    select product_id, sum(product_qty) as product_qty, sum(line_net) as line_net from purchase_order_line where product_id = %s group by product_id
+                '''%(product_id)
+                cr.execute(sql)
+                for status in cr.dictfetchall():
+                    vals = {
+                            'product_cost': status['line_net']/status['product_qty']
+                            }
+            
+        return {'value': vals}   
 
 mrp_bom()
 
@@ -348,7 +407,43 @@ tpt_activities_line()
 
 class mrp_production(osv.osv):
     _inherit = 'mrp.production'
+    _columns = {
+            'move_lines': fields.many2many('stock.move', 'mrp_production_move_ids', 'production_id', 'move_id', 'Products to Consume',
+            domain=[('state','not in', ('done', 'cancel'))], readonly=False, states={'draft':[('readonly',False)]}),
+    }
+    _defaults={
+        'name': '/',
+    }
 
+
+    def create(self, cr, uid, vals, context=None):
+        sql = '''
+            select code from account_fiscalyear where '%s' between date_start and date_stop
+        '''%(time.strftime('%Y-%m-%d'))
+        cr.execute(sql)
+        fiscalyear = cr.dictfetchone()
+        if not fiscalyear:
+            raise osv.except_osv(_('Warning!'),_('Financial year has not been configured. !'))
+        else:
+            if vals.get('name','/')=='/':
+                sequence = self.pool.get('ir.sequence').get(cr, uid, 'production.declaration')
+                vals['name'] =  sequence and 'PRD'+'/'+fiscalyear['code']+'/'+sequence or '/'
+        new_id = super(mrp_production, self).create(cr, uid, vals, context=context)   
+        return new_id
+    def write(self, cr, uid, ids, vals, context=None):
+        sql = '''
+            select code from account_fiscalyear where '%s' between date_start and date_stop
+        '''%(time.strftime('%Y-%m-%d'))
+        cr.execute(sql)
+        fiscalyear = cr.dictfetchone()
+        if not fiscalyear:
+            raise osv.except_osv(_('Warning!'),_('Financial year has not been configured. !'))
+        else:
+            if vals.get('name','/')=='/':
+                sequence = self.pool.get('ir.sequence').get(cr, uid, 'production.declaration')
+                vals['name'] =  sequence and 'PRD'+'/'+fiscalyear['code']+'/'+sequence or '/'
+        new_write = super(mrp_production, self).write(cr, uid,ids, vals, context)
+        return new_write
     def _make_production_produce_line(self, cr, uid, production, context=None):
         stock_move = self.pool.get('stock.move')
         source_location_id = production.product_id.property_stock_production.id
@@ -435,6 +530,12 @@ class stock_production_lot(osv.osv):
     
 stock_production_lot()
 
+class stock_move(osv.osv):
+    _inherit = 'stock.move'
+    _columns = {
+        'app_quantity': fields.float('Appllied Quantity'),
+    }
+stock_move()
 # class tpt_quality_verification(osv.osv):
 #     _name = 'tpt.quality.verification'
 #     _columns = {
