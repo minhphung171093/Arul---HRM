@@ -414,6 +414,13 @@
                 </data>
             </field>
         </record>
-        
+        <menuitem name = "Production Declaration" action="mrp.mrp_production_action" id="mrp.menu_mrp_production_action"
+            parent="mrp.menu_mrp_manufacturing" sequence="1"/>
+            
+        <menuitem name = "Norms"
+            action="mrp.mrp_bom_form_action"
+            id="mrp.menu_mrp_bom_form_action"
+            parent="mrp.menu_mrp_bom"
+            sequence="10"/>
     </data>
 </openerp>

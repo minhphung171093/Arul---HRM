@@ -66,17 +66,44 @@ class Parser(report_sxw.rml_parse):
 #             time_leave_eva_ids = time_leave_eva_obj.search(self.cr, self.uid,[('month','=',month),('year','=',year)])
         for employee in employee_obj.browse(self.cr, self.uid, employee_ids):
             sql = '''
-                select case when count(work_date)>0 then count(work_date) else 0 end date from arul_hr_punch_in_out_time where EXTRACT(month from work_date)=%s and EXTRACT(year from work_date)=%s and
+                select count(*) as date from (select work_date from arul_hr_punch_in_out_time where EXTRACT(month from work_date)=%s and EXTRACT(year from work_date)=%s and
                     punch_in_out_id in (select id from arul_hr_employee_attendence_details where employee_id=%s)
-                group by work_date, EXTRACT(year from work_date), EXTRACT(year from work_date)
+                group by work_date) as x
             '''%(int(month), int(year),employee.id)
-#             self.cr.execute(sql)
-#             date = self.cr.dictfetchone()['date']
-                        
+            self.cr.execute(sql)
+            date = self.cr.dictfetchone()
+            sql = '''
+                select actual_work_shift_id from arul_hr_punch_in_out_time where EXTRACT(month from work_date)=%s and EXTRACT(year from work_date)=%s and
+                    punch_in_out_id in (select id from arul_hr_employee_attendence_details where employee_id=%s)
+            '''%(int(month), int(year),employee.id)
+            self.cr.execute(sql)
+            actual_work_shift_ids = [r[0] for r in self.cr.fetchall()]
+            a=0
+            b=0
+            c=0
+            g1=0
+            g2=0
+            for shift in self.pool.get('arul.hr.capture.work.shift').browse(self.cr,self.uid,actual_work_shift_ids):
+                if shift.code=='A':
+                    a+=1
+                if shift.code=='B':
+                    b+=1
+                if shift.code=='C':
+                    c+=1
+                if shift.code=='G1':
+                    g1+=1
+                if shift.code=='G2':
+                    g2+=1
             res.append({
                 'emp_id': employee.employee_id or '',
                 'emp_name': employee.name + ' ' + (employee.last_name and employee.last_name or ''),
-#                 'date':date,
+                'date':date and date['date'] or '',
+                'a':a,
+                'b':b,
+                'c':c,
+                'g1':g1,
+                'g2':g2,
+                'total': a+b+c+g1+g2,
             })
         return res
 # vim:expandtab:smartindent:tabstop=4:softtabstop=4:shiftwidth=4:
