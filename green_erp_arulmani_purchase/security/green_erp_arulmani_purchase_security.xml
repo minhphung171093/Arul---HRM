@@ -6,6 +6,55 @@
 	        <field name="sequence">0</field>
 	    </record>
 	    
+	    <record id="group_vvti_purchase_user" model="res.groups">
+	        <field name="name">Purchase User</field>
+	        <field name="category_id" ref="module_category_vvti_purchase"/>
+	        <field name="users" eval="[(4, ref('base.user_root'))]"/>
+	        <!--<field name="implied_ids" eval="[(4, ref('base.group_sale_manager')),(4, ref('stock.group_stock_manager'))]"/>-->
+	    </record>
+	    
+	    <record id="group_vvti_purchase_key_user" model="res.groups">
+	        <field name="name">Purchase Key User</field>
+	        <field name="category_id" ref="module_category_vvti_purchase"/>
+	        <field name="users" eval="[(4, ref('base.user_root'))]"/>
+	        <!--<field name="implied_ids" eval="[(4, ref('group_vvti_sale_manager'))]"/>-->
+	    </record>
+	    
+	    <record id="group_vvti_purchase_mgr" model="res.groups">
+	        <field name="name">Purchase Mgr</field>
+	        <field name="category_id" ref="module_category_vvti_purchase"/>
+	        <field name="users" eval="[(4, ref('base.user_root'))]"/>
+	        <!--<field name="implied_ids" eval="[(4, ref('group_vvti_sale_manager'))]"/>-->
+	    </record>
+	    
+	    <record id="group_vvti_purchase_store_user" model="res.groups">
+	        <field name="name">Purchase Store User</field>
+	        <field name="category_id" ref="module_category_vvti_purchase"/>
+	        <field name="users" eval="[(4, ref('base.user_root'))]"/>
+	        <!--<field name="implied_ids" eval="[(4, ref('group_vvti_sale_manager'))]"/>-->
+	    </record>
+	    
+	    <record id="group_vvti_purchase_store_key_user" model="res.groups">
+	        <field name="name">Store Key User</field>
+	        <field name="category_id" ref="module_category_vvti_purchase"/>
+	        <field name="users" eval="[(4, ref('base.user_root'))]"/>
+	        <!--<field name="implied_ids" eval="[(4, ref('base.group_user'))]"/>-->
+	    </record>
+	    
+	    <record id="group_vvti_purchase_mgr" model="res.groups">
+	        <field name="name">Purchase Mgr</field>
+	        <field name="category_id" ref="module_category_vvti_purchase"/>
+	        <field name="users" eval="[(4, ref('base.user_root'))]"/>
+	        <!--<field name="implied_ids" eval="[(4, ref('group_vvti_sale_manager'))]"/>-->
+	    </record>
+	    
+	    <record id="group_vvti_purchase_gm" model="res.groups">
+	        <field name="name">Purchase GM</field>
+	        <field name="category_id" ref="module_category_vvti_purchase"/>
+	        <field name="users" eval="[(4, ref('base.user_root'))]"/>
+	        <!--<field name="implied_ids" eval="[(4, ref('group_vvti_sale_manager'))]"/>-->
+	    </record>
+	    
 	    <record id="group_vvti_purchase_admin" model="res.groups">
 	        <field name="name">Admin</field>
 	        <field name="category_id" ref="module_category_vvti_purchase"/>
