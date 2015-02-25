@@ -37,7 +37,8 @@ class tpt_tio2_batch_split(osv.osv):
                 prodlot_name = self.pool.get('ir.sequence').get(cr, uid, 'batching.tio2')
                 prodlot_id = prodlot_obj.create(cr, uid, {'name': prodlot_name,
                                              'phy_batch_no': prodlot_name,
-                                             'product_id': line.product_id.id})
+                                             'product_id': line.product_id.id,
+                                             'location_id': line.location_id.id})
                 batch_split_line_obj.create(cr, uid, {
                                     'tio2_id': line.id,
                                     'sequence': num+1,
@@ -520,6 +521,10 @@ mrp_production()
 class stock_production_lot(osv.osv):
     _inherit = 'stock.production.lot'
     
+    _columns = {
+        'location_id':fields.many2one('stock.location','Location'),
+    }
+    
     def init(self, cr):
         product_ids = self.pool.get('product.product').search(cr, 1, ['|',('name','in',['TITANIUM DIOXIDE-ANATASE','TiO2']),('default_code','in',['TITANIUM DIOXIDE-ANATASE','TiO2'])])
         if product_ids:
@@ -552,6 +557,13 @@ class stock_production_lot(osv.osv):
             cr.execute(sql)
             mrp_ids = [row[0] for row in cr.fetchall()]
             args += [('id','in',mrp_ids)]
+        if context.get('search_prodlot_id',False) and context.get('location_id',False):
+            sql = '''
+                select id from stock_production_lot where location_id = %s
+            '''%(context.get('location_id'))
+            cr.execute(sql)
+            prodlot_ids = [row[0] for row in cr.fetchall()]
+            args += [('id','in',prodlot_ids)]
         return super(stock_production_lot, self).search(cr, uid, args, offset=offset, limit=limit, order=order, context=context, count=count)
     
     def name_search(self, cr, user, name, args=None, operator='ilike', context=None, limit=100):
@@ -618,7 +630,7 @@ class tpt_quality_verification(osv.osv):
                       }
                 details.append((0,0,rs))
                      
-        return {'value': {'batch_quality_line': details}}    
+        return {'value': {'batch_quality_line': details}}   
 
 tpt_quality_verification()
 

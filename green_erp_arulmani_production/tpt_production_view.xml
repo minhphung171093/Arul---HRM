@@ -389,6 +389,31 @@
             id="menu_action_tpt_quality_verification_form"
             parent="mrp.menu_mrp_manufacturing" sequence="30"/>
 
+        <record id="view_production_lot_form_inherit" model="ir.ui.view">
+            <field name="name">stock.production.lot.inherit</field>
+            <field name="model">stock.production.lot</field>
+            <field name="inherit_id" ref="stock.view_production_lot_form"/>
+            <field name="arch" type="xml">
+                <data>
+                	<xpath expr="//field[@name='stock_available']" position="after">
+                		<field name="location_id" options="{'create': false, 'create_edit': false}"/>
+                    </xpath>
+                </data>
+            </field>
+        </record>
+        
+        <record id="view_inventory_form_inherit" model="ir.ui.view">
+            <field name="name">stock.inventory.inherit</field>
+            <field name="model">stock.inventory</field>
+            <field name="inherit_id" ref="stock.view_inventory_form"/>
+            <field name="arch" type="xml">
+                <data>
+                	<xpath expr="//field[@name='inventory_line_id']/tree/field[@name='prod_lot_id']" position="attributes">
+                		<attribute name="context">{'search_prodlot_id':1,'location_id':location_id}</attribute>
+                    </xpath>
+                </data>
+            </field>
+        </record>
         
     </data>
 </openerp>
