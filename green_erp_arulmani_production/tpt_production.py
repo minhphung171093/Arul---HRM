@@ -19,7 +19,7 @@ class tpt_tio2_batch_split(osv.osv):
         'mrp_id': fields.many2one('mrp.production', 'Production Decl. No', required=True),
         'location_id': fields.many2one('stock.location', 'Warehouse Location', required=True),
         'available': fields.related('mrp_id', 'product_qty',string='Available Stock',store=True,readonly=True),
-        'stating_batch_no': fields.char('Stating Batch No', size=100),
+        'stating_batch_no': fields.char('Stating Batch No', size=100,readonly=True),
         'batch_split_line': fields.one2many('tpt.batch.split.line', 'tio2_id', 'Batch Split Line'),
         'state':fields.selection([('draft', 'Draft'),('generate', 'Generated'),('confirm', 'Confirm')],'Status', readonly=True),
     }
@@ -80,9 +80,50 @@ class tpt_tio2_batch_split(osv.osv):
     
     def create(self, cr, uid, vals, context=None):
         if vals.get('stating_batch_no','/')=='/':
-            vals['stating_batch_no'] = self.pool.get('ir.sequence').get(cr, uid, 'batching.tio2') or '/'
+            
+            company_ids = self.pool.get('res.company').search(cr, uid, [], context=context) + [False]
+            seq_ids = self.pool.get('ir.sequence').search(cr, uid, ['&', ('code', '=', 'batching.tio2'), ('company_id', 'in', company_ids)])
+            
+            force_company = context.get('force_company')
+            if not force_company:
+                force_company = self.pool.get('res.users').browse(cr, uid, uid).company_id.id
+            sequences = self.pool.get('ir.sequence').read(cr, uid, seq_ids, ['name','company_id','implementation','number_next','prefix','suffix','padding', 'number_increment', 'auto_reset', 'reset_period', 'reset_time', 'reset_init_number'])
+            preferred_sequences = [s for s in sequences if s['company_id'] and s['company_id'][0] == force_company ]
+            seq = preferred_sequences[0] if preferred_sequences else sequences[0]
+            if seq['implementation'] == 'standard':
+                current_time =':'.join([seq['reset_period'], self.pool.get('ir.sequence')._interpolation_dict().get(seq['reset_period'])])
+                if seq['auto_reset'] and current_time != seq['reset_time']:
+                    cr.execute("UPDATE ir_sequence SET reset_time=%s WHERE id=%s ", (current_time,seq['id']))
+                    self.pool.get('ir.sequence')._alter_sequence(cr, seq['id'], seq['number_increment'], seq['reset_init_number'])
+                    cr.commit()
+    
+                cr.execute("SELECT setval('ir_sequence_%03d',nextval('ir_sequence_%03d')-1)+1" % (seq['id'],seq['id']))
+                seq['number_next'] = cr.fetchone()
+            else:
+                cr.execute("SELECT number_next FROM ir_sequence WHERE id=%s FOR UPDATE NOWAIT", (seq['id'],))
+            d = self.pool.get('ir.sequence')._interpolation_dict()
+            try:
+                interpolated_prefix = self.pool.get('ir.sequence')._interpolate(seq['prefix'], d)
+                interpolated_suffix = self.pool.get('ir.sequence')._interpolate(seq['suffix'], d)
+            except ValueError:
+                raise osv.except_osv(_('Warning'), _('Invalid prefix or suffix for sequence \'%s\'') % (seq.get('name')))
+            sequence = interpolated_prefix + '%%0%sd' % seq['padding'] % seq['number_next'] + interpolated_suffix
+            cr.execute("UPDATE ir_sequence SET number_next=number_next-number_increment WHERE id=%s ", (seq['id'],))
+            
+            vals['stating_batch_no'] = sequence or '/'
         new_id = super(tpt_tio2_batch_split, self).create(cr, uid, vals, context=context)
         return new_id
+    
+    def unlink(self, cr, uid, ids, context=None):
+        leave_details = self.read(cr, uid, ids, ['state'], context=context)
+        unlink_ids = []
+        for ld in leave_details:
+            if ld['state'] in ['draft']:
+                unlink_ids.append(ld['id'])
+            else:
+                raise osv.except_osv(_('Warning!'), _('Can not delete this Batch Split after it was generated!'))
+
+        return osv.osv.unlink(self, cr, uid, unlink_ids, context=context)
     
 tpt_tio2_batch_split()
 
@@ -237,11 +278,23 @@ tpt_activities()
 class crm_application(osv.osv):
     _inherit = 'crm.application'
     _columns = {
-        'product_id': fields.many2one('product.product', 'Product'),
+        'product_id': fields.many2one('product.product', 'Product', required = True),
         'application_line': fields.one2many('crm.application.line', 'application_id', 'Application Line'),
     }
     _defaults = {
     }
+    
+    def _check_product_id(self, cr, uid, ids, context=None):
+        for product in self.browse(cr, uid, ids, context=context):
+            product_ids = self.search(cr, uid, [('id','!=',product.id),('product_id','=',product.product_id.id)])
+            if product_ids:
+                raise osv.except_osv(_('Warning!'),_('Different Products are not allowed in same Application Master!'))           
+                return False
+            return True
+        
+    _constraints = [
+        (_check_product_id, 'Identical Data', ['product_id']),
+    ]       
     
 crm_application()
 
