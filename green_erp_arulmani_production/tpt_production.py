@@ -37,7 +37,8 @@ class tpt_tio2_batch_split(osv.osv):
                 prodlot_name = self.pool.get('ir.sequence').get(cr, uid, 'batching.tio2')
                 prodlot_id = prodlot_obj.create(cr, uid, {'name': prodlot_name,
                                              'phy_batch_no': prodlot_name,
-                                             'product_id': line.product_id.id})
+                                             'product_id': line.product_id.id,
+                                             'location_id': line.location_id.id})
                 batch_split_line_obj.create(cr, uid, {
                                     'tio2_id': line.id,
                                     'sequence': num+1,
@@ -278,11 +279,23 @@ tpt_activities()
 class crm_application(osv.osv):
     _inherit = 'crm.application'
     _columns = {
-        'product_id': fields.many2one('product.product', 'Product'),
+        'product_id': fields.many2one('product.product', 'Product', required = True),
         'application_line': fields.one2many('crm.application.line', 'application_id', 'Application Line'),
     }
     _defaults = {
     }
+    
+    def _check_product_id(self, cr, uid, ids, context=None):
+        for product in self.browse(cr, uid, ids, context=context):
+            product_ids = self.search(cr, uid, [('id','!=',product.id),('product_id','=',product.product_id.id)])
+            if product_ids:
+                raise osv.except_osv(_('Warning!'),_('Different Products are not allowed in same Application Master!'))           
+                return False
+            return True
+        
+    _constraints = [
+        (_check_product_id, 'Identical Data', ['product_id']),
+    ]       
     
 crm_application()
 
@@ -292,6 +305,8 @@ class crm_application_line(osv.osv):
         'application_id': fields.many2one('crm.application', 'Application', ondelete='cascade'),
         'parameters_id': fields.many2one('tpt.quality.parameters', 'Parameters', required=True),
         'standard_value':fields.char('Standard Value',size = 256),
+        'exp_value':fields.char('Experiment Value',size = 256),
+        'batch_verifi_id': fields.many2one('tpt.quality.verification','Batch Quality',ondelete='cascade'),
     }
     _defaults = {
     }
@@ -506,6 +521,10 @@ mrp_production()
 class stock_production_lot(osv.osv):
     _inherit = 'stock.production.lot'
     
+    _columns = {
+        'location_id':fields.many2one('stock.location','Location'),
+    }
+    
     def init(self, cr):
         product_ids = self.pool.get('product.product').search(cr, 1, ['|',('name','in',['TITANIUM DIOXIDE-ANATASE','TiO2']),('default_code','in',['TITANIUM DIOXIDE-ANATASE','TiO2'])])
         if product_ids:
@@ -527,7 +546,30 @@ class stock_production_lot(osv.osv):
                 prodlot_ids = [r[0] for r in cr.fetchall()]
                 if not prodlot_ids:
                     self.create(cr, 1, {'name': lot_name, 'phy_batch_no': lot_name, 'product_id': product_ids[0]})
+
+    def search(self, cr, uid, args, offset=0, limit=None, order=None, context=None, count=False):
+        if context is None:
+            context = {}
+        if context.get('search_batch_no_tio2'):
+            sql = '''
+                select id from stock_production_lot where product_id in (select id from product_product where name_template in ('TITANIUM DIOXIDE-ANATASE','TiO2') or default_code in ('TITANIUM DIOXIDE-ANATASE','TiO2'))
+            '''
+            cr.execute(sql)
+            mrp_ids = [row[0] for row in cr.fetchall()]
+            args += [('id','in',mrp_ids)]
+        if context.get('search_prodlot_id',False) and context.get('location_id',False):
+            sql = '''
+                select id from stock_production_lot where location_id = %s
+            '''%(context.get('location_id'))
+            cr.execute(sql)
+            prodlot_ids = [row[0] for row in cr.fetchall()]
+            args += [('id','in',prodlot_ids)]
+        return super(stock_production_lot, self).search(cr, uid, args, offset=offset, limit=limit, order=order, context=context, count=count)
     
+    def name_search(self, cr, user, name, args=None, operator='ilike', context=None, limit=100):
+       ids = self.search(cr, user, args, context=context, limit=limit)
+       return self.name_get(cr, user, ids, context=context)
+   
 stock_production_lot()
 
 class stock_move(osv.osv):
@@ -550,4 +592,62 @@ stock_move()
 #     }
 #     
 # tpt_quality_verification()
+class tpt_quality_verification(osv.osv):
+    _name = 'tpt.quality.verification'
+    _columns = {
+        'prod_batch_id': fields.many2one('stock.production.lot','Production Batch No',required=True, states={ 'done':[('readonly', True)]}),
+        'product_id':fields.many2one('product.product','Product', states={ 'done':[('readonly', True)]}),
+        'product_type': fields.selection([('rutile', 'Rutile'),('anatase', 'Anatase')],'Product Type', states={ 'done':[('readonly', True)]}),
+        'warehouse_id':fields.many2one('stock.location','Warehouse location', states={ 'done':[('readonly', True)]}),
+        'phy_batch_no': fields.char('Physical Batch No', size=100,required=True, states={ 'done':[('readonly', True)]}),
+        'name':fields.datetime('Created Date',readonly=True),
+        'batch_quality_line':fields.one2many('crm.application.line', 'batch_verifi_id','Batch Quality', states={ 'done':[('readonly', True)]}),
+        'applicable_id':fields.many2one('crm.application','Applicable for', states={ 'done':[('readonly', True)]}),
+        'state':fields.selection([('draft', 'Draft'),('done', 'Updated')],'Status', readonly=True),
+    }
+    _defaults={
+        'name':time.strftime('%Y-%m-%d %H:%M:%S'),
+        'state':'draft',
+    }
+    def bt_update(self, cr, uid, ids, context=None):
+        for quality in self.browse(cr,uid,ids):
+            sql='''
+                update stock_production_lot set phy_batch_no='%s' where id =%s
+            '''%(quality.phy_batch_no,quality.prod_batch_id.id)
+            cr.execute(sql)
+        
+        return self.write(cr, uid, ids,{'state':'done'})
+    
+    def onchange_prod_batch_id(self, cr, uid, ids,prod_batch_id=False,context=None):
+        vals = {}
+        if prod_batch_id:
+            prod_batch = self.pool.get('stock.production.lot').browse(cr, uid, prod_batch_id)
+            vals = {'warehouse_id': prod_batch.location_id and prod_batch.location_id.id or False,
+                    'product_id': prod_batch.product_id and prod_batch.product_id.id or False}
+        return {'value': vals}
+    
+    def onchange_applicable_id(self, cr, uid, ids,applicable_id=False,context=None):
+        vals = {}
+        if applicable_id :
+            details = []
+            appli = self.pool.get('crm.application').browse(cr, uid, applicable_id)
+            for para in appli.application_line:
+                rs = {
+                      'parameters_id':para.parameters_id and para.parameters_id.id or False,
+                      'standard_value': para.standard_value or False,
+                      }
+                details.append((0,0,rs))
+                     
+        return {'value': {'batch_quality_line': details}}
 
+tpt_quality_verification()
+
+# class tpt_batch_quality_verification_line(osv.osv):
+#     _name = 'tpt.batch.quality.verification.line'
+#     _columns = {
+#         'batch_verifi_id': fields.many2one('quality.verification','Batch Quality',ondelete='cascade'),
+#         'stand_value':fields.float('Standard Value'),
+#         'exp_value':fields.float('Experiment Value'),
+#         'parameter_id':fields.many2one('tpt.quality.parameters','Parameters',required=True),
+#     }
+# tpt_batch_quality_verification_line()
