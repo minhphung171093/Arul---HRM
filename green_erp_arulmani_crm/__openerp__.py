@@ -26,7 +26,7 @@
     'sequence': 14,
     'author': 'Tenth Planet',
     'website' : 'http://www. tenthplanet.in',
-    'depends': ['base','crm','sale','hr','hr_contract','sale_crm','account','stock','sale_stock','web_m2x_options','report_aeroo','report_aeroo_ooo','web_widget_radio'],
+    'depends': ['base','crm','sale','hr','hr_contract','sale_crm','account','stock','sale_stock','web_m2x_options','report_aeroo','report_aeroo_ooo','web_widget_radio','ir_sequence_autoreset'],
     'data': [
         'security/green_erp_arulmani_crm_security.xml',
         'security/ir.model.access.csv',

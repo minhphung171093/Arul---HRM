@@ -16,7 +16,7 @@
             <field name="implementation">standard</field>
             <field name="auto_reset">True</field>
             <field name="reset_period">day</field>
-            <field name="reset_init_number">01</field>	
+            <field name="reset_init_number">1</field>	
         </record>
 <!-- Production Declaration-->
         <record id="sequence_declaration" model="ir.sequence.type">
