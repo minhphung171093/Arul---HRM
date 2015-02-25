@@ -319,6 +319,76 @@
                 </data>
             </field>
         </record>
+
+		<record id="tpt_quality_verification_tree_view" model="ir.ui.view">
+			<field name="name">tpt.quality.verification.tree</field>
+			<field name="model">tpt.quality.verification</field>
+			<field name="arch" type="xml">
+				<tree string="Production Batch - Quality Verification">
+					<field name="prod_batch_id"/>
+        			<field name="product_id"/>
+        			<field name="product_type"/>
+        			<field name="warehouse_id"/>
+        			<field name="phy_batch_no"/>
+        			<field name="name"/>
+        			<field name="applicable_id"/>
+        			<field name="state" />
+				</tree>
+			</field>
+		</record>
+		
+		<record id="tpt_quality_verification_form_view" model="ir.ui.view">
+            <field name="name">tpt.quality.verification.form</field>
+            <field name="model">tpt.quality.verification</field>
+            <field name="arch" type="xml">
+	            <form string="Production Batch - Quality Verification" version="7.0">   
+	            <header>
+	            		<button name="bt_update" states='draft' string="Update Batch Verification" type="object" class="oe_highlight" />
+	            		<field name="state" widget="statusbar" statusbar_visible="draft,done" statusbar_colors='{"draft":"blue"}'/>
+	           	</header>
+	            	<sheet>
+	            		<group col="4" colspan="2" >
+	            		<group>
+	            			<field name="prod_batch_id" options="{'create': false, 'create_edit': false}" context="{'search_batch_no_tio2':1}" />
+	            			<field name="product_id" domain="['|',('name','in',['TITANIUM DIOXIDE-ANATASE','TiO2']),('default_code','in',['TITANIUM DIOXIDE-ANATASE','TiO2'])]" options="{'create': false, 'create_edit': false}" />
+	            			<field name="product_type"/>
+	            			<field name="warehouse_id" options="{'create': false, 'create_edit': false}" />
+	            		</group>
+	            		<group>
+	            			<field name="phy_batch_no"/>
+	            			<field name="name"/>
+	            			<field name="applicable_id" options="{'create': false, 'create_edit': false}" />
+	            		</group>
+	            		</group>
+	            		<notebook>
+							<page string = "Batch Quality Verification Results">
+								<field name="batch_quality_line" nolabel='1' >
+									<tree>
+										<field name="parameters_id" options="{'create': false, 'create_edit': false}"/>
+										<field name="standard_value"/>
+										<field name="exp_value" />
+									</tree>
+								</field>
+							</page>
+						</notebook>
+				    </sheet>
+		         </form>
+			</field>
+		</record>
+		
+		<record id="action_tpt_quality_verification_form" model="ir.actions.act_window">
+            <field name="name">Production Batch - Quality Verification</field>
+            <field name="type">ir.actions.act_window</field>
+            <field name="res_model">tpt.quality.verification</field>
+            <field name="view_type">form</field>
+            <field name="view_mode">tree,form</field>
+            <field name="view_id" ref="tpt_quality_verification_tree_view"/>
+        </record>
+        
+        <menuitem action="action_tpt_quality_verification_form"
+            id="menu_action_tpt_quality_verification_form"
+            parent="mrp.menu_mrp_manufacturing" sequence="30"/>
+
         
     </data>
 </openerp>
