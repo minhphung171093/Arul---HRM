@@ -212,12 +212,15 @@
             <field name="inherit_id" ref="mrp.mrp_bom_form_view"/>
             <field name="arch" type="xml">
                 <data>
+              		<xpath expr="//form/group/group/div/field[@name='product_uom']" position="attributes">
+                       <attribute name='readonly'>1</attribute>
+                    </xpath>
                 	<xpath expr="//field[@name='bom_lines']/tree" position="replace">
                         <tree string="Components" editable="bottom">
 	                        <field name="product_id" options="{'create': false, 'create_edit': false}" context="{'default_supply_method':'produce'}" on_change="onchange_product_id(product_id, name)"/>
 	                        <field name="name" string="Description"/>
 	                        <field name="product_qty" string="Quantity"/>
-	                        <field name="product_uom" string="UOM" options="{'create': false, 'create_edit': false}" on_change="onchange_uom(product_id, product_uom)" groups="product.group_uom"/>
+	                        <field name="product_uom" readonly="1" string="UOM" options="{'create': false, 'create_edit': false}" on_change="onchange_uom(product_id, product_uom)" groups="product.group_uom"/>
 	                        <field name="cost_type" on_change = "onchange_cost_type(product_id, cost_type)"/>
                         	<field name="product_cost"/>
 	                        <field name="date_start" invisible="1"/>
@@ -252,8 +255,8 @@
                     	<page string="Activities">
 	                    	<field name="activities_line" nplabel='1'>
 		                		<tree string="Activities" editable="top">
-			                        <field name="activities_id" options="{'create': false, 'create_edit': false}"/>
-			                        <field name="description"/>
+			                        <field name="activities_id" on_change = "onchange_description(activities_id)" options="{'create': false, 'create_edit': false}"/>
+			                        <field name="description"  />
 				                    <field name="product_qty"/>
 				                    <field name="product_uom" options="{'create': false, 'create_edit': false}"/>
 				                    <field name="cost_type"/>
@@ -261,6 +264,9 @@
 			                    </tree>
 		                    </field>
 	                    </page>
+                    </xpath>
+                    <xpath expr="//notebook/page[@string='Byproducts']/field[@name='sub_products']/tree[@string='Byproducts']/field[@name='product_uom']" position="attributes">
+						<attribute name='readonly'>1</attribute>
                     </xpath>
                 </data>
             </field>
@@ -290,6 +296,9 @@
                     </xpath>
                		<xpath expr="//group[@string='Consumed Products']" position="attributes">
 						<attribute name='invisible'>1</attribute>
+                    </xpath>
+                    <xpath expr="//form/sheet/group/group/div/field[@name='product_uom']" position="attributes">
+						<attribute name='readonly'>1</attribute>
                     </xpath>
                     <xpath expr="//form/sheet/notebook/page[@string='Consumed Products']/group/group[@string='Products to Consume']/field/tree/field[@name='product_id']" position="replace">
 						<field name="product_id" string="Materials " />
@@ -414,6 +423,68 @@
                 </data>
             </field>
         </record>
-        
+        <menuitem name = "Production Declaration" action="mrp.mrp_production_action" id="mrp.menu_mrp_production_action"
+            parent="mrp.menu_mrp_manufacturing" sequence="1"/>
+            
+        <menuitem name = "Norms"
+            action="mrp.mrp_bom_form_action"
+            id="mrp.menu_mrp_bom_form_action"
+            parent="mrp.menu_mrp_bom"
+            sequence="10"/>
+            
+       <!-- <menuitem
+            action="mrp.mrp_bom_form_action2"
+            id="mrp.menu_mrp_bom_form_action2"
+            parent="mrp.menu_mrp_configuration"
+            groups="base.group_no_one"
+            sequence="20"/> -->
+    <record model="ir.ui.menu" id="mrp.menu_mrp_bom_form_action2">
+	    <field name="groups_id" eval="[(6, 0, [ref('green_erp_arulmani_crm.group_invisible')])]" />
+	</record>
+	
+	<record id="mrp.mrp_bom_form_action" model="ir.actions.act_window">
+            <field name="name">Norms</field>
+            <field name="type">ir.actions.act_window</field>
+            <field name="res_model">mrp.bom</field>
+            <field name="view_type">form</field>
+            <field name="domain">[('bom_id','=',False)]</field>
+            <field name="search_view_id" ref="mrp.view_mrp_bom_filter"/>
+            <field name="help" type="html">
+              <p class="oe_view_nocontent_create">
+                Click to create a bill of material. 
+              </p><p>
+                Bills of Materials allow you to define the list of required raw
+                materials used to make a finished product; through a manufacturing
+                order or a pack of products.
+              </p><p>
+                OpenERP uses these BoMs to automatically propose manufacturing
+                orders according to procurement needs.
+              </p>
+            </field>
+        </record>
+
+        <record id="mrp.mrp_production_action" model="ir.actions.act_window">
+            <field name="name">Manage Production Declaration</field>
+            <field name="type">ir.actions.act_window</field>
+            <field name="res_model">mrp.production</field>
+            <field name="view_type">form</field>
+            <field name="view_mode">tree,form,calendar,graph,gantt</field>
+            <field name="view_id" eval="False"/>
+            <field name="search_view_id" ref="mrp.view_mrp_production_filter"/>
+            <field name="context">{}</field>
+            <field name="help" type="html">
+              <p class="oe_view_nocontent_create">
+                Click to create a manufacturing order. 
+              </p><p>
+                A manufacuring order, based on a bill of materials, will
+                consume raw materials and produce finished products.
+              </p><p>
+                Manufacturing orders are usually proposed automatically based
+                on customer requirements or automated rules like the minimum
+                stock rule.
+              </p>
+            </field>
+        </record>
+
     </data>
 </openerp>
