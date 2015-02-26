@@ -378,7 +378,7 @@ class mrp_bom(osv.osv):
                             'product_cost': status['line_net']/status['product_qty']
                             }
             
-        return {'value': vals}   
+        return {'value': vals}
 
 mrp_bom()
 
