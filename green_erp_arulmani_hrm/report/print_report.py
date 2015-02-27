@@ -40,8 +40,22 @@ class Parser(report_sxw.rml_parse):
             'get_month':self.get_month,
             'get_emp':self.get_emp,
             'get_payslip': self.get_payslip,
+            'get_total': self.get_total,
         })
-        
+    def get_amount(self,value=False):
+        value = float(value)
+        if not value:
+            value = 0.0
+        value=str(value)
+        return value.split('.')
+
+    def get_total(self,float_amount=False):
+        float_amount = float(float_amount)
+        val1 = 0.0
+        #for line in structure_line:
+        val1 = val1 + float_amount
+        return val1 
+    
     def get_month(self):
         return self.ids
 
@@ -74,6 +88,8 @@ class Parser(report_sxw.rml_parse):
             total_ear = 0
             total_ded = 0
             net = 0
+            ma = 0
+
             for earning in line.earning_structure_line:
                 if earning.earning_parameters_id.code=='BASIC':
                     basic += earning.float
@@ -87,6 +103,8 @@ class Parser(report_sxw.rml_parse):
                     spa += earning.float
                 if earning.earning_parameters_id.code=='OA':
                     oa += earning.float
+                if earning.earning_parameters_id.code=='MA': #TPT
+                    ma += earning.float
                 if earning.earning_parameters_id.code=='LA':
                     la += earning.float
                 if earning.earning_parameters_id.code=='AA':
@@ -141,6 +159,7 @@ class Parser(report_sxw.rml_parse):
                 'total_ear': total_ear,
                 'total_ded': total_ded,
                 'net': net,
+                'ma': ma
             })
         return res
 # vim:expandtab:smartindent:tabstop=4:softtabstop=4:shiftwidth=4:
