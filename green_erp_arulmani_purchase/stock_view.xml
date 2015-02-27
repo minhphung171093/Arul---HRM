@@ -64,16 +64,6 @@
 				<xpath expr="//field[@name='backorder_id']" position="attributes">
 					<attribute name='invisible'>1</attribute>
 				</xpath>
-				<xpath expr="//field[@name='purchase_id']" position="attributes">
-					<attribute name='options'>{'create': false, 'create_edit': false}</attribute>
-				</xpath>
-				<xpath expr="//field[@name='purchase_id']" position="attributes">
-					<attribute name='on_change'>onchange_purchase_id(purchase_id)</attribute>
-					<attribute name='readonly'>1</attribute>
-				</xpath>
-            	<xpath expr="//field[@name='purchase_id']" position="after">
-            		<field name="po_date"/>
-            	</xpath>
                 <xpath expr="//field[@name='partner_id']" position="replace">
                     <field name="partner_id" readonly="1" options="{'create': false, 'create_edit': false}" on_change="onchange_partner_in(partner_id)" string="Supplier" domain="[('supplier','=',True)]" context="{'default_supplier':1,'default_customer':0}"/>
                     <field name="document_type"/>
