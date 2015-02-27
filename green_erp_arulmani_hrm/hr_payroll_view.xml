@@ -170,7 +170,17 @@
             <field name="view_id" ref="view_arul_hr_payroll_deduction_parameters_tree_vew"/>
         </record>       
        
-		<record id="view_arul_hr_payroll_employee_structure_tree_vew" model="ir.ui.view">
+	<record id="view_arul_hr_payroll_employee_structure_search_vew" model="ir.ui.view">
+			<field name="name">arul.hr.payroll.employee.structure.search</field>
+			<field name="model">arul.hr.payroll.employee.structure</field>
+			<field name="arch" type="xml">
+				<search string="Employee Payroll Structure">
+					<field name="employee_id"/>					
+				</search>
+			</field>
+	</record>
+
+	<record id="view_arul_hr_payroll_employee_structure_tree_vew" model="ir.ui.view">
 			<field name="name">arul.hr.payroll.employee.structure.tree</field>
 			<field name="model">arul.hr.payroll.employee.structure</field>
 			<field name="arch" type="xml">
@@ -180,7 +190,7 @@
 						<field name="sub_category_id" options="{'create': false, 'create_edit': false}"/>
 				</tree>
 			</field>
-		</record>
+	</record>
 		
 
 		<record id="view_arul_hr_payroll_employee_structure_form_vew" model="ir.ui.view">
@@ -193,8 +203,12 @@
 		                	<field name="flag" invisible='1'/>
 			                <field name="employee_id" attrs="{'readonly':[('flag','=',True)]}" options="{'create': false, 'create_edit': false}" on_change="onchange_employee_structure_id(employee_id)"/>
 			                <newline/>
-							<field name="employee_category_id" on_change="onchange_employee_category_id(employee_category_id,sub_category_id)" attrs="{'readonly':[('flag','=',True)]}" options="{'create': false, 'create_edit': false}"/>
-							<field name="sub_category_id" attrs="{'readonly':[('flag','=',True)]}" domain="[('category_id','=',employee_category_id)]" options="{'create': false, 'create_edit': false}"/>
+							<field name="employee_category_id" on_change="onchange_employee_category_id(employee_category_id,sub_category_id)" attrs="{'readonly':[('flag','=',False)]}" options="{'create': true, 'create_edit': true}"/>
+							<field name="sub_category_id" attrs="{'readonly':[('flag','=',False)]}" domain="[('category_id','=',employee_category_id)]" options="{'create': true, 'create_edit': true}"/>
+
+							<field name ="create_date"/>
+							<field name ="write_date"/>
+							<field name ="create_uid"/>
 						</group>
 						<group string = "Earning Structure">
 							<field name="payroll_earning_structure_line" nolabel='1' on_change="onchange_structure_line(payroll_earning_structure_line,employee_category_id,sub_category_id)">
@@ -204,8 +218,10 @@
 								</tree>
 							</field>
 						</group>
+						
+						
 						<group string = "Other Deductions">
-							<group colspan='4'>
+							<!--<group colspan='4'>
 								<label for="ins_de_period_start" string="Insurance Deduction Period"/>
 								<div>
 									<field name="ins_de_period_start" class="oe_inline"/>
@@ -216,17 +232,70 @@
 									<field name="loan_de_period_start" class="oe_inline"/>
 									<field name="loan_de_period_end" class="oe_inline"/>
 								</div>
-							</group>
-							<group colspan='4'>
-								<field name="payroll_other_deductions_line" nolabel='1'>
+							</group>-->
+							<!--<group>
+								<field name="payroll_other_deductions_vpf" nolabel='1'>
+									<tree editable = "bottom">
+										<field name="deduction_parameters_id" options="{'create': false, 'create_edit': false}"/>
+										<field name="float"/>
+									</tree>
+								</field>
+							</group>-->
+							<group colspan='4'>								
+								<field name="payroll_other_deductions_line" nolabel='1' readonly="0">
 									<tree editable = "bottom">
 										<field name="deduction_parameters_id" options="{'create': false, 'create_edit': false}"/>
 										<field name="float"/>
 									</tree>
 								</field>
 							</group>
+						<!--- Start:TPT - BalamuruganPurushothaman on 22/02/2015 -To Add Loan & Insurance Deatils Tab-->
+						<notebook>
+						    <page string="Loan Details">
+						        <field name="loan_line" nolabel="1">
+						            <tree editable="top">								
+								<field name="bank"/>
+								<field name="bank_branch"/>
+								<field name="loan_no"/>
+								<field name="loan_period_start"/>
+								<field name="loan_period_end"/>
+								<field name="loan_amount"/>
+							    </tree>
+						        </field>						
+						    </page>
+						    <page string="Insurance Details">
+						        <field name="insurance_line" nolabel="1">
+						            <tree editable="top">
+								<field name="insurance_company"/>
+								<field name="insurance_branch"/>
+								<field name="insurance_no"/>
+								<field name="insurance_period_start"/>
+								<!--field name="insurance_period_end"/-->
+								<field name="insurance_amount"/>
+							    </tree>
+						        </field>						
+						    </page>
+						</notebook><!--End:TPTP-->
 						</group>
-						
+						<!--
+						<group class="oe_subtotal_footer oe_right" colspan="2" name="sale_total">
+                                		    <field name="loan_amount_subtotal" widget="monetary" />
+                                	  	    <field name="insurance_amount_subtotal" widget="monetary" />    		 
+                            			</group>  -->
+				<group string='History'>
+		                    <field name="history_line" nolabel='1'>
+		                    	<tree>
+		                    		<field name ="employee_id"/>
+			                		<field name ="employee_category_id"/>
+			                		<field name ="sub_category_id"/>
+							<!--<field name ="create_date"/>-->
+							<field name ="payroll_earning_structure_line"/>
+							<field name ="payroll_other_deductions_line"/>
+			                </tree>		
+		                    </field>
+	                  	</group>
+
+			<!--HISTORY TAB END-->
 		         	</sheet>
 		         </form>
 			</field>
@@ -238,6 +307,7 @@
             <field name="res_model">arul.hr.payroll.employee.structure</field>
             <field name="view_type">form</field>
             <field name="view_mode">tree,form</field>
+	    <field name="domain">[('history_id','=',False)]</field>
             <field name="view_id" ref="view_arul_hr_payroll_employee_structure_tree_vew"/>
         </record>
         

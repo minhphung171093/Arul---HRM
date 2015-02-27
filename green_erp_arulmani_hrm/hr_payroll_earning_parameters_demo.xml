@@ -54,6 +54,15 @@
           <field name="name">Other Allowance</field>
           <field name="code">OA</field>
       </record>
+      <!-- TPT MA is added as per Customer Requirement-->
+      <record id="earning_parameters_19" model="arul.hr.payroll.earning.parameters">
+          <field name="name">Miscellaneous Allowance</field>
+          <field name="code">MA</field>
+      </record>
+      <record id="earning_parameters_20" model="arul.hr.payroll.earning.parameters">
+          <field name="name">Washing Allowance</field>
+          <field name="code">WA</field>
+      </record>
       <record id="earning_parameters_14" model="arul.hr.payroll.earning.parameters">
           <field name="name">LTA</field>
           <field name="code">LTA</field>
@@ -74,5 +83,8 @@
           <field name="name">Net Salary</field>
           <field name="code">NET</field>
       </record>
+
+	
+
     </data>
 </openerp>
