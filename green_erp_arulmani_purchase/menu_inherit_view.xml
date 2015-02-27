@@ -18,7 +18,7 @@
             
         <menuitem name="Purchases"
             id="base.menu_purchase_root"
-            groups="green_erp_arulmani_purchase.group_vvti_purchase_store_user,green_erp_arulmani_purchase.group_vvti_hrm_plant_mm_user"
+            groups="green_erp_arulmani_purchase.group_vvti_purchase_store_user,green_erp_arulmani_purchase.group_vvti_hrm_plant_mm_user,green_erp_arulmani_crm.group_qc_user"
             sequence="60"/>
             
         <menuitem action="purchase.purchase_form_action"
