@@ -14,7 +14,7 @@ class arul_hr_holiday_special(osv.osv):
     _columns = {
         'name' : fields.char('Holiday Name', size = 1024, required = True),
         'date' : fields.date('Date', required = True),
-	'is_local_holiday': fields.boolean('Is Local Holiday'),
+	'is_local_holiday': fields.boolean('Is Local Holiday?'),
     }
     def _check(self,cr,uid,ids):
         obj = self.browse(cr,uid,ids[0])
@@ -370,7 +370,36 @@ class arul_hr_audit_shift_time(osv.osv):
                                 'type': 'ir.actions.act_window',
                                 'target': 'new',
                             }
+		
 
+		# Handling Local Holiday. And allow to approve if total worked hour meets 4 hrs - RULE WILL BE IMPLEMENTED AS PER USER REQUIREMENTS
+		
+		sql=''' SELECT date FROM arul_hr_holiday_special WHERE TO_CHAR(date,'YYYY-MM-DD') = ('%s') and is_local_holiday='t' '''%line.work_date
+                cr.execute(sql)                
+                local_date=cr.fetchall()
+		
+		if local_date and line.total_hours >= 4:
+		    #flag = 1
+                    shift_hours = 0
+		if local_date and line.total_hours < 4:
+		    permission_ids = self.pool.get('arul.hr.permission.onduty').search(cr, uid, [('non_availability_type_id','=','permission'),('date','=',line.work_date),('employee_id','=',line.employee_id.id)])
+                    on_duty_ids = self.pool.get('arul.hr.permission.onduty').search(cr, uid, [('non_availability_type_id','=','on_duty'),('from_date','<=',line.work_date),('to_date','>=',line.work_date),('employee_id','=',line.employee_id.id)])
+                    leave_detail_ids = self.pool.get('arul.hr.employee.leave.details').search(cr, uid, [('date_from','<=',line.work_date),('date_to','>=',line.work_date),('employee_id','=',line.employee_id.id),('state','=','done')])
+		    	
+                    if not permission_ids and not on_duty_ids and not leave_detail_ids:
+                        res = self.pool.get('ir.model.data').get_object_reference(cr, uid, 
+                                        'green_erp_arulmani_hrm', 'alert_permission_form_view')
+                        return {
+                                'name': 'Alert Permission',
+                                'view_type': 'form',
+                                'view_mode': 'form',
+                                'view_id': res[1],
+                                'res_model': 'alert.form',
+                                'domain': [],
+                                'context': {'default_message':'No Permission / On Duty Entry is made for Pending Hours. Do you want to reduce it from Leave Credits (CL/SL/PL/LOP) ?','audit_id':line.id},
+                                'type': 'ir.actions.act_window',
+                                'target': 'new',
+                            }
                 # A+C Shift Handling
 		
 		sql=''' SELECT work_date FROM arul_hr_punch_in_out_time WHERE TO_CHAR(work_date,'YYYY-MM-DD') = ('%s') and employee_id=%s '''%(line.work_date,line.employee_id.id)
