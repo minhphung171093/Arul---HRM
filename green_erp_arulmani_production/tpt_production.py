@@ -14,13 +14,13 @@ from openerp import netsvc
 class tpt_tio2_batch_split(osv.osv):
     _name = 'tpt.tio2.batch.split'
     _columns = {
-        'product_id': fields.many2one('product.product', 'Product', required=True),
-        'name': fields.date('Created Date'),
-        'mrp_id': fields.many2one('mrp.production', 'Production Decl. No', required=True),
-        'location_id': fields.many2one('stock.location', 'Warehouse Location', required=True),
+        'product_id': fields.many2one('product.product', 'Product', required=True, states={'generate': [('readonly', True)], 'confirm':[('readonly', True)]}),
+        'name': fields.date('Created Date', states={'generate': [('readonly', True)], 'confirm':[('readonly', True)]}),
+        'mrp_id': fields.many2one('mrp.production', 'Production Decl. No', required=True, states={'generate': [('readonly', True)], 'confirm':[('readonly', True)]}),
+        'location_id': fields.many2one('stock.location', 'Warehouse Location', required=True, states={'generate': [('readonly', True)], 'confirm':[('readonly', True)]}),
         'available': fields.related('mrp_id', 'product_qty',string='Available Stock',store=True,readonly=True),
-        'stating_batch_no': fields.char('Stating Batch No', size=100,readonly=True),
-        'batch_split_line': fields.one2many('tpt.batch.split.line', 'tio2_id', 'Batch Split Line'),
+        'stating_batch_no': fields.char('Stating Batch No', size=100,readonly=True, states={'generate': [('readonly', True)], 'confirm':[('readonly', True)]}),
+        'batch_split_line': fields.one2many('tpt.batch.split.line', 'tio2_id', 'Batch Split Line', states={'generate': [('readonly', True)], 'confirm':[('readonly', True)]}),
         'state':fields.selection([('draft', 'Draft'),('generate', 'Generated'),('confirm', 'Confirm')],'Status', readonly=True),
     }
     _defaults = {
@@ -217,12 +217,20 @@ class tpt_fsh_batch_split_line(osv.osv):
         'fsh_id': fields.many2one('tpt.fsh.batch.split', 'FSH Batch Split', ondelete='cascade'),
         'product_id': fields.many2one('product.product', 'Product', required=True),
         'qty': fields.float('Quantity',required=True),
-        'uom_id': fields.many2one('product.uom', 'UOM', required=True),
+        'uom_id': fields.many2one('product.uom', 'UOM', required=True,readonly=True),
         'prodlot_id': fields.many2one('stock.production.lot', 'Batch Type',required=True),
     }
     _defaults = {
         'qty': 1.0,
     }
+    
+    def create(self, cr, uid, vals, context=None):
+        
+        if 'product_id' in vals:
+            product = self.pool.get('product.product').browse(cr, uid, vals['product_id'])
+            vals.update({'uom_id':product.uom_id.id})
+        new_id = super(tpt_fsh_batch_split_line, self).create(cr, uid, vals, context)
+        return new_id    
     
     def onchange_product_id(self, cr, uid, ids, product_id, context=None):
         if product_id:
@@ -257,6 +265,16 @@ class tpt_activities(osv.osv):
             vals['code'] = name
         return super(tpt_activities, self).write(cr, uid,ids, vals, context)
 
+    def name_get(self, cr, uid, ids, context=None):
+        res = []
+        if not ids:
+            return res
+        reads = self.read(cr, uid, ids, ['code'], context)
+  
+        for record in reads:
+            code = record['code']
+            res.append((record['id'], code))
+        return res 
 
 
     def _check_code_id(self, cr, uid, ids, context=None):
@@ -315,6 +333,15 @@ crm_application_line()
 
 class mrp_bom(osv.osv):
     _inherit = 'mrp.bom'
+     
+     
+    def create(self, cr, uid, vals, context=None):
+        
+        if 'product_id' in vals:
+            product = self.pool.get('product.product').browse(cr, uid, vals['product_id'])
+            vals.update({'product_uom':product.uom_id.id})
+        new_id = super(mrp_bom, self).create(cr, uid, vals, context)
+        return new_id    
      
     def _norms(self, cr, uid, ids, field_name, args, context=None):
         res = {}
@@ -378,7 +405,7 @@ class mrp_bom(osv.osv):
                             'product_cost': status['line_net']/status['product_qty']
                             }
             
-        return {'value': vals}   
+        return {'value': vals}
 
 mrp_bom()
 
@@ -387,6 +414,14 @@ class mrp_subproduct(osv.osv):
     _columns={
         'description':fields.text('Description'),
     }
+
+    def create(self, cr, uid, vals, context=None):
+        
+        if 'product_id' in vals:
+            product = self.pool.get('product.product').browse(cr, uid, vals['product_id'])
+            vals.update({'product_uom':product.uom_id.id})
+        new_id = super(mrp_subproduct, self).create(cr, uid, vals, context)
+        return new_id    
 
     def onchange_product_id(self, cr, uid, ids, product_id, context=None):
         """ Changes UoM if product_id changes.
@@ -406,7 +441,7 @@ class tpt_activities_line(osv.osv):
     _columns = {
         'bom_id': fields.many2one('mrp.bom', 'BoM', ondelete='cascade'),
         'activities_id': fields.many2one('tpt.activities', 'Activities', required=True),
-        'description':fields.text('Description'),
+        'description':fields.char('Description',size=256),
         'product_qty': fields.float('Quantity', digits_compute=dp.get_precision('Product Unit of Measure'), required=True),
         'product_uom': fields.many2one('product.uom', 'UOM', required=True),
         'cost_type': fields.selection([('variable','Variable'),('fixed','Fixed')], 'Cost Type'),
@@ -417,6 +452,13 @@ class tpt_activities_line(osv.osv):
         'cost_type': 'variable',
         'product_qty': lambda *a: 1.0,
     }
+
+    def onchange_description(self, cr, uid, ids,activities_id=False,context=None):
+        vals = {}
+        if activities_id:
+            ac = self.pool.get('tpt.activities').browse(cr, uid, activities_id)
+            vals = {'description': ac.name }
+        return {'value': vals}
 
 tpt_activities_line()
 
@@ -430,7 +472,6 @@ class mrp_production(osv.osv):
         'name': '/',
     }
 
-
     def create(self, cr, uid, vals, context=None):
         sql = '''
             select code from account_fiscalyear where '%s' between date_start and date_stop
@@ -443,22 +484,11 @@ class mrp_production(osv.osv):
             if vals.get('name','/')=='/':
                 sequence = self.pool.get('ir.sequence').get(cr, uid, 'production.declaration')
                 vals['name'] =  sequence and 'PRD'+'/'+fiscalyear['code']+'/'+sequence or '/'
+        if 'product_id' in vals:
+            product = self.pool.get('product.product').browse(cr, uid, vals['product_id'])
+            vals.update({'product_uom':product.uom_id.id})
         new_id = super(mrp_production, self).create(cr, uid, vals, context=context)   
         return new_id
-    def write(self, cr, uid, ids, vals, context=None):
-        sql = '''
-            select code from account_fiscalyear where '%s' between date_start and date_stop
-        '''%(time.strftime('%Y-%m-%d'))
-        cr.execute(sql)
-        fiscalyear = cr.dictfetchone()
-        if not fiscalyear:
-            raise osv.except_osv(_('Warning!'),_('Financial year has not been configured. !'))
-        else:
-            if vals.get('name','/')=='/':
-                sequence = self.pool.get('ir.sequence').get(cr, uid, 'production.declaration')
-                vals['name'] =  sequence and 'PRD'+'/'+fiscalyear['code']+'/'+sequence or '/'
-        new_write = super(mrp_production, self).write(cr, uid,ids, vals, context)
-        return new_write
     def _make_production_produce_line(self, cr, uid, production, context=None):
         stock_move = self.pool.get('stock.move')
         source_location_id = production.product_id.property_stock_production.id
@@ -577,6 +607,19 @@ class stock_move(osv.osv):
     _columns = {
         'app_quantity': fields.float('Appllied Quantity'),
     }
+    
+    def create(self, cr, uid, vals, context=None):
+        new_id = super(stock_move, self).create(cr, uid, vals, context)
+        if 'app_quantity' in vals:
+            if (vals['app_quantity'] < 0):
+                raise osv.except_osv(_('Warning!'),_('Appllied Quantity is not allowed as negative values'))
+        return new_id  
+    def write(self, cr, uid, ids, vals, context=None):
+        new_write = super(stock_move, self).write(cr, uid,ids, vals, context)
+        for line in self.browse(cr,uid,ids):
+            if line.app_quantity < 0:
+                raise osv.except_osv(_('Warning!'),_('Appllied Quantity is not allowed as negative values'))
+        return new_write  
 stock_move()
 # class tpt_quality_verification(osv.osv):
 #     _name = 'tpt.quality.verification'

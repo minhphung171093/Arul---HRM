@@ -171,7 +171,9 @@
 				</xpath> 
 				<xpath expr="//page[@string='PO Line']/field/tree[@string='Purchase Order Lines']" position="attributes">
 					<attribute name="create">false</attribute>
-					
+				</xpath>
+				<xpath expr="//button[@name='purchase_confirm']" position="attributes">
+					<attribute name='groups'>green_erp_arulmani_purchase.group_vvti_purchase_mgr</attribute>
 				</xpath>
 			</field>
 		</record>
@@ -347,6 +349,11 @@
 				<xpath expr="//field[@name='uom_id']" position="before">
 					<field name="tpt_product_type" attrs="{'invisible': [('cate_name','!=','finish')]}"/>
 				</xpath>
+				
+				<xpath expr="//page[@string='Procurements']" position="attributes">
+					<attribute name='groups'>green_erp_arulmani_purchase.group_vvti_purchase_user</attribute>
+				</xpath>
+				
 			</field>
 		</record>
 		
@@ -371,7 +378,7 @@
             <field name="arch" type="xml">
 	            <form string="Gate In Pass" version="7.0">   
 	            	<header>
-			            	<button name="bt_approve" states='draft' string="Approve" type="object" class="oe_highlight" />
+			            	<button name="bt_approve" states='draft' string="Approve" type="object" class="oe_highlight" groups="green_erp_arulmani_purchase.group_vvti_purchase_user"/>
 		                    <button name="bt_cancel" states='draft' string="Cancel" type="object" class="oe_highlight" />
 		                    <field name="state" widget="statusbar" statusbar_visible="draft,cancel,done" statusbar_colors='{"draft":"blue","cancel":"blue"}'/>
 			        </header>
@@ -788,7 +795,7 @@
             <field name="arch" type="xml">
 	            <form string="Gate Out Pass" version="7.0">   
 	            	<header>
-			            	<button name="bt_approve" states='draft' string="Approve" type="object" class="oe_highlight" />
+			            	<button name="bt_approve" states='draft' string="Approve" type="object" class="oe_highlight" groups="green_erp_arulmani_purchase.group_vvti_purchase_user"/>
 		                    <button name="bt_cancel" string="Cancel" type="object" class="oe_highlight" />
 		                    <field name="state" widget="statusbar" statusbar_visible="draft,cancel,done" statusbar_colors='{"draft":"blue","cancel":"blue"}'/>
 		            </header>
@@ -935,7 +942,8 @@
         
         <menuitem action="action_view_tpt_vendor_group_form"
             id="menu_action_view_tpt_vendor_group_form"
-            parent="purchase.menu_procurement_management" sequence="300"/>
+            parent="purchase.menu_procurement_management" sequence="300"
+            groups="green_erp_arulmani_purchase.group_vvti_purchase_key_user"/>
 
 		<record id="view_tpt_vendor_sub_group_tree" model="ir.ui.view">
 			<field name="name">tpt.vendor.sub.group.tree</field>
@@ -976,7 +984,8 @@
         
         <menuitem action="action_view_tpt_vendor_sub_group_form"
             id="menu_action_view_tpt_vendor_sub_group_form"
-            parent="purchase.menu_procurement_management" sequence="400"/>
+            parent="purchase.menu_procurement_management" sequence="400"
+            groups="green_erp_arulmani_purchase.group_vvti_purchase_key_user"/>
             
         <record id="view_tpt_quality_parameters_tree" model="ir.ui.view">
 			<field name="name">tpt.quality.parameters.tree</field>

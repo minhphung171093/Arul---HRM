@@ -9,6 +9,7 @@
 				<tree string="Special Holidays">
 					<field name="name"/>
 					<field name="date"/>
+					<field name="is_local_holiday"/>
 				</tree>
 			</field>
 		</record>
@@ -21,7 +22,8 @@
                 	<sheet>
 	                    <group>
 	                    	<field name="name"/>
-							<field name="date"/>
+				<field name="date"/>
+				<field name="is_local_holiday"/>
 	               	  	</group>
                 	</sheet>
                 </form>
@@ -151,6 +153,11 @@
 						<group col='4' colspan='2'>
 							<field name="start_time" widget="float_time"/>
 							<field name="end_time" widget="float_time"/>
+							<field name="min_start_time" widget="float_time"/>
+							<field name="max_start_time" widget="float_time"/>
+							<field name="min_end_time" widget="float_time"/>
+							<field name="max_end_time" widget="float_time"/>
+							<field name="half_day_shift_hr" widget="float_time"/>
 							<field name="time_total" widget="float_time"/>
 							<field name="allowance"/>
 		                </group>   	
@@ -166,7 +173,17 @@
             <field name="view_type">form</field>
             <field name="view_mode">tree,form</field>
             <field name="view_id" ref="view_arul_hr_capture_work_shift_tree_vew"/>
-        </record>
+            </record>
+
+	    <record id="view_arul_hr_employee_leave_details_search_vew" model="ir.ui.view">
+			<field name="name">arul.hr.employee.leave.details.search</field>
+			<field name="model">arul.hr.employee.leave.details</field>
+			<field name="arch" type="xml">
+				<search string="Employee Leave Details">
+					<field name="employee_id"/>					
+				</search>
+			</field>
+	    </record>
         
 		<record id="view_arul_hr_employee_leave_details_tree_vew" model="ir.ui.view">
 			<field name="name">arul.hr.employee.leave.details.tree</field>
@@ -225,6 +242,16 @@
             <field name="view_id" ref="view_arul_hr_employee_leave_details_tree_vew"/>
         </record>
         
+	<record id="view_arul_hr_permission_onduty_search_vew" model="ir.ui.view">
+			<field name="name">arul.hr.permission.onduty.search</field>
+			<field name="model">arul.hr.permission.onduty</field>
+			<field name="arch" type="xml">
+				<search string="Permission and On Duty">
+					<field name="employee_id"/>					
+				</search>
+			</field>
+	</record>
+
         <menuitem action="action_arul_hr_employee_leave_details_form"
             id="menu_action_arul_hr_employee_leave_details_form"
             parent="menu_hr_leave_management" sequence="22"/>
@@ -333,7 +360,7 @@
 			<field name="name">arul.hr.audit.shift.time.tree</field>
 			<field name="model">arul.hr.audit.shift.time</field>
 			<field name="arch" type="xml">
-				<tree string="Audit Shift Time" create='false'>
+				<tree string="Audit Shift Time" create='true'> <!-- TPT Changes - by BalamuruganPurushothaman - on 14/02/2015 - To enable create option to Audit Shift Time screen in Tree mode -->
 					<field name="employee_id" options="{'create': false, 'create_edit': false}"/>
 					<field name="work_date"/>
 					<field name="employee_category_id" options="{'create': false, 'create_edit': false}"/>
@@ -355,7 +382,7 @@
             <field name="name">arul.hr.audit.shift.time.form</field>
             <field name="model">arul.hr.audit.shift.time</field>
             <field name="arch" type="xml">
-	            <form string="Audit Shift Time" version="7.0" create='false'>
+	            <form string="Audit Shift Time" version="7.0" create='true'> <!-- TPT Changes - by BalamuruganPurushothaman - on 14/02/2015 - To enable create option to Audit Shift Time screen in Form mode -->
 	            	<header>
 	                    <button name="approve_shift_time" states='draft' string="Approve" type="object" class="oe_highlight" groups="green_erp_arulmani_hrm.group_vvti_hrm_hr_manager"/>
 	                    <button name="%(action_reject_audit_form)d" states='draft' string="Reject" type="action" class="oe_highlight" groups="green_erp_arulmani_hrm.group_vvti_hrm_hr_manager"/>
@@ -395,8 +422,16 @@
             parent="menu_hr_leave_management" sequence="20"
             groups="group_vvti_hrm_hr_key_user,group_vvti_hrm_time_user,group_vvti_hrm_hr_manager,group_vvti_hrm_payroll_controller"/> 
 	
-
-		<record id="view_arul_hr_employee_attendence_details_tree_vew" model="ir.ui.view">
+	<record id="view_arul_hr_employee_attendence_details_search_vew" model="ir.ui.view">
+			<field name="name">arul.hr.employee.attendence.details.search</field>
+			<field name="model">arul.hr.employee.attendence.details</field>
+			<field name="arch" type="xml">
+				<search string="Employee Attendence Details">
+					<field name="employee_id"/>					
+				</search>
+			</field>
+	</record>
+	<record id="view_arul_hr_employee_attendence_details_tree_vew" model="ir.ui.view">
 			<field name="name">arul.hr.employee.attendence.details.tree</field>
 			<field name="model">arul.hr.employee.attendence.details</field>
 			<field name="arch" type="xml">
@@ -525,7 +560,18 @@
         <menuitem action="action_arul_hr_punch_in_out_time_form"
             id="menu_action_arul_hr_punch_in_out_time_form"
             parent="menu_hr_leave_management" sequence="24"/>
-        
+
+        <record id="view_arul_hr_monthly_work_schedule_search_vew" model="ir.ui.view">
+			<field name="name">arul.hr.monthly.work.schedule.search</field>
+			<field name="model">arul.hr.monthly.work.schedule</field>
+			<field name="arch" type="xml">
+				<search string="Monthly Work Schedule">
+					<field name="department_id"/>	
+					<field name="section_id"/>				
+				</search>
+			</field>
+	</record>
+
         <record id="view_arul_hr_monthly_work_schedule_tree_vew" model="ir.ui.view">
 			<field name="name">arul.hr.monthly.work.schedule.tree</field>
 			<field name="model">arul.hr.monthly.work.schedule</field>
@@ -547,7 +593,7 @@
             <field name="arch" type="xml">
 	            <form string="Monthly Work Schedule" version="7.0">
 	            	<header>
-	                    <button name="load_previous_month" states='draft' string="Load Previous Month Schedule" type="object" class="oe_highlight" />
+	                   <!-- <button name="load_previous_month" states='draft' string="Load Previous Month Schedule" type="object" class="oe_highlight" />--> <!-- TPT: BalamuruganPurushothaman - ON 21/02/2015 - TO HIDE THIS TEMPORARILY -->
 	                    <button name="approve_current_month" states='load,draft' string="Approve Current Month Schedule" type="object" class="oe_highlight" groups="base.group_erp_manager" />
 	                    <field name="state" widget="statusbar" statusbar_visible="draft,done" statusbar_colors='{"draft":"blue","done":"blue"}'/>
 	                </header> 
@@ -775,6 +821,17 @@
             id="menu_action_arul_hr_monthly_work_schedule_form"
             parent="menu_hr_leave_management" sequence="20"/>
         
+	<record id="view_shift_change_search_vew" model="ir.ui.view">
+			<field name="name">shift.change.search</field>
+			<field name="model">shift.change</field>
+			<field name="arch" type="xml">
+				<search string="Shift Change Request">
+					<field name="department_id"/>	
+					<field name="section_id"/>
+					<field name="employee_id"/>				
+				</search>
+			</field>
+	</record>
         <record id="view_shift_change_tree_vew" model="ir.ui.view">
 			<field name="name">shift.change.tree</field>
 			<field name="model">shift.change</field>

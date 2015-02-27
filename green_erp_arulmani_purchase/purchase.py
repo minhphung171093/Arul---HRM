@@ -114,54 +114,54 @@ class tpt_purchase_indent(osv.osv):
 #                 raise osv.except_osv(_('Warning!'),_(' You must choose Select is multiple if you want more than one product!'))
         return new_id
     
-    def write(self, cr, uid, ids, vals, context=None):
-        if 'document_type' in vals:
-            sql = '''
-                select code from account_fiscalyear where '%s' between date_start and date_stop
-            '''%(time.strftime('%Y-%m-%d'))
-            cr.execute(sql)
-            fiscalyear = cr.dictfetchone()
-            if not fiscalyear:
-                raise osv.except_osv(_('Warning!'),_('Financial year has not been configured. !'))
-            else:
-                if (vals['document_type']=='base'):
-                    if vals.get('name','/')=='/':
-                        sequence = self.pool.get('ir.sequence').get(cr, uid, 'indent.purchase.based')
-                        vals['name'] =  sequence and sequence+'/'+fiscalyear['code'] or '/'
-                if (vals['document_type']=='capital'):
-                    if vals.get('name','/')=='/':
-                        sequence = self.pool.get('ir.sequence').get(cr, uid, 'indent.purchase.capital')
-                        vals['name'] =  sequence and sequence +'/'+fiscalyear['code']or '/'
-                if (vals['document_type']=='local'):
-                    if vals.get('name','/')=='/':
-                        sequence = self.pool.get('ir.sequence').get(cr, uid, 'indent.purchase.local')
-                        vals['name'] =  sequence and sequence +'/'+fiscalyear['code']or '/'
-                if (vals['document_type']=='maintenance'):
-                    if vals.get('name','/')=='/':
-                        sequence = self.pool.get('ir.sequence').get(cr, uid, 'indent.purchase.maintenance')
-                        vals['name'] =  sequence and sequence +'/'+fiscalyear['code']or '/'
-                if (vals['document_type']=='consumable'):
-                    if vals.get('name','/')=='/':
-                        sequence = self.pool.get('ir.sequence').get(cr, uid, 'indent.purchase.consumable')
-                        vals['name'] =  sequence and sequence +'/'+fiscalyear['code']or '/'
-                if (vals['document_type']=='outside'):
-                    if vals.get('name','/')=='/':
-                        sequence = self.pool.get('ir.sequence').get(cr, uid, 'indent.purchase.outside')
-                        vals['name'] =  sequence and sequence +'/'+fiscalyear['code']or '/'
-                if (vals['document_type']=='spare'):
-                    if vals.get('name','/')=='/':
-                        sequence = self.pool.get('ir.sequence').get(cr, uid, 'indent.purchase.spare')
-                        vals['name'] =  sequence and sequence +'/'+fiscalyear['code']or '/'
-                if (vals['document_type']=='service'):
-                    if vals.get('name','/')=='/':
-                        sequence = self.pool.get('ir.sequence').get(cr, uid, 'indent.purchase.service')
-                        vals['name'] =  sequence and sequence +'/'+fiscalyear['code']or '/'
-        new_write = super(tpt_purchase_indent, self).write(cr, uid,ids, vals, context)
-#         for indent in self.browse(cr,uid,ids):
-#             if indent.select_normal != 'multiple':
-#                 if (len(indent.purchase_product_line)>1):
-#                     raise osv.except_osv(_('Warning!'),_(' You must choose Select is multiple if you want more than one product!'))
-        return new_write
+#     def write(self, cr, uid, ids, vals, context=None):
+#         if 'document_type' in vals:
+#             sql = '''
+#                 select code from account_fiscalyear where '%s' between date_start and date_stop
+#             '''%(time.strftime('%Y-%m-%d'))
+#             cr.execute(sql)
+#             fiscalyear = cr.dictfetchone()
+#             if not fiscalyear:
+#                 raise osv.except_osv(_('Warning!'),_('Financial year has not been configured. !'))
+#             else:
+#                 if (vals['document_type']=='base'):
+#                     if vals.get('name','/')=='/':
+#                         sequence = self.pool.get('ir.sequence').get(cr, uid, 'indent.purchase.based')
+#                         vals['name'] =  sequence and sequence+'/'+fiscalyear['code'] or '/'
+#                 if (vals['document_type']=='capital'):
+#                     if vals.get('name','/')=='/':
+#                         sequence = self.pool.get('ir.sequence').get(cr, uid, 'indent.purchase.capital')
+#                         vals['name'] =  sequence and sequence +'/'+fiscalyear['code']or '/'
+#                 if (vals['document_type']=='local'):
+#                     if vals.get('name','/')=='/':
+#                         sequence = self.pool.get('ir.sequence').get(cr, uid, 'indent.purchase.local')
+#                         vals['name'] =  sequence and sequence +'/'+fiscalyear['code']or '/'
+#                 if (vals['document_type']=='maintenance'):
+#                     if vals.get('name','/')=='/':
+#                         sequence = self.pool.get('ir.sequence').get(cr, uid, 'indent.purchase.maintenance')
+#                         vals['name'] =  sequence and sequence +'/'+fiscalyear['code']or '/'
+#                 if (vals['document_type']=='consumable'):
+#                     if vals.get('name','/')=='/':
+#                         sequence = self.pool.get('ir.sequence').get(cr, uid, 'indent.purchase.consumable')
+#                         vals['name'] =  sequence and sequence +'/'+fiscalyear['code']or '/'
+#                 if (vals['document_type']=='outside'):
+#                     if vals.get('name','/')=='/':
+#                         sequence = self.pool.get('ir.sequence').get(cr, uid, 'indent.purchase.outside')
+#                         vals['name'] =  sequence and sequence +'/'+fiscalyear['code']or '/'
+#                 if (vals['document_type']=='spare'):
+#                     if vals.get('name','/')=='/':
+#                         sequence = self.pool.get('ir.sequence').get(cr, uid, 'indent.purchase.spare')
+#                         vals['name'] =  sequence and sequence +'/'+fiscalyear['code']or '/'
+#                 if (vals['document_type']=='service'):
+#                     if vals.get('name','/')=='/':
+#                         sequence = self.pool.get('ir.sequence').get(cr, uid, 'indent.purchase.service')
+#                         vals['name'] =  sequence and sequence +'/'+fiscalyear['code']or '/'
+#         new_write = super(tpt_purchase_indent, self).write(cr, uid,ids, vals, context)
+# #         for indent in self.browse(cr,uid,ids):
+# #             if indent.select_normal != 'multiple':
+# #                 if (len(indent.purchase_product_line)>1):
+# #                     raise osv.except_osv(_('Warning!'),_(' You must choose Select is multiple if you want more than one product!'))
+#         return new_write
     
     def onchange_date_expect(self, cr, uid, ids,date_indent=False, context=None):
         vals = {}
@@ -1463,37 +1463,37 @@ class purchase_order(osv.osv):
     def write(self, cr, uid, ids, vals, context=None):
         new_write = super(purchase_order, self).write(cr, uid, ids, vals, context)
         for new in self.browse(cr, uid, ids):
-            sql = '''
-                select code from account_fiscalyear where '%s' between date_start and date_stop
-            '''%(time.strftime('%Y-%m-%d'))
-            cr.execute(sql)
-            fiscalyear = cr.dictfetchone()
-            if not fiscalyear:
-                raise osv.except_osv(_('Warning!'),_('Financial year has not been configured. !'))
-            if (new.po_document_type=='asset'):
-                sequence = self.pool.get('ir.sequence').get(cr, uid, 'purchase.order.asset')
-                sql = '''update purchase_order set name='%s' where id =%s'''%(sequence+'/'+fiscalyear['code']or '/',new.id)
-                cr.execute(sql)
-            if (new.po_document_type=='standard'):
-                sequence = self.pool.get('ir.sequence').get(cr, uid, 'purchase.order.standard')
-                sql = '''update purchase_order set name='%s' where id =%s'''%(sequence+'/'+fiscalyear['code']or '/',new.id)
-                cr.execute(sql)
-            if (new.po_document_type=='local'):
-                sequence = self.pool.get('ir.sequence').get(cr, uid, 'purchase.order.local')
-                sql = '''update purchase_order set name='%s' where id =%s'''%(sequence+'/'+fiscalyear['code']or '/',new.id)
-                cr.execute(sql)
-            if (new.po_document_type=='return'):
-                sequence = self.pool.get('ir.sequence').get(cr, uid, 'purchase.order.return')
-                sql = '''update purchase_order set name='%s' where id =%s'''%(sequence+'/'+fiscalyear['code']or '/',new.id)
-                cr.execute(sql)
-            if (new.po_document_type=='service'):
-                sequence = self.pool.get('ir.sequence').get(cr, uid, 'purchase.order.service')
-                sql = '''update purchase_order set name='%s' where id =%s'''%(sequence+'/'+fiscalyear['code']or '/',new.id)
-                cr.execute(sql)
-            if (new.po_document_type=='out'):
-                sequence = self.pool.get('ir.sequence').get(cr, uid, 'purchase.order.out.service')
-                sql = '''update purchase_order set name='%s' where id =%s'''%(sequence+'/'+fiscalyear['code']or '/',new.id)
-                cr.execute(sql)
+#             sql = '''
+#                 select code from account_fiscalyear where '%s' between date_start and date_stop
+#             '''%(time.strftime('%Y-%m-%d'))
+#             cr.execute(sql)
+#             fiscalyear = cr.dictfetchone()
+#             if not fiscalyear:
+#                 raise osv.except_osv(_('Warning!'),_('Financial year has not been configured. !'))
+#             if (new.po_document_type=='asset'):
+#                 sequence = self.pool.get('ir.sequence').get(cr, uid, 'purchase.order.asset')
+#                 sql = '''update purchase_order set name='%s' where id =%s'''%(sequence+'/'+fiscalyear['code']or '/',new.id)
+#                 cr.execute(sql)
+#             if (new.po_document_type=='standard'):
+#                 sequence = self.pool.get('ir.sequence').get(cr, uid, 'purchase.order.standard')
+#                 sql = '''update purchase_order set name='%s' where id =%s'''%(sequence+'/'+fiscalyear['code']or '/',new.id)
+#                 cr.execute(sql)
+#             if (new.po_document_type=='local'):
+#                 sequence = self.pool.get('ir.sequence').get(cr, uid, 'purchase.order.local')
+#                 sql = '''update purchase_order set name='%s' where id =%s'''%(sequence+'/'+fiscalyear['code']or '/',new.id)
+#                 cr.execute(sql)
+#             if (new.po_document_type=='return'):
+#                 sequence = self.pool.get('ir.sequence').get(cr, uid, 'purchase.order.return')
+#                 sql = '''update purchase_order set name='%s' where id =%s'''%(sequence+'/'+fiscalyear['code']or '/',new.id)
+#                 cr.execute(sql)
+#             if (new.po_document_type=='service'):
+#                 sequence = self.pool.get('ir.sequence').get(cr, uid, 'purchase.order.service')
+#                 sql = '''update purchase_order set name='%s' where id =%s'''%(sequence+'/'+fiscalyear['code']or '/',new.id)
+#                 cr.execute(sql)
+#             if (new.po_document_type=='out'):
+#                 sequence = self.pool.get('ir.sequence').get(cr, uid, 'purchase.order.out.service')
+#                 sql = '''update purchase_order set name='%s' where id =%s'''%(sequence+'/'+fiscalyear['code']or '/',new.id)
+#                 cr.execute(sql)
             date_order = datetime.datetime.strptime(new.date_order,'%Y-%m-%d')
             
             if new.quotation_no and new.po_indent_no:
@@ -2480,17 +2480,17 @@ class tpt_material_request(osv.osv):
         return new_id
      
     def write(self, cr, uid, ids, vals, context=None):
-        if vals.get('name','/')=='/':
-            sql = '''
-                select code from account_fiscalyear where '%s' between date_start and date_stop
-            '''%(time.strftime('%Y-%m-%d'))
-            cr.execute(sql)
-            fiscalyear = cr.dictfetchone()
-            if not fiscalyear:
-                raise osv.except_osv(_('Warning!'),_('Financial year has not been configured. !'))
-            else:
-                sequence = self.pool.get('ir.sequence').get(cr, uid, 'tpt.material.request.import')
-                vals['name'] =  sequence and sequence+'/'+fiscalyear['code'] or '/'
+#         if vals.get('name','/')=='/':
+#             sql = '''
+#                 select code from account_fiscalyear where '%s' between date_start and date_stop
+#             '''%(time.strftime('%Y-%m-%d'))
+#             cr.execute(sql)
+#             fiscalyear = cr.dictfetchone()
+#             if not fiscalyear:
+#                 raise osv.except_osv(_('Warning!'),_('Financial year has not been configured. !'))
+#             else:
+#                 sequence = self.pool.get('ir.sequence').get(cr, uid, 'tpt.material.request.import')
+#                 vals['name'] =  sequence and sequence+'/'+fiscalyear['code'] or '/'
         new_write = super(tpt_material_request, self).write(cr, uid,ids, vals, context)
         for material in self.browse(cr,uid,ids):
             sql = '''
