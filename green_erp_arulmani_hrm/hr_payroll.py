@@ -1803,6 +1803,7 @@ class arul_hr_payroll_executions(osv.osv):
                                           'deduction_parameters_id':deduction.id,
                                           'float': fd,
                                     }))
+                                
                             #if deduction.code == 'LOP': #TPT
                             #    vals_other_deductions.append((0,0, {
                             #              'deduction_parameters_id':deduction.id,
