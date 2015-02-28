@@ -1634,8 +1634,8 @@ class arul_hr_payroll_executions(osv.osv):
 			net_la = la - (la / calendar_days) * total_no_of_leave
 			net_oa = oa - (oa / calendar_days) * total_no_of_leave
 
-			total_earning =  net_basic + net_c + net_hra + net_ea + net_aa + net_la + net_oa + fa + spa + pc + cre + sha + lta + med
-			gross_sal =  net_basic + net_c + net_hra + net_ea + net_aa + net_la + net_oa + fa + spa + pc + cre + sha + lta + med
+			total_earning =  net_basic + net_da + net_c + net_hra + net_ea + net_aa + net_la + net_oa + fa + spa + pc + cre + sha + lta + med
+			gross_sal =  net_basic + net_da + net_c + net_hra + net_ea + net_aa + net_la + net_oa + fa + spa + pc + cre + sha + lta + med
 		
 			#gross_before = basic + c + hra  +spa + ea + oa + da + la + aa
                         #if total_no_of_leave: # total_no_of_leave <-> total_lop
@@ -2003,8 +2003,8 @@ class arul_hr_payroll_executions(osv.osv):
 			net_la = la - (la / 26) * total_no_of_leave
 			net_oa = oa - (oa / 26) * total_no_of_leave
 
-			total_earning =  net_basic + net_c + net_hra + net_ea + net_aa + net_la + net_oa + fa + spa + pc + cre + sha + lta + med + ma
-			gross_sal =  net_basic + net_c + net_hra + net_ea + net_aa + net_la + net_oa + fa + spa + pc + cre + sha + lta + med + ma
+			total_earning =  net_basic + net_da + net_c + net_hra + net_ea + net_aa + net_la + net_oa + fa + spa + pc + cre + sha + lta + med + ma
+			gross_sal =  net_basic + net_da + net_c + net_hra + net_ea + net_aa + net_la + net_oa + fa + spa + pc + cre + sha + lta + med + ma
 		
 			#gross_before = basic + c + hra  +spa + oa + da + ea
                         #if total_no_of_leave: # total_no_of_leave <-> total_lop
