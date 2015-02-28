@@ -387,6 +387,13 @@ class mrp_bom(osv.osv):
         'product_cost': fields.float('Product Cost'),
     }
     
+    def write(self, cr, uid, ids, vals, context=None):
+        new_write = super(mrp_bom, self).write(cr, uid, ids, vals, context)
+        for line in self.browse(cr,uid,ids):
+            if (line.product_qty < 0):
+                raise osv.except_osv(_('Warning!'),_('Quantity is not allowed as negative values'))
+        return new_write        
+            
     def onchange_cost_type(self, cr, uid, ids, product_id=False, cost_type=False, context=None):
         vals = {}
         if product_id:
@@ -420,8 +427,21 @@ class mrp_subproduct(osv.osv):
         if 'product_id' in vals:
             product = self.pool.get('product.product').browse(cr, uid, vals['product_id'])
             vals.update({'product_uom':product.uom_id.id})
+        if 'product_qty' in vals:
+            if (vals['product_qty'] < 0):
+                raise osv.except_osv(_('Warning!'),_('Quantity is not negative value'))
         new_id = super(mrp_subproduct, self).create(cr, uid, vals, context)
         return new_id    
+    
+    def write(self, cr, uid, ids, vals, context=None):
+        if 'product_id' in vals:
+            product = self.pool.get('product.product').browse(cr, uid, vals['product_id'])
+            vals.update({'product_uom':product.uom_id.id})
+        new_write = super(mrp_subproduct, self).write(cr, uid,ids, vals, context)
+        for line in self.browse(cr,uid,ids):
+            if (line.product_qty < 0):
+                raise osv.except_osv(_('Warning!'),_('Quantity is not negative value'))
+        return new_write
 
     def onchange_product_id(self, cr, uid, ids, product_id, context=None):
         """ Changes UoM if product_id changes.
@@ -452,6 +472,20 @@ class tpt_activities_line(osv.osv):
         'cost_type': 'variable',
         'product_qty': lambda *a: 1.0,
     }
+    
+    def create(self, cr, uid, vals, context=None):
+        if 'product_qty' in vals:
+            if (vals['product_qty'] < 0):
+                raise osv.except_osv(_('Warning!'),_('Quantity is not negative value'))
+        new_id = super(tpt_activities_line, self).create(cr, uid, vals, context)
+        return new_id    
+    
+    def write(self, cr, uid, ids, vals, context=None):
+        new_write = super(tpt_activities_line, self).write(cr, uid,ids, vals, context)
+        for line in self.browse(cr,uid,ids):
+            if (line.product_qty < 0):
+                raise osv.except_osv(_('Warning!'),_('Quantity is not negative value'))
+        return new_write
 
     def onchange_description(self, cr, uid, ids,activities_id=False,context=None):
         vals = {}
@@ -613,10 +647,15 @@ class stock_move(osv.osv):
         if 'app_quantity' in vals:
             if (vals['app_quantity'] < 0):
                 raise osv.except_osv(_('Warning!'),_('Appllied Quantity is not allowed as negative values'))
+#         if ('app_quantity' and 'product_qty') in vals:
+#             if (vals['app_quantity'] > vals['product_qty']):
+#                 raise osv.except_osv(_('Warning!'),_('Appllied Quantity is not greater than Product Quantity!'))
         return new_id  
     def write(self, cr, uid, ids, vals, context=None):
         new_write = super(stock_move, self).write(cr, uid,ids, vals, context)
         for line in self.browse(cr,uid,ids):
+            if line.app_quantity > line.product_qty:
+                raise osv.except_osv(_('Warning!'),_('Appllied Quantity is not greater than Product Quantity!'))
             if line.app_quantity < 0:
                 raise osv.except_osv(_('Warning!'),_('Appllied Quantity is not allowed as negative values'))
         return new_write  
