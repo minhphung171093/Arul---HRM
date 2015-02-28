@@ -85,6 +85,7 @@ class Parser(report_sxw.rml_parse):
         wizard_data = self.localcontext['data']['form']
         return wizard_data['year']
 
+
     def get_emp(self):
         wizard_data = self.localcontext['data']['form']
         emp_ids = wizard_data['employee_ids']

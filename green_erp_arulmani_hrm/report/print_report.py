@@ -184,6 +184,7 @@ class Parser(report_sxw.rml_parse):
             subtotal_total_ear += line['total_ear']          
         return round(subtotal_total_ear,2)
     
+    
     def get_sub_total_ded(self):
         subtotal_total_ded = 0
         for line in self.get_payslip():
