@@ -14,7 +14,7 @@ class arul_hr_holiday_special(osv.osv):
     _columns = {
         'name' : fields.char('Holiday Name', size = 1024, required = True),
         'date' : fields.date('Date', required = True),
-	'is_local_holiday': fields.boolean('Is Local Holiday?'),
+	    'is_local_holiday': fields.boolean('Is Local Holiday?'),
     }
     def _check(self,cr,uid,ids):
         obj = self.browse(cr,uid,ids[0])
@@ -1313,14 +1313,15 @@ class arul_hr_employee_leave_details(osv.osv):
         if day and day.employee_id and day.date_from and day.date_to:
             date_from = datetime.datetime.strptime(day.date_from, "%Y-%m-%d")
             date_to = datetime.datetime.strptime(day.date_to, "%Y-%m-%d")
+            #TPT: SQL IS MODIFIED FOR LEAVE RE-GENERATION IF LEAVE IS IN CANCEL STATE
             sql = '''
-                select id from arul_hr_employee_leave_details where id != %s and employee_id = %s and (('%s' between date_from and date_to) or ('%s' between date_from and date_to))
+                select id from arul_hr_employee_leave_details where id != %s and employee_id = %s and (('%s' between date_from and date_to) or ('%s' between date_from and date_to)) and state != 'cancel'
             '''%(day.id,day.employee_id.id,date_from.strftime('%Y-%m-%d'),date_to.strftime('%Y-%m-%d'))
             cr.execute(sql)
             leave_ids = [row[0] for row in cr.fetchall()]
 #                 leave_ids.remove(day.id)
             sql = '''
-                select id from arul_hr_employee_leave_details where id != %s and employee_id = %s and ((date_from between '%s' and '%s') and (date_to between '%s' and '%s'))
+                select id from arul_hr_employee_leave_details where id != %s and employee_id = %s and ((date_from between '%s' and '%s') and (date_to between '%s' and '%s')) and state != 'cancel'
             '''%(day.id,day.employee_id.id,date_from.strftime('%Y-%m-%d'),date_to.strftime('%Y-%m-%d'),date_from.strftime('%Y-%m-%d'),date_to.strftime('%Y-%m-%d'))
             cr.execute(sql)
             leave_1_ids = [row[0] for row in cr.fetchall()]

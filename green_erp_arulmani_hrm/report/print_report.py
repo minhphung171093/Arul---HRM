@@ -39,22 +39,162 @@ class Parser(report_sxw.rml_parse):
         self.localcontext.update({
             'get_month':self.get_month,
             'get_emp':self.get_emp,
-            'get_payslip': self.get_payslip,
-            'get_total': self.get_total,
+            'get_payslip': self.get_payslip,           
+            'get_sub_basic': self.get_sub_basic,
+            'get_sub_da': self.get_sub_da,
+            'get_sub_hra': self.get_sub_hra,
+            'get_sub_conv': self.get_sub_conv,
+            'get_sub_spa': self.get_sub_spa,
+            'get_sub_oa': self.get_sub_oa,
+            'get_sub_ma': self.get_sub_ma,
+            'get_sub_la': self.get_sub_la,
+            'get_sub_aa': self.get_sub_aa,
+            'get_sub_ea': self.get_sub_ea,
+            'get_sub_pfd': self.get_sub_pfd,
+            'get_sub_vpf': self.get_sub_vpf,
+            'get_sub_esi_con': self.get_sub_esi_con,
+            'get_sub_fd': self.get_sub_fd,
+            'get_sub_loan': self.get_sub_loan,
+            'get_sub_id': self.get_sub_id,
+            'get_sub_pt': self.get_sub_pt,
+            'get_sub_lwf': self.get_sub_lwf,
+            'get_sub_lop': self.get_sub_lop,
+            'get_sub_total_ear': self.get_sub_total_ear,
+            'get_sub_total_ded': self.get_sub_total_ded,
+            'get_sub_net': self.get_sub_net                                 
         })
-    def get_amount(self,value=False):
-        value = float(value)
-        if not value:
-            value = 0.0
-        value=str(value)
-        return value.split('.')
-
-    def get_total(self,float_amount=False):
-        float_amount = float(float_amount)
-        val1 = 0.0
-        #for line in structure_line:
-        val1 = val1 + float_amount
-        return val1 
+    
+    def get_sub_basic(self):
+        subtotal_basic = 0
+        for line in self.get_payslip():
+            subtotal_basic += line['basic']          
+        return round(subtotal_basic, 2)
+    
+    def get_sub_da(self):
+        subtotal_da = 0
+        for line in self.get_payslip():
+            subtotal_da += line['da']          
+        return round(subtotal_da, 2)
+    
+    def get_sub_hra(self):
+        subtotal_hra = 0
+        for line in self.get_payslip():
+            subtotal_hra += line['hra']          
+        return subtotal_hra
+    
+    def get_sub_conv(self):
+        subtotal_conv = 0
+        for line in self.get_payslip():
+            subtotal_conv += line['conv']          
+        return round(subtotal_conv, 2)
+    
+    def get_sub_spa(self):
+        subtotal_spa = 0
+        for line in self.get_payslip():
+            subtotal_spa += line['spa']          
+        return round(subtotal_spa,2)
+    
+    def get_sub_oa(self):
+        subtotal_oa = 0
+        for line in self.get_payslip():
+            subtotal_oa += line['oa']          
+        return round(subtotal_oa,2)
+    
+    def get_sub_ma(self):
+        subtotal_ma = 0
+        for line in self.get_payslip():
+            subtotal_ma += line['ma']          
+        return round(subtotal_ma, 2)
+    
+    def get_sub_la(self):
+        subtotal_la = 0
+        for line in self.get_payslip():
+            subtotal_la += line['la']                      
+        return round(subtotal_la, 2)
+    
+    def get_sub_ea(self):
+        subtotal_ea = 0
+        for line in self.get_payslip():
+            subtotal_ea += line['ea']                      
+        return round(subtotal_ea, 2)
+    
+    def get_sub_aa(self):
+        subtotal_aa = 0
+        for line in self.get_payslip():
+            subtotal_aa += line['aa']          
+        return round(subtotal_aa, 2)
+    
+    def get_sub_pfd(self):
+        subtotal_pfd = 0
+        for line in self.get_payslip():
+            subtotal_pfd += line['pfd']          
+        return round(subtotal_pfd, 2)
+    
+    def get_sub_vpf(self):
+        subtotal_vpf = 0
+        for line in self.get_payslip():
+            subtotal_vpf += line['vpf']          
+        return round(subtotal_vpf,2)
+    
+    def get_sub_esi_con(self):
+        subtotal_esi_con = 0
+        for line in self.get_payslip():
+            subtotal_esi_con += line['esi_con']          
+        return round(subtotal_esi_con,2)
+    
+    def get_sub_fd(self):
+        subtotal_fd = 0
+        for line in self.get_payslip():
+            subtotal_fd += line['loan']          
+        return round(subtotal_fd,2)
+    
+    def get_sub_loan(self):
+        subtotal_loan = 0
+        for line in self.get_payslip():
+            subtotal_loan += line['loan']          
+        return round(subtotal_loan,2)
+    
+    def get_sub_id(self):
+        subtotal_id = 0
+        for line in self.get_payslip():
+            subtotal_id += line['id']          
+        return round(subtotal_id,2)
+    
+    def get_sub_pt(self):
+        subtotal_pt = 0
+        for line in self.get_payslip():
+            subtotal_pt += line['pt']          
+        return round(subtotal_pt,2)
+    
+    def get_sub_lwf(self):
+        subtotal_lwf = 0
+        for line in self.get_payslip():
+            subtotal_lwf += line['lwf']          
+        return round(subtotal_lwf,2)
+    
+    def get_sub_lop(self):
+        subtotal_lop = 0
+        for line in self.get_payslip():
+            subtotal_lop += line['lop']          
+        return round(subtotal_lop,2)
+    
+    def get_sub_total_ear(self):
+        subtotal_total_ear = 0
+        for line in self.get_payslip():
+            subtotal_total_ear += line['total_ear']          
+        return round(subtotal_total_ear,2)
+    
+    def get_sub_total_ded(self):
+        subtotal_total_ded = 0
+        for line in self.get_payslip():
+            subtotal_total_ded += line['total_ded']          
+        return subtotal_total_ded
+    
+    def get_sub_net(self):
+        subtotal_net = 0
+        for line in self.get_payslip():
+            subtotal_net += line['net']          
+        return round(subtotal_net,2)
     
     def get_month(self):
         return self.ids
