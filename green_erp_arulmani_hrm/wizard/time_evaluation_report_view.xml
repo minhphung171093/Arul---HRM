@@ -12,7 +12,7 @@
 	                    <field name='category_id' options="{'create': false, 'create_edit': false}"/>
                  	</group>
                     <footer>
-                        <button name="print_report" string="Print Payslip" type="object" class="oe_highlight" context="{'type':'appointments'}"/>
+                        <button name="print_report" string="Run Report" type="object" class="oe_highlight" context="{'type':'appointments'}"/>
                         <button string="Cancel" class="oe_link" special="cancel"/>
                     </footer>
                 </form>

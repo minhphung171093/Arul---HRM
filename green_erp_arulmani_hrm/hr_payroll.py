@@ -310,7 +310,10 @@ class arul_hr_payroll_employee_structure(osv.osv):
     #To  Add update L.D & I.D values from Loan & Insurance tab respectively, while editing Employee Payroll Strcuture
     def write(self, cr, uid, ids, vals, context=None):
 	for emp_struct in self.browse(cr,uid,ids): # TO MAINTAIN EMPLOYEE PAYROLL STRUCTURE - 26/02/2015
-	    if 'employee_category_id' in vals:
+	    if 'employee_category_id' in vals: 
+                    default ={'history_id': emp_struct.id,'history_line':[]}
+                    self.copy(cr, uid, emp_struct.id,default)
+	    if 'sub_category_id' in vals: 
                     default ={'history_id': emp_struct.id,'history_line':[]}
                     self.copy(cr, uid, emp_struct.id,default)
 	    if 'payroll_earning_structure_line' in vals:
@@ -1800,6 +1803,7 @@ class arul_hr_payroll_executions(osv.osv):
                                           'deduction_parameters_id':deduction.id,
                                           'float': fd,
                                     }))
+                                
                             #if deduction.code == 'LOP': #TPT
                             #    vals_other_deductions.append((0,0, {
                             #              'deduction_parameters_id':deduction.id,

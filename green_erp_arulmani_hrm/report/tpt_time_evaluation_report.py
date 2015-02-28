@@ -74,7 +74,7 @@ class Parser(report_sxw.rml_parse):
             date = self.cr.dictfetchone()
             sql = '''
                 select actual_work_shift_id from arul_hr_punch_in_out_time where EXTRACT(month from work_date)=%s and EXTRACT(year from work_date)=%s and
-                    punch_in_out_id in (select id from arul_hr_employee_attendence_details where employee_id=%s)
+                    punch_in_out_id in (select id from arul_hr_employee_attendence_details where employee_id=%s) and actual_work_shift_id is not null
             '''%(int(month), int(year),employee.id)
             self.cr.execute(sql)
             actual_work_shift_ids = [r[0] for r in self.cr.fetchall()]
@@ -94,6 +94,228 @@ class Parser(report_sxw.rml_parse):
                     g1+=1
                 if shift.code=='G2':
                     g2+=1
+            sql = '''
+                    select id from arul_hr_holiday_special where EXTRACT(month from date)=%s and EXTRACT(year from date)=%s 
+            '''%(int(month), int(year))
+            self.cr.execute(sql)
+#             date_holiday = self.cr.dictfetchone()
+            holiday_ids = [r[0] for r in self.cr.fetchall()]
+            date_holiday_count =  0
+            if holiday_ids:
+                for date_holiday in self.pool.get('arul.hr.holiday.special').browse(self.cr, self.uid, holiday_ids):
+                    
+                    sql = '''
+                        select count(work_date) as date_holiday_count 
+                        from arul_hr_punch_in_out_time 
+                        where work_date = '%s' and EXTRACT(month from work_date)=%s and EXTRACT(year from work_date)=%s and
+                            punch_in_out_id in (select id from arul_hr_employee_attendence_details where employee_id=%s)
+                    '''%(date_holiday.date, int(month), int(year),employee.id)
+                    self.cr.execute(sql)
+                    date_holiday_count = self.cr.dictfetchone()['date_holiday_count']
+                    date_holiday_count += date_holiday_count
+                    
+            sql = '''
+                select leave_type_id 
+                from arul_hr_employee_leave_details 
+                where employee_id = %s and EXTRACT(month from date_from)=%s and EXTRACT(year from date_from)=%s and state = 'done' group by leave_type_id
+            '''%(employee.id,int(month), int(year))
+            self.cr.execute(sql)
+            leave_type_ids = [r[0] for r in self.cr.fetchall()]
+            c_off = False
+            c_l = False
+            s_l = False
+            p_l = False
+            esi = False
+            lop = False
+            available_leave = False
+            for leave_type in self.pool.get('arul.hr.leave.types').browse(self.cr,self.uid,leave_type_ids):
+                
+                if (leave_type.code=='C.Off' or leave_type.name=='Compensatory Off'):
+                    sql = '''
+                        select case when sum(days_total)!=0 then sum(days_total) else 0 end sum_leave 
+                        from arul_hr_employee_leave_details 
+                        where leave_type_id = %s and employee_id = %s and EXTRACT(month from date_from)=%s and EXTRACT(year from date_from)=%s and state = 'done'
+                    '''%(leave_type.id,employee.id,int(month), int(year))
+                    self.cr.execute(sql)
+                    c_off = self.cr.dictfetchone()
+                    sql = '''
+                        select case when available_leave!=0 then available_leave else 0 end sum_leave 
+                        from arul_hr_employee_leave_details 
+                        where leave_type_id = %s and employee_id = %s and EXTRACT(month from date_from)=%s and EXTRACT(year from date_from)=%s and state = 'done'
+                    '''%(leave_type.id,employee.id,int(month), int(year))
+                    self.cr.execute(sql)
+                    available_leave = self.cr.dictfetchone()
+                    
+                if (leave_type.code=='CL' or leave_type.name=='Casual Leave'):
+                    sql = '''
+                        select case when sum(days_total)!=0 then sum(days_total) else 0 end sum_leave 
+                        from arul_hr_employee_leave_details 
+                        where leave_type_id = %s and employee_id = %s and EXTRACT(month from date_from)=%s and EXTRACT(year from date_from)=%s and state = 'done'
+                    '''%(leave_type.id,employee.id,int(month), int(year))
+                    self.cr.execute(sql)
+                    c_l = self.cr.dictfetchone()
+                    
+                if (leave_type.code=='SL' or leave_type.name=='Sick Leave'):
+                    sql = '''
+                        select case when sum(days_total)!=0 then sum(days_total) else 0 end sum_leave 
+                        from arul_hr_employee_leave_details 
+                        where leave_type_id = %s and employee_id = %s and EXTRACT(month from date_from)=%s and EXTRACT(year from date_from)=%s and state = 'done'
+                    '''%(leave_type.id,employee.id,int(month), int(year))
+                    self.cr.execute(sql)
+                    s_l = self.cr.dictfetchone()
+                    
+                if (leave_type.code=='PL' or leave_type.name=='Privilege Leave'):
+                    sql = '''
+                        select case when sum(days_total)!=0 then sum(days_total) else 0 end sum_leave 
+                        from arul_hr_employee_leave_details 
+                        where leave_type_id = %s and employee_id = %s and EXTRACT(month from date_from)=%s and EXTRACT(year from date_from)=%s and state = 'done'
+                    '''%(leave_type.id,employee.id,int(month), int(year))
+                    self.cr.execute(sql)
+                    p_l = self.cr.dictfetchone()
+                    
+                if (leave_type.code=='ESI' or leave_type.name=='ESI Leave'):
+                    sql = '''
+                        select case when sum(days_total)!=0 then sum(days_total) else 0 end sum_leave 
+                        from arul_hr_employee_leave_details 
+                        where leave_type_id = %s and employee_id = %s and EXTRACT(month from date_from)=%s and EXTRACT(year from date_from)=%s and state = 'done'
+                    '''%(leave_type.id,employee.id,int(month), int(year))
+                    self.cr.execute(sql)
+                    esi = self.cr.dictfetchone()
+                    
+                if (leave_type.code=='LOP' or leave_type.name=='LOP'):
+                    sql = '''
+                        select case when sum(days_total)!=0 then sum(days_total) else 0 end sum_leave 
+                        from arul_hr_employee_leave_details 
+                        where leave_type_id = %s and employee_id = %s and EXTRACT(month from date_from)=%s and EXTRACT(year from date_from)=%s and state = 'done'
+                    '''%(leave_type.id,employee.id,int(month), int(year))
+                    self.cr.execute(sql)
+                    lop = self.cr.dictfetchone()
+            
+            sql = '''
+                select id from arul_hr_punch_in_out_time where EXTRACT(month from work_date)=%s and EXTRACT(year from work_date)=%s and
+                        punch_in_out_id in (select id from arul_hr_employee_attendence_details where employee_id=%s) order by work_date, id
+                '''%(int(month), int(year),employee.id)
+            self.cr.execute(sql)
+            punch_in_out_time_ids = [r[0] for r in self.cr.fetchall()]
+            A = self.pool.get('arul.hr.punch.in.out.time').browse(self.cr, self.uid, punch_in_out_time_ids)
+            c_off_day = 0
+            for i,line1 in enumerate(A):
+                date1 = line1.work_date
+                if (line1.planned_work_shift_id and line1.planned_work_shift_id.code != 'W') or (line1.actual_work_shift_id and line1.actual_work_shift_id.code != 'W'):
+# trường hợp không 'W' và planned = actual                        
+                    if (line1.planned_work_shift_id == line1.actual_work_shift_id):
+                        if line1.in_time > line1.out_time:
+                            time_total_actual = 24 - line1.in_time + line1.out_time
+                        else:
+                            time_total_actual = line1.out_time - line1.in_time
+                        if line1.diff_day and (line1.in_time <= line1.out_time):
+                            time_total_actual += 24
+                        
+                        if line1.planned_work_shift_id.start_time > line1.planned_work_shift_id.end_time:
+                            time_total_planned = 24 - line1.planned_work_shift_id.start_time + line1.planned_work_shift_id.end_time
+                        else:
+                            time_total_planned = line1.planned_work_shift_id.end_time - line1.planned_work_shift_id.start_time
+                        extra_hours = time_total_actual - time_total_planned
+                        if extra_hours >= 4 and extra_hours < 8:
+                            c_off_day += 0.5
+                        if extra_hours >= 8 and extra_hours < 12:
+                            c_off_day += 1
+                        if extra_hours >= 12 and extra_hours < 16:
+                            c_off_day += 1.5
+                        if extra_hours >= 16:
+                            c_off_day += 2
+                        
+                        B = A[i+1:]
+                        for j,line2 in enumerate(B):
+                            date2 = line2.work_date
+                            if (date1==date2):
+                                if line2.in_time > line2.out_time:
+                                    time_total_actual = 24 - line2.in_time + line2.out_time
+                                else:
+                                    time_total_actual = line2.out_time - line2.in_time
+                                if line2.diff_day and (line2.in_time <= line2.out_time):
+                                    time_total_actual += 24
+                                # tinh sum_c_off lam them 1 ca
+                                if line2.actual_work_shift_id:
+                                    if line2.actual_work_shift_id.start_time > line2.actual_work_shift_id.end_time:
+                                        shift_hours = 24-line2.actual_work_shift_id.start_time + line2.actual_work_shift_id.end_time
+                                    else:
+                                        shift_hours = line2.actual_work_shift_id.end_time - line2.actual_work_shift_id.start_time
+                                elif line2.planned_work_shift_id:
+                                    if line2.planned_work_shift_id.start_time > line2.planned_work_shift_id.end_time:
+                                        shift_hours = 24-line2.planned_work_shift_id.start_time + line2.planned_work_shift_id.end_time
+                                    else:
+                                        shift_hours = line2.planned_work_shift_id.end_time - line2.planned_work_shift_id.start_time
+                                else:
+                                    shift_hours = 8
+                                extra_hours = time_total_actual-shift_hours
+                                if extra_hours >= 4 and extra_hours < 8:
+                                    c_off_day += 0.5
+                                if extra_hours >= 8 and extra_hours < 12:
+                                    c_off_day += 1
+                                if extra_hours >= 12 and extra_hours < 16:
+                                    c_off_day += 1.5
+                                if extra_hours >= 16:
+                                    c_off_day += 2
+                                c_off_day += 1
+                                test = A.pop(i+j+1)
+                            else: 
+                                break
+# trường hợp không 'W' và planned != actual
+#                     else:
+# trường hợp có 'W'                          
+                else: 
+# trường hợp có 'W' và planned = actual
+                    if (line1.planned_work_shift_id == line1.actual_work_shift_id):
+                        if line1.in_time > line1.out_time:
+                            time_total_actual = 24 - line1.in_time + line1.out_time
+                        else:
+                            time_total_actual = line1.out_time - line1.in_time
+                        if line1.diff_day and (line1.in_time <= line1.out_time):
+                            time_total_actual += 24
+                        
+                        if line1.planned_work_shift_id.start_time > line1.planned_work_shift_id.end_time:
+                            time_total_planned = 24 - line1.planned_work_shift_id.start_time + line1.planned_work_shift_id.end_time
+                        else:
+                            time_total_planned = line1.planned_work_shift_id.end_time - line1.planned_work_shift_id.start_time
+                        extra_hours = time_total_actual - time_total_planned
+                        if extra_hours >= 4 and extra_hours < 8:
+                            c_off_day += 0.5
+                        if extra_hours >= 8 and extra_hours < 12:
+                            c_off_day += 1
+                        if extra_hours >= 12 and extra_hours < 16:
+                            c_off_day += 1.5
+                        if extra_hours >= 16:
+                            c_off_day += 2
+                        
+                        B = A[i+1:]
+                        for j,line2 in enumerate(B):
+                            date2 = line2.work_date
+                            if (date1==date2):
+                                if line2.in_time > line2.out_time:
+                                    time_total_actual = 24 - line2.in_time + line2.out_time
+                                else:
+                                    time_total_actual = line2.out_time - line2.in_time
+                                if line2.diff_day and (line2.in_time <= line2.out_time):
+                                    time_total_actual += 24
+                                shift_hours = 0
+                                extra_hours = time_total_actual-shift_hours
+                                if extra_hours >= 4 and extra_hours < 8:
+                                    c_off_day += 0.5
+                                if extra_hours >= 8 and extra_hours < 12:
+                                    c_off_day += 1
+                                if extra_hours >= 12 and extra_hours < 16:
+                                    c_off_day += 1.5
+                                if extra_hours >= 16:
+                                    c_off_day += 2
+                                c_off_day += 1
+                                test = A.pop(i+j+1)
+                            else: 
+                                break
+#                     else:
+                        #trường họp có W và planned != actual
+                    
+                
             res.append({
                 'emp_id': employee.employee_id or '',
                 'emp_name': employee.name + ' ' + (employee.last_name and employee.last_name or ''),
@@ -104,6 +326,14 @@ class Parser(report_sxw.rml_parse):
                 'g1':g1,
                 'g2':g2,
                 'total': a+b+c+g1+g2,
+                'c_off': c_off and c_off['sum_leave'] or '',
+                'c_l': c_l and c_l['sum_leave'] or '',
+                's_l': s_l and s_l['sum_leave'] or '',
+                'p_l': p_l and p_l['sum_leave'] or '',
+                'esi': esi and esi['sum_leave'] or '',
+                'lop': lop and lop['sum_leave'] or '',
+                'c_off_day': c_off_day,
+                'date_holiday_count':date_holiday_count or '',
             })
         return res
 # vim:expandtab:smartindent:tabstop=4:softtabstop=4:shiftwidth=4:

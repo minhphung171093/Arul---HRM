@@ -1186,10 +1186,10 @@ class tpt_blank_order_line(osv.osv):
         return super(tpt_blank_order_line, self).create(cr, uid, vals, context)
     
     def write(self, cr, uid, ids, vals, context=None):
-        new_write = super(tpt_blank_order_line, self).write(cr, uid,ids, vals, context)
         if 'product_id' in vals:
             product = self.pool.get('product.product').browse(cr, uid, vals['product_id'])
             vals.update({'uom_po_id':product.uom_id.id})
+        new_write = super(tpt_blank_order_line, self).write(cr, uid,ids, vals, context)
         for line in self.browse(cr,uid,ids):
             if (line.freight < 0 and line.product_uom_qty < 0 ):
                     raise osv.except_osv(_('Warning!'),_('Freight and Quantity is not negative value'))
@@ -1199,7 +1199,6 @@ class tpt_blank_order_line(osv.osv):
                 raise osv.except_osv(_('Warning!'),_('Quantity is not negative value'))
             if (line.price_unit < 0):
                 raise osv.except_osv(_('Warning!'),_('Unit Price is not allowed as negative values'))
-        
         return new_write
     
     def search(self, cr, uid, args, offset=0, limit=None, order=None, context=None, count=False):
