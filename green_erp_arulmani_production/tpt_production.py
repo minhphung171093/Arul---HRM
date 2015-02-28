@@ -613,10 +613,15 @@ class stock_move(osv.osv):
         if 'app_quantity' in vals:
             if (vals['app_quantity'] < 0):
                 raise osv.except_osv(_('Warning!'),_('Appllied Quantity is not allowed as negative values'))
+#         if ('app_quantity' and 'product_qty') in vals:
+#             if (vals['app_quantity'] > vals['product_qty']):
+#                 raise osv.except_osv(_('Warning!'),_('Appllied Quantity is not greater than Product Quantity!'))
         return new_id  
     def write(self, cr, uid, ids, vals, context=None):
         new_write = super(stock_move, self).write(cr, uid,ids, vals, context)
         for line in self.browse(cr,uid,ids):
+            if line.app_quantity > line.product_qty:
+                raise osv.except_osv(_('Warning!'),_('Appllied Quantity is not greater than Product Quantity!'))
             if line.app_quantity < 0:
                 raise osv.except_osv(_('Warning!'),_('Appllied Quantity is not allowed as negative values'))
         return new_write  
