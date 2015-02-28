@@ -352,8 +352,14 @@
                     	<field name="app_quantity" />
                     </xpath>
   
+                    <xpath expr="//form/sheet/notebook/page[@string='Consumed Products']/group/group[@string='Products to Consume']" position="attributes">
+						<attribute name='string'>Consumed Product</attribute>
+                    </xpath>
 
-  
+                    <xpath expr="//form/sheet/notebook/page[@string='Scheduled Products']" position="attributes">
+						<attribute name='string'>Consumed Product</attribute>
+                    </xpath>
+
                 </data>
             </field>
         </record>
