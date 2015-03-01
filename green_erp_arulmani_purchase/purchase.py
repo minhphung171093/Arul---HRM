@@ -37,6 +37,7 @@ class tpt_purchase_indent(osv.osv):
                                           ('multiple','Multiple Quotation')],'Select', states={'cancel': [('readonly', True)], 'done':[('readonly', True)]}),
         'supplier_id':fields.many2one('res.partner','Supplier',  states={'cancel': [('readonly', True)], 'done':[('readonly', True)]}),
         'reason':fields.text('Reason', states={'cancel': [('readonly', True)], 'done':[('readonly', True)]}),
+        'header_text':fields.text('Header Text'), #TPT
         'purchase_product_line':fields.one2many('tpt.purchase.product','purchase_indent_id','Materials', states={'cancel': [('readonly', True)], 'done':[('readonly', True)]}),
         'state':fields.selection([('draft', 'Draft'),('cancel', 'Closed'),('done', 'Approve')],'Status', readonly=True),
     }
@@ -225,14 +226,32 @@ class tpt_purchase_product(osv.osv):
     _columns = {
         'purchase_indent_id':fields.many2one('tpt.purchase.indent','Purchase Product'),
         'product_id': fields.many2one('product.product', 'Material Code'),
-        'dec_material':fields.text('Material Description'),
+        #'dec_material':fields.text('Material Description'),
+        'description':fields.char('Mat. Description', size = 50 ),
+        'item_text':fields.text('Item Text'),
         'product_uom_qty': fields.float('PO Qty'),   
         'uom_po_id': fields.many2one('product.uom', 'UOM', readonly = True),
         'pending_qty': fields.float('Pending Qty'), 
-        'recom_vendor_id': fields.many2one('res.partner', 'Recommended Vendor'),
+        #'recom_vendor_id': fields.many2one('res.partner', 'Recommended Vendor'),
+        'recom_vendor': fields.char('Recommended Vendor', size = 30),
         'release_by':fields.selection([('1','Store Level'),('2','HOD Level')],'Released By')
         }  
 
+    def onchange_product_id(self, cr, uid, ids,product_id=False, context=None):
+        res = {'value':{
+                    'uom_po_id':False,
+                    'price_unit':False,
+                    'description': False,
+                    }}
+        if product_id:
+            product = self.pool.get('product.product').browse(cr, uid, product_id)
+            res['value'].update({
+                    'uom_po_id':product.uom_id.id,
+                    #'price_unit':product.list_price,
+                    'description': product.name,
+                    })
+        return res
+    
     def create(self, cr, uid, vals, context=None):
         
         if 'product_id' in vals:

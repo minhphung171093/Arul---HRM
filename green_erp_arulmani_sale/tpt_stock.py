@@ -819,7 +819,7 @@ class account_invoice(osv.osv):
     _columns = {
         'vvt_number': fields.char('Number', size=1024),
         'delivery_order_id': fields.many2one('stock.picking.out','Delivery Order', readonly=True),
-        'cons_loca': fields.many2one('res.partner','Consignee Location', readonly=True, states={'draft':[('readonly',False)]}),
+        'cons_loca': fields.many2one('res.partner','Consignee Location', readonly=False, states={'draft':[('readonly',False)]}),
         'sale_id':  fields.many2one('sale.order','Sale Order', readonly=True, states={'draft':[('readonly',False)]}), 
         'excise_duty_id': fields.many2one('account.tax','Excise Duty', required = False, readonly=True, states={'draft':[('readonly',False)]}),
         'sale_tax_id': fields.many2one('account.tax','Sale Tax', required = False, readonly=True, states={'draft':[('readonly',False)]}),
@@ -831,6 +831,15 @@ class account_invoice(osv.osv):
         'mark_container_no': fields.char('Marks & No Container No.', size = 1024, readonly=True, states={'draft':[('readonly',False)]}),
         'insurance': fields.float('Insurance', readonly=True, states={'draft':[('readonly',False)]}),
         'pre_carriage_by': fields.selection([('sea','Sea')],'Pre Carriage By', readonly=True, states={'draft':[('readonly',False)]}),
+        
+        #TPT - By BalamuruganPurushothaman on 28/02/2015- The following are used for Domestic Invoice Print
+        'booked_to': fields.char('Booked To', size = 1024, readonly=True, states={'draft':[('readonly',False)]}),
+        'lr_no': fields.char('LR Number', size = 1024, readonly=True, states={'draft':[('readonly',False)]}),
+        'rem_date':fields.date('Rem.Of Goods', readonly=True, states={'draft':[('readonly',False)]}),
+        'material_info': fields.text('Material Additional Info',readonly=True, states={'draft':[('readonly',False)]}),
+        'other_info': fields.text('Other Info', readonly=True, states={'draft':[('readonly',False)]}),
+        #TPT
+        
         'amount_untaxed': fields.function(_amount_all, digits_compute=dp.get_precision('Account'), string='Untaxed Amount',
             store={
                 'account.invoice': (lambda self, cr, uid, ids, c={}: ids, ['invoice_line'], 20),

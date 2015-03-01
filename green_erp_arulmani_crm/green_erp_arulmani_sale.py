@@ -37,6 +37,10 @@ class crm_sale_order(osv.osv):
         if vals.get('name','/')=='/':
             vals['name'] = self.pool.get('ir.sequence').get(cr, uid, 'crm.sale.order') or '/'
         return super(crm_sale_order, self).create(cr, uid, vals, context=context)
+    #TPT
+    #def write(self, cr, uid, ids, vals, context=None):
+    #   new_write = super(crm_sales_order, self).write(cr, uid,ids, vals, context)       
+    #   return new_write
     
     def onchange_quotation_type(self, cr, uid, ids,quotation_type=False, context=None):
         vals = {}
@@ -197,14 +201,37 @@ class crm_sale_order(osv.osv):
             domain="['|',('section_id','=',section_id),('section_id','=',False), ('object_id.model', '=', 'crm.lead')]",readonly=True, states={'draft': [('readonly', False)]}, context="{'object_name': 'crm.lead'}"),
                 'origin': fields.char('Source Document', size=64,readonly=True, states={'draft': [('readonly', False)]}, help="Reference of the document that generated this sales order request."),
                 'payment_term': fields.many2one('account.payment.term', 'Payment Term',readonly=True, states={'draft': [('readonly', False)]},   ),
+                
+                #'payment_term': fields.many2one('account.payment.term', 'Payment Term'),
+                
+                
                 'fiscal_position': fields.many2one('account.fiscal.position', 'Fiscal Position',readonly=True, states={'draft': [('readonly', False)]}),
                 'company_id': fields.related('shop_id','company_id',type='many2one',relation='res.company',string='Company',store=True,readonly=True, states={'draft': [('readonly', False)]}),
-                'bank_account_id': fields.many2one('res.partner.bank', 'Bank Account', readonly=True, states={'draft': [('readonly', False)]}, select=True, track_visibility='onchange'),
+                'bank_account_id': fields.many2one('res.partner.bank', 'Customer Bank Account', readonly=True, states={'draft': [('readonly', False)]}, select=True, track_visibility='onchange'),
+                
+                'bank_account': fields.many2one('res.bank', 'Bank Account', readonly=True, states={'draft': [('readonly', False)]}, select=True, track_visibility='onchange'),
+                
+                
                 'note': fields.text('Terms and conditions'),
                 'pricelist_id': fields.many2one('product.pricelist', 'Pricelist', required=True, readonly=True, states={'draft': [('readonly', False)]}, help="Pricelist for current sales order."),
                 'incoterm': fields.many2one('stock.incoterms', 'Incoterm',readonly=True, states={'draft': [('readonly', False)]}, help="International Commercial Terms are a series of predefined commercial terms used in international transactions."),
                 'shop_id': fields.many2one('sale.shop', 'Shop', required=True, readonly=True, states={'draft': [('readonly', False)]}),
-                'picking_details':fields.char('Picking Details',size=255,readonly=True, states={'draft': [('readonly', False)]}),
+                'picking_details':fields.char('Packing Details',size=255,readonly=True, states={'draft': [('readonly', False)]}),
+                'packing_details': fields.selection([
+                                        ('25 KG HDPE With Lines', '25 KG HDPE With Lines'),
+                                        ('50 KG HDPE With Lines', '50 KG HDPE With Lines'),
+                                        ('50 KG HDPE Bag', '50 KG HDPE Bag'),
+                                        ('500 KG Jumbo Bag', '500 KG Jumbo Bag'),
+                                        ('1000 KG Jumbo Bag', '1000 KG Jumbo Bag'),
+                                        ], 'Packing Details'),
+                'transport_details': fields.selection([
+                                        ('Arranged at your End', 'Arranged at your End'),
+                                        ('Arranged By VVTi', 'Arranged By VVTi'),                                        
+                                        ], 'Transport Details'),
+                'insurance_details': fields.selection([
+                                        ('Arranged at your End', 'Arranged at your End'),
+                                        ('Arranged By VVTi', 'Arranged By VVTi'),                                        
+                                        ], 'Insurance Details'),
                 'description':fields.text('Description',readonly=True, states={'draft': [('readonly', False)]}),
                 'order_line': fields.one2many('crm.sale.order.line', 'order_id', 'Order Lines', readonly=True, states={'draft': [('readonly', False)]}),
                 'state': fields.selection([

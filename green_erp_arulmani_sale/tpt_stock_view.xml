@@ -206,6 +206,14 @@
 					<field name="port_of_loading_id" options="{'create': false, 'create_edit': false}"/>
 					<field name="mark_container_no" />
 					<field name="insurance" />
+					
+					
+					<group attrs="{'invisible': [('invoice_type', '=', 'export') ] }" colspan="2" >
+					<field name="lr_no" />
+					<field name="rem_date" />
+					<field name="material_info" />
+					<field name="other_info" />
+					</group>
 				</xpath>
 				<xpath expr="//field[@name='journal_id']" position="replace">
 					<field name="cons_loca" domain="[('consignee_parent_id','=',partner_id)]" options="{'create': false, 'create_edit': false,'always_reload': True}" context="{'show_address': 1}"/>
@@ -222,8 +230,12 @@
 					<field name="payment_term" options="{'create': false, 'create_edit': false}"/>
 					<field name="sale_tax_id" domain="[('type_tax_use','=','sale')]" options="{'create': false, 'create_edit': false}"/>
 					<field name="invoice_type" required ='1'/>
-					<field name="vessel_flight_no" />
+					<field name="vessel_flight_no" />										
 					<field name="port_of_discharge_id" options="{'create': false, 'create_edit': false}"/>
+					
+					
+					
+					
 				</xpath>
 				
 				<xpath expr="//page[@string='Invoice Lines']/group/field[@name='payment_term']" position="replace">

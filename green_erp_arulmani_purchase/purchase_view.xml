@@ -13,7 +13,7 @@
 						<field name="department_id"  />
 						<field name="create_uid" options="{'create': false, 'create_edit': false}" />
 						<field name="date_expect"/>
-						<field name="reason"/>
+						<field name="header_text"/>
 						<field name="state" widget="statusbar" statusbar_visible="draft,cancel,done" statusbar_colors='{"draft":"blue","cancel":"blue"}'/>
 				</tree>
 			</field>
@@ -39,6 +39,7 @@
 							<field name="department_id" required='1' options="{'create': false, 'create_edit': false}" />
 							<field name="create_uid" options="{'create': false, 'create_edit': false}"  />
 							<field name="date_expect"/>
+							<field name="header_text"/>
 						</group>
 						<group >
 							<field name="select_normal" invisible = '1' widget = "radio" attrs="{'invisible': [('intdent_cate', '!=', 'normal')]}" />
@@ -50,10 +51,13 @@
 							<page string = "Materials">
 								<field name="purchase_product_line" nolabel='1'>
 									<tree editable='bottom'>
-										<field name="product_id" domain="[('purchase_ok','=',True)]" widget = "selection" required='1' options="{'create': false, 'create_edit': false}"/>
-										<field name="dec_material" required='1'/>
+										<field name="product_id" on_change="onchange_product_id(product_id)" domain="[('purchase_ok','=',True)]" widget = "selection" required='1' options="{'create': false, 'create_edit': false}"/>
+										<field name="description" required='1'/>
+										<field name="item_text" />
 										<field name="product_uom_qty" />
-										<field name="recom_vendor_id" context="{'search_recom_product':True, 'product_id':product_id }" options="{'create': false, 'create_edit': false}" />
+										<!-- <field name="recom_vendor_id" context="{'search_recom_product':True, 'product_id':product_id }" options="{'create': false, 'create_edit': false}" />
+										 -->
+										<field name="recom_vendor" />
 										<field name="pending_qty" />
 										<field name="uom_po_id" edit='false' options="{'create': false, 'create_edit': false}"/>
 										<field name="release_by" required='1'/>
