@@ -689,9 +689,9 @@
             <field name="arch" type="xml">
                 <form string="Batch Allotment" version="7.0">
                    <header>
-                     <button string="Approved" name="confirm" states="to_approve,refuse" type="object" class="oe_highlight"/>
-                     <button string="Refused" name="refuse" states="to_approve,confirm" type="object" class="oe_highlight"/>
-                     <button string="Cancelled" name="cancelled" states="to_approve,confirm,refuse" type="object" class="oe_highlight"/>
+                     <button string="Approve" name="confirm" states="to_approve,refuse" type="object" class="oe_highlight"/>
+                     <button string="Refuse" name="refuse" states="to_approve,confirm" type="object" class="oe_highlight"/>
+                     <button string="Cancel" name="cancelled" states="to_approve,confirm,refuse" type="object" class="oe_highlight"/>
                      <field name="state" widget="statusbar" statusbar_colors='{"confirm":"blue","to_approve":"blue","refuse":"red"}'/>
                     </header>
                    <sheet>
