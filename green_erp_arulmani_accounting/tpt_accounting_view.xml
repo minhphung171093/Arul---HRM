@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<openerp>
+    <data>
+		<record id="tpt_account_supplier_invoice_form" model="ir.ui.view">
+            <field name="name">tpt.account.supplier.invoice.form</field>
+            <field name="model">account.invoice</field>
+            <field name="inherit_id" ref="account.invoice_supplier_form"/>
+            <field name="arch" type="xml">
+            	<xpath expr="//field[@name='partner_id']" position="before">
+					<field name="name" string = "Document No"/>
+				</xpath>
+				<xpath expr="//field[@name='partner_id']" position="attributes">
+					<attribute name='string'>Vendor</attribute>
+				</xpath>
+				<xpath expr="//field[@name='partner_id']" position="after">
+					<field name="created_by" />
+					<field name="created_on" />
+				</xpath>
+				<xpath expr="//field[@name='date_due']" position="after">
+					<field name="purchase_id" options="{'create': false, 'create_edit': false}"/>
+					<field name="vendor_ref" />
+				</xpath>  
+				<xpath expr="//field[@name='account_id']" position="attributes">
+					<attribute name='invisible'>1</attribute>
+				</xpath>
+				<xpath expr="//field[@name='currency_id']" position="attributes">
+					<attribute name='invisible'>1</attribute>
+				</xpath>
+			
+			</field>
+		</record>
+    </data>
+</openerp>
