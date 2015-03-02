@@ -7,6 +7,7 @@ from openerp import SUPERUSER_ID
 from openerp.tools import DEFAULT_SERVER_DATE_FORMAT, DEFAULT_SERVER_DATETIME_FORMAT, DATETIME_FORMATS_MAP, float_compare
 from datetime import datetime
 import datetime
+from datetime import date
 import calendar
 import openerp.addons.decimal_precision as dp
 from openerp import netsvc
@@ -52,8 +53,34 @@ class tpt_posting_configuration(osv.osv):
     _defaults = {
         'date': time.strftime('%Y-%m-%d'),
         'state':'draft',
+        'name':'cus_inv',
     }
 
     def bt_confirm(self, cr, uid, ids, context=None):
         return self.write(cr, uid, ids,{'state':'done'})
 tpt_posting_configuration()
+
+class account_invoice(osv.osv):
+    _inherit = "account.invoice"
+     
+    _columns = {
+        'created_by':fields.char('Created By', size = 1024),
+        'created_on': fields.date('Created On'),
+        'purchase_id': fields.many2one('purchase.order', 'Purchase Order'),
+        'vendor_ref': fields.char('Vendor Reference', size = 1024),
+    }
+     
+account_invoice() 
+
+# class account_invoice_line(osv.osv):
+#     _inherit = "account.invoice.line"
+#     
+#     _columns = {
+#         'created_by':fields.char('Created By', size = 1024),
+#         'created_on': fields.date('Created On'),
+#         'purchase_id': fields.many2one('purchase.order', 'Purchase Order'),
+#         'vendor_ref': fields.char('Vendor Reference', size = 1024),
+#     }
+# account_invoice_line()
+
+       
