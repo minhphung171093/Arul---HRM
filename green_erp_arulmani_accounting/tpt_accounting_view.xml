@@ -1,6 +1,125 @@
 <?xml version="1.0" encoding="utf-8"?>
 <openerp>
     <data>
+	   	<record id="tpt_posting_configuration_tree_view" model="ir.ui.view">
+			<field name="name">tpt.posting.configuration.tree</field>
+			<field name="model">tpt.posting.configuration</field>
+			<field name="arch" type="xml">
+				<tree string="GL Posting Configuration">
+					<field name="name"/>
+					<field name="date"/>
+					<field name="state"/>
+				</tree>
+			</field>
+		</record>
+		
+		<record id="tpt_posting_configuration_form_view" model="ir.ui.view">
+            <field name="name">tpt.posting.configuration.form</field>
+            <field name="model">tpt.posting.configuration</field>
+            <field name="arch" type="xml">
+	            <form string="GL Posting Configuration" version="7.0">   
+	            	<header>
+	                    <button name="bt_confirm" states='draft' string="Confirm" type="object" class="oe_highlight" />
+	                    <field name="state" widget="statusbar" statusbar_visible="draft,done"/>
+		            </header>    
+	            	<sheet>
+		            	<group>
+			                <group>    
+								<field name="name"/>
+							</group>
+							<group >
+								<field name="date"/>
+							</group>
+						</group>
+						<notebook>
+							<page string = "GL Account">
+								<group col="4" colspan="2" attrs="{'invisible': [('name', '!=', 'cus_inv')]}" >
+										<field name="cus_inv_vat_id" options="{'create': false, 'create_edit': false}"/>
+										<field name="cus_inv_cst_id" options="{'create': false, 'create_edit': false}"/>
+										<field name="cus_inv_ed_id" options="{'create': false, 'create_edit': false}"/>
+										<field name="cus_inv_pf_id" options="{'create': false, 'create_edit': false}"/>
+										<field name="cus_inv_fright_id" options="{'create': false, 'create_edit': false}"/>
+										<field name="cus_inv_insurance_id" options="{'create': false, 'create_edit': false}"/>
+										<field name="cus_inv_price_id" options="{'create': false, 'create_edit': false}"/>
+								</group>
+								<group col="4" colspan="2"  attrs="{'invisible': [('name', '!=', 'cus_pay')]}" >
+										<field name="cus_pay_bank_id" options="{'create': false, 'create_edit': false}"/>
+										<field name="cus_pay_cash_id" options="{'create': false, 'create_edit': false}"/>
+								</group>
+								<group col="4" colspan="2" attrs="{'invisible': [('name', '!=', 'sup_inv')]}" >
+										<field name="sup_inv_vat_id" options="{'create': false, 'create_edit': false}"/>
+										<field name="sup_inv_cst_id" options="{'create': false, 'create_edit': false}"/>
+										<field name="sup_inv_ed_id" options="{'create': false, 'create_edit': false}"/>
+										<field name="sup_inv_pf_id" options="{'create': false, 'create_edit': false}"/>
+										<field name="sup_inv_fright_id" options="{'create': false, 'create_edit': false}"/>
+										<field name="sup_inv_price_id" options="{'create': false, 'create_edit': false}"/>
+								</group>
+								<group col="4" colspan="2" attrs="{'invisible': [('name', '!=', 'sup_pay')]}" >
+										<field name="sup_pay_bank_id" options="{'create': false, 'create_edit': false}"/>
+										<field name="sup_pay_cash_id" options="{'create': false, 'create_edit': false}"/>
+								</group>
+								<group col="4" colspan="2" attrs="{'invisible': [('name', '!=', 'payroll')]}" >
+										<field name="salari_id" options="{'create': false, 'create_edit': false}"/>
+										<field name="pfp_id" options="{'create': false, 'create_edit': false}"/>
+										<field name="vpf_id" options="{'create': false, 'create_edit': false}"/>
+										<field name="esi_id" options="{'create': false, 'create_edit': false}"/>
+										<field name="staff_welfare_id" options="{'create': false, 'create_edit': false}"/>
+										<field name="lic_id" options="{'create': false, 'create_edit': false}"/>
+										<field name="profes_tax_id" options="{'create': false, 'create_edit': false}"/>
+										<field name="lwf_id" options="{'create': false, 'create_edit': false}"/>
+										<field name="staff_advance_id" options="{'create': false, 'create_edit': false}"/>
+										<field name="salari_payable_id" options="{'create': false, 'create_edit': false}"/>
+								</group>
+							</page>
+						</notebook>
+		         	</sheet>
+		         </form>
+			</field>
+		</record>
+          
+		<record id="action_tpt_posting_configuration_form_view" model="ir.actions.act_window">
+            <field name="name">GL Posting Configuration</field>
+            <field name="type">ir.actions.act_window</field>
+            <field name="res_model">tpt.posting.configuration</field>
+            <field name="view_type">form</field>
+            <field name="view_mode">tree,form</field>
+            <field name="view_id" ref="tpt_posting_configuration_tree_view"/>
+        </record>
+        
+        
+        <menuitem id="menu_tpt_accounting" name="Accounting" parent="account.menu_finance" sequence="0"/>
+        <menuitem action="action_tpt_posting_configuration_form_view"
+            id="menu_action_tpt_posting_configuration_form_view"
+            parent="menu_tpt_accounting" sequence="13"/>
 
+
+		<record id="tpt_account_supplier_invoice_form" model="ir.ui.view">
+            <field name="name">tpt.account.supplier.invoice.form</field>
+            <field name="model">account.invoice</field>
+            <field name="inherit_id" ref="account.invoice_supplier_form"/>
+            <field name="arch" type="xml">
+            	<xpath expr="//field[@name='partner_id']" position="before">
+					<field name="name" string = "Document No"/>
+				</xpath>
+				<xpath expr="//field[@name='partner_id']" position="attributes">
+					<attribute name='string'>Vendor</attribute>
+				</xpath>
+				<xpath expr="//field[@name='partner_id']" position="after">
+					<field name="created_by" />
+					<field name="created_on" />
+				</xpath>
+				<xpath expr="//field[@name='date_due']" position="after">
+					<field name="purchase_id" options="{'create': false, 'create_edit': false}"/>
+					<field name="vendor_ref" />
+				</xpath>  
+				<xpath expr="//field[@name='account_id']" position="attributes">
+					<attribute name='invisible'>1</attribute>
+				</xpath>
+				<xpath expr="//field[@name='currency_id']" position="attributes">
+					<attribute name='invisible'>1</attribute>
+				</xpath>
+			
+			</field>
+		</record>
     </data>
 </openerp>

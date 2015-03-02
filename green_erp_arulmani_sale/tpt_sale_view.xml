@@ -285,7 +285,7 @@
 	            	</header>
 	            	<sheet>
 		                <group> 
-							<field name="name" on_change="onchange_product(name)" options="{'create': false, 'create_edit': false}" domain="['|',('name','in',['TITANIUM DIOXIDE-ANATASE','FERROUS SULPHATE']),('default_code','in',['FSH','TiO2'])]"/>
+							<field name="name" on_change="onchange_product(name)" options="{'create': false, 'create_edit': false}" domain="['|',('name','in',['TITANIUM DIOXIDE-ANATASE','FERROUS SULPHATE','M0501010001','M0501010002']),('default_code','in',['FSH','TiO2','M0501010001','M0501010002'])]"/>
 							<field name="is_tio2" invisible='1'/>
 						</group>
 						<group col='4' colspan='2' attrs="{'invisible':[('is_tio2','=',False)]}">
