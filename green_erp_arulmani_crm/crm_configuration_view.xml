@@ -115,7 +115,7 @@
                     <xpath expr="//field[@name='email']" position="after">
                         <field name="pan_tin" />
                         <field name="sin"/>
-                        <!--<field name="cst"/>-->
+                        <field name="cst"/> <!-- Enabled By TPT -->
                         <field name="language_id" widget="selection" attrs="{'invisible': [('customer', '=',False)]}" />
                         <field name="customer_account_group_id" widget="selection" attrs="{'invisible': [('customer', '=',False)]}" />
                         <!--<field name="sort_key_id" widget="selection" attrs="{'invisible': [('customer', '=',False)]}" />-->

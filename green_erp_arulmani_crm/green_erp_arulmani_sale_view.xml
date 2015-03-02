@@ -38,8 +38,11 @@
 	                            <field name="lead_id" on_change="onchange_lead_id(lead_id, context)" widget="selection"/>
 								<field name="quotation_type" on_change="onchange_quotation_type(quotation_type, context)"/>
 								<field name="currency_id"/>
-								<field name="bank_account_id" widget="selection"/>
+								<!-- <field name="bank_account_id" widget="selection"/> -->
+								<field name="bank_account" widget="selection"/>
+								<field name="payment_term" widget="selection"/>
 								<field name="incoterm" widget="selection"/>
+								
 	                        </group>
 	                        <group>
 	                            <field name="partner_id" invisible='1'/>
@@ -52,7 +55,10 @@
 	                        </group>
                     	</group>
                     	<group col="2">
-                    			<field name="picking_details" />
+                    			<!-- <field name="picking_details" />  -->
+                    			<field name="packing_details"/>
+                    			<field name="transport_details"/>
+                    			<field name="insurance_details"/>
                     			<field name="description" />
                     	</group>
                     	<notebook>
@@ -101,7 +107,7 @@
 	                                    <field groups="base.group_no_one" name="origin"/>
 	                                </group>
 	                                <group name="sale_pay">
-	                                    <field name="payment_term" widget="selection"/>
+	                                    <!--  <field name="payment_term" widget="selection"/> -->
 	                                    <field name="fiscal_position" widget="selection"/>
 	                                    <field name="company_id" widget="selection" groups="base.group_multi_company"/>
 	                                </group>

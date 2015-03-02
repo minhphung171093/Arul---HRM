@@ -118,6 +118,7 @@ class sale_order(osv.osv):
         'reason':fields.text('Reason'),
         'quotaion_no':fields.char('Quotaion No', size = 40),
         'expected_date':fields.date('Expected delivery Date'),
+        #'dispatch_date':fields.date('Scheduled Dispatch Date'), #TPT
         'document_status':fields.selection([('draft','Draft'),
                                             ('waiting','Waiting for Approval'),
                                             ('completed','Completed(Ready to Process)'),
@@ -739,7 +740,7 @@ class sale_order_line(osv.osv):
         'application_id': fields.many2one('crm.application', 'Application'),
         'freight': fields.float('Freight'),
         'price_subtotal': fields.function(_amount_line, string='Subtotal', digits_compute= dp.get_precision('Account')),
-        'name_consignee_id': fields.many2one('res.partner', 'Consignee', required = True),
+        'name_consignee_id': fields.many2one('res.partner', 'Consignee', required = False), #TPT - modified required true to false
         'location': fields.char('Location', size = 1024),   
         'product_uom_qty': fields.float('Quantity', digits=(16,2), required=True, readonly=True, states={'draft': [('readonly', False)]}),
     }
@@ -961,7 +962,8 @@ class tpt_blanket_order(osv.osv):
         'sale_tax_id': fields.many2one('account.tax', 'Sale Tax', domain="[('type_tax_use','=','sale')]", required = True, states={'cancel': [('readonly', True)], 'done':[('readonly', True)], 'approve':[('readonly', True)]}), 
         'incoterm_id': fields.many2one('stock.incoterms', 'Incoterms', required = True, states={'cancel': [('readonly', True)], 'done':[('readonly', True)], 'approve':[('readonly', True)]}),
         'reason': fields.text('Reason', states={'cancel': [('readonly', True)], 'done':[('readonly', True)], 'approve':[('readonly', True)]}),
-        'exp_delivery_date': fields.date('Expected delivery Date', required = True, states={'cancel': [('readonly', True)], 'done':[('readonly', True)], 'approve':[('readonly', True)]}),
+        'exp_delivery_date': fields.date('Expected delivery Date', required = False, states={'cancel': [('readonly', True)], 'done':[('readonly', True)], 'approve':[('readonly', True)]}),
+        'dispatch_date':fields.date('Scheduled Dispatch Date'),
         'channel': fields.many2one('crm.case.channel', 'Distribution Channel', states={'cancel': [('readonly', True)], 'done':[('readonly', True)], 'approve':[('readonly', True)]}),
         'order_type':fields.selection([('domestic','Domestic/Indirect Export'),('export','Export')],'Order Type' ,required=True, states={'cancel': [('readonly', True)], 'done':[('readonly', True)], 'approve':[('readonly', True)]}),
         'document_type':fields.selection([('blankedorder','Blanket Order')], 'Document Type',required=True, states={'cancel': [('readonly', True)], 'done':[('readonly', True)], 'approve':[('readonly', True)]}),
@@ -1008,6 +1010,23 @@ class tpt_blanket_order(osv.osv):
                     'message': _('Expected delivery Date: Allow future date, not allow back date')
                 }
         return {'value':vals,'warning':warning}
+    def onchange_sche_dispatch_date(self, cr, uid, ids, sche_dispatch_date=False, context=None):
+        vals = {}
+        current = time.strftime('%Y-%m-%d')
+        warning = {}
+        if sche_dispatch_date:
+            if sche_dispatch_date < current:
+                vals = {'dispatch_date':current}
+                warning = {
+                    'title': _('Warning!'),
+                    'message': _('Scheduled Dispatch Date: Allow future date, not allow back date')
+                }
+        return {'value':vals,'warning':warning}
+    
+    #TPT- By BalamuruganPurushothaman on 01_03-2015 - To have Total(update) option
+    def button_dummy(self, cr, uid, ids, context=None):
+        return True
+    
 #     def _check_bo_date(self, cr, uid, ids, context=None):
         
     def bt_approve(self, cr, uid, ids, context=None):
@@ -1045,9 +1064,10 @@ class tpt_blanket_order(osv.osv):
         con_ids = []
         for con_line in blanket.customer_id.consignee_line:
             con_ids.append(con_line.id)
-        for blanket_line in blanket.blank_order_line:
-            if blanket_line.name_consignee_id.id not in con_ids:
-                raise osv.except_osv(_('Warning!'),_('This consignee "%s" does not belong to the selected customer "%s"!')%(blanket_line.name_consignee_id.name,blanket.customer_id.name))
+        #TPT - Commented By BalamuruganPurushothaman on 01/03/2015 - To manke COnsignee mandatory on     
+        #for blanket_line in blanket.blank_order_line:
+        #    if blanket_line.name_consignee_id.id not in con_ids:
+        #       raise osv.except_osv(_('Warning!'),_('This consignee "%s" does not belong to the selected customer "%s"!')%(blanket_line.name_consignee_id.name,blanket.customer_id.name))
         return new_id
     
     def write(self, cr, uid, ids, vals, context=None):
@@ -1068,9 +1088,10 @@ class tpt_blanket_order(osv.osv):
                 raise osv.except_osv(_('Warning!'),_('You can not write a blanket order without blanket order lines!'))
             for con_line in blanket.customer_id.consignee_line:
                 con_ids.append(con_line.id)
-            for blanket_line in blanket.blank_order_line:
-                if blanket_line.name_consignee_id.id not in con_ids:
-                    raise osv.except_osv(_('Warning!'),_('This consignee "%s" does not belong to the selected customer "%s"!')%(blanket_line.name_consignee_id.name,blanket.customer_id.name))
+            #TPT - Commented By BalamuruganPurushothaman on 01/03/2015 - To manke COnsignee mandatory on     
+            #for blanket_line in blanket.blank_order_line:
+            #    if blanket_line.name_consignee_id.id not in con_ids:
+            #        raise osv.except_osv(_('Warning!'),_('This consignee "%s" does not belong to the selected customer "%s"!')%(blanket_line.name_consignee_id.name,blanket.customer_id.name))
         return new_write
     
     def onchange_customer_id(self, cr, uid, ids,customer_id=False, context=None):
@@ -1130,7 +1151,7 @@ class tpt_blank_order_line(osv.osv):
         'price_unit': fields.float('Unit Price'),
         'sub_total': fields.function(subtotal_blanket_orderline, store = True, multi='deltas' ,string='SubTotal'),
         'freight': fields.float('Freight'),
-        'name_consignee_id': fields.many2one('res.partner', 'Consignee', required = True),
+        'name_consignee_id': fields.many2one('res.partner', 'Consignee', required = False),
         'location': fields.char('Location', size = 1024),
         'expected_date':fields.date('Expected delivery Date'),
                 }
