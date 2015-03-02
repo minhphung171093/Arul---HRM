@@ -3735,7 +3735,7 @@ class tpt_time_leave_evaluation(osv.osv):
                 leave_days = [row[0] for row in cr.fetchall()]
                 
                 sql = '''
-                    select EXTRACT(day FROM date) from arul_hr_holiday_special where EXTRACT(year FROM date) = %s and EXTRACT(month FROM date) = %s and is_local_holiday='f'
+                    select EXTRACT(day FROM date) from arul_hr_holiday_special where EXTRACT(year FROM date) = %s and EXTRACT(month FROM date) = %s
                 '''%(sub.year, sub.month)
                 cr.execute(sql)
                 holiday_days = [row[0] for row in cr.fetchall()]
