@@ -38,6 +38,7 @@ class tpt_purchase_indent(osv.osv):
         'supplier_id':fields.many2one('res.partner','Supplier',  states={'cancel': [('readonly', True)], 'done':[('readonly', True)]}),
         'reason':fields.text('Reason', states={'cancel': [('readonly', True)], 'done':[('readonly', True)]}),
         'header_text':fields.text('Header Text'), #TPT
+        'requisitioner':fields.char('Requisitioner'),
         'purchase_product_line':fields.one2many('tpt.purchase.product','purchase_indent_id','Materials', states={'cancel': [('readonly', True)], 'done':[('readonly', True)]}),
         'state':fields.selection([('draft', 'Draft'),('cancel', 'Closed'),('done', 'Approve')],'Status', readonly=True),
     }

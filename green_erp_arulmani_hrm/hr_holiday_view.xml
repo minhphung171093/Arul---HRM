@@ -888,7 +888,9 @@
             <field name="res_model">shift.change</field>
             <field name="view_type">form</field>
             <field name="view_mode">tree,form</field>
-            <field name="domain">[('state','=','draft')]</field>
+            <!-- <field name="domain">[('state','=','draft'), ('state','=','submitted'),('state','=','approved'),('state','=', 'rejected')]</field>
+             -->
+            <field name="domain">[('state','!=','draft')]</field> 
             <field name="view_id" ref="view_shift_change_tree_vew"/>
         </record>
         
@@ -903,7 +905,8 @@
             <field name="res_model">shift.change</field>
             <field name="view_type">form</field>
             <field name="view_mode">tree,form</field>
-            <field name="domain">[('state','=','submitted')]</field>
+            <!-- <field name="domain">[('state','=','submitted')]</field>  -->
+            <field name="domain">[('state','!=','draft')]</field>
             <field name="view_id" ref="view_shift_change_tree_vew"/>
         </record>
         

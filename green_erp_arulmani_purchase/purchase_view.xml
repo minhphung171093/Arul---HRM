@@ -13,12 +13,21 @@
 						<field name="department_id"  />
 						<field name="create_uid" options="{'create': false, 'create_edit': false}" />
 						<field name="date_expect"/>
-						<field name="header_text"/>
+						<field name="requisitioner"/>
 						<field name="state" widget="statusbar" statusbar_visible="draft,cancel,done" statusbar_colors='{"draft":"blue","cancel":"blue"}'/>
 				</tree>
 			</field>
 		</record>
-		
+		<record id="view_tpt_purchase_indent_search_vew" model="ir.ui.view">
+			<field name="name">tpt.purchase.indent.search</field>
+			<field name="model">tpt.purchase.indent</field>
+			<field name="arch" type="xml">
+				<search string="Purchase Indent">
+					<field name="department_id"/>	
+					<field name="requisitioner"/>				
+				</search>
+			</field>
+	</record>
 		<record id="view_tpt_purchase_indent_form" model="ir.ui.view">
             <field name="name">tpt.purchase.indent.form</field>
             <field name="model">tpt.purchase.indent</field>
@@ -39,6 +48,7 @@
 							<field name="department_id" required='1' options="{'create': false, 'create_edit': false}" />
 							<field name="create_uid" options="{'create': false, 'create_edit': false}"  />
 							<field name="date_expect"/>
+							<field name="requisitioner"/>
 							<field name="header_text"/>
 						</group>
 						<group >
