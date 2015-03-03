@@ -845,7 +845,7 @@
 					<field name="date_from"/>
 					<field name="date_to"/>
 					<field name="shift_id"/>
-					<field name="apply_weekly_off"/>
+					<!-- <field name="apply_weekly_off"/>  -->
 					<field name="state"/>
 				</tree>
 			</field>
@@ -875,9 +875,9 @@
 							<field name="shift_id" options="{'create': false, 'create_edit': false}"/>
 							<field name="num_of_month" invisible='1'/>
 						</group>
-						<group col='4' colspan='4'>
+						<!-- <group col='4' colspan='4'>
 							<field name="apply_weekly_off"/>
-						</group>
+						</group>  -->
 		         	</sheet>
 		         </form>
 			</field>
@@ -888,7 +888,9 @@
             <field name="res_model">shift.change</field>
             <field name="view_type">form</field>
             <field name="view_mode">tree,form</field>
-            <field name="domain">[('state','=','draft')]</field>
+            <!-- <field name="domain">[('state','=','draft'), ('state','=','submitted'),('state','=','approved'),('state','=', 'rejected')]</field>
+             -->
+            <field name="domain">[('state','!=','draft')]</field> 
             <field name="view_id" ref="view_shift_change_tree_vew"/>
         </record>
         
@@ -903,7 +905,8 @@
             <field name="res_model">shift.change</field>
             <field name="view_type">form</field>
             <field name="view_mode">tree,form</field>
-            <field name="domain">[('state','=','submitted')]</field>
+            <!-- <field name="domain">[('state','=','submitted')]</field>  -->
+            <field name="domain">[('state','!=','draft')]</field>
             <field name="view_id" ref="view_shift_change_tree_vew"/>
         </record>
         

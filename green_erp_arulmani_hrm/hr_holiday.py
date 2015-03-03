@@ -3735,7 +3735,7 @@ class tpt_time_leave_evaluation(osv.osv):
                 leave_days = [row[0] for row in cr.fetchall()]
                 
                 sql = '''
-                    select EXTRACT(day FROM date) from arul_hr_holiday_special where EXTRACT(year FROM date) = %s and EXTRACT(month FROM date) = %s and is_local_holiday='f'
+                    select EXTRACT(day FROM date) from arul_hr_holiday_special where EXTRACT(year FROM date) = %s and EXTRACT(month FROM date) = %s
                 '''%(sub.year, sub.month)
                 cr.execute(sql)
                 holiday_days = [row[0] for row in cr.fetchall()]
@@ -4332,8 +4332,8 @@ class shift_change(osv.osv):
             date_now = time.strftime('%Y-%m-%d')
             monthly_shift_ids = [row[0] for row in cr.fetchall()]
             for monthly_shift in monthly_shift_obj.browse(cr, uid, monthly_shift_ids):
-                if line.apply_weekly_off:
-                    for num in range(line.date_from.name,line.date_to.name+1):
+                #if line.apply_weekly_off: #TPT: IF-ELSE COMMENTED By BalamuruganPurushothaman on 02_03_2015 - TO DO NOT TREAT SUNDAYS AS WEEK OFF FOREVER, 
+                for num in range(line.date_from.name,line.date_to.name+1):
                         if num==1:
                             date = datetime.datetime(int(line.year),int(line.month),1)
                             ### An trong vong 2 thang sau do mo ra lai 31-01-2015
@@ -4490,7 +4490,7 @@ class shift_change(osv.osv):
 #                             if date_now >= datetime.datetime.strftime(date, '%Y-%m-%d'):
 #                                 raise osv.except_osv(_('Warning!'),_('Can not change Work Monthly Schedule for past day!'))
                             monthly_shift_obj.write(cr, uid, [monthly_shift.id], {'day_31':line.shift_id.id})
-                else:
+                '''else:
                     for num in range(line.date_from.name,line.date_to.name+1):
                         if num==1 and monthly_shift.name_of_day_1 != 'Sunday':
                             date = datetime.datetime(int(line.year),int(line.month),1)
@@ -4646,7 +4646,7 @@ class shift_change(osv.osv):
                             date = datetime.datetime(int(line.year),int(line.month),31)
 #                             if date_now >= datetime.datetime.strftime(date, '%Y-%m-%d'):
 #                                 raise osv.except_osv(_('Warning!'),_('Can not change Work Monthly Schedule for past day!'))
-                            monthly_shift_obj.write(cr, uid, [monthly_shift.id], {'day_31':line.shift_id.id})
+                            monthly_shift_obj.write(cr, uid, [monthly_shift.id], {'day_31':line.shift_id.id})'''
         return self.write(cr, uid, ids, {'state': 'approved'})
     
     def reject(self, cr, uid, ids, context=None):

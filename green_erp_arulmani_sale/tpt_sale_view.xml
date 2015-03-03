@@ -285,7 +285,7 @@
 	            	</header>
 	            	<sheet>
 		                <group> 
-							<field name="name" on_change="onchange_product(name)" options="{'create': false, 'create_edit': false}" domain="['|',('name','in',['TITANIUM DIOXIDE-ANATASE','FERROUS SULPHATE']),('default_code','in',['FSH','TiO2'])]"/>
+							<field name="name" on_change="onchange_product(name)" options="{'create': false, 'create_edit': false}" domain="['|',('name','in',['TITANIUM DIOXIDE-ANATASE','FERROUS SULPHATE','M0501010001','M0501010002']),('default_code','in',['FSH','TiO2','M0501010001','M0501010002'])]"/>
 							<field name="is_tio2" invisible='1'/>
 						</group>
 						<group col='4' colspan='2' attrs="{'invisible':[('is_tio2','=',False)]}">
@@ -689,9 +689,9 @@
             <field name="arch" type="xml">
                 <form string="Batch Allotment" version="7.0">
                    <header>
-                     <button string="Approved" name="confirm" states="to_approve,refuse" type="object" class="oe_highlight"/>
-                     <button string="Refused" name="refuse" states="to_approve,confirm" type="object" class="oe_highlight"/>
-                     <button string="Cancelled" name="cancelled" states="to_approve,confirm,refuse" type="object" class="oe_highlight"/>
+                     <button string="Approve" name="confirm" states="to_approve,refuse" type="object" class="oe_highlight"/>
+                     <button string="Refuse" name="refuse" states="to_approve,confirm" type="object" class="oe_highlight"/>
+                     <button string="Cancel" name="cancelled" states="to_approve,confirm,refuse" type="object" class="oe_highlight"/>
                      <field name="state" widget="statusbar" statusbar_colors='{"confirm":"blue","to_approve":"blue","refuse":"red"}'/>
                     </header>
                    <sheet>

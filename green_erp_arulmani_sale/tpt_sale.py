@@ -121,6 +121,7 @@ class sale_order(osv.osv):
         #'dispatch_date':fields.date('Scheduled Dispatch Date'), #TPT
         'document_status':fields.selection([('draft','Draft'),
                                             ('waiting','Waiting for Approval'),
+                                            ('batch_allotted','Batch Allotted'),
                                             ('completed','Completed(Ready to Process)'),
                                             ('partially','Partially Delivered'),
                                             ('close','Closed(Delivered)'),
@@ -1627,7 +1628,17 @@ class tpt_batch_allotment(osv.osv):
                             raise osv.except_osv(_('Warning!'),_('The product quantity in batch allotment must be as same as the product quantity in batch request!'))
         return new_write
     def confirm(self, cr, uid, ids, context=None):
-        return self.write(cr, uid, ids, {'state': 'confirm'})
+        new_write =  self.write(cr, uid, ids, {'state': 'confirm'})
+        #TPT - By BalamuruganPurushothaman on 03/03/2015 - TO CHANGE 'SO' STATUS TO 'BATCH ALLOTTED' 
+        sale_obj = self.pool.get('sale.order')
+        batch_allot_obj = self.browse(cr,uid,ids[0])       
+        sale_id = batch_allot_obj.sale_order_id.id
+        sql = '''
+                update sale_order set document_status='batch_allotted' where id=%s
+            '''%(sale_id)
+        cr.execute(sql)
+            
+        return new_write
 #         sale_obj = self.pool.get('sale.order')
 #         for batch_allotment in self.browse(cr,uid,ids,context=context):
 #             
