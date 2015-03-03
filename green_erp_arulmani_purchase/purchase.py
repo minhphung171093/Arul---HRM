@@ -2422,6 +2422,8 @@ class res_partner(osv.osv):
        return self.name_get(cr, user, ids, context=context)
    
     def name_get(self, cr, uid, ids, context=None):
+        if context is None:
+            context = {}
         """Overrides orm name_get method"""
         res = []
         if isinstance(ids, (int, long)):
