@@ -209,8 +209,10 @@
 					
 					
 					<group attrs="{'invisible': [('invoice_type', '=', 'export') ] }" colspan="2" >
-					<field name="lr_no" />
+					
+					<field name="booked_to" />
 					<field name="rem_date" />
+					<field name="lr_no" />					
 					<field name="material_info" />
 					<field name="other_info" />
 					</group>
