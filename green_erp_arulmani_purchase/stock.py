@@ -95,6 +95,14 @@ class stock_picking(osv.osv):
         if picking.type=='in':
             invoice_vals.update({
                                  'grn_no':picking.id,
+                                 'purchase_id':picking.purchase_id and picking.purchase_id.id or False,
+#                                  'amount_untaxed': picking.purchase_id and picking.purchase_id.amount_untaxed or False,
+#                                  'p_f_charge': picking.purchase_id and picking.purchase_id.p_f_charge or False,
+#                                  'excise_duty': picking.purchase_id and picking.purchase_id.excise_duty or False,
+#                                  'fright': picking.purchase_id and picking.purchase_id.fright or False,
+#                                  'amount_tax': picking.purchase_id and picking.purchase_id.amount_tax or False,
+#                                  'amount_total': picking.purchase_id and picking.purchase_id.amount_total or False,
+                                 
 #                                 'sale_tax_id':picking.purchase_id and picking.purchase_id.purchase_tax_id and picking.purchase_id.purchase_tax_id.id or False,
                                  })
         return invoice_vals
@@ -138,6 +146,7 @@ class stock_picking(osv.osv):
             uos_id = move_line.product_uom.id
 #         tax_id = picking.purchase_id and picking.purchase_id.purchase_tax_id and picking.purchase_id.purchase_tax_id.id or False
 #         if tax_id:
+                
         if picking.type=='in':
             invoice_line_vals.update({
                 'name': name,
@@ -149,12 +158,23 @@ class stock_picking(osv.osv):
                 'price_unit': self._get_price_unit_invoice(cr, uid, move_line, invoice_vals['type']),
                 'discount': self._get_discount_invoice(cr, uid, move_line),
                 'quantity': move_line.product_uos_qty or move_line.product_qty,
+                
+                'disc': move_line.purchase_line_id and move_line.purchase_line_id.discount or False,
+                'p_f': move_line.purchase_line_id and move_line.purchase_line_id.p_f or False,
+                'p_f_type': move_line.purchase_line_id and move_line.purchase_line_id.p_f_type or False,
+                'ed': move_line.purchase_line_id and move_line.purchase_line_id.ed or False,
+                'ed_type': move_line.purchase_line_id and move_line.purchase_line_id.ed_type or False,
+                'invoice_line_tax_id': move_line.purchase_line_id and move_line.purchase_line_id.taxes_id or False,
+                'fright': move_line.purchase_line_id and move_line.purchase_line_id.fright or False,
+                'fright_type': move_line.purchase_line_id and move_line.purchase_line_id.fright_type or False,
+                'line_net': move_line.purchase_line_id and move_line.purchase_line_id.line_net or False,
+                
     #                 'invoice_line_tax_id': [(6, 0, [tax_id])],
                 'invoice_line_tax_id': [(6, 0, self._get_taxes_invoice(cr, uid, move_line, invoice_vals['type']))],
                 'account_analytic_id': self._get_account_analytic_invoice(cr, uid, picking, move_line),
     #                 'product_type':move_line.product_type or False,
     #                 'application_id':move_line.application_id or False,
-    #                 'freight':move_line.freight or False,
+        #                 'freight':move_line.freight or False,
             })
 #         else:
 #             invoice_line_vals.update({
@@ -259,8 +279,155 @@ stock_move()
 class account_invoice(osv.osv):
     _inherit = "account.invoice"
     
+    def amount_all_supplier_invoice_line(self, cr, uid, ids, field_name, args, context=None):
+        res = {}
+        for line in self.browse(cr,uid,ids,context=context):
+            res[line.id] = {
+                'amount_untaxed': 0.0,
+                'p_f_charge': 0.0,
+                'excise_duty': 0.0,
+                'amount_tax': 0.0,
+                'fright': 0.0,
+                'amount_total': 0.0
+            }
+            amount_untaxed = 0.0
+            p_f_charge=0.0
+            excise_duty=0.0
+            amount_total_tax=0.0
+            fright=0.0
+            qty = 0.0
+            for po in line.invoice_line:
+                tax = 0
+                qty += po.quantity
+                basic = (po.quantity * po.price_unit) - ( (po.quantity * po.price_unit)*po.disc/100)
+                amount_untaxed += basic
+                if po.p_f_type == 1 :
+                    p_f = basic * po.p_f/100
+                else:
+                    p_f = po.p_f
+                p_f_charge += p_f
+                if po.ed_type == 1 :
+                    ed = (basic + p_f) * po.ed/100
+                else:
+                    ed = po.ed
+                excise_duty += ed
+                tax_amounts = [r.amount for r in po.invoice_line_tax_id]
+                for tax_amount in tax_amounts:
+                    tax += tax_amount/100
+                amount_total_tax += basic*tax
+                total_tax = (basic + p_f + ed)*(tax)
+                if po.fright_type == 1 :
+                    fright += (basic + p_f + ed + amount_total_tax) * po.fright/100
+                else:
+                    fright += po.fright
+            res[line.id]['amount_untaxed'] = amount_untaxed
+            res[line.id]['p_f_charge'] = p_f_charge
+            res[line.id]['excise_duty'] = excise_duty
+            res[line.id]['amount_tax'] = amount_total_tax
+            res[line.id]['fright'] = fright
+            res[line.id]['amount_total'] = amount_untaxed+p_f_charge+excise_duty+amount_total_tax+fright
+        return res
+    
+    def _get_invoice_line(self, cr, uid, ids, context=None):
+        result = {}
+        for line in self.pool.get('account.invoice.line').browse(cr, uid, ids, context=context):
+            result[line.invoice_id.id] = True
+        return result.keys()
+     
     _columns = {
         'grn_no': fields.many2one('stock.picking.in','GRN No',readonly = True), 
-                }
+        'create_uid':fields.many2one('res.users','Created By', readonly=True, states={'draft':[('readonly',False)]}),
+        'created_on': fields.date('Created On', readonly=True, states={'draft':[('readonly',False)]}),
+        'purchase_id': fields.many2one('purchase.order', 'Purchase Order', readonly = True),
+        'vendor_ref': fields.char('Vendor Reference', size = 1024, readonly=True, states={'draft':[('readonly',False)]}),
+        
+        'amount_untaxed': fields.function(amount_all_supplier_invoice_line, multi='sums', string='Untaxed Amount',
+            store={
+                'account.invoice': (lambda self, cr, uid, ids, c={}: ids, ['invoice_line'], 10),   
+                'account.invoice.line': (_get_invoice_line, ['quantity', 'uos_id', 'price_unit','discount','p_f','p_f_type',   
+                                                                'ed', 'ed_type','invoice_line_tax_id','fright','fright_type'], 10)}),
+                
+        'p_f_charge': fields.function(amount_all_supplier_invoice_line, multi='sums',string='P & F charges',
+            store={
+                'account.invoice': (lambda self, cr, uid, ids, c={}: ids, ['invoice_line'], 10),   
+                'account.invoice.line': (_get_invoice_line, ['quantity', 'uos_id', 'price_unit','discount','p_f','p_f_type',   
+                                                                'ed', 'ed_type','invoice_line_tax_id','fright','fright_type'], 10)}),
+        'excise_duty': fields.function(amount_all_supplier_invoice_line, multi='sums',string='Excise Duty',
+            store={
+               'account.invoice': (lambda self, cr, uid, ids, c={}: ids, ['invoice_line'], 10),   
+               'account.invoice.line': (_get_invoice_line, ['quantity', 'uos_id', 'price_unit','discount','p_f','p_f_type',   
+                                                               'ed', 'ed_type','invoice_line_tax_id','fright','fright_type'], 10)}),
+        'fright': fields.function(amount_all_supplier_invoice_line, multi='sums',string='Fright',
+              store={
+                'account.invoice': (lambda self, cr, uid, ids, c={}: ids, ['invoice_line'], 10),   
+                'account.invoice.line': (_get_invoice_line, ['quantity', 'uos_id', 'price_unit','discount','p_f','p_f_type',   
+                                                                'ed', 'ed_type','invoice_line_tax_id','fright','fright_type'], 10)}),
+                 
+        'amount_tax': fields.function(amount_all_supplier_invoice_line, multi='sums', string='Taxes',
+            store={
+                'account.invoice': (lambda self, cr, uid, ids, c={}: ids, ['invoice_line'], 10),   
+                'account.invoice.line': (_get_invoice_line, ['quantity', 'uos_id', 'price_unit','discount','p_f','p_f_type',   
+                                                                'ed', 'ed_type','invoice_line_tax_id','fright','fright_type'], 10)}),
+        'amount_total': fields.function(amount_all_supplier_invoice_line, multi='sums', string='Total',
+             store={
+                'account.invoice': (lambda self, cr, uid, ids, c={}: ids, ['invoice_line'], 10),   
+                'account.invoice.line': (_get_invoice_line, ['quantity', 'uos_id', 'price_unit','discount','p_f','p_f_type',   
+                                                                'ed', 'ed_type','invoice_line_tax_id','fright','fright_type'], 10)}),
+        }
+        
+    
+    def create(self, cr, uid, vals, context=None):
+        if vals.get('type','')=='in_invoice':
+            vals['name'] = self.pool.get('ir.sequence').get(cr, uid, 'tpt.supplier.invoice.sequence') or '/'
+        new_id = super(account_invoice, self).create(cr, uid, vals, context)
+        return new_id
     
 account_invoice()
+
+
+class account_invoice_line(osv.osv):
+    _inherit = "account.invoice.line"
+    
+    def line_net_line_supplier_invo(self, cr, uid, ids, field_name, args, context=None):
+        res = {}
+        amount_basic = 0.0
+        amount_p_f=0.0
+        amount_ed=0.0
+        amount_fright=0.0
+           
+        for line in self.browse(cr,uid,ids,context=context):
+            res[line.id] = {
+                    'line_net': 0.0,
+                }  
+            amount_total_tax=0.0
+            amount_basic = (line.quantity * line.price_unit)-((line.quantity * line.price_unit)*line.disc)
+            if line.p_f_type == 1:
+               amount_p_f = amount_basic * (line.p_f/100)
+            else:
+                amount_p_f = line.p_f
+            if line.ed_type == 1:
+               amount_ed = (amount_basic + amount_p_f) * (line.ed/100)
+            else:
+                amount_ed = line.ed
+            if line.fright_type == 1:
+               amount_fright = (amount_basic + amount_p_f + amount_ed) * (line.fright/100)
+            else:
+                amount_fright = line.fright
+            tax_amounts = [r.amount for r in line.invoice_line_tax_id]
+            for tax in tax_amounts:
+                amount_total_tax += tax/100
+            res[line.id]['line_net'] = amount_total_tax+amount_fright+amount_ed+amount_p_f+amount_basic
+        return res
+     
+    _columns = {
+        'gl_code_id': fields.many2one('account.account', 'GL Code'),
+        'disc': fields.float('DISC'),
+        'p_f': fields.float('P&F'),
+        'p_f_type':fields.selection([('1','%'),('2','Rs')],('P&F Type')),
+        'ed': fields.float('ED'),
+        'ed_type':fields.selection([('1','%'),('2','Rs')],('ED Type')),
+        'fright': fields.float('Fright'),
+        'fright_type':fields.selection([('1','%'),('2','Rs')],('Fright Type')),
+        'line_net': fields.function(line_net_line_supplier_invo, store = True, multi='deltas' ,string='Line Net'),
+    }
+account_invoice_line()

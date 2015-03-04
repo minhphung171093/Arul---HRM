@@ -126,7 +126,7 @@
             		<field name="grn_no" options="{'create': false, 'create_edit': false}"/>
             	</xpath>
             	<xpath expr="//field[@name='account_id']"  position="after">
-            		<field name="sale_tax_id" domain="[('type_tax_use','=','purchase')]" options="{'create': false, 'create_edit': false}"/>
+            		<field name="sale_tax_id" invisible = '1' domain="[('type_tax_use','=','purchase')]" options="{'create': false, 'create_edit': false}"/>
             	</xpath>
             	<xpath expr="//field[@name='fiscal_position']" position="attributes">
 					<attribute name="invisible">1</attribute>
@@ -158,7 +158,7 @@
                             <field name="sequence" widget="handle" invisible="1"/>
                             <field name="product_id"
                                 on_change="product_id_change(product_id, uos_id, quantity, name, parent.type, parent.partner_id, parent.fiscal_position, price_unit, parent.currency_id, context, parent.company_id)"/>
-                            <field name="name" invisible="1"/>
+                            <field name="name"/>
                             <field name="company_id" invisible="1"/>
                             <field name="account_id" invisible="1" groups="account.group_account_user"
                                 domain="[('company_id', '=', parent.company_id), ('journal_id', '=', parent.journal_id), ('type', '=', 'other')]"
@@ -169,8 +169,8 @@
                             <field name="uos_id" groups="product.group_uom"
                                 on_change="uos_id_change(product_id, uos_id, quantity, name, parent.type, parent.partner_id, parent.fiscal_position, price_unit, parent.currency_id, context, parent.company_id)"/>
                             <field name="price_unit"/>
-                            <field name="discount" invisible="1" groups="sale.group_discount_per_so_line"/>
-                            <field name="invoice_line_tax_id" invisible="1" widget="many2many_tags" context="{'type':parent.type}"
+                            <field name="discount" invisible = '1' groups="sale.group_discount_per_so_line"/>
+                            <field name="invoice_line_tax_id" widget="many2many_tags" context="{'type':parent.type}"
                                 domain="[('parent_id','=',False),('company_id', '=', parent.company_id)]"/>
                             <field name="price_subtotal"/>
                         </tree>
