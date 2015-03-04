@@ -213,6 +213,22 @@
             parent="menu_tpt_accounting" sequence="20"/>
 
 				
+		<record id="tpt_account_product_product_inherit_form" model="ir.ui.view">
+            <field name="name">tpt.account.product.product.inherit.form</field>
+            <field name="model">product.product</field>
+            <field name="inherit_id" ref="account.product_normal_form_view"/>
+            <field name="arch" type="xml">		
+				<xpath expr="//page[@string='Accounting']/group[@name='properties']/group/field[@name='taxes_id']" position="after">
+					<field name="purchase_acc_id" options="{'create': false, 'create_edit': false}"/>
+					<field name="sale_acc_id" options="{'create': false, 'create_edit': false}"/>
+				</xpath>
+				<xpath expr="//page[@string='Accounting']/group[@name='properties']/group/field[@name='supplier_taxes_id']" position="after">
+					<field name="product_asset_acc_id" options="{'create': false, 'create_edit': false}"/>
+					<field name="product_cose_acc_id" options="{'create': false, 'create_edit': false}"/>
+				</xpath>	
+			</field>
+		</record>
+				
 		<record id="tpt_account_supplier_invoice_stock_inherit_form" model="ir.ui.view">
             <field name="name">tpt.account.supplier.invoice.stock.inherit.form</field>
             <field name="model">account.invoice</field>
