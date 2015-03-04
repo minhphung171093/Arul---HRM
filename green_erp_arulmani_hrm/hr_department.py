@@ -12,8 +12,8 @@ class hr_department(osv.osv):
     _inherit = 'hr.department'
     _columns = {
         'code': fields.char('Department Code', size=1024, required = True),
-        'primary_auditor_id': fields.many2one('hr.employee', 'Primary Time Auditor',ondelete='restrict'),
-        'secondary_auditor_id':  fields.many2one('hr.employee', 'Sec. Time Auditor',ondelete='restrict'),
+        'primary_auditor_id': fields.many2one('res.users', 'Primary Time Auditor',ondelete='restrict'),
+        'secondary_auditor_id':  fields.many2one('res.users', 'Sec. Time Auditor',ondelete='restrict'),
         'section_ids': fields.one2many('arul.hr.section', 'department_id','Sections'),
         'designation_line': fields.one2many('arul.hr.designation', 'department_id', 'Designation Line'),
         'payroll_sub_area_id': fields.many2one('arul.hr.payroll.sub.area', 'Area',ondelete='restrict'),
