@@ -26,7 +26,7 @@
             <field name="code">tpt.sale.order.import</field>
         </record>
         
-        <record id="sequence_tpt_sale_order_import_item" model="ir.sequence">
+        <!--<record id="sequence_tpt_sale_order_import_item" model="ir.sequence">
             <field name="name">Sale Order Import</field>
             <field name="code">tpt.sale.order.import</field>
             <field name="prefix">%(year)s</field>
@@ -36,9 +36,16 @@
             <field name="auto_reset">True</field>
             <field name="reset_period">year</field>
             <field name="reset_init_number">000001</field>	
+        </record>-->
+        
+        <record id="sequence_tpt_sale_order_import_item" model="ir.sequence">
+            <field name="name">Sale Order Import</field>
+            <field name="code">tpt.sale.order.import</field>
+            <field name="prefix">VVTi/SO/</field>
+            <field name="padding">6</field>
+            <field name="number_next_actual">100001</field>
+            <field name="implementation">no_gap</field>
         </record>
-        
-        
         
         <!--    Batch Request     -->
         

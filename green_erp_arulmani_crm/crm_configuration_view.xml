@@ -113,9 +113,17 @@
                     </xpath>
                     
                     <xpath expr="//field[@name='email']" position="after">
-                        <field name="pan_tin" required="1"/>
-                        <field name="sin"/>
+                        <!-- <field name="pan_tin" required="1"/>  -->
+                        <field name="range"/>
+                        <field name="division"/>
+                        <field name="commissionerate"/>
+                        <field name="ce_rc"/>
+                        <field name="ecc"/>                                              
+                        <field name="pan" required="1"/>
                         <field name="cst" required="1"/> <!-- Enabled By TPT -->
+                        <field name="tin" required="1"/>
+                        <field name="sin"/>
+                        
                         <field name="language_id" widget="selection" attrs="{'invisible': [('customer', '=',False)]}" />
                         <field name="customer_account_group_id" widget="selection" attrs="{'invisible': [('customer', '=',False)]}" />
                         <!--<field name="sort_key_id" widget="selection" attrs="{'invisible': [('customer', '=',False)]}" />-->

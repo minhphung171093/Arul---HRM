@@ -146,12 +146,30 @@ tpt_batch_split_line()
 
 class tpt_fsh_batch_split(osv.osv):
     _name = 'tpt.fsh.batch.split'
+    
+#     def _get_available(self, cr, uid, ids, name, arg, context=None):
+#         res = {}
+#         for line in self.browse(cr, uid, ids):
+#             available = 0.0
+#             if line.mrp_id.product_id.default_code in ['FERROUS SULPHATE','FSH','M0501010002'] or line.mrp_id.product_id.name in ['FERROUS SULPHATE','FSH','M0501010002']:
+#                 sql = '''
+#                         select id from stock_production_lot where name='temp_fsh'
+#                     '''
+#                 cr.execute(sql)
+#                 prodlot_ids = cr.fetchone()
+#                 if prodlot_ids and self.pool.get('stock.production.lot').browse(cr, uid, prodlot_ids[0]).stock_available<line.mrp_id.product_qty:
+#                     available = self.pool.get('stock.production.lot').browse(cr, uid, prodlot_ids[0]).stock_available
+#                 else:
+#                     available = line.mrp_id.product_qty
+#             res[line.id] = available
+#         return res
+    
     _columns = {
         'product_id': fields.many2one('product.product', 'Product', required=True),
         'name': fields.date('Created Date'),
         'mrp_id': fields.many2one('mrp.production', 'Production Decl. No', required=True),
         'location_id': fields.many2one('stock.location', 'Warehouse Location', required=True),
-        'available': fields.related('mrp_id', 'product_qty',string='Available Stock',store=True,readonly=True),
+        'available': fields.float('Available Stock', readonly=True),
         'batch_split_line': fields.one2many('tpt.fsh.batch.split.line', 'fsh_id', 'Batch Split Line'),
         'state':fields.selection([('draft', 'Draft'),('confirm', 'Confirm')],'Status', readonly=True),
     }
@@ -185,28 +203,66 @@ class tpt_fsh_batch_split(osv.osv):
     def onchange_mrp_id(self, cr, uid, ids, mrp_id, context=None):
         if mrp_id:
             mrp = self.pool.get('mrp.production').browse(cr, uid, mrp_id, context=context)
-            v = {'available': mrp.product_qty,'location_id': mrp.location_dest_id.id}
+            available = 0.0
+            if mrp.product_id.default_code in ['FERROUS SULPHATE','FSH','M0501010002'] or mrp.product_id.name in ['FERROUS SULPHATE','FSH','M0501010002']:
+                sql = '''
+                        select id from stock_production_lot where name='temp_fsh'
+                    '''
+                cr.execute(sql)
+                prodlot_ids = cr.fetchone()
+                if prodlot_ids and self.pool.get('stock.production.lot').browse(cr, uid, prodlot_ids[0]).stock_available<mrp.product_qty:
+                    available = self.pool.get('stock.production.lot').browse(cr, uid, prodlot_ids[0]).stock_available
+                else:
+                    available = mrp.product_qty
+            v = {'available': available,'location_id': mrp.location_dest_id.id}
             return {'value': v}
         return {}
     
     def create(self, cr, uid, vals, context=None):
+        if 'mrp_id' in vals:
+            mrp = self.pool.get('mrp.production').browse(cr, uid, vals['mrp_id'], context=context)
+            available = 0.0
+            if mrp.product_id.default_code in ['FERROUS SULPHATE','FSH','M0501010002'] or mrp.product_id.name in ['FERROUS SULPHATE','FSH','M0501010002']:
+                sql = '''
+                        select id from stock_production_lot where name='temp_fsh'
+                    '''
+                cr.execute(sql)
+                prodlot_ids = cr.fetchone()
+                if prodlot_ids and self.pool.get('stock.production.lot').browse(cr, uid, prodlot_ids[0]).stock_available<mrp.product_qty:
+                    available = self.pool.get('stock.production.lot').browse(cr, uid, prodlot_ids[0]).stock_available
+                else:
+                    available = mrp.product_qty
+            vals.update({'available':available})
         new_id = super(tpt_fsh_batch_split, self).create(cr, uid, vals, context=context)
-        new = self.browse(cr, uid, new_id)
-        sum = 0
-        for line in new.batch_split_line:
-            sum+=line.qty
-        if sum!=new.available:
-            raise osv.except_osv(_('Warning!'),_('The sum of Qtys entered in the Batch split should match with the available stock quantity entered at the header'))
+#         new = self.browse(cr, uid, new_id)
+#         sum = 0
+#         for line in new.batch_split_line:
+#             sum+=line.qty
+#         if sum!=new.available:
+#             raise osv.except_osv(_('Warning!'),_('The sum of Qtys entered in the Batch split should match with the available stock quantity entered at the header'))
         return new_id
     
     def write(self, cr, uid, ids, vals, context=None):
+        for mrp in self.browse(cr, uid, ids):
+            available = 0.0
+            if mrp.product_id.default_code in ['FERROUS SULPHATE','FSH','M0501010002'] or mrp.product_id.name in ['FERROUS SULPHATE','FSH','M0501010002']:
+                sql = '''
+                        select id from stock_production_lot where name='temp_fsh'
+                    '''
+                cr.execute(sql)
+                prodlot_ids = cr.fetchone()
+                if prodlot_ids and self.pool.get('stock.production.lot').browse(cr, uid, prodlot_ids[0]).stock_available<mrp.product_qty:
+                    available = self.pool.get('stock.production.lot').browse(cr, uid, prodlot_ids[0]).stock_available
+                else:
+                    available = mrp.product_qty
+            vals.update({'available':available})
         new_write = super(tpt_fsh_batch_split, self).write(cr, uid,ids, vals, context)
-        for new in self.browse(cr, uid, ids):
-            sum = 0
-            for line in new.batch_split_line:
-                sum+=line.qty
-            if sum!=new.available:
-                raise osv.except_osv(_('Warning!'),_('The sum of Qtys entered in the Batch split should match with the available stock quantity entered at the header'))
+#         for new in self.browse(cr, uid, ids):
+#             sum = 0
+#             for line in new.batch_split_line:
+#                 sum+=line.qty
+#             if sum!=new.available:
+#                 raise osv.except_osv(_('Warning!'),_('The sum of Qtys entered in the Batch split should match with the available stock quantity entered at the header'))
         return new_write
     
 tpt_fsh_batch_split()
@@ -553,6 +609,44 @@ class mrp_production(osv.osv):
         production.write({'move_created_ids': [(6, 0, [move_id])]}, context=context)
         return move_id
     
+    def _make_production_consume_line(self, cr, uid, production_line, parent_move_id, source_location_id=False, context=None):
+        stock_move = self.pool.get('stock.move')
+        production = production_line.production_id
+        # Internal shipment is created for Stockable and Consumer Products
+        if production_line.product_id.type not in ('product', 'consu'):
+            return False
+        destination_location_id = production.product_id.property_stock_production.id
+        if not source_location_id:
+            source_location_id = production.location_src_id.id
+            
+        prodlot_ids = []
+        if production_line.product_id.default_code in ['FERROUS SULPHATE','FSH','M0501010002'] or production_line.product_id.name in ['FERROUS SULPHATE','FSH','M0501010002']:
+            sql = '''
+                    select id from stock_production_lot where name='temp_fsh'
+                '''
+            cr.execute(sql)
+            prodlot_ids = cr.fetchone()
+            if prodlot_ids and self.pool.get('stock.production.lot').browse(cr, uid, prodlot_ids[0]).stock_available<production_line.product_qty:
+                raise osv.except_osv(_('Warning!'),'Available stock is not enough for the selected raw material!')
+            
+        move_id = stock_move.create(cr, uid, {
+            'name': production.name,
+            'date': production.date_planned,
+            'product_id': production_line.product_id.id,
+            'product_qty': production_line.product_qty,
+            'product_uom': production_line.product_uom.id,
+            'product_uos_qty': production_line.product_uos and production_line.product_uos_qty or False,
+            'product_uos': production_line.product_uos and production_line.product_uos.id or False,
+            'location_id': source_location_id,
+            'location_dest_id': destination_location_id,
+            'move_dest_id': parent_move_id,
+            'state': 'waiting',
+            'company_id': production.company_id.id,
+            'prodlot_id': prodlot_ids and prodlot_ids[0] or False,
+        })
+        production.write({'move_lines': [(4, move_id)]}, context=context)
+        return move_id
+    
     def search(self, cr, uid, args, offset=0, limit=None, order=None, context=None, count=False):
         if context is None:
             context = {}
@@ -600,7 +694,7 @@ class stock_production_lot(osv.osv):
             if not prodlot_ids:
                 self.create(cr, 1, {'name': 'temp_tio2', 'phy_batch_no': 'temp_tio2', 'product_id': product_ids[0]})
         
-        product_ids = self.pool.get('product.product').search(cr, 1, ['|',('name','in',['FERROUS SULPHATE','FSH','M0501010001']),('default_code','in',['FERROUS SULPHATE','FSH','M0501010001'])])
+        product_ids = self.pool.get('product.product').search(cr, 1, ['|',('name','in',['FERROUS SULPHATE','FSH','M0501010002']),('default_code','in',['FERROUS SULPHATE','FSH','M0501010002'])])
         if product_ids:
             for lot_name in ['Argi','Wet','Drier','temp_fsh']:
                 sql = '''
@@ -616,7 +710,7 @@ class stock_production_lot(osv.osv):
             context = {}
         if context.get('search_batch_no_tio2'):
             sql = '''
-                select id from stock_production_lot where product_id in (select id from product_product where name_template in ('TITANIUM DIOXIDE-ANATASE','TiO2','M0501010001) or default_code in ('TITANIUM DIOXIDE-ANATASE','TiO2','M0501010001))
+                select id from stock_production_lot where product_id in (select id from product_product where name_template in ('TITANIUM DIOXIDE-ANATASE','TiO2','M0501010001') or default_code in ('TITANIUM DIOXIDE-ANATASE','TiO2','M0501010001'))
             '''
             cr.execute(sql)
             mrp_ids = [row[0] for row in cr.fetchall()]

@@ -468,8 +468,9 @@ class product_product(osv.osv):
    
     def _check_product(self, cr, uid, ids, context=None):
         for product in self.browse(cr, uid, ids, context=context):
-            product_ids = self.search(cr, uid, [('id','!=',product.id),('name','=',product.name),('default_code', '=',product.default_code)])
-            if product_ids:
+            product_name_ids = self.search(cr, uid, [('id','!=',product.id),('name','=',product.name)])
+            product_code_ids = self.search(cr, uid, [('id','!=',product.id),('default_code', '=',product.default_code)])
+            if product_name_ids or product_code_ids:
                 raise osv.except_osv(_('Warning!'),_('  Product Code and Name should be Unique. !'))
                 return False
             return True
@@ -2423,6 +2424,8 @@ class res_partner(osv.osv):
        return self.name_get(cr, user, ids, context=context)
    
     def name_get(self, cr, uid, ids, context=None):
+        if context is None:
+            context = {}
         """Overrides orm name_get method"""
         res = []
         if isinstance(ids, (int, long)):
