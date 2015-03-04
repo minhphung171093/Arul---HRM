@@ -151,8 +151,8 @@
             <field name="model">account.invoice</field>
             <field name="inherit_id" ref="account.invoice_tree"/>
             <field name="arch" type="xml">
-            	<tree colors="blue:state == 'draft';black:state in ('proforma','proforma2','open');gray:state == 'cancel'" string="Invoice" position="replace">
-	                <tree colors="blue:state == 'draft';black:state in ('proforma','proforma2','open');gray:state == 'cancel'" string="Invoice">
+            	<tree colors="blue:state == 'draft';black:state in ('proforma','proforma2','open');gray:state == 'cancel'" string="Invoice" position="replace" >
+	                <tree colors="blue:state == 'draft';black:state in ('proforma','proforma2','open');gray:state == 'cancel'" string="Invoice" create='false'><!--TPT: Create disabled by BalamuruganPurushothaman  -->
 	                    <field name="partner_id" groups="base.group_user"/>
 	                    <field name="date_invoice"/>
 	                    <field name="number" invisible="1"/>
@@ -211,7 +211,9 @@
 					<group attrs="{'invisible': [('invoice_type', '=', 'export') ] }" colspan="2" >
 					
 					<field name="booked_to" />
-					<field name="rem_date" />
+					<!-- <field name="rem_date" />  -->
+					<field name="inv_date_as_char" />
+					<field name="rem_date_as_char" />
 					<field name="lr_no" />					
 					<field name="material_info" />
 					<field name="other_info" />
