@@ -419,7 +419,7 @@ class product_product(osv.osv):
         'zip': fields.char('', size = 1024),
         'inventory_line':fields.function(_inventory, method=True,type='one2many', relation='tpt.product.inventory', string='Inventory'),
         'spec_parameter_line':fields.one2many('tpt.spec.parameters.line', 'product_id', 'Spec Parameters'),
-        'tpt_product_type':fields.selection([('rutile','Rutile'),('anatase','Anatase')],'Product Type'),
+        'tpt_product_type':fields.selection([('rutile','Rutile'),('anatase','Anatase'),('product','Stockable Product'),('consu', 'Consumable'),('service','Service')],'Product Type'),
         'min_stock': fields.float('Min. Stock Level'),
         'max_stock': fields.float('Max. Stock Level'),
         're_stock': fields.float('Reorder Level'),
@@ -471,7 +471,7 @@ class product_product(osv.osv):
             product_name_ids = self.search(cr, uid, [('id','!=',product.id),('name','=',product.name)])
             product_code_ids = self.search(cr, uid, [('id','!=',product.id),('default_code', '=',product.default_code)])
             if product_name_ids or product_code_ids:
-                raise osv.except_osv(_('Warning!'),_('  Product Code and Name should be Unique. !'))
+                raise osv.except_osv(_('Warning!'),_('Product Code and Name should be Unique!'))
                 return False
             return True
         
