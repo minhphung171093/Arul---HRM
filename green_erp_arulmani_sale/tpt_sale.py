@@ -1248,6 +1248,7 @@ class tpt_blank_order_line(osv.osv):
     
     def onchange_product_id(self, cr, uid, ids,product_id=False, context=None):
         res = {'value':{
+                    'product_type':False,# TPT - BalamuruganPurushothaman
                     'uom_po_id':False,
                     'price_unit':False,
                     'description': False,
@@ -1255,6 +1256,7 @@ class tpt_blank_order_line(osv.osv):
         if product_id:
             product = self.pool.get('product.product').browse(cr, uid, product_id)
             res['value'].update({
+                    'product_type':product.tpt_product_type,# TPT - BalamuruganPurushothaman
                     'uom_po_id':product.uom_id.id,
                     'price_unit':product.list_price,
                     'description': product.name,

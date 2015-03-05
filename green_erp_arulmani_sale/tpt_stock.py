@@ -604,7 +604,7 @@ stock_picking()
 
 class stock_picking_out(osv.osv):
     _inherit = "stock.picking.out"
-    _columns = {
+    _columns = {        
         'cons_loca':fields.many2one('res.partner','Consignee Location',readonly = True),
         'warehouse':fields.many2one('stock.location','Warehouse'),
         'transporter':fields.char('Transporter Name', size = 64),
@@ -615,6 +615,8 @@ class stock_picking_out(osv.osv):
         'flag_confirm': fields.boolean('Flag', readonly =  True),
         'bag_detail':fields.char('Bag Details', size = 64),
         'tpt_log_line': fields.one2many('tpt.log','delivery_order_id', 'Logs'),
+        #TPT - Added to Hide Print Packing List for Domestic
+        #'order_type':fields.selection([('domestic','Domestic'),('export','Export')],'Order Type'),
                 }
     
     def action_process(self, cr, uid, ids, context=None):
