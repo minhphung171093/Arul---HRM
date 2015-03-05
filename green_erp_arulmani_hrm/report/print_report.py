@@ -61,8 +61,12 @@ class Parser(report_sxw.rml_parse):
             'get_sub_lop': self.get_sub_lop,
             'get_sub_total_ear': self.get_sub_total_ear,
             'get_sub_total_ded': self.get_sub_total_ded,
-            'get_sub_net': self.get_sub_net                                 
+            'get_sub_net': self.get_sub_net,     
+            'get_vpf_amt': self.get_vpf_amt                                 
         })
+        
+    def get_vpf_amt(self,net_basic,net_da,vpf_in_percent):               
+        return round(net_basic+net_da*vpf_in_percent/100, 2)
     
     def get_sub_basic(self):
         subtotal_basic = 0

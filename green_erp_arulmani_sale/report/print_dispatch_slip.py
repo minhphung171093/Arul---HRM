@@ -65,7 +65,7 @@ class Parser(report_sxw.rml_parse):
                 mt_qty = qty*25/1000
             if unit.lower() in ['tonne','tonnes','mt','metricton','metrictons']:
                 mt_qty = qty
-        return mt_qty
+        return round(mt_qty,3)
     
 
     

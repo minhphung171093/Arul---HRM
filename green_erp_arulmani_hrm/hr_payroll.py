@@ -770,7 +770,7 @@ class arul_hr_payroll_executions(osv.osv):
                 for day in range(int(day_from),int(day_to)+1):
                     total_lop += 1
             shift_ids = self.pool.get('arul.hr.audit.shift.time').search(cr, uid, [('work_date','like',str(year)),('employee_id','=',emp),('state','=','cancel'),('additional_shifts','=',False)])
-            total_lop += len(shift_ids)
+            #total_lop += len(shift_ids)
 
 	    #Start:TPT To calculate Total no of ESI Leaves
 	    sql = '''
@@ -784,7 +784,7 @@ class arul_hr_payroll_executions(osv.osv):
                 for day in range(int(day_from),int(day_to)+1):
                     total_esi += 1
             shift_ids = self.pool.get('arul.hr.audit.shift.time').search(cr, uid, [('work_date','like',str(year)),('employee_id','=',emp),('state','=','cancel'),('additional_shifts','=',False)])
-            total_esi += len(shift_ids)
+            #total_esi += len(shift_ids) #TPT CHECK POINT FOR GEN_PAYROLL
 
 	    # Special Holiday Calculation
 	    sql2 = '''
@@ -1106,7 +1106,8 @@ class arul_hr_payroll_executions(osv.osv):
                         pt = 0.0
                         lwf = 0.0
                         total_deduction = 0
-			total_f = 0
+                        total_f = 0
+			#total_f = 0
                         for other_deductions_id in payroll_emp_struc_obj.browse(cr,uid,emp_struc_ids[0]).payroll_other_deductions_line:
 #                             if other_deductions_id.deduction_parameters_id.code == 'PF.D':
 #                                 pfd = other_deductions_id.float
@@ -1969,7 +1970,7 @@ class arul_hr_payroll_executions(osv.osv):
                         #spa = spa/(26 - 4)*total_days 
                         #oa = total_shift_allowance + total_days*4 + la  # this calculation shifted to ma. oa is treated as same that of entered in paystructure
 			
-			spa = spa/(26 - 4 - special_holidays) * total_days 
+			spa = spa/(calendar_days - 4 - special_holidays) * total_days 
 			ma = total_shift_allowance + total_days * 4 + la + wa
 			#raise osv.except_osv(_('Warning!%s'),_(ma))
                         #total_earning = basic + da + c + hra + fa + pc + cre + ea +spa + la + aa + sha + oa + lta + med
