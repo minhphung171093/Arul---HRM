@@ -356,9 +356,9 @@
                     </page>
 				</xpath>
 				
-				<xpath expr="//field[@name='type']" position="attributes">
+				<!--<xpath expr="//field[@name='type']" position="attributes">
 					<attribute name='attrs'>{'invisible': [('cate_name','=','finish')]}</attribute>
-				</xpath>
+				</xpath>-->
 				
 				<xpath expr="//field[@name='uom_id']" position="before">
 					<field name="tpt_product_type" attrs="{'invisible': [('cate_name','!=','finish')]}"/>
