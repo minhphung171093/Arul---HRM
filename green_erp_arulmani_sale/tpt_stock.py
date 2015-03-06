@@ -604,7 +604,7 @@ stock_picking()
 
 class stock_picking_out(osv.osv):
     _inherit = "stock.picking.out"
-    _columns = {
+    _columns = {        
         'cons_loca':fields.many2one('res.partner','Consignee Location',readonly = True),
         'warehouse':fields.many2one('stock.location','Warehouse'),
         'transporter':fields.char('Transporter Name', size = 64),
@@ -615,6 +615,8 @@ class stock_picking_out(osv.osv):
         'flag_confirm': fields.boolean('Flag', readonly =  True),
         'bag_detail':fields.char('Bag Details', size = 64),
         'tpt_log_line': fields.one2many('tpt.log','delivery_order_id', 'Logs'),
+        #TPT - Added to Hide Print Packing List for Domestic
+        #'order_type':fields.selection([('domestic','Domestic'),('export','Export')],'Order Type'),
                 }
     
     def action_process(self, cr, uid, ids, context=None):
@@ -836,6 +838,8 @@ class account_invoice(osv.osv):
         'booked_to': fields.char('Booked To', size = 1024, readonly=True, states={'draft':[('readonly',False)]}),
         'lr_no': fields.char('LR Number', size = 1024, readonly=True, states={'draft':[('readonly',False)]}),
         'rem_date':fields.datetime('Date & Time of Rem.Of Goods', readonly=True, states={'draft':[('readonly',False)]}),
+        'inv_date_as_char':fields.char('Date & Time of Invoice',readonly=True, states={'draft':[('readonly',False)]}),
+        'rem_date_as_char':fields.char('Date & Time of Rem.Of Goods',readonly=True, states={'draft':[('readonly',False)]}),
         'material_info': fields.text('Material Additional Info',readonly=True, states={'draft':[('readonly',False)]}),
         'other_info': fields.text('Other Info', readonly=True, states={'draft':[('readonly',False)]}),
         #TPT

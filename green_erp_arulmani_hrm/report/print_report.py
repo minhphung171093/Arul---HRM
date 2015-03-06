@@ -61,8 +61,19 @@ class Parser(report_sxw.rml_parse):
             'get_sub_lop': self.get_sub_lop,
             'get_sub_total_ear': self.get_sub_total_ear,
             'get_sub_total_ded': self.get_sub_total_ded,
-            'get_sub_net': self.get_sub_net                                 
+            'get_sub_net': self.get_sub_net,     
+            'get_vpf_amt': self.get_vpf_amt                                 
         })
+        
+    def get_vpf_amt(self,net_basic,net_da,vpf_in_percent):               
+        #return round(net_basic+net_da*vpf_in_percent/100, 2)
+        basic_da = 0.0
+        vpf = 0.0
+        vpf_in_amt = 0.0
+        basic_da = net_basic + net_da
+        vpf = vpf_in_percent / 100
+        vpf_in_amt = basic_da * vpf
+        return round(vpf_in_amt, 2)
     
     def get_sub_basic(self):
         subtotal_basic = 0
@@ -133,7 +144,10 @@ class Parser(report_sxw.rml_parse):
     def get_sub_vpf(self):
         subtotal_vpf = 0
         for line in self.get_payslip():
-            subtotal_vpf += line['vpf']          
+            v1 = line['basic'] + line['da']
+            v2 = line['vpf'] / 100
+            v3 = v1 * v2
+            subtotal_vpf += v3         
         return round(subtotal_vpf,2)
     
     def get_sub_esi_con(self):
@@ -145,7 +159,7 @@ class Parser(report_sxw.rml_parse):
     def get_sub_fd(self):
         subtotal_fd = 0
         for line in self.get_payslip():
-            subtotal_fd += line['loan']          
+            subtotal_fd += line['fd']          
         return round(subtotal_fd,2)
     
     def get_sub_loan(self):
