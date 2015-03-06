@@ -419,7 +419,7 @@ class product_product(osv.osv):
         'zip': fields.char('', size = 1024),
         'inventory_line':fields.function(_inventory, method=True,type='one2many', relation='tpt.product.inventory', string='Inventory'),
         'spec_parameter_line':fields.one2many('tpt.spec.parameters.line', 'product_id', 'Spec Parameters'),
-        'tpt_product_type':fields.selection([('rutile','Rutile'),('anatase','Anatase')],'Product Type'),
+        'tpt_product_type':fields.selection([('rutile','Rutile'),('anatase','Anatase')],'Finished Product Type'),
         'min_stock': fields.float('Min. Stock Level'),
         'max_stock': fields.float('Max. Stock Level'),
         're_stock': fields.float('Reorder Level'),
@@ -471,7 +471,7 @@ class product_product(osv.osv):
             product_name_ids = self.search(cr, uid, [('id','!=',product.id),('name','=',product.name)])
             product_code_ids = self.search(cr, uid, [('id','!=',product.id),('default_code', '=',product.default_code)])
             if product_name_ids or product_code_ids:
-                raise osv.except_osv(_('Warning!'),_('  Product Code and Name should be Unique. !'))
+                raise osv.except_osv(_('Warning!'),_('Product Code and Name should be Unique!'))
                 return False
             return True
         
@@ -1166,6 +1166,7 @@ class purchase_order(osv.osv):
             p_f_charge=0.0
             excise_duty=0.0
             amount_total_tax=0.0
+            total_tax = 0.0
             fright=0.0
             qty = 0.0
             for po in line.order_line:
@@ -1173,12 +1174,12 @@ class purchase_order(osv.osv):
                 qty += po.product_qty
                 basic = (po.product_qty * po.price_unit) - ( (po.product_qty * po.price_unit)*po.discount/100)
                 amount_untaxed += basic
-                if po.p_f_type == 1 :
+                if po.p_f_type == '1' :
                     p_f = basic * po.p_f/100
                 else:
                     p_f = po.p_f
                 p_f_charge += p_f
-                if po.ed_type == 1 :
+                if po.ed_type == '1' :
                     ed = (basic + p_f) * po.ed/100
                 else:
                     ed = po.ed
@@ -1186,18 +1187,19 @@ class purchase_order(osv.osv):
                 tax_amounts = [r.amount for r in po.taxes_id]
                 for tax_amount in tax_amounts:
                     tax += tax_amount/100
-                amount_total_tax += basic*tax
-                total_tax = (basic + p_f + ed)*(tax)
-                if po.fright_type == 1 :
+#                 amount_total_tax += basic*tax
+                amount_total_tax = (basic + p_f + ed)*(tax)
+                total_tax += amount_total_tax
+                if po.fright_type == '1' :
                     fright += (basic + p_f + ed + amount_total_tax) * po.fright/100
                 else:
                     fright += po.fright
             res[line.id]['amount_untaxed'] = amount_untaxed
             res[line.id]['p_f_charge'] = p_f_charge
             res[line.id]['excise_duty'] = excise_duty
-            res[line.id]['amount_tax'] = amount_total_tax
+            res[line.id]['amount_tax'] = total_tax
             res[line.id]['fright'] = fright
-            res[line.id]['amount_total'] = amount_untaxed+p_f_charge+excise_duty+amount_total_tax+fright
+            res[line.id]['amount_total'] = amount_untaxed+p_f_charge+excise_duty+total_tax+fright
         return res
     
     
@@ -1667,7 +1669,6 @@ class purchase_order_line(osv.osv):
         amount_basic = 0.0
         amount_p_f=0.0
         amount_ed=0.0
-        
         amount_fright=0.0
          
         for line in self.browse(cr,uid,ids,context=context):
@@ -1675,16 +1676,16 @@ class purchase_order_line(osv.osv):
                     'line_net': 0.0,
                 }  
             amount_total_tax=0.0
-            amount_basic = (line.product_qty * line.price_unit)-((line.product_qty * line.price_unit)*line.discount)
-            if line.p_f_type == 1:
+            amount_basic = (line.product_qty * line.price_unit)-((line.product_qty * line.price_unit)*line.discount/100)
+            if line.p_f_type == '1':
                amount_p_f = amount_basic * (line.p_f/100)
             else:
                 amount_p_f = line.p_f
-            if line.ed_type == 1:
+            if line.ed_type == '1':
                amount_ed = (amount_basic + amount_p_f) * (line.ed/100)
             else:
                 amount_ed = line.ed
-            if line.fright_type == 1:
+            if line.fright_type == '1':
                amount_fright = (amount_basic + amount_p_f + amount_ed) * (line.fright/100)
             else:
                 amount_fright = line.fright

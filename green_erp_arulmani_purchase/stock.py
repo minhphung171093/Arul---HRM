@@ -290,42 +290,67 @@ class account_invoice(osv.osv):
                 'fright': 0.0,
                 'amount_total': 0.0
             }
-            amount_untaxed = 0.0
-            p_f_charge=0.0
-            excise_duty=0.0
-            amount_total_tax=0.0
-            fright=0.0
-            qty = 0.0
-            for po in line.invoice_line:
-                tax = 0
-                qty += po.quantity
-                basic = (po.quantity * po.price_unit) - ( (po.quantity * po.price_unit)*po.disc/100)
-                amount_untaxed += basic
-                if po.p_f_type == 1 :
-                    p_f = basic * po.p_f/100
-                else:
-                    p_f = po.p_f
-                p_f_charge += p_f
-                if po.ed_type == 1 :
-                    ed = (basic + p_f) * po.ed/100
-                else:
-                    ed = po.ed
-                excise_duty += ed
-                tax_amounts = [r.amount for r in po.invoice_line_tax_id]
-                for tax_amount in tax_amounts:
-                    tax += tax_amount/100
-                amount_total_tax += basic*tax
-                total_tax = (basic + p_f + ed)*(tax)
-                if po.fright_type == 1 :
-                    fright += (basic + p_f + ed + amount_total_tax) * po.fright/100
-                else:
-                    fright += po.fright
-            res[line.id]['amount_untaxed'] = amount_untaxed
-            res[line.id]['p_f_charge'] = p_f_charge
-            res[line.id]['excise_duty'] = excise_duty
-            res[line.id]['amount_tax'] = amount_total_tax
-            res[line.id]['fright'] = fright
-            res[line.id]['amount_total'] = amount_untaxed+p_f_charge+excise_duty+amount_total_tax+fright
+            if line.type == 'out_invoice':
+                res[line.id] = {
+                'amount_untaxed': 0.0,
+                'amount_tax': 0.0,
+                'amount_total': 0.0,
+                }
+                val1 = 0.0
+                val2 = 0.0
+                val3 = 0.0
+                freight = 0.0
+                for invoiceline in line.invoice_line:
+                    freight += invoiceline.freight
+                    val1 += invoiceline.price_subtotal
+                    val2 += invoiceline.price_subtotal * (line.sale_tax_id.amount and line.sale_tax_id.amount / 100 or 0)
+    #                 val3 = val1 + val2 + freight
+                res[line.id]['amount_untaxed'] = val1
+                res[line.id]['amount_tax'] = val2
+                res[line.id]['amount_total'] = val1+val2+freight
+                for taxline in line.tax_line:
+                    sql='''
+                        update account_invoice_tax set amount=%s where id=%s
+                    '''%(val2+freight,taxline.id)
+                    cr.execute(sql)
+            else:
+                amount_untaxed = 0.0
+                p_f_charge=0.0
+                excise_duty=0.0
+                amount_total_tax=0.0
+                total_tax = 0.0
+                fright=0.0
+                qty = 0.0
+                for po in line.invoice_line:
+                    tax = 0
+                    qty += po.quantity
+                    basic = (po.quantity * po.price_unit) - ( (po.quantity * po.price_unit)*po.disc/100)
+                    amount_untaxed += basic
+                    if po.p_f_type == '1' :
+                        p_f = basic * po.p_f/100
+                    else:
+                        p_f = po.p_f
+                    p_f_charge += p_f
+                    if po.ed_type == '1' :
+                        ed = (basic + p_f) * po.ed/100
+                    else:
+                        ed = po.ed
+                    excise_duty += ed
+                    tax_amounts = [r.amount for r in po.invoice_line_tax_id]
+                    for tax_amount in tax_amounts:
+                        tax += tax_amount/100
+                    amount_total_tax = (basic + p_f + ed)*(tax)
+                    total_tax += amount_total_tax
+                    if po.fright_type == '1' :
+                        fright += (basic + p_f + ed + amount_total_tax) * po.fright/100
+                    else:
+                        fright += po.fright
+                res[line.id]['amount_untaxed'] = amount_untaxed
+                res[line.id]['p_f_charge'] = p_f_charge
+                res[line.id]['excise_duty'] = excise_duty
+                res[line.id]['amount_tax'] = total_tax
+                res[line.id]['fright'] = fright
+                res[line.id]['amount_total'] = amount_untaxed+p_f_charge+excise_duty+total_tax+fright
         return res
     
     def _get_invoice_line(self, cr, uid, ids, context=None):
@@ -400,16 +425,16 @@ class account_invoice_line(osv.osv):
                     'line_net': 0.0,
                 }  
             amount_total_tax=0.0
-            amount_basic = (line.quantity * line.price_unit)-((line.quantity * line.price_unit)*line.disc)
-            if line.p_f_type == 1:
+            amount_basic = (line.quantity * line.price_unit)-((line.quantity * line.price_unit)*line.disc/100)
+            if line.p_f_type == '1':
                amount_p_f = amount_basic * (line.p_f/100)
             else:
                 amount_p_f = line.p_f
-            if line.ed_type == 1:
+            if line.ed_type == '1':
                amount_ed = (amount_basic + amount_p_f) * (line.ed/100)
             else:
                 amount_ed = line.ed
-            if line.fright_type == 1:
+            if line.fright_type == '1':
                amount_fright = (amount_basic + amount_p_f + amount_ed) * (line.fright/100)
             else:
                 amount_fright = line.fright
@@ -420,6 +445,7 @@ class account_invoice_line(osv.osv):
         return res
      
     _columns = {
+        'invoice_line_tax_id': fields.many2many('account.tax', 'account_invoice_line_tax', 'invoice_line_id', 'tax_id', 'Taxes', domain=[('parent_id','=',False)]),
         'gl_code_id': fields.many2one('account.account', 'GL Code'),
         'disc': fields.float('DISC'),
         'p_f': fields.float('P&F'),
@@ -430,4 +456,12 @@ class account_invoice_line(osv.osv):
         'fright_type':fields.selection([('1','%'),('2','Rs')],('Fright Type')),
         'line_net': fields.function(line_net_line_supplier_invo, store = True, multi='deltas' ,string='Line Net'),
     }
+    def onchange_gl_code_id(self, cr, uid, ids, gl_code_id=False, context=None):
+        vals = {}
+        if gl_code_id:
+            account = self.pool.get('account.account').browse(cr,uid,gl_code_id)
+            vals = {
+                'name': account.name
+                    }
+        return {'value': vals}
 account_invoice_line()

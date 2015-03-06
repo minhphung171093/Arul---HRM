@@ -604,7 +604,7 @@ stock_picking()
 
 class stock_picking_out(osv.osv):
     _inherit = "stock.picking.out"
-    _columns = {
+    _columns = {        
         'cons_loca':fields.many2one('res.partner','Consignee Location',readonly = True),
         'warehouse':fields.many2one('stock.location','Warehouse'),
         'transporter':fields.char('Transporter Name', size = 64),
@@ -615,6 +615,8 @@ class stock_picking_out(osv.osv):
         'flag_confirm': fields.boolean('Flag', readonly =  True),
         'bag_detail':fields.char('Bag Details', size = 64),
         'tpt_log_line': fields.one2many('tpt.log','delivery_order_id', 'Logs'),
+        #TPT - Added to Hide Print Packing List for Domestic
+        #'order_type':fields.selection([('domestic','Domestic'),('export','Export')],'Order Type'),
                 }
     
     def action_process(self, cr, uid, ids, context=None):
@@ -783,33 +785,33 @@ stock_move()
 class account_invoice(osv.osv):
     _inherit = "account.invoice"
     
-    def _amount_all(self, cr, uid, ids, field_name, arg, context=None):
-        res = {}
-        for line in self.browse(cr,uid,ids,context=context):
-            res[line.id] = {
-                'amount_untaxed': 0.0,
-                'amount_tax': 0.0,
-                'amount_total': 0.0,
-            }
-            val1 = 0.0
-            val2 = 0.0
-            val3 = 0.0
-            freight = 0.0
-            for invoiceline in line.invoice_line:
-                freight += invoiceline.freight
-                val1 += invoiceline.price_subtotal
-                val2 += invoiceline.price_subtotal * (line.sale_tax_id.amount and line.sale_tax_id.amount / 100 or 0)
-#                 val3 = val1 + val2 + freight
-            res[line.id]['amount_untaxed'] = val1
-            res[line.id]['amount_tax'] = val2
-            res[line.id]['amount_total'] = val1+val2+freight
-            for taxline in line.tax_line:
-                sql='''
-                    update account_invoice_tax set amount=%s where id=%s
-                '''%(val2+freight,taxline.id)
-                cr.execute(sql)
-        return res
-    
+#     def _amount_all(self, cr, uid, ids, field_name, arg, context=None):
+#         res = {}
+#         for line in self.browse(cr,uid,ids,context=context):
+#             res[line.id] = {
+#                 'amount_untaxed': 0.0,
+#                 'amount_tax': 0.0,
+#                 'amount_total': 0.0,
+#             }
+#             val1 = 0.0
+#             val2 = 0.0
+#             val3 = 0.0
+#             freight = 0.0
+#             for invoiceline in line.invoice_line:
+#                 freight += invoiceline.freight
+#                 val1 += invoiceline.price_subtotal
+#                 val2 += invoiceline.price_subtotal * (line.sale_tax_id.amount and line.sale_tax_id.amount / 100 or 0)
+# #                 val3 = val1 + val2 + freight
+#             res[line.id]['amount_untaxed'] = val1
+#             res[line.id]['amount_tax'] = val2
+#             res[line.id]['amount_total'] = val1+val2+freight
+#             for taxline in line.tax_line:
+#                 sql='''
+#                     update account_invoice_tax set amount=%s where id=%s
+#                 '''%(val2+freight,taxline.id)
+#                 cr.execute(sql)
+#         return res
+#     
     def _get_invoice_line(self, cr, uid, ids, context=None):
         result = {}
         for line in self.pool.get('account.invoice.line').browse(cr, uid, ids, context=context):
@@ -837,29 +839,29 @@ class account_invoice(osv.osv):
         'lr_no': fields.char('LR Number', size = 1024, readonly=True, states={'draft':[('readonly',False)]}),
         'rem_date':fields.datetime('Date & Time of Rem.Of Goods', readonly=True, states={'draft':[('readonly',False)]}),
         'inv_date_as_char':fields.char('Date & Time of Invoice',readonly=True, states={'draft':[('readonly',False)]}),
-        'rem_date_as_char':fields.char('Date & Time of Invoice',readonly=True, states={'draft':[('readonly',False)]}),
+        'rem_date_as_char':fields.char('Date & Time of Rem.Of Goods',readonly=True, states={'draft':[('readonly',False)]}),
         'material_info': fields.text('Material Additional Info',readonly=True, states={'draft':[('readonly',False)]}),
         'other_info': fields.text('Other Info', readonly=True, states={'draft':[('readonly',False)]}),
         #TPT
         
-        'amount_untaxed': fields.function(_amount_all, digits_compute=dp.get_precision('Account'), string='Untaxed Amount',
-            store={
-                'account.invoice': (lambda self, cr, uid, ids, c={}: ids, ['invoice_line'], 20),
-                'account.invoice.line': (_get_invoice_line, ['price_unit','invoice_line_tax_id','quantity','discount','invoice_id'], 20),
-            },
-            multi='sums', help="The amount without tax.", track_visibility='always'),
-        'amount_tax': fields.function(_amount_all, digits_compute=dp.get_precision('Account'), string='Taxes',
-            store={
-                'account.invoice': (lambda self, cr, uid, ids, c={}: ids, ['invoice_line'], 20),
-                'account.invoice.line': (_get_invoice_line, ['price_unit','invoice_line_tax_id','quantity','discount','invoice_id'], 20),
-            },
-            multi='sums', help="The tax amount."),
-        'amount_total': fields.function(_amount_all, digits_compute=dp.get_precision('Account'), string='Total',
-            store={
-                'account.invoice': (lambda self, cr, uid, ids, c={}: ids, ['invoice_line'], 20),
-                'account.invoice.line': (_get_invoice_line, ['price_unit','invoice_line_tax_id','quantity','discount','invoice_id'], 20),
-            },
-            multi='sums', help="The total amount."),
+#         'amount_untaxed': fields.function(_amount_all, digits_compute=dp.get_precision('Account'), string='Untaxed Amount',
+#             store={
+#                 'account.invoice': (lambda self, cr, uid, ids, c={}: ids, ['invoice_line'], 20),
+#                 'account.invoice.line': (_get_invoice_line, ['price_unit','invoice_line_tax_id','quantity','discount','invoice_id'], 20),
+#             },
+#             multi='sums', help="The amount without tax.", track_visibility='always'),
+#         'amount_tax': fields.function(_amount_all, digits_compute=dp.get_precision('Account'), string='Taxes',
+#             store={
+#                 'account.invoice': (lambda self, cr, uid, ids, c={}: ids, ['invoice_line'], 20),
+#                 'account.invoice.line': (_get_invoice_line, ['price_unit','invoice_line_tax_id','quantity','discount','invoice_id'], 20),
+#             },
+#             multi='sums', help="The tax amount."),
+#         'amount_total': fields.function(_amount_all, digits_compute=dp.get_precision('Account'), string='Total',
+#             store={
+#                 'account.invoice': (lambda self, cr, uid, ids, c={}: ids, ['invoice_line'], 20),
+#                 'account.invoice.line': (_get_invoice_line, ['price_unit','invoice_line_tax_id','quantity','discount','invoice_id'], 20),
+#             },
+#             multi='sums', help="The total amount."),
                 }
     _defaults = {
         'vvt_number': '/',
@@ -974,7 +976,7 @@ class account_invoice_line(osv.osv):
         subtotal = 0.0
         res = {}
         for line in self.browse(cr,uid,ids,context=context):
-            subtotal = (line.quantity * line.price_unit) + (line.quantity * line.price_unit) * (line.invoice_id.excise_duty_id.amount and line.invoice_id.excise_duty_id.amount/100 or 1)
+            subtotal = (line.quantity * line.price_unit) + (line.quantity * line.price_unit) * (line.invoice_id.excise_duty_id.amount and line.invoice_id.excise_duty_id.amount/100 or 1)          
             res[line.id] = subtotal
         return res
     

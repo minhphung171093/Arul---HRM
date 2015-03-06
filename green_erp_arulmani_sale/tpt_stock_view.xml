@@ -13,6 +13,7 @@
 	                    <field name="origin" invisible="1"/>
 	                    <field name="min_date" invisible="1"/>
 	                    <field name="sale_id"/>
+	                    
 	                    <field name="date"/>
 	        			<field name="cons_loca"/>
 		        		<field name="warehouse"/>
@@ -207,18 +208,20 @@
 					<field name="mark_container_no" />
 					<field name="insurance" />
 					
-					
 					<group attrs="{'invisible': [('invoice_type', '=', 'export') ] }" colspan="2" >
 					
 					<field name="booked_to" />
-					<!-- <field name="rem_date" />  -->
+					<!-- <field name="rem_date" /> -->
+					<field name="lr_no" />	
 					<field name="inv_date_as_char" />
-					<field name="rem_date_as_char" />
-					<field name="lr_no" />					
+					<field name="rem_date_as_char" />				
 					<field name="material_info" />
 					<field name="other_info" />
 					</group>
+					
+					
 				</xpath>
+				
 				<xpath expr="//field[@name='journal_id']" position="replace">
 					<field name="cons_loca" domain="[('consignee_parent_id','=',partner_id)]" options="{'create': false, 'create_edit': false,'always_reload': True}" context="{'show_address': 1}"/>
 				</xpath>
@@ -335,6 +338,7 @@
                     <field name="partner_id" on_change="onchange_partner_in(partner_id)" string="Customer" domain="[('customer','=',1),('is_company','=',1)]" readonly = "1" options="{'create': false, 'create_edit': false}"/>
             		<field name="sale_id" readonly="1" domain="[('state','=','progress')]" options="{'create': false, 'create_edit': false}"/>
             		<field name="cons_loca" readonly ="1" domain="[('consignee_parent_id','=',partner_id)]" options="{'create': false, 'create_edit': false,'always_reload': True}" context="{'show_address': 1}"/>
+            		
             		<field name="warehouse" required ="1" domain="[('usage','=','internal'),('chained_location_type','&lt;&gt;','customer')]" options="{'create': false, 'create_edit': false}"/>
             		<field name="transporter" required ="1"/>
             		<field name="truck" required ="1"/>
