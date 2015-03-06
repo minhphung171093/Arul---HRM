@@ -318,31 +318,31 @@ class stock_location(osv.osv):
         }
 stock_location()
  
-class stock_picking(osv.osv):
-    _inherit = "stock.picking"
-      
-    def write(self, cr, uid, ids, vals, context=None):
-        new_write = super(stock_picking, self).write(cr, uid,ids, vals, context)
-        account_move_obj = self.pool.get('account.move')
-#         stock_picking_in = self.pool.get('stock.picking.in').browse(cr,uid,vals['backorder_id'])
-        for line in self.browse(cr,uid,ids):
-            if line.type == 'in' and line.backorder_id.state=='done':
-                #sinh but toan
-                for p in line.move_lines:
-                    journal_line = [(0,0,{
-                                        'name':line.name, 
-                                        'account_id': [(6,0,[line.warehouse.gl_pos_verification_id and line.warehouse.gl_pos_verification_id.id])],
-                                       })]
-                value={
-                    'journal_id':3,
-                    'period_id':17 ,
-                    'date': time.strftime('%Y-%m-%d'),
-                    'line_id': journal_line,
-                    }
-                new_jour_id = account_move_obj.create(cr,uid,value)
-        return new_write
-      
-stock_picking()
+# class stock_picking(osv.osv):
+#     _inherit = "stock.picking"
+#        
+#     def write(self, cr, uid, ids, vals, context=None):
+#         new_write = super(stock_picking, self).write(cr, uid,ids, vals, context)
+#         account_move_obj = self.pool.get('account.move')
+# #         stock_picking_in = self.pool.get('stock.picking.in').browse(cr,uid,vals['backorder_id'])
+#         for line in self.browse(cr,uid,ids):
+#             if line.type == 'in' and line.backorder_id.state=='done':
+#                 #sinh but toan
+#                 for p in line.move_lines:
+#                     journal_line = [(0,0,{
+#                                         'name':line.name, 
+#                                         'account_id': [(6,0,[line.warehouse.gl_pos_verification_id and line.warehouse.gl_pos_verification_id.id])],
+#                                        })]
+#                 value={
+#                     'journal_id':3,
+#                     'period_id':17 ,
+#                     'date': time.strftime('%Y-%m-%d'),
+#                     'line_id': journal_line,
+#                     }
+#                 new_jour_id = account_move_obj.create(cr,uid,value)
+#         return new_write
+#        
+# stock_picking()
 class account_invoice(osv.osv):
     _inherit = "account.invoice"
      
