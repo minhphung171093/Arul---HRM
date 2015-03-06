@@ -1845,11 +1845,41 @@ class res_partner(osv.osv):
         'consignee_line': fields.one2many('res.partner', 'consignee_parent_id', 'Consignee'),
         'bill_location': fields.boolean('Is Bill To Location'), 
         'shipping_location': fields.boolean('Is Shipping Location'), 
-        #TPT
-        #'consignee': fields.one2many('res.partner', 'Consignee'),
+        #TPT By BalamuruganPurushothaman To Load Consignee List
+        'consignee_shift_party': fields.many2one('res.partner', 'Consignee'),
         
         
                  }
+    def onchange_consignee_shift_party(self, cr, uid, ids,customer_id=False, context=None):
+        vals = {}
+        consignee_lines = []
+        if customer_id:           
+            customer = self.pool.get('res.partner').browse(cr, uid, customer_id)
+            for line in customer.consignee_line:
+                rs = {
+                        'name_consignee_id': line.id,
+                        'location': str(line.street or '') + str(line.street2 or '') + ' , ' + str(line.city or ''),
+                        
+                      }
+                consignee_lines.append((0,0,rs))
+            
+            vals = {'name': customer.name or False,
+                    'street': customer.street or False,
+                    'street2': customer.street2 or False,
+                    'city': customer.city or False,
+                    'country_id': customer.country_id and customer.country_id.id or False,
+                    'state_id': customer.state_id and customer.state_id.id or False,
+                    'zip': customer.zip or False,
+                    'phone': customer.phone or False,
+                    'mobile': customer.mobile or False,
+                    'email': customer.email or False,
+                    'fax': customer.fax or False,
+                    #'payment_term_id':customer.property_payment_term and customer.property_payment_term.id or False,
+                    #'blank_consignee_line': consignee_lines or False,
+                    #'incoterm_id':customer.inco_terms_id and customer.inco_terms_id.id or False,
+                    #'currency_id':customer.currency_id and customer.currency_id.id or False,
+                    }
+        return {'value': vals}
     
     def _search(self, cr, user, args, offset=0, limit=None, order=None, context=None, count=False, access_rights_uid=None):
        """ Override search() to always show inactive children when searching via ``child_of`` operator. The ORM will
