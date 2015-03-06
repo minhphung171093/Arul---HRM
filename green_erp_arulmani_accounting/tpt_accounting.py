@@ -60,10 +60,294 @@ class tpt_posting_configuration(osv.osv):
     
 tpt_posting_configuration()
 
+
+class tpt_posting_verification(osv.osv):
+    _name = 'tpt.posting.verification'
+    def amount_all_line(self, cr, uid, ids, field_name, args, context=None):
+        res = {}
+        for line in self.browse(cr,uid,ids,context=context):
+            res[line.id] = {
+                'amount_debits': 0.0,
+                'amount_credits': 0.0,
+                'amount_difference': 0.0,
+            }
+            debits = 0.0
+            credits = 0.0
+            diff=0.0
+            for posting in line.gl_entry_line:
+                debits += posting.debit
+                credits += posting.credit
+                if debits >= credits :
+                    diff = debits - credits
+                else:
+                    diff = credits - debits 
+            res[line.id]['amount_debits'] = debits
+            res[line.id]['amount_credits'] = credits
+            res[line.id]['amount_difference'] = diff
+        return res
+    
+    def _get_order(self, cr, uid, ids, context=None):
+        result = {}
+        for line in self.pool.get('tpt.posting.verification.line').browse(cr, uid, ids, context=context):
+            result[line.pos_ver_id.id] = True
+        return result.keys()
+    _columns = {
+        'doc_type': fields.selection([('cus_inv', 'Customer Invoice'),('cus_pay', 'Customer Payment'),
+                                  ('sup_inv', 'Supplier Invoice'),('sup_pay', 'Supplier Payment'),
+                                  ('payroll', 'Payroll'),],'Document Type', states={ 'done':[('readonly', True)]}),
+        'name': fields.char('Document No.', size=1024, readonly=True ),
+        'date':fields.date('Created on',readonly=True),
+        'fiscal_period_id': fields.many2one('account.period', 'Fiscal Year Period', states={ 'done':[('readonly', True)]}),
+        'posting_date': fields.date('Posting Date', states={ 'done':[('readonly', True)]}),
+        'create_uid':fields.many2one('res.users','Created By', states={ 'done':[('readonly', True)]}),
+        'amount_debits': fields.function(amount_all_line, multi='sums',string='Total Debits',
+                                         store={
+                'tpt.posting.verification': (lambda self, cr, uid, ids, c={}: ids, ['gl_entry_line'], 10),
+                'tpt.posting.verification.line': (_get_order, ['debit', 'credit'], 10),}, 
+           states={ 'done':[('readonly', True)]}),
+        'amount_credits': fields.function(amount_all_line, multi='sums',string='Total Credits',
+                                         store={
+                'tpt.posting.verification': (lambda self, cr, uid, ids, c={}: ids, ['gl_entry_line'], 10),
+                'tpt.posting.verification.line': (_get_order, ['debit', 'credit'], 10),}, 
+           states={ 'done':[('readonly', True)]}),
+                
+        'amount_difference': fields.function(amount_all_line, multi='sums',string='Difference',
+                                         store={
+                'tpt.posting.verification': (lambda self, cr, uid, ids, c={}: ids, ['gl_entry_line'], 10),
+                'tpt.posting.verification.line': (_get_order, ['debit', 'credit'], 10),}, 
+           states={ 'done':[('readonly', True)]}),
+        'gl_entry_line':fields.one2many('tpt.posting.verification.line','pos_ver_id','GL Entry',states={ 'done':[('readonly', True)]}),
+        'state':fields.selection([('draft', 'Draft'),('done', 'Done')],'Status', readonly=True),
+        
+    }
+    _defaults = {
+        'date': time.strftime('%Y-%m-%d'),
+        'state':'draft',
+        'doc_type':'cus_inv',
+        'name': '/',
+    }
+    def create(self, cr, uid, vals, context=None):
+        if vals.get('name','/')=='/':
+            vals['name'] = self.pool.get('ir.sequence').get(cr, uid, 'posting.verification') or '/'
+        new_id = super(tpt_posting_verification, self).create(cr, uid, vals, context)
+        return new_id  
+
+    def onchange_gl_entry(self, cr, uid, ids,doc_type = False, fiscal_period_id=False):
+        vals = {}
+        posting = []
+        if doc_type and fiscal_period_id:
+            type=''
+            type_inv=''
+            if doc_type == 'cus_inv':
+                type = 'sale'  
+            if doc_type == 'sup_inv':
+                type = 'purchase'
+            if type:
+                sql = '''
+                    select account_id,sum(debit) as sum_debit,sum(credit) as sum_credit from account_move_line
+                    where period_id = %s and journal_id in (select id from account_journal where type='%s') group by account_id
+                '''%(fiscal_period_id,type)
+                cr.execute(sql)
+                for posting_line in cr.dictfetchall(): 
+                        sql = '''
+                            select name from account_account
+                            where id = %s 
+                        '''%(posting_line['account_id'])
+                        cr.execute(sql)
+                        name = cr.dictfetchone()['name']
+                        rs = {'gl_code_id':posting_line['account_id'],
+                                'debit':posting_line['sum_debit'],
+                                'credit':posting_line['sum_credit'],
+                                'description':name,
+                                }
+                        posting.append((0,0,rs))
+            if doc_type == 'cus_pay':
+                type_inv = 'out_invoice'  
+            if doc_type == 'sup_pay':
+                type_inv = 'in_invoice'
+            if type_inv:
+                sql = '''
+                    select account_id,sum(debit) as sum_debit,sum(credit) as sum_credit from account_move_line
+                     where journal_id in (select id from account_journal where type in ('cash','bank'))
+                     and period_id=%s and invoice in (select id from account_invoice where type='%s')
+                     group by account_id 
+                '''%(fiscal_period_id,type_inv)
+                cr.execute(sql)
+                for posting_line in cr.dictfetchall(): 
+                        sql = '''
+                            select name from account_account
+                            where id = %s 
+                        '''%(posting_line['account_id'])
+                        cr.execute(sql)
+                        name = cr.dictfetchone()['name']
+                        rs = {'gl_code_id':posting_line['account_id'],
+                                'debit':posting_line['sum_debit'],
+                                'credit':posting_line['sum_credit'],
+                                'description':name,
+                                }
+                        posting.append((0,0,rs))
+        return {'value': {'gl_entry_line':posting}   }
+    
+#     def write(self, cr, uid, ids, vals, context=None):
+#         new_write = super(tpt_posting_verification, self).write(cr, uid,ids, vals, context)
+#         for quotation in self.browse(cr,uid,ids):
+#             if quotation.quotation_cate:
+#                 if quotation.quotation_cate != 'multiple':
+#                     if (len(quotation.purchase_quotation_line) > 1):
+#                         raise osv.except_osv(_('Warning!'),_('You must choose Quotation category is multiple if you want more than one vendors!'))
+#         return new_write    
+    def bt_approve(self, cr, uid, ids, context=None):
+        return self.write(cr, uid, ids,{'state':'done'})
+tpt_posting_verification()    
+class tpt_posting_verification_line(osv.osv):
+    _name = "tpt.posting.verification.line"
+     
+    _columns = {
+        'gl_code_id': fields.many2one('account.account', 'GL Code'),
+        'description':fields.char('Description', size = 1024),
+        'debit': fields.float('Debit'),
+        'credit': fields.float('Credit'),
+        'pos_ver_id': fields.many2one('tpt.posting.verification', 'Posting Verification'),
+    }
+ 
+    def create(self, cr, uid, vals, context=None):
+        new_id = super(tpt_posting_verification_line, self).create(cr, uid, vals, context)
+        if 'debit' in vals:
+            if (vals['debit'] < 0):
+                raise osv.except_osv(_('Warning!'),_('Debit is not allowed as negative values'))
+        if 'credit' in vals:
+            if (vals['credit'] < 0):
+                raise osv.except_osv(_('Warning!'),_('Credit is not allowed as negative values'))
+        return new_id    
+    def write(self, cr, uid, ids, vals, context=None):
+        new_write = super(tpt_posting_verification_line, self).write(cr, uid,ids, vals, context)
+        for line in self.browse(cr,uid,ids):
+            if line.debit < 0:
+                raise osv.except_osv(_('Warning!'),_('Debit is not allowed as negative values'))
+            if line.credit < 0:
+                raise osv.except_osv(_('Warning!'),_('Credit is not allowed as negative values'))
+        return new_write
+    
+    def onchange_account_name(self, cr, uid, ids, gl_code_id=False):
+        vals = {}
+        if gl_code_id:
+            account = self.pool.get('account.account').browse(cr, uid, gl_code_id)
+            vals = {'description':account.name,
+                }
+        return {'value': vals}   
+tpt_posting_verification_line() 
+
+class account_move_line(osv.osv):
+    _inherit = "account.move.line"
+    
+    def _invoice(self, cursor, user, ids, name, arg, context=None):
+        invoice_obj = self.pool.get('account.invoice')
+        res = {}
+        for line_id in ids:
+            res[line_id] = False
+        cursor.execute('SELECT l.id, i.id ' \
+                        'FROM account_move_line l, account_invoice i ' \
+                        'WHERE l.move_id = i.move_id ' \
+                        'AND l.id IN %s',
+                        (tuple(ids),))
+        invoice_ids = []
+        for line_id, invoice_id in cursor.fetchall():
+            res[line_id] = invoice_id
+            invoice_ids.append(invoice_id)
+        invoice_names = {False: ''}
+        for invoice_id, name in invoice_obj.name_get(cursor, user, invoice_ids, context=context):
+            invoice_names[invoice_id] = name
+        for line_id in res.keys():
+            invoice_id = res[line_id]
+            res[line_id] = (invoice_id, invoice_names[invoice_id])
+        return res
+    def _invoice_search(self, cursor, user, obj, name, args, context=None):
+        if not args:
+            return []
+        invoice_obj = self.pool.get('account.invoice')
+        i = 0
+        while i < len(args):
+            fargs = args[i][0].split('.', 1)
+            if len(fargs) > 1:
+                args[i] = (fargs[0], 'in', invoice_obj.search(cursor, user,
+                    [(fargs[1], args[i][1], args[i][2])]))
+                i += 1
+                continue
+            if isinstance(args[i][2], basestring):
+                res_ids = invoice_obj.name_search(cursor, user, args[i][2], [],
+                        args[i][1])
+                args[i] = (args[i][0], 'in', [x[0] for x in res_ids])
+            i += 1
+        qu1, qu2 = [], []
+        for x in args:
+            if x[1] != 'in':
+                if (x[2] is False) and (x[1] == '='):
+                    qu1.append('(i.id IS NULL)')
+                elif (x[2] is False) and (x[1] == '<>' or x[1] == '!='):
+                    qu1.append('(i.id IS NOT NULL)')
+                else:
+                    qu1.append('(i.id %s %s)' % (x[1], '%s'))
+                    qu2.append(x[2])
+            elif x[1] == 'in':
+                if len(x[2]) > 0:
+                    qu1.append('(i.id IN (%s))' % (','.join(['%s'] * len(x[2]))))
+                    qu2 += x[2]
+                else:
+                    qu1.append(' (False)')
+        if qu1:
+            qu1 = ' AND' + ' AND'.join(qu1)
+        else:
+            qu1 = ''
+        cursor.execute('SELECT l.id ' \
+                'FROM account_move_line l, account_invoice i ' \
+                'WHERE l.move_id = i.move_id ' + qu1, qu2)
+        res = cursor.fetchall()
+        if not res:
+            return [('id', '=', '0')]
+        return [('id', 'in', [x[0] for x in res])]
+    _columns = {
+        'invoice': fields.function(_invoice, string='Invoice', store=True,
+            type='many2one', relation='account.invoice', fnct_search=_invoice_search),
+    }
+account_move_line()
+
+class stock_location(osv.osv):
+    _inherit = "stock.location"
+    _columns = {
+        'gl_pos_verification_id': fields.many2one('account.account', 'GL Code'),
+        }
+stock_location()
+ 
+# class stock_picking(osv.osv):
+#     _inherit = "stock.picking"
+#        
+#     def write(self, cr, uid, ids, vals, context=None):
+#         new_write = super(stock_picking, self).write(cr, uid,ids, vals, context)
+#         account_move_obj = self.pool.get('account.move')
+# #         stock_picking_in = self.pool.get('stock.picking.in').browse(cr,uid,vals['backorder_id'])
+#         for line in self.browse(cr,uid,ids):
+#             if line.type == 'in' and line.backorder_id.state=='done':
+#                 #sinh but toan
+#                 for p in line.move_lines:
+#                     journal_line = [(0,0,{
+#                                         'name':line.name, 
+#                                         'account_id': [(6,0,[line.warehouse.gl_pos_verification_id and line.warehouse.gl_pos_verification_id.id])],
+#                                        })]
+#                 value={
+#                     'journal_id':3,
+#                     'period_id':17 ,
+#                     'date': time.strftime('%Y-%m-%d'),
+#                     'line_id': journal_line,
+#                     }
+#                 new_jour_id = account_move_obj.create(cr,uid,value)
+#         return new_write
+#        
+# stock_picking()
 class account_invoice(osv.osv):
     _inherit = "account.invoice"
-    
-    
+     
+     
+      
 #     def check_tax_lines(self, cr, uid, inv, compute_taxes, ait_obj):
 #         company_currency = self.pool['res.company'].browse(cr, uid, inv.company_id.id).currency_id
 #         if not inv.tax_line:
@@ -86,13 +370,13 @@ class account_invoice(osv.osv):
 #                     raise osv.except_osv(_('Warning!'), _('Taxes are missing!\nClick on compute button.'))
 #                 
 #                 
-#     def compute_invoice_totals(self, cr, uid, inv, company_currency, ref, invoice_move_lines, context=None):
-#         if context is None:
-#             context={}
-#         total = 0
-#         total_currency = 0
-#         cur_obj = self.pool.get('res.currency')
-#         for i in invoice_move_lines:
+    def compute_invoice_totals(self, cr, uid, inv, company_currency, ref, invoice_move_lines, context=None):
+        if context is None:
+            context={}
+        total = 0
+        total_currency = 0
+        cur_obj = self.pool.get('res.currency')
+        for i in invoice_move_lines:
 #             if inv.currency_id.id != company_currency:
 #                 context.update({'date': inv.date_invoice or time.strftime('%Y-%m-%d')})
 #                 i['currency_id'] = inv.currency_id.id
@@ -101,17 +385,17 @@ class account_invoice(osv.osv):
 #                         company_currency, i['price'],
 #                         context=context)
 #             else:
-#                 i['amount_currency'] = False
-#                 i['currency_id'] = False
-#             i['ref'] = ref
-#             if inv.type in ('out_invoice','in_refund'):
-#                 total += i['price']
-#                 total_currency += i['amount_currency'] or i['price']
-#                 i['price'] = - i['price']
-#             else:
-#                     total -= i['price']
-#                     total_currency -= i['amount_currency'] or i['price']
-#         return total, total_currency, invoice_move_lines
+            i['amount_currency'] = False
+            i['currency_id'] = False
+            i['ref'] = ref
+            if inv.type in ('out_invoice','in_refund'):
+                total += i['price']
+                total_currency += i['amount_currency'] or i['price']
+                i['price'] = - i['price']
+            else:
+                total -= i['price']
+                total_currency -= i['amount_currency'] or i['price']
+        return total, total_currency, invoice_move_lines
 #     def _get_analytic_lines(self, cr, uid, id, context=None):
 #         if context is None:
 #             context = {}
@@ -167,7 +451,6 @@ class account_invoice(osv.osv):
                 raise osv.except_osv(_('No Invoice Lines!'), _('Please create some invoice lines.'))
             if inv.move_id:
                 continue
- 
             ctx = context.copy()
             ctx.update({'lang': inv.partner_id.lang})
             if not inv.date_invoice:
@@ -175,22 +458,36 @@ class account_invoice(osv.osv):
             company_currency = self.pool['res.company'].browse(cr, uid, inv.company_id.id).currency_id.id
             # create the analytical lines
             # one move line per invoice line
-            iml = self._get_analytic_lines(cr, uid, inv.id, context=ctx)
-            iml += invoice_line_obj.move_line_fright(cr, uid, inv.id) 
-            iml += invoice_line_obj.move_line_amount_tax(cr, uid, inv.id)
-            iml += invoice_line_obj.move_line_excise_duty(cr, uid, inv.id)  
-            iml += invoice_line_obj.move_line_amount_untaxed(cr, uid, inv.id)  
+#             iml = self._get_analytic_lines(cr, uid, inv.id, context=ctx)
+#             for account_line in inv.invoice_line: 
+#             iml = invoice_line_obj.move_line_price_different(cr, uid, inv.id)
+            if (inv.type == 'in_invoice'): 
+                iml = invoice_line_obj.move_line_pf(cr, uid, inv.id)
+                iml += invoice_line_obj.move_line_fright(cr, uid, inv.id) 
+                iml += invoice_line_obj.move_line_amount_tax(cr, uid, inv.id)
+                iml += invoice_line_obj.move_line_excise_duty(cr, uid, inv.id)  
+                if inv.purchase_id:
+                    iml += invoice_line_obj.move_line_amount_untaxed(cr, uid, inv.id) 
+                else:
+                    iml += invoice_line_obj.move_line_amount_untaxed_without_po(cr, uid, inv.id) 
+            if (inv.type == 'out_invoice'):
+                iml = invoice_line_obj.move_line_customer_fright(cr, uid, inv.id) 
+                iml += invoice_line_obj.move_line_customer_amount_tax(cr, uid, inv.id) 
+                iml += invoice_line_obj.move_line_customer_excise_duty(cr, uid, inv.id) 
+                iml += invoice_line_obj.move_line_customer_product_price(cr, uid, inv.id)
+            
+#             iml += invoice_line_obj.move_line_price_total(cr, uid, inv.id)  
             # check if taxes are all computed
             compute_taxes = ait_obj.compute(cr, uid, inv.id, context=ctx)
             self.check_tax_lines(cr, uid, inv, compute_taxes, ait_obj)
- 
+  
             # I disabled the check_total feature
             group_check_total_id = self.pool.get('ir.model.data').get_object_reference(cr, uid, 'account', 'group_supplier_inv_check_total')[1]
             group_check_total = self.pool.get('res.groups').browse(cr, uid, group_check_total_id, context=context)
             if group_check_total and uid in [x.id for x in group_check_total.users]:
                 if (inv.type in ('in_invoice', 'in_refund') and abs(inv.check_total - inv.amount_total) >= (inv.currency_id.rounding/2.0)):
                     raise osv.except_osv(_('Bad Total!'), _('Please verify the price of the invoice!\nThe encoded total does not match the computed total.'))
- 
+  
             if inv.payment_term:
                 total_fixed = total_percent = 0
                 for line in inv.payment_term.line_ids:
@@ -201,10 +498,10 @@ class account_invoice(osv.osv):
                 total_fixed = (total_fixed * 100) / (inv.amount_total or 1.0)
                 if (total_fixed + total_percent) > 100:
                     raise osv.except_osv(_('Error!'), _("Cannot create the invoice.\nThe related payment term is probably misconfigured as it gives a computed amount greater than the total invoiced amount. In order to avoid rounding issues, the latest line of your payment term must be of type 'balance'."))
-                 
-              
+                  
+               
 #             iml += ait_obj.move_line_get(cr, uid, inv.id)
- 
+  
             entry_type = ''
             if inv.type in ('in_invoice', 'in_refund'):
                 ref = inv.reference
@@ -216,14 +513,14 @@ class account_invoice(osv.osv):
                 entry_type = 'journal_sale_vou'
                 if inv.type == 'out_refund':
                     entry_type = 'cont_voucher'
- 
+  
             diff_currency_p = inv.currency_id.id <> company_currency
             # create one move line for the total and possibly adjust the other lines amount
             total = 0
             total_currency = 0
             total, total_currency, iml = self.compute_invoice_totals(cr, uid, inv, company_currency, ref, iml, context=ctx)
             acc_id = inv.account_id.id
- 
+  
             name = inv['name'] or inv['supplier_invoice_number'] or '/'
             totlines = False
             if inv.payment_term:
@@ -238,13 +535,13 @@ class account_invoice(osv.osv):
                         amount_currency = cur_obj.compute(cr, uid, company_currency, inv.currency_id.id, t[1], context=ctx)
                     else:
                         amount_currency = False
- 
+  
                     # last line add the diff
                     res_amount_currency -= amount_currency or 0
                     i += 1
                     if i == len(totlines):
                         amount_currency += res_amount_currency
- 
+  
                     iml.append({
                         'type': 'dest',
                         'name': name,
@@ -262,9 +559,7 @@ class account_invoice(osv.osv):
                     'type': 'dest',
                     'name': name,
                     'price': total,
-                    #phuoc
 #                     'price': inv.amount_total,
-                    #/phuoc
                     'account_id': acc_id,
                     'date_maturity': inv.date_due or False,
                     'amount_currency': diff_currency_p \
@@ -273,23 +568,23 @@ class account_invoice(osv.osv):
                             and inv.currency_id.id or False,
                     'ref': ref
             })
- 
+  
             date = inv.date_invoice or time.strftime('%Y-%m-%d')
- 
+  
             part = self.pool.get("res.partner")._find_accounting_partner(inv.partner_id)
- 
+  
             line = map(lambda x:(0,0,self.line_get_convert(cr, uid, x, part.id, date, context=ctx)),iml)
- 
+  
             line = self.group_lines(cr, uid, iml, line, inv)
- 
+  
             journal_id = inv.journal_id.id
             journal = journal_obj.browse(cr, uid, journal_id, context=ctx)
             if journal.centralisation:
                 raise osv.except_osv(_('User Error!'),
                         _('You cannot create an invoice on a centralized journal. Uncheck the centralized counterpart box in the related journal from the configuration menu.'))
- 
+  
             line = self.finalize_invoice_move_lines(cr, uid, inv, line)
- 
+  
             move = {
                 'ref': inv.reference and inv.reference or inv.name,
                 'line_id': line,
@@ -308,7 +603,7 @@ class account_invoice(osv.osv):
                 move['period_id'] = period_id
                 for i in line:
                     i[2]['period_id'] = period_id
- 
+  
             ctx.update(invoice=inv)
             move_id = move_obj.create(cr, uid, move, context=ctx)
             new_move_name = move_obj.browse(cr, uid, move_id, context=ctx).name
@@ -319,6 +614,7 @@ class account_invoice(osv.osv):
             move_obj.post(cr, uid, [move_id], context=ctx)
         self._log_event(cr, uid, ids)
         return True
+     
     
 #     def line_get_convert(self, cr, uid, x, part, date, context=None):
 #         return {
@@ -343,10 +639,10 @@ class account_invoice(osv.osv):
 
     
 account_invoice()
-
+ 
 class account_invoice_line(osv.osv):
     _inherit = "account.invoice.line"
-    
+     
     def move_line_get(self, cr, uid, invoice_id, context=None):
         res = []
         tax_obj = self.pool.get('account.tax')
@@ -386,7 +682,7 @@ class account_invoice_line(osv.osv):
                 res[-1]['tax_code_id'] = tax_code_id
                 res[-1]['tax_amount'] = cur_obj.compute(cr, uid, inv.currency_id.id, company_currency, tax_amount, context={'date': inv.date_invoice})
         return res
-
+ 
     def move_line_get_item(self, cr, uid, line, inv, context=None):
         return {
             'type':'src',
@@ -407,57 +703,221 @@ class account_invoice_line(osv.osv):
         res = []
         cr.execute('SELECT * FROM account_invoice_line WHERE invoice_id=%s', (invoice_id,))
         for t in cr.dictfetchall():
-            cr.execute('SELECT amount_untaxed FROM account_invoice WHERE id=%s', (t['invoice_id'],))
-            amount_untaxed = cr.dictfetchone()['amount_untaxed']
-#             if not t['amount'] \
-#                     and not t['tax_code_id'] \
-#                     and not t['tax_amount']:
-#                 continue
+            basic = (t['quantity'] * t['price_unit']) - ( (t['quantity'] * t['price_unit'])*t['disc']/100)
+            sql = '''
+                SELECT purchase_acc_id FROM product_product WHERE id=%s and purchase_acc_id is not null
+            '''%(t['product_id'])
+            cr.execute(sql)
+            purchase_acc_id = cr.dictfetchone()
+            if not purchase_acc_id:
+                raise osv.except_osv(_('Warning!'),_('Account is not null, please configure it in Material master !'))
             res.append({
                 'type':'tax',
                 'name':t['name'],
                 'price_unit': t['price_unit'],
                 'quantity': 1,
-                'price': amount_untaxed,
-                'account_id': t['account_id'],
-#                 'tax_code_id': t['tax_code_id'],
-#                 'tax_amount': t['tax_amount'],
+                'price': basic,
+                'account_id': purchase_acc_id and purchase_acc_id['purchase_acc_id'] or False,
+                'account_analytic_id': t['account_analytic_id'],
+                })
+        return res
+    
+    def move_line_amount_untaxed_without_po(self, cr, uid, invoice_id):
+        res = []
+        cr.execute('SELECT * FROM account_invoice_line WHERE invoice_id=%s', (invoice_id,))
+        for t in cr.dictfetchall():
+            basic = (t['quantity'] * t['price_unit']) - ( (t['quantity'] * t['price_unit'])*t['disc']/100)
+            res.append({
+                'type':'tax',
+                'name':t['name'],
+                'price_unit': t['price_unit'],
+                'quantity': 1,
+                'price': basic,
+                'account_id': t['gl_code_id'],
+                'account_analytic_id': t['account_analytic_id'],
+                })
+        return res
+     
+    def move_line_customer_product_price(self, cr, uid, invoice_id):
+        res = []
+        cr.execute('SELECT * FROM account_invoice_line WHERE invoice_id=%s', (invoice_id,))
+        for t in cr.dictfetchall():
+            sql = '''
+            SELECT purchase_acc_id FROM product_product WHERE id=%s and purchase_acc_id is not null
+            '''%(t['product_id'])
+            cr.execute(sql)
+            purchase_acc_id = cr.dictfetchone()
+            if not purchase_acc_id:
+                raise osv.except_osv(_('Warning!'),_('Account is not null, please configure it in Material master !'))
+            res.append({
+                'type':'tax',
+                'name':t['name'],
+                'price_unit': t['price_unit'],
+                'quantity': 1,
+                'price': t['price_unit']*t['quantity'],
+                'account_id': purchase_acc_id and purchase_acc_id['purchase_acc_id'] or False,
                 'account_analytic_id': t['account_analytic_id'],
             })
-        return res 
+        return res
+    def move_line_customer_excise_duty(self, cr, uid, invoice_id):
+        res = []
+        cr.execute('SELECT * FROM account_invoice_line WHERE invoice_id=%s', (invoice_id,))
+        account_line_ids = [r[0] for r in cr.fetchall()]
+        for line in self.browse(cr,uid,account_line_ids):
+#             cr.execute('SELECT * FROM account_invoice WHERE id=%s', (invoice_id,))
+#             for account in cr.dictfetchall():
+            ed_amount = (line.quantity * line.price_unit) * (line.invoice_id.excise_duty_id.amount and line.invoice_id.excise_duty_id.amount/100 or 1)
+            sql = '''
+                    SELECT cus_inv_ed_id FROM tpt_posting_configuration WHERE name = 'cus_inv' and cus_inv_ed_id is not null
+                '''
+            cr.execute(sql)
+            cus_inv_ed_id = cr.dictfetchone()
+            if not cus_inv_ed_id:
+                raise osv.except_osv(_('Warning!'),_('Account is not null, please configure it in GL Posting Configrution !'))
+            res.append({
+                'type':'tax',
+                'name':line.name,
+                'price_unit': line.price_unit,
+                'quantity': 1,
+                'price':ed_amount,
+                'account_id': cus_inv_ed_id and cus_inv_ed_id['cus_inv_ed_id'] or False,
+                'account_analytic_id': line.account_analytic_id.id,
+            })
+        return res  
     def move_line_amount_tax(self, cr, uid, invoice_id):
         res = []
         cr.execute('SELECT * FROM account_invoice_line WHERE invoice_id=%s', (invoice_id,))
         for t in cr.dictfetchall():
-            cr.execute('SELECT amount_tax FROM account_invoice WHERE id=%s', (t['invoice_id'],))
-            amount_tax = cr.dictfetchone()['amount_tax']
-#             if not t['amount'] \
-#                     and not t['tax_code_id'] \
-#                     and not t['tax_amount']:
-#                 continue
-            res.append({
-                'type':'tax',
-                'name':t['name'],
-                'price_unit': t['price_unit'],
-                'quantity': 1,
-                'price': amount_tax,
-                'account_id': t['account_id'],
-                'account_analytic_id': t['account_analytic_id'],
-            })
+            cr.execute('SELECT * FROM account_invoice WHERE id=%s', (invoice_id,))
+            for account in cr.dictfetchall():
+                tax = account['amount_tax']
+#         invoice_ids = [r[0] for r in cr.fetchall()]
+#         for invoice_line in self.browse(cr,uid,invoice_ids):
+#             basic = (invoice_line.quantity * invoice_line.price_unit) - ( (invoice_line.quantity * invoice_line.price_unit)*invoice_line.disc/100)
+#             if (invoice_line.p_f_type == '1'):
+#                 p_f = basic * invoice_line.p_f/100
+#             else:
+#                 p_f = invoice_line.p_f
+#             if invoice_line.ed_type == '1' :
+#                 ed = (basic + p_f) * invoice_line.ed/100
+#             else:
+#                 ed = invoice_line.ed
+#             
+#             tax_amounts = [r.amount for r in invoice_line.invoice_line_tax_id]
+#             tax = 0
+#             for tax_amount in tax_amounts:
+#                 tax += tax_amount/100
+#             amount_total_tax = (basic + p_f + ed)*(tax)
+                sql = '''
+                    SELECT cus_inv_vat_id FROM tpt_posting_configuration WHERE name = 'cus_inv' and cus_inv_vat_id is not null
+                '''
+                cr.execute(sql)
+                cus_inv_vat_id = cr.dictfetchone()
+                if cus_inv_vat_id:
+                    account = cus_inv_vat_id and cus_inv_vat_id['cus_inv_vat_id'] or False
+                sql = '''
+                    SELECT cus_inv_cst_id FROM tpt_posting_configuration WHERE name = 'cus_inv' and cus_inv_cst_id is not null
+                '''
+                cr.execute(sql)
+                cus_inv_cst_id = cr.dictfetchone()
+                if cus_inv_cst_id:
+                    account = cus_inv_cst_id and cus_inv_cst_id['cus_inv_cst_id'] or False
+                if cus_inv_cst_id or cus_inv_vat_id:
+                    res.append({
+                        'type':'tax',
+                        'name':t['name'],
+                        'price_unit': t['price_unit'],
+                        'quantity': 1,
+                        'price': tax,
+                        'account_id': account,
+                        'account_analytic_id': t['account_analytic_id'],
+                    })
+                else :
+                        raise osv.except_osv(_('Warning!'),_('Account is not null, please configure it in GL Posting Configrution !'))
+                break
+            break
         return res
+    
+    def move_line_customer_amount_tax(self, cr, uid, invoice_id):
+        res = []
+        cr.execute('SELECT * FROM account_invoice_line WHERE invoice_id=%s', (invoice_id,))
+        for t in cr.dictfetchall():
+            cr.execute('SELECT * FROM account_invoice WHERE id=%s', (invoice_id,))
+            for account in cr.dictfetchall():
+                tax = account['amount_tax']
+                sql = '''
+                    SELECT cus_inv_vat_id FROM tpt_posting_configuration WHERE name = 'cus_inv' and cus_inv_vat_id is not null
+                '''
+                cr.execute(sql)
+                cus_inv_vat_id = cr.dictfetchone()
+                if cus_inv_vat_id:
+                    account = cus_inv_vat_id and cus_inv_vat_id['cus_inv_vat_id'] or False
+                sql = '''
+                    SELECT cus_inv_cst_id FROM tpt_posting_configuration WHERE name = 'cus_inv' and cus_inv_cst_id is not null
+                '''
+                cr.execute(sql)
+                cus_inv_cst_id = cr.dictfetchone()
+                if cus_inv_cst_id:
+                    account = cus_inv_cst_id and cus_inv_cst_id['cus_inv_cst_id'] or False
+                if cus_inv_cst_id or cus_inv_vat_id:
+                    res.append({
+                        'type':'tax',
+                        'name':t['name'],
+                        'price_unit': t['price_unit'],
+                        'quantity': 1,
+                        'price': tax,
+                        'account_id': account,
+                        'account_analytic_id': t['account_analytic_id'],
+                    })
+                else :
+                    raise osv.except_osv(_('Warning!'),_('Account is not null, please configure it in GL Posting Configrution !'))
+                break
+            break
+        return res 
+    
     def move_line_fright(self, cr, uid, invoice_id):
         res = []
         cr.execute('SELECT * FROM account_invoice_line WHERE invoice_id=%s', (invoice_id,))
         for t in cr.dictfetchall():
-            cr.execute('SELECT fright FROM account_invoice WHERE id=%s', (t['invoice_id'],))
-            fright = cr.dictfetchone()['fright']
+            cr.execute('SELECT * FROM account_invoice WHERE id=%s', (invoice_id,))
+            for account in cr.dictfetchall():
+                sql = '''
+                    SELECT sup_inv_fright_id FROM tpt_posting_configuration WHERE name = 'sup_inv' and sup_inv_fright_id is not null
+                '''
+                cr.execute(sql)
+                sup_inv_fright_id = cr.dictfetchone()
+                if not sup_inv_fright_id:
+                    raise osv.except_osv(_('Warning!'),_('Account is not null, please configure it in GL Posting Configrution !'))
+                res.append({
+                    'type':'tax',
+                    'name':t['name'],
+                    'price_unit': t['price_unit'],
+                    'quantity': 1,
+                    'price': account['fright'],
+                    'account_id': sup_inv_fright_id and sup_inv_fright_id['sup_inv_fright_id'] or False,
+                    'account_analytic_id': t['account_analytic_id'],
+                })
+                break
+            break
+        return res 
+    def move_line_customer_fright(self, cr, uid, invoice_id):
+        res = []
+        cr.execute('SELECT * FROM account_invoice_line WHERE invoice_id=%s', (invoice_id,))
+        for t in cr.dictfetchall():
+            sql = '''
+                    SELECT cus_inv_fright_id FROM tpt_posting_configuration WHERE name = 'cus_inv' and cus_inv_fright_id is not null
+                '''
+            cr.execute(sql)
+            cus_inv_fright_id = cr.dictfetchone()
+            if not cus_inv_fright_id:
+                raise osv.except_osv(_('Warning!'),_('Account is not null, please configure it in GL Posting Configrution !'))
             res.append({
                 'type':'tax',
                 'name':t['name'],
                 'price_unit': t['price_unit'],
                 'quantity': 1,
-                'price': fright,
-                'account_id': t['account_id'],
+                'price': t['freight'],
+                'account_id': cus_inv_fright_id and cus_inv_fright_id['cus_inv_fright_id'] or False,
                 'account_analytic_id': t['account_analytic_id'],
             })
         return res 
@@ -465,18 +925,124 @@ class account_invoice_line(osv.osv):
         res = []
         cr.execute('SELECT * FROM account_invoice_line WHERE invoice_id=%s', (invoice_id,))
         for t in cr.dictfetchall():
-            cr.execute('SELECT excise_duty FROM account_invoice WHERE id=%s', (t['invoice_id'],))
-            excise_duty = cr.dictfetchone()['excise_duty']
-            res.append({
-                'type':'tax',
-                'name':t['name'],
-                'price_unit': t['price_unit'],
-                'quantity': 1,
-                'price': excise_duty,
-                'account_id': t['account_id'],
-                'account_analytic_id': t['account_analytic_id'],
-            })
+            cr.execute('SELECT * FROM account_invoice WHERE id=%s', (invoice_id,))
+            for account in cr.dictfetchall():
+#             basic = (t['quantity'] * t['price_unit']) - ( (t['quantity'] * t['price_unit'])*t['disc']/100)
+#             if (t['p_f_type'] == '1'):
+#                 p_f = basic * t['p_f']/100
+#             else:
+#                 p_f = t['p_f']
+#             if t['ed_type'] == '1' :
+#                 ed = (basic + p_f) * t['ed']/100
+#             else:
+#                 ed = t['ed']
+                sql = '''
+                    SELECT sup_inv_ed_id FROM tpt_posting_configuration WHERE name = 'sup_inv' and sup_inv_ed_id is not null
+                '''
+                cr.execute(sql)
+                sup_inv_ed_id = cr.dictfetchone()
+                if not sup_inv_ed_id:
+                    raise osv.except_osv(_('Warning!'),_('Account is not null, please configure it in GL Posting Configrution !'))
+                res.append({
+                    'type':'tax',
+                    'name':t['name'],
+                    'price_unit': t['price_unit'],
+                    'quantity': 1,
+                    'price': account['excise_duty'],
+                    'account_id': sup_inv_ed_id and sup_inv_ed_id['sup_inv_ed_id'] or False,
+                    'account_analytic_id': t['account_analytic_id'],
+                })
+                break
+            break
         return res  
+    
+    def move_line_pf(self, cr, uid, invoice_id):
+        res = []
+        cr.execute('SELECT * FROM account_invoice_line WHERE invoice_id=%s', (invoice_id,))
+        for t in cr.dictfetchall():
+#             basic = (t['quantity'] * t['price_unit']) - ( (t['quantity'] * t['price_unit'])*t['disc']/100)
+#             if (t['p_f_type'] == '1'):
+#                 p_f = basic * t['p_f']/100
+#             else:
+#                 p_f = t['p_f']
+                
+            cr.execute('SELECT * FROM account_invoice WHERE id=%s', (invoice_id,))
+            for account in cr.dictfetchall():
+                sql = '''
+                    SELECT sup_inv_pf_id FROM tpt_posting_configuration WHERE name = 'sup_inv' and sup_inv_pf_id is not null
+                '''
+                cr.execute(sql)
+                sup_inv_pf_id = cr.dictfetchone()
+                if not sup_inv_pf_id:
+                    raise osv.except_osv(_('Warning!'),_('Account is not null, please configure it in GL Posting Configrution !'))
+                res.append({
+                    'type':'tax',
+                    'name':t['name'],
+                    'price_unit': t['price_unit'],
+                    'quantity': 1,
+                    'price': account['p_f_charge'],
+                    'account_id': sup_inv_pf_id and sup_inv_pf_id['sup_inv_pf_id'] or False,
+                    'account_analytic_id': t['account_analytic_id'],
+                })
+                break
+            break
+        return res 
+    def move_line_price_different(self, cr, uid, invoice_id):
+        res = []
+        cr.execute('SELECT * FROM account_invoice_line WHERE invoice_id=%s', (invoice_id,))
+        for t in cr.dictfetchall():
+            cr.execute('SELECT * FROM account_invoice WHERE id=%s', (t['invoice_id'],))
+            for account in cr.dictfetchall():
+                result = False
+                total = account['amount_untaxed'] + account['p_f_charge'] + account['excise_duty'] + account['amount_tax'] + account['fright']
+                if (total < account['amount_total']):
+                    result = account['amount_total'] - total
+                if (total > account['amount_total']):
+                    result = -(total - account['amount_total'])
+                sql = '''
+                    SELECT sup_inv_price_id FROM tpt_posting_configuration WHERE name = 'sup_inv' and sup_inv_price_id is not null
+                '''
+                cr.execute(sql)
+                sup_inv_price_id = cr.dictfetchone()
+                if not sup_inv_price_id:
+                    raise osv.except_osv(_('Warning!'),_('Account is not null, please configure it in GL Posting Configrution !'))
+                res.append({
+                    'type':'tax',
+                    'name':account['name'],
+                    'price_unit': t['price_unit'],
+                    'quantity': 1,
+                    'price': result,
+                    'account_id': sup_inv_price_id and sup_inv_price_id['sup_inv_price_id'] or False,
+                    'account_analytic_id': t['account_analytic_id'],
+                })
+                break
+            break
+        return res   
+#     def move_line_price_total(self, cr, uid, invoice_id):
+#         res = []
+#         cr.execute('SELECT * FROM account_invoice_line WHERE invoice_id=%s', (invoice_id,))
+#         for t in cr.dictfetchall():
+#             cr.execute('SELECT * FROM account_invoice WHERE id=%s', (t['invoice_id'],))
+#             for account in cr.dictfetchall():
+#                 sql = '''
+#                     SELECT sup_inv_price_id FROM tpt_posting_configuration WHERE name = 'sup_inv' and sup_inv_price_id is not null
+#                 '''
+#                 cr.execute(sql)
+#                 sup_inv_price_id = cr.dictfetchone()
+#                 if not sup_inv_price_id:
+#                     raise osv.except_osv(_('Warning!'),_('Account is not null, please configure it in GL Posting Configrution !'))
+#                 res.append({
+#                     'type':'tax',
+#                     'name':account['name'],
+#                     'price_unit': t['price_unit'],
+#                     'quantity': 1,
+#                     'price': account['amount_total'],
+#                     'account_id': sup_inv_price_id and sup_inv_price_id['sup_inv_price_id'] or False,
+#                     'account_analytic_id': t['account_analytic_id'],
+#                 })
+#                 break
+#             break
+#         return res   
 account_invoice_line()
 
 class product_product(osv.osv):

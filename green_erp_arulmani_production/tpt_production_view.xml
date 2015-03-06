@@ -219,7 +219,7 @@
                        <attribute name='invisible'>1</attribute>
                     </xpath>
                     <xpath expr="//field[@name='product_id']" position="replace">
-                       <field name="product_id" domain="[('cate_name','=','finish')]" options="{'create': false, 'create_edit': false}" on_change="onchange_product_id(product_id, name, context)" context="{'default_supply_method':'produce'}" class="oe_inline"/>
+                       <field name="product_id" domain="[('categ_id.cate_name','=','finish')]" options="{'create': false, 'create_edit': false}" on_change="onchange_product_id(product_id, name, context)" context="{'default_supply_method':'produce'}" class="oe_inline"/>
                     </xpath>
                 	<xpath expr="//field[@name='bom_lines']/tree" position="replace">
                         <tree string="Components" editable="bottom">
@@ -285,8 +285,11 @@
             <field name="arch" type="xml">
                 <data>
                 	<xpath expr="//field[@name='name']" position="after">
-                		<field name="app_quantity" />
+                		<field name="app_quantity" on_change = "onchange_app_qty_id(app_quantity, product_qty)" />
                     </xpath>
+                    <xpath expr="//field[@name='product_qty']" position="attributes">
+                		<attribute name='readonly'>1</attribute>
+                    </xpath> 
                 </data>
             </field>
         </record>
@@ -352,8 +355,8 @@
                     	<field name="app_quantity" />
                     </xpath>
   
-                    <xpath expr="//form/sheet/notebook/page[@string='Consumed Products']/group/group[@string='Products to Consume']" position="attributes">
-						<attribute name='string'>Consumed Product</attribute>
+                    <xpath expr="//form/sheet/notebook/page[@string='Consumed Products']" position="attributes">
+						<attribute name='string'>Products to Consume</attribute>
                     </xpath>
 
                     <xpath expr="//form/sheet/notebook/page[@string='Scheduled Products']" position="attributes">
