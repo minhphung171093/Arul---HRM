@@ -728,6 +728,16 @@ class stock_production_lot(osv.osv):
        ids = self.search(cr, user, args, context=context, limit=limit)
        return self.name_get(cr, user, ids, context=context)
    
+    def unlink(self, cr, uid, ids, context=None):
+        lot_name = self.read(cr, uid, ids, ['name'], context=context)
+        unlink_ids = []
+        for lot in lot_name:
+            if lot['name'] in ('temp_tio2','Argi','Wet','Drier','temp_fsh'):
+                raise osv.except_osv(_('Warning!'), _('This Batch Number can not be deleted. It is default Batch Number!'))
+            else:
+                unlink_ids.append(lot['id'])
+        return super(stock_production_lot, self).unlink(cr, uid, ids, context=context)
+   
 stock_production_lot()
 
 class stock_move(osv.osv):

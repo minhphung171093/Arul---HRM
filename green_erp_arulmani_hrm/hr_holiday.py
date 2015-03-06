@@ -281,6 +281,12 @@ class arul_hr_audit_shift_time(osv.osv):
         employee_leave_obj = self.pool.get('employee.leave')
         employee_leave_detail_obj = self.pool.get('employee.leave.detail')
         leave_type_obj = self.pool.get('arul.hr.leave.types')
+        for line in self.browse(cr, uid, ids):
+            if line.employee_id.department_id and line.employee_id.department_id.primary_auditor_id and line.employee_id.department_id.primary_auditor_id.id==uid \
+            or line.employee_id.department_id and line.employee_id.department_id.secondary_auditor_id and line.employee_id.department_id.secondary_auditor_id.id==uid:
+                continue
+            else:
+                raise osv.except_osv(_('Warning!'),_('User does not have permission to approve for this employee department!'))
         for line in self.browse(cr,uid,ids):
 #             emp = self.pool.get('hr.employee')
             emp_attendence_obj = self.pool.get('arul.hr.employee.attendence.details')
@@ -655,6 +661,12 @@ class arul_hr_audit_shift_time(osv.osv):
         employee_leave_detail_obj = self.pool.get('employee.leave.detail')
         leave_type_obj = self.pool.get('arul.hr.leave.types')
 	#raise osv.except_osv(_('Warning!%s'),leave_type_obj)	
+        for line in self.browse(cr, uid, ids):
+            if line.employee_id.department_id and line.employee_id.department_id.primary_auditor_id and line.employee_id.department_id.primary_auditor_id.id==uid \
+            or line.employee_id.department_id and line.employee_id.department_id.secondary_auditor_id and line.employee_id.department_id.secondary_auditor_id.id==uid:
+                continue
+            else:
+                raise osv.except_osv(_('Warning!'),_('User does not have permission to approve for this employee department!'))
         for line in self.browse(cr,uid,ids):
 #             emp = self.pool.get('hr.employee')
             emp_attendence_obj = self.pool.get('arul.hr.employee.attendence.details')
@@ -1045,7 +1057,23 @@ class arul_hr_audit_shift_time(osv.osv):
         for line in self.browse(cr, uid, ids):
             self.write(cr, uid, [line.id],{'approval': False, 'state':'cancel', 'time_evaluate_id':False})
         return True
-      
+    
+    def search(self, cr, uid, args, offset=0, limit=None, order=None, context=None, count=False):
+        if context is None:
+            context = {}
+        if context.get('search_for_audit_shift_pri_auditor'):
+            primary_auditor_ids = self.pool.get('hr.department').search(cr, uid, [('primary_auditor_id','=',uid)])
+            if primary_auditor_ids:
+                sql = '''
+                    select id from arul_hr_audit_shift_time where
+                        employee_id in (select id from hr_employee
+                            where department_id in (select id from hr_department where primary_auditor_id =%s))
+                '''%(uid)
+                cr.execute(sql)
+                leave_details_ids = [r[0] for r in cr.fetchall()]
+                args += [('id','in',leave_details_ids)]
+        return super(arul_hr_audit_shift_time, self).search(cr, uid, args, offset, limit, order, context, count)
+
 arul_hr_audit_shift_time()
 
 class arul_hr_employee_leave_details(osv.osv):
@@ -1262,30 +1290,34 @@ class arul_hr_employee_leave_details(osv.osv):
     def process_leave_request(self, cr, uid, ids, context=None):
         DATETIME_FORMAT = "%Y-%m-%d"
         for line in self.browse(cr, uid, ids):
-            from_dt = datetime.datetime.strptime(line.date_from, DATETIME_FORMAT)
-            to_dt = datetime.datetime.strptime(line.date_to, DATETIME_FORMAT)
-            timedelta = (to_dt - from_dt).days+1
-            if line.haft_day_leave:
-                timedelta = timedelta-0.5
-            leave_details_obj = self.pool.get('employee.leave.detail')
-            emp_leave_obj = self.pool.get('employee.leave')
-            year_now = line.date_from[0:4]
-#             year_now = time.strftime('%Y')
-            emp_leave_ids = emp_leave_obj.search(cr, uid, [('employee_id','=',line.employee_id.id),('year','=',year_now)])
-            if emp_leave_ids:
-                emp_leave = emp_leave_obj.browse(cr, uid, emp_leave_ids[0])
-                temp = 0
-                for line_leave in emp_leave.emp_leave_details_ids:
-                    if line_leave.leave_type_id.id == line.leave_type_id.id:
-                        temp += 1
-                        day = line_leave.total_day - line_leave.total_taken
-                        if timedelta > day and line_leave.leave_type_id.code!='LOP' and line_leave.leave_type_id.code!='ESI':#TPT BalamuruganPurushothaman on 17/02/2015 - To treat ESI as same as LOP
-                            raise osv.except_osv(_('Warning!'),_('The Taken Day Must Be Less Than The Limit'))
-                if temp == 0:
-                    raise osv.except_osv(_('Warning!'),_('Leave Type Is Unlicensed For Employee Category And Employee Sub Category!'))
+            if line.employee_id.department_id and line.employee_id.department_id.primary_auditor_id and line.employee_id.department_id.primary_auditor_id.id==uid \
+            or line.employee_id.department_id and line.employee_id.department_id.secondary_auditor_id and line.employee_id.department_id.secondary_auditor_id.id==uid:
+                from_dt = datetime.datetime.strptime(line.date_from, DATETIME_FORMAT)
+                to_dt = datetime.datetime.strptime(line.date_to, DATETIME_FORMAT)
+                timedelta = (to_dt - from_dt).days+1
+                if line.haft_day_leave:
+                    timedelta = timedelta-0.5
+                leave_details_obj = self.pool.get('employee.leave.detail')
+                emp_leave_obj = self.pool.get('employee.leave')
+                year_now = line.date_from[0:4]
+        #             year_now = time.strftime('%Y')
+                emp_leave_ids = emp_leave_obj.search(cr, uid, [('employee_id','=',line.employee_id.id),('year','=',year_now)])
+                if emp_leave_ids:
+                    emp_leave = emp_leave_obj.browse(cr, uid, emp_leave_ids[0])
+                    temp = 0
+                    for line_leave in emp_leave.emp_leave_details_ids:
+                        if line_leave.leave_type_id.id == line.leave_type_id.id:
+                            temp += 1
+                            day = line_leave.total_day - line_leave.total_taken
+                            if timedelta > day and line_leave.leave_type_id.code!='LOP' and line_leave.leave_type_id.code!='ESI':#TPT BalamuruganPurushothaman on 17/02/2015 - To treat ESI as same as LOP
+                                raise osv.except_osv(_('Warning!'),_('The Taken Day Must Be Less Than The Limit'))
+                    if temp == 0:
+                        raise osv.except_osv(_('Warning!'),_('Leave Type Is Unlicensed For Employee Category And Employee Sub Category!'))
+                else:
+                    raise osv.except_osv(_('Warning!'),_('Employee Has Not Been Licensed Holidays For The Current Year'))
+                self.write(cr, uid, [line.id],{'state':'done','leave_evaluate_id': False})
             else:
-                raise osv.except_osv(_('Warning!'),_('Employee Has Not Been Licensed Holidays For The Current Year'))
-            self.write(cr, uid, [line.id],{'state':'done','leave_evaluate_id': False})
+                raise osv.except_osv(_('Warning!'),_('User does not have permission to approve for this employee department!'))
         return True  
     
     def cancel_leave_request(self, cr, uid, ids, context=None):
@@ -1345,6 +1377,23 @@ class arul_hr_employee_leave_details(osv.osv):
         (_check_days, _(''), ['date_from', 'date_to']),
         (_check_days_2, _(''), ['employee_id','date_from', 'date_to']),
     ]
+    
+    def search(self, cr, uid, args, offset=0, limit=None, order=None, context=None, count=False):
+        if context is None:
+            context = {}
+        if context.get('search_for_primary_auditor'):
+            primary_auditor_ids = self.pool.get('hr.department').search(cr, uid, [('primary_auditor_id','=',uid)])
+            if primary_auditor_ids:
+                sql = '''
+                    select id from arul_hr_employee_leave_details where
+                        employee_id in (select id from hr_employee
+                            where department_id in (select id from hr_department where primary_auditor_id =%s))
+                '''%(uid)
+                cr.execute(sql)
+                leave_details_ids = [r[0] for r in cr.fetchall()]
+                args += [('id','in',leave_details_ids)]
+        return super(arul_hr_employee_leave_details, self).search(cr, uid, args, offset, limit, order, context, count)
+
 arul_hr_employee_leave_details()
 
 
@@ -2188,6 +2237,12 @@ class arul_hr_monthly_work_schedule(osv.osv):
                 self.write(cr, uid, [line.id], {'monthly_shift_line':work_vals,'state':'load'})
         return True
     def approve_current_month(self, cr, uid, ids, context=None):
+        for line in self.browse(cr, uid, ids):
+            if line.department_id and line.department_id.primary_auditor_id and line.department_id.primary_auditor_id.id==uid \
+            or line.department_id and line.department_id.secondary_auditor_id and line.department_id.secondary_auditor_id.id==uid:
+                self.write(cr, uid, ids, {'state':'done'})
+            else:
+                raise osv.except_osv(_('Warning!'),_('User does not have permission to approve for this employee department!'))
         return self.write(cr, uid, ids, {'state':'done'})
     
     def shift_schedule(self, cr, uid, ids, context=None):
@@ -2673,6 +2728,20 @@ class arul_hr_monthly_work_schedule(osv.osv):
                 employee_lines.append((0,0,rs))
         return {'value': {'monthly_shift_line':employee_lines}}
         
+    def search(self, cr, uid, args, offset=0, limit=None, order=None, context=None, count=False):
+        if context is None:
+            context = {}
+        if context.get('search_for_monthly_work_sche_pri_auditor'):
+            primary_auditor_ids = self.pool.get('hr.department').search(cr, uid, [('primary_auditor_id','=',uid)])
+            if primary_auditor_ids:
+                sql = '''
+                    select id from arul_hr_monthly_work_schedule where
+                        department_id in (select id from hr_department where primary_auditor_id =%s)
+                '''%(uid)
+                cr.execute(sql)
+                leave_details_ids = [r[0] for r in cr.fetchall()]
+                args += [('id','in',leave_details_ids)]
+        return super(arul_hr_monthly_work_schedule, self).search(cr, uid, args, offset, limit, order, context, count)
         
 arul_hr_monthly_work_schedule()
 

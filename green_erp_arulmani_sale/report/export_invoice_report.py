@@ -25,6 +25,7 @@ class Parser(report_sxw.rml_parse):
         pool = pooler.get_pool(self.cr.dbname)
         self.localcontext.update({
             'get_date': self.get_date,
+            'get_date_time': self.get_date,
             'get_total': self.get_total,
             'get_total_amount': self.get_total_amount,
             'amount_to_text': self.amount_to_text,
@@ -39,6 +40,12 @@ class Parser(report_sxw.rml_parse):
             date = time.strftime(DATE_FORMAT)
         date = datetime.strptime(date, DATE_FORMAT)
         return date.strftime('%d/%m/%Y')
+    def get_date_time(self, date=False):
+        if not date:
+            date = time.strftime(DATETIME_FORMAT)
+        date = datetime.strptime(date, DATETIME_FORMAT)
+        return date.strftime('%d/%m/%Y %H:%M')
+    
     def get_total(self, invoice_line, insurance):
         val1 = 0.0
         for line in invoice_line:
