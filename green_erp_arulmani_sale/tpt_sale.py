@@ -1845,6 +1845,10 @@ class res_partner(osv.osv):
         'consignee_line': fields.one2many('res.partner', 'consignee_parent_id', 'Consignee'),
         'bill_location': fields.boolean('Is Bill To Location'), 
         'shipping_location': fields.boolean('Is Shipping Location'), 
+        #TPT
+        #'consignee': fields.one2many('res.partner', 'Consignee'),
+        
+        
                  }
     
     def _search(self, cr, user, args, offset=0, limit=None, order=None, context=None, count=False, access_rights_uid=None):
