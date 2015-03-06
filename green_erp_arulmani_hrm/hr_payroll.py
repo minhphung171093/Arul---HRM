@@ -1106,7 +1106,7 @@ class arul_hr_payroll_executions(osv.osv):
                         pt = 0.0
                         lwf = 0.0
                         total_deduction = 0
-                        total_f = 0
+                        #total_f = 0
 			#total_f = 0
                         for other_deductions_id in payroll_emp_struc_obj.browse(cr,uid,emp_struc_ids[0]).payroll_other_deductions_line:
 #                             if other_deductions_id.deduction_parameters_id.code == 'PF.D':
@@ -1128,7 +1128,7 @@ class arul_hr_payroll_executions(osv.osv):
 #                             if other_deductions_id.deduction_parameters_id.code == 'LWF':
 #                                 lwf = other_deductions_id.float
 
-                        fd += total_f
+                        fd += total_fd
 			#TPT
                         #total_deduction = pfd + pd + vpfd + esid + fd + ld + ind +  pt + lwf 
                         total_deduction = pd  + esid + fd + ld + ind +  pt + lwf
