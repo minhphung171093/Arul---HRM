@@ -773,4 +773,37 @@ class product_product(osv.osv):
         }
     
 product_product()
-    
+
+class account_voucher(osv.osv):
+    _inherit = "account.voucher"
+    _columns = {
+        'cheque_date': fields.date('Cheque Date'),
+        'cheque_no': fields.char('Cheque No'),
+        'sum_amount': fields.float('Amount'),
+        'type':fields.selection([
+            ('payment','Payment'),
+            ('receipt','Receipt'),
+        ],'Default Type', readonly=True, states={'draft':[('readonly',False)]}),
+        }
+    def create(self, cr, uid, vals, context=None):
+        if 'sum_amount' in vals:
+            new_id = super(account_voucher, self).create(cr, uid, vals, context)
+            account = self.browse(cr,uid,new_id)
+            amount = 0
+            for line in account.line_ids:
+                amount += line.amount
+            if (account.sum_amount != amount):
+                raise osv.except_osv(_('Warning!'),_('The Debit and Credit Amount should be matched'))
+        return new_id
+    def write(self, cr, uid, ids, vals, context=None):
+        new_write = super(account_voucher, self).write(cr, uid, ids, vals, context)
+        if 'sum_amount' in vals:
+            for account in self.browse(cr,uid,ids):
+                amount = 0
+                for line in account.line_ids:
+                    amount += line.amount
+                if (account.sum_amount != amount):
+                    raise osv.except_osv(_('Warning!'),_('The Debit and Credit Amount should be matched'))
+        return new_write
+         
+account_voucher()

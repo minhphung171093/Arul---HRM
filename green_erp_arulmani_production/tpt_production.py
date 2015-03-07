@@ -436,11 +436,15 @@ class mrp_bom(osv.osv):
         return res
     
     _columns = {
+        'name': fields.text('Name'),
         'cost_type': fields.selection([('variable','Variable'),('fixed','Fixed')], 'Cost Type'),
         'activities_line': fields.one2many('tpt.activities.line', 'bom_id', 'Activities'),
 #         'product_cost': fields.function(_norms, store = True, multi='sums', string='Product Cost'),
         'finish_product_cost': fields.function(sum_finish_function, string='Finish Product Cost'),
         'product_cost': fields.float('Product Cost'),
+        'note': fields.text('Notes'),
+        'active': fields.boolean('Active'),
+        'deactive': fields.boolean('Deactive'),
     }
     
     def write(self, cr, uid, ids, vals, context=None):
@@ -522,6 +526,7 @@ class tpt_activities_line(osv.osv):
         'product_uom': fields.many2one('product.uom', 'UOM', required=True),
         'cost_type': fields.selection([('variable','Variable'),('fixed','Fixed')], 'Cost Type'),
         'product_cost': fields.float('Cost'),
+        'note': fields.text('Notes'),
     }
     
     _defaults={
