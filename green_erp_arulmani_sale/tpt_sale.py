@@ -1144,7 +1144,7 @@ class tpt_blank_order_line(osv.osv):
     _columns = {
         'blanket_order_id': fields.many2one('tpt.blanket.order', 'Blank Order', ondelete = 'cascade'),
         'product_id': fields.many2one('product.product', 'Product', required = True),
-        'description': fields.text('Description', readonly = True),
+        'description': fields.text('Description', required = True),
         'product_type': fields.selection([('rutile', 'Rutile'),('anatase', 'Anatase')],'Product Type',readonly = True),
         'application_id': fields.many2one('crm.application', 'Application'),
         'product_uom_qty': fields.float('Quantity'),
