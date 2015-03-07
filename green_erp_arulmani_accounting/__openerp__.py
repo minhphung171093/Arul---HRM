@@ -30,7 +30,7 @@
     'data': [
         'security/green_erp_arulmani_accounting_security.xml',
         'security/ir.model.access.csv',
-        'accounting_sequence.xml',
+        'tpt_accounting_sequence.xml',
         'tpt_accounting_view.xml',
         
     ],

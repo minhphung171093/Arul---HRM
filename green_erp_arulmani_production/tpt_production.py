@@ -391,13 +391,7 @@ class mrp_bom(osv.osv):
     _inherit = 'mrp.bom'
      
      
-    def create(self, cr, uid, vals, context=None):
-        
-        if 'product_id' in vals:
-            product = self.pool.get('product.product').browse(cr, uid, vals['product_id'])
-            vals.update({'product_uom':product.uom_id.id})
-        new_id = super(mrp_bom, self).create(cr, uid, vals, context)
-        return new_id    
+
      
     def _norms(self, cr, uid, ids, field_name, args, context=None):
         res = {}
@@ -447,11 +441,24 @@ class mrp_bom(osv.osv):
         'deactive': fields.boolean('Deactive'),
     }
     
+    def create(self, cr, uid, vals, context=None):
+        
+        if 'product_id' in vals:
+            product = self.pool.get('product.product').browse(cr, uid, vals['product_id'])
+            vals.update({'product_uom':product.uom_id.id})
+        if 'product_cost' in vals:
+            if (vals['product_cost'] < 0):
+                raise osv.except_osv(_('Warning!'),_('Product Cost is not negative value'))
+        new_id = super(mrp_bom, self).create(cr, uid, vals, context)
+
+        return new_id
     def write(self, cr, uid, ids, vals, context=None):
         new_write = super(mrp_bom, self).write(cr, uid, ids, vals, context)
         for line in self.browse(cr,uid,ids):
             if (line.product_qty < 0):
                 raise osv.except_osv(_('Warning!'),_('Quantity is not allowed as negative values'))
+            if (line.product_cost < 0):
+                raise osv.except_osv(_('Warning!'),_('Product Cost is not allowed as negative values'))
         return new_write        
             
     def onchange_cost_type(self, cr, uid, ids, product_id=False, cost_type=False, context=None):
@@ -648,6 +655,7 @@ class mrp_production(osv.osv):
             'state': 'waiting',
             'company_id': production.company_id.id,
             'prodlot_id': prodlot_ids and prodlot_ids[0] or False,
+            'app_quantity': production_line.product_qty,
         })
         production.write({'move_lines': [(4, move_id)]}, context=context)
         return move_id
@@ -748,26 +756,27 @@ stock_production_lot()
 class stock_move(osv.osv):
     _inherit = 'stock.move'
     _columns = {
-        'app_quantity': fields.float('Appllied Quantity'),
+        'app_quantity': fields.float('Applied Quantity'),
     }
     
-    def create(self, cr, uid, vals, context=None):
-        new_id = super(stock_move, self).create(cr, uid, vals, context)
-        if 'app_quantity' in vals:
-            if (vals['app_quantity'] < 0):
-                raise osv.except_osv(_('Warning!'),_('Appllied Quantity is not allowed as negative values'))
-#         if ('app_quantity' and 'product_qty') in vals:
-#             if (vals['app_quantity'] > vals['product_qty']):
-#                 raise osv.except_osv(_('Warning!'),_('Appllied Quantity is not greater than Product Quantity!'))
-        return new_id  
-    def write(self, cr, uid, ids, vals, context=None):
-        new_write = super(stock_move, self).write(cr, uid,ids, vals, context)
-        for line in self.browse(cr,uid,ids):
-            if line.app_quantity > line.product_qty:
-                raise osv.except_osv(_('Warning!'),_('Appllied Quantity is not greater than Product Quantity!'))
-            if line.app_quantity < 0:
-                raise osv.except_osv(_('Warning!'),_('Appllied Quantity is not allowed as negative values'))
-        return new_write  
+    def onchange_app_qty_id(self, cr, uid, ids,app_quantity, product_qty,context=None):
+        vals = {}
+        if app_quantity > product_qty:
+            if app_quantity > product_qty:
+                warning = {  
+                          'title': _('Warning!'),  
+                          'message': _('Applied Quantity is not greater than Product Quantity!'),  
+                          }  
+                vals['app_quantity']=product_qty
+                return {'value': vals,'warning':warning}
+        if app_quantity < 0 :
+            warning = {  
+                          'title': _('Warning!'),  
+                          'message': _('Applied Quantity is not allowed as negative values !'),  
+                          }  
+            vals['app_quantity']=product_qty
+            return {'value': vals,'warning':warning}
+        return {'value': vals}
 stock_move()
 # class tpt_quality_verification(osv.osv):
 #     _name = 'tpt.quality.verification'

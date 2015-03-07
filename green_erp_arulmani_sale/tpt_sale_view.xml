@@ -193,7 +193,7 @@
 						<field name="bo_date" />
 						<field name="po_date" />
 						<field name="po_number" />
-						<field name="exp_delivery_date" on_change = "onchange_exp_delivery_date(exp_delivery_date)"/>
+						<!-- <field name="exp_delivery_date" on_change = "onchange_exp_delivery_date(exp_delivery_date)"/>  -->
 						<field name="dispatch_date" on_change = "onchange_sche_dispatch_date(dispatch_date)"/>
 						<field name="quotaion_no" invisible='1'/>
 						<field name="channel" options="{'create': false, 'create_edit': false}"/>
@@ -567,7 +567,7 @@
             <field name="inherit_id" ref="base.view_partner_form"/>	
             <field name="arch" type="xml">
                 <xpath expr="//page[@string='Contacts']" position="before" >
-                	<page string = "Consignee">
+                	<page string = "Consignee">               	
 						<field name="consignee_line" mode="kanban">
 							<kanban>
                                 <field name="color"/>
@@ -639,12 +639,14 @@
                                     <field name="image" widget='image' class="oe_avatar oe_left" options='{"preview_image": "image_medium"}'/>
                                     <div class="oe_title">
                                         <label for="name" class="oe_edit_only"/>
-                                        <h1><field name="name" style="width: 70%%"/></h1>
+                                        <!-- <h1><field name="name" style="width: 70%%"/></h1>  -->
+                                        <h1><field name="consignee_shift_party" on_change="onchange_consignee_shift_party(consignee_shift_party)" options="{'create': false, 'create_edit': false}" domain="[('customer_account_group_id','=','VVTI Shift to Party')]" style="width: 70%%"/></h1>
                                     </div>
                                     <group>
                                     	<group>
 		                                    <label for="street" string="Address"/>
 		                                        <div>
+		                                        	<field name="name"/>
 		                                            <field name="street" placeholder="Street..."/>
 		                                            <field name="street2"/>
 		                                            <div class="address_format">

@@ -119,7 +119,8 @@
                         <field name="commissionerate"/>
                         <field name="ce_rc"/>
                         <field name="ecc"/>                                              
-                        <field name="pan" required="1"/>
+                        <!-- <field name="pan" required="1"/>  -->
+                        <field name="pan_tin" required="1"/>
                         <field name="cst" required="1"/> <!-- Enabled By TPT -->
                         <field name="tin" required="1"/>
                         <field name="sin"/>

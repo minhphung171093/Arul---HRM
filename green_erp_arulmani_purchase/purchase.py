@@ -235,8 +235,13 @@ class tpt_purchase_product(osv.osv):
         'pending_qty': fields.float('Pending Qty'), 
         #'recom_vendor_id': fields.many2one('res.partner', 'Recommended Vendor'),
         'recom_vendor': fields.char('Recommended Vendor', size = 30),
-        'release_by':fields.selection([('1','Store Level'),('2','HOD Level')],'Released By')
+        'release_by':fields.selection([('1','Store Level'),('2','HOD Level')],'Released By'),
+        'indent_status':fields.selection([('draft', 'Draft'),('x', 'Approved By Store'),('xx', 'Approved By Store & HOD')],'Indent Status', readonly=True),
         }  
+    
+    _defaults = {
+        'indent_status':'draft',
+    }
 
     def onchange_product_id(self, cr, uid, ids,product_id=False, context=None):
         res = {'value':{
