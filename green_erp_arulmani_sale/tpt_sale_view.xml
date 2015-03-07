@@ -161,7 +161,7 @@
             <field name="arch" type="xml">
 	            <form string="Blanket Order" version="7.0">
 	            <header>
-	            		<button name="bt_approve" states='draft' string="Approve" type="object" class="oe_highlight" />
+	            		<button name="bt_approve" states='draft' string="Confirm" type="object" class="oe_highlight" />
 	                    <button name="bt_cancel" states='draft,approve' string="Cancel" type="object" class="oe_highlight" />
 	                    <field name="state" widget="statusbar" statusbar_visible="draft,cancel,approve,done" statusbar_colors='{"draft":"blue","cancel":"blue","done":"red"}'/>
 	            </header>    
@@ -640,7 +640,7 @@
                                     <div class="oe_title">
                                         <label for="name" class="oe_edit_only"/>
                                         <!-- <h1><field name="name" style="width: 70%%"/></h1>  -->
-                                        <h1><field name="consignee_shift_party" on_change="onchange_consignee_shift_party(consignee_shift_party)" options="{'create': false, 'create_edit': false}" domain="[('customer_account_group_id','=','VVTI Shift to Party')]" style="width: 70%%"/></h1>
+                                        <h1><field name="consignee_shift_party" on_change="onchange_consignee_shift_party(consignee_shift_party)" options="{'create': false, 'create_edit': false}" domain="[('customer_account_group_id','=','VVTi Shift to Party')]" style="width: 70%%"/></h1>
                                     </div>
                                     <group>
                                     	<group>
