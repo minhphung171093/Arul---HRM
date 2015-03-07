@@ -1053,6 +1053,19 @@ class product_product(osv.osv):
         'product_asset_acc_id': fields.many2one('account.account', 'Product Asset Account'),
         'product_cose_acc_id': fields.many2one('account.account', 'Product Cost of Goods Sold Account'),
         }
-    
 product_product()
+class account_voucher(osv.osv):
+    _inherit = "account.voucher"
+    _columns = {
+        'name': fields.char( 'Journal no.',size = 256),
+        'memo':fields.char('Memo', size=256, readonly=True, states={'draft':[('readonly',False)]}),
+        }
+    _defaults = {
+        'name': '/',
+        }
+    def create(self, cr, uid, vals, context=None):
+        if vals.get('name','/')=='/':
+            vals['name'] = self.pool.get('ir.sequence').get(cr, uid, 'tpt.journal.voucher.sequence') or '/'
+        return super(account_voucher, self).create(cr, uid, vals, context=context)
+account_voucher()
     

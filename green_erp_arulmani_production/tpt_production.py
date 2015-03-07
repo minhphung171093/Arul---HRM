@@ -562,13 +562,13 @@ tpt_activities_line()
 class mrp_production(osv.osv):
     _inherit = 'mrp.production'
     _columns = {
+            'norm_id':fields.many2one('mrp.bom','Norms'),
             'move_lines': fields.many2many('stock.move', 'mrp_production_move_ids', 'production_id', 'move_id', 'Products to Consume',
             domain=[('state','not in', ('done', 'cancel'))], readonly=False, states={'draft':[('readonly',False)]}),
     }
     _defaults={
         'name': '/',
     }
-
     def create(self, cr, uid, vals, context=None):
         sql = '''
             select code from account_fiscalyear where '%s' between date_start and date_stop
@@ -676,6 +676,16 @@ class mrp_production(osv.osv):
             if context.get('mrp_id', False):
                 mrp_ids.append(context.get('mrp_id'))
             args += [('id','in',mrp_ids)]
+#         if context.get('search_norm_id', False) and context.get('norm_id', False):
+#             sql = '''
+#                 select id from mrp_bom where GETDATE()  between '%s' and '%s' 
+# 
+#             '''%(context.get('norm_id'))
+#             cr.execute(sql)
+#             mrp_ids = [row[0] for row in cr.fetchall()]
+#             if context.get('mrp_id', False):
+#                 mrp_ids.append(context.get('mrp_id'))
+#             args += [('id','in',mrp_ids)]
         return super(mrp_production, self).search(cr, uid, args, offset=offset, limit=limit, order=order, context=context, count=count)
     
     def name_search(self, cr, user, name, args=None, operator='ilike', context=None, limit=100):

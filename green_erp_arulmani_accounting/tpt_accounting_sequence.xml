@@ -34,5 +34,22 @@
             <field name="implementation">no_gap</field>
         </record>
         
+<!-- Journal Voucher -->
+        <record id="tpt_sequence_journal_voucher" model="ir.sequence.type">
+            <field name="name">Journal Voucher</field>
+            <field name="code">tpt.journal.voucher.sequence</field>
+        </record>
+        
+        <record id="tpt_sequence_journal_voucher_item" model="ir.sequence">
+            <field name="name">Journal Voucher</field>
+            <field name="code">tpt.journal.voucher.sequence</field>
+            <field name="prefix">%(year)s/</field>
+            <field name="padding">5</field>
+            <field name="number_next_actual">00001</field>
+            <field name="implementation">standard</field>
+            <field name="auto_reset">True</field>
+            <field name="reset_period">year</field>
+            <field name="reset_init_number">1</field>	
+        </record>        
 	</data>
 </openerp>
