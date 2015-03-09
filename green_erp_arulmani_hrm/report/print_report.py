@@ -302,8 +302,8 @@ class Parser(report_sxw.rml_parse):
                 'la': la,
                 'aa': aa,
                 'ea': ea,
-                'pfd': pfd,
-                'vpf': vpf,
+                'pfd': round(pfd),
+                'vpf': round(vpf),
                 'esi_con': esi_con,
                 'fd': fd,
                 'loan': loan,
@@ -313,7 +313,7 @@ class Parser(report_sxw.rml_parse):
                 'lop': lop,
                 'total_ear': total_ear,
                 'total_ded': total_ded,
-                'net': net,
+                'net': round(net),
                 'ma': ma
             })
         return res

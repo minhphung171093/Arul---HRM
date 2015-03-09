@@ -1167,6 +1167,7 @@ class arul_hr_employee_leave_details(osv.osv):
               'reason':fields.text('Reason', states={'done': [('readonly', True)], 'cancel': [('readonly', True)]}),
               'state':fields.selection([('draft', 'Draft'),('cancel', 'Cancel'),('done', 'Done')],'Status', readonly=True),
             'leave_evaluate_id': fields.many2one('tpt.time.leave.evaluation','Leave Evaluation'),
+             'check_leave_type_lop_esi': fields.boolean('Check Leave Type LOP_ESI'),
               }
     _defaults = {
         'state':'draft',
@@ -1242,6 +1243,17 @@ class arul_hr_employee_leave_details(osv.osv):
                 vals.update({'check_leave_type_pl':True,'haft_day_leave':False})
             else:
                 vals.update({'check_leave_type_pl':False})
+            
+            if leave_type.code == "LOP" or leave_type.code == "ESI":
+                vals.update({'check_leave_type_lop_esi':True})
+            else:
+                vals.update({'check_leave_type_lop_esi':False})
+                
+            #if leave_type.code == "ESI":
+            #    vals.update({'check_leave_type_lop_esi':True})
+            #else:
+            #    vals.update({'check_leave_type_lop_esi':False})
+                
         if employee_id and leave_type_id and date_from:
             leave_details_obj = self.pool.get('employee.leave.detail')
             emp_leave_obj = self.pool.get('employee.leave')
@@ -2237,12 +2249,27 @@ class arul_hr_monthly_work_schedule(osv.osv):
                 self.write(cr, uid, [line.id], {'monthly_shift_line':work_vals,'state':'load'})
         return True
     def approve_current_month(self, cr, uid, ids, context=None):
-        for line in self.browse(cr, uid, ids):
+        for line in self.browse(cr, uid, ids):           
+            monthly_shift_schedule_obj = self.pool.get('arul.hr.monthly.shift.schedule')
+            
+            #monthly_shift_schedule_obj.browse(cr,uid,line.id,context=context)
+            #for monthly_shift_schedule_id in monthly_shift_schedule_obj.browse(cr,uid,line.id,context=context):
+            #raise osv.except_osv(_('Warning!%s'),_(monthly_shift_schedule_obj.browse(cr,uid,line.id,context=context)))
+            #raise osv.except_osv(_('Warning!%s'),_(monthly_shift_schedule_id.day_1))
+            sql = '''
+            select count(id) from arul_hr_monthly_shift_schedule where monthly_work_id='%s' and day_28 is null'''%(line.id)
+            cr.execute(sql)
+            p = cr.fetchone() 
+            #raise osv.except_osv(_('Warning!%s'),_(p))     
+            if p[0]>0:
+                 raise osv.except_osv(_('Warning!'),_('No Work Schedule'))     
+            
             if line.department_id and line.department_id.primary_auditor_id and line.department_id.primary_auditor_id.id==uid \
             or line.department_id and line.department_id.secondary_auditor_id and line.department_id.secondary_auditor_id.id==uid:
                 self.write(cr, uid, ids, {'state':'done'})
             else:
                 raise osv.except_osv(_('Warning!'),_('User does not have permission to approve for this employee department!'))
+            
         return self.write(cr, uid, ids, {'state':'done'})
     
     def shift_schedule(self, cr, uid, ids, context=None):
@@ -2962,7 +2989,7 @@ class arul_hr_monthly_shift_schedule(osv.osv):
               'shift_group_id': fields.many2one('shift.group','Shift Group'),
               'employee_id':fields.many2one('hr.employee','Employee', required = True),
               'monthly_work_id':fields.many2one('arul.hr.monthly.work.schedule','Monthly Shift Schedule'),
-              'day_1': fields.many2one('arul.hr.capture.work.shift','1'),
+              'day_1': fields.many2one('arul.hr.capture.work.shift','1',required = True),
               'day_2': fields.many2one('arul.hr.capture.work.shift','2'),
               'day_3': fields.many2one('arul.hr.capture.work.shift','3'),
               'day_4': fields.many2one('arul.hr.capture.work.shift','4'),
