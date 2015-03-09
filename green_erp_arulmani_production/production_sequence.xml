@@ -12,7 +12,11 @@
             <field name="code">batching.tio2</field>
             <field name="prefix">%(year)s%(month)s%(day)s</field>
             <field name="padding">2</field>
+            <field name="number_next_actual">01</field>
             <field name="implementation">standard</field>
+            <field name="auto_reset">True</field>
+            <field name="reset_period">day</field>
+            <field name="reset_init_number">01</field>	
         </record>
 	</data>
 </openerp>
