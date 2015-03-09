@@ -437,13 +437,13 @@ class mrp_bom(osv.osv):
         'code': fields.char('Reference', size=16, states={'product_manager': [('readonly', True)], 'finance_manager':[('readonly', True)]}),
         'company_id': fields.many2one('res.company','Company',required=True, states={'product_manager': [('readonly', True)], 'finance_manager':[('readonly', True)]}),
         'cost_type': fields.selection([('variable','Variable'),('fixed','Fixed')], 'Cost Type', states={'product_manager': [('readonly', True)], 'finance_manager':[('readonly', True)]}),
-        'activities_line': fields.one2many('tpt.activities.line', 'bom_id', 'Activities', states={'product_manager': [('readonly', True)], 'finance_manager':[('readonly', True)]}),
+        'activities_line': fields.one2many('tpt.activities.line', 'bom_id', 'Activities'),
 #         'product_cost': fields.function(_norms, store = True, multi='sums', string='Product Cost'),
         'finish_product_cost': fields.function(sum_finish_function, string='Finish Product Cost', states={'product_manager': [('readonly', True)], 'finance_manager':[('readonly', True)]}),
 #         'product_cost': fields.float('Budget Cost'),
         'product_cost': fields.function(_norms, multi='sums', store = True, string='Budget Cost', states={'product_manager': [('readonly', True)], 'finance_manager':[('readonly', True)]}),
         'note': fields.text('Notes', states={'product_manager': [('readonly', True)], 'finance_manager':[('readonly', True)]}),
-        'bom_lines': fields.one2many('mrp.bom', 'bom_id', 'BoM Lines', states={'finance_manager':[('readonly', True)]}),
+        'bom_lines': fields.one2many('mrp.bom', 'bom_id', 'BoM Lines', states={'product_manager': [('readonly', True)], 'finance_manager':[('readonly', True)]}),
         'price_unit': fields.float('Unit Price', states={'finance_manager':[('readonly', True)]}),
         'state':fields.selection([('draft', 'Draft'),('product_manager', 'Production'),('finance_manager', 'Finance')],'Status', readonly=True),
     }
@@ -456,20 +456,21 @@ class mrp_bom(osv.osv):
     def bt_approve_finance(self, cr, uid, ids, context=None):
         return self.write(cr, uid, ids,{'state':'finance_manager'})
     
-#     def _check_date_id(self, cr, uid, ids, context=None):
-#         for date in self.browse(cr, uid, ids, context=context):
-#             sql = '''
-#                 select id from mrp_bom where id != %s and product_id = %s and date_stop > ('%s')
-#             '''%(date.id,date.product_id.id,date.date_start)
-#             cr.execute(sql)
-#             date_ids = [row[0] for row in cr.fetchall()]
-#             if date_ids:  
-#                 raise osv.except_osv(_('Warning!'),_('sacs'))
-#                 return False
-#         return True
-#     _constraints = [
-#         (_check_date_id, 'Identical Data', ['date_stop','product_id']),
-#     ]
+    def _check_date_id(self, cr, uid, ids, context=None):
+        for date in self.browse(cr, uid, ids, context=context):
+            if not date.bom_id and date.date_start:
+                sql = '''
+                    select id from mrp_bom where id != %s and product_id = %s and date_stop > ('%s')
+                '''%(date.id,date.product_id.id,date.date_start)
+                cr.execute(sql)
+                date_ids = [row[0] for row in cr.fetchall()]
+                if date_ids:  
+                    raise osv.except_osv(_('Warning!'),_('Start Date is not suitable!!!'))
+                    return False
+        return True
+    _constraints = [
+        (_check_date_id, 'Identical Data', ['date_stop','product_id']),
+    ]
     
     def create(self, cr, uid, vals, context=None):
         if 'product_id' in vals:
@@ -562,6 +563,25 @@ mrp_subproduct()
 
 class tpt_activities_line(osv.osv):
     _name = 'tpt.activities.line'
+    
+    def _norms(self, cr, uid, ids, field_name, args, context=None):
+        res = {}
+        for master in self.browse(cr,uid,ids,context=context):
+            res[master.id] = {
+                    'product_cost': 0.0
+                } 
+            if master.cost_type == 'variable' :
+                res[master.id]['product_cost'] = master.product_qty * master.price_unit
+#                 sql='''
+#                     select product_id, sum(product_qty) as product_qty, sum(line_net) as line_net from purchase_order_line where product_id = %s group by product_id
+#                 '''%(master.product_id.id)
+#                 cr.execute(sql)
+#                 for product in cr.dictfetchall():
+#                     res[master.id]['product_cost'] = product['line_net']/product['product_qty']
+            if master.cost_type == 'fixed':
+                res[master.id]['product_cost'] = master.product_qty * master.price_unit
+        return res
+    
     _columns = {
         'bom_id': fields.many2one('mrp.bom', 'BoM', ondelete='cascade'),
         'activities_id': fields.many2one('tpt.activities', 'Activities', required=True),
@@ -569,7 +589,7 @@ class tpt_activities_line(osv.osv):
         'product_qty': fields.float('Quantity', digits_compute=dp.get_precision('Product Unit of Measure'), required=True),
         'product_uom': fields.many2one('product.uom', 'UOM', required=True),
         'cost_type': fields.selection([('variable','Variable'),('fixed','Fixed')], 'Cost Type'),
-        'product_cost': fields.float('Budget Cost'),
+        'product_cost': fields.function(_norms, multi='sums', store = True, string='Budget Cost'),
         'price_unit': fields.float('Unit Price'),
         'note': fields.text('Notes'),
     }
