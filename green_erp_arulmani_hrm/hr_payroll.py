@@ -670,13 +670,9 @@ class tpt_hr_payroll_approve_reject(osv.osv):
     def approve_payroll(self, cr, uid, ids, context=None):
         for line in self.browse(cr,uid,ids):
             payroll_obj = self.pool.get('arul.hr.payroll.executions')
-            payroll_ids = payroll_obj.search(cr, uid, [('year', '=', line.year), ('month', '=', line.month)])
-#             executions_obj = self.pool.get('arul.hr.payroll.executions.details')
-#         executions_ids = executions_obj.search(cr, uid, [('payroll_executions_id','in',ids)])
-#         if executions_ids:
+            payroll_ids = payroll_obj.search(cr, uid, [('year', '=', line.year), ('month', '=', line.month),('state','=','confirm')])
             for payroll in payroll_obj.browse(cr,uid,payroll_ids):
-                if payroll.state == "confirm":
-                    payroll_obj.write(cr, uid, payroll.id, {'state':'approve'})
+                payroll_obj.write(cr, uid, payroll.id, {'state':'approve'})
         return self.write(cr, uid, line.id, {'state':'done'})
     
     def reject_payroll(self, cr, uid, ids, context=None):
