@@ -775,5 +775,42 @@
 			</field>
 		</record>
         
+        <record id="view_voucher_form_inherit" model="ir.ui.view">
+            <field name="name">view.voucher.form.inherit</field>
+            <field name="model">account.voucher</field>
+            <field name="inherit_id" ref="account_voucher.view_voucher_form"/>
+            <field name="arch" type="xml">
+                <data>
+                    <xpath expr="//form[@string='Accounting Voucher']/sheet[@string='Accounting Voucher']/group/field[@name='name']" position="replace">
+                       <field name="memo"  />
+                    </xpath>
+              		<xpath expr="//form[@string='Accounting Voucher']/sheet[@string='Accounting Voucher']/group/field[@name='partner_id']" position="before">
+                       <field name="name" readonly = "1" />
+                    </xpath>
+
+                    <xpath expr="//form[@string='Accounting Voucher']/sheet/group/field[@name='partner_id']" position="attributes" >
+                       <attribute name='options'>{'create': false, 'create_edit': false}</attribute>
+                    </xpath>
+                    <xpath expr="//form[@string='Accounting Voucher']/sheet/notebook/page/field/tree/field[@name='account_id']" position="attributes" >
+                       <attribute name='options'>{'create': false, 'create_edit': false}</attribute>
+                    </xpath>
+                    <xpath expr="//form[@string='Accounting Voucher']/sheet/group/field[@name='currency_id']" position="attributes" >
+                       <attribute name='invisible'>1</attribute>
+                    </xpath>
+                </data>
+            </field>
+        </record>
+
+        <record id="tpt_view_location_form" model="ir.ui.view">
+            <field name="name">tpt.view.location.form</field>
+            <field name="model">stock.location</field>
+            <field name="inherit_id" ref="stock.view_location_form"/>
+            <field name="arch" type="xml">
+            	<xpath expr="//form/group/group[@string='Additional Information']/field[@name='usage']" position="before">
+					 <field name="gl_pos_verification_id"  options="{'create': false, 'create_edit': false}" />
+				</xpath>
+			</field>
+		</record>
+
     </data>
 </openerp>

@@ -137,7 +137,7 @@ class res_partner(osv.osv):
         'order_probability_id': fields.many2one('order.probability','Order Probability'), 
         'reconciliation_acct_id': fields.many2one('reconciliation.acct','Reconciliation Acct'), 
         'sychronized': fields.function(get_sychronized, string='Is Sychronized', type='boolean'),
-        
+         
     }
     _defaults = {
         'is_company': False,

@@ -314,35 +314,66 @@ account_move_line()
 class stock_location(osv.osv):
     _inherit = "stock.location"
     _columns = {
-        'gl_pos_verification_id': fields.many2one('account.account', 'GL Code'),
+        'gl_pos_verification_id': fields.many2one('account.account', 'Account Warehouse'),
         }
 stock_location()
  
-# class stock_picking(osv.osv):
-#     _inherit = "stock.picking"
-#        
-#     def write(self, cr, uid, ids, vals, context=None):
-#         new_write = super(stock_picking, self).write(cr, uid,ids, vals, context)
-#         account_move_obj = self.pool.get('account.move')
-# #         stock_picking_in = self.pool.get('stock.picking.in').browse(cr,uid,vals['backorder_id'])
-#         for line in self.browse(cr,uid,ids):
-#             if line.type == 'in' and line.backorder_id.state=='done':
-#                 #sinh but toan
-#                 for p in line.move_lines:
-#                     journal_line = [(0,0,{
-#                                         'name':line.name, 
-#                                         'account_id': [(6,0,[line.warehouse.gl_pos_verification_id and line.warehouse.gl_pos_verification_id.id])],
-#                                        })]
-#                 value={
-#                     'journal_id':3,
-#                     'period_id':17 ,
-#                     'date': time.strftime('%Y-%m-%d'),
-#                     'line_id': journal_line,
-#                     }
-#                 new_jour_id = account_move_obj.create(cr,uid,value)
-#         return new_write
-#        
-# stock_picking()
+class stock_picking(osv.osv):
+    _inherit = "stock.picking"
+        
+    def write(self, cr, uid, ids, vals, context=None):
+        new_write = super(stock_picking, self).write(cr, uid,ids, vals, context)
+        account_move_obj = self.pool.get('account.move')
+        period_obj = self.pool.get('account.period')
+#         stock_picking_in = self.pool.get('stock.picking.in').browse(cr,uid,vals['backorder_id'])
+        for line in self.browse(cr,uid,ids):
+            if 'state' in vals and line.type == 'in' and line.state=='done':
+                debit = 0.0
+                credit = 0.0
+                for move in line.move_lines:
+                    amount = move.purchase_line_id.price_unit * move.product_qty
+                    debit += amount - amount*move.purchase_line_id.discount
+                date_period = line.date,
+                sql = '''
+                    select id from account_period where '%s' between date_start and date_stop
+                
+                '''%(date_period)
+                cr.execute(sql)
+                period_ids = [r[0] for r in cr.fetchall()]
+                
+                if not period_ids:
+                    raise osv.except_osv(_('Warning!'),_('Period is not null, please configure it in Period master !'))
+                for period_id in period_obj.browse(cr,uid,period_ids):
+                #sinh but toan
+                    journal_line = [(0,0,{
+                                        'name':line.name, 
+                                        'account_id': line.warehouse.gl_pos_verification_id and line.warehouse.gl_pos_verification_id.id,
+                                        'partner_id': line.partner_id and line.partner_id.id,
+                                        'debit':debit,
+                                        'credit':0,
+                                        
+                                       })]
+                    for p in line.move_lines:
+                        amount_cer = p.purchase_line_id.price_unit * p.product_qty
+                        credit += amount_cer - amount_cer*p.purchase_line_id.discount
+                        journal_line.append((0,0,{
+                            'name':line.name, 
+                            'account_id': p.product_id.purchase_acc_id and p.product_id.purchase_acc_id.id,
+                            'partner_id': line.partner_id and line.partner_id.id,
+                            'credit':credit,
+                            'debit':0,
+                        }))
+                        
+                    value={
+                        'journal_id':3,
+                        'period_id':period_id.id ,
+                        'date': date_period,
+                        'line_id': journal_line,
+                        }
+                    new_jour_id = account_move_obj.create(cr,uid,value)
+        return new_write
+        
+stock_picking()
 class account_invoice(osv.osv):
     _inherit = "account.invoice"
      
@@ -1053,12 +1084,13 @@ class product_product(osv.osv):
         'product_asset_acc_id': fields.many2one('account.account', 'Product Asset Account'),
         'product_cose_acc_id': fields.many2one('account.account', 'Product Cost of Goods Sold Account'),
         }
-    
 product_product()
 
 class account_voucher(osv.osv):
     _inherit = "account.voucher"
     _columns = {
+        'name': fields.char( 'Journal no.',size = 256),
+        'memo':fields.char('Memo', size=256, readonly=True, states={'draft':[('readonly',False)]}),
         'cheque_date': fields.date('Cheque Date'),
         'cheque_no': fields.char('Cheque No'),
         'sum_amount': fields.float('Amount'),
@@ -1091,6 +1123,7 @@ class account_voucher(osv.osv):
         return False
     
     _defaults = {
+        'name': '/',
         'journal_id': _default_journal_id,
     }
     
@@ -1107,6 +1140,13 @@ class account_voucher(osv.osv):
     _constraints = [
         (_check_sum_amount, 'Identical Data', []),
     ]
+    
+    def create(self, cr, uid, vals, context=None):
+        if vals.get('name','/')=='/':
+            vals['name'] = self.pool.get('ir.sequence').get(cr, uid, 'tpt.journal.voucher.sequence') or '/'
+        new_id = super(account_voucher, self).create(cr, uid, vals, context)
+        return new_id
+            
     
     def first_move_line_get(self, cr, uid, voucher_id, move_id, company_currency, current_currency, context=None):
         '''
