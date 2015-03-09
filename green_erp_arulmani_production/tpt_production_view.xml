@@ -206,12 +206,32 @@
             id="menu_vsis_action_crm_application_production"
             parent="mrp.menu_mrp_manufacturing" sequence="17"/>
         
+         <record id="mrp_bom_tree_view_inherit" model="ir.ui.view">
+            <field name="name">mrp.bom.tree.inherit</field>
+            <field name="model">mrp.bom</field>
+            <field name="inherit_id" ref="mrp.mrp_bom_tree_view"/>
+            <field name="arch" type="xml">
+                <data>
+	                <xpath expr="//field[@name='date_stop']" position="after">
+	                	<field name="state" widget="statusbar" statusbar_visible="draft,product_manager,finance_manager" statusbar_colors='{"finance_manager":"red","product_manager":"blue"}'/>
+                    </xpath>
+	            </data>
+	        </field>
+	    </record>
+        
         <record id="mrp_bom_form_view_inherit" model="ir.ui.view">
             <field name="name">mrp.bom.form.inherit</field>
             <field name="model">mrp.bom</field>
             <field name="inherit_id" ref="mrp.mrp_bom_form_view"/>
             <field name="arch" type="xml">
                 <data>
+               	 	<xpath expr="//form[@string='Bill of Material']/group" position="before">
+                    	<header>
+		            		<button name="bt_approve_production" states='draft' string="Production" type="object" class="oe_highlight" groups="green_erp_arulmani_purchase.group_vvti_purchase_admin"/>
+		                    <button name="bt_approve_finance" states='product_manager' string="Finance" type="object" class="oe_highlight" />
+		                    <field name="state" widget="statusbar" statusbar_visible="draft,product_manager,finance_manager" statusbar_colors='{"finance_manager":"red","product_manager":"blue"}'/>
+	            		</header> 
+                    </xpath> 
               		<xpath expr="//form/group/group/div/field[@name='product_uom']" position="attributes">
                        <attribute name='readonly'>1</attribute>
                     </xpath>
@@ -222,6 +242,7 @@
                         <field name="date_start" string = "Effective Start Date"/>
                         <field name="date_stop" string = "Effective End Date"/>
                     </xpath>
+                    
                     <xpath expr="//form/group/group/field[@name='company_id']" position="after">
                         <field name="note" />
                     </xpath>
@@ -235,16 +256,23 @@
 	                        <field name="note" />
 	                        <field name="product_qty" string="Quantity"/>
 	                        <field name="product_uom" readonly="1" string="UOM" options="{'create': false, 'create_edit': false}" on_change="onchange_uom(product_id, product_uom)" groups="product.group_uom"/>
-	                        <field name="cost_type" on_change = "onchange_cost_type(product_id, cost_type)"/>
+	                        <field name="cost_type"/>
+	                        <field name="price_unit"/>
                         	<field name="product_cost"/>
+                        	<field name="state" invisible = '1' widget="statusbar" statusbar_visible="draft,product_manager,finance_manager" statusbar_colors='{"finance_manager":"red","product_manager":"blue"}'/>
 	                    </tree>
                     </xpath>
-                    
                     <xpath expr="//label[@for='product_uos_qty']" position="before">
                         <field name="finish_product_cost" />
                         <field name="active" />
-                       <field name="deactive" />
                     </xpath>
+                    <xpath expr="//page[@string='Properties']/group/group/field[@name='active']" position="replace">
+                    </xpath>
+                    <xpath expr="//page[@string='Properties']/group/group/field[@name='date_start']" position="replace">
+                    </xpath>
+                    <xpath expr="//page[@string='Properties']/group/group/field[@name='date_stop']" position="replace">
+                    </xpath>
+                   	
                     
                 </data>
             </field>
@@ -275,6 +303,7 @@
 				                    <field name="product_qty"/>
 				                    <field name="product_uom" options="{'create': false, 'create_edit': false}"/>
 				                    <field name="cost_type"/>
+				                    <field name="price_unit"/>
 				                    <field name="product_cost"/>
 			                    </tree>
 		                    </field>
@@ -294,10 +323,13 @@
             <field name="arch" type="xml">
                 <data>
                 	<xpath expr="//field[@name='name']" position="after">
-                		<field name="app_quantity" on_change = "onchange_app_qty_id(app_quantity, product_qty)" />
+                		<field name="app_quantity" string = "Quantity" readonly = "1"  />
                     </xpath>
-                    <xpath expr="//field[@name='product_qty']" position="attributes">
+         <!--           <xpath expr="//field[@name='product_qty']" position="attributes">
                 		<attribute name='readonly'>1</attribute>
+                    </xpath> -->
+                    <xpath expr="//field[@name='product_qty']" position="attributes">
+                		<attribute name='string'>Applied Quantity</attribute>
                     </xpath> 
                 </data>
             </field>
@@ -322,6 +354,9 @@
                   	<xpath expr="//form/sheet/group/group/field[@name='product_id']" position="attributes">
 						<attribute name='options'>{'create': false, 'create_edit': false}</attribute>
                     </xpath>
+                    <xpath expr="//form/sheet/group/group/field[@name='user_id']" position="before">
+						<field name="norm_id" context="{'search_norm_id':1}" options ="{'create': false, 'create_edit': false}" />
+                    </xpath>
                     
                     <xpath expr="//form/sheet/group/group/field[@name='bom_id']" position="attributes">
 						<attribute name='options'>{'create': false, 'create_edit': false}</attribute>
@@ -342,9 +377,6 @@
                     <xpath expr="//form/sheet/notebook/page[@string='Consumed Products']/group/group[@string='Products to Consume']/field/tree/field[@name='product_id']" position="replace">
 						<field name="product_id" string="Materials " />
                     </xpath>
-                    <xpath expr="//form/sheet/notebook/page[@string='Consumed Products']/group/group[@string='Products to Consume']/field/tree/field[@name='product_qty']" position="replace">
-						<field name="product_qty" string="Required Quantity " />
-                    </xpath>
                     <xpath expr="//form/sheet/notebook/page[@string='Consumed Products']/group/group[@string='Products to Consume']/field/tree/field[@name='product_uom']" position="replace">
 						<field name="product_uom" string="UOM" />
                     </xpath>
@@ -360,10 +392,17 @@
                     <xpath expr="//form/sheet/notebook/page[@string='Consumed Products']/group/group[@string='Products to Consume']/field/tree/button[@name='%(stock.track_line)d']" position="attributes">
 						<attribute name='invisible'>1</attribute>
                     </xpath>
-                    <xpath expr="//form/sheet/notebook/page[@string='Consumed Products']/group/group[@string='Products to Consume']/field/tree/field[@name='product_uom']" position="after">
-                    	<field name="app_quantity" />
+                    <xpath expr="//form/sheet/notebook/page[@string='Consumed Products']/group/group[@string='Products to Consume']/field/tree/field[@name='product_id']" position="after">
+                    	<field name="app_quantity" readonly = "1" />
                     </xpath>
-  
+                    
+                    <xpath expr="//form/sheet/notebook/page[@string='Consumed Products']/group/group[@string='Products to Consume']/field/tree/field[@name='product_qty']" position="replace">
+                    </xpath>
+                    
+                    <xpath expr="//form/sheet/notebook/page[@string='Consumed Products']/group/group[@string='Products to Consume']/field/tree/field[@name='product_uom']" position="after">
+                    	<field name="product_qty" string="Applied Quantity"  />
+                    </xpath>
+                    
                     <xpath expr="//form/sheet/notebook/page[@string='Consumed Products']" position="attributes">
 						<attribute name='string'>Products to Consume</attribute>
                     </xpath>
