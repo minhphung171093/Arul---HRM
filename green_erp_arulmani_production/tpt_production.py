@@ -430,11 +430,15 @@ class mrp_bom(osv.osv):
         return res
     
     _columns = {
+        'name': fields.text('Name'),
         'cost_type': fields.selection([('variable','Variable'),('fixed','Fixed')], 'Cost Type'),
         'activities_line': fields.one2many('tpt.activities.line', 'bom_id', 'Activities'),
 #         'product_cost': fields.function(_norms, store = True, multi='sums', string='Product Cost'),
         'finish_product_cost': fields.function(sum_finish_function, string='Finish Product Cost'),
         'product_cost': fields.float('Product Cost'),
+        'note': fields.text('Notes'),
+        'active': fields.boolean('Active'),
+        'deactive': fields.boolean('Deactive'),
     }
     
     def create(self, cr, uid, vals, context=None):
@@ -529,6 +533,7 @@ class tpt_activities_line(osv.osv):
         'product_uom': fields.many2one('product.uom', 'UOM', required=True),
         'cost_type': fields.selection([('variable','Variable'),('fixed','Fixed')], 'Cost Type'),
         'product_cost': fields.float('Cost'),
+        'note': fields.text('Notes'),
     }
     
     _defaults={
@@ -678,8 +683,8 @@ class mrp_production(osv.osv):
             args += [('id','in',mrp_ids)]
 #         if context.get('search_norm_id', False) and context.get('norm_id', False):
 #             sql = '''
-#                 select id from mrp_bom where GETDATE()  between '%s' and '%s' 
-# 
+#                 select id from mrp_bom where GETDATE() as now  between '%s' and '%s' 
+#  
 #             '''%(context.get('norm_id'))
 #             cr.execute(sql)
 #             mrp_ids = [row[0] for row in cr.fetchall()]
@@ -761,7 +766,7 @@ stock_production_lot()
 class stock_move(osv.osv):
     _inherit = 'stock.move'
     _columns = {
-        'app_quantity': fields.float('Applied Quantity'),
+        'app_quantity': fields.float('Required Quantity'),
     }
     
     def onchange_app_qty_id(self, cr, uid, ids,app_quantity, product_qty,context=None):

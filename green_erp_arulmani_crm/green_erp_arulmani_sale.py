@@ -218,8 +218,8 @@ class crm_sale_order(osv.osv):
                 'shop_id': fields.many2one('sale.shop', 'Shop', required=True, readonly=True, states={'draft': [('readonly', False)]}),
                 'picking_details':fields.char('Packing Details',size=255,readonly=True, states={'draft': [('readonly', False)]}),
                 'packing_details': fields.selection([
-                                        ('25 KG HDPE With Lines', '25 KG HDPE With Lines'),
-                                        ('50 KG HDPE With Lines', '50 KG HDPE With Lines'),
+                                        ('25 KG HDPE Bag With Liner', '25 KG HDPE Bag With Liner'),
+                                        ('50 KG HDPE Bag With Liner', '50 KG HDPE Bag With Liner'),
                                         ('50 KG HDPE Bag', '50 KG HDPE Bag'),
                                         ('500 KG Jumbo Bag', '500 KG Jumbo Bag'),
                                         ('1000 KG Jumbo Bag', '1000 KG Jumbo Bag'),

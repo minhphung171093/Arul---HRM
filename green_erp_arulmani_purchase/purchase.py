@@ -37,8 +37,8 @@ class tpt_purchase_indent(osv.osv):
                                           ('multiple','Multiple Quotation')],'Select', states={'cancel': [('readonly', True)], 'done':[('readonly', True)]}),
         'supplier_id':fields.many2one('res.partner','Supplier',  states={'cancel': [('readonly', True)], 'done':[('readonly', True)]}),
         'reason':fields.text('Reason', states={'cancel': [('readonly', True)], 'done':[('readonly', True)]}),
-        'header_text':fields.text('Header Text'), #TPT
-        'requisitioner':fields.char('Requisitioner'),
+        'header_text':fields.text('Header Text',states={'cancel': [('readonly', True)], 'done':[('readonly', True)]}), #TPT
+        'requisitioner':fields.char('Requisitioner',states={'cancel': [('readonly', True)], 'done':[('readonly', True)]}),
         'purchase_product_line':fields.one2many('tpt.purchase.product','purchase_indent_id','Materials', states={'cancel': [('readonly', True)], 'done':[('readonly', True)]}),
         'state':fields.selection([('draft', 'Draft'),('cancel', 'Closed'),('done', 'Approve')],'Status', readonly=True),
     }
@@ -228,15 +228,20 @@ class tpt_purchase_product(osv.osv):
         'purchase_indent_id':fields.many2one('tpt.purchase.indent','Purchase Product'),
         'product_id': fields.many2one('product.product', 'Material Code'),
         #'dec_material':fields.text('Material Description'),
-        'description':fields.char('Mat. Description', size = 50 ),
+        'description':fields.char('Mat. Description', size = 50,readonly = True),
         'item_text':fields.text('Item Text'),
         'product_uom_qty': fields.float('PO Qty'),   
         'uom_po_id': fields.many2one('product.uom', 'UOM', readonly = True),
         'pending_qty': fields.float('Pending Qty'), 
         #'recom_vendor_id': fields.many2one('res.partner', 'Recommended Vendor'),
         'recom_vendor': fields.char('Recommended Vendor', size = 30),
-        'release_by':fields.selection([('1','Store Level'),('2','HOD Level')],'Released By')
+        'release_by':fields.selection([('1','Store Level'),('2','HOD Level')],'Released By'),
+        'indent_status':fields.selection([('draft', 'Draft'),('x', 'Approved By Store'),('xx', 'Approved By Store & HOD')],'Indent Status', readonly=True),
         }  
+    
+    _defaults = {
+        'indent_status':'draft',
+    }
 
     def onchange_product_id(self, cr, uid, ids,product_id=False, context=None):
         res = {'value':{

@@ -94,8 +94,9 @@ class res_partner(osv.osv):
         'credit_limit_used': fields.float('Credit Limit',degits=(16,2)),
         'credit_exposure': fields.float('Credit Exposure',degits=(16,2)),
         'vat': fields.float('VAT',degits=(16,2)),
-        'pan_tin': fields.char('PAN/TIN',size=128),
-        'pan': fields.char('PAN',size=128),
+        #'pan_tin': fields.char('PAN/TIN',size=128),
+        #'pan': fields.char('PAN',size=128),
+        'pan_tin': fields.char('PAN',size=128),
         'tin': fields.char('TIN',size=128),
         'ce_rc': fields.char('C.E.RC.',size=128),
         'ecc': fields.char('E.C.C',size=128),
@@ -136,7 +137,7 @@ class res_partner(osv.osv):
         'order_probability_id': fields.many2one('order.probability','Order Probability'), 
         'reconciliation_acct_id': fields.many2one('reconciliation.acct','Reconciliation Acct'), 
         'sychronized': fields.function(get_sychronized, string='Is Sychronized', type='boolean'),
-        
+         
     }
     _defaults = {
         'is_company': False,
