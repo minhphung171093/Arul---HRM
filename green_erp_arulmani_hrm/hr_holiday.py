@@ -1243,17 +1243,13 @@ class arul_hr_employee_leave_details(osv.osv):
                 vals.update({'check_leave_type_pl':True,'haft_day_leave':False})
             else:
                 vals.update({'check_leave_type_pl':False})
-            
+                
+            #TPT - To Hide Leave Balance for ESI,LOP Leaves
             if leave_type.code == "LOP" or leave_type.code == "ESI":
                 vals.update({'check_leave_type_lop_esi':True})
             else:
                 vals.update({'check_leave_type_lop_esi':False})
-                
-            #if leave_type.code == "ESI":
-            #    vals.update({'check_leave_type_lop_esi':True})
-            #else:
-            #    vals.update({'check_leave_type_lop_esi':False})
-                
+                                         
         if employee_id and leave_type_id and date_from:
             leave_details_obj = self.pool.get('employee.leave.detail')
             emp_leave_obj = self.pool.get('employee.leave')
@@ -2262,7 +2258,7 @@ class arul_hr_monthly_work_schedule(osv.osv):
             p = cr.fetchone() 
             #raise osv.except_osv(_('Warning!%s'),_(p))     
             if p[0]>0:
-                 raise osv.except_osv(_('Warning!'),_('No Work Schedule'))     
+                 raise osv.except_osv(_('Warning!'),_('No Monthly Work Schedule defined for all Employees'))     
             
             if line.department_id and line.department_id.primary_auditor_id and line.department_id.primary_auditor_id.id==uid \
             or line.department_id and line.department_id.secondary_auditor_id and line.department_id.secondary_auditor_id.id==uid:
