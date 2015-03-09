@@ -34,7 +34,7 @@
             <field name="arch" type="xml">
 	            <form string="Purchase Indent" version="7.0">   
 	             <header>
-	            		<button name="bt_approve" states='draft' string="Approve" type="object" class="oe_highlight" groups="green_erp_arulmani_purchase.group_vvti_purchase_admin"/>
+	            		<button name="bt_approve" states='draft' string="Confirm" type="object" class="oe_highlight" groups="green_erp_arulmani_purchase.group_vvti_purchase_admin"/>
 	                    <button name="bt_cancel" states='draft,done' string="Close" type="object" class="oe_highlight" />
 	                    <field name="state" widget="statusbar" statusbar_visible="draft,cancel,done" statusbar_colors='{"draft":"blue","cancel":"blue"}'/>
 	            </header>    
@@ -58,7 +58,7 @@
 						</group>
 						</group>
 						<notebook>
-							<page string = "Materials">
+							<page string = "Indent Lines">
 								<field name="purchase_product_line" nolabel='1'>
 									<tree editable='bottom'>
 										<field name="product_id" on_change="onchange_product_id(product_id)" domain="[('purchase_ok','=',True)]" required='1' options="{'create': false, 'create_edit': false}"/>
@@ -463,7 +463,10 @@
 	            <header>
 	            		<button name = "bt_tick_mark" attrs="{'invisible': ['|',('quotation_cate','=','multiple'),('state','!=','draft')]}" icon = "STOCK_APPLY" string="Approve" type="object" />
 						<button name = "bt_cross_mark" confirm = "Do you want to cancel the Quotation ?" icon = "STOCK_CANCEL" states = "draft" string="Cancel" type="object" /> 
+	                    
+	                    <button name = "bt_copy_quote" string="Copy Quotation" type="object" />
 	                    <field name="state" widget="statusbar" statusbar_visible="draft,cancel,done" statusbar_colors='{"draft":"blue","cancel":"blue"}'/>
+	           	
 	            </header>    
 	            	<sheet>
                    	 <group col="4" colspan="2" >
@@ -1082,6 +1085,9 @@
 									<tree editable='bottom'>
 										<field name="po_indent_id" domain="[('state','=','done')]" on_change = "onchange_rfq_indent_id(po_indent_id)" options="{'create': false, 'create_edit': false}"/>
 										<field name="product_id" context="{'search_rfq_product':True, 'po_indent_id':po_indent_id }" on_change = "onchange_rfq_product_id(product_id, po_indent_id)" options="{'create': false, 'create_edit': false}"/>
+										<field name="description" />
+										<field name="item_text" />
+										<field name="recom_vendor" />
 										<field name="product_uom_qty" />
 										<field name="uom_id" options="{'create': false, 'create_edit': false}"/>
 									</tree>
