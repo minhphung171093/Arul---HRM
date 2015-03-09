@@ -37,8 +37,8 @@ class tpt_purchase_indent(osv.osv):
                                           ('multiple','Multiple Quotation')],'Select', states={'cancel': [('readonly', True)], 'done':[('readonly', True)]}),
         'supplier_id':fields.many2one('res.partner','Supplier',  states={'cancel': [('readonly', True)], 'done':[('readonly', True)]}),
         'reason':fields.text('Reason', states={'cancel': [('readonly', True)], 'done':[('readonly', True)]}),
-        'header_text':fields.text('Header Text'), #TPT
-        'requisitioner':fields.char('Requisitioner'),
+        'header_text':fields.text('Header Text',states={'cancel': [('readonly', True)], 'done':[('readonly', True)]}), #TPT
+        'requisitioner':fields.char('Requisitioner',states={'cancel': [('readonly', True)], 'done':[('readonly', True)]}),
         'purchase_product_line':fields.one2many('tpt.purchase.product','purchase_indent_id','Materials', states={'cancel': [('readonly', True)], 'done':[('readonly', True)]}),
         'state':fields.selection([('draft', 'Draft'),('cancel', 'Closed'),('done', 'Approve')],'Status', readonly=True),
     }
@@ -228,7 +228,7 @@ class tpt_purchase_product(osv.osv):
         'purchase_indent_id':fields.many2one('tpt.purchase.indent','Purchase Product'),
         'product_id': fields.many2one('product.product', 'Material Code'),
         #'dec_material':fields.text('Material Description'),
-        'description':fields.char('Mat. Description', size = 50 ),
+        'description':fields.char('Mat. Description', size = 50, readonly=True),
         'item_text':fields.text('Item Text'),
         'product_uom_qty': fields.float('PO Qty'),   
         'uom_po_id': fields.many2one('product.uom', 'UOM', readonly = True),
@@ -236,7 +236,10 @@ class tpt_purchase_product(osv.osv):
         #'recom_vendor_id': fields.many2one('res.partner', 'Recommended Vendor'),
         'recom_vendor': fields.char('Recommended Vendor', size = 30),
         'release_by':fields.selection([('1','Store Level'),('2','HOD Level')],'Released By'),
-        'indent_status':fields.selection([('draft', 'Draft'),('x', 'Approved By Store'),('xx', 'Approved By Store & HOD')],'Indent Status', readonly=True),
+        'indent_status':fields.selection([('draft', 'Draft'),('confirm', 'Confirmed'),
+                                          ('+', 'Store Approved'),('++', 'Store & HOD Approved'),
+                                          ('x', 'Store Rejected'),('xx', 'Store & HOD Rejected')
+                                          ],'Indent Status', readonly=True),
         }  
     
     _defaults = {
@@ -2286,6 +2289,9 @@ class tpt_rfq_line(osv.osv):
         'rfq_id': fields.many2one('tpt.request.for.quotation','RFQ',ondelete='cascade'),
         'po_indent_id':fields.many2one('tpt.purchase.indent','PO Indent', required = True),
         'product_id': fields.many2one('product.product', 'Material',required = True),
+        'description': fields.char('Mat.Desc'), 
+        'recom_vendor': fields.char('Recom.Vendor'), 
+        'item_text': fields.char('Item Text'), 
         'product_uom_qty': fields.float('Quantity', readonly = True),   
         'uom_id': fields.many2one('product.uom', 'UOM', readonly = True),
         }  
@@ -2326,6 +2332,9 @@ class tpt_rfq_line(osv.osv):
             for line in indent.purchase_product_line:
                 if product_id == line.product_id.id:
                     vals = {
+                            'description':line.description and line.description or False,
+                            'item_text':line.item_text and line.item_text or False,
+                            'recom_vendor':line.recom_vendor and line.recom_vendor or False,
                             'uom_id':line.uom_po_id and line.uom_po_id.id or False,
                             'product_uom_qty':line.product_uom_qty or False,
                             }

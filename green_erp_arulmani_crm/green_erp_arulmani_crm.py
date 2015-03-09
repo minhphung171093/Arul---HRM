@@ -385,8 +385,9 @@ class crm_lead(osv.osv):
     _sql_constraints = [     
         ('lead_code_uniq', 'unique (lead_code)',
             'The lead code of the Lead must be unique !'), 
-        ('customer_code_uniq', 'unique (customer_code)',
-            'The customer code of the Lead must be unique !'),               
+        #TPT - Commented By BalamuruganPurushothaman  on 07/03/2015 -TO AVOID HTIS WARNING                
+        #('customer_code_uniq', 'unique (customer_code)',
+        #    'The customer code of the Lead must be unique !'),               
     ]
     
     _defaults = {
