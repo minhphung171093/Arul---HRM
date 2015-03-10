@@ -57,7 +57,7 @@ class Parser(report_sxw.rml_parse):
         val = 0.0
         for line in invoice_line:
             val = val + ((line.quantity*line.price_unit)+(line.quantity*line.price_unit)*(excise_duty_id.amount/100))+(((line.quantity*line.price_unit)+(line.quantity*line.price_unit)*(excise_duty_id.amount/100))*sale_tax_id.amount/100)+line.freight
-        return round(val, 2)
+        return round(val)
     
 #     def amount_to_text(self, nbr, lang='en'):
 #         if lang == 'en':
@@ -71,7 +71,7 @@ class Parser(report_sxw.rml_parse):
          
     def get_total(self, quantity, price_unit, freight, excise_duty_id, sale_tax_id):
         val = ((quantity*price_unit)+(quantity*price_unit)*(excise_duty_id.amount/100))+(((quantity*price_unit)+(quantity*price_unit)*(excise_duty_id.amount/100))*sale_tax_id.amount/100)+freight
-        return round(val, 2)
+        return round(val)
     
           
     def get_qty_bags(self, qty, uom, type):
