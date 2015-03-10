@@ -243,11 +243,23 @@ class arul_hr_audit_shift_time(osv.osv):
               'permission_id':fields.many2one('arul.hr.permission.onduty','Permission/On Duty'),
               'time_evaluate_id': fields.many2one('tpt.time.leave.evaluation','Time Evaluation'),
               'diff_day': fields.boolean('Difference Day', readonly = True),
+              #TPT
+              'punch_in_date':fields.date('Punch In Date', required = True, states={'done': [('readonly', True)], 'cancel': [('readonly', True)]}),
+              'punch_out_date':fields.date('Punch Out Date', required = True, states={'done': [('readonly', True)], 'cancel': [('readonly', True)]}),
+              'reason_for_edit': fields.text('Reason',states={'done': [('readonly', True)], 'cancel': [('readonly', True)]}),
+              'time_change_flag': fields.boolean('If In/Out Changed'), 
+              
               }
     _defaults = {
         'state':'draft',
-	'type':'manual'
+	    'type':'manual',
+        
     }
+    def onchange_in_time(self, cr, uid, ids, in_out_time=False, context=None):
+        vals = {}
+        vals.update({'time_change_flag':True})
+        return {'value':vals}
+
     def name_get(self, cr, uid, ids, context=None):
         res = []
         if not ids:
@@ -1057,6 +1069,11 @@ class arul_hr_audit_shift_time(osv.osv):
         for line in self.browse(cr, uid, ids):
             self.write(cr, uid, [line.id],{'approval': False, 'state':'cancel', 'time_evaluate_id':False})
         return True
+    #TPT
+    def rollback_shift_time(self, cr, uid, ids, context=None):
+        for line in self.browse(cr, uid, ids):
+            self.write(cr, uid, [line.id],{'approval': False, 'state':'draft'})
+        return True
     
     def search(self, cr, uid, args, offset=0, limit=None, order=None, context=None, count=False):
         if context is None:
@@ -1187,7 +1204,6 @@ class arul_hr_employee_leave_details(osv.osv):
     def create(self, cr, uid, vals, context=None):
         new_id1 = False
         new_id2 = False
-        raise osv.except_osv(_('Warning!'), _('In it!'))
         if 'date_from' in vals and 'date_to' in vals:
             date_from = vals['date_from']
             date_to = vals['date_to']
@@ -1633,6 +1649,7 @@ class arul_hr_punch_in_out_time(osv.osv):
         'punch_in_out_id':fields.many2one('arul.hr.employee.attendence.details','Punch in/out',ondelete='cascade'),
         'emp_id': fields.related('punch_in_out_id','employee_id',string="Employee",relation='hr.employee',type='many2one',readonly=True,store=True),
         'diff_day': fields.boolean('Difference Day', readonly = True),
+        
     }
     
     _defaults = {
@@ -1912,7 +1929,7 @@ class arul_hr_punch_in_out(osv.osv):
                         if data1[:3]=='P10':
                             in_time = float(data1[15:17])+float(data1[17:19])/60+float(data1[19:21])/3600
 #                             if date_old == date:
-                            val1={'employee_id':employee_ids[0],'planned_work_shift_id':shift_id,'actual_work_shift_id':False,'work_date':date,'in_time':in_time,'out_time':0,'approval':1}
+                            val1={'employee_id':employee_ids[0],'planned_work_shift_id':shift_id,'actual_work_shift_id':False,'work_date':date,'punch_in_date':date,'in_time':in_time,'out_time':0,'approval':1}
                             for j,data2 in enumerate(L2):
                                 #bat dau vi tri tiep theo cua for 1
                                 in_out = data2[:3]
@@ -1920,10 +1937,12 @@ class arul_hr_punch_in_out(osv.osv):
                                 date_2=data2[7:11]+'-'+data2[11:13]+'-'+data2[13:15]
                                 if employee_code_2==employee_code and in_out=='P10':
                                     in_time2 = float(data2[15:17])+float(data2[17:19])/60+float(data2[19:21])/3600
-                                    val1={'employee_id':employee_ids[0],'planned_work_shift_id':shift_id,'actual_work_shift_id':False,'work_date':date,'in_time':in_time2,'out_time':0,'approval':1}
+                                    val1={'employee_id':employee_ids[0],'planned_work_shift_id':shift_id,'actual_work_shift_id':False,'work_date':date,'punch_in_date':date,'in_time':in_time2,'out_time':0,'approval':1}
                                 if employee_code_2==employee_code and in_out=='P20':
                                     out_time=float(data2[15:17])+float(data2[17:19])/60+float(data2[19:21])/3600
+                                    out_date = data1[7:11]+'-'+data1[11:13]+'-'+data1[13:15]
                                     val1['out_time']=out_time
+                                    val1['punch_out_date']=out_date
                                 # cho phep di lam som nua tieng hoac di tre 15 phut va ve som 15 phut
 				# TPT Changes - BalamuruganPurushothaman on 18/02/2015 - SQL Query is modified to check Grace Time for shift
                                     sql = '''
@@ -2037,6 +2056,7 @@ class arul_hr_punch_in_out(osv.osv):
                                 val={'employee_id':employee_ids[0],
                                      'planned_work_shift_id':shift_id,
                                      'work_date':date,
+                                     'punch_in_date':date,
                                      'in_time':in_time,
                                      'out_time':0,
                                      'employee_category_id':employee.employee_category_id.id,
@@ -2052,6 +2072,7 @@ class arul_hr_punch_in_out(osv.osv):
 #                                     'type':'shift',
 #                                 })
                         if data1[:3]=='P20':
+                            out_date = data1[7:11]+'-'+data1[11:13]+'-'+data1[13:15]
                             out_time = float(data1[15:17])+float(data1[17:19])/60+float(data1[19:21])/3600
                             audit_shift_ids = detail_obj2.search(cr, uid, [('type','=','shift'),('employee_id','=', employee_ids[0]),('state','=','draft')],order='id desc')
                             
@@ -2118,22 +2139,23 @@ class arul_hr_punch_in_out(osv.osv):
                                         
                                         if audit_shift.work_date!=date:
                                             detail_obj2.write(cr, uid, [audit_shift.id],{'out_time':out_time,
+                                                                                'punch_out_date':out_date,
                                                                                 'actual_work_shift_id':shift_id,
                                                                                 'diff_day':True})
                                         else:
-                                            detail_obj2.write(cr, uid, [audit_shift.id],{'out_time':out_time,
+                                            detail_obj2.write(cr, uid, [audit_shift.id],{'out_time':out_time,'punch_out_date':out_date,
                                                                                 'actual_work_shift_id':shift_id,})
                                         detail_obj2.approve_shift_time(cr, uid, [audit_shift.id])
                                     else:
                                         if audit_shift.work_date!=date:
                                             detail_obj2.write(cr, uid, [audit_shift.id],{'type':'punch',
-                                                                        'out_time':out_time,
+                                                                        'out_time':out_time,'punch_out_date':out_date,
                                                                         'actual_work_shift_id':audit_work_shift_ids[0],
                                                                                 'diff_day':True})
                                         else:
                                             detail_obj2.write(cr, uid,[audit_shift.id],{
                                             'type':'punch',
-                                            'out_time':out_time,
+                                            'out_time':out_time,'punch_out_date':out_date,
                                             'actual_work_shift_id':audit_work_shift_ids[0],
                                     })
                                     
@@ -2144,16 +2166,16 @@ class arul_hr_punch_in_out(osv.osv):
                                 else:
                                     if audit_shift.work_date!=date:
                                         detail_obj2.write(cr, uid, [audit_shift.id],{'out_time':out_time,
-                                                                                    'type':'punch',
+                                                                                    'type':'punch','punch_out_date':out_date,
                                                                                     'diff_day':True})
                                     else:
                                         detail_obj2.write(cr, uid,[audit_shift.id],{
-                                                                                'out_time':out_time,
+                                                                                'out_time':out_time,'punch_out_date':out_date,
                                                                                 'type':'punch',
                                                                                 })
                                  
                             else :
-                                val2={'type':'punch','employee_id':employee_ids[0],'planned_work_shift_id':shift_id,'work_date':date,'in_time':0,'out_time':out_time,'employee_category_id':employee.employee_category_id.id}
+                                val2={'type':'punch','employee_id':employee_ids[0],'planned_work_shift_id':shift_id,'work_date':date,'punch_in_date':date,'punch_out_date':out_date,'in_time':0,'out_time':out_time,'employee_category_id':employee.employee_category_id.id}
                                 detail_obj2.create(cr, uid,val2)
                             
                 self.write(cr, uid, [line.id], {'state':'done'})

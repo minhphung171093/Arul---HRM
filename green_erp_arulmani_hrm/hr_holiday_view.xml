@@ -345,6 +345,7 @@
                 <search string="Audit Shift Time">
                 	<field name="employee_id"/>
 					<field name="work_date"/>
+					<field name="state"/>
 					<field name="employee_category_id"/>
 					<field name="planned_work_shift_id"/>
 					<field name="actual_work_shift_id"/>
@@ -355,6 +356,11 @@
                         <filter string="Work Group" icon="terp-gtk-select-all" domain="[]" context="{'group_by':'employee_category_id'}"/>
                         <filter string="Type" icon="terp-gtk-select-all" domain="[]" context="{'group_by':'type'}"/>
                     </group>
+                    <filter string="Approved" name="approved" domain="[('state','=','done')]"/>
+                    <filter string="Rejected" name="rejected" domain="[('state','=','cancel')]"/>
+                    <filter string="Draft" name="draft" domain="[('state','=','draft')]"/>
+                    
+                    
                 </search>
             </field>
         </record>
@@ -389,6 +395,7 @@
 	            	<header>
 	                    <button name="approve_shift_time" states='draft' string="Approve" type="object" class="oe_highlight" groups="green_erp_arulmani_hrm.group_vvti_hrm_hr_manager"/>
 	                    <button name="%(action_reject_audit_form)d" states='draft' string="Reject" type="action" class="oe_highlight" groups="green_erp_arulmani_hrm.group_vvti_hrm_hr_manager"/>
+	                    <button name="rollback_shift_time" states='done,cancel' string="Rollback" type="object" class="oe_highlight" groups="green_erp_arulmani_hrm.group_vvti_hrm_hr_manager"/>
 	                	<field name="state" widget="statusbar" statusbar_visible="draft,done" statusbar_colors='{"draft":"blue","done":"blue"}'/>
 	                </header>   
 	            	<sheet>
@@ -397,14 +404,19 @@
 							<field name="additional_shifts"/>
 							<field name="planned_work_shift_id" options="{'create': false, 'create_edit': false}"/>
 							<field name="actual_work_shift_id" options="{'create': false, 'create_edit': false}"/>
+							<field name="punch_in_date"/>
+							<field name="punch_out_date"/>
+							<field name="in_time" widget="float_time" on_change="onchange_in_time(in_time)"/>
+							<field name="out_time" widget="float_time" on_change="onchange_in_time(out_time)"/>
 							<field name="work_date"/>
-							<field name="employee_category_id" options="{'create': false, 'create_edit': false}"/>
-							<field name="in_time" widget="float_time"/>
-							<field name="out_time" widget="float_time"/>
+							<field name="employee_category_id" options="{'create': false, 'create_edit': false}"/>							
 							<field name="total_hours" widget="float_time"/>
 							<field name="type"/>
 							<field name="approval"/>
+							<field name="reason_for_edit" attrs="{'invisible':[('time_change_flag','=',False)],'required':[('time_change_flag','=',True)]}" />
 							<field name="diff_day" invisible='1'/>
+							
+							<field name="time_change_flag" invisible='1'/>
 						</group>    	
 		         	</sheet>
 		         </form>
@@ -416,8 +428,8 @@
             <field name="res_model">arul.hr.audit.shift.time</field>
             <field name="view_type">form</field>
             <field name="view_mode">tree,form</field>
-            <field name="domain">[('state','=','draft')]</field>
-            <field name="context">{'search_for_audit_shift_pri_auditor':1}</field>
+            <field name="domain">[('state','in',['draft','done','cancel'])]</field> 
+            <field name="context">{'search_for_audit_shift_pri_auditor':1,'search_default_draft':1}</field>
             <field name="view_id" ref="view_arul_hr_audit_shift_time_tree_vew"/>
         </record>
         
