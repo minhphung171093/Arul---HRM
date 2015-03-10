@@ -372,7 +372,7 @@ class stock_picking(osv.osv):
                         }
                     new_jour_id = account_move_obj.create(cr,uid,value)
             if 'state' in vals and line.type == 'out' and line.state=='done' and not line.sale_id.journal_flag:
-                debit = line.amount_total or 0.0
+                debit = line.sale_id and line.sale_id.amount_total or 0.0
                 so_id = line.sale_id and line.sale_id.id or False
                 date_period = line.date
                 sql = '''
@@ -381,7 +381,7 @@ class stock_picking(osv.osv):
                 '''%(date_period)
                 cr.execute(sql)
                 period_ids = [r[0] for r in cr.fetchall()]
-                
+                journal_line = []
                 if not period_ids:
                     raise osv.except_osv(_('Warning!'),_('Period is not null, please configure it in Period master !'))
                 for period_id in period_obj.browse(cr,uid,period_ids):
