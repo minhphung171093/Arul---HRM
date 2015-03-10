@@ -371,6 +371,56 @@ class stock_picking(osv.osv):
                         'line_id': journal_line,
                         }
                     new_jour_id = account_move_obj.create(cr,uid,value)
+            if 'state' in vals and line.type == 'out' and line.state=='done' and not line.sale_id.journal_flag:
+                debit = line.amount_total or 0.0
+                so_id = line.sale_id and line.sale_id.id or False
+                date_period = line.date
+                sql = '''
+                    select id from account_period where '%s' between date_start and date_stop
+                
+                '''%(date_period)
+                cr.execute(sql)
+                period_ids = [r[0] for r in cr.fetchall()]
+                
+                if not period_ids:
+                    raise osv.except_osv(_('Warning!'),_('Period is not null, please configure it in Period master !'))
+                for period_id in period_obj.browse(cr,uid,period_ids):
+                #sinh but toan
+                    for p in line.move_lines:
+                        if p.product_id.product_cose_acc_id:
+                            journal_line.append((0,0,{
+                                'name':line.name, 
+                                'account_id': p.product_id.product_cose_acc_id.id,
+                                'partner_id': line.partner_id and line.partner_id.id,
+                                'credit':0,
+                                'debit':debit,
+                            }))
+                        else: 
+                            raise osv.except_osv(_('Warning!'),_('Product Cost of Goods Sold Account is not configured! Please configured it!'))
+                        if p.product_id.product_asset_acc_id:
+                            journal_line.append((0,0,{
+                                'name':line.name, 
+                                'account_id':  p.product_id.product_asset_acc_id.id,
+                                'partner_id': line.partner_id and line.partner_id.id,
+                                'credit':debit,
+                                'debit':0,
+                            }))
+                        else:
+                            raise osv.except_osv(_('Warning!'),_('Product Asset Account is not configured! Please configured it!'))
+                        
+                        break
+                    value={
+                        'journal_id':3,
+                        'period_id':period_id.id ,
+                        'date': date_period,
+                        'line_id': journal_line,
+                        }
+                    new_jour_id = account_move_obj.create(cr,uid,value)
+                    if so_id:
+                        sql = '''
+                        update sale_order set journal_flag = True where id = %s
+                        '''%(so_id)
+                        cr.execute(sql)
         return new_write
         
 stock_picking()
@@ -1098,6 +1148,9 @@ class account_voucher(osv.osv):
             ('payment','Payment'),
             ('receipt','Receipt'),
         ],'Default Type', readonly=True, states={'draft':[('readonly',False)]}),
+        'cheque_number': fields.char('Cheque Number'),
+        'bank_name': fields.char('Bank Name'),
+        'tpt_journal':fields.selection([('cash','Cash'),('bank','Bank')],'Type'),
         'state':fields.selection(
             [('draft','Draft'),
              ('cancel','Cancelled'),
@@ -1434,6 +1487,61 @@ class account_voucher(osv.osv):
             }
 
         return move_line
+    
+    def onchange_journal(self, cr, uid, ids, journal_id, line_ids, tax_id, partner_id, date, amount, ttype, company_id, context=None):
+        if context is None:
+            context = {}
+        if not journal_id:
+            return False
+        journal_pool = self.pool.get('account.journal')
+        journal = journal_pool.browse(cr, uid, journal_id, context=context)
+        account_id = journal.default_credit_account_id or journal.default_debit_account_id
+        tax_id = False
+        if account_id and account_id.tax_ids:
+            tax_id = account_id.tax_ids[0].id
+
+        vals = {'value':{} }
+        ###  onchange field tpt_journal de an hien field
+        if journal:
+            if journal.type == "cash":
+                vals['value'].update({'tpt_journal':'cash','cheque_date':False, 'cheque_number':False, 'bank_name':False})
+            else:
+                vals['value'].update({'tpt_journal':'bank'})
+        ###
+        if ttype in ('sale', 'purchase'):
+            vals = self.onchange_price(cr, uid, ids, line_ids, tax_id, partner_id, context)
+            vals['value'].update({'tax_id':tax_id,'amount': amount})
+        currency_id = False
+        if journal.currency:
+            currency_id = journal.currency.id
+        else:
+            currency_id = journal.company_id.currency_id.id
+        vals['value'].update({'currency_id': currency_id})
+        #in case we want to register the payment directly from an invoice, it's confusing to allow to switch the journal 
+        #without seeing that the amount is expressed in the journal currency, and not in the invoice currency. So to avoid
+        #this common mistake, we simply reset the amount to 0 if the currency is not the invoice currency.
+        if context.get('payment_expected_currency') and currency_id != context.get('payment_expected_currency'):
+            vals['value']['amount'] = 0
+            amount = 0
+        if partner_id:
+            res = self.onchange_partner_id(cr, uid, ids, partner_id, journal_id, amount, currency_id, ttype, date, context)
+            for key in res.keys():
+                vals[key].update(res[key])
+        return vals
 #          
 account_voucher()
-    
+
+class sale_order(osv.osv):
+    _inherit = "sale.order"
+    _columns = {
+                'journal_flag':fields.boolean('Journal Flag',readonly =True ),
+    }
+sale_order()
+
+class tpt_material_issue(osv.osv):
+    _inherit = "tpt.material.issue"
+    _columns = {
+                'gl_account_id': fields.many2one('account.account', 'GL Account'),
+                'warehouse':fields.many2one('stock.location','Warehouse Location'),
+                }
+tpt_material_issue()
