@@ -180,7 +180,8 @@
 			<field name="model">arul.hr.employee.leave.details</field>
 			<field name="arch" type="xml">
 				<search string="Employee Leave Details">
-					<field name="employee_id"/>					
+					<field name="employee_id"/>
+					<field name="state"/>					
 				</search>
 			</field>
 	    </record>
@@ -208,7 +209,8 @@
             <field name="arch" type="xml">
 	            <form string="Employee Leave Details" version="7.0">   
 	           		<header>
-	                    <button name="process_leave_request" states='draft' string="Process leave request" type="object" class="oe_highlight" groups="green_erp_arulmani_hrm.group_vvti_hrm_hr_manager"/>
+	                    <button name="process_leave_request" states='draft' string="Process Leave Request" type="object" class="oe_highlight" groups="green_erp_arulmani_hrm.group_vvti_hrm_hr_manager"/>
+	                    <button name="reject_leave_request" states='draft' string="Reject Leave Request" type="object" class="oe_highlight" groups="green_erp_arulmani_hrm.group_vvti_hrm_hr_manager"/>
 	                    <button name="cancel_leave_request" states='done' string="Cancel" type="object" class="oe_highlight" groups="green_erp_arulmani_hrm.group_vvti_hrm_hr_manager"/>
 	                	<field name="state" widget="statusbar" statusbar_visible="draft,done" statusbar_colors='{"draft":"blue","done":"blue"}'/>
 	                </header>   
@@ -250,7 +252,7 @@
 			<field name="model">arul.hr.permission.onduty</field>
 			<field name="arch" type="xml">
 				<search string="Permission and On Duty">
-					<field name="employee_id"/>					
+					<field name="employee_id"/>											
 				</search>
 			</field>
 	</record>
@@ -267,6 +269,8 @@
 					<field name="employee_id" options="{'create': false, 'create_edit': false}"/>
 					<field name="non_availability_type_id" options="{'create': false, 'create_edit': false}"/>
 					<field name="date"/>
+					<field name="from_date"/>
+					<field name="to_date"/>
 					<field name="start_time" widget="float_time"/>
 					<field name="end_time" widget="float_time"/>
 					<field name="time_total" widget="float_time"/>
@@ -497,7 +501,7 @@
 									<tree editable='top'>
 										
 										<field name="non_availability_type_id" options="{'create': false, 'create_edit': false}"/>
-										<field name="date"/>
+										<field name="date"/>										
 										<field name="duty_location"/>
 										<field name="start_time"/>
 										<field name="end_time"/>

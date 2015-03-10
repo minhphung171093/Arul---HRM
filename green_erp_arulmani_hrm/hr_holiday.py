@@ -1182,7 +1182,7 @@ class arul_hr_employee_leave_details(osv.osv):
                     'arul.hr.employee.leave.details': (_get_line, ['state'], 20),                                                                                 
                     }, states={'done': [('readonly', True)], 'cancel': [('readonly', True)]}),
               'reason':fields.text('Reason', states={'done': [('readonly', True)], 'cancel': [('readonly', True)]}),
-              'state':fields.selection([('draft', 'Draft'),('cancel', 'Cancel'),('done', 'Done')],'Status', readonly=True),
+              'state':fields.selection([('draft', 'Draft'),('cancel', 'Cancel'),('reject', 'Rejected'),('done', 'Done')],'Status', readonly=True),
             'leave_evaluate_id': fields.many2one('tpt.time.leave.evaluation','Leave Evaluation'),
              'check_leave_type_lop_esi': fields.boolean('Check Leave Type LOP_ESI'),
               }
@@ -1343,6 +1343,11 @@ class arul_hr_employee_leave_details(osv.osv):
                 self.write(cr, uid, [line.id],{'state':'done','leave_evaluate_id': False})
             else:
                 raise osv.except_osv(_('Warning!'),_('User does not have permission to approve for this employee department!'))
+        return True  
+    
+    def reject_leave_request(self, cr, uid, ids, context=None):  
+        for line in self.browse(cr, uid, ids):     
+            self.write(cr, uid, [line.id],{'state':'reject','leave_evaluate_id':False})
         return True  
     
     def cancel_leave_request(self, cr, uid, ids, context=None):
