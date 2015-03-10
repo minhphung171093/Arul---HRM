@@ -1187,6 +1187,7 @@ class arul_hr_employee_leave_details(osv.osv):
     def create(self, cr, uid, vals, context=None):
         new_id1 = False
         new_id2 = False
+        raise osv.except_osv(_('Warning!'), _('In it!'))
         if 'date_from' in vals and 'date_to' in vals:
             date_from = vals['date_from']
             date_to = vals['date_to']
@@ -1542,6 +1543,33 @@ class arul_hr_permission_onduty(osv.osv):
             if time.start_time == 0.0 and time.end_time == 0.0:
                 raise osv.except_osv(_('Warning!'),_('Input Wrong Time'))
                 return False
+            #TPT - BalamuruganPurushothaman on 10/03/2014 - To throw warning when onduty entered for same time for same date
+            if time.non_availability_type_id=='on_duty':                
+                sql = '''
+                    SELECT COUNT(*) FROM arul_hr_permission_onduty WHERE 
+                    start_time <='%s' AND end_time >= '%s' and employee_id=%s 
+                    AND to_char(from_date,'YYYY-MM-DD')=('%s') AND to_char(to_date,'YYYY-MM-DD')=('%s')        
+                    ''' %(time.start_time,time.end_time,time.employee_id.id,time.from_date,time.to_date)
+                cr.execute(sql)
+                p = cr.fetchone()   
+                #raise osv.except_osv(_('Warning!%s'),_(p[0]))           
+                if p[0]-1>0:
+                    raise osv.except_osv(_('Warning!'),_('OnDuty Already Entered for this Time Period'))  
+  
+            #TPT - BalamuruganPurushothaman on 10/03/2014 - To throw warning when permission entered for same date    
+            if time.non_availability_type_id=='permission':
+                sql = '''
+                    SELECT COUNT(*) FROM arul_hr_permission_onduty WHERE 
+                    employee_id=%s 
+                    AND to_char(date,'YYYY-MM-DD')=('%s')        
+                    ''' %(time.employee_id.id,time.date)
+                cr.execute(sql)
+                p = cr.fetchone()   
+                #raise osv.except_osv(_('Warning!%s'),_(p[0]))           
+                if p[0]-1>0:
+                    raise osv.except_osv(_('Warning!'),_('Permission Entry Already Exist for this Employee'))   
+            #if time.start_time ==
+            
         return True
     
     def print_gate_pass(self, cr, uid, ids, context=None):
@@ -2246,20 +2274,15 @@ class arul_hr_monthly_work_schedule(osv.osv):
         return True
     def approve_current_month(self, cr, uid, ids, context=None):
         for line in self.browse(cr, uid, ids):           
-            monthly_shift_schedule_obj = self.pool.get('arul.hr.monthly.shift.schedule')
-            
-            #monthly_shift_schedule_obj.browse(cr,uid,line.id,context=context)
-            #for monthly_shift_schedule_id in monthly_shift_schedule_obj.browse(cr,uid,line.id,context=context):
-            #raise osv.except_osv(_('Warning!%s'),_(monthly_shift_schedule_obj.browse(cr,uid,line.id,context=context)))
-            #raise osv.except_osv(_('Warning!%s'),_(monthly_shift_schedule_id.day_1))
+            #TPT
+            monthly_shift_schedule_obj = self.pool.get('arul.hr.monthly.shift.schedule')           
             sql = '''
             select count(id) from arul_hr_monthly_shift_schedule where monthly_work_id='%s' and day_28 is null'''%(line.id)
             cr.execute(sql)
-            p = cr.fetchone() 
-            #raise osv.except_osv(_('Warning!%s'),_(p))     
+            p = cr.fetchone()            
             if p[0]>0:
-                 raise osv.except_osv(_('Warning!'),_('No Monthly Work Schedule defined for all Employees'))     
-            
+                 raise osv.except_osv(_('Warning!'),_('Shift needs to be assigned to all the employees before Approving Work Schedule'))     
+            #TPT
             if line.department_id and line.department_id.primary_auditor_id and line.department_id.primary_auditor_id.id==uid \
             or line.department_id and line.department_id.secondary_auditor_id and line.department_id.secondary_auditor_id.id==uid:
                 self.write(cr, uid, ids, {'state':'done'})
