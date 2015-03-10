@@ -1568,8 +1568,8 @@ class arul_hr_permission_onduty(osv.osv):
                 #raise osv.except_osv(_('Warning!%s'),_(p[0]))           
                 if p[0]-1>0:
                     raise osv.except_osv(_('Warning!'),_('Permission Entry Already Exist for this Employee'))   
-            #if time.start_time ==
-            
+                if time.end_time - time.start_time > 1:
+                    raise osv.except_osv(_('Warning!'),_('Permission should not exceed an Hour for a day')) 
         return True
     
     def print_gate_pass(self, cr, uid, ids, context=None):
