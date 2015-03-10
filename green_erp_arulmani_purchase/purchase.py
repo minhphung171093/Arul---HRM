@@ -997,6 +997,8 @@ class tpt_purchase_quotation_line(osv.osv):
         'fright': fields.float('Fright'),
         'fright_type':fields.selection([('1','%'),('2','Rs')],('Fright Type')),
         'line_net': fields.function(line_net_line, store = True, multi='deltas' ,string='SubTotal'),
+        #TPT
+        #'item_text': fields.char('Item Text'), 
         }
     
     def create(self, cr, uid, vals, context=None):
@@ -1714,6 +1716,8 @@ class purchase_order_line(osv.osv):
                 'fright_type':fields.selection([('1','%'),('2','Rs')],('Fright Type')),
                 # ham function line_net
                 'line_net': fields.function(line_net_line_po, store = True, multi='deltas' ,string='Line Net'),
+                #TPT
+                #'item_text': fields.char('Item Text'), 
                 }
     _defaults = {
                  'date_planned':time.strftime('%Y-%m-%d'),
