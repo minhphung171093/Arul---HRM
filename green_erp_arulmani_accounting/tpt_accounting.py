@@ -1127,3 +1127,163 @@ class account_voucher(osv.osv):
          
 account_voucher()
     
+class tpt_hr_payroll_approve_reject(osv.osv):
+    _inherit = 'tpt.hr.payroll.approve.reject'    
+#         def approve_payroll(self, cr, uid, ids, context=None):
+#         for line in self.browse(cr,uid,ids):
+#             payroll_obj = self.pool.get('arul.hr.payroll.executions')
+#             payroll_ids = payroll_obj.search(cr, uid, [('year', '=', line.year), ('month', '=', line.month),('state','=','confirm')])
+#             for payroll in payroll_obj.browse(cr,uid,payroll_ids):
+#                 payroll_obj.write(cr, uid, payroll.id, {'state':'approve'})
+#         return self.write(cr, uid, line.id, {'state':'done'})
+    def approve_payroll(self, cr, uid, ids, context=None):
+        for line in self.browse(cr,uid,ids):
+            account_move_obj = self.pool.get('account.move')
+            period_obj = self.pool.get('account.period')
+            payroll_obj = self.pool.get('arul.hr.payroll.executions')
+            payroll_ids = payroll_obj.search(cr, uid, [('year', '=', line.year), ('month', '=', line.month),('state','=','confirm')])
+            configuration_obj = self.pool.get('tpt.posting.configuration')
+            configuration_ids = configuration_obj.search(cr, uid, [('name', '=','payroll')])
+            gross = 0.0
+            year = str(line.year)
+            month = str(line.month)
+               
+            for payroll in payroll_obj.browse(cr,uid,payroll_ids):
+                sql = '''
+                    select id
+                    from account_period where EXTRACT(year from date_start)='%s' and EXTRACT(month from date_start)='%s'
+                '''%(year,month)
+                cr.execute(sql)
+                period_ids = [r[0] for r in cr.fetchall()]
+                if not period_ids:
+                    raise osv.except_osv(_('Warning!'),_('Period is not null, please configure it in Period master !'))
+                for period_id in period_obj.browse(cr,uid,period_ids):
+                    payroll_ids = str(payroll_ids).replace("[","(")
+                    payroll_ids = payroll_ids.replace("]",")")
+                    if payroll_ids:
+    
+                        sql_gross = '''
+                            select sum(float) as gross_salary from arul_hr_payroll_earning_structure where earning_parameters_id in (select id from arul_hr_payroll_earning_parameters where code='GROSS_SALARY')
+                            and executions_details_id in (select id from arul_hr_payroll_executions_details where payroll_executions_id in (%s))
+                        '''%(payroll_ids)
+                        cr.execute(sql_gross)
+                        gross = cr.dictfetchone()['gross_salary']
+                        sql_provident = '''
+                            select sum(float) as provident from arul_hr_payroll_earning_structure where earning_parameters_id in (select id from arul_hr_payroll_deduction_parameters where code='PF.D')
+                            and executions_details_id in (select id from arul_hr_payroll_executions_details where payroll_executions_id in (%s))
+                        '''%(payroll_ids)
+                        cr.execute(sql_provident)
+                        provident = cr.dictfetchone()['provident']
+                        sql_vpf = '''
+                            select sum(float) as vpf from arul_hr_payroll_earning_structure where earning_parameters_id in (select id from arul_hr_payroll_deduction_parameters where code='VPF.D')
+                            and executions_details_id in (select id from arul_hr_payroll_executions_details where payroll_executions_id in (%s))
+                        '''%(payroll_ids)
+                        cr.execute(sql_vpf)
+                        vpf = cr.dictfetchone()['vpf']
+                        sql_tax = '''
+                            select sum(float) as tax from arul_hr_payroll_earning_structure where earning_parameters_id in (select id from arul_hr_payroll_deduction_parameters where code='PT')
+                            and executions_details_id in (select id from arul_hr_payroll_executions_details where payroll_executions_id in (%s))
+                        '''%(payroll_ids)
+                        cr.execute(sql_tax)
+                        tax = cr.dictfetchone()['tax']
+                        sql_lwf = '''
+                            select sum(float) as tax from arul_hr_payroll_earning_structure where earning_parameters_id in (select id from arul_hr_payroll_deduction_parameters where code='LWF')
+                            and executions_details_id in (select id from arul_hr_payroll_executions_details where payroll_executions_id in (%s))
+                        '''%(payroll_ids)
+                        cr.execute(sql_lwf)
+                        lwf = cr.dictfetchone()['tax']
+                        welfare = 0.0
+                        lic_premium = 0.0
+                        staff_adv = 0.0
+                        sum_credit = (provident+vpf+tax+lwf+welfare+lic_premium+staff_adv)
+                        diff = gross - sum_credit
+                        for configuration in configuration_obj.browse(cr,uid,configuration_ids):
+                            gross_acc = configuration.salari_id.id
+                            provident_acc = configuration.pfp_id.id
+                            vpf_acc = configuration.vpf_id.id
+                            welfare_acc = configuration.staff_welfare_id.id
+                            lic_premium_acc = configuration.lic_id.id
+                            pro_tax_acc = configuration.profes_tax_id.id
+                            lwf_acc = configuration.lwf_id.id
+                            staff_adv_acc = configuration.staff_advance_id.id
+                            salari_acc = configuration.salari_payable_id.id
+                            if not gross_acc:
+                                raise osv.except_osv(_('Warning!'),_('Gross Salary is not null, please configure it in GL Posting Configuration master !'))
+                            journal_line = [(0,0,{
+                                            'name':line.year, 
+                                            'account_id': gross_acc,
+                                            'debit':gross,
+                                            'credit':0,
+                                           }),(0,0,{
+                                            'name':line.year, 
+                                            'account_id': provident_acc,
+                                            'debit':0,
+                                            'credit':provident,
+                                           }),(0,0,{
+                                            'name':line.year, 
+                                            'account_id': vpf_acc,
+                                            'debit':0,
+                                            'credit':vpf,
+                                           }),(0,0,{
+                                            'name':line.year, 
+                                            'account_id': welfare_acc,
+                                            'debit':0,
+                                            'credit':0,
+                                           }),(0,0,{
+                                            'name':line.year, 
+                                            'account_id': lic_premium_acc,
+                                            'debit':0,
+                                            'credit':0,
+                                           }),(0,0,{
+                                            'name':line.year, 
+                                            'account_id': pro_tax_acc,
+                                            'debit':0,
+                                            'credit':tax,
+                                           }),(0,0,{
+                                            'name':line.year, 
+                                            'account_id': lwf_acc,
+                                            'debit':0,
+                                            'credit':lwf,
+                                           }),(0,0,{
+                                            'name':line.year, 
+                                            'account_id': staff_adv_acc,
+                                            'debit':0,
+                                            'credit':0,
+                                           }),(0,0,{
+                                            'name':line.year, 
+                                            'account_id': salari_acc,
+                                            'debit':0,
+                                            'credit':diff,
+                                           }),]
+    #                     for p in line.move_lines:
+    #                         amount_cer = p.purchase_line_id.price_unit * p.product_qty
+    #                         credit += amount_cer - amount_cer*p.purchase_line_id.discount
+    #                         journal_line.append((0,0,{
+    #                             'name':line.name, 
+    #                             'account_id': p.product_id.purchase_acc_id and p.product_id.purchase_acc_id.id,
+    #                             'partner_id': line.partner_id and line.partner_id.id,
+    #                             'credit':credit,
+    #                             'debit':0,
+    #                         }))
+                             
+                        value={
+                            'journal_id':15,
+                            'period_id':period_id.id ,
+                            'date': time.strftime('%Y-%m-%d'),
+                            'line_id': journal_line,
+                            }
+                        new_jour_id = account_move_obj.create(cr,uid,value)
+                payroll_obj.write(cr, uid, payroll.id, {'state':'approve'})
+        return self.write(cr, uid, line.id, {'state':'done'})
+tpt_hr_payroll_approve_reject()
+
+
+
+
+
+
+
+
+
+
+
