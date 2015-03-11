@@ -447,6 +447,7 @@
 	            <form string="Production Batch - Quality Verification" version="7.0">   
 	            <header>
 	            		<button name="bt_update" states='draft' string="Update Batch Verification" type="object" class="oe_highlight" />
+	            		<button name="action_cancel_draft" states="done" string="Set to Draft" type="object"/>
 	            		<field name="state" widget="statusbar" statusbar_visible="draft,done" statusbar_colors='{"draft":"blue"}'/>
 	           	</header>
 	            	<sheet>
@@ -458,7 +459,7 @@
 	            			<field name="warehouse_id" domain="[('usage','=','internal')]" options="{'create': false, 'create_edit': false}" />
 	            		</group>
 	            		<group>
-	            			<field name="phy_batch_no"/>
+	            			<field name="phy_batch_no" required = '1'/>
 	            			<field name="name"/>
 	            			<field name="applicable_id" on_change = "onchange_applicable_id(applicable_id)" domain="[('product_id','=',product_id)]" options="{'create': false, 'create_edit': false}" />
 	            		</group>
@@ -478,13 +479,30 @@
 		         </form>
 			</field>
 		</record>
-		
+		<record id="view_tpt_quality_verification_filter" model="ir.ui.view">
+            <field name="name">tpt.quality.verification.filter</field>
+            <field name="model">tpt.quality.verification</field>
+            <field name="arch" type="xml">
+                <search string="Search Quality Verification">
+                    <field name="name" string="Bill Of Material" filter_domain="['|',('name','ilike',self),('code','ilike',self)]"/>
+                    <field name="batch_quality_line" string="Components"/>
+                    <field name="product_id"/>
+                    <group expand="0" string="Group By...">
+                        <filter string="Product" icon="terp-accessories-archiver" domain="[]" context="{'group_by':'product_id'}"/>
+                        <filter string='Warehouse Location' icon="terp-mrp" domain="[]" context="{'group_by' : 'warehouse_id'}"/>
+                        <filter string="Applicable" icon="terp-stock_align_left_24" domain="[]" context="{'group_by':'applicable_id'}"/>
+                        <filter string='Status' icon="terp-stock_symbol-selection" domain="[]" context="{'group_by' : 'state'}"/>
+                   </group>
+                </search>
+            </field>
+        </record>
 		<record id="action_tpt_quality_verification_form" model="ir.actions.act_window">
             <field name="name">Quality Verification</field>
             <field name="type">ir.actions.act_window</field>
             <field name="res_model">tpt.quality.verification</field>
             <field name="view_type">form</field>
             <field name="view_mode">tree,form</field>
+            <field name="search_view_id" ref="view_tpt_quality_verification_filter"/>
             <field name="view_id" ref="tpt_quality_verification_tree_view"/>
         </record>
         

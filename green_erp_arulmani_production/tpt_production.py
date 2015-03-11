@@ -41,7 +41,7 @@ class tpt_tio2_batch_split(osv.osv):
                 prodlot = self.pool.get('ir.sequence').get(cr, uid, 'batching.tio2')
                 prodlot_name = str(schedule_date_year) + str(schedule_date_month) + str(schedule_date_day) + str(prodlot)
                 prodlot_id = prodlot_obj.create(cr, uid, {'name': prodlot_name,
-                                             'phy_batch_no': prodlot_name,
+                                            'phy_batch_no': prodlot_name,
                                              'product_id': line.product_id.id,
                                              'location_id': line.location_id.id})
                 batch_split_line_obj.create(cr, uid, {
@@ -65,6 +65,12 @@ class tpt_tio2_batch_split(osv.osv):
             context.update({'active_id': move_ids and move_ids[0] or False,'active_model': 'stock.move','tpt_copy_prodlot':True})
             line_exist_ids = []
             for split_line in line.batch_split_line:
+                self.pool.get('tpt.quality.verification').create(cr,uid,{
+                                                                  'prod_batch_id': split_line.prodlot_id and split_line.prodlot_id.id or False,
+                                                                  'phy_batch_no': '/',
+                                                                  'product_id': split_line.product_id and split_line.product_id.id or False,
+                                                                  'warehouse_id': line.location_id and line.location_id.id or False,
+                                                                  })
                 line_exist_ids.append((0,0,{
                     'quantity': split_line.qty,
                     'prodlot_id': split_line.prodlot_id.id,
@@ -977,7 +983,7 @@ class tpt_quality_verification(osv.osv):
         'product_id':fields.many2one('product.product','Product', states={ 'done':[('readonly', True)]}),
         'product_type': fields.selection([('rutile', 'Rutile'),('anatase', 'Anatase')],'Product Type', states={ 'done':[('readonly', True)]}),
         'warehouse_id':fields.many2one('stock.location','Warehouse location', states={ 'done':[('readonly', True)]}),
-        'phy_batch_no': fields.char('Physical Batch No', size=100,required=True, states={ 'done':[('readonly', True)]}),
+        'phy_batch_no': fields.char('Physical Batch No', size=100, states={ 'done':[('readonly', True)]}),
         'name':fields.datetime('Created Date',readonly=True),
         'batch_quality_line':fields.one2many('crm.application.line', 'batch_verifi_id','Batch Quality', states={ 'done':[('readonly', True)]}),
         'applicable_id':fields.many2one('crm.application','Applicable for', states={ 'done':[('readonly', True)]}),
@@ -995,6 +1001,10 @@ class tpt_quality_verification(osv.osv):
             cr.execute(sql)
         
         return self.write(cr, uid, ids,{'state':'done'})
+    
+    def action_cancel_draft(self, cr, uid, ids, context=None):
+        self.write(cr, uid, ids, {'state':'draft'})
+        return True
     
     def onchange_prod_batch_id(self, cr, uid, ids,prod_batch_id=False,context=None):
         vals = {}
