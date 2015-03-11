@@ -1740,6 +1740,7 @@ class tpt_material_issue(osv.osv):
                     'period_id':period_id.id ,
                     'date': date_period,
                     'line_id': journal_line,
+                    'doc_type':'good'
                     }
                 new_jour_id = account_move_obj.create(cr,uid,value)
             self.write(cr, uid, ids,{'state':'done'})

@@ -34,9 +34,10 @@
             <field name="arch" type="xml">
 	            <form string="Purchase Indent" version="7.0">   
 	             <header>
-	            		<button name="bt_approve" states='draft' string="Confirm" type="object" class="oe_highlight" groups="green_erp_arulmani_purchase.group_vvti_purchase_admin"/>
-	                    <button name="bt_cancel" states='draft,done' string="Close" type="object" class="oe_highlight" />
-	                    <field name="state" widget="statusbar" statusbar_visible="draft,cancel,done" statusbar_colors='{"draft":"blue","cancel":"blue"}'/>
+	            		<button name="first_approve" states='draft' string="First Approve" type="object" class="oe_highlight" groups="green_erp_arulmani_purchase.group_vvti_purchase_admin"/>
+	            		<button name="bt_approve" states='first_approve' string="Approve" type="object" class="oe_highlight" groups="green_erp_arulmani_purchase.group_vvti_purchase_admin"/>
+	                    <button name="bt_cancel" states='draft,first_approve,done' string="Close" type="object" class="oe_highlight" />
+	                    <field name="state" widget="statusbar" statusbar_visible="draft,cancel,first_approve,done" statusbar_colors='{"draft":"blue","cancel":"blue"}'/>
 	            </header>    
 	            	<sheet>
 	            	<group col="1">
@@ -69,6 +70,8 @@
 										 -->
 										<field name="recom_vendor" />
 										<field name="pending_qty" />
+										<field name="mrs_qty" />
+										<field name="inspection_qty" />
 										<field name="uom_po_id" edit='false' options="{'create': false, 'create_edit': false}"/>
 										<!-- <field name="release_by" required='1'/>  -->
 										<field name="indent_status" required='1'/>
@@ -81,18 +84,49 @@
 			</field>
 		</record>
           
-		<record id="action_view_tpt_purchase_indent_form" model="ir.actions.act_window">
+		<record id="action_view_tpt_purchase_indent_form_draft" model="ir.actions.act_window">
             <field name="name">Purchase Indent</field>
             <field name="type">ir.actions.act_window</field>
             <field name="res_model">tpt.purchase.indent</field>
+            <field name="domain">[('state', 'in', ('draft','cancel'))]</field>
             <field name="view_type">form</field>
             <field name="view_mode">tree,form</field>
             <field name="view_id" ref="view_tpt_purchase_indent_tree"/>
         </record>
         
-        <menuitem action="action_view_tpt_purchase_indent_form"
-            id="menu_action_view_tpt_purchase_indent_form"
+        <record id="action_view_tpt_purchase_indent_form_first" model="ir.actions.act_window">
+            <field name="name">Indent Release - By Store</field>
+            <field name="type">ir.actions.act_window</field>
+            <field name="res_model">tpt.purchase.indent</field>
+            <field name="domain">[('state', '=', 'first_approve')]</field>
+            <field name="view_type">form</field>
+            <field name="view_mode">tree,form</field>
+            <field name="view_id" ref="view_tpt_purchase_indent_tree"/>
+        </record>
+        
+        <record id="action_view_tpt_purchase_indent_form_approve" model="ir.actions.act_window">
+            <field name="name">Indent Release - By HOD</field>
+            <field name="type">ir.actions.act_window</field>
+            <field name="res_model">tpt.purchase.indent</field>
+            <field name="domain">[('state', '=', 'done')]</field>
+            <field name="view_type">form</field>
+            <field name="view_mode">tree,form</field>
+            <field name="view_id" ref="view_tpt_purchase_indent_tree"/>
+        </record>
+        
+        <menuitem action="action_view_tpt_purchase_indent_form_draft"
+            id="menu_action_view_tpt_purchase_indent_form_draft"
+            parent="purchase.menu_procurement_management" sequence="12"/>
+            
+        <menuitem action="action_view_tpt_purchase_indent_form_first"
+            id="menu_view_tpt_purchase_indent_form_first"
             parent="purchase.menu_procurement_management" sequence="13"/>
+            
+        <menuitem action="action_view_tpt_purchase_indent_form_approve"
+            id="menu_view_tpt_purchase_indent_form_approve"
+            parent="purchase.menu_procurement_management" sequence="14"/>    
+            
+          
 		
 		
 		<record id="tpt_purchase_order_form" model="ir.ui.view">
