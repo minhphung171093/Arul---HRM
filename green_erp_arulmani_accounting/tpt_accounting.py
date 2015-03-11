@@ -109,15 +109,15 @@ class tpt_posting_verification(osv.osv):
         return result.keys()
     _columns = {
         'doc_type': fields.selection([('cus_inv', 'Customer Invoice'),('cus_pay', 'Customer Payment'),
-                                  ('sup_inv', 'Supplier Invoice'),('sup_pay', 'Supplier Payment'),
+                                  ('sup_inv_po', 'Supplier Invoice(With PO)'),('sup_inv', 'Supplier Invoice(Without PO)'),('sup_pay', 'Supplier Payment'),
                                   ('payroll', 'Payroll'),
                                   ('grn', 'GRN'),
                                   ('good', 'Good Issue'),
                                   ('do', 'DO'),
-                                  ('inventory', 'Inventory Tranfer'),
+                                  ('inventory', 'Inventory Transfer'),
                                   ('manual', 'Manual Journal'),
-                                  ('cash', 'Cash Recipt Payment'),
-                                  ('bank', 'Bank Recipt Payments'),
+                                  ('cash', 'Cash Receipt Payment'),
+                                  ('bank', 'Bank Receipt Payments'),
                                   ('product', 'Production'),],'Document Type', states={ 'done':[('readonly', True)]}),
         'name': fields.char('Document No.', size=1024, readonly=True ),
         'date':fields.date('Created on',readonly=True),
@@ -356,7 +356,7 @@ class stock_picking(osv.osv):
                 credit = 0.0
                 for move in line.move_lines:
                     amount = move.purchase_line_id.price_unit * move.product_qty
-                    debit += amount - amount*move.purchase_line_id.discount
+                    debit += amount - (amount*move.purchase_line_id.discount)/100
                 date_period = line.date,
                 sql = '''
                     select id from account_period where '%s' between date_start and date_stop
@@ -364,11 +364,17 @@ class stock_picking(osv.osv):
                 '''%(date_period)
                 cr.execute(sql)
                 period_ids = [r[0] for r in cr.fetchall()]
-                
+#                 a = self.browse(cr,uid,period_ids[0])
                 if not period_ids:
                     raise osv.except_osv(_('Warning!'),_('Period is not null, please configure it in Period master !'))
                 
                 for period_id in period_obj.browse(cr,uid,period_ids):
+                    sql_journal = '''
+                    select id from account_journal
+                    '''
+                    cr.execute(sql_journal)
+                    journal_ids = [r[0] for r in cr.fetchall()]
+                    journal = self.pool.get('account.journal').browse(cr,uid,journal_ids[0])
                     if not line.warehouse.gl_pos_verification_id:
                         raise osv.except_osv(_('Warning!'),_('Account Warehouse is not null, please configure it in Warehouse Location master !'))
                 #sinh but toan
@@ -382,17 +388,17 @@ class stock_picking(osv.osv):
                                        })]
                     for p in line.move_lines:
                         amount_cer = p.purchase_line_id.price_unit * p.product_qty
-                        credit += amount_cer - amount_cer*p.purchase_line_id.discount
+                        credit += amount_cer - (amount_cer*p.purchase_line_id.discount)/100
                         journal_line.append((0,0,{
                             'name':line.name, 
                             'account_id': p.product_id.purchase_acc_id and p.product_id.purchase_acc_id.id,
-                            'partner_id': line.partner_id and line.partner_id.id,
+                            'partner_id': line.partner_id and line.partner_id.id or False,
                             'credit':credit,
                             'debit':0,
                         }))
                         
                     value={
-                        'journal_id':15,
+                        'journal_id':journal.id,
                         'period_id':period_id.id ,
                         'date': date_period,
                         'line_id': journal_line,
@@ -402,9 +408,15 @@ class stock_picking(osv.osv):
                 debit = line.sale_id and line.sale_id.amount_total or 0.0
                 so_id = line.sale_id and line.sale_id.id or False
                 date_period = line.date
+                sql_journal = '''
+                    select id from account_journal
+                    '''
+                cr.execute(sql_journal)
+                journal_ids = [r[0] for r in cr.fetchall()]
+                journal = self.pool.get('account.journal').browse(cr,uid,journal_ids[0])
                 sql = '''
                     select id from account_period where '%s' between date_start and date_stop
-                
+                 
                 '''%(date_period)
                 cr.execute(sql)
                 period_ids = [r[0] for r in cr.fetchall()]
@@ -434,10 +446,10 @@ class stock_picking(osv.osv):
                             }))
                         else:
                             raise osv.except_osv(_('Warning!'),_('Product Asset Account is not configured! Please configured it!'))
-                        
+                         
                         break
                     value={
-                        'journal_id':3,
+                        'journal_id':journal.id,
                         'period_id':period_id.id ,
                         'date': date_period,
                         'line_id': journal_line,
@@ -1603,6 +1615,59 @@ class tpt_material_issue(osv.osv):
                 'gl_account_id': fields.many2one('account.account', 'GL Account'),
                 'warehouse':fields.many2one('stock.location','Warehouse Location'),
                 }
+    def bt_approve(self, cr, uid, ids, context=None):
+        price = 0.0
+        account_move_obj = self.pool.get('account.move')
+        period_obj = self.pool.get('account.period')
+        journal_obj = self.pool.get('account.journal')
+        journal_line = []
+        for line in self.browse(cr, uid, ids):
+            for mater in line.material_issue_line:
+                price += mater.product_id.standard_price * mater.product_isu_qty
+            date_period = line.date_expec,
+            sql = '''
+                select id from account_journal
+            '''
+            cr.execute(sql)
+            journal_ids = [r[0] for r in cr.fetchall()]
+            sql = '''
+                select id from account_period where '%s' between date_start and date_stop
+            '''%(date_period)
+            cr.execute(sql)
+            period_ids = [r[0] for r in cr.fetchall()]
+            
+            if not period_ids:
+                raise osv.except_osv(_('Warning!'),_('Period is not null, please configure it in Period master !'))
+            for period_id in period_obj.browse(cr,uid,period_ids):
+                if not line.warehouse.gl_pos_verification_id:
+                    raise osv.except_osv(_('Warning!'),_('Account Warehouse is not null, please configure it in Warehouse Location master !'))
+                journal_line = [(0,0,{
+                                        'name':line.date_expec, 
+                                        'account_id': line.warehouse.gl_pos_verification_id and line.warehouse.gl_pos_verification_id.id,
+#                                         'partner_id': line.partner_id and line.partner_id.id,
+                                        'debit':0,
+                                        'credit':price,
+                                        
+                                       })]
+                if line.gl_account_id:
+                    journal_line.append((0,0,{
+                                'name':line.date_expec, 
+                                'account_id': line.gl_account_id and line.gl_account_id.id,
+#                                 'partner_id': line.partner_id and line.partner_id.id,
+                                'credit':0,
+                                'debit':price,
+                            }))
+                else: 
+                    raise osv.except_osv(_('Warning!'),_('GL Account is not configured! Please configured it!'))
+                value={
+                    'journal_id':journal_ids[0],
+                    'period_id':period_id.id ,
+                    'date': date_period,
+                    'line_id': journal_line,
+                    }
+                new_jour_id = account_move_obj.create(cr,uid,value)
+            self.write(cr, uid, ids,{'state':'done'})
+        return True   
 tpt_material_issue()    
 
 class tpt_hr_payroll_approve_reject(osv.osv):
@@ -1639,6 +1704,12 @@ class tpt_hr_payroll_approve_reject(osv.osv):
                     payroll_ids = str(payroll_ids).replace("[","(")
                     payroll_ids = payroll_ids.replace("]",")")
                     if payroll_ids:
+                        sql_journal = '''
+                        select id from account_journal
+                        '''
+                        cr.execute(sql_journal)
+                        journal_ids = [r[0] for r in cr.fetchall()]
+                        journal = self.pool.get('account.journal').browse(cr,uid,journal_ids[0]) 
     
                         sql_gross = '''
                             select sum(float) as gross_salary from arul_hr_payroll_earning_structure where earning_parameters_id in (select id from arul_hr_payroll_earning_parameters where code='GROSS_SALARY')
@@ -1745,7 +1816,7 @@ class tpt_hr_payroll_approve_reject(osv.osv):
     #                         }))
                              
                         value={
-                            'journal_id':15,
+                            'journal_id':journal.id,
                             'period_id':period_id.id ,
                             'date': time.strftime('%Y-%m-%d'),
                             'line_id': journal_line,
@@ -1754,15 +1825,19 @@ class tpt_hr_payroll_approve_reject(osv.osv):
                 payroll_obj.write(cr, uid, payroll.id, {'state':'approve'})
         return self.write(cr, uid, line.id, {'state':'done'})
 tpt_hr_payroll_approve_reject()
-
-
-
-
-
-
-
-
-
-
-
-
+class account_move(osv.osv):
+    _inherit = 'account.move'
+    _columns = {
+           'doc_type': fields.selection([('cus_inv', 'Customer Invoice'),('cus_pay', 'Customer Payment'),
+                                  ('sup_inv_po', 'Supplier Invoice(With PO)'),('sup_inv', 'Supplier Invoice(Without PO)'),('sup_pay', 'Supplier Payment'),
+                                  ('payroll', 'Payroll'),
+                                  ('grn', 'GRN'),
+                                  ('good', 'Good Issue'),
+                                  ('do', 'DO'),
+                                  ('inventory', 'Inventory Transfer'),
+                                  ('manual', 'Manual Journal'),
+                                  ('cash', 'Cash Receipt Payment'),
+                                  ('bank', 'Bank Receipt Payments'),
+                                  ('product', 'Production'),],'Document Type'),      
+                }
+account_move()
