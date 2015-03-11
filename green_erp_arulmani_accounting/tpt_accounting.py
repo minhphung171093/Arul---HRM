@@ -579,6 +579,7 @@ class account_invoice(osv.osv):
                 else:
                     iml += invoice_line_obj.move_line_amount_untaxed_without_po(cr, uid, inv.id) 
             if (inv.type == 'out_invoice'):
+                doc_type = 'cus_inv' 
                 iml = invoice_line_obj.move_line_customer_fright(cr, uid, inv.id) 
                 iml += invoice_line_obj.move_line_customer_amount_tax(cr, uid, inv.id) 
                 iml += invoice_line_obj.move_line_customer_excise_duty(cr, uid, inv.id) 
@@ -695,6 +696,7 @@ class account_invoice(osv.osv):
   
             move = {
                 'ref': inv.reference and inv.reference or inv.name,
+                'doc_type':doc_type,
                 'line_id': line,
                 'journal_id': journal_id,
                 'date': date,
