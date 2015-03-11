@@ -895,5 +895,18 @@
                 </data>
 			</field>
 		</record>
+		
+		<record id="tpt_activities_form_view_inherit" model="ir.ui.view">
+            <field name="name">tpt.activities.form.inherit</field>
+            <field name="model">tpt.activities</field>
+            <field name="inherit_id" ref="green_erp_arulmani_production.tpt_activities_form_view"/>
+            <field name="arch" type="xml">
+	            <data>
+                    <xpath expr="//field[@name='description']" position="after">
+                    	<field name="act_acc_id" options="{'create': false, 'create_edit': false}"/>
+                    </xpath>
+                </data>
+			</field>
+		</record>
     </data>
 </openerp>

@@ -734,7 +734,7 @@ class account_invoice(osv.osv):
                         _('You cannot create an invoice on a centralized journal. Uncheck the centralized counterpart box in the related journal from the configuration menu.'))
   
             line = self.finalize_invoice_move_lines(cr, uid, inv, line)
-  
+            
             move = {
                 'ref': inv.reference and inv.reference or inv.name,
 #                 'doc_type':'',
@@ -769,7 +769,28 @@ class account_invoice(osv.osv):
             self.write(cr, uid, [inv.id], {'move_id': move_id,'period_id':period_id, 'move_name':new_move_name}, context=ctx)
             # Pass invoice in context in method post: used if you want to get the same
             # account move reference when creating the same invoice after a cancelled one:
-            move_obj.post(cr, uid, [move_id], context=ctx)
+            
+            
+            valid_moves = move_obj.validate(cr, uid, [move_id], context)
+            if not valid_moves:
+                raise osv.except_osv(_('Error!'), _('You cannot validate a non-balanced entry.\nMake sure you have configured payment terms properly.\nThe latest payment term line should be of the "Balance" type.'))
+            obj_sequence = self.pool.get('ir.sequence')
+            for move in move_obj.browse(cr, uid, valid_moves, context=context):
+                if move.name =='/':
+                    new_name = False
+                    journal = move.journal_id
+    
+#                     if invoice and invoice.internal_number:
+#                         new_name = invoice.internal_number
+#                     else:
+                    if journal.sequence_id:
+                        c = {'fiscalyear_id': move.period_id.fiscalyear_id.id}
+                        new_name = obj_sequence.next_by_id(cr, uid, journal.sequence_id.id, c)
+                    else:
+                        raise osv.except_osv(_('Error!'), _('Please define a sequence on the journal.'))
+                    if new_name:
+                        move_obj.write(cr, uid, [move.id], {'name':new_name})
+#             move_obj.post(cr, uid, [move_id], context=ctx)
         self._log_event(cr, uid, ids)
         return True
      
@@ -1295,19 +1316,21 @@ class account_voucher(osv.osv):
         # ANSWER: We can have payment and receipt "In Advance".
         # TODO: Make this logic available.
         # -for sale, purchase we have but for the payment and receipt we do not have as based on the bank/cash journal we can not know its payment or receipt
-#phuoc       
-        if voucher.type_trans in ('payment'):
-            credit = voucher.sum_amount
-        elif voucher.type_trans in ('receipt'):
-            debit = voucher.sum_amount
+#phuoc    
+        if voucher.type_trans:   
+            if voucher.type_trans in ('payment'):
+                credit = voucher.sum_amount
+            elif voucher.type_trans in ('receipt'):
+                debit = voucher.sum_amount
 #/phuoc
-        if voucher.type in ('purchase', 'payment'):
-            credit = voucher.paid_amount_in_company_currency
-        elif voucher.type in ('sale', 'receipt'):
-            debit = voucher.paid_amount_in_company_currency
-        if debit < 0: credit = -debit; debit = 0.0
-        if credit < 0: debit = -credit; credit = 0.0
-        sign = debit - credit < 0 and -1 or 1
+        else:
+            if voucher.type in ('purchase', 'payment'):
+                credit = voucher.paid_amount_in_company_currency
+            elif voucher.type in ('sale', 'receipt'):
+                debit = voucher.paid_amount_in_company_currency
+            if debit < 0: credit = -debit; debit = 0.0
+            if credit < 0: debit = -credit; credit = 0.0
+            sign = debit - credit < 0 and -1 or 1
 #         if debit < 0: credit = -debit; debit = 0.0
 #         if credit < 0: debit = -credit; credit = 0.0
 #         sign = debit - credit < 0 and -1 or 1
@@ -1585,6 +1608,11 @@ class account_voucher(osv.osv):
             move['doc_type'] = 'bank'
         if voucher.journal_id.type == 'cash':
             move['doc_type'] = 'cash'
+        if (voucher.journal_id.type == 'bank' or voucher.journal_id.type == 'cash'):
+            if voucher.type == 'receipt':
+                move['doc_type'] = 'cus_pay'
+            if voucher.type == 'payment':
+                move['doc_type'] = 'sup_pay'
         return move
     def writeoff_move_line_get(self, cr, uid, voucher_id, line_total, move_id, name, company_currency, current_currency, context=None):
         '''
@@ -1914,6 +1942,7 @@ class mrp_production(osv.osv):
         journal_obj = self.pool.get('account.journal')
         journal_line = []
         credit = 0
+        price = 0
         for line in self.browse(cr,uid,ids):
             sql = '''
                     select id from account_journal
@@ -1945,7 +1974,16 @@ class mrp_production(osv.osv):
                         else:
                             raise osv.except_osv(_('Warning!'),_("Purchase GL Account is not configured for Product '%s'! Please configured it!")%(mater.product_id.code))
                     for act in line.bom_id.activities_line:
-                        credit += act.product_cost
+                        if act.activities_id.act_acc_id:
+                            credit += act.product_cost
+                            journal_line.append((0,0,{
+                                                    'name':act.activities_id.code, 
+                                                    'account_id': act.activities_id.act_acc_id and act.activities_id.act_acc_id.id,
+                                                    'debit':act.product_cost or 0,
+                                                    'credit':0,
+                                                   }))
+                        else:
+                            raise osv.except_osv(_('Warning!'),_("Activity Account is not configured for Activity '%s'! Please configured it!")%(act.activities_id.code))
                     credit += price
                     if line.product_id.product_asset_acc_id:
                         journal_line.append((0,0,{
@@ -1983,3 +2021,38 @@ class account_move(osv.osv):
                                   ('product', 'Production'),],'Document Type'),      
                 }
 account_move()
+
+class tpt_activities(osv.osv):
+    _inherit = 'tpt.activities'
+    _columns = {
+                'act_acc_id': fields.many2one('account.account', 'Activity Account'),
+                }
+tpt_activities()
+
+class product_category(osv.osv):
+    _inherit = "product.category"
+    _columns = {
+        'cate_name':fields.selection([('raw','Raw Materials'),('finish','Finished Product'),('spares','Spares'),('consum','Consumables'),('assets','Assets')], 'Category Name', required = True),
+        }
+    def name_get(self, cr, uid, ids, context=None):
+        res = []
+        if not ids:
+            return res
+        reads = self.read(cr, uid, ids, ['cate_name'], context)
+ 
+        for record in reads:
+            cate_name = record['cate_name']
+            name = ''
+            if cate_name == 'raw':
+                name = 'Raw Materials'
+            if cate_name == 'finish':
+                name = 'Finished Product'
+            if cate_name == 'spares':
+                name = 'Spares'
+            if cate_name == 'consum':
+                name = 'Consumables'
+            if cate_name == 'assets':
+                name = 'Assets'
+            res.append((record['id'], name))
+        return res
+product_category()
