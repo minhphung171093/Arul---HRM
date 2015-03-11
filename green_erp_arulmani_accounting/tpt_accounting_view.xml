@@ -208,11 +208,33 @@
         </record>
         
         
-        <menuitem action="action_tpt_posting_verification_form_view"
+       <!-- <menuitem action="action_tpt_posting_verification_form_view"
             id="menu_action_tpt_posting_verification_form_view"
-            parent="menu_tpt_accounting" sequence="20"/>
+            parent="menu_tpt_accounting" sequence="20"/>-->
 
 				
+		<record id="tpt_view_invoice_customer_inherit_form" model="ir.ui.view">
+            <field name="name">tpt.view.invoice.customer.inherit.form"</field>
+            <field name="model">account.invoice</field>
+            <field name="inherit_id" ref="account_voucher.view_invoice_customer"/>
+            <field name="arch" type="xml">	
+            	<xpath expr="//button[@name='invoice_pay_customer']" position="attributes">
+					<attribute name='invisible'>1</attribute>
+				</xpath>	
+			</field>
+		</record>
+		
+		<record id="tpt_view_invoice_form_inherit_form" model="ir.ui.view">
+            <field name="name">tpt.view.invoice.form.inherit.form"</field>
+            <field name="model">account.invoice</field>
+            <field name="inherit_id" ref="account.invoice_form"/>
+            <field name="arch" type="xml">	
+            	<xpath expr="//button[@name='%(account.action_account_invoice_refund)d']" position="attributes">
+					<attribute name='invisible'>1</attribute>
+				</xpath>	
+			</field>
+		</record>
+		
 		<record id="tpt_account_product_product_inherit_form" model="ir.ui.view">
             <field name="name">tpt.account.product.product.inherit.form</field>
             <field name="model">product.product</field>

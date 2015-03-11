@@ -33,8 +33,13 @@ class tpt_tio2_batch_split(osv.osv):
         batch_split_line_obj = self.pool.get('tpt.batch.split.line')
         prodlot_obj = self.pool.get('stock.production.lot')
         for line in self.browse(cr, uid, ids):
+            schedule_date = line.mrp_id.date_planned
+            schedule_date_day = schedule_date[8:10]
+            schedule_date_month = schedule_date[5:7]
+            schedule_date_year = schedule_date[:4]
             for num in range(0,int(line.available)):
-                prodlot_name = self.pool.get('ir.sequence').get(cr, uid, 'batching.tio2')
+                prodlot = self.pool.get('ir.sequence').get(cr, uid, 'batching.tio2')
+                prodlot_name = str(schedule_date_year) + str(schedule_date_month) + str(schedule_date_day) + str(prodlot)
                 prodlot_id = prodlot_obj.create(cr, uid, {'name': prodlot_name,
                                              'phy_batch_no': prodlot_name,
                                              'product_id': line.product_id.id,

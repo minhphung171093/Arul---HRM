@@ -10,7 +10,7 @@
         <record id="sequence_batching_tio2_item" model="ir.sequence">
             <field name="name">Batching (TIO2)</field>
             <field name="code">batching.tio2</field>
-            <field name="prefix">%(year)s%(month)s%(day)s</field>
+            <!--<field name="prefix">%(year)s%(month)s%(day)s</field>-->
             <field name="padding">2</field>
             <field name="number_next_actual">01</field>
             <field name="implementation">standard</field>

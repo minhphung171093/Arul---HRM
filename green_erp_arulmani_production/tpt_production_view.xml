@@ -357,7 +357,7 @@
                     </xpath>
                     
                     <xpath expr="//form/sheet/group/group/field[@name='bom_id']" position="replace">
-						<field name="bom_id" context="{'default_product_id': product_id, 'search_norm_id':1}" on_change="bom_id_change(bom_id)" options="{'create': false, 'create_edit': false}" required="1"/>
+						<field name="bom_id" string = 'Norm' context="{'default_product_id': product_id, 'search_norm_id':1}" on_change="bom_id_change(bom_id)" options="{'create': false, 'create_edit': false}" required="1"/>
                     </xpath>
                     
                    	<xpath expr="//form/sheet/group/group/field[@name='user_id']" position="attributes">
