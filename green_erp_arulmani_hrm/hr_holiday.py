@@ -244,8 +244,8 @@ class arul_hr_audit_shift_time(osv.osv):
               'time_evaluate_id': fields.many2one('tpt.time.leave.evaluation','Time Evaluation'),
               'diff_day': fields.boolean('Difference Day', readonly = True),
               #TPT
-              'punch_in_date':fields.date('Punch In Date', required = True, states={'done': [('readonly', True)], 'cancel': [('readonly', True)]}),
-              'punch_out_date':fields.date('Punch Out Date', required = True, states={'done': [('readonly', True)], 'cancel': [('readonly', True)]}),
+              'punch_in_date':fields.date('Punch In Date', states={'done': [('readonly', True)], 'cancel': [('readonly', True)]}),
+              'punch_out_date':fields.date('Punch Out Date', states={'done': [('readonly', True)], 'cancel': [('readonly', True)]}),
               'reason_for_edit': fields.text('Reason',states={'done': [('readonly', True)], 'cancel': [('readonly', True)]}),
               'time_change_flag': fields.boolean('If In/Out Changed'), 
               
@@ -1940,12 +1940,13 @@ class arul_hr_punch_in_out(osv.osv):
                                 in_out = data2[:3]
                                 employee_code_2=data2[43:51]
                                 date_2=data2[7:11]+'-'+data2[11:13]+'-'+data2[13:15]
+                                out_date = data2[7:11]+'-'+data2[11:13]+'-'+data2[13:15]
                                 if employee_code_2==employee_code and in_out=='P10':
                                     in_time2 = float(data2[15:17])+float(data2[17:19])/60+float(data2[19:21])/3600
                                     val1={'employee_id':employee_ids[0],'planned_work_shift_id':shift_id,'actual_work_shift_id':False,'work_date':date,'punch_in_date':date,'in_time':in_time2,'out_time':0,'approval':1}
                                 if employee_code_2==employee_code and in_out=='P20':
                                     out_time=float(data2[15:17])+float(data2[17:19])/60+float(data2[19:21])/3600
-                                    out_date = data1[7:11]+'-'+data1[11:13]+'-'+data1[13:15]
+                                    out_date = data2[7:11]+'-'+data2[11:13]+'-'+data2[13:15]
                                     val1['out_time']=out_time
                                     val1['punch_out_date']=out_date
                                 # cho phep di lam som nua tieng hoac di tre 15 phut va ve som 15 phut
