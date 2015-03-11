@@ -379,7 +379,9 @@
 					<field name="employee_category_id" options="{'create': false, 'create_edit': false}"/>
 					<field name="planned_work_shift_id" options="{'create': false, 'create_edit': false}"/>
 					<field name="actual_work_shift_id" options="{'create': false, 'create_edit': false}"/>
+					<field name="punch_in_date"/>
 					<field name="in_time" widget="float_time"/>
+					<field name="punch_out_date"/>					
 					<field name="out_time" widget="float_time"/>
 					<field name="total_hours" widget="float_time"/>
 					<field name="approval"/>

@@ -109,15 +109,15 @@ class tpt_posting_verification(osv.osv):
         return result.keys()
     _columns = {
         'doc_type': fields.selection([('cus_inv', 'Customer Invoice'),('cus_pay', 'Customer Payment'),
-                                  ('sup_inv', 'Supplier Invoice'),('sup_pay', 'Supplier Payment'),
+                                  ('sup_inv_po', 'Supplier Invoice(With PO)'),('sup_inv', 'Supplier Invoice(Without PO)'),('sup_pay', 'Supplier Payment'),
                                   ('payroll', 'Payroll'),
                                   ('grn', 'GRN'),
                                   ('good', 'Good Issue'),
                                   ('do', 'DO'),
-                                  ('inventory', 'Inventory Tranfer'),
+                                  ('inventory', 'Inventory Transfer'),
                                   ('manual', 'Manual Journal'),
-                                  ('cash', 'Cash Recipt Payment'),
-                                  ('bank', 'Bank Recipt Payments'),
+                                  ('cash', 'Cash Receipt Payment'),
+                                  ('bank', 'Bank Receipt Payments'),
                                   ('product', 'Production'),],'Document Type', states={ 'done':[('readonly', True)]}),
         'name': fields.char('Document No.', size=1024, readonly=True ),
         'date':fields.date('Created on',readonly=True),
@@ -595,7 +595,7 @@ class account_invoice(osv.osv):
                 iml += invoice_line_obj.move_line_customer_amount_tax(cr, uid, inv.id) 
                 iml += invoice_line_obj.move_line_customer_excise_duty(cr, uid, inv.id) 
                 iml += invoice_line_obj.move_line_customer_product_price(cr, uid, inv.id)
-            
+                
 #             iml += invoice_line_obj.move_line_price_total(cr, uid, inv.id)  
             # check if taxes are all computed
             compute_taxes = ait_obj.compute(cr, uid, inv.id, context=ctx)
@@ -707,6 +707,7 @@ class account_invoice(osv.osv):
   
             move = {
                 'ref': inv.reference and inv.reference or inv.name,
+#                 'doc_type':'',
                 'line_id': line,
                 'journal_id': journal_id,
                 'date': date,
@@ -723,6 +724,13 @@ class account_invoice(osv.osv):
                 move['period_id'] = period_id
                 for i in line:
                     i[2]['period_id'] = period_id
+            if (inv.type == 'out_invoice'):
+                move['doc_type'] = 'cus_inv'
+            if (inv.type == 'in_invoice'):
+                if inv.purchase_id:
+                    move['doc_type'] = 'sup_inv_po'
+                else:
+                    move['doc_type'] = 'sup_inv'
   
             ctx.update(invoice=inv)
             move_id = move_obj.create(cr, uid, move, context=ctx)
@@ -1508,6 +1516,46 @@ class account_voucher(osv.osv):
                     reconcile = move_line_pool.reconcile_partial(cr, uid, rec_ids, writeoff_acc_id=voucher.writeoff_acc_id.id, writeoff_period_id=voucher.period_id.id, writeoff_journal_id=voucher.journal_id.id)
         return True
     
+    def account_move_get(self, cr, uid, voucher_id, context=None):
+        '''
+        This method prepare the creation of the account move related to the given voucher.
+
+        :param voucher_id: Id of voucher for which we are creating account_move.
+        :return: mapping between fieldname and value of account move to create
+        :rtype: dict
+        '''
+        seq_obj = self.pool.get('ir.sequence')
+        voucher = self.pool.get('account.voucher').browse(cr,uid,voucher_id,context)
+        if voucher.number:
+            name = voucher.number
+        elif voucher.journal_id.sequence_id:
+            if not voucher.journal_id.sequence_id.active:
+                raise osv.except_osv(_('Configuration Error !'),
+                    _('Please activate the sequence of selected journal !'))
+            c = dict(context)
+            c.update({'fiscalyear_id': voucher.period_id.fiscalyear_id.id})
+            name = seq_obj.next_by_id(cr, uid, voucher.journal_id.sequence_id.id, context=c)
+        else:
+            raise osv.except_osv(_('Error!'),
+                        _('Please define a sequence on the journal.'))
+        if not voucher.reference:
+            ref = name.replace('/','')
+        else:
+            ref = voucher.reference
+
+        move = {
+            'name': name,
+            'journal_id': voucher.journal_id.id,
+            'narration': voucher.narration,
+            'date': voucher.date,
+            'ref': ref,
+            'period_id': voucher.period_id.id,
+        }
+        if voucher.journal_id.type == 'bank':
+            move['doc_type'] = 'bank'
+        if voucher.journal_id.type == 'cash':
+            move['doc_type'] = 'cash'
+        return move
     def writeoff_move_line_get(self, cr, uid, voucher_id, line_total, move_id, name, company_currency, current_currency, context=None):
         '''
         Set a dict to be use to create the writeoff move line.
@@ -1886,3 +1934,20 @@ class mrp_production(osv.osv):
                 
         return new_write
 mrp_production()
+
+class account_move(osv.osv):
+    _inherit = 'account.move'
+    _columns = {
+           'doc_type': fields.selection([('cus_inv', 'Customer Invoice'),('cus_pay', 'Customer Payment'),
+                                  ('sup_inv_po', 'Supplier Invoice(With PO)'),('sup_inv', 'Supplier Invoice(Without PO)'),('sup_pay', 'Supplier Payment'),
+                                  ('payroll', 'Payroll'),
+                                  ('grn', 'GRN'),
+                                  ('good', 'Good Issue'),
+                                  ('do', 'DO'),
+                                  ('inventory', 'Inventory Transfer'),
+                                  ('manual', 'Manual Journal'),
+                                  ('cash', 'Cash Receipt Payment'),
+                                  ('bank', 'Bank Receipt Payments'),
+                                  ('product', 'Production'),],'Document Type'),      
+                }
+account_move()
