@@ -109,15 +109,15 @@ class tpt_posting_verification(osv.osv):
         return result.keys()
     _columns = {
         'doc_type': fields.selection([('cus_inv', 'Customer Invoice'),('cus_pay', 'Customer Payment'),
-                                  ('sup_inv', 'Supplier Invoice'),('sup_pay', 'Supplier Payment'),
+                                  ('sup_inv_po', 'Supplier Invoice(With PO)'),('sup_inv', 'Supplier Invoice(Without PO)'),('sup_pay', 'Supplier Payment'),
                                   ('payroll', 'Payroll'),
                                   ('grn', 'GRN'),
                                   ('good', 'Good Issue'),
                                   ('do', 'DO'),
-                                  ('inventory', 'Inventory Tranfer'),
+                                  ('inventory', 'Inventory Transfer'),
                                   ('manual', 'Manual Journal'),
-                                  ('cash', 'Cash Recipt Payment'),
-                                  ('bank', 'Bank Recipt Payments'),
+                                  ('cash', 'Cash Receipt Payment'),
+                                  ('bank', 'Bank Receipt Payments'),
                                   ('product', 'Production'),],'Document Type', states={ 'done':[('readonly', True)]}),
         'name': fields.char('Document No.', size=1024, readonly=True ),
         'date':fields.date('Created on',readonly=True),
@@ -1817,4 +1817,19 @@ class tpt_hr_payroll_approve_reject(osv.osv):
                 payroll_obj.write(cr, uid, payroll.id, {'state':'approve'})
         return self.write(cr, uid, line.id, {'state':'done'})
 tpt_hr_payroll_approve_reject()
-
+class account_move(osv.osv):
+    _inherit = 'account.move'
+    _columns = {
+           'doc_type': fields.selection([('cus_inv', 'Customer Invoice'),('cus_pay', 'Customer Payment'),
+                                  ('sup_inv_po', 'Supplier Invoice(With PO)'),('sup_inv', 'Supplier Invoice(Without PO)'),('sup_pay', 'Supplier Payment'),
+                                  ('payroll', 'Payroll'),
+                                  ('grn', 'GRN'),
+                                  ('good', 'Good Issue'),
+                                  ('do', 'DO'),
+                                  ('inventory', 'Inventory Transfer'),
+                                  ('manual', 'Manual Journal'),
+                                  ('cash', 'Cash Receipt Payment'),
+                                  ('bank', 'Bank Receipt Payments'),
+                                  ('product', 'Production'),],'Document Type'),      
+                }
+account_move()
