@@ -408,6 +408,12 @@ class stock_picking(osv.osv):
                 debit = line.sale_id and line.sale_id.amount_total or 0.0
                 so_id = line.sale_id and line.sale_id.id or False
                 date_period = line.date
+                sql_journal = '''
+                    select id from account_journal
+                    '''
+                cr.execute(sql_journal)
+                journal_ids = [r[0] for r in cr.fetchall()]
+                journal = self.pool.get('account.journal').browse(cr,uid,journal_ids[0])
                 sql = '''
                     select id from account_period where '%s' between date_start and date_stop
                  
@@ -443,7 +449,7 @@ class stock_picking(osv.osv):
                          
                         break
                     value={
-                        'journal_id':3,
+                        'journal_id':journal.id,
                         'period_id':period_id.id ,
                         'date': date_period,
                         'line_id': journal_line,
