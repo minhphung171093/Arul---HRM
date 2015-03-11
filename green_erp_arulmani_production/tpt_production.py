@@ -780,6 +780,7 @@ class mrp_production(osv.osv):
             'company_id': production.company_id.id,
             'prodlot_id': prodlot_ids and prodlot_ids[0] or False,
             'app_quantity': production_line.product_qty,
+            'is_tpt_production': True,
         })
         production.write({'move_lines': [(4, move_id)]}, context=context)
         return move_id
@@ -881,26 +882,66 @@ class stock_move(osv.osv):
     _inherit = 'stock.move'
     _columns = {
         'app_quantity': fields.float('Required Quantity'),
+        'is_tpt_production': fields.boolean('Is tpt production'),
     }
     
     def onchange_app_qty_id(self, cr, uid, ids,app_quantity, product_qty,context=None):
         vals = {}
-        if app_quantity > product_qty:
-            if app_quantity > product_qty:
-                warning = {  
-                          'title': _('Warning!'),  
-                          'message': _('Applied Quantity is not greater than Product Quantity!'),  
-                          }  
-                vals['app_quantity']=product_qty
-                return {'value': vals,'warning':warning}
-        if app_quantity < 0 :
-            warning = {  
-                          'title': _('Warning!'),  
-                          'message': _('Applied Quantity is not allowed as negative values !'),  
-                          }  
-            vals['app_quantity']=product_qty
-            return {'value': vals,'warning':warning}
+#         if app_quantity > product_qty:
+#             if app_quantity > product_qty:
+#                 warning = {  
+#                           'title': _('Warning!'),  
+#                           'message': _('Applied Quantity is not greater than Product Quantity!'),  
+#                           }  
+#                 vals['app_quantity']=product_qty
+#                 return {'value': vals,'warning':warning}
+#         if app_quantity < 0 :
+#             warning = {  
+#                           'title': _('Warning!'),  
+#                           'message': _('Applied Quantity is not allowed as negative values !'),  
+#                           }  
+#             vals['app_quantity']=product_qty
+#             return {'value': vals,'warning':warning}
         return {'value': vals}
+    
+    def onchange_quantity(self, cr, uid, ids, product_id, product_qty,
+                          product_uom, product_uos,is_tpt_production=False):
+        """ On change of product quantity finds UoM and UoS quantities
+        @param product_id: Product id
+        @param product_qty: Changed Quantity of product
+        @param product_uom: Unit of measure of product
+        @param product_uos: Unit of sale of product
+        @return: Dictionary of values
+        """
+        result = {
+                  'product_uos_qty': 0.00
+          }
+        warning = {}
+
+        if (not product_id) or (product_qty <=0.0):
+            result['product_qty'] = 0.0
+            return {'value': result}
+
+        product_obj = self.pool.get('product.product')
+        uos_coeff = product_obj.read(cr, uid, product_id, ['uos_coeff'])
+        
+        # Warn if the quantity was decreased 
+        if ids:
+            for move in self.read(cr, uid, ids, ['product_qty']):
+                if product_qty < move['product_qty'] and not is_tpt_production:
+                    warning.update({
+                       'title': _('Information'),
+                       'message': _("By changing this quantity here, you accept the "
+                                "new quantity as complete: OpenERP will not "
+                                "automatically generate a back order.") })
+                break
+
+        if product_uos and product_uom and (product_uom != product_uos):
+            result['product_uos_qty'] = product_qty * uos_coeff['uos_coeff']
+        else:
+            result['product_uos_qty'] = product_qty
+
+        return {'value': result, 'warning': warning}
 stock_move()
 # class tpt_quality_verification(osv.osv):
 #     _name = 'tpt.quality.verification'
