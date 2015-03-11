@@ -1578,6 +1578,11 @@ class account_voucher(osv.osv):
             move['doc_type'] = 'bank'
         if voucher.journal_id.type == 'cash':
             move['doc_type'] = 'cash'
+        if (voucher.journal_id.type == 'bank' or voucher.journal_id.type == 'cash'):
+            if voucher.type == 'receipt':
+                move['doc_type'] = 'cus_pay'
+            if voucher.type == 'payment':
+                move['doc_type'] = 'sup_pay'
         return move
     def writeoff_move_line_get(self, cr, uid, voucher_id, line_total, move_id, name, company_currency, current_currency, context=None):
         '''
