@@ -305,6 +305,7 @@
 				                    <field name="cost_type"/>
 				                    <field name="price_unit"/>
 				                    <field name="product_cost"/>
+				                    <field name="state" invisible = '1' widget="statusbar" statusbar_visible="draft,product_manager,finance_manager" statusbar_colors='{"finance_manager":"red","product_manager":"blue"}'/>
 			                    </tree>
 		                    </field>
 	                    </page>

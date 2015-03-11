@@ -1245,10 +1245,19 @@ class account_voucher(osv.osv):
         # ANSWER: We can have payment and receipt "In Advance".
         # TODO: Make this logic available.
         # -for sale, purchase we have but for the payment and receipt we do not have as based on the bank/cash journal we can not know its payment or receipt
+#phuoc       
         if voucher.type_trans in ('payment'):
             credit = voucher.sum_amount
         elif voucher.type_trans in ('receipt'):
             debit = voucher.sum_amount
+#/phuoc
+        if voucher.type in ('purchase', 'payment'):
+            credit = voucher.paid_amount_in_company_currency
+        elif voucher.type in ('sale', 'receipt'):
+            debit = voucher.paid_amount_in_company_currency
+        if debit < 0: credit = -debit; debit = 0.0
+        if credit < 0: debit = -credit; credit = 0.0
+        sign = debit - credit < 0 and -1 or 1
 #         if debit < 0: credit = -debit; debit = 0.0
 #         if credit < 0: debit = -credit; credit = 0.0
 #         sign = debit - credit < 0 and -1 or 1
@@ -1332,18 +1341,27 @@ class account_voucher(osv.osv):
             }
             if amount < 0:
                 amount = -amount
-#                 if line.type == 'dr':
-#                     line.type = 'cr'
-#                 else:
-#                     line.type = 'dr'
+                if line.type == 'dr':
+                    line.type = 'cr'
+                else:
+                    line.type = 'dr'
 #phuoc
-            if (voucher.type_trans=='payment'):
-                tot_line += amount
-                move_line['debit'] = amount
+            if voucher.type_trans:
+                if (voucher.type_trans=='payment'):
+                    tot_line += amount
+                    move_line['debit'] = amount
+                else:
+                    tot_line -= amount
+                    move_line['credit'] = amount
+#/phuoc    
             else:
-                tot_line -= amount
-                move_line['credit'] = amount
-
+                if (line.type=='dr'):
+                    tot_line += amount
+                    move_line['debit'] = amount
+                else:
+                    tot_line -= amount
+                    move_line['credit'] = amount
+                
             if voucher.tax_id and voucher.type in ('sale', 'purchase'):
                 move_line.update({
                     'account_tax_id': voucher.tax_id.id,
@@ -1432,24 +1450,37 @@ class account_voucher(osv.osv):
             # Create the first line of the voucher
             line_total = 0.0
 #phuoc
-            if voucher.type_trans == 'payment':
+            if voucher.type_trans:
+                if voucher.type_trans == 'payment':
+                    move_line_id = move_line_pool.create(cr, uid, self.first_move_line_get(cr,uid,voucher.id, move_id, company_currency, current_currency, local_context), local_context)
+                    move_line_brw = move_line_pool.browse(cr, uid, move_line_id, context=context)
+                    line_total = move_line_brw.debit - move_line_brw.credit
+                rec_list_ids = []
+                line_total, rec_list_ids = self.voucher_move_line_create(cr, uid, voucher.id, line_total, move_id, company_currency, current_currency, context)
+                if voucher.type_trans == 'receipt':
+                    ml_writeoff = self.writeoff_move_line_get(cr, uid, voucher.id, line_total, move_id, name, company_currency, current_currency, local_context)
+                    if ml_writeoff:
+                        move_line_pool.create(cr, uid, ml_writeoff, local_context)
+#phuoc
+            else: 
                 move_line_id = move_line_pool.create(cr, uid, self.first_move_line_get(cr,uid,voucher.id, move_id, company_currency, current_currency, local_context), local_context)
                 move_line_brw = move_line_pool.browse(cr, uid, move_line_id, context=context)
                 line_total = move_line_brw.debit - move_line_brw.credit
-            rec_list_ids = []
-#                 if voucher.type == 'sale':
-#                     line_total = line_total - self._convert_amount(cr, uid, voucher.tax_amount, voucher.id, context=ctx)
-#                 elif voucher.type == 'purchase':
-#                     line_total = line_total + self._convert_amount(cr, uid, voucher.tax_amount, voucher.id, context=ctx)
-            # Create one move line per voucher line where amount is not 0.0
-            line_total, rec_list_ids = self.voucher_move_line_create(cr, uid, voucher.id, line_total, move_id, company_currency, current_currency, context)
+                rec_list_ids = []
+                if voucher.type == 'sale':
+                    line_total = line_total - self._convert_amount(cr, uid, voucher.tax_amount, voucher.id, context=ctx)
+                elif voucher.type == 'purchase':
+                    line_total = line_total + self._convert_amount(cr, uid, voucher.tax_amount, voucher.id, context=ctx)
+    #             Create one move line per voucher line where amount is not 0.0
+                line_total, rec_list_ids = self.voucher_move_line_create(cr, uid, voucher.id, line_total, move_id, company_currency, current_currency, context)
+    
+                # Create the writeoff line if needed
 
-            # Create the writeoff line if needed
-#phuoc
-            if voucher.type_trans == 'receipt':
                 ml_writeoff = self.writeoff_move_line_get(cr, uid, voucher.id, line_total, move_id, name, company_currency, current_currency, local_context)
                 if ml_writeoff:
                     move_line_pool.create(cr, uid, ml_writeoff, local_context)
+            
+            
             # We post the voucher.
             self.write(cr, uid, [voucher.id], {
                 'move_id': move_id,

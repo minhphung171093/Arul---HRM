@@ -506,7 +506,7 @@
                   </header>
                   <sheet string="Bank Transaction">
                     <group col="4" colspan="4">
-                        <field name="name" string = "Document No"/>
+                        <field name="name" string = "Document No" readonly = '1'/>
                         <field name="date" on_change="onchange_date(date, currency_id, payment_rate_currency_id, amount, company_id)"/>
                         <field name="journal_id" domain="[('type','=','bank')]" widget="selection" readonly = '1' on_change="onchange_journal_voucher(line_ids, tax_id, amount, partner_id, journal_id, type)" options="{'create': false, 'create_edit': false}"/>
                         <field name="type_trans" required="1"/>
@@ -635,7 +635,7 @@
                   </header>
                   <sheet string="Cash Transaction">
                     <group col="4" colspan="4">
-                        <field name="name" string = "Document No"/>
+                        <field name="name" string = "Document No" readonly = '1'/>
                         <field name="date" on_change="onchange_date(date, currency_id, payment_rate_currency_id, amount, company_id)"/>
                         <field name="journal_id" domain="[('type','=','cash')]" widget="selection" readonly = '1' on_change="onchange_journal_voucher(line_ids, tax_id, amount, partner_id, journal_id, type)" options="{'create': false, 'create_edit': false}"/>
                         <field name="type_trans" required="1"/>

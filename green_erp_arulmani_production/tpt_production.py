@@ -443,7 +443,7 @@ class mrp_bom(osv.osv):
 #         'product_cost': fields.float('Budget Cost'),
         'product_cost': fields.function(_norms, multi='sums', store = True, string='Budget Cost', states={'product_manager': [('readonly', True)], 'finance_manager':[('readonly', True)]}),
         'note': fields.text('Notes', states={'product_manager': [('readonly', True)], 'finance_manager':[('readonly', True)]}),
-        'bom_lines': fields.one2many('mrp.bom', 'bom_id', 'BoM Lines', states={'product_manager': [('readonly', True)], 'finance_manager':[('readonly', True)]}),
+        'bom_lines': fields.one2many('mrp.bom', 'bom_id', 'BoM Lines'),
         'price_unit': fields.float('Unit Price', states={'finance_manager':[('readonly', True)]}),
         'state':fields.selection([('draft', 'Draft'),('product_manager', 'Production'),('finance_manager', 'Finance')],'Status', readonly=True),
     }
@@ -451,10 +451,40 @@ class mrp_bom(osv.osv):
         'state': 'draft',
                  }
     def bt_approve_production(self, cr, uid, ids, context=None):
-        return self.write(cr, uid, ids,{'state':'product_manager'})
+        for bom in self.browse(cr,uid,ids):
+            self.write(cr, uid, ids,{'state':'product_manager'})
+            activity_obj = self.pool.get('tpt.activities.line')
+            sql = '''
+                select id from tpt_activities_line where bom_id = %s
+            '''%(bom.id)
+            cr.execute(sql)
+            activity_ids = [r[0] for r in cr.fetchall()]
+            activity_obj.write(cr, uid, activity_ids,{'state':'product_manager'})
+            sql = '''
+                select id from mrp_bom where bom_id = %s
+            '''%(bom.id)
+            cr.execute(sql)
+            bom_one2many_ids = [r[0] for r in cr.fetchall()]
+            self.write(cr, uid, bom_one2many_ids,{'state':'product_manager'})
+        return True 
     
     def bt_approve_finance(self, cr, uid, ids, context=None):
-        return self.write(cr, uid, ids,{'state':'finance_manager'})
+        for bom in self.browse(cr,uid,ids):
+            self.write(cr, uid, ids,{'state':'finance_manager'})
+            activity_obj = self.pool.get('tpt.activities.line')
+            sql = '''
+                select id from tpt_activities_line where bom_id = %s
+            '''%(bom.id)
+            cr.execute(sql)
+            activity_ids = [r[0] for r in cr.fetchall()]
+            activity_obj.write(cr, uid, activity_ids,{'state':'finance_manager'})
+            sql = '''
+                select id from mrp_bom where bom_id = %s
+            '''%(bom.id)
+            cr.execute(sql)
+            bom_one2many_ids = [r[0] for r in cr.fetchall()]
+            self.write(cr, uid, bom_one2many_ids,{'state':'finance_manager'})
+        return True
     
     def _check_date_id(self, cr, uid, ids, context=None):
         for date in self.browse(cr, uid, ids, context=context):
@@ -584,17 +614,19 @@ class tpt_activities_line(osv.osv):
     
     _columns = {
         'bom_id': fields.many2one('mrp.bom', 'BoM', ondelete='cascade'),
-        'activities_id': fields.many2one('tpt.activities', 'Activities', required=True),
-        'description':fields.char('Description',size=256),
-        'product_qty': fields.float('Quantity', digits_compute=dp.get_precision('Product Unit of Measure'), required=True),
-        'product_uom': fields.many2one('product.uom', 'UOM', required=True),
-        'cost_type': fields.selection([('variable','Variable'),('fixed','Fixed')], 'Cost Type'),
-        'product_cost': fields.function(_norms, multi='sums', store = True, string='Budget Cost'),
-        'price_unit': fields.float('Unit Price'),
-        'note': fields.text('Notes'),
+        'activities_id': fields.many2one('tpt.activities', 'Activities', required=True, states={'product_manager': [('readonly', True)], 'finance_manager':[('readonly', True)]}),
+        'description':fields.char('Description',size=256, states={'product_manager': [('readonly', True)], 'finance_manager':[('readonly', True)]}),
+        'product_qty': fields.float('Quantity', digits_compute=dp.get_precision('Product Unit of Measure'), required=True, states={'product_manager': [('readonly', True)], 'finance_manager':[('readonly', True)]}),
+        'product_uom': fields.many2one('product.uom', 'UOM', required=True, states={'product_manager': [('readonly', True)], 'finance_manager':[('readonly', True)]}),
+        'cost_type': fields.selection([('variable','Variable'),('fixed','Fixed')], 'Cost Type', states={'product_manager': [('readonly', True)], 'finance_manager':[('readonly', True)]}),
+        'product_cost': fields.function(_norms, multi='sums', store = True, string='Budget Cost', states={'product_manager': [('readonly', True)], 'finance_manager':[('readonly', True)]}),
+        'price_unit': fields.float('Unit Price', states={'finance_manager':[('readonly', True)]}),
+        'note': fields.text('Notes', states={'product_manager': [('readonly', True)], 'finance_manager':[('readonly', True)]}),
+        'state':fields.selection([('draft', 'Draft'),('product_manager', 'Production'),('finance_manager', 'Finance')],'Status', readonly=True),
     }
     
     _defaults={
+        'state': 'draft',
         'cost_type': 'variable',
         'product_qty': lambda *a: 1.0,
     }
