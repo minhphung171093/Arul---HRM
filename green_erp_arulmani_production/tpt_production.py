@@ -905,7 +905,7 @@ class stock_move(osv.osv):
         return {'value': vals}
     
     def onchange_quantity(self, cr, uid, ids, product_id, product_qty,
-                          product_uom, product_uos,is_tpt_production=False):
+                          product_uom, product_uos,is_tpt_production=False,app_quantity=False):
         """ On change of product quantity finds UoM and UoS quantities
         @param product_id: Product id
         @param product_qty: Changed Quantity of product
@@ -913,6 +913,14 @@ class stock_move(osv.osv):
         @param product_uos: Unit of sale of product
         @return: Dictionary of values
         """
+        if product_qty > app_quantity:
+            vals = {}
+            warning = {  
+                          'title': _('Warning!'),  
+                          'message': _('Applied Quantity is not greater than Product Quantity!'),  
+                          }  
+            vals['product_qty']=app_quantity
+            return {'value': vals,'warning':warning}
         result = {
                   'product_uos_qty': 0.00
           }
