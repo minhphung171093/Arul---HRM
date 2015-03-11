@@ -160,44 +160,65 @@ class tpt_posting_verification(osv.osv):
         vals = {}
         posting = []
         if doc_type and fiscal_period_id:
-            type=''
-            type_inv=''
-            if doc_type == 'cus_inv':
-                type = 'sale'  
-            if doc_type == 'sup_inv':
-                type = 'purchase'
-            if type:
-                sql = '''
+#             type=''
+#             type_inv=''
+#             if doc_type == 'cus_inv':
+#                 type = 'sale'  
+#             if doc_type == 'sup_inv':
+#                 type = 'purchase'
+#             if type:
+#                 sql = '''
+#                     select account_id,sum(debit) as sum_debit,sum(credit) as sum_credit from account_move_line
+#                     where period_id = %s and journal_id in (select id from account_journal where type='%s') group by account_id
+#                 '''%(fiscal_period_id,type)
+#                 cr.execute(sql)
+#                 for posting_line in cr.dictfetchall(): 
+#                         sql = '''
+#                             select name from account_account
+#                             where id = %s 
+#                         '''%(posting_line['account_id'])
+#                         cr.execute(sql)
+#                         name = cr.dictfetchone()['name']
+#                         rs = {'gl_code_id':posting_line['account_id'],
+#                                 'debit':posting_line['sum_debit'],
+#                                 'credit':posting_line['sum_credit'],
+#                                 'description':name,
+#                                 }
+#                         posting.append((0,0,rs))
+#             if doc_type == 'cus_pay':
+#                 type_inv = 'out_invoice'  
+#             if doc_type == 'sup_pay':
+#                 type_inv = 'in_invoice'
+#             if type_inv:
+#                 sql = '''
+#                     select account_id,sum(debit) as sum_debit,sum(credit) as sum_credit from account_move_line
+#                      where journal_id in (select id from account_journal where type in ('cash','bank'))
+#                      and period_id=%s and invoice in (select id from account_invoice where type='%s')
+#                      group by account_id 
+#                 '''%(fiscal_period_id,type_inv)
+#                 cr.execute(sql)
+#                 for posting_line in cr.dictfetchall(): 
+#                         sql = '''
+#                             select name from account_account
+#                             where id = %s 
+#                         '''%(posting_line['account_id'])
+#                         cr.execute(sql)
+#                         name = cr.dictfetchone()['name']
+#                         rs = {'gl_code_id':posting_line['account_id'],
+#                                 'debit':posting_line['sum_debit'],
+#                                 'credit':posting_line['sum_credit'],
+#                                 'description':name,
+#                                 }
+#                         posting.append((0,0,rs))
+# #             if doc_type == 'payroll':
+# #                 type = 'payroll'
+            sql = '''
                     select account_id,sum(debit) as sum_debit,sum(credit) as sum_credit from account_move_line
-                    where period_id = %s and journal_id in (select id from account_journal where type='%s') group by account_id
-                '''%(fiscal_period_id,type)
-                cr.execute(sql)
-                for posting_line in cr.dictfetchall(): 
-                        sql = '''
-                            select name from account_account
-                            where id = %s 
-                        '''%(posting_line['account_id'])
-                        cr.execute(sql)
-                        name = cr.dictfetchone()['name']
-                        rs = {'gl_code_id':posting_line['account_id'],
-                                'debit':posting_line['sum_debit'],
-                                'credit':posting_line['sum_credit'],
-                                'description':name,
-                                }
-                        posting.append((0,0,rs))
-            if doc_type == 'cus_pay':
-                type_inv = 'out_invoice'  
-            if doc_type == 'sup_pay':
-                type_inv = 'in_invoice'
-            if type_inv:
-                sql = '''
-                    select account_id,sum(debit) as sum_debit,sum(credit) as sum_credit from account_move_line
-                     where journal_id in (select id from account_journal where type in ('cash','bank'))
-                     and period_id=%s and invoice in (select id from account_invoice where type='%s')
+                     where move_id in (select id from account_move where doc_type ='%s'and period_id=%s and state='draft' )
                      group by account_id 
-                '''%(fiscal_period_id,type_inv)
-                cr.execute(sql)
-                for posting_line in cr.dictfetchall(): 
+            '''%(doc_type,fiscal_period_id)
+            cr.execute(sql)
+            for posting_line in cr.dictfetchall(): 
                         sql = '''
                             select name from account_account
                             where id = %s 
@@ -221,6 +242,13 @@ class tpt_posting_verification(osv.osv):
 #                         raise osv.except_osv(_('Warning!'),_('You must choose Quotation category is multiple if you want more than one vendors!'))
 #         return new_write    
     def bt_approve(self, cr, uid, ids, context=None):
+        for line in self.browse(cr,uid,ids):
+            sql = '''
+                select id from tpt_posting_verification_line where pos_ver_id =%s 
+            '''%(line.id)
+            cr.execute(sql)
+            journal_ids = [r[0] for r in cr.fetchall()]
+            self.pool.get('account.move').post(cr,uid,journal_ids)
         return self.write(cr, uid, ids,{'state':'done'})
 tpt_posting_verification()    
 class tpt_posting_verification_line(osv.osv):
@@ -402,6 +430,7 @@ class stock_picking(osv.osv):
                         'period_id':period_id.id ,
                         'date': date_period,
                         'line_id': journal_line,
+                        'doc_type':'grn'
                         }
                     new_jour_id = account_move_obj.create(cr,uid,value)
             if 'state' in vals and line.type == 'out' and line.state=='done' and not line.sale_id.journal_flag:
@@ -453,6 +482,7 @@ class stock_picking(osv.osv):
                         'period_id':period_id.id ,
                         'date': date_period,
                         'line_id': journal_line,
+                        'doc_type':'do'
                         }
                     new_jour_id = account_move_obj.create(cr,uid,value)
                     if so_id:
@@ -1738,6 +1768,7 @@ class tpt_material_issue(osv.osv):
                     'period_id':period_id.id ,
                     'date': date_period,
                     'line_id': journal_line,
+                    'doc_type':'good'
                     }
                 new_jour_id = account_move_obj.create(cr,uid,value)
             self.write(cr, uid, ids,{'state':'done'})
@@ -1894,6 +1925,7 @@ class tpt_hr_payroll_approve_reject(osv.osv):
                             'period_id':period_id.id ,
                             'date': time.strftime('%Y-%m-%d'),
                             'line_id': journal_line,
+                            'doc_type':'payroll'
                             }
                         new_jour_id = account_move_obj.create(cr,uid,value)
                 payroll_obj.write(cr, uid, payroll.id, {'state':'approve'})
