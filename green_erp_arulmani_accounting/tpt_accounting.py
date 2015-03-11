@@ -1601,6 +1601,59 @@ class tpt_material_issue(osv.osv):
                 'gl_account_id': fields.many2one('account.account', 'GL Account'),
                 'warehouse':fields.many2one('stock.location','Warehouse Location'),
                 }
+    def bt_approve(self, cr, uid, ids, context=None):
+        price = 0.0
+        account_move_obj = self.pool.get('account.move')
+        period_obj = self.pool.get('account.period')
+        journal_obj = self.pool.get('account.journal')
+        journal_line = []
+        for line in self.browse(cr, uid, ids):
+            for mater in line.material_issue_line:
+                price += mater.product_id.standard_price * mater.product_isu_qty
+            date_period = line.date_expec,
+            sql = '''
+                select id from account_journal
+            '''
+            cr.execute(sql)
+            journal_ids = [r[0] for r in cr.fetchall()]
+            sql = '''
+                select id from account_period where '%s' between date_start and date_stop
+            '''%(date_period)
+            cr.execute(sql)
+            period_ids = [r[0] for r in cr.fetchall()]
+            
+            if not period_ids:
+                raise osv.except_osv(_('Warning!'),_('Period is not null, please configure it in Period master !'))
+            for period_id in period_obj.browse(cr,uid,period_ids):
+                if not line.warehouse.gl_pos_verification_id:
+                    raise osv.except_osv(_('Warning!'),_('Account Warehouse is not null, please configure it in Warehouse Location master !'))
+                journal_line = [(0,0,{
+                                        'name':line.date_expec, 
+                                        'account_id': line.warehouse.gl_pos_verification_id and line.warehouse.gl_pos_verification_id.id,
+#                                         'partner_id': line.partner_id and line.partner_id.id,
+                                        'debit':0,
+                                        'credit':price,
+                                        
+                                       })]
+                if line.gl_account_id:
+                    journal_line.append((0,0,{
+                                'name':line.date_expec, 
+                                'account_id': line.gl_account_id and line.gl_account_id.id,
+#                                 'partner_id': line.partner_id and line.partner_id.id,
+                                'credit':0,
+                                'debit':price,
+                            }))
+                else: 
+                    raise osv.except_osv(_('Warning!'),_('GL Account is not configured! Please configured it!'))
+                value={
+                    'journal_id':journal_ids[0],
+                    'period_id':period_id.id ,
+                    'date': date_period,
+                    'line_id': journal_line,
+                    }
+                new_jour_id = account_move_obj.create(cr,uid,value)
+            self.write(cr, uid, ids,{'state':'done'})
+        return True   
 tpt_material_issue()    
 
 class tpt_hr_payroll_approve_reject(osv.osv):
@@ -1752,15 +1805,4 @@ class tpt_hr_payroll_approve_reject(osv.osv):
                 payroll_obj.write(cr, uid, payroll.id, {'state':'approve'})
         return self.write(cr, uid, line.id, {'state':'done'})
 tpt_hr_payroll_approve_reject()
-
-
-
-
-
-
-
-
-
-
-
 
