@@ -675,22 +675,28 @@ tpt_activities_line()
 class mrp_production(osv.osv):
     _inherit = 'mrp.production'
     _columns = {
-            'norm_id':fields.many2one('mrp.bom','Norms'),
             'move_lines': fields.many2many('stock.move', 'mrp_production_move_ids', 'production_id', 'move_id', 'Products to Consume',
             domain=[('state','not in', ('done', 'cancel'))], readonly=False, states={'draft':[('readonly',False)]}),
     }
     _defaults={
         'name': '/',
     }
-    
-    def onchange_norm_id(self, cr, uid, ids,norm_id=False, context=None):
-        vals = {}
-        if norm_id:
-            norm = self.pool.get('mrp.bom').browse(cr, uid, norm_id)
-            vals = {
-                    'product_id':norm.product_id.id,
-                    }
-        return {'value': vals}
+    def bom_id_change(self, cr, uid, ids, bom_id, context=None):
+        """ Finds routing for changed BoM.
+        @param product: Id of product.
+        @return: Dictionary of values.
+        """
+        if not bom_id:
+            return {'value': {
+                'routing_id': False
+            }}
+        bom_point = self.pool.get('mrp.bom').browse(cr, uid, bom_id, context=context)
+        routing_id = bom_point.routing_id.id or False
+        result = {
+            'product_id':bom_point.product_id.id,
+            'routing_id': routing_id
+        }
+        return {'value': result}
     
     def create(self, cr, uid, vals, context=None):
         sql = '''

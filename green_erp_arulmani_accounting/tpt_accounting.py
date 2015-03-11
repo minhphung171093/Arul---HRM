@@ -704,7 +704,7 @@ class account_invoice(osv.osv):
                         _('You cannot create an invoice on a centralized journal. Uncheck the centralized counterpart box in the related journal from the configuration menu.'))
   
             line = self.finalize_invoice_move_lines(cr, uid, inv, line)
-  
+            
             move = {
                 'ref': inv.reference and inv.reference or inv.name,
 #                 'doc_type':'',
@@ -739,7 +739,28 @@ class account_invoice(osv.osv):
             self.write(cr, uid, [inv.id], {'move_id': move_id,'period_id':period_id, 'move_name':new_move_name}, context=ctx)
             # Pass invoice in context in method post: used if you want to get the same
             # account move reference when creating the same invoice after a cancelled one:
-            move_obj.post(cr, uid, [move_id], context=ctx)
+            
+            
+            valid_moves = move_obj.validate(cr, uid, [move_id], context)
+            if not valid_moves:
+                raise osv.except_osv(_('Error!'), _('You cannot validate a non-balanced entry.\nMake sure you have configured payment terms properly.\nThe latest payment term line should be of the "Balance" type.'))
+            obj_sequence = self.pool.get('ir.sequence')
+            for move in move_obj.browse(cr, uid, valid_moves, context=context):
+                if move.name =='/':
+                    new_name = False
+                    journal = move.journal_id
+    
+#                     if invoice and invoice.internal_number:
+#                         new_name = invoice.internal_number
+#                     else:
+                    if journal.sequence_id:
+                        c = {'fiscalyear_id': move.period_id.fiscalyear_id.id}
+                        new_name = obj_sequence.next_by_id(cr, uid, journal.sequence_id.id, c)
+                    else:
+                        raise osv.except_osv(_('Error!'), _('Please define a sequence on the journal.'))
+                    if new_name:
+                        move_obj.write(cr, uid, [move.id], {'name':new_name})
+#             move_obj.post(cr, uid, [move_id], context=ctx)
         self._log_event(cr, uid, ids)
         return True
      
@@ -1265,19 +1286,21 @@ class account_voucher(osv.osv):
         # ANSWER: We can have payment and receipt "In Advance".
         # TODO: Make this logic available.
         # -for sale, purchase we have but for the payment and receipt we do not have as based on the bank/cash journal we can not know its payment or receipt
-#phuoc       
-        if voucher.type_trans in ('payment'):
-            credit = voucher.sum_amount
-        elif voucher.type_trans in ('receipt'):
-            debit = voucher.sum_amount
+#phuoc    
+        if voucher.type_trans:   
+            if voucher.type_trans in ('payment'):
+                credit = voucher.sum_amount
+            elif voucher.type_trans in ('receipt'):
+                debit = voucher.sum_amount
 #/phuoc
-        if voucher.type in ('purchase', 'payment'):
-            credit = voucher.paid_amount_in_company_currency
-        elif voucher.type in ('sale', 'receipt'):
-            debit = voucher.paid_amount_in_company_currency
-        if debit < 0: credit = -debit; debit = 0.0
-        if credit < 0: debit = -credit; credit = 0.0
-        sign = debit - credit < 0 and -1 or 1
+        else:
+            if voucher.type in ('purchase', 'payment'):
+                credit = voucher.paid_amount_in_company_currency
+            elif voucher.type in ('sale', 'receipt'):
+                debit = voucher.paid_amount_in_company_currency
+            if debit < 0: credit = -debit; debit = 0.0
+            if credit < 0: debit = -credit; credit = 0.0
+            sign = debit - credit < 0 and -1 or 1
 #         if debit < 0: credit = -debit; debit = 0.0
 #         if credit < 0: debit = -credit; credit = 0.0
 #         sign = debit - credit < 0 and -1 or 1
