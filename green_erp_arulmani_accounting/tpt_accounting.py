@@ -356,7 +356,7 @@ class stock_picking(osv.osv):
                 credit = 0.0
                 for move in line.move_lines:
                     amount = move.purchase_line_id.price_unit * move.product_qty
-                    debit += amount - amount*move.purchase_line_id.discount
+                    debit += amount - (amount*move.purchase_line_id.discount)/100
                 date_period = line.date,
                 sql = '''
                     select id from account_period where '%s' between date_start and date_stop
@@ -364,11 +364,17 @@ class stock_picking(osv.osv):
                 '''%(date_period)
                 cr.execute(sql)
                 period_ids = [r[0] for r in cr.fetchall()]
-                
+#                 a = self.browse(cr,uid,period_ids[0])
                 if not period_ids:
                     raise osv.except_osv(_('Warning!'),_('Period is not null, please configure it in Period master !'))
                 
                 for period_id in period_obj.browse(cr,uid,period_ids):
+                    sql_journal = '''
+                    select id from account_journal
+                    '''
+                    cr.execute(sql_journal)
+                    journal_ids = [r[0] for r in cr.fetchall()]
+                    journal = self.pool.get('account.journal').browse(cr,uid,journal_ids[0])
                     if not line.warehouse.gl_pos_verification_id:
                         raise osv.except_osv(_('Warning!'),_('Account Warehouse is not null, please configure it in Warehouse Location master !'))
                 #sinh but toan
@@ -382,17 +388,17 @@ class stock_picking(osv.osv):
                                        })]
                     for p in line.move_lines:
                         amount_cer = p.purchase_line_id.price_unit * p.product_qty
-                        credit += amount_cer - amount_cer*p.purchase_line_id.discount
+                        credit += amount_cer - (amount_cer*p.purchase_line_id.discount)/100
                         journal_line.append((0,0,{
                             'name':line.name, 
                             'account_id': p.product_id.purchase_acc_id and p.product_id.purchase_acc_id.id,
-                            'partner_id': line.partner_id and line.partner_id.id,
+                            'partner_id': line.partner_id and line.partner_id.id or False,
                             'credit':credit,
                             'debit':0,
                         }))
                         
                     value={
-                        'journal_id':15,
+                        'journal_id':journal.id,
                         'period_id':period_id.id ,
                         'date': date_period,
                         'line_id': journal_line,
@@ -404,7 +410,7 @@ class stock_picking(osv.osv):
                 date_period = line.date
                 sql = '''
                     select id from account_period where '%s' between date_start and date_stop
-                
+                 
                 '''%(date_period)
                 cr.execute(sql)
                 period_ids = [r[0] for r in cr.fetchall()]
@@ -434,7 +440,7 @@ class stock_picking(osv.osv):
                             }))
                         else:
                             raise osv.except_osv(_('Warning!'),_('Product Asset Account is not configured! Please configured it!'))
-                        
+                         
                         break
                     value={
                         'journal_id':3,
@@ -1637,6 +1643,12 @@ class tpt_hr_payroll_approve_reject(osv.osv):
                     payroll_ids = str(payroll_ids).replace("[","(")
                     payroll_ids = payroll_ids.replace("]",")")
                     if payroll_ids:
+                        sql_journal = '''
+                        select id from account_journal
+                        '''
+                        cr.execute(sql_journal)
+                        journal_ids = [r[0] for r in cr.fetchall()]
+                        journal = self.pool.get('account.journal').browse(cr,uid,journal_ids[0]) 
     
                         sql_gross = '''
                             select sum(float) as gross_salary from arul_hr_payroll_earning_structure where earning_parameters_id in (select id from arul_hr_payroll_earning_parameters where code='GROSS_SALARY')
@@ -1743,7 +1755,7 @@ class tpt_hr_payroll_approve_reject(osv.osv):
     #                         }))
                              
                         value={
-                            'journal_id':15,
+                            'journal_id':journal.id,
                             'period_id':period_id.id ,
                             'date': time.strftime('%Y-%m-%d'),
                             'line_id': journal_line,
