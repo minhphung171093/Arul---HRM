@@ -1882,6 +1882,7 @@ class mrp_production(osv.osv):
         journal_obj = self.pool.get('account.journal')
         journal_line = []
         credit = 0
+        price = 0
         for line in self.browse(cr,uid,ids):
             sql = '''
                     select id from account_journal
@@ -1913,7 +1914,16 @@ class mrp_production(osv.osv):
                         else:
                             raise osv.except_osv(_('Warning!'),_("Purchase GL Account is not configured for Product '%s'! Please configured it!")%(mater.product_id.code))
                     for act in line.bom_id.activities_line:
-                        credit += act.product_cost
+                        if act.activities_id.act_acc_id:
+                            credit += act.product_cost
+                            journal_line.append((0,0,{
+                                                    'name':act.activities_id.code, 
+                                                    'account_id': act.activities_id.act_acc_id and act.activities_id.act_acc_id.id,
+                                                    'debit':act.product_cost or 0,
+                                                    'credit':0,
+                                                   }))
+                        else:
+                            raise osv.except_osv(_('Warning!'),_("Activity Account is not configured for Activity '%s'! Please configured it!")%(act.activities_id.code))
                     credit += price
                     if line.product_id.product_asset_acc_id:
                         journal_line.append((0,0,{
@@ -1951,3 +1961,38 @@ class account_move(osv.osv):
                                   ('product', 'Production'),],'Document Type'),      
                 }
 account_move()
+
+class tpt_activities(osv.osv):
+    _inherit = 'tpt.activities'
+    _columns = {
+                'act_acc_id': fields.many2one('account.account', 'Activity Account'),
+                }
+tpt_activities()
+
+class product_category(osv.osv):
+    _inherit = "product.category"
+    _columns = {
+        'cate_name':fields.selection([('raw','Raw Materials'),('finish','Finished Product'),('spares','Spares'),('consum','Consumables'),('assets','Assets')], 'Category Name', required = True),
+        }
+    def name_get(self, cr, uid, ids, context=None):
+        res = []
+        if not ids:
+            return res
+        reads = self.read(cr, uid, ids, ['cate_name'], context)
+ 
+        for record in reads:
+            cate_name = record['cate_name']
+            name = ''
+            if cate_name == 'raw':
+                name = 'Raw Materials'
+            if cate_name == 'finish':
+                name = 'Finished Product'
+            if cate_name == 'spares':
+                name = 'Spares'
+            if cate_name == 'consum':
+                name = 'Consumables'
+            if cate_name == 'assets':
+                name = 'Assets'
+            res.append((record['id'], name))
+        return res
+product_category()
