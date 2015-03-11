@@ -305,6 +305,7 @@
 				                    <field name="cost_type"/>
 				                    <field name="price_unit"/>
 				                    <field name="product_cost"/>
+				                    <field name="state" invisible = '1' widget="statusbar" statusbar_visible="draft,product_manager,finance_manager" statusbar_colors='{"finance_manager":"red","product_manager":"blue"}'/>
 			                    </tree>
 		                    </field>
 	                    </page>
@@ -355,7 +356,7 @@
 						<attribute name='options'>{'create': false, 'create_edit': false}</attribute>
                     </xpath>
                     <xpath expr="//form/sheet/group/group/field[@name='user_id']" position="before">
-						<field name="norm_id" context="{'search_norm_id':1}" options ="{'create': false, 'create_edit': false}" />
+						<field name="norm_id" context="{'search_norm_id':1}" on_change = "onchange_norm_id(norm_id)" options ="{'create': false, 'create_edit': false}" />
                     </xpath>
                     
                     <xpath expr="//form/sheet/group/group/field[@name='bom_id']" position="attributes">

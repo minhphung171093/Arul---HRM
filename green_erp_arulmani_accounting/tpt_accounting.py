@@ -109,15 +109,15 @@ class tpt_posting_verification(osv.osv):
         return result.keys()
     _columns = {
         'doc_type': fields.selection([('cus_inv', 'Customer Invoice'),('cus_pay', 'Customer Payment'),
-                                  ('sup_inv', 'Supplier Invoice'),('sup_pay', 'Supplier Payment'),
+                                  ('sup_inv_po', 'Supplier Invoice(With PO)'),('sup_inv', 'Supplier Invoice(Without PO)'),('sup_pay', 'Supplier Payment'),
                                   ('payroll', 'Payroll'),
                                   ('grn', 'GRN'),
                                   ('good', 'Good Issue'),
                                   ('do', 'DO'),
-                                  ('inventory', 'Inventory Tranfer'),
+                                  ('inventory', 'Inventory Transfer'),
                                   ('manual', 'Manual Journal'),
-                                  ('cash', 'Cash Recipt Payment'),
-                                  ('bank', 'Bank Recipt Payments'),
+                                  ('cash', 'Cash Receipt Payment'),
+                                  ('bank', 'Bank Receipt Payments'),
                                   ('product', 'Production'),],'Document Type', states={ 'done':[('readonly', True)]}),
         'name': fields.char('Document No.', size=1024, readonly=True ),
         'date':fields.date('Created on',readonly=True),
@@ -356,7 +356,7 @@ class stock_picking(osv.osv):
                 credit = 0.0
                 for move in line.move_lines:
                     amount = move.purchase_line_id.price_unit * move.product_qty
-                    debit += amount - amount*move.purchase_line_id.discount
+                    debit += amount - (amount*move.purchase_line_id.discount)/100
                 date_period = line.date,
                 sql = '''
                     select id from account_period where '%s' between date_start and date_stop
@@ -364,11 +364,17 @@ class stock_picking(osv.osv):
                 '''%(date_period)
                 cr.execute(sql)
                 period_ids = [r[0] for r in cr.fetchall()]
-                
+#                 a = self.browse(cr,uid,period_ids[0])
                 if not period_ids:
                     raise osv.except_osv(_('Warning!'),_('Period is not null, please configure it in Period master !'))
                 
                 for period_id in period_obj.browse(cr,uid,period_ids):
+                    sql_journal = '''
+                    select id from account_journal
+                    '''
+                    cr.execute(sql_journal)
+                    journal_ids = [r[0] for r in cr.fetchall()]
+                    journal = self.pool.get('account.journal').browse(cr,uid,journal_ids[0])
                     if not line.warehouse.gl_pos_verification_id:
                         raise osv.except_osv(_('Warning!'),_('Account Warehouse is not null, please configure it in Warehouse Location master !'))
                 #sinh but toan
@@ -382,17 +388,17 @@ class stock_picking(osv.osv):
                                        })]
                     for p in line.move_lines:
                         amount_cer = p.purchase_line_id.price_unit * p.product_qty
-                        credit += amount_cer - amount_cer*p.purchase_line_id.discount
+                        credit += amount_cer - (amount_cer*p.purchase_line_id.discount)/100
                         journal_line.append((0,0,{
                             'name':line.name, 
                             'account_id': p.product_id.purchase_acc_id and p.product_id.purchase_acc_id.id,
-                            'partner_id': line.partner_id and line.partner_id.id,
+                            'partner_id': line.partner_id and line.partner_id.id or False,
                             'credit':credit,
                             'debit':0,
                         }))
                         
                     value={
-                        'journal_id':15,
+                        'journal_id':journal.id,
                         'period_id':period_id.id ,
                         'date': date_period,
                         'line_id': journal_line,
@@ -402,9 +408,15 @@ class stock_picking(osv.osv):
                 debit = line.sale_id and line.sale_id.amount_total or 0.0
                 so_id = line.sale_id and line.sale_id.id or False
                 date_period = line.date
+                sql_journal = '''
+                    select id from account_journal
+                    '''
+                cr.execute(sql_journal)
+                journal_ids = [r[0] for r in cr.fetchall()]
+                journal = self.pool.get('account.journal').browse(cr,uid,journal_ids[0])
                 sql = '''
                     select id from account_period where '%s' between date_start and date_stop
-                
+                 
                 '''%(date_period)
                 cr.execute(sql)
                 period_ids = [r[0] for r in cr.fetchall()]
@@ -434,10 +446,10 @@ class stock_picking(osv.osv):
                             }))
                         else:
                             raise osv.except_osv(_('Warning!'),_('Product Asset Account is not configured! Please configured it!'))
-                        
+                         
                         break
                     value={
-                        'journal_id':3,
+                        'journal_id':journal.id,
                         'period_id':period_id.id ,
                         'date': date_period,
                         'line_id': journal_line,
@@ -583,7 +595,7 @@ class account_invoice(osv.osv):
                 iml += invoice_line_obj.move_line_customer_amount_tax(cr, uid, inv.id) 
                 iml += invoice_line_obj.move_line_customer_excise_duty(cr, uid, inv.id) 
                 iml += invoice_line_obj.move_line_customer_product_price(cr, uid, inv.id)
-            
+                
 #             iml += invoice_line_obj.move_line_price_total(cr, uid, inv.id)  
             # check if taxes are all computed
             compute_taxes = ait_obj.compute(cr, uid, inv.id, context=ctx)
@@ -695,6 +707,7 @@ class account_invoice(osv.osv):
   
             move = {
                 'ref': inv.reference and inv.reference or inv.name,
+#                 'doc_type':'',
                 'line_id': line,
                 'journal_id': journal_id,
                 'date': date,
@@ -711,6 +724,13 @@ class account_invoice(osv.osv):
                 move['period_id'] = period_id
                 for i in line:
                     i[2]['period_id'] = period_id
+            if (inv.type == 'out_invoice'):
+                move['doc_type'] = 'cus_inv'
+            if (inv.type == 'in_invoice'):
+                if inv.purchase_id:
+                    move['doc_type'] = 'sup_inv_po'
+                else:
+                    move['doc_type'] = 'sup_inv'
   
             ctx.update(invoice=inv)
             move_id = move_obj.create(cr, uid, move, context=ctx)
@@ -1245,10 +1265,19 @@ class account_voucher(osv.osv):
         # ANSWER: We can have payment and receipt "In Advance".
         # TODO: Make this logic available.
         # -for sale, purchase we have but for the payment and receipt we do not have as based on the bank/cash journal we can not know its payment or receipt
+#phuoc       
         if voucher.type_trans in ('payment'):
             credit = voucher.sum_amount
         elif voucher.type_trans in ('receipt'):
             debit = voucher.sum_amount
+#/phuoc
+        if voucher.type in ('purchase', 'payment'):
+            credit = voucher.paid_amount_in_company_currency
+        elif voucher.type in ('sale', 'receipt'):
+            debit = voucher.paid_amount_in_company_currency
+        if debit < 0: credit = -debit; debit = 0.0
+        if credit < 0: debit = -credit; credit = 0.0
+        sign = debit - credit < 0 and -1 or 1
 #         if debit < 0: credit = -debit; debit = 0.0
 #         if credit < 0: debit = -credit; credit = 0.0
 #         sign = debit - credit < 0 and -1 or 1
@@ -1332,18 +1361,27 @@ class account_voucher(osv.osv):
             }
             if amount < 0:
                 amount = -amount
-#                 if line.type == 'dr':
-#                     line.type = 'cr'
-#                 else:
-#                     line.type = 'dr'
+                if line.type == 'dr':
+                    line.type = 'cr'
+                else:
+                    line.type = 'dr'
 #phuoc
-            if (voucher.type_trans=='payment'):
-                tot_line += amount
-                move_line['debit'] = amount
+            if voucher.type_trans:
+                if (voucher.type_trans=='payment'):
+                    tot_line += amount
+                    move_line['debit'] = amount
+                else:
+                    tot_line -= amount
+                    move_line['credit'] = amount
+#/phuoc    
             else:
-                tot_line -= amount
-                move_line['credit'] = amount
-
+                if (line.type=='dr'):
+                    tot_line += amount
+                    move_line['debit'] = amount
+                else:
+                    tot_line -= amount
+                    move_line['credit'] = amount
+                
             if voucher.tax_id and voucher.type in ('sale', 'purchase'):
                 move_line.update({
                     'account_tax_id': voucher.tax_id.id,
@@ -1432,24 +1470,37 @@ class account_voucher(osv.osv):
             # Create the first line of the voucher
             line_total = 0.0
 #phuoc
-            if voucher.type_trans == 'payment':
+            if voucher.type_trans:
+                if voucher.type_trans == 'payment':
+                    move_line_id = move_line_pool.create(cr, uid, self.first_move_line_get(cr,uid,voucher.id, move_id, company_currency, current_currency, local_context), local_context)
+                    move_line_brw = move_line_pool.browse(cr, uid, move_line_id, context=context)
+                    line_total = move_line_brw.debit - move_line_brw.credit
+                rec_list_ids = []
+                line_total, rec_list_ids = self.voucher_move_line_create(cr, uid, voucher.id, line_total, move_id, company_currency, current_currency, context)
+                if voucher.type_trans == 'receipt':
+                    ml_writeoff = self.writeoff_move_line_get(cr, uid, voucher.id, line_total, move_id, name, company_currency, current_currency, local_context)
+                    if ml_writeoff:
+                        move_line_pool.create(cr, uid, ml_writeoff, local_context)
+#phuoc
+            else: 
                 move_line_id = move_line_pool.create(cr, uid, self.first_move_line_get(cr,uid,voucher.id, move_id, company_currency, current_currency, local_context), local_context)
                 move_line_brw = move_line_pool.browse(cr, uid, move_line_id, context=context)
                 line_total = move_line_brw.debit - move_line_brw.credit
-            rec_list_ids = []
-#                 if voucher.type == 'sale':
-#                     line_total = line_total - self._convert_amount(cr, uid, voucher.tax_amount, voucher.id, context=ctx)
-#                 elif voucher.type == 'purchase':
-#                     line_total = line_total + self._convert_amount(cr, uid, voucher.tax_amount, voucher.id, context=ctx)
-            # Create one move line per voucher line where amount is not 0.0
-            line_total, rec_list_ids = self.voucher_move_line_create(cr, uid, voucher.id, line_total, move_id, company_currency, current_currency, context)
+                rec_list_ids = []
+                if voucher.type == 'sale':
+                    line_total = line_total - self._convert_amount(cr, uid, voucher.tax_amount, voucher.id, context=ctx)
+                elif voucher.type == 'purchase':
+                    line_total = line_total + self._convert_amount(cr, uid, voucher.tax_amount, voucher.id, context=ctx)
+    #             Create one move line per voucher line where amount is not 0.0
+                line_total, rec_list_ids = self.voucher_move_line_create(cr, uid, voucher.id, line_total, move_id, company_currency, current_currency, context)
+    
+                # Create the writeoff line if needed
 
-            # Create the writeoff line if needed
-#phuoc
-            if voucher.type_trans == 'receipt':
                 ml_writeoff = self.writeoff_move_line_get(cr, uid, voucher.id, line_total, move_id, name, company_currency, current_currency, local_context)
                 if ml_writeoff:
                     move_line_pool.create(cr, uid, ml_writeoff, local_context)
+            
+            
             # We post the voucher.
             self.write(cr, uid, [voucher.id], {
                 'move_id': move_id,
@@ -1465,6 +1516,46 @@ class account_voucher(osv.osv):
                     reconcile = move_line_pool.reconcile_partial(cr, uid, rec_ids, writeoff_acc_id=voucher.writeoff_acc_id.id, writeoff_period_id=voucher.period_id.id, writeoff_journal_id=voucher.journal_id.id)
         return True
     
+    def account_move_get(self, cr, uid, voucher_id, context=None):
+        '''
+        This method prepare the creation of the account move related to the given voucher.
+
+        :param voucher_id: Id of voucher for which we are creating account_move.
+        :return: mapping between fieldname and value of account move to create
+        :rtype: dict
+        '''
+        seq_obj = self.pool.get('ir.sequence')
+        voucher = self.pool.get('account.voucher').browse(cr,uid,voucher_id,context)
+        if voucher.number:
+            name = voucher.number
+        elif voucher.journal_id.sequence_id:
+            if not voucher.journal_id.sequence_id.active:
+                raise osv.except_osv(_('Configuration Error !'),
+                    _('Please activate the sequence of selected journal !'))
+            c = dict(context)
+            c.update({'fiscalyear_id': voucher.period_id.fiscalyear_id.id})
+            name = seq_obj.next_by_id(cr, uid, voucher.journal_id.sequence_id.id, context=c)
+        else:
+            raise osv.except_osv(_('Error!'),
+                        _('Please define a sequence on the journal.'))
+        if not voucher.reference:
+            ref = name.replace('/','')
+        else:
+            ref = voucher.reference
+
+        move = {
+            'name': name,
+            'journal_id': voucher.journal_id.id,
+            'narration': voucher.narration,
+            'date': voucher.date,
+            'ref': ref,
+            'period_id': voucher.period_id.id,
+        }
+        if voucher.journal_id.type == 'bank':
+            move['doc_type'] = 'bank'
+        if voucher.journal_id.type == 'cash':
+            move['doc_type'] = 'cash'
+        return move
     def writeoff_move_line_get(self, cr, uid, voucher_id, line_total, move_id, name, company_currency, current_currency, context=None):
         '''
         Set a dict to be use to create the writeoff move line.
@@ -1570,6 +1661,59 @@ class tpt_material_issue(osv.osv):
                 'gl_account_id': fields.many2one('account.account', 'GL Account'),
                 'warehouse':fields.many2one('stock.location','Warehouse Location'),
                 }
+    def bt_approve(self, cr, uid, ids, context=None):
+        price = 0.0
+        account_move_obj = self.pool.get('account.move')
+        period_obj = self.pool.get('account.period')
+        journal_obj = self.pool.get('account.journal')
+        journal_line = []
+        for line in self.browse(cr, uid, ids):
+            for mater in line.material_issue_line:
+                price += mater.product_id.standard_price * mater.product_isu_qty
+            date_period = line.date_expec,
+            sql = '''
+                select id from account_journal
+            '''
+            cr.execute(sql)
+            journal_ids = [r[0] for r in cr.fetchall()]
+            sql = '''
+                select id from account_period where '%s' between date_start and date_stop
+            '''%(date_period)
+            cr.execute(sql)
+            period_ids = [r[0] for r in cr.fetchall()]
+            
+            if not period_ids:
+                raise osv.except_osv(_('Warning!'),_('Period is not null, please configure it in Period master !'))
+            for period_id in period_obj.browse(cr,uid,period_ids):
+                if not line.warehouse.gl_pos_verification_id:
+                    raise osv.except_osv(_('Warning!'),_('Account Warehouse is not null, please configure it in Warehouse Location master !'))
+                journal_line = [(0,0,{
+                                        'name':line.date_expec, 
+                                        'account_id': line.warehouse.gl_pos_verification_id and line.warehouse.gl_pos_verification_id.id,
+#                                         'partner_id': line.partner_id and line.partner_id.id,
+                                        'debit':0,
+                                        'credit':price,
+                                        
+                                       })]
+                if line.gl_account_id:
+                    journal_line.append((0,0,{
+                                'name':line.date_expec, 
+                                'account_id': line.gl_account_id and line.gl_account_id.id,
+#                                 'partner_id': line.partner_id and line.partner_id.id,
+                                'credit':0,
+                                'debit':price,
+                            }))
+                else: 
+                    raise osv.except_osv(_('Warning!'),_('GL Account is not configured! Please configured it!'))
+                value={
+                    'journal_id':journal_ids[0],
+                    'period_id':period_id.id ,
+                    'date': date_period,
+                    'line_id': journal_line,
+                    }
+                new_jour_id = account_move_obj.create(cr,uid,value)
+            self.write(cr, uid, ids,{'state':'done'})
+        return True   
 tpt_material_issue()    
 
 class tpt_hr_payroll_approve_reject(osv.osv):
@@ -1606,6 +1750,12 @@ class tpt_hr_payroll_approve_reject(osv.osv):
                     payroll_ids = str(payroll_ids).replace("[","(")
                     payroll_ids = payroll_ids.replace("]",")")
                     if payroll_ids:
+                        sql_journal = '''
+                        select id from account_journal
+                        '''
+                        cr.execute(sql_journal)
+                        journal_ids = [r[0] for r in cr.fetchall()]
+                        journal = self.pool.get('account.journal').browse(cr,uid,journal_ids[0]) 
     
                         sql_gross = '''
                             select sum(float) as gross_salary from arul_hr_payroll_earning_structure where earning_parameters_id in (select id from arul_hr_payroll_earning_parameters where code='GROSS_SALARY')
@@ -1712,7 +1862,7 @@ class tpt_hr_payroll_approve_reject(osv.osv):
     #                         }))
                              
                         value={
-                            'journal_id':15,
+                            'journal_id':journal.id,
                             'period_id':period_id.id ,
                             'date': time.strftime('%Y-%m-%d'),
                             'line_id': journal_line,
@@ -1721,15 +1871,19 @@ class tpt_hr_payroll_approve_reject(osv.osv):
                 payroll_obj.write(cr, uid, payroll.id, {'state':'approve'})
         return self.write(cr, uid, line.id, {'state':'done'})
 tpt_hr_payroll_approve_reject()
-
-
-
-
-
-
-
-
-
-
-
-
+class account_move(osv.osv):
+    _inherit = 'account.move'
+    _columns = {
+           'doc_type': fields.selection([('cus_inv', 'Customer Invoice'),('cus_pay', 'Customer Payment'),
+                                  ('sup_inv_po', 'Supplier Invoice(With PO)'),('sup_inv', 'Supplier Invoice(Without PO)'),('sup_pay', 'Supplier Payment'),
+                                  ('payroll', 'Payroll'),
+                                  ('grn', 'GRN'),
+                                  ('good', 'Good Issue'),
+                                  ('do', 'DO'),
+                                  ('inventory', 'Inventory Transfer'),
+                                  ('manual', 'Manual Journal'),
+                                  ('cash', 'Cash Receipt Payment'),
+                                  ('bank', 'Bank Receipt Payments'),
+                                  ('product', 'Production'),],'Document Type'),      
+                }
+account_move()
