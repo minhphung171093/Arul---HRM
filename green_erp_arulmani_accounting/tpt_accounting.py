@@ -402,6 +402,7 @@ class stock_picking(osv.osv):
                         'period_id':period_id.id ,
                         'date': date_period,
                         'line_id': journal_line,
+                        'doc_type':'grn'
                         }
                     new_jour_id = account_move_obj.create(cr,uid,value)
             if 'state' in vals and line.type == 'out' and line.state=='done' and not line.sale_id.journal_flag:
@@ -453,6 +454,7 @@ class stock_picking(osv.osv):
                         'period_id':period_id.id ,
                         'date': date_period,
                         'line_id': journal_line,
+                        'doc_type':'do'
                         }
                     new_jour_id = account_move_obj.create(cr,uid,value)
                     if so_id:
@@ -1818,6 +1820,7 @@ class tpt_hr_payroll_approve_reject(osv.osv):
                             'period_id':period_id.id ,
                             'date': time.strftime('%Y-%m-%d'),
                             'line_id': journal_line,
+                            'doc_type':'payroll'
                             }
                         new_jour_id = account_move_obj.create(cr,uid,value)
                 payroll_obj.write(cr, uid, payroll.id, {'state':'approve'})
