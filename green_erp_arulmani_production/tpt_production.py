@@ -407,6 +407,7 @@ class mrp_bom(osv.osv):
             res[master.id] = {
                     'product_cost': 0.0
                 } 
+            res[master.id]['product_cost'] = master.product_qty * master.price_unit
             if master.cost_type == 'variable' :
                 res[master.id]['product_cost'] = master.product_qty * master.price_unit
 #                 sql='''
@@ -416,7 +417,7 @@ class mrp_bom(osv.osv):
 #                 for product in cr.dictfetchall():
 #                     res[master.id]['product_cost'] = product['line_net']/product['product_qty']
             if master.cost_type == 'fixed':
-                res[master.id]['product_cost'] = master.product_id.standard_price
+                res[master.id]['product_cost'] = master.product_qty * master.price_unit
         return res
     
     def sum_finish_function(self, cr, uid, ids, field_name, args, context=None):
@@ -629,6 +630,7 @@ class tpt_activities_line(osv.osv):
             res[master.id] = {
                     'product_cost': 0.0
                 } 
+            res[master.id]['product_cost'] = master.product_qty * master.price_unit
             if master.cost_type == 'variable' :
                 res[master.id]['product_cost'] = master.product_qty * master.price_unit
 #                 sql='''

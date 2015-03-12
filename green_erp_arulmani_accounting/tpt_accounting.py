@@ -916,7 +916,7 @@ class account_invoice_line(osv.osv):
                 'price_unit': t['price_unit'],
                 'quantity': 1,
                 'price': basic,
-                'account_id': t['gl_code_id'],
+                'account_id': t['account_id'],
                 'account_analytic_id': t['account_analytic_id'],
                 })
         return res
