@@ -809,6 +809,17 @@
                 <xpath expr="//button[@string='Contracts']" position="attributes">
                     <attribute name='invisible'>1</attribute>
                 </xpath>
+                
+                <xpath expr="//field[@name='manager']" position="replace">
+                    <field name="manager" invisible = "1"/>
+                </xpath>
+                <field name="place_of_birth" position="replace">
+                	<field name="birth_place"/>
+                    <field name="place_of_birth" domain="[('country_id','=',country_stateofbirth_id)]" options="{'create': false, 'create_edit': false}"/>
+                </field>
+                <xpath expr="//field[@name='birthday']" position="replace">
+                    <field name="birthday" on_change="onchange_date_of_retirement(birthday)"/>
+                </xpath>
             </field>
         </record>
 		
@@ -852,45 +863,6 @@
                     <field name="religion_id" options="{'create': false, 'create_edit': false}"/>
                 </xpath>
             </field>
-        </record>-->
-        <record id="hr_hr_employee_view_form" model="ir.ui.view">
-            <field name="name">hr.hr.employee.view.form</field>
-            <field name="model">hr.employee</field>
-            <field name="inherit_id" ref="hr_contract.hr_hr_employee_view_form2"/>
-            <field name="arch" type="xml">
-                <data>
-                    <xpath expr="//field[@name='manager']" position="replace">
-                        <field name="manager" invisible = "1"/>
-                    </xpath>
-             	</data>
-            </field>
-        </record>
-        
-        <record id="vsis_hr_hr_employee_view_form3" model="ir.ui.view">
-            <field name="name">vsis.hr.employee.view.form3</field>
-            <field name="model">hr.employee</field>
-            <field name="inherit_id" ref="hr_contract.hr_hr_employee_view_form2"/>
-            <field name="arch" type="xml">
-                <data>
-                    <field name="place_of_birth" position="replace">
-                    	<field name="birth_place"/>
-                        <field name="place_of_birth" domain="[('country_id','=',country_stateofbirth_id)]" options="{'create': false, 'create_edit': false}"/>
-                    </field>
-                </data>
-            </field>
-        </record>
-     
-        <record id="hr_hr_employee_view_form3" model="ir.ui.view">
-            <field name="name">hr.hr.employee.view.form3</field>
-            <field name="model">hr.employee</field>
-            <field name="inherit_id" ref="hr_contract.hr_hr_employee_view_form2"/>
-            <field name="arch" type="xml">
-                <data>
-                 	<xpath expr="//field[@name='birthday']" position="replace">
-                        <field name="birthday" on_change="onchange_date_of_retirement(birthday)"/>
-                    </xpath>
-                </data>
-            </field>
         </record>
 
         <record id="tpt_personal_contact_view" model="ir.ui.view">
@@ -918,6 +890,7 @@
              	</data>
             </field>
         </record>
+        -->
         
         <record id="view_arul_hr_employee_leaving_action_tree_vew" model="ir.ui.view">
 			<field name="name">arul.hr.employee.leaving.action.tree</field>
