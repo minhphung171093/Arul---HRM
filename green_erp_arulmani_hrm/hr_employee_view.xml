@@ -822,7 +822,7 @@
                 </xpath>
             </field>
         </record>
-		
+		<!--
 		<record id="arul_vsis_view_employee_form_portal" model="ir.ui.view">
             <field name="name">arul_vsis_view_employee_form_portal</field>
             <field name="model">hr.employee</field>
@@ -863,7 +863,7 @@
                     <field name="religion_id" options="{'create': false, 'create_edit': false}"/>
                 </xpath>
             </field>
-        </record>
+        </record>-->
 
         <record id="tpt_personal_contact_view" model="ir.ui.view">
             <field name="name">tpt.personal.contact.view.form</field>
