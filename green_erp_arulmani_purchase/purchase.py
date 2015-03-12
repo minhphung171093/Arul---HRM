@@ -40,7 +40,7 @@ class tpt_purchase_indent(osv.osv):
         'header_text':fields.text('Header Text',states={'cancel': [('readonly', True)], 'done':[('readonly', True)]}), #TPT
         'requisitioner':fields.char('Requisitioner',states={'cancel': [('readonly', True)], 'done':[('readonly', True)]}),
         'purchase_product_line':fields.one2many('tpt.purchase.product','purchase_indent_id','Materials', states={'cancel': [('readonly', True)], 'done':[('readonly', True)]}),
-        'state':fields.selection([('draft', 'Draft'),('cancel', 'Closed'),('first_approve', 'First Approve'),
+        'state':fields.selection([('draft', 'Draft'),('cancel', 'Closed'),
                                   ('done', 'Approve'),('rfq_raised','RFQ Raised'),
                                   ('quotation_raised','Quotation Raised'),
                                   ('po_raised','PO Raised')],'Status', readonly=True),
@@ -53,16 +53,16 @@ class tpt_purchase_indent(osv.osv):
 #         'document_type':'base',
     }
     
-    def first_approve(self, cr, uid, ids, context=None):
-        for line in self.browse(cr, uid, ids):
-            for indent_line in line.purchase_product_line:
-                self.pool.get('tpt.purchase.product').write(cr, uid, [indent_line.id],{'indent_status':'+'})
-        return self.write(cr, uid, ids,{'state':'first_approve'})
+#     def first_approve(self, cr, uid, ids, context=None):
+#         for line in self.browse(cr, uid, ids):
+#             for indent_line in line.purchase_product_line:
+#                 self.pool.get('tpt.purchase.product').write(cr, uid, [indent_line.id],{'indent_status':'+'})
+#         return self.write(cr, uid, ids,{'state':'first_approve'})
             
     def bt_approve(self, cr, uid, ids, context=None):
         for line in self.browse(cr, uid, ids):
             for indent_line in line.purchase_product_line:
-                self.pool.get('tpt.purchase.product').write(cr, uid,  [indent_line.id],{'indent_status':'confirm'})
+                self.pool.get('tpt.purchase.product').write(cr, uid,  [indent_line.id],{'indent_status':'draft'})
         return self.write(cr, uid, ids,{'state':'done'})
     
     def bt_cancel(self, cr, uid, ids, context=None):
@@ -251,8 +251,8 @@ class tpt_purchase_product(osv.osv):
                                           ('x', 'Store Rejected'),('xx', 'Store & HOD Rejected')
                                           ],'Indent Status', readonly=True),
 #Hung moi them 2 Qty theo yeu casu bala
-        'mrs_qty': fields.float('MRS Quantity'),
-        'inspection_qty': fields.float('Inspection Quantity'), 
+#         'mrs_qty': fields.float('MRS Quantity'),
+#         'inspection_qty': fields.float('Inspection Quantity'), 
         }  
     
     _defaults = {
