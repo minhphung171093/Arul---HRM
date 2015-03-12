@@ -1369,7 +1369,7 @@ class arul_hr_employee_leave_details(osv.osv):
             if line.reason_for_reject:    
                 self.write(cr, uid, [line.id],{'state':'reject','leave_evaluate_id':False,'check_reject_flag':True})
             else:
-                raise osv.except_osv(_('Warning!'),_('Please fill Reason for Rejection!'))
+                raise osv.except_osv(_('Warning!'),_('Please Edit & Provide Reason for Rejection!'))
         return True  
     #TPT:E
     def cancel_leave_request(self, cr, uid, ids, context=None):
