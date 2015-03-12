@@ -366,14 +366,12 @@
                             <field context="{'partner_id': partner_id, 'price_type': context.get('price_type') or False, 'type': type}" name="invoice_line">
                                 <tree string="Invoice lines" editable="bottom">
                                     <field name="sequence" widget="handle" invisible = '1'/>
-                                    <field name="gl_code_id" required = '1' on_change="onchange_gl_code_id(gl_code_id)" options="{'create': false, 'create_edit': false}"/> 
+                            <!--        <field name="gl_code_id" required = '1' on_change="onchange_gl_code_id(gl_code_id)" options="{'create': false, 'create_edit': false}"/> -->
+                                    <field name="account_id" string = 'GL Code' options="{'create': false, 'create_edit': false}" groups="account.group_account_user" />
                                     <field name="product_id" invisible = '1'
                                         on_change="product_id_change(product_id, uos_id, quantity, name, parent.type, parent.partner_id, parent.fiscal_position, price_unit, parent.currency_id, context, parent.company_id)"/>
                                     <field name="name"/>
                                     <field name="company_id" invisible="1"/>
-                                    <field name="account_id" invisible="1" groups="account.group_account_user"
-                                        domain="[('company_id', '=', parent.company_id), ('journal_id', '=', parent.journal_id), ('type', '=', 'other')]"
-                                        on_change="onchange_account_id(product_id, parent.partner_id, parent.type, parent.fiscal_position,account_id)"/>
                                     <field name="account_analytic_id" invisible="1" groups="analytic.group_analytic_accounting"
                                         domain="[('type','!=','view'), ('company_id', '=', parent.company_id)]"/>
                                     <field name="quantity" readonly = '1'/>
