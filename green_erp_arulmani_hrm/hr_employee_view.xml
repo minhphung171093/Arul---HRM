@@ -259,7 +259,7 @@
             <field name="view_id" ref="view_arul_employee_action_type_tree_vew"/>
         </record> 
         
-        <record id="view_arul_hr_employee_action_history" model="ir.ui.view">
+        <!--<record id="view_arul_hr_employee_action_history" model="ir.ui.view">
             <field name="name">view.arul.hr.employee.action.history</field>
             <field name="model">hr.employee</field>
             <field name="inherit_id" ref="hr.view_employee_form"/>
@@ -309,7 +309,7 @@
                     </page>
             	</xpath>
             </field>
-        </record>  
+        </record>  -->
         
         
 		<record id="view_arul_hr_employee_transfer_action_tree_vew" model="ir.ui.view">
