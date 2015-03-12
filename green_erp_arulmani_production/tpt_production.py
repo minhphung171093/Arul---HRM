@@ -67,7 +67,7 @@ class tpt_tio2_batch_split(osv.osv):
             for split_line in line.batch_split_line:
                 self.pool.get('tpt.quality.verification').create(cr,uid,{
                                                                   'prod_batch_id': split_line.prodlot_id and split_line.prodlot_id.id or False,
-                                                                  'phy_batch_no': '/',
+                                                                  'phy_batch_no': split_line.prodlot_id and split_line.prodlot_id.phy_batch_no or False,
                                                                   'product_id': split_line.product_id and split_line.product_id.id or False,
                                                                   'warehouse_id': line.location_id and line.location_id.id or False,
                                                                   })
@@ -759,7 +759,6 @@ class mrp_production(osv.osv):
         move_id = stock_move.create(cr, uid, data, context=context)
         production.write({'move_created_ids': [(6, 0, [move_id])]}, context=context)
         return move_id
-    
     def _make_production_consume_line(self, cr, uid, production_line, parent_move_id, source_location_id=False, context=None):
         stock_move = self.pool.get('stock.move')
         production = production_line.production_id
