@@ -688,6 +688,8 @@ class mrp_production(osv.osv):
     _columns = {
             'move_lines': fields.many2many('stock.move', 'mrp_production_move_ids', 'production_id', 'move_id', 'Products to Consume',
             domain=[('state','not in', ('done', 'cancel'))], readonly=False, states={'draft':[('readonly',False)]}),
+            'move_created_ids': fields.one2many('stock.move', 'production_id', 'Products to Produce',
+            domain=[('state','not in', ('done', 'cancel'))], readonly=True, states={'draft':[('readonly',False)],'confirmed':[('readonly',False)]}),
     }
     _defaults={
         'name': '/',
@@ -743,6 +745,8 @@ class mrp_production(osv.osv):
             'move_dest_id': production.move_prod_id.id,
             'state': 'waiting',
             'company_id': production.company_id.id,
+            'app_quantity': production.product_qty,
+            'is_tpt_production': True,
         }
         if production.product_id.name in ('TITANIUM DIOXIDE-ANATASE','TiO2','M0501010001') or production.product_id.default_code in ('TITANIUM DIOXIDE-ANATASE','TiO2','M0501010001'):
             prodlot_ids = self.pool.get('stock.production.lot').search(cr, uid, [('name','=','temp_tio2')])
