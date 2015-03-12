@@ -62,7 +62,7 @@ class tpt_purchase_indent(osv.osv):
     def bt_approve(self, cr, uid, ids, context=None):
         for line in self.browse(cr, uid, ids):
             for indent_line in line.purchase_product_line:
-                self.pool.get('tpt.purchase.product').write(cr, uid,  [indent_line.id],{'indent_status':'draft'})
+                self.pool.get('tpt.purchase.product').write(cr, uid,  [indent_line.id],{'indent_status':'confirm'})
         return self.write(cr, uid, ids,{'state':'done'})
     
     def bt_cancel(self, cr, uid, ids, context=None):

@@ -35,9 +35,9 @@
 	            <form string="Purchase Indent" version="7.0">   
 	             <header>
 	          <!--  		<button name="first_approve" states='draft' string="First Approve" type="object" class="oe_highlight" groups="green_erp_arulmani_purchase.group_vvti_purchase_admin"/> -->
-	            		<button name="bt_approve" states='draft' string="Approve" type="object" class="oe_highlight" groups="green_erp_arulmani_purchase.group_vvti_purchase_admin"/>
-	                    <button name="bt_cancel" states='draft,first_approve,done' string="Close" type="object" class="oe_highlight" />
-	                    <field name="state" widget="statusbar" statusbar_visible="draft,cancel,first_approve,done" statusbar_colors='{"draft":"blue","cancel":"blue"}'/>
+	            		<button name="bt_approve" states='draft' string="Confirm" type="object" class="oe_highlight" groups="green_erp_arulmani_purchase.group_vvti_purchase_admin"/>
+	          <!--          <button name="bt_cancel" states='draft,first_approve,done' string="Close" type="object" class="oe_highlight" /> -->
+	                    <field name="state" widget="statusbar" statusbar_visible="draft,cancel,done" statusbar_colors='{"draft":"blue","cancel":"blue"}'/>
 	            </header>    
 	            	<sheet>
 	            	<group col="1">
