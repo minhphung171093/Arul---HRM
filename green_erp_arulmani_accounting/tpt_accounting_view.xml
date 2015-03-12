@@ -914,6 +914,22 @@
                     	<field name="doc_type" />
                     </xpath>
                     
+                    <xpath expr="//field[@name='to_check']" position="attributes">
+                    	<attribute name='invisible'>1</attribute>
+                    </xpath>
+                    
+                    <xpath expr="//field[@name='journal_id']" position="attributes">
+                    	<attribute name='invisible'>1</attribute>
+                    </xpath>
+                    
+                    <xpath expr="//page[@string='Journal Items']/field/tree/field[@name='reconcile_id']" position="attributes">
+						<attribute name='invisible'>1</attribute>
+					</xpath> 
+					
+					<xpath expr="//page[@string='Journal Items']/field/tree/field[@name='reconcile_partial_id']" position="attributes">
+						<attribute name='invisible'>1</attribute>
+					</xpath>
+					
                 </data>
 			</field>
 		</record>
