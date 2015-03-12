@@ -258,7 +258,7 @@
             <field name="view_mode">tree,form</field>
             <field name="view_id" ref="view_arul_employee_action_type_tree_vew"/>
         </record> 
-        <!--
+        
         <record id="view_arul_hr_employee_action_history" model="ir.ui.view">
             <field name="name">view.arul.hr.employee.action.history</field>
             <field name="model">hr.employee</field>
@@ -354,7 +354,7 @@
                 	</page> 
             	</xpath>
             </field>
-        </record>-->
+        </record>
         
         
 		<record id="view_arul_hr_employee_transfer_action_tree_vew" model="ir.ui.view">
@@ -798,7 +798,7 @@
             <field name="act_window_id" ref="action_arul_hr_employee_hiring_action_form"/>
         </record>
 		
-       <!-- <record id="vsis_hr_hr_employee_view_form2" model="ir.ui.view">
+       <record id="vsis_hr_hr_employee_view_form2" model="ir.ui.view">
             <field name="name">vsis.hr.hr.employee.view.form2</field>
             <field name="model">hr.employee</field>
             <field name="inherit_id" ref="hr_contract.hr_hr_employee_view_form2"/>
@@ -890,7 +890,6 @@
              	</data>
             </field>
         </record>
-        -->
         
         <record id="view_arul_hr_employee_leaving_action_tree_vew" model="ir.ui.view">
 			<field name="name">arul.hr.employee.leaving.action.tree</field>
