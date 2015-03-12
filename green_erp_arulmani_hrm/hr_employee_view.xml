@@ -264,6 +264,28 @@
             <field name="model">hr.employee</field>
             <field name="inherit_id" ref="hr.view_employee_form"/>
             <field name="arch" type="xml">
+            	<xpath expr="//form[@string='Employee']" position="attributes">
+            		<attribute name="delete">false</attribute>
+            		<attribute name="create">false</attribute>
+            	</xpath>
+            	
+            	<xpath expr="//field[@name='bank_account_id']" position="replace">
+            		<field name ="bank_account_id" invisible='1'/>
+            	</xpath>
+            	
+            	<xpath expr="//page[@string='Personal Information']" position="attributes">
+            		<attribute name="groups">green_erp_arulmani_hrm.group_vvti_hrm_hr_key_user</attribute>
+            	</xpath>
+            	
+            	<xpath expr="//page[@string='HR Settings']" position="attributes">
+            		<attribute name="groups">green_erp_arulmani_hrm.group_vvti_hrm_hr_key_user</attribute>
+            	</xpath>
+                <xpath expr="//field[@name='coach_id']" position="after">
+                	<field name="date_of_retirement"/>
+                </xpath>
+            	<xpath expr="//field[@name='department_id']" position="after">
+                    <field name="section_id" domain="[('department_id','=',department_id)]" options="{'create': false, 'create_edit': false}"/>
+                </xpath>
           		<xpath expr="//page[@string='HR Settings']" position="after">
                     <page string = 'Employee Action History'>
                     	<div col='4' colspan='4' class='oe_green_erp_scroll'>
@@ -307,9 +329,32 @@
 	                    	</field>
                     	</div>
                     </page>
+            		<page string = 'Employee Leave Status'>
+            			<field name ="employee_leave_id">
+            				<form string="Employee Leave Detail" version="7.0">
+            					<group>
+	            					<field name ="employee_id" style="width:40%%" options="{'create': false, 'create_edit': false}"/>
+	            					<field name ="year" style="width:40%%"/>
+	            				</group>
+            					<group string = "Employee Leave Details">
+	            					<field name ="emp_leave_details_ids" nolabel="1">
+										<tree string="Employee Leave Details" editable="top">
+				    						<field name ="leave_type_id" options="{'create': false, 'create_edit': false}"/>
+				    						<field name ="total_day"/>
+				    						<field name ="total_taken"/>
+	                					</tree>
+	                				</field>
+                				</group>
+                			</form>
+                			<tree string="Employee Leave Details">
+                				
+                				<field name ="year"/>
+                			</tree>
+                		</field>
+                	</page> 
             	</xpath>
             </field>
-        </record>  
+        </record>
         
         
 		<record id="view_arul_hr_employee_transfer_action_tree_vew" model="ir.ui.view">
@@ -753,18 +798,7 @@
             <field name="act_window_id" ref="action_arul_hr_employee_hiring_action_form"/>
         </record>
 		
-		<record id="arul_hr_employees_form" model="ir.ui.view">
-            <field name="name">arul_hr_employees_form</field>
-            <field name="model">hr.employee</field>
-            <field name="inherit_id" ref="hr.view_employee_form"/>
-            <field name="arch" type="xml">
-                <xpath expr="//field[@name='department_id']" position="after">
-                    <field name="section_id" domain="[('department_id','=',department_id)]" options="{'create': false, 'create_edit': false}"/>
-                </xpath>
-                
-            </field>
-        </record>
-        <record id="vsis_hr_hr_employee_view_form2" model="ir.ui.view">
+       <record id="vsis_hr_hr_employee_view_form2" model="ir.ui.view">
             <field name="name">vsis.hr.hr.employee.view.form2</field>
             <field name="model">hr.employee</field>
             <field name="inherit_id" ref="hr_contract.hr_hr_employee_view_form2"/>
@@ -775,13 +809,24 @@
                 <xpath expr="//button[@string='Contracts']" position="attributes">
                     <attribute name='invisible'>1</attribute>
                 </xpath>
+                
+                <xpath expr="//field[@name='manager']" position="replace">
+                    <field name="manager" invisible = "1"/>
+                </xpath>
+                <field name="place_of_birth" position="replace">
+                	<field name="birth_place"/>
+                    <field name="place_of_birth" domain="[('country_id','=',country_stateofbirth_id)]" options="{'create': false, 'create_edit': false}"/>
+                </field>
+                <xpath expr="//field[@name='birthday']" position="replace">
+                    <field name="birthday" on_change="onchange_date_of_retirement(birthday)"/>
+                </xpath>
             </field>
         </record>
 		
 		<record id="arul_vsis_view_employee_form_portal" model="ir.ui.view">
             <field name="name">arul_vsis_view_employee_form_portal</field>
             <field name="model">hr.employee</field>
-            <field name="inherit_id" ref="green_erp_arulmani_crm.vsis_view_employee_form_portal"/>
+            <field name="inherit_id" ref="green_erp_arulmani_crm.vsis_view_employee_form"/>
             <field name="arch" type="xml">
             	<xpath expr="//field[@name='department_id']" position="replace">
                     <field name="department_id" on_change="onchange_department_id(department_id)" options="{'create': false, 'create_edit': false}"/>
@@ -817,48 +862,6 @@
                 <xpath expr="//field[@name='religion_id']" position="replace">
                     <field name="religion_id" options="{'create': false, 'create_edit': false}"/>
                 </xpath>
-                <!--<xpath expr="//field[@name='category_ids']" position="replace">
-                    <field name="category_ids" options="{'create': false, 'create_edit': false}"/>
-                </xpath>-->
-            </field>
-        </record>
-        <record id="hr_hr_employee_view_form" model="ir.ui.view">
-            <field name="name">hr.hr.employee.view.form</field>
-            <field name="model">hr.employee</field>
-            <field name="inherit_id" ref="hr_contract.hr_hr_employee_view_form2"/>
-            <field name="arch" type="xml">
-                <data>
-                    <xpath expr="//field[@name='manager']" position="replace">
-                        <field name="manager" invisible = "1"/>
-                    </xpath>
-             	</data>
-            </field>
-        </record>
-        
-        <record id="vsis_hr_hr_employee_view_form3" model="ir.ui.view">
-            <field name="name">vsis.hr.employee.view.form3</field>
-            <field name="model">hr.employee</field>
-            <field name="inherit_id" ref="hr_contract.hr_hr_employee_view_form2"/>
-            <field name="arch" type="xml">
-                <data>
-                    <field name="place_of_birth" position="replace">
-                    	<field name="birth_place"/>
-                        <field name="place_of_birth" domain="[('country_id','=',country_stateofbirth_id)]" options="{'create': false, 'create_edit': false}"/>
-                    </field>
-                </data>
-            </field>
-        </record>
-     
-        <record id="hr_hr_employee_view_form3" model="ir.ui.view">
-            <field name="name">hr.hr.employee.view.form3</field>
-            <field name="model">hr.employee</field>
-            <field name="inherit_id" ref="hr_contract.hr_hr_employee_view_form2"/>
-            <field name="arch" type="xml">
-                <data>
-                 	<xpath expr="//field[@name='birthday']" position="replace">
-                        <field name="birthday" on_change="onchange_date_of_retirement(birthday)"/>
-                    </xpath>
-                </data>
             </field>
         </record>
 
@@ -885,19 +888,6 @@
 	                        <field name="stream_id"/>
 	                </xpath>
              	</data>
-            </field>
-        </record>
-
-        <record id="hr_hr_employee_view_form2" model="ir.ui.view">
-            <field name="name">hr.hr.employee.view.form2</field>
-            <field name="model">hr.employee</field>
-            <field name="inherit_id" ref="hr.view_employee_form"/>
-            <field name="arch" type="xml">
-                <data>
-                    <field name="coach_id" position="after">
-                        <field name="date_of_retirement"/>
-                    </field>
-                </data>
             </field>
         </record>
         
@@ -1241,56 +1231,6 @@
             </field>
 		</record>
   
-		<record id="employee_leave_form_view" model="ir.ui.view">
-            <field name="name">employee.leave.form</field>
-            <field name="model">hr.employee</field>
-            <field name="inherit_id" ref="hr.view_employee_form"/>
-            <field name="arch" type="xml">
-            	<xpath expr="//form[@string='Employee']" position="attributes">
-            		<attribute name="delete">false</attribute>
-            		<attribute name="create">false</attribute>
-            	</xpath>
-            	
-            	<xpath expr="//field[@name='bank_account_id']" position="replace">
-            		<field name ="bank_account_id" invisible='1'/>
-            	</xpath>
-            	
-            	<xpath expr="//page[@string='Personal Information']" position="attributes">
-            		<attribute name="groups">green_erp_arulmani_hrm.group_vvti_hrm_hr_key_user</attribute>
-            	</xpath>
-            	
-            	<xpath expr="//page[@string='HR Settings']" position="attributes">
-            		<attribute name="groups">green_erp_arulmani_hrm.group_vvti_hrm_hr_key_user</attribute>
-            	</xpath>
-            	
-            	<xpath expr="//page[@string='HR Settings']" position="after">
-            		<page string = 'Employee Leave Status'>
-            			<field name ="employee_leave_id">
-            				<form string="Employee Leave Detail" version="7.0">
-            					<group>
-	            					<field name ="employee_id" style="width:40%%" options="{'create': false, 'create_edit': false}"/>
-	            					<field name ="year" style="width:40%%"/>
-	            				</group>
-            					<group string = "Employee Leave Details">
-	            					<field name ="emp_leave_details_ids" nolabel="1">
-										<tree string="Employee Leave Details" editable="top">
-				    						<field name ="leave_type_id" options="{'create': false, 'create_edit': false}"/>
-				    						<field name ="total_day"/>
-				    						<field name ="total_taken"/>
-	                					</tree>
-	                				</field>
-                				</group>
-                			</form>
-                			<tree string="Employee Leave Details">
-                				
-                				<field name ="year"/>
-                			</tree>
-                		</field>
-                	</page> 
-                </xpath>
-            </field>
-		</record>
-		
 		<record id="employee_edit_active_tree_view" model="ir.ui.view">
 			<field name="name">hr.employee.tree</field>
 			<field name="model">hr.employee</field>

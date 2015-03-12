@@ -361,8 +361,8 @@ class account_invoice(osv.osv):
      
     _columns = {
         'grn_no': fields.many2one('stock.picking.in','GRN No',readonly = True), 
-        'create_uid':fields.many2one('res.users','Created By', readonly=True, states={'draft':[('readonly',False)]}),
-        'created_on': fields.date('Created On', readonly=True, states={'draft':[('readonly',False)]}),
+        'create_uid':fields.many2one('res.users','Created By', readonly=True),
+        'created_on': fields.datetime('Created On', readonly=True),
         'purchase_id': fields.many2one('purchase.order', 'Purchase Order', readonly = True),
         'vendor_ref': fields.char('Vendor Reference', size = 1024, readonly=True, states={'draft':[('readonly',False)]}),
         
@@ -399,11 +399,15 @@ class account_invoice(osv.osv):
                 'account.invoice.line': (_get_invoice_line, ['quantity', 'uos_id', 'price_unit','discount','p_f','p_f_type',   
                                                                 'ed', 'ed_type','invoice_line_tax_id','fright','fright_type'], 10)}),
         }
-        
+    _defaults = {
+        'created_on': time.strftime('%Y-%m-%d %H:%M:%S'),
+#         'create_uid':  lambda self,cr,uid,c: uid
+        }
     
     def create(self, cr, uid, vals, context=None):
         if vals.get('type','')=='in_invoice':
             vals['name'] = self.pool.get('ir.sequence').get(cr, uid, 'tpt.supplier.invoice.sequence') or '/'
+            vals['create_uid'] = uid
         new_id = super(account_invoice, self).create(cr, uid, vals, context)
         return new_id
     
