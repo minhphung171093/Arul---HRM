@@ -361,7 +361,7 @@ class account_invoice(osv.osv):
      
     _columns = {
         'grn_no': fields.many2one('stock.picking.in','GRN No',readonly = True), 
-        'create_uid':fields.many2one('res.users','Created By', readonly=True, states={'draft':[('readonly',False)]}),
+        'create_uid':fields.many2one('res.users','Created By', readonly=True),
         'created_on': fields.datetime('Created On', readonly=True),
         'purchase_id': fields.many2one('purchase.order', 'Purchase Order', readonly = True),
         'vendor_ref': fields.char('Vendor Reference', size = 1024, readonly=True, states={'draft':[('readonly',False)]}),
@@ -401,6 +401,7 @@ class account_invoice(osv.osv):
         }
     _defaults = {
         'created_on': time.strftime('%Y-%m-%d %H:%M:%S'),
+#         'create_uid':  lambda self,cr,uid,c: uid
         }
     
     def create(self, cr, uid, vals, context=None):
