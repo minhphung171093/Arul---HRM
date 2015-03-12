@@ -577,7 +577,7 @@ class mrp_bom(osv.osv):
                             }
             
         return {'value': vals}
-
+    
 mrp_bom()
 
 class mrp_subproduct(osv.osv):
@@ -825,6 +825,71 @@ class mrp_production(osv.osv):
     def name_search(self, cr, user, name, args=None, operator='ilike', context=None, limit=100):
        ids = self.search(cr, user, args, context=context, limit=limit)
        return self.name_get(cr, user, ids, context=context)
+    
+    def action_confirm(self, cr, uid, ids, context=None):
+        """ Confirms production order and calculates quantity based on subproduct_type.
+        @return: Newly generated picking Id.
+        """
+        shipment_id = False
+        wf_service = netsvc.LocalService("workflow")
+        uncompute_ids = filter(lambda x:x, [not x.product_lines and x.id or False for x in self.browse(cr, uid, ids, context=context)])
+        self.action_compute(cr, uid, uncompute_ids, context=context)
+        for production in self.browse(cr, uid, ids, context=context):
+            shipment_id = self._make_production_internal_shipment(cr, uid, production, context=context)
+            produce_move_id = self._make_production_produce_line(cr, uid, production, context=context)
+
+            # Take routing location as a Source Location.
+            source_location_id = production.location_src_id.id
+            if production.routing_id and production.routing_id.location_id:
+                source_location_id = production.routing_id.location_id.id
+
+            for line in production.product_lines:
+                consume_move_id = self._make_production_consume_line(cr, uid, line, produce_move_id, source_location_id=source_location_id, context=context)
+                if shipment_id:
+                    shipment_move_id = self._make_production_internal_shipment_line(cr, uid, line, shipment_id, consume_move_id,\
+                                 destination_location_id=source_location_id, context=context)
+                    self._make_production_line_procurement(cr, uid, line, shipment_move_id, context=context)
+
+            if shipment_id:
+                wf_service.trg_validate(uid, 'stock.picking', shipment_id, 'button_confirm', cr)
+            production.write({'state':'confirmed'}, context=context)
+            
+        picking_id = shipment_id
+        product_uom_obj = self.pool.get('product.uom')
+        for production in self.browse(cr, uid, ids):
+            source = production.product_id.property_stock_production.id
+            if not production.bom_id:
+                continue
+            for sub_product in production.bom_id.sub_products:
+                product_uom_factor = product_uom_obj._compute_qty(cr, uid, production.product_uom.id, production.product_qty, production.bom_id.product_uom.id)
+                qty1 = sub_product.product_qty
+                qty2 = production.product_uos and production.product_uos_qty or False
+                product_uos_factor = 0.0
+                if qty2 and production.bom_id.product_uos.id:
+                    product_uos_factor = product_uom_obj._compute_qty(cr, uid, production.product_uos.id, production.product_uos_qty, production.bom_id.product_uos.id)
+                if sub_product.subproduct_type == 'variable':
+                    if production.product_qty:
+                        qty1 *= product_uom_factor / (production.bom_id.product_qty or 1.0)
+                    if production.product_uos_qty:
+                        qty2 *= product_uos_factor / (production.bom_id.product_uos_qty or 1.0)
+                data = {
+                    'name': 'PROD:'+production.name,
+                    'date': production.date_planned,
+                    'product_id': sub_product.product_id.id,
+                    'product_qty': qty1,
+                    'product_uom': sub_product.product_uom.id,
+                    'product_uos_qty': qty2,
+                    'product_uos': production.product_uos and production.product_uos.id or False,
+                    'location_id': source,
+                    'location_dest_id': production.location_dest_id.id,
+                    'move_dest_id': production.move_prod_id.id,
+                    'state': 'waiting',
+                    'production_id': production.id,
+                    'app_quantity': qty1,
+                    'is_tpt_production': True,
+                }
+                self.pool.get('stock.move').create(cr, uid, data)
+        return picking_id
     
 mrp_production()
 
