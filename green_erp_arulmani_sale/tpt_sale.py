@@ -1846,7 +1846,7 @@ class res_partner(osv.osv):
         'bill_location': fields.boolean('Is Bill To Location'), 
         'shipping_location': fields.boolean('Is Shipping Location'), 
         #TPT By BalamuruganPurushothaman To Load Consignee List
-#         'consignee_shift_party': fields.many2one('res.partner', 'Consignee'),
+        'consignee_shift_party': fields.many2one('res.partner', 'Consignee'),
         
         
                  }
