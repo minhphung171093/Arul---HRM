@@ -239,7 +239,12 @@ class arul_hr_audit_shift_time(osv.osv):
                    }),
               'approval': fields.boolean('Select for Approval', readonly =  True, states={'done': [('readonly', True)], 'cancel': [('readonly', True)]}),
               'state':fields.selection([('draft', 'Draft'),('cancel', 'Reject'),('done', 'Approve')],'Status', readonly=True),
-              'type':fields.selection([('permission', 'Permission'),('on_duty', 'On Duty'),('shift', 'Waiting'),('punch', 'Punch In/Out'),('manual','Manual Entry')],'Type', readonly=True),#TPT Onduty, Manual Entry type is added in Audit Shift Time Screen.
+              'type':fields.selection([('permission', 'Permission'),('on_duty', 'On Duty'),('shift', 'Waiting'),('punch', 'Punch In/Out'),
+                                       ('punch_edited', 'Punch In/Out-Edited'),
+                                       ('permission_edited', 'Permission-Edited'),
+                                       ('on_duty_edited', 'On Duty-Edited'),
+                                       ('manual_edited', 'Manual Entry-Edited'),
+                                       ('manual','Manual Entry')],'Type'),#TPT Onduty, Manual Entry type is added in Audit Shift Time Screen.
               'permission_id':fields.many2one('arul.hr.permission.onduty','Permission/On Duty'),
               'time_evaluate_id': fields.many2one('tpt.time.leave.evaluation','Time Evaluation'),
               'diff_day': fields.boolean('Difference Day', readonly = True),
@@ -255,9 +260,17 @@ class arul_hr_audit_shift_time(osv.osv):
 	    'type':'manual',
         
     }
-    def onchange_in_time(self, cr, uid, ids, in_out_time=False, context=None):
+    def onchange_in_time(self, cr, uid, ids, in_out_time=False, type=False,context=None):
         vals = {}
         vals.update({'time_change_flag':True})
+        if type=='manual':
+            vals.update({'type':'manual_edited'})
+        if type=='punch':
+            vals.update({'type':'punch_edited'})
+        if type=='permission':
+            vals.update({'type':'permission_edited'})
+        if type=='on_duty':
+            vals.update({'type':'on_duty_edited'})
         return {'value':vals}
 
     def name_get(self, cr, uid, ids, context=None):
@@ -1181,10 +1194,11 @@ class arul_hr_employee_leave_details(osv.osv):
                     'arul.hr.employee.leave.details': (_get_line, ['date_from','date_to','employee_id','leave_type_id','haft_day_leave'], 10),
                     'arul.hr.employee.leave.details': (_get_line, ['state'], 20),                                                                                 
                     }, states={'done': [('readonly', True)], 'cancel': [('readonly', True)]}),
-              'reason':fields.text('Reason', states={'done': [('readonly', True)], 'cancel': [('readonly', True)]}),
+              'reason':fields.char('Reason for Leave', states={'done': [('readonly', True)], 'cancel': [('readonly', True)]}),
               'state':fields.selection([('draft', 'Draft'),('cancel', 'Cancel'),('reject', 'Rejected'),('done', 'Done')],'Status', readonly=True),
               'leave_evaluate_id': fields.many2one('tpt.time.leave.evaluation','Leave Evaluation'),
               'check_leave_type_lop_esi': fields.boolean('Check Leave Type LOP_ESI'),
+              'reason_for_reject':fields.text('Reason for Rejection', states={'done': [('readonly', True)], 'cancel': [('readonly', True)]}),
               'check_reject_flag': fields.boolean('Check Reject Option'),
               
               }
@@ -1205,7 +1219,8 @@ class arul_hr_employee_leave_details(osv.osv):
     
     def create(self, cr, uid, vals, context=None):
         new_id1 = False
-        new_id2 = False
+        new_id2 = False       
+        vals.update({'check_reject_flag':True}) #TPT-BalamurugaPurushothaman on 12/03/2015
         if 'date_from' in vals and 'date_to' in vals:
             date_from = vals['date_from']
             date_to = vals['date_to']
@@ -1342,19 +1357,21 @@ class arul_hr_employee_leave_details(osv.osv):
                         raise osv.except_osv(_('Warning!'),_('Leave Type Is Unlicensed For Employee Category And Employee Sub Category!'))
                 else:
                     raise osv.except_osv(_('Warning!'),_('Employee Has Not Been Licensed Holidays For The Current Year'))
-                self.write(cr, uid, [line.id],{'state':'done','leave_evaluate_id': False})
+                self.write(cr, uid, [line.id],{'state':'done','leave_evaluate_id': False,'check_reject_flag':False}) #TPT check_reject_flag is marked as false after approve
             else:
                 raise osv.except_osv(_('Warning!'),_('User does not have permission to approve for this employee department!'))
         return True  
-    
+    #TPT:START 
     def reject_leave_request(self, cr, uid, ids, context=None):  
         for line in self.browse(cr, uid, ids): 
-            if line.reason:    
+            #vals = {}
+            #vals.update({'check_reject_flag':True})
+            if line.reason_for_reject:    
                 self.write(cr, uid, [line.id],{'state':'reject','leave_evaluate_id':False,'check_reject_flag':True})
             else:
                 raise osv.except_osv(_('Warning!'),_('Please fill Reason for Rejection!'))
         return True  
-    
+    #TPT:E
     def cancel_leave_request(self, cr, uid, ids, context=None):
         date_now = time.strftime('%Y-%m-%d')
         for line in self.browse(cr, uid, ids):

@@ -230,7 +230,8 @@
 							
 						</group>
 						<group >
-							<field name="reason" attrs="{'required':[('check_reject_flag','=',True)]}"/>
+							<field name="reason"/>
+							<field name="reason_for_reject" attrs="{'invisible':[('check_reject_flag','=',False)]}"/>
 							<field name="check_reject_flag" invisible='1'/>
 		                </group>
 		         	</sheet>
@@ -413,7 +414,7 @@
 							<field name="actual_work_shift_id" options="{'create': false, 'create_edit': false}"/>
 							<field name="punch_in_date"/>
 							<field name="punch_out_date"/>
-							<field name="in_time" widget="float_time" on_change="onchange_in_time(in_time)"/>
+							<field name="in_time" widget="float_time" on_change="onchange_in_time(in_time,type)"/>
 							<field name="out_time" widget="float_time" on_change="onchange_in_time(out_time)"/>
 							<field name="work_date"/>
 							<field name="employee_category_id" options="{'create': false, 'create_edit': false}"/>							
