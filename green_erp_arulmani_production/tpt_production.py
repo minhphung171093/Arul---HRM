@@ -262,10 +262,10 @@ class tpt_fsh_batch_split(osv.osv):
                     '''
                 cr.execute(sql)
                 prodlot_ids = cr.fetchone()
-                if prodlot_ids and self.pool.get('stock.production.lot').browse(cr, uid, prodlot_ids[0]).stock_available<mrp.product_qty:
+                if prodlot_ids and self.pool.get('stock.production.lot').browse(cr, uid, prodlot_ids[0]).stock_available<mrp.mrp_id.product_qty:
                     available = self.pool.get('stock.production.lot').browse(cr, uid, prodlot_ids[0]).stock_available
                 else:
-                    available = mrp.product_qty
+                    available = mrp.mrp_id.product_qty
             vals.update({'available':available})
         new_write = super(tpt_fsh_batch_split, self).write(cr, uid,ids, vals, context)
 #         for new in self.browse(cr, uid, ids):
