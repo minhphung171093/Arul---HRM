@@ -337,7 +337,7 @@
                         	<field string="Vendor" name="partner_id"
                               on_change="onchange_partner_id(type,partner_id,date_invoice,payment_term, partner_bank_id,company_id)"
                               context="{'default_customer': 0, 'search_default_supplier': 1, 'default_supplier': 1}"
-                              domain="[('supplier', '=', True)]"/>
+                              domain="[('supplier', '=', True)]" options="{'create': false, 'create_edit': false}"/>
                             <field name="vendor_ref"/>
                             <field name="create_uid" options="{'create': false, 'create_edit': false}"/>
                             <field name="fiscal_position" widget="selection" invisible = '1'/>
@@ -914,6 +914,22 @@
                     	<field name="doc_type" />
                     </xpath>
                     
+                    <xpath expr="//field[@name='to_check']" position="attributes">
+                    	<attribute name='invisible'>1</attribute>
+                    </xpath>
+                    
+                    <xpath expr="//field[@name='journal_id']" position="attributes">
+                    	<attribute name='invisible'>1</attribute>
+                    </xpath>
+                    
+                    <xpath expr="//page[@string='Journal Items']/field/tree/field[@name='reconcile_id']" position="attributes">
+						<attribute name='invisible'>1</attribute>
+					</xpath> 
+					
+					<xpath expr="//page[@string='Journal Items']/field/tree/field[@name='reconcile_partial_id']" position="attributes">
+						<attribute name='invisible'>1</attribute>
+					</xpath>
+					
                 </data>
 			</field>
 		</record>
