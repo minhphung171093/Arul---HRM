@@ -961,7 +961,7 @@ class account_invoice(osv.osv):
                     cr.execute(sql)
                 if (vals['state'] == 'open'):
                     sql = '''
-                        update account_invoice set doc_status='waiting' where id=%s
+                        update account_invoice set doc_status='completed' where id=%s
                     '''%(id)
                     cr.execute(sql)
                 if (vals['state'] == 'paid'):
