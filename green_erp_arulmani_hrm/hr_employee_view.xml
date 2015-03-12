@@ -822,11 +822,11 @@
                 </xpath>
             </field>
         </record>
-		<!--
+		
 		<record id="arul_vsis_view_employee_form_portal" model="ir.ui.view">
             <field name="name">arul_vsis_view_employee_form_portal</field>
             <field name="model">hr.employee</field>
-            <field name="inherit_id" ref="green_erp_arulmani_crm.vsis_view_employee_form_portal"/>
+            <field name="inherit_id" ref="green_erp_arulmani_crm.vsis_view_employee_form"/>
             <field name="arch" type="xml">
             	<xpath expr="//field[@name='department_id']" position="replace">
                     <field name="department_id" on_change="onchange_department_id(department_id)" options="{'create': false, 'create_edit': false}"/>
@@ -863,7 +863,7 @@
                     <field name="religion_id" options="{'create': false, 'create_edit': false}"/>
                 </xpath>
             </field>
-        </record>-->
+        </record>
 
         <record id="tpt_personal_contact_view" model="ir.ui.view">
             <field name="name">tpt.personal.contact.view.form</field>
