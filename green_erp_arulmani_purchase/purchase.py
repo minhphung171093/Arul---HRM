@@ -39,7 +39,7 @@ class tpt_purchase_indent(osv.osv):
         'reason':fields.text('Reason', states={'cancel': [('readonly', True)], 'done':[('readonly', True)]}),
         'header_text':fields.text('Header Text',states={'cancel': [('readonly', True)], 'done':[('readonly', True)]}), #TPT
         'requisitioner':fields.char('Requisitioner',states={'cancel': [('readonly', True)], 'done':[('readonly', True)]}),
-        'purchase_product_line':fields.one2many('tpt.purchase.product','purchase_indent_id','Materials', states={'cancel': [('readonly', True)], 'done':[('readonly', True)]}),
+        'purchase_product_line':fields.one2many('tpt.purchase.product','pur_product_id','Materials'),
         'state':fields.selection([('draft', 'Draft'),('cancel', 'Closed'),
                                   ('done', 'Approve'),('rfq_raised','RFQ Raised'),
                                   ('quotation_raised','Quotation Raised'),
@@ -62,7 +62,7 @@ class tpt_purchase_indent(osv.osv):
     def bt_approve(self, cr, uid, ids, context=None):
         for line in self.browse(cr, uid, ids):
             for indent_line in line.purchase_product_line:
-                self.pool.get('tpt.purchase.product').write(cr, uid,  [indent_line.id],{'indent_status':'confirm'})
+                self.pool.get('tpt.purchase.product').write(cr, uid,  [indent_line.id],{'state':'confirm'})
         return self.write(cr, uid, ids,{'state':'done'})
     
     def bt_cancel(self, cr, uid, ids, context=None):
@@ -126,54 +126,6 @@ class tpt_purchase_indent(osv.osv):
 #                 raise osv.except_osv(_('Warning!'),_(' You must choose Select is multiple if you want more than one product!'))
         return new_id
     
-#     def write(self, cr, uid, ids, vals, context=None):
-#         if 'document_type' in vals:
-#             sql = '''
-#                 select code from account_fiscalyear where '%s' between date_start and date_stop
-#             '''%(time.strftime('%Y-%m-%d'))
-#             cr.execute(sql)
-#             fiscalyear = cr.dictfetchone()
-#             if not fiscalyear:
-#                 raise osv.except_osv(_('Warning!'),_('Financial year has not been configured. !'))
-#             else:
-#                 if (vals['document_type']=='base'):
-#                     if vals.get('name','/')=='/':
-#                         sequence = self.pool.get('ir.sequence').get(cr, uid, 'indent.purchase.based')
-#                         vals['name'] =  sequence and sequence+'/'+fiscalyear['code'] or '/'
-#                 if (vals['document_type']=='capital'):
-#                     if vals.get('name','/')=='/':
-#                         sequence = self.pool.get('ir.sequence').get(cr, uid, 'indent.purchase.capital')
-#                         vals['name'] =  sequence and sequence +'/'+fiscalyear['code']or '/'
-#                 if (vals['document_type']=='local'):
-#                     if vals.get('name','/')=='/':
-#                         sequence = self.pool.get('ir.sequence').get(cr, uid, 'indent.purchase.local')
-#                         vals['name'] =  sequence and sequence +'/'+fiscalyear['code']or '/'
-#                 if (vals['document_type']=='maintenance'):
-#                     if vals.get('name','/')=='/':
-#                         sequence = self.pool.get('ir.sequence').get(cr, uid, 'indent.purchase.maintenance')
-#                         vals['name'] =  sequence and sequence +'/'+fiscalyear['code']or '/'
-#                 if (vals['document_type']=='consumable'):
-#                     if vals.get('name','/')=='/':
-#                         sequence = self.pool.get('ir.sequence').get(cr, uid, 'indent.purchase.consumable')
-#                         vals['name'] =  sequence and sequence +'/'+fiscalyear['code']or '/'
-#                 if (vals['document_type']=='outside'):
-#                     if vals.get('name','/')=='/':
-#                         sequence = self.pool.get('ir.sequence').get(cr, uid, 'indent.purchase.outside')
-#                         vals['name'] =  sequence and sequence +'/'+fiscalyear['code']or '/'
-#                 if (vals['document_type']=='spare'):
-#                     if vals.get('name','/')=='/':
-#                         sequence = self.pool.get('ir.sequence').get(cr, uid, 'indent.purchase.spare')
-#                         vals['name'] =  sequence and sequence +'/'+fiscalyear['code']or '/'
-#                 if (vals['document_type']=='service'):
-#                     if vals.get('name','/')=='/':
-#                         sequence = self.pool.get('ir.sequence').get(cr, uid, 'indent.purchase.service')
-#                         vals['name'] =  sequence and sequence +'/'+fiscalyear['code']or '/'
-#         new_write = super(tpt_purchase_indent, self).write(cr, uid,ids, vals, context)
-# #         for indent in self.browse(cr,uid,ids):
-# #             if indent.select_normal != 'multiple':
-# #                 if (len(indent.purchase_product_line)>1):
-# #                     raise osv.except_osv(_('Warning!'),_(' You must choose Select is multiple if you want more than one product!'))
-#         return new_write
     
     def onchange_date_expect(self, cr, uid, ids,date_indent=False, context=None):
         vals = {}
@@ -235,7 +187,7 @@ tpt_purchase_indent()
 class tpt_purchase_product(osv.osv):
     _name = 'tpt.purchase.product'
     _columns = {
-        'purchase_indent_id':fields.many2one('tpt.purchase.indent','Purchase Product'),
+        'pur_product_id':fields.many2one('tpt.purchase.indent','Purchase Product'),
         'product_id': fields.many2one('product.product', 'Material Code'),
         #'dec_material':fields.text('Material Description'),
         'description':fields.char('Mat. Description', size = 50, readonly=True),
@@ -246,19 +198,22 @@ class tpt_purchase_product(osv.osv):
         #'recom_vendor_id': fields.many2one('res.partner', 'Recommended Vendor'),
         'recom_vendor': fields.char('Recommended Vendor', size = 30),
         'release_by':fields.selection([('1','Store Level'),('2','HOD Level')],'Released By'),
-        'indent_status':fields.selection([('draft', 'Draft'),('confirm', 'Confirmed'),
+        'state':fields.selection([('draft', 'Draft'),('confirm', 'Confirmed'),
                                           ('+', 'Store Approved'),('++', 'Store & HOD Approved'),
                                           ('x', 'Store Rejected'),('xx', 'Store & HOD Rejected')
                                           ],'Indent Status', readonly=True),
 #Hung moi them 2 Qty theo yeu casu bala
-#         'mrs_qty': fields.float('MRS Quantity'),
-#         'inspection_qty': fields.float('Inspection Quantity'), 
+        'mrs_qty': fields.float('MRS Quantity'),
+        'inspection_qty': fields.float('Inspection Quantity'), 
         }  
-    
+#     
     _defaults = {
-        'indent_status':'draft',
+        'state':'draft',
     }
-
+    def bt_approve(self, cr, uid, ids, context=None):
+        return self.write(cr, uid, ids,{'state':'+'})
+    def bt_reject(self, cr, uid, ids, context=None):
+        return self.write(cr, uid, ids,{'state':'x'})
     def onchange_product_id(self, cr, uid, ids,product_id=False, context=None):
         res = {'value':{
                     'uom_po_id':False,
