@@ -798,7 +798,7 @@
             <field name="act_window_id" ref="action_arul_hr_employee_hiring_action_form"/>
         </record>
 		
-        <record id="vsis_hr_hr_employee_view_form2" model="ir.ui.view">
+       <!-- <record id="vsis_hr_hr_employee_view_form2" model="ir.ui.view">
             <field name="name">vsis.hr.hr.employee.view.form2</field>
             <field name="model">hr.employee</field>
             <field name="inherit_id" ref="hr_contract.hr_hr_employee_view_form2"/>
@@ -811,7 +811,7 @@
                 </xpath>
             </field>
         </record>
-		
+		-->
 		<record id="arul_vsis_view_employee_form_portal" model="ir.ui.view">
             <field name="name">arul_vsis_view_employee_form_portal</field>
             <field name="model">hr.employee</field>
