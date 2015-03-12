@@ -759,7 +759,6 @@ class mrp_production(osv.osv):
         move_id = stock_move.create(cr, uid, data, context=context)
         production.write({'move_created_ids': [(6, 0, [move_id])]}, context=context)
         return move_id
-    
     def _make_production_consume_line(self, cr, uid, production_line, parent_move_id, source_location_id=False, context=None):
         stock_move = self.pool.get('stock.move')
         production = production_line.production_id
