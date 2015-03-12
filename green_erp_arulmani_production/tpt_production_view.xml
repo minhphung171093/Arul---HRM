@@ -329,9 +329,14 @@
          <!--           <xpath expr="//field[@name='product_qty']" position="attributes">
                 		<attribute name='readonly'>1</attribute>
                     </xpath> -->
-                    <xpath expr="//field[@name='product_qty']" position="attributes">
-                		<attribute name='string'>Applied Quantity</attribute>
-                    </xpath> 
+                    <xpath expr="//field[@name='product_qty']" position="replace">
+                    	<field name="is_tpt_production" invisible = "1"  />
+                		<field name="product_qty" on_change="onchange_quantity(product_id, product_qty, product_uom, product_uos,is_tpt_production,app_quantity)" class="oe_inline"/>
+                    </xpath>
+                    <xpath expr="//label[@for='product_qty']" position="replace">
+                		 <label string="Applied Quantity"/>
+                    </xpath>
+                    
                 </data>
             </field>
         </record>
@@ -342,6 +347,11 @@
             <field name="inherit_id" ref="mrp.mrp_production_form_view"/>
             <field name="arch" type="xml">
                 <data>
+                	
+                	<xpath expr="//field[@name='move_lines']" position="attributes">
+                		<attribute name='context'>{'tpt_production':1}</attribute>
+                    </xpath> 
+                
                 	<xpath expr="//h1" position="replace">
 						<h1>Production Declaration <field name="name" readonly="1" class="oe_inline"/> </h1>
                     </xpath>
@@ -355,12 +365,9 @@
                   	<xpath expr="//form/sheet/group/group/field[@name='product_id']" position="attributes">
 						<attribute name='options'>{'create': false, 'create_edit': false}</attribute>
                     </xpath>
-                    <xpath expr="//form/sheet/group/group/field[@name='user_id']" position="before">
-						<field name="norm_id" context="{'search_norm_id':1}" on_change = "onchange_norm_id(norm_id)" options ="{'create': false, 'create_edit': false}" />
-                    </xpath>
                     
-                    <xpath expr="//form/sheet/group/group/field[@name='bom_id']" position="attributes">
-						<attribute name='options'>{'create': false, 'create_edit': false}</attribute>
+                    <xpath expr="//form/sheet/group/group/field[@name='bom_id']" position="replace">
+						<field name="bom_id" string = 'Norm' context="{'default_product_id': product_id, 'search_norm_id':1}" on_change="bom_id_change(bom_id)" options="{'create': false, 'create_edit': false}" required="1"/>
                     </xpath>
                     
                    	<xpath expr="//form/sheet/group/group/field[@name='user_id']" position="attributes">
@@ -416,6 +423,27 @@
             </field>
         </record>
 
+		<record id="tpt_quality_verification_search_view" model="ir.ui.view">
+			<field name="name">tpt.quality.verification.search</field>
+			<field name="model">tpt.quality.verification</field>
+			<field name="arch" type="xml">
+				<search string="Production Batch - Quality Verification">
+					<field name="prod_batch_id"/>
+        			<field name="product_id"/>
+        			<field name="phy_batch_no"/>
+        			<field name="name"/>
+        			<filter string="Draft" name="draft" icon="terp-personal" domain="[('state','=','draft')]" context="{}"/>
+        			<filter string="Updated" name="done" icon="terp-personal" domain="[('state','=','done')]" context="{}"/>
+        			<group expand="0" string="Group By...">
+        				 <filter string="Product" icon="terp-accessories-archiver" domain="[]" context="{'group_by':'product_id'}"/>
+                        <filter string='Warehouse Location' icon="terp-mrp" domain="[]" context="{'group_by' : 'warehouse_id'}"/>
+                        <filter string="Applicable" icon="terp-stock_align_left_24" domain="[]" context="{'group_by':'applicable_id'}"/>
+                        <filter string='Status' icon="terp-stock_symbol-selection" domain="[]" context="{'group_by' : 'state'}"/>
+                    </group>
+				</search>
+			</field>
+		</record>
+
 		<record id="tpt_quality_verification_tree_view" model="ir.ui.view">
 			<field name="name">tpt.quality.verification.tree</field>
 			<field name="model">tpt.quality.verification</field>
@@ -440,6 +468,7 @@
 	            <form string="Production Batch - Quality Verification" version="7.0">   
 	            <header>
 	            		<button name="bt_update" states='draft' string="Update Batch Verification" type="object" class="oe_highlight" />
+	            		<button name="action_cancel_draft" states="done" string="Set to Draft" type="object"/>
 	            		<field name="state" widget="statusbar" statusbar_visible="draft,done" statusbar_colors='{"draft":"blue"}'/>
 	           	</header>
 	            	<sheet>
@@ -451,7 +480,7 @@
 	            			<field name="warehouse_id" domain="[('usage','=','internal')]" options="{'create': false, 'create_edit': false}" />
 	            		</group>
 	            		<group>
-	            			<field name="phy_batch_no"/>
+	            			<field name="phy_batch_no" required = '1'/>
 	            			<field name="name"/>
 	            			<field name="applicable_id" on_change = "onchange_applicable_id(applicable_id)" domain="[('product_id','=',product_id)]" options="{'create': false, 'create_edit': false}" />
 	            		</group>
@@ -471,13 +500,14 @@
 		         </form>
 			</field>
 		</record>
-		
 		<record id="action_tpt_quality_verification_form" model="ir.actions.act_window">
             <field name="name">Quality Verification</field>
             <field name="type">ir.actions.act_window</field>
             <field name="res_model">tpt.quality.verification</field>
             <field name="view_type">form</field>
             <field name="view_mode">tree,form</field>
+            <field name="context">{'search_default_draft':1}</field>
+            <field name="search_view_id" ref="tpt_quality_verification_search_view"/>
             <field name="view_id" ref="tpt_quality_verification_tree_view"/>
         </record>
         

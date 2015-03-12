@@ -33,10 +33,15 @@ class tpt_tio2_batch_split(osv.osv):
         batch_split_line_obj = self.pool.get('tpt.batch.split.line')
         prodlot_obj = self.pool.get('stock.production.lot')
         for line in self.browse(cr, uid, ids):
+            schedule_date = line.mrp_id.date_planned
+            schedule_date_day = schedule_date[8:10]
+            schedule_date_month = schedule_date[5:7]
+            schedule_date_year = schedule_date[:4]
             for num in range(0,int(line.available)):
-                prodlot_name = self.pool.get('ir.sequence').get(cr, uid, 'batching.tio2')
+                prodlot = self.pool.get('ir.sequence').get(cr, uid, 'batching.tio2')
+                prodlot_name = str(schedule_date_year) + str(schedule_date_month) + str(schedule_date_day) + str(prodlot)
                 prodlot_id = prodlot_obj.create(cr, uid, {'name': prodlot_name,
-                                             'phy_batch_no': prodlot_name,
+                                            'phy_batch_no': prodlot_name,
                                              'product_id': line.product_id.id,
                                              'location_id': line.location_id.id})
                 batch_split_line_obj.create(cr, uid, {
@@ -60,6 +65,12 @@ class tpt_tio2_batch_split(osv.osv):
             context.update({'active_id': move_ids and move_ids[0] or False,'active_model': 'stock.move','tpt_copy_prodlot':True})
             line_exist_ids = []
             for split_line in line.batch_split_line:
+                self.pool.get('tpt.quality.verification').create(cr,uid,{
+                                                                  'prod_batch_id': split_line.prodlot_id and split_line.prodlot_id.id or False,
+                                                                  'phy_batch_no': split_line.prodlot_id and split_line.prodlot_id.phy_batch_no or False,
+                                                                  'product_id': split_line.product_id and split_line.product_id.id or False,
+                                                                  'warehouse_id': line.location_id and line.location_id.id or False,
+                                                                  })
                 line_exist_ids.append((0,0,{
                     'quantity': split_line.qty,
                     'prodlot_id': split_line.prodlot_id.id,
@@ -566,7 +577,7 @@ class mrp_bom(osv.osv):
                             }
             
         return {'value': vals}
-
+    
 mrp_bom()
 
 class mrp_subproduct(osv.osv):
@@ -675,22 +686,30 @@ tpt_activities_line()
 class mrp_production(osv.osv):
     _inherit = 'mrp.production'
     _columns = {
-            'norm_id':fields.many2one('mrp.bom','Norms'),
             'move_lines': fields.many2many('stock.move', 'mrp_production_move_ids', 'production_id', 'move_id', 'Products to Consume',
             domain=[('state','not in', ('done', 'cancel'))], readonly=False, states={'draft':[('readonly',False)]}),
+            'move_created_ids': fields.one2many('stock.move', 'production_id', 'Products to Produce',
+            domain=[('state','not in', ('done', 'cancel'))], readonly=True, states={'draft':[('readonly',False)],'confirmed':[('readonly',False)]}),
     }
     _defaults={
         'name': '/',
     }
-    
-    def onchange_norm_id(self, cr, uid, ids,norm_id=False, context=None):
-        vals = {}
-        if norm_id:
-            norm = self.pool.get('mrp.bom').browse(cr, uid, norm_id)
-            vals = {
-                    'product_id':norm.product_id.id,
-                    }
-        return {'value': vals}
+    def bom_id_change(self, cr, uid, ids, bom_id, context=None):
+        """ Finds routing for changed BoM.
+        @param product: Id of product.
+        @return: Dictionary of values.
+        """
+        if not bom_id:
+            return {'value': {
+                'routing_id': False
+            }}
+        bom_point = self.pool.get('mrp.bom').browse(cr, uid, bom_id, context=context)
+        routing_id = bom_point.routing_id.id or False
+        result = {
+            'product_id':bom_point.product_id.id,
+            'routing_id': routing_id
+        }
+        return {'value': result}
     
     def create(self, cr, uid, vals, context=None):
         sql = '''
@@ -726,6 +745,8 @@ class mrp_production(osv.osv):
             'move_dest_id': production.move_prod_id.id,
             'state': 'waiting',
             'company_id': production.company_id.id,
+            'app_quantity': production.product_qty,
+            'is_tpt_production': True,
         }
         if production.product_id.name in ('TITANIUM DIOXIDE-ANATASE','TiO2','M0501010001') or production.product_id.default_code in ('TITANIUM DIOXIDE-ANATASE','TiO2','M0501010001'):
             prodlot_ids = self.pool.get('stock.production.lot').search(cr, uid, [('name','=','temp_tio2')])
@@ -738,7 +759,6 @@ class mrp_production(osv.osv):
         move_id = stock_move.create(cr, uid, data, context=context)
         production.write({'move_created_ids': [(6, 0, [move_id])]}, context=context)
         return move_id
-    
     def _make_production_consume_line(self, cr, uid, production_line, parent_move_id, source_location_id=False, context=None):
         stock_move = self.pool.get('stock.move')
         production = production_line.production_id
@@ -774,6 +794,7 @@ class mrp_production(osv.osv):
             'company_id': production.company_id.id,
             'prodlot_id': prodlot_ids and prodlot_ids[0] or False,
             'app_quantity': production_line.product_qty,
+            'is_tpt_production': True,
         })
         production.write({'move_lines': [(4, move_id)]}, context=context)
         return move_id
@@ -804,6 +825,71 @@ class mrp_production(osv.osv):
     def name_search(self, cr, user, name, args=None, operator='ilike', context=None, limit=100):
        ids = self.search(cr, user, args, context=context, limit=limit)
        return self.name_get(cr, user, ids, context=context)
+    
+    def action_confirm(self, cr, uid, ids, context=None):
+        """ Confirms production order and calculates quantity based on subproduct_type.
+        @return: Newly generated picking Id.
+        """
+        shipment_id = False
+        wf_service = netsvc.LocalService("workflow")
+        uncompute_ids = filter(lambda x:x, [not x.product_lines and x.id or False for x in self.browse(cr, uid, ids, context=context)])
+        self.action_compute(cr, uid, uncompute_ids, context=context)
+        for production in self.browse(cr, uid, ids, context=context):
+            shipment_id = self._make_production_internal_shipment(cr, uid, production, context=context)
+            produce_move_id = self._make_production_produce_line(cr, uid, production, context=context)
+
+            # Take routing location as a Source Location.
+            source_location_id = production.location_src_id.id
+            if production.routing_id and production.routing_id.location_id:
+                source_location_id = production.routing_id.location_id.id
+
+            for line in production.product_lines:
+                consume_move_id = self._make_production_consume_line(cr, uid, line, produce_move_id, source_location_id=source_location_id, context=context)
+                if shipment_id:
+                    shipment_move_id = self._make_production_internal_shipment_line(cr, uid, line, shipment_id, consume_move_id,\
+                                 destination_location_id=source_location_id, context=context)
+                    self._make_production_line_procurement(cr, uid, line, shipment_move_id, context=context)
+
+            if shipment_id:
+                wf_service.trg_validate(uid, 'stock.picking', shipment_id, 'button_confirm', cr)
+            production.write({'state':'confirmed'}, context=context)
+            
+        picking_id = shipment_id
+        product_uom_obj = self.pool.get('product.uom')
+        for production in self.browse(cr, uid, ids):
+            source = production.product_id.property_stock_production.id
+            if not production.bom_id:
+                continue
+            for sub_product in production.bom_id.sub_products:
+                product_uom_factor = product_uom_obj._compute_qty(cr, uid, production.product_uom.id, production.product_qty, production.bom_id.product_uom.id)
+                qty1 = sub_product.product_qty
+                qty2 = production.product_uos and production.product_uos_qty or False
+                product_uos_factor = 0.0
+                if qty2 and production.bom_id.product_uos.id:
+                    product_uos_factor = product_uom_obj._compute_qty(cr, uid, production.product_uos.id, production.product_uos_qty, production.bom_id.product_uos.id)
+                if sub_product.subproduct_type == 'variable':
+                    if production.product_qty:
+                        qty1 *= product_uom_factor / (production.bom_id.product_qty or 1.0)
+                    if production.product_uos_qty:
+                        qty2 *= product_uos_factor / (production.bom_id.product_uos_qty or 1.0)
+                data = {
+                    'name': 'PROD:'+production.name,
+                    'date': production.date_planned,
+                    'product_id': sub_product.product_id.id,
+                    'product_qty': qty1,
+                    'product_uom': sub_product.product_uom.id,
+                    'product_uos_qty': qty2,
+                    'product_uos': production.product_uos and production.product_uos.id or False,
+                    'location_id': source,
+                    'location_dest_id': production.location_dest_id.id,
+                    'move_dest_id': production.move_prod_id.id,
+                    'state': 'waiting',
+                    'production_id': production.id,
+                    'app_quantity': qty1,
+                    'is_tpt_production': True,
+                }
+                self.pool.get('stock.move').create(cr, uid, data)
+        return picking_id
     
 mrp_production()
 
@@ -875,26 +961,74 @@ class stock_move(osv.osv):
     _inherit = 'stock.move'
     _columns = {
         'app_quantity': fields.float('Required Quantity'),
+        'is_tpt_production': fields.boolean('Is tpt production'),
     }
     
     def onchange_app_qty_id(self, cr, uid, ids,app_quantity, product_qty,context=None):
         vals = {}
-        if app_quantity > product_qty:
-            if app_quantity > product_qty:
-                warning = {  
+#         if app_quantity > product_qty:
+#             if app_quantity > product_qty:
+#                 warning = {  
+#                           'title': _('Warning!'),  
+#                           'message': _('Applied Quantity is not greater than Product Quantity!'),  
+#                           }  
+#                 vals['app_quantity']=product_qty
+#                 return {'value': vals,'warning':warning}
+#         if app_quantity < 0 :
+#             warning = {  
+#                           'title': _('Warning!'),  
+#                           'message': _('Applied Quantity is not allowed as negative values !'),  
+#                           }  
+#             vals['app_quantity']=product_qty
+#             return {'value': vals,'warning':warning}
+        return {'value': vals}
+    
+    def onchange_quantity(self, cr, uid, ids, product_id, product_qty,
+                          product_uom, product_uos,is_tpt_production=False,app_quantity=False):
+        """ On change of product quantity finds UoM and UoS quantities
+        @param product_id: Product id
+        @param product_qty: Changed Quantity of product
+        @param product_uom: Unit of measure of product
+        @param product_uos: Unit of sale of product
+        @return: Dictionary of values
+        """
+        if product_qty > app_quantity:
+            vals = {}
+            warning = {  
                           'title': _('Warning!'),  
                           'message': _('Applied Quantity is not greater than Product Quantity!'),  
                           }  
-                vals['app_quantity']=product_qty
-                return {'value': vals,'warning':warning}
-        if app_quantity < 0 :
-            warning = {  
-                          'title': _('Warning!'),  
-                          'message': _('Applied Quantity is not allowed as negative values !'),  
-                          }  
-            vals['app_quantity']=product_qty
+            vals['product_qty']=app_quantity
             return {'value': vals,'warning':warning}
-        return {'value': vals}
+        result = {
+                  'product_uos_qty': 0.00
+          }
+        warning = {}
+
+        if (not product_id) or (product_qty <=0.0):
+            result['product_qty'] = 0.0
+            return {'value': result}
+
+        product_obj = self.pool.get('product.product')
+        uos_coeff = product_obj.read(cr, uid, product_id, ['uos_coeff'])
+        
+        # Warn if the quantity was decreased 
+        if ids:
+            for move in self.read(cr, uid, ids, ['product_qty']):
+                if product_qty < move['product_qty'] and not is_tpt_production:
+                    warning.update({
+                       'title': _('Information'),
+                       'message': _("By changing this quantity here, you accept the "
+                                "new quantity as complete: OpenERP will not "
+                                "automatically generate a back order.") })
+                break
+
+        if product_uos and product_uom and (product_uom != product_uos):
+            result['product_uos_qty'] = product_qty * uos_coeff['uos_coeff']
+        else:
+            result['product_uos_qty'] = product_qty
+
+        return {'value': result, 'warning': warning}
 stock_move()
 # class tpt_quality_verification(osv.osv):
 #     _name = 'tpt.quality.verification'
@@ -917,7 +1051,7 @@ class tpt_quality_verification(osv.osv):
         'product_id':fields.many2one('product.product','Product', states={ 'done':[('readonly', True)]}),
         'product_type': fields.selection([('rutile', 'Rutile'),('anatase', 'Anatase')],'Product Type', states={ 'done':[('readonly', True)]}),
         'warehouse_id':fields.many2one('stock.location','Warehouse location', states={ 'done':[('readonly', True)]}),
-        'phy_batch_no': fields.char('Physical Batch No', size=100,required=True, states={ 'done':[('readonly', True)]}),
+        'phy_batch_no': fields.char('Physical Batch No', size=100, states={ 'done':[('readonly', True)]}),
         'name':fields.datetime('Created Date',readonly=True),
         'batch_quality_line':fields.one2many('crm.application.line', 'batch_verifi_id','Batch Quality', states={ 'done':[('readonly', True)]}),
         'applicable_id':fields.many2one('crm.application','Applicable for', states={ 'done':[('readonly', True)]}),
@@ -935,6 +1069,10 @@ class tpt_quality_verification(osv.osv):
             cr.execute(sql)
         
         return self.write(cr, uid, ids,{'state':'done'})
+    
+    def action_cancel_draft(self, cr, uid, ids, context=None):
+        self.write(cr, uid, ids, {'state':'draft'})
+        return True
     
     def onchange_prod_batch_id(self, cr, uid, ids,prod_batch_id=False,context=None):
         vals = {}
