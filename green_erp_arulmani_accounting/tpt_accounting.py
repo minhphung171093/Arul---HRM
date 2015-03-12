@@ -120,7 +120,7 @@ class tpt_posting_verification(osv.osv):
                                   ('bank', 'Bank Receipt Payments'),
                                   ('product', 'Production'),],'Document Type', states={ 'done':[('readonly', True)]}),
         'name': fields.char('Document No.', size=1024, readonly=True ),
-        'date':fields.datetime('Created on',readonly=True),
+        'date':fields.date('Created on',readonly=True),
         'fiscal_period_id': fields.many2one('account.period', 'Fiscal Year Period', states={ 'done':[('readonly', True)]}),
         'posting_date': fields.date('Posting Date', states={ 'done':[('readonly', True)]}),
         'create_uid':fields.many2one('res.users','Created By', states={ 'done':[('readonly', True)]}),
@@ -145,11 +145,10 @@ class tpt_posting_verification(osv.osv):
         
     }
     _defaults = {
-        'date': lambda *a: time.strftime("%Y-%m-%d %H:%M:%S"),
+        'date': time.strftime('%Y-%m-%d'),
         'state':'draft',
         'doc_type':'cus_inv',
         'name': '/',
-#         'create_uid': uid,
     }
     def create(self, cr, uid, vals, context=None):
         if vals.get('name','/')=='/':
