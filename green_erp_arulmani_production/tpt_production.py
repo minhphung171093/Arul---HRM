@@ -449,13 +449,13 @@ class mrp_bom(osv.osv):
         'code': fields.char('Reference', size=16, states={'product_manager': [('readonly', True)], 'finance_manager':[('readonly', True)]}),
         'company_id': fields.many2one('res.company','Company',required=True, states={'product_manager': [('readonly', True)], 'finance_manager':[('readonly', True)]}),
         'cost_type': fields.selection([('variable','Variable'),('fixed','Fixed')], 'Cost Type', states={'product_manager': [('readonly', True)], 'finance_manager':[('readonly', True)]}),
-        'activities_line': fields.one2many('tpt.activities.line', 'bom_id', 'Activities'),
+        'activities_line': fields.one2many('tpt.activities.line', 'bom_id', 'Activities', states={'finance_manager':[('readonly', True)]}),
 #         'product_cost': fields.function(_norms, store = True, multi='sums', string='Product Cost'),
         'finish_product_cost': fields.function(sum_finish_function, string='Finish Product Cost', states={'product_manager': [('readonly', True)], 'finance_manager':[('readonly', True)]}),
 #         'product_cost': fields.float('Budget Cost'),
         'product_cost': fields.function(_norms, multi='sums', store = True, string='Budget Cost', states={'product_manager': [('readonly', True)], 'finance_manager':[('readonly', True)]}),
         'note': fields.text('Notes', states={'product_manager': [('readonly', True)], 'finance_manager':[('readonly', True)]}),
-        'bom_lines': fields.one2many('mrp.bom', 'bom_id', 'BoM Lines'),
+        'bom_lines': fields.one2many('mrp.bom', 'bom_id', 'BoM Lines', states={'finance_manager':[('readonly', True)]}),
         'price_unit': fields.float('Unit Price', states={'finance_manager':[('readonly', True)]}),
         'state':fields.selection([('draft', 'Draft'),('product_manager', 'Production'),('finance_manager', 'Finance')],'Status', readonly=True),
     }
@@ -696,6 +696,22 @@ class mrp_production(osv.osv):
     _defaults={
         'name': '/',
     }
+#     def bom_id_change(self, cr, uid, ids, bom_id, context=None):
+#         """ Finds routing for changed BoM.
+#         @param product: Id of product.
+#         @return: Dictionary of values.
+#         """
+#         if not bom_id:
+#             return {'value': {
+#                 'routing_id': False
+#             }}
+#         bom_point = self.pool.get('mrp.bom').browse(cr, uid, bom_id, context=context)
+#         routing_id = bom_point.routing_id.id or False
+#         result = {
+#             'product_id':bom_point.product_id.id,
+#             'routing_id': routing_id
+#         }
+#         return {'value': result}
     def bom_id_change(self, cr, uid, ids, bom_id, context=None):
         """ Finds routing for changed BoM.
         @param product: Id of product.
@@ -706,13 +722,44 @@ class mrp_production(osv.osv):
                 'routing_id': False
             }}
         bom_point = self.pool.get('mrp.bom').browse(cr, uid, bom_id, context=context)
-        routing_id = bom_point.routing_id.id or False
-        result = {
-            'product_id':bom_point.product_id.id,
-            'routing_id': routing_id
-        }
+        if bom_point.product_id:
+            product = self.pool.get('product.product').browse(cr, uid, bom_point.product_id.id, context=context)
+            routing_id = bom_point.routing_id.id or False
+            product_uom_id = product.uom_id and product.uom_id.id or False
+            result = {
+                'product_id':bom_point.product_id.id,
+                'routing_id': routing_id,
+                'product_uom': product_uom_id,
+            }
         return {'value': result}
     
+    def product_id_change(self, cr, uid, ids, product_id, context=None):
+        """ Finds UoM of changed product.
+        @param product_id: Id of changed product.
+        @return: Dictionary of values.
+        """
+        if not product_id:
+            return {'value': {
+                'product_uom': False,
+                'bom_id': False,
+                'routing_id': False
+            }}
+        bom_obj = self.pool.get('mrp.bom')
+        product = self.pool.get('product.product').browse(cr, uid, product_id, context=context)
+        bom_id = bom_obj._bom_find(cr, uid, product.id, product.uom_id and product.uom_id.id, [])
+        routing_id = False
+        if bom_id:
+            bom_point = bom_obj.browse(cr, uid, bom_id, context=context)
+            routing_id = bom_point.routing_id.id or False
+
+        product_uom_id = product.uom_id and product.uom_id.id or False
+        result = {
+            'product_uom': product_uom_id,
+#             'bom_id': bom_id,
+            'routing_id': routing_id,
+        }
+        return {'value': result}
+
     def create(self, cr, uid, vals, context=None):
         sql = '''
             select code from account_fiscalyear where '%s' between date_start and date_stop

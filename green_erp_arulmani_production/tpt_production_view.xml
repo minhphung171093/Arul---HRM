@@ -227,8 +227,8 @@
                 <data>
                	 	<xpath expr="//form[@string='Bill of Material']/group" position="before">
                     	<header>
-		            		<button name="bt_approve_production" states='draft' string="Production" type="object" class="oe_highlight" groups="green_erp_arulmani_purchase.group_vvti_purchase_admin"/>
-		                    <button name="bt_approve_finance" states='product_manager' string="Finance" type="object" class="oe_highlight" />
+		            		<button name="bt_approve_production" states='draft' string="Production Approval" type="object" class="oe_highlight" groups="green_erp_arulmani_purchase.group_vvti_purchase_admin"/>
+		                    <button name="bt_approve_finance" states='product_manager' string="Finance Approval" type="object" class="oe_highlight" />
 		                    <field name="state" widget="statusbar" statusbar_visible="draft,product_manager,finance_manager" statusbar_colors='{"finance_manager":"red","product_manager":"blue"}'/>
 	            		</header> 
                     </xpath> 
@@ -361,14 +361,21 @@
                     <xpath expr="//form/sheet/group/group/div/field[@name='product_uom']" position="attributes">
 						<attribute name='readonly'>1</attribute>
                     </xpath>
+                  	
+                  	<xpath expr="//form/sheet/group/group/field[@name='bom_id']" position="replace"/>
                     
-                  	<xpath expr="//form/sheet/group/group/field[@name='product_id']" position="attributes">
+                  	<xpath expr="//form/sheet/group/group/field[@name='product_id']" position="replace">
+                  		<field name="bom_id" string = 'Norm' on_change="bom_id_change(bom_id)" options="{'create': false, 'create_edit': false}" required="1"/>
+                  		<field name="product_id" on_change="product_id_change(product_id)" domain="[('bom_ids','!=',False),('bom_ids.id','=',bom_id)]" class="oe_inline" context="{&quot;default_supply_method&quot;:&quot;produce&quot;, &quot;default_type&quot;: &quot;product&quot;}" options="{'create': false, 'create_edit': false}"/>
+                  	</xpath>
+                  	
+                  	<!--<xpath expr="//form/sheet/group/group/field[@name='product_id']" position="attributes">
 						<attribute name='options'>{'create': false, 'create_edit': false}</attribute>
-                    </xpath>
+                    </xpath>-->
                     
-                    <xpath expr="//form/sheet/group/group/field[@name='bom_id']" position="replace">
+                    <!--<xpath expr="//form/sheet/group/group/field[@name='bom_id']" position="replace">
 						<field name="bom_id" string = 'Norm' context="{'default_product_id': product_id, 'search_norm_id':1}" on_change="bom_id_change(bom_id)" options="{'create': false, 'create_edit': false}" required="1"/>
-                    </xpath>
+                    </xpath>-->
                     
                    	<xpath expr="//form/sheet/group/group/field[@name='user_id']" position="attributes">
 						<attribute name='options'>{'create': false, 'create_edit': false}</attribute>
