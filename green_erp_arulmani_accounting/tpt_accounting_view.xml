@@ -247,7 +247,8 @@
 				<xpath expr="//page[@string='Accounting']/group[@name='properties']/group/field[@name='supplier_taxes_id']" position="after">
 					<field name="product_asset_acc_id" options="{'create': false, 'create_edit': false}"/>
 					<field name="product_cose_acc_id" options="{'create': false, 'create_edit': false}"/>
-				</xpath>	
+				</xpath>
+					
 			</field>
 		</record>
 				
@@ -953,6 +954,26 @@
                     	<field name="act_acc_id" options="{'create': false, 'create_edit': false}"/>
                     </xpath>
                 </data>
+			</field>
+		</record>
+		
+		<record id="product_normal_form_view_tpt_accounting" model="ir.ui.view">
+            <field name="name">product.product.form.tpt.accounting</field>
+            <field name="model">product.product</field>
+            <field name="inherit_id" ref="product.product_normal_form_view"/>
+            <field name="arch" type="xml">
+            	<xpath expr="//page[@string='Accounting']" position="after">
+					<page string="Total Cost">
+                        <field name="avg_cost_line" nolabel = '1' readonly='1'>
+                        	<tree editable='bottom'>
+                                <field name="warehouse_id"/>
+                                <field name="hand_quantity" />
+                                <field name="avg_cost"/>
+                                <field name="total_cost" />
+                            </tree>
+                        </field>
+                    </page>
+				</xpath>
 			</field>
 		</record>
     </data>

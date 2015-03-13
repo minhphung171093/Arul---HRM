@@ -1239,13 +1239,98 @@ class account_invoice_line(osv.osv):
 #         return res   
 account_invoice_line()
 
+class tpt_product_avg_cost(osv.osv):
+    _name = "tpt.product.avg.cost"
+    
+    _columns = {
+        'product_id':fields.many2one('product.product', 'Product', ondelete = 'cascade'),
+        'warehouse_id':fields.many2one('stock.location', 'Warehouse'),
+        'hand_quantity' : fields.float('On hand Quantity'),
+        'avg_cost' : fields.float('Avg Cost'),
+        'total_cost' : fields.float('Total Cost'),
+        }
+    
+tpt_product_avg_cost()
+
 class product_product(osv.osv):
     _inherit = "product.product"
+    
+    def _avg_cost(self, cr, uid, ids, field_names=None, arg=None, context=None):
+        result = {}
+        if not ids: return result
+        inventory_obj = self.pool.get('tpt.product.avg.cost')
+        for id in ids:
+            sql = 'delete from tpt_product_avg_cost where product_id=%s'%(id)
+            cr.execute(sql)
+            sql = '''
+                select foo.loc as loc
+                    from
+                    (select st.location_id as loc from stock_move st
+                        inner join stock_location l on st.location_id= l.id
+                            where l.usage = 'internal'
+                    union all
+                    select st.location_dest_id as loc from stock_move st
+                        inner join stock_location l on st.location_dest_id= l.id
+                        where l.usage = 'internal'
+                        )foo
+                   group by foo.loc
+            '''
+            cr.execute(sql)
+            for loc in cr.dictfetchall():
+                sql = '''
+                    select case when sum(foo.product_qty)!=0 then sum(foo.product_qty) else 0 end ton_sl,case when sum(foo.price_unit)!=0 then sum(foo.price_unit) else 0 end total_cost from 
+                        (select st.product_qty,st.price_unit*st.product_qty as price_unit
+                            from stock_move st 
+                            where st.state='done' and st.product_id=%s and st.location_dest_id=%s and production_id is null
+                        )foo
+                '''%(id,loc['loc'])
+                cr.execute(sql)
+                inventory = cr.dictfetchone()
+                if inventory:
+                    hand_quantity = float(inventory['ton_sl'])
+                    total_cost = float(inventory['total_cost'])
+                    avg_cost = hand_quantity and total_cost/hand_quantity or 0
+                    sql = '''
+                        select case when sum(foo.product_qty)!=0 then sum(foo.product_qty) else 0 end ton_sl 
+                            from 
+                                (
+                                select st.product_qty*-1 as product_qty
+                                    from stock_move st 
+                                    where st.state='done'
+                                        and st.product_id=%s
+                                        and location_id=%s
+                                )foo
+                    '''%(id,loc['loc'])
+                    cr.execute(sql)
+                    out = cr.dictfetchone()
+                    if out:
+                        hand_quantity = hand_quantity+float(out['ton_sl'])
+                        total_cost = avg_cost*hand_quantity
+                        
+                    inventory_obj.create(cr, uid, {'product_id':id,
+                                                   'warehouse_id':loc['loc'],
+                                                   'hand_quantity':hand_quantity,
+                                                   'avg_cost':avg_cost,
+                                                   'total_cost':total_cost})
+            result[id] = 'Avg Cost'
+        return result
+    
+    def _get_product(self, cr, uid, ids, context=None):
+        result = {}
+        for line in self.pool.get('stock.move').browse(cr, uid, ids, context=context):
+            result[line.product_id.id] = True
+        return result.keys()
+    
     _columns = {
         'purchase_acc_id': fields.many2one('account.account', 'Purchase GL Account'),
         'sale_acc_id': fields.many2one('account.account', 'Sales GL Account'),
         'product_asset_acc_id': fields.many2one('account.account', 'Product Asset Account'),
         'product_cose_acc_id': fields.many2one('account.account', 'Product Cost of Goods Sold Account'),
+        'avg_cost':fields.function(_avg_cost,type='char', string='Avg Cost',
+            store={
+                'stock.move': (_get_product, ['price_unit', 'location_id', 'location_dest_id', 'product_qty','state','product_id'], 20),
+                   }),
+        'avg_cost_line':fields.one2many('tpt.product.avg.cost','product_id','Avg Cost Line'),
         }
 product_product()
 
