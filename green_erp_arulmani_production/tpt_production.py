@@ -994,7 +994,7 @@ class stock_move(osv.osv):
         @param product_uos: Unit of sale of product
         @return: Dictionary of values
         """
-        if product_qty > app_quantity:
+        if app_quantity and product_qty > app_quantity:
             vals = {}
             warning = {  
                           'title': _('Warning!'),  

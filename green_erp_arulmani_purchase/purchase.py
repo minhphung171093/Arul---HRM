@@ -36,6 +36,7 @@ class tpt_purchase_indent(osv.osv):
                                           ('special','Special Quotation'),
                                           ('multiple','Multiple Quotation')],'Select', states={'cancel': [('readonly', True)], 'done':[('readonly', True)]}),
         'supplier_id':fields.many2one('res.partner','Supplier',  states={'cancel': [('readonly', True)], 'done':[('readonly', True)]}),
+        'employee_id':fields.many2one('hr.employee','Employee',  states={'cancel': [('readonly', True)], 'done':[('readonly', True)]}),
         'reason':fields.text('Reason', states={'cancel': [('readonly', True)], 'done':[('readonly', True)]}),
         'header_text':fields.text('Header Text',states={'cancel': [('readonly', True)], 'done':[('readonly', True)]}), #TPT
         'requisitioner':fields.char('Requisitioner',states={'cancel': [('readonly', True)], 'done':[('readonly', True)]}),
@@ -138,6 +139,14 @@ class tpt_purchase_indent(osv.osv):
             cr.execute(sql)
             dates = cr.dictfetchone()['date_indent']
         return {'value': {'date_expect':dates}}
+    def onchange_create_uid(self, cr, uid, ids,create_uid=False, context=None):
+        vals = {}
+        if create_uid :
+            uid = self.pool.get('res.users').browse(cr,uid,create_uid)
+            vals = {
+                    'department_id': uid.employee_id.department_id.id
+                    }
+        return {'value': vals}
     
     def onchange_document_type(self, cr, uid, ids,document_type=False, context=None):
         vals = {}
@@ -948,10 +957,22 @@ class tpt_purchase_quotation(osv.osv):
 #             self.write(cr, uid, ids,{'state':'done'})
 #         return True   
 #     
-#     def bt_cancel(self, cr, uid, ids, context=None):
-#         for line in self.browse(cr, uid, ids):
-#             self.write(cr, uid, ids,{'state':'cancel'})
-#         return True   
+    def bt_copy_quote(self, cr, uid, ids, context=None):
+        default = {'quotation_cate':'single','name':self.pool.get('ir.sequence').get(cr, uid, 'purchase.quotation') or '/'}
+        new_id = self.copy(cr, uid, ids[0],default)
+        res = self.pool.get('ir.model.data').get_object_reference(cr, uid, 
+                                        'green_erp_arulmani_purchase', 'view_tpt_purchase_quotation_form')
+        return {
+                    'name': 'Quotation',
+                    'view_type': 'form',
+                    'view_mode': 'form',
+                    'view_id': res[1],
+                    'res_model': 'tpt.purchase.quotation',
+                    'domain': [],
+                    'type': 'ir.actions.act_window',
+                    'target': 'current',
+                    'res_id':new_id,
+                } 
 
 
    
@@ -1099,19 +1120,34 @@ class tpt_comparison_chart(osv.osv):
 
     def create(self, cr, uid, vals, context=None):
         if vals.get('name',False):
-            quotation_ids = self.pool.get('tpt.purchase.quotation').search(cr, uid, [('rfq_no_id','=',vals['name']),('state','=','draft')])
+#             quotation_ids = self.pool.get('tpt.purchase.quotation').search(cr, uid, [('rfq_no_id','=',vals['name']),('state','=','draft')])
+            sql = '''
+                select id from tpt_purchase_quotation where rfq_no_id = %s and state = 'draft' order by amount_net 
+            '''%(vals['name'])
+            cr.execute(sql)
+            quotation_ids = [r[0] for r in cr.fetchall()]
             vals.update({'comparison_chart_line':[(6,0,quotation_ids)]})
         return super(tpt_comparison_chart, self).create(cr, uid, vals, context=context)
     
     def write(self, cr, uid,ids, vals, context=None):
         if vals.get('name',False):
-            quotation_ids = self.pool.get('tpt.purchase.quotation').search(cr, uid, [('rfq_no_id','=',vals['name']),('state','=','draft')])
+#             quotation_ids = self.pool.get('tpt.purchase.quotation').search(cr, uid, [('rfq_no_id','=',vals['name']),('state','=','draft')])
+            sql = '''
+                select id from tpt_purchase_quotation where rfq_no_id = %s and state = 'draft' order by amount_net 
+            '''%(vals['name'])
+            cr.execute(sql)
+            quotation_ids = [r[0] for r in cr.fetchall()]
             vals.update({'comparison_chart_line':[(6,0,quotation_ids)]})
         return super(tpt_comparison_chart, self).write(cr, uid,ids, vals, context=context)
 
     def bt_load(self, cr, uid, ids, context=None):
         for line in self.browse(cr, uid, ids):
-            quotation_ids = self.pool.get('tpt.purchase.quotation').search(cr, uid, [('rfq_no_id','=',line.name.id),('state','=','draft')])
+#             quotation_ids = self.pool.get('tpt.purchase.quotation').search(cr, uid, [('rfq_no_id','=',line.name.id),('state','=','draft')])
+            sql = '''
+                select * from tpt_purchase_quotation where rfq_no_id = %s and state = 'draft' order by amount_net 
+            '''%(line.name.id)
+            cr.execute(sql)
+            quotation_ids = [r[0] for r in cr.fetchall()]
             vals={'comparison_chart_line':[(6,0,quotation_ids)]}
             self.write(cr, uid,[line.id], vals, context=context)
         return True
@@ -1239,7 +1275,7 @@ class purchase_order(osv.osv):
         return result.keys()
     _columns = {
         'po_document_type':fields.selection([('asset','VV Asset PO'),('standard','VV Standard PO'),('local','VV Local PO'),('return','VV Return PO'),('service','VV Service PO'),('out','VV Out Service PO')],'PO Document Type', required = True),
-        'quotation_no': fields.many2one('tpt.purchase.quotation', 'Quotation No'),
+        'quotation_no': fields.many2one('tpt.purchase.quotation', 'Quotation No', required = True),
         'po_indent_no' : fields.many2one('tpt.purchase.indent', 'PO Indent No', required = True),
         'state_id': fields.many2one('res.country.state', 'Vendor Location'),
         'for_basis': fields.char('For Basis', size = 1024),
@@ -1288,6 +1324,28 @@ class purchase_order(osv.osv):
     _default = {
         'name':'/',
                }
+    def action_cancel(self, cr, uid, ids, context=None):
+        wf_service = netsvc.LocalService("workflow")
+        for purchase in self.browse(cr, uid, ids, context=context):
+            for pick in purchase.picking_ids:
+                if pick.state in ('done'):
+                    raise osv.except_osv(
+                        _('Unable to cancel this purchase order.'),
+                        _('First cancel all receptions related to this purchase order.'))
+            for pick in purchase.picking_ids:
+                wf_service.trg_validate(uid, 'stock.picking', pick.id, 'button_cancel', cr)
+            for inv in purchase.invoice_ids:
+                if inv and inv.state not in ('cancel','draft'):
+                    raise osv.except_osv(
+                        _('Unable to cancel this purchase order.'),
+                        _('You must first cancel all receptions related to this purchase order.'))
+                if inv:
+                    wf_service.trg_validate(uid, 'account.invoice', inv.id, 'invoice_cancel', cr)
+        self.write(cr,uid,ids,{'state':'cancel'})
+
+        for (id, name) in self.name_get(cr, uid, ids):
+            wf_service.trg_validate(uid, 'purchase.order', id, 'purchase_cancel', cr)
+        return True
    
     def onchange_quotation_no(self, cr, uid, ids,quotation_no=False, context=None):
         vals = {}

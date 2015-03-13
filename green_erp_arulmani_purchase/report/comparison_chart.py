@@ -37,7 +37,7 @@ class Parser(report_sxw.rml_parse):
         quotation_obj = self.pool.get('tpt.purchase.quotation')
         quotation_line_obj = self.pool.get('tpt.purchase.quotation.line')
         sql = '''
-            select id from tpt_purchase_quotation where comparison_chart_id = %s and tpt_purchase_quotation.select = 'True' order by id
+            select id from tpt_purchase_quotation where comparison_chart_id = %s and tpt_purchase_quotation.select = 'True' order by amount_net,id
         '''%(o.id)
         self.cr.execute(sql)
         quotation_ids = [row[0] for row in self.cr.fetchall()]
@@ -65,7 +65,7 @@ class Parser(report_sxw.rml_parse):
     def get_info(self,o,num):
         quotation_obj = self.pool.get('tpt.purchase.quotation')
         sql = '''
-            select id from tpt_purchase_quotation where comparison_chart_id = %s and tpt_purchase_quotation.select = 'True' order by id
+            select id from tpt_purchase_quotation where comparison_chart_id = %s and tpt_purchase_quotation.select = 'True' order by amount_net,id
         '''%(o.id)
         self.cr.execute(sql)
         quotation_ids = [row[0] for row in self.cr.fetchall()]
