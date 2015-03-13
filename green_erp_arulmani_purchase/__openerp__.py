@@ -38,6 +38,7 @@
         'purchase_view.xml',
         'stock_view.xml',
         'tpt_purchase_view.xml',
+        'tpt_user_view.xml',
         'menu_inherit_view.xml',
     ],
     'css' : [

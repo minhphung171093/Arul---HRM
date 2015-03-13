@@ -47,7 +47,7 @@
 							<field name="document_type" on_change="onchange_document_type(document_type)" />
 							<field name="intdent_cate" />
 							<field name="department_id" required='1' options="{'create': false, 'create_edit': false}" />
-							<field name="create_uid" options="{'create': false, 'create_edit': false}"  />
+							<field name="create_uid" on_change="onchange_create_uid(create_uid)" options="{'create': false, 'create_edit': false}"  />
 							<field name="date_expect"/>
 							<field name="requisitioner"/>
 							<field name="header_text"/>
@@ -631,7 +631,7 @@
 	            		<button name = "bt_tick_mark" attrs="{'invisible': ['|',('quotation_cate','=','multiple'),('state','!=','draft')]}" icon = "STOCK_APPLY" string="Approve" type="object" />
 						<button name = "bt_cross_mark" confirm = "Do you want to cancel the Quotation ?" icon = "STOCK_CANCEL" states = "draft" string="Cancel" type="object" /> 
 	                    
-	                    <button name = "bt_copy_quote" string="Copy Quotation" type="object" />
+	                    <button name = "bt_copy_quote" states='done' string="Copy Quotation" type="object" />
 	                    <field name="state" widget="statusbar" statusbar_visible="draft,cancel,done" statusbar_colors='{"draft":"blue","cancel":"blue"}'/>
 	           	
 	            </header>    
