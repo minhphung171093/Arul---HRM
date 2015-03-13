@@ -30,7 +30,7 @@ class tpt_purchase_indent(osv.osv):
                                 ('emergency','Emergency Indent'),
                                 ('normal','Normal Indent')],'Indent Category',required = True, states={'cancel': [('readonly', True)], 'done':[('readonly', True)]}),
         'department_id':fields.many2one('hr.department','Department', states={'cancel': [('readonly', True)], 'done':[('readonly', True)]}),
-        'create_uid':fields.many2one('res.users','Raised By', states={'cancel': [('readonly', True)], 'done':[('readonly', True)]}),
+        'create_uid':fields.many2one('res.users','Raised By', readonly = True),
         'date_expect':fields.date('Expected Date', states={'cancel': [('readonly', True)], 'done':[('readonly', True)]}),
         'select_normal':fields.selection([('single','Single Quotation'),
                                           ('special','Special Quotation'),
@@ -119,6 +119,7 @@ class tpt_purchase_indent(osv.osv):
                     if vals.get('name','/')=='/':
                         sequence = self.pool.get('ir.sequence').get(cr, uid, 'indent.purchase.service')
                         vals['name'] =  sequence and sequence +'/'+fiscalyear['code']or '/'
+                vals['create_uid'] = uid
         new_id = super(tpt_purchase_indent, self).create(cr, uid, vals, context=context)   
 #         indent = self.browse(cr,uid, new_id)
 #         if indent.select_normal != 'multiple':
@@ -187,24 +188,24 @@ tpt_purchase_indent()
 class tpt_purchase_product(osv.osv):
     _name = 'tpt.purchase.product'
     _columns = {
-        'pur_product_id':fields.many2one('tpt.purchase.indent','Purchase Product'),
+        'pur_product_id':fields.many2one('tpt.purchase.indent','Purchase Product' ),
         'product_id': fields.many2one('product.product', 'Material Code'),
         #'dec_material':fields.text('Material Description'),
-        'description':fields.char('Mat. Description', size = 50, readonly=True),
-        'item_text':fields.text('Item Text'),
-        'product_uom_qty': fields.float('PO Qty'),   
+        'description':fields.char('Mat. Description', size = 50, readonly=True ),
+        'item_text':fields.text('Item Text' ),
+        'product_uom_qty': fields.float('PO Qty' ),   
         'uom_po_id': fields.many2one('product.uom', 'UOM', readonly = True),
-        'pending_qty': fields.float('Pending Qty'), 
+        'pending_qty': fields.float('Pending Qty' ), 
         #'recom_vendor_id': fields.many2one('res.partner', 'Recommended Vendor'),
-        'recom_vendor': fields.char('Recommended Vendor', size = 30),
+        'recom_vendor': fields.char('Recommended Vendor', size = 30 ),
         'release_by':fields.selection([('1','Store Level'),('2','HOD Level')],'Released By'),
         'state':fields.selection([('draft', 'Draft'),('confirm', 'Confirmed'),
                                           ('+', 'Store Approved'),('++', 'Store & HOD Approved'),
                                           ('x', 'Store Rejected'),('xx', 'Store & HOD Rejected')
                                           ],'Indent Status', readonly=True),
 #Hung moi them 2 Qty theo yeu casu bala
-        'mrs_qty': fields.float('MRS Quantity'),
-        'inspection_qty': fields.float('Inspection Quantity'), 
+        'mrs_qty': fields.float('MRS Quantity' ),
+        'inspection_qty': fields.float('Inspection Quantity' ), 
         }  
 #     
     _defaults = {
@@ -219,13 +220,21 @@ class tpt_purchase_product(osv.osv):
                     'uom_po_id':False,
                     'price_unit':False,
                     'description': False,
+                    'mrs_qty':False,
                     }}
         if product_id:
             product = self.pool.get('product.product').browse(cr, uid, product_id)
+            request = self.pool.get('tpt.material.request').browse(cr, uid, product_id)
+            sql = '''
+                select case when sum(product_uom_qty) != 0 then sum(product_uom_qty) else 0 end product_mrs_qty from tpt_material_request_line where product_id=%s and material_request_id in (select id from tpt_material_request where state='done' and id not in (select name from tpt_material_issue where state='done'))
+            '''%(product_id)
+            cr.execute(sql)
+            product_mrs_qty=cr.dictfetchone()['product_mrs_qty']
             res['value'].update({
                     'uom_po_id':product.uom_id.id,
                     #'price_unit':product.list_price,
                     'description': product.name,
+                    'mrs_qty':product_mrs_qty,
                     })
         return res
     

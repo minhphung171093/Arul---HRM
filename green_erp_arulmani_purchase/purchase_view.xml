@@ -28,7 +28,7 @@
 				</search>
 			</field>
 	</record>
-		<record id="view_tpt_purchase_indent_form" model="ir.ui.view">
+	<record id="view_tpt_purchase_indent_form" model="ir.ui.view">
             <field name="name">tpt.purchase.indent.form</field>
             <field name="model">tpt.purchase.indent</field>
             <field name="arch" type="xml">
@@ -98,7 +98,7 @@
 			<field name="name">tpt.purchase.indent.line.tree</field>
 			<field name="model">tpt.purchase.product</field>
 			<field name="arch" type="xml">
-				<tree string="Indent Release - By Store" >
+				<tree string="Indent Release - By Store" delete = 'false' create = 'false' >
 						<field name="pur_product_id"/> 
 						<field name="product_id"/>
 						<field name="description"/>
@@ -109,7 +109,7 @@
 						<field name="mrs_qty" />
 						<field name="inspection_qty" /> 
 						<field name="uom_po_id" />
-						<field name="state" statusbar_colors='{"confirm":"blue","+":"blue","x":"blue"}' required='1' />
+						<field name="state"/>
 				</tree>
 			</field>
 		</record>            
@@ -118,11 +118,11 @@
             <field name="name">tpt.purchase.indent.line.form</field>
             <field name="model">tpt.purchase.product</field>
             <field name="arch" type="xml">
-	            <form string="Indent Release - By Store" version="7.0">   
+	            <form string="Indent Release - By Store" version="7.0" delete = 'false' create = 'false' >   
 	             <header>
-	            		<button name="bt_approve" states='draft,confirm' string="Store Approve" type="object" class="oe_highlight" />
-	                    <button name="bt_reject" states='draft,confirm' string="Store Reject" type="object" class="oe_highlight" /> 
-	                    <field name="state" widget="statusbar" statusbar_visible="confirm,+,x" statusbar_colors='{"confirm":"blue","+":"blue","x":"blue"}' class="oe_highlight" /> 
+	            		<button name="bt_approve" states='draft,confirm,+,++' string="Store Approve" type="object" class="oe_highlight" />
+	                    <button name="bt_reject" states='draft,confirm,x' string="Store Reject" type="object" class="oe_highlight" /> 
+	                    <field name="state" widget="statusbar" statusbar_visible="confirm,+,x"/>
 	            </header>  
 	            <sheet> 
 	            	<group col="4" colspan="2"> 
@@ -147,16 +147,52 @@
             <field name="name">Indent Release - By Store</field>
             <field name="type">ir.actions.act_window</field>
             <field name="res_model">tpt.purchase.product</field>
-            <field name="domain">[('state', 'in', ('draft','confirm','x'))]</field>
+            <field name="domain">[('state', 'in', ['confirm','x'])]</field>
             <field name="view_type">form</field>
             <field name="view_mode">tree,form</field>
             <field name="view_id" ref="view_tpt_purchase_indent_line_tree"/>
         </record>
+       <record id="action_view_tpt_purchase_indent_line_form1" model="ir.actions.act_window.view">
+            <field eval="0" name="sequence"/>
+            <field name="view_mode">tree</field>
+            <field name="view_id" ref="view_tpt_purchase_indent_line_tree"/>
+            <field name="act_window_id" ref="action_view_tpt_purchase_indent_line_form"/>
+        </record>
+        <record id="action_view_tpt_purchase_indent_line_form2" model="ir.actions.act_window.view">
+            <field eval="1" name="sequence"/>
+            <field name="view_mode">form</field>
+            <field name="view_id" ref="view_tpt_purchase_indent_line_form"/>
+            <field name="act_window_id" ref="action_view_tpt_purchase_indent_line_form"/>
+        </record>
+        
+        <record id="action_view_tpt_purchase_indent_line_form_hod" model="ir.actions.act_window">
+            <field name="name">Indent Release - By HOD</field>
+            <field name="type">ir.actions.act_window</field>
+            <field name="res_model">tpt.purchase.product</field>
+            <field name="domain">[('state', '=', ['+','xx'])]</field>
+            <field name="view_type">form</field>
+            <field name="view_mode">tree,form</field>
+            <field name="view_id" ref="view_tpt_purchase_indent_line_tree"/>
+        </record>
+        <record id="action_view_tpt_purchase_indent_line_form_hod1" model="ir.actions.act_window.view">
+            <field eval="2" name="sequence"/>
+            <field name="view_mode">tree</field>
+            <field name="view_id" ref="view_tpt_purchase_indent_line_tree"/>
+            <field name="act_window_id" ref="action_view_tpt_purchase_indent_line_form_hod"/>
+        </record>
+        <record id="action_view_tpt_purchase_indent_line_form_hod2" model="ir.actions.act_window.view">
+            <field eval="3" name="sequence"/>
+            <field name="view_mode">form</field>
+            <field name="view_id" ref="view_tpt_purchase_indent_line_form"/>
+            <field name="act_window_id" ref="action_view_tpt_purchase_indent_line_form_hod"/>
+        </record>        
         
          <menuitem action="action_view_tpt_purchase_indent_line_form"
             id="menu_action_view_tpt_purchase_indent_line_form"
             parent="purchase.menu_procurement_management" sequence="12"/>
-            
+        <menuitem action="action_view_tpt_purchase_indent_line_form_hod"
+            id="menu_action_view_tpt_purchase_indent_line_form_hod"
+            parent="purchase.menu_procurement_management" sequence="13"/>
 
 		
 		
