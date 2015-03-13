@@ -993,7 +993,7 @@ class stock_production_lot(osv.osv):
         
         product_ids = self.pool.get('product.product').search(cr, 1, ['|',('name','in',['FERROUS SULPHATE','FSH','M0501010002']),('default_code','in',['FERROUS SULPHATE','FSH','M0501010002'])])
         if product_ids:
-            for lot_name in ['ARGI','WET','DRIER','temp_fsh']:
+            for lot_name in ['AGRI','WET','DRIER','temp_fsh']:
                 sql = '''
                     select id from stock_production_lot where product_id = %s and name = '%s'
                 '''%(product_ids[0],lot_name)
