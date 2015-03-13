@@ -116,8 +116,10 @@ class tpt_posting_verification(osv.osv):
                                   ('do', 'DO'),
                                   ('inventory', 'Inventory Transfer'),
                                   ('manual', 'Manual Journal'),
-                                  ('cash', 'Cash Receipt Payment'),
-                                  ('bank', 'Bank Receipt Payments'),
+                                  ('cash_pay', 'Cash Payment'),
+                                  ('cash_rec', 'Cash Receipt'),
+                                  ('bank_pay', 'Bank Payment'),
+                                  ('bank_rec', 'Bank Receipt'),
                                   ('product', 'Production'),],'Document Type', states={ 'done':[('readonly', True)]}),
         'name': fields.char('Document No.', size=1024, readonly=True ),
         'date':fields.date('Created on',readonly=True),
@@ -763,6 +765,7 @@ class account_invoice(osv.osv):
             if (inv.type == 'in_invoice'):
                 if inv.purchase_id:
                     move['doc_type'] = 'sup_inv_po'
+                    move['ref'] = inv.grn_no.name
                 else:
                     move['doc_type'] = 'sup_inv'
   
@@ -1616,15 +1619,23 @@ class account_voucher(osv.osv):
             'ref': ref,
             'period_id': voucher.period_id.id,
         }
-        if voucher.journal_id.type == 'bank':
-            move['doc_type'] = 'bank'
-        if voucher.journal_id.type == 'cash':
-            move['doc_type'] = 'cash'
-        if (voucher.journal_id.type == 'bank' or voucher.journal_id.type == 'cash'):
-            if voucher.type == 'receipt':
-                move['doc_type'] = 'cus_pay'
-            if voucher.type == 'payment':
-                move['doc_type'] = 'sup_pay'
+        if voucher.type_trans:
+            if voucher.journal_id.type == 'bank': 
+                if voucher.type_trans == 'payment':
+                    move['doc_type'] = 'bank_pay'
+                if voucher.type_trans == 'receipt':
+                    move['doc_type'] = 'bank_rec'
+            if voucher.journal_id.type == 'cash':
+                if voucher.type_trans == 'payment':
+                    move['doc_type'] = 'cash_pay'
+                if voucher.type_trans == 'receipt':
+                    move['doc_type'] = 'cash_rec'
+        else:
+            if (voucher.journal_id.type == 'bank' or voucher.journal_id.type == 'cash'):
+                if voucher.type == 'receipt':
+                    move['doc_type'] = 'cus_pay'
+                if voucher.type == 'payment':
+                    move['doc_type'] = 'sup_pay'
         return move
     def writeoff_move_line_get(self, cr, uid, voucher_id, line_total, move_id, name, company_currency, current_currency, context=None):
         '''
@@ -2028,8 +2039,10 @@ class account_move(osv.osv):
                                   ('do', 'DO'),
                                   ('inventory', 'Inventory Transfer'),
                                   ('manual', 'Manual Journal'),
-                                  ('cash', 'Cash Receipt Payment'),
-                                  ('bank', 'Bank Receipt Payments'),
+                                  ('cash_pay', 'Cash Payment'),
+                                  ('cash_rec', 'Cash Receipt'),
+                                  ('bank_pay', 'Bank Payment'),
+                                  ('bank_rec', 'Bank Receipt'),
                                   ('product', 'Production'),],'Document Type'),      
                 }
 account_move()
