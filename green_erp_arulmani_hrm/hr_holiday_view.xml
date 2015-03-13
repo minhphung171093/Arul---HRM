@@ -386,6 +386,7 @@
 					<field name="punch_out_date"/>					
 					<field name="out_time" widget="float_time"/>
 					<field name="total_hours" widget="float_time"/>
+					
 					<field name="approval"/>
 					<field name=""/>
 					<field name="type"/>
@@ -419,6 +420,7 @@
 							<field name="work_date"/>
 							<field name="employee_category_id" options="{'create': false, 'create_edit': false}"/>							
 							<field name="total_hours" widget="float_time"/>
+							<field name="total_shift_worked" />
 							<field name="type"/>
 							<field name="approval"/>
 							<field name="reason_for_edit" attrs="{'invisible':[('time_change_flag','=',False)],'required':[('time_change_flag','=',True)]}" />
@@ -494,6 +496,7 @@
 										<field name="in_time" string="Punch In Time" widget="float_time"/>
 										<field name="out_time" string="Punch Out Time" widget="float_time"/>
 										<field name="total_hours" widget="float_time"/>
+										<field name="total_shift_worked"/>
 										<field name="approval" string="Is Approved?"/>
 										<field name="state" invisible = '1'/>
 									</tree>
@@ -510,6 +513,7 @@
 										<field name="start_time"/>
 										<field name="end_time"/>
 										<field name="time_total"/>
+										<field name="total_shift_worked"/>
 										<field name="reason"/>
 										<field name="approval"/>
 									</tree>
@@ -565,6 +569,7 @@
 					<field name="in_time" string="Punch In Time" widget="float_time"/>
 					<field name="out_time" string="Punch Out Time" widget="float_time"/>
 					<field name="total_hours" widget="float_time"/>
+					<field name="total_shift_worked"/>
 					<field name="approval"/>
 					<field name="state" invisible = '1'/>
 				</tree>

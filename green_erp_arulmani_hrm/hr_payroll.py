@@ -1015,10 +1015,20 @@ class arul_hr_payroll_executions(osv.osv):
                 select employee_id from arul_hr_punch_in_out_time where EXTRACT(year FROM work_date) = %s and EXTRACT(month FROM work_date) = %s
             '''%(line.year,line.month)
             cr.execute(sql)
-            punch_in_out_emp_ids = [row[0] for row in cr.fetchall()]
+            punch_in_out_emp_ids = [row[0] for row in cr.fetchall()]                   
             employee_ids = emp_obj.search(cr, uid, [('payroll_area_id','=',line.payroll_area_id.id),('id','in',monthly_shift_emp_ids),('id','in',employee_structure_emp_ids),('id','in',punch_in_out_emp_ids)])
             for p in emp_obj.browse(cr,uid,employee_ids):
                 payroll_executions_details_ids = executions_details_obj.search(cr, uid, [('payroll_executions_id', '=', line.id), ('employee_id', '=', p.id)], context=context)
+                
+                #TPT
+                sql = '''
+                select sum(total_shift_worked) from arul_hr_punch_in_out_time where EXTRACT(year FROM work_date) = %s and EXTRACT(month FROM work_date) = %s and employee_id =%s
+                '''%(line.year,line.month,p.id)
+                cr.execute(sql)
+                a =  cr.fetchone()
+                total_shift_worked = a[0]
+                #TPT END
+                
                 if payroll_executions_details_ids:
                     executions_details_obj.unlink(cr, uid, payroll_executions_details_ids, context=context) 
                 vals_earning_struc = []
@@ -1617,9 +1627,9 @@ class arul_hr_payroll_executions(osv.osv):
                         
                         #total_deduction += (lop + emp_pf_con_amount + emp_esi_con_amount + emp_lwf_amt)
                         #net_sala = gross_before - total_deduction
-			spa = spa / (calendar_days - 4 - special_holidays) * total_days  
+			spa = spa / (calendar_days - 4 - special_holidays) * total_shift_worked # TPT total_days <-> total_shift_worked
                         #total_earning = basic + da + c + hra + fa + pc + cre + ea +spa + la + aa + sha + oa + lta + med
-
+            #spa = spa / (calendar_days - 4 - special_holidays) * total_days
 			total_no_of_leave = total_lop + total_esi
 			
 			net_basic = basic - (basic / calendar_days) * total_no_of_leave
@@ -1966,7 +1976,7 @@ class arul_hr_payroll_executions(osv.osv):
                         #spa = spa/(26 - 4)*total_days 
                         #oa = total_shift_allowance + total_days*4 + la  # this calculation shifted to ma. oa is treated as same that of entered in paystructure
 			
-			spa = spa/(calendar_days - 4 - special_holidays) * total_days 
+			spa = spa/(calendar_days - 4 - special_holidays) * total_shift_worked #TPT total_days <->total_shift_worked 
 			ma = total_shift_allowance + total_days * 4 + la + wa
 			#raise osv.except_osv(_('Warning!%s'),_(ma))
                         #total_earning = basic + da + c + hra + fa + pc + cre + ea +spa + la + aa + sha + oa + lta + med
