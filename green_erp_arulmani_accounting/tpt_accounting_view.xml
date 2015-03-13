@@ -247,7 +247,8 @@
 				<xpath expr="//page[@string='Accounting']/group[@name='properties']/group/field[@name='supplier_taxes_id']" position="after">
 					<field name="product_asset_acc_id" options="{'create': false, 'create_edit': false}"/>
 					<field name="product_cose_acc_id" options="{'create': false, 'create_edit': false}"/>
-				</xpath>	
+				</xpath>
+					
 			</field>
 		</record>
 				
@@ -354,7 +355,7 @@
                             <field name="date_due"/>
                             <field name="created_on"/>
                             <field domain="[('company_id', '=', company_id), ('type', '=', 'payable')]"
-                                name="account_id" groups="account.group_account_user" invisible = '1'/>
+                                name="account_id" required = "0" groups="account.group_account_user" invisible = '1'/>
                             <field name="journal_id" groups="account.group_account_user"
                                 on_change="onchange_journal_id(journal_id, context)" widget="selection" invisible = '1'/>
                             <field name="currency_id" groups="base.group_multi_currency" invisible = '1'/>
@@ -840,6 +841,10 @@
                 <data>
                     <xpath expr="//field[@name='account_id']" position="replace"/>
                     
+                    <xpath expr="//field[@name='partner_id']" position="attributes">
+                    	<attribute name='options'>{'create': false, 'create_edit': false}</attribute>
+                    </xpath>
+                    
                     <xpath expr="//field[@name='journal_id']" position="after">
                     	<field name="account_id" string="GL Account" options="{'create': false, 'create_edit': false}"/>
                     	<field name="bank_name" attrs="{'invisible': [('tpt_journal','&lt;&gt;','bank')]}"/>
@@ -866,6 +871,13 @@
             <field name="arch" type="xml">
                 <data>
                     <xpath expr="//field[@name='account_id']" position="replace"/>
+                    
+                    <xpath expr="//field[@name='partner_id']" position="attributes">
+                    	<attribute name='domain'>[('supplier','=','True')]</attribute>
+                    </xpath>
+                    <xpath expr="//field[@name='partner_id']" position="attributes">
+                    	<attribute name='options'>{'create': false, 'create_edit': false}</attribute>
+                    </xpath>
                     
                     <xpath expr="//field[@name='journal_id']" position="after">
                     	<field name="account_id" string="GL Account" options="{'create': false, 'create_edit': false}"/>
@@ -942,6 +954,26 @@
                     	<field name="act_acc_id" options="{'create': false, 'create_edit': false}"/>
                     </xpath>
                 </data>
+			</field>
+		</record>
+		
+		<record id="product_normal_form_view_tpt_accounting" model="ir.ui.view">
+            <field name="name">product.product.form.tpt.accounting</field>
+            <field name="model">product.product</field>
+            <field name="inherit_id" ref="product.product_normal_form_view"/>
+            <field name="arch" type="xml">
+            	<xpath expr="//page[@string='Accounting']" position="after">
+					<page string="Total Cost">
+                        <field name="avg_cost_line" nolabel = '1' readonly='1'>
+                        	<tree editable='bottom'>
+                                <field name="warehouse_id"/>
+                                <field name="hand_quantity" />
+                                <field name="avg_cost"/>
+                                <field name="total_cost" />
+                            </tree>
+                        </field>
+                    </page>
+				</xpath>
 			</field>
 		</record>
     </data>
