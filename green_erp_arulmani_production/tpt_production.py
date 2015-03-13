@@ -181,6 +181,7 @@ class tpt_fsh_batch_split(osv.osv):
         'mrp_id': fields.many2one('mrp.production', 'Production Decl. No', required=True),
         'location_id': fields.many2one('stock.location', 'Warehouse Location', required=True),
         'available': fields.float('Available Stock', readonly=True),
+        'batchable_qty': fields.float('Batchable Quantity'),
         'batch_split_line': fields.one2many('tpt.fsh.batch.split.line', 'fsh_id', 'Batch Split Line'),
         'state':fields.selection([('draft', 'Draft'),('confirm', 'Confirm')],'Status', readonly=True),
     }
@@ -188,6 +189,23 @@ class tpt_fsh_batch_split(osv.osv):
         'state': 'draft',
         'name': time.strftime('%Y-%m-%d'),
     }
+    
+    def _check_batchable_qty(self, cr, uid, ids, context=None):
+        for quantity in self.browse(cr, uid, ids, context=context):
+            amount = 0
+            if quantity.batchable_qty > quantity.available:
+                raise osv.except_osv(_('Warning!'),_('Quantity is not suitable !'))
+                return False
+            for line in quantity.batch_split_line:
+                amount += line.qty
+                if (amount > quantity.batchable_qty):
+                    raise osv.except_osv(_('Warning!'),_('Quantity is not suitable !'))
+                    return False
+            return True
+        
+    _constraints = [
+        (_check_batchable_qty, 'Identical Data', []),
+    ]       
     
     def bt_confirm(self, cr, uid, ids, context=None):
         if context is None:
@@ -215,6 +233,7 @@ class tpt_fsh_batch_split(osv.osv):
         if mrp_id:
             mrp = self.pool.get('mrp.production').browse(cr, uid, mrp_id, context=context)
             available = 0.0
+            batchable = 0.0
             if mrp.product_id.default_code in ['FERROUS SULPHATE','FSH','M0501010002'] or mrp.product_id.name in ['FERROUS SULPHATE','FSH','M0501010002']:
                 sql = '''
                         select id from stock_production_lot where name='temp_fsh'
@@ -225,7 +244,8 @@ class tpt_fsh_batch_split(osv.osv):
                     available = self.pool.get('stock.production.lot').browse(cr, uid, prodlot_ids[0]).stock_available
                 else:
                     available = mrp.product_qty
-            v = {'available': available,'location_id': mrp.location_dest_id.id}
+                batchable = available
+            v = {'available': available,'batchable_qty': batchable, 'location_id': mrp.location_dest_id.id}
             return {'value': v}
         return {}
     
@@ -290,7 +310,17 @@ class tpt_fsh_batch_split_line(osv.osv):
     _defaults = {
         'qty': 1.0,
     }
-    
+    def _check_prodlot_id(self, cr, uid, ids, context=None):
+        for prodlot in self.browse(cr, uid, ids, context=context):
+            prodlot_ids = self.search(cr, uid, [('id','!=',prodlot.id),('prodlot_id','=',prodlot.prodlot_id.id),('fsh_id','=',prodlot.fsh_id.id)])
+            if prodlot_ids:
+                raise osv.except_osv(_('Warning!'),_('Batch Type is not duplicate !'))
+                return False
+            return True
+        
+    _constraints = [
+        (_check_prodlot_id, 'Identical Data', ['prodlot_id', 'fsh_id']),
+    ]       
     def create(self, cr, uid, vals, context=None):
         
         if 'product_id' in vals:
@@ -947,6 +977,7 @@ class stock_production_lot(osv.osv):
     
     _columns = {
         'location_id':fields.many2one('stock.location','Location'),
+        'application_id':fields.many2one('crm.application','Application')
     }
     
     def init(self, cr):
@@ -962,7 +993,7 @@ class stock_production_lot(osv.osv):
         
         product_ids = self.pool.get('product.product').search(cr, 1, ['|',('name','in',['FERROUS SULPHATE','FSH','M0501010002']),('default_code','in',['FERROUS SULPHATE','FSH','M0501010002'])])
         if product_ids:
-            for lot_name in ['Argi','Wet','Drier','temp_fsh']:
+            for lot_name in ['ARGI','WET','DRIER','temp_fsh']:
                 sql = '''
                     select id from stock_production_lot where product_id = %s and name = '%s'
                 '''%(product_ids[0],lot_name)
@@ -1113,8 +1144,8 @@ class tpt_quality_verification(osv.osv):
     def bt_update(self, cr, uid, ids, context=None):
         for quality in self.browse(cr,uid,ids):
             sql='''
-                update stock_production_lot set phy_batch_no='%s' where id =%s
-            '''%(quality.phy_batch_no,quality.prod_batch_id.id)
+                update stock_production_lot set phy_batch_no='%s',application_id=%s where id =%s
+            '''%(quality.phy_batch_no,quality.applicable_id.id,quality.prod_batch_id.id)
             cr.execute(sql)
         
         return self.write(cr, uid, ids,{'state':'done'})

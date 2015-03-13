@@ -355,7 +355,7 @@
                             <field name="date_due"/>
                             <field name="created_on"/>
                             <field domain="[('company_id', '=', company_id), ('type', '=', 'payable')]"
-                                name="account_id" groups="account.group_account_user" invisible = '1'/>
+                                name="account_id" required = "0" groups="account.group_account_user" invisible = '1'/>
                             <field name="journal_id" groups="account.group_account_user"
                                 on_change="onchange_journal_id(journal_id, context)" widget="selection" invisible = '1'/>
                             <field name="currency_id" groups="base.group_multi_currency" invisible = '1'/>

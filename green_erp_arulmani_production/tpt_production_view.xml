@@ -104,6 +104,7 @@
 							<group >
 								<field name="name"/>
 								<field name="available"/>
+								<field name="batchable_qty"/>
 							</group>
 						</group>
 						<notebook>
@@ -111,7 +112,7 @@
 								<field name="batch_split_line" nolabel='1' context="{'default_product_id': product_id}">
 									<tree editable='bottom'>
 										<field name="product_id" domain="['|',('name','in',['FERROUS SULPHATE','FSH','M0501010002']),('default_code','in',['FERROUS SULPHATE','FSH','M0501010002'])]" on_change="onchange_product_id(product_id)" options="{'create': false, 'create_edit': false}"/>
-										<field name="prodlot_id" domain="[('name','in',['Argi','Wet','Drier'])]" options="{'create': false, 'create_edit': false}"/>
+										<field name="prodlot_id" domain="[('name','in',['ARGI','WET','DRIER'])]" options="{'create': false, 'create_edit': false}"/>
 										<field name="qty"/>
 										<field name="uom_id" options="{'create': false, 'create_edit': false}"/>
 									</tree>
@@ -455,7 +456,7 @@
 			<field name="name">tpt.quality.verification.tree</field>
 			<field name="model">tpt.quality.verification</field>
 			<field name="arch" type="xml">
-				<tree string="Production Batch - Quality Verification">
+				<tree string="Production Batch - Quality Verification" create='false' edit = 'false'>
 					<field name="prod_batch_id"/>
         			<field name="product_id"/>
         			<field name="product_type"/>
@@ -472,7 +473,7 @@
             <field name="name">tpt.quality.verification.form</field>
             <field name="model">tpt.quality.verification</field>
             <field name="arch" type="xml">
-	            <form string="Production Batch - Quality Verification" version="7.0">   
+	            <form string="Production Batch - Quality Verification" version="7.0" create='false' edit = 'false'>   
 	            <header>
 	            		<button name="bt_update" states='draft' string="Update Batch Verification" type="object" class="oe_highlight" />
 	            		<button name="action_cancel_draft" states="done" string="Set to Draft" type="object"/>
@@ -489,7 +490,7 @@
 	            		<group>
 	            			<field name="phy_batch_no" required = '1'/>
 	            			<field name="name"/>
-	            			<field name="applicable_id" on_change = "onchange_applicable_id(applicable_id)" domain="[('product_id','=',product_id)]" options="{'create': false, 'create_edit': false}" />
+	            			<field name="applicable_id" required="1" on_change = "onchange_applicable_id(applicable_id)" domain="[('product_id','=',product_id)]" options="{'create': false, 'create_edit': false}" />
 	            		</group>
 	            		</group>
 	            		<notebook>
@@ -530,6 +531,9 @@
                 <data>
                 	<xpath expr="//field[@name='stock_available']" position="after">
                 		<field name="location_id" options="{'create': false, 'create_edit': false}"/>
+                    </xpath>
+                    <xpath expr="//field[@name='prefix']" position="before">
+                		<field name="application_id" options="{'create': false, 'create_edit': false}"/>
                     </xpath>
                 </data>
             </field>
