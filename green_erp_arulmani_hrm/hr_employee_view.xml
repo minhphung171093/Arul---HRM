@@ -392,7 +392,10 @@
 							<newline/>
 							<field name ="employee_category_id" on_change="onchange_employee_category_id(employee_category_id,sub_category_id)"  options="{'create': false, 'create_edit': false}"/>
 							<field name ="sub_category_id" domain="[('category_id','=',employee_category_id)]" context="{'check_employee_category_id':1,'employee_category_id':employee_category_id}" options="{'create': false, 'create_edit': false}"/>
-							<field name ="department_from_id" options="{'create': false, 'create_edit': false}" on_change="onchange_department_from_id(department_from_id)"/>
+							<!-- TPT -->
+							<!-- <field name ="department_from_id" options="{'create': false, 'create_edit': false}" on_change="onchange_department_from_id(department_from_id)"/> -->
+							<field name ="department_from_id" options="{'create': false, 'create_edit': false}"/>
+							
 							<field name ="department_to_id" options="{'create': false, 'create_edit': false}" domain="[('id','!=',department_from_id)]" on_change="onchange_department_to_id(department_to_id,designation_from_id) "/>
 							<field name ="designation_from_id" options="{'create': false, 'create_edit': false}"/>
 							<field name ="designation_to_id" options="{'create': false, 'create_edit': false}" domain="[('id','!=',designation_from_id)]"/>
@@ -471,7 +474,10 @@
 							<newline/>
 							<field name ="employee_category_id" on_change="onchange_employee_category_id(employee_category_id,sub_category_id)" options="{'create': false, 'create_edit': false}"/>
 							<field name ="sub_category_id" domain="[('category_id','=',employee_category_id)]" context="{'check_employee_category_id':1,'employee_category_id':employee_category_id}" options="{'create': false, 'create_edit': false}"/>
-							<field name ="department_from_id" options="{'create': false, 'create_edit': false}" on_change="onchange_department_from_id(department_from_id)"/>
+							<!-- TPT:TO UPDATE DESIGNATION WHEN EMP SELECTED -->
+							<!-- <field name ="department_from_id" options="{'create': false, 'create_edit': false}" on_change="onchange_department_from_id(department_from_id)"/>-->
+							<field name ="department_from_id" options="{'create': false, 'create_edit': false}"/>
+							
 							<field name ="department_to_id" options="{'create': false, 'create_edit': false}" on_change="onchange_department_to_id(department_to_id,designation_from_id) "/> 
 							<field name ="designation_from_id" options="{'create': false, 'create_edit': false}"/>
 							<field name ="designation_to_id" options="{'create': false, 'create_edit': false}" domain="[('id','!=',designation_from_id)]"/>
@@ -617,7 +623,10 @@
 							<field name ="employee_category_id" on_change="onchange_employee_category_id(employee_category_id,sub_category_id)" options="{'create': false, 'create_edit': false}"/>
 							<field name ="sub_category_id" domain="[('category_id','=',employee_category_id)]" context="{'check_employee_category_id':1,'employee_category_id':employee_category_id}" options="{'create': false, 'create_edit': false}"/>
 							<field name ="action_date" string="Date Of Review Action"/>
-							<field name ="reason_id" domain="[('name','in', ['Completion of Trainee'])]" widget="selection"/>
+							<!-- <field name ="reason_id" domain="[('name','in', ['Completion of Trainee'])]" widget="selection"/> -->
+							
+							<field name ="reason_id" widget="selection"/>
+							
 							<newline/>
 							<field name ="period_from"/>
 							<field name ="period_to"/>
@@ -909,6 +918,20 @@
 			</field>
 		</record>
 		
+		<record id="view_arul_hr_employee_action_istory_search_vew" model="ir.ui.view">
+        	<field name="name">arul.hr.employee.action.history.search</field>
+            <field name="model">arul.hr.employee.action.history</field>
+            <field name="arch" type="xml">
+                <search string="Employee Leaving Action">
+                	<field name="employee_id"/>
+                	<field name ="employee_category_id"/>
+                	<field name="action_id"/>
+                	<field name ="sub_category_id"/>
+                	<field name ="payroll_area_id"/>
+                	<field name ="action_date"/>
+                 </search>
+            </field>
+        </record>	
 		<record id="view_arul_hr_employee_leaving_action_form_vew" model="ir.ui.view">
             <field name="name">arul.hr.employee.leaving.action.form</field>
             <field name="model">arul.hr.employee.action.history</field>
@@ -967,7 +990,7 @@
             <field name="view_id" ref="view_arul_hr_employee_leaving_action_form_vew"/>
             <field name="act_window_id" ref="action_arul_hr_employee_leaving_action_form"/>
         </record>
-
+				       
 		<record id="view_arul_hr_employee_disciplinary_action_tree_vew" model="ir.ui.view">
 			<field name="name">arul.hr.employee.disciplinary.action.tree</field>
 			<field name="model">arul.hr.employee.action.history</field>
@@ -995,7 +1018,8 @@
 		                 <group col='4' colspan='2'>
 							<field name="action_id" on_change="onchange_action_id(action_id)" domain="[('name','=','Disciplinary')]" options="{'create': false, 'create_edit': false}"/>
 							<field name="action_type_id" options="{'create': false, 'create_edit': false}"/>
-							<field name ="employee_id" on_change="onchange_disciplinary_employee_id(employee_id)" options="{'create': false, 'create_edit': false}" required = "1" context="{'search_disciplinary_employee':True, 'employee_id':employee_id}"/>
+							<!-- TPT: search_disciplinary_employee flag is set to FALSE - TO LOAD ALL EMP LIST -->
+							<field name ="employee_id" on_change="onchange_disciplinary_employee_id(employee_id)" options="{'create': false, 'create_edit': false}" required = "1" context="{'search_disciplinary_employee':False, 'employee_id':employee_id}"/>
 							<newline/>
 							<field name ="employee_category_id" on_change="onchange_employee_category_id(employee_category_id,sub_category_id)" options="{'create': false, 'create_edit': false}"/>
 							<field name ="sub_category_id" domain="[('category_id','=',employee_category_id)]" context="{'check_employee_category_id':1,'employee_category_id':employee_category_id}" options="{'create': false, 'create_edit': false}"/>
