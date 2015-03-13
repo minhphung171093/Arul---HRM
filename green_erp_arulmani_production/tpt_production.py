@@ -900,6 +900,7 @@ class stock_production_lot(osv.osv):
     
     _columns = {
         'location_id':fields.many2one('stock.location','Location'),
+        'application_id':fields.many2one('crm.application','Application')
     }
     
     def init(self, cr):
@@ -1066,8 +1067,8 @@ class tpt_quality_verification(osv.osv):
     def bt_update(self, cr, uid, ids, context=None):
         for quality in self.browse(cr,uid,ids):
             sql='''
-                update stock_production_lot set phy_batch_no='%s' where id =%s
-            '''%(quality.phy_batch_no,quality.prod_batch_id.id)
+                update stock_production_lot set phy_batch_no='%s',application_id=%s where id =%s
+            '''%(quality.phy_batch_no,quality.applicable_id.id,quality.prod_batch_id.id)
             cr.execute(sql)
         
         return self.write(cr, uid, ids,{'state':'done'})
