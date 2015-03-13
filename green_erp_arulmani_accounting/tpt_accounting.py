@@ -1832,10 +1832,18 @@ class tpt_material_issue(osv.osv):
         account_move_obj = self.pool.get('account.move')
         period_obj = self.pool.get('account.period')
         journal_obj = self.pool.get('account.journal')
+        avg_cost_obj = self.pool.get('tpt.product.avg.cost')
         journal_line = []
         for line in self.browse(cr, uid, ids):
+            if not line.warehouse.gl_pos_verification_id:
+                    raise osv.except_osv(_('Warning!'),_('Account Warehouse is not null, please configure it in Warehouse Location master !'))
             for mater in line.material_issue_line:
-                price += mater.product_id.standard_price * mater.product_isu_qty
+#                 price += mater.product_id.standard_price * mater.product_isu_qty
+                avg_cost_ids = avg_cost_obj.search(cr, uid, [('product_id','=',mater.product_id.id),('warehouse_id','=',line.warehouse.id)])
+                if avg_cost_ids:
+                    avg_cost_id = avg_cost_obj.browse(cr, uid, avg_cost_ids[0])
+                    unit = avg_cost_id.avg_cost or 0
+                    price += unit * mater.product_isu_qty
             date_period = line.date_expec,
             sql = '''
                 select id from account_journal
@@ -2042,12 +2050,15 @@ tpt_hr_payroll_approve_reject()
 
 class mrp_production(osv.osv):
     _inherit = 'mrp.production'
-    
+    _columns = {
+                'produce_cost': fields.float('Produce Cost'),
+                }
     def write(self, cr, uid, ids, vals, context=None):
         new_write = super(mrp_production, self).write(cr, uid,ids, vals, context)
         account_move_obj = self.pool.get('account.move')
         period_obj = self.pool.get('account.period')
         journal_obj = self.pool.get('account.journal')
+        avg_cost_obj = self.pool.get('tpt.product.avg.cost')
         journal_line = []
         credit = 0
         price = 0
@@ -2069,18 +2080,23 @@ class mrp_production(osv.osv):
             for period_id in period_obj.browse(cr,uid,period_ids):
         
                 if 'state' in vals and line.state=='done':
-                    for mater in line.bom_id.bom_lines:
-                        if mater.product_id.purchase_acc_id:
-                            price += mater.product_cost
-                            journal_line.append((0,0,{
-                                                'name':mater.product_id.code, 
-                                                'account_id': mater.product_id.purchase_acc_id and mater.product_id.purchase_acc_id.id,
-    #                                             'partner_id': line.partner_id and line.partner_id.id,
-                                                'debit':mater.product_cost or 0,
-                                                'credit':0,
-                                               }))
-                        else:
-                            raise osv.except_osv(_('Warning!'),_("Purchase GL Account is not configured for Product '%s'! Please configured it!")%(mater.product_id.code))
+                    for mat in line.move_lines:
+                        avg_cost_ids = avg_cost_obj.search(cr, uid, [('product_id','=',mat.product_id.id),('warehouse_id','=',line.location_src_id.id)])
+                        if avg_cost_ids:
+                            avg_cost_id = avg_cost_obj.browse(cr, uid, avg_cost_ids[0])
+                            unit = avg_cost_id.avg_cost
+                            cost = unit * mat.product_qty
+                            price += cost
+                            if cost:
+                                if mat.product_id.purchase_acc_id:
+                                    journal_line.append((0,0,{
+                                                    'name':mat.product_id.code, 
+                                                    'account_id': mat.product_id.purchase_acc_id and mat.product_id.purchase_acc_id.id,
+                                                    'debit':cost,
+                                                    'credit':0,
+                                                   }))
+                                else:
+                                    raise osv.except_osv(_('Warning!'),_("Purchase GL Account is not configured for Product '%s'! Please configured it!")%(mater.product_id.code))
                     for act in line.bom_id.activities_line:
                         if act.activities_id.act_acc_id:
                             credit += act.product_cost
@@ -2093,15 +2109,16 @@ class mrp_production(osv.osv):
                         else:
                             raise osv.except_osv(_('Warning!'),_("Activity Account is not configured for Activity '%s'! Please configured it!")%(act.activities_id.code))
                     credit += price
-                    if line.product_id.product_asset_acc_id:
-                        journal_line.append((0,0,{
-                                                'name':line.product_id.code, 
-                                                'account_id': line.product_id.product_asset_acc_id and line.product_id.product_asset_acc_id.id,
-                                                'debit': 0,
-                                                'credit':credit,
-                                               }))
-                    else:
-                        raise osv.except_osv(_('Warning!'),_("Product Asset Account is not configured for Product '%s'! Please configured it!")%(line.product_id.code))
+                    if credit:
+                        if line.product_id.product_asset_acc_id:
+                            journal_line.append((0,0,{
+                                                    'name':line.product_id.code, 
+                                                    'account_id': line.product_id.product_asset_acc_id and line.product_id.product_asset_acc_id.id,
+                                                    'debit': 0,
+                                                    'credit':credit ,
+                                                   }))
+                        else:
+                            raise osv.except_osv(_('Warning!'),_("Product Asset Account is not configured for Product '%s'! Please configured it!")%(line.product_id.code))
                     value={
                                 'journal_id':journal_ids[0],
                                 'period_id':period_id.id ,
@@ -2109,6 +2126,10 @@ class mrp_production(osv.osv):
                                 'line_id': journal_line,
                             }
                     new_jour_id = account_move_obj.create(cr,uid,value)
+                    sql = '''
+                        update mrp_production set produce_cost = %s where id=%s 
+                    '''%(credit,line.id)
+                    cr.execute(sql)
                 
         return new_write
 mrp_production()
