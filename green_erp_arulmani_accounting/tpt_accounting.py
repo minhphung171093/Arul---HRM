@@ -1281,7 +1281,7 @@ class product_product(osv.osv):
                     select case when sum(foo.product_qty)!=0 then sum(foo.product_qty) else 0 end ton_sl,case when sum(foo.price_unit)!=0 then sum(foo.price_unit) else 0 end total_cost from 
                         (select st.product_qty,st.price_unit*st.product_qty as price_unit
                             from stock_move st 
-                            where st.state='done' and st.product_id=%s and st.location_dest_id=%s and production_id is null
+                            where st.state='done' and st.product_id=%s and st.location_dest_id=%s and st.location_dest_id != st.location_id and production_id is null
                         )foo
                 '''%(id,loc['loc'])
                 cr.execute(sql)
@@ -1299,6 +1299,7 @@ class product_product(osv.osv):
                                     where st.state='done'
                                         and st.product_id=%s
                                         and location_id=%s
+                                        and location_dest_id != location_id
                                 )foo
                     '''%(id,loc['loc'])
                     cr.execute(sql)
@@ -1307,8 +1308,17 @@ class product_product(osv.osv):
                         hand_quantity = hand_quantity+float(out['ton_sl'])
                         total_cost = avg_cost*hand_quantity
                     
-                    
-                    
+                    sql = '''
+                        select case when sum(produce_cost)!=0 then sum(produce_cost) else 0 end produce_cost,
+                            case when sum(product_qty)!=0 then sum(product_qty) else 0 end product_qty
+                            from mrp_production where location_dest_id=%s and product_id=%s and state='done'
+                    '''%(loc['loc'],id)
+                    cr.execute(sql)
+                    produce = cr.dictfetchone()
+                    if produce:
+                        hand_quantity += float(produce['product_qty'])
+                        total_cost += float(produce['produce_cost'])
+                        avg_cost = hand_quantity and total_cost/hand_quantity or 0
                     inventory_obj.create(cr, uid, {'product_id':id,
                                                    'warehouse_id':loc['loc'],
                                                    'hand_quantity':hand_quantity,
@@ -2082,7 +2092,7 @@ class mrp_production(osv.osv):
             for period_id in period_obj.browse(cr,uid,period_ids):
         
                 if 'state' in vals and line.state=='done':
-                    for mat in line.move_lines:
+                    for mat in line.move_lines2:
                         avg_cost_ids = avg_cost_obj.search(cr, uid, [('product_id','=',mat.product_id.id),('warehouse_id','=',line.location_src_id.id)])
                         if avg_cost_ids:
                             avg_cost_id = avg_cost_obj.browse(cr, uid, avg_cost_ids[0])
