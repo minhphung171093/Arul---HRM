@@ -209,7 +209,7 @@ class arul_hr_employee_action_history(osv.osv):
             vals = {'employee_category_id':emp.employee_category_id.id,
                     'sub_category_id':emp.employee_sub_category_id.id,
                     'department_from_id':emp.department_id.id,
-                    'designation_from_id':emp.job_id.id,
+                    'designation_from_id':emp.job_id.id,                   
 #                     'payroll_area_id':emp.payroll_area_id.id,
                     }
         return {'value': vals}
@@ -241,6 +241,7 @@ class arul_hr_employee_action_history(osv.osv):
                     'payroll_area_id':emp.payroll_area_id.id,
                     'payroll_sub_area_id':emp.payroll_sub_area_id.id,
                     'department_from_id':emp.department_id.id,
+                    'designation_from_id':emp.job_id.id,#TPT
                     }
         return {'value': vals}
 
