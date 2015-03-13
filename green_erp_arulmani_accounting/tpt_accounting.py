@@ -2134,6 +2134,7 @@ class mrp_production(osv.osv):
                     value={
                                 'journal_id':journal_ids[0],
                                 'period_id':period_id.id ,
+                                'doc_type':'product',
                                 'date': time.strftime('%Y-%m-%d'),
                                 'line_id': journal_line,
                             }
