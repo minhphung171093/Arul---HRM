@@ -1306,7 +1306,9 @@ class product_product(osv.osv):
                     if out:
                         hand_quantity = hand_quantity+float(out['ton_sl'])
                         total_cost = avg_cost*hand_quantity
-                        
+                    
+                    
+                    
                     inventory_obj.create(cr, uid, {'product_id':id,
                                                    'warehouse_id':loc['loc'],
                                                    'hand_quantity':hand_quantity,
