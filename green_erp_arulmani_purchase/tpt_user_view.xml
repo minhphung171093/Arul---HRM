@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<openerp>
+    <data>
+    	<record id="tpt_res_users_form" model="ir.ui.view">
+            <field name="name">tpt.res.users.form</field>
+            <field name="model">res.users</field>
+            <field name="inherit_id" ref="base.view_users_form"/>
+            <field name="arch" type="xml">
+				<xpath expr="//page[@string='Preferences']/group/group/field[@name='tz']" position="after">
+					<field name="employee_id" options="{'create': false, 'create_edit': false}"/>
+				</xpath> 
+			</field>
+		</record>
+    </data>
+</openerp>
