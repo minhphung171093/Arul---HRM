@@ -30,7 +30,7 @@ class tpt_purchase_indent(osv.osv):
                                 ('emergency','Emergency Indent'),
                                 ('normal','Normal Indent')],'Indent Category',required = True, states={'cancel': [('readonly', True)], 'done':[('readonly', True)]}),
         'department_id':fields.many2one('hr.department','Department', states={'cancel': [('readonly', True)], 'done':[('readonly', True)]}),
-        'create_uid':fields.many2one('res.users','Raised By', states={'cancel': [('readonly', True)], 'done':[('readonly', True)]}),
+        'create_uid':fields.many2one('res.users','Raised By', readonly = True),
         'date_expect':fields.date('Expected Date', states={'cancel': [('readonly', True)], 'done':[('readonly', True)]}),
         'select_normal':fields.selection([('single','Single Quotation'),
                                           ('special','Special Quotation'),
@@ -40,8 +40,8 @@ class tpt_purchase_indent(osv.osv):
         'reason':fields.text('Reason', states={'cancel': [('readonly', True)], 'done':[('readonly', True)]}),
         'header_text':fields.text('Header Text',states={'cancel': [('readonly', True)], 'done':[('readonly', True)]}), #TPT
         'requisitioner':fields.char('Requisitioner',states={'cancel': [('readonly', True)], 'done':[('readonly', True)]}),
-        'purchase_product_line':fields.one2many('tpt.purchase.product','purchase_indent_id','Materials', states={'cancel': [('readonly', True)], 'done':[('readonly', True)]}),
-        'state':fields.selection([('draft', 'Draft'),('cancel', 'Closed'),('first_approve', 'First Approve'),
+        'purchase_product_line':fields.one2many('tpt.purchase.product','pur_product_id','Materials'),
+        'state':fields.selection([('draft', 'Draft'),('cancel', 'Closed'),
                                   ('done', 'Approve'),('rfq_raised','RFQ Raised'),
                                   ('quotation_raised','Quotation Raised'),
                                   ('po_raised','PO Raised')],'Status', readonly=True),
@@ -54,16 +54,16 @@ class tpt_purchase_indent(osv.osv):
 #         'document_type':'base',
     }
     
-    def first_approve(self, cr, uid, ids, context=None):
-        for line in self.browse(cr, uid, ids):
-            for indent_line in line.purchase_product_line:
-                self.pool.get('tpt.purchase.product').write(cr, uid, [indent_line.id],{'indent_status':'+'})
-        return self.write(cr, uid, ids,{'state':'first_approve'})
+#     def first_approve(self, cr, uid, ids, context=None):
+#         for line in self.browse(cr, uid, ids):
+#             for indent_line in line.purchase_product_line:
+#                 self.pool.get('tpt.purchase.product').write(cr, uid, [indent_line.id],{'indent_status':'+'})
+#         return self.write(cr, uid, ids,{'state':'first_approve'})
             
     def bt_approve(self, cr, uid, ids, context=None):
         for line in self.browse(cr, uid, ids):
             for indent_line in line.purchase_product_line:
-                self.pool.get('tpt.purchase.product').write(cr, uid,  [indent_line.id],{'indent_status':'confirm'})
+                self.pool.get('tpt.purchase.product').write(cr, uid,  [indent_line.id],{'state':'confirm'})
         return self.write(cr, uid, ids,{'state':'done'})
     
     def bt_cancel(self, cr, uid, ids, context=None):
@@ -120,6 +120,7 @@ class tpt_purchase_indent(osv.osv):
                     if vals.get('name','/')=='/':
                         sequence = self.pool.get('ir.sequence').get(cr, uid, 'indent.purchase.service')
                         vals['name'] =  sequence and sequence +'/'+fiscalyear['code']or '/'
+                vals['create_uid'] = uid
         new_id = super(tpt_purchase_indent, self).create(cr, uid, vals, context=context)   
 #         indent = self.browse(cr,uid, new_id)
 #         if indent.select_normal != 'multiple':
@@ -127,54 +128,6 @@ class tpt_purchase_indent(osv.osv):
 #                 raise osv.except_osv(_('Warning!'),_(' You must choose Select is multiple if you want more than one product!'))
         return new_id
     
-#     def write(self, cr, uid, ids, vals, context=None):
-#         if 'document_type' in vals:
-#             sql = '''
-#                 select code from account_fiscalyear where '%s' between date_start and date_stop
-#             '''%(time.strftime('%Y-%m-%d'))
-#             cr.execute(sql)
-#             fiscalyear = cr.dictfetchone()
-#             if not fiscalyear:
-#                 raise osv.except_osv(_('Warning!'),_('Financial year has not been configured. !'))
-#             else:
-#                 if (vals['document_type']=='base'):
-#                     if vals.get('name','/')=='/':
-#                         sequence = self.pool.get('ir.sequence').get(cr, uid, 'indent.purchase.based')
-#                         vals['name'] =  sequence and sequence+'/'+fiscalyear['code'] or '/'
-#                 if (vals['document_type']=='capital'):
-#                     if vals.get('name','/')=='/':
-#                         sequence = self.pool.get('ir.sequence').get(cr, uid, 'indent.purchase.capital')
-#                         vals['name'] =  sequence and sequence +'/'+fiscalyear['code']or '/'
-#                 if (vals['document_type']=='local'):
-#                     if vals.get('name','/')=='/':
-#                         sequence = self.pool.get('ir.sequence').get(cr, uid, 'indent.purchase.local')
-#                         vals['name'] =  sequence and sequence +'/'+fiscalyear['code']or '/'
-#                 if (vals['document_type']=='maintenance'):
-#                     if vals.get('name','/')=='/':
-#                         sequence = self.pool.get('ir.sequence').get(cr, uid, 'indent.purchase.maintenance')
-#                         vals['name'] =  sequence and sequence +'/'+fiscalyear['code']or '/'
-#                 if (vals['document_type']=='consumable'):
-#                     if vals.get('name','/')=='/':
-#                         sequence = self.pool.get('ir.sequence').get(cr, uid, 'indent.purchase.consumable')
-#                         vals['name'] =  sequence and sequence +'/'+fiscalyear['code']or '/'
-#                 if (vals['document_type']=='outside'):
-#                     if vals.get('name','/')=='/':
-#                         sequence = self.pool.get('ir.sequence').get(cr, uid, 'indent.purchase.outside')
-#                         vals['name'] =  sequence and sequence +'/'+fiscalyear['code']or '/'
-#                 if (vals['document_type']=='spare'):
-#                     if vals.get('name','/')=='/':
-#                         sequence = self.pool.get('ir.sequence').get(cr, uid, 'indent.purchase.spare')
-#                         vals['name'] =  sequence and sequence +'/'+fiscalyear['code']or '/'
-#                 if (vals['document_type']=='service'):
-#                     if vals.get('name','/')=='/':
-#                         sequence = self.pool.get('ir.sequence').get(cr, uid, 'indent.purchase.service')
-#                         vals['name'] =  sequence and sequence +'/'+fiscalyear['code']or '/'
-#         new_write = super(tpt_purchase_indent, self).write(cr, uid,ids, vals, context)
-# #         for indent in self.browse(cr,uid,ids):
-# #             if indent.select_normal != 'multiple':
-# #                 if (len(indent.purchase_product_line)>1):
-# #                     raise osv.except_osv(_('Warning!'),_(' You must choose Select is multiple if you want more than one product!'))
-#         return new_write
     
     def onchange_date_expect(self, cr, uid, ids,date_indent=False, context=None):
         vals = {}
@@ -234,6 +187,13 @@ class tpt_purchase_indent(osv.osv):
                 cr.execute(sql)
                 gate_ids = [row[0] for row in cr.fetchall()]
                 args += [('id','in',gate_ids)]
+        if context.get('search_po_indent_line'):
+            sql = '''
+                select pur_product_id from tpt_purchase_product where state = '++'
+            '''
+            cr.execute(sql)
+            pur_ids = [row[0] for row in cr.fetchall()]
+            args += [('id','in',pur_ids)]
         return super(tpt_purchase_indent, self).search(cr, uid, args, offset=offset, limit=limit, order=order, context=context, count=count)
     
     def name_search(self, cr, user, name, args=None, operator='ilike', context=None, limit=100):
@@ -244,42 +204,67 @@ tpt_purchase_indent()
 class tpt_purchase_product(osv.osv):
     _name = 'tpt.purchase.product'
     _columns = {
-        'purchase_indent_id':fields.many2one('tpt.purchase.indent','Purchase Product'),
+        'pur_product_id':fields.many2one('tpt.purchase.indent','Purchase Product',ondelete='cascade' ),
         'product_id': fields.many2one('product.product', 'Material Code'),
         #'dec_material':fields.text('Material Description'),
-        'description':fields.char('Mat. Description', size = 50, readonly=True),
-        'item_text':fields.text('Item Text'),
-        'product_uom_qty': fields.float('PO Qty'),   
+        'description':fields.char('Mat. Description', size = 50, readonly=True ),
+        'item_text':fields.text('Item Text' ),
+        'product_uom_qty': fields.float('PO Qty' ),   
         'uom_po_id': fields.many2one('product.uom', 'UOM', readonly = True),
-        'pending_qty': fields.float('Pending Qty'), 
+        'pending_qty': fields.float('Pending Qty' ), 
         #'recom_vendor_id': fields.many2one('res.partner', 'Recommended Vendor'),
-        'recom_vendor': fields.char('Recommended Vendor', size = 30),
+        'recom_vendor': fields.char('Recommended Vendor', size = 30 ),
         'release_by':fields.selection([('1','Store Level'),('2','HOD Level')],'Released By'),
-        'indent_status':fields.selection([('draft', 'Draft'),('confirm', 'Confirmed'),
+        'state':fields.selection([('draft', 'Draft'),('confirm', 'Confirmed'),
                                           ('+', 'Store Approved'),('++', 'Store & HOD Approved'),
                                           ('x', 'Store Rejected'),('xx', 'Store & HOD Rejected')
                                           ],'Indent Status', readonly=True),
 #Hung moi them 2 Qty theo yeu casu bala
-        'mrs_qty': fields.float('MRS Quantity'),
-        'inspection_qty': fields.float('Inspection Quantity'), 
+        'mrs_qty': fields.float('MRS Quantity' ),
+        'inspection_qty': fields.float('Inspection Quantity' ), 
         }  
-    
+#     
     _defaults = {
-        'indent_status':'draft',
+        'state':'draft',
     }
-
+    def bt_approve(self, cr, uid, ids, context=None):
+        for line in self.browse(cr,uid,ids):
+#             father = self.pool.get('tpt.purchase.indent').browse(cr,uid,line.pur_product_id.id)
+            if line.state == 'confirm':
+                return self.write(cr, uid, ids,{'state':'+'})
+            if line.state == '+':
+                return self.write(cr, uid, ids,{'state':'++'})
+    def bt_reject(self, cr, uid, ids, context=None):
+        for line in self.browse(cr,uid,ids):
+            if line.state == 'confirm':
+                return self.write(cr, uid, ids,{'state':'x'})
+            if line.state == '+':
+                return self.write(cr, uid, ids,{'state':'xx'})
+#         return self.write(cr, uid, ids,{'state':''})
+#     def bt_approve_hod(self, cr, uid, ids, context=None):
+#         return self.write(cr, uid, ids,{'state':'++'})
+#     def bt_reject_hod(self, cr, uid, ids, context=None):
+#         return self.write(cr, uid, ids,{'state':'xx'})
     def onchange_product_id(self, cr, uid, ids,product_id=False, context=None):
         res = {'value':{
                     'uom_po_id':False,
                     'price_unit':False,
                     'description': False,
+                    'mrs_qty':False,
                     }}
         if product_id:
             product = self.pool.get('product.product').browse(cr, uid, product_id)
+            request = self.pool.get('tpt.material.request').browse(cr, uid, product_id)
+            sql = '''
+                select case when sum(product_uom_qty) != 0 then sum(product_uom_qty) else 0 end product_mrs_qty from tpt_material_request_line where product_id=%s and material_request_id in (select id from tpt_material_request where state='done' and id not in (select name from tpt_material_issue where state='done'))
+            '''%(product_id)
+            cr.execute(sql)
+            product_mrs_qty=cr.dictfetchone()['product_mrs_qty']
             res['value'].update({
                     'uom_po_id':product.uom_id.id,
                     #'price_unit':product.list_price,
                     'description': product.name,
+                    'mrs_qty':product_mrs_qty,
                     })
         return res
     
@@ -308,7 +293,25 @@ class tpt_purchase_product(osv.osv):
             if line.pending_qty < 0:
                 raise osv.except_osv(_('Warning!'),_('Pending Quantity is not allowed as negative values'))
         return new_write
-    
+    def name_get(self, cr, uid, ids, context=None):
+        res = []
+        if not ids:
+            return res
+        reads = self.read(cr, uid, ids, ['id'], context)
+ 
+        for record in reads:
+            cate_name = record['id']
+#             name = ''
+#             if cate_name == 'raw':
+#                 name = 'Raw Materials'
+#             if cate_name == 'finish':
+#                 name = 'Finished Product'
+#             if cate_name == 'spares':
+#                 name = 'Spares'
+#             if cate_name == 'consum':
+#                 name = 'Consumables'
+            res.append((record['id'],cate_name))
+        return res    
 tpt_purchase_product()
 
 class product_category(osv.osv):
