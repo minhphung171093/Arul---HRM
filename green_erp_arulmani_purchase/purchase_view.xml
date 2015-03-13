@@ -120,8 +120,8 @@
             <field name="arch" type="xml">
 	            <form string="Indent Release - By Store" version="7.0" delete = 'false' create = 'false' >   
 	             <header>
-	            		<button name="bt_approve" states='draft,confirm,+,++' string="Store Approve" type="object" class="oe_highlight" />
-	                    <button name="bt_reject" states='draft,confirm,x' string="Store Reject" type="object" class="oe_highlight" /> 
+	            		<button name="bt_approve" states='draft,confirm' string="Store Approve" type="object" class="oe_highlight" />
+	                    <button name="%(action_reject_pur_line_form)d" states='draft,confirm' string="Store Reject" type="action" class="oe_highlight" /> 
 	                    <field name="state" widget="statusbar" statusbar_visible="confirm,+,x"/>
 	            </header>  
 	            <sheet> 
@@ -164,7 +164,55 @@
             <field name="view_id" ref="view_tpt_purchase_indent_line_form"/>
             <field name="act_window_id" ref="action_view_tpt_purchase_indent_line_form"/>
         </record>
-        
+
+	   	<record id="view_tpt_purchase_indent_line_tree_hod" model="ir.ui.view">
+			<field name="name">tpt.purchase.indent.line.tree</field>
+			<field name="model">tpt.purchase.product</field>
+			<field name="arch" type="xml">
+				<tree string="Indent Release - By HOD" delete = 'false' create = 'false' >
+						<field name="pur_product_id"/> 
+						<field name="product_id"/>
+						<field name="description"/>
+						<field name="item_text" />
+						<field name="product_uom_qty" />
+						<field name="recom_vendor" />
+						<field name="pending_qty" />
+						<field name="mrs_qty" />
+						<field name="inspection_qty" /> 
+						<field name="uom_po_id" />
+						<field name="state"/>
+				</tree>
+			</field>
+		</record>            
+
+		<record id="view_tpt_purchase_indent_line_form_hod" model="ir.ui.view">
+            <field name="name">tpt.purchase.indent.line.form</field>
+            <field name="model">tpt.purchase.product</field>
+            <field name="arch" type="xml">
+	            <form string="Indent Release - By HOD" version="7.0" delete = 'false' create = 'false' >   
+	             <header>
+	            		<button name="bt_approve" states='+' string="Store - HOD Approve" type="object" class="oe_highlight" />
+	                    <button name="%(action_reject_pur_line_form)d" states='+' string="Store - HOD Reject" type="action" class="oe_highlight" /> 
+	                    <field name="state" widget="statusbar" statusbar_visible="confirm,+,x"/>
+	            </header>  
+	            <sheet> 
+	            	<group col="4" colspan="2"> 
+						<field name="pur_product_id" readonly="1"  options="{'create': false, 'create_edit': false}"/> 
+						<field name="recom_vendor" />
+						<field name="product_id" readonly = "1" options="{'create': false, 'create_edit': false}" />
+						<field name="description"/>
+						<field name="product_uom_qty" />
+						<field name="pending_qty" />
+						<field name="mrs_qty" />
+						<field name="inspection_qty" />  
+						<field name="uom_po_id" edit='false' options="{'create': false, 'create_edit': false}" />
+						<field name="state" required='1' />
+						<field name="item_text" />
+				</group>
+				</sheet>  
+		       </form>
+			</field>
+		</record>        
         <record id="action_view_tpt_purchase_indent_line_form_hod" model="ir.actions.act_window">
             <field name="name">Indent Release - By HOD</field>
             <field name="type">ir.actions.act_window</field>
@@ -172,18 +220,18 @@
             <field name="domain">[('state', '=', ['+','xx'])]</field>
             <field name="view_type">form</field>
             <field name="view_mode">tree,form</field>
-            <field name="view_id" ref="view_tpt_purchase_indent_line_tree"/>
+            <field name="view_id" ref="view_tpt_purchase_indent_line_tree_hod"/>
         </record>
         <record id="action_view_tpt_purchase_indent_line_form_hod1" model="ir.actions.act_window.view">
             <field eval="2" name="sequence"/>
             <field name="view_mode">tree</field>
-            <field name="view_id" ref="view_tpt_purchase_indent_line_tree"/>
+            <field name="view_id" ref="view_tpt_purchase_indent_line_tree_hod"/>
             <field name="act_window_id" ref="action_view_tpt_purchase_indent_line_form_hod"/>
         </record>
         <record id="action_view_tpt_purchase_indent_line_form_hod2" model="ir.actions.act_window.view">
             <field eval="3" name="sequence"/>
             <field name="view_mode">form</field>
-            <field name="view_id" ref="view_tpt_purchase_indent_line_form"/>
+            <field name="view_id" ref="view_tpt_purchase_indent_line_form_hod"/>
             <field name="act_window_id" ref="action_view_tpt_purchase_indent_line_form_hod"/>
         </record>        
         
@@ -194,7 +242,85 @@
             id="menu_action_view_tpt_purchase_indent_line_form_hod"
             parent="purchase.menu_procurement_management" sequence="13"/>
 
-		
+        <record model="ir.values" id="purchase_line_approve_reject">
+            <field name="model_id" ref="model_tpt_purchase_product" />
+            <field name="name">Approve or Reject</field>
+            <field name="key2">client_action_multi</field>
+            <field name="value" eval="'ir.actions.act_window,' + str(ref('action_aprove_or_reject_pur_line_form'))" />
+            <field name="key">action</field>
+            <field name="model">tpt.purchase.product</field>
+        </record>
+
+	   	<record id="view_tpt_pr_list_tree" model="ir.ui.view">
+			<field name="name">tpt.pr.list.tree</field>
+			<field name="model">tpt.purchase.product</field>
+			<field name="arch" type="xml">
+				<tree string="Pending PR List" delete = 'false' create = 'false' >
+						<field name="pur_product_id"/> 
+						<field name="product_id"/>
+						<field name="description"/>
+						<field name="item_text" />
+						<field name="product_uom_qty" />
+						<field name="recom_vendor" />
+						<field name="pending_qty" />
+						<field name="mrs_qty" />
+						<field name="inspection_qty" /> 
+						<field name="uom_po_id" />
+						<field name="state"/>
+				</tree>
+			</field>
+		</record>            
+
+		<record id="view_tpt_pr_list_form" model="ir.ui.view">
+            <field name="name">tpt.pr.list.line.form</field>
+            <field name="model">tpt.purchase.product</field>
+            <field name="arch" type="xml">
+	            <form string="Pending PR List" version="7.0" delete = 'false' create = 'false' edit = 'false' >   
+	            <sheet> 
+	            	<group col="4" colspan="2"> 
+						<field name="pur_product_id" readonly="1"  options="{'create': false, 'create_edit': false}"/> 
+						<field name="recom_vendor" />
+						<field name="product_id" readonly = "1" options="{'create': false, 'create_edit': false}" />
+						<field name="description"/>
+						<field name="product_uom_qty" />
+						<field name="pending_qty" />
+						<field name="mrs_qty" />
+						<field name="inspection_qty" />  
+						<field name="uom_po_id" edit='false' options="{'create': false, 'create_edit': false}" />
+						<field name="state" required='1' />
+						<field name="item_text" />
+				</group>
+				</sheet>  
+		       </form>
+			</field>
+		</record>
+
+
+        <record id="action_view_tpt_pr_list_form" model="ir.actions.act_window">
+            <field name="name">Pending PR List</field>
+            <field name="type">ir.actions.act_window</field>
+            <field name="res_model">tpt.purchase.product</field>
+            <field name="domain">[('state', '=', ['++'])]</field>
+            <field name="view_type">form</field>
+            <field name="view_mode">tree,form</field>
+            <field name="view_id" ref="view_tpt_pr_list_tree"/>
+        </record>
+        <record id="action_view_tpt_pr_list_form1" model="ir.actions.act_window.view">
+            <field eval="4" name="sequence"/>
+            <field name="view_mode">tree</field>
+            <field name="view_id" ref="view_tpt_pr_list_tree"/>
+            <field name="act_window_id" ref="action_view_tpt_pr_list_form"/>
+        </record>
+        <record id="action_view_tpt_pr_list_form2" model="ir.actions.act_window.view">
+            <field eval="5" name="sequence"/>
+            <field name="view_mode">form</field>
+            <field name="view_id" ref="view_tpt_pr_list_form"/>
+            <field name="act_window_id" ref="action_view_tpt_pr_list_form"/>
+        </record>        
+        
+         <menuitem action="action_view_tpt_pr_list_form"
+            id="menu_action_view_tpt_pr_list_form"
+            parent="purchase.menu_procurement_management" sequence="14"/>		
 		
 		<record id="tpt_purchase_order_form" model="ir.ui.view">
             <field name="name">tpt.purchase.order.form</field>
@@ -1184,7 +1310,7 @@
 							<page string = "RFQ Line">
 							<field name="rfq_line" nolabel='1'>
 									<tree editable='bottom'>
-										<field name="po_indent_id" domain="[('state','=','done')]" on_change = "onchange_rfq_indent_id(po_indent_id)" options="{'create': false, 'create_edit': false}"/>
+										<field name="po_indent_id" context="{'search_po_indent_line':True }"   on_change = "onchange_rfq_indent_id(po_indent_id)" options="{'create': false, 'create_edit': false}"/>
 										<field name="product_id" context="{'search_rfq_product':True, 'po_indent_id':po_indent_id }" on_change = "onchange_rfq_product_id(product_id, po_indent_id)" options="{'create': false, 'create_edit': false}"/>
 										<field name="description" />
 										<field name="item_text" />

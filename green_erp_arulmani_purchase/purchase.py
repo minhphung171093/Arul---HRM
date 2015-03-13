@@ -178,6 +178,13 @@ class tpt_purchase_indent(osv.osv):
                 cr.execute(sql)
                 gate_ids = [row[0] for row in cr.fetchall()]
                 args += [('id','in',gate_ids)]
+        if context.get('search_po_indent_line'):
+            sql = '''
+                select pur_product_id from tpt_purchase_product where state = '++'
+            '''
+            cr.execute(sql)
+            pur_ids = [row[0] for row in cr.fetchall()]
+            args += [('id','in',pur_ids)]
         return super(tpt_purchase_indent, self).search(cr, uid, args, offset=offset, limit=limit, order=order, context=context, count=count)
     
     def name_search(self, cr, user, name, args=None, operator='ilike', context=None, limit=100):
@@ -188,7 +195,7 @@ tpt_purchase_indent()
 class tpt_purchase_product(osv.osv):
     _name = 'tpt.purchase.product'
     _columns = {
-        'pur_product_id':fields.many2one('tpt.purchase.indent','Purchase Product' ),
+        'pur_product_id':fields.many2one('tpt.purchase.indent','Purchase Product',ondelete='cascade' ),
         'product_id': fields.many2one('product.product', 'Material Code'),
         #'dec_material':fields.text('Material Description'),
         'description':fields.char('Mat. Description', size = 50, readonly=True ),
@@ -212,9 +219,23 @@ class tpt_purchase_product(osv.osv):
         'state':'draft',
     }
     def bt_approve(self, cr, uid, ids, context=None):
-        return self.write(cr, uid, ids,{'state':'+'})
+        for line in self.browse(cr,uid,ids):
+#             father = self.pool.get('tpt.purchase.indent').browse(cr,uid,line.pur_product_id.id)
+            if line.state == 'confirm':
+                return self.write(cr, uid, ids,{'state':'+'})
+            if line.state == '+':
+                return self.write(cr, uid, ids,{'state':'++'})
     def bt_reject(self, cr, uid, ids, context=None):
-        return self.write(cr, uid, ids,{'state':'x'})
+        for line in self.browse(cr,uid,ids):
+            if line.state == 'confirm':
+                return self.write(cr, uid, ids,{'state':'x'})
+            if line.state == '+':
+                return self.write(cr, uid, ids,{'state':'xx'})
+#         return self.write(cr, uid, ids,{'state':''})
+#     def bt_approve_hod(self, cr, uid, ids, context=None):
+#         return self.write(cr, uid, ids,{'state':'++'})
+#     def bt_reject_hod(self, cr, uid, ids, context=None):
+#         return self.write(cr, uid, ids,{'state':'xx'})
     def onchange_product_id(self, cr, uid, ids,product_id=False, context=None):
         res = {'value':{
                     'uom_po_id':False,
@@ -263,7 +284,25 @@ class tpt_purchase_product(osv.osv):
             if line.pending_qty < 0:
                 raise osv.except_osv(_('Warning!'),_('Pending Quantity is not allowed as negative values'))
         return new_write
-    
+    def name_get(self, cr, uid, ids, context=None):
+        res = []
+        if not ids:
+            return res
+        reads = self.read(cr, uid, ids, ['id'], context)
+ 
+        for record in reads:
+            cate_name = record['id']
+#             name = ''
+#             if cate_name == 'raw':
+#                 name = 'Raw Materials'
+#             if cate_name == 'finish':
+#                 name = 'Finished Product'
+#             if cate_name == 'spares':
+#                 name = 'Spares'
+#             if cate_name == 'consum':
+#                 name = 'Consumables'
+            res.append((record['id'],cate_name))
+        return res    
 tpt_purchase_product()
 
 class product_category(osv.osv):

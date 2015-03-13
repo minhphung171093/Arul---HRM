@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="utf-8"?>
+<openerp>
+    <data>
+	    
+	    <record id="aprove_or_reject_pur_line_form_view" model="ir.ui.view">
+	        <field name="name">aprove.or.reject.pur.line.form</field>
+	        <field name="model">alert.form.purchase</field>
+	        <field eval="20" name="priority"/>
+	        <field name="arch" type="xml">
+	            <form string="Alert" version="7.0">
+	                <h1>
+	                	<field name="message"  nolabel="1" />
+	                </h1>
+	                <footer>
+	                	<button name="approve_pur_line" type='object' string="Approve" class="oe_highlight"/>
+	                    <button name="%(action_reject_pur_line_form)d" type='action' string="Reject" class="oe_highlight"/>
+	                    or
+	                    <button string="Cancel" special="cancel" />
+	                </footer>
+	            </form>
+	        </field>
+    	</record>
+
+	    <record model="ir.actions.act_window" id="action_aprove_or_reject_pur_line_form">
+	        <field name="name">Approve or Reject</field>
+	        <field name="res_model">alert.form.purchase</field>
+	        <field name="view_type">form</field>
+	        <field name="view_mode">form</field>
+	        <field name="view_id" ref="aprove_or_reject_pur_line_form_view" />
+	        <field name="context">{'default_message':'Approve or Reject?'}</field>
+	        <field name="target">new</field>
+	    </record>
+	    
+	    <record id="reject_pur_line_form_view" model="ir.ui.view">
+	        <field name="name">reject.pur.line.form</field>
+	        <field name="model">alert.form.purchase</field>
+	        <field eval="20" name="priority"/>
+	        <field name="arch" type="xml">
+	            <form string="Alert" version="7.0">
+	                <h1>
+	                	<field name="message"  nolabel="1" />
+	                </h1>
+	                <footer>
+	                    <button name="reject_pur_line" type='object' string="Reject" class="oe_highlight"/>
+	                    or
+	                    <button string="Cancel" special="cancel" />
+	                </footer>
+	            </form>
+	        </field>
+    	</record>
+
+	    <record model="ir.actions.act_window" id="action_reject_pur_line_form">
+	        <field name="name">Reject</field>
+	        <field name="res_model">alert.form.purchase</field>
+	        <field name="view_type">form</field>
+	        <field name="view_mode">form</field>
+	        <field name="view_id" ref="reject_pur_line_form_view" />
+	        <field name="context">{'default_message':'Do you want to Reject?'}</field>
+	        <field name="target">new</field>
+	    </record>
+	 </data>   
+</openerp>
+
