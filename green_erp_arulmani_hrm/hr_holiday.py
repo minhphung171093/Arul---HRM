@@ -203,7 +203,33 @@ class arul_hr_audit_shift_time(osv.osv):
                     time_total += 24
             else:
                 time_total=0
-            res[time.id]['total_hours'] = time_total 
+            res[time.id]['total_hours'] = time_total            
+        return res
+    #AST
+    def _shift_total(self, cr, uid, ids, field_name, arg, context=None):
+        res = {}
+        for time in self.browse(cr, uid, ids, context=context):
+            res[time.id] = {
+                'total_shift_worked': 0.0,
+            }
+            if time.total_hours <= 1.0:            
+                res[time.id]['total_shift_worked'] = 0.125
+            if time.total_hours >= 1.1 and time.total_hours <= 2.0:            
+                res[time.id]['total_shift_worked'] = 0.25
+            if time.total_hours >= 2.1 and time.total_hours <= 3.0:            
+                res[time.id]['total_shift_worked'] = 0.375            
+            if time.total_hours >= 4.0 and time.total_hours <= 7.44:            
+                res[time.id]['total_shift_worked'] = 0.5    
+            if time.total_hours >= 7.45 and time.total_hours <= 8.30:            
+                res[time.id]['total_shift_worked'] = 1.0
+            if time.total_hours >8.30  and time.total_hours <= 11.44:            
+                res[time.id]['total_shift_worked'] = 1.0
+            if time.total_hours >=11.45  and time.total_hours <= 15.44:            
+                res[time.id]['total_shift_worked'] = 1.5
+            if time.total_hours >=15.45  and time.total_hours <= 15.45:            
+                res[time.id]['total_shift_worked'] = 1.5
+            if time.total_hours >=15.45:            
+                res[time.id]['total_shift_worked'] = 2.0
         return res
     
     def _check_additional_shift(self, cr, uid, ids, field_name, arg, context=None):
@@ -253,6 +279,9 @@ class arul_hr_audit_shift_time(osv.osv):
               'punch_out_date':fields.date('Punch Out Date', states={'done': [('readonly', True)], 'cancel': [('readonly', True)]}),
               'reason_for_edit': fields.text('Reason',states={'done': [('readonly', True)], 'cancel': [('readonly', True)]}),
               'time_change_flag': fields.boolean('If In/Out Changed'), 
+              #TPT - Audit Shift Times
+              'total_shift_worked': fields.function(_shift_total, string='No.Of Shift Worked', multi='shiftsums', states={'done': [('readonly', True)], 'cancel': [('readonly', True)]}),
+              #'total_shift_worked': fields.float('No.Of Shift Worked', states={'done': [('readonly', True)], 'cancel': [('readonly', True)]}),
               
               }
     _defaults = {
@@ -1533,7 +1562,33 @@ class arul_hr_permission_onduty(osv.osv):
             time_total = time.end_time - time.start_time
             res[time.id]['time_total'] = time_total 
         return res
-
+    #TPT - Permission On Duty
+    def _shift_total(self, cr, uid, ids, field_name, arg, context=None):
+        res = {}
+        for time in self.browse(cr, uid, ids, context=context):
+            res[time.id] = {
+                'total_shift_worked': 0.0,
+            }
+            if time.time_total <= 1.0:            
+                res[time.id]['total_shift_worked'] = 0.125
+            if time.time_total >= 1.1 and time.time_total <= 2.0:            
+                res[time.id]['total_shift_worked'] = 0.25
+            if time.time_total >= 2.1 and time.time_total <= 3.0:            
+                res[time.id]['total_shift_worked'] = 0.375             
+            if time.time_total >= 4.0 and time.time_total <= 7.44:            
+                res[time.id]['total_shift_worked'] = 0.5    
+            if time.time_total >= 7.45 and time.time_total <= 8.30:            
+                res[time.id]['total_shift_worked'] = 1.0
+            if time.time_total >8.30  and time.time_total <= 11.44:            
+                res[time.id]['total_shift_worked'] = 1.0
+            if time.time_total >=11.45  and time.time_total <= 15.44:            
+                res[time.id]['total_shift_worked'] = 1.5
+            if time.time_total >=15.45  and time.time_total <= 15.45:            
+                res[time.id]['total_shift_worked'] = 1.5
+            if time.time_total >=15.45:            
+                res[time.id]['total_shift_worked'] = 2.0
+        return res
+    #TPT
     _columns={
         'employee_id':fields.many2one('hr.employee','Employee',required=True),
         'non_availability_type_id':fields.selection([('permission','Permission'),('on_duty','On duty')],'Non Availability Type',required = True),
@@ -1550,7 +1605,8 @@ class arul_hr_permission_onduty(osv.osv):
         'parent_id':fields.many2one('arul.hr.permission.onduty','Permission/Onduty',ondelete='cascade'),
         'permission_onduty_line':fields.one2many('arul.hr.permission.onduty','parent_id','Onduty Line',readonly=True),
 #         'detail_id':fields.many2one('arul.hr.employee.attendence.details','Detail'),
-        
+        #TPT-Permission On Duty
+        'total_shift_worked': fields.function(_shift_total, string='No.Of Shift Worked', multi='shift_sums', help="The total amount."),
               }
     def name_get(self, cr, uid, ids, context=None):
         res = []
@@ -1642,7 +1698,7 @@ arul_hr_permission_onduty()
 
 class arul_hr_punch_in_out_time(osv.osv):
     _name='arul.hr.punch.in.out.time'
-    
+     
     def _time_total(self, cr, uid, ids, field_name, arg, context=None):
         res = {}
         for time in self.browse(cr, uid, ids, context=context):
@@ -1658,7 +1714,37 @@ class arul_hr_punch_in_out_time(osv.osv):
                     
             res[time.id]['total_hours'] = time_total 
         return res
-    
+    #TPT - Punch InOut
+    def _shift_total(self, cr, uid, ids, field_name, arg, context=None):
+        res = {}
+        for time in self.browse(cr, uid, ids, context=context):
+            res[time.id] = {
+                'total_shift_worked': 0.0,
+            }
+            if time.total_hours <= 1.0:            
+                res[time.id]['total_shift_worked'] = 0.125
+            if time.total_hours >= 1.1 and time.total_hours <= 2.0:            
+                res[time.id]['total_shift_worked'] = 0.25
+            if time.total_hours >= 2.1 and time.total_hours <= 3.0:            
+                res[time.id]['total_shift_worked'] = 0.375            
+            if time.total_hours >= 4.0 and time.total_hours <= 7.44:            
+                res[time.id]['total_shift_worked'] = 0.5    
+            if time.total_hours >= 7.45 and time.total_hours <= 8.30:            
+                res[time.id]['total_shift_worked'] = 1.0
+            if time.total_hours >8.30  and time.total_hours <= 11.44:            
+                res[time.id]['total_shift_worked'] = 1.0
+            if time.total_hours >=11.45  and time.total_hours <= 15.44:            
+                res[time.id]['total_shift_worked'] = 1.5
+            if time.total_hours >=15.45  and time.total_hours <= 15.45:            
+                res[time.id]['total_shift_worked'] = 1.5
+            if time.total_hours >=15.45:            
+                res[time.id]['total_shift_worked'] = 2.0
+            
+            #res[time.id]['shift_count']=res[time.id]['total_shift_worked']
+            #res.update({'shift_count': res[time.id]['total_shift_worked']})
+            
+        return res
+    #TPT
     _columns = {
         'employee_id':fields.many2one('hr.employee','Employee ID', required = True, states={'done': [('readonly', True)], 'cancel': [('readonly', True)]}),
         'work_date':fields.date('Work Date', required = True, states={'done': [('readonly', True)], 'cancel': [('readonly', True)]}),
@@ -1676,6 +1762,10 @@ class arul_hr_punch_in_out_time(osv.osv):
         'punch_in_out_id':fields.many2one('arul.hr.employee.attendence.details','Punch in/out',ondelete='cascade'),
         'emp_id': fields.related('punch_in_out_id','employee_id',string="Employee",relation='hr.employee',type='many2one',readonly=True,store=True),
         'diff_day': fields.boolean('Difference Day', readonly = True),
+        #TPT
+        #TPT-Punch InOut - THIS COLUMN IS STORE IN DB TO GET THIS COUNT DURING PAYROLL PROCESS
+        'total_shift_worked': fields.function(_shift_total, store=True, string='No.Of Shift Worked', multi='shift_punchinout_sums', help="The total amount."),
+        #'shift_count': fields.function(_shift_total, store=True,string='Shift Count', multi='shift_punchinout2_sums', help="The total amount."),
         
     }
     
