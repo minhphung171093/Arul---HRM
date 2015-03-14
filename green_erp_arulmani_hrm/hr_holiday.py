@@ -1606,7 +1606,7 @@ class arul_hr_permission_onduty(osv.osv):
         'permission_onduty_line':fields.one2many('arul.hr.permission.onduty','parent_id','Onduty Line',readonly=True),
 #         'detail_id':fields.many2one('arul.hr.employee.attendence.details','Detail'),
         #TPT-Permission On Duty
-        'total_shift_worked': fields.function(_shift_total, string='No.Of Shift Worked', multi='shift_sums', help="The total amount."),
+        'total_shift_worked': fields.function(_shift_total, store=True, string='No.Of Shift Worked', multi='shift_sums', help="The total amount."),
               }
     def name_get(self, cr, uid, ids, context=None):
         res = []

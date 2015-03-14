@@ -1020,13 +1020,46 @@ class arul_hr_payroll_executions(osv.osv):
             for p in emp_obj.browse(cr,uid,employee_ids):
                 payroll_executions_details_ids = executions_details_obj.search(cr, uid, [('payroll_executions_id', '=', line.id), ('employee_id', '=', p.id)], context=context)
                 
-                #TPT
+                #TPT START - By BalamurganPurushothaman - ON 13/03/2015-TO CALCULATE TOTAL NO.OF SHIFT WORKED FOR SPECIAL ALLOWANCE CALCULATION
+                #PUNCH IN OUT
                 sql = '''
-                select sum(total_shift_worked) from arul_hr_punch_in_out_time where EXTRACT(year FROM work_date) = %s and EXTRACT(month FROM work_date) = %s and employee_id =%s
+                SELECT SUM(total_shift_worked) FROM arul_hr_punch_in_out_time WHERE EXTRACT(year FROM work_date) = %s 
+                AND EXTRACT(month FROM work_date) = %s AND employee_id =%s
                 '''%(line.year,line.month,p.id)
                 cr.execute(sql)
                 a =  cr.fetchone()
-                total_shift_worked = a[0]
+                shift_count = a[0]
+                
+                #Permission
+                sql = '''
+                SELECT SUM(total_shift_worked) FROM arul_hr_permission_onduty WHERE non_availability_type_id='permission' 
+                AND EXTRACT(year FROM date) = %s AND EXTRACT(month FROM date) = %s and employee_id =%s
+                '''%(line.year,line.month,p.id)
+                cr.execute(sql)
+                b =  cr.fetchone()
+                permission_count = b[0]
+                
+                #Permission
+                sql = '''
+                SELECT SUM(total_shift_worked) FROM arul_hr_permission_onduty WHERE non_availability_type_id='on_duty' 
+                AND EXTRACT(year FROM to_date) = %s AND EXTRACT(month FROM to_date) = %s and employee_id =%s
+                '''%(line.year,line.month,p.id)
+                cr.execute(sql)
+                c =  cr.fetchone()
+                onduty_count = c[0]
+                
+                #TOTAL SHIFT WORKED
+                #raise osv.except_osv(_('Warning!%s'),_(permission_count))      
+                if  shift_count:
+                    if permission_count:
+                        total_shift_worked = shift_count + permission_count
+                    else:
+                        total_shift_worked = shift_count
+                    if onduty_count:
+                        total_shift_worked = total_shift_worked + onduty_count
+                        
+                #total_shift_worked = round(shift_count) + round(permission_count) + round(onduty_count)
+                
                 #TPT END
                 
                 if payroll_executions_details_ids:
