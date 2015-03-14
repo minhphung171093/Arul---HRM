@@ -2,17 +2,61 @@
 <openerp>
     <data>
 		<record id="act_head" model="workflow.activity">
-            <field name="wkf_id" ref="purchase_order"/>
+            <field name="wkf_id" ref="purchase.purchase_order"/>
             <field name="name">head</field>
             <field name="kind">function</field>
             <field name="action">write({'state':'head'})</field>
         </record>
         
         <record id="act_amendement" model="workflow.activity">
-            <field name="wkf_id" ref="purchase_order"/>
+            <field name="wkf_id" ref="purchase.purchase_order"/>
             <field name="name">amendement</field>
             <field name="kind">function</field>
-            <field name="action">write({'state':'amendement'})</field>
+            <field name="action">action_amendement()</field>
         </record>
+        
+        <record id="act_gm" model="workflow.activity">
+            <field name="wkf_id" ref="purchase.purchase_order"/>
+            <field name="name">gm</field>
+            <field name="kind">function</field>
+            <field name="action">write({'state':'gm'})</field>
+        </record>
+        
+        <record id="purchase.trans_draft_confirmed" model="workflow.transition">
+            <field name="act_from" ref="purchase.act_draft"/>
+            <field name="act_to" ref="act_head"/>
+            <field name="signal">purchase_draft_head</field>
+        </record>
+        
+        <record id="trans_head_gm" model="workflow.transition">
+            <field name="act_from" ref="act_head"/>
+            <field name="act_to" ref="act_gm"/>
+            <field name="signal">purchase_head_gm</field>
+        </record>
+        
+        <record id="trans_gm_confirmed" model="workflow.transition">
+            <field name="act_from" ref="act_gm"/>
+            <field name="act_to" ref="purchase.act_confirmed"/>
+            <field name="signal">purchase_gm_confirmed</field>
+        </record>
+        
+        <record id="trans_gm_amendement" model="workflow.transition">
+            <field name="act_from" ref="act_gm"/>
+            <field name="act_to" ref="act_amendement"/>
+            <field name="signal">purchase_gm_amendement</field>
+        </record>
+        
+        <record id="trans_head_amendement" model="workflow.transition">
+            <field name="act_from" ref="act_head"/>
+            <field name="act_to" ref="act_amendement"/>
+            <field name="signal">purchase_head_amendement</field>
+        </record>
+        
+        <record id="trans_amendement_head" model="workflow.transition">
+            <field name="act_from" ref="act_amendement"/>
+            <field name="act_to" ref="act_head"/>
+            <field name="signal">purchase_amendement_head</field>
+        </record>
+
     </data>
 </openerp>

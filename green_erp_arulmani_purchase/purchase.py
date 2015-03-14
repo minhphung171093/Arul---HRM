@@ -1319,29 +1319,28 @@ class purchase_order(osv.osv):
             'purchase.order.line': (_get_order, ['product_qty', 'product_uom', 'price_unit','discount','p_f','p_f_type',   
                                                                 'ed', 'ed_type','taxes_id','fright','fright_type'], 10) 
             }, multi="sums",help="The total amount"),
-#         'state': fields.selection([
-#                                    ('draft', 'Draft PO'),
-#                                     ('sent', 'RFQ Sent'),
-#                                     ('confirmed', 'Waiting Approval'),
-#                                     ('approved', 'Purchase Order'),
-#                                     ('except_picking', 'Shipping Exception'),
-#                                     ('except_invoice', 'Invoice Exception'),
-#                                     ('done', 'Done'),
-#                                     ('cancel', 'Cancelled'),
-#                                    ('amendement', 'Amendement'),
-#                                    ('head', 'Purchase Head Approved')
-#                                    ], 'Status', required=True, readonly=True,
-#                                   ),
+        'state': fields.selection([
+                                   ('draft', 'Draft PO'),
+                                    ('sent', 'RFQ Sent'),
+                                    ('amendement', 'Amendement'),
+                                    ('head', 'Purchase Head Approved'),
+                                    ('gm', 'GM Approval'),
+                                    ('confirmed', 'Waiting Approval'),
+                                    ('approved', 'Purchase Order'),
+                                    ('except_picking', 'Shipping Exception'),
+                                    ('except_invoice', 'Invoice Exception'),
+                                    ('done', 'Done'),
+                                    ('cancel', 'Cancelled'),
+                                   ], 'Status', required=True, readonly=True,
+                                  ),
         }
     
     _default = {
         'name':'/',
                }
-    def bt_amendement(self, cr, uid, ids, context=None):
+    def action_amendement(self, cr, uid, ids, context=None):
         return self.write(cr, uid, ids,{'state':'amendement'}) 
 
-    def bt_head(self, cr, uid, ids, context=None):
-        return self.write(cr, uid, ids,{'state':'head'})  
     def action_cancel(self, cr, uid, ids, context=None):
         wf_service = netsvc.LocalService("workflow")
         for purchase in self.browse(cr, uid, ids, context=context):
