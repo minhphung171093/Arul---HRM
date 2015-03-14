@@ -724,7 +724,7 @@ class tpt_purchase_quotation(osv.osv):
             amount_line += amount_basic
             amount_gross = amount_line + amount_p_f + amount_ed + amount_total_tax
             amount_net = amount_gross - amount_ed - amount_total_tax
-            amount_unit_net = amount_net/qty
+            amount_unit_net = qty and amount_net/qty or 0
             res[line.id]['amount_line'] = amount_line
             res[line.id]['amount_basic'] = amount_basic
             res[line.id]['amount_p_f'] = amount_p_f
