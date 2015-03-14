@@ -488,7 +488,7 @@ class product_product(osv.osv):
         if context.get('search_rfq_product'):
             if context.get('po_indent_id'):
                 sql = '''
-                    select product_id from tpt_purchase_product where purchase_indent_id in(select id from tpt_purchase_indent where id = %s)
+                    select product_id from tpt_purchase_product where pur_product_id = %s
                 '''%(context.get('po_indent_id'))
                 cr.execute(sql)
                 product_ids = [row[0] for row in cr.fetchall()]
@@ -724,7 +724,7 @@ class tpt_purchase_quotation(osv.osv):
             amount_line += amount_basic
             amount_gross = amount_line + amount_p_f + amount_ed + amount_total_tax
             amount_net = amount_gross - amount_ed - amount_total_tax
-            amount_unit_net = amount_net/qty
+            amount_unit_net = qty and amount_net/qty or 0
             res[line.id]['amount_line'] = amount_line
             res[line.id]['amount_basic'] = amount_basic
             res[line.id]['amount_p_f'] = amount_p_f
@@ -1319,11 +1319,28 @@ class purchase_order(osv.osv):
             'purchase.order.line': (_get_order, ['product_qty', 'product_uom', 'price_unit','discount','p_f','p_f_type',   
                                                                 'ed', 'ed_type','taxes_id','fright','fright_type'], 10) 
             }, multi="sums",help="The total amount"),
+        'state': fields.selection([
+                                   ('draft', 'Draft PO'),
+                                    ('sent', 'RFQ Sent'),
+                                    ('amendement', 'Amendement'),
+                                    ('head', 'Purchase Head Approved'),
+                                    ('gm', 'GM Approval'),
+                                    ('confirmed', 'Waiting Approval'),
+                                    ('approved', 'Purchase Order'),
+                                    ('except_picking', 'Shipping Exception'),
+                                    ('except_invoice', 'Invoice Exception'),
+                                    ('done', 'Done'),
+                                    ('cancel', 'Cancelled'),
+                                   ], 'Status', required=True, readonly=True,
+                                  ),
         }
     
     _default = {
         'name':'/',
                }
+    def action_amendement(self, cr, uid, ids, context=None):
+        return self.write(cr, uid, ids,{'state':'amendement'}) 
+
     def action_cancel(self, cr, uid, ids, context=None):
         wf_service = netsvc.LocalService("workflow")
         for purchase in self.browse(cr, uid, ids, context=context):
