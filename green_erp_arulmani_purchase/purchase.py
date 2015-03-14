@@ -1319,19 +1319,19 @@ class purchase_order(osv.osv):
             'purchase.order.line': (_get_order, ['product_qty', 'product_uom', 'price_unit','discount','p_f','p_f_type',   
                                                                 'ed', 'ed_type','taxes_id','fright','fright_type'], 10) 
             }, multi="sums",help="The total amount"),
-        'state': fields.selection([
-                                   ('draft', 'Draft PO'),
-                                    ('sent', 'RFQ Sent'),
-                                    ('confirmed', 'Waiting Approval'),
-                                    ('approved', 'Purchase Order'),
-                                    ('except_picking', 'Shipping Exception'),
-                                    ('except_invoice', 'Invoice Exception'),
-                                    ('done', 'Done'),
-                                    ('cancel', 'Cancelled'),
-                                   ('amendement', 'Amendement'),
-                                   ('head', 'Purchase Head Approved')
-                                   ], 'Status', required=True, readonly=True,
-                                  ),
+#         'state': fields.selection([
+#                                    ('draft', 'Draft PO'),
+#                                     ('sent', 'RFQ Sent'),
+#                                     ('confirmed', 'Waiting Approval'),
+#                                     ('approved', 'Purchase Order'),
+#                                     ('except_picking', 'Shipping Exception'),
+#                                     ('except_invoice', 'Invoice Exception'),
+#                                     ('done', 'Done'),
+#                                     ('cancel', 'Cancelled'),
+#                                    ('amendement', 'Amendement'),
+#                                    ('head', 'Purchase Head Approved')
+#                                    ], 'Status', required=True, readonly=True,
+#                                   ),
         }
     
     _default = {

@@ -402,13 +402,13 @@
             <field name="model">purchase.order</field>
             <field name="inherit_id" ref="purchase.purchase_order_form"/>
             <field name="arch" type="xml">
-            	<xpath expr="//form/header/field[@name='state']" position="replace">
+            	<!--<xpath expr="//form/header/field[@name='state']" position="replace">
             		<field name="state" widget="statusbar" statusbar_visible="draft,sent,approved,confirmed,amendement,head,done" statusbar_colors='{"except_picking":"red","except_invoice":"red","confirmed":"blue"}' readonly="1"/>
 				</xpath> 
 				<xpath expr="//form/header/button[@name='purchase_confirm']" position="after">
 					<button name="bt_amendement" states="head,confirmed" string="Amendement"/>
 					<button name="bt_head" states="draft" string="Purchase Head Approved"/>
-				</xpath>               
+				</xpath>-->               
             	<xpath expr="//field[@name='partner_id']" position="before">
             		<field name="po_document_type" />
 					<field name="name" readonly = '1' string = 'PO Document No' />
