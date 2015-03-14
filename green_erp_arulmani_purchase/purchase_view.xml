@@ -24,10 +24,20 @@
 			<field name="arch" type="xml">
 				<search string="Purchase Indent">
 					<field name="department_id"/>	
-					<field name="requisitioner"/>				
+					<field name="requisitioner"/>
+					<field name="document_type"/>
+					<filter string="Draft" name="draft" icon="terp-personal" domain="[('state','=','draft')]" context="{}"/>
+        			<filter string="Closed" name="cancel" icon="terp-personal" domain="[('state','=','cancel')]" context="{}"/>
+        			<filter string="Approve" name="done" icon="terp-personal" domain="[('state','=','done')]" context="{}"/>
+        			<filter string="RFQ Raised" name="rfq_raised" icon="terp-personal" domain="[('state','=','rfq_raised')]" context="{}"/>
+        			<filter string="Quotation Raised" name="quotation_raised" icon="terp-personal" domain="[('state','=','quotation_raised')]" context="{}"/>
+        			<filter string="PO Raised" name="po_raised" icon="terp-personal" domain="[('state','=','po_raised')]" context="{}"/>
+        			<group expand="0" string="Group By...">
+                        <filter string='Status' icon="terp-stock_symbol-selection" domain="[]" context="{'group_by' : 'state'}"/>
+                    </group>				
 				</search>
 			</field>
-	</record>
+		</record>
 	<record id="view_tpt_purchase_indent_form" model="ir.ui.view">
             <field name="name">tpt.purchase.indent.form</field>
             <field name="model">tpt.purchase.indent</field>
@@ -85,9 +95,10 @@
             <field name="name">Purchase Indent</field>
             <field name="type">ir.actions.act_window</field>
             <field name="res_model">tpt.purchase.indent</field>
-            <field name="domain">[('state', 'in', ('draft','cancel'))]</field>
             <field name="view_type">form</field>
             <field name="view_mode">tree,form</field>
+            <field name="context">{'search_default_draft':1, 'search_default_cancel':1}</field>
+            <field name="search_view_id" ref="view_tpt_purchase_indent_search_vew"/>
             <field name="view_id" ref="view_tpt_purchase_indent_tree"/>
         </record>
         <menuitem action="action_view_tpt_purchase_indent_form"
@@ -142,14 +153,35 @@
 		       </form>
 			</field>
 		</record>
+		
+		<record id="view_tpt_purchase_indent_release_store_search_vew" model="ir.ui.view">
+			<field name="name">tpt.purchase.indent.release.store.search</field>
+			<field name="model">tpt.purchase.product</field>
+			<field name="arch" type="xml">
+				<search string="Purchase Indent">
+					<field name="pur_product_id"/>	
+					<field name="product_id"/>
+					<filter string="Draft" name="draft" icon="terp-personal" domain="[('state','=','draft')]" context="{}"/>
+        			<filter string="Confirmed" name="confirm" icon="terp-personal" domain="[('state','=','confirm')]" context="{}"/>
+        			<filter string="Store Approved" name="+" icon="terp-personal" domain="[('state','=','+')]" context="{}"/>
+        			<filter string="Store Rejected" name="x" icon="terp-personal" domain="[('state','=','x')]" context="{}"/>
+        			<filter string="Store - HOD Approved" name="++" icon="terp-personal" domain="[('state','=','++')]" context="{}"/>
+        			<filter string="Store - HOD Reject" name="xx" icon="terp-personal" domain="[('state','=','xx')]" context="{}"/>
+        			<group expand="0" string="Group By...">
+                        <filter string='Status' icon="terp-stock_symbol-selection" domain="[]" context="{'group_by' : 'state'}"/>
+                    </group>				
+				</search>
+			</field>
+		</record>
            
         <record id="action_view_tpt_purchase_indent_line_form" model="ir.actions.act_window">
             <field name="name">Indent Release - By Store</field>
             <field name="type">ir.actions.act_window</field>
             <field name="res_model">tpt.purchase.product</field>
-            <field name="domain">[('state', 'in', ['confirm','x'])]</field>
             <field name="view_type">form</field>
             <field name="view_mode">tree,form</field>
+            <field name="context">{'search_default_confirm':1, 'search_default_x':1}</field>
+            <field name="search_view_id" ref="view_tpt_purchase_indent_release_store_search_vew"/>
             <field name="view_id" ref="view_tpt_purchase_indent_line_tree"/>
         </record>
        <record id="action_view_tpt_purchase_indent_line_form1" model="ir.actions.act_window.view">
@@ -212,14 +244,36 @@
 				</sheet>  
 		       </form>
 			</field>
-		</record>        
+		</record>   
+		
+		<record id="view_tpt_purchase_indent_release_hod_search_vew" model="ir.ui.view">
+			<field name="name">tpt.purchase.indent.release.hod.search</field>
+			<field name="model">tpt.purchase.product</field>
+			<field name="arch" type="xml">
+				<search string="Purchase Indent">
+					<field name="pur_product_id"/>	
+					<field name="product_id"/>
+					<filter string="Draft" name="draft" icon="terp-personal" domain="[('state','=','draft')]" context="{}"/>
+        			<filter string="Confirmed" name="confirm" icon="terp-personal" domain="[('state','=','confirm')]" context="{}"/>
+        			<filter string="Store Approved" name="+" icon="terp-personal" domain="[('state','=','+')]" context="{}"/>
+        			<filter string="Store Rejected" name="x" icon="terp-personal" domain="[('state','=','x')]" context="{}"/>
+        			<filter string="Store - HOD Approved" name="++" icon="terp-personal" domain="[('state','=','++')]" context="{}"/>
+        			<filter string="Store - HOD Reject" name="xx" icon="terp-personal" domain="[('state','=','xx')]" context="{}"/>
+        			<group expand="0" string="Group By...">
+                        <filter string='Status' icon="terp-stock_symbol-selection" domain="[]" context="{'group_by' : 'state'}"/>
+                    </group>				
+				</search>
+			</field>
+		</record>
+		     
         <record id="action_view_tpt_purchase_indent_line_form_hod" model="ir.actions.act_window">
             <field name="name">Indent Release - By HOD</field>
             <field name="type">ir.actions.act_window</field>
             <field name="res_model">tpt.purchase.product</field>
-            <field name="domain">[('state', '=', ['+','xx'])]</field>
             <field name="view_type">form</field>
             <field name="view_mode">tree,form</field>
+            <field name="context">{'search_default_+':1, 'search_default_xx':1}</field>
+            <field name="search_view_id" ref="view_tpt_purchase_indent_release_hod_search_vew"/>
             <field name="view_id" ref="view_tpt_purchase_indent_line_tree_hod"/>
         </record>
         <record id="action_view_tpt_purchase_indent_line_form_hod1" model="ir.actions.act_window.view">
@@ -294,17 +348,38 @@
 		       </form>
 			</field>
 		</record>
-
+		
+		<record id="view_tpt_pr_list_search_vew" model="ir.ui.view">
+			<field name="name">tpt.pr.list.search</field>
+			<field name="model">tpt.purchase.product</field>
+			<field name="arch" type="xml">
+				<search string="Pending PR List">
+					<field name="pur_product_id"/>	
+					<field name="product_id"/>
+					<filter string="Draft" name="draft" icon="terp-personal" domain="[('state','=','draft')]" context="{}"/>
+        			<filter string="Confirmed" name="confirm" icon="terp-personal" domain="[('state','=','confirm')]" context="{}"/>
+        			<filter string="Store Approved" name="+" icon="terp-personal" domain="[('state','=','+')]" context="{}"/>
+        			<filter string="Store Rejected" name="x" icon="terp-personal" domain="[('state','=','x')]" context="{}"/>
+        			<filter string="Store - HOD Approved" name="++" icon="terp-personal" domain="[('state','=','++')]" context="{}"/>
+        			<filter string="Store - HOD Reject" name="xx" icon="terp-personal" domain="[('state','=','xx')]" context="{}"/>
+        			<group expand="0" string="Group By...">
+                        <filter string='Status' icon="terp-stock_symbol-selection" domain="[]" context="{'group_by' : 'state'}"/>
+                    </group>				
+				</search>
+			</field>
+		</record>
 
         <record id="action_view_tpt_pr_list_form" model="ir.actions.act_window">
             <field name="name">Pending PR List</field>
             <field name="type">ir.actions.act_window</field>
             <field name="res_model">tpt.purchase.product</field>
-            <field name="domain">[('state', '=', ['++'])]</field>
             <field name="view_type">form</field>
             <field name="view_mode">tree,form</field>
+            <field name="context">{'search_default_++':1}</field>
+            <field name="search_view_id" ref="view_tpt_pr_list_search_vew"/>
             <field name="view_id" ref="view_tpt_pr_list_tree"/>
         </record>
+        
         <record id="action_view_tpt_pr_list_form1" model="ir.actions.act_window.view">
             <field eval="4" name="sequence"/>
             <field name="view_mode">tree</field>
