@@ -83,6 +83,50 @@ class Parser(report_sxw.rml_parse):
             c=0
             g1=0
             g2=0
+            
+            #TPT
+            perm_onduty_count=0
+            total_shift_worked=0
+            #onduty_count = False
+            #permission_count=False
+            #PUNCH IN OUT
+            sql = '''
+                SELECT CASE WHEN SUM(total_shift_worked)!=0 THEN SUM(total_shift_worked) ELSE 0 END sum_punch_inout FROM arul_hr_punch_in_out_time WHERE EXTRACT(year FROM work_date) = %s 
+                AND EXTRACT(month FROM work_date) = %s AND employee_id =%s
+                '''%(int(year), int(month),employee.id)
+            self.cr.execute(sql)
+            s_c =  self.cr.fetchone()
+            shift_count = s_c[0]
+                
+            #Permission
+            sql = '''
+                SELECT CASE WHEN SUM(total_shift_worked)!=0 THEN SUM(total_shift_worked) ELSE 0 END sum_permission FROM arul_hr_permission_onduty WHERE non_availability_type_id='permission' 
+                AND EXTRACT(year FROM date) = %s AND EXTRACT(month FROM date) = %s and employee_id =%s
+                '''%(int(year), int(month),employee.id)
+            self.cr.execute(sql)
+            p_c =  self.cr.fetchone()
+            permission_count = p_c[0]
+                
+            #OnDuty
+            sql = '''
+                SELECT CASE WHEN SUM(total_shift_worked)!=0 THEN SUM(total_shift_worked) ELSE 0 END sum_onduty FROM arul_hr_permission_onduty WHERE non_availability_type_id='on_duty' 
+                AND EXTRACT(year FROM to_date) = %s AND EXTRACT(month FROM to_date) = %s and employee_id =%s
+                '''%(int(year), int(month),employee.id)
+            self.cr.execute(sql)
+            o_c =  self.cr.fetchone()
+            onduty_count = o_c[0]
+                
+                #TOTAL SHIFT WORKED
+            #raise osv.except_osv(_('Warning!%s'),_(sql))      
+            
+            total_shift_worked = round(shift_count+permission_count + onduty_count,1)
+            perm_onduty_count =  round(permission_count + onduty_count,1)   
+                #total_shift_worked = round(shift_count) + round(permission_count) + round(onduty_count)
+                
+                #TPT END     
+            #
+            
+            
             for shift in self.pool.get('arul.hr.capture.work.shift').browse(self.cr,self.uid,actual_work_shift_ids):
                 if shift.code=='A':
                     a+=1
@@ -112,7 +156,8 @@ class Parser(report_sxw.rml_parse):
                     '''%(date_holiday.date, int(month), int(year),employee.id)
                     self.cr.execute(sql)
                     date_holiday_count = self.cr.dictfetchone()['date_holiday_count']
-                    date_holiday_count += date_holiday_count
+                    date_holiday_count += date_holiday_count 
+                    #raise osv.except_osv(_('Warning!%s'),_(sql)) 
                     
             sql = '''
                 select leave_type_id 
@@ -199,6 +244,7 @@ class Parser(report_sxw.rml_parse):
             punch_in_out_time_ids = [r[0] for r in self.cr.fetchall()]
             A = self.pool.get('arul.hr.punch.in.out.time').browse(self.cr, self.uid, punch_in_out_time_ids)
             c_off_day = 0
+            
             for i,line1 in enumerate(A):
                 date1 = line1.work_date
                 if (line1.planned_work_shift_id and line1.planned_work_shift_id.code != 'W') or (line1.actual_work_shift_id and line1.actual_work_shift_id.code != 'W'):
@@ -315,6 +361,7 @@ class Parser(report_sxw.rml_parse):
 #                     else:
                         #trường họp có W và planned != actual
                     
+            #
                 
             res.append({
                 'emp_id': employee.employee_id or '',
@@ -334,6 +381,8 @@ class Parser(report_sxw.rml_parse):
                 'lop': lop and lop['sum_leave'] or '',
                 'c_off_day': c_off_day,
                 'date_holiday_count':date_holiday_count or '',
+                'perm_onduty_count':perm_onduty_count,
+                'total_shift_worked':total_shift_worked,
             })
         return res
 # vim:expandtab:smartindent:tabstop=4:softtabstop=4:shiftwidth=4:
