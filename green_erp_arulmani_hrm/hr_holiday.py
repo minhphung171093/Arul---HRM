@@ -1556,6 +1556,16 @@ class arul_hr_permission_onduty(osv.osv):
                 p = cr.dictfetchone()		
                 if p and p['num_of_permission']==2:
                     raise osv.except_osv(_('Warning!'),_('Employee %s have 2 permission for this month!')%(permission.employee_id.name+' '+(permission.employee_id.last_name or '')))
+                #TPT SATRT
+                sql = '''
+                    select count(id) as num_of_permission from arul_hr_permission_onduty where non_availability_type_id='permission' and employee_id=%s
+                        and id!=%s and EXTRACT(year from date)='%s'
+                '''%(permission.employee_id.id,permission.id,year)
+                cr.execute(sql)
+                p = cr.dictfetchone()        
+                if p and p['num_of_permission']>=11:
+                    raise osv.except_osv(_('Warning!'),_('Employee %s have already taken 10 permission for this year!')%(permission.employee_id.name+' '+(permission.employee_id.last_name or '')))
+                #TPT ENDs
             shift_id = punch_obj.get_work_shift(cr, uid, permission.employee_id.id, int(day), int(month), year)
             self.pool.get('arul.hr.audit.shift.time').create(cr, SUPERUSER_ID, {
                 'employee_id':permission.employee_id.id,
@@ -1566,7 +1576,7 @@ class arul_hr_permission_onduty(osv.osv):
                 'in_time':permission.start_time,
                 'out_time':permission.end_time,
                 #'type': 'permission', #TPT Changes - Commented
-		'type': permission.non_availability_type_id,#TPT Changes - By BalamuruganPurushothaman on 21/02/2015 - To Update NonAvailability Status in Audit Shift Screen.
+		        'type': permission.non_availability_type_id,#TPT Changes - By BalamuruganPurushothaman on 21/02/2015 - To Update NonAvailability Status in Audit Shift Screen.
                 'permission_id':new_id,
             })
 	return new_id
