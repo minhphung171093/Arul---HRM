@@ -1695,6 +1695,7 @@ class arul_hr_payroll_executions(osv.osv):
                         gross_sal =  net_basic + net_da + net_c + net_hra + net_ea + net_aa + net_la + net_oa + fa + spa + pc + cre + sha + lta + med
 		    
                         shd = (gross_sal / calendar_days) * special_holiday_worked_count
+                        total_earning = total_earning + shd
                         gross_sal = gross_sal + shd
                         #gross_before = basic + c + hra  +spa + ea + oa + da + la + aa
                         #if total_no_of_leave: # total_no_of_leave <-> total_lop
@@ -2073,6 +2074,7 @@ class arul_hr_payroll_executions(osv.osv):
                         gross_sal =  net_basic + net_da + net_c + net_hra + net_ea + net_aa + net_la + net_oa + fa + spa + pc + cre + sha + lta + med + ma
 		
                         shd = (gross_sal / calendar_days) * special_holiday_worked_count
+                        total_earning = total_earning + shd
                         gross_sal = gross_sal + shd
                         
                         #gross_before = basic + c + hra  +spa + oa + da + ea
