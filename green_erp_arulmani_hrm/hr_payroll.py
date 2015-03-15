@@ -1059,27 +1059,21 @@ class arul_hr_payroll_executions(osv.osv):
                         total_shift_worked = total_shift_worked + onduty_count
                         
                 #total_shift_worked = round(shift_count) + round(permission_count) + round(onduty_count)
-                sql = '''
-                    select id from arul_hr_holiday_special where EXTRACT(month from date)=%s and EXTRACT(year from date)=%s 
-                '''%(line.month, line.year)
-                cr.execute(sql)
-                #             date_holiday = self.cr.dictfetchone()
-                holiday_ids = [r[0] for r in cr.fetchall()]
-                special_holiday_worked_count =  0
-                if holiday_ids:
-                    for date_holiday in self.pool.get('arul.hr.holiday.special').browse(cr, uid, holiday_ids):
-                    
-                        sql = '''
-                        select count(work_date) as date_holiday_count 
-                        from arul_hr_punch_in_out_time 
-                        where work_date = '%s' and EXTRACT(month from work_date)=%s and EXTRACT(year from work_date)=%s and
-                            punch_in_out_id in (select id from arul_hr_employee_attendence_details where employee_id=%s)
-                    '''%(date_holiday.date, line.month, line.year,p.id)
-                        cr.execute(sql)
-                        special_holiday_worked_count = cr.dictfetchone()['date_holiday_count']
-                        special_holiday_worked_count += special_holiday_worked_count 
-                #TPT END
                 
+                special_holiday_worked_count =  0                              
+                sql = '''
+                        SELECT COUNT(work_date) AS date_holiday_count 
+                        FROM arul_hr_punch_in_out_time 
+                        WHERE work_date IN (SELECT date FROM arul_hr_holiday_special 
+                        WHERE EXTRACT(month from date)=%s AND EXTRACT(year from date)=%s ) AND 
+                        EXTRACT(month from work_date)=%s AND EXTRACT(year from work_date)=%s AND
+                        punch_in_out_id IN (SELECT id FROM arul_hr_employee_attendence_details WHERE employee_id=%s)
+                    '''%(line.month, line.year, line.month, line.year, p.id)
+                cr.execute(sql)
+                special_holiday_worked_count = cr.dictfetchone()['date_holiday_count']
+                        
+                #TPT END
+                        
                 if payroll_executions_details_ids:
                     executions_details_obj.unlink(cr, uid, payroll_executions_details_ids, context=context) 
                 vals_earning_struc = []
