@@ -158,7 +158,18 @@ class Parser(report_sxw.rml_parse):
                     date_holiday_count = self.cr.dictfetchone()['date_holiday_count']
                     date_holiday_count += date_holiday_count 
                     #raise osv.except_osv(_('Warning!%s'),_(sql)) 
-                    
+            special_holiday_worked_count =  0                              
+            sql = '''
+                        SELECT COUNT(work_date) AS date_holiday_count 
+                        FROM arul_hr_punch_in_out_time 
+                        WHERE work_date IN (SELECT date FROM arul_hr_holiday_special 
+                        WHERE EXTRACT(month from date)=%s AND EXTRACT(year from date)=%s ) AND 
+                        EXTRACT(month from work_date)=%s AND EXTRACT(year from work_date)=%s AND
+                        punch_in_out_id IN (SELECT id FROM arul_hr_employee_attendence_details WHERE employee_id=%s)
+                    '''%(int(month), int(year), int(month), int(year), employee.id)
+            self.cr.execute(sql)
+            special_holiday_worked_count = self.cr.dictfetchone()['date_holiday_count']    
+                
             sql = '''
                 select leave_type_id 
                 from arul_hr_employee_leave_details 
@@ -380,7 +391,8 @@ class Parser(report_sxw.rml_parse):
                 'esi': esi and esi['sum_leave'] or '',
                 'lop': lop and lop['sum_leave'] or '',
                 'c_off_day': c_off_day,
-                'date_holiday_count':date_holiday_count or '',
+                #'date_holiday_count':date_holiday_count or '', #TPT COMMENTED
+                'date_holiday_count':special_holiday_worked_count or '',
                 'perm_onduty_count':perm_onduty_count,
                 'total_shift_worked':total_shift_worked,
             })

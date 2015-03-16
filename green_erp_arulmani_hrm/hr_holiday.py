@@ -1564,7 +1564,7 @@ class arul_hr_permission_onduty(osv.osv):
                 cr.execute(sql)
                 p = cr.dictfetchone()        
                 if p and p['num_of_permission']>=11:
-                    raise osv.except_osv(_('Warning!'),_('Employee %s have already taken 10 permission for this year!')%(permission.employee_id.name+' '+(permission.employee_id.last_name or '')))
+                    raise osv.except_osv(_('Warning!'),_('NO MORE PERMISSION PERMITTED.\n Employee %s have already taken 10 permission for this year!')%(permission.employee_id.name+' '+(permission.employee_id.last_name or '')))
                 #TPT ENDs
             shift_id = punch_obj.get_work_shift(cr, uid, permission.employee_id.id, int(day), int(month), year)
             self.pool.get('arul.hr.audit.shift.time').create(cr, SUPERUSER_ID, {

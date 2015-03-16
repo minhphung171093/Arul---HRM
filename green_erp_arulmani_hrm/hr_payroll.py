@@ -1693,8 +1693,9 @@ class arul_hr_payroll_executions(osv.osv):
             
                         total_earning =  net_basic + net_da + net_c + net_hra + net_ea + net_aa + net_la + net_oa + fa + spa + pc + cre + sha + lta + med
                         gross_sal =  net_basic + net_da + net_c + net_hra + net_ea + net_aa + net_la + net_oa + fa + spa + pc + cre + sha + lta + med
-		    
-                        shd = (gross_sal / calendar_days) * special_holiday_worked_count
+		                
+                        gross_shd_calc = net_basic + net_da + net_c + net_hra + net_ea + net_aa + net_la + net_oa
+                        shd = (gross_shd_calc / calendar_days) * special_holiday_worked_count
                         total_earning = total_earning + shd
                         gross_sal = gross_sal + shd
                         #gross_before = basic + c + hra  +spa + ea + oa + da + la + aa
@@ -2072,8 +2073,9 @@ class arul_hr_payroll_executions(osv.osv):
 
                         total_earning =  net_basic + net_da + net_c + net_hra + net_ea + net_aa + net_la + net_oa + fa + spa + pc + cre + sha + lta + med + ma
                         gross_sal =  net_basic + net_da + net_c + net_hra + net_ea + net_aa + net_la + net_oa + fa + spa + pc + cre + sha + lta + med + ma
-		
-                        shd = (gross_sal / calendar_days) * special_holiday_worked_count
+		                #S3
+                        gross_shd_calc = net_basic + net_da + net_c + net_hra + net_ea + net_aa + net_la + net_oa
+                        shd = (gross_shd_calc / 26) * special_holiday_worked_count
                         total_earning = total_earning + shd
                         gross_sal = gross_sal + shd
                         
