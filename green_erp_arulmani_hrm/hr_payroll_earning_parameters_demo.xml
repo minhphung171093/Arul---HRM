@@ -59,6 +59,10 @@
           <field name="name">Miscellaneous Allowance</field>
           <field name="code">MA</field>
       </record>
+      <record id="earning_parameters_21" model="arul.hr.payroll.earning.parameters">
+          <field name="name">Special Holiday Allowance</field>
+          <field name="code">SHD</field>
+      </record>
       <record id="earning_parameters_20" model="arul.hr.payroll.earning.parameters">
           <field name="name">Washing Allowance</field>
           <field name="code">WA</field>

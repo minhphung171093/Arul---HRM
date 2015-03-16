@@ -50,6 +50,7 @@ class Parser(report_sxw.rml_parse):
             'get_sub_la': self.get_sub_la,
             'get_sub_aa': self.get_sub_aa,
             'get_sub_ea': self.get_sub_ea,
+            'get_sub_shd': self.get_sub_shd,#
             'get_sub_pfd': self.get_sub_pfd,
             'get_sub_vpf': self.get_sub_vpf,
             'get_sub_esi_con': self.get_sub_esi_con,
@@ -128,6 +129,12 @@ class Parser(report_sxw.rml_parse):
         for line in self.get_payslip():
             subtotal_ea += line['ea']                      
         return round(subtotal_ea, 2)
+    
+    def get_sub_shd(self):
+        subtotal_shd = 0
+        for line in self.get_payslip():
+            subtotal_shd += line['shd']                      
+        return round(subtotal_shd, 2)
     
     def get_sub_aa(self):
         subtotal_aa = 0
@@ -231,6 +238,7 @@ class Parser(report_sxw.rml_parse):
             oa = 0
             la = 0
             aa = 0
+            shd = 0 #
             pfd = 0
             vpf = 0
             esi_con = 0
@@ -266,6 +274,8 @@ class Parser(report_sxw.rml_parse):
                     aa += earning.float
                 if earning.earning_parameters_id.code=='EA':
                     ea += earning.float
+                if earning.earning_parameters_id.code=='SHD': #TPT
+                    shd += earning.float
                 if earning.earning_parameters_id.code=='TOTAL_EARNING':
                     total_ear += earning.float
                 if earning.earning_parameters_id.code=='NET':
@@ -301,7 +311,7 @@ class Parser(report_sxw.rml_parse):
                 'oa': oa,
                 'la': la,
                 'aa': aa,
-                'ea': ea,
+                'ea': ea,               
                 'pfd': round(pfd),
                 'vpf': round(vpf),
                 'esi_con': esi_con,
@@ -314,7 +324,8 @@ class Parser(report_sxw.rml_parse):
                 'total_ear': total_ear,
                 'total_ded': total_ded,
                 'net': round(net),
-                'ma': ma
+                'ma': ma,
+                'shd': shd,#
             })
         return res
 # vim:expandtab:smartindent:tabstop=4:softtabstop=4:shiftwidth=4:

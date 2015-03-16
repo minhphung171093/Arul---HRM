@@ -1148,7 +1148,24 @@ class arul_hr_employee_leave_details(osv.osv):
             timedelta = (to_dt - from_dt).days+1
             if date.haft_day_leave:
                 timedelta = timedelta-0.5
-             
+            #TPT START-By BalamuruganPurushothaman ON 14/03/2015-If CL/SL/C.OFF is taken a Half Day,
+            #then system would not allow the same for next Half a day Except ESI/LOP
+            if date.haft_day_leave:
+                if date.date_from == date.date_to:
+                    sql2 = '''
+                        select id,days_total from arul_hr_employee_leave_details where employee_id = %s 
+                        and date_to = '%s' and haft_day_leave = True and days_total=0.5 and leave_type_id in 
+                        (select id from arul_hr_leave_types where code in ('CL','SL','C.Off'))
+                    '''%(date.employee_id.id,date.date_to)
+                    cr.execute(sql2)
+                    leave_t_ids = [row[0] for row in cr.fetchall()]
+                    if len(leave_t_ids) == 1 and date.leave_type_id.code=='CL':                                         
+                        raise osv.except_osv(_('Warning!'),_('Only LOP/ESI is possible for another Half a Day Leave'))
+                    if len(leave_t_ids) == 1 and date.leave_type_id.code=='SL':                                         
+                        raise osv.except_osv(_('Warning!'),_('Only LOP/ESI is possible for another Half a Day Leave'))
+                    if len(leave_t_ids) == 1 and date.leave_type_id.code=='C.Off':                                         
+                        raise osv.except_osv(_('Warning!'),_('Only LOP/ESI is possible for another Half a Day Leave'))
+            #TPT END         
             leave_details_obj = self.pool.get('employee.leave.detail')
             emp_leave_obj = self.pool.get('employee.leave')
             year_now = time.strftime('%Y')
@@ -1250,6 +1267,7 @@ class arul_hr_employee_leave_details(osv.osv):
         new_id1 = False
         new_id2 = False       
         vals.update({'check_reject_flag':True}) #TPT-BalamurugaPurushothaman on 12/03/2015
+        
         if 'date_from' in vals and 'date_to' in vals:
             date_from = vals['date_from']
             date_to = vals['date_to']
@@ -1538,6 +1556,16 @@ class arul_hr_permission_onduty(osv.osv):
                 p = cr.dictfetchone()		
                 if p and p['num_of_permission']==2:
                     raise osv.except_osv(_('Warning!'),_('Employee %s have 2 permission for this month!')%(permission.employee_id.name+' '+(permission.employee_id.last_name or '')))
+                #TPT SATRT
+                sql = '''
+                    select count(id) as num_of_permission from arul_hr_permission_onduty where non_availability_type_id='permission' and employee_id=%s
+                        and id!=%s and EXTRACT(year from date)='%s'
+                '''%(permission.employee_id.id,permission.id,year)
+                cr.execute(sql)
+                p = cr.dictfetchone()        
+                if p and p['num_of_permission']>=11:
+                    raise osv.except_osv(_('Warning!'),_('Employee %s have already taken 10 permission for this year!')%(permission.employee_id.name+' '+(permission.employee_id.last_name or '')))
+                #TPT ENDs
             shift_id = punch_obj.get_work_shift(cr, uid, permission.employee_id.id, int(day), int(month), year)
             self.pool.get('arul.hr.audit.shift.time').create(cr, SUPERUSER_ID, {
                 'employee_id':permission.employee_id.id,
@@ -1548,7 +1576,7 @@ class arul_hr_permission_onduty(osv.osv):
                 'in_time':permission.start_time,
                 'out_time':permission.end_time,
                 #'type': 'permission', #TPT Changes - Commented
-		'type': permission.non_availability_type_id,#TPT Changes - By BalamuruganPurushothaman on 21/02/2015 - To Update NonAvailability Status in Audit Shift Screen.
+		        'type': permission.non_availability_type_id,#TPT Changes - By BalamuruganPurushothaman on 21/02/2015 - To Update NonAvailability Status in Audit Shift Screen.
                 'permission_id':new_id,
             })
 	return new_id

@@ -402,6 +402,14 @@
             <field name="model">purchase.order</field>
             <field name="inherit_id" ref="purchase.purchase_order_form"/>
             <field name="arch" type="xml">
+				<xpath expr="//form/header/button[@name='purchase_confirm']" position="replace">
+					<button name="purchase_draft_head" states="draft" string="Purchase Head Approval" class="oe_highlight"/>
+					<button name="purchase_head_gm" states="head" string="GM Approval" class="oe_highlight"/>
+					<button name="purchase_gm_amendement" states="gm" string="Amendement" class="oe_highlight"/>
+					<button name="purchase_head_amendement" states="head" string="Amendement" class="oe_highlight"/>
+					<button name="purchase_amendement_head" states="amendement" string="Purchase Head Approval" class="oe_highlight"/>
+					<button name="purchase_gm_confirmed" states="gm" string="Approve &amp; Create GRN" class="oe_highlight"/>
+				</xpath>               
             	<xpath expr="//field[@name='partner_id']" position="before">
             		<field name="po_document_type" />
 					<field name="name" readonly = '1' string = 'PO Document No' />

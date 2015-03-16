@@ -1060,8 +1060,20 @@ class arul_hr_payroll_executions(osv.osv):
                         
                 #total_shift_worked = round(shift_count) + round(permission_count) + round(onduty_count)
                 
+                special_holiday_worked_count =  0                              
+                sql = '''
+                        SELECT COUNT(work_date) AS date_holiday_count 
+                        FROM arul_hr_punch_in_out_time 
+                        WHERE work_date IN (SELECT date FROM arul_hr_holiday_special 
+                        WHERE EXTRACT(month from date)=%s AND EXTRACT(year from date)=%s ) AND 
+                        EXTRACT(month from work_date)=%s AND EXTRACT(year from work_date)=%s AND
+                        punch_in_out_id IN (SELECT id FROM arul_hr_employee_attendence_details WHERE employee_id=%s)
+                    '''%(line.month, line.year, line.month, line.year, p.id)
+                cr.execute(sql)
+                special_holiday_worked_count = cr.dictfetchone()['date_holiday_count']
+                        
                 #TPT END
-                
+                        
                 if payroll_executions_details_ids:
                     executions_details_obj.unlink(cr, uid, payroll_executions_details_ids, context=context) 
                 vals_earning_struc = []
@@ -1073,7 +1085,7 @@ class arul_hr_payroll_executions(osv.osv):
                 emp_lwf_amt = 0
                 emp_esi_con_amount = 0
                 emp_pf_con_amount = 0
-		vpfd_amount = 0
+                vpfd_amount = 0
                 gross_sal = 0
                 total_earning = 0
                 da = 0
@@ -1103,19 +1115,19 @@ class arul_hr_payroll_executions(osv.osv):
                 aa = 0.0
                 sha = 0.0
                 oa = 0.0
-		ma = 0.0
+                ma = 0.0
                 lta = 0.0
                 med = 0.0
                 net_sala = 0.0
                 
-		net_basic = 0.0
-		net_da = 0.0 
-		net_c = 0.0
-		net_hra = 0.0
-		net_ea = 0.0
-		net_aa = 0.0
-		net_la = 0.0
-		net_oa = 0.0
+                net_basic = 0.0
+                net_da = 0.0 
+                net_c = 0.0
+                net_hra = 0.0
+                net_ea = 0.0
+                net_aa = 0.0
+                net_la = 0.0
+                net_oa = 0.0
 
                 if emp_struc_ids:
                     payroll_emp_struc = payroll_emp_struc_obj.browse(cr,uid,emp_struc_ids[0])
@@ -1242,16 +1254,17 @@ class arul_hr_payroll_executions(osv.osv):
                         total_earning = 0.0
                         net_sala = 0.0
 
-			net_basic = 0.0
-			net_da = 0.0 
-			net_c = 0.0
-			net_hra = 0.0
-			net_ea = 0.0
-			net_aa = 0.0
-			net_la = 0.0
-			net_oa = 0.0
-			vpfd_amount = 0.0
-			ma = 0.0
+                        net_basic = 0.0
+                        net_da = 0.0 
+                        net_c = 0.0
+                        net_hra = 0.0
+                        net_ea = 0.0
+                        net_aa = 0.0
+                        net_la = 0.0
+                        net_oa = 0.0
+                        vpfd_amount = 0.0
+                        ma = 0.0
+                        spa = 0.0
 
                         for earning_struc_id in payroll_emp_struc_obj.browse(cr,uid,emp_struc_ids[0]).payroll_earning_structure_line:
                             if earning_struc_id.earning_parameters_id.code == 'BASIC':
@@ -1280,7 +1293,7 @@ class arul_hr_payroll_executions(osv.osv):
                                 sha = earning_struc_id.float
                             if earning_struc_id.earning_parameters_id.code == 'OA':
                                 oa = earning_struc_id.float
-			    if earning_struc_id.earning_parameters_id.code == 'MA':
+                            if earning_struc_id.earning_parameters_id.code == 'MA':
                                 ma = earning_struc_id.float
                             if earning_struc_id.earning_parameters_id.code == 'LTA':
                                 lta = earning_struc_id.float
@@ -1421,7 +1434,7 @@ class arul_hr_payroll_executions(osv.osv):
                                           'earning_parameters_id':_earning_struc_id.earning_parameters_id.id,
                                           'float': med,
                                     }))
-			    if _earning_struc_id.earning_parameters_id.code == 'MA':
+                            if _earning_struc_id.earning_parameters_id.code == 'MA':
                                 vals_earning_struc.append((0,0, {
                                           'earning_parameters_id':_earning_struc_id.earning_parameters_id.id,
                                           'float': ma,
@@ -1524,7 +1537,7 @@ class arul_hr_payroll_executions(osv.osv):
                                 
                         fd += total_fd                       
                         #total_deduction = pfd + pd + vpfd + esid + fd + ld + ind +  pt + lwf 
-			total_deduction = pfd + pd  + esid + fd + ld + ind +  pt + lwf
+                        total_deduction = pfd + pd  + esid + fd + ld + ind +  pt + lwf
 
                         for _other_deductions_id in payroll_emp_struc_obj.browse(cr,uid,emp_struc_ids[0]).payroll_other_deductions_line:
 #                             if _other_deductions_id.deduction_parameters_id.code == 'PF.D':
@@ -1596,17 +1609,18 @@ class arul_hr_payroll_executions(osv.osv):
                         total_earning = 0.0
                         net_sala = 0.0
 			
-			#Start:TPT
-			net_basic = 0.0
-			net_da = 0.0 
-			net_c = 0.0
-			net_hra = 0.0
-			net_ea = 0.0
-			net_aa = 0.0
-			net_la = 0.0
-			net_oa = 0.0
-			vpfd_amount = 0.0
-			ma = 0.0
+			            #Start:TPT
+                        net_basic = 0.0
+                        net_da = 0.0 
+                        net_c = 0.0
+                        net_hra = 0.0
+                        net_ea = 0.0
+                        net_aa = 0.0
+                        net_la = 0.0
+                        net_oa = 0.0
+                        vpfd_amount = 0.0
+                        ma = 0.0
+                        shd = 0.0
 
                         for earning_struc_id in payroll_emp_struc_obj.browse(cr,uid,emp_struc_ids[0]).payroll_earning_structure_line:
                             if earning_struc_id.earning_parameters_id.code == 'BASIC':
@@ -1635,12 +1649,14 @@ class arul_hr_payroll_executions(osv.osv):
                                 sha = earning_struc_id.float
                             if earning_struc_id.earning_parameters_id.code == 'OA':
                                 oa = earning_struc_id.float
-			    if earning_struc_id.earning_parameters_id.code == 'MA':
+                            if earning_struc_id.earning_parameters_id.code == 'MA':
                                 ma = earning_struc_id.float
                             if earning_struc_id.earning_parameters_id.code == 'LTA':
                                 lta = earning_struc_id.float
                             if earning_struc_id.earning_parameters_id.code == 'MED':
-                                med = earning_struc_id.float			
+                                med = earning_struc_id.float
+                            if earning_struc_id.earning_parameters_id.code == 'SHD':
+                                shd = earning_struc_id.float			
                         
                         #gross_before = basic + c + hra  +spa + ea + oa + da + la + aa
                         #if total_lop:
@@ -1660,24 +1676,28 @@ class arul_hr_payroll_executions(osv.osv):
                         
                         #total_deduction += (lop + emp_pf_con_amount + emp_esi_con_amount + emp_lwf_amt)
                         #net_sala = gross_before - total_deduction
-			spa = spa / (calendar_days - 4 - special_holidays) * total_shift_worked # TPT total_days <-> total_shift_worked
+                        spa = spa / (calendar_days - 4 - special_holidays) * total_shift_worked # TPT total_days <-> total_shift_worked
                         #total_earning = basic + da + c + hra + fa + pc + cre + ea +spa + la + aa + sha + oa + lta + med
-            #spa = spa / (calendar_days - 4 - special_holidays) * total_days
-			total_no_of_leave = total_lop + total_esi
+                        #spa = spa / (calendar_days - 4 - special_holidays) * total_days
+                        total_no_of_leave = total_lop + total_esi
 			
-			net_basic = basic - (basic / calendar_days) * total_no_of_leave
-			net_da = da - (da / calendar_days) * total_no_of_leave 
-			net_c = c - (c / calendar_days) * total_no_of_leave
-			net_hra = hra - (hra / calendar_days) * total_no_of_leave
-			net_ea = ea - (ea / calendar_days) * total_no_of_leave
-			net_aa = aa - (aa / calendar_days) * total_no_of_leave
-			net_la = la - (la / calendar_days) * total_no_of_leave
-			net_oa = oa - (oa / calendar_days) * total_no_of_leave
-
-			total_earning =  net_basic + net_da + net_c + net_hra + net_ea + net_aa + net_la + net_oa + fa + spa + pc + cre + sha + lta + med
-			gross_sal =  net_basic + net_da + net_c + net_hra + net_ea + net_aa + net_la + net_oa + fa + spa + pc + cre + sha + lta + med
-		
-			#gross_before = basic + c + hra  +spa + ea + oa + da + la + aa
+                        net_basic = basic - (basic / calendar_days) * total_no_of_leave
+                        net_da = da - (da / calendar_days) * total_no_of_leave 
+                        net_c = c - (c / calendar_days) * total_no_of_leave
+                        net_hra = hra - (hra / calendar_days) * total_no_of_leave
+                        net_ea = ea - (ea / calendar_days) * total_no_of_leave
+                        net_aa = aa - (aa / calendar_days) * total_no_of_leave
+                        net_la = la - (la / calendar_days) * total_no_of_leave
+                        net_oa = oa - (oa / calendar_days) * total_no_of_leave
+            
+            
+                        total_earning =  net_basic + net_da + net_c + net_hra + net_ea + net_aa + net_la + net_oa + fa + spa + pc + cre + sha + lta + med
+                        gross_sal =  net_basic + net_da + net_c + net_hra + net_ea + net_aa + net_la + net_oa + fa + spa + pc + cre + sha + lta + med
+		    
+                        shd = (gross_sal / calendar_days) * special_holiday_worked_count
+                        total_earning = total_earning + shd
+                        gross_sal = gross_sal + shd
+                        #gross_before = basic + c + hra  +spa + ea + oa + da + la + aa
                         #if total_no_of_leave: # total_no_of_leave <-> total_lop
                         #    gross_sal = gross_before/calendar_days*(total_days-total_no_of_leave) # total_no_of_leave <-> total_lop
                         #    lop = gross_before - gross_sal
@@ -1686,7 +1706,7 @@ class arul_hr_payroll_executions(osv.osv):
                         #    lop = 0
                         #lop = gross_before - gross_sal
 
-			if gross_sal >= emp_esi_limit:
+                        if gross_sal >= emp_esi_limit:
                             emp_esi_con_amount = 0
                         else:
                             emp_esi_con_amount = total_earning*emp_esi_con/100
@@ -1694,9 +1714,10 @@ class arul_hr_payroll_executions(osv.osv):
                         base_amount = net_basic + net_da 
                         emp_pf_con_amount = base_amount*emp_pf_con/100
                         vpfd_amount = base_amount * vpfd / 100 	
-			total_deduction += (emp_pf_con_amount + emp_esi_con_amount + emp_lwf_amt + vpfd_amount)
-			net_sala = gross_sal - total_deduction
-			#TPT COMMENTS
+                        total_deduction += (emp_pf_con_amount + emp_esi_con_amount + emp_lwf_amt + vpfd_amount)
+                        net_sala = gross_sal - total_deduction
+  
+			            #TPT COMMENTS
                         #for _other_deductions_id in payroll_emp_struc_obj.browse(cr,uid,emp_struc_ids[0]).payroll_other_deductions_line:
                         #    if _other_deductions_id.deduction_parameters_id.code == 'LOP':
                         #        vals_other_deductions.append((0,0, {
@@ -1779,7 +1800,12 @@ class arul_hr_payroll_executions(osv.osv):
                                           'earning_parameters_id':_earning_struc_id.earning_parameters_id.id,
                                           'float': med,
                                     }))
-			    #if _earning_struc_id.earning_parameters_id.code == 'MA':
+                            if _earning_struc_id.earning_parameters_id.code == 'SHD':
+                                vals_earning_struc.append((0,0, {
+                                          'earning_parameters_id':_earning_struc_id.earning_parameters_id.id,
+                                          'float': shd,
+                                    }))
+                            #if _earning_struc_id.earning_parameters_id.code == 'MA':
                             #    vals_earning_struc.append((0,0, {
                             #              'earning_parameters_id':_earning_struc_id.earning_parameters_id.id,
                             #              'float': ma,
@@ -1885,7 +1911,7 @@ class arul_hr_payroll_executions(osv.osv):
                         fd += total_fd        
                         
                         #total_deduction = pfd + pd + vpfd + esid + fd + ld + ind +  pt + lwf
-			total_deduction = pfd + pd + esid + fd + ld + ind +  pt + lwf
+                        total_deduction = pfd + pd + esid + fd + ld + ind +  pt + lwf
 
                         for _other_deductions_id in payroll_emp_struc_obj.browse(cr,uid,emp_struc_ids[0]).payroll_other_deductions_line:
 #                             if _other_deductions_id.deduction_parameters_id.code == 'PF.D':
@@ -1956,20 +1982,21 @@ class arul_hr_payroll_executions(osv.osv):
                         gross_sal = 0.0
                         total_earning = 0.0
                         net_sala = 0.0
-			wa = 0.0
-			ma = 0.0
+                        wa = 0.0
+                        ma = 0.0
+                        shd = 0.0
 
-			#Start:TPT - Variable Declarations
-			net_basic = 0.0
-			net_da = 0.0 
-			net_c = 0.0
-			net_hra = 0.0
-			net_ea = 0.0
-			net_aa = 0.0
-			net_la = 0.0
-			net_oa = 0.0
-			vpfd_amount = 0.0
-			#End:TPT - Variable Declarations
+                        #Start:TPT - Variable Declarations
+                        net_basic = 0.0
+                        net_da = 0.0 
+                        net_c = 0.0
+                        net_hra = 0.0
+                        net_ea = 0.0
+                        net_aa = 0.0
+                        net_la = 0.0
+                        net_oa = 0.0
+                        vpfd_amount = 0.0
+                        #End:TPT - Variable Declarations
 
                         for earning_struc_id in payroll_emp_struc_obj.browse(cr,uid,emp_struc_ids[0]).payroll_earning_structure_line:
                             if earning_struc_id.earning_parameters_id.code == 'BASIC':
@@ -1998,9 +2025,9 @@ class arul_hr_payroll_executions(osv.osv):
                                 sha = earning_struc_id.float
                             if earning_struc_id.earning_parameters_id.code == 'OA':
                                 oa = earning_struc_id.float
-			    if earning_struc_id.earning_parameters_id.code == 'MA':
+                            if earning_struc_id.earning_parameters_id.code == 'MA':
                                 ma = earning_struc_id.float
-			    if earning_struc_id.earning_parameters_id.code == 'WA':
+                            if earning_struc_id.earning_parameters_id.code == 'WA':
                                 wa = earning_struc_id.float
                             if earning_struc_id.earning_parameters_id.code == 'LTA':
                                 lta = earning_struc_id.float
@@ -2009,9 +2036,9 @@ class arul_hr_payroll_executions(osv.osv):
                         #spa = spa/(26 - 4)*total_days 
                         #oa = total_shift_allowance + total_days*4 + la  # this calculation shifted to ma. oa is treated as same that of entered in paystructure
 			
-			spa = spa/(calendar_days - 4 - special_holidays) * total_shift_worked #TPT total_days <->total_shift_worked 
-			ma = total_shift_allowance + total_days * 4 + la + wa
-			#raise osv.except_osv(_('Warning!%s'),_(ma))
+                        spa = spa/(calendar_days - 4 - special_holidays) * total_shift_worked #TPT total_days <->total_shift_worked 
+                        ma = total_shift_allowance + total_days * 4 + la + wa
+
                         #total_earning = basic + da + c + hra + fa + pc + cre + ea +spa + la + aa + sha + oa + lta + med
                         #gross_before = basic + c + hra  +spa + oa + da + ea
                         #if total_lop:
@@ -2031,22 +2058,26 @@ class arul_hr_payroll_executions(osv.osv):
                         
                         #total_deduction += (lop + emp_pf_con_amount + emp_esi_con_amount + emp_lwf_amt)
                         #net_sala = gross_before - total_deduction
-			#
-			total_no_of_leave = total_lop + total_esi
+                        #
+                        total_no_of_leave = total_lop + total_esi
 			
-			net_basic = basic - (basic / 26) * total_no_of_leave
-			net_da = da - (da / 26) * total_no_of_leave 
-			net_c = c - (c / 26) * total_no_of_leave
-			net_hra = hra - (hra / 26) * total_no_of_leave
-			net_ea = ea - (ea / 26) * total_no_of_leave
-			net_aa = aa - (aa / 26) * total_no_of_leave
-			net_la = la - (la / 26) * total_no_of_leave
-			net_oa = oa - (oa / 26) * total_no_of_leave
+                        net_basic = basic - (basic / 26) * total_no_of_leave
+                        net_da = da - (da / 26) * total_no_of_leave 
+                        net_c = c - (c / 26) * total_no_of_leave
+                        net_hra = hra - (hra / 26) * total_no_of_leave
+                        net_ea = ea - (ea / 26) * total_no_of_leave
+                        net_aa = aa - (aa / 26) * total_no_of_leave
+                        net_la = la - (la / 26) * total_no_of_leave
+                        net_oa = oa - (oa / 26) * total_no_of_leave
 
-			total_earning =  net_basic + net_da + net_c + net_hra + net_ea + net_aa + net_la + net_oa + fa + spa + pc + cre + sha + lta + med + ma
-			gross_sal =  net_basic + net_da + net_c + net_hra + net_ea + net_aa + net_la + net_oa + fa + spa + pc + cre + sha + lta + med + ma
+                        total_earning =  net_basic + net_da + net_c + net_hra + net_ea + net_aa + net_la + net_oa + fa + spa + pc + cre + sha + lta + med + ma
+                        gross_sal =  net_basic + net_da + net_c + net_hra + net_ea + net_aa + net_la + net_oa + fa + spa + pc + cre + sha + lta + med + ma
 		
-			#gross_before = basic + c + hra  +spa + oa + da + ea
+                        shd = (gross_sal / calendar_days) * special_holiday_worked_count
+                        total_earning = total_earning + shd
+                        gross_sal = gross_sal + shd
+                        
+                        #gross_before = basic + c + hra  +spa + oa + da + ea
                         #if total_no_of_leave: # total_no_of_leave <-> total_lop
                         #    gross_sal = gross_before/26*(total_days-total_no_of_leave) # total_no_of_leave <-> total_lop
                         #    lop = gross_before - gross_sal
@@ -2055,7 +2086,7 @@ class arul_hr_payroll_executions(osv.osv):
                         #    lop = 0
                         #lop = gross_before - gross_sal
 
-			if gross_sal >= emp_esi_limit:
+                        if gross_sal >= emp_esi_limit:
                             emp_esi_con_amount = 0
                         else:
                             emp_esi_con_amount = total_earning*emp_esi_con/100
@@ -2063,10 +2094,10 @@ class arul_hr_payroll_executions(osv.osv):
                         base_amount = net_basic + net_da 
                         emp_pf_con_amount = base_amount*emp_pf_con/100
                         vpfd_amount = base_amount * vpfd / 100 	
-			total_deduction += (emp_pf_con_amount + emp_esi_con_amount + emp_lwf_amt + vpfd_amount)
-			net_sala = gross_sal - total_deduction
+                        total_deduction += (emp_pf_con_amount + emp_esi_con_amount + emp_lwf_amt + vpfd_amount)
+                        net_sala = gross_sal - total_deduction
 
-			#oa = oa - (oa / 26) * total_no_of_leave
+                        #oa = oa - (oa / 26) * total_no_of_leave
  			
 #                         for _other_deductions_id in payroll_emp_struc_obj.browse(cr,uid,emp_struc_ids[0]).payroll_other_deductions_line:
 #                             if _other_ea = ea - (ea / 26) * total_no_of_leavedeductions_id.deduction_parameters_id.code == 'LOP':
@@ -2140,7 +2171,7 @@ class arul_hr_payroll_executions(osv.osv):
                                           'earning_parameters_id':_earning_struc_id.earning_parameters_id.id,
                                           'float': net_oa,
                                     }))
-			    if _earning_struc_id.earning_parameters_id.code == 'MA': #TPT
+                            if _earning_struc_id.earning_parameters_id.code == 'MA': #TPT
                                 vals_earning_struc.append((0,0, {
                                           'earning_parameters_id':_earning_struc_id.earning_parameters_id.id,
                                           'float': ma,
@@ -2154,6 +2185,11 @@ class arul_hr_payroll_executions(osv.osv):
                                 vals_earning_struc.append((0,0, {
                                           'earning_parameters_id':_earning_struc_id.earning_parameters_id.id,
                                           'float': med,
+                                    }))
+                            if _earning_struc_id.earning_parameters_id.code == 'SHD': #TPT
+                                vals_earning_struc.append((0,0, {
+                                          'earning_parameters_id':_earning_struc_id.earning_parameters_id.id,
+                                          'float': shd,
                                     }))
 			   
 
