@@ -167,7 +167,54 @@ class arul_hr_employee_action_history(osv.osv):
 #         'address_id': fields.many2one('res.partner', 'Working Address',ondelete='restrict'),
 #         'department_id':fields.many2one('hr.department', 'Department',ondelete='restrict'),
     }
-    
+    #TPT:START
+    def action_view_paystruct(self, cr, uid, ids, context=None):
+       
+        mod_obj = self.pool.get('ir.model.data')
+        act_obj = self.pool.get('ir.actions.act_window')
+
+        result = mod_obj.get_object_reference(cr, uid, 'green_erp_arulmani_hrm', 'view_arul_hr_payroll_employee_structure_tree_vew')
+        id1 = result and result[1]
+        result = act_obj.read(cr, uid, id1, context=context)
+        #compute the number of delivery orders to display
+        #pick_ids = []
+        #for so in self.browse(cr, uid, ids, context=context):
+        #    pick_ids += [picking.id for picking in so.employee_id]
+            
+        so = self.browse(cr, uid, ids, context=context)[0]
+        #invoice = self.browse(cr, uid, id, context=context)
+        #raise osv.except_osv(_('Warning! %s'),_(so.employee_id))
+        pick_ids = so.employee_id.id
+        #choose the view_mode accordingly
+        #if len(pick_ids) > 1:
+        #    result['domain'] = "[('id','in',["+','.join(map(str, pick_ids))+"])]"
+        #else:
+        sql = '''
+            SELECT id FROM arul_hr_payroll_employee_structure where employee_id=%s
+        '''%so.employee_id.id
+        cr.execute(sql)
+        struct_id = cr.dictfetchone()['id']
+                
+        res =  mod_obj.get_object_reference(cr, uid, 'green_erp_arulmani_hrm', 'view_arul_hr_payroll_employee_structure_form_vew')
+        #result['views'] = [(res  or False, 'form')]
+        #result['res_id'] = so.employee_id
+        
+        result = {
+               #'name': 'Pay',
+               'view_type': 'form',               
+               'view_mode': 'form',
+               'views': [(res, 'form')],
+               'res_model': 'arul.hr.payroll.employee.structure',
+               #'view_id': res,
+               #'res_model': 'arul.hr.payroll.employee.structure',
+               #'domain': [('employee_id','=',so.employee_id)],
+               'res_id': struct_id, # assuming the many2one
+               'target': 'current',
+               #'type': 'ir.actions.act_window',
+               #'target': 'new',
+              }
+        return result
+    #TPT:END
     def name_get(self, cr, uid, ids, context=None):
         res = []
         if not ids:

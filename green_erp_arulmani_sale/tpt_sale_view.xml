@@ -211,7 +211,7 @@
 									    <field name="product_id" on_change="onchange_product_id(product_id)" options="{'create': false, 'create_edit': false}" domain="[('cate_name','=','finish')]"/>															
 										<field name="description"/>
 										<field name="product_type" />
-										<field name="application_id" options="{'create': false, 'create_edit': false}"/>
+										<field name="application_id" domain="[('product_id','=',product_id)]" options="{'create': false, 'create_edit': false}"/>
 										<field name="product_uom_qty" />
 										<field name="uom_po_id" options="{'create': false, 'create_edit': false}" readonly='1'/>
 										<field name="price_unit" />
