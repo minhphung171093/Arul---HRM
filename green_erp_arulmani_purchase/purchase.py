@@ -40,18 +40,25 @@ class tpt_purchase_indent(osv.osv):
         'employee_id':fields.many2one('hr.employee','Employee',  states={'cancel': [('readonly', True)], 'done':[('readonly', True)]}),
         'reason':fields.text('Reason', states={'cancel': [('readonly', True)], 'done':[('readonly', True)]}),
         'header_text':fields.text('Header Text',states={'cancel': [('readonly', True)], 'done':[('readonly', True)]}), #TPT
-        'requisitioner':fields.text('Requisitioner',states={'cancel': [('readonly', True)], 'done':[('readonly', True)]}),
+        'requisitioner':fields.many2one('hr.employee','Requisitioner',states={'cancel': [('readonly', True)], 'done':[('readonly', True)]}),
         'purchase_product_line':fields.one2many('tpt.purchase.product','pur_product_id','Materials'),
         'state':fields.selection([('draft', 'Draft'),('cancel', 'Closed'),
                                   ('done', 'Approve'),('rfq_raised','RFQ Raised'),
                                   ('quotation_raised','Quotation Raised'),
                                   ('po_raised','PO Raised')],'Status', readonly=True),
     }
+    
+    def _get_department_id(self,cr,uid,context=None):
+        user = self.pool.get('res.users').browse(cr,uid,uid)
+        return user.employee_id and user.employee_id.department_id and user.employee_id.department_id.id or False
+    
     _defaults = {
         'state':'draft',
         'date_indent': fields.datetime.now,
         'name': '/',
         'intdent_cate':'normal',
+        'department_id': _get_department_id,
+        'create_uid': lambda self,cr,uid,c:uid,
 #         'document_type':'base',
     }
     
@@ -79,7 +86,8 @@ class tpt_purchase_indent(osv.osv):
         return True   
 
     def create(self, cr, uid, vals, context=None):
-          
+        user = self.pool.get('res.users').browse(cr,uid,uid)
+        vals['department_id'] = user.employee_id and user.employee_id.department_id and user.employee_id.department_id.id
         if 'document_type' in vals:
             sql = '''
                 select code from account_fiscalyear where '%s' between date_start and date_stop
@@ -125,7 +133,6 @@ class tpt_purchase_indent(osv.osv):
                     if vals.get('name','/')=='/':
                         sequence = self.pool.get('ir.sequence').get(cr, uid, 'indent.purchase.normal')
                         vals['name'] =  sequence and sequence +'/'+fiscalyear['code']or '/'
-                vals['create_uid'] = uid
         new_id = super(tpt_purchase_indent, self).create(cr, uid, vals, context=context)   
 #         indent = self.browse(cr,uid, new_id)
 #         if indent.select_normal != 'multiple':
@@ -146,11 +153,10 @@ class tpt_purchase_indent(osv.osv):
         return {'value': {'date_expect':dates}}
     def onchange_create_uid(self, cr, uid, ids,create_uid=False, context=None):
         vals = {}
-        if create_uid :
-            uid = self.pool.get('res.users').browse(cr,uid,create_uid)
-            vals = {
-                    'department_id': uid.employee_id.department_id.id
-                    }
+        user = self.pool.get('res.users').browse(cr,uid,uid)
+        vals = {
+                'department_id': user.employee_id and user.employee_id.department_id and user.employee_id.department_id.id
+                }
         return {'value': vals}
     
     def onchange_document_type(self, cr, uid, ids,document_type=False, context=None):
@@ -1474,6 +1480,7 @@ class purchase_order(osv.osv):
                     delete from purchase_order_line where order_id = %s
                 '''%(indent.id)
                 cr.execute(sql)
+                
             quotation = self.pool.get('tpt.purchase.quotation').browse(cr, uid, quotation_no)
             for line in quotation.purchase_quotation_line:
                 if po_indent_no==line.po_indent_id.id:
@@ -1532,6 +1539,9 @@ class purchase_order(osv.osv):
 #                     'amount_tax': quotation.amount_total_tax or '',
                     'order_line': po_line,
                     }
+            pur_int = self.pool.get('tpt.purchase.indent').browse(cr, uid, po_indent_no)
+            if pur_int.document_type == 'service':
+                vals['po_document_type'] = 'service'
             return {'value': vals}
     def create(self, cr, uid, vals, context=None):
         new_id = super(purchase_order, self).create(cr, uid, vals, context)
@@ -2414,7 +2424,8 @@ class tpt_request_for_quotation(osv.osv):
         'name': fields.char('RFQ No', size = 1024,readonly=True, required = True , states={'cancel': [('readonly', True)], 'done':[('readonly', True)]}),
         'rfq_date': fields.datetime('RFQ Date', states={'cancel': [('readonly', True)], 'done':[('readonly', True)]}),
         'rfq_category': fields.selection([('single','Single'),('mutiple','Multiple'),('special','Special')],'RFQ Category', required = True, states={'cancel': [('readonly', True)], 'done':[('readonly', True)]}),
-        'create_on': fields.datetime('Created on', states={'cancel': [('readonly', True)], 'done':[('readonly', True)]}),
+        'create_uid':fields.many2one('res.users','Raised By', readonly = True),
+        'create_on': fields.datetime('Created on', readonly = True),
         'expect_quote_date': fields.date('Expected Quote Date', states={'cancel': [('readonly', True)], 'done':[('readonly', True)]}),
         'rfq_line': fields.one2many('tpt.rfq.line', 'rfq_id', 'RFQ Line', states={'cancel': [('readonly', True)], 'done':[('readonly', True)]}),
         'rfq_supplier': fields.one2many('tpt.rfq.supplier', 'rfq_id', 'Supplier Line', states={'cancel': [('readonly', True)], 'done':[('readonly', True)]}),
@@ -2424,6 +2435,8 @@ class tpt_request_for_quotation(osv.osv):
                'name':'/',
                'state': 'draft',
                'rfq_date':fields.datetime.now,
+               'create_on':fields.datetime.now,
+               'create_uid': lambda self,cr,uid,c:uid,
     }
     
     def search(self, cr, uid, args, offset=0, limit=None, order=None, context=None, count=False):
