@@ -204,6 +204,10 @@ class stock_picking_in(osv.osv):
         'document_type':fields.selection([('asset','VV Asset PO'),('standard','VV Standard PO'),('local','VV Local PO')],'PO Document Type',readonly = True),
         'warehouse':fields.many2one('stock.location','Warehouse'),
         'po_date': fields.datetime('PO Date', readonly = True),   
+        'gate_in_pass_no':fields.many2one('tpt.gate.in.pass','Gate In Pass No'),
+        'truck':fields.char('Truck No', size = 64),
+        'delivery_no':fields.char('Delivery Challan No', size = 64),
+        'invoice_no':fields.char('Invoice No & Date', size = 64),
                 }
     
     def onchange_purchase_id(self, cr, uid, ids,purchase_id=False, context=None):
@@ -258,7 +262,22 @@ class stock_move(osv.osv):
         'action_taken':fields.selection([('direct','Direct Stock Update'),('move','Move to Consumption'),('need','Need Inspection')],'Action to be Taken'),
         'po_indent_id': fields.many2one('tpt.purchase.indent','PO Indent No'),
         'inspec': fields.boolean('Inspec'),  
+        'bin_location':fields.char('Bin Location',size = 256),
+        'si_no':fields.integer('SI.No',readonly = True),
                 }
+    
+    def create(self, cr, uid, vals, context=None):
+        if vals.get('picking_id',False):
+            vals['si_no'] = len(self.search(cr, uid,[('picking_id', '=', vals['picking_id'])])) + 1
+        return super(stock_move, self).create(cr, uid, vals, context)
+
+    def unlink(self, cr, uid, ids, context=None):
+        for line in self.browse(cr, uid, ids, context=context):
+            update_ids = self.search(cr, uid,[('picking_id','=',line.picking_id.id),('si_no','>',line.si_no)])
+            if update_ids:
+                cr.execute("UPDATE stock_move SET si_no=si_no-1 WHERE id in %s",(tuple(update_ids),))
+        return super(stock_move, self).unlink(cr, uid, ids, context=context)
+    
     def onchange_action_taken(self, cr, uid, ids,action_taken=False,product_id=False,context=None):
         vals = {}
         if action_taken and product_id:
@@ -407,7 +426,6 @@ class account_invoice(osv.osv):
     def create(self, cr, uid, vals, context=None):
         if vals.get('type','')=='in_invoice':
             vals['name'] = self.pool.get('ir.sequence').get(cr, uid, 'tpt.supplier.invoice.sequence') or '/'
-            vals['create_uid'] = uid
         new_id = super(account_invoice, self).create(cr, uid, vals, context)
         return new_id
     

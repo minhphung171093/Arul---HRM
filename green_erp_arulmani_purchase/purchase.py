@@ -40,18 +40,25 @@ class tpt_purchase_indent(osv.osv):
         'employee_id':fields.many2one('hr.employee','Employee',  states={'cancel': [('readonly', True)], 'done':[('readonly', True)]}),
         'reason':fields.text('Reason', states={'cancel': [('readonly', True)], 'done':[('readonly', True)]}),
         'header_text':fields.text('Header Text',states={'cancel': [('readonly', True)], 'done':[('readonly', True)]}), #TPT
-        'requisitioner':fields.text('Requisitioner',states={'cancel': [('readonly', True)], 'done':[('readonly', True)]}),
+        'requisitioner':fields.many2one('hr.employee','Requisitioner',states={'cancel': [('readonly', True)], 'done':[('readonly', True)]}),
         'purchase_product_line':fields.one2many('tpt.purchase.product','pur_product_id','Materials'),
         'state':fields.selection([('draft', 'Draft'),('cancel', 'Closed'),
                                   ('done', 'Approve'),('rfq_raised','RFQ Raised'),
                                   ('quotation_raised','Quotation Raised'),
                                   ('po_raised','PO Raised')],'Status', readonly=True),
     }
+    
+    def _get_department_id(self,cr,uid,context=None):
+        user = self.pool.get('res.users').browse(cr,uid,uid)
+        return user.employee_id and user.employee_id.department_id and user.employee_id.department_id.id or False
+    
     _defaults = {
         'state':'draft',
         'date_indent': fields.datetime.now,
         'name': '/',
         'intdent_cate':'normal',
+        'department_id': _get_department_id,
+#         'create_uid': lambda self,cr,uid,c:uid,
 #         'document_type':'base',
     }
     
@@ -79,7 +86,8 @@ class tpt_purchase_indent(osv.osv):
         return True   
 
     def create(self, cr, uid, vals, context=None):
-          
+        user = self.pool.get('res.users').browse(cr,uid,uid)
+        vals['department_id'] = user.employee_id and user.employee_id.department_id and user.employee_id.department_id.id or False
         if 'document_type' in vals:
             sql = '''
                 select code from account_fiscalyear where '%s' between date_start and date_stop
@@ -125,7 +133,6 @@ class tpt_purchase_indent(osv.osv):
                     if vals.get('name','/')=='/':
                         sequence = self.pool.get('ir.sequence').get(cr, uid, 'indent.purchase.normal')
                         vals['name'] =  sequence and sequence +'/'+fiscalyear['code']or '/'
-                vals['create_uid'] = uid
         new_id = super(tpt_purchase_indent, self).create(cr, uid, vals, context=context)   
 #         indent = self.browse(cr,uid, new_id)
 #         if indent.select_normal != 'multiple':
@@ -146,11 +153,10 @@ class tpt_purchase_indent(osv.osv):
         return {'value': {'date_expect':dates}}
     def onchange_create_uid(self, cr, uid, ids,create_uid=False, context=None):
         vals = {}
-        if create_uid :
-            uid = self.pool.get('res.users').browse(cr,uid,create_uid)
-            vals = {
-                    'department_id': uid.employee_id.department_id.id
-                    }
+        user = self.pool.get('res.users').browse(cr,uid,uid)
+        vals = {
+                'department_id': user.employee_id and user.employee_id.department_id and user.employee_id.department_id.id
+                }
         return {'value': vals}
     
     def onchange_document_type(self, cr, uid, ids,document_type=False, context=None):
@@ -277,7 +283,7 @@ class tpt_purchase_product(osv.osv):
         
         if 'product_id' in vals:
             product = self.pool.get('product.product').browse(cr, uid, vals['product_id'])
-            vals.update({'uom_po_id':product.uom_id.id})
+            vals.update({'uom_po_id':product.uom_id.id,'description':product.name})
         new_id = super(tpt_purchase_product, self).create(cr, uid, vals, context)
         if 'product_uom_qty' in vals:
             if (vals['product_uom_qty'] < 0):
@@ -290,7 +296,7 @@ class tpt_purchase_product(osv.osv):
     def write(self, cr, uid, ids, vals, context=None):
         if 'product_id' in vals:
             product = self.pool.get('product.product').browse(cr, uid, vals['product_id'])
-            vals.update({'uom_po_id':product.uom_id.id})
+            vals.update({'uom_po_id':product.uom_id.id,'description':product.name})
         new_write = super(tpt_purchase_product, self).write(cr, uid,ids, vals, context)
         for line in self.browse(cr,uid,ids):
             if line.product_uom_qty < 0:
@@ -1042,11 +1048,20 @@ class tpt_purchase_quotation_line(osv.osv):
         'fright': fields.float('Fright'),
         'fright_type':fields.selection([('1','%'),('2','Rs')],('Fright Type')),
         'line_net': fields.function(line_net_line, store = True, multi='deltas' ,string='SubTotal'),
+        'line_no': fields.integer('SI.No', readonly = True),
         #TPT
         #'item_text': fields.char('Item Text'), 
         }
+    def unlink(self, cr, uid, ids, context=None):
+        for line in self.browse(cr, uid, ids):
+            update_ids = self.search(cr, uid,[('purchase_quotation_id','=',line.purchase_quotation_id.id),('line_no','>',line.line_no)])
+            if update_ids:
+                cr.execute("UPDATE tpt_purchase_quotation_line SET line_no=line_no-1 WHERE id in %s",(tuple(update_ids),))
+        return super(tpt_purchase_quotation_line, self).unlink(cr, uid, ids, context)  
     
     def create(self, cr, uid, vals, context=None):
+        if vals.get('purchase_quotation_id',False):
+            vals['line_no'] = len(self.search(cr, uid,[('purchase_quotation_id', '=', vals['purchase_quotation_id'])])) + 1
         if 'po_indent_id' in vals:
             if 'product_id' in vals:
                 indent = self.pool.get('tpt.purchase.indent').browse(cr, uid, vals['po_indent_id'])
@@ -1295,14 +1310,23 @@ class purchase_order(osv.osv):
             result[line.order_id.id] = True
         return result.keys()
     _columns = {
-        'po_document_type':fields.selection([('asset','VV Asset PO'),('standard','VV Standard PO'),('local','VV Local PO'),('return','VV Return PO'),('service','VV Service PO'),('out','VV Out Service PO')],'PO Document Type', required = True),
-        'quotation_no': fields.many2one('tpt.purchase.quotation', 'Quotation No', required = True),
-        'po_indent_no' : fields.many2one('tpt.purchase.indent', 'PO Indent No', required = True),
-        'state_id': fields.many2one('res.country.state', 'Vendor Location'),
-        'for_basis': fields.char('For Basis', size = 1024),
-        'mode_dis': fields.char('Mode Of Dispatch', size = 1024),
-        'ecc_no': fields.char('ECC No', size = 1024),
-        'deli_sche': fields.char('Delivery Schedule', size = 1024),
+        'po_document_type':fields.selection([('asset','VV Asset PO'),('standard','VV Standard PO'),('local','VV Local PO'),('return','VV Return PO'),('service','VV Service PO'),('out','VV Out Service PO')],'PO Document Type', required = True, track_visibility='onchange'),
+        'quotation_no': fields.many2one('tpt.purchase.quotation', 'Quotation No', required = True, track_visibility='onchange'),
+        'po_indent_no' : fields.many2one('tpt.purchase.indent', 'PO Indent No', required = True, track_visibility='onchange'),
+        'partner_ref': fields.char('Supplier Reference', states={'confirmed':[('readonly',True)], 'approved':[('readonly',True)],'done':[('readonly',True)]}, size=64,
+            help="Reference of the sales order or quotation sent by your supplier. It's mainly used to do the matching when you receive the products as this reference is usually written on the delivery order sent by your supplier.", track_visibility='onchange'),
+        'state_id': fields.many2one('res.country.state', 'Vendor Location', track_visibility='onchange'),
+        'for_basis': fields.char('For Basis', size = 1024, track_visibility='onchange'),
+        'mode_dis': fields.char('Mode Of Dispatch', size = 1024, track_visibility='onchange'),
+        'date_order':fields.date('Order Date', required=True, states={'confirmed':[('readonly',True)], 'approved':[('readonly',True)]}, select=True, help="Date on which this document has been created.", track_visibility='onchange'),
+        'ecc_no': fields.char('ECC No', size = 1024, track_visibility='onchange'),
+        'payment_term_id': fields.many2one('account.payment.term', 'Payment Term', track_visibility='onchange'),
+        'deli_sche': fields.char('Delivery Schedule', size = 1024, track_visibility='onchange'),
+        'partner_id':fields.many2one('res.partner', 'Supplier', required=True, states={'amendement':[('readonly',True)], 'confirmed':[('readonly',True)], 'approved':[('readonly',True)],'done':[('readonly',True)]},
+            change_default=True, track_visibility='always'),
+        'company_id': fields.many2one('res.company','Company',required=True,select=1, states={'confirmed':[('readonly',True)], 'approved':[('readonly',True)]}, track_visibility='onchange'),
+        'reason': fields.text('Reason', size = 1024, track_visibility='onchange'),        
+        
         
         #ham function
         
@@ -1360,7 +1384,17 @@ class purchase_order(osv.osv):
         'name':'/',
                }
     def action_amendement(self, cr, uid, ids, context=None):
-        return self.write(cr, uid, ids,{'state':'amendement'}) 
+        for purchase in self.browse(cr,uid,ids):
+            self.write(cr, uid, ids,{'state':'amendement'}) 
+            order_obj = self.pool.get('purchase.order.line')
+            sql = '''
+                select id from purchase_order_line where order_id = %s
+            '''%(purchase.id)
+            cr.execute(sql)
+            purchase_ids = [r[0] for r in cr.fetchall()]
+            order_obj.write(cr, uid, purchase_ids,{'state':'amendement'})
+        
+        return True
 
     def action_cancel(self, cr, uid, ids, context=None):
         wf_service = netsvc.LocalService("workflow")
@@ -1446,6 +1480,7 @@ class purchase_order(osv.osv):
                     delete from purchase_order_line where order_id = %s
                 '''%(indent.id)
                 cr.execute(sql)
+                
             quotation = self.pool.get('tpt.purchase.quotation').browse(cr, uid, quotation_no)
             for line in quotation.purchase_quotation_line:
                 if po_indent_no==line.po_indent_id.id:
@@ -1504,6 +1539,9 @@ class purchase_order(osv.osv):
 #                     'amount_tax': quotation.amount_total_tax or '',
                     'order_line': po_line,
                     }
+            pur_int = self.pool.get('tpt.purchase.indent').browse(cr, uid, po_indent_no)
+            if pur_int.document_type == 'service':
+                vals['po_document_type'] = 'service'
             return {'value': vals}
     def create(self, cr, uid, vals, context=None):
         new_id = super(purchase_order, self).create(cr, uid, vals, context)
@@ -1839,22 +1877,52 @@ class purchase_order_line(osv.osv):
     
     _columns = {
 #                 'purchase_tax_id': fields.many2one('account.tax', 'Taxes', domain="[('type_tax_use','=','purchase')]", required = True), 
-                'discount': fields.float('DISC'),
-                'p_f': fields.float('P&F'),
-                'p_f_type':fields.selection([('1','%'),('2','Rs')],('P&F Type')),
-                'ed': fields.float('ED'),
-                'ed_type':fields.selection([('1','%'),('2','Rs')],('ED Type')),
-                'fright': fields.float('Fright'),
-                'fright_type':fields.selection([('1','%'),('2','Rs')],('Fright Type')),
+                'product_id': fields.many2one('product.product', 'Product', domain=[('purchase_ok','=',True)], change_default=True, states={'amendement':[('readonly',True)]}),
+                'product_qty': fields.float('Quantity', digits_compute=dp.get_precision('Product Unit of Measure'), required=True, track_visibility='onchange'),    
+                'product_uom': fields.many2one('product.uom', 'Product Unit of Measure', required=True, track_visibility='onchange'),  
+                'price_unit': fields.float('Unit Price', required=True, digits_compute= dp.get_precision('Product Price'), track_visibility='onchange'),  
+                'discount': fields.float('DISC', track_visibility='onchange'),  
+                'p_f': fields.float('P&F', track_visibility='onchange'),  
+                'p_f_type':fields.selection([('1','%'),('2','Rs')],('P&F Type'), track_visibility='onchange'),  
+                'ed': fields.float('ED', track_visibility='onchange'),  
+                'ed_type':fields.selection([('1','%'),('2','Rs')],('ED Type'), track_visibility='onchange'),  
+                'taxes_id': fields.many2many('account.tax', 'purchase_order_taxe', 'ord_id', 'tax_id', 'Taxes', track_visibility='onchange'),  
+                'fright': fields.float('Fright', track_visibility='onchange'),  
+                'fright_type':fields.selection([('1','%'),('2','Rs')],('Fright Type'), track_visibility='onchange'),  
+                'line_no': fields.integer('SI.No', readonly = True),
                 # ham function line_net
                 'short_qty': fields.function(get_short_qty,type='float',digits=(16,0),multi='sum', string='Short Closed Qty'),
                 'line_net': fields.function(line_net_line_po, store = True, multi='deltas' ,string='Line Net'),
+                'state': fields.selection([('amendement', 'Amendement'), ('draft', 'Draft'), ('confirmed', 'Confirmed'), ('done', 'Done'), ('cancel', 'Cancelled')], 'Status', required=True, readonly=True,
+                                  help=' * The \'Draft\' status is set automatically when purchase order in draft status. \
+                                       \n* The \'Confirmed\' status is set automatically as confirm when purchase order in confirm status. \
+                                       \n* The \'Done\' status is set automatically when purchase order is set as done. \
+                                       \n* The \'Cancelled\' status is set automatically when user cancel purchase order.'),
                 #TPT
                 #'item_text': fields.char('Item Text'), 
                 }
     _defaults = {
                  'date_planned':time.strftime('%Y-%m-%d'),
                  }
+    
+    def create(self, cr, uid, vals, context=None):
+        if vals.get('order_id',False):
+            vals['line_no'] = len(self.search(cr, uid,[('order_id', '=', vals['order_id'])])) + 1
+        return super(purchase_order_line, self).create(cr, uid, vals, context)
+    def unlink(self, cr, uid, ids, context=None):
+        procurement_ids_to_cancel = []
+        for line in self.browse(cr, uid, ids, context=context):
+            update_ids = self.search(cr, uid,[('order_id','=',line.order_id.id),('line_no','>',line.line_no)])
+            if update_ids:
+                cr.execute("UPDATE purchase_order_line SET line_no=line_no-1 WHERE id in %s",(tuple(update_ids),))
+            if line.move_dest_id:
+                procurement_ids_to_cancel.extend(procurement.id for procurement in line.move_dest_id.procurements)
+            if (line.order_id.quotation_no.state == 'done'):
+                raise osv.except_osv(_('Warning!'), _('This PO line can not be deleted!'))
+        if procurement_ids_to_cancel:
+            self.pool['procurement.order'].action_cancel(cr, uid, procurement_ids_to_cancel)
+        return super(purchase_order_line, self).unlink(cr, uid, ids, context=context)
+    
     def onchange_po_indent_no(self, cr, uid, ids,po_indent_no=False, context=None):
         if po_indent_no:
             return {'value': {'product_id': False}}    
@@ -2356,7 +2424,8 @@ class tpt_request_for_quotation(osv.osv):
         'name': fields.char('RFQ No', size = 1024,readonly=True, required = True , states={'cancel': [('readonly', True)], 'done':[('readonly', True)]}),
         'rfq_date': fields.datetime('RFQ Date', states={'cancel': [('readonly', True)], 'done':[('readonly', True)]}),
         'rfq_category': fields.selection([('single','Single'),('mutiple','Multiple'),('special','Special')],'RFQ Category', required = True, states={'cancel': [('readonly', True)], 'done':[('readonly', True)]}),
-        'create_on': fields.datetime('Created on', states={'cancel': [('readonly', True)], 'done':[('readonly', True)]}),
+        'create_uid':fields.many2one('res.users','Raised By', readonly = True),
+        'create_on': fields.datetime('Created on', readonly = True),
         'expect_quote_date': fields.date('Expected Quote Date', states={'cancel': [('readonly', True)], 'done':[('readonly', True)]}),
         'rfq_line': fields.one2many('tpt.rfq.line', 'rfq_id', 'RFQ Line', states={'cancel': [('readonly', True)], 'done':[('readonly', True)]}),
         'rfq_supplier': fields.one2many('tpt.rfq.supplier', 'rfq_id', 'Supplier Line', states={'cancel': [('readonly', True)], 'done':[('readonly', True)]}),
@@ -2366,6 +2435,7 @@ class tpt_request_for_quotation(osv.osv):
                'name':'/',
                'state': 'draft',
                'rfq_date':fields.datetime.now,
+               'create_on':fields.datetime.now,
     }
     
     def search(self, cr, uid, args, offset=0, limit=None, order=None, context=None, count=False):

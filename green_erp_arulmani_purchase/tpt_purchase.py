@@ -41,7 +41,21 @@ class tpt_mrp_process(osv.osv):
             sql = '''
                     select product_product.id, uom_po_id
                     from product_product, product_template
-                    where mrp_control = True and max_stock >= re_stock and product_product.id = product_template.id
+                    where mrp_control = True and  (
+                            select sum(foo.product_qty) as ton_sl from 
+                                (select st.product_qty
+                                    from stock_move st 
+                                        inner join stock_location l2 on st.location_dest_id= l2.id
+                                        inner join product_uom pu on st.product_uom = pu.id
+                                    where st.state='done' and st.product_id=product_product.id and l2.usage = 'internal'
+                                union all
+                                select st.product_qty*-1
+                                    from stock_move st 
+                                        inner join stock_location l1 on st.location_id= l1.id
+                                        inner join product_uom pu on st.product_uom = pu.id
+                                    where st.state='done' and st.product_id=product_product.id and l1.usage = 'internal'
+                                )foo
+                            ) >= re_stock and product_product.id = product_template.id
                     and (product_product.id not in (select product_id from tpt_purchase_indent,tpt_purchase_product 
                             where tpt_purchase_indent.id = tpt_purchase_product.purchase_indent_id 
                             and tpt_purchase_indent.state != 'cancel' 

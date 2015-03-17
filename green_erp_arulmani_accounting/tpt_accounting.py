@@ -1361,6 +1361,8 @@ class account_voucher(osv.osv):
         'cheque_number': fields.char('Cheque Number'),
         'bank_name': fields.char('Bank Name'),
         'tpt_journal':fields.selection([('cash','Cash'),('bank','Bank')],'Type'),
+        'tpt_cus_reconcile':fields.boolean('Cus Reconcile',readonly =True ),
+        'tpt_sup_reconcile':fields.boolean('Sup Reconcile',readonly =True ),
         'state':fields.selection(
             [('draft','Draft'),
              ('cancel','Cancelled'),
@@ -1372,6 +1374,17 @@ class account_voucher(osv.osv):
                         \n* The \'Posted\' status is used when user create voucher,a voucher number is generated and voucher entries are created in account \
                         \n* The \'Cancelled\' status is used when user cancel voucher.'),
         }
+    
+    def default_get(self, cr, uid, fields, context=None):
+        if context is None:
+            context = {}
+        res = super(account_voucher, self).default_get(cr, uid, fields, context=context)
+        journal = self.pool.get('account.journal').search(cr, uid, [('type', '=', 'cash')])
+        if context.get('get_customer_reconcile'):
+            res.update({'journal_id': journal[0],'tpt_cus_reconcile': True})
+        if context.get('get_supp_reconcile'):
+            res.update({'journal_id': journal[0],'tpt_sup_reconcile': True})
+        return res
     
     def _default_journal_id(self, cr, uid, context=None):
         if context is None:
@@ -1934,9 +1947,9 @@ class tpt_hr_payroll_approve_reject(osv.osv):
                 if not period_ids:
                     raise osv.except_osv(_('Warning!'),_('Period is not null, please configure it in Period master !'))
                 for period_id in period_obj.browse(cr,uid,period_ids):
-                    payroll_ids = str(payroll_ids).replace("[","(")
-                    payroll_ids = payroll_ids.replace("]",")")
                     if payroll_ids:
+                        payroll_ids = str(payroll_ids).replace("[","(")
+                        payroll_ids = payroll_ids.replace("]",")")
                         sql_journal = '''
                         select id from account_journal
                         '''
@@ -1946,31 +1959,31 @@ class tpt_hr_payroll_approve_reject(osv.osv):
     
                         sql_gross = '''
                             select sum(float) as gross_salary from arul_hr_payroll_earning_structure where earning_parameters_id in (select id from arul_hr_payroll_earning_parameters where code='GROSS_SALARY')
-                            and executions_details_id in (select id from arul_hr_payroll_executions_details where payroll_executions_id in (%s))
+                            and executions_details_id in (select id from arul_hr_payroll_executions_details where payroll_executions_id in %s)
                         '''%(payroll_ids)
                         cr.execute(sql_gross)
                         gross = cr.dictfetchone()['gross_salary']
                         sql_provident = '''
                             select sum(float) as provident from arul_hr_payroll_earning_structure where earning_parameters_id in (select id from arul_hr_payroll_deduction_parameters where code='PF.D')
-                            and executions_details_id in (select id from arul_hr_payroll_executions_details where payroll_executions_id in (%s))
+                            and executions_details_id in (select id from arul_hr_payroll_executions_details where payroll_executions_id in %s)
                         '''%(payroll_ids)
                         cr.execute(sql_provident)
                         provident = cr.dictfetchone()['provident']
                         sql_vpf = '''
                             select sum(float) as vpf from arul_hr_payroll_earning_structure where earning_parameters_id in (select id from arul_hr_payroll_deduction_parameters where code='VPF.D')
-                            and executions_details_id in (select id from arul_hr_payroll_executions_details where payroll_executions_id in (%s))
+                            and executions_details_id in (select id from arul_hr_payroll_executions_details where payroll_executions_id in %s)
                         '''%(payroll_ids)
                         cr.execute(sql_vpf)
                         vpf = cr.dictfetchone()['vpf']
                         sql_tax = '''
                             select sum(float) as tax from arul_hr_payroll_earning_structure where earning_parameters_id in (select id from arul_hr_payroll_deduction_parameters where code='PT')
-                            and executions_details_id in (select id from arul_hr_payroll_executions_details where payroll_executions_id in (%s))
+                            and executions_details_id in (select id from arul_hr_payroll_executions_details where payroll_executions_id in %s)
                         '''%(payroll_ids)
                         cr.execute(sql_tax)
                         tax = cr.dictfetchone()['tax']
                         sql_lwf = '''
                             select sum(float) as tax from arul_hr_payroll_earning_structure where earning_parameters_id in (select id from arul_hr_payroll_deduction_parameters where code='LWF')
-                            and executions_details_id in (select id from arul_hr_payroll_executions_details where payroll_executions_id in (%s))
+                            and executions_details_id in (select id from arul_hr_payroll_executions_details where payroll_executions_id in %s)
                         '''%(payroll_ids)
                         cr.execute(sql_lwf)
                         lwf = cr.dictfetchone()['tax']
