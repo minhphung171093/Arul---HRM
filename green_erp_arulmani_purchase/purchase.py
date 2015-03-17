@@ -1474,6 +1474,7 @@ class purchase_order(osv.osv):
                     delete from purchase_order_line where order_id = %s
                 '''%(indent.id)
                 cr.execute(sql)
+                
             quotation = self.pool.get('tpt.purchase.quotation').browse(cr, uid, quotation_no)
             for line in quotation.purchase_quotation_line:
                 if po_indent_no==line.po_indent_id.id:
@@ -1532,6 +1533,9 @@ class purchase_order(osv.osv):
 #                     'amount_tax': quotation.amount_total_tax or '',
                     'order_line': po_line,
                     }
+            pur_int = self.pool.get('tpt.purchase.indent').browse(cr, uid, po_indent_no)
+            if pur_int.document_type == 'service':
+                vals['po_document_type'] = 'service'
             return {'value': vals}
     def create(self, cr, uid, vals, context=None):
         new_id = super(purchase_order, self).create(cr, uid, vals, context)
@@ -2412,7 +2416,7 @@ class tpt_request_for_quotation(osv.osv):
     
     _columns = {
         'name': fields.char('RFQ No', size = 1024,readonly=True, required = True , states={'cancel': [('readonly', True)], 'done':[('readonly', True)]}),
-        'rfq_date': fields.datetime('RFQ Date', states={'cancel': [('readonly', True)], 'done':[('readonly', True)]}),
+        'rfq_date': fields.date('RFQ Date', states={'cancel': [('readonly', True)], 'done':[('readonly', True)]}),
         'rfq_category': fields.selection([('single','Single'),('mutiple','Multiple'),('special','Special')],'RFQ Category', required = True, states={'cancel': [('readonly', True)], 'done':[('readonly', True)]}),
         'create_on': fields.datetime('Created on', states={'cancel': [('readonly', True)], 'done':[('readonly', True)]}),
         'expect_quote_date': fields.date('Expected Quote Date', states={'cancel': [('readonly', True)], 'done':[('readonly', True)]}),
@@ -2423,7 +2427,7 @@ class tpt_request_for_quotation(osv.osv):
     _defaults={
                'name':'/',
                'state': 'draft',
-               'rfq_date':fields.datetime.now,
+               'rfq_date':time.strftime('%Y-%m-%d'),
     }
     
     def search(self, cr, uid, args, offset=0, limit=None, order=None, context=None, count=False):
