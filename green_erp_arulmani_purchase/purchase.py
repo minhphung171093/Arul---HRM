@@ -58,7 +58,7 @@ class tpt_purchase_indent(osv.osv):
         'name': '/',
         'intdent_cate':'normal',
         'department_id': _get_department_id,
-        'create_uid': lambda self,cr,uid,c:uid,
+#         'create_uid': lambda self,cr,uid,c:uid,
 #         'document_type':'base',
     }
     
@@ -87,7 +87,7 @@ class tpt_purchase_indent(osv.osv):
 
     def create(self, cr, uid, vals, context=None):
         user = self.pool.get('res.users').browse(cr,uid,uid)
-        vals['department_id'] = user.employee_id and user.employee_id.department_id and user.employee_id.department_id.id
+        vals['department_id'] = user.employee_id and user.employee_id.department_id and user.employee_id.department_id.id or False
         if 'document_type' in vals:
             sql = '''
                 select code from account_fiscalyear where '%s' between date_start and date_stop
