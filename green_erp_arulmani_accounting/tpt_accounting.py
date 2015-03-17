@@ -1361,6 +1361,8 @@ class account_voucher(osv.osv):
         'cheque_number': fields.char('Cheque Number'),
         'bank_name': fields.char('Bank Name'),
         'tpt_journal':fields.selection([('cash','Cash'),('bank','Bank')],'Type'),
+        'tpt_cus_reconcile':fields.boolean('Cus Reconcile',readonly =True ),
+        'tpt_sup_reconcile':fields.boolean('Sup Reconcile',readonly =True ),
         'state':fields.selection(
             [('draft','Draft'),
              ('cancel','Cancelled'),
@@ -1372,6 +1374,17 @@ class account_voucher(osv.osv):
                         \n* The \'Posted\' status is used when user create voucher,a voucher number is generated and voucher entries are created in account \
                         \n* The \'Cancelled\' status is used when user cancel voucher.'),
         }
+    
+    def default_get(self, cr, uid, fields, context=None):
+        if context is None:
+            context = {}
+        res = super(account_voucher, self).default_get(cr, uid, fields, context=context)
+        journal = self.pool.get('account.journal').search(cr, uid, [('type', '=', 'cash')])
+        if context.get('get_customer_reconcile'):
+            res.update({'journal_id': journal[0],'tpt_cus_reconcile': True})
+        if context.get('get_supp_reconcile'):
+            res.update({'journal_id': journal[0],'tpt_sup_reconcile': True})
+        return res
     
     def _default_journal_id(self, cr, uid, context=None):
         if context is None:
