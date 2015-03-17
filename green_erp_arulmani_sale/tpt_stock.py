@@ -750,6 +750,7 @@ class stock_move(osv.osv):
             store={
                 'stock.move': (lambda self, cr, uid, ids, c={}: ids, ['product_id','product_uom','product_qty'], 10),
             }, readonly=True, multi='pro_info'),
+        'bin_location':fields.char('Bin Location',size = 256),
         
                 }
     
@@ -1025,3 +1026,13 @@ class product_product(osv.osv):
        return self.name_get(cr, user, ids, context=context)
    
 product_product()
+
+class stock_picking_in(osv.osv):
+    _inherit = "stock.picking.in"
+    _columns = {        
+        'gate_in_pass_no':fields.char('Gate In Pass No', size = 64),
+        'truck':fields.char('Truck No', size = 64),
+        'delivery_no':fields.char('Delivery Challan No', size = 64),
+        'invoice_no':fields.char('Invoice No & Date', size = 64),
+                }
+stock_picking_in()
