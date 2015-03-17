@@ -750,6 +750,7 @@ class stock_move(osv.osv):
             store={
                 'stock.move': (lambda self, cr, uid, ids, c={}: ids, ['product_id','product_uom','product_qty'], 10),
             }, readonly=True, multi='pro_info'),
+
         
                 }
     
@@ -757,6 +758,10 @@ class stock_move(osv.osv):
 #         'location_id': 1,
 #         'location_dest_id': 1,
 #     }
+
+
+
+
     def onchange_sys_batch(self, cr, uid, ids,sys_batch=False,qty=False,context=None):
         vals = {}
         if context is None:
@@ -1025,3 +1030,4 @@ class product_product(osv.osv):
        return self.name_get(cr, user, ids, context=context)
    
 product_product()
+

@@ -58,7 +58,7 @@
 							<field name="department_id" readonly='1' options="{'create': false, 'create_edit': false}" />
 							<field name="create_uid" on_change="onchange_create_uid(create_uid)" options="{'create': false, 'create_edit': false}"  />
 							<field name="date_expect"/>
-							<field name="requisitioner"/>
+							<field name="requisitioner" options="{'create': false, 'create_edit': false}" domain="[('department_id','=',department_id)]"  />
 							<field name="header_text"/>
 						</group>
 						<group >
@@ -1379,6 +1379,7 @@
 					<field name="rfq_category"/>
 					<field name="create_on"/>
 					<field name="expect_quote_date"/>
+					<field name="create_uid" />
 					<field name="state" widget="statusbar" statusbar_visible="draft,cancel,done" statusbar_colors='{"draft":"blue","cancel":"blue"}'/>
 				</tree>
 			</field>
@@ -1401,6 +1402,7 @@
 							<field name="rfq_category"/>
 							<field name="create_on"/>
 							<field name="expect_quote_date"/>
+							<field name="create_uid" options="{'create': false, 'create_edit': false}" />
 	            		</group>
 	            		<notebook>
 							<page string = "RFQ Line">
