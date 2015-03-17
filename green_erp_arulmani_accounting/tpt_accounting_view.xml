@@ -1023,7 +1023,7 @@
                         <page string="Payment Information" groups="base.group_user">
                             <label for="line_cr_ids" invisible="context.get('line_type', False)"/>
                             <field name="line_cr_ids" context="{'journal_id':journal_id, 'type':type, 'partner_id':partner_id}" on_change="onchange_line_ids(line_dr_ids, line_cr_ids, amount, currency_id, type, context)">
-                                <tree string="Invoices and outstanding transactions" editable="bottom" colors="gray:amount==0">
+                                <tree string="Invoices and outstanding transactions" editable="bottom" colors="gray:amount==0" create='false'>
                                     <field name="move_line_id" context="{'journal_id':parent.journal_id, 'partner_id':parent.partner_id}"
                                         on_change="onchange_move_line_id(move_line_id)"
                                         domain="[('account_id.type','in',('receivable','payable')), ('reconcile_id','=', False), ('partner_id','=',parent.partner_id)]"
@@ -1040,7 +1040,7 @@
                             </field>
                             <label for="line_dr_ids" attrs="{'invisible': [('pre_line','=',False)]}"/>
                             <field name="line_dr_ids" attrs="{'invisible': [('pre_line','=',False)]}" context="{'journal_id':journal_id, 'partner_id':partner_id}" on_change="onchange_line_ids(line_dr_ids, line_cr_ids, amount, currency_id, type, context)">
-                                <tree string="Credits" editable="bottom" colors="gray:amount==0">
+                                <tree string="Credits" editable="bottom" colors="gray:amount==0" create='false'>
                                     <field name="move_line_id" context="{'journal_id':parent.journal_id, 'partner_id':parent.partner_id}"
                                         on_change="onchange_move_line_id(move_line_id)"
                                         domain="[('account_id.type','in',('receivable','payable')), ('reconcile_id','=', False), ('partner_id','=',parent.partner_id)]"
@@ -1184,7 +1184,7 @@
                         <page string="Payment Information">
                         	<label for="line_dr_ids"/>
                             <field name="line_dr_ids" context="{'journal_id':journal_id, 'type':type, 'partner_id':partner_id}" on_change="onchange_line_ids(line_dr_ids, line_cr_ids, amount, currency_id, type, context)">
-                                <tree string="Supplier Invoices and Outstanding transactions" editable="bottom" colors="gray:amount==0">
+                                <tree string="Supplier Invoices and Outstanding transactions" editable="bottom" colors="gray:amount==0" create='false'>
                                     <field name="move_line_id" context="{'journal_id':parent.journal_id, 'partner_id':parent.partner_id}"
                                         on_change="onchange_move_line_id(move_line_id)"
                                         domain="[('account_id.type','=','payable'), ('reconcile_id','=', False), ('partner_id','=',parent.partner_id)]"
@@ -1200,7 +1200,7 @@
                             </field>
                             <label for="line_cr_ids" attrs="{'invisible': [('pre_line','=',False)]}"/>
                             <field name="line_cr_ids" attrs="{'invisible': [('pre_line','=',False)]}" context="{'journal_id':journal_id, 'partner_id':partner_id}" on_change="onchange_line_ids(line_dr_ids, line_cr_ids, amount, currency_id, type, context)">
-                                <tree string="Credits" editable="bottom" colors="gray:amount==0">
+                                <tree string="Credits" editable="bottom" colors="gray:amount==0" create='false'>
                                     <field name="move_line_id" context="{'journal_id':parent.journal_id, 'partner_id':parent.partner_id}"
                                         on_change="onchange_move_line_id(move_line_id)"
                                         domain="[('account_id.type','=','payable'), ('reconcile_id','=', False), ('partner_id','=',parent.partner_id)]"
