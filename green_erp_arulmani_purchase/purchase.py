@@ -283,7 +283,7 @@ class tpt_purchase_product(osv.osv):
         
         if 'product_id' in vals:
             product = self.pool.get('product.product').browse(cr, uid, vals['product_id'])
-            vals.update({'uom_po_id':product.uom_id.id})
+            vals.update({'uom_po_id':product.uom_id.id,'description':product.name})
         new_id = super(tpt_purchase_product, self).create(cr, uid, vals, context)
         if 'product_uom_qty' in vals:
             if (vals['product_uom_qty'] < 0):
@@ -296,7 +296,7 @@ class tpt_purchase_product(osv.osv):
     def write(self, cr, uid, ids, vals, context=None):
         if 'product_id' in vals:
             product = self.pool.get('product.product').browse(cr, uid, vals['product_id'])
-            vals.update({'uom_po_id':product.uom_id.id})
+            vals.update({'uom_po_id':product.uom_id.id,'description':product.name})
         new_write = super(tpt_purchase_product, self).write(cr, uid,ids, vals, context)
         for line in self.browse(cr,uid,ids):
             if line.product_uom_qty < 0:
@@ -2436,7 +2436,6 @@ class tpt_request_for_quotation(osv.osv):
                'state': 'draft',
                'rfq_date':fields.datetime.now,
                'create_on':fields.datetime.now,
-               'create_uid': lambda self,cr,uid,c:uid,
     }
     
     def search(self, cr, uid, args, offset=0, limit=None, order=None, context=None, count=False):
