@@ -26,6 +26,7 @@ class Parser(report_sxw.rml_parse):
             'get_vendor': self.get_vendor,
             'get_disc':self.get_disc,
             'get_info': self.get_info,
+            'is_bold': self.is_bold,
         })
     
     def get_vendor(self,o,num,line):
@@ -61,7 +62,18 @@ class Parser(report_sxw.rml_parse):
                'disc':disc,
                'sum_value':value,
                }
-        
+    
+    def is_bold(self,o,r,line):
+        rate = []
+        for i in range(1,5):
+            rate_val = self.get_vendor(o, i, line)['rate']
+            if rate_val:
+                rate.append(rate_val)
+        m = min(rate)
+        if r and m==r:
+            return True
+        return False
+    
     def get_info(self,o,num):
         quotation_obj = self.pool.get('tpt.purchase.quotation')
         sql = '''
