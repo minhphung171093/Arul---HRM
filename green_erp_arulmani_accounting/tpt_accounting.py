@@ -1934,9 +1934,9 @@ class tpt_hr_payroll_approve_reject(osv.osv):
                 if not period_ids:
                     raise osv.except_osv(_('Warning!'),_('Period is not null, please configure it in Period master !'))
                 for period_id in period_obj.browse(cr,uid,period_ids):
-                    payroll_ids = str(payroll_ids).replace("[","(")
-                    payroll_ids = payroll_ids.replace("]",")")
                     if payroll_ids:
+                        payroll_ids = str(payroll_ids).replace("[","(")
+                        payroll_ids = payroll_ids.replace("]",")")
                         sql_journal = '''
                         select id from account_journal
                         '''
@@ -1946,31 +1946,31 @@ class tpt_hr_payroll_approve_reject(osv.osv):
     
                         sql_gross = '''
                             select sum(float) as gross_salary from arul_hr_payroll_earning_structure where earning_parameters_id in (select id from arul_hr_payroll_earning_parameters where code='GROSS_SALARY')
-                            and executions_details_id in (select id from arul_hr_payroll_executions_details where payroll_executions_id in (%s))
+                            and executions_details_id in (select id from arul_hr_payroll_executions_details where payroll_executions_id in %s)
                         '''%(payroll_ids)
                         cr.execute(sql_gross)
                         gross = cr.dictfetchone()['gross_salary']
                         sql_provident = '''
                             select sum(float) as provident from arul_hr_payroll_earning_structure where earning_parameters_id in (select id from arul_hr_payroll_deduction_parameters where code='PF.D')
-                            and executions_details_id in (select id from arul_hr_payroll_executions_details where payroll_executions_id in (%s))
+                            and executions_details_id in (select id from arul_hr_payroll_executions_details where payroll_executions_id in %s)
                         '''%(payroll_ids)
                         cr.execute(sql_provident)
                         provident = cr.dictfetchone()['provident']
                         sql_vpf = '''
                             select sum(float) as vpf from arul_hr_payroll_earning_structure where earning_parameters_id in (select id from arul_hr_payroll_deduction_parameters where code='VPF.D')
-                            and executions_details_id in (select id from arul_hr_payroll_executions_details where payroll_executions_id in (%s))
+                            and executions_details_id in (select id from arul_hr_payroll_executions_details where payroll_executions_id in %s)
                         '''%(payroll_ids)
                         cr.execute(sql_vpf)
                         vpf = cr.dictfetchone()['vpf']
                         sql_tax = '''
                             select sum(float) as tax from arul_hr_payroll_earning_structure where earning_parameters_id in (select id from arul_hr_payroll_deduction_parameters where code='PT')
-                            and executions_details_id in (select id from arul_hr_payroll_executions_details where payroll_executions_id in (%s))
+                            and executions_details_id in (select id from arul_hr_payroll_executions_details where payroll_executions_id in %s)
                         '''%(payroll_ids)
                         cr.execute(sql_tax)
                         tax = cr.dictfetchone()['tax']
                         sql_lwf = '''
                             select sum(float) as tax from arul_hr_payroll_earning_structure where earning_parameters_id in (select id from arul_hr_payroll_deduction_parameters where code='LWF')
-                            and executions_details_id in (select id from arul_hr_payroll_executions_details where payroll_executions_id in (%s))
+                            and executions_details_id in (select id from arul_hr_payroll_executions_details where payroll_executions_id in %s)
                         '''%(payroll_ids)
                         cr.execute(sql_lwf)
                         lwf = cr.dictfetchone()['tax']
