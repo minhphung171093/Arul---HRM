@@ -25,6 +25,7 @@ class tpt_purchase_indent(osv.osv):
                                 ('outside','VV Outside Service PR'),
                                 ('spare','VV Spare (Project) PR'),
                                 ('service','VV Service PR'),
+                                ('normal','VV Normal PR'),
                                 ],'Document Type',required = True, states={'cancel': [('readonly', True)], 'done':[('readonly', True)]}),
         'intdent_cate':fields.selection([
                                 ('emergency','Emergency Indent'),
@@ -39,7 +40,7 @@ class tpt_purchase_indent(osv.osv):
         'employee_id':fields.many2one('hr.employee','Employee',  states={'cancel': [('readonly', True)], 'done':[('readonly', True)]}),
         'reason':fields.text('Reason', states={'cancel': [('readonly', True)], 'done':[('readonly', True)]}),
         'header_text':fields.text('Header Text',states={'cancel': [('readonly', True)], 'done':[('readonly', True)]}), #TPT
-        'requisitioner':fields.char('Requisitioner',states={'cancel': [('readonly', True)], 'done':[('readonly', True)]}),
+        'requisitioner':fields.text('Requisitioner',states={'cancel': [('readonly', True)], 'done':[('readonly', True)]}),
         'purchase_product_line':fields.one2many('tpt.purchase.product','pur_product_id','Materials'),
         'state':fields.selection([('draft', 'Draft'),('cancel', 'Closed'),
                                   ('done', 'Approve'),('rfq_raised','RFQ Raised'),
@@ -120,6 +121,10 @@ class tpt_purchase_indent(osv.osv):
                     if vals.get('name','/')=='/':
                         sequence = self.pool.get('ir.sequence').get(cr, uid, 'indent.purchase.service')
                         vals['name'] =  sequence and sequence +'/'+fiscalyear['code']or '/'
+                if (vals['document_type']=='normal'):
+                    if vals.get('name','/')=='/':
+                        sequence = self.pool.get('ir.sequence').get(cr, uid, 'indent.purchase.normal')
+                        vals['name'] =  sequence and sequence +'/'+fiscalyear['code']or '/'
                 vals['create_uid'] = uid
         new_id = super(tpt_purchase_indent, self).create(cr, uid, vals, context=context)   
 #         indent = self.browse(cr,uid, new_id)
@@ -171,10 +176,10 @@ class tpt_purchase_indent(osv.osv):
                 cr.execute(sql)
                 quotation_ids = [row[0] for row in cr.fetchall()]
                 args += [('id','in',quotation_ids)]
-        if not context.get('quotation_no'):
+        if context.get('quotation_no'):
             if context.get('search_po_indent_no_emergency'):
                 sql = '''
-                    select id from tpt_purchase_indent where intdent_cate = 'emergency' and state = 'done'
+                    select id from tpt_purchase_indent where intdent_cate = 'normal' and state = 'done'
                 '''
                 cr.execute(sql)
                 emergency_ids = [row[0] for row in cr.fetchall()]
@@ -204,7 +209,7 @@ tpt_purchase_indent()
 class tpt_purchase_product(osv.osv):
     _name = 'tpt.purchase.product'
     _columns = {
-        'pur_product_id':fields.many2one('tpt.purchase.indent','Purchase Product',ondelete='cascade' ),
+        'pur_product_id':fields.many2one('tpt.purchase.indent','Purchase Indent',ondelete='cascade' ),
         'product_id': fields.many2one('product.product', 'Material Code'),
         #'dec_material':fields.text('Material Description'),
         'description':fields.char('Mat. Description', size = 50, readonly=True ),
@@ -902,7 +907,7 @@ class tpt_purchase_quotation(osv.osv):
 #Hung them khi tao Quotation thi cap nhat lai trang thai cua PO indent
         quotation = self.browse(cr,uid,new_id)
         for rfq_line in quotation.rfq_no_id.rfq_line:
-            self.pool.get('tpt.purchase.indent').write(cr, uid, [rfq_line.po_indent_id.id],{'state':'quotation_raised'})
+            self.pool.get('tpt.purchase.indent').write(cr, uid, [rfq_line.po_indent_id.id],{'state':'done'})
         if quotation.quotation_cate:
             if quotation.quotation_cate != 'multiple':
                 if (len(quotation.purchase_quotation_line) > 1):
@@ -1160,6 +1165,29 @@ class tpt_comparison_chart(osv.osv):
             vals={'comparison_chart_line':[(6,0,quotation_ids)]}
             self.write(cr, uid,[line.id], vals, context=context)
         return True
+    
+    def get_loo_file_name(self, cr, uid, id, name_report, context={}):
+        chart_obj = self.browse(cr, uid, id, context)
+        chart_name = chart_obj.name.name or ''
+        file_name = name_report + ' ' + chart_name
+        return file_name
+
+    def get_report_file_name(self, cr, uid, id, report_name, context={}):
+        res = {}
+#         res = super(tpt_comparison_chart,self).get_report_file_name(cr, uid, id, report_name, context=context)
+        report_xml_pool = self.pool.get('ir.actions.report.xml')
+        report_ids = report_xml_pool.search(cr, uid, [('report_name','=',report_name)])
+        name_report = report_name
+        if report_ids:
+            name_report = report_xml_pool.browse(cr, uid, report_ids[0]).name
+#             res = super(tpt_comparison_chart,self).get_report_file_name(cr, uid, id, report_name, context=context)
+        if res:
+            return res
+        else:
+            return {
+                'tpt_comparison_chart' : self.get_loo_file_name,
+            }[report_name](cr, uid, id, name_report, context) 
+
 
     def bt_print(self, cr, uid, ids, context=None):
         assert len(ids) == 1, 'This option should only be used for a single id at a time.'
@@ -1170,11 +1198,6 @@ class tpt_comparison_chart(osv.osv):
         total_select=cr.dictfetchone()['total_select']
         if total_select > 4:
             raise osv.except_osv(_('Warning!'),_('Should not choose more than 4 lines from Quotation !'))
-#             warning = {  
-#                           'title': _('Warning!'),  
-#                           'message': _('VV Level Based PR is not created by handle!   '),  
-#                           }  
-#             return {'warning':warning}
         datas = {
              'ids': ids,
              'model': 'tpt.comparison.chart',
@@ -1183,8 +1206,6 @@ class tpt_comparison_chart(osv.osv):
         return {
             'type': 'ir.actions.report.xml',
             'report_name': 'tpt_comparison_chart',
-#                 'datas': datas,
-#                 'nodestroy' : True
         }
 
 tpt_comparison_chart()
@@ -1547,7 +1568,7 @@ class purchase_order(osv.osv):
             sql = '''update purchase_order set name='%s' where id =%s'''%(sequence+'/'+fiscalyear['code']or '/',new_id)
             cr.execute(sql)
         #Hung sua khi tao PO se cap nhat lai trang thai cua PO indent la po_raised
-        self.pool.get('tpt.purchase.indent').write(cr, uid, [new.po_indent_no.id],{'state':'po_raised'})
+        self.pool.get('tpt.purchase.indent').write(cr, uid, [new.po_indent_no.id],{'state':'done'})
         if new.quotation_no and new.po_indent_no:
             quotation = self.pool.get('tpt.purchase.quotation').browse(cr, uid, new.quotation_no)
             
@@ -1797,6 +1818,21 @@ purchase_order()
 
 class purchase_order_line(osv.osv):
     _inherit = "purchase.order.line"
+
+    def get_short_qty(self, cr, uid, ids, field_name, args, context=None):
+        res = {}
+        for line in self.browse(cr, uid, ids, context=context):
+            res[line.id] = {
+                '    ': 0.0,
+            }
+            short = 0
+            sql = '''
+                select case when sum(product_qty) != 0 then sum(product_qty) else 0 end product_qty from stock_move where purchase_line_id = %s and state='cancel'
+            '''%(line.id)
+            cr.execute(sql)
+            product_qty = cr.dictfetchone()['product_qty']
+            res[line.id]['short_qty'] = product_qty
+        return res
     
     def line_net_line_po(self, cr, uid, ids, field_name, args, context=None):
         res = {}
@@ -1845,6 +1881,7 @@ class purchase_order_line(osv.osv):
                 'fright_type':fields.selection([('1','%'),('2','Rs')],('Fright Type'), track_visibility='onchange'),  
                 'line_no': fields.integer('SI.No', readonly = True),
                 # ham function line_net
+                'short_qty': fields.function(get_short_qty,type='float',digits=(16,0),multi='sum', string='Short Closed Qty'),
                 'line_net': fields.function(line_net_line_po, store = True, multi='deltas' ,string='Line Net'),
                 'state': fields.selection([('amendement', 'Amendement'), ('draft', 'Draft'), ('confirmed', 'Confirmed'), ('done', 'Done'), ('cancel', 'Cancelled')], 'Status', required=True, readonly=True,
                                   help=' * The \'Draft\' status is set automatically when purchase order in draft status. \
@@ -2386,6 +2423,7 @@ class tpt_request_for_quotation(osv.osv):
     _defaults={
                'name':'/',
                'state': 'draft',
+               'rfq_date':fields.datetime.now,
     }
     
     def search(self, cr, uid, args, offset=0, limit=None, order=None, context=None, count=False):
@@ -2408,7 +2446,7 @@ class tpt_request_for_quotation(osv.osv):
     def bt_approve(self, cr, uid, ids, context=None):
         for line in self.browse(cr,uid,ids):
             for po_indent in line.rfq_line:
-                self.pool.get('tpt.purchase.indent').write(cr, uid, [po_indent.po_indent_id.id],{'state':'rfq_raised'})
+                self.pool.get('tpt.purchase.indent').write(cr, uid, [po_indent.po_indent_id.id],{'state':'done'})
         return self.write(cr, uid, ids,{'state':'done'})
     
     def bt_cancel(self, cr, uid, ids, context=None):

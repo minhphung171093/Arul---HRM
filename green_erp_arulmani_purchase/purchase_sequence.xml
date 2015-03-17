@@ -121,6 +121,21 @@
             <field name="implementation">no_gap</field>
        </record>
        
+<!-- Indent Purchase VV Normal PR -->
+        <record id="sequence_indent_purchase_9" model="ir.sequence.type">
+            <field name="name">VV Normal PR</field>
+            <field name="code">indent.purchase.normal</field>
+        </record>
+        
+        <record id="sequence_indent_purchase_9_item" model="ir.sequence">
+            <field name="name">VV Normal PR</field>
+            <field name="code">indent.purchase.normal</field>
+            <field name="prefix">7</field>
+            <field name="padding">6</field>
+            <field name="number_next_actual">000001</field>
+            <field name="implementation">no_gap</field>
+        </record>
+       
 <!-- Purchase Order VV Asset PO -->
         <record id="sequence_purchase_order_asset_7" model="ir.sequence.type">
             <field name="name"> VV Asset PO</field>

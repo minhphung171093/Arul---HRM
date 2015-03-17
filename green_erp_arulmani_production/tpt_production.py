@@ -970,6 +970,35 @@ class mrp_production(osv.osv):
                 self.pool.get('stock.move').create(cr, uid, data)
         return picking_id
     
+    def force_production(self, cr, uid, ids, *args):
+        """ Assigns products.
+        @param *args: Arguments
+        @return: True
+        """
+        ### Kiem tra so luong nguyen lieu trong kho Raw Materials Location
+        for production in self.browse(cr, uid, ids, context = None):
+            for line in production.move_lines:
+                sql = '''
+                                select case when sum(foo.product_qty)>0 then sum(foo.product_qty) else 0 end ton_sl from 
+                                    (select st.product_qty
+                                        from stock_move st 
+                                        where st.state='done' and st.product_id=%s and st.location_dest_id = %s and prodlot_id = null
+                                    union all
+                                    select st.product_qty*-1
+                                        from stock_move st 
+                                        where st.state='done' and st.product_id=%s and st.location_id = %s and prodlot_id = null
+                                    )foo
+                '''%(line.product_id.id,production.location_src_id.id,line.product_id.id,production.location_src_id.id)
+                cr.execute(sql)
+                ton_sl = cr.dictfetchone()['ton_sl']
+                if line.product_qty > ton_sl:
+                    raise osv.except_osv(_('Warning!'),_('Do not have enough quantity for raw material %s in stock %s!' %(line.product_id.default_code, production.location_src_id.name)))
+                
+        ###
+        pick_obj = self.pool.get('stock.picking')
+        pick_obj.force_assign(cr, uid, [prod.picking_id.id for prod in self.browse(cr, uid, ids)])
+        return True
+    
 mrp_production()
 
 class stock_production_lot(osv.osv):

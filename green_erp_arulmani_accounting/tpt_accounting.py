@@ -457,7 +457,7 @@ class stock_picking(osv.osv):
                 for period_id in period_obj.browse(cr,uid,period_ids):
                 #sinh but toan
                     for p in line.move_lines:
-                        debit += p.sale_line_id.price_unit * p.product_qty
+                        debit += p.sale_line_id and p.sale_line_id.price_unit * p.product_qty or 0
                         if p.product_id.product_cose_acc_id:
                             cose_id = p.product_id.product_cose_acc_id.id
                         else: 
