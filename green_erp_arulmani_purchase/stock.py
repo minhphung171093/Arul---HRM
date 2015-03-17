@@ -204,7 +204,7 @@ class stock_picking_in(osv.osv):
         'document_type':fields.selection([('asset','VV Asset PO'),('standard','VV Standard PO'),('local','VV Local PO')],'PO Document Type',readonly = True),
         'warehouse':fields.many2one('stock.location','Warehouse'),
         'po_date': fields.datetime('PO Date', readonly = True),   
-        'gate_in_pass_no':fields.char('Gate In Pass No', size = 64),
+        'gate_in_pass_no':fields.many2one('tpt.gate.in.pass','Gate In Pass No'),
         'truck':fields.char('Truck No', size = 64),
         'delivery_no':fields.char('Delivery Challan No', size = 64),
         'invoice_no':fields.char('Invoice No & Date', size = 64),
