@@ -409,7 +409,7 @@
 					<button name="purchase_head_amendement" states="head" string="Amendement" class="oe_highlight"/>
 					<button name="purchase_amendement_head" states="amendement" string="Purchase Head Approval" class="oe_highlight"/>
 					<button name="purchase_gm_confirmed" states="gm" string="Approve &amp; Create GRN" class="oe_highlight"/>
-				</xpath>               
+				</xpath>  
             	<xpath expr="//field[@name='partner_id']" position="before">
             		<field name="po_document_type" />
 					<field name="name" readonly = '1' string = 'PO Document No' />
@@ -426,6 +426,7 @@
 				<xpath expr="//field[@name='partner_ref']" position="after">
             		<field name="for_basis" />
 					<field name="mode_dis" />
+					<field name="reason" attrs="{'required':[('state','=','amendement')]}" />
 				</xpath>
 				<xpath expr="//page[@string='Incoming Shipments &amp; Invoices']/group/group/field[@name='payment_term_id']" position="replace">
 				</xpath> 
@@ -472,8 +473,14 @@
 				<xpath expr="//page[@string='PO Line']/field/tree/field[@name='product_id']" position="replace">
 					<field name="product_id" required = '1' context="{'search_po_product':True, 'po_indent_no':parent.po_indent_no }" options="{'create': false, 'create_edit': false}" on_change="onchange_product_id(parent.pricelist_id,product_id,0,False,parent.partner_id, parent.date_order,parent.fiscal_position,date_planned,name,price_unit,po_indent_no,context)"/>
 				</xpath>
+				<xpath expr="//page[@string='PO Line']/field/tree/field[@name='product_id']" position="before">
+					<field name="line_no" />
+				</xpath>
 				<xpath expr="//page[@string='PO Line']/field/tree/field[@name='product_qty']" position="replace">
 					<field name="product_qty" />
+				</xpath>
+				<xpath expr="//page[@string='PO Line']/field/tree/field[@name='product_qty']" position="after">
+					<field name="state" invisible = '1'/>
 				</xpath>
 				<xpath expr="//page[@string='PO Line']/group/field[@name='amount_untaxed']" position="after">
 					<field name="p_f_charge" widget="monetary"/>
@@ -793,6 +800,7 @@
 							<page string = "Quotation Lines">
 								<field name="purchase_quotation_line" nolabel='1'>
 									<tree editable='top' create = 'false'>
+										<field name="line_no" />
 										<field name="po_indent_id" on_change = "onchange_po_indent_id(po_indent_id)" options="{'create': false, 'create_edit': false}" />
 										<field name="product_id" context="{'search_product':True, 'po_indent_id':po_indent_id }" on_change = "onchange_quotation_product_id(product_id, po_indent_id)" options="{'create': false, 'create_edit': false}" />
 										<field name="product_uom_qty" />
