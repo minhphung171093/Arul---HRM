@@ -1042,11 +1042,20 @@ class tpt_purchase_quotation_line(osv.osv):
         'fright': fields.float('Fright'),
         'fright_type':fields.selection([('1','%'),('2','Rs')],('Fright Type')),
         'line_net': fields.function(line_net_line, store = True, multi='deltas' ,string='SubTotal'),
+        'line_no': fields.integer('SI.No', readonly = True),
         #TPT
         #'item_text': fields.char('Item Text'), 
         }
+    def unlink(self, cr, uid, ids, context=None):
+        for line in self.browse(cr, uid, ids):
+            update_ids = self.search(cr, uid,[('purchase_quotation_id','=',line.purchase_quotation_id.id),('line_no','>',line.line_no)])
+            if update_ids:
+                cr.execute("UPDATE tpt_purchase_quotation_line SET line_no=line_no-1 WHERE id in %s",(tuple(update_ids),))
+        return super(tpt_purchase_quotation_line, self).unlink(cr, uid, ids, context)  
     
     def create(self, cr, uid, vals, context=None):
+        if vals.get('purchase_quotation_id',False):
+            vals['line_no'] = len(self.search(cr, uid,[('purchase_quotation_id', '=', vals['purchase_quotation_id'])])) + 1
         if 'po_indent_id' in vals:
             if 'product_id' in vals:
                 indent = self.pool.get('tpt.purchase.indent').browse(cr, uid, vals['po_indent_id'])
@@ -1295,14 +1304,23 @@ class purchase_order(osv.osv):
             result[line.order_id.id] = True
         return result.keys()
     _columns = {
-        'po_document_type':fields.selection([('asset','VV Asset PO'),('standard','VV Standard PO'),('local','VV Local PO'),('return','VV Return PO'),('service','VV Service PO'),('out','VV Out Service PO')],'PO Document Type', required = True),
-        'quotation_no': fields.many2one('tpt.purchase.quotation', 'Quotation No', required = True),
-        'po_indent_no' : fields.many2one('tpt.purchase.indent', 'PO Indent No', required = True),
-        'state_id': fields.many2one('res.country.state', 'Vendor Location'),
-        'for_basis': fields.char('For Basis', size = 1024),
-        'mode_dis': fields.char('Mode Of Dispatch', size = 1024),
-        'ecc_no': fields.char('ECC No', size = 1024),
-        'deli_sche': fields.char('Delivery Schedule', size = 1024),
+        'po_document_type':fields.selection([('asset','VV Asset PO'),('standard','VV Standard PO'),('local','VV Local PO'),('return','VV Return PO'),('service','VV Service PO'),('out','VV Out Service PO')],'PO Document Type', required = True, track_visibility='onchange'),
+        'quotation_no': fields.many2one('tpt.purchase.quotation', 'Quotation No', required = True, track_visibility='onchange'),
+        'po_indent_no' : fields.many2one('tpt.purchase.indent', 'PO Indent No', required = True, track_visibility='onchange'),
+        'partner_ref': fields.char('Supplier Reference', states={'confirmed':[('readonly',True)], 'approved':[('readonly',True)],'done':[('readonly',True)]}, size=64,
+            help="Reference of the sales order or quotation sent by your supplier. It's mainly used to do the matching when you receive the products as this reference is usually written on the delivery order sent by your supplier.", track_visibility='onchange'),
+        'state_id': fields.many2one('res.country.state', 'Vendor Location', track_visibility='onchange'),
+        'for_basis': fields.char('For Basis', size = 1024, track_visibility='onchange'),
+        'mode_dis': fields.char('Mode Of Dispatch', size = 1024, track_visibility='onchange'),
+        'date_order':fields.date('Order Date', required=True, states={'confirmed':[('readonly',True)], 'approved':[('readonly',True)]}, select=True, help="Date on which this document has been created.", track_visibility='onchange'),
+        'ecc_no': fields.char('ECC No', size = 1024, track_visibility='onchange'),
+        'payment_term_id': fields.many2one('account.payment.term', 'Payment Term', track_visibility='onchange'),
+        'deli_sche': fields.char('Delivery Schedule', size = 1024, track_visibility='onchange'),
+        'partner_id':fields.many2one('res.partner', 'Supplier', required=True, states={'amendement':[('readonly',True)], 'confirmed':[('readonly',True)], 'approved':[('readonly',True)],'done':[('readonly',True)]},
+            change_default=True, track_visibility='always'),
+        'company_id': fields.many2one('res.company','Company',required=True,select=1, states={'confirmed':[('readonly',True)], 'approved':[('readonly',True)]}, track_visibility='onchange'),
+        'reason': fields.text('Reason', size = 1024, track_visibility='onchange'),        
+        
         
         #ham function
         
@@ -1360,7 +1378,17 @@ class purchase_order(osv.osv):
         'name':'/',
                }
     def action_amendement(self, cr, uid, ids, context=None):
-        return self.write(cr, uid, ids,{'state':'amendement'}) 
+        for purchase in self.browse(cr,uid,ids):
+            self.write(cr, uid, ids,{'state':'amendement'}) 
+            order_obj = self.pool.get('purchase.order.line')
+            sql = '''
+                select id from purchase_order_line where order_id = %s
+            '''%(purchase.id)
+            cr.execute(sql)
+            purchase_ids = [r[0] for r in cr.fetchall()]
+            order_obj.write(cr, uid, purchase_ids,{'state':'amendement'})
+        
+        return True
 
     def action_cancel(self, cr, uid, ids, context=None):
         wf_service = netsvc.LocalService("workflow")
@@ -1839,22 +1867,52 @@ class purchase_order_line(osv.osv):
     
     _columns = {
 #                 'purchase_tax_id': fields.many2one('account.tax', 'Taxes', domain="[('type_tax_use','=','purchase')]", required = True), 
-                'discount': fields.float('DISC'),
-                'p_f': fields.float('P&F'),
-                'p_f_type':fields.selection([('1','%'),('2','Rs')],('P&F Type')),
-                'ed': fields.float('ED'),
-                'ed_type':fields.selection([('1','%'),('2','Rs')],('ED Type')),
-                'fright': fields.float('Fright'),
-                'fright_type':fields.selection([('1','%'),('2','Rs')],('Fright Type')),
+                'product_id': fields.many2one('product.product', 'Product', domain=[('purchase_ok','=',True)], change_default=True, states={'amendement':[('readonly',True)]}),
+                'product_qty': fields.float('Quantity', digits_compute=dp.get_precision('Product Unit of Measure'), required=True, track_visibility='onchange'),    
+                'product_uom': fields.many2one('product.uom', 'Product Unit of Measure', required=True, track_visibility='onchange'),  
+                'price_unit': fields.float('Unit Price', required=True, digits_compute= dp.get_precision('Product Price'), track_visibility='onchange'),  
+                'discount': fields.float('DISC', track_visibility='onchange'),  
+                'p_f': fields.float('P&F', track_visibility='onchange'),  
+                'p_f_type':fields.selection([('1','%'),('2','Rs')],('P&F Type'), track_visibility='onchange'),  
+                'ed': fields.float('ED', track_visibility='onchange'),  
+                'ed_type':fields.selection([('1','%'),('2','Rs')],('ED Type'), track_visibility='onchange'),  
+                'taxes_id': fields.many2many('account.tax', 'purchase_order_taxe', 'ord_id', 'tax_id', 'Taxes', track_visibility='onchange'),  
+                'fright': fields.float('Fright', track_visibility='onchange'),  
+                'fright_type':fields.selection([('1','%'),('2','Rs')],('Fright Type'), track_visibility='onchange'),  
+                'line_no': fields.integer('SI.No', readonly = True),
                 # ham function line_net
                 'short_qty': fields.function(get_short_qty,type='float',digits=(16,0),multi='sum', string='Short Closed Qty'),
                 'line_net': fields.function(line_net_line_po, store = True, multi='deltas' ,string='Line Net'),
+                'state': fields.selection([('amendement', 'Amendement'), ('draft', 'Draft'), ('confirmed', 'Confirmed'), ('done', 'Done'), ('cancel', 'Cancelled')], 'Status', required=True, readonly=True,
+                                  help=' * The \'Draft\' status is set automatically when purchase order in draft status. \
+                                       \n* The \'Confirmed\' status is set automatically as confirm when purchase order in confirm status. \
+                                       \n* The \'Done\' status is set automatically when purchase order is set as done. \
+                                       \n* The \'Cancelled\' status is set automatically when user cancel purchase order.'),
                 #TPT
                 #'item_text': fields.char('Item Text'), 
                 }
     _defaults = {
                  'date_planned':time.strftime('%Y-%m-%d'),
                  }
+    
+    def create(self, cr, uid, vals, context=None):
+        if vals.get('order_id',False):
+            vals['line_no'] = len(self.search(cr, uid,[('order_id', '=', vals['order_id'])])) + 1
+        return super(purchase_order_line, self).create(cr, uid, vals, context)
+    def unlink(self, cr, uid, ids, context=None):
+        procurement_ids_to_cancel = []
+        for line in self.browse(cr, uid, ids, context=context):
+            update_ids = self.search(cr, uid,[('order_id','=',line.order_id.id),('line_no','>',line.line_no)])
+            if update_ids:
+                cr.execute("UPDATE purchase_order_line SET line_no=line_no-1 WHERE id in %s",(tuple(update_ids),))
+            if line.move_dest_id:
+                procurement_ids_to_cancel.extend(procurement.id for procurement in line.move_dest_id.procurements)
+            if (line.order_id.quotation_no.state == 'done'):
+                raise osv.except_osv(_('Warning!'), _('This PO line can not be deleted!'))
+        if procurement_ids_to_cancel:
+            self.pool['procurement.order'].action_cancel(cr, uid, procurement_ids_to_cancel)
+        return super(purchase_order_line, self).unlink(cr, uid, ids, context=context)
+    
     def onchange_po_indent_no(self, cr, uid, ids,po_indent_no=False, context=None):
         if po_indent_no:
             return {'value': {'product_id': False}}    
