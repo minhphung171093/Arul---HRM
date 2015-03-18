@@ -409,7 +409,8 @@ class crm_application(osv.osv):
             return True
         
     _constraints = [
-        (_check_product_id, 'Identical Data', ['product_id']),
+        #TPT-Commented By BalamuruganPurushothaman - ON 17/03/2015 - TO AVOID CHECKING THIS CONSTRAINS
+        #(_check_product_id, 'Identical Data', ['product_id']),
     ]       
     
 crm_application()

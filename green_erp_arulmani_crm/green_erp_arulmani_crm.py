@@ -440,7 +440,10 @@ class crm_lead_line(osv.osv):
         vals = {}
         if product_id:
             product = self.pool.get('product.product').browse(cr, uid, product_id)
-            vals = {'uom_id':product.uom_id.id}
+            vals = {'uom_id':product.uom_id.id,
+                    'product_type':product.tpt_product_type or False,
+                    #'application_id':product.application_id or False,
+                    }
         return {'value': vals}
     
     def onchange_month(self, cr, uid, ids, month=False, context=None):
