@@ -613,7 +613,12 @@
             <field name="name">arul.hr.employee.compensation.review.action.form</field>
             <field name="model">arul.hr.employee.action.history</field>
             <field name="arch" type="xml">
-                <form string="Employee Compensation Review Action" version="7.0">    
+                <form string="Employee Compensation Review Action" version="7.0">  
+                <!-- 
+                <header>
+                <button name="action_view_paystruct" string="Go to Employee Payroll Structure" type="object" class="oe_highlight"/>  
+                </header>	
+                 -->
                 	<sheet>
 		                 <group col='4' colspan='2'>
 							<field name="action_id" on_change="onchange_action_id(action_id)" domain="[('name','=','Compensation Review')]" options="{'create': false, 'create_edit': false}"/>

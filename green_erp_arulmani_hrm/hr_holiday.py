@@ -1152,18 +1152,24 @@ class arul_hr_employee_leave_details(osv.osv):
             #then system would not allow the same for next Half a day Except ESI/LOP
             if date.haft_day_leave:
                 if date.date_from == date.date_to:
-                    sql2 = '''
-                        select id,days_total from arul_hr_employee_leave_details where employee_id = %s 
+                    emp_leave_count = 0
+                    sql = '''
+                        select COUNT(id)  from arul_hr_employee_leave_details where employee_id = %s 
                         and date_to = '%s' and haft_day_leave = True and days_total=0.5 and leave_type_id in 
                         (select id from arul_hr_leave_types where code in ('CL','SL','C.Off'))
                     '''%(date.employee_id.id,date.date_to)
-                    cr.execute(sql2)
-                    leave_t_ids = [row[0] for row in cr.fetchall()]
-                    if len(leave_t_ids) == 1 and date.leave_type_id.code=='CL':                                         
+                    cr.execute(sql)
+                    #leave_t_ids = [row[0] for row in cr.fetchall()] 
+                    #emp_leave_count = cr.dictfetchone()['emp_leave']
+                    a1 = cr.fetchone()
+                    emp_leave_count = a1[0]
+                    #print sql
+                    #print emp_leave_count
+                    if emp_leave_count == 1 and date.leave_type_id.code=='CL':                                         
                         raise osv.except_osv(_('Warning!'),_('Only LOP/ESI is possible for another Half a Day Leave'))
-                    if len(leave_t_ids) == 1 and date.leave_type_id.code=='SL':                                         
+                    if emp_leave_count == 1 and date.leave_type_id.code=='SL':                                         
                         raise osv.except_osv(_('Warning!'),_('Only LOP/ESI is possible for another Half a Day Leave'))
-                    if len(leave_t_ids) == 1 and date.leave_type_id.code=='C.Off':                                         
+                    if emp_leave_count == 1 and date.leave_type_id.code=='C.Off':                                         
                         raise osv.except_osv(_('Warning!'),_('Only LOP/ESI is possible for another Half a Day Leave'))
             #TPT END         
             leave_details_obj = self.pool.get('employee.leave.detail')
@@ -1564,7 +1570,7 @@ class arul_hr_permission_onduty(osv.osv):
                 cr.execute(sql)
                 p = cr.dictfetchone()        
                 if p and p['num_of_permission']>=11:
-                    raise osv.except_osv(_('Warning!'),_('Employee %s have already taken 10 permission for this year!')%(permission.employee_id.name+' '+(permission.employee_id.last_name or '')))
+                    raise osv.except_osv(_('Warning!'),_('NO MORE PERMISSION PERMITTED.\n Employee %s have already taken 10 permission for this year!')%(permission.employee_id.name+' '+(permission.employee_id.last_name or '')))
                 #TPT ENDs
             shift_id = punch_obj.get_work_shift(cr, uid, permission.employee_id.id, int(day), int(month), year)
             self.pool.get('arul.hr.audit.shift.time').create(cr, SUPERUSER_ID, {

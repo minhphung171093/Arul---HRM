@@ -93,6 +93,7 @@ class Parser(report_sxw.rml_parse):
         year=wizard_data['year']
         payroll_obj = self.pool.get('arul.hr.payroll.executions.details')
         res = []
+        #raise osv.except_osv(_('Warning!'),_('tst'))
         for emp_id in emp_ids :
             payroll_ids = payroll_obj.search(self.cr, self.uid,[('month','=',month),('year','=',year),('employee_id','=',emp_id),('payroll_executions_id.state','in',['confirm','approve'])])
             basic = 0
