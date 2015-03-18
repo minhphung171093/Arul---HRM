@@ -292,7 +292,10 @@ class tpt_purchase_product(osv.osv):
         'release_by':fields.selection([('1','Store Level'),('2','HOD Level')],'Released By'),
         'state':fields.selection([('draft', 'Draft'),('confirm', 'Confirmed'),
                                           ('+', 'Store Approved'),('++', 'Store & HOD Approved'),
-                                          ('x', 'Store Rejected'),('xx', 'Store & HOD Rejected')
+                                          ('x', 'Store Rejected'),('xx', 'Store & HOD Rejected'),
+                                          ('rfq_raised','RFQ Raised'),
+                                          ('quotation_raised','Quotation Raised'),
+                                          ('po_raised','PO Raised')
                                           ],'Indent Status', readonly=True),
 #Hung moi them 2 Qty theo yeu casu bala
         'mrs_qty': fields.float('MRS Qty', readonly = True ),
@@ -978,8 +981,15 @@ class tpt_purchase_quotation(osv.osv):
         
 #Hung them khi tao Quotation thi cap nhat lai trang thai cua PO indent
         quotation = self.browse(cr,uid,new_id)
-        for rfq_line in quotation.rfq_no_id.rfq_line:
-            self.pool.get('tpt.purchase.indent').write(cr, uid, [rfq_line.po_indent_id.id],{'state':'done'})
+        for rfq_line in quotation.purchase_quotation_line:
+            sql = '''
+                select id from tpt_purchase_product where pur_product_id=%s and product_id=%s
+                
+                '''%(rfq_line.po_indent_id.id,rfq_line.product_id.id)
+            cr.execute(sql)
+            indent_line_ids = [row[0] for row in cr.fetchall()]
+            if indent_line_ids:
+                self.pool.get('tpt.purchase.product').write(cr, uid, indent_line_ids,{'state':'quotation_raised'})
         if quotation.quotation_cate:
             if quotation.quotation_cate != 'multiple':
                 if (len(quotation.purchase_quotation_line) > 1):
@@ -1644,7 +1654,7 @@ class purchase_order(osv.osv):
             sql = '''update purchase_order set name='%s' where id =%s'''%(sequence+'/'+fiscalyear['code']or '/',new_id)
             cr.execute(sql)
         #Hung sua khi tao PO se cap nhat lai trang thai cua PO indent la po_raised
-        self.pool.get('tpt.purchase.indent').write(cr, uid, [new.po_indent_no.id],{'state':'done'})
+#         self.pool.get('tpt.purchase.indent').write(cr, uid, [new.po_indent_no.id],{'state':'done'})
         if new.quotation_no and new.po_indent_no:
             quotation = self.pool.get('tpt.purchase.quotation').browse(cr, uid, new.quotation_no)
             
@@ -1696,6 +1706,14 @@ class purchase_order(osv.osv):
                     raise osv.except_osv(_('Warning!'),_('Can not process because Total > 5000 for VV Local PO'))
         for line in new.order_line:        
             if new.quotation_no and new.po_indent_no:
+                sql = '''
+                        select id from tpt_purchase_product where pur_product_id=%s and product_id=%s
+                        
+                        '''%(new.po_indent_no.id,line.product_id.id)
+                cr.execute(sql)
+                indent_line_ids = [row[0] for row in cr.fetchall()]
+                if indent_line_ids:
+                        self.pool.get('tpt.purchase.product').write(cr, uid, indent_line_ids,{'state':'po_raised'})
                 if line.product_id:
                     sql = '''
                                 select product_id, sum(product_qty) as po_product_qty from purchase_order_line where order_id = %s group by product_id
@@ -2524,7 +2542,14 @@ class tpt_request_for_quotation(osv.osv):
     def bt_approve(self, cr, uid, ids, context=None):
         for line in self.browse(cr,uid,ids):
             for po_indent in line.rfq_line:
-                self.pool.get('tpt.purchase.indent').write(cr, uid, [po_indent.po_indent_id.id],{'state':'done'})
+                sql = '''
+                select id from tpt_purchase_product where pur_product_id=%s and product_id=%s
+                
+                '''%(po_indent.po_indent_id.id,po_indent.product_id.id)
+                cr.execute(sql)
+                indent_line_ids = [row[0] for row in cr.fetchall()]
+                if indent_line_ids:
+                    self.pool.get('tpt.purchase.product').write(cr, uid, indent_line_ids,{'state':'rfq_raised'})
         return self.write(cr, uid, ids,{'state':'done'})
     
     def bt_cancel(self, cr, uid, ids, context=None):
