@@ -2910,12 +2910,38 @@ tpt_material_request()
 
 class tpt_material_request_line(osv.osv):
     _name = "tpt.material.request.line"
+    
+    def _get_on_hand_qty(self, cr, uid, ids, name, arg, context=None):
+        res = {}
+        for line in self.browse(cr, uid, ids, context=context):
+            sql = '''
+                    select case when sum(foo.product_qty)>0 then sum(foo.product_qty) else 0 end ton_sl from 
+                            (select st.product_qty
+                                from stock_move st 
+                                where st.state='done' and st.product_id=%s and st.location_dest_id in (select id from stock_location
+                                                                                        where usage = 'internal')
+                            union all
+                            select st.product_qty*-1
+                                from stock_move st 
+                                where st.state='done' and st.product_id=%s and st.location_id in (select id from stock_location
+                                                                                        where usage = 'internal')
+                            )foo
+                '''%(line.product_id.id,line.product_id.id)
+            cr.execute(sql)
+            ton_sl = cr.dictfetchone()['ton_sl']
+            
+            res[line.id] = {
+                'on_hand_qty': ton_sl,
+            }
+        return res
+    
     _columns = {
         'product_id': fields.many2one('product.product', 'Material Code',required = True),
         'dec_material':fields.text('Material Decription', readonly = True),
         'product_uom_qty': fields.float('Requested Qty'),   
         'uom_po_id': fields.many2one('product.uom', 'UOM', readonly = True),
         'material_request_id': fields.many2one('tpt.material.request', 'Material'),
+        'on_hand_qty':fields.function(_get_on_hand_qty,digits=(16,2),type='float',string='On Hand Qty',multi='sum',store=False),
                 }
     
     def create(self, cr, uid, vals, context=None):
