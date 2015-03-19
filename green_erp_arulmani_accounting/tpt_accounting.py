@@ -2213,3 +2213,29 @@ class product_category(osv.osv):
             res.append((record['id'], name))
         return res
 product_category()
+
+class res_partner(osv.osv):
+    _name = 'res.partner'
+    _inherit = 'res.partner'
+    _description = 'Partner'
+    _columns = {
+        'property_account_payable': fields.property(
+            'account.account',
+            type='many2one',
+            relation='account.account',
+            string="Account Payable",
+            view_load=True,
+            domain="[('type', '=', 'payable')]",
+            help="This account will be used instead of the default one as the payable account for the current partner",
+            required=False),
+        'property_account_receivable': fields.property(
+            'account.account',
+            type='many2one',
+            relation='account.account',
+            string="Account Receivable",
+            view_load=True,
+            domain="[('type', '=', 'receivable')]",
+            help="This account will be used instead of the default one as the receivable account for the current partner",
+            required=False),
+        }
+res_partner()

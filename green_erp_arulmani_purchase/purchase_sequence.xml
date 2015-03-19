@@ -135,6 +135,21 @@
             <field name="number_next_actual">000001</field>
             <field name="implementation">no_gap</field>
         </record>
+        
+<!-- Indent Purchase VV Raw Material PR -->
+        <record id="sequence_indent_purchase_raw" model="ir.sequence.type">
+            <field name="name">VV Raw Material</field>
+            <field name="code">indent.purchase.raw</field>
+        </record>
+        
+        <record id="sequence_indent_purchase_raw_item" model="ir.sequence">
+            <field name="name">VV Local Purchase</field>
+            <field name="code">indent.purchase.raw</field>
+            <field name="prefix">5</field>
+            <field name="padding">6</field>
+            <field name="number_next_actual">000001</field>
+            <field name="implementation">no_gap</field>
+        </record>
        
 <!-- Purchase Order VV Asset PO -->
         <record id="sequence_purchase_order_asset_7" model="ir.sequence.type">
