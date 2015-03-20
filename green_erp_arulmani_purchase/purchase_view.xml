@@ -114,6 +114,7 @@
 			<field name="model">tpt.purchase.product</field>
 			<field name="arch" type="xml">
 				<tree string="Indent Release - By Store" delete = 'false' create = 'false' >
+						<field name="doc_type_relate"/> 
 						<field name="pur_product_id"/> 
 						<field name="product_id"/>
 						<field name="description"/>
@@ -123,8 +124,11 @@
 						<field name="pending_qty" />
 						<field name="mrs_qty" />
 						<field name="inspection_qty" /> 
-						<field name="on_hand_qty" /> 
 						<field name="uom_po_id" />
+						<field name="section_id_relate"/> 
+						<field name="department_id_relate"/> 
+						<field name="date_indent_relate"/> 
+						<field name="requisitioner_relate"/>  
 						<field name="state"/>
 				</tree>
 			</field>
@@ -142,6 +146,7 @@
 	            </header>  
 	            <sheet> 
 	            	<group col="4" colspan="2"> 
+						<field name="doc_type_relate" />
 						<field name="pur_product_id" readonly="1"  options="{'create': false, 'create_edit': false}"/> 
 						<field name="recom_vendor" />
 						<field name="product_id" readonly = "1" options="{'create': false, 'create_edit': false}" />
@@ -150,8 +155,11 @@
 						<field name="pending_qty" />
 						<field name="mrs_qty" />
 						<field name="inspection_qty" />  
-						<field name="on_hand_qty" /> 
 						<field name="uom_po_id" edit='false' options="{'create': false, 'create_edit': false}" />
+						<field name="section_id_relate" />
+						<field name="department_id_relate" options="{'create': false, 'create_edit': false}" />
+						<field name="requisitioner_relate" options="{'create': false, 'create_edit': false}"/>
+						<field name="date_indent_relate" />  
 						<field name="state" required='1' />
 						<field name="item_text" />
 				</group>
@@ -209,6 +217,7 @@
 			<field name="model">tpt.purchase.product</field>
 			<field name="arch" type="xml">
 				<tree string="Indent Release - By HOD" delete = 'false' create = 'false' >
+						<field name="doc_type_relate"/> 
 						<field name="pur_product_id"/> 
 						<field name="product_id"/>
 						<field name="description"/>
@@ -218,8 +227,11 @@
 						<field name="pending_qty" />
 						<field name="mrs_qty" />
 						<field name="inspection_qty" /> 
-						<field name="on_hand_qty" /> 
 						<field name="uom_po_id" />
+						<field name="section_id_relate"/> 
+						<field name="department_id_relate"/> 
+						<field name="date_indent_relate"/> 
+						<field name="requisitioner_relate"/>  
 						<field name="state"/>
 				</tree>
 			</field>
@@ -237,6 +249,7 @@
 	            </header>  
 	            <sheet> 
 	            	<group col="4" colspan="2"> 
+						<field name="doc_type_relate" />
 						<field name="pur_product_id" readonly="1"  options="{'create': false, 'create_edit': false}"/> 
 						<field name="recom_vendor" />
 						<field name="product_id" readonly = "1" options="{'create': false, 'create_edit': false}" />
@@ -245,8 +258,11 @@
 						<field name="pending_qty" />
 						<field name="mrs_qty" />
 						<field name="inspection_qty" />  
-						<field name="on_hand_qty" /> 
 						<field name="uom_po_id" edit='false' options="{'create': false, 'create_edit': false}" />
+						<field name="section_id_relate" />
+						<field name="department_id_relate" options="{'create': false, 'create_edit': false}" />
+						<field name="requisitioner_relate" options="{'create': false, 'create_edit': false}"/>
+						<field name="date_indent_relate" />  
 						<field name="state" required='1' />
 						<field name="item_text" />
 				</group>
@@ -320,6 +336,7 @@
 			<field name="model">tpt.purchase.product</field>
 			<field name="arch" type="xml">
 				<tree string="Pending PR List" delete = 'false' create = 'false' >
+						<field name="doc_type_relate"/> 
 						<field name="pur_product_id"/> 
 						<field name="product_id"/>
 						<field name="description"/>
@@ -330,6 +347,10 @@
 						<field name="mrs_qty" />
 						<field name="inspection_qty" /> 
 						<field name="uom_po_id" />
+						<field name="section_id_relate"/> 
+						<field name="department_id_relate"/> 
+						<field name="date_indent_relate"/> 
+						<field name="requisitioner_relate"/>  
 						<field name="state"/>
 				</tree>
 			</field>
@@ -342,6 +363,7 @@
 	            <form string="Pending PR List" version="7.0" delete = 'false' create = 'false' edit = 'false' >   
 	            <sheet> 
 	            	<group col="4" colspan="2"> 
+	            		<field name="doc_type_relate" />
 						<field name="pur_product_id" readonly="1"  options="{'create': false, 'create_edit': false}"/> 
 						<field name="recom_vendor" />
 						<field name="product_id" readonly = "1" options="{'create': false, 'create_edit': false}" />
@@ -351,6 +373,10 @@
 						<field name="mrs_qty" />
 						<field name="inspection_qty" />  
 						<field name="uom_po_id" edit='false' options="{'create': false, 'create_edit': false}" />
+						<field name="section_id_relate" />
+						<field name="department_id_relate" options="{'create': false, 'create_edit': false}" />
+						<field name="requisitioner_relate" options="{'create': false, 'create_edit': false}"/>
+						<field name="date_indent_relate" />  
 						<field name="state" required='1' />
 						<field name="item_text" />
 				</group>
@@ -373,8 +399,25 @@
         			<filter string="Store - HOD Approved" name="++" icon="terp-personal" domain="[('state','=','++')]" context="{}"/>
         			<filter string="Store - HOD Reject" name="xx" icon="terp-personal" domain="[('state','=','xx')]" context="{}"/>
         			<filter string="Closed" name="close" icon="terp-personal" domain="[('state','=','close')]" context="{}"/>
+        			<separator />
+        			<filter string="VV Level Based PR" name="base" icon="terp-personal" domain="[('doc_type_relate','=','base')]" context="{}"/>
+        			<filter string="VV Capital PR" name="capital" icon="terp-personal" domain="[('doc_type_relate','=','capital')]" context="{}"/>
+        			<filter string="VV Local Purchase PR" name="local" icon="terp-personal" domain="[('doc_type_relate','=','local')]" context="{}"/>
+        			<filter string="VV Maintenance PR" name="maintenance" icon="terp-personal" domain="[('doc_type_relate','=','maintenance')]" context="{}"/>
+        			<filter string="VV Consumable PR" name="consumable" icon="terp-personal" domain="[('doc_type_relate','=','consumable')]" context="{}"/>
+        			<filter string="VV Outside Service PR" name="outside" icon="terp-personal" domain="[('doc_type_relate','=','outside')]" context="{}"/>
+        			<filter string="VV Spare (Project) PR" name="spare" icon="terp-personal" domain="[('doc_type_relate','=','spare')]" context="{}"/>
+        			<filter string="VV Service PR" name="service" icon="terp-personal" domain="[('doc_type_relate','=','service')]" context="{}"/>
+        			<filter string="VV Normal PR" name="normal" icon="terp-personal" domain="[('doc_type_relate','=','normal')]" context="{}"/>
+        			<filter string="VV Raw Material PR" name="raw" icon="terp-personal" domain="[('doc_type_relate','=','raw')]" context="{}"/>
         			<group expand="0" string="Group By...">
                         <filter string='Status' icon="terp-stock_symbol-selection" domain="[]" context="{'group_by' : 'state'}"/>
+                        <filter string='Indent Type' icon="terp-stock_symbol-selection" domain="[]" context="{'group_by' : 'doc_type_relate'}"/>
+                        <filter string='Department' icon="terp-stock_symbol-selection" domain="[]" context="{'group_by' : 'department_id_relate'}"/>
+                        <filter string='Section' icon="terp-stock_symbol-selection" domain="[]" context="{'group_by' : 'section_id_relate'}"/>
+                        <filter string='Material Code' icon="terp-stock_symbol-selection" domain="[]" context="{'group_by' : 'product_id'}"/>
+                        <filter string='Material Name' icon="terp-stock_symbol-selection" domain="[]" context="{'group_by' : 'description'}"/>
+                        <filter string='Requisitioner' icon="terp-stock_symbol-selection" domain="[]" context="{'group_by' : 'requisitioner_relate'}"/>
                     </group>				
 				</search>
 			</field>
@@ -825,6 +868,7 @@
 										<field name="e_d" /> 
 										<field name="e_d_type" /> 
 										<field name="tax_id" options="{'create': false, 'create_edit': false}" /> 
+										<field name="order_charge" /> 
 										<field name="fright" />  
 										<field name="fright_type" />
 										<field name="line_net" />  
@@ -1390,7 +1434,7 @@
 					<field name="create_on"/>
 					<field name="expect_quote_date"/>
 					<field name="create_uid" />
-					<field name="state" widget="statusbar" statusbar_visible="draft,cancel,done" statusbar_colors='{"draft":"blue","cancel":"blue"}'/>
+					<field name="state" widget="statusbar" statusbar_visible="draft,cancel,done,close" statusbar_colors='{"draft":"blue","cancel":"blue"}'/>
 				</tree>
 			</field>
 		</record>
@@ -1401,9 +1445,9 @@
             <field name="arch" type="xml">
 	            <form string="Request For Quotation" version="7.0"> 
 	            <header>
-	            		<button name="bt_approve" states='draft' string="Approve" type="object" class="oe_highlight" groups="green_erp_arulmani_purchase.group_vvti_purchase_admin"/>
+	            		<button name="bt_approve" states='draft' string="Confirm" type="object" class="oe_highlight" groups="green_erp_arulmani_purchase.group_vvti_purchase_admin"/>
 	                    <button name="bt_cancel" states='draft,done' string="Cancel" type="object" class="oe_highlight" />
-	                    <field name="state" widget="statusbar" statusbar_visible="draft,cancel,done" statusbar_colors='{"draft":"blue","cancel":"blue"}'/>
+	                    <field name="state" widget="statusbar" statusbar_visible="draft,cancel,done,close" statusbar_colors='{"draft":"blue","cancel":"blue"}'/>
 	            </header>   
 	            	<sheet>
 	            		<group col="4" colspan="2">
@@ -1446,12 +1490,29 @@
 			</field>
 		</record>
 		
+		<record id="view_tpt_request_for_quotation_seach_view" model="ir.ui.view">
+			<field name="name">tpt.request.for.quotation.seach</field>
+			<field name="model">tpt.request.for.quotation</field>
+			<field name="arch" type="xml">
+				<search string="Request For Quotation">
+					<field name="rfq_date"/>
+        			<filter string="RFQ Available" name="rfq_available" icon="terp-personal" domain="[('raised_ok','=',False)]" context="{}"/>
+        			<filter string="RFQ Used" name="rfq_used" icon="terp-personal" domain="[('raised_ok','=',True)]" context="{}"/>
+        			<group expand="0" string="Group By...">
+        				<filter string="Available/Used RFQ" icon="terp-accessories-archiver" domain="[]" context="{'group_by':'raised_ok'}"/>
+                    </group>
+				</search>
+			</field>
+		</record>
+		
 		<record id="action_view_tpt_request_for_quotation_form" model="ir.actions.act_window">
             <field name="name">Request For Quotation</field>
             <field name="type">ir.actions.act_window</field>
             <field name="res_model">tpt.request.for.quotation</field>
             <field name="view_type">form</field>
             <field name="view_mode">tree,form</field>
+            <field name="context">{'search_default_rfq_available':1}</field>
+            <field name="search_view_id" ref="view_tpt_request_for_quotation_seach_view"/>
             <field name="view_id" ref="view_tpt_request_for_quotation_tree"/>
         </record>
         
