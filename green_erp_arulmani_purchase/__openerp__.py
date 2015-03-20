@@ -42,6 +42,7 @@
         'tpt_user_view.xml',
         'purchase_workflow.xml',
         'menu_inherit_view.xml',
+        'import_view.xml',
     ],
     'css' : [
     ],

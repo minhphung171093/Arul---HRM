@@ -48,5 +48,43 @@
         <menuitem action="action_tpt_import_account_form"
             id="menu_action_tpt_import_account_form"
             parent="account.menu_finance_entries" sequence="32"/>
+            
+       	<record id="tpt_map_account_tree_view" model="ir.ui.view">
+			<field name="name">tpt.map.account.tree</field>
+			<field name="model">tpt.map.account</field>
+			<field name="arch" type="xml">
+				<tree string="Mapping Account">
+					<field name ="name"/>
+					<field name="state"/>
+				</tree>
+			</field>
+		</record>
+
+		<record id="tpt_map_account_form_view" model="ir.ui.view">
+            <field name="name">tpt.map.account.form</field>
+            <field name="model">tpt.map.account</field>
+            <field name="arch" type="xml">
+                <form string="Mapping Account" version="7.0">
+                    <header>
+	                    <button name="map_customer_account" string="Mapping Customer Account" type="object" class="oe_highlight" />
+	                    <button name="map_supplier_account" string="Mapping Supplier Account" type="object" class="oe_highlight" />
+	                    <field name="state" widget="statusbar" statusbar_visible="draft,done" statusbar_colors='{"draft":"blue","done":"blue"}'/>
+	                </header>                
+				</form>
+			</field>
+		</record>
+
+        <record id="action_tpt_map_account_form" model="ir.actions.act_window">
+            <field name="name">Mapping Account</field>
+			<field name="type">ir.actions.act_window</field>
+            <field name="res_model">tpt.map.account</field>
+            <field name="view_type">form</field>
+            <field name="view_mode">tree,form</field>
+            <field name="view_id" ref="tpt_map_account_tree_view"/>
+        </record>
+        
+        <menuitem action="action_tpt_map_account_form"
+            id="menu_action_tpt_map_account_form"
+            parent="account.menu_finance_entries" sequence="33"/>
     </data>
 </openerp>
