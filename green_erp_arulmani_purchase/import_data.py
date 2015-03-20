@@ -74,18 +74,12 @@ class tpt_import_supplier(osv.osv):
             partner_obj = self.pool.get('res.partner')
             country_obj = self.pool.get('res.country')
             state_obj = self.pool.get('res.country.state')
-            state_obj = self.pool.get('res.country.state')
-            account_obj = self.pool.get('customer.account.group')
-#             tax_number_1_obj = self.pool.get('tax.number.1')
-            payment_obj = self.pool.get('account.payment.term')
-            tax_category_obj = self.pool.get('tax.category')
-            tax_classification_obj = self.pool.get('tax.classification')
             title_obj = self.pool.get('res.partner.title')
             
             try:
                 dem = 1
                 for row in range(1,sh.nrows):
-                    country = sh.cell(row, 1).value
+                    country = sh.cell(row, 3).value
                     country_ids = country_obj.search(cr, uid, [('code','=',country)])
                     if not country_ids:
                         country_id = country_obj.create(cr, uid, {'name':country,'code':country})
@@ -98,70 +92,40 @@ class tpt_import_supplier(osv.osv):
                     else:
                         state_id = state_ids[0]
                     
-                    title = sh.cell(row, 11).value
+                    title = sh.cell(row, 9).value
                     title_ids = title_obj.search(cr, uid, [('name','=',title)])
                     if not title_ids:
                         title_id = title_obj.create(cr, uid, {'name':title})
                     else:
                         title_id = title_ids[0]
                     
-                    account = sh.cell(row, 12).value
-                    account_ids = account_obj.search(cr, uid, [('name','=',account)])
-                    if not account_ids:
-                        account_id = account_obj.create(cr, uid, {'name':account,'code':account})
+                    name = str(sh.cell(row, 1).value)
+                    street = str(sh.cell(row, 7).value)
+                    vendor = int(sh.cell(row, 0).value) or False
+                    if vendor:
+                        vendor_code = str(vendor)
                     else:
-                        account_id = account_ids[0]
-                        
-#                     tax_number_1 = sh.cell(row, 12).value
-#                     tax_number_1_ids = tax_number_1_obj.search(cr, uid, [('code','=',tax_number_1)])
-#                     if not tax_number_1_ids:
-#                         tax_number_1_id = tax_number_1_obj.create(cr, uid, {'code':tax_number_1,'name':tax_number_1})
-#                     else:
-#                         tax_number_1_id = tax_number_1_ids[0]
-                        
-                    payment = sh.cell(row, 14).value
-                    payment_ids = payment_obj.search(cr, uid, [('name','=',payment)])
-                    if not payment_ids:
-                        payment_id = payment_obj.create(cr, uid, {'name':payment})
-                    else:
-                        payment_id = payment_ids[0]
-                        
-                    tax_category = sh.cell(row, 16).value
-                    tax_category_ids = tax_category_obj.search(cr, uid, [('code','=',tax_category)])
-                    if not tax_category_ids:
-                        tax_category_id = tax_category_obj.create(cr, uid, {'code':tax_category,'name':tax_category})
-                    else:
-                        tax_category_id = tax_category_ids[0]
-                    
-#                     tax_classification = sh.cell(row, 16).value
-#                     tax_classification_ids = tax_classification_obj.search(cr, uid, [('code','=',tax_classification)])
-#                     if not tax_classification_ids:
-#                         tax_classification_id = tax_classification_obj.create(cr, uid, {'code':tax_classification,'name':tax_classification})
-#                     else:
-#                         tax_classification_id = tax_classification_ids[0]
-                        
+                        vendor_code = False
+                    zip = int(sh.cell(row, 5).value) or ''
                         ##############################################                         
                     dem += 1
                     partner_obj.create(cr, uid, {
-                        'vendor_code': sh.cell(row, 0).value or False,
+                        'vendor_code': vendor_code,
                         'country_id': country_id,
-                        'name': sh.cell(row, 2).value,
-                        'last_name': sh.cell(row, 3).value or False,
-                        'city': sh.cell(row, 4).value or False,
-                        'zip': sh.cell(row, 5).value or False,
+                        'name': name.replace('"','') or False,
+                        'last_name': sh.cell(row, 2).value or False,
+                        'city': sh.cell(row, 8).value or False,
+                        'zip': str(zip),
                         'state_id':state_id or False,
-                        'street': sh.cell(row, 8).value or False,
-                        'phone': sh.cell(row, 9).value or False,
-                        'fax': sh.cell(row, 10).value or False,
+                        'street': street.replace('"','') or False,
+                        'street2': sh.cell(row, 4).value or False,
+                        'phone': sh.cell(row, 12).value or False,
+                        'mobile': sh.cell(row, 13).value or False,
+                        'fax': sh.cell(row, 14).value or False,
                         'title': title_id or False,
-                        'customer_account_group_id': account_id or False,
-                        'pan_tin':sh.cell(row, 13).value or False,
-                        'property_payment_term':payment_id or False,
-                        'credit_limit_used':sh.cell(row, 15).value or False,
-                        'tax_category_id': tax_category_id or False,
-#                         'tax_classification_id': tax_classification_id or False,
-                        'is_company': True,
-                        'customer': True,
+                        'tin':sh.cell(row, 11).value or False,
+                        'cst':sh.cell(row, 10).value or False,
+                        'supplier': True,
                     })
                     
 #                         

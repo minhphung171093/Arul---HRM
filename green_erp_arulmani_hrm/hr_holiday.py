@@ -1153,30 +1153,7 @@ class arul_hr_employee_leave_details(osv.osv):
             timedelta = (to_dt - from_dt).days+1
             if date.haft_day_leave:
                 timedelta = timedelta-0.5
-            #TPT START-By BalamuruganPurushothaman ON 14/03/2015-If CL/SL/C.OFF is taken a Half Day,
-            #then system would not allow the same for next Half a day Except ESI/LOP
-            if date.haft_day_leave:
-                if date.date_from == date.date_to:
-                    emp_leave_count = 0
-                    sql = '''
-                        select COUNT(id)  from arul_hr_employee_leave_details where employee_id = %s 
-                        and date_to = '%s' and haft_day_leave = True and days_total=0.5 and leave_type_id in 
-                        (select id from arul_hr_leave_types where code in ('CL','SL','C.Off'))
-                    '''%(date.employee_id.id,date.date_to)
-                    cr.execute(sql)
-                    #leave_t_ids = [row[0] for row in cr.fetchall()] 
-                    #emp_leave_count = cr.dictfetchone()['emp_leave']
-                    a1 = cr.fetchone()
-                    emp_leave_count = a1[0]
-                    #print sql
-                    #print emp_leave_count
-                    if emp_leave_count == 1 and date.leave_type_id.code=='CL':                                         
-                        raise osv.except_osv(_('Warning!'),_('Only LOP/ESI is possible for another Half a Day Leave'))
-                    if emp_leave_count == 1 and date.leave_type_id.code=='SL':                                         
-                        raise osv.except_osv(_('Warning!'),_('Only LOP/ESI is possible for another Half a Day Leave'))
-                    if emp_leave_count == 1 and date.leave_type_id.code=='C.Off':                                         
-                        raise osv.except_osv(_('Warning!'),_('Only LOP/ESI is possible for another Half a Day Leave'))
-            #TPT END         
+            #APPEND HERE        
             leave_details_obj = self.pool.get('employee.leave.detail')
             emp_leave_obj = self.pool.get('employee.leave')
             year_now = time.strftime('%Y')
@@ -1274,7 +1251,44 @@ class arul_hr_employee_leave_details(osv.osv):
             res.append((record['id'], name))
         return res 
     
-    def create(self, cr, uid, vals, context=None):
+    def create(self, cr, uid, vals, context=None):                       
+        #TPT START-By BalamuruganPurushothaman ON 14/03/2015-If CL/SL/C.OFF is taken a Half Day,
+        #then system would not allow the same for next Half a day Except ESI/LOP
+        if vals['haft_day_leave']:
+            if vals['date_from'] == vals['date_to']:
+                emp_leave_count = 0
+                sql = '''
+                        select COUNT(id)  from arul_hr_employee_leave_details where employee_id = %s 
+                        and date_to = '%s' and haft_day_leave = True and days_total=0.5 and leave_type_id in 
+                        (select id from arul_hr_leave_types where code in ('CL','SL','C.Off'))
+                    '''%(vals['employee_id'],vals['date_to'])
+                cr.execute(sql)
+                    
+                a1 = cr.fetchone()
+                emp_leave_count = a1[0]
+                
+                sql = '''   select id from arul_hr_leave_types where code ='CL'  '''
+                cr.execute(sql)                    
+                cl1 = cr.fetchone()
+                cl = cl1[0]                
+                
+                sql = '''   select id from arul_hr_leave_types where code ='SL' '''
+                cr.execute(sql)                    
+                sl1 = cr.fetchone()
+                sl = sl1[0]               
+                
+                sql = '''   select id from arul_hr_leave_types where code ='C.Off' '''
+                cr.execute(sql)                    
+                coff1 = cr.fetchone()
+                coff = coff1[0]
+                    
+                if emp_leave_count == 1 and vals['leave_type_id']==cl:                                         
+                    raise osv.except_osv(_('Warning!'),_('Only LOP/ESI is possible for another Half a Day Leave'))
+                if emp_leave_count == 1 and vals['leave_type_id']==sl:                                         
+                    raise osv.except_osv(_('Warning!'),_('Only LOP/ESI is possible for another Half a Day Leave'))
+                if emp_leave_count == 1 and vals['leave_type_id']==coff:                                         
+                    raise osv.except_osv(_('Warning!'),_('Only LOP/ESI is possible for another Half a Day Leave'))
+            #TPT END  
         new_id1 = False
         new_id2 = False       
         vals.update({'check_reject_flag':True}) #TPT-BalamurugaPurushothaman on 12/03/2015
@@ -1760,7 +1774,39 @@ class arul_hr_punch_in_out_time(osv.osv):
             res[time.id] = {
                 'total_shift_worked': 0.0,
             }
-            
+            #raise osv.except_osv(_('Warning!%s'),time.actual_work_shift_id.code)
+            sql = '''
+            select start_time,end_time from arul_hr_capture_work_shift where code = '%s'
+
+            '''%(time.actual_work_shift_id.code)
+            cr.execute(sql)
+            a = cr.fetchall()
+            #TPT SHIFT
+            if time.in_time != 0 and time.out_time!=0: 
+                if time.actual_work_shift_id.code=='A':
+                    res[time.id]['a_shift_count'] = 1.0
+                if time.actual_work_shift_id.code=='B':
+                    res[time.id]['b_shift_count'] = 1.0
+                if time.actual_work_shift_id.code=='C':
+                    res[time.id]['c_shift_count'] = 1.0
+                if time.actual_work_shift_id.code=='G1':
+                    res[time.id]['g1_shift_count'] = 1.0
+                if time.actual_work_shift_id.code=='G2':
+                    res[time.id]['g2_shift_count'] = 1.0
+                '''    
+                if time.in_time >= 6.00:
+                    if time.out_time <= 14.30:         
+                        res[time.id]['a_shift_count'] = 1.0
+                if 13.45 >=time.in_time and 23.55 <= time.out_time:         
+                    res[time.id]['b_shift_count'] = 1.0
+                #if 21.30 >=time.in_time and 9.55 <= time.out_time:         
+                #    res[time.id]['c_shift_count'] = 1.0
+                #if 8.00 >=time.in_time and 16.45 <= time.out_time:
+                if 8.00 >=time.in_time and 16.45 <= time.out_time:          
+                    res[time.id]['g1_shift_count'] = 1.0
+                if 9.00 >=time.in_time and 17.45 <= time.out_time:         
+                    res[time.id]['g2_shift_count'] = 1.0
+                '''  
             if time.total_hours <= 1.0:            
                 res[time.id]['total_shift_worked'] = 0.125
             if time.total_hours >= 1.1 and time.total_hours <= 2.0:            
@@ -1808,11 +1854,16 @@ class arul_hr_punch_in_out_time(osv.osv):
         #TPT-Punch InOut - THIS COLUMN IS STORE IN DB TO GET THIS COUNT DURING PAYROLL PROCESS
         'total_shift_worked': fields.function(_shift_total, store=True, string='No.Of Shift Worked', multi='shift_punchinout_sums', help="The total amount."),
         #'shift_count': fields.function(_shift_total, store=True,string='Shift Count', multi='shift_punchinout2_sums', help="The total amount."),
-        'a_shift_count': fields.float('A', states={'done': [('readonly', True)], 'cancel': [('readonly', True)]}),
-        'g1_shift_count': fields.float('G1', states={'done': [('readonly', True)], 'cancel': [('readonly', True)]}),
-        'g2_shift_count': fields.float('G2', states={'done': [('readonly', True)], 'cancel': [('readonly', True)]}),
-        'b_shift_count': fields.float('B', states={'done': [('readonly', True)], 'cancel': [('readonly', True)]}),
-        'c_shift_count': fields.float('C', states={'done': [('readonly', True)], 'cancel': [('readonly', True)]}),
+        'a_shift_count': fields.function(_shift_total, string='A', multi='a_shift'),
+        'b_shift_count': fields.function(_shift_total, string='B', multi='b_shift'),
+        'c_shift_count': fields.function(_shift_total, string='C', multi='c_shift'),
+        'g1_shift_count': fields.function(_shift_total, string='G1', multi='g1_shift'),
+        'g2_shift_count': fields.function(_shift_total, string='G2', multi='g2_shift'),
+        
+        #'g1_shift_count': fields.float('G1', states={'done': [('readonly', True)], 'cancel': [('readonly', True)]}),
+        #'g2_shift_count': fields.float('G2', states={'done': [('readonly', True)], 'cancel': [('readonly', True)]}),
+        #'b_shift_count': fields.float('B', states={'done': [('readonly', True)], 'cancel': [('readonly', True)]}),
+        #'c_shift_count': fields.float('C', states={'done': [('readonly', True)], 'cancel': [('readonly', True)]}),
               
     }
     

@@ -123,3 +123,43 @@ class tpt_import_account(osv.osv):
     
 tpt_import_account()
 
+class tpt_map_account(osv.osv):
+    _name = 'tpt.map.account'
+
+    _columns = {
+        'name': fields.date('Date Import', required=True,states={'done': [('readonly', True)]}),
+        'state':fields.selection([('draft', 'Draft'),('map_cus', 'Mapped Customer'),('map_sup', 'Mapped Supplier')],'Status', readonly=True)
+    }
+    
+    _defaults = {
+        'state':'draft',
+        'name': time.strftime('%Y-%m-%d'),
+        
+    }
+    
+    def map_customer_account(self, cr, uid, ids, context=None):
+        account_obj = self.pool.get('account.account')
+        cus_obj = self.pool.get('res.partner')
+        
+        account_ids = account_obj.search(cr, uid, [('type','=','receivable')])
+        for account in account_obj.browse(cr, uid, account_ids):
+            cus_code = account.code[4:]
+            cus_ids = cus_obj.search(cr, uid, [('customer_code','=',cus_code),('customer','=',True),('is_company','=',True)])
+            if cus_ids:
+                cus_obj.write(cr, uid, cus_ids,{'property_account_receivable':account.id})
+        return self.write(cr, uid, ids, {'state':'map_cus'})
+    
+    def map_supplier_account(self, cr, uid, ids, context=None):
+        account_obj = self.pool.get('account.account')
+        cus_obj = self.pool.get('res.partner')
+        
+        account_ids = account_obj.search(cr, uid, [('type','=','payable')])
+        for account in account_obj.browse(cr, uid, account_ids):
+            sup_code = account.code
+            sup_ids = cus_obj.search(cr, uid, [('vendor_code','=',sup_code),('supplier','=',True)])
+            if sup_ids:
+                cus_obj.write(cr, uid, sup_ids,{'property_account_payable':account.id})
+        return self.write(cr, uid, ids, {'state':'map_sup'})
+    
+tpt_map_account()
+
