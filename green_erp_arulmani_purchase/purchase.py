@@ -1903,6 +1903,7 @@ class purchase_order_line(osv.osv):
                 }
     _defaults = {
                  'date_planned':time.strftime('%Y-%m-%d'),
+                 'state': 'draft',
                  }
     
     def create(self, cr, uid, vals, context=None):

@@ -78,7 +78,7 @@ class tpt_import_account(osv.osv):
             try:
                 dem = 1
                 for row in range(1,sh.nrows):
-                    account = sh.cell(row, 0).value or False
+                    account = str(sh.cell(row, 0).value) or False
                     if not account:
                         raise osv.except_osv(_('Warning!'),_('Do not have Account code in line %s!'%dem))
                     else:
