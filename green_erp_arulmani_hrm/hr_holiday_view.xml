@@ -495,6 +495,12 @@
 										<field name="actual_work_shift_id" options="{'create': false, 'create_edit': false}"/>
 										<field name="in_time" string="Punch In Time" widget="float_time"/>
 										<field name="out_time" string="Punch Out Time" widget="float_time"/>
+										<field name="a_shift_count"/>
+										<field name="g1_shift_count"/>
+										<field name="g2_shift_count"/>
+										<field name="b_shift_count"/>
+										<field name="c_shift_count"/>
+										<field name="total_shift_worked"/>
 										<field name="total_hours" widget="float_time"/>
 										<field name="total_shift_worked"/>
 										<field name="approval" string="Is Approved?"/>

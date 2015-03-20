@@ -983,11 +983,11 @@ class mrp_production(osv.osv):
                                 select case when sum(foo.product_qty)>0 then sum(foo.product_qty) else 0 end ton_sl from 
                                     (select st.product_qty
                                         from stock_move st 
-                                        where st.state='done' and st.product_id=%s and st.location_dest_id = %s and prodlot_id = null
+                                        where st.state='done' and st.product_id=%s and st.location_dest_id = %s
                                     union all
                                     select st.product_qty*-1
                                         from stock_move st 
-                                        where st.state='done' and st.product_id=%s and st.location_id = %s and prodlot_id = null
+                                        where st.state='done' and st.product_id=%s and st.location_id = %s
                                     )foo
                 '''%(line.product_id.id,production.location_src_id.id,line.product_id.id,production.location_src_id.id)
                 cr.execute(sql)

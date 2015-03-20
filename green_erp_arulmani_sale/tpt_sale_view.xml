@@ -7,9 +7,10 @@
             <field name="model">sale.order</field>
             <field name="inherit_id" ref="sale.view_order_form"/>
             <field name="arch" type="xml">
-                <xpath expr="//field[@name='partner_id']" position="after" >
+                <xpath expr="//field[@name='partner_id']" position="before" >
                 		<field name="blanket_id" on_change="onchange_blanket_id(blanket_id)" domain="[('blank_order_line','!=',False), ('state','=','approve')]" options="{'create': false, 'create_edit': false}" required = "1" />
                 		<field name="blanket_line_id" domain="[('blanket_order_id','=',blanket_id)]" options="{'create': false, 'create_edit': false}" on_change="onchange_blanketorderline_id(blanket_line_id)" required="1" context="{'search_blanket_line':1,'blanket_id':blanket_id}"/>
+                		</xpath><xpath expr="//field[@name='partner_id']" position="after" >
                 		<field name="invoice_address" placeholder="Street..."/>
                 		<field name="street2"/>
                 		<field name="city" placeholder="City"/>
