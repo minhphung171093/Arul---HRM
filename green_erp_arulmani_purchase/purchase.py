@@ -26,6 +26,7 @@ class tpt_purchase_indent(osv.osv):
                                 ('spare','VV Spare (Project) PR'),
                                 ('service','VV Service PR'),
                                 ('normal','VV Normal PR'),
+                                ('raw','VV Raw Material PR'),
                                 ],'Document Type',required = True, states={'cancel': [('readonly', True)], 'done':[('readonly', True)]}),
         'intdent_cate':fields.selection([
                                 ('emergency','Emergency Indent'),
@@ -46,6 +47,7 @@ class tpt_purchase_indent(osv.osv):
                                   ('done', 'Approve'),('rfq_raised','RFQ Raised'),
                                   ('quotation_raised','Quotation Raised'),
                                   ('po_raised','PO Raised')],'Status', readonly=True),
+        'section_id': fields.many2one('arul.hr.section','Section',ondelete='restrict'),
     }
     
     def _get_department_id(self,cr,uid,context=None):
@@ -133,6 +135,10 @@ class tpt_purchase_indent(osv.osv):
                     if vals.get('name','/')=='/':
                         sequence = self.pool.get('ir.sequence').get(cr, uid, 'indent.purchase.normal')
                         vals['name'] =  sequence and sequence +'/'+fiscalyear['code']or '/'
+                if (vals['document_type']=='raw'):
+                    if vals.get('name','/')=='/':
+                        sequence = self.pool.get('ir.sequence').get(cr, uid, 'indent.purchase.raw')
+                        vals['name'] =  sequence and sequence +'/'+fiscalyear['code']or '/'
         new_id = super(tpt_purchase_indent, self).create(cr, uid, vals, context=context)   
 #         indent = self.browse(cr,uid, new_id)
 #         if indent.select_normal != 'multiple':
@@ -214,7 +220,29 @@ class tpt_purchase_indent(osv.osv):
 tpt_purchase_indent()
 class tpt_purchase_product(osv.osv):
     _name = 'tpt.purchase.product'
-    
+    def _get_on_hand_qty(self, cr, uid, ids, name, arg, context=None):
+        res = {}
+        for line in self.browse(cr, uid, ids, context=context):
+            sql = '''
+                    select case when sum(foo.product_qty)>0 then sum(foo.product_qty) else 0 end ton_sl from 
+                            (select st.product_qty
+                                from stock_move st 
+                                where st.state='done' and st.product_id=%s and st.location_dest_id in (select id from stock_location
+                                                                                        where usage = 'internal')
+                            union all
+                            select st.product_qty*-1
+                                from stock_move st 
+                                where st.state='done' and st.product_id=%s and st.location_id in (select id from stock_location
+                                                                                        where usage = 'internal')
+                            )foo
+                '''%(line.product_id.id,line.product_id.id)
+            cr.execute(sql)
+            ton_sl = cr.dictfetchone()['ton_sl']
+            
+            res[line.id] = {
+                'on_hand_qty': ton_sl,
+            }
+        return res
 #     def _update_stock_qty(self, cr, uid, ids, field_names=None, arg=None, context=None):
 #         result = {}
 #         for pur_pro in self.browse(cr,uid,ids,context = context):
@@ -301,6 +329,7 @@ class tpt_purchase_product(osv.osv):
         'mrs_qty': fields.float('MRS Qty', readonly = True ),
 #         'onhand_qty': fields.function(_update_stock_qty, string='On hand quantity', multi = 'sums', store = True),
         'inspection_qty': fields.float('Inspection Quantity' ), 
+        'on_hand_qty':fields.function(_get_on_hand_qty,digits=(16,2),type='float',string='On Hand Qty',multi='sum',store=False),
         }  
 #     
     _defaults = {
@@ -1987,6 +2016,7 @@ class purchase_order_line(osv.osv):
                 }
     _defaults = {
                  'date_planned':time.strftime('%Y-%m-%d'),
+                 'state': 'draft',
                  }
     
     def create(self, cr, uid, vals, context=None):
@@ -2881,12 +2911,38 @@ tpt_material_request()
 
 class tpt_material_request_line(osv.osv):
     _name = "tpt.material.request.line"
+    
+    def _get_on_hand_qty(self, cr, uid, ids, name, arg, context=None):
+        res = {}
+        for line in self.browse(cr, uid, ids, context=context):
+            sql = '''
+                    select case when sum(foo.product_qty)>0 then sum(foo.product_qty) else 0 end ton_sl from 
+                            (select st.product_qty
+                                from stock_move st 
+                                where st.state='done' and st.product_id=%s and st.location_dest_id in (select id from stock_location
+                                                                                        where usage = 'internal')
+                            union all
+                            select st.product_qty*-1
+                                from stock_move st 
+                                where st.state='done' and st.product_id=%s and st.location_id in (select id from stock_location
+                                                                                        where usage = 'internal')
+                            )foo
+                '''%(line.product_id.id,line.product_id.id)
+            cr.execute(sql)
+            ton_sl = cr.dictfetchone()['ton_sl']
+            
+            res[line.id] = {
+                'on_hand_qty': ton_sl,
+            }
+        return res
+    
     _columns = {
         'product_id': fields.many2one('product.product', 'Material Code',required = True),
         'dec_material':fields.text('Material Decription', readonly = True),
         'product_uom_qty': fields.float('Requested Qty'),   
         'uom_po_id': fields.many2one('product.uom', 'UOM', readonly = True),
         'material_request_id': fields.many2one('tpt.material.request', 'Material'),
+        'on_hand_qty':fields.function(_get_on_hand_qty,digits=(16,2),type='float',string='On Hand Qty',multi='sum',store=False),
                 }
     
     def create(self, cr, uid, vals, context=None):
