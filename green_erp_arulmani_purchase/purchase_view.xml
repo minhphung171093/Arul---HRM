@@ -57,6 +57,7 @@
 							<field name="intdent_cate" />
 							<field name="department_id" readonly='1' options="{'create': false, 'create_edit': false}" />
 							<field name="create_uid" on_change="onchange_create_uid(create_uid)" options="{'create': false, 'create_edit': false}"  />
+							<field name="section_id" domain="[('department_id','=',department_id)]" options="{'create': false, 'create_edit': false}" />
 							<field name="date_expect"/>
 							<field name="requisitioner" options="{'create': false, 'create_edit': false}" domain="[('department_id','=',department_id)]"  />
 							<field name="header_text"/>
@@ -69,16 +70,18 @@
 						</group>
 						<notebook>
 							<page string = "Indent Lines">
-								<field name="purchase_product_line" nolabel='1'>
+								<field name="purchase_product_line" nolabel='1' context="{'default_doc_type_relate':document_type}">
 									<tree editable='bottom'>
+										<field name="doc_type_relate" invisible = '1'/>
 										<field name="product_id" on_change="onchange_product_id(product_id)" domain="[('purchase_ok','=',True)]" required='1' options="{'create': false, 'create_edit': false}"/>
-										<field name="description" required='1'/>
+										<field name="description" required='1' attrs="{'readonly':[('doc_type_relate','not in',('service','consumable'))]}"/>
 										<field name="item_text" />
-										<field name="product_uom_qty" />
+										<field name="product_uom_qty" string = 'Indent Qty'/>
 										<field name="recom_vendor" />
-										<field name="pending_qty" />
-										<field name="mrs_qty" />
-										<field name="inspection_qty" /> 
+										<field name="pending_qty" invisible = '1'/>
+										<field name="mrs_qty" string = 'Reserved Qty'/>
+										<field name="inspection_qty" invisible = '1'/> 
+										<field name="on_hand_qty"/>
 										<field name="uom_po_id" edit='false' options="{'create': false, 'create_edit': false}"/>
 										<!-- <field name="release_by" required='1'/>  -->
 										<field name="state" required='1'/>
@@ -120,6 +123,7 @@
 						<field name="pending_qty" />
 						<field name="mrs_qty" />
 						<field name="inspection_qty" /> 
+						<field name="on_hand_qty" /> 
 						<field name="uom_po_id" />
 						<field name="state"/>
 				</tree>
@@ -146,6 +150,7 @@
 						<field name="pending_qty" />
 						<field name="mrs_qty" />
 						<field name="inspection_qty" />  
+						<field name="on_hand_qty" /> 
 						<field name="uom_po_id" edit='false' options="{'create': false, 'create_edit': false}" />
 						<field name="state" required='1' />
 						<field name="item_text" />
@@ -213,6 +218,7 @@
 						<field name="pending_qty" />
 						<field name="mrs_qty" />
 						<field name="inspection_qty" /> 
+						<field name="on_hand_qty" /> 
 						<field name="uom_po_id" />
 						<field name="state"/>
 				</tree>
@@ -239,6 +245,7 @@
 						<field name="pending_qty" />
 						<field name="mrs_qty" />
 						<field name="inspection_qty" />  
+						<field name="on_hand_qty" /> 
 						<field name="uom_po_id" edit='false' options="{'create': false, 'create_edit': false}" />
 						<field name="state" required='1' />
 						<field name="item_text" />
@@ -1526,6 +1533,7 @@
 										<field name="product_id" widget = "selection"  options="{'create': false, 'create_edit': false}"/>
 										<field name="dec_material"/>
 										<field name="product_uom_qty" />
+										<field name="on_hand_qty" />
 										<field name="uom_po_id" edit='false' options="{'create': false, 'create_edit': false}"/>
 									</tree>
 								</field>

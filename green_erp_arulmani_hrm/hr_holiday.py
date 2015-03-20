@@ -282,6 +282,11 @@ class arul_hr_audit_shift_time(osv.osv):
               #TPT - Audit Shift Times
               'total_shift_worked': fields.function(_shift_total, string='No.Of Shift Worked', multi='shiftsums', states={'done': [('readonly', True)], 'cancel': [('readonly', True)]}),
               #'total_shift_worked': fields.float('No.Of Shift Worked', states={'done': [('readonly', True)], 'cancel': [('readonly', True)]}),
+              'a_shift_count': fields.float('A', states={'done': [('readonly', True)], 'cancel': [('readonly', True)]}),
+              'g1_shift_count': fields.float('G1', states={'done': [('readonly', True)], 'cancel': [('readonly', True)]}),
+              'g2_shift_count': fields.float('G2', states={'done': [('readonly', True)], 'cancel': [('readonly', True)]}),
+              'b_shift_count': fields.float('B', states={'done': [('readonly', True)], 'cancel': [('readonly', True)]}),
+              'c_shift_count': fields.float('C', states={'done': [('readonly', True)], 'cancel': [('readonly', True)]}),
               
               }
     _defaults = {
@@ -1755,6 +1760,7 @@ class arul_hr_punch_in_out_time(osv.osv):
             res[time.id] = {
                 'total_shift_worked': 0.0,
             }
+            
             if time.total_hours <= 1.0:            
                 res[time.id]['total_shift_worked'] = 0.125
             if time.total_hours >= 1.1 and time.total_hours <= 2.0:            
@@ -1773,12 +1779,14 @@ class arul_hr_punch_in_out_time(osv.osv):
                 res[time.id]['total_shift_worked'] = 1.5
             if time.total_hours >=15.45:            
                 res[time.id]['total_shift_worked'] = 2.0
+            if time.total_hours >=23.45:            
+                res[time.id]['total_shift_worked'] = 3.0
             
             #res[time.id]['shift_count']=res[time.id]['total_shift_worked']
             #res.update({'shift_count': res[time.id]['total_shift_worked']})
             
         return res
-    #TPT
+    #TPT 
     _columns = {
         'employee_id':fields.many2one('hr.employee','Employee ID', required = True, states={'done': [('readonly', True)], 'cancel': [('readonly', True)]}),
         'work_date':fields.date('Work Date', required = True, states={'done': [('readonly', True)], 'cancel': [('readonly', True)]}),
@@ -1800,7 +1808,12 @@ class arul_hr_punch_in_out_time(osv.osv):
         #TPT-Punch InOut - THIS COLUMN IS STORE IN DB TO GET THIS COUNT DURING PAYROLL PROCESS
         'total_shift_worked': fields.function(_shift_total, store=True, string='No.Of Shift Worked', multi='shift_punchinout_sums', help="The total amount."),
         #'shift_count': fields.function(_shift_total, store=True,string='Shift Count', multi='shift_punchinout2_sums', help="The total amount."),
-        
+        'a_shift_count': fields.float('A', states={'done': [('readonly', True)], 'cancel': [('readonly', True)]}),
+        'g1_shift_count': fields.float('G1', states={'done': [('readonly', True)], 'cancel': [('readonly', True)]}),
+        'g2_shift_count': fields.float('G2', states={'done': [('readonly', True)], 'cancel': [('readonly', True)]}),
+        'b_shift_count': fields.float('B', states={'done': [('readonly', True)], 'cancel': [('readonly', True)]}),
+        'c_shift_count': fields.float('C', states={'done': [('readonly', True)], 'cancel': [('readonly', True)]}),
+              
     }
     
     _defaults = {

@@ -18,6 +18,10 @@ class stock_picking(osv.osv):
         'document_type':fields.selection([('asset','VV Asset PO'),('standard','VV Standard PO'),('local','VV Local PO')],'PO Document Type'),
         'warehouse':fields.many2one('stock.location','Warehouse'),
         'po_date': fields.datetime('PO Date'),        
+        'gate_in_pass_no':fields.many2one('tpt.gate.in.pass','Gate In Pass No'),
+        'truck':fields.char('Truck No', size = 64),
+        'delivery_no':fields.char('Delivery Challan No', size = 64),
+        'invoice_no':fields.char('Invoice No & Date', size = 64),
                 }
     
 #     def action_invoice_create(self, cr, uid, ids, journal_id=False,
@@ -262,7 +266,7 @@ class stock_move(osv.osv):
         'action_taken':fields.selection([('direct','Direct Stock Update'),('move','Move to Consumption'),('need','Need Inspection')],'Action to be Taken'),
         'po_indent_id': fields.many2one('tpt.purchase.indent','PO Indent No'),
         'inspec': fields.boolean('Inspec'),  
-        'bin_location':fields.char('Bin Location',size = 256),
+        'bin_location':fields.many2one('stock.location','Bin Location'),
         'si_no':fields.integer('SI.No',readonly = True),
                 }
     
@@ -401,7 +405,7 @@ class account_invoice(osv.osv):
                'account.invoice': (lambda self, cr, uid, ids, c={}: ids, ['invoice_line'], 10),   
                'account.invoice.line': (_get_invoice_line, ['quantity', 'uos_id', 'price_unit','discount','p_f','p_f_type',   
                                                                'ed', 'ed_type','invoice_line_tax_id','fright','fright_type'], 10)}),
-        'fright': fields.function(amount_all_supplier_invoice_line, multi='sums',string='Fright',
+        'fright': fields.function(amount_all_supplier_invoice_line, multi='sums',string='Freight',
               store={
                 'account.invoice': (lambda self, cr, uid, ids, c={}: ids, ['invoice_line'], 10),   
                 'account.invoice.line': (_get_invoice_line, ['quantity', 'uos_id', 'price_unit','discount','p_f','p_f_type',   
@@ -474,8 +478,8 @@ class account_invoice_line(osv.osv):
         'p_f_type':fields.selection([('1','%'),('2','Rs')],('P&F Type')),
         'ed': fields.float('ED'),
         'ed_type':fields.selection([('1','%'),('2','Rs')],('ED Type')),
-        'fright': fields.float('Fright'),
-        'fright_type':fields.selection([('1','%'),('2','Rs')],('Fright Type')),
+        'fright': fields.float('Freight'),
+        'fright_type':fields.selection([('1','%'),('2','Rs')],('Freight Type')),
         'line_net': fields.function(line_net_line_supplier_invo, store = True, multi='deltas' ,string='Line Net'),
     }
     def onchange_gl_code_id(self, cr, uid, ids, gl_code_id=False, context=None):
