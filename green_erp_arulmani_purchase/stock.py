@@ -15,7 +15,7 @@ from openerp import netsvc
 class stock_picking(osv.osv):
     _inherit = "stock.picking"
     _columns = {
-        'document_type':fields.selection([('asset','VV Asset PO'),('standard','VV Standard PO'),('local','VV Local PO')],'PO Document Type'),
+        'document_type':fields.selection([('asset','VV Asset PO'),('standard','VV Standard PO'),('local','VV Local PO'),('return','VV Return PO'),('service','VV Service PO'),('out','VV Out Service PO')],'PO Document Type'),
         'warehouse':fields.many2one('stock.location','Warehouse'),
         'po_date': fields.datetime('PO Date'),        
         'gate_in_pass_no':fields.many2one('tpt.gate.in.pass','Gate In Pass No'),
@@ -23,7 +23,23 @@ class stock_picking(osv.osv):
         'delivery_no':fields.char('Delivery Challan No', size = 64),
         'invoice_no':fields.char('Invoice No & Date', size = 64),
                 }
-    
+
+#     def create(self, cr, user, vals, context=None):
+#         if ('name' not in vals) or (vals.get('name')=='/'):
+#             seq_obj_name =  self._name
+#             vals['name'] = self.pool.get('ir.sequence').get(cr, user, seq_obj_name)
+#         new_id = super(stock_picking, self).create(cr, user, vals, context)
+#         grn = self.browse(cr,user,new_id)
+#         for grn_line in grn.move_lines:
+#             sql = '''
+#                 select id from tpt_purchase_product where pur_product_id=%s and product_id=%s
+#                 
+#                 '''%(grn_line.po_indent_id.id,grn_line.product_id.id)
+#             cr.execute(sql)
+#             indent_line_ids = [row[0] for row in cr.fetchall()]
+#             if indent_line_ids:
+#                 self.pool.get('tpt.purchase.product').write(cr, user, indent_line_ids,{'state':'close'})
+#         return new_id   
 #     def action_invoice_create(self, cr, uid, ids, journal_id=False,
 #             group=False, type='out_invoice', context=None):
 #         """ Creates invoice based on the invoice state selected for picking.
@@ -205,7 +221,7 @@ stock_picking()
 class stock_picking_in(osv.osv):
     _inherit = "stock.picking.in"
     _columns = {
-        'document_type':fields.selection([('asset','VV Asset PO'),('standard','VV Standard PO'),('local','VV Local PO')],'PO Document Type',readonly = True),
+        'document_type':fields.selection([('asset','VV Asset PO'),('standard','VV Standard PO'),('local','VV Local PO'),('return','VV Return PO'),('service','VV Service PO'),('out','VV Out Service PO')],'PO Document Type',readonly = True),
         'warehouse':fields.many2one('stock.location','Warehouse'),
         'po_date': fields.datetime('PO Date', readonly = True),   
         'gate_in_pass_no':fields.many2one('tpt.gate.in.pass','Gate In Pass No'),
@@ -256,6 +272,8 @@ class stock_picking_in(osv.osv):
     def name_search(self, cr, user, name, args=None, operator='ilike', context=None, limit=100):
        ids = self.search(cr, user, args, context=context, limit=limit)
        return self.name_get(cr, user, ids, context=context)
+   
+
     
 stock_picking_in()
 
