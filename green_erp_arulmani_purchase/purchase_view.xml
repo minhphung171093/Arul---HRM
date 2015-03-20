@@ -372,6 +372,7 @@
         			<filter string="Store Rejected" name="x" icon="terp-personal" domain="[('state','=','x')]" context="{}"/>
         			<filter string="Store - HOD Approved" name="++" icon="terp-personal" domain="[('state','=','++')]" context="{}"/>
         			<filter string="Store - HOD Reject" name="xx" icon="terp-personal" domain="[('state','=','xx')]" context="{}"/>
+        			<filter string="Closed" name="close" icon="terp-personal" domain="[('state','=','close')]" context="{}"/>
         			<group expand="0" string="Group By...">
                         <filter string='Status' icon="terp-stock_symbol-selection" domain="[]" context="{'group_by' : 'state'}"/>
                     </group>				
@@ -417,7 +418,7 @@
 					<button name="purchase_draft_head" states="draft" string="Purchase Head Approval" class="oe_highlight"/>
 					<button name="purchase_head_gm" states="head" string="GM Approval" class="oe_highlight"/>
 					<button name="purchase_gm_amendement" states="gm" string="Amendement" class="oe_highlight"/>
-					<button name="purchase_head_amendement" states="head" string="Amendement" class="oe_highlight"/>
+					<!--<button name="purchase_head_amendement" states="head" string="Amendement" class="oe_highlight"/>-->
 					<button name="purchase_amendement_head" states="amendement" string="Purchase Head Approval" class="oe_highlight"/>
 					<button name="purchase_gm_confirmed" states="gm" string="Approve &amp; Create GRN" class="oe_highlight"/>
 				</xpath>  
@@ -801,7 +802,7 @@
                    	 <group col="4" colspan="2" >
                    	 	<field name="name" />
 						<field name="date_quotation" />
-						<field name="rfq_no_id" on_change = "onchange_rfq_no_id(rfq_no_id)" options="{'create': false, 'create_edit': false}" />
+						<field name="rfq_no_id" domain="[('state','=','done')]" on_change = "onchange_rfq_no_id(rfq_no_id)" options="{'create': false, 'create_edit': false}" />
 						<field name="supplier_id" domain="[('supplier','=',1)]" options="{'create': false, 'create_edit': false}" on_change = "onchange_supplier_location(supplier_id)" context="{'search_supplier_code':1,'rfq_no_id':rfq_no_id}"/>
 						<field name="supplier_name_id"/>
 						<field name="supplier_location_id" options="{'create': false, 'create_edit': false}"  />
@@ -834,6 +835,8 @@
 						<group col="4" colspan="2" >
 	                   	 	<field name="for_basis" />
 							<field name="schedule" />
+							<newline/>
+							<field name="payment_term_id" options="{'create': false, 'create_edit': false}" />
 							<field name="amount_line" />
 							<field name="amount_basic" />
 							<field name="amount_p_f" />
