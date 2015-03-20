@@ -209,8 +209,8 @@
             <field name="arch" type="xml">
 	            <form string="Employee Leave Details" version="7.0">   
 	           		<header>
-	                    <button name="process_leave_request" states='draft' string="Process Leave Request" type="object" class="oe_highlight" groups="green_erp_arulmani_hrm.group_vvti_hrm_hr_manager"/>
-	                    <button name="reject_leave_request" states='draft' string="Reject Leave Request" type="object" class="oe_highlight" groups="green_erp_arulmani_hrm.group_vvti_hrm_hr_manager"/>
+	                    <button name="process_leave_request" states='draft' string="Approve" type="object" class="oe_highlight" groups="green_erp_arulmani_hrm.group_vvti_hrm_hr_manager"/>
+	                    <button name="reject_leave_request" states='draft' string="Reject" type="object" class="oe_highlight" groups="green_erp_arulmani_hrm.group_vvti_hrm_hr_manager"/>
 	                    <button name="cancel_leave_request" states='done' string="Cancel" type="object" class="oe_highlight" groups="green_erp_arulmani_hrm.group_vvti_hrm_hr_manager"/>
 	                	<field name="state" widget="statusbar" statusbar_visible="draft,done" statusbar_colors='{"draft":"blue","done":"blue"}'/>
 	                </header>   
@@ -382,14 +382,12 @@
 					<field name="planned_work_shift_id" options="{'create': false, 'create_edit': false}"/>
 					<field name="actual_work_shift_id" options="{'create': false, 'create_edit': false}"/>
 					<field name="punch_in_date"/>
-					<field name="in_time" widget="float_time"/>
-					<field name="punch_out_date"/>					
-					<field name="out_time" widget="float_time"/>
-					<field name="total_hours" widget="float_time"/>
-					
-					<field name="approval"/>
-					<field name=""/>
+					<field name="punch_out_date"/>
 					<field name="type"/>
+					<field name="in_time" widget="float_time"/>										
+					<field name="out_time" widget="float_time"/>									
+					<field name="approval"/>
+					<field name=""/>				
 					<field name="state"/>
 					<field name="diff_day" invisible='1'/>
 				</tree>
@@ -495,12 +493,11 @@
 										<field name="actual_work_shift_id" options="{'create': false, 'create_edit': false}"/>
 										<field name="in_time" string="Punch In Time" widget="float_time"/>
 										<field name="out_time" string="Punch Out Time" widget="float_time"/>
-										<field name="a_shift_count"/>
-										<field name="g1_shift_count"/>
-										<field name="g2_shift_count"/>
-										<field name="b_shift_count"/>
-										<field name="c_shift_count"/>
-										<field name="total_shift_worked"/>
+										<field name="a_shift_count" widget="float_time"/>
+										<field name="g1_shift_count" widget="float_time"/>
+										<field name="g2_shift_count" widget="float_time"/>
+										<field name="b_shift_count" widget="float_time"/>
+										<field name="c_shift_count" widget="float_time"/>										
 										<field name="total_hours" widget="float_time"/>
 										<field name="total_shift_worked"/>
 										<field name="approval" string="Is Approved?"/>
