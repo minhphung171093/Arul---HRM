@@ -269,7 +269,7 @@ class tpt_purchase_product(osv.osv):
         #'recom_vendor_id': fields.many2one('res.partner', 'Recommended Vendor'),
         'recom_vendor': fields.char('Recommended Vendor', size = 30 ),
         'release_by':fields.selection([('1','Store Level'),('2','HOD Level')],'Released By'),
-        'state':fields.selection([('draft', 'Draft'),('confirm', 'Confirmed'),
+        'state':fields.selection([('draft', 'Draft'),('confirm', 'Confirmed'),('close', 'Closed'),
                                           ('+', 'Store Approved'),('++', 'Store & HOD Approved'),
                                           ('x', 'Store Rejected'),('xx', 'Store & HOD Rejected'),
                                           ('rfq_raised','RFQ Raised'),
@@ -769,24 +769,34 @@ class tpt_purchase_quotation(osv.osv):
                 amount_basic += basic
                 if quotation.p_f_type == '1' :
                     p_f = basic * quotation.p_f/100
-                else:
+                elif quotation.p_f_type == '2' :
                     p_f = quotation.p_f
+                else :
+                    p_f = quotation.p_f * quotation.product_uom_qty
                 amount_p_f += p_f
                 if quotation.e_d_type == '1' :
                     ed = (basic + p_f) * quotation.e_d/100
-                else:
+                elif quotation.e_d_type == '2' :
                     ed = quotation.e_d
+                else:
+                    ed = quotation.e_d *  quotation.product_uom_qty
                 amount_ed += ed
                 total_tax = (basic + p_f + ed)*(quotation.tax_id and quotation.tax_id.amount or 0) / 100
                 amount_total_tax += total_tax
                 if quotation.fright_type == '1' :
                     amount_fright += (basic + p_f + ed + total_tax) * quotation.fright/100
-                else:
+                elif quotation.fright_type == '2' :
                     amount_fright += quotation.fright
+                else :
+                    amount_fright += quotation.fright * quotation.product_uom_qty
 #                 amount_line +=  amount_basic + amount_p_f + quotation.e_d + amount_total_tax + amount_fright
+                if quotation.tax_id and quotation.tax_id.name == 'CST':
+                    amount_net = amount_basic + amount_p_f + amount_fright + amount_total_tax
+                if quotation.tax_id and quotation.tax_id.name == 'VAT':
+                    amount_net = amount_basic + amount_p_f + amount_fright
             amount_line += amount_basic
-            amount_gross = amount_line + amount_p_f + amount_ed + amount_total_tax
-            amount_net = amount_gross - amount_ed - amount_total_tax
+            amount_gross = amount_line + amount_p_f + amount_ed + amount_total_tax + amount_fright
+            amount_net = amount_net
             amount_unit_net = qty and amount_net/qty or 0
             res[line.id]['amount_line'] = amount_line
             res[line.id]['amount_basic'] = amount_basic
@@ -820,7 +830,7 @@ class tpt_purchase_quotation(osv.osv):
         'quotation_cate':fields.selection([
                                 ('single','Single Quotation'),
                                 ('multiple','Multiple Quotation'),('special','Special Quotation')],'Quotation Category', required = True),
-        'quotation_ref':fields.char('Quotation Reference',size = 1024),
+        'quotation_ref':fields.char('Quotation Reference',size = 1024,required=True),
 #         'tax_id': fields.many2one('account.tax', 'Taxes',required=True ,states={'cancel': [('readonly', True)], 'done':[('readonly', True)]}),
         'purchase_quotation_line':fields.one2many('tpt.purchase.quotation.line','purchase_quotation_id','Quotation Line' ,states={'cancel': [('readonly', True)], 'done':[('readonly', True)]}),
         'amount_line': fields.function(amount_all_quotation_line, multi='sums',string='Line Amount',
@@ -881,7 +891,7 @@ class tpt_purchase_quotation(osv.osv):
         
         'state':fields.selection([('draft', 'Draft'),('cancel', 'Cancel'),('done', 'Approve')],'Status', readonly=True),
         'for_basis':fields.char('For Basis',size = 1024),
-        'schedule':fields.char('Delivery Schedule',size = 1024),
+        'schedule':fields.date('Delivery Schedule'),
         'comparison_chart_id':fields.many2one('tpt.comparison.chart','Comparison Chart'),
         'payment_term_id': fields.related('supplier_id','property_supplier_payment_term',type='many2one',relation='account.payment.term', string='Payment Term'),
         'select':fields.boolean('Select'),
@@ -1096,16 +1106,23 @@ class tpt_purchase_quotation_line(osv.osv):
             amount_basic = (line.product_uom_qty * line.price_unit)-((line.product_uom_qty * line.price_unit)*line.disc/100)
             if line.p_f_type == '1':
                amount_p_f = amount_basic * (line.p_f/100)
-            else:
+            elif line.p_f_type == '2':
                 amount_p_f = line.p_f
+            else:
+                amount_p_f = line.p_f * line.product_uom_qty
             if line.e_d_type == '1':
                amount_ed = (amount_basic + amount_p_f) * (line.e_d/100)
-            else:
+            elif line.e_d_type == '2':
                 amount_ed = line.e_d
+            else:
+                amount_ed = line.e_d * line.product_uom_qty
             if line.fright_type == '1':
                amount_fright = (amount_basic + amount_p_f + amount_ed) * (line.fright/100)
-            else:
+            elif line.fright_type == '2':
                 amount_fright = line.fright
+            else:
+                amount_fright = line.fright * line.product_uom_qty
+#             if 
             amount_total_tax = line.tax_id and line.tax_id.amount/100 or 0
             line_net = amount_total_tax+amount_fright+amount_ed+amount_p_f+amount_basic
             res[line.id]['line_net'] = line_net
@@ -1120,12 +1137,12 @@ class tpt_purchase_quotation_line(osv.osv):
         'price_unit': fields.float('Unit Price', required=True),
         'disc': fields.float('Disc'),
         'p_f': fields.float('P&F'),
-        'p_f_type':fields.selection([('1','%'),('2','Rs')],('P&F Type')),
+        'p_f_type':fields.selection([('1','%'),('2','Rs'),('3','Per Qty')],('P&F Type')),
         'e_d': fields.float('ED'),
-        'e_d_type':fields.selection([('1','%'),('2','Rs')],('ED Type')),
+        'e_d_type':fields.selection([('1','%'),('2','Rs'),('3','Per Qty')],('ED Type')),
         'tax_id': fields.many2one('account.tax', 'Taxes',required = True),
         'fright': fields.float('Freight'),
-        'fright_type':fields.selection([('1','%'),('2','Rs')],('Freight Type')),
+        'fright_type':fields.selection([('1','%'),('2','Rs'),('2','Per Qty')],('Freight Type')),
         'line_net': fields.function(line_net_line, store = True, multi='deltas' ,string='SubTotal'),
         'line_no': fields.integer('SI.No', readonly = True),
         'order_charge': fields.float('Order Charges'),
@@ -1737,8 +1754,16 @@ class purchase_order(osv.osv):
     
     
     def write(self, cr, uid, ids, vals, context=None):
+
         new_write = super(purchase_order, self).write(cr, uid, ids, vals, context)
         for new in self.browse(cr, uid, ids):
+            for line in new.order_line:
+                if 'state' in vals and vals['state']=='approved':
+                    sql = '''
+                        update tpt_purchase_product set state='close' where pur_product_id=%s and product_id=%s
+                    '''%(new.po_indent_no.id,line.product_id.id)
+                    cr.execute(sql)
+                    
 #             sql = '''
 #                 select code from account_fiscalyear where '%s' between date_start and date_stop
 #             '''%(time.strftime('%Y-%m-%d'))
@@ -2180,6 +2205,8 @@ class stock_picking_in(osv.osv):
     def name_search(self, cr, user, name, args=None, operator='ilike', context=None, limit=100):
        ids = self.search(cr, user, args, context=context, limit=limit)
        return self.name_get(cr, user, ids, context=context)
+
+
     
 stock_picking_in()    
     
