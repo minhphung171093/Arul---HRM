@@ -146,9 +146,7 @@ class tpt_map_account(osv.osv):
             cus_code = account.code[4:]
             cus_ids = cus_obj.search(cr, uid, [('customer_code','=',cus_code),('customer','=',True),('is_company','=',True)])
             if cus_ids:
-                sql = '''
-                    update res_partner set property_account_receivable = %s where id = %s
-                    '''%(account.id,cus_ids[0])
+                cus_obj.write(cr, uid, cus_ids,{'property_account_receivable':account.id})
         return self.write(cr, uid, ids, {'state':'map_cus'})
     
     def map_supplier_account(self, cr, uid, ids, context=None):
@@ -160,9 +158,7 @@ class tpt_map_account(osv.osv):
             sup_code = account.code
             sup_ids = cus_obj.search(cr, uid, [('vendor_code','=',sup_code),('supplier','=',True)])
             if sup_ids:
-                sql = '''
-                    update res_partner set property_account_payable = %s where id = %s
-                    '''%(account.id,sup_ids[0])
+                cus_obj.write(cr, uid, sup_ids,{'property_account_payable':account.id})
         return self.write(cr, uid, ids, {'state':'map_sup'})
     
 tpt_map_account()
