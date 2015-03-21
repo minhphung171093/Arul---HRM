@@ -75,7 +75,7 @@ class tpt_import_supplier(osv.osv):
             country_obj = self.pool.get('res.country')
             state_obj = self.pool.get('res.country.state')
             title_obj = self.pool.get('res.partner.title')
-            
+            zip = ''
             try:
                 dem = 1
                 for row in range(1,sh.nrows):
@@ -106,7 +106,8 @@ class tpt_import_supplier(osv.osv):
                         vendor_code = str(vendor)
                     else:
                         vendor_code = False
-                    zip = int(sh.cell(row, 5).value) or ''
+                    if sh.cell(row, 5).value:
+                        zip = int(sh.cell(row, 5).value)
                         ##############################################                         
                     dem += 1
                     partner_obj.create(cr, uid, {
