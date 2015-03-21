@@ -2521,15 +2521,15 @@ class tpt_request_for_quotation(osv.osv):
     _name = "tpt.request.for.quotation"
     
     _columns = {
-        'name': fields.char('RFQ No', size = 1024,readonly=True, required = True , states={'cancel': [('readonly', True)], 'done':[('readonly', True)]}),
-        'rfq_date': fields.datetime('RFQ Date', states={'cancel': [('readonly', True)], 'done':[('readonly', True)]}),
-        'rfq_category': fields.selection([('single','Single'),('mutiple','Multiple'),('special','Special')],'RFQ Category', required = True, states={'cancel': [('readonly', True)], 'done':[('readonly', True)]}),
+        'name': fields.char('RFQ No', size = 1024,readonly=True, required = True , states={'cancel': [('readonly', True)], 'done':[('readonly', True)], 'close':[('readonly', True)]}),
+        'rfq_date': fields.datetime('RFQ Date', states={'cancel': [('readonly', True)], 'done':[('readonly', True)], 'close':[('readonly', True)]}),
+        'rfq_category': fields.selection([('single','Single'),('mutiple','Multiple'),('special','Special')],'RFQ Category', required = True, states={'cancel': [('readonly', True)], 'done':[('readonly', True)], 'close':[('readonly', True)]}),
         'create_uid':fields.many2one('res.users','Raised By', readonly = True),
         'create_on': fields.datetime('Created on', readonly = True),
-        'expect_quote_date': fields.date('Expected Quote Date', states={'cancel': [('readonly', True)], 'done':[('readonly', True)]}),
-        'rfq_line': fields.one2many('tpt.rfq.line', 'rfq_id', 'RFQ Line', states={'cancel': [('readonly', True)], 'done':[('readonly', True)]}),
-        'rfq_supplier': fields.one2many('tpt.rfq.supplier', 'rfq_id', 'Supplier Line', states={'cancel': [('readonly', True)], 'done':[('readonly', True)]}),
-        'state':fields.selection([('draft', 'Draft'),('cancel', 'Cancel'),('done', 'Confirm'),('close', 'Closed')],'Status', readonly=True, states={'cancel': [('readonly', True)], 'done':[('readonly', True)]}),       
+        'expect_quote_date': fields.date('Expected Quote Date', states={'cancel': [('readonly', True)], 'done':[('readonly', True)], 'close':[('readonly', True)]}),
+        'rfq_line': fields.one2many('tpt.rfq.line', 'rfq_id', 'RFQ Line', states={'cancel': [('readonly', True)], 'done':[('readonly', True)], 'close':[('readonly', True)]}),
+        'rfq_supplier': fields.one2many('tpt.rfq.supplier', 'rfq_id', 'Supplier Line', states={'cancel': [('readonly', True)], 'done':[('readonly', True)], 'close':[('readonly', True)]}),
+        'state':fields.selection([('draft', 'Draft'),('cancel', 'Cancel'),('done', 'Confirm'),('close', 'Closed')],'Status', readonly=True, states={'cancel': [('readonly', True)], 'done':[('readonly', True)], 'close':[('readonly', True)]}),  
         'raised_ok': fields.boolean('Raised',readonly =True ),      
                 }
     _defaults={
