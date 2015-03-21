@@ -57,10 +57,10 @@
 							<field name="intdent_cate" />
 							<field name="department_id" readonly='1' options="{'create': false, 'create_edit': false}" />
 							<field name="create_uid" on_change="onchange_create_uid(create_uid)" options="{'create': false, 'create_edit': false}"  />
-							<field name="section_id" domain="[('department_id','=',department_id)]" options="{'create': false, 'create_edit': false}" />
+							<field name="section_id" readonly='1' domain="[('department_id','=',department_id)]" options="{'create': false, 'create_edit': false}" />
 							<field name="date_expect"/>
 							<field name="requisitioner" options="{'create': false, 'create_edit': false}" domain="[('department_id','=',department_id)]"  />
-							<field name="header_text"/>
+							<field name="header_text" attrs="{'readonly': [('document_type', 'not in', ('service','consumable','capital'))]}"/>
 						</group>
 						<group >
 							<field name="select_normal" invisible = '1' widget = "radio" attrs="{'invisible': [('intdent_cate', '!=', 'normal')]}" />
@@ -121,10 +121,9 @@
 						<field name="item_text" />
 						<field name="product_uom_qty" />
 						<field name="recom_vendor" />
-						<field name="pending_qty" />
 						<field name="mrs_qty" />
-						<field name="inspection_qty" /> 
 						<field name="uom_po_id" />
+						<field name="on_hand_qty"/>
 						<field name="section_id_relate"/> 
 						<field name="department_id_relate"/> 
 						<field name="date_indent_relate"/> 
@@ -152,10 +151,9 @@
 						<field name="product_id" readonly = "1" options="{'create': false, 'create_edit': false}" />
 						<field name="description"/>
 						<field name="product_uom_qty" />
-						<field name="pending_qty" />
 						<field name="mrs_qty" />
-						<field name="inspection_qty" />  
 						<field name="uom_po_id" edit='false' options="{'create': false, 'create_edit': false}" />
+						<field name="on_hand_qty"/>
 						<field name="section_id_relate" />
 						<field name="department_id_relate" options="{'create': false, 'create_edit': false}" />
 						<field name="requisitioner_relate" options="{'create': false, 'create_edit': false}"/>
@@ -224,10 +222,9 @@
 						<field name="item_text" />
 						<field name="product_uom_qty" />
 						<field name="recom_vendor" />
-						<field name="pending_qty" />
 						<field name="mrs_qty" />
-						<field name="inspection_qty" /> 
 						<field name="uom_po_id" />
+						<field name="on_hand_qty"/>
 						<field name="section_id_relate"/> 
 						<field name="department_id_relate"/> 
 						<field name="date_indent_relate"/> 
@@ -255,10 +252,9 @@
 						<field name="product_id" readonly = "1" options="{'create': false, 'create_edit': false}" />
 						<field name="description"/>
 						<field name="product_uom_qty" />
-						<field name="pending_qty" />
 						<field name="mrs_qty" />
-						<field name="inspection_qty" />  
 						<field name="uom_po_id" edit='false' options="{'create': false, 'create_edit': false}" />
+						<field name="on_hand_qty"/>
 						<field name="section_id_relate" />
 						<field name="department_id_relate" options="{'create': false, 'create_edit': false}" />
 						<field name="requisitioner_relate" options="{'create': false, 'create_edit': false}"/>

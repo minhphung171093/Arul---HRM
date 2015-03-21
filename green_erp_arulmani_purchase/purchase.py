@@ -53,13 +53,18 @@ class tpt_purchase_indent(osv.osv):
     def _get_department_id(self,cr,uid,context=None):
         user = self.pool.get('res.users').browse(cr,uid,uid)
         return user.employee_id and user.employee_id.department_id and user.employee_id.department_id.id or False
-    
+
+    def _get_section_id(self,cr,uid,context=None):
+        user = self.pool.get('res.users').browse(cr,uid,uid)
+        return user.employee_id and user.employee_id.section_id and user.employee_id.section_id.id or False
+
     _defaults = {
         'state':'draft',
         'date_indent': fields.datetime.now,
         'name': '/',
         'intdent_cate':'normal',
         'department_id': _get_department_id,
+        'section_id':_get_section_id,
 #         'create_uid': lambda self,cr,uid,c:uid,
 #         'document_type':'base',
     }
@@ -161,7 +166,8 @@ class tpt_purchase_indent(osv.osv):
         vals = {}
         user = self.pool.get('res.users').browse(cr,uid,uid)
         vals = {
-                'department_id': user.employee_id and user.employee_id.department_id and user.employee_id.department_id.id
+                'department_id': user.employee_id and user.employee_id.department_id and user.employee_id.department_id.id,
+                'section_id': user.employee_id and user.employee_id.section_id and user.employee_id.section_id.id
                 }
         return {'value': vals}
     
@@ -273,11 +279,12 @@ class tpt_purchase_product(osv.osv):
                                           ('+', 'Store Approved'),('++', 'Store & HOD Approved'),
                                           ('x', 'Store Rejected'),('xx', 'Store & HOD Rejected'),
                                           ('rfq_raised','RFQ Raised'),
+                                          ('cancel','PO Cancelled'),
                                           ('quotation_raised','Quotation Raised'),
                                           ('po_raised','PO Raised')
                                           ],'Indent Status', readonly=True),
 #Hung moi them 2 Qty theo yeu casu bala
-        'mrs_qty': fields.float('MRS Qty', readonly = True ),
+        'mrs_qty': fields.float('Reserved Qty', readonly = True ),
         'inspection_qty': fields.float('Inspection Quantity' ), 
         'on_hand_qty':fields.function(_get_on_hand_qty,digits=(16,2),type='float',string='On Hand Qty',multi='sum',store=False),
         'department_id_relate':fields.related('pur_product_id', 'department_id',type = 'many2one', relation='hr.department', string='Department',store=True),
@@ -1763,7 +1770,11 @@ class purchase_order(osv.osv):
                         update tpt_purchase_product set state='close' where pur_product_id=%s and product_id=%s
                     '''%(new.po_indent_no.id,line.product_id.id)
                     cr.execute(sql)
-                    
+                if 'state' in vals and vals['state']=='cancel':
+                    sql = '''
+                        update tpt_purchase_product set state='cancel' where pur_product_id=%s and product_id=%s
+                    '''%(new.po_indent_no.id,line.product_id.id)
+                    cr.execute(sql)
 #             sql = '''
 #                 select code from account_fiscalyear where '%s' between date_start and date_stop
 #             '''%(time.strftime('%Y-%m-%d'))
@@ -2548,15 +2559,15 @@ class tpt_request_for_quotation(osv.osv):
     _name = "tpt.request.for.quotation"
     
     _columns = {
-        'name': fields.char('RFQ No', size = 1024,readonly=True, required = True , states={'cancel': [('readonly', True)], 'done':[('readonly', True)]}),
-        'rfq_date': fields.datetime('RFQ Date', states={'cancel': [('readonly', True)], 'done':[('readonly', True)]}),
-        'rfq_category': fields.selection([('single','Single'),('mutiple','Multiple'),('special','Special')],'RFQ Category', required = True, states={'cancel': [('readonly', True)], 'done':[('readonly', True)]}),
+        'name': fields.char('RFQ No', size = 1024,readonly=True, required = True , states={'cancel': [('readonly', True)], 'done':[('readonly', True)], 'close':[('readonly', True)]}),
+        'rfq_date': fields.datetime('RFQ Date', states={'cancel': [('readonly', True)], 'done':[('readonly', True)], 'close':[('readonly', True)]}),
+        'rfq_category': fields.selection([('single','Single'),('mutiple','Multiple'),('special','Special')],'RFQ Category', required = True, states={'cancel': [('readonly', True)], 'done':[('readonly', True)], 'close':[('readonly', True)]}),
         'create_uid':fields.many2one('res.users','Raised By', readonly = True),
         'create_on': fields.datetime('Created on', readonly = True),
-        'expect_quote_date': fields.date('Expected Quote Date', states={'cancel': [('readonly', True)], 'done':[('readonly', True)]}),
-        'rfq_line': fields.one2many('tpt.rfq.line', 'rfq_id', 'RFQ Line', states={'cancel': [('readonly', True)], 'done':[('readonly', True)]}),
-        'rfq_supplier': fields.one2many('tpt.rfq.supplier', 'rfq_id', 'Supplier Line', states={'cancel': [('readonly', True)], 'done':[('readonly', True)]}),
-        'state':fields.selection([('draft', 'Draft'),('cancel', 'Cancel'),('done', 'Confirm'),('close', 'Closed')],'Status', readonly=True, states={'cancel': [('readonly', True)], 'done':[('readonly', True)]}),       
+        'expect_quote_date': fields.date('Expected Quote Date', states={'cancel': [('readonly', True)], 'done':[('readonly', True)], 'close':[('readonly', True)]}),
+        'rfq_line': fields.one2many('tpt.rfq.line', 'rfq_id', 'RFQ Line', states={'cancel': [('readonly', True)], 'done':[('readonly', True)], 'close':[('readonly', True)]}),
+        'rfq_supplier': fields.one2many('tpt.rfq.supplier', 'rfq_id', 'Supplier Line', states={'cancel': [('readonly', True)], 'done':[('readonly', True)], 'close':[('readonly', True)]}),
+        'state':fields.selection([('draft', 'Draft'),('cancel', 'Cancel'),('done', 'Confirm'),('close', 'Closed')],'Status', readonly=True, states={'cancel': [('readonly', True)], 'done':[('readonly', True)], 'close':[('readonly', True)]}),  
         'raised_ok': fields.boolean('Raised',readonly =True ),      
                 }
     _defaults={
