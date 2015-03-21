@@ -53,13 +53,18 @@ class tpt_purchase_indent(osv.osv):
     def _get_department_id(self,cr,uid,context=None):
         user = self.pool.get('res.users').browse(cr,uid,uid)
         return user.employee_id and user.employee_id.department_id and user.employee_id.department_id.id or False
-    
+
+    def _get_section_id(self,cr,uid,context=None):
+        user = self.pool.get('res.users').browse(cr,uid,uid)
+        return user.employee_id and user.employee_id.section_id and user.employee_id.section_id.id or False
+
     _defaults = {
         'state':'draft',
         'date_indent': fields.datetime.now,
         'name': '/',
         'intdent_cate':'normal',
         'department_id': _get_department_id,
+        'section_id':_get_section_id,
 #         'create_uid': lambda self,cr,uid,c:uid,
 #         'document_type':'base',
     }
@@ -161,7 +166,8 @@ class tpt_purchase_indent(osv.osv):
         vals = {}
         user = self.pool.get('res.users').browse(cr,uid,uid)
         vals = {
-                'department_id': user.employee_id and user.employee_id.department_id and user.employee_id.department_id.id
+                'department_id': user.employee_id and user.employee_id.department_id and user.employee_id.department_id.id,
+                'section_id': user.employee_id and user.employee_id.section_id and user.employee_id.section_id.id
                 }
         return {'value': vals}
     
@@ -273,6 +279,7 @@ class tpt_purchase_product(osv.osv):
                                           ('+', 'Store Approved'),('++', 'Store & HOD Approved'),
                                           ('x', 'Store Rejected'),('xx', 'Store & HOD Rejected'),
                                           ('rfq_raised','RFQ Raised'),
+                                          ('cancel','PO Cancelled'),
                                           ('quotation_raised','Quotation Raised'),
                                           ('po_raised','PO Raised')
                                           ],'Indent Status', readonly=True),
@@ -1763,7 +1770,11 @@ class purchase_order(osv.osv):
                         update tpt_purchase_product set state='close' where pur_product_id=%s and product_id=%s
                     '''%(new.po_indent_no.id,line.product_id.id)
                     cr.execute(sql)
-                    
+                if 'state' in vals and vals['state']=='cancel':
+                    sql = '''
+                        update tpt_purchase_product set state='cancel' where pur_product_id=%s and product_id=%s
+                    '''%(new.po_indent_no.id,line.product_id.id)
+                    cr.execute(sql)
 #             sql = '''
 #                 select code from account_fiscalyear where '%s' between date_start and date_stop
 #             '''%(time.strftime('%Y-%m-%d'))
