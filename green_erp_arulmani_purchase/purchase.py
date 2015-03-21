@@ -277,7 +277,7 @@ class tpt_purchase_product(osv.osv):
                                           ('po_raised','PO Raised')
                                           ],'Indent Status', readonly=True),
 #Hung moi them 2 Qty theo yeu casu bala
-        'mrs_qty': fields.float('MRS Qty', readonly = True ),
+        'mrs_qty': fields.float('Reserved Qty', readonly = True ),
         'inspection_qty': fields.float('Inspection Quantity' ), 
         'on_hand_qty':fields.function(_get_on_hand_qty,digits=(16,2),type='float',string='On Hand Qty',multi='sum',store=False),
         'department_id_relate':fields.related('pur_product_id', 'department_id',type = 'many2one', relation='hr.department', string='Department',store=True),
