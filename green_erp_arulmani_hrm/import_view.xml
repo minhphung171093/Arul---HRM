@@ -283,5 +283,116 @@
         <menuitem action="action_tpt_import_customer_form"
             id="menu_action_tpt_import_customer_form"
             parent="green_erp_arulmani_crm.menu_vvti_master" sequence="32"/>
+            
+        
+<!--Start:TPT-->
+	<record id="tpt_import_meals_deduction_tree_view" model="ir.ui.view">
+			<field name="name">tpt.import.meals.deduction.tree</field>
+			<field name="model">tpt.import.meals.deduction</field>
+			<field name="arch" type="xml">
+				<tree string="Import Meals Deduction">
+					<field name ="name"/>	
+					<field name="state"/>				
+				</tree>
+			</field>
+	</record>
+	
+	<record id="tpt_import_meals_deduction_form_view" model="ir.ui.view">
+            <field name="name">tpt.import.meals.deduction.form</field>
+            <field name="model">tpt.import.meals.deduction</field>
+            <field name="arch" type="xml">
+                <form string="Import Meals Deduction" version="7.0">
+                        <header>
+	                    <button name="import_meals_deduction" states='draft' string="Import" type="object" class="oe_highlight" />
+	                    <field name="state" widget="statusbar" statusbar_visible="draft,done" statusbar_colors='{"draft":"blue","done":"blue"}'/>
+	                </header>     
+                	<sheet>  
+                		<group>
+                		<field name ="name"/>
+                		
+						<label for="datas" string="Data Upload Field"/>
+							<div>
+								<field name="datas" filename="datas_fname"/>
+	                        	<field name="datas_fname" invisible="1" class="oe_inline oe_right"/>
+	                        </div>
+                		
+                		</group>
+                	</sheet>
+				</form>
+			</field>
+		</record>
+
+
+
+	<record id="action_tpt_import_meals_deduction_form" model="ir.actions.act_window">
+            <field name="name">Import Meals Deduction</field>
+			<field name="type">ir.actions.act_window</field>
+            <field name="res_model">tpt.import.meals.deduction</field>
+            <field name="view_type">form</field>
+            <field name="view_mode">tree,form</field>
+            <field name="view_id" ref="tpt_import_meals_deduction_tree_view"/>
+        </record>
+        
+        <menuitem action="action_tpt_import_meals_deduction_form"
+            id="menu_action_tpt_import_meals_deduction_form"
+            parent="hr.menu_hr_main" sequence="105"/>
+
+<!--End:TPT-->
+
+
+<!--Start:TPT-->
+	<record id="tpt_import_meals_details_tree_view" model="ir.ui.view">
+			<field name="name">tpt.import.meals.details.tree</field>
+			<field name="model">tpt.import.meals.details</field>
+			<field name="arch" type="xml">
+				<tree string="Import Meals Details">
+					<field name ="name"/>	
+					<field name="state"/>				
+				</tree>
+			</field>
+	</record>
+	
+	<record id="tpt_import_meals_details_form_view" model="ir.ui.view">
+            <field name="name">tpt.import.meals.details.form</field>
+            <field name="model">tpt.import.meals.details</field>
+            <field name="arch" type="xml">
+                <form string="Import Meals Details" version="7.0">
+                        <header>
+	                    <button name="import_meals_details" states='draft' string="Import" type="object" class="oe_highlight" />
+	                    <field name="state" widget="statusbar" statusbar_visible="draft,done" statusbar_colors='{"draft":"blue","done":"blue"}'/>
+	                </header>     
+                	<sheet>  
+                		<group>
+                		<field name ="name"/>
+                		
+						<label for="datas" string="Data Upload Field"/>
+							<div>
+								<field name="datas" filename="datas_fname"/>
+	                        	<field name="datas_fname" invisible="1" class="oe_inline oe_right"/>
+	                        </div>
+                		
+                		</group>
+                	</sheet>
+				</form>
+			</field>
+		</record>
+
+
+
+	<record id="action_tpt_import_meals_details_form" model="ir.actions.act_window">
+            <field name="name">Import Meals Details</field>
+			<field name="type">ir.actions.act_window</field>
+            <field name="res_model">tpt.import.meals.details</field>
+            <field name="view_type">form</field>
+            <field name="view_mode">tree,form</field>
+            <field name="view_id" ref="tpt_import_meals_details_tree_view"/>
+        </record>
+        
+        <menuitem action="action_tpt_import_meals_details_form"
+            id="menu_action_tpt_import_meals_details_form"
+            parent="hr.menu_hr_main" sequence="105"/>
+
+<!--End:TPT-->
+        
     </data>
 </openerp>
