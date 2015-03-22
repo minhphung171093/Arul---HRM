@@ -386,7 +386,7 @@
                 <form string="Employee Transfer/ Deputation Action" version="7.0">    
                 	<sheet>
 		                 <group col='4' colspan='2'>
-							<field name="action_id" on_change="onchange_action_id(action_id)" domain="[('name','=','Transfer')]" options="{'create': false, 'create_edit': false}"/>
+							<field name="action_id" on_change="onchange_action_id(action_id)" domain="[('name','in',('Transfer','Deputation'))]" options="{'create': false, 'create_edit': false}"/>
 							<field name="action_type_id" options="{'create': false, 'create_edit': false}"/>
 							<field name ="employee_id" options="{'create': false, 'create_edit': false}" required = "1" domain="[('active','=',1)]" on_change="onchange_transfer_employee_id(employee_id)"/>
 							<newline/>
@@ -401,10 +401,11 @@
 							<field name ="designation_to_id" options="{'create': false, 'create_edit': false}" domain="[('id','!=',designation_from_id)]"/>
 							<field name ="payroll_area_id" options="{'create': false, 'create_edit': false}"/>
 							<field name ="payroll_sub_area_id" options="{'create': false, 'create_edit': false}"/>
-							<field name ="action_date" string = "Date of Transfer/ Deputation"/>
-							<newline/>
+							<field name ="action_date" string = "Date of Order Issued"/>
 							<field name ="period_from"/>
-							<field name ="period_to"/>
+							<newline/>
+							<field name ="date_from" string = 'Period From'/>
+							<field name ="date_to" string ='Period To'/>
 						</group>
 						<group>
 							<field name ="note"/>
