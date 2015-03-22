@@ -402,7 +402,7 @@ class arul_hr_audit_shift_time(osv.osv):
                                 'view_id': res[1],
                                 'res_model': 'alert.form',
                                 'domain': [],
-                                'context': {'default_message':'No Permission / On Duty Entry is made for Pending Hours. Do you want to reduce it from Leave Credits (CL/SL/PL/LOP) ?','audit_id':line.id},
+                                'context': {'default_message':'No Permission / On Duty Entry is made for Pending Hours. Do you want to reduce it from Leave Credits (CL/SL/C.Off/PL/LOP) ?','audit_id':line.id},
                                 'type': 'ir.actions.act_window',
                                 'target': 'new',
                             }
@@ -431,7 +431,7 @@ class arul_hr_audit_shift_time(osv.osv):
                                 'view_id': res[1],
                                 'res_model': 'alert.form',
                                 'domain': [],
-                                'context': {'default_message':'No Permission / On Duty Entry is made for Pending Hours. Do you want to reduce it from Leave Credits (CL/SL/PL/LOP) ?','audit_id':line.id},
+                                'context': {'default_message':'No Permission / On Duty Entry is made for Pending Hours. Do you want to reduce it from Leave Credits (CL/SL/C.Off/PL/LOP) ?','audit_id':line.id},
                                 'type': 'ir.actions.act_window',
                                 'target': 'new',
                             }
@@ -461,7 +461,7 @@ class arul_hr_audit_shift_time(osv.osv):
                                 'view_id': res[1],
                                 'res_model': 'alert.form',
                                 'domain': [],
-                                'context': {'default_message':'No Permission / On Duty Entry is made for Pending Hours. Do you want to reduce it from Leave Credits (CL/SL/PL/LOP) ?','audit_id':line.id},
+                                'context': {'default_message':'No Permission / On Duty Entry is made for Pending Hours. Do you want to reduce it from Leave Credits (CL/SL/C.Off/PL/LOP) ?','audit_id':line.id},
                                 'type': 'ir.actions.act_window',
                                 'target': 'new',
                             }
@@ -490,7 +490,7 @@ class arul_hr_audit_shift_time(osv.osv):
                                 'view_id': res[1],
                                 'res_model': 'alert.form',
                                 'domain': [],
-                                'context': {'default_message':'No Permission / On Duty Entry is made for Pending Hours. Do you want to reduce it from Leave Credits (CL/SL/PL/LOP) ?','audit_id':line.id},
+                                'context': {'default_message':'No Permission / On Duty Entry is made for Pending Hours. Do you want to reduce it from Leave Credits (CL/SL/C.Off/PL/LOP) ?','audit_id':line.id},
                                 'type': 'ir.actions.act_window',
                                 'target': 'new',
                             }
@@ -510,7 +510,7 @@ class arul_hr_audit_shift_time(osv.osv):
                                 'view_id': res[1],
                                 'res_model': 'alert.form',
                                 'domain': [],
-                                'context': {'default_message':'No Permission / On Duty Entry is made for Pending Hours. Do you want to reduce it from Leave Credits (CL/SL/PL/LOP) ?','audit_id':line.id},
+                                'context': {'default_message':'No Permission / On Duty Entry is made for Pending Hours. Do you want to reduce it from Leave Credits (CL/SL/C.Off/PL/LOP) ?','audit_id':line.id},
                                 'type': 'ir.actions.act_window',
                                 'target': 'new',
                             }
@@ -780,7 +780,7 @@ class arul_hr_audit_shift_time(osv.osv):
                                 'view_id': res[1],
                                 'res_model': 'alert.form',
                                 'domain': [],
-                                'context': {'default_message':'No Permission / On Duty Entry is made for Pending Hours. Do you want to reduce it from Leave Credits (CL/SL/PL/LOP) ?','audit_id':line.id},
+                                'context': {'default_message':'No Permission / On Duty Entry is made for Pending Hours. Do you want to reduce it from Leave Credits (CL/SL/C.Off/PL/LOP) ?','audit_id':line.id},
                                 'type': 'ir.actions.act_window',
                                 'target': 'new',
                             }
@@ -809,7 +809,7 @@ class arul_hr_audit_shift_time(osv.osv):
                                 'view_id': res[1],
                                 'res_model': 'alert.form',
                                 'domain': [],
-                                'context': {'default_message':'No Permission / On Duty Entry is made for Pending Hours. Do you want to reduce it from Leave Credits (CL/SL/PL/LOP) ?','audit_id':line.id},
+                                'context': {'default_message':'No Permission / On Duty Entry is made for Pending Hours. Do you want to reduce it from Leave Credits (CL/SL/C.Off/PL/LOP) ?','audit_id':line.id},
                                 'type': 'ir.actions.act_window',
                                 'target': 'new',
                             }
@@ -838,7 +838,7 @@ class arul_hr_audit_shift_time(osv.osv):
                                 'view_id': res[1],
                                 'res_model': 'alert.form',
                                 'domain': [],
-                                'context': {'default_message':'No Permission / On Duty Entry is made for Pending Hours. Do you want to reduce it from Leave Credits (CL/SL/PL/LOP) ?','audit_id':line.id},
+                                'context': {'default_message':'No Permission / On Duty Entry is made for Pending Hours. Do you want to reduce it from Leave Credits (CL/SL/C.Off/PL/LOP) ?','audit_id':line.id},
                                 'type': 'ir.actions.act_window',
                                 'target': 'new',
                             }
@@ -868,7 +868,7 @@ class arul_hr_audit_shift_time(osv.osv):
                                 'view_id': res[1],
                                 'res_model': 'alert.form',
                                 'domain': [],
-                                'context': {'default_message':'No Permission / On Duty Entry is made for Pending Hours. Do you want to reduce it from Leave Credits (CL/SL/PL/LOP) ?','audit_id':line.id},
+                                'context': {'default_message':'No Permission / On Duty Entry is made for Pending Hours. Do you want to reduce it from Leave Credits (CL/SL/C.Off/PL/LOP) ?','audit_id':line.id},
                                 'type': 'ir.actions.act_window',
                                 'target': 'new',
                             }
@@ -895,7 +895,7 @@ class arul_hr_audit_shift_time(osv.osv):
                                 'view_id': res[1],
                                 'res_model': 'alert.form',
                                 'domain': [],
-                                'context': {'default_message':'No Permission / On Duty Entry is made for Pending Hours. Do you want to reduce it from Leave Credits (CL/SL/PL/LOP) ?','audit_id':line.id},
+                                'context': {'default_message':'No Permission / On Duty Entry is made for Pending Hours. Do you want to reduce it from Leave Credits (CL/SL/C.Off/PL/LOP) ?','audit_id':line.id},
                                 'type': 'ir.actions.act_window',
                                 'target': 'new',
                             }
@@ -918,7 +918,7 @@ class arul_hr_audit_shift_time(osv.osv):
                                 'view_id': res[1],
                                 'res_model': 'alert.form',
                                 'domain': [],
-                                'context': {'default_message':'No Permission / On Duty Entry is made for Pending Hours. Do you want to reduce it from Leave Credits (CL/SL/PL/LOP) ?','audit_id':line.id},
+                                'context': {'default_message':'No Permission / On Duty Entry is made for Pending Hours. Do you want to reduce it from Leave Credits (CL/SL/C.Off/PL/LOP) ?','audit_id':line.id},
                                 'type': 'ir.actions.act_window',
                                 'target': 'new',
                             }
@@ -1807,26 +1807,52 @@ class arul_hr_punch_in_out_time(osv.osv):
                 if 9.00 >=time.in_time and 17.45 <= time.out_time:         
                     res[time.id]['g2_shift_count'] = 1.0
                 '''  
+            #Permission
+            permission_count = 0
+            onduty_count = 0
+            perm_onduty_count = 0
+            sql = '''
+            SELECT SUM(total_shift_worked) FROM arul_hr_permission_onduty WHERE 
+            non_availability_type_id='permission' 
+                AND TO_CHAR(date,'YYYY-MM-DD') = ('%s') and employee_id =%s
+                '''%(time.work_date,time.employee_id.id)
+            cr.execute(sql)
+            b =  cr.fetchone()
+            if b[0]:
+                permission_count = b[0]
+                
+            #OnDuty
+            sql = '''
+                SELECT SUM(total_shift_worked) FROM arul_hr_permission_onduty WHERE non_availability_type_id='on_duty' 
+                AND TO_CHAR(to_date,'YYYY-MM-DD') = ('%s') and employee_id =%s
+                '''%(time.work_date,time.employee_id.id)
+            cr.execute(sql)
+            c =  cr.fetchone()
+            if c[0]:
+                onduty_count = c[0]
+            
+            perm_onduty_count =   permission_count + onduty_count
+            
             if time.total_hours <= 1.0:            
-                res[time.id]['total_shift_worked'] = 0.125
+                res[time.id]['total_shift_worked'] = 0.125 + perm_onduty_count
             if time.total_hours >= 1.1 and time.total_hours <= 2.0:            
-                res[time.id]['total_shift_worked'] = 0.25
+                res[time.id]['total_shift_worked'] = 0.25 + perm_onduty_count
             if time.total_hours >= 2.1 and time.total_hours <= 3.0:            
-                res[time.id]['total_shift_worked'] = 0.375            
+                res[time.id]['total_shift_worked'] = 0.375 + perm_onduty_count        
             if time.total_hours >= 4.0 and time.total_hours <= 7.44:            
-                res[time.id]['total_shift_worked'] = 0.5    
+                res[time.id]['total_shift_worked'] = 0.5 + perm_onduty_count 
             if time.total_hours >= 7.45 and time.total_hours <= 8.30:            
-                res[time.id]['total_shift_worked'] = 1.0
+                res[time.id]['total_shift_worked'] = 1.0 + perm_onduty_count
             if time.total_hours >8.30  and time.total_hours <= 11.44:            
-                res[time.id]['total_shift_worked'] = 1.0
+                res[time.id]['total_shift_worked'] = 1.0 + perm_onduty_count
             if time.total_hours >=11.45  and time.total_hours <= 15.44:            
-                res[time.id]['total_shift_worked'] = 1.5
+                res[time.id]['total_shift_worked'] = 1.5 + perm_onduty_count
             if time.total_hours >=15.45  and time.total_hours <= 15.45:            
-                res[time.id]['total_shift_worked'] = 1.5
+                res[time.id]['total_shift_worked'] = 1.5 + perm_onduty_count
             if time.total_hours >=15.45:            
-                res[time.id]['total_shift_worked'] = 2.0
+                res[time.id]['total_shift_worked'] = 2.0 + perm_onduty_count
             if time.total_hours >=23.45:            
-                res[time.id]['total_shift_worked'] = 3.0
+                res[time.id]['total_shift_worked'] = 3.0 + perm_onduty_count
             
             #res[time.id]['shift_count']=res[time.id]['total_shift_worked']
             #res.update({'shift_count': res[time.id]['total_shift_worked']})
