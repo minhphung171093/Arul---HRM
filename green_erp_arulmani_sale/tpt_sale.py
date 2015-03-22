@@ -1867,6 +1867,7 @@ class res_partner(osv.osv):
             vals = {'name': customer.name or False,
                     'street': customer.street or False,
                     'street2': customer.street2 or False,
+                    'street3': customer.street3 or False,
                     'city': customer.city or False,
                     'country_id': customer.country_id and customer.country_id.id or False,
                     'state_id': customer.state_id and customer.state_id.id or False,
