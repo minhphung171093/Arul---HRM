@@ -28,6 +28,7 @@ class stock_picking(osv.osv):
         'bag_detail':fields.char('Bag Details', size = 64),
         'tpt_log_line': fields.one2many('tpt.log','delivery_order_id', 'Logs'),
 #         'location_sour_id': fields.many2one('stock.location', 'Source Location'),
+        'street3':fields.char('Street3',size=128)
                 }
     
     _defaults = {
@@ -852,7 +853,7 @@ class account_invoice(osv.osv):
         'material_info': fields.text('Material Additional Info',readonly=True, states={'draft':[('readonly',False)]}),
         'other_info': fields.text('Other Info', readonly=True, states={'draft':[('readonly',False)]}),
         #TPT
-        
+        'street3':fields.char('Street3',size=128)
 #         'amount_untaxed': fields.function(_amount_all, digits_compute=dp.get_precision('Account'), string='Untaxed Amount',
 #             store={
 #                 'account.invoice': (lambda self, cr, uid, ids, c={}: ids, ['invoice_line'], 20),

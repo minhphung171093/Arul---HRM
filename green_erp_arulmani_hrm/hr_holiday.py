@@ -387,7 +387,7 @@ class arul_hr_audit_shift_time(osv.osv):
 		    flag = 1
                     shift_hours = 0
 		    
-		elif line.total_hours < 4 and line.planned_work_shift_id.code=='W':
+		elif line.total_hours < 3.7 and line.planned_work_shift_id.code=='W':
 		    permission_ids = self.pool.get('arul.hr.permission.onduty').search(cr, uid, [('non_availability_type_id','=','permission'),('date','=',line.work_date),('employee_id','=',line.employee_id.id)])
                     on_duty_ids = self.pool.get('arul.hr.permission.onduty').search(cr, uid, [('non_availability_type_id','=','on_duty'),('from_date','<=',line.work_date),('to_date','>=',line.work_date),('employee_id','=',line.employee_id.id)])
                     leave_detail_ids = self.pool.get('arul.hr.employee.leave.details').search(cr, uid, [('date_from','<=',line.work_date),('date_to','>=',line.work_date),('employee_id','=',line.employee_id.id),('state','=','done')])
@@ -416,7 +416,7 @@ class arul_hr_audit_shift_time(osv.osv):
 		if spl_date and line.total_hours >= 4:
 		    flag = 1
                     shift_hours = 0
-		if spl_date and line.total_hours < 4:
+		if spl_date and line.total_hours < 3.7:
 		    permission_ids = self.pool.get('arul.hr.permission.onduty').search(cr, uid, [('non_availability_type_id','=','permission'),('date','=',line.work_date),('employee_id','=',line.employee_id.id)])
                     on_duty_ids = self.pool.get('arul.hr.permission.onduty').search(cr, uid, [('non_availability_type_id','=','on_duty'),('from_date','<=',line.work_date),('to_date','>=',line.work_date),('employee_id','=',line.employee_id.id)])
                     leave_detail_ids = self.pool.get('arul.hr.employee.leave.details').search(cr, uid, [('date_from','<=',line.work_date),('date_to','>=',line.work_date),('employee_id','=',line.employee_id.id),('state','=','done')])
@@ -444,9 +444,9 @@ class arul_hr_audit_shift_time(osv.osv):
                 local_date=cr.fetchall()
 		
 		if local_date and line.total_hours >= 4:
-		    #flag = 1
+		    flag = 1
                     shift_hours = 0
-		if local_date and line.total_hours < 4:
+		if local_date and line.total_hours < 3.7:
 		    permission_ids = self.pool.get('arul.hr.permission.onduty').search(cr, uid, [('non_availability_type_id','=','permission'),('date','=',line.work_date),('employee_id','=',line.employee_id.id)])
                     on_duty_ids = self.pool.get('arul.hr.permission.onduty').search(cr, uid, [('non_availability_type_id','=','on_duty'),('from_date','<=',line.work_date),('to_date','>=',line.work_date),('employee_id','=',line.employee_id.id)])
                     leave_detail_ids = self.pool.get('arul.hr.employee.leave.details').search(cr, uid, [('date_from','<=',line.work_date),('date_to','>=',line.work_date),('employee_id','=',line.employee_id.id),('state','=','done')])
@@ -475,7 +475,7 @@ class arul_hr_audit_shift_time(osv.osv):
 		    flag = 1
                     shift_hours = 0
 		    
-		if same_work_date and line.total_hours < 4:
+		if same_work_date and line.total_hours < 3.7:
 		    permission_ids = self.pool.get('arul.hr.permission.onduty').search(cr, uid, [('non_availability_type_id','=','permission'),('date','=',line.work_date),('employee_id','=',line.employee_id.id)])
                     on_duty_ids = self.pool.get('arul.hr.permission.onduty').search(cr, uid, [('non_availability_type_id','=','on_duty'),('from_date','<=',line.work_date),('to_date','>=',line.work_date),('employee_id','=',line.employee_id.id)])
                     leave_detail_ids = self.pool.get('arul.hr.employee.leave.details').search(cr, uid, [('date_from','<=',line.work_date),('date_to','>=',line.work_date),('employee_id','=',line.employee_id.id),('state','=','done')])
@@ -531,9 +531,9 @@ class arul_hr_audit_shift_time(osv.osv):
                     c_off_day = 0.0
 		    #raise osv.except_osv(_('Warning!'),_('inside c.off'))
                     if line.additional_shifts:
-                        if extra_hours >= 4 and extra_hours < 8:
+                        if extra_hours >= 3.7 and extra_hours < 7.39:
                             c_off_day = 0.5
-                        if extra_hours >= 8 and extra_hours < 12:
+                        if extra_hours >= 7.4 and extra_hours < 12:
                             c_off_day = 1
                         if extra_hours >= 12 and extra_hours < 16:
                             c_off_day = 1.5
@@ -541,9 +541,9 @@ class arul_hr_audit_shift_time(osv.osv):
                             c_off_day = 2
                     else:
                         extra_hours = extra_hours-shift_hours
-                        if extra_hours >= 4 and extra_hours < 8:
+                        if extra_hours >= 3.7 and extra_hours < 7.39:
                             c_off_day = 0.5
-                        if extra_hours >= 8 and extra_hours < 12:
+                        if extra_hours >= 7.4 and extra_hours < 12:
                             c_off_day = 1
                         if extra_hours >= 12 and extra_hours < 16:
                             c_off_day = 1.5
@@ -761,11 +761,11 @@ class arul_hr_audit_shift_time(osv.osv):
                 #    flag = 1
                 #    shift_hours = 0                
 		#
-		if line.total_hours >= 4 and line.planned_work_shift_id.code=='W':	
+		if line.total_hours >= 3.7 and line.planned_work_shift_id.code=='W':	
 		    flag = 1
                     shift_hours = 0
 		    #raise osv.except_osv(_('Warning!%s%s'),(line.total_hours,line.planned_work_shift_id))
-		elif line.total_hours < 4 and line.planned_work_shift_id.code=='W':
+		elif line.total_hours < 3.7 and line.planned_work_shift_id.code=='W':
 		    permission_ids = self.pool.get('arul.hr.permission.onduty').search(cr, uid, [('non_availability_type_id','=','permission'),('date','=',line.work_date),('employee_id','=',line.employee_id.id)])
                     on_duty_ids = self.pool.get('arul.hr.permission.onduty').search(cr, uid, [('non_availability_type_id','=','on_duty'),('from_date','<=',line.work_date),('to_date','>=',line.work_date),('employee_id','=',line.employee_id.id)])
                     leave_detail_ids = self.pool.get('arul.hr.employee.leave.details').search(cr, uid, [('date_from','<=',line.work_date),('date_to','>=',line.work_date),('employee_id','=',line.employee_id.id),('state','=','done')])
@@ -791,10 +791,10 @@ class arul_hr_audit_shift_time(osv.osv):
                 cr.execute(sql)                
                 spl_date=cr.fetchall()
 		
-		if spl_date and line.total_hours >= 4:
+		if spl_date and line.total_hours >= 3.7:
 		    flag = 1
                     shift_hours = 0
-		if spl_date and line.total_hours < 4:
+		if spl_date and line.total_hours < 3.7:
 		    permission_ids = self.pool.get('arul.hr.permission.onduty').search(cr, uid, [('non_availability_type_id','=','permission'),('date','=',line.work_date),('employee_id','=',line.employee_id.id)])
                     on_duty_ids = self.pool.get('arul.hr.permission.onduty').search(cr, uid, [('non_availability_type_id','=','on_duty'),('from_date','<=',line.work_date),('to_date','>=',line.work_date),('employee_id','=',line.employee_id.id)])
                     leave_detail_ids = self.pool.get('arul.hr.employee.leave.details').search(cr, uid, [('date_from','<=',line.work_date),('date_to','>=',line.work_date),('employee_id','=',line.employee_id.id),('state','=','done')])
@@ -820,10 +820,10 @@ class arul_hr_audit_shift_time(osv.osv):
                 cr.execute(sql)                
                 local_date=cr.fetchall()
 		
-		if local_date and line.total_hours >= 4:
+		if local_date and line.total_hours >= 3.7: # MIN of SHIFT 7.45 / 2 = 3.7
 		    #flag = 1
                     shift_hours = 0
-		if local_date and line.total_hours < 4:
+		if local_date and line.total_hours < 3.7:
 		    permission_ids = self.pool.get('arul.hr.permission.onduty').search(cr, uid, [('non_availability_type_id','=','permission'),('date','=',line.work_date),('employee_id','=',line.employee_id.id)])
                     on_duty_ids = self.pool.get('arul.hr.permission.onduty').search(cr, uid, [('non_availability_type_id','=','on_duty'),('from_date','<=',line.work_date),('to_date','>=',line.work_date),('employee_id','=',line.employee_id.id)])
                     leave_detail_ids = self.pool.get('arul.hr.employee.leave.details').search(cr, uid, [('date_from','<=',line.work_date),('date_to','>=',line.work_date),('employee_id','=',line.employee_id.id),('state','=','done')])
@@ -928,9 +928,9 @@ class arul_hr_audit_shift_time(osv.osv):
                     c_off_day = 0.0
 		    #raise osv.except_osv(_('Warning!%s%s%s%s%s'),(flag,extra_hours,line.employee_id.employee_category_id,line.employee_id.employee_category_id.code,line.additional_shifts))
                     if line.additional_shifts:
-                        if extra_hours >= 4 and extra_hours < 8:
+                        if extra_hours >= 3.7 and extra_hours < 7.39:
                             c_off_day = 0.5
-                        if extra_hours >= 8 and extra_hours < 12:
+                        if extra_hours >= 7.4 and extra_hours < 12:
                             c_off_day = 1
                         if extra_hours >= 12 and extra_hours < 16:
                             c_off_day = 1.5
@@ -938,9 +938,9 @@ class arul_hr_audit_shift_time(osv.osv):
                             c_off_day = 2
                     else:
                         extra_hours = extra_hours-shift_hours
-                        if extra_hours >= 4 and extra_hours < 8:
+                        if extra_hours >= 3.7 and extra_hours < 7.39:
                             c_off_day = 0.5
-                        if extra_hours >= 8 and extra_hours < 12:
+                        if extra_hours >= 7.4 and extra_hours < 12:
                             c_off_day = 1
                         if extra_hours >= 12 and extra_hours < 16:
                             c_off_day = 1.5
