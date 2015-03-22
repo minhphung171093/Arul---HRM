@@ -481,10 +481,13 @@
 							<field name ="department_to_id" options="{'create': false, 'create_edit': false}" on_change="onchange_department_to_id(department_to_id,designation_from_id) "/> 
 							<field name ="designation_from_id" options="{'create': false, 'create_edit': false}"/>
 							<field name ="designation_to_id" options="{'create': false, 'create_edit': false}" domain="[('id','!=',designation_from_id)]"/>
-							<field name ="action_date" string="Date Of Promotion"/>
-							<newline/>
+							<field name ="action_date" string="Date Of Promotion Order"/>
 							<field name ="period_from"/>
-							<field name ="period_to"/>
+							<newline/>
+							<field name ="date_from" string='Appraisal From'/> 
+							<field name ="date_to" string='Appraisal To'/> 
+							<!-- 
+							<field name ="period_to"/>  -->
 						</group>
 						<group>
 							<field name ="note"/>
@@ -597,12 +600,12 @@
 					<field name="action_id"/>
 					<field name ="employee_id"/>
 					<field name ="employee_category_id"/>
-					<field name ="action_date" string="Date Of Review Action"/>
+					<field name ="action_date" string="Order Issued On"/>
 					<field name ="period_from"/>
+					<field name ="date_from"/>
+					<field name ="date_to"/>
 					<field name="action_type_id"/>
-					<field name ="sub_category_id"/>
-					<field name ="reason_id"/>
-					<field name ="period_to"/>
+					<field name ="sub_category_id"/>										
 					<field name ="note"/>
 					
 				</tree>
@@ -627,14 +630,17 @@
 							<newline/>
 							<field name ="employee_category_id" on_change="onchange_employee_category_id(employee_category_id,sub_category_id)" options="{'create': false, 'create_edit': false}"/>
 							<field name ="sub_category_id" domain="[('category_id','=',employee_category_id)]" context="{'check_employee_category_id':1,'employee_category_id':employee_category_id}" options="{'create': false, 'create_edit': false}"/>
-							<field name ="action_date" string="Date Of Review Action"/>
-							<!-- <field name ="reason_id" domain="[('name','in', ['Completion of Trainee'])]" widget="selection"/> -->
-							
+							<field name ="action_date" string="Order Issued On"/>						
+							<!-- TPT
+							<field name ="reason_id" domain="[('name','in', ['Completion of Trainee'])]" widget="selection"/> -->
+							<!-- 
 							<field name ="reason_id" widget="selection"/>
-							
-							<newline/>
-							<field name ="period_from"/>
 							<field name ="period_to"/>
+							 -->							
+							<field name ="period_from"/>
+							<field name ="date_from" string ='Period From'/>
+							<field name ="date_to" string ='Period To'/>
+							
 						</group>
 						<group>
 							<field name ="note"/>
