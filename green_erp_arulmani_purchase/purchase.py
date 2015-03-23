@@ -83,8 +83,8 @@ class tpt_purchase_indent(osv.osv):
     
     def bt_cancel(self, cr, uid, ids, context=None):
         for line in self.browse(cr, uid, ids):
-            rfq_ids = self.pool.get('tpt.rfq.line').search(cr,uid,[('po_indent_id','=',line.id)])
-            po_ids = self.pool.get('purchase.order').search(cr,uid,[('po_indent_no','=',line.id)])
+            rfq_ids = self.pool.get('tpt.rfq.line').search(cr,uid,[('po_indent_id','=',line.id), ('state','=','done')])
+            po_ids = self.pool.get('purchase.order').search(cr,uid,[('po_indent_no','=',line.id),('state','=','approved')])
             if po_ids:
                 raise osv.except_osv(_('Warning!'),_('Purchase Indent was existed at the Purchase Order.!'))
             if rfq_ids:
@@ -1173,7 +1173,7 @@ class tpt_purchase_quotation_line(osv.osv):
         'e_d_type':fields.selection([('1','%'),('2','Rs'),('3','Per Qty')],('ED Type')),
         'tax_id': fields.many2one('account.tax', 'Taxes',required = True),
         'fright': fields.float('Freight'),
-        'fright_type':fields.selection([('1','%'),('2','Rs'),('2','Per Qty')],('Freight Type')),
+        'fright_type':fields.selection([('1','%'),('2','Rs'),('3','Per Qty')],('Freight Type')),
         'line_net': fields.function(line_net_line, store = True, multi='deltas' ,string='SubTotal'),
         'line_no': fields.integer('SI.No', readonly = True),
         'order_charge': fields.float('Order Charges'),
@@ -2600,19 +2600,19 @@ tpt_quality_parameters()
 class tpt_request_for_quotation(osv.osv):
     _name = "tpt.request.for.quotation"
     
-    def date_system(self, cr, uid, ids, field_name, args, context=None):
-        res = {}
-        for line in self.browse(cr,uid,ids,context=context):
-            res[line.id] = {
-                'date_test' : False,
-                }
-            sql = '''
-                select date(date('rfq_date')+INTERVAL '0days') as date_sys from tpt_request_for_quotation where id = %s
-            '''%(line.id)      
-            cr.execute(sql)
-            date_sys = cr.dictfetchone()['date_sys']
-            res[line.id]['date_test'] = date_sys
-        return res
+#     def date_system(self, cr, uid, ids, field_name, args, context=None):
+#         res = {}
+#         for line in self.browse(cr,uid,ids,context=context):
+#             res[line.id] = {
+#                 'date_test' : False,
+#                 }
+#             sql = '''
+#                 select date(date('rfq_date')+INTERVAL '0days') as date_sys from tpt_request_for_quotation where id = %s
+#             '''%(line.id)      
+#             cr.execute(sql)
+#             date_sys = cr.dictfetchone()['date_sys']
+#             res[line.id]['date_test'] = date_sys
+#         return res
 
     _columns = {
         'name': fields.char('RFQ No', size = 1024,readonly=True, required = True , states={'cancel': [('readonly', True)], 'done':[('readonly', True)], 'close':[('readonly', True)]}),
@@ -2621,12 +2621,12 @@ class tpt_request_for_quotation(osv.osv):
         'create_uid':fields.many2one('res.users','Raised By', readonly = True),
         'create_on': fields.datetime('Created on', readonly = True),
         'expect_quote_date': fields.date('Expected Quote Date', states={'cancel': [('readonly', True)], 'done':[('readonly', True)], 'close':[('readonly', True)]}),
-        'rfq_line': fields.one2many('tpt.rfq.line', 'rfq_id', 'RFQ Line', states={'cancel': [('readonly', True)], 'done':[('readonly', True)], 'close':[('readonly', True)]}),
+        'rfq_line': fields.one2many('tpt.rfq.line', 'rfq_id', 'RFQ Line'),
         'rfq_supplier': fields.one2many('tpt.rfq.supplier', 'rfq_id', 'Supplier Line', states={'cancel': [('readonly', True)], 'done':[('readonly', True)], 'close':[('readonly', True)]}),
         'state':fields.selection([('draft', 'Draft'),('cancel', 'Cancel'),('done', 'Confirm'),('close', 'Closed')],'Status', readonly=True, states={'cancel': [('readonly', True)], 'done':[('readonly', True)], 'close':[('readonly', True)]}),  
         'raised_ok': fields.boolean('Raised',readonly =True ), 
 #         'date_test': fields.function(date_system, store = True, type = 'date', string='RFQ Date'),  
-        'date_test': fields.date('date_test'),
+#         'date_test': fields.date('date_test'),
                 }
     _defaults={
                'name':'/',
@@ -2634,7 +2634,7 @@ class tpt_request_for_quotation(osv.osv):
                'rfq_date':fields.datetime.now,
                'create_on':fields.datetime.now,
                'raised_ok': False,
-                'date_test': time.strftime('%Y-%m-%d')
+#                 'date_test': time.strftime('%Y-%m-%d')
     }
     
     def search(self, cr, uid, args, offset=0, limit=None, order=None, context=None, count=False):
@@ -2658,13 +2658,20 @@ class tpt_request_for_quotation(osv.osv):
         for line in self.browse(cr,uid,ids):
             for po_indent in line.rfq_line:
                 sql = '''
-                select id from tpt_purchase_product where pur_product_id=%s and product_id=%s
-                
+                    select id from tpt_purchase_product where pur_product_id=%s and product_id=%s
                 '''%(po_indent.po_indent_id.id,po_indent.product_id.id)
                 cr.execute(sql)
                 indent_line_ids = [row[0] for row in cr.fetchall()]
                 if indent_line_ids:
                     self.pool.get('tpt.purchase.product').write(cr, uid, indent_line_ids,{'state':'rfq_raised'})
+                    
+            rfq_line_obj = self.pool.get('tpt.rfq.line')        
+            sql = '''
+                select id from tpt_rfq_line where rfq_id = %s
+            '''%(line.id)
+            cr.execute(sql)
+            rfq_line_ids = [r[0] for r in cr.fetchall()]
+            rfq_line_obj.write(cr, uid, rfq_line_ids,{'state':'done'})
         return self.write(cr, uid, ids,{'state':'done'})
     
     def bt_cancel(self, cr, uid, ids, context=None):
@@ -2711,7 +2718,11 @@ class tpt_rfq_line(osv.osv):
         'item_text': fields.char('Item Text'), 
         'product_uom_qty': fields.float('Quantity', readonly = True),   
         'uom_id': fields.many2one('product.uom', 'UOM', readonly = True),
+        'state':fields.selection([('draft', 'Draft'),('cancel', 'Cancel'),('done', 'Confirm'),('close', 'Closed')],'Status', readonly=True),
         }  
+    _defaults = {
+        'state': 'draft',         
+                 }
     
     def create(self, cr, uid, vals, context=None):
         if 'po_indent_id' in vals:
