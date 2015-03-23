@@ -14,6 +14,7 @@ from openerp import netsvc
 
 class tpt_mrp_process(osv.osv):
     _name = "tpt.mrp.process"
+    
     _columns = {
         'name':fields.date('MRP Date',required = True,states={'done':[('readonly', True)]}),
         'mrp_process_line':fields.one2many('tpt.mrp.process.line','mrp_process_id','Vendor Group',states={'done':[('readonly', True)]}),
@@ -73,7 +74,7 @@ class tpt_mrp_process(osv.osv):
                     mrp_process_line.append((0,0,{'product_id':prod['id'],
                                                   'uom_po_id':prod['uom_po_id'],
                                                   }))
-        return self.write(cr,uid,ids,{'mrp_process_line':mrp_process_line})
+        return self.write(cr,uid,ids,{'mrp_process_line':mrp_process_line, 'state':'approve'})
     
     def bt_generate_indent(self, cr, uid, ids, context=None):
         purchase_product_line = []

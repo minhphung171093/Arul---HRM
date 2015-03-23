@@ -924,7 +924,7 @@ class tpt_purchase_quotation(osv.osv):
         'state': 'draft',
         'name': '/',
         'date_quotation':fields.datetime.now,
-#         'quotation_cate':'multiple',
+        'quotation_cate':'multiple',
         }  
     
     
@@ -945,25 +945,28 @@ class tpt_purchase_quotation(osv.osv):
        return self.name_get(cr, user, ids, context=context)
 
     def onchange_rfq_no_id(self, cr, uid, ids,rfq_no_id=False,product_id=False):
-        vals = {}
+        res = {'value':{
+                        'purchase_quotation_line':[],
+                      }
+               }
         if rfq_no_id:
-           rfq = self.pool.get('tpt.request.for.quotation').browse(cr, uid, rfq_no_id)
-           rfq_no_line = []
+            rfq = self.pool.get('tpt.request.for.quotation').browse(cr, uid, rfq_no_id)
+            rfq_no_line = []
+#             if product_id:
+#                 product = self.pool.get('product.product').browse(cr, uid, product_id)
              
-           for line in rfq.rfq_line:
-                p = {
+            for line in rfq.rfq_line:
+                rfq_no_line.append({
                             'po_indent_id': line.po_indent_id and line.po_indent_id.id or False,
                             'product_id': line.product_id and line.product_id.id or False,
                             'product_uom_qty':line.product_uom_qty or False,
                             'uom_id': line.uom_id and line.uom_id.id or False,
                             'price_unit':line.product_id and line.product_id.standard_price or False,
-                    }
-                rfq_no_line.append((0,0,p))
-           vals={
+                    })
+        res['value'].update({
                     'purchase_quotation_line': rfq_no_line,
-                    'quotation_cate':rfq.rfq_category,
-        }
-        return {'value': vals} 
+        })
+        return res
     
 #     def onchange_rfq_no_id(self, cr, uid, ids,rfq_no_id=False):
 #         res = {}
@@ -2572,6 +2575,20 @@ tpt_quality_parameters()
 class tpt_request_for_quotation(osv.osv):
     _name = "tpt.request.for.quotation"
     
+    def date_system(self, cr, uid, ids, field_name, args, context=None):
+        res = {}
+        for line in self.browse(cr,uid,ids,context=context):
+            res[line.id] = {
+                'date_test' : False,
+                }
+            sql = '''
+                select date(date('rfq_date')+INTERVAL '0days') as date_sys from tpt_request_for_quotation where id = %s
+            '''%(line.id)      
+            cr.execute(sql)
+            date_sys = cr.dictfetchone()['date_sys']
+            res[line.id]['date_test'] = date_sys
+        return res
+
     _columns = {
         'name': fields.char('RFQ No', size = 1024,readonly=True, required = True , states={'cancel': [('readonly', True)], 'done':[('readonly', True)], 'close':[('readonly', True)]}),
         'rfq_date': fields.datetime('RFQ Date', states={'cancel': [('readonly', True)], 'done':[('readonly', True)], 'close':[('readonly', True)]}),
@@ -2582,7 +2599,9 @@ class tpt_request_for_quotation(osv.osv):
         'rfq_line': fields.one2many('tpt.rfq.line', 'rfq_id', 'RFQ Line', states={'cancel': [('readonly', True)], 'done':[('readonly', True)], 'close':[('readonly', True)]}),
         'rfq_supplier': fields.one2many('tpt.rfq.supplier', 'rfq_id', 'Supplier Line', states={'cancel': [('readonly', True)], 'done':[('readonly', True)], 'close':[('readonly', True)]}),
         'state':fields.selection([('draft', 'Draft'),('cancel', 'Cancel'),('done', 'Confirm'),('close', 'Closed')],'Status', readonly=True, states={'cancel': [('readonly', True)], 'done':[('readonly', True)], 'close':[('readonly', True)]}),  
-        'raised_ok': fields.boolean('Raised',readonly =True ),      
+        'raised_ok': fields.boolean('Raised',readonly =True ), 
+#         'date_test': fields.function(date_system, store = True, type = 'date', string='RFQ Date'),  
+        'date_test': fields.date('date_test'),
                 }
     _defaults={
                'name':'/',
@@ -2590,6 +2609,7 @@ class tpt_request_for_quotation(osv.osv):
                'rfq_date':fields.datetime.now,
                'create_on':fields.datetime.now,
                'raised_ok': False,
+                'date_test': time.strftime('%Y-%m-%d')
     }
     
     def search(self, cr, uid, args, offset=0, limit=None, order=None, context=None, count=False):
