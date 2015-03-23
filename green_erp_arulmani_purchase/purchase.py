@@ -924,7 +924,7 @@ class tpt_purchase_quotation(osv.osv):
         'state': 'draft',
         'name': '/',
         'date_quotation':fields.datetime.now,
-        'quotation_cate':'multiple',
+#         'quotation_cate':'multiple',
         }  
     
     
@@ -945,28 +945,25 @@ class tpt_purchase_quotation(osv.osv):
        return self.name_get(cr, user, ids, context=context)
 
     def onchange_rfq_no_id(self, cr, uid, ids,rfq_no_id=False,product_id=False):
-        res = {'value':{
-                        'purchase_quotation_line':[],
-                      }
-               }
+        vals = {}
         if rfq_no_id:
-            rfq = self.pool.get('tpt.request.for.quotation').browse(cr, uid, rfq_no_id)
-            rfq_no_line = []
-#             if product_id:
-#                 product = self.pool.get('product.product').browse(cr, uid, product_id)
+           rfq = self.pool.get('tpt.request.for.quotation').browse(cr, uid, rfq_no_id)
+           rfq_no_line = []
              
-            for line in rfq.rfq_line:
-                rfq_no_line.append({
+           for line in rfq.rfq_line:
+                p = {
                             'po_indent_id': line.po_indent_id and line.po_indent_id.id or False,
                             'product_id': line.product_id and line.product_id.id or False,
                             'product_uom_qty':line.product_uom_qty or False,
                             'uom_id': line.uom_id and line.uom_id.id or False,
                             'price_unit':line.product_id and line.product_id.standard_price or False,
-                    })
-        res['value'].update({
+                    }
+                rfq_no_line.append((0,0,p))
+           vals={
                     'purchase_quotation_line': rfq_no_line,
-        })
-        return res
+                    'quotation_cate':rfq.rfq_category,
+        }
+        return {'value': vals} 
     
 #     def onchange_rfq_no_id(self, cr, uid, ids,rfq_no_id=False):
 #         res = {}
