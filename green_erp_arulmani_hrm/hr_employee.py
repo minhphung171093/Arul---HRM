@@ -133,12 +133,17 @@ class arul_hr_employee_action_history(osv.osv):
         'first_name': fields.char('First Name',size=1024),
         'last_name': fields.char('Last Name',size=1024),
         'action_id': fields.many2one('arul.employee.actions','Action', required=True,ondelete='restrict'),
-        'action_type_id': fields.many2one('arul.employee.action.type','Action type', required=True,ondelete='restrict'),
+        'action_type_id': fields.many2one('arul.employee.action.type','Reason', required=True,ondelete='restrict'),
         'action_date': fields.date('Action Date'),
         'create_date': fields.datetime('Created Date'),
         'create_uid': fields.many2one('res.users','Created By',ondelete='restrict'),
-        'period_from': fields.date('Period From'),
-        'period_to': fields.date('Period to'),
+        #'period_from': fields.date('Period From'), TPT
+        'period_from': fields.date('With Effective From'),
+        'period_to': fields.date('Period to'), # THIS IS NOT USED
+        
+        'date_from': fields.date('Period From'),
+        'date_to': fields.date('Period to'),
+        
         'reason_id': fields.many2one('arul.season','Reason',ondelete='restrict'),
         'note': fields.text('Note'),
         'department_from_id': fields.many2one('hr.department','Department From',ondelete='restrict'),
@@ -711,7 +716,7 @@ class arul_employee_actions(osv.osv):
         'name':fields.char('Name', size=64, required = True),
         'code':fields.char('Code',size=64,required = True,readonly = True),
         'active':fields.boolean('Active'),
-        'action_type_ids':fields.many2many('arul.employee.action.type','actions_action_type_ref','actions_id','action_type_id','Action Type'),
+        'action_type_ids':fields.many2many('arul.employee.action.type','actions_action_type_ref','actions_id','action_type_id','Reason'),
               }
     _defaults={
             'active':True,

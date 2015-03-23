@@ -43,6 +43,7 @@ class crm_lead(osv.osv):
                 'partner_name' : partner.name,
                 'street' : partner.street,
                 'street2' : partner.street2,
+                'street3' : partner.street3,
                 'city' : partner.city,
                 'state_id' : partner.state_id and partner.state_id.id or False,
                 'country_id' : partner.country_id and partner.country_id.id or False,
@@ -102,6 +103,8 @@ class crm_lead(osv.osv):
         'from_existing_customer' : fields.boolean('From Existing Customer'),
         'product_id':fields.function(get_product, string='product', type='many2one', relation='product.product', ondelete="cascade"),
         'quotation_status':fields.function(get_quotation_status, string='Quotation Status', type='boolean',ondelete="cascade"),
+    
+        'street3': fields.char('Street3',size=128), #TPT
     }
     
     def _lead_create_contact(self, cr, uid, lead, name, is_company, parent_id=False, context=None):

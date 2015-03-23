@@ -169,6 +169,11 @@
 			<field name="code">Disciplinary</field>
 			<field name="action_type_ids" eval="[(4, ref('action_types_24')),(4, ref('action_types_21')),(4, ref('action_types_22')),(4, ref('action_types_23')),(4, ref('action_types_2'))]"/>
 		</record>
+		<record id="action_9" model="arul.employee.actions">
+			<field name="name">Deputation</field>
+			<field name="code">Deputation</field>
+			<field name="action_type_ids" eval="[(4, ref('action_types_24')),(4, ref('action_types_21')),(4, ref('action_types_22')),(4, ref('action_types_23')),(4, ref('action_types_2'))]"/>
+		</record>
 		
     </data>
 </openerp>

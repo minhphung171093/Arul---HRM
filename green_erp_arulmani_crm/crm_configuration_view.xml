@@ -72,8 +72,10 @@
                 	<xpath expr="//field[@name='state_id']" position="replace">
                         <field name="state_id" style="width: 53%%" on_change="onchange_state(state_id)" attrs="{'readonly': [('use_parent_address','=',True)]}"  domain="[('country_id', '=', country_id)]" options="{'create': false, 'create_edit': false}" placeholder="State"/>
                     </xpath>
-                    
                     <xpath expr="//field[@name='street2']" position="after">
+                        <field name="street3" />
+                    </xpath>
+                    <xpath expr="//field[@name='street3']" position="after">
                         <field name="city" placeholder="City" attrs="{'readonly': [('use_parent_address','=',True)]}"/>
                     </xpath>
                     
@@ -87,9 +89,11 @@
                     	<field name="employee_id" on_change="onchange_employee_id(employee_id, context)" widget="selection" />
                         <field name="user_id" invisible="1"/>
                     </xpath>
+                    <xpath expr="//field[@name='phone']" position="before">
+                    <field name="customer_code" attrs="{'invisible': [('customer', '=',False)]}" />
+                    </xpath>
                     
-                    <xpath expr="//field[@name='website']" position="after">
-                        <field name="customer_code" attrs="{'invisible': [('customer', '=',False)]}" />
+                    <xpath expr="//field[@name='website']" position="after">                       
                         <field name="arulmani_type" attrs="{'invisible': [('customer', '=',False)]}" />
                         <field name="zone" attrs="{'invisible': [('customer', '=',False)]}" />
                         <!--  TPT
@@ -97,8 +101,10 @@
                         -->
                         <field name="distribution_channel" widget="selection" attrs="{'invisible': [('customer', '=',False)]}" />
                         <field name="currency_id" widget="selection"/>
+                        <!-- 
                         <field name="sales_organization_code_id" widget="selection" attrs="{'invisible': [('customer', '=',False)]}" />
                         <field name="division_code_id" widget="selection" attrs="{'invisible': [('customer', '=',False)]}" />
+                         -->
                         <field name="tax_category_id" widget="selection"/> 
                         <!--<field name="tax_number_1_id" widget="selection"/>--> 
                         <!--  TPT
@@ -107,6 +113,7 @@
                         <!--<field name="shipping_conditions_id" widget="selection" attrs="{'invisible': [('customer', '=',False)]}" />--> 
                         <!--<field name="cust_pric_procedure_id" widget="selection" attrs="{'invisible': [('customer', '=',False)]}" />--> 
                         <field name="customer_group_id" widget="selection" attrs="{'invisible': [('customer', '=',False)]}" /> 
+                        <field name="inco_terms_id" widget="selection"  /> 
                         <!--<field name="order_probability_id" widget="selection" attrs="{'invisible': [('customer', '=',False)]}" />--> 
                         <!--<field name="reconciliation_acct_id" widget="selection"/>--> 
                         
@@ -129,9 +136,9 @@
                         <field name="tin" required="1"/>
                         <!--  TPT
                         <field name="sin"/>
+                        
+                        <field name="language_id" widget="selection" attrs="{'invisible': [('customer', '=',False)]}" />                
                         -->
-                        <field name="language_id" widget="selection" attrs="{'invisible': [('customer', '=',False)]}" />
-                        <field name="customer_account_group_id" widget="selection" attrs="{'invisible': [('customer', '=',False)]}" />
                         <!--<field name="sort_key_id" widget="selection" attrs="{'invisible': [('customer', '=',False)]}" />-->
                         <!--<field name="tax_classification_id" widget="selection" attrs="{'invisible': [('customer', '=',False)]}" />-->
                         <!--<field name="tax_number_2_id" widget="selection" attrs="{'invisible': [('customer', '=',False)]}" />-->
@@ -139,7 +146,7 @@
                         <!--<field name="account_assign_group_id" widget="selection" attrs="{'invisible': [('customer', '=',False)]}" />--> 
                         <!--<field name="customer_statistics_group_id" widget="selection" attrs="{'invisible': [('customer', '=',False)]}" />-->
                         <!--<field name="price_group_id" widget="selection" attrs="{'invisible': [('customer', '=',False)]}" />-->
-                        <field name="inco_terms_id" widget="selection"  /> 
+                        
                         <!--<field name="sychronized" attrs="{'invisible': [('customer', '=',False)]}" />-->
                         
                     </xpath>
@@ -153,7 +160,10 @@
                     <xpath expr="//field[@name='category_id']" position="replace">
 			            <field name="category_id" widget="many2many_tags" placeholder="Customer Class" style="width: 70%%"/>
 			        </xpath>
-			        -->
+			        --> 
+			        <xpath expr="//field[@name='category_id']" position="replace">
+			        <field name="customer_account_group_id" attrs="{'invisible': [('customer', '=',False)]}" placeholder="Customer Account Group" options="{'create': false, 'create_edit': false}" />
+			        </xpath>
 			        <!--<xpath expr="//page[@string='Sales &amp; Purchases']" position="replace">
 			            attribute name="string">Sales Team</attribute>
 			        </xpath>-->
@@ -1028,7 +1038,7 @@
         </record>
         
         <record id="vsis_action_customer_group" model="ir.actions.act_window">
-            <field name="name">Customer Group Master</field>
+            <field name="name">Customer Type Master</field>
             <field name="type">ir.actions.act_window</field>
             <field name="res_model">customer.group</field>
             <field name="view_type">form</field>

@@ -101,17 +101,17 @@ class tpt_import_supplier(osv.osv):
                     
                     name = str(sh.cell(row, 1).value)
                     street = str(sh.cell(row, 7).value)
-                    vendor = int(sh.cell(row, 0).value) or False
-                    if vendor:
-                        vendor_code = str(vendor)
-                    else:
-                        vendor_code = False
+#                     vendor = sh.cell(row, 0).value or False
+#                     if vendor:
+#                         vendor_code = str(vendor)
+#                     else:
+#                         vendor_code = False
                     if sh.cell(row, 5).value:
                         zip = str(sh.cell(row, 5).value).replace(" ","")
                         ##############################################                         
                     dem += 1
                     partner_obj.create(cr, uid, {
-                        'vendor_code': vendor_code,
+                        'vendor_code': sh.cell(row, 0).value or False,
                         'country_id': country_id,
                         'name': name.replace('"','') or False,
                         'last_name': sh.cell(row, 2).value or False,

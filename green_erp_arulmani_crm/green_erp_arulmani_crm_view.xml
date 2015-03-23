@@ -100,6 +100,7 @@
 	                    <div>	
 	                    	<field name="street" placeholder="Street..."/>
 	                        <field name="street2"/>
+	                        <field name="street3"/>
 	                        <field name="city" placeholder="City" />
 	                        <div class="address_format">
 	                        	<field name="country_id" style="width: 45%%" placeholder="Country" options="{'create': false, 'create_edit': false}"/>
@@ -278,7 +279,7 @@
                                             <label for="street" string="Address" attrs="{'invisible': [('use_parent_address','=', True)]}"/>
                                             <div attrs="{'invisible': [('use_parent_address','=', True)]}" name="div_address">
                                                 <field name="street" placeholder="Street..."/>
-                                                <field name="street2"/>
+                                                <field name="street2"/>                                               
                                                 <div class="address_format">
                                                     <field name="city" placeholder="City" style="width: 40%%"/>
                                                     <field name="state_id" class="oe_no_button" placeholder="State" style="width: 37%%" options='{"no_open": True}' on_change="onchange_state(state_id)"/>
@@ -297,6 +298,7 @@
                             	<tree string="Customer Locations">
                             		<field name="street" />
                             		<field name="street2" />
+                            		<field name="street3" />
                             		<field name="zip" />
                             		<field name="city" />
                             		<field name="state_id" />
@@ -309,6 +311,7 @@
 				                            <div>
 				                                <field name="street" placeholder="Street..."/>
 				                                <field name="street2"/>
+				                                <field name="street3"/>
 				                                <div class="address_format">
 				                                    <field name="city" placeholder="City" style="width: 40%%"/>
 				                                    <field name="state_id" class="oe_no_button" placeholder="State" style="width: 37%%" options='{"no_open": True}'/>

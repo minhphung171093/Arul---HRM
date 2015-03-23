@@ -132,6 +132,7 @@ class sale_order(osv.osv):
         'sale_tax_id': fields.many2one('account.tax', 'Sale Tax', domain="[('type_tax_use','=','sale')]", required = True), 
         'invoice_address': fields.char('Invoice Address', size = 1024),
         'street2': fields.char('', size = 1024),
+        'street3': fields.char('', size = 1024),
         'city': fields.char('', size = 1024),
         'country_id': fields.many2one('res.country', ''),
         'state_id': fields.many2one('res.country.state', ''),
@@ -238,6 +239,7 @@ class sale_order(osv.osv):
             part = self.pool.get('res.partner').browse(cr, uid, part)
             val.update({'invoice_address':part.street,
                     'street2':part.street2,
+                    'street3':part.street3,
                     'city':part.city,
                     'country_id':part.country_id and part.country_id.id or False,
                     'state_id':part.state_id and part.state_id.id or False,
@@ -487,6 +489,7 @@ class sale_order(osv.osv):
             vals = {'partner_id':blanket.customer_id and blanket.customer_id.id or False,
                     'invoice_address':blanket.invoice_address or False,
                     'street2':blanket.street2 or False,
+                    'street3':blanket.street3 or False,
                     'city':blanket.city or False,
                     'country_id':blanket.country_id and blanket.country_id.id or False,
                     'state_id':blanket.state_id and blanket.state_id.id or False,
@@ -950,6 +953,7 @@ class tpt_blanket_order(osv.osv):
         'customer_id': fields.many2one('res.partner', 'Customer', required = True, states={'cancel': [('readonly', True)], 'done':[('readonly', True)], 'approve':[('readonly', True)]}),
         'invoice_address': fields.char('Invoice Address', size = 1024, readonly=True, states={'cancel': [('readonly', True)], 'done':[('readonly', True)], 'approve':[('readonly', True)]}),
         'street2': fields.char('', size = 1024, readonly=True, states={'cancel': [('readonly', True)], 'done':[('readonly', True)], 'approve':[('readonly', True)]}),
+        'street3': fields.char('', size = 1024, readonly=True, states={'cancel': [('readonly', True)], 'done':[('readonly', True)], 'approve':[('readonly', True)]}),#TPT
         'city': fields.char('', size = 1024, readonly=True, states={'cancel': [('readonly', True)], 'done':[('readonly', True)], 'approve':[('readonly', True)]}),
         'country_id': fields.many2one('res.country', '', readonly=True, states={'cancel': [('readonly', True)], 'done':[('readonly', True)], 'approve':[('readonly', True)]}),
         'state_id': fields.many2one('res.country.state', '', readonly=True, states={'cancel': [('readonly', True)], 'done':[('readonly', True)], 'approve':[('readonly', True)]}),
@@ -1078,6 +1082,7 @@ class tpt_blanket_order(osv.osv):
             vals.update({
                         'invoice_address': customer.street or False,
                         'street2': customer.street2 or False,
+                        'street3': customer.street3 or False,
                         'city': customer.city or False,
                         'country_id': customer.country_id and customer.country_id.id or False,
                         'state_id': customer.state_id and customer.state_id.id or False,
@@ -1116,6 +1121,7 @@ class tpt_blanket_order(osv.osv):
             
             vals = {'invoice_address': customer.street or False,
                     'street2': customer.street2 or False,
+                    'street3': customer.street3 or False,
                     'city': customer.city or False,
                     'country_id': customer.country_id and customer.country_id.id or False,
                     'state_id': customer.state_id and customer.state_id.id or False,
@@ -1867,6 +1873,7 @@ class res_partner(osv.osv):
             vals = {'name': customer.name or False,
                     'street': customer.street or False,
                     'street2': customer.street2 or False,
+                    'street3': customer.street3 or False,
                     'city': customer.city or False,
                     'country_id': customer.country_id and customer.country_id.id or False,
                     'state_id': customer.state_id and customer.state_id.id or False,

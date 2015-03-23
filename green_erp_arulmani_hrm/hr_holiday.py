@@ -387,7 +387,7 @@ class arul_hr_audit_shift_time(osv.osv):
 		    flag = 1
                     shift_hours = 0
 		    
-		elif line.total_hours < 4 and line.planned_work_shift_id.code=='W':
+		elif line.total_hours < 3.7 and line.planned_work_shift_id.code=='W':
 		    permission_ids = self.pool.get('arul.hr.permission.onduty').search(cr, uid, [('non_availability_type_id','=','permission'),('date','=',line.work_date),('employee_id','=',line.employee_id.id)])
                     on_duty_ids = self.pool.get('arul.hr.permission.onduty').search(cr, uid, [('non_availability_type_id','=','on_duty'),('from_date','<=',line.work_date),('to_date','>=',line.work_date),('employee_id','=',line.employee_id.id)])
                     leave_detail_ids = self.pool.get('arul.hr.employee.leave.details').search(cr, uid, [('date_from','<=',line.work_date),('date_to','>=',line.work_date),('employee_id','=',line.employee_id.id),('state','=','done')])
@@ -402,7 +402,7 @@ class arul_hr_audit_shift_time(osv.osv):
                                 'view_id': res[1],
                                 'res_model': 'alert.form',
                                 'domain': [],
-                                'context': {'default_message':'No Permission / On Duty Entry is made for Pending Hours. Do you want to reduce it from Leave Credits (CL/SL/PL/LOP) ?','audit_id':line.id},
+                                'context': {'default_message':'No Permission / On Duty Entry is made for Pending Hours. Do you want to reduce it from Leave Credits (CL/SL/C.Off/PL/LOP) ?','audit_id':line.id},
                                 'type': 'ir.actions.act_window',
                                 'target': 'new',
                             }
@@ -416,7 +416,7 @@ class arul_hr_audit_shift_time(osv.osv):
 		if spl_date and line.total_hours >= 4:
 		    flag = 1
                     shift_hours = 0
-		if spl_date and line.total_hours < 4:
+		if spl_date and line.total_hours < 3.7:
 		    permission_ids = self.pool.get('arul.hr.permission.onduty').search(cr, uid, [('non_availability_type_id','=','permission'),('date','=',line.work_date),('employee_id','=',line.employee_id.id)])
                     on_duty_ids = self.pool.get('arul.hr.permission.onduty').search(cr, uid, [('non_availability_type_id','=','on_duty'),('from_date','<=',line.work_date),('to_date','>=',line.work_date),('employee_id','=',line.employee_id.id)])
                     leave_detail_ids = self.pool.get('arul.hr.employee.leave.details').search(cr, uid, [('date_from','<=',line.work_date),('date_to','>=',line.work_date),('employee_id','=',line.employee_id.id),('state','=','done')])
@@ -431,7 +431,7 @@ class arul_hr_audit_shift_time(osv.osv):
                                 'view_id': res[1],
                                 'res_model': 'alert.form',
                                 'domain': [],
-                                'context': {'default_message':'No Permission / On Duty Entry is made for Pending Hours. Do you want to reduce it from Leave Credits (CL/SL/PL/LOP) ?','audit_id':line.id},
+                                'context': {'default_message':'No Permission / On Duty Entry is made for Pending Hours. Do you want to reduce it from Leave Credits (CL/SL/C.Off/PL/LOP) ?','audit_id':line.id},
                                 'type': 'ir.actions.act_window',
                                 'target': 'new',
                             }
@@ -444,9 +444,9 @@ class arul_hr_audit_shift_time(osv.osv):
                 local_date=cr.fetchall()
 		
 		if local_date and line.total_hours >= 4:
-		    #flag = 1
+		    flag = 1
                     shift_hours = 0
-		if local_date and line.total_hours < 4:
+		if local_date and line.total_hours < 3.7:
 		    permission_ids = self.pool.get('arul.hr.permission.onduty').search(cr, uid, [('non_availability_type_id','=','permission'),('date','=',line.work_date),('employee_id','=',line.employee_id.id)])
                     on_duty_ids = self.pool.get('arul.hr.permission.onduty').search(cr, uid, [('non_availability_type_id','=','on_duty'),('from_date','<=',line.work_date),('to_date','>=',line.work_date),('employee_id','=',line.employee_id.id)])
                     leave_detail_ids = self.pool.get('arul.hr.employee.leave.details').search(cr, uid, [('date_from','<=',line.work_date),('date_to','>=',line.work_date),('employee_id','=',line.employee_id.id),('state','=','done')])
@@ -461,7 +461,7 @@ class arul_hr_audit_shift_time(osv.osv):
                                 'view_id': res[1],
                                 'res_model': 'alert.form',
                                 'domain': [],
-                                'context': {'default_message':'No Permission / On Duty Entry is made for Pending Hours. Do you want to reduce it from Leave Credits (CL/SL/PL/LOP) ?','audit_id':line.id},
+                                'context': {'default_message':'No Permission / On Duty Entry is made for Pending Hours. Do you want to reduce it from Leave Credits (CL/SL/C.Off/PL/LOP) ?','audit_id':line.id},
                                 'type': 'ir.actions.act_window',
                                 'target': 'new',
                             }
@@ -475,7 +475,7 @@ class arul_hr_audit_shift_time(osv.osv):
 		    flag = 1
                     shift_hours = 0
 		    
-		if same_work_date and line.total_hours < 4:
+		if same_work_date and line.total_hours < 3.7:
 		    permission_ids = self.pool.get('arul.hr.permission.onduty').search(cr, uid, [('non_availability_type_id','=','permission'),('date','=',line.work_date),('employee_id','=',line.employee_id.id)])
                     on_duty_ids = self.pool.get('arul.hr.permission.onduty').search(cr, uid, [('non_availability_type_id','=','on_duty'),('from_date','<=',line.work_date),('to_date','>=',line.work_date),('employee_id','=',line.employee_id.id)])
                     leave_detail_ids = self.pool.get('arul.hr.employee.leave.details').search(cr, uid, [('date_from','<=',line.work_date),('date_to','>=',line.work_date),('employee_id','=',line.employee_id.id),('state','=','done')])
@@ -490,7 +490,7 @@ class arul_hr_audit_shift_time(osv.osv):
                                 'view_id': res[1],
                                 'res_model': 'alert.form',
                                 'domain': [],
-                                'context': {'default_message':'No Permission / On Duty Entry is made for Pending Hours. Do you want to reduce it from Leave Credits (CL/SL/PL/LOP) ?','audit_id':line.id},
+                                'context': {'default_message':'No Permission / On Duty Entry is made for Pending Hours. Do you want to reduce it from Leave Credits (CL/SL/C.Off/PL/LOP) ?','audit_id':line.id},
                                 'type': 'ir.actions.act_window',
                                 'target': 'new',
                             }
@@ -510,7 +510,7 @@ class arul_hr_audit_shift_time(osv.osv):
                                 'view_id': res[1],
                                 'res_model': 'alert.form',
                                 'domain': [],
-                                'context': {'default_message':'No Permission / On Duty Entry is made for Pending Hours. Do you want to reduce it from Leave Credits (CL/SL/PL/LOP) ?','audit_id':line.id},
+                                'context': {'default_message':'No Permission / On Duty Entry is made for Pending Hours. Do you want to reduce it from Leave Credits (CL/SL/C.Off/PL/LOP) ?','audit_id':line.id},
                                 'type': 'ir.actions.act_window',
                                 'target': 'new',
                             }
@@ -531,9 +531,9 @@ class arul_hr_audit_shift_time(osv.osv):
                     c_off_day = 0.0
 		    #raise osv.except_osv(_('Warning!'),_('inside c.off'))
                     if line.additional_shifts:
-                        if extra_hours >= 4 and extra_hours < 8:
+                        if extra_hours >= 3.7 and extra_hours < 7.39:
                             c_off_day = 0.5
-                        if extra_hours >= 8 and extra_hours < 12:
+                        if extra_hours >= 7.4 and extra_hours < 12:
                             c_off_day = 1
                         if extra_hours >= 12 and extra_hours < 16:
                             c_off_day = 1.5
@@ -541,9 +541,9 @@ class arul_hr_audit_shift_time(osv.osv):
                             c_off_day = 2
                     else:
                         extra_hours = extra_hours-shift_hours
-                        if extra_hours >= 4 and extra_hours < 8:
+                        if extra_hours >= 3.7 and extra_hours < 7.39:
                             c_off_day = 0.5
-                        if extra_hours >= 8 and extra_hours < 12:
+                        if extra_hours >= 7.4 and extra_hours < 12:
                             c_off_day = 1
                         if extra_hours >= 12 and extra_hours < 16:
                             c_off_day = 1.5
@@ -761,11 +761,11 @@ class arul_hr_audit_shift_time(osv.osv):
                 #    flag = 1
                 #    shift_hours = 0                
 		#
-		if line.total_hours >= 4 and line.planned_work_shift_id.code=='W':	
+		if line.total_hours >= 3.7 and line.planned_work_shift_id.code=='W':	
 		    flag = 1
                     shift_hours = 0
 		    #raise osv.except_osv(_('Warning!%s%s'),(line.total_hours,line.planned_work_shift_id))
-		elif line.total_hours < 4 and line.planned_work_shift_id.code=='W':
+		elif line.total_hours < 3.7 and line.planned_work_shift_id.code=='W':
 		    permission_ids = self.pool.get('arul.hr.permission.onduty').search(cr, uid, [('non_availability_type_id','=','permission'),('date','=',line.work_date),('employee_id','=',line.employee_id.id)])
                     on_duty_ids = self.pool.get('arul.hr.permission.onduty').search(cr, uid, [('non_availability_type_id','=','on_duty'),('from_date','<=',line.work_date),('to_date','>=',line.work_date),('employee_id','=',line.employee_id.id)])
                     leave_detail_ids = self.pool.get('arul.hr.employee.leave.details').search(cr, uid, [('date_from','<=',line.work_date),('date_to','>=',line.work_date),('employee_id','=',line.employee_id.id),('state','=','done')])
@@ -780,7 +780,7 @@ class arul_hr_audit_shift_time(osv.osv):
                                 'view_id': res[1],
                                 'res_model': 'alert.form',
                                 'domain': [],
-                                'context': {'default_message':'No Permission / On Duty Entry is made for Pending Hours. Do you want to reduce it from Leave Credits (CL/SL/PL/LOP) ?','audit_id':line.id},
+                                'context': {'default_message':'No Permission / On Duty Entry is made for Pending Hours. Do you want to reduce it from Leave Credits (CL/SL/C.Off/PL/LOP) ?','audit_id':line.id},
                                 'type': 'ir.actions.act_window',
                                 'target': 'new',
                             }
@@ -791,10 +791,10 @@ class arul_hr_audit_shift_time(osv.osv):
                 cr.execute(sql)                
                 spl_date=cr.fetchall()
 		
-		if spl_date and line.total_hours >= 4:
+		if spl_date and line.total_hours >= 3.7:
 		    flag = 1
                     shift_hours = 0
-		if spl_date and line.total_hours < 4:
+		if spl_date and line.total_hours < 3.7:
 		    permission_ids = self.pool.get('arul.hr.permission.onduty').search(cr, uid, [('non_availability_type_id','=','permission'),('date','=',line.work_date),('employee_id','=',line.employee_id.id)])
                     on_duty_ids = self.pool.get('arul.hr.permission.onduty').search(cr, uid, [('non_availability_type_id','=','on_duty'),('from_date','<=',line.work_date),('to_date','>=',line.work_date),('employee_id','=',line.employee_id.id)])
                     leave_detail_ids = self.pool.get('arul.hr.employee.leave.details').search(cr, uid, [('date_from','<=',line.work_date),('date_to','>=',line.work_date),('employee_id','=',line.employee_id.id),('state','=','done')])
@@ -809,7 +809,7 @@ class arul_hr_audit_shift_time(osv.osv):
                                 'view_id': res[1],
                                 'res_model': 'alert.form',
                                 'domain': [],
-                                'context': {'default_message':'No Permission / On Duty Entry is made for Pending Hours. Do you want to reduce it from Leave Credits (CL/SL/PL/LOP) ?','audit_id':line.id},
+                                'context': {'default_message':'No Permission / On Duty Entry is made for Pending Hours. Do you want to reduce it from Leave Credits (CL/SL/C.Off/PL/LOP) ?','audit_id':line.id},
                                 'type': 'ir.actions.act_window',
                                 'target': 'new',
                             }
@@ -820,10 +820,10 @@ class arul_hr_audit_shift_time(osv.osv):
                 cr.execute(sql)                
                 local_date=cr.fetchall()
 		
-		if local_date and line.total_hours >= 4:
+		if local_date and line.total_hours >= 3.7: # MIN of SHIFT 7.45 / 2 = 3.7
 		    #flag = 1
                     shift_hours = 0
-		if local_date and line.total_hours < 4:
+		if local_date and line.total_hours < 3.7:
 		    permission_ids = self.pool.get('arul.hr.permission.onduty').search(cr, uid, [('non_availability_type_id','=','permission'),('date','=',line.work_date),('employee_id','=',line.employee_id.id)])
                     on_duty_ids = self.pool.get('arul.hr.permission.onduty').search(cr, uid, [('non_availability_type_id','=','on_duty'),('from_date','<=',line.work_date),('to_date','>=',line.work_date),('employee_id','=',line.employee_id.id)])
                     leave_detail_ids = self.pool.get('arul.hr.employee.leave.details').search(cr, uid, [('date_from','<=',line.work_date),('date_to','>=',line.work_date),('employee_id','=',line.employee_id.id),('state','=','done')])
@@ -838,7 +838,7 @@ class arul_hr_audit_shift_time(osv.osv):
                                 'view_id': res[1],
                                 'res_model': 'alert.form',
                                 'domain': [],
-                                'context': {'default_message':'No Permission / On Duty Entry is made for Pending Hours. Do you want to reduce it from Leave Credits (CL/SL/PL/LOP) ?','audit_id':line.id},
+                                'context': {'default_message':'No Permission / On Duty Entry is made for Pending Hours. Do you want to reduce it from Leave Credits (CL/SL/C.Off/PL/LOP) ?','audit_id':line.id},
                                 'type': 'ir.actions.act_window',
                                 'target': 'new',
                             }
@@ -868,7 +868,7 @@ class arul_hr_audit_shift_time(osv.osv):
                                 'view_id': res[1],
                                 'res_model': 'alert.form',
                                 'domain': [],
-                                'context': {'default_message':'No Permission / On Duty Entry is made for Pending Hours. Do you want to reduce it from Leave Credits (CL/SL/PL/LOP) ?','audit_id':line.id},
+                                'context': {'default_message':'No Permission / On Duty Entry is made for Pending Hours. Do you want to reduce it from Leave Credits (CL/SL/C.Off/PL/LOP) ?','audit_id':line.id},
                                 'type': 'ir.actions.act_window',
                                 'target': 'new',
                             }
@@ -895,7 +895,7 @@ class arul_hr_audit_shift_time(osv.osv):
                                 'view_id': res[1],
                                 'res_model': 'alert.form',
                                 'domain': [],
-                                'context': {'default_message':'No Permission / On Duty Entry is made for Pending Hours. Do you want to reduce it from Leave Credits (CL/SL/PL/LOP) ?','audit_id':line.id},
+                                'context': {'default_message':'No Permission / On Duty Entry is made for Pending Hours. Do you want to reduce it from Leave Credits (CL/SL/C.Off/PL/LOP) ?','audit_id':line.id},
                                 'type': 'ir.actions.act_window',
                                 'target': 'new',
                             }
@@ -918,7 +918,7 @@ class arul_hr_audit_shift_time(osv.osv):
                                 'view_id': res[1],
                                 'res_model': 'alert.form',
                                 'domain': [],
-                                'context': {'default_message':'No Permission / On Duty Entry is made for Pending Hours. Do you want to reduce it from Leave Credits (CL/SL/PL/LOP) ?','audit_id':line.id},
+                                'context': {'default_message':'No Permission / On Duty Entry is made for Pending Hours. Do you want to reduce it from Leave Credits (CL/SL/C.Off/PL/LOP) ?','audit_id':line.id},
                                 'type': 'ir.actions.act_window',
                                 'target': 'new',
                             }
@@ -928,9 +928,9 @@ class arul_hr_audit_shift_time(osv.osv):
                     c_off_day = 0.0
 		    #raise osv.except_osv(_('Warning!%s%s%s%s%s'),(flag,extra_hours,line.employee_id.employee_category_id,line.employee_id.employee_category_id.code,line.additional_shifts))
                     if line.additional_shifts:
-                        if extra_hours >= 4 and extra_hours < 8:
+                        if extra_hours >= 3.7 and extra_hours < 7.39:
                             c_off_day = 0.5
-                        if extra_hours >= 8 and extra_hours < 12:
+                        if extra_hours >= 7.4 and extra_hours < 12:
                             c_off_day = 1
                         if extra_hours >= 12 and extra_hours < 16:
                             c_off_day = 1.5
@@ -938,9 +938,9 @@ class arul_hr_audit_shift_time(osv.osv):
                             c_off_day = 2
                     else:
                         extra_hours = extra_hours-shift_hours
-                        if extra_hours >= 4 and extra_hours < 8:
+                        if extra_hours >= 3.7 and extra_hours < 7.39:
                             c_off_day = 0.5
-                        if extra_hours >= 8 and extra_hours < 12:
+                        if extra_hours >= 7.4 and extra_hours < 12:
                             c_off_day = 1
                         if extra_hours >= 12 and extra_hours < 16:
                             c_off_day = 1.5
@@ -1807,26 +1807,52 @@ class arul_hr_punch_in_out_time(osv.osv):
                 if 9.00 >=time.in_time and 17.45 <= time.out_time:         
                     res[time.id]['g2_shift_count'] = 1.0
                 '''  
+            #Permission
+            permission_count = 0
+            onduty_count = 0
+            perm_onduty_count = 0
+            sql = '''
+            SELECT SUM(total_shift_worked) FROM arul_hr_permission_onduty WHERE 
+            non_availability_type_id='permission' 
+                AND TO_CHAR(date,'YYYY-MM-DD') = ('%s') and employee_id =%s
+                '''%(time.work_date,time.employee_id.id)
+            cr.execute(sql)
+            b =  cr.fetchone()
+            if b[0]:
+                permission_count = b[0]
+                
+            #OnDuty
+            sql = '''
+                SELECT SUM(total_shift_worked) FROM arul_hr_permission_onduty WHERE non_availability_type_id='on_duty' 
+                AND TO_CHAR(to_date,'YYYY-MM-DD') = ('%s') and employee_id =%s
+                '''%(time.work_date,time.employee_id.id)
+            cr.execute(sql)
+            c =  cr.fetchone()
+            if c[0]:
+                onduty_count = c[0]
+            
+            perm_onduty_count =   permission_count + onduty_count
+            
             if time.total_hours <= 1.0:            
-                res[time.id]['total_shift_worked'] = 0.125
+                res[time.id]['total_shift_worked'] = 0.125 + perm_onduty_count
             if time.total_hours >= 1.1 and time.total_hours <= 2.0:            
-                res[time.id]['total_shift_worked'] = 0.25
+                res[time.id]['total_shift_worked'] = 0.25 + perm_onduty_count
             if time.total_hours >= 2.1 and time.total_hours <= 3.0:            
-                res[time.id]['total_shift_worked'] = 0.375            
+                res[time.id]['total_shift_worked'] = 0.375 + perm_onduty_count        
             if time.total_hours >= 4.0 and time.total_hours <= 7.44:            
-                res[time.id]['total_shift_worked'] = 0.5    
+                res[time.id]['total_shift_worked'] = 0.5 + perm_onduty_count 
             if time.total_hours >= 7.45 and time.total_hours <= 8.30:            
-                res[time.id]['total_shift_worked'] = 1.0
+                res[time.id]['total_shift_worked'] = 1.0 + perm_onduty_count
             if time.total_hours >8.30  and time.total_hours <= 11.44:            
-                res[time.id]['total_shift_worked'] = 1.0
+                res[time.id]['total_shift_worked'] = 1.0 + perm_onduty_count
             if time.total_hours >=11.45  and time.total_hours <= 15.44:            
-                res[time.id]['total_shift_worked'] = 1.5
+                res[time.id]['total_shift_worked'] = 1.5 + perm_onduty_count
             if time.total_hours >=15.45  and time.total_hours <= 15.45:            
-                res[time.id]['total_shift_worked'] = 1.5
+                res[time.id]['total_shift_worked'] = 1.5 + perm_onduty_count
             if time.total_hours >=15.45:            
-                res[time.id]['total_shift_worked'] = 2.0
+                res[time.id]['total_shift_worked'] = 2.0 + perm_onduty_count
             if time.total_hours >=23.45:            
-                res[time.id]['total_shift_worked'] = 3.0
+                res[time.id]['total_shift_worked'] = 3.0 + perm_onduty_count
             
             #res[time.id]['shift_count']=res[time.id]['total_shift_worked']
             #res.update({'shift_count': res[time.id]['total_shift_worked']})

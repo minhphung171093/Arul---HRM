@@ -128,6 +128,19 @@ class alert_form(osv.osv_memory):
                                     })
                     leave_detail_obj.process_leave_request(cr, uid, [leave_detail_id])
                     break
+                #TPT START BalamuruganPurushothaman - TO REDUCE LEAVE COUNT FROM C.OFF ALSO
+                if detail.leave_type_id.code == 'C.Off' and (detail.total_day-detail.total_taken>=0.5):
+                    leave_detail_id = leave_detail_obj.create(cr, uid, {
+                                        'employee_id': audit.employee_id.id,
+                                        'leave_type_id': detail.leave_type_id.id,
+                                        'date_from': audit.work_date,
+                                        'date_to': audit.work_date,
+                                        'haft_day_leave': True,
+                                        'state': 'draft',
+                                    })
+                    leave_detail_obj.process_leave_request(cr, uid, [leave_detail_id])
+                    break
+                #TPT END
                 if detail.leave_type_id.code == 'PL' and (detail.total_day-detail.total_taken>=1):
                     leave_detail_id = leave_detail_obj.create(cr, uid, {
                                         'employee_id': audit.employee_id.id,
