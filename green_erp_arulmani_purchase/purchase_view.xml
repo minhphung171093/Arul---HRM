@@ -113,7 +113,7 @@
 			<field name="name">tpt.purchase.indent.line.tree</field>
 			<field name="model">tpt.purchase.product</field>
 			<field name="arch" type="xml">
-				<tree string="Indent Release - By Store" delete = 'false' create = 'false' >
+				<tree string="Indent Release - By Store" edit = 'false' delete = 'false' create = 'false' >
 						<field name="doc_type_relate"/> 
 						<field name="pur_product_id"/> 
 						<field name="product_id"/>
@@ -137,7 +137,7 @@
             <field name="name">tpt.purchase.indent.line.form</field>
             <field name="model">tpt.purchase.product</field>
             <field name="arch" type="xml">
-	            <form string="Indent Release - By Store" version="7.0" delete = 'false' create = 'false' >   
+	            <form string="Indent Release - By Store" version="7.0" edit = 'false' delete = 'false' create = 'false' >   
 	             <header>
 	            		<button name="bt_approve" states='draft,confirm' string="Store Approve" type="object" class="oe_highlight" />
 	                    <button name="%(action_reject_pur_line_form)d" states='draft,confirm' string="Store Reject" type="action" class="oe_highlight" /> 
@@ -219,7 +219,7 @@
 			<field name="name">tpt.purchase.indent.line.tree</field>
 			<field name="model">tpt.purchase.product</field>
 			<field name="arch" type="xml">
-				<tree string="Indent Release - By HOD" delete = 'false' create = 'false' >
+				<tree string="Indent Release - By HOD" edit = 'false' delete = 'false' create = 'false' >
 						<field name="doc_type_relate"/> 
 						<field name="pur_product_id"/> 
 						<field name="product_id"/>
@@ -243,7 +243,7 @@
             <field name="name">tpt.purchase.indent.line.form</field>
             <field name="model">tpt.purchase.product</field>
             <field name="arch" type="xml">
-	            <form string="Indent Release - By HOD" version="7.0" delete = 'false' create = 'false' >   
+	            <form string="Indent Release - By HOD" version="7.0" edit = 'false' delete = 'false' create = 'false' >   
 	             <header>
 	            		<button name="bt_approve" states='+' string="Store - HOD Approve" type="object" class="oe_highlight" />
 	                    <button name="%(action_reject_pur_line_form)d" states='+' string="Store - HOD Reject" type="action" class="oe_highlight" /> 
@@ -641,6 +641,9 @@
             <field name="inherit_id" ref="stock.view_normal_procurement_locations_form"/>
             <field name="arch" type="xml">
             	<xpath expr="//group[@name='delay']" position="before">
+            		<group >
+                        <field name="bin_location" />
+	                </group>
 					<group name="MRP">
                         <field name="mrp_control" on_change="onchange_mrp_control(mrp_control)"/>
                         <field name="min_stock" attrs="{'readonly': [('mrp_control','=',False)]}"/>
@@ -786,6 +789,9 @@
 			                <field name="po_date"/>
 			                <field name="supplier_id" domain="[('supplier','=',1)]" options="{'create': false, 'create_edit': false}"/>
 							<field name="name"/>
+							<field name="truck_no"/>
+							<field name="invoice_no"/>
+							<field name="requestioner_id" options="{'create': false, 'create_edit': false}" />
 							<field name="gate_date_time"/>
 						</group>
 						<notebook>
@@ -793,9 +799,11 @@
 								<field name="gate_in_pass_line" nolabel='1'>
 									<tree editable='top'>
 										<field name="po_indent_no" context="{'search_po_indent_no_gate_in_pass':True, 'po_id':parent.po_id}" options="{'create': false, 'create_edit': false}"/>
-										<field name="product_id" on_change="onchange_product_id(product_id)" options="{'create': false, 'create_edit': false}"/>
+										<field name="product_id" context="{'search_rfq_product':True, 'po_indent_id':po_indent_id }" on_change="onchange_product_id(product_id)" options="{'create': false, 'create_edit': false}"/>
+										<field name="description" readonly='1' />
+										<field name="uom_po_id" readonly='1' options="{'create': false, 'create_edit': false}" />
 										<field name="product_qty"/>
-										<field name="uom_po_id"/>
+										
 									</tree>
 								</field>
 							</page>
