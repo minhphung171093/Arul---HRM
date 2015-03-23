@@ -60,7 +60,7 @@
 							<field name="section_id" readonly='1' domain="[('department_id','=',department_id)]" options="{'create': false, 'create_edit': false}" />
 							<field name="date_expect"/>
 							<field name="requisitioner" options="{'create': false, 'create_edit': false}" domain="[('department_id','=',department_id)]"  />
-							<field name="header_text" attrs="{'readonly': [('document_type', 'not in', ('service','consumable','capital'))]}"/>
+							<field name="header_text" attrs="{'readonly': [('document_type', 'not in', ('service','consumable','capital')),('state', '=', 'done')]}"/>
 						</group>
 						<group >
 							<field name="select_normal" invisible = '1' widget = "radio" attrs="{'invisible': [('intdent_cate', '!=', 'normal')]}" />
@@ -79,7 +79,7 @@
 										<field name="product_uom_qty" string = 'Indent Qty'/>
 										<field name="recom_vendor" />
 										<field name="pending_qty" invisible = '1'/>
-										<field name="mrs_qty" string = 'Reserved Qty'/>
+										<field name="mrs_qty" readonly = '1'/>
 										<field name="inspection_qty" invisible = '1'/> 
 										<field name="on_hand_qty"/>
 										<field name="uom_po_id" edit='false' options="{'create': false, 'create_edit': false}"/>
@@ -1590,7 +1590,7 @@
 							<page string = "Materials">
 								<field name="material_request_line" nolabel='1'>
 									<tree editable='bottom'>
-										<field name="product_id" widget = "selection"  options="{'create': false, 'create_edit': false}"/>
+										<field name="product_id" widget = "selection" on_change="onchange_product_id(product_id)" options="{'create': false, 'create_edit': false}"/>
 										<field name="dec_material"/>
 										<field name="product_uom_qty" />
 										<field name="on_hand_qty" />

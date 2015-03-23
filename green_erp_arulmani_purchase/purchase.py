@@ -284,7 +284,7 @@ class tpt_purchase_product(osv.osv):
                                           ('po_raised','PO Raised')
                                           ],'Indent Status', readonly=True),
 #Hung moi them 2 Qty theo yeu casu bala
-        'mrs_qty': fields.float('Reserved Qty', readonly = True ),
+        'mrs_qty': fields.float('Reserved Qty'),
         'inspection_qty': fields.float('Inspection Quantity' ), 
         'on_hand_qty':fields.function(_get_on_hand_qty,digits=(16,2),type='float',string='On Hand Qty',multi='sum',store=False),
         'department_id_relate':fields.related('pur_product_id', 'department_id',type = 'many2one', relation='hr.department', string='Department',store=True),
@@ -320,11 +320,10 @@ class tpt_purchase_product(osv.osv):
                     'uom_po_id':False,
                     'price_unit':False,
                     'description': False,
-                    'mrs_qty':False,
+                    'mrs_qty':0.0,
                     }}
         if product_id:
             product = self.pool.get('product.product').browse(cr, uid, product_id)
-            request = self.pool.get('tpt.material.request').browse(cr, uid, product_id)
             sql = '''
                 select case when sum(product_uom_qty) != 0 then sum(product_uom_qty) else 0 end product_mrs_qty from tpt_material_request_line where product_id=%s and material_request_id in (select id from tpt_material_request where state='done' and id not in (select name from tpt_material_issue where state='done'))
             '''%(product_id)
@@ -334,7 +333,7 @@ class tpt_purchase_product(osv.osv):
                     'uom_po_id':product.uom_id.id,
                     #'price_unit':product.list_price,
                     'description': product.name,
-                    'mrs_qty':product_mrs_qty,
+                    'mrs_qty':float(product_mrs_qty),
                     })
         return res
     
@@ -342,7 +341,16 @@ class tpt_purchase_product(osv.osv):
         
         if 'product_id' in vals:
             product = self.pool.get('product.product').browse(cr, uid, vals['product_id'])
-            vals.update({'uom_po_id':product.uom_id.id,'description':product.name})
+            sql = '''
+                select case when sum(product_uom_qty) != 0 then sum(product_uom_qty) else 0 end product_mrs_qty from tpt_material_request_line where product_id=%s and material_request_id in (select id from tpt_material_request where state='done' and id not in (select name from tpt_material_issue where state='done'))
+            '''%(vals['product_id'])
+            cr.execute(sql)
+            product_mrs_qty=cr.dictfetchone()['product_mrs_qty']
+            vals.update({
+                         'uom_po_id':product.uom_id.id,
+                         'description':product.name,
+                         'mrs_qty':float(product_mrs_qty),
+                         })
         new_id = super(tpt_purchase_product, self).create(cr, uid, vals, context)
         if 'product_uom_qty' in vals:
             if (vals['product_uom_qty'] < 0):
@@ -355,7 +363,16 @@ class tpt_purchase_product(osv.osv):
     def write(self, cr, uid, ids, vals, context=None):
         if 'product_id' in vals:
             product = self.pool.get('product.product').browse(cr, uid, vals['product_id'])
-            vals.update({'uom_po_id':product.uom_id.id,'description':product.name})
+            sql = '''
+                select case when sum(product_uom_qty) != 0 then sum(product_uom_qty) else 0 end product_mrs_qty from tpt_material_request_line where product_id=%s and material_request_id in (select id from tpt_material_request where state='done' and id not in (select name from tpt_material_issue where state='done'))
+            '''%(vals['product_id'])
+            cr.execute(sql)
+            product_mrs_qty=cr.dictfetchone()['product_mrs_qty']
+            vals.update({
+                         'uom_po_id':product.uom_id.id,
+                         'description':product.name,
+                         'mrs_qty':float(product_mrs_qty),
+                         })
         new_write = super(tpt_purchase_product, self).write(cr, uid,ids, vals, context)
         for line in self.browse(cr,uid,ids):
             if line.product_uom_qty < 0:
@@ -2970,6 +2987,16 @@ class tpt_material_request_line(osv.osv):
         'material_request_id': fields.many2one('tpt.material.request', 'Material'),
         'on_hand_qty':fields.function(_get_on_hand_qty,digits=(16,2),type='float',string='On Hand Qty',multi='sum',store=False),
                 }
+    def onchange_product_id(self, cr, uid, ids,product_id=False, context=None):
+        res = {'value':{
+                    'dec_material': False,
+                    }}
+        if product_id:
+            product = self.pool.get('product.product').browse(cr, uid, product_id)
+            res['value'].update({
+                    'dec_material': product.name,
+                    })
+        return res
     
     def create(self, cr, uid, vals, context=None):
         if 'product_id' in vals:
