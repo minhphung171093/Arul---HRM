@@ -546,7 +546,9 @@ class product_product(osv.osv):
         'po_text': fields.char('PO Text', size = 1024),
         'mrp_control':fields.boolean('MRP Control Type'),
         'tpt_description':fields.text('Description', size = 256),
-        'bin_location':fields.text('Bin Location'),
+        'bin_location':fields.char('Bin Location', size = 1024),
+        'old_no':fields.char('Old Material No.', size = 1024),
+        'tpt_mater_type':fields.selection([('mechan','Mechanical'),('civil','Civil'),('elect','Electrical'),('inst','Instrumentation'),('raw_mat','Raw. Mat. & Prod'),('qc','QC and R&D'),('safe','Safety & Personnel'),('proj','Projects')],'Material Type'),
         }
     
     _defaults = {
@@ -622,12 +624,14 @@ class product_product(osv.osv):
                     'purchase_ok':False,
                     'batch_appli_ok':False,
                     'cate_name':'finish',
+                    'tpt_mater_type':False,
                     }
             elif category.cate_name == 'raw':
                 vals = {'sale_ok':False,
                     'purchase_ok':True,
                     'batch_appli_ok':False,
                     'cate_name':'raw',
+                    'tpt_product_type':False,
                     }
             else :
                 vals = {'sale_ok':False,

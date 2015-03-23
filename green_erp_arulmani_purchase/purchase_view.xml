@@ -641,9 +641,7 @@
             <field name="inherit_id" ref="stock.view_normal_procurement_locations_form"/>
             <field name="arch" type="xml">
             	<xpath expr="//group[@name='delay']" position="before">
-            		<group >
-                        <field name="bin_location" />
-	                </group>
+            		
 					<group name="MRP">
                         <field name="mrp_control" on_change="onchange_mrp_control(mrp_control)"/>
                         <field name="min_stock" attrs="{'readonly': [('mrp_control','=',False)]}"/>
@@ -743,12 +741,14 @@
                     </page>
 				</xpath>
 				
-				<!--<xpath expr="//field[@name='type']" position="attributes">
-					<attribute name='attrs'>{'invisible': [('cate_name','=','finish')]}</attribute>
-				</xpath>-->
-				
 				<xpath expr="//field[@name='uom_id']" position="before">
 					<field name="tpt_product_type" attrs="{'invisible': [('cate_name','!=','finish')]}"/>
+					<field name="tpt_mater_type" attrs="{'invisible': [('cate_name','!=','raw')]}"/>
+				</xpath>
+				
+				<xpath expr="//field[@name='default_code']" position="after">
+                    <field name="old_no"/>
+                    <field name="bin_location"/>
 				</xpath>
 				
 				<xpath expr="//page[@string='Procurements']" position="attributes">
