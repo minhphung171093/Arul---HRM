@@ -529,6 +529,7 @@ class product_product(osv.osv):
         'po_text': fields.char('PO Text', size = 1024),
         'mrp_control':fields.boolean('MRP Control Type'),
         'tpt_description':fields.text('Description', size = 256),
+        'bin_location':fields.text('Bin Location'),
         }
     
     _defaults = {
@@ -699,6 +700,12 @@ class tpt_gate_in_pass(osv.osv):
         'gate_date_time': fields.datetime('Gate In Pass Date & Time', states={'cancel': [('readonly', True)], 'done':[('readonly', True)]}),
         'state':fields.selection([('draft', 'Draft'),('cancel', 'Cancel'),('done', 'Approve')],'Status', readonly=True, states={'cancel': [('readonly', True)], 'done':[('readonly', True)]}),
         'gate_in_pass_line': fields.one2many('tpt.gate.in.pass.line', 'gate_in_pass_id', 'Product Details', states={'cancel': [('readonly', True)], 'done':[('readonly', True)]}),
+        'truck_no':fields.text('Truck Number'),
+        'invoice_no':fields.text('DC/Invoice No'),
+        'requestioner_id':fields.many2one('hr.employee','Requestioner'),
+              
+                
+                
                 }
     _defaults={
                'name':'/',
@@ -998,10 +1005,10 @@ class tpt_purchase_quotation(osv.osv):
             indent_line_ids = [row[0] for row in cr.fetchall()]
             if indent_line_ids:
                 self.pool.get('tpt.purchase.product').write(cr, uid, indent_line_ids,{'state':'quotation_raised'})
-        if quotation.quotation_cate:
-            if quotation.quotation_cate != 'multiple':
-                if (len(quotation.purchase_quotation_line) > 1):
-                    raise osv.except_osv(_('Warning!'),_('You must choose Quotation category is multiple if you want more than one vendors!'))
+#         if quotation.quotation_cate:
+#             if quotation.quotation_cate != 'multiple':
+#                 if (len(quotation.purchase_quotation_line) > 1):
+#                     raise osv.except_osv(_('Warning!'),_('You must choose Quotation category is multiple if you want more than one vendors!'))
         return new_id  
     
     def write(self, cr, uid, ids, vals, context=None):
@@ -1016,10 +1023,10 @@ class tpt_purchase_quotation(osv.osv):
                 self.pool.get('tpt.request.for.quotation').write(cr,uid,rfq_ids,{
                                                                          'raised_ok': True
                                                                          })
-            if quotation.quotation_cate:
-                if quotation.quotation_cate != 'multiple':
-                    if (len(quotation.purchase_quotation_line) > 1):
-                        raise osv.except_osv(_('Warning!'),_('You must choose Quotation category is multiple if you want more than one vendors!'))
+#             if quotation.quotation_cate:
+#                 if quotation.quotation_cate != 'multiple':
+#                     if (len(quotation.purchase_quotation_line) > 1):
+#                         raise osv.except_osv(_('Warning!'),_('You must choose Quotation category is multiple if you want more than one vendors!'))
         return new_write    
     
     
@@ -1322,19 +1329,36 @@ class tpt_gate_in_pass_line(osv.osv):
     _columns = {
         'gate_in_pass_id': fields.many2one('tpt.gate.in.pass','Gate In Pass',ondelete = 'cascade'),
         'po_indent_no': fields.many2one('tpt.purchase.indent', 'PO Indent No'),
-        'product_id': fields.many2one('product.product', 'Product'),
+        'product_id': fields.many2one('product.product', 'Material'),
         'product_qty': fields.float('Quantity'),
         'uom_po_id': fields.many2one('product.uom', 'UOM'),
+        'description':fields.char('Mat. Description', size = 50),
                 }
     _defaults={
                'product_qty': 1,
     }
+    
+    def create(self, cr, uid, vals, context=None):
+        
+        if 'product_id' in vals:
+            product = self.pool.get('product.product').browse(cr, uid, vals['product_id'])
+            vals.update({'uom_po_id':product.uom_id.id,'description':product.name})
+        new_id = super(tpt_gate_in_pass_line, self).create(cr, uid, vals, context)
+        return new_id
+    
+    def write(self, cr, uid, ids, vals, context=None):
+        if 'product_id' in vals:
+            product = self.pool.get('product.product').browse(cr, uid, vals['product_id'])
+            vals.update({'uom_po_id':product.uom_id.id,'description':product.name})
+        new_write = super(tpt_gate_in_pass_line, self).write(cr, uid,ids, vals, context)
+        return new_write
     def onchange_product_id(self, cr, uid, ids,product_id=False, context=None):
         vals = {}
         if product_id:
             product = self.pool.get('product.product').browse(cr, uid, product_id)
             vals = {
                     'uom_po_id':product.uom_id.id,
+                    'description': product.name,
                     }
         return {'value': vals}
       
@@ -1938,6 +1962,7 @@ class purchase_order(osv.osv):
         return {
             'name': order_line.name or '',
             'product_id': order_line.product_id.id,
+            'bin_location': order_line.product_id.bin_location or False,
             'product_qty': order_line.product_qty,
             'product_uos_qty': order_line.product_qty,
             'product_uom': order_line.product_uom.id,
