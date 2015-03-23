@@ -2036,16 +2036,22 @@ class purchase_order_line(osv.osv):
             amount_basic = (line.product_qty * line.price_unit)-((line.product_qty * line.price_unit)*line.discount/100)
             if line.p_f_type == '1':
                amount_p_f = amount_basic * (line.p_f/100)
-            else:
+            elif line.p_f_type == '2':
                 amount_p_f = line.p_f
+            else:
+                amount_p_f = line.p_f * line.product_qty
             if line.ed_type == '1':
                amount_ed = (amount_basic + amount_p_f) * (line.ed/100)
-            else:
+            elif line.ed_type == '2':
                 amount_ed = line.ed
+            else:
+                amount_ed = line.ed * line.product_qty
             if line.fright_type == '1':
                amount_fright = (amount_basic + amount_p_f + amount_ed) * (line.fright/100)
-            else:
+            elif line.fright_type == '2':
                 amount_fright = line.fright
+            else:
+                amount_fright = line.fright * line.product_qty
             tax_amounts = [r.amount for r in line.taxes_id]
             for tax in tax_amounts:
                 amount_total_tax += tax/100
@@ -2060,12 +2066,12 @@ class purchase_order_line(osv.osv):
                 'price_unit': fields.float('Unit Price', required=True, digits_compute= dp.get_precision('Product Price'), track_visibility='onchange'),  
                 'discount': fields.float('DISC', track_visibility='onchange'),  
                 'p_f': fields.float('P&F', track_visibility='onchange'),  
-                'p_f_type':fields.selection([('1','%'),('2','Rs')],('P&F Type'), track_visibility='onchange'),  
+                'p_f_type':fields.selection([('1','%'),('2','Rs'),('3','Per Qty')],('P&F Type'), track_visibility='onchange'),
                 'ed': fields.float('ED', track_visibility='onchange'),  
-                'ed_type':fields.selection([('1','%'),('2','Rs')],('ED Type'), track_visibility='onchange'),  
+                'ed_type':fields.selection([('1','%'),('2','Rs'),('3','Per Qty')],('ED Type'), track_visibility='onchange'),  
                 'taxes_id': fields.many2many('account.tax', 'purchase_order_taxe', 'ord_id', 'tax_id', 'Taxes', track_visibility='onchange'),  
                 'fright': fields.float('Freight', track_visibility='onchange'),  
-                'fright_type':fields.selection([('1','%'),('2','Rs')],('Freight Type'), track_visibility='onchange'),  
+                'fright_type':fields.selection([('1','%'),('2','Rs'), ('3','Per Qty')],('Freight Type'), track_visibility='onchange'),  
                 'line_no': fields.integer('SI.No', readonly = True),
                 # ham function line_net
                 'short_qty': fields.function(get_short_qty,type='float',digits=(16,0),multi='sum', string='Short Closed Qty'),
@@ -2616,7 +2622,7 @@ class tpt_request_for_quotation(osv.osv):
 
     _columns = {
         'name': fields.char('RFQ No', size = 1024,readonly=True, required = True , states={'cancel': [('readonly', True)], 'done':[('readonly', True)], 'close':[('readonly', True)]}),
-        'rfq_date': fields.datetime('RFQ Date', states={'cancel': [('readonly', True)], 'done':[('readonly', True)], 'close':[('readonly', True)]}),
+        'rfq_date': fields.date('RFQ Date', states={'cancel': [('readonly', True)], 'done':[('readonly', True)], 'close':[('readonly', True)]}),
         'rfq_category': fields.selection([('single','Single'),('mutiple','Multiple'),('special','Special')],'RFQ Category', required = True, states={'cancel': [('readonly', True)], 'done':[('readonly', True)], 'close':[('readonly', True)]}),
         'create_uid':fields.many2one('res.users','Raised By', readonly = True),
         'create_on': fields.datetime('Created on', readonly = True),
@@ -2631,7 +2637,7 @@ class tpt_request_for_quotation(osv.osv):
     _defaults={
                'name':'/',
                'state': 'draft',
-               'rfq_date':fields.datetime.now,
+               'rfq_date':time.strftime('%Y-%m-%d'),
                'create_on':fields.datetime.now,
                'raised_ok': False,
 #                 'date_test': time.strftime('%Y-%m-%d')
@@ -2750,7 +2756,11 @@ class tpt_rfq_line(osv.osv):
     
     def onchange_rfq_indent_id(self, cr, uid, ids,po_indent_id=False, context=None):
         if po_indent_id:
-            return {'value': {'product_id': False}}  
+            indent = self.pool.get('tpt.purchase.indent').browse(cr,uid,po_indent_id)
+            return {'value': {
+                              'product_id': False,
+                              'item_text': indent.header_text,
+                              }}  
         
     def onchange_rfq_product_id(self, cr, uid, ids,product_id=False, po_indent_id=False, context=None):
         vals = {}

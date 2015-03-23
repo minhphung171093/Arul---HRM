@@ -525,16 +525,22 @@ class account_invoice_line(osv.osv):
             amount_basic = (line.quantity * line.price_unit)-((line.quantity * line.price_unit)*line.disc/100)
             if line.p_f_type == '1':
                amount_p_f = amount_basic * (line.p_f/100)
-            else:
+            elif line.p_f_type == '2':
                 amount_p_f = line.p_f
+            else:
+                amount_p_f = line.p_f * line.quantity
             if line.ed_type == '1':
                amount_ed = (amount_basic + amount_p_f) * (line.ed/100)
-            else:
+            elif line.ed_type == '2':
                 amount_ed = line.ed
+            else:
+                amount_ed = line.ed * line.quantity
             if line.fright_type == '1':
                amount_fright = (amount_basic + amount_p_f + amount_ed) * (line.fright/100)
-            else:
+            elif line.fright_type == '2':
                 amount_fright = line.fright
+            else:
+                amount_fright = line.fright * line.quantity
             tax_amounts = [r.amount for r in line.invoice_line_tax_id]
             for tax in tax_amounts:
                 amount_total_tax += tax/100
@@ -546,11 +552,11 @@ class account_invoice_line(osv.osv):
         'gl_code_id': fields.many2one('account.account', 'GL Code'),
         'disc': fields.float('DISC'),
         'p_f': fields.float('P&F'),
-        'p_f_type':fields.selection([('1','%'),('2','Rs')],('P&F Type')),
+        'p_f_type':fields.selection([('1','%'),('2','Rs'),('3','Per Qty')],('P&F Type')),
         'ed': fields.float('ED'),
-        'ed_type':fields.selection([('1','%'),('2','Rs')],('ED Type')),
+        'ed_type':fields.selection([('1','%'),('2','Rs'),('3','Per Qty')],('ED Type')),
         'fright': fields.float('Freight'),
-        'fright_type':fields.selection([('1','%'),('2','Rs')],('Freight Type')),
+        'fright_type':fields.selection([('1','%'),('2','Rs'),('3','Per Qty')],('Freight Type')),
         'line_net': fields.function(line_net_line_supplier_invo, store = True, multi='deltas' ,string='Line Net'),
     }
     def onchange_gl_code_id(self, cr, uid, ids, gl_code_id=False, context=None):
