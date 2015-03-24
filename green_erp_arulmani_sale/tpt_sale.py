@@ -2041,7 +2041,7 @@ class tpt_batch_allotment_line(osv.osv):
             if  batch.stock_available < qty:
                 warning = {  
                           'title': _('Warning!'),  
-                          'message': _('The product quantity is not greater than the available product quantity in the batch!'),  
+                          'message': _('Insufficient Quantity in the Batch % s! \n Available Qty is %s')%(batch.name,batch.stock_available),  
                           }  
                 vals['sys_batch']=False
                 return {'value': vals,'warning':warning}
