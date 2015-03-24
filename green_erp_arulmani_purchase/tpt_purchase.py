@@ -43,7 +43,7 @@ class tpt_mrp_process(osv.osv):
                     select product_product.id, uom_po_id
                     from product_product, product_template
                     where mrp_control = True and  (
-                            select sum(foo.product_qty) as ton_sl from 
+                            select case when sum(foo.product_qty)!=0 then sum(foo.product_qty) else 0 end ton_sl from 
                                 (select st.product_qty
                                     from stock_move st 
                                         inner join stock_location l2 on st.location_dest_id= l2.id

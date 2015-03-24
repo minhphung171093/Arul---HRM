@@ -48,5 +48,98 @@
             id="menu_action_tpt_import_supplier_form_view"
             parent="purchase.menu_procurement_management" sequence="551"/>
             
+        <record id="tpt_import_material_tree_view" model="ir.ui.view">
+			<field name="name">tpt.import.material.tree</field>
+			<field name="model">tpt.import.material</field>
+			<field name="arch" type="xml">
+				<tree string="Import Material">
+					<field name ="name"/>
+					<field name="state"/>
+				</tree>
+			</field>
+		</record>
+
+		<record id="tpt_import_material_form_view" model="ir.ui.view">
+            <field name="name">tpt.import.material.form</field>
+            <field name="model">tpt.import.material</field>
+            <field name="arch" type="xml">
+                <form string="Import Material" version="7.0">
+                    <header>
+	                    <button name="import_material" states='draft' string="Import" type="object" class="oe_highlight" />
+	                    <field name="state" widget="statusbar" statusbar_visible="draft,done" statusbar_colors='{"draft":"blue","done":"blue"}'/>
+	                </header>                
+                	<sheet>  
+                		<group>
+                		<field name ="name"/>
+						<label for="datas" string="Data Upload Field"/>
+							<div>
+								<field name="datas" filename="datas_fname"/>
+	                        	<field name="datas_fname" invisible="1" class="oe_inline oe_right"/>
+	                        </div>
+                		</group>
+                	</sheet>
+				</form>
+			</field>
+		</record>
+
+        <record id="action_tpt_import_material_form_view" model="ir.actions.act_window">
+            <field name="name">Import Material</field>
+			<field name="type">ir.actions.act_window</field>
+            <field name="res_model">tpt.import.material</field>
+            <field name="view_type">form</field>
+            <field name="view_mode">tree,form</field>
+            <field name="view_id" ref="tpt_import_material_tree_view"/>
+        </record>
+        
+        <menuitem action="action_tpt_import_material_form_view"
+            id="menu_action_tpt_import_material_form_view"
+            parent="purchase.menu_procurement_management" sequence="553"/>
+            
+        <record id="tpt_import_inventory_tree_view" model="ir.ui.view">
+			<field name="name">tpt.import.inventory.tree</field>
+			<field name="model">tpt.import.inventory</field>
+			<field name="arch" type="xml">
+				<tree string="Import Inventory">
+					<field name ="name"/>
+					<field name="state"/>
+				</tree>
+			</field>
+		</record>
+
+		<record id="tpt_import_inventory_form_view" model="ir.ui.view">
+            <field name="name">tpt.import.inventory.form</field>
+            <field name="model">tpt.import.inventory</field>
+            <field name="arch" type="xml">
+                <form string="Import Inventory" version="7.0">
+                    <header>
+	                    <button name="import_inventory" states='draft' string="Import" type="object" class="oe_highlight" />
+	                    <field name="state" widget="statusbar" statusbar_visible="draft,done" statusbar_colors='{"draft":"blue","done":"blue"}'/>
+	                </header>                
+                	<sheet>  
+                		<group>
+                		<field name ="name"/>
+						<label for="datas" string="Data Upload Field"/>
+							<div>
+								<field name="datas" filename="datas_fname"/>
+	                        	<field name="datas_fname" invisible="1" class="oe_inline oe_right"/>
+	                        </div>
+                		</group>
+                	</sheet>
+				</form>
+			</field>
+		</record>
+
+        <record id="action_tpt_import_inventory_form_view" model="ir.actions.act_window">
+            <field name="name">Import Inventory</field>
+			<field name="type">ir.actions.act_window</field>
+            <field name="res_model">tpt.import.inventory</field>
+            <field name="view_type">form</field>
+            <field name="view_mode">tree,form</field>
+            <field name="view_id" ref="tpt_import_inventory_tree_view"/>
+        </record>
+        
+        <menuitem action="action_tpt_import_inventory_form_view"
+            id="menu_action_tpt_import_inventory_form_view"
+            parent="purchase.menu_procurement_management" sequence="555"/>
     </data>
 </openerp>
