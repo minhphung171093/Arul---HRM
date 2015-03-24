@@ -45,7 +45,7 @@
 	            <form string="Purchase Indent" version="7.0">   
 	             <header>
 	            		<button name="bt_approve" states='draft' string="Confirm" type="object" class="oe_highlight" groups="green_erp_arulmani_purchase.group_vvti_purchase_admin"/>
-	          <!--          <button name="bt_cancel" states='draft,first_approve,done' string="Close" type="object" class="oe_highlight" /> -->
+	                    <button name="bt_cancel" states='draft, done' string="Cancel" type="object" class="oe_highlight" /> 
 	                    <field name="state" widget="statusbar" statusbar_visible="draft,cancel,done" statusbar_colors='{"draft":"blue","cancel":"blue"}'/>
 	            </header>    
 	            	<sheet>
@@ -1452,7 +1452,6 @@
 					<field name="create_on"/>
 					<field name="expect_quote_date"/>
 					<field name="create_uid" />
-					<field name="date_test" invisible = '1'/>
 					<field name="state" widget="statusbar" statusbar_visible="draft,cancel,done,close" statusbar_colors='{"draft":"blue","cancel":"blue"}'/>
 				</tree>
 			</field>
@@ -1476,19 +1475,19 @@
 							<field name="create_on"/>
 							<field name="expect_quote_date"/>
 							<field name="create_uid" options="{'create': false, 'create_edit': false}" />
-							<field name="date_test" invisible = '1'/>
 	            		</group>
 	            		<notebook>
 							<page string = "RFQ Line">
 							<field name="rfq_line" nolabel='1'>
 									<tree editable='bottom'>
-										<field name="po_indent_id" context="{'search_po_indent_line':True }"   on_change = "onchange_rfq_indent_id(po_indent_id)" options="{'create': false, 'create_edit': false}"/>
-										<field name="product_id" context="{'search_rfq_product':True, 'po_indent_id':po_indent_id }" on_change = "onchange_rfq_product_id(product_id, po_indent_id)" options="{'create': false, 'create_edit': false}"/>
-										<field name="description" />
-										<field name="item_text" />
-										<field name="recom_vendor" />
-										<field name="product_uom_qty" />
-										<field name="uom_id" options="{'create': false, 'create_edit': false}"/>
+										<field name="po_indent_id" attrs="{'readonly': [('state','not in',('draft'))]}" context="{'search_po_indent_line':True }"   on_change = "onchange_rfq_indent_id(po_indent_id)" options="{'create': false, 'create_edit': false}"/>
+										<field name="product_id" attrs="{'readonly': [('state','not in',('draft'))]}" context="{'search_rfq_product':True, 'po_indent_id':po_indent_id }" on_change = "onchange_rfq_product_id(product_id, po_indent_id)" options="{'create': false, 'create_edit': false}"/>
+										<field name="description" attrs="{'readonly': [('state','not in',('draft'))]}"/>
+										<field name="item_text" attrs="{'readonly': [('state','not in',('draft', 'done'))]}"/>
+										<field name="recom_vendor" attrs="{'readonly': [('state','not in',('draft'))]}"/>
+										<field name="product_uom_qty" attrs="{'readonly': [('state','not in',('draft'))]}"/>
+										<field name="uom_id" attrs="{'readonly': [('state','not in',('draft'))]}" options="{'create': false, 'create_edit': false}"/>
+										<field name="state" invisible = '1'/>
 									</tree>
 								</field>
 							</page>
@@ -1515,11 +1514,17 @@
 			<field name="model">tpt.request.for.quotation</field>
 			<field name="arch" type="xml">
 				<search string="Request For Quotation">
-					<field name="date_test"/>
-        			<filter string="RFQ Available" name="rfq_available" icon="terp-personal" domain="[('raised_ok','=',False)]" context="{}"/>
-        			<filter string="RFQ Used" name="rfq_used" icon="terp-personal" domain="[('raised_ok','=',True)]" context="{}"/>
+					<field name="name"/>
+        			<filter string="RFQ Available" name="rfq_available" icon="terp-personal" domain="[('raised_ok','=',False), ('state','!=','cancel')]" context="{}"/>
+        			<filter string="RFQ Used" name="rfq_used" icon="terp-personal" domain="[('raised_ok','=',True), ('state','!=','cancel')]" context="{}"/>
+        			<separator />
+        			<filter string="Draft" name="draft" icon="terp-personal" domain="[('state','=','draft')]" context="{}"/>
+        			<filter string="Cancel" name="cancel" icon="terp-personal" domain="[('state','=','cancel')]" context="{}"/>
+        			<filter string="Confirm" name="done" icon="terp-personal" domain="[('state','=','done')]" context="{}"/>
+        			<filter string="Closed" name="close" icon="terp-personal" domain="[('state','=','close')]" context="{}"/>
         			<group expand="0" string="Group By...">
         				<filter string="Available/Used RFQ" icon="terp-accessories-archiver" domain="[]" context="{'group_by':'raised_ok'}"/>
+        				<filter string="Status" icon="terp-accessories-archiver" domain="[]" context="{'group_by':'state'}"/>
                     </group>
 				</search>
 			</field>
@@ -1531,7 +1536,7 @@
             <field name="res_model">tpt.request.for.quotation</field>
             <field name="view_type">form</field>
             <field name="view_mode">tree,form</field>
-            <field name="context">{'search_default_rfq_available':1}</field>
+            <field name="context">{'search_default_rfq_available':1, 'search_default_draft':1, 'search_default_done':1}</field>
             <field name="search_view_id" ref="view_tpt_request_for_quotation_seach_view"/>
             <field name="view_id" ref="view_tpt_request_for_quotation_tree"/>
         </record>
