@@ -20,8 +20,7 @@ class stock_picking(osv.osv):
         'po_date': fields.datetime('PO Date'),        
         'gate_in_pass_no':fields.many2one('tpt.gate.in.pass','Gate In Pass No'),
         'truck':fields.char('Truck No', size = 64),
-        'delivery_no':fields.char('Delivery Challan No', size = 64),
-        'invoice_no':fields.char('Invoice No & Date', size = 64),
+        'invoice_no':fields.char('DC/Invoice No', size = 64),
                 }
 
 #     def create(self, cr, user, vals, context=None):
@@ -226,9 +225,10 @@ class stock_picking_in(osv.osv):
         'po_date': fields.datetime('PO Date', readonly = True),   
         'gate_in_pass_no':fields.many2one('tpt.gate.in.pass','Gate In Pass No'),
         'truck':fields.char('Truck No', size = 64),
-        'delivery_no':fields.char('Delivery Challan No', size = 64),
-        'invoice_no':fields.char('Invoice No & Date', size = 64),
+        'invoice_no':fields.char('DC/Invoice No', size = 64),
                 }
+
+
     
     def onchange_purchase_id(self, cr, uid, ids,purchase_id=False, context=None):
         vals = {}
@@ -284,14 +284,67 @@ class stock_move(osv.osv):
         'action_taken':fields.selection([('direct','Direct Stock Update'),('move','Move to Consumption'),('need','Need Inspection')],'Action to be Taken'),
         'po_indent_id': fields.many2one('tpt.purchase.indent','PO Indent No'),
         'inspec': fields.boolean('Inspec'),  
-        'bin_location':fields.many2one('stock.location','Bin Location'),
+#         'bin_location':fields.many2one('stock.location','Bin Location'),
+        'bin_location':fields.text('Bin Location'),
         'si_no':fields.integer('SI.No',readonly = True),
                 }
+    def onchange_product_id(self, cr, uid, ids, prod_id=False, loc_id=False,
+                            loc_dest_id=False, partner_id=False):
+        """ On change of product id, if finds UoM, UoS, quantity and UoS quantity.
+        @param prod_id: Changed Product id
+        @param loc_id: Source location id
+        @param loc_dest_id: Destination location id
+        @param partner_id: Address id of partner
+        @return: Dictionary of values
+        """
+        if not prod_id:
+            return {}
+        user = self.pool.get('res.users').browse(cr, uid, uid)
+        lang = user and user.lang or False
+        if partner_id:
+            addr_rec = self.pool.get('res.partner').browse(cr, uid, partner_id)
+            if addr_rec:
+                lang = addr_rec and addr_rec.lang or False
+        ctx = {'lang': lang}
+
+        product = self.pool.get('product.product').browse(cr, uid, [prod_id], context=ctx)[0]
+        uos_id  = product.uos_id and product.uos_id.id or False
+        result = {
+            'name': product.partner_ref,
+            'product_uom': product.uom_id.id,
+            'product_uos': uos_id,
+            'product_qty': 1.00,
+            'product_uos_qty' : self.pool.get('stock.move').onchange_quantity(cr, uid, ids, prod_id, 1.00, product.uom_id.id, uos_id)['value']['product_uos_qty'],
+            'prodlot_id' : False,
+            'bin_location': product.bin_location,
+        }
+        if loc_id:
+            result['location_id'] = loc_id
+        if loc_dest_id:
+            result['location_dest_id'] = loc_dest_id
+        return {'value': result}
+    def write(self, cr, uid, ids, vals, context=None):
+        new_write = super(stock_move, self).write(cr, uid,ids, vals, context)
+        for line in self.browse(cr,uid,ids):
+            if line.po_indent_id.document_type == 'consumable':
+                if line.action_taken == 'direct' or line.action_taken == 'need':
+                    raise osv.except_osv(_('Warning!'),_('Document Type of Purchase Indent not allowed select action this'))
+            if line.po_indent_id.document_type != 'consumable':
+                if line.action_taken == 'move':
+                    raise osv.except_osv(_('Warning!'),_('Document Type of Purchase Indent not allowed select action this'))
+        return new_write
     
     def create(self, cr, uid, vals, context=None):
         if vals.get('picking_id',False):
             vals['si_no'] = len(self.search(cr, uid,[('picking_id', '=', vals['picking_id'])])) + 1
-        return super(stock_move, self).create(cr, uid, vals, context)
+        new_id = super(stock_move, self).create(cr, uid, vals, context)
+#         if po_indent_id and po_indent_id.document_type == 'consumable':
+#             if action_taken == 'direct' or action_taken == 'need':
+#                     raise osv.except_osv(_('Warning!'),_('Document Type of Purchase Indent not allowed select action this'))
+#         if po_indent_id and po_indent_id.document_type != 'consumable':
+#             if action_taken == 'move':
+#                     raise osv.except_osv(_('Warning!'),_('Document Type of Purchase Indent not allowed select action this'))
+        return new_id
 
     def unlink(self, cr, uid, ids, context=None):
         for line in self.browse(cr, uid, ids, context=context):
@@ -472,16 +525,22 @@ class account_invoice_line(osv.osv):
             amount_basic = (line.quantity * line.price_unit)-((line.quantity * line.price_unit)*line.disc/100)
             if line.p_f_type == '1':
                amount_p_f = amount_basic * (line.p_f/100)
-            else:
+            elif line.p_f_type == '2':
                 amount_p_f = line.p_f
+            else:
+                amount_p_f = line.p_f * line.quantity
             if line.ed_type == '1':
                amount_ed = (amount_basic + amount_p_f) * (line.ed/100)
-            else:
+            elif line.ed_type == '2':
                 amount_ed = line.ed
+            else:
+                amount_ed = line.ed * line.quantity
             if line.fright_type == '1':
                amount_fright = (amount_basic + amount_p_f + amount_ed) * (line.fright/100)
-            else:
+            elif line.fright_type == '2':
                 amount_fright = line.fright
+            else:
+                amount_fright = line.fright * line.quantity
             tax_amounts = [r.amount for r in line.invoice_line_tax_id]
             for tax in tax_amounts:
                 amount_total_tax += tax/100
@@ -493,11 +552,11 @@ class account_invoice_line(osv.osv):
         'gl_code_id': fields.many2one('account.account', 'GL Code'),
         'disc': fields.float('DISC'),
         'p_f': fields.float('P&F'),
-        'p_f_type':fields.selection([('1','%'),('2','Rs')],('P&F Type')),
+        'p_f_type':fields.selection([('1','%'),('2','Rs'),('3','Per Qty')],('P&F Type')),
         'ed': fields.float('ED'),
-        'ed_type':fields.selection([('1','%'),('2','Rs')],('ED Type')),
+        'ed_type':fields.selection([('1','%'),('2','Rs'),('3','Per Qty')],('ED Type')),
         'fright': fields.float('Freight'),
-        'fright_type':fields.selection([('1','%'),('2','Rs')],('Freight Type')),
+        'fright_type':fields.selection([('1','%'),('2','Rs'),('3','Per Qty')],('Freight Type')),
         'line_net': fields.function(line_net_line_supplier_invo, store = True, multi='deltas' ,string='Line Net'),
     }
     def onchange_gl_code_id(self, cr, uid, ids, gl_code_id=False, context=None):

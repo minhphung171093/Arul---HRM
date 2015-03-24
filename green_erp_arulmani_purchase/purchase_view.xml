@@ -45,7 +45,7 @@
 	            <form string="Purchase Indent" version="7.0">   
 	             <header>
 	            		<button name="bt_approve" states='draft' string="Confirm" type="object" class="oe_highlight" groups="green_erp_arulmani_purchase.group_vvti_purchase_admin"/>
-	          <!--          <button name="bt_cancel" states='draft,first_approve,done' string="Close" type="object" class="oe_highlight" /> -->
+	                    <button name="bt_cancel" states='draft, done' string="Cancel" type="object" class="oe_highlight" /> 
 	                    <field name="state" widget="statusbar" statusbar_visible="draft,cancel,done" statusbar_colors='{"draft":"blue","cancel":"blue"}'/>
 	            </header>    
 	            	<sheet>
@@ -60,7 +60,7 @@
 							<field name="section_id" readonly='1' domain="[('department_id','=',department_id)]" options="{'create': false, 'create_edit': false}" />
 							<field name="date_expect"/>
 							<field name="requisitioner" options="{'create': false, 'create_edit': false}" domain="[('department_id','=',department_id)]"  />
-							<field name="header_text" attrs="{'readonly': [('document_type', 'not in', ('service','consumable','capital'))]}"/>
+							<field name="header_text" attrs="{'readonly': [('document_type', 'not in', ('service','consumable','capital')),('state', '=', 'done')]}"/>
 						</group>
 						<group >
 							<field name="select_normal" invisible = '1' widget = "radio" attrs="{'invisible': [('intdent_cate', '!=', 'normal')]}" />
@@ -79,7 +79,7 @@
 										<field name="product_uom_qty" string = 'Indent Qty'/>
 										<field name="recom_vendor" />
 										<field name="pending_qty" invisible = '1'/>
-										<field name="mrs_qty" string = 'Reserved Qty'/>
+										<field name="mrs_qty" readonly = '1'/>
 										<field name="inspection_qty" invisible = '1'/> 
 										<field name="on_hand_qty"/>
 										<field name="uom_po_id" edit='false' options="{'create': false, 'create_edit': false}"/>
@@ -113,7 +113,7 @@
 			<field name="name">tpt.purchase.indent.line.tree</field>
 			<field name="model">tpt.purchase.product</field>
 			<field name="arch" type="xml">
-				<tree string="Indent Release - By Store" delete = 'false' create = 'false' >
+				<tree string="Indent Release - By Store" edit = 'false' delete = 'false' create = 'false' >
 						<field name="doc_type_relate"/> 
 						<field name="pur_product_id"/> 
 						<field name="product_id"/>
@@ -137,7 +137,7 @@
             <field name="name">tpt.purchase.indent.line.form</field>
             <field name="model">tpt.purchase.product</field>
             <field name="arch" type="xml">
-	            <form string="Indent Release - By Store" version="7.0" delete = 'false' create = 'false' >   
+	            <form string="Indent Release - By Store" version="7.0" edit = 'false' delete = 'false' create = 'false' >   
 	             <header>
 	            		<button name="bt_approve" states='draft,confirm' string="Store Approve" type="object" class="oe_highlight" />
 	                    <button name="%(action_reject_pur_line_form)d" states='draft,confirm' string="Store Reject" type="action" class="oe_highlight" /> 
@@ -175,10 +175,15 @@
 					<field name="product_id"/>
 					<filter string="Draft" name="draft" icon="terp-personal" domain="[('state','=','draft')]" context="{}"/>
         			<filter string="Confirmed" name="confirm" icon="terp-personal" domain="[('state','=','confirm')]" context="{}"/>
+        			<filter string="Closed" name="confirm" icon="terp-personal" domain="[('state','=','close')]" context="{}"/>
         			<filter string="Store Approved" name="+" icon="terp-personal" domain="[('state','=','+')]" context="{}"/>
         			<filter string="Store Rejected" name="x" icon="terp-personal" domain="[('state','=','x')]" context="{}"/>
         			<filter string="Store - HOD Approved" name="++" icon="terp-personal" domain="[('state','=','++')]" context="{}"/>
         			<filter string="Store - HOD Reject" name="xx" icon="terp-personal" domain="[('state','=','xx')]" context="{}"/>
+        			<filter string="RFQ Raised" name="rfq_raised" icon="terp-personal" domain="[('state','=','rfq_raised')]" context="{}"/>
+        			<filter string="PO Cancelled" name="cancel" icon="terp-personal" domain="[('state','=','cancel')]" context="{}"/>
+        			<filter string="Quotation Raised" name="quotation_raised" icon="terp-personal" domain="[('state','=','quotation_raised')]" context="{}"/>
+        			<filter string="PO Raised" name="po_raised" icon="terp-personal" domain="[('state','=','po_raised')]" context="{}"/>
         			<group expand="0" string="Group By...">
                         <filter string='Status' icon="terp-stock_symbol-selection" domain="[]" context="{'group_by' : 'state'}"/>
                     </group>				
@@ -214,7 +219,7 @@
 			<field name="name">tpt.purchase.indent.line.tree</field>
 			<field name="model">tpt.purchase.product</field>
 			<field name="arch" type="xml">
-				<tree string="Indent Release - By HOD" delete = 'false' create = 'false' >
+				<tree string="Indent Release - By HOD" edit = 'false' delete = 'false' create = 'false' >
 						<field name="doc_type_relate"/> 
 						<field name="pur_product_id"/> 
 						<field name="product_id"/>
@@ -238,7 +243,7 @@
             <field name="name">tpt.purchase.indent.line.form</field>
             <field name="model">tpt.purchase.product</field>
             <field name="arch" type="xml">
-	            <form string="Indent Release - By HOD" version="7.0" delete = 'false' create = 'false' >   
+	            <form string="Indent Release - By HOD" version="7.0" edit = 'false' delete = 'false' create = 'false' >   
 	             <header>
 	            		<button name="bt_approve" states='+' string="Store - HOD Approve" type="object" class="oe_highlight" />
 	                    <button name="%(action_reject_pur_line_form)d" states='+' string="Store - HOD Reject" type="action" class="oe_highlight" /> 
@@ -276,10 +281,15 @@
 					<field name="product_id"/>
 					<filter string="Draft" name="draft" icon="terp-personal" domain="[('state','=','draft')]" context="{}"/>
         			<filter string="Confirmed" name="confirm" icon="terp-personal" domain="[('state','=','confirm')]" context="{}"/>
+        			<filter string="Closed" name="confirm" icon="terp-personal" domain="[('state','=','close')]" context="{}"/>
         			<filter string="Store Approved" name="+" icon="terp-personal" domain="[('state','=','+')]" context="{}"/>
         			<filter string="Store Rejected" name="x" icon="terp-personal" domain="[('state','=','x')]" context="{}"/>
         			<filter string="Store - HOD Approved" name="++" icon="terp-personal" domain="[('state','=','++')]" context="{}"/>
         			<filter string="Store - HOD Reject" name="xx" icon="terp-personal" domain="[('state','=','xx')]" context="{}"/>
+        			<filter string="RFQ Raised" name="rfq_raised" icon="terp-personal" domain="[('state','=','rfq_raised')]" context="{}"/>
+        			<filter string="PO Cancelled" name="cancel" icon="terp-personal" domain="[('state','=','cancel')]" context="{}"/>
+        			<filter string="Quotation Raised" name="quotation_raised" icon="terp-personal" domain="[('state','=','quotation_raised')]" context="{}"/>
+        			<filter string="PO Raised" name="po_raised" icon="terp-personal" domain="[('state','=','po_raised')]" context="{}"/>
         			<group expand="0" string="Group By...">
                         <filter string='Status' icon="terp-stock_symbol-selection" domain="[]" context="{'group_by' : 'state'}"/>
                     </group>				
@@ -390,11 +400,15 @@
 					<field name="product_id"/>
 					<filter string="Draft" name="draft" icon="terp-personal" domain="[('state','=','draft')]" context="{}"/>
         			<filter string="Confirmed" name="confirm" icon="terp-personal" domain="[('state','=','confirm')]" context="{}"/>
+        			<filter string="Closed" name="confirm" icon="terp-personal" domain="[('state','=','close')]" context="{}"/>
         			<filter string="Store Approved" name="+" icon="terp-personal" domain="[('state','=','+')]" context="{}"/>
         			<filter string="Store Rejected" name="x" icon="terp-personal" domain="[('state','=','x')]" context="{}"/>
         			<filter string="Store - HOD Approved" name="++" icon="terp-personal" domain="[('state','=','++')]" context="{}"/>
         			<filter string="Store - HOD Reject" name="xx" icon="terp-personal" domain="[('state','=','xx')]" context="{}"/>
-        			<filter string="Closed" name="close" icon="terp-personal" domain="[('state','=','close')]" context="{}"/>
+        			<filter string="RFQ Raised" name="rfq_raised" icon="terp-personal" domain="[('state','=','rfq_raised')]" context="{}"/>
+        			<filter string="PO Cancelled" name="cancel" icon="terp-personal" domain="[('state','=','cancel')]" context="{}"/>
+        			<filter string="Quotation Raised" name="quotation_raised" icon="terp-personal" domain="[('state','=','quotation_raised')]" context="{}"/>
+        			<filter string="PO Raised" name="po_raised" icon="terp-personal" domain="[('state','=','po_raised')]" context="{}"/>
         			<separator />
         			<filter string="VV Level Based PR" name="base" icon="terp-personal" domain="[('doc_type_relate','=','base')]" context="{}"/>
         			<filter string="VV Capital PR" name="capital" icon="terp-personal" domain="[('doc_type_relate','=','capital')]" context="{}"/>
@@ -425,7 +439,7 @@
             <field name="res_model">tpt.purchase.product</field>
             <field name="view_type">form</field>
             <field name="view_mode">tree,form</field>
-            <field name="context">{'search_default_++':1}</field>
+            <field name="context">{'search_default_++':1, 'search_default_rfq_raised':1, 'search_default_cancel':1, 'search_default_quotation_raised':1, 'search_default_po_raised':1}</field>
             <field name="domain">[]</field>
             <field name="search_view_id" ref="view_tpt_pr_list_search_vew"/>
             <field name="view_id" ref="view_tpt_pr_list_tree"/>
@@ -627,6 +641,7 @@
             <field name="inherit_id" ref="stock.view_normal_procurement_locations_form"/>
             <field name="arch" type="xml">
             	<xpath expr="//group[@name='delay']" position="before">
+            		
 					<group name="MRP">
                         <field name="mrp_control" on_change="onchange_mrp_control(mrp_control)"/>
                         <field name="min_stock" attrs="{'readonly': [('mrp_control','=',False)]}"/>
@@ -726,12 +741,14 @@
                     </page>
 				</xpath>
 				
-				<!--<xpath expr="//field[@name='type']" position="attributes">
-					<attribute name='attrs'>{'invisible': [('cate_name','=','finish')]}</attribute>
-				</xpath>-->
-				
 				<xpath expr="//field[@name='uom_id']" position="before">
 					<field name="tpt_product_type" attrs="{'invisible': [('cate_name','!=','finish')]}"/>
+					<field name="tpt_mater_type" attrs="{'invisible': [('cate_name','!=','raw')]}"/>
+				</xpath>
+				
+				<xpath expr="//field[@name='default_code']" position="after">
+                    <field name="old_no"/>
+                    <field name="bin_location"/>
 				</xpath>
 				
 				<xpath expr="//page[@string='Procurements']" position="attributes">
@@ -772,6 +789,9 @@
 			                <field name="po_date"/>
 			                <field name="supplier_id" domain="[('supplier','=',1)]" options="{'create': false, 'create_edit': false}"/>
 							<field name="name"/>
+							<field name="truck_no"/>
+							<field name="invoice_no"/>
+							<field name="requestioner_id" options="{'create': false, 'create_edit': false}" />
 							<field name="gate_date_time"/>
 						</group>
 						<notebook>
@@ -779,9 +799,11 @@
 								<field name="gate_in_pass_line" nolabel='1'>
 									<tree editable='top'>
 										<field name="po_indent_no" context="{'search_po_indent_no_gate_in_pass':True, 'po_id':parent.po_id}" options="{'create': false, 'create_edit': false}"/>
-										<field name="product_id" on_change="onchange_product_id(product_id)" options="{'create': false, 'create_edit': false}"/>
+										<field name="product_id" context="{'search_rfq_product':True, 'po_indent_id':po_indent_id }" on_change="onchange_product_id(product_id)" options="{'create': false, 'create_edit': false}"/>
+										<field name="description" readonly='1' />
+										<field name="uom_po_id" readonly='1' options="{'create': false, 'create_edit': false}" />
 										<field name="product_qty"/>
-										<field name="uom_po_id"/>
+										
 									</tree>
 								</field>
 							</page>
@@ -1458,13 +1480,14 @@
 							<page string = "RFQ Line">
 							<field name="rfq_line" nolabel='1'>
 									<tree editable='bottom'>
-										<field name="po_indent_id" context="{'search_po_indent_line':True }"   on_change = "onchange_rfq_indent_id(po_indent_id)" options="{'create': false, 'create_edit': false}"/>
-										<field name="product_id" context="{'search_rfq_product':True, 'po_indent_id':po_indent_id }" on_change = "onchange_rfq_product_id(product_id, po_indent_id)" options="{'create': false, 'create_edit': false}"/>
-										<field name="description" />
-										<field name="item_text" />
-										<field name="recom_vendor" />
-										<field name="product_uom_qty" />
-										<field name="uom_id" options="{'create': false, 'create_edit': false}"/>
+										<field name="po_indent_id" attrs="{'readonly': [('state','not in',('draft'))]}" context="{'search_po_indent_line':True }"   on_change = "onchange_rfq_indent_id(po_indent_id)" options="{'create': false, 'create_edit': false}"/>
+										<field name="product_id" attrs="{'readonly': [('state','not in',('draft'))]}" context="{'search_rfq_product':True, 'po_indent_id':po_indent_id }" on_change = "onchange_rfq_product_id(product_id, po_indent_id)" options="{'create': false, 'create_edit': false}"/>
+										<field name="description" attrs="{'readonly': [('state','not in',('draft'))]}"/>
+										<field name="item_text" attrs="{'readonly': [('state','not in',('draft', 'done'))]}"/>
+										<field name="recom_vendor" attrs="{'readonly': [('state','not in',('draft'))]}"/>
+										<field name="product_uom_qty" attrs="{'readonly': [('state','not in',('draft'))]}"/>
+										<field name="uom_id" attrs="{'readonly': [('state','not in',('draft'))]}" options="{'create': false, 'create_edit': false}"/>
+										<field name="state" invisible = '1'/>
 									</tree>
 								</field>
 							</page>
@@ -1491,11 +1514,17 @@
 			<field name="model">tpt.request.for.quotation</field>
 			<field name="arch" type="xml">
 				<search string="Request For Quotation">
-					<field name="rfq_date"/>
-        			<filter string="RFQ Available" name="rfq_available" icon="terp-personal" domain="[('raised_ok','=',False)]" context="{}"/>
-        			<filter string="RFQ Used" name="rfq_used" icon="terp-personal" domain="[('raised_ok','=',True)]" context="{}"/>
+					<field name="name"/>
+        			<filter string="RFQ Available" name="rfq_available" icon="terp-personal" domain="[('raised_ok','=',False), ('state','!=','cancel')]" context="{}"/>
+        			<filter string="RFQ Used" name="rfq_used" icon="terp-personal" domain="[('raised_ok','=',True), ('state','!=','cancel')]" context="{}"/>
+        			<separator />
+        			<filter string="Draft" name="draft" icon="terp-personal" domain="[('state','=','draft')]" context="{}"/>
+        			<filter string="Cancel" name="cancel" icon="terp-personal" domain="[('state','=','cancel')]" context="{}"/>
+        			<filter string="Confirm" name="done" icon="terp-personal" domain="[('state','=','done')]" context="{}"/>
+        			<filter string="Closed" name="close" icon="terp-personal" domain="[('state','=','close')]" context="{}"/>
         			<group expand="0" string="Group By...">
         				<filter string="Available/Used RFQ" icon="terp-accessories-archiver" domain="[]" context="{'group_by':'raised_ok'}"/>
+        				<filter string="Status" icon="terp-accessories-archiver" domain="[]" context="{'group_by':'state'}"/>
                     </group>
 				</search>
 			</field>
@@ -1507,7 +1536,7 @@
             <field name="res_model">tpt.request.for.quotation</field>
             <field name="view_type">form</field>
             <field name="view_mode">tree,form</field>
-            <field name="context">{'search_default_rfq_available':1}</field>
+            <field name="context">{'search_default_rfq_available':1, 'search_default_draft':1, 'search_default_done':1}</field>
             <field name="search_view_id" ref="view_tpt_request_for_quotation_seach_view"/>
             <field name="view_id" ref="view_tpt_request_for_quotation_tree"/>
         </record>
@@ -1590,7 +1619,7 @@
 							<page string = "Materials">
 								<field name="material_request_line" nolabel='1'>
 									<tree editable='bottom'>
-										<field name="product_id" widget = "selection"  options="{'create': false, 'create_edit': false}"/>
+										<field name="product_id" widget = "selection" on_change="onchange_product_id(product_id)" options="{'create': false, 'create_edit': false}"/>
 										<field name="dec_material"/>
 										<field name="product_uom_qty" />
 										<field name="on_hand_qty" />
