@@ -277,7 +277,7 @@ class tpt_import_material(osv.osv):
                                 uom_name = 'GRM'
                                 uom_cate = weight_id
                             if uom.strip()=='MT':
-                                uom_name = 'MT'
+                                uom_name = 'Tonne'
                                 uom_cate = weight_id
                             if uom.strip()=='M2':
                                 uom_name = 'M2'
