@@ -1021,6 +1021,13 @@ class arul_hr_payroll_executions(osv.osv):
             #SINCE NEW EMPLOYEE CAN HAVE ONLY ATTENDANCE DETAILS
             #employee_ids = emp_obj.search(cr, uid, [('payroll_area_id','=',line.payroll_area_id.id),('id','in',monthly_shift_emp_ids),('id','in',employee_structure_emp_ids),('id','in',punch_in_out_emp_ids)])
             employee_ids = emp_obj.search(cr, uid, [('payroll_area_id','=',line.payroll_area_id.id),('id','in',employee_structure_emp_ids),('id','in',punch_in_out_emp_ids)])
+            employee_ids_no_emp_pay_struct = emp_obj.search(cr, uid, [('payroll_area_id','=',line.payroll_area_id.id),('id','not in',employee_structure_emp_ids),('id','in',punch_in_out_emp_ids)])
+            if employee_ids_no_emp_pay_struct:  
+                emp_code='' 
+                for p in emp_obj.browse(cr,uid,employee_ids_no_emp_pay_struct): 
+                    emp_code = emp_code +'\n'+ p.employee_id                               
+                raise osv.except_osv(_('No Pay Structure Defined for the following Employees'),_(emp_code))
+            
             for p in emp_obj.browse(cr,uid,employee_ids):
                 payroll_executions_details_ids = executions_details_obj.search(cr, uid, [('payroll_executions_id', '=', line.id), ('employee_id', '=', p.id)], context=context)
                 
