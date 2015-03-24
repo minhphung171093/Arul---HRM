@@ -403,9 +403,9 @@
 							<!--  TPT
 							<field name ="payroll_sub_area_id" options="{'create': false, 'create_edit': false}"/>
 							-->
-							<field name ="action_date" string = "Date of Order Issued"/>
-							<field name ="period_from"/>
 							<newline/>
+							<field name ="action_date" string = "Date of Order Issued"/>
+							<field name ="period_from"/>						
 							<field name ="date_from" string = 'Period From'/>
 							<field name ="date_to" string ='Period To'/>
 						</group>
