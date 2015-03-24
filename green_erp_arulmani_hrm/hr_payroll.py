@@ -751,8 +751,9 @@ class arul_hr_payroll_executions(osv.osv):
         total_days = 0
         total_shift_allowance = 0
         total_lop = 0
-	total_esi = 0
+        total_esi = 0
         total_week_off = 0
+        special_holidays = 0
         if kq:
             leave_detail_obj = self.pool.get('arul.hr.employee.leave.details')
             sql = '''
@@ -769,7 +770,7 @@ class arul_hr_payroll_executions(osv.osv):
             #total_lop += len(shift_ids)
 
 	    #Start:TPT To calculate Total no of ESI Leaves
-	    sql = '''
+            sql = '''
                 select id from arul_hr_employee_leave_details where EXTRACT(year FROM date_from) = %s and EXTRACT(month FROM date_from) = %s and employee_id = %s and leave_type_id in (select id from arul_hr_leave_types where code = 'ESI')
             '''%(year,int(month),emp)
             cr.execute(sql)
@@ -783,12 +784,12 @@ class arul_hr_payroll_executions(osv.osv):
             #total_esi += len(shift_ids) #TPT CHECK POINT FOR GEN_PAYROLL
 
 	    # Special Holiday Calculation
-	    sql2 = '''
+            sql2 = '''
                     select count(*) from arul_hr_holiday_special where EXTRACT(year FROM date) = %s and EXTRACT(month FROM date) = %s and is_local_holiday='f'
                 '''%(year, int(month))
             cr.execute(sql2)
             a =  cr.fetchone()
-	    special_holidays = a[0]
+            special_holidays = a[0]
 	    #END:TPT
             for monthly_shift_schedule_id in monthly_shift_schedule_obj.browse(cr,uid,[kq[0][0]],context=context):
                 if monthly_shift_schedule_id.day_1:
@@ -1015,8 +1016,11 @@ class arul_hr_payroll_executions(osv.osv):
                 select employee_id from arul_hr_punch_in_out_time where EXTRACT(year FROM work_date) = %s and EXTRACT(month FROM work_date) = %s
             '''%(line.year,line.month)
             cr.execute(sql)
-            punch_in_out_emp_ids = [row[0] for row in cr.fetchall()]                   
-            employee_ids = emp_obj.search(cr, uid, [('payroll_area_id','=',line.payroll_area_id.id),('id','in',monthly_shift_emp_ids),('id','in',employee_structure_emp_ids),('id','in',punch_in_out_emp_ids)])
+            punch_in_out_emp_ids = [row[0] for row in cr.fetchall()]          
+            #TPT COMMENTED BY BalamuruganPurushothaman ON 24/03/2015 - TO GENERATE THE PAYROLL FOR EMPLOYEES ARE NOT IN MONTHLY WORK SCHEDULE
+            #SINCE NEW EMPLOYEE CAN HAVE ONLY ATTENDANCE DETAILS
+            #employee_ids = emp_obj.search(cr, uid, [('payroll_area_id','=',line.payroll_area_id.id),('id','in',monthly_shift_emp_ids),('id','in',employee_structure_emp_ids),('id','in',punch_in_out_emp_ids)])
+            employee_ids = emp_obj.search(cr, uid, [('payroll_area_id','=',line.payroll_area_id.id),('id','in',employee_structure_emp_ids),('id','in',punch_in_out_emp_ids)])
             for p in emp_obj.browse(cr,uid,employee_ids):
                 payroll_executions_details_ids = executions_details_obj.search(cr, uid, [('payroll_executions_id', '=', line.id), ('employee_id', '=', p.id)], context=context)
                 
