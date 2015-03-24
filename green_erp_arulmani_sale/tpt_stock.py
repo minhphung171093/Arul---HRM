@@ -28,7 +28,8 @@ class stock_picking(osv.osv):
         'bag_detail':fields.char('Bag Details', size = 64),
         'tpt_log_line': fields.one2many('tpt.log','delivery_order_id', 'Logs'),
 #         'location_sour_id': fields.many2one('stock.location', 'Source Location'),
-        'street3':fields.char('Street3',size=128)
+        'street3':fields.char('Street3',size=128),
+        'order_type':fields.selection([('domestic','Domestic'),('export','Export')],'Order Type' ),
                 }
     
     _defaults = {
@@ -620,7 +621,7 @@ class stock_picking_out(osv.osv):
         'bag_detail':fields.char('Bag Details', size = 64),
         'tpt_log_line': fields.one2many('tpt.log','delivery_order_id', 'Logs'),
         #TPT - Added to Hide Print Packing List for Domestic
-        #'order_type':fields.selection([('domestic','Domestic'),('export','Export')],'Order Type'),
+        'order_type':fields.selection([('domestic','Domestic'),('export','Export')],'Order Type'),
                 }
     
     def action_process(self, cr, uid, ids, context=None):
