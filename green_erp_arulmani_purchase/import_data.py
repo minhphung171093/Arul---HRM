@@ -436,9 +436,9 @@ class tpt_import_inventory(osv.osv):
             try:
                 dem = 1
                 for row in range(2,sh.nrows):
-                    locat = sh.cell(row, 9).value or ''
+                    locat = sh.cell(row, 9).value.strip() or ''
                     qty = sh.cell(row, 10).value or 0
-                    mate = sh.cell(row, 0).value or False
+                    mate = sh.cell(row, 0).value.strip() or False
                     locat_id = False
                     if qty > 0:
                         if locat != '':
