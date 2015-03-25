@@ -348,7 +348,7 @@ class tpt_import_material(osv.osv):
                         ##############################################                         
                         dem += 1
                         pro_pro_obj.create(cr, uid, {
-                            'name': str(sh.cell(row, 1).value).strip() or False,
+                            'name': sh.cell(row, 1).value.strip() or False,
                             'categ_id': cate_id,
                             'purchase_ok': True,
                             'cate_name': cate_name,
