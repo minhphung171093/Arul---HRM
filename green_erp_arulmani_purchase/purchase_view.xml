@@ -55,9 +55,9 @@
 							<field name="date_indent" on_change="onchange_date_expect(date_indent)" />
 							<field name="document_type" on_change="onchange_document_type(document_type)" />
 							<field name="intdent_cate" />
-							<field name="department_id" readonly='1' options="{'create': false, 'create_edit': false}" />
+							<field name="department_id" options="{'create': false, 'create_edit': false}" />
 							<field name="create_uid" on_change="onchange_create_uid(create_uid)" options="{'create': false, 'create_edit': false}"  />
-							<field name="section_id" readonly='1' domain="[('department_id','=',department_id)]" options="{'create': false, 'create_edit': false}" />
+							<field name="section_id" domain="[('department_id','=',department_id)]" options="{'create': false, 'create_edit': false}" />
 							<field name="date_expect"/>
 							<field name="requisitioner" options="{'create': false, 'create_edit': false}" domain="[('department_id','=',department_id)]"  />
 							<field name="header_text" attrs="{'readonly': [('document_type', 'not in', ('service','consumable','capital')),('state', '=', 'done')]}"/>
@@ -1597,6 +1597,8 @@
 						<field name="date_request"/>
 						<field name="date_expec"/>
 						<field name="department_id"  />
+						<field name="section_id"  />
+						<field name="requisitioner"  />
 						<field name="create_uid" options="{'create': false, 'create_edit': false}" />
 						<field name="state" widget="statusbar" statusbar_visible="draft,done" statusbar_colors='{"draft":"blue"}'/>
 				</tree>
@@ -1617,6 +1619,8 @@
 							<field name="name"/>
 							<field name="date_request" on_change="onchange_date_expect(date_request)" />
 							<field name="department_id" options="{'create': false, 'create_edit': false}" />
+							<field name="section_id" domain="[('department_id','=',department_id)]" options="{'create': false, 'create_edit': false}" />
+							<field name="requisitioner" options="{'create': false, 'create_edit': false}" domain="[('department_id','=',department_id)]"  />
 							<field name="create_uid" options="{'create': false, 'create_edit': false}"  />
 							<field name="date_expec"/>
 						</group>
