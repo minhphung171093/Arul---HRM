@@ -63,8 +63,8 @@ class tpt_purchase_indent(osv.osv):
         'date_indent': fields.datetime.now,
         'name': '/',
         'intdent_cate':'normal',
-        'department_id': _get_department_id,
-        'section_id':_get_section_id,
+#         'department_id': _get_department_id,
+#         'section_id':_get_section_id,
 #         'create_uid': lambda self,cr,uid,c:uid,
 #         'document_type':'base',
     }
@@ -865,7 +865,7 @@ class tpt_purchase_quotation(osv.osv):
         'supplier_location_id': fields.many2one( 'res.country.state','Vendor Location' ,states={'cancel': [('readonly', True)], 'done':[('readonly', True)]}),
         'quotation_cate':fields.selection([
                                 ('single','Single Quotation'),
-                                ('multiple','Multiple Quotation'),('special','Special Quotation')],'Quotation Category', required = True),
+                                ('multiple','Multiple Quotation'),('special','Special Quotation')],'Quotation Category', required = True, readonly = True),
         'quotation_ref':fields.char('Quotation Reference',size = 1024,required=True),
 #         'tax_id': fields.many2one('account.tax', 'Taxes',required=True ,states={'cancel': [('readonly', True)], 'done':[('readonly', True)]}),
         'purchase_quotation_line':fields.one2many('tpt.purchase.quotation.line','purchase_quotation_id','Quotation Line' ,states={'cancel': [('readonly', True)], 'done':[('readonly', True)]}),
@@ -931,6 +931,7 @@ class tpt_purchase_quotation(osv.osv):
         'comparison_chart_id':fields.many2one('tpt.comparison.chart','Comparison Chart'),
         'payment_term_id': fields.related('supplier_id','property_supplier_payment_term',type='many2one',relation='account.payment.term', string='Payment Term'),
         'select':fields.boolean('Select'),
+#         'cate_char': fields.char('Cate Name', size = 1024),
     }
     _defaults = {
         'state': 'draft',
@@ -956,17 +957,15 @@ class tpt_purchase_quotation(osv.osv):
        ids = self.search(cr, user, args, context=context, limit=limit)
        return self.name_get(cr, user, ids, context=context)
 
-    def onchange_rfq_no_id(self, cr, uid, ids,rfq_no_id=False,product_id=False):
+    def onchange_rfq_no_id(self, cr, uid, ids,rfq_no_id=False):
         res = {'value':{
                         'purchase_quotation_line':[],
+                        'quotation_cate': False,
                       }
                }
         if rfq_no_id:
             rfq = self.pool.get('tpt.request.for.quotation').browse(cr, uid, rfq_no_id)
             rfq_no_line = []
-#             if product_id:
-#                 product = self.pool.get('product.product').browse(cr, uid, product_id)
-             
             for line in rfq.rfq_line:
                 rfq_no_line.append({
                             'po_indent_id': line.po_indent_id and line.po_indent_id.id or False,
@@ -974,6 +973,18 @@ class tpt_purchase_quotation(osv.osv):
                             'product_uom_qty':line.product_uom_qty or False,
                             'uom_id': line.uom_id and line.uom_id.id or False,
                             'price_unit':line.product_id and line.product_id.standard_price or False,
+                    })
+            if rfq.rfq_category == 'single':
+                res['value'].update({
+                    'quotation_cate': 'single',
+                    })
+            elif rfq.rfq_category == 'mutiple':
+                res['value'].update({
+                    'quotation_cate': 'mutiple',
+                    })
+            elif rfq.rfq_category == 'special':
+                res['value'].update({
+                    'quotation_cate': 'special',
                     })
         res['value'].update({
                     'purchase_quotation_line': rfq_no_line,
@@ -1008,6 +1019,21 @@ class tpt_purchase_quotation(osv.osv):
         if vals.get('name','/')=='/':
             vals['name'] = self.pool.get('ir.sequence').get(cr, uid, 'purchase.quotation') or '/'
         new_id = super(tpt_purchase_quotation, self).create(cr, uid, vals, context)
+        if 'rfq_no_id' in vals and vals['rfq_no_id']:
+            rfq = self.pool.get('tpt.request.for.quotation').browse(cr,uid,vals['rfq_no_id'])
+            for vendor in rfq.rfq_supplier:
+                sql = '''
+                    select id from tpt_purchase_quotation where rfq_no_id = %s and supplier_id  = %s
+                '''%(rfq.id, vendor.vendor_id.id)
+                cr.execute(sql)
+                rfquotation_ids = [r[0] for r in cr.fetchall()]
+                if rfquotation_ids:
+                    for rfquotation_id in rfquotation_ids:
+                        quotation_id = self.browse(cr,uid,rfquotation_id)
+                        sql = '''
+                            update tpt_rfq_supplier set quotation_no_id = %s where vendor_id = %s and rfq_id in (select id from tpt_request_for_quotation where id = %s)
+                        '''%(quotation_id.id, quotation_id.supplier_id.id, quotation_id.rfq_no_id.id)
+                        cr.execute(sql)
         
 #Hung them khi tao Quotation thi cap nhat lai trang thai cua PO indent
         quotation = self.browse(cr,uid,new_id)
@@ -2955,8 +2981,10 @@ class tpt_material_request(osv.osv):
         'name': fields.char('Material Request No', size = 1024,readonly = True,states={'done':[('readonly', True)]}),
         'date_request':fields.date('Material Request Date',required = True,states={'done':[('readonly', True)]}),
         'date_expec':fields.date('Expected Date',states={'done':[('readonly', True)]}),
-        'department_id':fields.many2one('hr.department','Department',readonly=True),
-        'create_uid':fields.many2one('res.users','Request Raised By', readonly=True),
+        'department_id':fields.many2one('hr.department','Department',required = True,  states={ 'done':[('readonly', True)]}),
+        'create_uid':fields.many2one('res.users','Request Raised By', states={'done':[('readonly', True)]}),
+        'section_id': fields.many2one('arul.hr.section','Section',ondelete='restrict', states={'done':[('readonly', True)]}),
+        'requisitioner':fields.many2one('hr.employee','Requisitioner', states={'done':[('readonly', True)]}),
         'material_request_line':fields.one2many('tpt.material.request.line','material_request_id','Vendor Group',states={'done':[('readonly', True)]}),
         'state':fields.selection([('draft', 'Draft'),('done', 'Approve')],'Status', readonly=True),
                 }
@@ -3206,31 +3234,21 @@ class tpt_material_issue(osv.osv):
         return {'value': vals}
 
     def bt_approve(self, cr, uid, ids, context=None):
-        stock_obj = self.pool.get('stock.picking')
+        move_obj = self.pool.get('stock.move')
         location_ids=self.pool.get('stock.location').search(cr, uid,[('name','=','Scrapped')])
-        location = self.pool.get('stock.location').browse(cr, uid, location_ids[0])
         for line in self.browse(cr, uid, ids):
-            move_line = []
             for p in line.material_issue_line:
-                
                 rs = {
+                      'name': '/',
                       'product_id':p.product_id and p.product_id.id or False,
                       'product_qty':p.product_isu_qty or False,
                       'product_uom':p.uom_po_id and p.uom_po_id.id or False,
-                      
+                      'location_id':line.warehouse and line.warehouse.id or False,
+                      'location_dest_id':location_ids[0],
                       
                       }
-                move_line.append((0,0,rs))
-            vals = {              'type':'internal',
-                                  'move_date':line.date_expec,
-                                  'location_id':line.warehouse and line.warehouse.id or False,
-                                  'location_dest_id':location[0],
-                                  'move_lines':move_line,
-                                  
-                                  
-                                  
-                                  }
-            picking_id = stock_obj.create(cr,uid,vals)
+                move_id = move_obj.create(cr,uid,rs)
+                move_obj.action_done(cr, uid, [move_id])
         return self.write(cr, uid, ids,{'state':'done'})
 
     def onchange_date_expect(self, cr, uid, ids,date_request=False, context=None):

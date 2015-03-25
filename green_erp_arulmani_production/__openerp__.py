@@ -32,6 +32,7 @@
         'security/ir.model.access.csv',
         'production_sequence.xml',
         'tpt_production_view.xml',
+        'menu_inherit_view.xml',
     ],
     'css' : [
     ],

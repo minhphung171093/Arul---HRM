@@ -37,9 +37,14 @@ class tpt_tio2_batch_split(osv.osv):
             schedule_date_day = schedule_date[8:10]
             schedule_date_month = schedule_date[5:7]
             schedule_date_year = schedule_date[:4]
+            prefix = ''
+            if line.product_id.name in ('TITANIUM DIOXIDE-RUTILE','M0501010008') or line.product_id.default_code in ('TITANIUM DIOXIDE-RUTILE','M0501010008'):
+                prefix = 'R'
+            if line.product_id.name in ('TITANIUM DIOXIDE-ANATASE','TiO2','M0501010001') or line.product_id.default_code in ('TITANIUM DIOXIDE-ANATASE','TiO2','M0501010001'):
+                prefix = 'A'
             for num in range(0,int(line.available)):
                 prodlot = self.pool.get('ir.sequence').get(cr, uid, 'batching.tio2')
-                prodlot_name = str(schedule_date_year) + str(schedule_date_month) + str(schedule_date_day) + str(prodlot)
+                prodlot_name = prefix + str(schedule_date_year) + str(schedule_date_month) + str(schedule_date_day) + str(prodlot)
                 prodlot_id = prodlot_obj.create(cr, uid, {'name': prodlot_name,
                                             'phy_batch_no': prodlot_name,
                                              'product_id': line.product_id.id,
@@ -832,6 +837,10 @@ class mrp_production(osv.osv):
             prodlot_ids = self.pool.get('stock.production.lot').search(cr, uid, [('name','=','temp_tio2')])
             if prodlot_ids:
                 data.update({'prodlot_id':prodlot_ids[0]})
+        if production.product_id.name in ('TITANIUM DIOXIDE-RUTILE','M0501010008') or production.product_id.default_code in ('TITANIUM DIOXIDE-RUTILE','M0501010008'):
+            prodlot_ids = self.pool.get('stock.production.lot').search(cr, uid, [('name','=','temp_tio2_rutile')])
+            if prodlot_ids:
+                data.update({'prodlot_id':prodlot_ids[0]})
         if production.product_id.name in ('FERROUS SULPHATE','FSH','M0501010002') or production.product_id.default_code in ('FERROUS SULPHATE','FSH','M0501010002'):
             prodlot_ids = self.pool.get('stock.production.lot').search(cr, uid, [('name','=','temp_fsh')])
             if prodlot_ids:
@@ -1021,6 +1030,16 @@ class stock_production_lot(osv.osv):
             if not prodlot_ids:
                 self.create(cr, 1, {'name': 'temp_tio2', 'phy_batch_no': 'temp_tio2', 'product_id': product_ids[0]})
         
+        product_ids = self.pool.get('product.product').search(cr, 1, ['|',('name','in',['TITANIUM DIOXIDE-RUTILE','M0501010008']),('default_code','in',['TITANIUM DIOXIDE-RUTILE','M0501010008'])])
+        if product_ids:
+            sql = '''
+                select id from stock_production_lot where product_id = %s and name='temp_tio2_rutile'
+            '''%(product_ids[0])
+            cr.execute(sql)
+            prodlot_ids = [r[0] for r in cr.fetchall()]
+            if not prodlot_ids:
+                self.create(cr, 1, {'name': 'temp_tio2_rutile', 'phy_batch_no': 'temp_tio2_rutile', 'product_id': product_ids[0]})
+                
         product_ids = self.pool.get('product.product').search(cr, 1, ['|',('name','in',['FERROUS SULPHATE','FSH','M0501010002']),('default_code','in',['FERROUS SULPHATE','FSH','M0501010002'])])
         if product_ids:
             for lot_name in ['AGRI','WET','DRIER','temp_fsh']:

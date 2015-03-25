@@ -29,7 +29,7 @@
 	            	<sheet>
 		            	<group>
 			                <group>    
-								<field name="product_id" options="{'create': false, 'create_edit': false}" domain="['|',('name','in',['TITANIUM DIOXIDE-ANATASE','TiO2','M0501010001']),('default_code','in',['TITANIUM DIOXIDE-ANATASE','TiO2','M0501010001'])]"/>
+								<field name="product_id" options="{'create': false, 'create_edit': false}" domain="['|',('name','in',['TITANIUM DIOXIDE-ANATASE','TiO2','M0501010001','TITANIUM DIOXIDE-RUTILE','M0501010008']),('default_code','in',['TITANIUM DIOXIDE-ANATASE','TiO2','M0501010001','TITANIUM DIOXIDE-RUTILE','M0501010008'])]"/>
 								<field name="mrp_id" context="{'search_mrp_tio2_batch': True, 'mrp_id': mrp_id, 'product_id': product_id}" on_change="onchange_mrp_id(mrp_id)" domain="[('product_id','=',product_id),('state','=','done')]" options="{'create': false, 'create_edit': false}"/>
 								<field name="stating_batch_no"/>
 							</group>
@@ -205,7 +205,8 @@
 		
 		<menuitem action="green_erp_arulmani_crm.vsis_action_crm_application"
             id="menu_vsis_action_crm_application_production"
-            parent="mrp.menu_mrp_manufacturing" sequence="17"/>
+            parent="mrp.menu_mrp_manufacturing" sequence="17"
+            groups="green_erp_arulmani_production.group_vvti_production_admin"/>
         
          <record id="mrp_bom_tree_view_inherit" model="ir.ui.view">
             <field name="name">mrp.bom.tree.inherit</field>

@@ -419,6 +419,8 @@ class stock_picking(osv.osv):
                     for p in line.move_lines:
                         amount_cer = p.purchase_line_id.price_unit * p.product_qty
                         credit += amount_cer - (amount_cer*p.purchase_line_id.discount)/100
+                        if not p.product_id.purchase_acc_id:
+                            raise osv.except_osv(_('Warning!'),_('You need to define Purchase GL Account for this product'))
                         journal_line.append((0,0,{
                             'name':line.name, 
                             'account_id': p.product_id.purchase_acc_id and p.product_id.purchase_acc_id.id,
