@@ -650,6 +650,7 @@
 						<field name="po_text"/>
 	                </group>
 				</xpath>
+				<xpath expr="//group[@string='Stock and Expected Variations']" position="replace"/>
             </field>
 		</record>
 		
@@ -753,6 +754,10 @@
 				
 				<xpath expr="//page[@string='Procurements']" position="attributes">
 					<attribute name='groups'>green_erp_arulmani_purchase.group_vvti_purchase_user,green_erp_arulmani_purchase.group_vvti_purchase_gm</attribute>
+				</xpath>
+				
+				<xpath expr="//field[@name='list_price']" position="attributes">
+					<attribute name='attrs'>{'invisible': [('purchase_ok','=',True),('sale_ok','=',False)]}</attribute>
 				</xpath>
 				
 			</field>
@@ -1745,6 +1750,41 @@
         </record>
         
         <menuitem name = 'GRN' action="stock.action_picking_tree4" id="stock.menu_action_picking_tree4" parent="stock.menu_stock_warehouse_mgmt" sequence="1"/>
+        
+        <record model="ir.ui.view" id="product_kanban_stock_inher_view">
+            <field name="name">Product Kanban Stock</field>
+            <field name="model">product.product</field>
+            <field name="inherit_id" ref="stock.product_kanban_stock_view"/>
+            <field name="arch" type="xml">
+                <ul position="replace"/>
+            </field>
+        </record>
+        
+        <record id="product_product_tree_inher_view" model="ir.ui.view">
+            <field name="name">product.product.tree</field>
+            <field name="model">product.product</field>
+            <field eval="7" name="priority"/>
+            <field name="inherit_id" ref="product.product_product_tree_view"/>
+            <field name="arch" type="xml">
+                <tree colors="red:virtual_available&lt;0;blue:virtual_available&gt;=0 and state in ('draft', 'end', 'obsolete');black:virtual_available&gt;=0 and state not in ('draft', 'end', 'obsolete')" string="Products" position="replace">
+		            <tree colors="red:virtual_available&lt;0;blue:virtual_available&gt;=0 and state in ('draft', 'end', 'obsolete');black:virtual_available&gt;=0 and state not in ('draft', 'end', 'obsolete')" string="Products">
+		                <field name="default_code"/>
+		                <field name="name"/>
+		                <field name="categ_id" invisible="1"/>
+		                <field name="type" invisible="1"/>
+		                <field name="variants" groups="product.group_product_variant"/>
+		                <field name="uom_id" string="Unit of Measure" groups="product.group_uom"/>
+		                <field name="qty_available" invisible="1"/>
+		                <field name="virtual_available" invisible="1"/>
+		                <field name="lst_price"/>
+		                <field name="price" invisible="not context.get('pricelist',False)"/>
+		                <field name="standard_price" invisible="1"/>
+		                <field name="state"/>
+		                <field name="company_id" groups="base.group_multi_company" invisible="1"/>
+		            </tree>
+                </tree>
+            </field>
+        </record>
         
     </data>
 </openerp>

@@ -1,1 +1,2 @@
 id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+access_vvti_production_16,tpt.product.avg.cost,green_erp_arulmani_accounting.model_tpt_product_avg_cost,base.group_user,True,True,True,True
