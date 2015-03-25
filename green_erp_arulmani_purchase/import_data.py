@@ -228,7 +228,7 @@ class tpt_import_material(osv.osv):
                         cate = sh.cell(row, 4).value or False
                         cate_name = False
                         if cate:
-                            if cate.strip() == 'Raw Materials':
+                            if cate.strip() in ['Raw Materials','Raw Material']:
                                 cate_name = 'raw'
                             if cate.strip() == 'Finished Product':
                                 cate_name = 'finish'
