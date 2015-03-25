@@ -1460,7 +1460,7 @@ class purchase_order(osv.osv):
             result[line.order_id.id] = True
         return result.keys()
     _columns = {
-        'po_document_type':fields.selection([('asset','VV Asset PO'),('standard','VV Standard PO'),('local','VV Local PO'),('return','VV Return PO'),('service','VV Service PO'),('out','VV Out Service PO')],'PO Document Type', required = True, track_visibility='onchange'),
+        'po_document_type':fields.selection([('raw','VV Raw material PO'),('asset','VV Asset PO'),('standard','VV Standard PO'),('local','VV Local PO'),('return','VV Return PO'),('service','VV Service PO'),('out','VV Out Service PO')],'PO Document Type', required = True, track_visibility='onchange'),
         'quotation_no': fields.many2one('tpt.purchase.quotation', 'Quotation No', required = True, track_visibility='onchange'),
         'po_indent_no' : fields.many2one('tpt.purchase.indent', 'PO Indent No', required = True, track_visibility='onchange'),
         'partner_ref': fields.char('Supplier Reference', states={'confirmed':[('readonly',True)], 'approved':[('readonly',True)],'done':[('readonly',True)]}, size=64,
@@ -1528,14 +1528,16 @@ class purchase_order(osv.osv):
                                     ('cancel', 'Cancelled'),
                                    ], 'Status', required=True, readonly=True,
                                   ),
+        'check_amendement':fields.boolean("Amendemented",readonly=True)
         }
     
     _default = {
         'name':'/',
+        'check_amendement':False,
                }
     def action_amendement(self, cr, uid, ids, context=None):
         for purchase in self.browse(cr,uid,ids):
-            self.write(cr, uid, ids,{'state':'amendement'}) 
+            self.write(cr, uid, ids,{'state':'amendement','check_amendement':True}) 
             order_obj = self.pool.get('purchase.order.line')
             sql = '''
                 select id from purchase_order_line where order_id = %s
@@ -1727,6 +1729,10 @@ class purchase_order(osv.osv):
             sequence = self.pool.get('ir.sequence').get(cr, uid, 'purchase.order.out.service')
             sql = '''update purchase_order set name='%s' where id =%s'''%(sequence+'/'+fiscalyear['code']or '/',new_id)
             cr.execute(sql)
+        if (new.po_document_type=='raw'):
+            sequence = self.pool.get('ir.sequence').get(cr, uid, 'purchase.order.raw.material')
+            sql = '''update purchase_order set name='%s' where id =%s'''%(sequence+'/'+fiscalyear['code']or '/',new_id)
+            cr.execute(sql)
         #Hung sua khi tao PO se cap nhat lai trang thai cua PO indent la po_raised
 #         self.pool.get('tpt.purchase.indent').write(cr, uid, [new.po_indent_no.id],{'state':'done'})
         if new.quotation_no and new.po_indent_no:
@@ -1778,6 +1784,24 @@ class purchase_order(osv.osv):
             if new.quotation_no and new.quotation_no.quotation_cate:
                 if (new.amount_total > 5000):
                     raise osv.except_osv(_('Warning!'),_('Can not process because Total > 5000 for VV Local PO'))
+        if new.po_indent_no.document_type == 'local':
+            if new.po_document_type != 'local':
+                raise osv.except_osv(_('Warning!'),_('Indent not allowed create with Document Type this'))
+        if new.po_indent_no.document_type == 'capital':
+            if new.po_document_type != 'asset':
+                raise osv.except_osv(_('Warning!'),_('Indent not allowed create with Document Type this'))
+        if new.po_indent_no.document_type == 'raw':
+            if new.po_document_type != 'raw':
+                raise osv.except_osv(_('Warning!'),_('Indent not allowed create with Document Type this'))
+        if new.po_indent_no.document_type == 'service':
+            if new.po_document_type != 'service':
+                raise osv.except_osv(_('Warning!'),_('Indent not allowed create with Document Type this'))
+        if new.po_indent_no.document_type == 'outside':
+            if new.po_document_type != 'out':
+                raise osv.except_osv(_('Warning!'),_('Indent not allowed create with Document Type this'))
+        if new.po_indent_no.document_type in ('maintanance','spare','normal','base','consumable'):
+            if new.po_document_type != 'standard':
+                raise osv.except_osv(_('Warning!'),_('Indent not allowed create with Document Type this'))
         for line in new.order_line:        
             if new.quotation_no and new.po_indent_no:
                 sql = '''
@@ -1803,6 +1827,7 @@ class purchase_order(osv.osv):
                         quantity = cr.dictfetchone()
                         if (quantity['quotation_product_qty']==1):
                             raise osv.except_osv(_('Warning!'),_('You are input %s quantity in Purchase Order but quantity in Quotation do not enough for this Purchase Indent and Product .' %(purchase_line['po_product_qty'])))        
+            
         return new_id
     
     
@@ -1908,10 +1933,30 @@ class purchase_order(osv.osv):
                     quantity = cr.dictfetchone()
                     if (quantity['indent_product_qty']==1):
                         raise osv.except_osv(_('Warning!'),_('You are input %s quantity in Purchase Order but quantity in Purchase Indent do not enough for this Product .' %(purchase_line['po_product_qty'])))        
-            
-            
+            if new.po_indent_no.document_type == 'local':
+                if new.po_document_type != 'local':
+                    raise osv.except_osv(_('Warning!'),_('Indent not allowed create with Document Type this'))
+            if new.po_indent_no.document_type == 'capital':
+                if new.po_document_type != 'asset':
+                    raise osv.except_osv(_('Warning!'),_('Indent not allowed create with Document Type this'))
+            if new.po_indent_no.document_type == 'raw':
+                if new.po_document_type != 'raw':
+                    raise osv.except_osv(_('Warning!'),_('Indent not allowed create with Document Type this'))
+            if new.po_indent_no.document_type == 'service':
+                if new.po_document_type != 'service':
+                    raise osv.except_osv(_('Warning!'),_('Indent not allowed create with Document Type this'))
+            if new.po_indent_no.document_type == 'outside':
+                if new.po_document_type != 'out':
+                    raise osv.except_osv(_('Warning!'),_('Indent not allowed create with Document Type this'))
+            if new.po_indent_no.document_type in ('maintanance','spare','normal','base','consumable'):
+                if new.po_document_type != 'standard':
+                    raise osv.except_osv(_('Warning!'),_('Indent not allowed create with Document Type this'))            
+
+
             
             if new.po_document_type == 'local':
+#                 if new.po_indent_no.document_type != 'local':
+#                     raise osv.except_osv(_('Warning!'),_('Indent not allowed create with Document Type this'))
                 if new.quotation_no and new.quotation_no.quotation_cate:
                     if (new.amount_total > 5000):
                         raise osv.except_osv(_('Warning!'),_('Can not process because Total > 5000 for VV Local PO'))
@@ -2903,12 +2948,15 @@ res_partner()
 
 class tpt_material_request(osv.osv):
     _name = "tpt.material.request"
+    def _get_department_id(self,cr,uid,context=None):
+        user = self.pool.get('res.users').browse(cr,uid,uid)
+        return user.employee_id and user.employee_id.department_id and user.employee_id.department_id.id or False
     _columns = {
         'name': fields.char('Material Request No', size = 1024,readonly = True,states={'done':[('readonly', True)]}),
         'date_request':fields.date('Material Request Date',required = True,states={'done':[('readonly', True)]}),
         'date_expec':fields.date('Expected Date',states={'done':[('readonly', True)]}),
-        'department_id':fields.many2one('hr.department','Department',required = True,  states={ 'done':[('readonly', True)]}),
-        'create_uid':fields.many2one('res.users','Request Raised By', states={'done':[('readonly', True)]}),
+        'department_id':fields.many2one('hr.department','Department',readonly=True),
+        'create_uid':fields.many2one('res.users','Request Raised By', readonly=True),
         'material_request_line':fields.one2many('tpt.material.request.line','material_request_id','Vendor Group',states={'done':[('readonly', True)]}),
         'state':fields.selection([('draft', 'Draft'),('done', 'Approve')],'Status', readonly=True),
                 }
@@ -2916,8 +2964,13 @@ class tpt_material_request(osv.osv):
         'state':'draft',      
         'name': '/',
         'date_request': fields.datetime.now,
+        'department_id': _get_department_id,
     }
+    
+    
     def create(self, cr, uid, vals, context=None):
+        user = self.pool.get('res.users').browse(cr,uid,uid)
+        vals['department_id'] = user.employee_id and user.employee_id.department_id and user.employee_id.department_id.id or False
         if vals.get('name','/')=='/':
             sql = '''
                 select code from account_fiscalyear where '%s' between date_start and date_stop
@@ -2959,6 +3012,14 @@ class tpt_material_request(osv.osv):
             if (order_line['product_qty'] > onhand_qty):
                 raise osv.except_osv(_('Warning!'),_('You are confirm %s but only %s available for this product in stock.' %(order_line['product_qty'], onhand_qty)))
         return new_id
+
+    def onchange_create_uid(self, cr, uid, ids,create_uid=False, context=None):
+        vals = {}
+        user = self.pool.get('res.users').browse(cr,uid,uid)
+        vals = {
+                'department_id': user.employee_id and user.employee_id.department_id and user.employee_id.department_id.id,
+                }
+        return {'value': vals}
      
     def write(self, cr, uid, ids, vals, context=None):
 #         if vals.get('name','/')=='/':
@@ -3095,7 +3156,7 @@ class tpt_material_issue(osv.osv):
         'name': fields.many2one('tpt.material.request','Material Issue No',required = True,states={'done':[('readonly', True)]}),
         'date_request':fields.date('Material Request Date',states={'done':[('readonly', True)]}),
         'date_expec':fields.date('Material Issue Date',states={'done':[('readonly', True)]}),
-        'department_id':fields.many2one('hr.department','Department',required = True,  states={ 'done':[('readonly', True)]}),
+        'department_id':fields.many2one('hr.department','Department',readonly=True),
         'material_issue_line':fields.one2many('tpt.material.issue.line','material_issue_id','Vendor Group',states={'done':[('readonly', True)]}),
         'state':fields.selection([('draft', 'Draft'),('done', 'Approve')],'Status', readonly=True),
                 }
@@ -3145,9 +3206,32 @@ class tpt_material_issue(osv.osv):
         return {'value': vals}
 
     def bt_approve(self, cr, uid, ids, context=None):
+        stock_obj = self.pool.get('stock.picking')
+        location_ids=self.pool.get('stock.location').search(cr, uid,[('name','=','Scrapped')])
+        location = self.pool.get('stock.location').browse(cr, uid, location_ids[0])
         for line in self.browse(cr, uid, ids):
-            self.write(cr, uid, ids,{'state':'done'})
-        return True   
+            move_line = []
+            for p in line.material_issue_line:
+                
+                rs = {
+                      'product_id':p.product_id and p.product_id.id or False,
+                      'product_qty':p.product_isu_qty or False,
+                      'product_uom':p.uom_po_id and p.uom_po_id.id or False,
+                      
+                      
+                      }
+                move_line.append((0,0,rs))
+            vals = {              'type':'internal',
+                                  'move_date':line.date_expec,
+                                  'location_id':line.warehouse and line.warehouse.id or False,
+                                  'location_dest_id':location[0],
+                                  'move_lines':move_line,
+                                  
+                                  
+                                  
+                                  }
+            picking_id = stock_obj.create(cr,uid,vals)
+        return self.write(cr, uid, ids,{'state':'done'})
 
     def onchange_date_expect(self, cr, uid, ids,date_request=False, context=None):
         vals = {}

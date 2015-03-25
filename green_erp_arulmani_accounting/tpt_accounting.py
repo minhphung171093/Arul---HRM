@@ -1859,7 +1859,26 @@ class tpt_material_issue(osv.osv):
         journal_obj = self.pool.get('account.journal')
         avg_cost_obj = self.pool.get('tpt.product.avg.cost')
         journal_line = []
+        
+        move_obj = self.pool.get('stock.move')
+        location_ids=self.pool.get('stock.location').search(cr, uid,[('name','=','Scrapped')])
+        
         for line in self.browse(cr, uid, ids):
+            
+            for p in line.material_issue_line:
+                
+                rs = {
+                      'name': '/',
+                      'product_id':p.product_id and p.product_id.id or False,
+                      'product_qty':p.product_isu_qty or False,
+                      'product_uom':p.uom_po_id and p.uom_po_id.id or False,
+                      'location_id':line.warehouse and line.warehouse.id or False,
+                      'location_dest_id':location_ids[0],
+                      
+                      }
+                move_id = move_obj.create(cr,uid,rs)
+                move_obj.action_done(cr, uid, [move_id])
+            
             if not line.warehouse.gl_pos_verification_id:
                     raise osv.except_osv(_('Warning!'),_('Account Warehouse is not null, please configure it in Warehouse Location master !'))
             for mater in line.material_issue_line:

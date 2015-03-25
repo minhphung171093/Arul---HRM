@@ -240,6 +240,22 @@
             <field name="number_next_actual">000001</field>
             <field name="implementation">no_gap</field>
         </record>
+        
+        
+ <!-- Purchase Order VV Raw material PO -->
+        <record id="sequence_purchase_order_raw_material_8" model="ir.sequence.type">
+            <field name="name">VV Raw material PO</field>
+            <field name="code">purchase.order.raw.material</field>
+        </record>
+        
+        <record id="sequence_purchase_order_raw_material_item" model="ir.sequence">
+            <field name="name">VV Raw material PO</field>
+            <field name="code">purchase.order.raw.material</field>
+            <field name="prefix">43</field>
+            <field name="padding">6</field>
+            <field name="number_next_actual">000001</field>
+            <field name="implementation">no_gap</field>
+        </record>        
          
 
     	<!-- Gate in Pass -->

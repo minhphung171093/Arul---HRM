@@ -10,7 +10,8 @@ WARNING_TYPES = [('warning','Warning'),('info','Information'),('error','Error')]
 class tick_purchase_chart(osv.osv_memory):
     _name = "tick.purchase.chart"
     _columns = {    
-                'po_document_type':fields.selection([('asset','VV Asset PO'),
+                'po_document_type':fields.selection([('raw','VV Raw material PO'),
+                                                     ('asset','VV Asset PO'),
                                                      ('standard','VV Standard PO'),
                                                      ('local','VV Local PO'),
                                                      ('return','VV Return PO'),
@@ -28,7 +29,26 @@ class tick_purchase_chart(osv.osv_memory):
         
         tick = self.browse(cr, uid, ids[0])
         new_po_ids = []
+
         for line in chart.purchase_quotation_line:
+            if line.po_indent_id.document_type == 'local':
+                if tick.po_document_type != 'local':
+                    raise osv.except_osv(_('Warning!'),_('Indent not allowed create with Document Type this'))
+            if line.po_indent_id.document_type == 'capital':
+                if tick.po_document_type != 'asset':
+                    raise osv.except_osv(_('Warning!'),_('Indent not allowed create with Document Type this'))
+            if line.po_indent_id.document_type == 'raw':
+                if tick.po_document_type != 'raw':
+                    raise osv.except_osv(_('Warning!'),_('Indent not allowed create with Document Type this'))
+            if line.po_indent_id.document_type == 'service':
+                if tick.po_document_type != 'service':
+                    raise osv.except_osv(_('Warning!'),_('Indent not allowed create with Document Type this'))
+            if line.po_indent_id.document_type == 'outside':
+                if tick.po_document_type != 'out':
+                    raise osv.except_osv(_('Warning!'),_('Indent not allowed create with Document Type this'))
+            if line.po_indent_id.document_type in ('maintanance','spare','normal','base','consumable'):
+                if tick.po_document_type != 'standard':
+                    raise osv.except_osv(_('Warning!'),_('Indent not allowed create with Document Type this'))            
             line_vals = purchase_order_obj.onchange_po_indent_no(cr, uid, [],chart.id,line.po_indent_id.id)['value']['order_line']
             purchase_line = [(0,0,{
 #                                         'po_indent_no':line.po_indent_id.id,
