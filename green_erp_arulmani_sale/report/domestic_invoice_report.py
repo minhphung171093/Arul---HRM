@@ -39,6 +39,17 @@ class Parser(report_sxw.rml_parse):
             'get_excise_duty': self.get_excise_duty, 
             'get_excise_duty_amt': self.get_excise_duty_amt,
             'get_subtotal': self.get_subtotal,
+            'get_range_label':self.get_range_label,
+            'get_loc':self.get_loc,
+            'get_comm':self.get_comm,
+            'get_ce':self.get_ce,
+            'get_ecc':self.get_ecc,
+            'get_pan':self.get_pan,
+            'get_cst':self.get_cst,
+            'get_tin':self.get_tin,
+            'c':self.c,
+            'get_app':self.get_app,
+            
         })
     
     def get_date(self, date=False):
@@ -185,4 +196,44 @@ class Parser(report_sxw.rml_parse):
             cst = round(total * sale_tax_id / 100,2)
             total_amount += round(total + cst, 2)
         return round(total_amount,0)
-    
+    def get_range_label(self,invoice):
+        if invoice.cons_loca:
+            return "Range"
+    def get_loc(self,invoice):
+        if invoice.cons_loca:
+            return "Location"
+    def get_comm(self,invoice):
+        if invoice.cons_loca:
+            return "Commissionerate"
+    def get_ce(self,invoice):
+        if invoice.cons_loca:
+            return "C.E RC Number"
+    def get_ecc(self,invoice):
+        if invoice.cons_loca:
+            return "E.C.C Number"
+    def get_pan(self,invoice):
+        if invoice.cons_loca:
+            return "PAN Number"
+    def get_cst(self,invoice):
+        if invoice.cons_loca:
+            return "CST Number"
+    def get_tin(self,invoice):
+        if invoice.cons_loca:
+            return "TIN Number"
+    def c(self,invoice):
+        if invoice.cons_loca:   
+            return ":"
+    def get_app(self, obj):       
+        if obj:
+            app = ''
+            sql = '''
+            SELECT id FROM crm_application WHERE code='OPATI TM R001'
+            '''
+            self.cr.execute(sql)            
+            pl_date=self.cr.fetchone()
+            a = pl_date[0]
+            
+            if a:
+                #raise osv.except_osv(_('Warning!%s'),_(a))
+                if a==obj.id:                                                               
+                    return  'OPATIN' + u"\u2122" +' R001'
