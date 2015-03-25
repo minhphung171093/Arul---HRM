@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<openerp>
+    <data>
+        <record model="ir.ui.menu" id="base.menu_mrp_root">
+	    	<field name="groups_id" eval="[(4, ref('green_erp_arulmani_crm.group_qc_user'))]"/>
+		</record>
+        
+    </data>
+</openerp>

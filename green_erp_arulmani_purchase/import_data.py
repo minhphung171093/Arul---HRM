@@ -228,7 +228,7 @@ class tpt_import_material(osv.osv):
                         cate = sh.cell(row, 4).value or False
                         cate_name = False
                         if cate:
-                            if cate.strip() == 'Raw Materials':
+                            if cate.strip() in ['Raw Materials','Raw Material']:
                                 cate_name = 'raw'
                             if cate.strip() == 'Finished Product':
                                 cate_name = 'finish'
@@ -344,25 +344,24 @@ class tpt_import_material(osv.osv):
                         reod = sh.cell(row, 6).value or 0
                         if max > 0:
                             mrp = True
-                        
                             
                         ##############################################                         
                         dem += 1
                         pro_pro_obj.create(cr, uid, {
-                            'name': sh.cell(row, 1).value or False,
+                            'name': sh.cell(row, 1).value.strip() or False,
                             'categ_id': cate_id,
                             'purchase_ok': True,
                             'cate_name': cate_name,
-                            'default_code': sh.cell(row, 0).value or False,
+                            'default_code': sh.cell(row, 0).value.strip() or False,
                             'uom_id': uom_id,
                             'uom_po_id': uom_id,
                             'mrp_control': mrp,
                             'min_stock': min,
                             'max_stock': max,
                             're_stock': reod,
-                            'bin_location': str(sh.cell(row, 14).value) or False,
+                            'bin_location': str(sh.cell(row, 14).value).strip() or False,
                             'tpt_mater_type': classif,
-                            'old_no': sh.cell(row, 3).value or False,
+                            'old_no': sh.cell(row, 3).value.strip() or False,
                         })
                     
             except Exception, e:
@@ -437,9 +436,9 @@ class tpt_import_inventory(osv.osv):
             try:
                 dem = 1
                 for row in range(2,sh.nrows):
-                    locat = sh.cell(row, 9).value or ''
+                    locat = sh.cell(row, 9).value.strip() or ''
                     qty = sh.cell(row, 10).value or 0
-                    mate = sh.cell(row, 0).value or False
+                    mate = sh.cell(row, 0).value.strip() or False
                     locat_id = False
                     if qty > 0:
                         if locat != '':

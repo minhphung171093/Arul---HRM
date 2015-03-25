@@ -103,18 +103,32 @@ class stock_picking(osv.osv):
                 '''%(picking.id)
             cr.execute(sql)
             for move_line in cr.dictfetchall():
-                sql = '''
-                    select case when sum(foo.product_qty)>0 then sum(foo.product_qty) else 0 end ton_sl from 
-                        (select st.product_qty
-                            from stock_move st 
-                            where st.state='done' and st.product_id=%s and st.location_dest_id = %s and prodlot_id = %s
-                        union all
-                        select st.product_qty*-1
-                            from stock_move st 
-                            where st.state='done' and st.product_id=%s and st.location_id = %s and prodlot_id = %s
-                        )foo
-                '''%(move_line['product_id'],picking.location_id.id,move_line['prodlot_id'] or 'null',move_line['product_id'],picking.location_id.id,move_line['prodlot_id'] or 'null')
-                cr.execute(sql)
+                if move_line['prodlot_id']:
+                    sql = '''
+                        select case when sum(foo.product_qty)>0 then sum(foo.product_qty) else 0 end ton_sl from 
+                            (select st.product_qty
+                                from stock_move st 
+                                where st.state='done' and st.product_id=%s and st.location_dest_id = %s and prodlot_id = %s
+                            union all
+                            select st.product_qty*-1
+                                from stock_move st 
+                                where st.state='done' and st.product_id=%s and st.location_id = %s and prodlot_id = %s
+                            )foo
+                    '''%(move_line['product_id'],picking.location_id.id,move_line['prodlot_id'] or 'null',move_line['product_id'],picking.location_id.id,move_line['prodlot_id'] or 'null')
+                    cr.execute(sql)
+                else:
+                    sql = '''
+                        select case when sum(foo.product_qty)>0 then sum(foo.product_qty) else 0 end ton_sl from 
+                            (select st.product_qty
+                                from stock_move st 
+                                where st.state='done' and st.product_id=%s and st.location_dest_id = %s
+                            union all
+                            select st.product_qty*-1
+                                from stock_move st 
+                                where st.state='done' and st.product_id=%s and st.location_id = %s
+                            )foo
+                    '''%(move_line['product_id'],picking.location_id.id,move_line['product_id'],picking.location_id.id)
+                    cr.execute(sql)
                 ton_sl = cr.dictfetchone()['ton_sl']
                 if move_line['product_qty'] > ton_sl:
                     raise osv.except_osv(_('Warning!'),_('You are moving %s but only %s available for this product and serial number.' %(move_line['product_qty'], ton_sl)))
@@ -135,18 +149,32 @@ class stock_picking(osv.osv):
                 '''%(picking.id)
                 cr.execute(sql)
                 for move_line in cr.dictfetchall():
-                    sql = '''
-                        select case when sum(foo.product_qty)>0 then sum(foo.product_qty) else 0 end ton_sl from 
-                            (select st.product_qty
-                                from stock_move st 
-                                where st.state='done' and st.product_id=%s and st.location_dest_id = %s and prodlot_id = %s
-                            union all
-                            select st.product_qty*-1
-                                from stock_move st 
-                                where st.state='done' and st.product_id=%s and st.location_id = %s and prodlot_id = %s
-                            )foo
-                    '''%(move_line['product_id'],picking.location_id.id,move_line['prodlot_id'] or 'null',move_line['product_id'],picking.location_id.id,move_line['prodlot_id'] or 'null')
-                    cr.execute(sql)
+                    if move_line['prodlot_id']:
+                        sql = '''
+                            select case when sum(foo.product_qty)>0 then sum(foo.product_qty) else 0 end ton_sl from 
+                                (select st.product_qty
+                                    from stock_move st 
+                                    where st.state='done' and st.product_id=%s and st.location_dest_id = %s and prodlot_id = %s
+                                union all
+                                select st.product_qty*-1
+                                    from stock_move st 
+                                    where st.state='done' and st.product_id=%s and st.location_id = %s and prodlot_id = %s
+                                )foo
+                        '''%(move_line['product_id'],picking.location_id.id,move_line['prodlot_id'] or 'null',move_line['product_id'],picking.location_id.id,move_line['prodlot_id'] or 'null')
+                        cr.execute(sql)
+                    else:
+                        sql = '''
+                            select case when sum(foo.product_qty)>0 then sum(foo.product_qty) else 0 end ton_sl from 
+                                (select st.product_qty
+                                    from stock_move st 
+                                    where st.state='done' and st.product_id=%s and st.location_dest_id = %s
+                                union all
+                                select st.product_qty*-1
+                                    from stock_move st 
+                                    where st.state='done' and st.product_id=%s and st.location_id = %s
+                                )foo
+                        '''%(move_line['product_id'],picking.location_id.id,move_line['product_id'],picking.location_id.id)
+                        cr.execute(sql)
                     ton_sl = cr.dictfetchone()['ton_sl']
                     if move_line['product_qty'] > ton_sl:
                         raise osv.except_osv(_('Warning!'),_('You are moving %s but only %s available for this product and serial number.' %(move_line['product_qty'], ton_sl)))
