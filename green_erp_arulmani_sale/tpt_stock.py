@@ -271,6 +271,17 @@ class stock_picking(osv.osv):
             invoice_vals['currency_id'] = cur_id
         if journal_id:
             invoice_vals['journal_id'] = journal_id
+        sql = '''
+            select name from stock_production_lot where id in 
+            (select prodlot_id from stock_move where picking_id in (select id from stock_picking 
+            where id=%s) )
+        '''%picking.id 
+        cr.execute(sql)
+        emp_code='' 
+        for p in cr.fetchall(): 
+            emp_code = emp_code +' '+ p[0]                               
+        invoice_vals['material_info'] = emp_code
+        
         return invoice_vals
     
     def _prepare_invoice_line(self, cr, uid, group, picking, move_line, invoice_id,
