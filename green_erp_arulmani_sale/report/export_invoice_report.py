@@ -33,6 +33,7 @@ class Parser(report_sxw.rml_parse):
             'get_qty_bags': self.get_qty_bags,
             'get_pre': self.get_pre,
             'get_buyer':self.get_buyer,
+            'get_app':self.get_app,
         })
     
     def get_date(self, date=False):
@@ -111,4 +112,17 @@ class Parser(report_sxw.rml_parse):
             buyer = (obj.cons_loca and obj.cons_loca.street or '') + ', ' + (obj.cons_loca and obj.cons_loca.street2 or '') + ', ' + (obj.cons_loca and obj.cons_loca.city or '') + ', ' + (obj.cons_loca and (obj.cons_loca.state_id and obj.cons_loca.state_id.name or '') or '') + ', ' + (obj.cons_loca and (obj.cons_loca.country_id and obj.cons_loca.country_id.name or '') or '') + ', ' + (obj.cons_loca and obj.cons_loca.zip or '')
         return buyer
 
-    
+    def get_app(self, obj):       
+        if obj:
+            app = ''
+            sql = '''
+            SELECT id FROM crm_application WHERE code='OPATI TM R001'
+            '''
+            self.cr.execute(sql)            
+            pl_date=self.cr.fetchone()
+            a = pl_date[0]
+            
+            if a:
+                #raise osv.except_osv(_('Warning!%s'),_(a))
+                if a==obj.id:                                                               
+                    return  'OPATIN' + u"\u2122" +' R001'
