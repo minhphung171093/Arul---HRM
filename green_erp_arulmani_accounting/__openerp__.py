@@ -32,7 +32,8 @@
         'security/ir.model.access.csv',
         'tpt_accounting_sequence.xml',
         'tpt_accounting_view.xml',
-        'import_view.xml'
+        'import_view.xml',
+        'menu_inherit_view.xml',
     ],
     'css' : [
     ],
