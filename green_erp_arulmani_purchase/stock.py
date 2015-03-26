@@ -23,6 +23,17 @@ class stock_picking(osv.osv):
         'invoice_no':fields.char('DC/Invoice No', size = 64),
                 }
 
+    def write(self, cr, uid, ids, vals, context=None):
+        new_write = super(stock_picking, self).write(cr, uid,ids, vals, context)
+        for line in self.browse(cr,uid,ids):
+            for move in line.move_lines:
+                if 'state' in vals and vals['state']=='cancel':
+                    sql = '''
+                        update tpt_purchase_product set state='po_raised' where pur_product_id=%s and product_id=%s
+                    '''%(move.po_indent_no.id,move.product_id.id)
+                    cr.execute(sql)
+        return new_write
+
 #     def create(self, cr, user, vals, context=None):
 #         if ('name' not in vals) or (vals.get('name')=='/'):
 #             seq_obj_name =  self._name
@@ -101,6 +112,22 @@ class stock_picking(osv.osv):
 #             'invoice_state': 'invoiced',
 #             }, context=context)
 #         return res
+    
+    def onchange_dest_loca_id(self, cr, uid, ids,dest_id=False, context=None):
+        vals = {}
+        move_lines = []
+        if dest_id:
+            for stock in self.browse(cr, uid, ids):
+                for line in stock.move_lines:
+                    rs = {
+                          'location_dest_id': dest_id,
+                          }
+                    move_lines.append((1,line.id,rs))
+            
+            vals = {
+                    'move_lines':move_lines
+                    }
+        return {'value': vals}
     
     def _prepare_invoice(self, cr, uid, picking, partner, inv_type, journal_id, context=None):
         """ Builds the dict containing the values for the invoice
@@ -273,7 +300,21 @@ class stock_picking_in(osv.osv):
        ids = self.search(cr, user, args, context=context, limit=limit)
        return self.name_get(cr, user, ids, context=context)
    
-
+    def onchange_dest_loca_id(self, cr, uid, ids,dest_id=False, context=None):
+        vals = {}
+        move_lines = []
+        if dest_id:
+            for stock in self.browse(cr, uid, ids):
+                for line in stock.move_lines:
+                    rs = {
+                          'location_dest_id': dest_id,
+                          }
+                    move_lines.append((1,line.id,rs))
+            
+            vals = {
+                    'move_lines':move_lines
+                    }
+        return {'value': vals}
     
 stock_picking_in()
 
@@ -328,10 +369,10 @@ class stock_move(osv.osv):
         for line in self.browse(cr,uid,ids):
             if line.po_indent_id.document_type == 'consumable':
                 if line.action_taken == 'direct' or line.action_taken == 'need':
-                    raise osv.except_osv(_('Warning!'),_('Document Type of Purchase Indent not allowed select action this'))
+                    raise osv.except_osv(_('Warning!'),_('"Consumable PR" type should be processed with "Move To Consumption Type only"'))
             if line.po_indent_id.document_type != 'consumable':
                 if line.action_taken == 'move':
-                    raise osv.except_osv(_('Warning!'),_('Document Type of Purchase Indent not allowed select action this'))
+                    raise osv.except_osv(_('Warning!'),_('"Move To Consumption" type should be applicable for "Cosumable PR" type only.Please choose other type'))
         return new_write
     
     def create(self, cr, uid, vals, context=None):

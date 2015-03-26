@@ -42,12 +42,12 @@ class tpt_purchase_indent(osv.osv):
         'reason':fields.text('Reason', states={'cancel': [('readonly', True)], 'done':[('readonly', True)]}),
         'header_text':fields.text('Header Text',states={'cancel': [('readonly', True)], 'done':[('readonly', True)]}), #TPT
         'requisitioner':fields.many2one('hr.employee','Requisitioner',states={'cancel': [('readonly', True)], 'done':[('readonly', True)]}),
-        'purchase_product_line':fields.one2many('tpt.purchase.product','pur_product_id','Materials'),
+        'purchase_product_line':fields.one2many('tpt.purchase.product','pur_product_id','Materials',states={'cancel': [('readonly', True)], 'done':[('readonly', True)]}),
         'state':fields.selection([('draft', 'Draft'),('cancel', 'Closed'),
                                   ('done', 'Approve'),('rfq_raised','RFQ Raised'),
                                   ('quotation_raised','Quotation Raised'),
                                   ('po_raised','PO Raised')],'Status', readonly=True),
-        'section_id': fields.many2one('arul.hr.section','Section',ondelete='restrict'),
+        'section_id': fields.many2one('arul.hr.section','Section',ondelete='restrict',states={'cancel': [('readonly', True)], 'done':[('readonly', True)]}),
     }
     
     def _get_department_id(self,cr,uid,context=None):
@@ -281,7 +281,8 @@ class tpt_purchase_product(osv.osv):
                                           ('rfq_raised','RFQ Raised'),
                                           ('cancel','PO Cancelled'),
                                           ('quotation_raised','Quotation Raised'),
-                                          ('po_raised','PO Raised')
+                                          ('po_raised','PO Raised'),
+                                          ('quotation_cancel','Quotation Cancelled'),
                                           ],'Indent Status', readonly=True),
 #Hung moi them 2 Qty theo yeu casu bala
         'mrs_qty': fields.float('Reserved Qty'),
@@ -865,7 +866,7 @@ class tpt_purchase_quotation(osv.osv):
         'supplier_location_id': fields.many2one( 'res.country.state','Vendor Location' ,states={'cancel': [('readonly', True)], 'done':[('readonly', True)]}),
         'quotation_cate':fields.selection([
                                 ('single','Single Quotation'),
-                                ('multiple','Multiple Quotation'),('special','Special Quotation')],'Quotation Category', required = True, readonly = True),
+                                ('multiple','Multiple Quotation'),('special','Special Quotation')],'Quotation Category'),
         'quotation_ref':fields.char('Quotation Reference',size = 1024,required=True),
 #         'tax_id': fields.many2one('account.tax', 'Taxes',required=True ,states={'cancel': [('readonly', True)], 'done':[('readonly', True)]}),
         'purchase_quotation_line':fields.one2many('tpt.purchase.quotation.line','purchase_quotation_id','Quotation Line' ,states={'cancel': [('readonly', True)], 'done':[('readonly', True)]}),
@@ -929,7 +930,8 @@ class tpt_purchase_quotation(osv.osv):
         'for_basis':fields.char('For Basis',size = 1024),
         'schedule':fields.date('Delivery Schedule'),
         'comparison_chart_id':fields.many2one('tpt.comparison.chart','Comparison Chart'),
-        'payment_term_id': fields.related('supplier_id','property_supplier_payment_term',type='many2one',relation='account.payment.term', string='Payment Term'),
+#         'payment_term_id': fields.related('supplier_id','property_supplier_payment_term',type='many2one',relation='account.payment.term', string='Payment Term'),
+        'payment_term_id': fields.many2one('account.payment.term','Payment Term'),
         'select':fields.boolean('Select'),
 #         'cate_char': fields.char('Cate Name', size = 1024),
     }
@@ -960,7 +962,7 @@ class tpt_purchase_quotation(osv.osv):
     def onchange_rfq_no_id(self, cr, uid, ids,rfq_no_id=False):
         res = {'value':{
                         'purchase_quotation_line':[],
-                        'quotation_cate': False,
+                        'quotation_cate':False,
                       }
                }
         if rfq_no_id:
@@ -978,9 +980,9 @@ class tpt_purchase_quotation(osv.osv):
                 res['value'].update({
                     'quotation_cate': 'single',
                     })
-            elif rfq.rfq_category == 'mutiple':
+            elif rfq.rfq_category == 'multiple':
                 res['value'].update({
-                    'quotation_cate': 'mutiple',
+                    'quotation_cate': 'multiple',
                     })
             elif rfq.rfq_category == 'special':
                 res['value'].update({
@@ -1018,6 +1020,11 @@ class tpt_purchase_quotation(osv.osv):
     def create(self, cr, uid, vals, context=None):
         if vals.get('name','/')=='/':
             vals['name'] = self.pool.get('ir.sequence').get(cr, uid, 'purchase.quotation') or '/'
+        if 'rfq_no_id' in vals:
+            cate = self.pool.get('tpt.request.for.quotation').browse(cr, uid, vals['rfq_no_id'])
+            vals.update({
+                         'quotation_cate':cate.rfq_category,
+                         })
         new_id = super(tpt_purchase_quotation, self).create(cr, uid, vals, context)
         if 'rfq_no_id' in vals and vals['rfq_no_id']:
             rfq = self.pool.get('tpt.request.for.quotation').browse(cr,uid,vals['rfq_no_id'])
@@ -1063,8 +1070,19 @@ class tpt_purchase_quotation(osv.osv):
         return new_id  
     
     def write(self, cr, uid, ids, vals, context=None):
+        if 'rfq_no_id' in vals:
+            cate = self.pool.get('tpt.request.for.quotation').browse(cr, uid, vals['rfq_no_id'])
+            vals.update({
+                         'quotation_cate':cate.rfq_category,
+                         })
         new_write = super(tpt_purchase_quotation, self).write(cr, uid,ids, vals, context)
         for quotation in self.browse(cr,uid,ids):
+            for line in quotation.purchase_quotation_line:
+                if 'state' in vals and vals['state']=='cancel':
+                    sql = '''
+                        update tpt_purchase_product set state='quotation_cancel' where pur_product_id=%s and product_id=%s
+                    '''%(line.po_indent_id.id,line.product_id.id)
+                    cr.execute(sql)
             sql = '''
                 select id from tpt_request_for_quotation where id = %s
             '''%(quotation.rfq_no_id.id)
@@ -1207,7 +1225,7 @@ class tpt_purchase_quotation_line(osv.osv):
         'fright_type':fields.selection([('1','%'),('2','Rs'),('3','Per Qty')],('Freight Type')),
         'line_net': fields.function(line_net_line, store = True, multi='deltas' ,string='SubTotal'),
         'line_no': fields.integer('SI.No', readonly = True),
-        'order_charge': fields.float('Order Charges'),
+        'order_charge': fields.float('Other Charges'),
         #TPT
         #'item_text': fields.char('Item Text'), 
         }
@@ -1486,7 +1504,7 @@ class purchase_order(osv.osv):
             result[line.order_id.id] = True
         return result.keys()
     _columns = {
-        'po_document_type':fields.selection([('raw','VV Raw material PO'),('asset','VV Asset PO'),('standard','VV Standard PO'),('local','VV Local PO'),('return','VV Return PO'),('service','VV Service PO'),('out','VV Out Service PO')],'PO Document Type', required = True, track_visibility='onchange'),
+        'po_document_type':fields.selection([('raw','VV Raw material PO'),('asset','VV Capital PO'),('standard','VV Standard PO'),('local','VV Local PO'),('return','VV Return PO'),('service','VV Service PO'),('out','VV Out Service PO')],'PO Document Type', required = True, track_visibility='onchange'),
         'quotation_no': fields.many2one('tpt.purchase.quotation', 'Quotation No', required = True, track_visibility='onchange'),
         'po_indent_no' : fields.many2one('tpt.purchase.indent', 'PO Indent No', required = True, track_visibility='onchange'),
         'partner_ref': fields.char('Supplier Reference', states={'confirmed':[('readonly',True)], 'approved':[('readonly',True)],'done':[('readonly',True)]}, size=64,
@@ -1554,7 +1572,7 @@ class purchase_order(osv.osv):
                                     ('cancel', 'Cancelled'),
                                    ], 'Status', required=True, readonly=True,
                                   ),
-        'check_amendement':fields.boolean("Amendemented",readonly=True)
+        'check_amendement':fields.boolean("Amended",readonly=True)
         }
     
     _default = {
@@ -2699,7 +2717,7 @@ class tpt_request_for_quotation(osv.osv):
     _columns = {
         'name': fields.char('RFQ No', size = 1024,readonly=True, required = True , states={'cancel': [('readonly', True)], 'done':[('readonly', True)], 'close':[('readonly', True)]}),
         'rfq_date': fields.date('RFQ Date', states={'cancel': [('readonly', True)], 'done':[('readonly', True)], 'close':[('readonly', True)]}),
-        'rfq_category': fields.selection([('single','Single'),('mutiple','Multiple'),('special','Special')],'RFQ Category', required = True, states={'cancel': [('readonly', True)], 'done':[('readonly', True)], 'close':[('readonly', True)]}),
+        'rfq_category': fields.selection([('single','Single'),('multiple','Multiple'),('special','Special')],'RFQ Category', required = True, states={'cancel': [('readonly', True)], 'done':[('readonly', True)], 'close':[('readonly', True)]}),
         'create_uid':fields.many2one('res.users','Raised By', readonly = True),
         'create_on': fields.datetime('Created on', readonly = True),
         'expect_quote_date': fields.date('Expected Quote Date', states={'cancel': [('readonly', True)], 'done':[('readonly', True)], 'close':[('readonly', True)]}),
@@ -2707,6 +2725,7 @@ class tpt_request_for_quotation(osv.osv):
         'rfq_supplier': fields.one2many('tpt.rfq.supplier', 'rfq_id', 'Supplier Line', states={'cancel': [('readonly', True)], 'done':[('readonly', True)], 'close':[('readonly', True)]}),
         'state':fields.selection([('draft', 'Draft'),('cancel', 'Cancel'),('done', 'Confirm'),('close', 'Closed')],'Status', readonly=True, states={'cancel': [('readonly', True)], 'done':[('readonly', True)], 'close':[('readonly', True)]}),  
         'raised_ok': fields.boolean('Raised',readonly =True ), 
+        'po_document_type':fields.selection([('raw','VV Raw material PO'),('asset','VV Capital PO'),('standard','VV Standard PO'),('local','VV Local PO'),('return','VV Return PO'),('service','VV Service PO'),('out','VV Out Service PO')],'Document Type', required = True ),
 #         'date_test': fields.function(date_system, store = True, type = 'date', string='RFQ Date'),  
 #         'date_test': fields.date('date_test'),
                 }
@@ -2772,8 +2791,28 @@ class tpt_request_for_quotation(osv.osv):
             vals['name'] = self.pool.get('ir.sequence').get(cr, uid, 'tpt.rfq.import') or '/'
         new_id = super(tpt_request_for_quotation, self).create(cr, uid, vals, context)
         rfq = self.browse(cr,uid,new_id)
+        for line in rfq.rfq_line:
+            if rfq.po_document_type and line.po_indent_id.document_type:
+                if rfq.po_document_type == 'local':
+                    if line.po_indent_id.document_type  != 'local':
+                        raise osv.except_osv(_('Warning!'),_('Indent not allowed create with Document Type this'))
+                if rfq.po_document_type  == 'asset':
+                    if line.po_indent_id.document_type != 'capital' :
+                        raise osv.except_osv(_('Warning!'),_('Indent not allowed create with Document Type this'))
+                if  rfq.po_document_type == 'raw':
+                    if line.po_indent_id.document_type != 'raw':
+                        raise osv.except_osv(_('Warning!'),_('Indent not allowed create with Document Type this'))
+                if rfq.po_document_type == 'service':
+                    if line.po_indent_id.document_type  != 'service':
+                        raise osv.except_osv(_('Warning!'),_('Indent not allowed create with Document Type this'))
+                if rfq.po_document_type == 'out':
+                    if line.po_indent_id.document_type  != 'outside':
+                        raise osv.except_osv(_('Warning!'),_('Indent not allowed create with Document Type this'))
+                if rfq.po_document_type == 'standard' :
+                    if line.po_indent_id.document_type not in ('maintanance','spare','normal','base','consumable'):
+                        raise osv.except_osv(_('Warning!'),_('Indent not allowed create with Document Type this'))
         if rfq.rfq_category:
-            if rfq.rfq_category != 'mutiple':
+            if rfq.rfq_category != 'multiple':
                 if (len(rfq.rfq_supplier) > 1):
                     raise osv.except_osv(_('Warning!'),_('You must choose RFQ category is multiple if you want more than one vendors!'))
         return new_id
@@ -2781,8 +2820,28 @@ class tpt_request_for_quotation(osv.osv):
     def write(self, cr, uid, ids, vals, context=None):
         new_write = super(tpt_request_for_quotation, self).write(cr, uid,ids, vals, context)
         for rfq in self.browse(cr,uid,ids):
+            for line in rfq.rfq_line:
+                 if rfq.po_document_type and line.po_indent_id.document_type:
+                    if rfq.po_document_type == 'local':
+                        if line.po_indent_id.document_type  != 'local':
+                            raise osv.except_osv(_('Warning!'),_('Indent not allowed create with Document Type this'))
+                    if rfq.po_document_type  == 'asset':
+                        if line.po_indent_id.document_type != 'capital' :
+                            raise osv.except_osv(_('Warning!'),_('Indent not allowed create with Document Type this'))
+                    if  rfq.po_document_type == 'raw':
+                        if line.po_indent_id.document_type != 'raw':
+                            raise osv.except_osv(_('Warning!'),_('Indent not allowed create with Document Type this'))
+                    if rfq.po_document_type == 'service':
+                        if line.po_indent_id.document_type  != 'service':
+                            raise osv.except_osv(_('Warning!'),_('Indent not allowed create with Document Type this'))
+                    if rfq.po_document_type == 'out':
+                        if line.po_indent_id.document_type  != 'outside':
+                            raise osv.except_osv(_('Warning!'),_('Indent not allowed create with Document Type this'))
+                    if rfq.po_document_type == 'standard' :
+                        if line.po_indent_id.document_type not in ('maintanance','spare','normal','base','consumable'):
+                            raise osv.except_osv(_('Warning!'),_('Indent not allowed create with Document Type this'))
             if rfq.rfq_category:
-                if rfq.rfq_category != 'mutiple':
+                if rfq.rfq_category != 'multiple':
                     if (len(rfq.rfq_supplier) > 1):
                         raise osv.except_osv(_('Warning!'),_('You must choose RFQ category is multiple if you want more than one vendors!'))
         return new_write
