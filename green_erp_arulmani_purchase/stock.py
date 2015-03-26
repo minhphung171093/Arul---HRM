@@ -102,6 +102,22 @@ class stock_picking(osv.osv):
 #             }, context=context)
 #         return res
     
+    def onchange_dest_loca_id(self, cr, uid, ids,dest_id=False, context=None):
+        vals = {}
+        move_lines = []
+        if dest_id:
+            for stock in self.browse(cr, uid, ids):
+                for line in stock.move_lines:
+                    rs = {
+                          'location_dest_id': dest_id,
+                          }
+                    move_lines.append((1,line.id,rs))
+            
+            vals = {
+                    'move_lines':move_lines
+                    }
+        return {'value': vals}
+    
     def _prepare_invoice(self, cr, uid, picking, partner, inv_type, journal_id, context=None):
         """ Builds the dict containing the values for the invoice
             @param picking: picking object
@@ -273,7 +289,21 @@ class stock_picking_in(osv.osv):
        ids = self.search(cr, user, args, context=context, limit=limit)
        return self.name_get(cr, user, ids, context=context)
    
-
+    def onchange_dest_loca_id(self, cr, uid, ids,dest_id=False, context=None):
+        vals = {}
+        move_lines = []
+        if dest_id:
+            for stock in self.browse(cr, uid, ids):
+                for line in stock.move_lines:
+                    rs = {
+                          'location_dest_id': dest_id,
+                          }
+                    move_lines.append((1,line.id,rs))
+            
+            vals = {
+                    'move_lines':move_lines
+                    }
+        return {'value': vals}
     
 stock_picking_in()
 
