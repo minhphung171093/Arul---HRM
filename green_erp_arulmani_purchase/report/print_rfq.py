@@ -35,7 +35,7 @@ class Parser(report_sxw.rml_parse):
 
     def get_date_timestamp(self, date=False):
         if not date:
-            date = time.strftime(DATETIME_FORMAT)
-        date = datetime.strptime(date, DATETIME_FORMAT)
+            date = time.strftime(DATE_FORMAT)
+        date = datetime.strptime(date, DATE_FORMAT)
         return date.strftime('%d %B %Y')
 

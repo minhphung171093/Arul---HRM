@@ -621,7 +621,7 @@
             <field name="act_window_id" ref="action_bank_transaction"/>
         </record>
   
-        <menuitem action="action_bank_transaction" id="menu_action_bank_transaction" parent="account.menu_finance_entries" sequence="10" groups="base.group_no_one"/>  
+        <menuitem action="action_bank_transaction" id="menu_action_bank_transaction" parent="account.menu_finance_entries" sequence="10" groups="base.group_no_one,green_erp_arulmani_accounting.group_vvti_accounting_admin"/>  
         
         <record model="ir.ui.view" id="cash_transaction_tree">
             <field name="name">cash.transaction.tree</field>
@@ -762,7 +762,7 @@
             <field name="act_window_id" ref="action_cash_transaction"/>
         </record>
   
-        <menuitem action="action_cash_transaction" id="menu_action_cash_transaction" parent="account.menu_finance_entries" sequence="15" groups="base.group_no_one"/>  
+        <menuitem action="action_cash_transaction" id="menu_action_cash_transaction" parent="account.menu_finance_entries" sequence="15" groups="base.group_no_one,green_erp_arulmani_accounting.group_vvti_accounting_admin"/>  
         
         <record id="account.action_invoice_tree2" model="ir.actions.act_window">
             <field name="name">Supplier Invoices(with po)</field>

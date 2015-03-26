@@ -107,7 +107,8 @@
         </record>
         <menuitem action="action_view_tpt_purchase_indent_form"
             id="menu_action_view_tpt_purchase_indent_form"
-            parent="purchase.menu_procurement_management" sequence="11"/>
+            parent="purchase.menu_procurement_management" sequence="11"
+            groups="green_erp_arulmani_purchase.group_vvti_purchase_user"/>
             
 	   	<record id="view_tpt_purchase_indent_line_tree" model="ir.ui.view">
 			<field name="name">tpt.purchase.indent.line.tree</field>
@@ -832,7 +833,8 @@
         
         <menuitem action="action_view_tpt_gate_in_pass_tree"
             id="menu_action_view_tpt_gate_in_pass_tree"
-            parent="purchase.menu_procurement_management" sequence="20"/>
+            parent="purchase.menu_procurement_management" sequence="20"
+            groups="green_erp_arulmani_purchase.group_vvti_purchase_user,green_erp_arulmani_purchase.group_vvti_purchase_store_user"/>
 
 
     <record id="view_tpt_purchase_quotation_tree" model="ir.ui.view">
