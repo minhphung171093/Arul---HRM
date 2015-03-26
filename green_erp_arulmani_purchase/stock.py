@@ -23,6 +23,17 @@ class stock_picking(osv.osv):
         'invoice_no':fields.char('DC/Invoice No', size = 64),
                 }
 
+    def write(self, cr, uid, ids, vals, context=None):
+        new_write = super(stock_picking, self).write(cr, uid,ids, vals, context)
+        for line in self.browse(cr,uid,ids):
+            for move in line.move_lines:
+                if 'state' in vals and vals['state']=='cancel':
+                    sql = '''
+                        update tpt_purchase_product set state='po_raised' where pur_product_id=%s and product_id=%s
+                    '''%(move.po_indent_no.id,move.product_id.id)
+                    cr.execute(sql)
+        return new_write
+
 #     def create(self, cr, user, vals, context=None):
 #         if ('name' not in vals) or (vals.get('name')=='/'):
 #             seq_obj_name =  self._name
@@ -328,10 +339,10 @@ class stock_move(osv.osv):
         for line in self.browse(cr,uid,ids):
             if line.po_indent_id.document_type == 'consumable':
                 if line.action_taken == 'direct' or line.action_taken == 'need':
-                    raise osv.except_osv(_('Warning!'),_('Document Type of Purchase Indent not allowed select action this'))
+                    raise osv.except_osv(_('Warning!'),_('"Consumable PR" type should be processed with "Move To Consumption Type only"'))
             if line.po_indent_id.document_type != 'consumable':
                 if line.action_taken == 'move':
-                    raise osv.except_osv(_('Warning!'),_('Document Type of Purchase Indent not allowed select action this'))
+                    raise osv.except_osv(_('Warning!'),_('"Move To Consumption" type should be applicable for "Cosumable PR" type only.Please choose other type'))
         return new_write
     
     def create(self, cr, uid, vals, context=None):

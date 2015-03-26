@@ -11,7 +11,7 @@ class tick_purchase_chart(osv.osv_memory):
     _name = "tick.purchase.chart"
     _columns = {    
                 'po_document_type':fields.selection([('raw','VV Raw material PO'),
-                                                     ('asset','VV Asset PO'),
+                                                     ('asset','VV Capital PO'),
                                                      ('standard','VV Standard PO'),
                                                      ('local','VV Local PO'),
                                                      ('return','VV Return PO'),
