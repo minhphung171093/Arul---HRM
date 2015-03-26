@@ -1059,7 +1059,9 @@ class tpt_import_customer(osv.osv):
             tax_category_obj = self.pool.get('tax.category')
             tax_classification_obj = self.pool.get('tax.classification')
             title_obj = self.pool.get('res.partner.title')
-            
+            currency_obj = self.pool.get('res.currency')
+            incoterms_obj = self.pool.get('stock.incoterms')
+            dischannel_obj = self.pool.get('crm.case.channel')
             try:
                 dem = 1
                 for row in range(1,sh.nrows):
@@ -1070,22 +1072,22 @@ class tpt_import_customer(osv.osv):
                     else:
                         country_id = country_ids[0]
                     
-                    state = sh.cell(row, 6).value
+                    state = sh.cell(row, 5).value # Region
                     state_ids = state_obj.search(cr, uid, [('code','=',state),('country_id','=',country_id)])
                     if not state_ids:
                         state_id = state_obj.create(cr, uid, {'name':state,'code':state,'country_id':country_id})
                     else:
                         state_id = state_ids[0]
                     
-                    title = sh.cell(row, 11).value
+                    title = sh.cell(row, 10).value
                     title_ids = title_obj.search(cr, uid, [('name','=',title)])
                     if not title_ids:
                         title_id = title_obj.create(cr, uid, {'name':title})
                     else:
                         title_id = title_ids[0]
                     
-                    account = sh.cell(row, 12).value
-                    account_ids = account_obj.search(cr, uid, [('name','=',account)])
+                    account = sh.cell(row, 22).value #Customer Account Group
+                    account_ids = account_obj.search(cr, uid, [('code','=',account)])
                     if not account_ids:
                         account_id = account_obj.create(cr, uid, {'name':account,'code':account})
                     else:
@@ -1098,20 +1100,58 @@ class tpt_import_customer(osv.osv):
 #                     else:
 #                         tax_number_1_id = tax_number_1_ids[0]
                         
-                    payment = sh.cell(row, 14).value
+                    payment = sh.cell(row, 23).value
                     payment_ids = payment_obj.search(cr, uid, [('name','=',payment)])
                     if not payment_ids:
                         payment_id = payment_obj.create(cr, uid, {'name':payment})
                     else:
                         payment_id = payment_ids[0]
                         
-                    tax_category = sh.cell(row, 16).value
+                    tax_category = sh.cell(row, 25).value
                     tax_category_ids = tax_category_obj.search(cr, uid, [('code','=',tax_category)])
                     if not tax_category_ids:
                         tax_category_id = tax_category_obj.create(cr, uid, {'code':tax_category,'name':tax_category})
                     else:
                         tax_category_id = tax_category_ids[0]
                     
+                    tcs_id = 0
+                    tcs = sh.cell(row, 26).value
+                    if tcs:
+                        tcs_ids = tax_category_obj.search(cr, uid, [('code','=',tcs)])
+                        if not tcs_ids:
+                            tcs_id = tax_category_obj.create(cr, uid, {'code':tcs,'name':tcs})
+                        else:
+                            tcs_id = tcs_ids[0]
+                    
+                    curr = sh.cell(row, 30).value
+                    curr_ids = currency_obj.search(cr, uid, [('name','=',curr)])
+                    if not curr_ids:
+                        curr_id = currency_obj.create(cr, uid, {'name':curr})
+                    else:
+                        curr_id = curr_ids[0]
+                    
+                    cus_type1 = 0    
+                    cus_type = sh.cell(row, 28).value
+                    if cus_type=='Export':
+                          cus_type1 = 'export'
+                    if cus_type=='Indirect Export':
+                          cus_type1 = 'indirect_export'
+                    if cus_type=='Domestic':
+                          cus_type1 = 'domestic'
+                    
+                    inco_id = 0      
+                    inco = sh.cell(row, 29).value
+                    inco_ids = incoterms_obj.search(cr, uid, [('code','=',inco)])
+                    if  inco_ids:                   
+                        inco_id = inco_ids[0]
+                    
+                    channel_name = sh.cell(row, 27).value
+                    channel_ids = dischannel_obj.search(cr, uid, [('name','=',channel_name)])
+                    if not channel_ids:
+                        channel_id = dischannel_obj.create(cr, uid, {'name':channel_name})
+                    else:
+                        channel_id = channel_ids[0]
+                            
 #                     tax_classification = sh.cell(row, 16).value
 #                     tax_classification_ids = tax_classification_obj.search(cr, uid, [('code','=',tax_classification)])
 #                     if not tax_classification_ids:
@@ -1119,25 +1159,98 @@ class tpt_import_customer(osv.osv):
 #                     else:
 #                         tax_classification_id = tax_classification_ids[0]
                         
-                        ##############################################                         
-                    dem += 1
-                    partner_obj.create(cr, uid, {
-                        'customer_code': sh.cell(row, 0).value or False,
+                        ##############################################    
+                    #TPT
+                    sql = '''
+                    select count(*) from res_partner where customer_code = '%s'                   
+                    '''%(sh.cell(row, 0).value)
+                    cr.execute(sql)
+                    q_fetch = cr.fetchone()
+                    exist_custo_count = q_fetch[0]
+                    
+                    if exist_custo_count > 0:                         
+                        dem += 1                        
+                        sql = '''
+                        select id from res_partner where customer_code = '%s'                   
+                        '''%(sh.cell(row, 0).value)
+                        cr.execute(sql)
+                        id = cr.fetchone()
+                        exist_custo_id = id[0]
+                    
+                        partner_obj.write(cr, uid,exist_custo_id, {
+                        #'customer_code': sh.cell(row, 0).value or False,
                         'country_id': country_id,
+                        #'name': sh.cell(row, 2).value,
+                        #'last_name': sh.cell(row, 3).value or False,
+                        'city': sh.cell(row, 3).value or False,
+                        'zip': sh.cell(row, 4).value or False,
+                        'state_id':state_id or False,
+                        'street': sh.cell(row, 7).value or False,
+                        'phone': sh.cell(row, 8).value or False,
+                        'fax': sh.cell(row, 9).value or False,
+                        'title': title_id or False,                                            
+                                        
+                        'tin': sh.cell(row, 11).value or False,
+                        'contact_per':sh.cell(row, 12).value or False,
+                        'ecc':sh.cell(row, 13).value or False,
+                        'excise_reg_no':sh.cell(row, 14).value or False,
+                        'range':sh.cell(row, 15).value or False,
+                        'division':sh.cell(row, 16).value or False,
+                        'commissionerate':sh.cell(row, 17).value or False,                                             
+                        'cst': sh.cell(row, 18).value or False,
+                        'lst': sh.cell(row, 19).value or False,
+                        'pan_tin':sh.cell(row, 20).value or False,                       
+                        'service_reg_no': sh.cell(row, 21).value or False,
+                        #'customer_account_group_id': account_id or False,    # 22
+                        'property_payment_term':payment_id or False,  #23
+                        'credit_limit_used':sh.cell(row, 24).value or False,                        
+                        'tax_category_id': tax_category_id or False, #25 
+                        'tcs': tcs_id or False, #26
+                        'distribution_channel': channel_id or False, #27                   
+                        'arulmani_type': cus_type1 or False, #28 CGroup
+                        'inco_terms_id': inco_id or False, #29 
+                        'currency_id': curr_id or False, #29 
+#                         'tax_classification_id': tax_classification_id or False,
+                        
+                        },context)
+                        
+                    #TPT                     
+                    else :
+                        dem += 1
+                        partner_obj.create(cr, uid, {
+                        'customer_code': sh.cell(row, 0).value or False,                  
                         'name': sh.cell(row, 2).value,
                         'last_name': sh.cell(row, 3).value or False,
-                        'city': sh.cell(row, 4).value or False,
-                        'zip': sh.cell(row, 5).value or False,
+                        'country_id': country_id,
+                        #'name': sh.cell(row, 2).value,
+                        #'last_name': sh.cell(row, 3).value or False,
+                        'city': sh.cell(row, 3).value or False,
+                        'zip': sh.cell(row, 4).value or False,
                         'state_id':state_id or False,
-                        'street': sh.cell(row, 8).value or False,
-                        'phone': sh.cell(row, 9).value or False,
-                        'fax': sh.cell(row, 10).value or False,
-                        'title': title_id or False,
-                        'customer_account_group_id': account_id or False,
-                        'pan_tin':sh.cell(row, 13).value or False,
-                        'property_payment_term':payment_id or False,
-                        'credit_limit_used':sh.cell(row, 15).value or False,
-                        'tax_category_id': tax_category_id or False,
+                        'street': sh.cell(row, 7).value or False,
+                        'phone': sh.cell(row, 8).value or False,
+                        'fax': sh.cell(row, 9).value or False,
+                        'title': title_id or False,                                            
+                        'tin': sh.cell(row, 11).value or False,
+                        'contact_per':sh.cell(row, 12).value or False,
+                        'ecc':sh.cell(row, 13).value or False,
+                        'excise_reg_no':sh.cell(row, 14).value or False,
+                        'range':sh.cell(row, 15).value or False,
+                        'division':sh.cell(row, 16).value or False,
+                        'commissionerate':sh.cell(row, 17).value or False,                                             
+                        'cst': sh.cell(row, 18).value or False,
+                        'lst': sh.cell(row, 19).value or False,
+                        'pan_tin':sh.cell(row, 20).value or False,                       
+                        'service_reg_no': sh.cell(row, 21).value or False,
+                        'customer_account_group_id': account_id or False,    # 22
+                        'property_payment_term':payment_id or False,  #23
+                        'credit_limit_used':sh.cell(row, 24).value or False,                        
+                        'tax_category_id': tax_category_id or False, #25 
+                        'tcs': tcs_id or False, #26
+                        'distribution_channel': channel_id or False, #27                   
+                        'arulmani_type': cus_type1 or False, #28 CGroup
+                        'inco_terms_id': inco_id or False, #29 
+                        'currency_id': curr_id or False, #29 
 #                         'tax_classification_id': tax_classification_id or False,
                         'is_company': True,
                         'customer': True,

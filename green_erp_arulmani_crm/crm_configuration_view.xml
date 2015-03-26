@@ -52,7 +52,7 @@
                     </field>
             </field>
         </record>
-        
+      		
         <record id="vsis_view_partner_form_inherit" model="ir.ui.view">
             <field name="name">res.partner.view.form.inherit</field>
             <field name="model">res.partner</field>
@@ -114,6 +114,8 @@
                         <!--<field name="cust_pric_procedure_id" widget="selection" attrs="{'invisible': [('customer', '=',False)]}" />--> 
                         <field name="customer_group_id" widget="selection" attrs="{'invisible': [('customer', '=',False)]}" /> 
                         <field name="inco_terms_id" widget="selection"  /> 
+                        <field name="tcs" /> 
+                        <field name="credit_limit_used" attrs="{'invisible': [('customer', '=',False)]}" />
                         <!--<field name="order_probability_id" widget="selection" attrs="{'invisible': [('customer', '=',False)]}" />--> 
                         <!--<field name="reconciliation_acct_id" widget="selection"/>--> 
                         
@@ -133,7 +135,9 @@
                         <!-- <field name="pan" required="1"/>  -->
                         <field name="pan_tin" required="1"/>
                         <field name="cst" required="1"/> <!-- Enabled By TPT -->
-                        <field name="tin" required="1"/>
+                        <field name="tin" required="1"/>                        
+                        <field name="service_reg_no" />                                            
+                        <field name="excise_reg_no" />
                         <!--  TPT
                         <field name="sin"/>
                         
@@ -142,7 +146,7 @@
                         <!--<field name="sort_key_id" widget="selection" attrs="{'invisible': [('customer', '=',False)]}" />-->
                         <!--<field name="tax_classification_id" widget="selection" attrs="{'invisible': [('customer', '=',False)]}" />-->
                         <!--<field name="tax_number_2_id" widget="selection" attrs="{'invisible': [('customer', '=',False)]}" />-->
-                        <field name="credit_limit_used" attrs="{'invisible': [('customer', '=',False)]}" />
+                        
                         <!--<field name="account_assign_group_id" widget="selection" attrs="{'invisible': [('customer', '=',False)]}" />--> 
                         <!--<field name="customer_statistics_group_id" widget="selection" attrs="{'invisible': [('customer', '=',False)]}" />-->
                         <!--<field name="price_group_id" widget="selection" attrs="{'invisible': [('customer', '=',False)]}" />-->

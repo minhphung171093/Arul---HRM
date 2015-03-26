@@ -97,7 +97,7 @@ class res_partner(osv.osv):
         #'pan_tin': fields.char('PAN/TIN',size=128),
         #'pan': fields.char('PAN',size=128),
         'pan_tin': fields.char('PAN',size=128),
-        'tin': fields.char('TIN',size=128),
+        
         'ce_rc': fields.char('Ex. C.E.RC.',size=128),
         'ecc': fields.char('Ex. E.C.C',size=128),
         'sin': fields.char('SIN',size=128),
@@ -138,8 +138,13 @@ class res_partner(osv.osv):
         'reconciliation_acct_id': fields.many2one('reconciliation.acct','Reconciliation Acct'), 
         'sychronized': fields.function(get_sychronized, string='Is Sychronized', type='boolean'),
         
-        'street3': fields.char('Street3',size=128),
-         
+        #TPT'
+        'excise_reg_no': fields.char('Ex.RegNo.',size=128),
+        'tin': fields.char('TIN',size=128),
+        'street3': fields.char('Street3',size=128),       
+        'lst': fields.char('LST',size=128),
+        'service_reg_no': fields.char('Service RegNo.',size=128),
+        'tcs': fields.many2one('tax.category','TCS %'), 
     }
     _defaults = {
         'is_company': True,
