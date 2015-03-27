@@ -579,7 +579,7 @@ class product_product(osv.osv):
         if context.get('search_rfq_product'):
             if context.get('po_indent_id'):
                 sql = '''
-                    select product_id from tpt_purchase_product where pur_product_id = %s
+                    select product_id from tpt_purchase_product where pur_product_id = %s and state = '++'
                 '''%(context.get('po_indent_id'))
                 cr.execute(sql)
                 product_ids = [row[0] for row in cr.fetchall()]
@@ -830,6 +830,8 @@ class tpt_purchase_quotation(osv.osv):
                 if quotation.tax_id and quotation.tax_id.name == 'CST':
                     amount_net = amount_basic + amount_p_f + amount_fright + amount_total_tax
                 if quotation.tax_id and quotation.tax_id.name == 'VAT':
+                    amount_net = amount_basic + amount_p_f + amount_fright
+                else:
                     amount_net = amount_basic + amount_p_f + amount_fright
             amount_line += amount_basic
             amount_gross = amount_line + amount_p_f + amount_ed + amount_total_tax + amount_fright
@@ -2920,7 +2922,7 @@ class tpt_rfq_supplier(osv.osv):
         'rfq_id': fields.many2one('tpt.request.for.quotation','RFQ'),
         'vendor_id':fields.many2one('res.partner','Vendor Name', required = True),
         'state_id': fields.many2one('res.country.state', 'Vendor Location'),
-        'quotation_no_id': fields.many2one('tpt.purchase.quotation', 'Quotation No'),
+        'quotation_no_id': fields.many2one('tpt.purchase.quotation', 'Quotation No', readonly = True),
 #         'uom_po_id': fields.many2one('product.uom', 'UOM', readonly = True),
         }  
     
