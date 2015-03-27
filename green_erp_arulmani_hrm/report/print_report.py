@@ -74,7 +74,7 @@ class Parser(report_sxw.rml_parse):
         basic_da = net_basic + net_da
         vpf = vpf_in_percent / 100
         vpf_in_amt = basic_da * vpf
-        return round(vpf_in_amt, 2)
+        return round(vpf_in_amt)
     
     def get_sub_basic(self):
         subtotal_basic = 0
@@ -155,7 +155,7 @@ class Parser(report_sxw.rml_parse):
             v2 = line['vpf'] / 100
             v3 = v1 * v2
             subtotal_vpf += v3         
-        return round(subtotal_vpf,2)
+        return round(subtotal_vpf)
     
     def get_sub_esi_con(self):
         subtotal_esi_con = 0
