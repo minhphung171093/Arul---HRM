@@ -1386,6 +1386,10 @@ class account_voucher(osv.osv):
             res.update({'journal_id': journal[0],'tpt_cus_reconcile': True})
         if context.get('get_supp_reconcile'):
             res.update({'journal_id': journal[0],'tpt_sup_reconcile': True})
+        user = self.pool.get('res.users').browse(cr, uid, uid)
+        partner_id = user.company_id.partner_id.id
+        res.update({'partner_id': partner_id})
+        
         return res
     
     def _default_journal_id(self, cr, uid, context=None):

@@ -1021,7 +1021,7 @@
 	            </header>    
 	            	<sheet>
 	                   	 <group col="4" colspan="2" >
-	                   	 	<field name="name" domain="[('rfq_category','=','mutiple')]" on_change="onchange_request_quotation(name)" options="{'create': false, 'create_edit': false}" context="{'search_rfq_id':True}" />
+	                   	 	<field name="name" on_change="onchange_request_quotation(name)" options="{'create': false, 'create_edit': false}" context="{'search_rfq_id':True}" />
 							<field name="date" />
 							<field name="quotation_cate" />
 							<field name="create_uid" />

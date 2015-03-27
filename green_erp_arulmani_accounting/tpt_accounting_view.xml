@@ -368,10 +368,10 @@
                                 <tree string="Invoice lines" editable="bottom">
                                     <field name="sequence" widget="handle" invisible = '1'/>
                             <!--        <field name="gl_code_id" required = '1' on_change="onchange_gl_code_id(gl_code_id)" options="{'create': false, 'create_edit': false}"/> -->
-                                    <field name="account_id" string = 'GL Code' options="{'create': false, 'create_edit': false}" groups="account.group_account_user" />
+                                    <field name="account_id" string = 'GL Account' options="{'create': false, 'create_edit': false}" groups="account.group_account_user" />
                                     <field name="product_id" invisible = '1'
                                         on_change="product_id_change(product_id, uos_id, quantity, name, parent.type, parent.partner_id, parent.fiscal_position, price_unit, parent.currency_id, context, parent.company_id)"/>
-                                    <field name="name"/>
+                                    <!--<field name="name"/>-->
                                     <field name="company_id" invisible="1"/>
                                     <field name="account_analytic_id" invisible="1" groups="analytic.group_analytic_accounting"
                                         domain="[('type','!=','view'), ('company_id', '=', parent.company_id)]"/>
@@ -531,7 +531,7 @@
                         <field name="date" on_change="onchange_date(date, currency_id, payment_rate_currency_id, amount, company_id)"/>
                         <field name="journal_id" domain="[('type','=','bank')]" widget="selection" readonly = '1' on_change="onchange_journal_voucher(line_ids, tax_id, amount, partner_id, journal_id, type)" options="{'create': false, 'create_edit': false}"/>
                         <field name="type_trans" required="1"/>
-                        <field name="account_id" widget="selection" string = "GL Account" options="{'create': false, 'create_edit': false}"/>
+                        <field name="account_id" string = "Bank GL Account" domain = "[('user_type.name','=','Bank')]" options="{'create': false, 'create_edit': false}"/>
                         <field name="company_id" widget="selection" groups="base.group_multi_company"/>
                         <field name="reference"/>
                         <field name="sum_amount"/>
@@ -660,7 +660,7 @@
                         <field name="date" on_change="onchange_date(date, currency_id, payment_rate_currency_id, amount, company_id)"/>
                         <field name="journal_id" domain="[('type','=','cash')]" widget="selection" readonly = '1' on_change="onchange_journal_voucher(line_ids, tax_id, amount, partner_id, journal_id, type)" options="{'create': false, 'create_edit': false}"/>
                         <field name="type_trans" required="1"/>
-                        <field name="account_id" widget="selection" string = "GL Account" options="{'create': false, 'create_edit': false}"/>
+                        <field name="account_id" string = "Cash GL Account" domain = "[('user_type.name','=','Cash')]" options="{'create': false, 'create_edit': false}"/>
                         <field name="company_id" widget="selection" groups="base.group_multi_company"/>
                         <field name="reference"/>
                         <field name="sum_amount"/>
@@ -856,6 +856,18 @@
                     	<field name="tpt_journal" invisible = "1"/>
                     </xpath>
                     
+                    <xpath expr="//field[@name='account_id']" position="attributes">
+                    	<attribute name='options'>{'create': false, 'create_edit': false}</attribute>
+                    </xpath>
+                    
+                    <xpath expr="//field[@name='account_id']" position="attributes">
+                    	<attribute name='string'>Cash/Bank Account</attribute>
+                    </xpath>
+                    
+                    <xpath expr="//field[@name='account_id']" position="attributes">
+                    	<attribute name='domain'>[('user_type.name','in',('Bank', 'Cash'))]</attribute>
+                    </xpath>
+                    
                     <xpath expr="//page[@string='Payment Information']/field/tree/field[@name='account_id']" position="attributes">
 						<attribute name='invisible'>1</attribute>
 					</xpath> 
@@ -888,6 +900,18 @@
                     <xpath expr="//field[@name='company_id']" position="after">
                     	<field name="cheque_number" attrs="{'invisible': [('tpt_journal','&lt;&gt;','bank')]}"/>
                     	<field name="tpt_journal" invisible = "1"/>
+                    </xpath>
+                    
+                    <xpath expr="//field[@name='account_id']" position="attributes">
+                    	<attribute name='options'>{'create': false, 'create_edit': false}</attribute>
+                    </xpath>
+                    
+                    <xpath expr="//field[@name='account_id']" position="attributes">
+                    	<attribute name='string'>Cash/Bank Account</attribute>
+                    </xpath>
+                    
+                    <xpath expr="//field[@name='account_id']" position="attributes">
+                    	<attribute name='domain'>[('user_type.name','in',('Bank', 'Cash'))]</attribute>
                     </xpath>
                     
                     <xpath expr="//page[@string='Payment Information']/field/tree/field[@name='account_id']" position="attributes">
