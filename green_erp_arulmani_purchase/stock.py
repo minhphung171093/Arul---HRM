@@ -15,7 +15,7 @@ from openerp import netsvc
 class stock_picking(osv.osv):
     _inherit = "stock.picking"
     _columns = {
-        'document_type':fields.selection([('asset','VV Asset PO'),('standard','VV Standard PO'),('local','VV Local PO'),('return','VV Return PO'),('service','VV Service PO'),('out','VV Out Service PO')],'PO Document Type'),
+        'document_type':fields.selection([('raw','VV Raw material PO'),('asset','VV Asset PO'),('standard','VV Standard PO'),('local','VV Local PO'),('return','VV Return PO'),('service','VV Service PO'),('out','VV Out Service PO')],'PO Document Type'),
         'warehouse':fields.many2one('stock.location','Warehouse'),
         'po_date': fields.datetime('PO Date'),        
         'gate_in_pass_no':fields.many2one('tpt.gate.in.pass','Gate In Pass No'),
@@ -247,7 +247,7 @@ stock_picking()
 class stock_picking_in(osv.osv):
     _inherit = "stock.picking.in"
     _columns = {
-        'document_type':fields.selection([('asset','VV Asset PO'),('standard','VV Standard PO'),('local','VV Local PO'),('return','VV Return PO'),('service','VV Service PO'),('out','VV Out Service PO')],'PO Document Type',readonly = True),
+        'document_type':fields.selection([('raw','VV Raw material PO'),('asset','VV Asset PO'),('standard','VV Standard PO'),('local','VV Local PO'),('return','VV Return PO'),('service','VV Service PO'),('out','VV Out Service PO')],'PO Document Type',readonly = True),
         'warehouse':fields.many2one('stock.location','Warehouse'),
         'po_date': fields.datetime('PO Date', readonly = True),   
         'gate_in_pass_no':fields.many2one('tpt.gate.in.pass','Gate In Pass No'),
