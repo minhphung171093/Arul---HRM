@@ -1201,7 +1201,7 @@ class tpt_import_customer(osv.osv):
                         'lst': sh.cell(row, 19).value or False,
                         'pan_tin':sh.cell(row, 20).value or False,                       
                         'service_reg_no': sh.cell(row, 21).value or False,
-                        #'customer_account_group_id': account_id or False,    # 22
+                        'customer_account_group_id': account_id or False,    # 22
                         'property_payment_term':payment_id or False,  #23
                         'credit_limit_used':sh.cell(row, 24).value or False,                        
                         'tax_category_id': tax_category_id or False, #25 
