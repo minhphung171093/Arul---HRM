@@ -2746,7 +2746,7 @@ class tpt_request_for_quotation(osv.osv):
         if context.get('search_rfq_id'):
             sql = '''
                 select id from tpt_request_for_quotation 
-                where state != 'cancel' and id not in (select cc.name from tpt_comparison_chart cc ,tpt_request_for_quotation rfq where cc.name = rfq.id)
+                where state not in ('draft','cancel','close') and rfq_category = 'multiple' and id not in (select cc.name from tpt_comparison_chart cc ,tpt_request_for_quotation rfq where cc.name = rfq.id)
             '''
             cr.execute(sql)
             po_ids = [row[0] for row in cr.fetchall()]
