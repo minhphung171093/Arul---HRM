@@ -15,6 +15,8 @@ class arul_hr_holiday_special(osv.osv):
         'name' : fields.char('Holiday Name', size = 1024, required = True),
         'date' : fields.date('Date', required = True),
 	    'is_local_holiday': fields.boolean('Is Local Holiday?'),
+        'create_date': fields.datetime('Created Date',readonly = True),
+        'create_uid': fields.many2one('res.users','Created By',ondelete='restrict',readonly = True),
     }
     def _check(self,cr,uid,ids):
         obj = self.browse(cr,uid,ids[0])
@@ -39,6 +41,8 @@ class arul_hr_leave_master(osv.osv):
         'maximum_limit': fields.integer('Maximum Limit Applicable'),
         'carryforward_nextyear': fields.boolean('Is Carry Forward for Next Year'),
         'condition': fields.integer('Eligible per Annum'),
+        'create_date': fields.datetime('Created Date',readonly = True),
+        'create_uid': fields.many2one('res.users','Created By',ondelete='restrict',readonly = True),
     }
     def _check_sub_category_id(self, cr, uid, ids, context=None):
         for sub_cate in self.browse(cr, uid, ids, context=context):
@@ -81,7 +85,9 @@ class arul_hr_leave_types(osv.osv):
     _name='arul.hr.leave.types'
     _columns={
               'code':fields.char('Code',size=256,required = True),
-              'name':fields.char('Name',size=256,required =True)
+              'name':fields.char('Name',size=256,required =True),
+              'create_date': fields.datetime('Created Date',readonly = True),
+              'create_uid': fields.many2one('res.users','Created By',ondelete='restrict',readonly = True),
               }
     def create(self, cr, uid, vals, context=None):
         if 'code' in vals:
@@ -141,6 +147,8 @@ class arul_hr_capture_work_shift(osv.osv):
               'end_time': fields.float('Shift End Time'),
               'time_total': fields.function(_time_total, string='Shift Total Hours', multi='sums', help="The total amount."),
               'allowance': fields.float('Shift Allowance'),
+              'create_date': fields.datetime('Created Date',readonly = True),
+              'create_uid': fields.many2one('res.users','Created By',ondelete='restrict',readonly = True),
 	      #Start:TPT - BalamuruganPurushothaman on 18/02/2015 - To give grace period time for a Shift
 	      'min_start_time': fields.float('Minimum Shift Start Time'),
 	      'max_start_time': fields.float('Maximum Shift Start Time'),
@@ -716,19 +724,46 @@ class arul_hr_audit_shift_time(osv.osv):
                     punch_obj.write(cr,uid,[line_id.id],{'permission_onduty_id':emp_attendence_id,'approval':1}) 
             self.write(cr, uid, [line.id],{'approval': True, 'state':'done', 'time_evaluate_id':False})
         return True
-    
+    def create(self, cr, uid, vals, context=None):#Trong them
+        new_id = super(arul_hr_audit_shift_time, self).create(cr, uid, vals, context)
+        new = self.browse(cr, uid, new_id)
+        if new.work_date: 
+            month = new.work_date[5:7]
+            year = new.work_date[:4]
+            payroll_ids = self.pool.get('arul.hr.payroll.executions').search(cr,uid,[('month','=',month),('year','=',year),('state','=','approve'),('payroll_area_id','=',new.employee_id.payroll_area_id.id)])
+            if payroll_ids :
+                raise osv.except_osv(_('Warning!'),_('Payroll were already exists, not allowed to create again!'))
+        return new_id 
+    def write(self, cr, uid, ids, vals, context=None):#Trong them
+        new_write = super(arul_hr_audit_shift_time, self).write(cr, uid, ids, vals, context)
+        for new in self.browse(cr, uid, ids):   
+            if new.work_date: 
+                month = new.work_date[5:7]
+                year = new.work_date[:4]
+                payroll_ids = self.pool.get('arul.hr.payroll.executions').search(cr,uid,[('month','=',month),('year','=',year),('state','=','approve'),('payroll_area_id','=',new.employee_id.payroll_area_id.id)])
+                if payroll_ids :
+                    raise osv.except_osv(_('Warning!'),_('Payroll were already exists, not allowed to edit again!'))
+        return new_write    
     def approve_shift_time(self, cr, uid, ids, context=None):
         employee_leave_obj = self.pool.get('employee.leave')
         employee_leave_detail_obj = self.pool.get('employee.leave.detail')
         leave_type_obj = self.pool.get('arul.hr.leave.types')
 	#raise osv.except_osv(_('Warning!%s'),leave_type_obj)	
         for line in self.browse(cr, uid, ids):
+            #Trong them
+            if line.work_date: 
+                month = line.work_date[5:7]
+                year = line.work_date[:4]
+                payroll_ids = self.pool.get('arul.hr.payroll.executions').search(cr,uid,[('month','=',month),('year','=',year),('state','=','approve'),('payroll_area_id','=',line.employee_id.payroll_area_id.id)])
+                if payroll_ids :
+                    raise osv.except_osv(_('Warning!'),_('Payroll were already exists, not allowed to approve again!'))
+            #
             if line.employee_id.department_id and line.employee_id.department_id.primary_auditor_id and line.employee_id.department_id.primary_auditor_id.id==uid \
             or line.employee_id.department_id and line.employee_id.department_id.secondary_auditor_id and line.employee_id.department_id.secondary_auditor_id.id==uid:
                 continue
             else:
                 raise osv.except_osv(_('Warning!'),_('User does not have permission to approve for this employee department!'))
-        for line in self.browse(cr,uid,ids):
+#         for line in self.browse(cr,uid,ids):
 #             emp = self.pool.get('hr.employee')
             emp_attendence_obj = self.pool.get('arul.hr.employee.attendence.details')
             punch_obj = self.pool.get('arul.hr.punch.in.out.time')
@@ -1116,6 +1151,14 @@ class arul_hr_audit_shift_time(osv.osv):
     
     def reject_shift_time(self, cr, uid, ids, context=None):
         for line in self.browse(cr, uid, ids):
+            #Trong them
+            if line.work_date: 
+                month = line.work_date[5:7]
+                year = line.work_date[:4]
+                payroll_ids = self.pool.get('arul.hr.payroll.executions').search(cr,uid,[('month','=',month),('year','=',year),('state','=','approve'),('payroll_area_id','=',line.employee_id.payroll_area_id.id)])
+                if payroll_ids :
+                    raise osv.except_osv(_('Warning!'),_('Payroll were already exists, not allowed to reject again!'))
+            #
             if line.employee_id.department_id and line.employee_id.department_id.primary_auditor_id and line.employee_id.department_id.primary_auditor_id.id==uid \
             or line.employee_id.department_id and line.employee_id.department_id.secondary_auditor_id and line.employee_id.department_id.secondary_auditor_id.id==uid:
                 continue
@@ -1293,7 +1336,20 @@ class arul_hr_employee_leave_details(osv.osv):
             res.append((record['id'], name))
         return res 
     
+    def write(self, cr, uid, ids, vals, context=None):#Trong them
+        new_write = super(arul_hr_employee_leave_details, self).write(cr, uid, ids, vals, context)
+        for new in self.browse(cr, uid, ids):
+                if new.date_from: 
+                    month = new.date_from[5:7]
+                    year = new.date_from[:4]
+                    payroll_ids = self.pool.get('arul.hr.payroll.executions').search(cr,uid,[('month','=',month),('year','=',year),('state','=','approve'),('payroll_area_id','=',new.employee_id.payroll_area_id.id)])
+                    if payroll_ids :
+                        raise osv.except_osv(_('Warning!'),_('Payroll were already exists, not allowed to edit again!'))
+        return new_write        
+    
     def create(self, cr, uid, vals, context=None):       
+
+
         
 #         per_onduty_obj = self.pool.get('arul.hr.permission.onduty')  
 #         sql = '''
@@ -1312,7 +1368,16 @@ class arul_hr_employee_leave_details(osv.osv):
 #         if employee_work_dates:
 #             raise osv.except_osv(_('Warning!'),_('The Leave Day do not suitable'))
         
-                
+        #Trong them
+        new_id = super(arul_hr_employee_leave_details, self).create(cr, uid, vals, context)
+        new = self.browse(cr, uid, new_id)
+        if new.date_from: 
+            month = new.date_from[5:7]
+            year = new.date_from[:4]
+            payroll_ids = self.pool.get('arul.hr.payroll.executions').search(cr,uid,[('month','=',month),('year','=',year),('state','=','approve'),('payroll_area_id','=',permission.employee_id.payroll_area_id.id)])
+            if payroll_ids :
+                raise osv.except_osv(_('Warning!'),_('Payroll were already exists, not allowed to create again!'))
+        #        
                    
         #TPT START-By BalamuruganPurushothaman ON 14/03/2015-If CL/SL/C.OFF is taken a Half Day,
         #then system would not allow the same for next Half a day Except ESI/LOP
@@ -1391,7 +1456,7 @@ class arul_hr_employee_leave_details(osv.osv):
         elif new_id2:
             return new_id2
         else:
-            return super(arul_hr_employee_leave_details, self).create(cr, uid, vals, context)
+            return new_id
     
     def unlink(self, cr, uid, ids, context=None):
         leave_details = self.read(cr, uid, ids, ['state'], context=context)
@@ -1486,6 +1551,16 @@ class arul_hr_employee_leave_details(osv.osv):
     def process_leave_request(self, cr, uid, ids, context=None):
         DATETIME_FORMAT = "%Y-%m-%d"
         for line in self.browse(cr, uid, ids):
+             #Trong them
+            if line.date_from: 
+                month = line.date_from[5:7]
+                year = line.date_from[:4]
+                payroll_ids = self.pool.get('arul.hr.payroll.executions').search(cr,uid,[('month','=',month),('year','=',year),('state','=','approve'),('payroll_area_id','=',line.employee_id.payroll_area_id.id)])
+                if payroll_ids :
+                    raise osv.except_osv(_('Warning!'),_('Payroll were already exists, not allowed to approve again!'))
+            #
+            
+            
             if line.employee_id.department_id and line.employee_id.department_id.primary_auditor_id and line.employee_id.department_id.primary_auditor_id.id==uid \
             or line.employee_id.department_id and line.employee_id.department_id.secondary_auditor_id and line.employee_id.department_id.secondary_auditor_id.id==uid:
                 from_dt = datetime.datetime.strptime(line.date_from, DATETIME_FORMAT)
@@ -1520,6 +1595,16 @@ class arul_hr_employee_leave_details(osv.osv):
         for line in self.browse(cr, uid, ids): 
             #vals = {}
             #vals.update({'check_reject_flag':True})
+            
+             #Trong them
+            if line.date_from: 
+                month = line.date_from[5:7]
+                year = line.date_from[:4]
+                payroll_ids = self.pool.get('arul.hr.payroll.executions').search(cr,uid,[('month','=',month),('year','=',year),('state','=','approve'),('payroll_area_id','=',line.employee_id.payroll_area_id.id)])
+                if payroll_ids :
+                    raise osv.except_osv(_('Warning!'),_('Payroll were already exists, not allowed to reject again!'))
+            #
+            
             if line.reason_for_reject:    
                 self.write(cr, uid, [line.id],{'state':'reject','leave_evaluate_id':False,'check_reject_flag':True})
             else:
@@ -1625,6 +1710,14 @@ class arul_hr_permission_onduty(osv.osv):
         punch_obj = self.pool.get('arul.hr.punch.in.out')
         
         if permission.non_availability_type_id == 'on_duty' and not permission.date:
+            #Trong them
+            if permission.from_date: 
+                month = permission.from_date[5:7]
+                year = permission.from_date[:4]
+                payroll_ids = self.pool.get('arul.hr.payroll.executions').search(cr,uid,[('month','=',month),('year','=',year),('state','=','approve'),('payroll_area_id','=',permission.employee_id.payroll_area_id.id)])
+                if payroll_ids :
+                    raise osv.except_osv(_('Warning!'),_('Payroll were already exists, not allowed to create again!'))
+            #
             date_from = datetime.datetime.strptime(permission.from_date,'%Y-%m-%d')
             date_to = datetime.datetime.strptime(permission.to_date,'%Y-%m-%d')
             while (date_from<=date_to):
@@ -1662,6 +1755,14 @@ class arul_hr_permission_onduty(osv.osv):
 	    # TPT - The following if condition is commented to check permission for emp categ "S1"also
             #if permission.non_availability_type_id=='permission' and permission.employee_id.employee_category_id and permission.employee_id.employee_category_id.code != 'S1':
 	    if permission.non_availability_type_id=='permission' and permission.employee_id.employee_category_id:
+            #Trong them
+                if permission.date: 
+                    month = permission.date[5:7]
+                    year = permission.date[:4]
+                    payroll_ids = self.pool.get('arul.hr.payroll.executions').search(cr,uid,[('month','=',month),('year','=',year),('state','=','approve'),('payroll_area_id','=',permission.employee_id.payroll_area_id.id)])
+                    if payroll_ids :
+                        raise osv.except_osv(_('Warning!'),_('Payroll were already exists, not allowed to create again!'))
+            #
                 sql = '''
                     select count(id) as num_of_permission from arul_hr_permission_onduty where non_availability_type_id='permission' and employee_id=%s
                         and id!=%s and EXTRACT(year from date)='%s' and EXTRACT(month from date)='%s'
@@ -1694,7 +1795,27 @@ class arul_hr_permission_onduty(osv.osv):
 #                  'permission_id':new_id,
 #              })
 	return new_id
-#     
+#  
+
+    def write(self, cr, uid, ids, vals, context=None):#Trong them
+        new_write = super(arul_hr_permission_onduty, self).write(cr, uid, ids, vals, context)
+        for new in self.browse(cr, uid, ids):
+            if new.non_availability_type_id=='permission':   
+                if new.date: 
+                    month = new.date[5:7]
+                    year = new.date[:4]
+                    payroll_ids = self.pool.get('arul.hr.payroll.executions').search(cr,uid,[('month','=',month),('year','=',year),('state','=','approve'),('payroll_area_id','=',new.employee_id.payroll_area_id.id)])
+                    if payroll_ids :
+                        raise osv.except_osv(_('Warning!'),_('Payroll were already exists, not allowed to edit again!'))
+            if new.non_availability_type_id=='on_duty':   
+                if new.from_date: 
+                    month = new.from_date[5:7]
+                    year = new.from_date[:4]
+                    payroll_ids = self.pool.get('arul.hr.payroll.executions').search(cr,uid,[('month','=',month),('year','=',year),('state','=','approve'),('payroll_area_id','=',new.employee_id.payroll_area_id.id)])
+                    if payroll_ids :
+                        raise osv.except_osv(_('Warning!'),_('Payroll were already exists, not allowed to edit again!'))
+        return new_write    
+   
     def _time_total(self, cr, uid, ids, field_name, arg, context=None):
         res = {}
         for time in self.browse(cr, uid, ids, context=context):
@@ -1768,6 +1889,14 @@ class arul_hr_permission_onduty(osv.osv):
         punch_obj = self.pool.get('arul.hr.punch.in.out')
         audit_obj = self.pool.get('arul.hr.audit.shift.time')
         if permission.non_availability_type_id == 'on_duty' and not permission.date:
+            #Trong them
+            if permission.from_date: 
+                month = permission.from_date[5:7]
+                year = permission.from_date[:4]
+                payroll_ids = self.pool.get('arul.hr.payroll.executions').search(cr,uid,[('month','=',month),('year','=',year),('state','=','approve'),('payroll_area_id','=',permission.employee_id.payroll_area_id.id)])
+                if payroll_ids :
+                    raise osv.except_osv(_('Warning!'),_('Payroll were already exists, not allowed to approve again!'))
+            #
             date_from = datetime.datetime.strptime(permission.from_date,'%Y-%m-%d')
             date_to = datetime.datetime.strptime(permission.to_date,'%Y-%m-%d')
             while (date_from<=date_to):
@@ -1806,6 +1935,14 @@ class arul_hr_permission_onduty(osv.osv):
         # TPT - The following if condition is commented to check permission for emp categ "S1"also
             #if permission.non_availability_type_id=='permission' and permission.employee_id.employee_category_id and permission.employee_id.employee_category_id.code != 'S1':
         if permission.non_availability_type_id=='permission' and permission.employee_id.employee_category_id:
+            #Trong them
+                if permission.date: 
+                    month = permission.date[5:7]
+                    year = permission.date[:4]
+                    payroll_ids = self.pool.get('arul.hr.payroll.executions').search(cr,uid,[('month','=',month),('year','=',year),('state','=','approve'),('payroll_area_id','=',permission.employee_id.payroll_area_id.id)])
+                    if payroll_ids :
+                        raise osv.except_osv(_('Warning!'),_('Payroll were already exists, not allowed to approve again!'))
+            #
                 sql = '''
                     select count(id) as num_of_permission from arul_hr_permission_onduty where non_availability_type_id='permission' and employee_id=%s
                         and id!=%s and EXTRACT(year from date)='%s' and EXTRACT(month from date)='%s'
@@ -1841,7 +1978,24 @@ class arul_hr_permission_onduty(osv.osv):
         return self.write(cr,uid,ids,{'state': 'done'}) 
     
     def reject_permission_onduty(self, cr, uid, ids, context=None):
-        return self.write(cr,uid,ids,{'state': 'cancel'}) 
+        #Trong them
+        for new in self.browse(cr, uid, ids):
+            if new.non_availability_type_id=='permission':   
+                if new.date: 
+                    month = new.date[5:7]
+                    year = new.date[:4]
+                    payroll_ids = self.pool.get('arul.hr.payroll.executions').search(cr,uid,[('month','=',month),('year','=',year),('state','=','approve'),('payroll_area_id','=',new.employee_id.payroll_area_id.id)])
+                    if payroll_ids :
+                        raise osv.except_osv(_('Warning!'),_('Payroll were already exists, not allowed to reject again!'))
+            if new.non_availability_type_id=='on_duty':   
+                if new.from_date: 
+                    month = new.from_date[5:7]
+                    year = new.from_date[:4]
+                    payroll_ids = self.pool.get('arul.hr.payroll.executions').search(cr,uid,[('month','=',month),('year','=',year),('state','=','approve'),('payroll_area_id','=',new.employee_id.payroll_area_id.id)])
+                    if payroll_ids :
+                        raise osv.except_osv(_('Warning!'),_('Payroll were already exists, not allowed to reject again!'))
+            self.write(cr,uid,ids,{'state': 'cancel'}) 
+        return True
         
     def name_get(self, cr, uid, ids, context=None):
         res = []
@@ -4236,11 +4390,13 @@ class tpt_time_leave_evaluation(osv.osv):
          'shift_time_id': fields.one2many('arul.hr.audit.shift.time','time_evaluate_id','Time Evaluation Report',readonly = True),
          'leave_request_id': fields.one2many('arul.hr.employee.leave.details','leave_evaluate_id','Not Approved Section',readonly = True),
          'non_availability_id': fields.one2many('tpt.non.availability','leave_evaluate_id','Non Availability Report',readonly = True),
+         'state':fields.selection([('draft','Draft'),('done','Done')],'State',readonly=True),
          'create_date': fields.datetime('Created Date',readonly = True),
          'create_uid': fields.many2one('res.users','Created By',ondelete='restrict',readonly = True),
     }
     _defaults = {
        'year':int(time.strftime('%Y')),
+       'state':'draft',
     }
     def _check(self,cr,uid,ids):
         obj = self.browse(cr,uid,ids[0])
@@ -4262,7 +4418,8 @@ class tpt_time_leave_evaluation(osv.osv):
             name = record['month'] + ' - ' + str(record['year'])
             res.append((record['id'], name))
         return res   
-     
+    def bt_confirm(self, cr, uid, ids, context=None):
+        return self.write(cr, uid, ids,{'state':'done'}) 
     def submit_evaluate(self, cr, uid, ids, context=None):
         monthly_shift_obj = self.pool.get('arul.hr.monthly.shift.schedule')
         non_availability_obj = self.pool.get('tpt.non.availability')
@@ -4705,6 +4862,8 @@ class tpt_work_center(osv.osv):
     _columns = {
         'name': fields.char('Name', size=1024, required = True),
          'code': fields.char('Code', size=1024, required = True),
+                 'create_date': fields.datetime('Created Date',readonly = True),
+        'create_uid': fields.many2one('res.users','Created By',ondelete='restrict',readonly = True),
         
     }
     def create(self, cr, uid, vals, context=None):
@@ -4741,7 +4900,8 @@ class tpt_cost_center(osv.osv):
     _columns = {
         'name': fields.char('Name', size=1024, required = True),
          'code': fields.char('Code', size=1024, required = True),
-        
+                'create_date': fields.datetime('Created Date',readonly = True),
+        'create_uid': fields.many2one('res.users','Created By',ondelete='restrict',readonly = True),
     }
     def create(self, cr, uid, vals, context=None):
         if 'code' in vals:
@@ -4777,6 +4937,8 @@ class tpt_equipment_master(osv.osv):
     _columns = {
         'name': fields.char('Name', size=1024, required = True),
          'code': fields.char('Code', size=1024, required = True),
+        'create_date': fields.datetime('Created Date',readonly = True),
+        'create_uid': fields.many2one('res.users','Created By',ondelete='restrict',readonly = True),
         
     }
     def create(self, cr, uid, vals, context=None):
@@ -4922,6 +5084,12 @@ class shift_change(osv.osv):
     def approve(self, cr, uid, ids, context=None):
         monthly_shift_obj = self.pool.get('arul.hr.monthly.shift.schedule')
         for line in self.browse(cr, uid, ids):
+            #Trong them
+            if line.month and line.year: 
+                payroll_ids = self.pool.get('arul.hr.payroll.executions').search(cr,uid,[('month','=',line.month),('year','=',line.year),('state','=','approve'),('payroll_area_id','=',line.employee_id.payroll_area_id.id)])
+                if payroll_ids :
+                    raise osv.except_osv(_('Warning!'),_('Payroll were already exists, not allowed to approve again!'))
+            #
             if line.employee_id.department_id and line.employee_id.department_id.primary_auditor_id and line.employee_id.department_id.primary_auditor_id.id==uid \
             or line.employee_id.department_id and line.employee_id.department_id.secondary_auditor_id and line.employee_id.department_id.secondary_auditor_id.id==uid:
                 continue
@@ -5796,6 +5964,12 @@ class shift_change(osv.osv):
     
     def reject(self, cr, uid, ids, context=None):
         for line in self.browse(cr, uid, ids):
+             #Trong them
+            if line.month and line.year: 
+                payroll_ids = self.pool.get('arul.hr.payroll.executions').search(cr,uid,[('month','=',line.month),('year','=',line.year),('state','=','approve'),('payroll_area_id','=',line.employee_id.payroll_area_id.id)])
+                if payroll_ids :
+                    raise osv.except_osv(_('Warning!'),_('Payroll were already exists, not allowed to reject again!'))
+            #
             if line.state != 'submitted':
                 raise osv.except_osv(_('Warning!'),_('Please Submit request before Reject!'))
             if line.employee_id.department_id and line.employee_id.department_id.primary_auditor_id and line.employee_id.department_id.primary_auditor_id.id==uid \
