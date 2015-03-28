@@ -299,3 +299,4 @@ access_vvti_hrm_303,"arul.hr.section","green_erp_arulmani_hrm.model_arul_hr_sect
 access_vvti_hrm_304,"arul.hr.designation","green_erp_arulmani_hrm.model_arul_hr_designation","green_erp_arulmani_hrm.group_vvti_hrm_plant_hr_user","True","False","False","False"
 access_vvti_hrm_305,"arul.hr.permission.onduty","green_erp_arulmani_hrm.model_arul_hr_permission_onduty","green_erp_arulmani_hrm.group_vvti_hrm_plant_hr_user","True","True","True","False"
 access_vvti_hrm_306,"vsis.hr.employee.category","green_erp_arulmani_crm.model_vsis_hr_employee_category","green_erp_arulmani_hrm.group_vvti_hrm_plant_hr_user","True","False","False","False"
+access_vvti_hrm_307,arul.hr.audit.shift.time,green_erp_arulmani_hrm.model_arul_hr_audit_shift_time,green_erp_arulmani_hrm.group_vvti_unit_user,True,True,True,False

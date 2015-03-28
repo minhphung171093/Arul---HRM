@@ -391,6 +391,8 @@
 				<tree string="Approve Reject Payroll">
 					<field name="year"/>
 					<field name="month"/>
+					<field name="create_date"/>
+					<field name="create_uid"/>
 					<field name="state" widget="statusbar" statusbar_visible="draft,cancel,done" statusbar_colors='{"draft":"blue","done":"blue"}'/>
 				</tree>
 			</field>
@@ -410,6 +412,8 @@
 		           <group col = '4' colspan = '2'>    
 						<field name="year" />
 						<field name="month" />
+						<field name="create_date"/>
+						<field name="create_uid"/>
 		           </group> 
 		        </sheet>
 		        </form>
@@ -438,6 +442,8 @@
 					<field name="payroll_area_id" on_change="onchange_generate_payroll(payroll_area_id)"/>
 					<field name="year"/>
 					<field name="month"/>
+					<field name="create_date"/>
+					<field name="create_uid"/>
 					<field name="state" widget="statusbar" statusbar_visible="draft,done" statusbar_colors='{"draft":"blue","done":"blue"}'/>  
 				</tree>
 			</field>
@@ -460,6 +466,8 @@
 			                <field name="payroll_area_id" options="{'create': false, 'create_edit': false}" />
 							<field name="year" />
 							<field name="month" />
+							<field name="create_date"/>
+							<field name="create_uid"/>
 		                </group> 
 		                <notebook>
 		                	<page string = "Payroll Executions Details">
@@ -554,6 +562,8 @@
 				<tree string="Payroll Earning Structure Configuration" delete = 'false' >
 						<field name="employee_category_id" options="{'create': false, 'create_edit': false}"/>
 						<field name="sub_category_id" options="{'create': false, 'create_edit': false}"/>
+						<field name="create_date"/>
+						<field name="create_uid"/>
 				</tree>
 			</field>
 		</record>
@@ -569,6 +579,10 @@
 			                <field name="employee_category_id" options="{'create': false, 'create_edit': false}" on_change="onchange_employee_category_id(employee_category_id)"/>
 			                <newline/>
 							<field name="sub_category_id" domain="[('category_id','=',employee_category_id)]" context="{'check_employee_category_id':1,'employee_category_id':employee_category_id}" options="{'create': false, 'create_edit': false}"/>
+							<newline/>
+							<field name="create_date"/>
+							<newline/>
+							<field name="create_uid"/>
 						</group>
 						<notebook>
 							<page string = "Earning Configuration">

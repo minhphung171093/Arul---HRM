@@ -217,6 +217,8 @@
 					<field name="days_total"/>
 					<field name="haft_day_leave"/>
 					<field name="reason"/>
+					<field name="create_date"/>
+					<field name="create_uid"/>
 					<field name="state" widget="statusbar" statusbar_visible="draft,done" statusbar_colors='{"draft":"blue","done":"blue"}'/>
 				</tree>
 			</field>
@@ -242,8 +244,12 @@
 							<field name="date_from" on_change="onchange_date(date_from, date_to,employee_id,leave_type_id,haft_day_leave)"/>
 							<field name="date_to" on_change="onchange_date(date_from, date_to,employee_id,leave_type_id,haft_day_leave)"/>
 							<field name="days_total"/>
+							<field name="create_date"/>
+							<field name="create_uid"/>
 							<field name="available_leave" attrs="{'invisible':[('check_leave_type_lop_esi','=',True)]}"/>
 							<field name="haft_day_leave" attrs="{'invisible':[('check_leave_type_pl','=',True)]}" on_change="onchange_date(date_from, date_to,employee_id,leave_type_id,haft_day_leave)"/>
+							<field name="type_half" attrs="{'invisible':[('haft_day_leave','=',False)],'required':[('haft_day_leave','=',True)]}"/>
+							<field name="day" context="{'search_day_for_leave':1,'date_from':date_from,'date_to':date_to}" attrs="{'invisible':[('haft_day_leave','=',False)],'required':[('haft_day_leave','=',True)]}" options="{'limit':31,'create': false, 'create_edit': false}"/>
 							<field name="check_leave_type_pl" invisible='1'/>
 							<field name="check_leave_type_lop_esi" invisible='1'/>
 							
@@ -297,6 +303,8 @@
 					<field name="time_total" widget="float_time"/>
 					<field name="reason"/>
 					<field name="approval"/>
+					<field name="create_date"/>
+					<field name="create_uid"/>
 					<field name="state" widget="statusbar" statusbar_visible="draft,done,cancel" statusbar_colors='{"draft":"blue","done":"blue"}'/>
 				</tree>
 			</field>
@@ -328,6 +336,8 @@
 							<field name="end_time" widget="float_time"/>
 							<field name="time_total" widget="float_time"/>
 							<field name="approval"/>
+							<field name="create_date"/>
+							<field name="create_uid"/>
 						</group>
 						<group>
 							<field name="reason"/>
@@ -412,6 +422,8 @@
 					<field name="out_time" widget="float_time"/>
 					<field name="total_hours" widget="float_time"/>									
 					<field name="approval"/>
+					<field name="create_date"/>
+					<field name="create_uid"/>
 					<field name=""/>				
 					<field name="state"/>
 					<field name="diff_day" invisible='1'/>
@@ -425,8 +437,8 @@
             <field name="arch" type="xml">
 	            <form string="Audit Shift Time" version="7.0" create='true'> <!-- TPT Changes - by BalamuruganPurushothaman - on 14/02/2015 - To enable create option to Audit Shift Time screen in Form mode -->
 	            	<header>
-	                    <button name="approve_shift_time" states='draft' string="Approve" type="object" class="oe_highlight" groups="green_erp_arulmani_hrm.group_vvti_hrm_hr_manager"/>
-	                    <button name="%(action_reject_audit_form)d" states='draft' string="Reject" type="action" class="oe_highlight" groups="green_erp_arulmani_hrm.group_vvti_hrm_hr_manager"/>
+	                    <button name="approve_shift_time" states='draft' string="Approve" type="object" class="oe_highlight" groups="green_erp_arulmani_hrm.group_vvti_hrm_hr_manager,green_erp_arulmani_hrm.group_vvti_unit_user"/>
+	                    <button name="%(action_reject_audit_form)d" states='draft' string="Reject" type="action" class="oe_highlight" groups="green_erp_arulmani_hrm.group_vvti_hrm_hr_manager,green_erp_arulmani_hrm.group_vvti_unit_user"/>
 	                    <button name="rollback_shift_time" states='cancel' string="Rollback" type="object" class="oe_highlight" groups="green_erp_arulmani_hrm.group_vvti_hrm_hr_manager"/>
 	                	<field name="state" widget="statusbar" statusbar_visible="draft,done" statusbar_colors='{"draft":"blue","done":"blue"}'/>
 	                </header>   
@@ -446,6 +458,8 @@
 							<field name="total_shift_worked" />
 							<field name="type"/>
 							<field name="approval"/>
+							<field name="create_date"/>
+							<field name="create_uid"/>
 							<field name="reason_for_edit" attrs="{'invisible':[('time_change_flag','=',False)],'required':[('time_change_flag','=',True)]}" />
 							<field name="diff_day" invisible='1'/>
 							
@@ -469,7 +483,7 @@
         <menuitem action="action_arul_hr_audit_shift_time_form"
             id="menu_action_arul_hr_audit_shift_time_form"
             parent="menu_hr_leave_management" sequence="20"
-            groups="group_vvti_hrm_hr_key_user,group_vvti_hrm_time_user,group_vvti_hrm_hr_manager,group_vvti_hrm_payroll_controller"/> 
+            groups="group_vvti_hrm_hr_key_user,group_vvti_hrm_time_user,group_vvti_hrm_hr_manager,group_vvti_hrm_payroll_controller,group_vvti_unit_user"/> 
 	
 	<record id="view_arul_hr_employee_attendence_details_search_vew" model="ir.ui.view">
 			<field name="name">arul.hr.employee.attendence.details.search</field>
@@ -490,6 +504,8 @@
 						<field name="sub_category_id" options="{'create': false, 'create_edit': false}"/>
 						<field name="designation_id" options="{'create': false, 'create_edit': false}"/>
 						<field name="department_id" options="{'create': false, 'create_edit': false}"/>
+						<field name="create_date"/>
+						<field name="create_uid"/>
 				</tree>
 			</field>
 		</record>
@@ -508,6 +524,8 @@
 							<field name="sub_category_id" domain="[('category_id','=',employee_category_id)]" options="{'create': false, 'create_edit': false}"/>
 							<field name="designation_id" options="{'create': false, 'create_edit': false}"/>
 							<field name="department_id" on_change="onchange_department_id(department_id)" options="{'create': false, 'create_edit': false}"/>
+							<field name="create_date"/>
+							<field name="create_uid"/>
 						</group>
 						<notebook>
 							<page string = "Punch In/Punch Out Details">
@@ -643,6 +661,8 @@
 					<field name="section_id" options="{'create': false, 'create_edit': false}"/>
 					<field name="year"/>
 					<field name="month"/>
+					<field name="create_date"/>
+					<field name="create_uid"/>
 					<field name="state" widget="statusbar" statusbar_visible="draft,done" statusbar_colors='{"draft":"blue","done":"blue"}'/>
 				</tree>
 			</field>
@@ -665,6 +685,8 @@
 							<field name="section_id" on_change="onchange_year_month(department_id,section_id,month,year)" domain="[('department_id','=',department_id)]" options="{'create': false, 'create_edit': false}"/>
 							<field name="year" on_change="onchange_year_month(department_id,section_id,month,year)"/>
 							<field name="month" on_change="onchange_year_month(department_id,section_id,month,year)"/>
+							<field name="create_date"/>
+							<field name="create_uid"/>
 						</group>
 						<notebook>
 							<page string = 'Monthly Shift Schedule'>
@@ -908,7 +930,10 @@
 					<field name="date_from"/>
 					<field name="date_to"/>
 					<field name="shift_id"/>
+					<field name="create_date"/>
+					<field name="create_uid"/>
 					<!-- <field name="apply_weekly_off"/>  -->
+					<field name="type"/>
 					<field name="state"/>
 				</tree>
 			</field>
@@ -928,15 +953,18 @@
 	            	<sheet>
 		                <group col='4' colspan='2'>
 		                	<field name="employee_id" on_change="onchange_employee(employee_id)" options="{'create': false, 'create_edit': false}"/>
-							<newline/>
+							<field name="type"/>
 		                	<field name="department_id" options="{'create': false, 'create_edit': false}"/>
 							<field name="section_id" domain="[('department_id','=',department_id)]" options="{'create': false, 'create_edit': false}"/>
 							<field name="month" on_change="onchange_year_month(month,year)"/>
 							<field name="year" on_change="onchange_year_month(month,year)"/>
 							<field name="date_from" domain="[('name','&lt;=',num_of_month)]" options="{'limit':31,'create': false, 'create_edit': false}"/>
 							<field name="date_to" domain="[('name','&lt;=',num_of_month)]" options="{'limit':31,'create': false, 'create_edit': false}"/>
-							<field name="shift_id" options="{'create': false, 'create_edit': false}"/>
+							<field name="shift_id" attrs="{'invisible':[('type','=','shift_group')],'required':[('type','=','single_shift')]}" options="{'create': false, 'create_edit': false}"/>
+							<field name="shift_group_id" attrs="{'invisible':[('type','=','single_shift')],'required':[('type','=','shift_group')]}" options="{'create': false, 'create_edit': false}"/>
 							<field name="num_of_month" invisible='1'/>
+							<field name="create_date"/>
+							<field name="create_uid"/>
 						</group>
 						<!-- <group col='4' colspan='4'>
 							<field name="apply_weekly_off"/>
@@ -1169,6 +1197,8 @@
 					<field name ="name"/>
 					<field name ="datas_fname"/>
 					<field name="state"/>
+					<field name="create_date"/>
+					<field name="create_uid"/>
 				</tree>
 			</field>
 		</record>
@@ -1185,6 +1215,8 @@
                 	<sheet>  
                 		<group>
                 		<field name ="name"/>
+                		<field name="create_date"/>
+						<field name="create_uid"/>
 						<label for="datas" string="Data Upload Field"/>
 							<div>
 								<field name="datas" filename="datas_fname"/>
@@ -1383,6 +1415,8 @@
 					<field name="month"/>
 					<field name="year"/>
 					<field name="state" invisible='1' />
+					<field name="create_date"/>
+					<field name="create_uid"/>
 				</tree>
 			</field>
 	   </record>
@@ -1402,6 +1436,8 @@
 						<field name="payroll_area_id" options="{'create': false, 'create_edit': false}"/>
 						<field name="month"/>
 						<field name="year"/>
+						<field name="create_date"/>
+						<field name="create_uid"/>
 		           </group> 
 		           <group col = '4' colspan = '2' string="Time Evaluation Report">    
 						<field name="shift_time_id" editable="top" nolabel="1">
