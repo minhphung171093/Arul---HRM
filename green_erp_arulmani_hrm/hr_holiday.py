@@ -287,6 +287,8 @@ class arul_hr_audit_shift_time(osv.osv):
               'g2_shift_count': fields.float('G2', states={'done': [('readonly', True)], 'cancel': [('readonly', True)]}),
               'b_shift_count': fields.float('B', states={'done': [('readonly', True)], 'cancel': [('readonly', True)]}),
               'c_shift_count': fields.float('C', states={'done': [('readonly', True)], 'cancel': [('readonly', True)]}),
+              'create_date': fields.datetime('Created Date',readonly = True),
+              'create_uid': fields.many2one('res.users','Created By',ondelete='restrict',readonly = True),
               
               }
     _defaults = {
@@ -1245,6 +1247,37 @@ class arul_hr_employee_leave_details(osv.osv):
         'state':'draft',
     }
     
+    def _check_date_holiday(self, cr, uid, ids, context=None):
+        for leave in self.browse(cr, uid, ids, context=context):
+            sql = '''
+                select id from arul_hr_permission_onduty where employee_id = %s and non_availability_type_id ='permission' and date between '%s' and '%s' and approval = 't'
+            '''%(leave.employee_id.id, leave.date_from, leave.date_to)   
+            cr.execute(sql)
+            employee_dates = [r[0] for r in cr.fetchall()]
+            if employee_dates:
+                raise osv.except_osv(_('Warning!'),_('The Leave Day do not suitable'))
+                return False
+              
+            sql = '''
+                select id from arul_hr_audit_shift_time where employee_id = %s and work_date between '%s' and '%s' and approval = 't'
+            '''%(leave.employee_id.id, leave.date_from, leave.date_to)   
+            cr.execute(sql)
+            employee_work_dates = [r[0] for r in cr.fetchall()]
+            if employee_work_dates:
+                raise osv.except_osv(_('Warning!'),_('The Leave Day do not suitable'))
+                return False
+            
+            sql = '''
+                select id from arul_hr_permission_onduty where employee_id = %s and non_availability_type_id ='on_duty' and (from_date between '%s' and '%s' or to_date between '%s' and '%s' or '%s' between from_date and to_date or '%s' between from_date and to_date)  and approval = 't'
+            '''%(leave.employee_id.id, leave.date_from, leave.date_to,leave.date_from, leave.date_to,leave.date_from, leave.date_to)
+            cr.execute(sql)
+            employee_dates = [r[0] for r in cr.fetchall()]
+            if employee_dates:
+                raise osv.except_osv(_('Warning!'),_('The Leave Day do not suitable'))
+                return False
+        return True
+         
+    
     def name_get(self, cr, uid, ids, context=None):
         res = []
         if not ids:
@@ -1265,15 +1298,15 @@ class arul_hr_employee_leave_details(osv.osv):
 #         cr.execute(sql)
 #         employee_dates = [r[0] for r in cr.fetchall()]
 #         if employee_dates:
-#             raise osv.except_osv(_('Warning!'),_('sadfghj'))
-#         
+#             raise osv.except_osv(_('Warning!'),_('The Leave Day do not suitable'))
+#          
 #         sql = '''
 #             select * from arul_hr_audit_shift_time where employee_id = %s and work_date between '%s' and '%s'
 #         '''%(vals['employee_id'], vals['date_from'], vals['date_to'])   
 #         cr.execute(sql)
 #         employee_work_dates = [r[0] for r in cr.fetchall()]
 #         if employee_work_dates:
-#             raise osv.except_osv(_('Warning!'),_('abcdfg'))
+#             raise osv.except_osv(_('Warning!'),_('The Leave Day do not suitable'))
         
                 
                    
@@ -1531,6 +1564,7 @@ class arul_hr_employee_leave_details(osv.osv):
     _constraints = [
         (_check_days, _(''), ['date_from', 'date_to']),
         (_check_days_2, _(''), ['employee_id','date_from', 'date_to']),
+        (_check_date_holiday, _(''), ['employee_id','date_from', 'date_to']),
     ]
     
     def search(self, cr, uid, args, offset=0, limit=None, order=None, context=None, count=False):
@@ -2569,6 +2603,8 @@ class arul_hr_monthly_work_schedule(osv.osv):
               'year': fields.selection([(num, str(num)) for num in range(1950, 2026)], 'Year', required = True, states={'done': [('readonly', True)]}),
               'month': fields.selection([('1', 'January'),('2', 'February'), ('3', 'March'), ('4','April'), ('5','May'), ('6','June'), ('7','July'), ('8','August'), ('9','September'), ('10','October'), ('11','November'), ('12','December')], 'Month',required = True, states={'done': [('readonly', True)]}),
               'monthly_shift_line': fields.one2many('arul.hr.monthly.shift.schedule','monthly_work_id', 'Monthly Work Schedule', states={'done': [('readonly', True)]}),
+              'create_date': fields.datetime('Created Date',readonly = True),
+              'create_uid': fields.many2one('res.users','Created By',ondelete='restrict',readonly = True),
               'state':fields.selection([('draft', 'Draft'),('load', 'Load'),('done', 'Done')],'Status', readonly=True),
               }
     _defaults = {
@@ -4801,6 +4837,8 @@ class shift_change(osv.osv):
               'month': fields.selection([('1', 'January'),('2', 'February'), ('3', 'March'), ('4','April'), ('5','May'), ('6','June'), ('7','July'), ('8','August'), ('9','September'), ('10','October'), ('11','November'), ('12','December')], 'Work Schedule Month',required = True, states={'done': [('readonly', True)]}),
               'shift_id': fields.many2one('arul.hr.capture.work.shift','Shift to be Changed', required = True, states={'done': [('readonly', True)]}),
               'apply_weekly_off': fields.boolean('Apply schedule change to weekly off days?', states={'done': [('readonly', True)]}),
+              'create_date': fields.datetime('Created Date',readonly = True),
+              'create_uid': fields.many2one('res.users','Created By',ondelete='restrict',readonly = True),
               'state':fields.selection([('draft', 'Draft'),('submitted', 'Submitted'),('rejected', 'Rejected'),('approved', 'Approved')],'Status', readonly=True),
               }
     _defaults = {

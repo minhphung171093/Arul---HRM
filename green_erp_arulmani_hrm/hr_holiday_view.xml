@@ -393,6 +393,8 @@
 					<field name="out_time" widget="float_time"/>
 					<field name="total_hours" widget="float_time"/>									
 					<field name="approval"/>
+					<field name="create_date"/>
+					<field name="create_uid"/>
 					<field name=""/>				
 					<field name="state"/>
 					<field name="diff_day" invisible='1'/>
@@ -427,7 +429,11 @@
 							<field name="total_shift_worked" />
 							<field name="type"/>
 							<field name="approval"/>
+							<field name="create_date"/>
+							<field name="create_uid"/>
 							<field name="reason_for_edit" attrs="{'invisible':[('time_change_flag','=',False)],'required':[('time_change_flag','=',True)]}" />
+							<field name="create_date"/>
+							<field name="create_uid"/>
 							<field name="diff_day" invisible='1'/>
 							
 							<field name="time_change_flag" invisible='1'/>
@@ -624,6 +630,8 @@
 					<field name="section_id" options="{'create': false, 'create_edit': false}"/>
 					<field name="year"/>
 					<field name="month"/>
+					<field name="create_date"/>
+					<field name="create_uid"/>
 					<field name="state" widget="statusbar" statusbar_visible="draft,done" statusbar_colors='{"draft":"blue","done":"blue"}'/>
 				</tree>
 			</field>
@@ -646,6 +654,8 @@
 							<field name="section_id" on_change="onchange_year_month(department_id,section_id,month,year)" domain="[('department_id','=',department_id)]" options="{'create': false, 'create_edit': false}"/>
 							<field name="year" on_change="onchange_year_month(department_id,section_id,month,year)"/>
 							<field name="month" on_change="onchange_year_month(department_id,section_id,month,year)"/>
+							<field name="create_date"/>
+							<field name="create_uid"/>
 						</group>
 						<notebook>
 							<page string = 'Monthly Shift Schedule'>
@@ -889,6 +899,8 @@
 					<field name="date_from"/>
 					<field name="date_to"/>
 					<field name="shift_id"/>
+					<field name="create_date"/>
+					<field name="create_uid"/>
 					<!-- <field name="apply_weekly_off"/>  -->
 					<field name="state"/>
 				</tree>
@@ -918,6 +930,8 @@
 							<field name="date_to" domain="[('name','&lt;=',num_of_month)]" options="{'limit':31,'create': false, 'create_edit': false}"/>
 							<field name="shift_id" options="{'create': false, 'create_edit': false}"/>
 							<field name="num_of_month" invisible='1'/>
+							<field name="create_date"/>
+							<field name="create_uid"/>
 						</group>
 						<!-- <group col='4' colspan='4'>
 							<field name="apply_weekly_off"/>
