@@ -14,6 +14,8 @@ class arul_hr_payroll_area(osv.osv):
     _columns = {
         'name': fields.char('Name', size=1024, required = True),
          'code': fields.char('Code', size=1024, required = True),
+        'create_date': fields.datetime('Created Date',readonly = True),
+        'create_uid': fields.many2one('res.users','Created By',ondelete='restrict',readonly = True),
         
     }
     def create(self, cr, uid, vals, context=None):
@@ -50,7 +52,8 @@ class arul_hr_payroll_sub_area(osv.osv):
     _columns = {
         'name': fields.char('Name', size=1024, required = True),
          'code': fields.char('Code', size=1024, required = True),
-        
+        'create_date': fields.datetime('Created Date',readonly = True),
+        'create_uid': fields.many2one('res.users','Created By',ondelete='restrict',readonly = True),
     }
     
     def create(self, cr, uid, vals, context=None):
@@ -503,6 +506,8 @@ class arul_hr_payroll_contribution_parameters(osv.osv):
         'employer_esi_con': fields.float('Employer ESI Contribution (%)'),
         'emp_lwf_amt': fields.float('Employee Labor Welfare Fund (LWF) Amt'),
         'employer_lwf_con_amt': fields.float('Employer LWF Contribution Amt'),
+        'create_date': fields.datetime('Created Date',readonly = True),
+        'create_uid': fields.many2one('res.users','Created By',ondelete='restrict',readonly = True),
         }
     
     def _check_category(self, cr, uid, ids, context=None):

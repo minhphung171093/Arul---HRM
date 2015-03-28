@@ -10,6 +10,8 @@
 					<field name="name"/>
 					<field name="date"/>
 					<field name="is_local_holiday"/>
+					<field name ="create_date"/>
+                	<field name ="create_uid"/>
 				</tree>
 			</field>
 		</record>
@@ -22,8 +24,11 @@
                 	<sheet>
 	                    <group>
 	                    	<field name="name"/>
-				<field name="date"/>
-				<field name="is_local_holiday"/>
+							<field name="date"/>
+							<field name="is_local_holiday"/>
+							<newline/>
+							<field name ="create_date"/>
+                			<field name ="create_uid"/>
 	               	  	</group>
                 	</sheet>
                 </form>
@@ -52,6 +57,8 @@
 					<field name="maximum_limit"/>
 					<field name="carryforward_nextyear"/>
 					<field name="condition"/>
+					<field name ="create_date"/>
+                	<field name ="create_uid"/>
 				</tree>
 			</field>
 		</record>
@@ -71,6 +78,9 @@
 							<field name="maximum_limit"/>
 							<field name="carryforward_nextyear"/>
 							<field name="condition"/>
+							<newline/>
+							<field name ="create_date"/>
+                			<field name ="create_uid"/>
 	               	  	</group>
                 	</sheet>
                 </form>
@@ -93,6 +103,8 @@
 				<tree string="Leave Types">
 					<field name="code"/>
 					<field name="name"/>
+					<field name ="create_date"/>
+                	<field name ="create_uid"/>
 				</tree>
 			</field>
 		</record>
@@ -107,6 +119,8 @@
 		                <group>    
 			                <field name="code"/>
 							<field name="name"/>
+							<field name ="create_date"/>
+                			<field name ="create_uid"/>
 		                </group>   	
 		         	</sheet>
 		         </form>
@@ -134,6 +148,8 @@
 					<field name="end_time" widget="float_time"/>
 					<field name="time_total" widget="float_time"/>
 					<field name="allowance"/>
+					<field name ="create_date"/>
+                	<field name ="create_uid"/>
 				</tree>
 			</field>
 		</record>
@@ -149,6 +165,9 @@
 			                <field name="code"/>
 							<field name="name"/>
 							<field name="description"/>
+							<newline/>
+							<field name ="create_date"/>
+                			<field name ="create_uid"/>
 						</group>
 						<group col='4' colspan='2'>
 							<field name="start_time" widget="float_time"/>
@@ -278,6 +297,7 @@
 					<field name="time_total" widget="float_time"/>
 					<field name="reason"/>
 					<field name="approval"/>
+					<field name="state" widget="statusbar" statusbar_visible="draft,done,cancel" statusbar_colors='{"draft":"blue","done":"blue"}'/>
 				</tree>
 			</field>
 		</record>
@@ -290,6 +310,9 @@
 	            <form string="Permission and On Duty" version="7.0">   
 	            	<header>
 	                    <button name="print_gate_pass" attrs="{'invisible':['|',('approval','=',False),('non_availability_type_id','!=','permission')]}" string="Print Gate Pass" type="object" class="oe_highlight"/>
+	                	<button name="approve_permission_onduty" states = 'draft' string="Approve" type="object" class="oe_highlight"/>
+	                	<button name="reject_permission_onduty" states = 'draft' string="Reject" type="object" class="oe_highlight"/>
+	                	<field name="state" widget="statusbar" statusbar_visible="draft,done,cancel" statusbar_colors='{"draft":"blue","done":"blue"}'/>
 	                </header>
 	            	<sheet>
 		                <group col='4' colspan='2'>    
@@ -322,6 +345,7 @@
 										<field name="time_total" widget="float_time"/>
 										<field name="reason"/>
 										<field name="approval"/>
+										<field name="state" invisible = '1'/>
 									</tree>
 								</field>
 							</page>
@@ -520,6 +544,7 @@
 										<field name="total_shift_worked"/>
 										<field name="reason"/>
 										<field name="approval"/>
+										<field name="state" invisible='1'/>
 									</tree>
 								</field>
 							</page>
@@ -631,7 +656,7 @@
 	            <form string="Monthly Work Schedule" version="7.0">
 	            	<header>
 	                   <!-- <button name="load_previous_month" states='draft' string="Load Previous Month Schedule" type="object" class="oe_highlight" />--> <!-- TPT: BalamuruganPurushothaman - ON 21/02/2015 - TO HIDE THIS TEMPORARILY -->
-	                    <button name="approve_current_month" states='load,draft' string="Approve Current Month Schedule" type="object" class="oe_highlight" groups="base.group_erp_manager" />
+	                    <button name="approve_current_month" states='load,draft' string="Approve Current Month Schedule" type="object" class="oe_highlight" groups="green_erp_arulmani_hrm.group_vvti_hrm_hr_manager" />
 	                    <field name="state" widget="statusbar" statusbar_visible="draft,done" statusbar_colors='{"draft":"blue","done":"blue"}'/>
 	                </header> 
 	            	<sheet>
@@ -928,7 +953,8 @@
             <field name="view_mode">tree,form</field>
             <!-- <field name="domain">[('state','=','draft'), ('state','=','submitted'),('state','=','approved'),('state','=', 'rejected')]</field>
              -->
-            <field name="domain">[('state','!=','draft')]</field> 
+            <field name="domain">[('state','=','draft')]</field>
+            <field name="context">{'search_for_shift_change_pri_auditor':1}</field>
             <field name="view_id" ref="view_shift_change_tree_vew"/>
         </record>
         
@@ -945,6 +971,7 @@
             <field name="view_mode">tree,form</field>
             <!-- <field name="domain">[('state','=','submitted')]</field>  -->
             <field name="domain">[('state','!=','draft')]</field>
+            <field name="context">{'search_for_shift_change_pri_auditor':1}</field>
             <field name="view_id" ref="view_shift_change_tree_vew"/>
         </record>
         
@@ -1191,6 +1218,8 @@
 				<tree string="Work Center">
 					<field name="code"/>
 					<field name="name"/>
+					                	<field name ="create_date"/>
+                	<field name ="create_uid"/>
 				</tree>
 			</field>
 		</record>
@@ -1204,6 +1233,8 @@
 		                <group>    
 			                <field name="code"/>
 							<field name="name"/>
+							                	<field name ="create_date"/>
+                	<field name ="create_uid"/>
 		                </group>   	
 		         	</sheet>
 		         </form>
@@ -1226,6 +1257,8 @@
 				<tree string="Cost Center">
 					<field name="code"/>
 					<field name="name"/>
+					                	<field name ="create_date"/>
+                	<field name ="create_uid"/>
 				</tree>
 			</field>
 		</record>
@@ -1239,6 +1272,8 @@
 		                <group>    
 			                <field name="code"/>
 							<field name="name"/>
+							                	<field name ="create_date"/>
+                	<field name ="create_uid"/>
 		                </group>   	
 		         	</sheet>
 		         </form>
@@ -1261,6 +1296,8 @@
 				<tree string="Equipment Master">
 					<field name="code"/>
 					<field name="name"/>
+					<field name ="create_date"/>
+                	<field name ="create_uid"/>
 				</tree>
 			</field>
 		</record>
@@ -1274,6 +1311,8 @@
 		                <group>    
 			                <field name="code"/>
 							<field name="name"/>
+							                	<field name ="create_date"/>
+                	<field name ="create_uid"/>
 		                </group>   	
 		         	</sheet>
 		         </form>

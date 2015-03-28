@@ -44,7 +44,7 @@
             <field name="arch" type="xml">
 	            <form string="Purchase Indent" version="7.0">   
 	             <header>
-	            		<button name="bt_approve" states='draft' string="Confirm" type="object" class="oe_highlight" groups="green_erp_arulmani_purchase.group_vvti_purchase_admin"/>
+	            		<button name="bt_approve" states='draft' string="Confirm" type="object" class="oe_highlight" groups="green_erp_arulmani_purchase.group_vvti_purchase_admin,green_erp_arulmani_purchase.group_vvti_hrm_plant_mm_user"/>
 	                    <button name="bt_cancel" states='draft, done' string="Cancel" type="object" class="oe_highlight" /> 
 	                    <field name="state" widget="statusbar" statusbar_visible="draft,cancel,done" statusbar_colors='{"draft":"blue","cancel":"blue"}'/>
 	            </header>    
@@ -56,7 +56,7 @@
 							<field name="document_type" on_change="onchange_document_type(document_type)" />
 							<field name="intdent_cate" />
 							<field name="department_id" options="{'create': false, 'create_edit': false}" />
-							<field name="create_uid" on_change="onchange_create_uid(create_uid)" options="{'create': false, 'create_edit': false}"  />
+							<field name="create_uid" options="{'create': false, 'create_edit': false}"  />
 							<field name="section_id" domain="[('department_id','=',department_id)]" options="{'create': false, 'create_edit': false}" />
 							<field name="date_expect"/>
 							<field name="requisitioner" options="{'create': false, 'create_edit': false}" domain="[('department_id','=',department_id)]"  />
@@ -108,7 +108,7 @@
         <menuitem action="action_view_tpt_purchase_indent_form"
             id="menu_action_view_tpt_purchase_indent_form"
             parent="purchase.menu_procurement_management" sequence="11"
-            groups="green_erp_arulmani_purchase.group_vvti_purchase_user"/>
+            groups="green_erp_arulmani_purchase.group_vvti_purchase_user,green_erp_arulmani_purchase.group_vvti_hrm_plant_mm_user"/>
             
 	   	<record id="view_tpt_purchase_indent_line_tree" model="ir.ui.view">
 			<field name="name">tpt.purchase.indent.line.tree</field>
@@ -956,7 +956,7 @@
             <field name="arch" type="xml">
 	            <form string="Goods Return Request" version="7.0">   
 	            <header>
-	                    <button name="bt_approve" states='draft' string="Approve Request" type="object" class="oe_highlight" groups="green_erp_arulmani_purchase.group_vvti_purchase_admin"/>
+	                    <button name="bt_approve" states='draft' string="Approve Request" type="object" class="oe_highlight" groups="green_erp_arulmani_purchase.group_vvti_purchase_admin,green_erp_arulmani_purchase.group_vvti_hrm_plant_mm_user"/>
 	                    <button name="bt_cancel" states='draft' string="Cancel Request" type="object" class="oe_highlight" />
 	                    <field name="state" widget="statusbar" statusbar_visible="draft,cancel,done" statusbar_colors='{"draft":"blue"}'/>
 	            </header>
@@ -1156,7 +1156,7 @@
             <field name="arch" type="xml">
 	            <form string="Quanlity Inspection Result" version="7.0">   
 	             <header>
-	            		<button name="bt_approve" states='draft' string="Approve" type="object" class="oe_highlight" groups="green_erp_arulmani_purchase.group_vvti_purchase_admin"/>
+	            		<button name="bt_approve" states='draft' string="Approve" type="object" class="oe_highlight" groups="green_erp_arulmani_purchase.group_vvti_purchase_admin,green_erp_arulmani_purchase.group_vvti_hrm_plant_mm_user"/>
 	                    <button name="bt_reject" states='draft' string="Reject" type="object" class="oe_highlight" />
 	                    <field name="state" widget="statusbar" statusbar_visible="draft,cancel,done" statusbar_colors='{"draft":"blue","cancel":"blue"}'/>
 	            </header>    
