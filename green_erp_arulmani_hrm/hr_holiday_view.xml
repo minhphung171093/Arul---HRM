@@ -280,6 +280,7 @@
 					<field name="time_total" widget="float_time"/>
 					<field name="reason"/>
 					<field name="approval"/>
+					<field name="state" widget="statusbar" statusbar_visible="draft,done,cancel" statusbar_colors='{"draft":"blue","done":"blue"}'/>
 				</tree>
 			</field>
 		</record>
@@ -292,6 +293,9 @@
 	            <form string="Permission and On Duty" version="7.0">   
 	            	<header>
 	                    <button name="print_gate_pass" attrs="{'invisible':['|',('approval','=',False),('non_availability_type_id','!=','permission')]}" string="Print Gate Pass" type="object" class="oe_highlight"/>
+	                	<button name="approve_permission_onduty" states = 'draft' string="Approve" type="object" class="oe_highlight"/>
+	                	<button name="reject_permission_onduty" states = 'draft' string="Reject" type="object" class="oe_highlight"/>
+	                	<field name="state" widget="statusbar" statusbar_visible="draft,done,cancel" statusbar_colors='{"draft":"blue","done":"blue"}'/>
 	                </header>
 	            	<sheet>
 		                <group col='4' colspan='2'>    
@@ -324,6 +328,7 @@
 										<field name="time_total" widget="float_time"/>
 										<field name="reason"/>
 										<field name="approval"/>
+										<field name="state" invisible = '1'/>
 									</tree>
 								</field>
 							</page>
@@ -390,6 +395,8 @@
 					<field name="out_time" widget="float_time"/>
 					<field name="total_hours" widget="float_time"/>									
 					<field name="approval"/>
+					<field name="create_date"/>
+					<field name="create_uid"/>
 					<field name=""/>				
 					<field name="state"/>
 					<field name="diff_day" invisible='1'/>
@@ -424,7 +431,11 @@
 							<field name="total_shift_worked" />
 							<field name="type"/>
 							<field name="approval"/>
+							<field name="create_date"/>
+							<field name="create_uid"/>
 							<field name="reason_for_edit" attrs="{'invisible':[('time_change_flag','=',False)],'required':[('time_change_flag','=',True)]}" />
+							<field name="create_date"/>
+							<field name="create_uid"/>
 							<field name="diff_day" invisible='1'/>
 							
 							<field name="time_change_flag" invisible='1'/>
@@ -522,6 +533,7 @@
 										<field name="total_shift_worked"/>
 										<field name="reason"/>
 										<field name="approval"/>
+										<field name="state" invisible='1'/>
 									</tree>
 								</field>
 							</page>
@@ -620,6 +632,8 @@
 					<field name="section_id" options="{'create': false, 'create_edit': false}"/>
 					<field name="year"/>
 					<field name="month"/>
+					<field name="create_date"/>
+					<field name="create_uid"/>
 					<field name="state" widget="statusbar" statusbar_visible="draft,done" statusbar_colors='{"draft":"blue","done":"blue"}'/>
 				</tree>
 			</field>
@@ -633,7 +647,7 @@
 	            <form string="Monthly Work Schedule" version="7.0">
 	            	<header>
 	                   <!-- <button name="load_previous_month" states='draft' string="Load Previous Month Schedule" type="object" class="oe_highlight" />--> <!-- TPT: BalamuruganPurushothaman - ON 21/02/2015 - TO HIDE THIS TEMPORARILY -->
-	                    <button name="approve_current_month" states='load,draft' string="Approve Current Month Schedule" type="object" class="oe_highlight" groups="base.group_erp_manager" />
+	                    <button name="approve_current_month" states='load,draft' string="Approve Current Month Schedule" type="object" class="oe_highlight" groups="green_erp_arulmani_hrm.group_vvti_hrm_hr_manager" />
 	                    <field name="state" widget="statusbar" statusbar_visible="draft,done" statusbar_colors='{"draft":"blue","done":"blue"}'/>
 	                </header> 
 	            	<sheet>
@@ -642,6 +656,8 @@
 							<field name="section_id" on_change="onchange_year_month(department_id,section_id,month,year)" domain="[('department_id','=',department_id)]" options="{'create': false, 'create_edit': false}"/>
 							<field name="year" on_change="onchange_year_month(department_id,section_id,month,year)"/>
 							<field name="month" on_change="onchange_year_month(department_id,section_id,month,year)"/>
+							<field name="create_date"/>
+							<field name="create_uid"/>
 						</group>
 						<notebook>
 							<page string = 'Monthly Shift Schedule'>
@@ -885,6 +901,8 @@
 					<field name="date_from"/>
 					<field name="date_to"/>
 					<field name="shift_id"/>
+					<field name="create_date"/>
+					<field name="create_uid"/>
 					<!-- <field name="apply_weekly_off"/>  -->
 					<field name="type"/>
 					<field name="state"/>
@@ -916,6 +934,8 @@
 							<field name="shift_id" attrs="{'invisible':[('type','=','shift_group')],'required':[('type','=','single_shift')]}" options="{'create': false, 'create_edit': false}"/>
 							<field name="shift_group_id" attrs="{'invisible':[('type','=','single_shift')],'required':[('type','=','shift_group')]}" options="{'create': false, 'create_edit': false}"/>
 							<field name="num_of_month" invisible='1'/>
+							<field name="create_date"/>
+							<field name="create_uid"/>
 						</group>
 						<!-- <group col='4' colspan='4'>
 							<field name="apply_weekly_off"/>
@@ -932,7 +952,8 @@
             <field name="view_mode">tree,form</field>
             <!-- <field name="domain">[('state','=','draft'), ('state','=','submitted'),('state','=','approved'),('state','=', 'rejected')]</field>
              -->
-            <field name="domain">[('state','!=','draft')]</field> 
+            <field name="domain">[('state','=','draft')]</field>
+            <field name="context">{'search_for_shift_change_pri_auditor':1}</field>
             <field name="view_id" ref="view_shift_change_tree_vew"/>
         </record>
         
@@ -949,6 +970,7 @@
             <field name="view_mode">tree,form</field>
             <!-- <field name="domain">[('state','=','submitted')]</field>  -->
             <field name="domain">[('state','!=','draft')]</field>
+            <field name="context">{'search_for_shift_change_pri_auditor':1}</field>
             <field name="view_id" ref="view_shift_change_tree_vew"/>
         </record>
         
