@@ -45,7 +45,7 @@
 	        <field name="name">Purchase Store Mgr</field>
 	        <field name="category_id" ref="module_category_vvti_purchase"/>
 	        <field name="users" eval="[(4, ref('base.user_root'))]"/>
-	        <field name="implied_ids" eval="[(4, ref('group_vvti_purchase_store_user'))]"/>
+	        <field name="implied_ids" eval="[(4, ref('group_vvti_purchase_store_user')),(4, ref('green_erp_arulmani_hrm.group_vvti_unit_user'))]"/>
 	    </record>
 	    
 	    <record id="group_vvti_purchase_gm" model="res.groups">
