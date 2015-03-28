@@ -637,7 +637,7 @@
 	            <form string="Monthly Work Schedule" version="7.0">
 	            	<header>
 	                   <!-- <button name="load_previous_month" states='draft' string="Load Previous Month Schedule" type="object" class="oe_highlight" />--> <!-- TPT: BalamuruganPurushothaman - ON 21/02/2015 - TO HIDE THIS TEMPORARILY -->
-	                    <button name="approve_current_month" states='load,draft' string="Approve Current Month Schedule" type="object" class="oe_highlight" groups="base.group_erp_manager" />
+	                    <button name="approve_current_month" states='load,draft' string="Approve Current Month Schedule" type="object" class="oe_highlight" groups="green_erp_arulmani_hrm.group_vvti_hrm_hr_manager" />
 	                    <field name="state" widget="statusbar" statusbar_visible="draft,done" statusbar_colors='{"draft":"blue","done":"blue"}'/>
 	                </header> 
 	            	<sheet>
@@ -934,7 +934,8 @@
             <field name="view_mode">tree,form</field>
             <!-- <field name="domain">[('state','=','draft'), ('state','=','submitted'),('state','=','approved'),('state','=', 'rejected')]</field>
              -->
-            <field name="domain">[('state','!=','draft')]</field> 
+            <field name="domain">[('state','=','draft')]</field>
+            <field name="context">{'search_for_shift_change_pri_auditor':1}</field>
             <field name="view_id" ref="view_shift_change_tree_vew"/>
         </record>
         
@@ -951,6 +952,7 @@
             <field name="view_mode">tree,form</field>
             <!-- <field name="domain">[('state','=','submitted')]</field>  -->
             <field name="domain">[('state','!=','draft')]</field>
+            <field name="context">{'search_for_shift_change_pri_auditor':1}</field>
             <field name="view_id" ref="view_shift_change_tree_vew"/>
         </record>
         
