@@ -991,7 +991,7 @@ class tpt_blanket_order(osv.osv):
              states={'cancel': [('readonly', True)], 'done':[('readonly', True)], 'approve':[('readonly', True)]}),
         
         'blank_consignee_line': fields.one2many('tpt.consignee', 'blanket_consignee_id', 'Consignee', states={'cancel': [('readonly', True)], 'done':[('readonly', True)], 'approve':[('readonly', True)]}), 
-        'state':fields.selection([('draft', 'Draft'),('cancel', 'Cancel'),('done', 'Closed'), ('approve', 'Approve')],'Status', readonly=True),
+        'state':fields.selection([('draft', 'Draft'),('cancel', 'Cancel'),('done', 'Closed'), ('approve', 'Approved')],'Status', readonly=True),
         'flag2':fields.boolean(''),
     }
     
@@ -1058,6 +1058,7 @@ class tpt_blanket_order(osv.osv):
             vals.update({
                         'invoice_address': customer.street or False,
                         'street2': customer.street2 or False,
+                        'street3': customer.street3 or False,
                         'city': customer.city or False,
                         'country_id': customer.country_id and customer.country_id.id or False,
                         'state_id': customer.state_id and customer.state_id.id or False,
@@ -2064,7 +2065,7 @@ class tpt_batch_allotment_line(osv.osv):
                 for product in product_info_id:
                     res['value'].update({
                                          'product_type':product.product_type or False,
-                                        'application_id':product.application_id or False,
+                                        'application_id':product.application_id.id or False,
                                         'uom_po_id':product.uom_po_id and product.uom_po_id.id or False,
                                          })
         else:
