@@ -135,8 +135,8 @@ class arul_hr_employee_action_history(osv.osv):
         'action_id': fields.many2one('arul.employee.actions','Action', required=True,ondelete='restrict'),
         'action_type_id': fields.many2one('arul.employee.action.type','Reason', required=True,ondelete='restrict'),
         'action_date': fields.date('Action Date'),
-        'create_date': fields.datetime('Created Date'),
-        'create_uid': fields.many2one('res.users','Created By',ondelete='restrict'),
+        'create_date': fields.datetime('Created Date',readonly=True),
+        'create_uid': fields.many2one('res.users','Created By',ondelete='restrict',readonly=True),
         #'period_from': fields.date('Period From'), TPT
         'period_from': fields.date('With Effective From'),
         'period_to': fields.date('Period to'), # THIS IS NOT USED
