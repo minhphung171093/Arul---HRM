@@ -94,7 +94,7 @@ class tpt_purchase_indent(osv.osv):
 
     def create(self, cr, uid, vals, context=None):
         user = self.pool.get('res.users').browse(cr,uid,uid)
-        vals['department_id'] = user.employee_id and user.employee_id.department_id and user.employee_id.department_id.id or False
+#         vals['department_id'] = user.employee_id and user.employee_id.department_id and user.employee_id.department_id.id or False
         if 'document_type' in vals:
             sql = '''
                 select code from account_fiscalyear where '%s' between date_start and date_stop
@@ -162,14 +162,14 @@ class tpt_purchase_indent(osv.osv):
             cr.execute(sql)
             dates = cr.dictfetchone()['date_indent']
         return {'value': {'date_expect':dates}}
-    def onchange_create_uid(self, cr, uid, ids,create_uid=False, context=None):
-        vals = {}
-        user = self.pool.get('res.users').browse(cr,uid,uid)
-        vals = {
-                'department_id': user.employee_id and user.employee_id.department_id and user.employee_id.department_id.id,
-                'section_id': user.employee_id and user.employee_id.section_id and user.employee_id.section_id.id
-                }
-        return {'value': vals}
+#     def onchange_create_uid(self, cr, uid, ids,create_uid=False, context=None):
+#         vals = {}
+#         user = self.pool.get('res.users').browse(cr,uid,uid)
+#         vals = {
+#                 'department_id': user.employee_id and user.employee_id.department_id and user.employee_id.department_id.id,
+#                 'section_id': user.employee_id and user.employee_id.section_id and user.employee_id.section_id.id
+#                 }
+#         return {'value': vals}
     
     def onchange_document_type(self, cr, uid, ids,document_type=False, context=None):
         vals = {}
@@ -3059,7 +3059,7 @@ class tpt_material_request(osv.osv):
     
     def create(self, cr, uid, vals, context=None):
         user = self.pool.get('res.users').browse(cr,uid,uid)
-        vals['department_id'] = user.employee_id and user.employee_id.department_id and user.employee_id.department_id.id or False
+#         vals['department_id'] = user.employee_id and user.employee_id.department_id and user.employee_id.department_id.id or False
         if vals.get('name','/')=='/':
             sql = '''
                 select code from account_fiscalyear where '%s' between date_start and date_stop
