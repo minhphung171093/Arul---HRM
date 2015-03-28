@@ -15,6 +15,8 @@ class arul_hr_holiday_special(osv.osv):
         'name' : fields.char('Holiday Name', size = 1024, required = True),
         'date' : fields.date('Date', required = True),
 	    'is_local_holiday': fields.boolean('Is Local Holiday?'),
+        'create_date': fields.datetime('Created Date',readonly = True),
+        'create_uid': fields.many2one('res.users','Created By',ondelete='restrict',readonly = True),
     }
     def _check(self,cr,uid,ids):
         obj = self.browse(cr,uid,ids[0])
@@ -39,6 +41,8 @@ class arul_hr_leave_master(osv.osv):
         'maximum_limit': fields.integer('Maximum Limit Applicable'),
         'carryforward_nextyear': fields.boolean('Is Carry Forward for Next Year'),
         'condition': fields.integer('Eligible per Annum'),
+        'create_date': fields.datetime('Created Date',readonly = True),
+        'create_uid': fields.many2one('res.users','Created By',ondelete='restrict',readonly = True),
     }
     def _check_sub_category_id(self, cr, uid, ids, context=None):
         for sub_cate in self.browse(cr, uid, ids, context=context):
@@ -81,7 +85,9 @@ class arul_hr_leave_types(osv.osv):
     _name='arul.hr.leave.types'
     _columns={
               'code':fields.char('Code',size=256,required = True),
-              'name':fields.char('Name',size=256,required =True)
+              'name':fields.char('Name',size=256,required =True),
+              'create_date': fields.datetime('Created Date',readonly = True),
+              'create_uid': fields.many2one('res.users','Created By',ondelete='restrict',readonly = True),
               }
     def create(self, cr, uid, vals, context=None):
         if 'code' in vals:
@@ -141,6 +147,8 @@ class arul_hr_capture_work_shift(osv.osv):
               'end_time': fields.float('Shift End Time'),
               'time_total': fields.function(_time_total, string='Shift Total Hours', multi='sums', help="The total amount."),
               'allowance': fields.float('Shift Allowance'),
+              'create_date': fields.datetime('Created Date',readonly = True),
+              'create_uid': fields.many2one('res.users','Created By',ondelete='restrict',readonly = True),
 	      #Start:TPT - BalamuruganPurushothaman on 18/02/2015 - To give grace period time for a Shift
 	      'min_start_time': fields.float('Minimum Shift Start Time'),
 	      'max_start_time': fields.float('Maximum Shift Start Time'),
@@ -287,6 +295,8 @@ class arul_hr_audit_shift_time(osv.osv):
               'g2_shift_count': fields.float('G2', states={'done': [('readonly', True)], 'cancel': [('readonly', True)]}),
               'b_shift_count': fields.float('B', states={'done': [('readonly', True)], 'cancel': [('readonly', True)]}),
               'c_shift_count': fields.float('C', states={'done': [('readonly', True)], 'cancel': [('readonly', True)]}),
+              'create_date': fields.datetime('Created Date',readonly = True),
+              'create_uid': fields.many2one('res.users','Created By',ondelete='restrict',readonly = True),
               
               }
     _defaults = {
@@ -714,19 +724,46 @@ class arul_hr_audit_shift_time(osv.osv):
                     punch_obj.write(cr,uid,[line_id.id],{'permission_onduty_id':emp_attendence_id,'approval':1}) 
             self.write(cr, uid, [line.id],{'approval': True, 'state':'done', 'time_evaluate_id':False})
         return True
-    
+    def create(self, cr, uid, vals, context=None):#Trong them
+        new_id = super(arul_hr_audit_shift_time, self).create(cr, uid, vals, context)
+        new = self.browse(cr, uid, new_id)
+        if new.work_date: 
+            month = new.work_date[5:7]
+            year = new.work_date[:4]
+            payroll_ids = self.pool.get('arul.hr.payroll.executions').search(cr,uid,[('month','=',month),('year','=',year),('state','=','approve'),('payroll_area_id','=',new.employee_id.payroll_area_id.id)])
+            if payroll_ids :
+                raise osv.except_osv(_('Warning!'),_('Payroll were already exists, not allowed to create again!'))
+        return new_id 
+    def write(self, cr, uid, ids, vals, context=None):#Trong them
+        new_write = super(arul_hr_audit_shift_time, self).write(cr, uid, ids, vals, context)
+        for new in self.browse(cr, uid, ids):   
+            if new.work_date: 
+                month = new.work_date[5:7]
+                year = new.work_date[:4]
+                payroll_ids = self.pool.get('arul.hr.payroll.executions').search(cr,uid,[('month','=',month),('year','=',year),('state','=','approve'),('payroll_area_id','=',new.employee_id.payroll_area_id.id)])
+                if payroll_ids :
+                    raise osv.except_osv(_('Warning!'),_('Payroll were already exists, not allowed to edit again!'))
+        return new_write    
     def approve_shift_time(self, cr, uid, ids, context=None):
         employee_leave_obj = self.pool.get('employee.leave')
         employee_leave_detail_obj = self.pool.get('employee.leave.detail')
         leave_type_obj = self.pool.get('arul.hr.leave.types')
 	#raise osv.except_osv(_('Warning!%s'),leave_type_obj)	
         for line in self.browse(cr, uid, ids):
+            #Trong them
+            if line.work_date: 
+                month = line.work_date[5:7]
+                year = line.work_date[:4]
+                payroll_ids = self.pool.get('arul.hr.payroll.executions').search(cr,uid,[('month','=',month),('year','=',year),('state','=','approve'),('payroll_area_id','=',line.employee_id.payroll_area_id.id)])
+                if payroll_ids :
+                    raise osv.except_osv(_('Warning!'),_('Payroll were already exists, not allowed to approve again!'))
+            #
             if line.employee_id.department_id and line.employee_id.department_id.primary_auditor_id and line.employee_id.department_id.primary_auditor_id.id==uid \
             or line.employee_id.department_id and line.employee_id.department_id.secondary_auditor_id and line.employee_id.department_id.secondary_auditor_id.id==uid:
                 continue
             else:
                 raise osv.except_osv(_('Warning!'),_('User does not have permission to approve for this employee department!'))
-        for line in self.browse(cr,uid,ids):
+#         for line in self.browse(cr,uid,ids):
 #             emp = self.pool.get('hr.employee')
             emp_attendence_obj = self.pool.get('arul.hr.employee.attendence.details')
             punch_obj = self.pool.get('arul.hr.punch.in.out.time')
@@ -1114,6 +1151,19 @@ class arul_hr_audit_shift_time(osv.osv):
     
     def reject_shift_time(self, cr, uid, ids, context=None):
         for line in self.browse(cr, uid, ids):
+            #Trong them
+            if line.work_date: 
+                month = line.work_date[5:7]
+                year = line.work_date[:4]
+                payroll_ids = self.pool.get('arul.hr.payroll.executions').search(cr,uid,[('month','=',month),('year','=',year),('state','=','approve'),('payroll_area_id','=',line.employee_id.payroll_area_id.id)])
+                if payroll_ids :
+                    raise osv.except_osv(_('Warning!'),_('Payroll were already exists, not allowed to reject again!'))
+            #
+            if line.employee_id.department_id and line.employee_id.department_id.primary_auditor_id and line.employee_id.department_id.primary_auditor_id.id==uid \
+            or line.employee_id.department_id and line.employee_id.department_id.secondary_auditor_id and line.employee_id.department_id.secondary_auditor_id.id==uid:
+                continue
+            else:
+                raise osv.except_osv(_('Warning!'),_('User does not have permission to approve for this employee department!'))
             self.write(cr, uid, [line.id],{'approval': False, 'state':'cancel', 'time_evaluate_id':False})
         return True
     #TPT
@@ -1234,11 +1284,46 @@ class arul_hr_employee_leave_details(osv.osv):
               'check_leave_type_lop_esi': fields.boolean('Check Leave Type LOP_ESI'),
               'reason_for_reject':fields.text('Reason for Rejection', states={'done': [('readonly', True)], 'cancel': [('readonly', True)]}),
               'check_reject_flag': fields.boolean('Check Reject Option'),
-              
+              'create_date': fields.datetime('Created Date',readonly = True),
+              'create_uid': fields.many2one('res.users','Created By',ondelete='restrict',readonly = True),
+              'type_half': fields.selection([('first_half','First Half'),('second_half','Second Half')],'Type Half'),
+              'day': fields.many2one('tpt.month','Day'),
               }
     _defaults = {
         'state':'draft',
+        'type_half': 'first_half',
     }
+    
+    def _check_date_holiday(self, cr, uid, ids, context=None):
+        for leave in self.browse(cr, uid, ids, context=context):
+            sql = '''
+                select id from arul_hr_permission_onduty where employee_id = %s and non_availability_type_id ='permission' and date between '%s' and '%s' and approval = 't'
+            '''%(leave.employee_id.id, leave.date_from, leave.date_to)   
+            cr.execute(sql)
+            employee_dates = [r[0] for r in cr.fetchall()]
+            if employee_dates:
+                raise osv.except_osv(_('Warning!'),_('The Leave Day do not suitable'))
+                return False
+              
+            sql = '''
+                select id from arul_hr_audit_shift_time where employee_id = %s and work_date between '%s' and '%s' and approval = 't'
+            '''%(leave.employee_id.id, leave.date_from, leave.date_to)   
+            cr.execute(sql)
+            employee_work_dates = [r[0] for r in cr.fetchall()]
+            if employee_work_dates:
+                raise osv.except_osv(_('Warning!'),_('The Leave Day do not suitable'))
+                return False
+            
+            sql = '''
+                select id from arul_hr_permission_onduty where employee_id = %s and non_availability_type_id ='on_duty' and (from_date between '%s' and '%s' or to_date between '%s' and '%s' or '%s' between from_date and to_date or '%s' between from_date and to_date)  and approval = 't'
+            '''%(leave.employee_id.id, leave.date_from, leave.date_to,leave.date_from, leave.date_to,leave.date_from, leave.date_to)
+            cr.execute(sql)
+            employee_dates = [r[0] for r in cr.fetchall()]
+            if employee_dates:
+                raise osv.except_osv(_('Warning!'),_('The Leave Day do not suitable'))
+                return False
+        return True
+         
     
     def name_get(self, cr, uid, ids, context=None):
         res = []
@@ -1251,7 +1336,49 @@ class arul_hr_employee_leave_details(osv.osv):
             res.append((record['id'], name))
         return res 
     
-    def create(self, cr, uid, vals, context=None):                       
+    def write(self, cr, uid, ids, vals, context=None):#Trong them
+        new_write = super(arul_hr_employee_leave_details, self).write(cr, uid, ids, vals, context)
+        for new in self.browse(cr, uid, ids):
+                if new.date_from: 
+                    month = new.date_from[5:7]
+                    year = new.date_from[:4]
+                    payroll_ids = self.pool.get('arul.hr.payroll.executions').search(cr,uid,[('month','=',month),('year','=',year),('state','=','approve'),('payroll_area_id','=',new.employee_id.payroll_area_id.id)])
+                    if payroll_ids :
+                        raise osv.except_osv(_('Warning!'),_('Payroll were already exists, not allowed to edit again!'))
+        return new_write        
+    
+    def create(self, cr, uid, vals, context=None):       
+
+
+        
+#         per_onduty_obj = self.pool.get('arul.hr.permission.onduty')  
+#         sql = '''
+#             select * from arul_hr_permission_onduty where employee_id = %s and date between '%s' and '%s' and approval = True
+#         '''%(vals['employee_id'], vals['date_from'], vals['date_to'])   
+#         cr.execute(sql)
+#         employee_dates = [r[0] for r in cr.fetchall()]
+#         if employee_dates:
+#             raise osv.except_osv(_('Warning!'),_('The Leave Day do not suitable'))
+#          
+#         sql = '''
+#             select * from arul_hr_audit_shift_time where employee_id = %s and work_date between '%s' and '%s'
+#         '''%(vals['employee_id'], vals['date_from'], vals['date_to'])   
+#         cr.execute(sql)
+#         employee_work_dates = [r[0] for r in cr.fetchall()]
+#         if employee_work_dates:
+#             raise osv.except_osv(_('Warning!'),_('The Leave Day do not suitable'))
+        
+        #Trong them
+        new_id = super(arul_hr_employee_leave_details, self).create(cr, uid, vals, context)
+        new = self.browse(cr, uid, new_id)
+        if new.date_from: 
+            month = new.date_from[5:7]
+            year = new.date_from[:4]
+            payroll_ids = self.pool.get('arul.hr.payroll.executions').search(cr,uid,[('month','=',month),('year','=',year),('state','=','approve'),('payroll_area_id','=',permission.employee_id.payroll_area_id.id)])
+            if payroll_ids :
+                raise osv.except_osv(_('Warning!'),_('Payroll were already exists, not allowed to create again!'))
+        #        
+                   
         #TPT START-By BalamuruganPurushothaman ON 14/03/2015-If CL/SL/C.OFF is taken a Half Day,
         #then system would not allow the same for next Half a day Except ESI/LOP
         if vals['haft_day_leave']:
@@ -1294,22 +1421,42 @@ class arul_hr_employee_leave_details(osv.osv):
         vals.update({'check_reject_flag':True}) #TPT-BalamurugaPurushothaman on 12/03/2015
         
         if 'date_from' in vals and 'date_to' in vals:
+            day_obj = self.pool.get('tpt.month')
             date_from = vals['date_from']
             date_to = vals['date_to']
             vals1 = vals
             vals2 = vals
+            vals13={}
+            vals23={}
             if date_from[5:7] != date_to[5:7]:
+                if vals['haft_day_leave']:
+                    if 'day' in vals:
+                        vals13={'day':vals['day'],'haft_day_leave':vals['haft_day_leave'],'type_half':vals['type_half']}
+                        vals23={'day':vals['day'],'haft_day_leave':vals['haft_day_leave'],'type_half':vals['type_half']}
+                        day = day_obj.browse(cr, uid, vals['day'])
+                        if day.name>=int(date_from[8:10]):
+                            vals23.update({'day':False})
+                            vals23.update({'haft_day_leave':False})
+                            vals23.update({'type_half':False})
+                        if day.name<=int(date_to[8:10]):
+                            vals13.update({'day':False})
+                            vals13.update({'haft_day_leave':False})
+                            vals13.update({'type_half':False})
                 num_of_month = calendar.monthrange(int(date_from[:4]),int(date_from[5:7]))[1]
-                vals2['date_from'] = date_from
+                vals1['date_from'] = date_from
                 vals1['date_to']=date_from[:4]+'-'+date_from[5:7]+'-'+str(num_of_month)
+                vals1.update(vals13)
                 new_id1 = super(arul_hr_employee_leave_details, self).create(cr, uid, vals1, context)
+                vals2.update(vals23)
                 vals2['date_from'] = date_to[:4]+'-'+date_to[5:7]+'-01'
                 vals2['date_to'] = date_to
                 new_id2 = super(arul_hr_employee_leave_details, self).create(cr, uid, vals2, context)
-        if new_id1 or new_id2:
+        if new_id1:
             return new_id1
+        elif new_id2:
+            return new_id2
         else:
-            return super(arul_hr_employee_leave_details, self).create(cr, uid, vals, context)
+            return new_id
     
     def unlink(self, cr, uid, ids, context=None):
         leave_details = self.read(cr, uid, ids, ['state'], context=context)
@@ -1404,6 +1551,16 @@ class arul_hr_employee_leave_details(osv.osv):
     def process_leave_request(self, cr, uid, ids, context=None):
         DATETIME_FORMAT = "%Y-%m-%d"
         for line in self.browse(cr, uid, ids):
+             #Trong them
+            if line.date_from: 
+                month = line.date_from[5:7]
+                year = line.date_from[:4]
+                payroll_ids = self.pool.get('arul.hr.payroll.executions').search(cr,uid,[('month','=',month),('year','=',year),('state','=','approve'),('payroll_area_id','=',line.employee_id.payroll_area_id.id)])
+                if payroll_ids :
+                    raise osv.except_osv(_('Warning!'),_('Payroll were already exists, not allowed to approve again!'))
+            #
+            
+            
             if line.employee_id.department_id and line.employee_id.department_id.primary_auditor_id and line.employee_id.department_id.primary_auditor_id.id==uid \
             or line.employee_id.department_id and line.employee_id.department_id.secondary_auditor_id and line.employee_id.department_id.secondary_auditor_id.id==uid:
                 from_dt = datetime.datetime.strptime(line.date_from, DATETIME_FORMAT)
@@ -1438,10 +1595,23 @@ class arul_hr_employee_leave_details(osv.osv):
         for line in self.browse(cr, uid, ids): 
             #vals = {}
             #vals.update({'check_reject_flag':True})
+            
+             #Trong them
+            if line.date_from: 
+                month = line.date_from[5:7]
+                year = line.date_from[:4]
+                payroll_ids = self.pool.get('arul.hr.payroll.executions').search(cr,uid,[('month','=',month),('year','=',year),('state','=','approve'),('payroll_area_id','=',line.employee_id.payroll_area_id.id)])
+                if payroll_ids :
+                    raise osv.except_osv(_('Warning!'),_('Payroll were already exists, not allowed to reject again!'))
+            #
+            
             if line.reason_for_reject:    
                 self.write(cr, uid, [line.id],{'state':'reject','leave_evaluate_id':False,'check_reject_flag':True})
             else:
                 raise osv.except_osv(_('Warning!'),_('Please Edit & Provide Reason for Rejection!'))
+            if line.employee_id.department_id and line.employee_id.department_id.primary_auditor_id and line.employee_id.department_id.primary_auditor_id.id==uid \
+            or line.employee_id.department_id and line.employee_id.department_id.secondary_auditor_id and line.employee_id.department_id.secondary_auditor_id.id==uid:
+                raise osv.except_osv(_('Warning!'),_('User does not have permission to approve for this employee department!'))
         return True  
     #TPT:E
     def cancel_leave_request(self, cr, uid, ids, context=None):
@@ -1449,6 +1619,9 @@ class arul_hr_employee_leave_details(osv.osv):
         for line in self.browse(cr, uid, ids):
             if line.date_from < date_now:
                 raise osv.except_osv(_('Warning!'),_('Can not Cancel for past day!'))
+            if line.employee_id.department_id and line.employee_id.department_id.primary_auditor_id and line.employee_id.department_id.primary_auditor_id.id==uid \
+            or line.employee_id.department_id and line.employee_id.department_id.secondary_auditor_id and line.employee_id.department_id.secondary_auditor_id.id==uid:
+                raise osv.except_osv(_('Warning!'),_('User does not have permission to approve for this employee department!'))
 #             sql = '''
 #                 update arul_hr_employee_leave_details set state='cancel', leave_evaluate_id = null where id = %s
 #             '''%(line.id)
@@ -1487,11 +1660,11 @@ class arul_hr_employee_leave_details(osv.osv):
             else:
                 if date_from == date_to:
                     sql2 = '''
-                        select id from arul_hr_employee_leave_details where id != %s and employee_id = %s and date_to = '%s' and haft_day_leave = True
-                    '''%(day.id,day.employee_id.id,date_to.strftime('%Y-%m-%d'))
+                        select id from arul_hr_employee_leave_details where id != %s and employee_id = %s and date_to = '%s' and haft_day_leave = True and type_half='%s'
+                    '''%(day.id,day.employee_id.id,date_to.strftime('%Y-%m-%d'),day.type_half)
                     cr.execute(sql2)
                     leave_t_ids = [row[0] for row in cr.fetchall()]
-                    if len(leave_t_ids) > 1:  
+                    if leave_t_ids:  
                         raise osv.except_osv(_('Warning!'),_('The Employee requested leave day for these date!'))
                 else:
                     if leave_ids or leave_1_ids:  
@@ -1500,6 +1673,7 @@ class arul_hr_employee_leave_details(osv.osv):
     _constraints = [
         (_check_days, _(''), ['date_from', 'date_to']),
         (_check_days_2, _(''), ['employee_id','date_from', 'date_to']),
+        (_check_date_holiday, _(''), ['employee_id','date_from', 'date_to']),
     ]
     
     def search(self, cr, uid, args, offset=0, limit=None, order=None, context=None, count=False):
@@ -1536,6 +1710,14 @@ class arul_hr_permission_onduty(osv.osv):
         punch_obj = self.pool.get('arul.hr.punch.in.out')
         
         if permission.non_availability_type_id == 'on_duty' and not permission.date:
+            #Trong them
+            if permission.from_date: 
+                month = permission.from_date[5:7]
+                year = permission.from_date[:4]
+                payroll_ids = self.pool.get('arul.hr.payroll.executions').search(cr,uid,[('month','=',month),('year','=',year),('state','=','approve'),('payroll_area_id','=',permission.employee_id.payroll_area_id.id)])
+                if payroll_ids :
+                    raise osv.except_osv(_('Warning!'),_('Payroll were already exists, not allowed to create again!'))
+            #
             date_from = datetime.datetime.strptime(permission.from_date,'%Y-%m-%d')
             date_to = datetime.datetime.strptime(permission.to_date,'%Y-%m-%d')
             while (date_from<=date_to):
@@ -1573,6 +1755,14 @@ class arul_hr_permission_onduty(osv.osv):
 	    # TPT - The following if condition is commented to check permission for emp categ "S1"also
             #if permission.non_availability_type_id=='permission' and permission.employee_id.employee_category_id and permission.employee_id.employee_category_id.code != 'S1':
 	    if permission.non_availability_type_id=='permission' and permission.employee_id.employee_category_id:
+            #Trong them
+                if permission.date: 
+                    month = permission.date[5:7]
+                    year = permission.date[:4]
+                    payroll_ids = self.pool.get('arul.hr.payroll.executions').search(cr,uid,[('month','=',month),('year','=',year),('state','=','approve'),('payroll_area_id','=',permission.employee_id.payroll_area_id.id)])
+                    if payroll_ids :
+                        raise osv.except_osv(_('Warning!'),_('Payroll were already exists, not allowed to create again!'))
+            #
                 sql = '''
                     select count(id) as num_of_permission from arul_hr_permission_onduty where non_availability_type_id='permission' and employee_id=%s
                         and id!=%s and EXTRACT(year from date)='%s' and EXTRACT(month from date)='%s'
@@ -1592,20 +1782,40 @@ class arul_hr_permission_onduty(osv.osv):
                     raise osv.except_osv(_('Warning!'),_('NO MORE PERMISSION PERMITTED.\n Employee %s have already taken 10 permission for this year!')%(permission.employee_id.name+' '+(permission.employee_id.last_name or '')))
                 #TPT ENDs
             shift_id = punch_obj.get_work_shift(cr, uid, permission.employee_id.id, int(day), int(month), year)
-            self.pool.get('arul.hr.audit.shift.time').create(cr, SUPERUSER_ID, {
-                'employee_id':permission.employee_id.id,
-                'work_date':permission.date,
-                'employee_category_id':permission.employee_id.employee_category_id and permission.employee_id.employee_category_id.id or False,
-                'planned_work_shift_id': shift_id,
-                'actual_work_shift_id': work_shift_ids and work_shift_ids[0] or False,
-                'in_time':permission.start_time,
-                'out_time':permission.end_time,
-                #'type': 'permission', #TPT Changes - Commented
-		        'type': permission.non_availability_type_id,#TPT Changes - By BalamuruganPurushothaman on 21/02/2015 - To Update NonAvailability Status in Audit Shift Screen.
-                'permission_id':new_id,
-            })
+#             self.pool.get('arul.hr.audit.shift.time').create(cr, SUPERUSER_ID, {
+#                  'employee_id':permission.employee_id.id,
+#                  'work_date':permission.date,
+#                  'employee_category_id':permission.employee_id.employee_category_id and permission.employee_id.employee_category_id.id or False,
+#                  'planned_work_shift_id': shift_id,
+#                  'actual_work_shift_id': work_shift_ids and work_shift_ids[0] or False,
+#                  'in_time':permission.start_time,
+#                  'out_time':permission.end_time,
+#                  #'type': 'permission', #TPT Changes - Commented
+#  		        'type': permission.non_availability_type_id,#TPT Changes - By BalamuruganPurushothaman on 21/02/2015 - To Update NonAvailability Status in Audit Shift Screen.
+#                  'permission_id':new_id,
+#              })
 	return new_id
-#     
+#  
+
+    def write(self, cr, uid, ids, vals, context=None):#Trong them
+        new_write = super(arul_hr_permission_onduty, self).write(cr, uid, ids, vals, context)
+        for new in self.browse(cr, uid, ids):
+            if new.non_availability_type_id=='permission':   
+                if new.date: 
+                    month = new.date[5:7]
+                    year = new.date[:4]
+                    payroll_ids = self.pool.get('arul.hr.payroll.executions').search(cr,uid,[('month','=',month),('year','=',year),('state','=','approve'),('payroll_area_id','=',new.employee_id.payroll_area_id.id)])
+                    if payroll_ids :
+                        raise osv.except_osv(_('Warning!'),_('Payroll were already exists, not allowed to edit again!'))
+            if new.non_availability_type_id=='on_duty':   
+                if new.from_date: 
+                    month = new.from_date[5:7]
+                    year = new.from_date[:4]
+                    payroll_ids = self.pool.get('arul.hr.payroll.executions').search(cr,uid,[('month','=',month),('year','=',year),('state','=','approve'),('payroll_area_id','=',new.employee_id.payroll_area_id.id)])
+                    if payroll_ids :
+                        raise osv.except_osv(_('Warning!'),_('Payroll were already exists, not allowed to edit again!'))
+        return new_write    
+   
     def _time_total(self, cr, uid, ids, field_name, arg, context=None):
         res = {}
         for time in self.browse(cr, uid, ids, context=context):
@@ -1643,24 +1853,150 @@ class arul_hr_permission_onduty(osv.osv):
         return res
     #TPT
     _columns={
-        'employee_id':fields.many2one('hr.employee','Employee',required=True),
-        'non_availability_type_id':fields.selection([('permission','Permission'),('on_duty','On duty')],'Non Availability Type',required = True),
-        'date':fields.date('Date'),
-        'from_date':fields.date('From Date'),
-        'to_date':fields.date('To Date'),
-        'duty_location':fields.char('On Duty Location', size = 1024),
-        'start_time': fields.float('Start Time'),
-        'end_time': fields.float('End Time'),
-        'time_total': fields.function(_time_total, string='Total Hours', multi='sums', help="The total amount."),
-        'reason':fields.text('Reason'),
+        'employee_id':fields.many2one('hr.employee','Employee',required=True, states={'done': [('readonly', True)], 'cancel': [('readonly', True)]}),
+        'non_availability_type_id':fields.selection([('permission','Permission'),('on_duty','On duty')],'Non Availability Type',required = True, states={'done': [('readonly', True)], 'cancel': [('readonly', True)]}),
+        'date':fields.date('Date', states={'done': [('readonly', True)], 'cancel': [('readonly', True)]}),
+        'from_date':fields.date('From Date', states={'done': [('readonly', True)], 'cancel': [('readonly', True)]}),
+        'to_date':fields.date('To Date', states={'done': [('readonly', True)], 'cancel': [('readonly', True)]}),
+        'duty_location':fields.char('On Duty Location', size = 1024, states={'done': [('readonly', True)], 'cancel': [('readonly', True)]}),
+        'start_time': fields.float('Start Time', states={'done': [('readonly', True)], 'cancel': [('readonly', True)]}),
+        'end_time': fields.float('End Time', states={'done': [('readonly', True)], 'cancel': [('readonly', True)]}),
+        'time_total': fields.function(_time_total, string='Total Hours', multi='sums', help="The total amount.", states={'done': [('readonly', True)], 'cancel': [('readonly', True)]}),
+        'reason':fields.text('Reason', states={'done': [('readonly', True)], 'cancel': [('readonly', True)]}),
         'permission_onduty_id':fields.many2one('arul.hr.employee.attendence.details','Permission/Onduty',ondelete='cascade'),
         'approval': fields.boolean('Is Approved?', readonly =  True),
         'parent_id':fields.many2one('arul.hr.permission.onduty','Permission/Onduty',ondelete='cascade'),
         'permission_onduty_line':fields.one2many('arul.hr.permission.onduty','parent_id','Onduty Line',readonly=True),
+        'create_date': fields.datetime('Created Date',readonly = True),
+        'create_uid': fields.many2one('res.users','Created By',ondelete='restrict',readonly = True),
 #         'detail_id':fields.many2one('arul.hr.employee.attendence.details','Detail'),
         #TPT-Permission On Duty
         'total_shift_worked': fields.function(_shift_total, store=True, string='No.Of Shift Worked', multi='shift_sums', help="The total amount."),
+        'state':fields.selection([('draft', 'Draft'),('cancel', 'Reject'),('done', 'Approve')],'Status', readonly=True),
               }
+    _defaults = {
+           'state': 'draft',  
+                 }
+    
+    def approve_permission_onduty(self, cr, uid, ids, context=None):
+        permission = self.browse(cr, uid, ids[0])
+        sql = '''
+            select id from arul_hr_capture_work_shift where (%s between start_time - 0.5 and start_time + 0.25) and (%s >= end_time-0.25)
+        '''%(permission.start_time,permission.end_time)
+        cr.execute(sql)
+        work_shift_ids = [row[0] for row in cr.fetchall()]
+        
+        punch_obj = self.pool.get('arul.hr.punch.in.out')
+        audit_obj = self.pool.get('arul.hr.audit.shift.time')
+        if permission.non_availability_type_id == 'on_duty' and not permission.date:
+            #Trong them
+            if permission.from_date: 
+                month = permission.from_date[5:7]
+                year = permission.from_date[:4]
+                payroll_ids = self.pool.get('arul.hr.payroll.executions').search(cr,uid,[('month','=',month),('year','=',year),('state','=','approve'),('payroll_area_id','=',permission.employee_id.payroll_area_id.id)])
+                if payroll_ids :
+                    raise osv.except_osv(_('Warning!'),_('Payroll were already exists, not allowed to approve again!'))
+            #
+            date_from = datetime.datetime.strptime(permission.from_date,'%Y-%m-%d')
+            date_to = datetime.datetime.strptime(permission.to_date,'%Y-%m-%d')
+            while (date_from<=date_to):
+                day = date_from.day
+                month = date_from.month
+                year = date_from.year
+                shift_id = punch_obj.get_work_shift(cr, uid, permission.employee_id.id, int(day), int(month), year)
+                self.create(cr, uid, {
+                                        'employee_id': permission.employee_id.id,
+                                        'non_availability_type_id': 'on_duty',
+                                        'date': date_from,
+                                        'duty_location': permission.duty_location,
+                                        'start_time': permission.start_time,
+                                        'end_time': permission.end_time,
+                                        'reason':permission.reason,
+                                        'parent_id': permission.id,
+                                        }, context)
+                
+                audit_id = audit_obj.create(cr, SUPERUSER_ID, {
+                    'employee_id':permission.employee_id.id,
+                    'work_date':date_from,
+                    'employee_category_id':permission.employee_id.employee_category_id and permission.employee_id.employee_category_id.id or False,
+                    'planned_work_shift_id': shift_id,
+                    'actual_work_shift_id': work_shift_ids and work_shift_ids[0] or False,
+                    'in_time':permission.start_time,
+                    'out_time':permission.end_time,
+                    'type': 'permission',
+                    'permission_id':ids[0],
+                })
+                audit_obj.approve_shift_time(cr, SUPERUSER_ID,[audit_id])
+                date_from += datetime.timedelta(days=1)
+        else:
+            day = permission.date[8:10]
+            month = permission.date[5:7]
+            year = permission.date[:4]
+        # TPT - The following if condition is commented to check permission for emp categ "S1"also
+            #if permission.non_availability_type_id=='permission' and permission.employee_id.employee_category_id and permission.employee_id.employee_category_id.code != 'S1':
+        if permission.non_availability_type_id=='permission' and permission.employee_id.employee_category_id:
+            #Trong them
+                if permission.date: 
+                    month = permission.date[5:7]
+                    year = permission.date[:4]
+                    payroll_ids = self.pool.get('arul.hr.payroll.executions').search(cr,uid,[('month','=',month),('year','=',year),('state','=','approve'),('payroll_area_id','=',permission.employee_id.payroll_area_id.id)])
+                    if payroll_ids :
+                        raise osv.except_osv(_('Warning!'),_('Payroll were already exists, not allowed to approve again!'))
+            #
+                sql = '''
+                    select count(id) as num_of_permission from arul_hr_permission_onduty where non_availability_type_id='permission' and employee_id=%s
+                        and id!=%s and EXTRACT(year from date)='%s' and EXTRACT(month from date)='%s'
+                '''%(permission.employee_id.id,permission.id,year,month)
+                cr.execute(sql)
+                p = cr.dictfetchone()        
+                if p and p['num_of_permission']==2:
+                    raise osv.except_osv(_('Warning!'),_('Employee %s have 2 permission for this month!')%(permission.employee_id.name+' '+(permission.employee_id.last_name or '')))
+                #TPT SATRT
+                sql = '''
+                    select count(id) as num_of_permission from arul_hr_permission_onduty where non_availability_type_id='permission' and employee_id=%s
+                        and id!=%s and EXTRACT(year from date)='%s'
+                '''%(permission.employee_id.id,permission.id,year)
+                cr.execute(sql)
+                p = cr.dictfetchone()        
+                if p and p['num_of_permission']>=11:
+                    raise osv.except_osv(_('Warning!'),_('NO MORE PERMISSION PERMITTED.\n Employee %s have already taken 10 permission for this year!')%(permission.employee_id.name+' '+(permission.employee_id.last_name or '')))
+                #TPT ENDs
+                shift_id = punch_obj.get_work_shift(cr, uid, permission.employee_id.id, int(day), int(month), year)
+                audit_id = audit_obj.create(cr, SUPERUSER_ID, {
+                 'employee_id':permission.employee_id.id,
+                 'work_date':permission.date,
+                 'employee_category_id':permission.employee_id.employee_category_id and permission.employee_id.employee_category_id.id or False,
+                 'planned_work_shift_id': shift_id,
+                 'actual_work_shift_id': work_shift_ids and work_shift_ids[0] or False,
+                 'in_time':permission.start_time,
+                 'out_time':permission.end_time,
+                 #'type': 'permission', #TPT Changes - Commented
+                 'type': permission.non_availability_type_id,#TPT Changes - By BalamuruganPurushothaman on 21/02/2015 - To Update NonAvailability Status in Audit Shift Screen.
+                 'permission_id':ids[0],
+             })
+                audit_obj.approve_shift_time(cr, SUPERUSER_ID,[audit_id])
+        return self.write(cr,uid,ids,{'state': 'done'}) 
+    
+    def reject_permission_onduty(self, cr, uid, ids, context=None):
+        #Trong them
+        for new in self.browse(cr, uid, ids):
+            if new.non_availability_type_id=='permission':   
+                if new.date: 
+                    month = new.date[5:7]
+                    year = new.date[:4]
+                    payroll_ids = self.pool.get('arul.hr.payroll.executions').search(cr,uid,[('month','=',month),('year','=',year),('state','=','approve'),('payroll_area_id','=',new.employee_id.payroll_area_id.id)])
+                    if payroll_ids :
+                        raise osv.except_osv(_('Warning!'),_('Payroll were already exists, not allowed to reject again!'))
+            if new.non_availability_type_id=='on_duty':   
+                if new.from_date: 
+                    month = new.from_date[5:7]
+                    year = new.from_date[:4]
+                    payroll_ids = self.pool.get('arul.hr.payroll.executions').search(cr,uid,[('month','=',month),('year','=',year),('state','=','approve'),('payroll_area_id','=',new.employee_id.payroll_area_id.id)])
+                    if payroll_ids :
+                        raise osv.except_osv(_('Warning!'),_('Payroll were already exists, not allowed to reject again!'))
+            self.write(cr,uid,ids,{'state': 'cancel'}) 
+        return True
+        
     def name_get(self, cr, uid, ids, context=None):
         res = []
         if not ids:
@@ -1936,6 +2272,8 @@ class arul_hr_employee_attendence_details(osv.osv):
         'sub_category_id':fields.many2one('hr.employee.sub.category','Sub Category',readonly=False,ondelete='restrict'),
         'designation_id': fields.many2one('hr.job', 'Designation',readonly=False,ondelete='restrict'),
         'department_id':fields.many2one('hr.department', 'Department',readonly=False,ondelete='restrict'),
+        'create_date': fields.datetime('Created Date',readonly = True),
+        'create_uid': fields.many2one('res.users','Created By',ondelete='restrict',readonly = True),
         'permission_onduty_details_line':fields.one2many('arul.hr.permission.onduty','permission_onduty_id','Permission On duty Details',readonly=True),
         'punch_in_out_line':fields.one2many('arul.hr.punch.in.out.time','punch_in_out_id','Punch in/Punch out Details',readonly=False)
               }
@@ -2049,6 +2387,8 @@ class arul_hr_punch_in_out(osv.osv):
         'store_fname': fields.char('Stored Filename', size=256),
         'db_datas': fields.binary('Database Data'),
         'file_size': fields.integer('File Size'),
+        'create_date': fields.datetime('Created Date',readonly = True),
+        'create_uid': fields.many2one('res.users','Created By',ondelete='restrict',readonly = True),
         'state':fields.selection([('draft', 'Draft'),('done', 'Done')],'Status', readonly=True)
 
     }
@@ -2447,6 +2787,8 @@ class arul_hr_monthly_work_schedule(osv.osv):
               'year': fields.selection([(num, str(num)) for num in range(1950, 2026)], 'Year', required = True, states={'done': [('readonly', True)]}),
               'month': fields.selection([('1', 'January'),('2', 'February'), ('3', 'March'), ('4','April'), ('5','May'), ('6','June'), ('7','July'), ('8','August'), ('9','September'), ('10','October'), ('11','November'), ('12','December')], 'Month',required = True, states={'done': [('readonly', True)]}),
               'monthly_shift_line': fields.one2many('arul.hr.monthly.shift.schedule','monthly_work_id', 'Monthly Work Schedule', states={'done': [('readonly', True)]}),
+              'create_date': fields.datetime('Created Date',readonly = True),
+              'create_uid': fields.many2one('res.users','Created By',ondelete='restrict',readonly = True),
               'state':fields.selection([('draft', 'Draft'),('load', 'Load'),('done', 'Done')],'Status', readonly=True),
               }
     _defaults = {
@@ -4048,9 +4390,13 @@ class tpt_time_leave_evaluation(osv.osv):
          'shift_time_id': fields.one2many('arul.hr.audit.shift.time','time_evaluate_id','Time Evaluation Report',readonly = True),
          'leave_request_id': fields.one2many('arul.hr.employee.leave.details','leave_evaluate_id','Not Approved Section',readonly = True),
          'non_availability_id': fields.one2many('tpt.non.availability','leave_evaluate_id','Non Availability Report',readonly = True),
+         'state':fields.selection([('draft','Draft'),('done','Done')],'State',readonly=True),
+         'create_date': fields.datetime('Created Date',readonly = True),
+         'create_uid': fields.many2one('res.users','Created By',ondelete='restrict',readonly = True),
     }
     _defaults = {
        'year':int(time.strftime('%Y')),
+       'state':'draft',
     }
     def _check(self,cr,uid,ids):
         obj = self.browse(cr,uid,ids[0])
@@ -4072,7 +4418,8 @@ class tpt_time_leave_evaluation(osv.osv):
             name = record['month'] + ' - ' + str(record['year'])
             res.append((record['id'], name))
         return res   
-     
+    def bt_confirm(self, cr, uid, ids, context=None):
+        return self.write(cr, uid, ids,{'state':'done'}) 
     def submit_evaluate(self, cr, uid, ids, context=None):
         monthly_shift_obj = self.pool.get('arul.hr.monthly.shift.schedule')
         non_availability_obj = self.pool.get('tpt.non.availability')
@@ -4482,6 +4829,32 @@ class tpt_month(osv.osv):
             if not month_ids:
                 self.create(cr, 1, {'name':num})
         return True
+    
+    def search(self, cr, uid, args, offset=0, limit=None, order=None, context=None, count=False):
+        if context is None:
+            context = {}
+        if context.get('search_day_for_leave', False):
+            if context.get('date_from', False) and context.get('date_to', False):
+                date_from = context.get('date_from', False)
+                date_to = context.get('date_to', False)
+                day_names = []
+                if date_from[5:7] == date_to[5:7]:
+                    for day in range(int(date_from[8:10]),int(date_to[8:10])+1): 
+                        day_names.append(day)
+                else:
+                    num_of_month = calendar.monthrange(int(date_from[:4]),int(date_from[5:7]))[1]
+                    for day in range(int(date_from[8:10]),num_of_month+1): 
+                        day_names.append(day)
+                    for day in range(1,int(date_to[8:10])+1): 
+                        day_names.append(day)
+                day_ids = self.search(cr, uid, [('name','in',day_names)])
+                args += [('id','in',day_ids)]
+            else:
+                args = [('id','=',0)]
+        return super(tpt_month, self).search(cr, uid, args, offset=offset, limit=limit, order=order, context=context, count=count)
+    def name_search(self, cr, user, name, args=None, operator='ilike', context=None, limit=100):
+       ids = self.search(cr, user, args, context=context, limit=limit)
+       return self.name_get(cr, user, ids, context=context)
 tpt_month()
 
 class tpt_work_center(osv.osv):
@@ -4489,6 +4862,8 @@ class tpt_work_center(osv.osv):
     _columns = {
         'name': fields.char('Name', size=1024, required = True),
          'code': fields.char('Code', size=1024, required = True),
+                 'create_date': fields.datetime('Created Date',readonly = True),
+        'create_uid': fields.many2one('res.users','Created By',ondelete='restrict',readonly = True),
         
     }
     def create(self, cr, uid, vals, context=None):
@@ -4525,7 +4900,8 @@ class tpt_cost_center(osv.osv):
     _columns = {
         'name': fields.char('Name', size=1024, required = True),
          'code': fields.char('Code', size=1024, required = True),
-        
+                'create_date': fields.datetime('Created Date',readonly = True),
+        'create_uid': fields.many2one('res.users','Created By',ondelete='restrict',readonly = True),
     }
     def create(self, cr, uid, vals, context=None):
         if 'code' in vals:
@@ -4561,6 +4937,8 @@ class tpt_equipment_master(osv.osv):
     _columns = {
         'name': fields.char('Name', size=1024, required = True),
          'code': fields.char('Code', size=1024, required = True),
+        'create_date': fields.datetime('Created Date',readonly = True),
+        'create_uid': fields.many2one('res.users','Created By',ondelete='restrict',readonly = True),
         
     }
     def create(self, cr, uid, vals, context=None):
@@ -4670,18 +5048,23 @@ class shift_change(osv.osv):
     _name='shift.change'
     _columns={
               'num_of_month': fields.integer('Num Of Month'),
-              'date_from': fields.many2one('tpt.month','Change Requested From', required = True, states={'done': [('readonly', True)]}),
-              'date_to': fields.many2one('tpt.month','Change Requested To', required = True, states={'done': [('readonly', True)]}),
-              'department_id':fields.many2one('hr.department','Department', required = True, states={'done': [('readonly', True)]}),
-              'section_id': fields.many2one('arul.hr.section','Section', required = True, states={'done': [('readonly', True)]}),
-              'employee_id': fields.many2one('hr.employee','Employee', required = True, states={'done': [('readonly', True)]}),
-              'year': fields.selection([(num, str(num)) for num in range(1950, 2026)], 'Work Schedule Year', required = True, states={'done': [('readonly', True)]}),
-              'month': fields.selection([('1', 'January'),('2', 'February'), ('3', 'March'), ('4','April'), ('5','May'), ('6','June'), ('7','July'), ('8','August'), ('9','September'), ('10','October'), ('11','November'), ('12','December')], 'Work Schedule Month',required = True, states={'done': [('readonly', True)]}),
-              'shift_id': fields.many2one('arul.hr.capture.work.shift','Shift to be Changed', required = True, states={'done': [('readonly', True)]}),
+              'date_from': fields.many2one('tpt.month','Change Requested From', required = True, states={'approved': [('readonly', True)]}),
+              'date_to': fields.many2one('tpt.month','Change Requested To', required = True, states={'approved': [('readonly', True)]}),
+              'department_id':fields.many2one('hr.department','Department', required = True, states={'approved': [('readonly', True)]}),
+              'section_id': fields.many2one('arul.hr.section','Section', required = True, states={'approved': [('readonly', True)]}),
+              'employee_id': fields.many2one('hr.employee','Employee', required = True, states={'approved': [('readonly', True)]}),
+              'year': fields.selection([(num, str(num)) for num in range(1950, 2026)], 'Work Schedule Year', required = True, states={'approved': [('readonly', True)]}),
+              'month': fields.selection([('1', 'January'),('2', 'February'), ('3', 'March'), ('4','April'), ('5','May'), ('6','June'), ('7','July'), ('8','August'), ('9','September'), ('10','October'), ('11','November'), ('12','December')], 'Work Schedule Month',required = True, states={'approved': [('readonly', True)]}),
+              'shift_id': fields.many2one('arul.hr.capture.work.shift','Shift to be Changed', states={'approved': [('readonly', True)]}),
+              'shift_group_id': fields.many2one('shift.group','Shift Group to be Changed', states={'approved': [('readonly', True)]}),
               'apply_weekly_off': fields.boolean('Apply schedule change to weekly off days?', states={'done': [('readonly', True)]}),
+              'create_date': fields.datetime('Created Date',readonly = True),
+              'create_uid': fields.many2one('res.users','Created By',ondelete='restrict',readonly = True),
               'state':fields.selection([('draft', 'Draft'),('submitted', 'Submitted'),('rejected', 'Rejected'),('approved', 'Approved')],'Status', readonly=True),
+              'type': fields.selection([('single_shift', 'Single Shift'),('shift_group', 'Shift Group')],'Type',required=True, states={'approved': [('readonly', True)]}),
               }
     _defaults = {
+        'type':'single_shift',
         'state':'draft',
         'year': int(time.strftime('%Y')),
     }
@@ -4701,8 +5084,24 @@ class shift_change(osv.osv):
     def approve(self, cr, uid, ids, context=None):
         monthly_shift_obj = self.pool.get('arul.hr.monthly.shift.schedule')
         for line in self.browse(cr, uid, ids):
+            #Trong them
+            if line.month and line.year: 
+                payroll_ids = self.pool.get('arul.hr.payroll.executions').search(cr,uid,[('month','=',line.month),('year','=',line.year),('state','=','approve'),('payroll_area_id','=',line.employee_id.payroll_area_id.id)])
+                if payroll_ids :
+                    raise osv.except_osv(_('Warning!'),_('Payroll were already exists, not allowed to approve again!'))
+            #
+            if line.employee_id.department_id and line.employee_id.department_id.primary_auditor_id and line.employee_id.department_id.primary_auditor_id.id==uid \
+            or line.employee_id.department_id and line.employee_id.department_id.secondary_auditor_id and line.employee_id.department_id.secondary_auditor_id.id==uid:
+                continue
+            else:
+                raise osv.except_osv(_('Warning!'),_('User does not have permission to approve for this employee department!'))
             if line.state != 'submitted':
                 raise osv.except_osv(_('Warning!'),_('Please Submit request before Approve!'))
+            if line.employee_id.department_id and line.employee_id.department_id.primary_auditor_id and line.employee_id.department_id.primary_auditor_id.id==uid \
+            or line.employee_id.department_id and line.employee_id.department_id.secondary_auditor_id and line.employee_id.department_id.secondary_auditor_id.id==uid:
+                continue
+            else:
+                raise osv.except_osv(_('Warning!'),_('User does not have permission to approve for this employee department!'))
             sql = '''
                 select id from arul_hr_monthly_shift_schedule where employee_id=%s
                     and monthly_work_id in (select id from arul_hr_monthly_work_schedule where department_id = %s and section_id = %s and year=%s and month='%s' and state='done')
@@ -4712,326 +5111,872 @@ class shift_change(osv.osv):
             monthly_shift_ids = [row[0] for row in cr.fetchall()]
             for monthly_shift in monthly_shift_obj.browse(cr, uid, monthly_shift_ids):
                 #if line.apply_weekly_off: #TPT: IF-ELSE COMMENTED By BalamuruganPurushothaman on 02_03_2015 - TO DO NOT TREAT SUNDAYS AS WEEK OFF FOREVER, 
-                for num in range(line.date_from.name,line.date_to.name+1):
-                        if num==1:
-                            date = datetime.datetime(int(line.year),int(line.month),1)
-                            ### An trong vong 2 thang sau do mo ra lai 31-01-2015
-#                             if date_now >= datetime.datetime.strftime(date, '%Y-%m-%d'):
-#                                 raise osv.except_osv(_('Warning!'),_('Can not change Work Monthly Schedule for past day!'))
-                            monthly_shift_obj.write(cr, uid, [monthly_shift.id], {'day_1':line.shift_id.id})
-                        if num==2:
-                            date = datetime.datetime(int(line.year),int(line.month),2)
-#                             if date_now >= datetime.datetime.strftime(date, '%Y-%m-%d'):
-#                                 raise osv.except_osv(_('Warning!'),_('Can not change Work Monthly Schedule for past day!'))
-                            monthly_shift_obj.write(cr, uid, [monthly_shift.id], {'day_2':line.shift_id.id})
-                        if num==3:
-                            date = datetime.datetime(int(line.year),int(line.month),3)
-#                             if date_now >= datetime.datetime.strftime(date, '%Y-%m-%d'):
-#                                 raise osv.except_osv(_('Warning!'),_('Can not change Work Monthly Schedule for past day!'))
-                            monthly_shift_obj.write(cr, uid, [monthly_shift.id], {'day_3':line.shift_id.id})
-                        if num==4:
-                            date = datetime.datetime(int(line.year),int(line.month),4)
-#                             if date_now >= datetime.datetime.strftime(date, '%Y-%m-%d'):
-#                                 raise osv.except_osv(_('Warning!'),_('Can not change Work Monthly Schedule for past day!'))
-                            monthly_shift_obj.write(cr, uid, [monthly_shift.id], {'day_4':line.shift_id.id})
-                        if num==5:
-                            date = datetime.datetime(int(line.year),int(line.month),5)
-#                             if date_now >= datetime.datetime.strftime(date, '%Y-%m-%d'):
-#                                 raise osv.except_osv(_('Warning!'),_('Can not change Work Monthly Schedule for past day!'))
-                            monthly_shift_obj.write(cr, uid, [monthly_shift.id], {'day_5':line.shift_id.id})
-                        if num==6:
-                            date = datetime.datetime(int(line.year),int(line.month),6)
-#                             if date_now >= datetime.datetime.strftime(date, '%Y-%m-%d'):
-#                                 raise osv.except_osv(_('Warning!'),_('Can not change Work Monthly Schedule for past day!'))
-                            monthly_shift_obj.write(cr, uid, [monthly_shift.id], {'day_6':line.shift_id.id})
-                        if num==7:
-                            date = datetime.datetime(int(line.year),int(line.month),7)
-#                             if date_now >= datetime.datetime.strftime(date, '%Y-%m-%d'):
-#                                 raise osv.except_osv(_('Warning!'),_('Can not change Work Monthly Schedule for past day!'))
-                            monthly_shift_obj.write(cr, uid, [monthly_shift.id], {'day_7':line.shift_id.id})
-                        if num==8:
-                            date = datetime.datetime(int(line.year),int(line.month),8)
-#                             if date_now >= datetime.datetime.strftime(date, '%Y-%m-%d'):
-#                                 raise osv.except_osv(_('Warning!'),_('Can not change Work Monthly Schedule for past day!'))
-                            monthly_shift_obj.write(cr, uid, [monthly_shift.id], {'day_8':line.shift_id.id})
-                        if num==9:
-                            date = datetime.datetime(int(line.year),int(line.month),9)
-#                             if date_now >= datetime.datetime.strftime(date, '%Y-%m-%d'):
-#                                 raise osv.except_osv(_('Warning!'),_('Can not change Work Monthly Schedule for past day!'))
-                            monthly_shift_obj.write(cr, uid, [monthly_shift.id], {'day_9':line.shift_id.id})
-                        if num==10:
-                            date = datetime.datetime(int(line.year),int(line.month),10)
-#                             if date_now >= datetime.datetime.strftime(date, '%Y-%m-%d'):
-#                                 raise osv.except_osv(_('Warning!'),_('Can not change Work Monthly Schedule for past day!'))
-                            monthly_shift_obj.write(cr, uid, [monthly_shift.id], {'day_10':line.shift_id.id})
-                        if num==11:
-                            date = datetime.datetime(int(line.year),int(line.month),11)
-#                             if date_now >= datetime.datetime.strftime(date, '%Y-%m-%d'):
-#                                 raise osv.except_osv(_('Warning!'),_('Can not change Work Monthly Schedule for past day!'))
-                            monthly_shift_obj.write(cr, uid, [monthly_shift.id], {'day_11':line.shift_id.id})
-                        if num==12:
-                            date = datetime.datetime(int(line.year),int(line.month),12)
-#                             if date_now >= datetime.datetime.strftime(date, '%Y-%m-%d'):
-#                                 raise osv.except_osv(_('Warning!'),_('Can not change Work Monthly Schedule for past day!'))
-                            monthly_shift_obj.write(cr, uid, [monthly_shift.id], {'day_12':line.shift_id.id})
-                        if num==13:
-                            date = datetime.datetime(int(line.year),int(line.month),13)
-#                             if date_now >= datetime.datetime.strftime(date, '%Y-%m-%d'):
-#                                 raise osv.except_osv(_('Warning!'),_('Can not change Work Monthly Schedule for past day!'))
-                            monthly_shift_obj.write(cr, uid, [monthly_shift.id], {'day_13':line.shift_id.id})
-                        if num==14:
-                            date = datetime.datetime(int(line.year),int(line.month),14)
-#                             if date_now >= datetime.datetime.strftime(date, '%Y-%m-%d'):
-#                                 raise osv.except_osv(_('Warning!'),_('Can not change Work Monthly Schedule for past day!'))
-                            monthly_shift_obj.write(cr, uid, [monthly_shift.id], {'day_14':line.shift_id.id})
-                        if num==15:
-                            date = datetime.datetime(int(line.year),int(line.month),15)
-#                             if date_now >= datetime.datetime.strftime(date, '%Y-%m-%d'):
-#                                 raise osv.except_osv(_('Warning!'),_('Can not change Work Monthly Schedule for past day!'))
-                            monthly_shift_obj.write(cr, uid, [monthly_shift.id], {'day_15':line.shift_id.id})
-                        if num==16:
-                            date = datetime.datetime(int(line.year),int(line.month),16)
-#                             if date_now >= datetime.datetime.strftime(date, '%Y-%m-%d'):
-#                                 raise osv.except_osv(_('Warning!'),_('Can not change Work Monthly Schedule for past day!'))
-                            monthly_shift_obj.write(cr, uid, [monthly_shift.id], {'day_16':line.shift_id.id})
-                        if num==17:
-                            date = datetime.datetime(int(line.year),int(line.month),17)
-#                             if date_now >= datetime.datetime.strftime(date, '%Y-%m-%d'):
-#                                 raise osv.except_osv(_('Warning!'),_('Can not change Work Monthly Schedule for past day!'))
-                            monthly_shift_obj.write(cr, uid, [monthly_shift.id], {'day_17':line.shift_id.id})
-                        if num==18:
-                            date = datetime.datetime(int(line.year),int(line.month),18)
-#                             if date_now >= datetime.datetime.strftime(date, '%Y-%m-%d'):
-#                                 raise osv.except_osv(_('Warning!'),_('Can not change Work Monthly Schedule for past day!'))
-                            monthly_shift_obj.write(cr, uid, [monthly_shift.id], {'day_18':line.shift_id.id})
-                        if num==19:
-                            date = datetime.datetime(int(line.year),int(line.month),19)
-#                             if date_now >= datetime.datetime.strftime(date, '%Y-%m-%d'):
-#                                 raise osv.except_osv(_('Warning!'),_('Can not change Work Monthly Schedule for past day!'))
-                            monthly_shift_obj.write(cr, uid, [monthly_shift.id], {'day_19':line.shift_id.id})
-                        if num==20:
-                            date = datetime.datetime(int(line.year),int(line.month),20)
-#                             if date_now >= datetime.datetime.strftime(date, '%Y-%m-%d'):
-#                                 raise osv.except_osv(_('Warning!'),_('Can not change Work Monthly Schedule for past day!'))
-                            monthly_shift_obj.write(cr, uid, [monthly_shift.id], {'day_20':line.shift_id.id})
-                        if num==21:
-                            date = datetime.datetime(int(line.year),int(line.month),21)
-#                             if date_now >= datetime.datetime.strftime(date, '%Y-%m-%d'):
-#                                 raise osv.except_osv(_('Warning!'),_('Can not change Work Monthly Schedule for past day!'))
-                            monthly_shift_obj.write(cr, uid, [monthly_shift.id], {'day_21':line.shift_id.id})
-                        if num==22:
-                            date = datetime.datetime(int(line.year),int(line.month),22)
-#                             if date_now >= datetime.datetime.strftime(date, '%Y-%m-%d'):
-#                                 raise osv.except_osv(_('Warning!'),_('Can not change Work Monthly Schedule for past day!'))
-                            monthly_shift_obj.write(cr, uid, [monthly_shift.id], {'day_22':line.shift_id.id})
-                        if num==23:
-                            date = datetime.datetime(int(line.year),int(line.month),23)
-#                             if date_now >= datetime.datetime.strftime(date, '%Y-%m-%d'):
-#                                 raise osv.except_osv(_('Warning!'),_('Can not change Work Monthly Schedule for past day!'))
-                            monthly_shift_obj.write(cr, uid, [monthly_shift.id], {'day_23':line.shift_id.id})
-                        if num==24:
-                            date = datetime.datetime(int(line.year),int(line.month),24)
-#                             if date_now >= datetime.datetime.strftime(date, '%Y-%m-%d'):
-#                                 raise osv.except_osv(_('Warning!'),_('Can not change Work Monthly Schedule for past day!'))
-                            monthly_shift_obj.write(cr, uid, [monthly_shift.id], {'day_24':line.shift_id.id})
-                        if num==25:
-                            date = datetime.datetime(int(line.year),int(line.month),25)
-#                             if date_now >= datetime.datetime.strftime(date, '%Y-%m-%d'):
-#                                 raise osv.except_osv(_('Warning!'),_('Can not change Work Monthly Schedule for past day!'))
-                            monthly_shift_obj.write(cr, uid, [monthly_shift.id], {'day_25':line.shift_id.id})
-                        if num==26:
-                            date = datetime.datetime(int(line.year),int(line.month),26)
-#                             if date_now >= datetime.datetime.strftime(date, '%Y-%m-%d'):
-#                                 raise osv.except_osv(_('Warning!'),_('Can not change Work Monthly Schedule for past day!'))
-                            monthly_shift_obj.write(cr, uid, [monthly_shift.id], {'day_26':line.shift_id.id})
-                        if num==27:
-                            date = datetime.datetime(int(line.year),int(line.month),27)
-#                             if date_now >= datetime.datetime.strftime(date, '%Y-%m-%d'):
-#                                 raise osv.except_osv(_('Warning!'),_('Can not change Work Monthly Schedule for past day!'))
-                            monthly_shift_obj.write(cr, uid, [monthly_shift.id], {'day_27':line.shift_id.id})
-                        if num==28:
-                            date = datetime.datetime(int(line.year),int(line.month),28)
-#                             if date_now >= datetime.datetime.strftime(date, '%Y-%m-%d'):
-#                                 raise osv.except_osv(_('Warning!'),_('Can not change Work Monthly Schedule for past day!'))
-                            monthly_shift_obj.write(cr, uid, [monthly_shift.id], {'day_28':line.shift_id.id})
-                        if num==29:
-                            date = datetime.datetime(int(line.year),int(line.month),29)
-#                             if date_now >= datetime.datetime.strftime(date, '%Y-%m-%d'):
-#                                 raise osv.except_osv(_('Warning!'),_('Can not change Work Monthly Schedule for past day!'))
-                            monthly_shift_obj.write(cr, uid, [monthly_shift.id], {'day_29':line.shift_id.id})
-                        if num==30:
-                            date = datetime.datetime(int(line.year),int(line.month),30)
-#                             if date_now >= datetime.datetime.strftime(date, '%Y-%m-%d'):
-#                                 raise osv.except_osv(_('Warning!'),_('Can not change Work Monthly Schedule for past day!'))
-                            monthly_shift_obj.write(cr, uid, [monthly_shift.id], {'day_30':line.shift_id.id})
-                        if num==31:
-                            date = datetime.datetime(int(line.year),int(line.month),31)
-#                             if date_now >= datetime.datetime.strftime(date, '%Y-%m-%d'):
-#                                 raise osv.except_osv(_('Warning!'),_('Can not change Work Monthly Schedule for past day!'))
-                            monthly_shift_obj.write(cr, uid, [monthly_shift.id], {'day_31':line.shift_id.id})
-                '''else:
+                if line.type=='shift_group':
+                    value={}
+                    for num in range(line.date_from.name, line.date_to.name + 1):
+                        shift_group = line.shift_group_id
+                        year = int(line.year)
+                        month = int(line.month)
+                        if num == 1:
+                            date = datetime.date (year, month, 1)
+                            name_day = date.strftime("%A")
+                            if name_day == 'Sunday':
+                                value['day_1'] = shift_group.sunday_id and shift_group.sunday_id.id or False
+                            elif name_day == 'Monday':
+                                value['day_1'] = shift_group.monday_id and shift_group.monday_id.id or False
+                            elif name_day == 'Tuesday':
+                                value['day_1'] = shift_group.tuesday_id and shift_group.tuesday_id.id or False
+                            elif name_day == 'Wednesday':
+                                value['day_1'] = shift_group.wednesday_id and shift_group.wednesday_id.id or False
+                            elif name_day == 'Thursday':
+                                value['day_1'] = shift_group.thursday_id and shift_group.thursday_id.id or False
+                            elif name_day == 'Friday':
+                                value['day_1'] = shift_group.friday_id and shift_group.friday_id.id or False
+                            else:
+                                value['day_1'] = shift_group.saturday_id and shift_group.saturday_id.id or False
+                        if num == 2:
+                            date = datetime.date (year, month, 2)
+                            name_day = date.strftime("%A")
+                            if name_day == 'Sunday':
+                                value['day_2'] = shift_group.sunday_id and shift_group.sunday_id.id or False
+                            elif name_day == 'Monday':
+                                value['day_2'] = shift_group.monday_id and shift_group.monday_id.id or False
+                            elif name_day == 'Tuesday':
+                                value['day_2'] = shift_group.tuesday_id and shift_group.tuesday_id.id or False
+                            elif name_day == 'Wednesday':
+                                value['day_2'] = shift_group.wednesday_id and shift_group.wednesday_id.id or False
+                            elif name_day == 'Thursday':
+                                value['day_2'] = shift_group.thursday_id and shift_group.thursday_id.id or False
+                            elif name_day == 'Friday':
+                                value['day_2'] = shift_group.friday_id and shift_group.friday_id.id or False
+                            else:
+                                value['day_2'] = shift_group.saturday_id and shift_group.saturday_id.id or False
+                        if num == 3:
+                            date = datetime.date (year, month, 3)
+                            name_day = date.strftime("%A")
+                            if name_day == 'Sunday':
+                                value['day_3'] = shift_group.sunday_id and shift_group.sunday_id.id or False
+                            elif name_day == 'Monday':
+                                value['day_3'] = shift_group.monday_id and shift_group.monday_id.id or False
+                            elif name_day == 'Tuesday':
+                                value['day_3'] = shift_group.tuesday_id and shift_group.tuesday_id.id or False
+                            elif name_day == 'Wednesday':
+                                value['day_3'] = shift_group.wednesday_id and shift_group.wednesday_id.id or False
+                            elif name_day == 'Thursday':
+                                value['day_3'] = shift_group.thursday_id and shift_group.thursday_id.id or False
+                            elif name_day == 'Friday':
+                                value['day_3'] = shift_group.friday_id and shift_group.friday_id.id or False
+                            else:
+                                value['day_3'] = shift_group.saturday_id and shift_group.saturday_id.id or False
+                        if num == 4:
+                            date = datetime.date (year, month, 4)
+                            name_day = date.strftime("%A")
+                            if name_day == 'Sunday':
+                                value['day_4'] = shift_group.sunday_id and shift_group.sunday_id.id or False
+                            elif name_day == 'Monday':
+                                value['day_4'] = shift_group.monday_id and shift_group.monday_id.id or False
+                            elif name_day == 'Tuesday':
+                                value['day_4'] = shift_group.tuesday_id and shift_group.tuesday_id.id or False
+                            elif name_day == 'Wednesday':
+                                value['day_4'] = shift_group.wednesday_id and shift_group.wednesday_id.id or False
+                            elif name_day == 'Thursday':
+                                value['day_4'] = shift_group.thursday_id and shift_group.thursday_id.id or False
+                            elif name_day == 'Friday':
+                                value['day_4'] = shift_group.friday_id and shift_group.friday_id.id or False
+                            else:
+                                value['day_4'] = shift_group.saturday_id and shift_group.saturday_id.id or False
+                        if num == 5:
+                            date = datetime.date (year, month, 5)
+                            name_day = date.strftime("%A")
+                            if name_day == 'Sunday':
+                                value['day_5'] = shift_group.sunday_id and shift_group.sunday_id.id or False
+                            elif name_day == 'Monday':
+                                value['day_5'] = shift_group.monday_id and shift_group.monday_id.id or False
+                            elif name_day == 'Tuesday':
+                                value['day_5'] = shift_group.tuesday_id and shift_group.tuesday_id.id or False
+                            elif name_day == 'Wednesday':
+                                value['day_5'] = shift_group.wednesday_id and shift_group.wednesday_id.id or False
+                            elif name_day == 'Thursday':
+                                value['day_5'] = shift_group.thursday_id and shift_group.thursday_id.id or False
+                            elif name_day == 'Friday':
+                                value['day_5'] = shift_group.friday_id and shift_group.friday_id.id or False
+                            else:
+                                value['day_5'] = shift_group.saturday_id and shift_group.saturday_id.id or False
+                        if num == 6:
+                            date = datetime.date (year, month, 6)
+                            name_day = date.strftime("%A")
+                            if name_day == 'Sunday':
+                                value['day_6'] = shift_group.sunday_id and shift_group.sunday_id.id or False
+                            elif name_day == 'Monday':
+                                value['day_6'] = shift_group.monday_id and shift_group.monday_id.id or False
+                            elif name_day == 'Tuesday':
+                                value['day_6'] = shift_group.tuesday_id and shift_group.tuesday_id.id or False
+                            elif name_day == 'Wednesday':
+                                value['day_6'] = shift_group.wednesday_id and shift_group.wednesday_id.id or False
+                            elif name_day == 'Thursday':
+                                value['day_6'] = shift_group.thursday_id and shift_group.thursday_id.id or False
+                            elif name_day == 'Friday':
+                                value['day_6'] = shift_group.friday_id and shift_group.friday_id.id or False
+                            else:
+                                value['day_6'] = shift_group.saturday_id and shift_group.saturday_id.id or False
+                        if num == 7:
+                            date = datetime.date (year, month, 7)
+                            name_day = date.strftime("%A")
+                            if name_day == 'Sunday':
+                                value['day_7'] = shift_group.sunday_id and shift_group.sunday_id.id or False
+                            elif name_day == 'Monday':
+                                value['day_7'] = shift_group.monday_id and shift_group.monday_id.id or False
+                            elif name_day == 'Tuesday':
+                                value['day_7'] = shift_group.tuesday_id and shift_group.tuesday_id.id or False
+                            elif name_day == 'Wednesday':
+                                value['day_7'] = shift_group.wednesday_id and shift_group.wednesday_id.id or False
+                            elif name_day == 'Thursday':
+                                value['day_7'] = shift_group.thursday_id and shift_group.thursday_id.id or False
+                            elif name_day == 'Friday':
+                                value['day_7'] = shift_group.friday_id and shift_group.friday_id.id or False
+                            else:
+                                value['day_7'] = shift_group.saturday_id and shift_group.saturday_id.id or False
+                        if num == 8:
+                            date = datetime.date (year, month, 8)
+                            name_day = date.strftime("%A")
+                            if name_day == 'Sunday':
+                                value['day_8'] = shift_group.sunday_id and shift_group.sunday_id.id or False
+                            elif name_day == 'Monday':
+                                value['day_8'] = shift_group.monday_id and shift_group.monday_id.id or False
+                            elif name_day == 'Tuesday':
+                                value['day_8'] = shift_group.tuesday_id and shift_group.tuesday_id.id or False
+                            elif name_day == 'Wednesday':
+                                value['day_8'] = shift_group.wednesday_id and shift_group.wednesday_id.id or False
+                            elif name_day == 'Thursday':
+                                value['day_8'] = shift_group.thursday_id and shift_group.thursday_id.id or False
+                            elif name_day == 'Friday':
+                                value['day_8'] = shift_group.friday_id and shift_group.friday_id.id or False
+                            else:
+                                value['day_8'] = shift_group.saturday_id and shift_group.saturday_id.id or False
+                        if num == 9:
+                            date = datetime.date (year, month, 9)
+                            name_day = date.strftime("%A")
+                            if name_day == 'Sunday':
+                                value['day_9'] = shift_group.sunday_id and shift_group.sunday_id.id or False
+                            elif name_day == 'Monday':
+                                value['day_9'] = shift_group.monday_id and shift_group.monday_id.id or False
+                            elif name_day == 'Tuesday':
+                                value['day_9'] = shift_group.tuesday_id and shift_group.tuesday_id.id or False
+                            elif name_day == 'Wednesday':
+                                value['day_9'] = shift_group.wednesday_id and shift_group.wednesday_id.id or False
+                            elif name_day == 'Thursday':
+                                value['day_9'] = shift_group.thursday_id and shift_group.thursday_id.id or False
+                            elif name_day == 'Friday':
+                                value['day_9'] = shift_group.friday_id and shift_group.friday_id.id or False
+                            else:
+                                value['day_9'] = shift_group.saturday_id and shift_group.saturday_id.id or False
+                        if num == 10:
+                            date = datetime.date (year, month, 10)
+                            name_day = date.strftime("%A")
+                            if name_day == 'Sunday':
+                                value['day_10'] = shift_group.sunday_id and shift_group.sunday_id.id or False
+                            elif name_day == 'Monday':
+                                value['day_10'] = shift_group.monday_id and shift_group.monday_id.id or False
+                            elif name_day == 'Tuesday':
+                                value['day_10'] = shift_group.tuesday_id and shift_group.tuesday_id.id or False
+                            elif name_day == 'Wednesday':
+                                value['day_10'] = shift_group.wednesday_id and shift_group.wednesday_id.id or False
+                            elif name_day == 'Thursday':
+                                value['day_10'] = shift_group.thursday_id and shift_group.thursday_id.id or False
+                            elif name_day == 'Friday':
+                                value['day_10'] = shift_group.friday_id and shift_group.friday_id.id or False
+                            else:
+                                value['day_10'] = shift_group.saturday_id and shift_group.saturday_id.id or False
+                        if num == 11:
+                            date = datetime.date (year, month, 11)
+                            name_day = date.strftime("%A")
+                            if name_day == 'Sunday':
+                                value['day_11'] = shift_group.sunday_id and shift_group.sunday_id.id or False
+                            elif name_day == 'Monday':
+                                value['day_11'] = shift_group.monday_id and shift_group.monday_id.id or False
+                            elif name_day == 'Tuesday':
+                                value['day_11'] = shift_group.tuesday_id and shift_group.tuesday_id.id or False
+                            elif name_day == 'Wednesday':
+                                value['day_11'] = shift_group.wednesday_id and shift_group.wednesday_id.id or False
+                            elif name_day == 'Thursday':
+                                value['day_11'] = shift_group.thursday_id and shift_group.thursday_id.id or False
+                            elif name_day == 'Friday':
+                                value['day_11'] = shift_group.friday_id and shift_group.friday_id.id or False
+                            else:
+                                value['day_11'] = shift_group.saturday_id and shift_group.saturday_id.id or False
+                        if num == 12:
+                            date = datetime.date (year, month, 12)
+                            name_day = date.strftime("%A")
+                            if name_day == 'Sunday':
+                                value['day_12'] = shift_group.sunday_id and shift_group.sunday_id.id or False
+                            elif name_day == 'Monday':
+                                value['day_12'] = shift_group.monday_id and shift_group.monday_id.id or False
+                            elif name_day == 'Tuesday':
+                                value['day_12'] = shift_group.tuesday_id and shift_group.tuesday_id.id or False
+                            elif name_day == 'Wednesday':
+                                value['day_12'] = shift_group.wednesday_id and shift_group.wednesday_id.id or False
+                            elif name_day == 'Thursday':
+                                value['day_12'] = shift_group.thursday_id and shift_group.thursday_id.id or False
+                            elif name_day == 'Friday':
+                                value['day_12'] = shift_group.friday_id and shift_group.friday_id.id or False
+                            else:
+                                value['day_12'] = shift_group.saturday_id and shift_group.saturday_id.id or False
+                        if num == 13:
+                            date = datetime.date (year, month, 13)
+                            name_day = date.strftime("%A")
+                            if name_day == 'Sunday':
+                                value['day_13'] = shift_group.sunday_id and shift_group.sunday_id.id or False
+                            elif name_day == 'Monday':
+                                value['day_13'] = shift_group.monday_id and shift_group.monday_id.id or False
+                            elif name_day == 'Tuesday':
+                                value['day_13'] = shift_group.tuesday_id and shift_group.tuesday_id.id or False
+                            elif name_day == 'Wednesday':
+                                value['day_13'] = shift_group.wednesday_id and shift_group.wednesday_id.id or False
+                            elif name_day == 'Thursday':
+                                value['day_13'] = shift_group.thursday_id and shift_group.thursday_id.id or False
+                            elif name_day == 'Friday':
+                                value['day_13'] = shift_group.friday_id and shift_group.friday_id.id or False
+                            else:
+                                value['day_13'] = shift_group.saturday_id and shift_group.saturday_id.id or False
+                        if num == 14:
+                            date = datetime.date (year, month, 14)
+                            name_day = date.strftime("%A")
+                            if name_day == 'Sunday':
+                                value['day_14'] = shift_group.sunday_id and shift_group.sunday_id.id or False
+                            elif name_day == 'Monday':
+                                value['day_14'] = shift_group.monday_id and shift_group.monday_id.id or False
+                            elif name_day == 'Tuesday':
+                                value['day_14'] = shift_group.tuesday_id and shift_group.tuesday_id.id or False
+                            elif name_day == 'Wednesday':
+                                value['day_14'] = shift_group.wednesday_id and shift_group.wednesday_id.id or False
+                            elif name_day == 'Thursday':
+                                value['day_14'] = shift_group.thursday_id and shift_group.thursday_id.id or False
+                            elif name_day == 'Friday':
+                                value['day_14'] = shift_group.friday_id and shift_group.friday_id.id or False
+                            else:
+                                value['day_14'] = shift_group.saturday_id and shift_group.saturday_id.id or False
+                        if num == 15:
+                            date = datetime.date (year, month, 15)
+                            name_day = date.strftime("%A")
+                            if name_day == 'Sunday':
+                                value['day_15'] = shift_group.sunday_id and shift_group.sunday_id.id or False
+                            elif name_day == 'Monday':
+                                value['day_15'] = shift_group.monday_id and shift_group.monday_id.id or False
+                            elif name_day == 'Tuesday':
+                                value['day_15'] = shift_group.tuesday_id and shift_group.tuesday_id.id or False
+                            elif name_day == 'Wednesday':
+                                value['day_15'] = shift_group.wednesday_id and shift_group.wednesday_id.id or False
+                            elif name_day == 'Thursday':
+                                value['day_15'] = shift_group.thursday_id and shift_group.thursday_id.id or False
+                            elif name_day == 'Friday':
+                                value['day_15'] = shift_group.friday_id and shift_group.friday_id.id or False
+                            else:
+                                value['day_15'] = shift_group.saturday_id and shift_group.saturday_id.id or False
+                        if num == 16:
+                            date = datetime.date (year, month, 16)
+                            name_day = date.strftime("%A")
+                            if name_day == 'Sunday':
+                                value['day_16'] = shift_group.sunday_id and shift_group.sunday_id.id or False
+                            elif name_day == 'Monday':
+                                value['day_16'] = shift_group.monday_id and shift_group.monday_id.id or False
+                            elif name_day == 'Tuesday':
+                                value['day_16'] = shift_group.tuesday_id and shift_group.tuesday_id.id or False
+                            elif name_day == 'Wednesday':
+                                value['day_16'] = shift_group.wednesday_id and shift_group.wednesday_id.id or False
+                            elif name_day == 'Thursday':
+                                value['day_16'] = shift_group.thursday_id and shift_group.thursday_id.id or False
+                            elif name_day == 'Friday':
+                                value['day_16'] = shift_group.friday_id and shift_group.friday_id.id or False
+                            else:
+                                value['day_16'] = shift_group.saturday_id and shift_group.saturday_id.id or False
+                        if num == 17:
+                            date = datetime.date (year, month, 17)
+                            name_day = date.strftime("%A")
+                            if name_day == 'Sunday':
+                                value['day_17'] = shift_group.sunday_id and shift_group.sunday_id.id or False
+                            elif name_day == 'Monday':
+                                value['day_17'] = shift_group.monday_id and shift_group.monday_id.id or False
+                            elif name_day == 'Tuesday':
+                                value['day_17'] = shift_group.tuesday_id and shift_group.tuesday_id.id or False
+                            elif name_day == 'Wednesday':
+                                value['day_17'] = shift_group.wednesday_id and shift_group.wednesday_id.id or False
+                            elif name_day == 'Thursday':
+                                value['day_17'] = shift_group.thursday_id and shift_group.thursday_id.id or False
+                            elif name_day == 'Friday':
+                                value['day_17'] = shift_group.friday_id and shift_group.friday_id.id or False
+                            else:
+                                value['day_17'] = shift_group.saturday_id and shift_group.saturday_id.id or False
+                        if num == 18:
+                            date = datetime.date (year, month, 18)
+                            name_day = date.strftime("%A")
+                            if name_day == 'Sunday':
+                                value['day_18'] = shift_group.sunday_id and shift_group.sunday_id.id or False
+                            elif name_day == 'Monday':
+                                value['day_18'] = shift_group.monday_id and shift_group.monday_id.id or False
+                            elif name_day == 'Tuesday':
+                                value['day_18'] = shift_group.tuesday_id and shift_group.tuesday_id.id or False
+                            elif name_day == 'Wednesday':
+                                value['day_18'] = shift_group.wednesday_id and shift_group.wednesday_id.id or False
+                            elif name_day == 'Thursday':
+                                value['day_18'] = shift_group.thursday_id and shift_group.thursday_id.id or False
+                            elif name_day == 'Friday':
+                                value['day_18'] = shift_group.friday_id and shift_group.friday_id.id or False
+                            else:
+                                value['day_18'] = shift_group.saturday_id and shift_group.saturday_id.id or False
+                        if num == 19:
+                            date = datetime.date (year, month, 19)
+                            name_day = date.strftime("%A")
+                            if name_day == 'Sunday':
+                                value['day_19'] = shift_group.sunday_id and shift_group.sunday_id.id or False
+                            elif name_day == 'Monday':
+                                value['day_19'] = shift_group.monday_id and shift_group.monday_id.id or False
+                            elif name_day == 'Tuesday':
+                                value['day_19'] = shift_group.tuesday_id and shift_group.tuesday_id.id or False
+                            elif name_day == 'Wednesday':
+                                value['day_19'] = shift_group.wednesday_id and shift_group.wednesday_id.id or False
+                            elif name_day == 'Thursday':
+                                value['day_19'] = shift_group.thursday_id and shift_group.thursday_id.id or False
+                            elif name_day == 'Friday':
+                                value['day_19'] = shift_group.friday_id and shift_group.friday_id.id or False
+                            else:
+                                value['day_19'] = shift_group.saturday_id and shift_group.saturday_id.id or False
+                        if num == 20:
+                            date = datetime.date (year, month, 20)
+                            name_day = date.strftime("%A")
+                            if name_day == 'Sunday':
+                                value['day_20'] = shift_group.sunday_id and shift_group.sunday_id.id or False
+                            elif name_day == 'Monday':
+                                value['day_20'] = shift_group.monday_id and shift_group.monday_id.id or False
+                            elif name_day == 'Tuesday':
+                                value['day_20'] = shift_group.tuesday_id and shift_group.tuesday_id.id or False
+                            elif name_day == 'Wednesday':
+                                value['day_20'] = shift_group.wednesday_id and shift_group.wednesday_id.id or False
+                            elif name_day == 'Thursday':
+                                value['day_20'] = shift_group.thursday_id and shift_group.thursday_id.id or False
+                            elif name_day == 'Friday':
+                                value['day_20'] = shift_group.friday_id and shift_group.friday_id.id or False
+                            else:
+                                value['day_20'] = shift_group.saturday_id and shift_group.saturday_id.id or False
+                        if num == 21:
+                            date = datetime.date (year, month, 21)
+                            name_day = date.strftime("%A")
+                            if name_day == 'Sunday':
+                                value['day_21'] = shift_group.sunday_id and shift_group.sunday_id.id or False
+                            elif name_day == 'Monday':
+                                value['day_21'] = shift_group.monday_id and shift_group.monday_id.id or False
+                            elif name_day == 'Tuesday':
+                                value['day_21'] = shift_group.tuesday_id and shift_group.tuesday_id.id or False
+                            elif name_day == 'Wednesday':
+                                value['day_21'] = shift_group.wednesday_id and shift_group.wednesday_id.id or False
+                            elif name_day == 'Thursday':
+                                value['day_21'] = shift_group.thursday_id and shift_group.thursday_id.id or False
+                            elif name_day == 'Friday':
+                                value['day_21'] = shift_group.friday_id and shift_group.friday_id.id or False
+                            else:
+                                value['day_21'] = shift_group.saturday_id and shift_group.saturday_id.id or False
+                        if num == 22:
+                            date = datetime.date (year, month, 22)
+                            name_day = date.strftime("%A")
+                            if name_day == 'Sunday':
+                                value['day_22'] = shift_group.sunday_id and shift_group.sunday_id.id or False
+                            elif name_day == 'Monday':
+                                value['day_22'] = shift_group.monday_id and shift_group.monday_id.id or False
+                            elif name_day == 'Tuesday':
+                                value['day_22'] = shift_group.tuesday_id and shift_group.tuesday_id.id or False
+                            elif name_day == 'Wednesday':
+                                value['day_22'] = shift_group.wednesday_id and shift_group.wednesday_id.id or False
+                            elif name_day == 'Thursday':
+                                value['day_22'] = shift_group.thursday_id and shift_group.thursday_id.id or False
+                            elif name_day == 'Friday':
+                                value['day_22'] = shift_group.friday_id and shift_group.friday_id.id or False
+                            else:
+                                value['day_22'] = shift_group.saturday_id and shift_group.saturday_id.id or False
+                        if num == 23:
+                            date = datetime.date (year, month, 23)
+                            name_day = date.strftime("%A")
+                            if name_day == 'Sunday':
+                                value['day_23'] = shift_group.sunday_id and shift_group.sunday_id.id or False
+                            elif name_day == 'Monday':
+                                value['day_23'] = shift_group.monday_id and shift_group.monday_id.id or False
+                            elif name_day == 'Tuesday':
+                                value['day_23'] = shift_group.tuesday_id and shift_group.tuesday_id.id or False
+                            elif name_day == 'Wednesday':
+                                value['day_23'] = shift_group.wednesday_id and shift_group.wednesday_id.id or False
+                            elif name_day == 'Thursday':
+                                value['day_23'] = shift_group.thursday_id and shift_group.thursday_id.id or False
+                            elif name_day == 'Friday':
+                                value['day_23'] = shift_group.friday_id and shift_group.friday_id.id or False
+                            else:
+                                value['day_23'] = shift_group.saturday_id and shift_group.saturday_id.id or False
+                        if num == 24:
+                            date = datetime.date (year, month, 24)
+                            name_day = date.strftime("%A")
+                            if name_day == 'Sunday':
+                                value['day_24'] = shift_group.sunday_id and shift_group.sunday_id.id or False
+                            elif name_day == 'Monday':
+                                value['day_24'] = shift_group.monday_id and shift_group.monday_id.id or False
+                            elif name_day == 'Tuesday':
+                                value['day_24'] = shift_group.tuesday_id and shift_group.tuesday_id.id or False
+                            elif name_day == 'Wednesday':
+                                value['day_24'] = shift_group.wednesday_id and shift_group.wednesday_id.id or False
+                            elif name_day == 'Thursday':
+                                value['day_24'] = shift_group.thursday_id and shift_group.thursday_id.id or False
+                            elif name_day == 'Friday':
+                                value['day_24'] = shift_group.friday_id and shift_group.friday_id.id or False
+                            else:
+                                value['day_24'] = shift_group.saturday_id and shift_group.saturday_id.id or False
+                        if num == 25:
+                            date = datetime.date (year, month, 25)
+                            name_day = date.strftime("%A")
+                            if name_day == 'Sunday':
+                                value['day_25'] = shift_group.sunday_id and shift_group.sunday_id.id or False
+                            elif name_day == 'Monday':
+                                value['day_25'] = shift_group.monday_id and shift_group.monday_id.id or False
+                            elif name_day == 'Tuesday':
+                                value['day_25'] = shift_group.tuesday_id and shift_group.tuesday_id.id or False
+                            elif name_day == 'Wednesday':
+                                value['day_25'] = shift_group.wednesday_id and shift_group.wednesday_id.id or False
+                            elif name_day == 'Thursday':
+                                value['day_25'] = shift_group.thursday_id and shift_group.thursday_id.id or False
+                            elif name_day == 'Friday':
+                                value['day_25'] = shift_group.friday_id and shift_group.friday_id.id or False
+                            else:
+                                value['day_25'] = shift_group.saturday_id and shift_group.saturday_id.id or False
+                        if num == 26:
+                            date = datetime.date (year, month, 26)
+                            name_day = date.strftime("%A")
+                            if name_day == 'Sunday':
+                                value['day_26'] = shift_group.sunday_id and shift_group.sunday_id.id or False
+                            elif name_day == 'Monday':
+                                value['day_26'] = shift_group.monday_id and shift_group.monday_id.id or False
+                            elif name_day == 'Tuesday':
+                                value['day_26'] = shift_group.tuesday_id and shift_group.tuesday_id.id or False
+                            elif name_day == 'Wednesday':
+                                value['day_26'] = shift_group.wednesday_id and shift_group.wednesday_id.id or False
+                            elif name_day == 'Thursday':
+                                value['day_26'] = shift_group.thursday_id and shift_group.thursday_id.id or False
+                            elif name_day == 'Friday':
+                                value['day_26'] = shift_group.friday_id and shift_group.friday_id.id or False
+                            else:
+                                value['day_26'] = shift_group.saturday_id and shift_group.saturday_id.id or False
+                        if num == 27:
+                            date = datetime.date (year, month, 27)
+                            name_day = date.strftime("%A")
+                            if name_day == 'Sunday':
+                                value['day_27'] = shift_group.sunday_id and shift_group.sunday_id.id or False
+                            elif name_day == 'Monday':
+                                value['day_27'] = shift_group.monday_id and shift_group.monday_id.id or False
+                            elif name_day == 'Tuesday':
+                                value['day_27'] = shift_group.tuesday_id and shift_group.tuesday_id.id or False
+                            elif name_day == 'Wednesday':
+                                value['day_27'] = shift_group.wednesday_id and shift_group.wednesday_id.id or False
+                            elif name_day == 'Thursday':
+                                value['day_27'] = shift_group.thursday_id and shift_group.thursday_id.id or False
+                            elif name_day == 'Friday':
+                                value['day_27'] = shift_group.friday_id and shift_group.friday_id.id or False
+                            else:
+                                value['day_27'] = shift_group.saturday_id and shift_group.saturday_id.id or False
+                        if num == 28:
+                            date = datetime.date (year, month, 28)
+                            name_day = date.strftime("%A")
+                            if name_day == 'Sunday':
+                                value['day_28'] = shift_group.sunday_id and shift_group.sunday_id.id or False
+                            elif name_day == 'Monday':
+                                value['day_28'] = shift_group.monday_id and shift_group.monday_id.id or False
+                            elif name_day == 'Tuesday':
+                                value['day_28'] = shift_group.tuesday_id and shift_group.tuesday_id.id or False
+                            elif name_day == 'Wednesday':
+                                value['day_28'] = shift_group.wednesday_id and shift_group.wednesday_id.id or False
+                            elif name_day == 'Thursday':
+                                value['day_28'] = shift_group.thursday_id and shift_group.thursday_id.id or False
+                            elif name_day == 'Friday':
+                                value['day_28'] = shift_group.friday_id and shift_group.friday_id.id or False
+                            else:
+                                value['day_28'] = shift_group.saturday_id and shift_group.saturday_id.id or False
+                        if num == 29:
+                            date = datetime.date (year, month, 29)
+                            name_day = date.strftime("%A")
+                            if name_day == 'Sunday':
+                                value['day_29'] = shift_group.sunday_id and shift_group.sunday_id.id or False
+                            elif name_day == 'Monday':
+                                value['day_29'] = shift_group.monday_id and shift_group.monday_id.id or False
+                            elif name_day == 'Tuesday':
+                                value['day_29'] = shift_group.tuesday_id and shift_group.tuesday_id.id or False
+                            elif name_day == 'Wednesday':
+                                value['day_29'] = shift_group.wednesday_id and shift_group.wednesday_id.id or False
+                            elif name_day == 'Thursday':
+                                value['day_29'] = shift_group.thursday_id and shift_group.thursday_id.id or False
+                            elif name_day == 'Friday':
+                                value['day_29'] = shift_group.friday_id and shift_group.friday_id.id or False
+                            else:
+                                value['day_29'] = shift_group.saturday_id and shift_group.saturday_id.id or False
+                        if num == 30:
+                            date = datetime.date (year, month, 30)
+                            name_day = date.strftime("%A")
+                            if name_day == 'Sunday':
+                                value['day_30'] = shift_group.sunday_id and shift_group.sunday_id.id or False
+                            elif name_day == 'Monday':
+                                value['day_30'] = shift_group.monday_id and shift_group.monday_id.id or False
+                            elif name_day == 'Tuesday':
+                                value['day_30'] = shift_group.tuesday_id and shift_group.tuesday_id.id or False
+                            elif name_day == 'Wednesday':
+                                value['day_30'] = shift_group.wednesday_id and shift_group.wednesday_id.id or False
+                            elif name_day == 'Thursday':
+                                value['day_30'] = shift_group.thursday_id and shift_group.thursday_id.id or False
+                            elif name_day == 'Friday':
+                                value['day_30'] = shift_group.friday_id and shift_group.friday_id.id or False
+                            else:
+                                value['day_30'] = shift_group.saturday_id and shift_group.saturday_id.id or False
+                        if num == 31:
+                            date = datetime.date (year, month, 31)
+                            name_day = date.strftime("%A")
+                            if name_day == 'Sunday':
+                                value['day_31'] = shift_group.sunday_id and shift_group.sunday_id.id or False
+                            elif name_day == 'Monday':
+                                value['day_31'] = shift_group.monday_id and shift_group.monday_id.id or False
+                            elif name_day == 'Tuesday':
+                                value['day_31'] = shift_group.tuesday_id and shift_group.tuesday_id.id or False
+                            elif name_day == 'Wednesday':
+                                value['day_31'] = shift_group.wednesday_id and shift_group.wednesday_id.id or False
+                            elif name_day == 'Thursday':
+                                value['day_31'] = shift_group.thursday_id and shift_group.thursday_id.id or False
+                            elif name_day == 'Friday':
+                                value['day_31'] = shift_group.friday_id and shift_group.friday_id.id or False
+                            else:
+                                value['day_31'] = shift_group.saturday_id and shift_group.saturday_id.id or False
+                    monthly_shift_obj.write(cr, uid, [monthly_shift.id], value)
+                else:
                     for num in range(line.date_from.name,line.date_to.name+1):
-                        if num==1 and monthly_shift.name_of_day_1 != 'Sunday':
-                            date = datetime.datetime(int(line.year),int(line.month),1)
-#                             if date_now >= datetime.datetime.strftime(date, '%Y-%m-%d'):
-#                                 raise osv.except_osv(_('Warning!'),_('Can not change Work Monthly Schedule for past day!'))
-                            monthly_shift_obj.write(cr, uid, [monthly_shift.id], {'day_1':line.shift_id.id})
-                        if num==2 and monthly_shift.name_of_day_2 != 'Sunday':
-                            date = datetime.datetime(int(line.year),int(line.month),2)
-#                             if date_now >= datetime.datetime.strftime(date, '%Y-%m-%d'):
-#                                 raise osv.except_osv(_('Warning!'),_('Can not change Work Monthly Schedule for past day!'))
-                            monthly_shift_obj.write(cr, uid, [monthly_shift.id], {'day_2':line.shift_id.id})
-                        if num==3 and monthly_shift.name_of_day_3 != 'Sunday':
-                            date = datetime.datetime(int(line.year),int(line.month),3)
-#                             if date_now >= datetime.datetime.strftime(date, '%Y-%m-%d'):
-#                                 raise osv.except_osv(_('Warning!'),_('Can not change Work Monthly Schedule for past day!'))
-                            monthly_shift_obj.write(cr, uid, [monthly_shift.id], {'day_3':line.shift_id.id})
-                        if num==4 and monthly_shift.name_of_day_4 != 'Sunday':
-                            date = datetime.datetime(int(line.year),int(line.month),4)
-#                             if date_now >= datetime.datetime.strftime(date, '%Y-%m-%d'):
-#                                 raise osv.except_osv(_('Warning!'),_('Can not change Work Monthly Schedule for past day!'))
-                            monthly_shift_obj.write(cr, uid, [monthly_shift.id], {'day_4':line.shift_id.id})
-                        if num==5 and monthly_shift.name_of_day_5 != 'Sunday':
-                            date = datetime.datetime(int(line.year),int(line.month),5)
-#                             if date_now >= datetime.datetime.strftime(date, '%Y-%m-%d'):
-#                                 raise osv.except_osv(_('Warning!'),_('Can not change Work Monthly Schedule for past day!'))
-                            monthly_shift_obj.write(cr, uid, [monthly_shift.id], {'day_5':line.shift_id.id})
-                        if num==6 and monthly_shift.name_of_day_6 != 'Sunday':
-                            date = datetime.datetime(int(line.year),int(line.month),6)
-#                             if date_now >= datetime.datetime.strftime(date, '%Y-%m-%d'):
-#                                 raise osv.except_osv(_('Warning!'),_('Can not change Work Monthly Schedule for past day!'))
-                            monthly_shift_obj.write(cr, uid, [monthly_shift.id], {'day_6':line.shift_id.id})
-                        if num==7 and monthly_shift.name_of_day_7 != 'Sunday':
-                            date = datetime.datetime(int(line.year),int(line.month),7)
-#                             if date_now >= datetime.datetime.strftime(date, '%Y-%m-%d'):
-#                                 raise osv.except_osv(_('Warning!'),_('Can not change Work Monthly Schedule for past day!'))
-                            monthly_shift_obj.write(cr, uid, [monthly_shift.id], {'day_7':line.shift_id.id})
-                        if num==8 and monthly_shift.name_of_day_8 != 'Sunday':
-                            date = datetime.datetime(int(line.year),int(line.month),8)
-#                             if date_now >= datetime.datetime.strftime(date, '%Y-%m-%d'):
-#                                 raise osv.except_osv(_('Warning!'),_('Can not change Work Monthly Schedule for past day!'))
-                            monthly_shift_obj.write(cr, uid, [monthly_shift.id], {'day_8':line.shift_id.id})
-                        if num==9 and monthly_shift.name_of_day_9 != 'Sunday':
-                            date = datetime.datetime(int(line.year),int(line.month),9)
-#                             if date_now >= datetime.datetime.strftime(date, '%Y-%m-%d'):
-#                                 raise osv.except_osv(_('Warning!'),_('Can not change Work Monthly Schedule for past day!'))
-                            monthly_shift_obj.write(cr, uid, [monthly_shift.id], {'day_9':line.shift_id.id})
-                        if num==10 and monthly_shift.name_of_day_10 != 'Sunday':
-                            date = datetime.datetime(int(line.year),int(line.month),10)
-#                             if date_now >= datetime.datetime.strftime(date, '%Y-%m-%d'):
-#                                 raise osv.except_osv(_('Warning!'),_('Can not change Work Monthly Schedule for past day!'))
-                            monthly_shift_obj.write(cr, uid, [monthly_shift.id], {'day_10':line.shift_id.id})
-                        if num==11 and monthly_shift.name_of_day_11 != 'Sunday':
-                            date = datetime.datetime(int(line.year),int(line.month),11)
-#                             if date_now >= datetime.datetime.strftime(date, '%Y-%m-%d'):
-#                                 raise osv.except_osv(_('Warning!'),_('Can not change Work Monthly Schedule for past day!'))
-                            monthly_shift_obj.write(cr, uid, [monthly_shift.id], {'day_11':line.shift_id.id})
-                        if num==12 and monthly_shift.name_of_day_12 != 'Sunday':
-                            date = datetime.datetime(int(line.year),int(line.month),12)
-#                             if date_now >= datetime.datetime.strftime(date, '%Y-%m-%d'):
-#                                 raise osv.except_osv(_('Warning!'),_('Can not change Work Monthly Schedule for past day!'))
-                            monthly_shift_obj.write(cr, uid, [monthly_shift.id], {'day_12':line.shift_id.id})
-                        if num==13 and monthly_shift.name_of_day_13 != 'Sunday':
-                            date = datetime.datetime(int(line.year),int(line.month),13)
-#                             if date_now >= datetime.datetime.strftime(date, '%Y-%m-%d'):
-#                                 raise osv.except_osv(_('Warning!'),_('Can not change Work Monthly Schedule for past day!'))
-                            monthly_shift_obj.write(cr, uid, [monthly_shift.id], {'day_13':line.shift_id.id})
-                        if num==14 and monthly_shift.name_of_day_14 != 'Sunday':
-                            date = datetime.datetime(int(line.year),int(line.month),14)
-#                             if date_now >= datetime.datetime.strftime(date, '%Y-%m-%d'):
-#                                 raise osv.except_osv(_('Warning!'),_('Can not change Work Monthly Schedule for past day!'))
-                            monthly_shift_obj.write(cr, uid, [monthly_shift.id], {'day_14':line.shift_id.id})
-                        if num==15 and monthly_shift.name_of_day_15 != 'Sunday':
-                            date = datetime.datetime(int(line.year),int(line.month),15)
-#                             if date_now >= datetime.datetime.strftime(date, '%Y-%m-%d'):
-#                                 raise osv.except_osv(_('Warning!'),_('Can not change Work Monthly Schedule for past day!'))
-                            monthly_shift_obj.write(cr, uid, [monthly_shift.id], {'day_15':line.shift_id.id})
-                        if num==16 and monthly_shift.name_of_day_16 != 'Sunday':
-                            date = datetime.datetime(int(line.year),int(line.month),16)
-#                             if date_now >= datetime.datetime.strftime(date, '%Y-%m-%d'):
-#                                 raise osv.except_osv(_('Warning!'),_('Can not change Work Monthly Schedule for past day!'))
-                            monthly_shift_obj.write(cr, uid, [monthly_shift.id], {'day_16':line.shift_id.id})
-                        if num==17 and monthly_shift.name_of_day_17 != 'Sunday':
-                            date = datetime.datetime(int(line.year),int(line.month),17)
-#                             if date_now >= datetime.datetime.strftime(date, '%Y-%m-%d'):
-#                                 raise osv.except_osv(_('Warning!'),_('Can not change Work Monthly Schedule for past day!'))
-                            monthly_shift_obj.write(cr, uid, [monthly_shift.id], {'day_17':line.shift_id.id})
-                        if num==18 and monthly_shift.name_of_day_18 != 'Sunday':
-                            date = datetime.datetime(int(line.year),int(line.month),18)
-#                             if date_now >= datetime.datetime.strftime(date, '%Y-%m-%d'):
-#                                 raise osv.except_osv(_('Warning!'),_('Can not change Work Monthly Schedule for past day!'))
-                            monthly_shift_obj.write(cr, uid, [monthly_shift.id], {'day_18':line.shift_id.id})
-                        if num==19 and monthly_shift.name_of_day_19 != 'Sunday':
-                            date = datetime.datetime(int(line.year),int(line.month),19)
-#                             if date_now >= datetime.datetime.strftime(date, '%Y-%m-%d'):
-#                                 raise osv.except_osv(_('Warning!'),_('Can not change Work Monthly Schedule for past day!'))
-                            monthly_shift_obj.write(cr, uid, [monthly_shift.id], {'day_19':line.shift_id.id})
-                        if num==20 and monthly_shift.name_of_day_20 != 'Sunday':
-                            date = datetime.datetime(int(line.year),int(line.month),20)
-#                             if date_now >= datetime.datetime.strftime(date, '%Y-%m-%d'):
-#                                 raise osv.except_osv(_('Warning!'),_('Can not change Work Monthly Schedule for past day!'))
-                            monthly_shift_obj.write(cr, uid, [monthly_shift.id], {'day_20':line.shift_id.id})
-                        if num==21 and monthly_shift.name_of_day_21 != 'Sunday':
-                            date = datetime.datetime(int(line.year),int(line.month),21)
-#                             if date_now >= datetime.datetime.strftime(date, '%Y-%m-%d'):
-#                                 raise osv.except_osv(_('Warning!'),_('Can not change Work Monthly Schedule for past day!'))
-                            monthly_shift_obj.write(cr, uid, [monthly_shift.id], {'day_21':line.shift_id.id})
-                        if num==22 and monthly_shift.name_of_day_22 != 'Sunday':
-                            date = datetime.datetime(int(line.year),int(line.month),22)
-#                             if date_now >= datetime.datetime.strftime(date, '%Y-%m-%d'):
-#                                 raise osv.except_osv(_('Warning!'),_('Can not change Work Monthly Schedule for past day!'))
-                            monthly_shift_obj.write(cr, uid, [monthly_shift.id], {'day_22':line.shift_id.id})
-                        if num==23 and monthly_shift.name_of_day_23 != 'Sunday':
-                            date = datetime.datetime(int(line.year),int(line.month),23)
-#                             if date_now >= datetime.datetime.strftime(date, '%Y-%m-%d'):
-#                                 raise osv.except_osv(_('Warning!'),_('Can not change Work Monthly Schedule for past day!'))
-                            monthly_shift_obj.write(cr, uid, [monthly_shift.id], {'day_23':line.shift_id.id})
-                        if num==24 and monthly_shift.name_of_day_24 != 'Sunday':
-                            date = datetime.datetime(int(line.year),int(line.month),24)
-#                             if date_now >= datetime.datetime.strftime(date, '%Y-%m-%d'):
-#                                 raise osv.except_osv(_('Warning!'),_('Can not change Work Monthly Schedule for past day!'))
-                            monthly_shift_obj.write(cr, uid, [monthly_shift.id], {'day_24':line.shift_id.id})
-                        if num==25 and monthly_shift.name_of_day_25 != 'Sunday':
-                            date = datetime.datetime(int(line.year),int(line.month),25)
-#                             if date_now >= datetime.datetime.strftime(date, '%Y-%m-%d'):
-#                                 raise osv.except_osv(_('Warning!'),_('Can not change Work Monthly Schedule for past day!'))
-                            monthly_shift_obj.write(cr, uid, [monthly_shift.id], {'day_25':line.shift_id.id})
-                        if num==26 and monthly_shift.name_of_day_26 != 'Sunday':
-                            date = datetime.datetime(int(line.year),int(line.month),26)
-#                             if date_now >= datetime.datetime.strftime(date, '%Y-%m-%d'):
-#                                 raise osv.except_osv(_('Warning!'),_('Can not change Work Monthly Schedule for past day!'))
-                            monthly_shift_obj.write(cr, uid, [monthly_shift.id], {'day_26':line.shift_id.id})
-                        if num==27 and monthly_shift.name_of_day_27 != 'Sunday':
-                            date = datetime.datetime(int(line.year),int(line.month),27)
-#                             if date_now >= datetime.datetime.strftime(date, '%Y-%m-%d'):
-#                                 raise osv.except_osv(_('Warning!'),_('Can not change Work Monthly Schedule for past day!'))
-                            monthly_shift_obj.write(cr, uid, [monthly_shift.id], {'day_27':line.shift_id.id})
-                        if num==28 and monthly_shift.name_of_day_28 != 'Sunday':
-                            date = datetime.datetime(int(line.year),int(line.month),28)
-#                             if date_now >= datetime.datetime.strftime(date, '%Y-%m-%d'):
-#                                 raise osv.except_osv(_('Warning!'),_('Can not change Work Monthly Schedule for past day!'))
-                            monthly_shift_obj.write(cr, uid, [monthly_shift.id], {'day_28':line.shift_id.id})
-                        if num==29 and monthly_shift.name_of_day_29 != 'Sunday':
-                            date = datetime.datetime(int(line.year),int(line.month),29)
-#                             if date_now >= datetime.datetime.strftime(date, '%Y-%m-%d'):
-#                                 raise osv.except_osv(_('Warning!'),_('Can not change Work Monthly Schedule for past day!'))
-                            monthly_shift_obj.write(cr, uid, [monthly_shift.id], {'day_29':line.shift_id.id})
-                        if num==30 and monthly_shift.name_of_day_30 != 'Sunday':
-                            date = datetime.datetime(int(line.year),int(line.month),30)
-#                             if date_now >= datetime.datetime.strftime(date, '%Y-%m-%d'):
-#                                 raise osv.except_osv(_('Warning!'),_('Can not change Work Monthly Schedule for past day!'))
-                            monthly_shift_obj.write(cr, uid, [monthly_shift.id], {'day_30':line.shift_id.id})
-                        if num==31 and monthly_shift.name_of_day_31 != 'Sunday':
-                            date = datetime.datetime(int(line.year),int(line.month),31)
-#                             if date_now >= datetime.datetime.strftime(date, '%Y-%m-%d'):
-#                                 raise osv.except_osv(_('Warning!'),_('Can not change Work Monthly Schedule for past day!'))
-                            monthly_shift_obj.write(cr, uid, [monthly_shift.id], {'day_31':line.shift_id.id})'''
+                            if num==1:
+                                date = datetime.datetime(int(line.year),int(line.month),1)
+                                ### An trong vong 2 thang sau do mo ra lai 31-01-2015
+    #                             if date_now >= datetime.datetime.strftime(date, '%Y-%m-%d'):
+    #                                 raise osv.except_osv(_('Warning!'),_('Can not change Work Monthly Schedule for past day!'))
+                                monthly_shift_obj.write(cr, uid, [monthly_shift.id], {'day_1':line.shift_id.id})
+                            if num==2:
+                                date = datetime.datetime(int(line.year),int(line.month),2)
+    #                             if date_now >= datetime.datetime.strftime(date, '%Y-%m-%d'):
+    #                                 raise osv.except_osv(_('Warning!'),_('Can not change Work Monthly Schedule for past day!'))
+                                monthly_shift_obj.write(cr, uid, [monthly_shift.id], {'day_2':line.shift_id.id})
+                            if num==3:
+                                date = datetime.datetime(int(line.year),int(line.month),3)
+    #                             if date_now >= datetime.datetime.strftime(date, '%Y-%m-%d'):
+    #                                 raise osv.except_osv(_('Warning!'),_('Can not change Work Monthly Schedule for past day!'))
+                                monthly_shift_obj.write(cr, uid, [monthly_shift.id], {'day_3':line.shift_id.id})
+                            if num==4:
+                                date = datetime.datetime(int(line.year),int(line.month),4)
+    #                             if date_now >= datetime.datetime.strftime(date, '%Y-%m-%d'):
+    #                                 raise osv.except_osv(_('Warning!'),_('Can not change Work Monthly Schedule for past day!'))
+                                monthly_shift_obj.write(cr, uid, [monthly_shift.id], {'day_4':line.shift_id.id})
+                            if num==5:
+                                date = datetime.datetime(int(line.year),int(line.month),5)
+    #                             if date_now >= datetime.datetime.strftime(date, '%Y-%m-%d'):
+    #                                 raise osv.except_osv(_('Warning!'),_('Can not change Work Monthly Schedule for past day!'))
+                                monthly_shift_obj.write(cr, uid, [monthly_shift.id], {'day_5':line.shift_id.id})
+                            if num==6:
+                                date = datetime.datetime(int(line.year),int(line.month),6)
+    #                             if date_now >= datetime.datetime.strftime(date, '%Y-%m-%d'):
+    #                                 raise osv.except_osv(_('Warning!'),_('Can not change Work Monthly Schedule for past day!'))
+                                monthly_shift_obj.write(cr, uid, [monthly_shift.id], {'day_6':line.shift_id.id})
+                            if num==7:
+                                date = datetime.datetime(int(line.year),int(line.month),7)
+    #                             if date_now >= datetime.datetime.strftime(date, '%Y-%m-%d'):
+    #                                 raise osv.except_osv(_('Warning!'),_('Can not change Work Monthly Schedule for past day!'))
+                                monthly_shift_obj.write(cr, uid, [monthly_shift.id], {'day_7':line.shift_id.id})
+                            if num==8:
+                                date = datetime.datetime(int(line.year),int(line.month),8)
+    #                             if date_now >= datetime.datetime.strftime(date, '%Y-%m-%d'):
+    #                                 raise osv.except_osv(_('Warning!'),_('Can not change Work Monthly Schedule for past day!'))
+                                monthly_shift_obj.write(cr, uid, [monthly_shift.id], {'day_8':line.shift_id.id})
+                            if num==9:
+                                date = datetime.datetime(int(line.year),int(line.month),9)
+    #                             if date_now >= datetime.datetime.strftime(date, '%Y-%m-%d'):
+    #                                 raise osv.except_osv(_('Warning!'),_('Can not change Work Monthly Schedule for past day!'))
+                                monthly_shift_obj.write(cr, uid, [monthly_shift.id], {'day_9':line.shift_id.id})
+                            if num==10:
+                                date = datetime.datetime(int(line.year),int(line.month),10)
+    #                             if date_now >= datetime.datetime.strftime(date, '%Y-%m-%d'):
+    #                                 raise osv.except_osv(_('Warning!'),_('Can not change Work Monthly Schedule for past day!'))
+                                monthly_shift_obj.write(cr, uid, [monthly_shift.id], {'day_10':line.shift_id.id})
+                            if num==11:
+                                date = datetime.datetime(int(line.year),int(line.month),11)
+    #                             if date_now >= datetime.datetime.strftime(date, '%Y-%m-%d'):
+    #                                 raise osv.except_osv(_('Warning!'),_('Can not change Work Monthly Schedule for past day!'))
+                                monthly_shift_obj.write(cr, uid, [monthly_shift.id], {'day_11':line.shift_id.id})
+                            if num==12:
+                                date = datetime.datetime(int(line.year),int(line.month),12)
+    #                             if date_now >= datetime.datetime.strftime(date, '%Y-%m-%d'):
+    #                                 raise osv.except_osv(_('Warning!'),_('Can not change Work Monthly Schedule for past day!'))
+                                monthly_shift_obj.write(cr, uid, [monthly_shift.id], {'day_12':line.shift_id.id})
+                            if num==13:
+                                date = datetime.datetime(int(line.year),int(line.month),13)
+    #                             if date_now >= datetime.datetime.strftime(date, '%Y-%m-%d'):
+    #                                 raise osv.except_osv(_('Warning!'),_('Can not change Work Monthly Schedule for past day!'))
+                                monthly_shift_obj.write(cr, uid, [monthly_shift.id], {'day_13':line.shift_id.id})
+                            if num==14:
+                                date = datetime.datetime(int(line.year),int(line.month),14)
+    #                             if date_now >= datetime.datetime.strftime(date, '%Y-%m-%d'):
+    #                                 raise osv.except_osv(_('Warning!'),_('Can not change Work Monthly Schedule for past day!'))
+                                monthly_shift_obj.write(cr, uid, [monthly_shift.id], {'day_14':line.shift_id.id})
+                            if num==15:
+                                date = datetime.datetime(int(line.year),int(line.month),15)
+    #                             if date_now >= datetime.datetime.strftime(date, '%Y-%m-%d'):
+    #                                 raise osv.except_osv(_('Warning!'),_('Can not change Work Monthly Schedule for past day!'))
+                                monthly_shift_obj.write(cr, uid, [monthly_shift.id], {'day_15':line.shift_id.id})
+                            if num==16:
+                                date = datetime.datetime(int(line.year),int(line.month),16)
+    #                             if date_now >= datetime.datetime.strftime(date, '%Y-%m-%d'):
+    #                                 raise osv.except_osv(_('Warning!'),_('Can not change Work Monthly Schedule for past day!'))
+                                monthly_shift_obj.write(cr, uid, [monthly_shift.id], {'day_16':line.shift_id.id})
+                            if num==17:
+                                date = datetime.datetime(int(line.year),int(line.month),17)
+    #                             if date_now >= datetime.datetime.strftime(date, '%Y-%m-%d'):
+    #                                 raise osv.except_osv(_('Warning!'),_('Can not change Work Monthly Schedule for past day!'))
+                                monthly_shift_obj.write(cr, uid, [monthly_shift.id], {'day_17':line.shift_id.id})
+                            if num==18:
+                                date = datetime.datetime(int(line.year),int(line.month),18)
+    #                             if date_now >= datetime.datetime.strftime(date, '%Y-%m-%d'):
+    #                                 raise osv.except_osv(_('Warning!'),_('Can not change Work Monthly Schedule for past day!'))
+                                monthly_shift_obj.write(cr, uid, [monthly_shift.id], {'day_18':line.shift_id.id})
+                            if num==19:
+                                date = datetime.datetime(int(line.year),int(line.month),19)
+    #                             if date_now >= datetime.datetime.strftime(date, '%Y-%m-%d'):
+    #                                 raise osv.except_osv(_('Warning!'),_('Can not change Work Monthly Schedule for past day!'))
+                                monthly_shift_obj.write(cr, uid, [monthly_shift.id], {'day_19':line.shift_id.id})
+                            if num==20:
+                                date = datetime.datetime(int(line.year),int(line.month),20)
+    #                             if date_now >= datetime.datetime.strftime(date, '%Y-%m-%d'):
+    #                                 raise osv.except_osv(_('Warning!'),_('Can not change Work Monthly Schedule for past day!'))
+                                monthly_shift_obj.write(cr, uid, [monthly_shift.id], {'day_20':line.shift_id.id})
+                            if num==21:
+                                date = datetime.datetime(int(line.year),int(line.month),21)
+    #                             if date_now >= datetime.datetime.strftime(date, '%Y-%m-%d'):
+    #                                 raise osv.except_osv(_('Warning!'),_('Can not change Work Monthly Schedule for past day!'))
+                                monthly_shift_obj.write(cr, uid, [monthly_shift.id], {'day_21':line.shift_id.id})
+                            if num==22:
+                                date = datetime.datetime(int(line.year),int(line.month),22)
+    #                             if date_now >= datetime.datetime.strftime(date, '%Y-%m-%d'):
+    #                                 raise osv.except_osv(_('Warning!'),_('Can not change Work Monthly Schedule for past day!'))
+                                monthly_shift_obj.write(cr, uid, [monthly_shift.id], {'day_22':line.shift_id.id})
+                            if num==23:
+                                date = datetime.datetime(int(line.year),int(line.month),23)
+    #                             if date_now >= datetime.datetime.strftime(date, '%Y-%m-%d'):
+    #                                 raise osv.except_osv(_('Warning!'),_('Can not change Work Monthly Schedule for past day!'))
+                                monthly_shift_obj.write(cr, uid, [monthly_shift.id], {'day_23':line.shift_id.id})
+                            if num==24:
+                                date = datetime.datetime(int(line.year),int(line.month),24)
+    #                             if date_now >= datetime.datetime.strftime(date, '%Y-%m-%d'):
+    #                                 raise osv.except_osv(_('Warning!'),_('Can not change Work Monthly Schedule for past day!'))
+                                monthly_shift_obj.write(cr, uid, [monthly_shift.id], {'day_24':line.shift_id.id})
+                            if num==25:
+                                date = datetime.datetime(int(line.year),int(line.month),25)
+    #                             if date_now >= datetime.datetime.strftime(date, '%Y-%m-%d'):
+    #                                 raise osv.except_osv(_('Warning!'),_('Can not change Work Monthly Schedule for past day!'))
+                                monthly_shift_obj.write(cr, uid, [monthly_shift.id], {'day_25':line.shift_id.id})
+                            if num==26:
+                                date = datetime.datetime(int(line.year),int(line.month),26)
+    #                             if date_now >= datetime.datetime.strftime(date, '%Y-%m-%d'):
+    #                                 raise osv.except_osv(_('Warning!'),_('Can not change Work Monthly Schedule for past day!'))
+                                monthly_shift_obj.write(cr, uid, [monthly_shift.id], {'day_26':line.shift_id.id})
+                            if num==27:
+                                date = datetime.datetime(int(line.year),int(line.month),27)
+    #                             if date_now >= datetime.datetime.strftime(date, '%Y-%m-%d'):
+    #                                 raise osv.except_osv(_('Warning!'),_('Can not change Work Monthly Schedule for past day!'))
+                                monthly_shift_obj.write(cr, uid, [monthly_shift.id], {'day_27':line.shift_id.id})
+                            if num==28:
+                                date = datetime.datetime(int(line.year),int(line.month),28)
+    #                             if date_now >= datetime.datetime.strftime(date, '%Y-%m-%d'):
+    #                                 raise osv.except_osv(_('Warning!'),_('Can not change Work Monthly Schedule for past day!'))
+                                monthly_shift_obj.write(cr, uid, [monthly_shift.id], {'day_28':line.shift_id.id})
+                            if num==29:
+                                date = datetime.datetime(int(line.year),int(line.month),29)
+    #                             if date_now >= datetime.datetime.strftime(date, '%Y-%m-%d'):
+    #                                 raise osv.except_osv(_('Warning!'),_('Can not change Work Monthly Schedule for past day!'))
+                                monthly_shift_obj.write(cr, uid, [monthly_shift.id], {'day_29':line.shift_id.id})
+                            if num==30:
+                                date = datetime.datetime(int(line.year),int(line.month),30)
+    #                             if date_now >= datetime.datetime.strftime(date, '%Y-%m-%d'):
+    #                                 raise osv.except_osv(_('Warning!'),_('Can not change Work Monthly Schedule for past day!'))
+                                monthly_shift_obj.write(cr, uid, [monthly_shift.id], {'day_30':line.shift_id.id})
+                            if num==31:
+                                date = datetime.datetime(int(line.year),int(line.month),31)
+    #                             if date_now >= datetime.datetime.strftime(date, '%Y-%m-%d'):
+    #                                 raise osv.except_osv(_('Warning!'),_('Can not change Work Monthly Schedule for past day!'))
+                                monthly_shift_obj.write(cr, uid, [monthly_shift.id], {'day_31':line.shift_id.id})
+                    '''else:
+                        for num in range(line.date_from.name,line.date_to.name+1):
+                            if num==1 and monthly_shift.name_of_day_1 != 'Sunday':
+                                date = datetime.datetime(int(line.year),int(line.month),1)
+    #                             if date_now >= datetime.datetime.strftime(date, '%Y-%m-%d'):
+    #                                 raise osv.except_osv(_('Warning!'),_('Can not change Work Monthly Schedule for past day!'))
+                                monthly_shift_obj.write(cr, uid, [monthly_shift.id], {'day_1':line.shift_id.id})
+                            if num==2 and monthly_shift.name_of_day_2 != 'Sunday':
+                                date = datetime.datetime(int(line.year),int(line.month),2)
+    #                             if date_now >= datetime.datetime.strftime(date, '%Y-%m-%d'):
+    #                                 raise osv.except_osv(_('Warning!'),_('Can not change Work Monthly Schedule for past day!'))
+                                monthly_shift_obj.write(cr, uid, [monthly_shift.id], {'day_2':line.shift_id.id})
+                            if num==3 and monthly_shift.name_of_day_3 != 'Sunday':
+                                date = datetime.datetime(int(line.year),int(line.month),3)
+    #                             if date_now >= datetime.datetime.strftime(date, '%Y-%m-%d'):
+    #                                 raise osv.except_osv(_('Warning!'),_('Can not change Work Monthly Schedule for past day!'))
+                                monthly_shift_obj.write(cr, uid, [monthly_shift.id], {'day_3':line.shift_id.id})
+                            if num==4 and monthly_shift.name_of_day_4 != 'Sunday':
+                                date = datetime.datetime(int(line.year),int(line.month),4)
+    #                             if date_now >= datetime.datetime.strftime(date, '%Y-%m-%d'):
+    #                                 raise osv.except_osv(_('Warning!'),_('Can not change Work Monthly Schedule for past day!'))
+                                monthly_shift_obj.write(cr, uid, [monthly_shift.id], {'day_4':line.shift_id.id})
+                            if num==5 and monthly_shift.name_of_day_5 != 'Sunday':
+                                date = datetime.datetime(int(line.year),int(line.month),5)
+    #                             if date_now >= datetime.datetime.strftime(date, '%Y-%m-%d'):
+    #                                 raise osv.except_osv(_('Warning!'),_('Can not change Work Monthly Schedule for past day!'))
+                                monthly_shift_obj.write(cr, uid, [monthly_shift.id], {'day_5':line.shift_id.id})
+                            if num==6 and monthly_shift.name_of_day_6 != 'Sunday':
+                                date = datetime.datetime(int(line.year),int(line.month),6)
+    #                             if date_now >= datetime.datetime.strftime(date, '%Y-%m-%d'):
+    #                                 raise osv.except_osv(_('Warning!'),_('Can not change Work Monthly Schedule for past day!'))
+                                monthly_shift_obj.write(cr, uid, [monthly_shift.id], {'day_6':line.shift_id.id})
+                            if num==7 and monthly_shift.name_of_day_7 != 'Sunday':
+                                date = datetime.datetime(int(line.year),int(line.month),7)
+    #                             if date_now >= datetime.datetime.strftime(date, '%Y-%m-%d'):
+    #                                 raise osv.except_osv(_('Warning!'),_('Can not change Work Monthly Schedule for past day!'))
+                                monthly_shift_obj.write(cr, uid, [monthly_shift.id], {'day_7':line.shift_id.id})
+                            if num==8 and monthly_shift.name_of_day_8 != 'Sunday':
+                                date = datetime.datetime(int(line.year),int(line.month),8)
+    #                             if date_now >= datetime.datetime.strftime(date, '%Y-%m-%d'):
+    #                                 raise osv.except_osv(_('Warning!'),_('Can not change Work Monthly Schedule for past day!'))
+                                monthly_shift_obj.write(cr, uid, [monthly_shift.id], {'day_8':line.shift_id.id})
+                            if num==9 and monthly_shift.name_of_day_9 != 'Sunday':
+                                date = datetime.datetime(int(line.year),int(line.month),9)
+    #                             if date_now >= datetime.datetime.strftime(date, '%Y-%m-%d'):
+    #                                 raise osv.except_osv(_('Warning!'),_('Can not change Work Monthly Schedule for past day!'))
+                                monthly_shift_obj.write(cr, uid, [monthly_shift.id], {'day_9':line.shift_id.id})
+                            if num==10 and monthly_shift.name_of_day_10 != 'Sunday':
+                                date = datetime.datetime(int(line.year),int(line.month),10)
+    #                             if date_now >= datetime.datetime.strftime(date, '%Y-%m-%d'):
+    #                                 raise osv.except_osv(_('Warning!'),_('Can not change Work Monthly Schedule for past day!'))
+                                monthly_shift_obj.write(cr, uid, [monthly_shift.id], {'day_10':line.shift_id.id})
+                            if num==11 and monthly_shift.name_of_day_11 != 'Sunday':
+                                date = datetime.datetime(int(line.year),int(line.month),11)
+    #                             if date_now >= datetime.datetime.strftime(date, '%Y-%m-%d'):
+    #                                 raise osv.except_osv(_('Warning!'),_('Can not change Work Monthly Schedule for past day!'))
+                                monthly_shift_obj.write(cr, uid, [monthly_shift.id], {'day_11':line.shift_id.id})
+                            if num==12 and monthly_shift.name_of_day_12 != 'Sunday':
+                                date = datetime.datetime(int(line.year),int(line.month),12)
+    #                             if date_now >= datetime.datetime.strftime(date, '%Y-%m-%d'):
+    #                                 raise osv.except_osv(_('Warning!'),_('Can not change Work Monthly Schedule for past day!'))
+                                monthly_shift_obj.write(cr, uid, [monthly_shift.id], {'day_12':line.shift_id.id})
+                            if num==13 and monthly_shift.name_of_day_13 != 'Sunday':
+                                date = datetime.datetime(int(line.year),int(line.month),13)
+    #                             if date_now >= datetime.datetime.strftime(date, '%Y-%m-%d'):
+    #                                 raise osv.except_osv(_('Warning!'),_('Can not change Work Monthly Schedule for past day!'))
+                                monthly_shift_obj.write(cr, uid, [monthly_shift.id], {'day_13':line.shift_id.id})
+                            if num==14 and monthly_shift.name_of_day_14 != 'Sunday':
+                                date = datetime.datetime(int(line.year),int(line.month),14)
+    #                             if date_now >= datetime.datetime.strftime(date, '%Y-%m-%d'):
+    #                                 raise osv.except_osv(_('Warning!'),_('Can not change Work Monthly Schedule for past day!'))
+                                monthly_shift_obj.write(cr, uid, [monthly_shift.id], {'day_14':line.shift_id.id})
+                            if num==15 and monthly_shift.name_of_day_15 != 'Sunday':
+                                date = datetime.datetime(int(line.year),int(line.month),15)
+    #                             if date_now >= datetime.datetime.strftime(date, '%Y-%m-%d'):
+    #                                 raise osv.except_osv(_('Warning!'),_('Can not change Work Monthly Schedule for past day!'))
+                                monthly_shift_obj.write(cr, uid, [monthly_shift.id], {'day_15':line.shift_id.id})
+                            if num==16 and monthly_shift.name_of_day_16 != 'Sunday':
+                                date = datetime.datetime(int(line.year),int(line.month),16)
+    #                             if date_now >= datetime.datetime.strftime(date, '%Y-%m-%d'):
+    #                                 raise osv.except_osv(_('Warning!'),_('Can not change Work Monthly Schedule for past day!'))
+                                monthly_shift_obj.write(cr, uid, [monthly_shift.id], {'day_16':line.shift_id.id})
+                            if num==17 and monthly_shift.name_of_day_17 != 'Sunday':
+                                date = datetime.datetime(int(line.year),int(line.month),17)
+    #                             if date_now >= datetime.datetime.strftime(date, '%Y-%m-%d'):
+    #                                 raise osv.except_osv(_('Warning!'),_('Can not change Work Monthly Schedule for past day!'))
+                                monthly_shift_obj.write(cr, uid, [monthly_shift.id], {'day_17':line.shift_id.id})
+                            if num==18 and monthly_shift.name_of_day_18 != 'Sunday':
+                                date = datetime.datetime(int(line.year),int(line.month),18)
+    #                             if date_now >= datetime.datetime.strftime(date, '%Y-%m-%d'):
+    #                                 raise osv.except_osv(_('Warning!'),_('Can not change Work Monthly Schedule for past day!'))
+                                monthly_shift_obj.write(cr, uid, [monthly_shift.id], {'day_18':line.shift_id.id})
+                            if num==19 and monthly_shift.name_of_day_19 != 'Sunday':
+                                date = datetime.datetime(int(line.year),int(line.month),19)
+    #                             if date_now >= datetime.datetime.strftime(date, '%Y-%m-%d'):
+    #                                 raise osv.except_osv(_('Warning!'),_('Can not change Work Monthly Schedule for past day!'))
+                                monthly_shift_obj.write(cr, uid, [monthly_shift.id], {'day_19':line.shift_id.id})
+                            if num==20 and monthly_shift.name_of_day_20 != 'Sunday':
+                                date = datetime.datetime(int(line.year),int(line.month),20)
+    #                             if date_now >= datetime.datetime.strftime(date, '%Y-%m-%d'):
+    #                                 raise osv.except_osv(_('Warning!'),_('Can not change Work Monthly Schedule for past day!'))
+                                monthly_shift_obj.write(cr, uid, [monthly_shift.id], {'day_20':line.shift_id.id})
+                            if num==21 and monthly_shift.name_of_day_21 != 'Sunday':
+                                date = datetime.datetime(int(line.year),int(line.month),21)
+    #                             if date_now >= datetime.datetime.strftime(date, '%Y-%m-%d'):
+    #                                 raise osv.except_osv(_('Warning!'),_('Can not change Work Monthly Schedule for past day!'))
+                                monthly_shift_obj.write(cr, uid, [monthly_shift.id], {'day_21':line.shift_id.id})
+                            if num==22 and monthly_shift.name_of_day_22 != 'Sunday':
+                                date = datetime.datetime(int(line.year),int(line.month),22)
+    #                             if date_now >= datetime.datetime.strftime(date, '%Y-%m-%d'):
+    #                                 raise osv.except_osv(_('Warning!'),_('Can not change Work Monthly Schedule for past day!'))
+                                monthly_shift_obj.write(cr, uid, [monthly_shift.id], {'day_22':line.shift_id.id})
+                            if num==23 and monthly_shift.name_of_day_23 != 'Sunday':
+                                date = datetime.datetime(int(line.year),int(line.month),23)
+    #                             if date_now >= datetime.datetime.strftime(date, '%Y-%m-%d'):
+    #                                 raise osv.except_osv(_('Warning!'),_('Can not change Work Monthly Schedule for past day!'))
+                                monthly_shift_obj.write(cr, uid, [monthly_shift.id], {'day_23':line.shift_id.id})
+                            if num==24 and monthly_shift.name_of_day_24 != 'Sunday':
+                                date = datetime.datetime(int(line.year),int(line.month),24)
+    #                             if date_now >= datetime.datetime.strftime(date, '%Y-%m-%d'):
+    #                                 raise osv.except_osv(_('Warning!'),_('Can not change Work Monthly Schedule for past day!'))
+                                monthly_shift_obj.write(cr, uid, [monthly_shift.id], {'day_24':line.shift_id.id})
+                            if num==25 and monthly_shift.name_of_day_25 != 'Sunday':
+                                date = datetime.datetime(int(line.year),int(line.month),25)
+    #                             if date_now >= datetime.datetime.strftime(date, '%Y-%m-%d'):
+    #                                 raise osv.except_osv(_('Warning!'),_('Can not change Work Monthly Schedule for past day!'))
+                                monthly_shift_obj.write(cr, uid, [monthly_shift.id], {'day_25':line.shift_id.id})
+                            if num==26 and monthly_shift.name_of_day_26 != 'Sunday':
+                                date = datetime.datetime(int(line.year),int(line.month),26)
+    #                             if date_now >= datetime.datetime.strftime(date, '%Y-%m-%d'):
+    #                                 raise osv.except_osv(_('Warning!'),_('Can not change Work Monthly Schedule for past day!'))
+                                monthly_shift_obj.write(cr, uid, [monthly_shift.id], {'day_26':line.shift_id.id})
+                            if num==27 and monthly_shift.name_of_day_27 != 'Sunday':
+                                date = datetime.datetime(int(line.year),int(line.month),27)
+    #                             if date_now >= datetime.datetime.strftime(date, '%Y-%m-%d'):
+    #                                 raise osv.except_osv(_('Warning!'),_('Can not change Work Monthly Schedule for past day!'))
+                                monthly_shift_obj.write(cr, uid, [monthly_shift.id], {'day_27':line.shift_id.id})
+                            if num==28 and monthly_shift.name_of_day_28 != 'Sunday':
+                                date = datetime.datetime(int(line.year),int(line.month),28)
+    #                             if date_now >= datetime.datetime.strftime(date, '%Y-%m-%d'):
+    #                                 raise osv.except_osv(_('Warning!'),_('Can not change Work Monthly Schedule for past day!'))
+                                monthly_shift_obj.write(cr, uid, [monthly_shift.id], {'day_28':line.shift_id.id})
+                            if num==29 and monthly_shift.name_of_day_29 != 'Sunday':
+                                date = datetime.datetime(int(line.year),int(line.month),29)
+    #                             if date_now >= datetime.datetime.strftime(date, '%Y-%m-%d'):
+    #                                 raise osv.except_osv(_('Warning!'),_('Can not change Work Monthly Schedule for past day!'))
+                                monthly_shift_obj.write(cr, uid, [monthly_shift.id], {'day_29':line.shift_id.id})
+                            if num==30 and monthly_shift.name_of_day_30 != 'Sunday':
+                                date = datetime.datetime(int(line.year),int(line.month),30)
+    #                             if date_now >= datetime.datetime.strftime(date, '%Y-%m-%d'):
+    #                                 raise osv.except_osv(_('Warning!'),_('Can not change Work Monthly Schedule for past day!'))
+                                monthly_shift_obj.write(cr, uid, [monthly_shift.id], {'day_30':line.shift_id.id})
+                            if num==31 and monthly_shift.name_of_day_31 != 'Sunday':
+                                date = datetime.datetime(int(line.year),int(line.month),31)
+    #                             if date_now >= datetime.datetime.strftime(date, '%Y-%m-%d'):
+    #                                 raise osv.except_osv(_('Warning!'),_('Can not change Work Monthly Schedule for past day!'))
+                                monthly_shift_obj.write(cr, uid, [monthly_shift.id], {'day_31':line.shift_id.id})'''
         return self.write(cr, uid, ids, {'state': 'approved'})
     
     def reject(self, cr, uid, ids, context=None):
         for line in self.browse(cr, uid, ids):
+             #Trong them
+            if line.month and line.year: 
+                payroll_ids = self.pool.get('arul.hr.payroll.executions').search(cr,uid,[('month','=',line.month),('year','=',line.year),('state','=','approve'),('payroll_area_id','=',line.employee_id.payroll_area_id.id)])
+                if payroll_ids :
+                    raise osv.except_osv(_('Warning!'),_('Payroll were already exists, not allowed to reject again!'))
+            #
             if line.state != 'submitted':
                 raise osv.except_osv(_('Warning!'),_('Please Submit request before Reject!'))
+            if line.employee_id.department_id and line.employee_id.department_id.primary_auditor_id and line.employee_id.department_id.primary_auditor_id.id==uid \
+            or line.employee_id.department_id and line.employee_id.department_id.secondary_auditor_id and line.employee_id.department_id.secondary_auditor_id.id==uid:
+                continue
+            else:
+                raise osv.except_osv(_('Warning!'),_('User does not have permission to approve for this employee department!'))
         return self.write(cr, uid, ids, {'state': 'rejected'})
     
     def onchange_employee(self, cr, uid, ids,employee_id=False, context=None):
@@ -5074,4 +6019,18 @@ class shift_change(osv.osv):
                 res.append((record['id'], name))
             return res
         
+    def search(self, cr, uid, args, offset=0, limit=None, order=None, context=None, count=False):
+        if context is None:
+            context = {}
+        if context.get('search_for_shift_change_pri_auditor'):
+            primary_auditor_ids = self.pool.get('hr.department').search(cr, uid, [('primary_auditor_id','=',uid)])
+            if primary_auditor_ids:
+                sql = '''
+                    select id from shift_change where
+                        department_id in (select id from hr_department where primary_auditor_id =%s)
+                '''%(uid)
+                cr.execute(sql)
+                leave_details_ids = [r[0] for r in cr.fetchall()]
+                args += [('id','in',leave_details_ids)]
+        return super(shift_change, self).search(cr, uid, args, offset, limit, order, context, count)
 shift_change()

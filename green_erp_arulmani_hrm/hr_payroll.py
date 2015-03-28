@@ -14,6 +14,8 @@ class arul_hr_payroll_area(osv.osv):
     _columns = {
         'name': fields.char('Name', size=1024, required = True),
          'code': fields.char('Code', size=1024, required = True),
+        'create_date': fields.datetime('Created Date',readonly = True),
+        'create_uid': fields.many2one('res.users','Created By',ondelete='restrict',readonly = True),
         
     }
     def create(self, cr, uid, vals, context=None):
@@ -50,7 +52,8 @@ class arul_hr_payroll_sub_area(osv.osv):
     _columns = {
         'name': fields.char('Name', size=1024, required = True),
          'code': fields.char('Code', size=1024, required = True),
-        
+        'create_date': fields.datetime('Created Date',readonly = True),
+        'create_uid': fields.many2one('res.users','Created By',ondelete='restrict',readonly = True),
     }
     
     def create(self, cr, uid, vals, context=None):
@@ -503,6 +506,8 @@ class arul_hr_payroll_contribution_parameters(osv.osv):
         'employer_esi_con': fields.float('Employer ESI Contribution (%)'),
         'emp_lwf_amt': fields.float('Employee Labor Welfare Fund (LWF) Amt'),
         'employer_lwf_con_amt': fields.float('Employer LWF Contribution Amt'),
+        'create_date': fields.datetime('Created Date',readonly = True),
+        'create_uid': fields.many2one('res.users','Created By',ondelete='restrict',readonly = True),
         }
     
     def _check_category(self, cr, uid, ids, context=None):
@@ -565,6 +570,8 @@ class arul_hr_payroll_structure_configuration(osv.osv):
     _columns = {
          'employee_category_id':fields.many2one('vsis.hr.employee.category','Employee Group', required = True),
          'sub_category_id':fields.many2one('hr.employee.sub.category','Employee Sub Group',required = True), 
+         'create_date': fields.datetime('Created Date',readonly = True),
+         'create_uid': fields.many2one('res.users','Created By',ondelete='restrict',readonly = True),
          'payroll_structure_configuration_line':fields.one2many('arul.hr.payroll.earning.structure.configuration','earning_structure_configuration_id','Structure Configuration') ,   
     }
     
@@ -648,6 +655,8 @@ class tpt_hr_payroll_approve_reject(osv.osv):
          'year': fields.selection([(num, str(num)) for num in range(1951, 2026)], 'Year', required = True, states={'done': [('readonly', True)], 'cancel': [('readonly', True)]}),
          'month': fields.selection([('1', 'January'),('2', 'February'), ('3', 'March'), ('4','April'), ('5','May'), ('6','June'), ('7','July'), ('8','August'), ('9','September'), ('10','October'), ('11','November'), ('12','December')], 'Month',required = True, states={'done': [('readonly', True)], 'cancel': [('readonly', True)]}),
          'state':fields.selection([('draft', 'New'),('cancel', 'Reject'),('done', 'Approved')],'Status', readonly=True),
+         'create_date': fields.datetime('Created Date',readonly = True),
+         'create_uid': fields.many2one('res.users','Created By',ondelete='restrict',readonly = True),
     }
     _defaults = {
         'state':'draft',
@@ -701,6 +710,8 @@ class arul_hr_payroll_executions(osv.osv):
          'state': fields.selection([('draft', 'New'),('confirm', 'Confirmed'),('approve', 'Approved')],'Status'),
          'year': fields.selection([(num, str(num)) for num in range(1951, 2026)], 'Year', required = True, states={'confirm': [('readonly', True)], 'approve': [('readonly', True)]}),
          'month': fields.selection([('1', 'January'),('2', 'February'), ('3', 'March'), ('4','April'), ('5','May'), ('6','June'), ('7','July'), ('8','August'), ('9','September'), ('10','October'), ('11','November'), ('12','December')], 'Month',required = True, states={'confirm': [('readonly', True)], 'approve': [('readonly', True)]}),
+         'create_date': fields.datetime('Created Date',readonly = True),
+         'create_uid': fields.many2one('res.users','Created By',ondelete='restrict',readonly = True),
          'payroll_executions_details_line': fields.one2many('arul.hr.payroll.executions.details','payroll_executions_id','Details Line', states={'confirm': [('readonly', True)], 'approve': [('readonly', True)]}),
     }
     _defaults = {
@@ -986,9 +997,9 @@ class arul_hr_payroll_executions(osv.osv):
         for line in self.browse(cr,uid,ids):
             #raise osv.except_osv(_('Warning!%s'),_(line.payroll_area_id.code))
             time_leav_obj = self.pool.get('tpt.time.leave.evaluation')
-            time_leav_ids = time_leav_obj.search(cr, uid, [('payroll_area_id','=',line.payroll_area_id.id),('year','=',line.year),('month','=',line.month)])
+            time_leav_ids = time_leav_obj.search(cr, uid, [('payroll_area_id','=',line.payroll_area_id.id),('year','=',line.year),('month','=',line.month),('state','=','done')])
             if not time_leav_ids:
-                raise osv.except_osv(_('Warning!'),_('Time/Leave Evaluation is not made!'))
+                raise osv.except_osv(_('Warning!'),_('Time/Leave Evaluation is not made or confirm!'))
             for ti_le in time_leav_obj.browse(cr,uid,time_leav_ids):
                 if len(ti_le.shift_time_id)!=0 or len(ti_le.leave_request_id)!=0 or len(ti_le.non_availability_id)!=0:
                     raise osv.except_osv(_('Warning!'),_('Time/Leave Evaluation is not completed!'))

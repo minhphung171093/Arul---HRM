@@ -24,6 +24,7 @@
             <field name="model">hr.identities.attachment</field>
             <field name="arch" type="xml">
                 <tree string="Identities Attachments" create="false" >
+                	<field name="employee_id"/>
                     <field name="name"/>
             		<field name="identity_given"/>
             		<field name="identify_number" />
