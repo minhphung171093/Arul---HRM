@@ -26,6 +26,7 @@
             <field name="model">hr.qualification.attachment</field>
             <field name="arch" type="xml">
                 <tree string="Qualification Attachments" create="false">
+                    <field name="employee_id"/>
                     <field name="name"/>
                 	<field name="institution"/>
             		<field name="board_university" />
