@@ -565,6 +565,8 @@ class arul_hr_payroll_structure_configuration(osv.osv):
     _columns = {
          'employee_category_id':fields.many2one('vsis.hr.employee.category','Employee Group', required = True),
          'sub_category_id':fields.many2one('hr.employee.sub.category','Employee Sub Group',required = True), 
+         'create_date': fields.datetime('Created Date',readonly = True),
+         'create_uid': fields.many2one('res.users','Created By',ondelete='restrict',readonly = True),
          'payroll_structure_configuration_line':fields.one2many('arul.hr.payroll.earning.structure.configuration','earning_structure_configuration_id','Structure Configuration') ,   
     }
     
@@ -648,6 +650,8 @@ class tpt_hr_payroll_approve_reject(osv.osv):
          'year': fields.selection([(num, str(num)) for num in range(1951, 2026)], 'Year', required = True, states={'done': [('readonly', True)], 'cancel': [('readonly', True)]}),
          'month': fields.selection([('1', 'January'),('2', 'February'), ('3', 'March'), ('4','April'), ('5','May'), ('6','June'), ('7','July'), ('8','August'), ('9','September'), ('10','October'), ('11','November'), ('12','December')], 'Month',required = True, states={'done': [('readonly', True)], 'cancel': [('readonly', True)]}),
          'state':fields.selection([('draft', 'New'),('cancel', 'Reject'),('done', 'Approved')],'Status', readonly=True),
+         'create_date': fields.datetime('Created Date',readonly = True),
+         'create_uid': fields.many2one('res.users','Created By',ondelete='restrict',readonly = True),
     }
     _defaults = {
         'state':'draft',
@@ -701,6 +705,8 @@ class arul_hr_payroll_executions(osv.osv):
          'state': fields.selection([('draft', 'New'),('confirm', 'Confirmed'),('approve', 'Approved')],'Status'),
          'year': fields.selection([(num, str(num)) for num in range(1951, 2026)], 'Year', required = True, states={'confirm': [('readonly', True)], 'approve': [('readonly', True)]}),
          'month': fields.selection([('1', 'January'),('2', 'February'), ('3', 'March'), ('4','April'), ('5','May'), ('6','June'), ('7','July'), ('8','August'), ('9','September'), ('10','October'), ('11','November'), ('12','December')], 'Month',required = True, states={'confirm': [('readonly', True)], 'approve': [('readonly', True)]}),
+         'create_date': fields.datetime('Created Date',readonly = True),
+         'create_uid': fields.many2one('res.users','Created By',ondelete='restrict',readonly = True),
          'payroll_executions_details_line': fields.one2many('arul.hr.payroll.executions.details','payroll_executions_id','Details Line', states={'confirm': [('readonly', True)], 'approve': [('readonly', True)]}),
     }
     _defaults = {

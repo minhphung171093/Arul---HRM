@@ -1241,7 +1241,8 @@ class arul_hr_employee_leave_details(osv.osv):
               'check_leave_type_lop_esi': fields.boolean('Check Leave Type LOP_ESI'),
               'reason_for_reject':fields.text('Reason for Rejection', states={'done': [('readonly', True)], 'cancel': [('readonly', True)]}),
               'check_reject_flag': fields.boolean('Check Reject Option'),
-              
+              'create_date': fields.datetime('Created Date',readonly = True),
+              'create_uid': fields.many2one('res.users','Created By',ondelete='restrict',readonly = True),
               }
     _defaults = {
         'state':'draft',
@@ -1722,6 +1723,8 @@ class arul_hr_permission_onduty(osv.osv):
         'approval': fields.boolean('Is Approved?', readonly =  True),
         'parent_id':fields.many2one('arul.hr.permission.onduty','Permission/Onduty',ondelete='cascade'),
         'permission_onduty_line':fields.one2many('arul.hr.permission.onduty','parent_id','Onduty Line',readonly=True),
+        'create_date': fields.datetime('Created Date',readonly = True),
+        'create_uid': fields.many2one('res.users','Created By',ondelete='restrict',readonly = True),
 #         'detail_id':fields.many2one('arul.hr.employee.attendence.details','Detail'),
         #TPT-Permission On Duty
         'total_shift_worked': fields.function(_shift_total, store=True, string='No.Of Shift Worked', multi='shift_sums', help="The total amount."),
@@ -2092,6 +2095,8 @@ class arul_hr_employee_attendence_details(osv.osv):
         'sub_category_id':fields.many2one('hr.employee.sub.category','Sub Category',readonly=False,ondelete='restrict'),
         'designation_id': fields.many2one('hr.job', 'Designation',readonly=False,ondelete='restrict'),
         'department_id':fields.many2one('hr.department', 'Department',readonly=False,ondelete='restrict'),
+        'create_date': fields.datetime('Created Date',readonly = True),
+        'create_uid': fields.many2one('res.users','Created By',ondelete='restrict',readonly = True),
         'permission_onduty_details_line':fields.one2many('arul.hr.permission.onduty','permission_onduty_id','Permission On duty Details',readonly=True),
         'punch_in_out_line':fields.one2many('arul.hr.punch.in.out.time','punch_in_out_id','Punch in/Punch out Details',readonly=False)
               }
@@ -2205,6 +2210,8 @@ class arul_hr_punch_in_out(osv.osv):
         'store_fname': fields.char('Stored Filename', size=256),
         'db_datas': fields.binary('Database Data'),
         'file_size': fields.integer('File Size'),
+        'create_date': fields.datetime('Created Date',readonly = True),
+        'create_uid': fields.many2one('res.users','Created By',ondelete='restrict',readonly = True),
         'state':fields.selection([('draft', 'Draft'),('done', 'Done')],'Status', readonly=True)
 
     }
@@ -4206,6 +4213,8 @@ class tpt_time_leave_evaluation(osv.osv):
          'shift_time_id': fields.one2many('arul.hr.audit.shift.time','time_evaluate_id','Time Evaluation Report',readonly = True),
          'leave_request_id': fields.one2many('arul.hr.employee.leave.details','leave_evaluate_id','Not Approved Section',readonly = True),
          'non_availability_id': fields.one2many('tpt.non.availability','leave_evaluate_id','Non Availability Report',readonly = True),
+         'create_date': fields.datetime('Created Date',readonly = True),
+         'create_uid': fields.many2one('res.users','Created By',ondelete='restrict',readonly = True),
     }
     _defaults = {
        'year':int(time.strftime('%Y')),
