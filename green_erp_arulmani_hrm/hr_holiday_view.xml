@@ -278,6 +278,7 @@
 					<field name="time_total" widget="float_time"/>
 					<field name="reason"/>
 					<field name="approval"/>
+					<field name="state" widget="statusbar" statusbar_visible="draft,done,cancel" statusbar_colors='{"draft":"blue","done":"blue"}'/>
 				</tree>
 			</field>
 		</record>
@@ -290,6 +291,9 @@
 	            <form string="Permission and On Duty" version="7.0">   
 	            	<header>
 	                    <button name="print_gate_pass" attrs="{'invisible':['|',('approval','=',False),('non_availability_type_id','!=','permission')]}" string="Print Gate Pass" type="object" class="oe_highlight"/>
+	                	<button name="approve_permission_onduty" states = 'draft' string="Approve" type="object" class="oe_highlight"/>
+	                	<button name="reject_permission_onduty" states = 'draft' string="Reject" type="object" class="oe_highlight"/>
+	                	<field name="state" widget="statusbar" statusbar_visible="draft,done,cancel" statusbar_colors='{"draft":"blue","done":"blue"}'/>
 	                </header>
 	            	<sheet>
 		                <group col='4' colspan='2'>    
@@ -322,6 +326,7 @@
 										<field name="time_total" widget="float_time"/>
 										<field name="reason"/>
 										<field name="approval"/>
+										<field name="state" invisible = '1'/>
 									</tree>
 								</field>
 							</page>
@@ -520,6 +525,7 @@
 										<field name="total_shift_worked"/>
 										<field name="reason"/>
 										<field name="approval"/>
+										<field name="state" invisible='1'/>
 									</tree>
 								</field>
 							</page>
