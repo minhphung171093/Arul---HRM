@@ -1374,7 +1374,7 @@ class arul_hr_employee_leave_details(osv.osv):
         if new.date_from: 
             month = new.date_from[5:7]
             year = new.date_from[:4]
-            payroll_ids = self.pool.get('arul.hr.payroll.executions').search(cr,uid,[('month','=',month),('year','=',year),('state','=','approve'),('payroll_area_id','=',permission.employee_id.payroll_area_id.id)])
+            payroll_ids = self.pool.get('arul.hr.payroll.executions').search(cr,uid,[('month','=',month),('year','=',year),('state','=','approve'),('payroll_area_id','=',new.employee_id.payroll_area_id.id)])
             if payroll_ids :
                 raise osv.except_osv(_('Warning!'),_('Payroll were already exists, not allowed to create again!'))
         #        

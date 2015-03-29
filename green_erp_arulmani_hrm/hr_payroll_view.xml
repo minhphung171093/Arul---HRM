@@ -553,7 +553,8 @@
             
        <menuitem action="action_arul_hr_payroll_executions_form"
             id="menu_action_arul_hr_payroll_executions_form"
-            parent="menu_hr_payroll_management" sequence="5"/>
+            parent="menu_hr_payroll_management" sequence="5"
+            groups="green_erp_arulmani_hrm.group_vvti_hrm_payroll_controller"/>
             
 		<record id="view_arul_hr_payroll_structure_configuration_tree_vew" model="ir.ui.view">
 			<field name="name">arul.hr.payroll.structure.configuration.tree</field>

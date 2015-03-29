@@ -301,12 +301,22 @@ class tpt_purchase_product(osv.osv):
     def bt_approve(self, cr, uid, ids, context=None):
         for line in self.browse(cr,uid,ids):
 #             father = self.pool.get('tpt.purchase.indent').browse(cr,uid,line.pur_product_id.id)
+            if line.pur_product_id.department_id and line.pur_product_id.department_id.primary_auditor_id and line.pur_product_id.department_id.primary_auditor_id.id==uid \
+            or line.pur_product_id.department_id and line.pur_product_id.department_id.secondary_auditor_id and line.pur_product_id.department_id.secondary_auditor_id.id==uid:
+                continue
+            else:
+                raise osv.except_osv(_('Warning!'),_('User does not have permission to approve!'))
             if line.state == 'confirm':
                 return self.write(cr, uid, ids,{'state':'+'})
             if line.state == '+':
                 return self.write(cr, uid, ids,{'state':'++'})
     def bt_reject(self, cr, uid, ids, context=None):
         for line in self.browse(cr,uid,ids):
+            if line.pur_product_id.department_id and line.pur_product_id.department_id.primary_auditor_id and line.pur_product_id.department_id.primary_auditor_id.id==uid \
+            or line.pur_product_id.department_id and line.pur_product_id.department_id.secondary_auditor_id and line.pur_product_id.department_id.secondary_auditor_id.id==uid:
+                continue
+            else:
+                raise osv.except_osv(_('Warning!'),_('User does not have permission to reject!'))
             if line.state == 'confirm':
                 return self.write(cr, uid, ids,{'state':'x'})
             if line.state == '+':
@@ -400,6 +410,23 @@ class tpt_purchase_product(osv.osv):
 #                 name = 'Consumables'
             res.append((record['id'],cate_name))
         return res    
+    
+    def search(self, cr, uid, args, offset=0, limit=None, order=None, context=None, count=False):
+        if context is None:
+            context = {}
+        if context.get('search_indent_hod'):
+            primary_auditor_ids = self.pool.get('hr.department').search(cr, uid, [('primary_auditor_id','=',uid)])
+            user_id = self.pool.get('res.users').browse(cr, uid, uid)
+            department_id = user_id.employee_id and user_id.employee_id.department_id and user_id.employee_id.department_id.id or False
+            if primary_auditor_ids and department_id:
+                sql = '''
+                    select id from tpt_purchase_product line, tpt_purchase_indent ma where line.pur_product_id = ma.id
+                        and ma.department_id =%s
+                '''%(uid)
+                cr.execute(sql)
+                leave_details_ids = [r[0] for r in cr.fetchall()]
+                args += [('id','in',leave_details_ids)]
+        return super(tpt_purchase_product, self).search(cr, uid, args, offset, limit, order, context, count)
 tpt_purchase_product()
 
 class product_category(osv.osv):

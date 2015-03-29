@@ -336,8 +336,8 @@
             <field name="arch" type="xml">
 	            <form string="Batch Request" version="7.0">   
 	            <header>
-	            	<button name="bt_approve" states='draft' string="Approve" type="object" class="oe_highlight" />
-                    <button name="bt_cancel" string="Cancel" states="draft,done" type="object" class="oe_highlight" />
+	            	<button name="bt_approve" states='draft' string="Approve" type="object" class="oe_highlight" groups="green_erp_arulmani_sale.group_vvti_sale_manager"/>
+                    <button name="bt_cancel" string="Cancel" states="draft,done" type="object" class="oe_highlight" groups="green_erp_arulmani_sale.group_vvti_sale_manager"/>
                     <field name="state" widget="statusbar" statusbar_visible="draft,cancel,done" statusbar_colors='{"draft":"blue","cancel":"blue"}'/>
 	            </header>
 	            	<sheet>
@@ -689,9 +689,9 @@
             <field name="arch" type="xml">
                 <form string="Batch Allotment" version="7.0">
                    <header>
-                     <button string="Approve" name="confirm" states="to_approve,refuse" type="object" class="oe_highlight"/>
-                     <button string="Refuse" name="refuse" states="to_approve,confirm" type="object" class="oe_highlight"/>
-                     <button string="Cancel" name="cancelled" states="to_approve,confirm,refuse" type="object" class="oe_highlight"/>
+                     <button string="Approve" name="confirm" states="to_approve,refuse" type="object" class="oe_highlight" groups="green_erp_arulmani_sale.group_vvti_sale_manager"/>
+                     <button string="Refuse" name="refuse" states="to_approve,confirm" type="object" class="oe_highlight" groups="green_erp_arulmani_sale.group_vvti_sale_manager"/>
+                     <button string="Cancel" name="cancelled" states="to_approve,confirm,refuse" type="object" class="oe_highlight" groups="green_erp_arulmani_sale.group_vvti_sale_manager"/>
                      <field name="state" widget="statusbar" statusbar_colors='{"confirm":"blue","to_approve":"blue","refuse":"red"}'/>
                     </header>
                    <sheet>
