@@ -666,8 +666,8 @@ class stock_picking(osv.osv):
                     'context': context,
                     'nodestroy': True,
                 }
-            #TPT COMMENTED BY BalamuruganPurushothaman TEMPORARILY ON 29/03/2015
-            #====================================================== =============
+            # TPT COMMENTED - By BalamuruganPurushothaman    
+            #===================================================================
             # if not picking.flag_confirm and limit == 0 and used == 0:
             #     sql = '''
             #         update stock_picking set doc_status='waiting' where id = %s

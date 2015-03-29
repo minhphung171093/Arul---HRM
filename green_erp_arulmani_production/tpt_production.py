@@ -1123,14 +1123,17 @@ class stock_move(osv.osv):
         @param product_uos: Unit of sale of product
         @return: Dictionary of values
         """
-        if app_quantity and product_qty > app_quantity:
-            vals = {}
-            warning = {  
-                          'title': _('Warning!'),  
-                          'message': _('Applied Quantity is not greater than Product Quantity!'),  
-                          }  
-            vals['product_qty']=app_quantity
-            return {'value': vals,'warning':warning}
+        #TPT COMMENTED BY BalamuruganPurushothaman - 29/03/2015 - TO AVOID THROW THIS ERROR IN PRODUCTION DECLARATION SCREEN
+        #=======================================================================
+        # if app_quantity and product_qty > app_quantity:
+        #     vals = {}
+        #     warning = {  
+        #                   'title': _('Warning!'),  
+        #                   'message': _('Applied Quantity is not greater than Product Quantity!'),  
+        #                   }  
+        #     vals['product_qty']=app_quantity
+        #     return {'value': vals,'warning':warning}
+        #=======================================================================
         result = {
                   'product_uos_qty': 0.00
           }

@@ -1620,7 +1620,7 @@
             <field name="arch" type="xml">
 	            <form string="Material Request" version="7.0">   
 	             <header>
-	            		<button name="bt_approve" states='draft' string="Approve" type="object" class="oe_highlight" />
+	            		<button name="bt_approve" states='draft' string="Confirm" type="object" class="oe_highlight" />
 	                    <field name="state" widget="statusbar" statusbar_visible="draft,done" statusbar_colors='{"draft":"blue"}'/>
 	            </header>    
 	            	<sheet>
@@ -1637,7 +1637,7 @@
 							<page string = "Materials">
 								<field name="material_request_line" nolabel='1'>
 									<tree editable='bottom'>
-										<field name="product_id" widget = "selection" on_change="onchange_product_id(product_id)" options="{'create': false, 'create_edit': false}"/>
+										<field name="product_id" on_change="onchange_product_id(product_id)" options="{'create': false, 'create_edit': false}"/>
 										<field name="dec_material"/>
 										<field name="product_uom_qty" />
 										<field name="on_hand_qty" />
