@@ -144,6 +144,7 @@
 				<tree string="Activities">
 					<field name="name"/>
         			<field name="code"/>
+        			<field name="uom_po_id"/> 
         			<field name="description"/>
 				</tree>
 			</field>
@@ -158,6 +159,7 @@
 	            		<group>
 	            			<field name="name"/>
 	            			<field name="code"/>
+	            			<field name="uom_po_id" options="{'create': false, 'create_edit': false}"/> 
 	            			<field name="description"/>
 	            		</group>
 				    </sheet>

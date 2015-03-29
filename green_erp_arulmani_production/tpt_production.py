@@ -349,6 +349,7 @@ class tpt_activities(osv.osv):
                 
         'name': fields.char('Name', size = 1024, required=True),
         'code':fields.char('Code',size = 256,required = True),
+        'uom_po_id': fields.many2one('product.uom','UOM',required = True), 
         'description':fields.text('Description'),
                 }
     
@@ -716,7 +717,8 @@ class tpt_activities_line(osv.osv):
         vals = {}
         if activities_id:
             ac = self.pool.get('tpt.activities').browse(cr, uid, activities_id)
-            vals = {'description': ac.name }
+            vals = {'description': ac.name,
+                    'product_uom': ac.uom_po_id.id }
         return {'value': vals}
 
 tpt_activities_line()
