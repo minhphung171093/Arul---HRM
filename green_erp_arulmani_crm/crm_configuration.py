@@ -145,7 +145,7 @@ class res_partner(osv.osv):
         'lst': fields.char('LST',size=128),
         'service_reg_no': fields.char('Service RegNo.',size=128),
         'tcs': fields.many2one('tax.category','TCS %'), 
-        'is_approved': fields.boolean('Is Approved'),
+        #'is_approved': fields.boolean('Is Approved'),
     }
     _defaults = {
         'is_company': True,
