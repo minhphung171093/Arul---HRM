@@ -102,3 +102,6 @@ access_vvti_purchase_93,stock.production.lot,stock.model_stock_production_lot,gr
 access_vvti_purchase_94,stock.location,stock.model_stock_location,green_erp_arulmani_crm.group_qc_user,True,False,False,False
 
 access_vvti_purchase_95,tpt.purchase.product,green_erp_arulmani_purchase.model_tpt_purchase_product,green_erp_arulmani_hrm.group_vvti_unit_user,True,True,True,False
+
+access_vvti_purchase_96,arul.hr.section,green_erp_arulmani_hrm.model_arul_hr_section,group_vvti_purchase_user,True,True,True,False
+
