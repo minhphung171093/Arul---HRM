@@ -351,8 +351,15 @@ class arul_hr_audit_shift_time(osv.osv):
         employee_leave_detail_obj = self.pool.get('employee.leave.detail')
         leave_type_obj = self.pool.get('arul.hr.leave.types')
         for line in self.browse(cr, uid, ids):
+            t = 0
+            sql = '''
+                    select %s in (select uid from res_groups_users_rel where gid in (select id from res_groups where name='Time Manager' 
+                    and category_id in (select id from ir_module_category where name='VVTI - HRM')))
+                    '''%(uid)
+            cr.execute(sql)
+            p = cr.fetchone()
             if line.employee_id.department_id and line.employee_id.department_id.primary_auditor_id and line.employee_id.department_id.primary_auditor_id.id==uid \
-            or line.employee_id.department_id and line.employee_id.department_id.secondary_auditor_id and line.employee_id.department_id.secondary_auditor_id.id==uid:
+            or p[0]:
                 continue
             else:
                 raise osv.except_osv(_('Warning!'),_('User does not have permission to approve for this employee department!'))
@@ -758,8 +765,15 @@ class arul_hr_audit_shift_time(osv.osv):
                 if payroll_ids :
                     raise osv.except_osv(_('Warning!'),_('Payroll were already exists, not allowed to approve again!'))
             #
+            t = 0
+            sql = '''
+                    select %s in (select uid from res_groups_users_rel where gid in (select id from res_groups where name='Time Manager' 
+                    and category_id in (select id from ir_module_category where name='VVTI - HRM')))
+                    '''%(uid)
+            cr.execute(sql)
+            p = cr.fetchone()
             if line.employee_id.department_id and line.employee_id.department_id.primary_auditor_id and line.employee_id.department_id.primary_auditor_id.id==uid \
-            or line.employee_id.department_id and line.employee_id.department_id.secondary_auditor_id and line.employee_id.department_id.secondary_auditor_id.id==uid:
+            or p[0]:
                 continue
             else:
                 raise osv.except_osv(_('Warning!'),_('User does not have permission to approve for this employee department!'))
@@ -1154,8 +1168,15 @@ class arul_hr_audit_shift_time(osv.osv):
                 if payroll_ids :
                     raise osv.except_osv(_('Warning!'),_('Payroll were already exists, not allowed to reject again!'))
             #
+            t = 0
+            sql = '''
+                    select %s in (select uid from res_groups_users_rel where gid in (select id from res_groups where name='Time Manager' 
+                    and category_id in (select id from ir_module_category where name='VVTI - HRM')))
+                    '''%(uid)
+            cr.execute(sql)
+            p = cr.fetchone()
             if line.employee_id.department_id and line.employee_id.department_id.primary_auditor_id and line.employee_id.department_id.primary_auditor_id.id==uid \
-            or line.employee_id.department_id and line.employee_id.department_id.secondary_auditor_id and line.employee_id.department_id.secondary_auditor_id.id==uid:
+            or p[0]:
                 continue
             else:
                 raise osv.except_osv(_('Warning!'),_('User does not have permission to approve for this employee department!'))
@@ -1562,7 +1583,7 @@ class arul_hr_employee_leave_details(osv.osv):
             p = cr.fetchone()
                 
             if line.employee_id.department_id and line.employee_id.department_id.primary_auditor_id and line.employee_id.department_id.primary_auditor_id.id==uid \
-            or p:
+            or p[0]:
                 from_dt = datetime.datetime.strptime(line.date_from, DATETIME_FORMAT)
                 to_dt = datetime.datetime.strptime(line.date_to, DATETIME_FORMAT)
                 timedelta = (to_dt - from_dt).days+1
@@ -1617,7 +1638,7 @@ class arul_hr_employee_leave_details(osv.osv):
             p = cr.fetchone()
                 
             if line.employee_id.department_id and line.employee_id.department_id.primary_auditor_id and line.employee_id.department_id.primary_auditor_id.id==uid \
-            or p:
+            or p[0]:
                 continue
             else:
                 raise osv.except_osv(_('Warning!'),_('User does not have permission to reject for this employee department!'))
@@ -1905,9 +1926,8 @@ class arul_hr_permission_onduty(osv.osv):
                 '''%(uid)
         cr.execute(sql)
         p = cr.fetchone()
-            
-        if permission.employee_id.department_id and permission.employee_id.department_id.primary_auditor_id and permission.employee_id.department_id.primary_auditor_id.id==uid \
-        or p:
+        if (permission.employee_id.department_id and permission.employee_id.department_id.primary_auditor_id and permission.employee_id.department_id.primary_auditor_id.id==uid) \
+        or p[0]:
             t = 1
         else:
             raise osv.except_osv(_('Warning!'),_('User does not have permission to approve for this employee department!'))
@@ -2019,7 +2039,7 @@ class arul_hr_permission_onduty(osv.osv):
             p = cr.fetchone()
                 
             if new.employee_id.department_id and new.employee_id.department_id.primary_auditor_id and new.employee_id.department_id.primary_auditor_id.id==uid \
-            or p:
+            or p[0]:
                 continue
             else:
                 raise osv.except_osv(_('Warning!'),_('User does not have permission to reject for this employee department!'))
@@ -2940,7 +2960,7 @@ class arul_hr_monthly_work_schedule(osv.osv):
             p = cr.fetchone()
                 
             if line.department_id and line.department_id.primary_auditor_id and line.department_id.primary_auditor_id.id==uid \
-            or p:
+            or p[0]:
                 continue
             else:
                 raise osv.except_osv(_('Warning!'),_('User does not have permission to approve for this employee department!'))
@@ -5148,7 +5168,7 @@ class shift_change(osv.osv):
             p = cr.fetchone()
                 
             if line.employee_id.department_id and line.employee_id.department_id.primary_auditor_id and line.employee_id.department_id.primary_auditor_id.id==uid \
-            or p:
+            or p[0]:
                 continue
             else:
                 raise osv.except_osv(_('Warning!'),_('User does not have permission to approve for this employee department!'))
@@ -6033,7 +6053,7 @@ class shift_change(osv.osv):
             p = cr.fetchone()
                 
             if line.employee_id.department_id and line.employee_id.department_id.primary_auditor_id and line.employee_id.department_id.primary_auditor_id.id==uid \
-            or p:
+            or p[0]:
                 continue
             else:
                 raise osv.except_osv(_('Warning!'),_('User does not have permission to reject for this employee department!'))
