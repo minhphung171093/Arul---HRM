@@ -212,8 +212,8 @@
 								<field name="blank_order_line" nolabel='1'>
 									<tree editable='top'>
 									    <field name="product_id" on_change="onchange_product_id(product_id)" options="{'create': false, 'create_edit': false}" domain="[('cate_name','=','finish')]"/>															
-										<field name="description"/>
-										<field name="product_type" />
+										<field name="description" readonly='1'/>
+										<field name="product_type" readonly='1'/>
 										<field name="application_id" domain="[('product_id','=',product_id)]" options="{'create': false, 'create_edit': false}"/>
 										<field name="product_uom_qty" />
 										<field name="uom_po_id" options="{'create': false, 'create_edit': false}" readonly='1'/>
