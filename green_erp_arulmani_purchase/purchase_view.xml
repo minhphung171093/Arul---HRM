@@ -1473,8 +1473,8 @@
             <field name="arch" type="xml">
 	            <form string="Request For Quotation" version="7.0"> 
 	            <header>
-	            		<button name="bt_approve" states='draft' string="Confirm" type="object" class="oe_highlight" groups="green_erp_arulmani_purchase.group_vvti_purchase_admin"/>
-	                    <button name="bt_cancel" states='draft,done' string="Cancel" type="object" class="oe_highlight" />
+	            		<button name="bt_approve" states='draft' string="Confirm" type="object" class="oe_highlight" groups="green_erp_arulmani_purchase.group_vvti_purchase_user"/>
+	                    <button name="bt_cancel" states='draft,done' string="Cancel" type="object" class="oe_highlight" groups="green_erp_arulmani_purchase.group_vvti_purchase_user"/>
 	                    <field name="state" widget="statusbar" statusbar_visible="draft,cancel,done,close" statusbar_colors='{"draft":"blue","cancel":"blue"}'/>
 	            </header>   
 	            	<sheet>
