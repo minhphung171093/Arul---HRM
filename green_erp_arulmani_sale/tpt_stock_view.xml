@@ -193,6 +193,9 @@
             <field name="arch" type="xml">
             	<xpath expr="//button[@name='invoice_print']" position="replace">
             	</xpath>
+            	<xpath expr="//button[@name='invoice_open']" position="replace">
+            		<button name="invoice_open" states="draft" string="Validate" class="oe_highlight" groups="green_erp_arulmani_sale.group_vvti_sale_manager"/>
+            	</xpath>
             	<xpath expr="//button[@name='invoice_print' and @string='Print Invoice']" position="replace">
             		<button name='invoice_print' string="Print Invoice" type="object"/>
             	</xpath>
