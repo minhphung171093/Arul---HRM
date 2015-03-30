@@ -360,7 +360,7 @@ class arul_hr_audit_shift_time(osv.osv):
             p = cr.fetchone()
             if line.employee_id.department_id and line.employee_id.department_id.primary_auditor_id and line.employee_id.department_id.primary_auditor_id.id==uid \
             or p[0]:
-                continue
+                t=1
             else:
                 raise osv.except_osv(_('Warning!'),_('User does not have permission to approve for this employee department!'))
         for line in self.browse(cr,uid,ids):
@@ -774,7 +774,7 @@ class arul_hr_audit_shift_time(osv.osv):
             p = cr.fetchone()
             if line.employee_id.department_id and line.employee_id.department_id.primary_auditor_id and line.employee_id.department_id.primary_auditor_id.id==uid \
             or p[0]:
-                continue
+                t=1
             else:
                 raise osv.except_osv(_('Warning!'),_('User does not have permission to approve for this employee department!'))
         for line in self.browse(cr,uid,ids):
@@ -1177,7 +1177,7 @@ class arul_hr_audit_shift_time(osv.osv):
             p = cr.fetchone()
             if line.employee_id.department_id and line.employee_id.department_id.primary_auditor_id and line.employee_id.department_id.primary_auditor_id.id==uid \
             or p[0]:
-                continue
+                t=1
             else:
                 raise osv.except_osv(_('Warning!'),_('User does not have permission to approve for this employee department!'))
             self.write(cr, uid, [line.id],{'approval': False, 'state':'cancel', 'time_evaluate_id':False})
@@ -1639,7 +1639,7 @@ class arul_hr_employee_leave_details(osv.osv):
                 
             if line.employee_id.department_id and line.employee_id.department_id.primary_auditor_id and line.employee_id.department_id.primary_auditor_id.id==uid \
             or p[0]:
-                continue
+                t=1
             else:
                 raise osv.except_osv(_('Warning!'),_('User does not have permission to reject for this employee department!'))
         return True  
@@ -2040,7 +2040,7 @@ class arul_hr_permission_onduty(osv.osv):
                 
             if new.employee_id.department_id and new.employee_id.department_id.primary_auditor_id and new.employee_id.department_id.primary_auditor_id.id==uid \
             or p[0]:
-                continue
+                t=1
             else:
                 raise osv.except_osv(_('Warning!'),_('User does not have permission to reject for this employee department!'))
             if new.non_availability_type_id=='permission':   
@@ -2961,7 +2961,7 @@ class arul_hr_monthly_work_schedule(osv.osv):
                 
             if line.department_id and line.department_id.primary_auditor_id and line.department_id.primary_auditor_id.id==uid \
             or p[0]:
-                continue
+                t=1
             else:
                 raise osv.except_osv(_('Warning!'),_('User does not have permission to approve for this employee department!'))
             
@@ -5169,7 +5169,7 @@ class shift_change(osv.osv):
                 
             if line.employee_id.department_id and line.employee_id.department_id.primary_auditor_id and line.employee_id.department_id.primary_auditor_id.id==uid \
             or p[0]:
-                continue
+                t=1
             else:
                 raise osv.except_osv(_('Warning!'),_('User does not have permission to approve for this employee department!'))
             
@@ -6054,7 +6054,7 @@ class shift_change(osv.osv):
                 
             if line.employee_id.department_id and line.employee_id.department_id.primary_auditor_id and line.employee_id.department_id.primary_auditor_id.id==uid \
             or p[0]:
-                continue
+                t=1
             else:
                 raise osv.except_osv(_('Warning!'),_('User does not have permission to reject for this employee department!'))
         return self.write(cr, uid, ids, {'state': 'rejected'})
