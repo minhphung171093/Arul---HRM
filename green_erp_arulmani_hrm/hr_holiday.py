@@ -1936,7 +1936,7 @@ class arul_hr_permission_onduty(osv.osv):
         '''%(permission.start_time,permission.end_time)
         cr.execute(sql)
         work_shift_ids = [row[0] for row in cr.fetchall()]
-        
+         
         punch_obj = self.pool.get('arul.hr.punch.in.out')
         audit_obj = self.pool.get('arul.hr.audit.shift.time')
         if permission.non_availability_type_id == 'on_duty' and not permission.date:
@@ -1955,17 +1955,17 @@ class arul_hr_permission_onduty(osv.osv):
                 month = date_from.month
                 year = date_from.year
                 shift_id = punch_obj.get_work_shift(cr, uid, permission.employee_id.id, int(day), int(month), year)
-                self.create(cr, uid, {
-                                        'employee_id': permission.employee_id.id,
-                                        'non_availability_type_id': 'on_duty',
-                                        'date': date_from,
-                                        'duty_location': permission.duty_location,
-                                        'start_time': permission.start_time,
-                                        'end_time': permission.end_time,
-                                        'reason':permission.reason,
-                                        'parent_id': permission.id,
-                                        }, context)
-                
+#                 self.create(cr, uid, {
+#                                         'employee_id': permission.employee_id.id,
+#                                         'non_availability_type_id': 'on_duty',
+#                                         'date': date_from,
+#                                         'duty_location': permission.duty_location,
+#                                         'start_time': permission.start_time,
+#                                         'end_time': permission.end_time,
+#                                         'reason':permission.reason,
+#                                         'parent_id': permission.id,
+#                                         }, context)
+                 
                 audit_id = audit_obj.create(cr, SUPERUSER_ID, {
                     'employee_id':permission.employee_id.id,
                     'work_date':date_from,
