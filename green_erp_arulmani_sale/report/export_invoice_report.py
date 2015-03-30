@@ -34,6 +34,7 @@ class Parser(report_sxw.rml_parse):
             'get_pre': self.get_pre,
             'get_buyer':self.get_buyer,
             'get_app':self.get_app,
+            'get_qty_kgs':self.get_qty_kgs,
         })
     
     def get_date(self, date=False):
@@ -105,6 +106,11 @@ class Parser(report_sxw.rml_parse):
             if unit.lower() in ['tonne','tonnes','mt','metricton','metrictons']:
                 mt_qty = qty
         return round(mt_qty, 2)
+    
+    def get_qty_kgs(self, qty, uom, type):
+        kgs_qty = 0.00
+        kgs_qty = qty * 1000
+        return round(kgs_qty)
     
     def get_buyer(self, obj):
         buyer = ''

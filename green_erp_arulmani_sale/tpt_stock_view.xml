@@ -227,7 +227,7 @@
 					<field name="lr_no" />	
 					<field name="inv_date_as_char" />
 					<field name="rem_date_as_char" />				
-					<field name="material_info" />
+					<field name="material_info" readonly='1' />
 					<field name="other_info" />
 					</group>
 					
