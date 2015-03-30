@@ -369,10 +369,10 @@ class stock_move(osv.osv):
         for line in self.browse(cr,uid,ids):
             if line.po_indent_id.document_type == 'consumable':
                 if line.action_taken == 'direct' or line.action_taken == 'need':
-                    raise osv.except_osv(_('Warning!'),_('"Consumable PR" type should be processed with "Move To Consumption Type only"'))
+                    raise osv.except_osv(_('Warning!'),_('Consumable PR type should be processed with Move To Consumption Type only'))
             if line.po_indent_id.document_type != 'consumable':
                 if line.action_taken == 'move':
-                    raise osv.except_osv(_('Warning!'),_('"Move To Consumption" type should be applicable for "Cosumable PR" type only.Please choose other type'))
+                    raise osv.except_osv(_('Warning!'),_('Move To Consumption type should be applicable for Cosumable PR type only.Please choose other type'))
         return new_write
     
     def create(self, cr, uid, vals, context=None):
