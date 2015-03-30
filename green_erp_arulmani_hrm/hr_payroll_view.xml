@@ -9,6 +9,7 @@
 				<search string="Payroll Area">
 					<field name="code"/>
 					<field name="name"/>
+
 				</search>
 			</field>
 		</record>
@@ -20,6 +21,8 @@
 				<tree string="Payroll Area">
 					<field name="code"/>
 					<field name="name"/>
+					<field name ="create_date"/>
+                	<field name ="create_uid"/>
 				</tree>
 			</field>
 		</record>
@@ -33,6 +36,8 @@
 		                <group>    
 			                <field name="code"/>
 							<field name="name"/>
+							                	<field name ="create_date"/>
+                	<field name ="create_uid"/>
 		                </group>   	
 		         	</sheet>
 		         </form>
@@ -66,6 +71,8 @@
 				<tree string="Payroll Sub Area">
 					<field name="code"/>
 					<field name="name"/>
+					                	<field name ="create_date"/>
+                	<field name ="create_uid"/>
 				</tree>
 			</field>
 		</record>    
@@ -79,6 +86,8 @@
 		                <group>    
 			                <field name="code"/>
 							<field name="name"/>
+							                	<field name ="create_date"/>
+                	<field name ="create_uid"/>
 		                </group>   	
 		         	</sheet>
 		         </form>
@@ -188,6 +197,8 @@
 						<field name="employee_id" options="{'create': false, 'create_edit': false}"/>
 						<field name="employee_category_id" options="{'create': false, 'create_edit': false}"/>
 						<field name="sub_category_id" options="{'create': false, 'create_edit': false}"/>
+						<field name ="create_date"/>
+						<field name ="create_uid"/>
 				</tree>
 			</field>
 	</record>
@@ -331,6 +342,8 @@
 					<field name="employer_esi_con"/>
 					<field name="emp_lwf_amt"/>
 					<field name="employer_lwf_con_amt"/>
+					<field name ="create_date"/>
+                	<field name ="create_uid"/>
 				</tree>
 			</field>
 		</record>    
@@ -354,6 +367,8 @@
 							<field name="employer_esi_con"/>
 							<field name="emp_lwf_amt"/>
 							<field name="employer_lwf_con_amt"/>
+							<field name ="create_date"/>
+                			<field name ="create_uid"/>
 		                </group>   	
 		         	</sheet>
 		         </form>
@@ -538,7 +553,8 @@
             
        <menuitem action="action_arul_hr_payroll_executions_form"
             id="menu_action_arul_hr_payroll_executions_form"
-            parent="menu_hr_payroll_management" sequence="5"/>
+            parent="menu_hr_payroll_management" sequence="5"
+            groups="green_erp_arulmani_hrm.group_vvti_hrm_payroll_controller"/>
             
 		<record id="view_arul_hr_payroll_structure_configuration_tree_vew" model="ir.ui.view">
 			<field name="name">arul.hr.payroll.structure.configuration.tree</field>

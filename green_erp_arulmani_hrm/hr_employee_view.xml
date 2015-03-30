@@ -69,6 +69,8 @@
 					<field name="code"/>
 					<field name="name"/>
 					<field name="active"/>
+					<field name ="create_date"/>
+                	<field name ="create_uid"/>
 				</tree>
 			</field>
 		</record>
@@ -83,6 +85,9 @@
 	                    	<field name="code"/>
 	                    	<field name="name"/>
 	                    	<field name="active"/>
+	                    	<newline/>
+	                    	<field name ="create_date"/>
+                			<field name ="create_uid"/>
 	               	  	</group>
 	               	  	<group string = "Sub Category">
 		                    <group >
@@ -231,6 +236,8 @@
 				<tree string="Employee Action Type">
 					<field name="code"/>
 					<field name="name"/>
+					<field name ="create_date"/>
+                	<field name ="create_uid"/>
 				</tree>
 			</field>
 		</record>
@@ -244,6 +251,8 @@
 	                    <group>
 	                    	<field name="code"/>
 	                    	<field name="name"/>
+	                    	                	<field name ="create_date"/>
+                	<field name ="create_uid"/>
 	               	  	</group>
                 	</sheet>
                 </form>
@@ -375,6 +384,8 @@
 					<field name ="period_from"/>
 					<field name ="period_to"/>
 					<field name ="note"/>
+					<field name ="create_date"/>
+                	<field name ="create_uid"/>
 				</tree>
 			</field>
 		</record>
@@ -408,6 +419,8 @@
 							<field name ="period_from"/>						
 							<field name ="date_from" string = 'Period From'/>
 							<field name ="date_to" string ='Period To'/>
+							<field name ="create_date"/>
+                			<field name ="create_uid"/>
 						</group>
 						<group>
 							<field name ="note"/>
@@ -458,6 +471,8 @@
 					<field name ="department_to_id"/>
 					<field name ="designation_to_id"/>
 					<field name ="period_to"/>
+					<field name ="create_date"/>
+                	<field name ="create_uid"/>
 					<field name ="note"/>
 					
 				</tree>
@@ -488,7 +503,9 @@
 							<field name ="period_from"/>
 							<newline/>
 							<field name ="date_from" string='Appraisal From'/> 
-							<field name ="date_to" string='Appraisal To'/> 
+							<field name ="date_to" string='Appraisal To'/>
+							<field name ="create_date"/>
+                			<field name ="create_uid"/> 
 							<!-- 
 							<field name ="period_to"/>  -->
 						</group>
@@ -537,6 +554,8 @@
 					<field name ="sub_category_id"/>
 					<field name ="period_to" string="Valid To"/>
 					<field name ="note"/>
+					<field name ="create_date"/>
+                	<field name ="create_uid"/>
 					<field name ="approve_rehiring" invisible='1'/>
 				</tree>
 			</field>
@@ -563,6 +582,8 @@
 							<newline/>
 							<field name ="period_from" string="Valid From"/>
 							<field name ="period_to" string="Valid To"/>
+							<field name ="create_date"/>
+                			<field name ="create_uid"/>
 						</group>
 						<group>
 							<field name ="note"/>
@@ -608,7 +629,9 @@
 					<field name ="date_from"/>
 					<field name ="date_to"/>
 					<field name="action_type_id"/>
-					<field name ="sub_category_id"/>										
+					<field name ="sub_category_id"/>
+					<field name ="create_date"/>
+                	<field name ="create_uid"/>										
 					<field name ="note"/>
 					
 				</tree>
@@ -643,6 +666,8 @@
 							<field name ="period_from"/>
 							<field name ="date_from" string ='Period From'/>
 							<field name ="date_to" string ='Period To'/>
+							<field name ="create_date"/>
+                			<field name ="create_uid"/>
 							
 						</group>
 						<group>
@@ -690,6 +715,8 @@
 					<field name ="sub_category_id"/>
 					<field name ="reason_id"/>
 					<field name ="period_to"/>
+					<field name ="create_date"/>
+                	<field name ="create_uid"/>
 					<field name ="note"/>
 					
 				</tree>
@@ -714,6 +741,8 @@
 							<newline/>
 							<field name ="period_from"/>
 							<field name ="period_to"/>
+							<field name ="create_date"/>
+                			<field name ="create_uid"/>
 						</group>
 						<group>
 							<field name ="note"/>
@@ -757,6 +786,8 @@
 					<field name ="action_date" string="Date Of Hiring"/>
 					<field name ="period_from" string="Valid From"/>
 					<field name ="period_to" string="Valid To"/>
+					<field name ="create_date"/>
+                	<field name ="create_uid"/>
 					<field name ="note"/>
 					<field name ="block_list"/>
 				</tree>
@@ -787,6 +818,8 @@
 							<field name ="department_from_id" attrs="{'readonly':[('block_list','=',True)]}" string = 'Department' options="{'create': false, 'create_edit': false}"/>
 							<field name ="period_from" string="Valid From" attrs="{'readonly':[('block_list','=',True)]}"/>
 							<field name ="period_to" string="Valid To" attrs="{'readonly':[('block_list','=',True)]}"/>
+							<field name ="create_date"/>
+                			<field name ="create_uid"/>
 							<field name ="employee_id" invisible='0' readonly='1'/>
 							<field name ="block_list" invisible='0' readonly='1'/>
 						</group>
@@ -926,6 +959,8 @@
 					<field name ="sub_category_id"/>
 					<field name ="payroll_area_id"/>
 					<field name ="payroll_sub_area_id"/>
+					<field name ="create_date"/>
+                	<field name ="create_uid"/>
 					<field name ="action_date" string="Date Of Leaving"/>
 					<field name ="note"/>
 				</tree>
@@ -943,6 +978,8 @@
                 	<field name ="sub_category_id"/>
                 	<field name ="payroll_area_id"/>
                 	<field name ="action_date"/>
+                	<field name ="create_date"/>
+                	<field name ="create_uid"/>
                  </search>
             </field>
         </record>	
@@ -961,6 +998,8 @@
 							<field name ="sub_category_id" domain="[('category_id','=',employee_category_id)]" options="{'create': false, 'create_edit': false}"/>
 							<field name ="payroll_area_id" options="{'create': false, 'create_edit': false}"/>
 							<field name ="payroll_sub_area_id" options="{'create': false, 'create_edit': false}"/>
+							<field name ="create_date"/>
+                			<field name ="create_uid"/>
 							<field name ="action_date" string="Date Of Leaving"/>
 							<newline/>
 
@@ -1018,6 +1057,8 @@
 					<field name ="action_date" string = "Date of Disciplinary"/>
 					<field name ="period_from"/>
 					<field name ="period_to"/>
+					<field name ="create_date"/>
+                	<field name ="create_uid"/>
 					<field name ="note"/>
 				</tree>
 			</field>
@@ -1046,6 +1087,8 @@
 							<newline/>
 							<field name ="period_from"/>
 							<field name ="period_to"/>
+							<field name ="create_date"/>
+                			<field name ="create_uid"/>
 						</group>
 						<group>
 							<field name ="note"/>
@@ -1087,6 +1130,8 @@
                 	<field name ="food_price" />
                 	<field name ="employer_con"/>
                 	<field name ="employee_con"/>
+                	                	<field name ="create_date"/>
+                	<field name ="create_uid"/>
 				</tree>
 			</field>
 		</record>
@@ -1103,6 +1148,8 @@
 		                		<field name ="food_price" on_change="onchange_amount_all(food_price)"/>
 		                		<field name ="employer_con"/>
 		                		<field name ="employee_con"/>
+		                		                	<field name ="create_date"/>
+                	<field name ="create_uid"/>
 	                		</group>
 	                		<group>
 	                			<field name ="hotel_name"/>
@@ -1149,8 +1196,10 @@
 			<field name="model">meals.deduction</field>
 			<field name="arch" type="xml">
 				<tree string="Meals Deduction Master">
-					<field name ="meals_date"/>
-                	<field name ="meals_for"/>
+					<field name ="meals_date" />
+                	<field name ="meals_for" />
+                	<field name ="create_date"/>
+                	<field name ="create_uid"/>
 				</tree>
 			</field>
 		</record>
@@ -1164,6 +1213,8 @@
                 		<group>
                 			<field name ="meals_date" on_change="onchange_date(meals_date,meals_for)"/>
                 			<field name ="meals_for" style="width:40%%" on_change="onchange_date(meals_date,meals_for)"/>
+                			<field name ="create_date"/>
+                			<field name ="create_uid"/>
                 		</group>
                 		<notebook>
                 			<page string="Meals Deduction">

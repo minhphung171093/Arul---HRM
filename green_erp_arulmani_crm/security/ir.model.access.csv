@@ -114,3 +114,4 @@ access_crm_user_104,Product for qc user,green_erp_arulmani_crm.model_product_pro
 access_crm_user_105,Lead/Opportunity for qc user,crm.model_crm_lead,group_qc_user,True,True,False,False
 access_crm_user_106,crm.lead.line for qc user,green_erp_arulmani_crm.model_crm_lead_line,group_qc_user,True,True,False,False
 access_crm_user_107,Report Mime-Types for qc user,report_aeroo.model_report_mimetypes,group_qc_user,True,True,True,True
+access_crm_user_108,customer.account.group,model_customer_account_group,base.group_user,True,True,True,True

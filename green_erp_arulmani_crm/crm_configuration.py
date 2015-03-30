@@ -145,6 +145,7 @@ class res_partner(osv.osv):
         'lst': fields.char('LST',size=128),
         'service_reg_no': fields.char('Service RegNo.',size=128),
         'tcs': fields.many2one('tax.category','TCS %'), 
+        #'is_approved': fields.boolean('Is Approved'),
     }
     _defaults = {
         'is_company': True,
@@ -159,6 +160,61 @@ class res_partner(osv.osv):
         '''
         cr.execute(sql)
         return True
+    #TPT START - By BalamuruganPurushothaman ON 28/03/2015 - TO SET DIFF SEQ NO FOR CUSTOMERS & CONSIGNEES
+    def create(self, cr, uid, vals, context=None):       
+        sql = '''
+        select id from customer_account_group where name = 'VVTI Ship to Party'
+         '''
+        cr.execute(sql)
+        temp = cr.fetchone()
+        consignee_id = temp[0]
+        
+        sql = '''
+        select id from customer_account_group where name = 'VVTI Sold to Party'
+         '''
+        cr.execute(sql)
+        temp = cr.fetchone()
+        customer_id = temp[0]
+        
+        sql = '''
+        select id from customer_account_group where name = 'VVTI Indent Comm.'
+         '''
+        cr.execute(sql)
+        temp = cr.fetchone()
+        indend_comm_id = temp[0]
+                
+        if vals['customer_account_group_id']==consignee_id:
+            sql = '''
+            select max(customer_code) from res_partner where customer_account_group_id = 
+            (select id from customer_account_group where code = 'VVTI Ship to Party')
+         '''
+            cr.execute(sql)
+            temp = cr.fetchone()
+            consignee_seq = temp[0]
+            vals['customer_code'] = int(float(consignee_seq)) + 1
+        
+        if vals['customer_account_group_id']==customer_id:
+            sql = '''
+            select max(customer_code) from res_partner where customer_account_group_id = 
+            (select id from customer_account_group where code = 'VVTI Sold to Party')
+         '''
+            cr.execute(sql)
+            temp = cr.fetchone()
+            customer_seq = temp[0]
+            vals['customer_code'] = int(float(customer_seq)) + 1
+        
+        if vals['customer_account_group_id']==indend_comm_id:
+            sql = '''
+            select max(customer_code) from res_partner where customer_account_group_id = 
+            (select id from customer_account_group where code = 'VVTI Indent Comm.')
+         '''
+            cr.execute(sql)
+            temp = cr.fetchone()
+            indend_comm_seq = temp[0]
+            vals['customer_code'] = int(float(indend_comm_seq)) + 1
+                               
+        return super(res_partner, self).create(cr, uid, vals, context)
+    
 res_partner()
 
 class res_language(osv.osv):

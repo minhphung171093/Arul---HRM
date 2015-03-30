@@ -12,6 +12,8 @@ class hr_employee_category(osv.osv):
     _inherit = "vsis.hr.employee.category"
     _columns = {
         'sub_category_ids' : fields.one2many('hr.employee.sub.category','category_id','Sub Category'),
+        'create_date': fields.datetime('Created Date',readonly = True),
+        'create_uid': fields.many2one('res.users','Created By',ondelete='restrict',readonly = True),
     }
     def _check_name(self, cr, uid, ids, context=None):
         for emp_cat in self.browse(cr, uid, ids, context=context):
@@ -135,8 +137,8 @@ class arul_hr_employee_action_history(osv.osv):
         'action_id': fields.many2one('arul.employee.actions','Action', required=True,ondelete='restrict'),
         'action_type_id': fields.many2one('arul.employee.action.type','Reason', required=True,ondelete='restrict'),
         'action_date': fields.date('Action Date'),
-        'create_date': fields.datetime('Created Date'),
-        'create_uid': fields.many2one('res.users','Created By',ondelete='restrict'),
+        'create_date': fields.datetime('Created Date',readonly=True),
+        'create_uid': fields.many2one('res.users','Created By',ondelete='restrict',readonly=True),
         #'period_from': fields.date('Period From'), TPT
         'period_from': fields.date('With Effective From'),
         'period_to': fields.date('Period to'), # THIS IS NOT USED
@@ -169,6 +171,8 @@ class arul_hr_employee_action_history(osv.osv):
         'gratuity': fields.boolean('Gratuity (Y/N)'),
         'pf_settlement': fields.boolean('PF Settlement (Y/N)'),
         'block_list': fields.boolean('Block list'),
+        'create_date': fields.datetime('Created Date',readonly = True),
+        'create_uid': fields.many2one('res.users','Created By',ondelete='restrict',readonly = True),
 #         'address_id': fields.many2one('res.partner', 'Working Address',ondelete='restrict'),
 #         'department_id':fields.many2one('hr.department', 'Department',ondelete='restrict'),
     }
@@ -768,6 +772,8 @@ class arul_employee_action_type(osv.osv):
     _columns={
         'name':fields.char('Name', size=64, required = True),
         'code':fields.char('Code',size=64,required = True),
+        'create_date': fields.datetime('Created Date',readonly = True),
+        'create_uid': fields.many2one('res.users','Created By',ondelete='restrict',readonly = True),
               }
     def create(self, cr, uid, vals, context=None):
         if 'code' in vals:
@@ -831,6 +837,8 @@ class food_subsidy(osv.osv):
         'country_id': fields.many2one('res.country', 'Country',ondelete='restrict'),
         'history_line': fields.one2many('food.subsidy','history_id','Histories',readonly = True),
         'history_id': fields.many2one('food.subsidy','Histories Line', ondelete='cascade'),
+                'create_date': fields.datetime('Created Date',readonly = True),
+        'create_uid': fields.many2one('res.users','Created By',ondelete='restrict',readonly = True),
     }
     def write(self, cr, uid, ids, vals, context=None):
         for line in self.browse(cr,uid,ids):
@@ -920,6 +928,8 @@ class meals_deduction(osv.osv):
         return {'value': vals}
    
     _columns = {
+        'create_date': fields.datetime('Created Date',readonly = True),
+        'create_uid': fields.many2one('res.users','Created By',ondelete='restrict',readonly = True),
         'meals_date':fields.date('Meals Arrangement Date'),
         'meals_for':fields.selection([('employees','Employees'),('others','Others')],'Meals Arrangement For',required=True),
         'meals_details_emp_ids': fields.one2many('meals.details','meals_id','Meals Deduction Details'),
