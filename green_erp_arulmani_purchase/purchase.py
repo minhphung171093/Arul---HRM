@@ -301,9 +301,15 @@ class tpt_purchase_product(osv.osv):
     def bt_approve(self, cr, uid, ids, context=None):
         for line in self.browse(cr,uid,ids):
 #             father = self.pool.get('tpt.purchase.indent').browse(cr,uid,line.pur_product_id.id)
+            sql = '''
+                    select %s in (select uid from res_groups_users_rel where gid in (select id from res_groups where name='Time Manager' 
+                    and category_id in (select id from ir_module_category where name='VVTI - HRM')))
+                    '''%(uid)
+            cr.execute(sql)
+            p = cr.fetchone()
             if line.pur_product_id.department_id and line.pur_product_id.department_id.primary_auditor_id and line.pur_product_id.department_id.primary_auditor_id.id==uid \
-            or line.pur_product_id.department_id and line.pur_product_id.department_id.secondary_auditor_id and line.pur_product_id.department_id.secondary_auditor_id.id==uid:
-                continue
+            or p[0]:
+                t=1
             else:
                 raise osv.except_osv(_('Warning!'),_('User does not have permission to approve!'))
             if line.state == 'confirm':
@@ -312,9 +318,15 @@ class tpt_purchase_product(osv.osv):
                 return self.write(cr, uid, ids,{'state':'++'})
     def bt_reject(self, cr, uid, ids, context=None):
         for line in self.browse(cr,uid,ids):
+            sql = '''
+                    select %s in (select uid from res_groups_users_rel where gid in (select id from res_groups where name='Time Manager' 
+                    and category_id in (select id from ir_module_category where name='VVTI - HRM')))
+                    '''%(uid)
+            cr.execute(sql)
+            p = cr.fetchone()
             if line.pur_product_id.department_id and line.pur_product_id.department_id.primary_auditor_id and line.pur_product_id.department_id.primary_auditor_id.id==uid \
-            or line.pur_product_id.department_id and line.pur_product_id.department_id.secondary_auditor_id and line.pur_product_id.department_id.secondary_auditor_id.id==uid:
-                continue
+            or [0]:
+                t=1
             else:
                 raise osv.except_osv(_('Warning!'),_('User does not have permission to reject!'))
             if line.state == 'confirm':

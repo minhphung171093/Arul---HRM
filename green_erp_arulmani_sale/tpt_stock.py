@@ -277,10 +277,11 @@ class stock_picking(osv.osv):
             where id=%s) )
         '''%picking.id 
         cr.execute(sql)
-        emp_code='' 
+        batch_no=''
         for p in cr.fetchall(): 
-            emp_code = emp_code +' '+ p[0]                               
-        invoice_vals['material_info'] = emp_code
+            batch_no = batch_no +','+ p[0]  
+        batch_no =  batch_no[1:]                          
+        invoice_vals['material_info'] = batch_no
         
         return invoice_vals
     
