@@ -1968,7 +1968,8 @@ class arul_hr_permission_onduty(osv.osv):
                  
                 audit_id = audit_obj.create(cr, SUPERUSER_ID, {
                     'employee_id':permission.employee_id.id,
-                    'work_date':date_from,
+#                     'work_date':date_from,
+                    'work_date':permission.from_date,
                     'employee_category_id':permission.employee_id.employee_category_id and permission.employee_id.employee_category_id.id or False,
                     'planned_work_shift_id': shift_id,
                     'actual_work_shift_id': work_shift_ids and work_shift_ids[0] or False,
