@@ -15,7 +15,7 @@ class tpt_purchase_indent(osv.osv):
     _name = 'tpt.purchase.indent'
     _columns = {
         'name': fields.char('Indent No.', size=1024, readonly=True ),
-        'date_indent':fields.date('Indent Date',required = True, states={'cancel': [('readonly', True)], 'done':[('readonly', True)]}),
+        'date_indent':fields.date('Indent Date',required = True, states={'cancel': [('readonly', True)]}),
         'document_type':fields.selection([
                                 ('base','VV Level Based PR'),
                                 ('capital','VV Capital PR'),
@@ -27,22 +27,22 @@ class tpt_purchase_indent(osv.osv):
                                 ('service','VV Service PR'),
                                 ('normal','VV Normal PR'),
                                 ('raw','VV Raw Material PR'),
-                                ],'Document Type',required = True, states={'cancel': [('readonly', True)], 'done':[('readonly', True)]}),
+                                ],'Document Type',required = True, states={'cancel': [('readonly', True)] }),
         'intdent_cate':fields.selection([
                                 ('emergency','Emergency Indent'),
-                                ('normal','Normal Indent')],'Indent Category',required = True, states={'cancel': [('readonly', True)], 'done':[('readonly', True)]}),
-        'department_id':fields.many2one('hr.department','Department', states={'cancel': [('readonly', True)], 'done':[('readonly', True)]}),
+                                ('normal','Normal Indent')],'Indent Category',required = True, states={'cancel': [('readonly', True)] }),
+        'department_id':fields.many2one('hr.department','Department', states={'cancel': [('readonly', True)] }),
         'create_uid':fields.many2one('res.users','Raised By', readonly = True),
-        'date_expect':fields.date('Expected Date', states={'cancel': [('readonly', True)], 'done':[('readonly', True)]}),
+        'date_expect':fields.date('Expected Date', states={'cancel': [('readonly', True)] }),
         'select_normal':fields.selection([('single','Single Quotation'),
                                           ('special','Special Quotation'),
-                                          ('multiple','Multiple Quotation')],'Select', states={'cancel': [('readonly', True)], 'done':[('readonly', True)]}),
-        'supplier_id':fields.many2one('res.partner','Supplier',  states={'cancel': [('readonly', True)], 'done':[('readonly', True)]}),
-        'employee_id':fields.many2one('hr.employee','Employee',  states={'cancel': [('readonly', True)], 'done':[('readonly', True)]}),
-        'reason':fields.text('Reason', states={'cancel': [('readonly', True)], 'done':[('readonly', True)]}),
-        'header_text':fields.text('Header Text',states={'cancel': [('readonly', True)], 'done':[('readonly', True)]}), #TPT
-        'requisitioner':fields.many2one('hr.employee','Requisitioner',states={'cancel': [('readonly', True)], 'done':[('readonly', True)]}),
-        'purchase_product_line':fields.one2many('tpt.purchase.product','pur_product_id','Materials',states={'cancel': [('readonly', True)], 'done':[('readonly', True)]}),
+                                          ('multiple','Multiple Quotation')],'Select', states={'cancel': [('readonly', True)] }),
+        'supplier_id':fields.many2one('res.partner','Supplier',  states={'cancel': [('readonly', True)] }),
+        'employee_id':fields.many2one('hr.employee','Employee',  states={'cancel': [('readonly', True)] }),
+        'reason':fields.text('Reason', states={'cancel': [('readonly', True)] }),
+        'header_text':fields.text('Header Text',states={'cancel': [('readonly', True)] }), #TPT
+        'requisitioner':fields.many2one('hr.employee','Requisitioner',states={'cancel': [('readonly', True)] }),
+        'purchase_product_line':fields.one2many('tpt.purchase.product','pur_product_id','Materials',states={'cancel': [('readonly', True)] }),
         'state':fields.selection([('draft', 'Draft'),('cancel', 'Closed'),
                                   ('done', 'Approve'),('rfq_raised','RFQ Raised'),
                                   ('quotation_raised','Quotation Raised'),
@@ -309,13 +309,12 @@ class tpt_purchase_product(osv.osv):
             p = cr.fetchone()
             if line.pur_product_id.department_id and line.pur_product_id.department_id.primary_auditor_id and line.pur_product_id.department_id.primary_auditor_id.id==uid \
             or p[0]:
-                t=1
+                if line.state == 'confirm':
+                    return self.write(cr, uid, ids,{'state':'+'})
+                if line.state == '+':
+                    return self.write(cr, uid, ids,{'state':'++'})
             else:
                 raise osv.except_osv(_('Warning!'),_('User does not have permission to approve!'))
-            if line.state == 'confirm':
-                return self.write(cr, uid, ids,{'state':'+'})
-            if line.state == '+':
-                return self.write(cr, uid, ids,{'state':'++'})
     def bt_reject(self, cr, uid, ids, context=None):
         for line in self.browse(cr,uid,ids):
             sql = '''
@@ -325,14 +324,14 @@ class tpt_purchase_product(osv.osv):
             cr.execute(sql)
             p = cr.fetchone()
             if line.pur_product_id.department_id and line.pur_product_id.department_id.primary_auditor_id and line.pur_product_id.department_id.primary_auditor_id.id==uid \
-            or [0]:
-                t=1
+            or p[0]:
+                if line.state == 'confirm':
+                    return self.write(cr, uid, ids,{'state':'x'})
+                if line.state == '+':
+                    return self.write(cr, uid, ids,{'state':'xx'})
             else:
                 raise osv.except_osv(_('Warning!'),_('User does not have permission to reject!'))
-            if line.state == 'confirm':
-                return self.write(cr, uid, ids,{'state':'x'})
-            if line.state == '+':
-                return self.write(cr, uid, ids,{'state':'xx'})
+            
 #         return self.write(cr, uid, ids,{'state':''})
 #     def bt_approve_hod(self, cr, uid, ids, context=None):
 #         return self.write(cr, uid, ids,{'state':'++'})
@@ -432,9 +431,8 @@ class tpt_purchase_product(osv.osv):
             department_id = user_id.employee_id and user_id.employee_id.department_id and user_id.employee_id.department_id.id or False
             if primary_auditor_ids and department_id:
                 sql = '''
-                    select id from tpt_purchase_product line, tpt_purchase_indent ma where line.pur_product_id = ma.id
-                        and ma.department_id =%s
-                '''%(uid)
+                    select id from tpt_purchase_product where pur_product_id in (select id from tpt_purchase_indent where department_id =%s)
+                '''%(department_id)
                 cr.execute(sql)
                 leave_details_ids = [r[0] for r in cr.fetchall()]
                 args += [('id','in',leave_details_ids)]
@@ -847,15 +845,19 @@ class tpt_purchase_quotation(osv.osv):
                     p_f = basic * quotation.p_f/100
                 elif quotation.p_f_type == '2' :
                     p_f = quotation.p_f
-                else :
+                elif quotation.p_f_type == '3' :
                     p_f = quotation.p_f * quotation.product_uom_qty
+                else:
+                    p_f = quotation.p_f
                 amount_p_f += p_f
                 if quotation.e_d_type == '1' :
                     ed = (basic + p_f) * quotation.e_d/100
                 elif quotation.e_d_type == '2' :
                     ed = quotation.e_d
-                else:
+                elif quotation.e_d_type == '3':
                     ed = quotation.e_d *  quotation.product_uom_qty
+                else:
+                    ed = quotation.e_d
                 amount_ed += ed
                 total_tax = (basic + p_f + ed)*(quotation.tax_id and quotation.tax_id.amount or 0) / 100
                 amount_total_tax += total_tax
@@ -863,13 +865,13 @@ class tpt_purchase_quotation(osv.osv):
                     amount_fright += (basic + p_f + ed + total_tax) * quotation.fright/100
                 elif quotation.fright_type == '2' :
                     amount_fright += quotation.fright
-                else :
+                elif quotation.fright_type == '3' :
                     amount_fright += quotation.fright * quotation.product_uom_qty
+                else:
+                     amount_fright += quotation.fright
 #                 amount_line +=  amount_basic + amount_p_f + quotation.e_d + amount_total_tax + amount_fright
                 if quotation.tax_id and quotation.tax_id.name == 'CST':
                     amount_net = amount_basic + amount_p_f + amount_fright + amount_total_tax
-                if quotation.tax_id and quotation.tax_id.name == 'VAT':
-                    amount_net = amount_basic + amount_p_f + amount_fright
                 else:
                     amount_net = amount_basic + amount_p_f + amount_fright
             amount_line += amount_basic
@@ -2173,20 +2175,26 @@ class purchase_order_line(osv.osv):
                amount_p_f = amount_basic * (line.p_f/100)
             elif line.p_f_type == '2':
                 amount_p_f = line.p_f
-            else:
+            elif line.p_f_type == '3':
                 amount_p_f = line.p_f * line.product_qty
+            else:
+                amount_p_f = line.p_f
             if line.ed_type == '1':
                amount_ed = (amount_basic + amount_p_f) * (line.ed/100)
             elif line.ed_type == '2':
                 amount_ed = line.ed
-            else:
+            elif line.ed_type == '3':
                 amount_ed = line.ed * line.product_qty
+            else:
+                amount_ed = line.ed
             if line.fright_type == '1':
                amount_fright = (amount_basic + amount_p_f + amount_ed) * (line.fright/100)
             elif line.fright_type == '2':
                 amount_fright = line.fright
-            else:
+            elif line.fright_type == '3':
                 amount_fright = line.fright * line.product_qty
+            else: 
+                amount_fright = line.fright
             tax_amounts = [r.amount for r in line.taxes_id]
             for tax in tax_amounts:
                 amount_total_tax += tax/100

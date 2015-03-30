@@ -30,7 +30,7 @@ class stock_picking(osv.osv):
                 if 'state' in vals and vals['state']=='cancel':
                     sql = '''
                         update tpt_purchase_product set state='po_raised' where pur_product_id=%s and product_id=%s
-                    '''%(move.po_indent_no.id,move.product_id.id)
+                    '''%(move.po_indent_id.id,move.product_id.id)
                     cr.execute(sql)
         return new_write
 
@@ -369,10 +369,10 @@ class stock_move(osv.osv):
         for line in self.browse(cr,uid,ids):
             if line.po_indent_id.document_type == 'consumable':
                 if line.action_taken == 'direct' or line.action_taken == 'need':
-                    raise osv.except_osv(_('Warning!'),_('"Consumable PR" type should be processed with "Move To Consumption Type only"'))
+                    raise osv.except_osv(_('Warning!'),_('Consumable PR type should be processed with Move To Consumption Type only'))
             if line.po_indent_id.document_type != 'consumable':
                 if line.action_taken == 'move':
-                    raise osv.except_osv(_('Warning!'),_('"Move To Consumption" type should be applicable for "Cosumable PR" type only.Please choose other type'))
+                    raise osv.except_osv(_('Warning!'),_('Move To Consumption type should be applicable for Cosumable PR type only.Please choose other type'))
         return new_write
     
     def create(self, cr, uid, vals, context=None):
@@ -568,20 +568,26 @@ class account_invoice_line(osv.osv):
                amount_p_f = amount_basic * (line.p_f/100)
             elif line.p_f_type == '2':
                 amount_p_f = line.p_f
-            else:
+            elif line.p_f_type == '3':
                 amount_p_f = line.p_f * line.quantity
+            else:
+                amount_p_f = line.p_f
             if line.ed_type == '1':
                amount_ed = (amount_basic + amount_p_f) * (line.ed/100)
             elif line.ed_type == '2':
                 amount_ed = line.ed
-            else:
+            elif line.ed_type == '3':
                 amount_ed = line.ed * line.quantity
+            else:
+                amount_ed = line.ed
             if line.fright_type == '1':
                amount_fright = (amount_basic + amount_p_f + amount_ed) * (line.fright/100)
             elif line.fright_type == '2':
                 amount_fright = line.fright
-            else:
+            elif line.fright_type == '3':
                 amount_fright = line.fright * line.quantity
+            else:
+                amount_fright = line.fright
             tax_amounts = [r.amount for r in line.invoice_line_tax_id]
             for tax in tax_amounts:
                 amount_total_tax += tax/100

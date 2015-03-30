@@ -72,7 +72,7 @@
 	        <field name="name">Admin</field>
 	        <field name="category_id" ref="module_category_vvti_purchase"/>
 	        <field name="users" eval="[(4, ref('base.user_root'))]"/>
-	        <field name="implied_ids" eval="[(4, ref('stock.group_stock_manager')),(4, ref('purchase.group_purchase_manager')),(4, ref('group_vvti_purchase_mgr')),(4, ref('group_vvti_purchase_gm'))]"/>
+	        <field name="implied_ids" eval="[(4, ref('stock.group_stock_manager')),(4, ref('purchase.group_purchase_manager')),(4, ref('group_vvti_purchase_mgr')),(4, ref('group_vvti_purchase_gm')),(4, ref('group_vvti_purchase_store_mgr'))]"/>
 	    </record>
 	</data>
 </openerp>
