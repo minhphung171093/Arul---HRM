@@ -309,13 +309,12 @@ class tpt_purchase_product(osv.osv):
             p = cr.fetchone()
             if line.pur_product_id.department_id and line.pur_product_id.department_id.primary_auditor_id and line.pur_product_id.department_id.primary_auditor_id.id==uid \
             or p[0]:
-                t=1
+                if line.state == 'confirm':
+                    return self.write(cr, uid, ids,{'state':'+'})
+                if line.state == '+':
+                    return self.write(cr, uid, ids,{'state':'++'})
             else:
                 raise osv.except_osv(_('Warning!'),_('User does not have permission to approve!'))
-            if line.state == 'confirm':
-                return self.write(cr, uid, ids,{'state':'+'})
-            if line.state == '+':
-                return self.write(cr, uid, ids,{'state':'++'})
     def bt_reject(self, cr, uid, ids, context=None):
         for line in self.browse(cr,uid,ids):
             sql = '''
@@ -325,14 +324,14 @@ class tpt_purchase_product(osv.osv):
             cr.execute(sql)
             p = cr.fetchone()
             if line.pur_product_id.department_id and line.pur_product_id.department_id.primary_auditor_id and line.pur_product_id.department_id.primary_auditor_id.id==uid \
-            or [0]:
-                t=1
+            or p[0]:
+                if line.state == 'confirm':
+                    return self.write(cr, uid, ids,{'state':'x'})
+                if line.state == '+':
+                    return self.write(cr, uid, ids,{'state':'xx'})
             else:
                 raise osv.except_osv(_('Warning!'),_('User does not have permission to reject!'))
-            if line.state == 'confirm':
-                return self.write(cr, uid, ids,{'state':'x'})
-            if line.state == '+':
-                return self.write(cr, uid, ids,{'state':'xx'})
+            
 #         return self.write(cr, uid, ids,{'state':''})
 #     def bt_approve_hod(self, cr, uid, ids, context=None):
 #         return self.write(cr, uid, ids,{'state':'++'})
