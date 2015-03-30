@@ -302,35 +302,41 @@ class tpt_purchase_product(osv.osv):
         for line in self.browse(cr,uid,ids):
 #             father = self.pool.get('tpt.purchase.indent').browse(cr,uid,line.pur_product_id.id)
             sql = '''
-                    select %s in (select uid from res_groups_users_rel where gid in (select id from res_groups where name='Time Manager' 
-                    and category_id in (select id from ir_module_category where name='VVTI - HRM')))
+                    select %s in (select uid from res_groups_users_rel where gid in (select id from res_groups where name='Purchase Store Mgr' 
+                    and category_id in (select id from ir_module_category where name='VVTI - PURCHASE')))
                     '''%(uid)
             cr.execute(sql)
-            p = cr.fetchone()
-            if line.pur_product_id.department_id and line.pur_product_id.department_id.primary_auditor_id and line.pur_product_id.department_id.primary_auditor_id.id==uid \
-            or p[0]:
-                if line.state == 'confirm':
+            mana = cr.fetchone()
+#                 fq = self.pool.get('res_users').browse(cr,uid,uid)
+            if line.state == 'confirm':
+                if mana[0]:
                     return self.write(cr, uid, ids,{'state':'+'})
-                if line.state == '+':
+                else:
+                    raise osv.except_osv(_('Warning!'),_('User does not have permission to approve!'))
+            if line.state == '+':
+                if line.pur_product_id.department_id and line.pur_product_id.department_id.primary_auditor_id and line.pur_product_id.department_id.primary_auditor_id.id==uid:
                     return self.write(cr, uid, ids,{'state':'++'})
-            else:
-                raise osv.except_osv(_('Warning!'),_('User does not have permission to approve!'))
+                else:
+                    raise osv.except_osv(_('Warning!'),_('User does not have permission to approve!'))
     def bt_reject(self, cr, uid, ids, context=None):
         for line in self.browse(cr,uid,ids):
             sql = '''
-                    select %s in (select uid from res_groups_users_rel where gid in (select id from res_groups where name='Time Manager' 
-                    and category_id in (select id from ir_module_category where name='VVTI - HRM')))
+                    select %s in (select uid from res_groups_users_rel where gid in (select id from res_groups where name='Purchase Store Mgr' 
+                    and category_id in (select id from ir_module_category where name='VVTI - PURCHASE')))
                     '''%(uid)
             cr.execute(sql)
-            p = cr.fetchone()
-            if line.pur_product_id.department_id and line.pur_product_id.department_id.primary_auditor_id and line.pur_product_id.department_id.primary_auditor_id.id==uid \
-            or p[0]:
-                if line.state == 'confirm':
+            mana = cr.fetchone()
+            
+            if line.state == 'confirm':
+                if mana[0]:
                     return self.write(cr, uid, ids,{'state':'x'})
-                if line.state == '+':
+                else:
+                    raise osv.except_osv(_('Warning!'),_('User does not have permission to reject!'))
+            if line.state == '+':
+                if line.pur_product_id.department_id and line.pur_product_id.department_id.primary_auditor_id and line.pur_product_id.department_id.primary_auditor_id.id==uid:
                     return self.write(cr, uid, ids,{'state':'xx'})
-            else:
-                raise osv.except_osv(_('Warning!'),_('User does not have permission to reject!'))
+                else:
+                    raise osv.except_osv(_('Warning!'),_('User does not have permission to reject!'))
             
 #         return self.write(cr, uid, ids,{'state':''})
 #     def bt_approve_hod(self, cr, uid, ids, context=None):
