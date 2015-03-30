@@ -35,6 +35,9 @@ class Parser(report_sxw.rml_parse):
             'get_buyer':self.get_buyer,
             'get_app':self.get_app,
             'get_qty_kgs':self.get_qty_kgs,
+            'get_rate_kgs':self.get_rate_kgs,
+            'get_freight':self.get_freight, 
+            'get_total_kgs':self.get_total_kgs,
         })
     
     def get_date(self, date=False):
@@ -111,7 +114,23 @@ class Parser(report_sxw.rml_parse):
         kgs_qty = 0.00
         kgs_qty = qty * 1000
         return round(kgs_qty)
-    
+    def get_rate_kgs(self, rate):        
+        kgs_rate = 0.00
+        kgs_rate = rate / 1000   
+        #raise osv.except_osv(_('Warning! %s'),_(kgs_rate))    
+        return round(kgs_rate,2)
+    def get_freight(self, freight,qty):        
+        mt_freight = 0.00
+        kgs_freight = 0.00
+        mt_freight = freight / qty   
+        kgs_freight =  mt_freight / 1000           
+        return round(kgs_freight,2)
+    def get_total_kgs(self, invoice_line, insurance):
+        val1 = 0.0
+        for line in invoice_line:
+            #mt_freight = freight / qty 
+            val1 = val1 + (line.price_unit/1000) + (line.freight/line.quantity)/1000 + insurance
+        return round(val1, 2)
     def get_buyer(self, obj):
         buyer = ''
         if obj.partner_id and obj.cons_loca and obj.partner_id.id != obj.cons_loca.id:
