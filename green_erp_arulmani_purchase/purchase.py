@@ -303,24 +303,23 @@ class tpt_purchase_product(osv.osv):
 #             father = self.pool.get('tpt.purchase.indent').browse(cr,uid,line.pur_product_id.id)
             if line.pur_product_id.department_id and line.pur_product_id.department_id.primary_auditor_id and line.pur_product_id.department_id.primary_auditor_id.id==uid \
             or line.pur_product_id.department_id and line.pur_product_id.department_id.secondary_auditor_id and line.pur_product_id.department_id.secondary_auditor_id.id==uid:
-                continue
+                if line.state == 'confirm':
+                    return self.write(cr, uid, ids,{'state':'+'})
+                if line.state == '+':
+                    return self.write(cr, uid, ids,{'state':'++'})
             else:
                 raise osv.except_osv(_('Warning!'),_('User does not have permission to approve!'))
-            if line.state == 'confirm':
-                return self.write(cr, uid, ids,{'state':'+'})
-            if line.state == '+':
-                return self.write(cr, uid, ids,{'state':'++'})
     def bt_reject(self, cr, uid, ids, context=None):
         for line in self.browse(cr,uid,ids):
             if line.pur_product_id.department_id and line.pur_product_id.department_id.primary_auditor_id and line.pur_product_id.department_id.primary_auditor_id.id==uid \
             or line.pur_product_id.department_id and line.pur_product_id.department_id.secondary_auditor_id and line.pur_product_id.department_id.secondary_auditor_id.id==uid:
-                continue
+                if line.state == 'confirm':
+                    return self.write(cr, uid, ids,{'state':'x'})
+                if line.state == '+':
+                    return self.write(cr, uid, ids,{'state':'xx'})
             else:
                 raise osv.except_osv(_('Warning!'),_('User does not have permission to reject!'))
-            if line.state == 'confirm':
-                return self.write(cr, uid, ids,{'state':'x'})
-            if line.state == '+':
-                return self.write(cr, uid, ids,{'state':'xx'})
+            
 #         return self.write(cr, uid, ids,{'state':''})
 #     def bt_approve_hod(self, cr, uid, ids, context=None):
 #         return self.write(cr, uid, ids,{'state':'++'})
