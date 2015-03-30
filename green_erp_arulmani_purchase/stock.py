@@ -30,7 +30,7 @@ class stock_picking(osv.osv):
                 if 'state' in vals and vals['state']=='cancel':
                     sql = '''
                         update tpt_purchase_product set state='po_raised' where pur_product_id=%s and product_id=%s
-                    '''%(move.po_indent_no.id,move.product_id.id)
+                    '''%(move.po_indent_id.id,move.product_id.id)
                     cr.execute(sql)
         return new_write
 
