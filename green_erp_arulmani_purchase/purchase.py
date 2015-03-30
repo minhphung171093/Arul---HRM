@@ -432,9 +432,8 @@ class tpt_purchase_product(osv.osv):
             department_id = user_id.employee_id and user_id.employee_id.department_id and user_id.employee_id.department_id.id or False
             if primary_auditor_ids and department_id:
                 sql = '''
-                    select id from tpt_purchase_product line, tpt_purchase_indent ma where line.pur_product_id = ma.id
-                        and ma.department_id =%s
-                '''%(uid)
+                    select id from tpt_purchase_product where pur_product_id in (select id from tpt_purchase_indent where department_id =%s)
+                '''%(department_id)
                 cr.execute(sql)
                 leave_details_ids = [r[0] for r in cr.fetchall()]
                 args += [('id','in',leave_details_ids)]
@@ -2173,20 +2172,26 @@ class purchase_order_line(osv.osv):
                amount_p_f = amount_basic * (line.p_f/100)
             elif line.p_f_type == '2':
                 amount_p_f = line.p_f
-            else:
+            elif line.p_f_type == '3':
                 amount_p_f = line.p_f * line.product_qty
+            else:
+                amount_p_f = line.p_f
             if line.ed_type == '1':
                amount_ed = (amount_basic + amount_p_f) * (line.ed/100)
             elif line.ed_type == '2':
                 amount_ed = line.ed
-            else:
+            elif line.ed_type == '3':
                 amount_ed = line.ed * line.product_qty
+            else:
+                amount_ed = line.ed
             if line.fright_type == '1':
                amount_fright = (amount_basic + amount_p_f + amount_ed) * (line.fright/100)
             elif line.fright_type == '2':
                 amount_fright = line.fright
-            else:
+            elif line.fright_type == '3':
                 amount_fright = line.fright * line.product_qty
+            else: 
+                amount_fright = line.fright
             tax_amounts = [r.amount for r in line.taxes_id]
             for tax in tax_amounts:
                 amount_total_tax += tax/100

@@ -568,20 +568,26 @@ class account_invoice_line(osv.osv):
                amount_p_f = amount_basic * (line.p_f/100)
             elif line.p_f_type == '2':
                 amount_p_f = line.p_f
-            else:
+            elif line.p_f_type == '3':
                 amount_p_f = line.p_f * line.quantity
+            else:
+                amount_p_f = line.p_f
             if line.ed_type == '1':
                amount_ed = (amount_basic + amount_p_f) * (line.ed/100)
             elif line.ed_type == '2':
                 amount_ed = line.ed
-            else:
+            elif line.ed_type == '3':
                 amount_ed = line.ed * line.quantity
+            else:
+                amount_ed = line.ed
             if line.fright_type == '1':
                amount_fright = (amount_basic + amount_p_f + amount_ed) * (line.fright/100)
             elif line.fright_type == '2':
                 amount_fright = line.fright
-            else:
+            elif line.fright_type == '3':
                 amount_fright = line.fright * line.quantity
+            else:
+                amount_fright = line.fright
             tax_amounts = [r.amount for r in line.invoice_line_tax_id]
             for tax in tax_amounts:
                 amount_total_tax += tax/100
