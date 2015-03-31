@@ -279,7 +279,7 @@ class stock_picking(osv.osv):
         cr.execute(sql)
         batch_no=''
         for p in cr.fetchall(): 
-            batch_no = batch_no +','+ p[0]  
+            batch_no = batch_no +',  '+ p[0]  
         batch_no =  batch_no[1:]                          
         invoice_vals['material_info'] = batch_no
         
