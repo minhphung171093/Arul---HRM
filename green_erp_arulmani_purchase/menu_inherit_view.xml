@@ -25,6 +25,26 @@
         	id="purchase.menu_purchase_form_action"
         	parent="purchase.menu_procurement_management" sequence="6"
         	groups="green_erp_arulmani_purchase.group_vvti_purchase_user,green_erp_arulmani_purchase.group_vvti_purchase_gm"/>
+        	
+        <record model="ir.ui.menu" id="stock.menu_action_picking_tree6">
+	    	<field name="groups_id" eval="[(6, 0,[ref('green_erp_arulmani_purchase.group_vvti_purchase_key_user'),ref('green_erp_arulmani_purchase.group_vvti_purchase_store_user'),ref('green_erp_arulmani_sale.group_vvti_sale_manager')])]"/>
+		</record>
+		
+		<record model="ir.ui.menu" id="stock.menu_action_production_lot_form">
+	    	<field name="groups_id" eval="[(6, 0,[ref('green_erp_arulmani_purchase.group_vvti_purchase_key_user'),ref('green_erp_arulmani_purchase.group_vvti_purchase_store_user'),ref('green_erp_arulmani_sale.group_vvti_sale_manager')])]"/>
+		</record>
+		
+		<record model="ir.ui.menu" id="stock.menu_action_picking_tree4">
+	    	<field name="groups_id" eval="[(6, 0,[ref('green_erp_arulmani_purchase.group_vvti_purchase_key_user'),ref('green_erp_arulmani_purchase.group_vvti_purchase_store_user'),ref('green_erp_arulmani_sale.group_vvti_sale_manager')])]"/>
+		</record>
+		
+		<record model="ir.ui.menu" id="stock.menu_action_inventory_form">
+	    	<field name="groups_id" eval="[(6, 0,[ref('green_erp_arulmani_purchase.group_vvti_purchase_key_user'),ref('green_erp_arulmani_purchase.group_vvti_purchase_store_user'),ref('green_erp_arulmani_sale.group_vvti_sale_manager')])]"/>
+		</record>
+		
+		<record model="ir.ui.menu" id="stock.menu_stock_configuration">
+	    	<field name="groups_id" eval="[(6, 0,[ref('green_erp_arulmani_sale.group_vvti_sale_manager')])]"/>
+		</record>
         
     </data>
 </openerp>
