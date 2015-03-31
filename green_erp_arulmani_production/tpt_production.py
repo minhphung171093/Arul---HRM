@@ -67,7 +67,8 @@ class tpt_tio2_batch_split(osv.osv):
         move_obj = self.pool.get('stock.move')
         for line in self.browse(cr, uid, ids):
             move_ids = move_obj.search(cr, uid, [('scrapped','=',False),('production_id','=',line.mrp_id.id),('product_id','=',line.product_id.id)])
-            move_obj.write(cr, uid, move_ids,{'location_dest_id':line.location_id.id})
+            cr.execute('update stock_move set location_dest_id=%s where id in %s',(line.location_id.id,tuple(move_ids),))
+#             move_obj.write(cr, uid, move_ids,{'location_dest_id':line.location_id.id})
             context.update({'active_id': move_ids and move_ids[0] or False,'active_model': 'stock.move','tpt_copy_prodlot':True})
             line_exist_ids = []
             for split_line in line.batch_split_line:
@@ -220,7 +221,8 @@ class tpt_fsh_batch_split(osv.osv):
         move_obj = self.pool.get('stock.move')
         for line in self.browse(cr, uid, ids):
             move_ids = move_obj.search(cr, uid, [('scrapped','=',False),('production_id','=',line.mrp_id.id),('product_id','=',line.product_id.id)])
-            move_obj.write(cr, uid, move_ids,{'location_dest_id':line.location_id.id})
+            cr.execute('update stock_move set location_dest_id=%s where id in %s',(line.location_id.id,tuple(move_ids),))
+#             move_obj.write(cr, uid, move_ids,{'location_dest_id':line.location_id.id})
             context.update({'active_id': move_ids and move_ids[0] or False,'active_model': 'stock.move','tpt_copy_prodlot':True})
             line_exist_ids = []
             for split_line in line.batch_split_line:

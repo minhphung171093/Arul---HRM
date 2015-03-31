@@ -48,5 +48,6 @@ access_vvti_sale_32,"tpt.batch.request","green_erp_arulmani_sale.model_tpt_batch
 access_vvti_sale_33,"tpt.product.information","green_erp_arulmani_sale.model_tpt_product_information","green_erp_arulmani_crm.group_qc_user","True","False","False","False"
 access_vvti_sale_34,"tpt.batch.allotment","green_erp_arulmani_sale.model_tpt_batch_allotment","green_erp_arulmani_crm.group_qc_user","True","True","True","False"
 access_vvti_sale_35,"tpt.batch.allotment.line","green_erp_arulmani_sale.model_tpt_batch_allotment_line","green_erp_arulmani_crm.group_qc_user","True","True","True","True"
-access_vvti_sale_36,"tpt.batch.allotment","green_erp_arulmani_sale.model_tpt_batch_allotment","green_erp_arulmani_sale.group_vvti_sale_manager","True","True","True","False"
-
+access_vvti_sale_36,"tpt.blanket.order","green_erp_arulmani_sale.model_tpt_blanket_order","green_erp_arulmani_crm.group_sample_user","True","True","True","False"
+access_vvti_sale_37,"tpt.blank.order.line","green_erp_arulmani_sale.model_tpt_blank_order_line","green_erp_arulmani_crm.group_sample_user","True","True","True","False"
+access_vvti_sale_38,"tpt.batch.allotment","green_erp_arulmani_sale.model_tpt_batch_allotment","green_erp_arulmani_sale.group_vvti_sale_manager","True","True","True","False"
