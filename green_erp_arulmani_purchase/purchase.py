@@ -144,7 +144,7 @@ class tpt_purchase_indent(osv.osv):
                     if vals.get('name','/')=='/':
                         sequence = self.pool.get('ir.sequence').get(cr, uid, 'indent.purchase.raw')
                         vals['name'] =  sequence and sequence +'/'+fiscalyear['code']or '/'
-        new_id = super(tpt_purchase_indent, self).create(cr, uid, vals, context=context)   
+        new_id = super(tpt_purchase_indent, self).create(cr, uid, vals, context=context)    
 #         indent = self.browse(cr,uid, new_id)
 #         if indent.select_normal != 'multiple':
 #             if (len(indent.purchase_product_line)>1):
@@ -211,12 +211,49 @@ class tpt_purchase_indent(osv.osv):
                 gate_ids = [row[0] for row in cr.fetchall()]
                 args += [('id','in',gate_ids)]
         if context.get('search_po_indent_line'):
-            sql = '''
-                select pur_product_id from tpt_purchase_product where state = '++'
-            '''
-            cr.execute(sql)
-            pur_ids = [row[0] for row in cr.fetchall()]
-            args += [('id','in',pur_ids)]
+            if context.get('po_document_type'):
+                if context.get('po_document_type')=='standard':
+                    sql = '''
+                        select pur_product_id from tpt_purchase_product where state = '++' and (doc_type_relate = 'normal' or doc_type_relate = 'maintenance' or doc_type_relate = 'spare' or doc_type_relate = 'base' or doc_type_relate = 'consumable')
+                    '''
+                    cr.execute(sql)
+                    pur_ids = [row[0] for row in cr.fetchall()]
+                    args += [('id','in',pur_ids)]
+                if context.get('po_document_type')=='local':
+                    sql = '''
+                        select pur_product_id from tpt_purchase_product where state = '++' and doc_type_relate = 'local' 
+                    '''
+                    cr.execute(sql)
+                    pur_ids = [row[0] for row in cr.fetchall()]
+                    args += [('id','in',pur_ids)]
+                if context.get('po_document_type')=='asset':
+                    sql = '''
+                        select pur_product_id from tpt_purchase_product where state = '++' and doc_type_relate = 'capital' 
+                    '''
+                    cr.execute(sql)
+                    pur_ids = [row[0] for row in cr.fetchall()]
+                    args += [('id','in',pur_ids)]
+                if context.get('po_document_type')=='raw':
+                    sql = '''
+                        select pur_product_id from tpt_purchase_product where state = '++' and doc_type_relate = 'raw' 
+                    '''
+                    cr.execute(sql)
+                    pur_ids = [row[0] for row in cr.fetchall()]
+                    args += [('id','in',pur_ids)]
+                if context.get('po_document_type')=='service':
+                    sql = '''
+                        select pur_product_id from tpt_purchase_product where state = '++' and doc_type_relate = 'service' 
+                    '''
+                    cr.execute(sql)
+                    pur_ids = [row[0] for row in cr.fetchall()]
+                    args += [('id','in',pur_ids)]
+                if context.get('po_document_type')=='out':
+                    sql = '''
+                        select pur_product_id from tpt_purchase_product where state = '++' and doc_type_relate = 'outside'
+                    '''
+                    cr.execute(sql)
+                    pur_ids = [row[0] for row in cr.fetchall()]
+                    args += [('id','in',pur_ids)]
         return super(tpt_purchase_indent, self).search(cr, uid, args, offset=offset, limit=limit, order=order, context=context, count=count)
     
     def name_search(self, cr, user, name, args=None, operator='ilike', context=None, limit=100):
@@ -868,15 +905,22 @@ class tpt_purchase_quotation(osv.osv):
                 total_tax = (basic + p_f + ed)*(quotation.tax_id and quotation.tax_id.amount or 0) / 100
                 amount_total_tax += total_tax
                 if quotation.fright_type == '1' :
-                    amount_fright += (basic + p_f + ed + total_tax) * quotation.fright/100
+                    fright = (basic + p_f + ed + total_tax) * quotation.fright/100
                 elif quotation.fright_type == '2' :
-                    amount_fright += quotation.fright
+                    fright = quotation.fright
                 elif quotation.fright_type == '3' :
-                    amount_fright += quotation.fright * quotation.product_uom_qty
+                    fright = quotation.fright * quotation.product_uom_qty
                 else:
-                     amount_fright += quotation.fright
+                     fright = quotation.fright
+                amount_fright += fright
 #                 amount_line +=  amount_basic + amount_p_f + quotation.e_d + amount_total_tax + amount_fright
-                if quotation.tax_id and quotation.tax_id.name == 'CST':
+                sql = '''
+                    SELECT name FROM account_tax
+                                    WHERE name LIKE '%CST%'
+                '''
+                cr.execute(sql)
+                tax_name = cr.dictfetchone()['name']
+                if tax_name:
                     amount_net = amount_basic + amount_p_f + amount_fright + amount_total_tax
                 else:
                     amount_net = amount_basic + amount_p_f + amount_fright
@@ -1237,20 +1281,26 @@ class tpt_purchase_quotation_line(osv.osv):
                amount_p_f = amount_basic * (line.p_f/100)
             elif line.p_f_type == '2':
                 amount_p_f = line.p_f
-            else:
+            elif line.p_f_type == '3':
                 amount_p_f = line.p_f * line.product_uom_qty
+            else:
+                amount_p_f = line.p_f
             if line.e_d_type == '1':
                amount_ed = (amount_basic + amount_p_f) * (line.e_d/100)
             elif line.e_d_type == '2':
                 amount_ed = line.e_d
-            else:
+            elif line.p_f_type == '3':
                 amount_ed = line.e_d * line.product_uom_qty
+            else:
+                amount_ed = line.e_d
             if line.fright_type == '1':
                amount_fright = (amount_basic + amount_p_f + amount_ed) * (line.fright/100)
             elif line.fright_type == '2':
                 amount_fright = line.fright
-            else:
+            elif line.fright_type == '3':
                 amount_fright = line.fright * line.product_uom_qty
+            else:
+                amount_fright = line.fright
 #             if 
             amount_total_tax = line.tax_id and line.tax_id.amount/100 or 0
             line_net = amount_total_tax+amount_fright+amount_ed+amount_p_f+amount_basic
@@ -1511,7 +1561,7 @@ class purchase_order(osv.osv):
             excise_duty=0.0
             amount_total_tax=0.0
             total_tax = 0.0
-            fright=0.0
+            amount_fright=0.0
             qty = 0.0
             for po in line.order_line:
                 tax = 0
@@ -1520,13 +1570,19 @@ class purchase_order(osv.osv):
                 amount_untaxed += basic
                 if po.p_f_type == '1' :
                     p_f = basic * po.p_f/100
+                elif po.p_f_type == '2' :
+                    p_f = po.p_f
+                elif po.p_f_type == '3':
+                    p_f = po.p_f * po.product_qty
                 else:
                     p_f = po.p_f
                 p_f_charge += p_f
                 if po.ed_type == '1' :
                     ed = (basic + p_f) * po.ed/100
-                else:
+                elif po.ed_type == '2' :
                     ed = po.ed
+                elif po.ed_type == '3' :
+                    ed = po.e_d *  po.product_qty
                 excise_duty += ed
                 tax_amounts = [r.amount for r in po.taxes_id]
                 for tax_amount in tax_amounts:
@@ -1535,15 +1591,18 @@ class purchase_order(osv.osv):
                 amount_total_tax = (basic + p_f + ed)*(tax)
                 total_tax += amount_total_tax
                 if po.fright_type == '1' :
-                    fright += (basic + p_f + ed + amount_total_tax) * po.fright/100
-                else:
-                    fright += po.fright
+                    fright = (basic + p_f + ed + amount_total_tax) * po.fright/100
+                elif po.fright_type == '2' :
+                    fright = po.fright
+                elif po.fright_type == '3' :
+                    fright = po.fright * po.product_qty
+                amount_fright += fright
             res[line.id]['amount_untaxed'] = amount_untaxed
             res[line.id]['p_f_charge'] = p_f_charge
             res[line.id]['excise_duty'] = excise_duty
             res[line.id]['amount_tax'] = total_tax
-            res[line.id]['fright'] = fright
-            res[line.id]['amount_total'] = amount_untaxed+p_f_charge+excise_duty+total_tax+fright
+            res[line.id]['fright'] = amount_fright
+            res[line.id]['amount_total'] = amount_untaxed+p_f_charge+excise_duty+total_tax+amount_fright
         return res
     
     
@@ -1672,28 +1731,37 @@ class purchase_order(osv.osv):
                     delete from purchase_order_line where order_id = %s
                 '''%(line.id)
                 cr.execute(sql)
-#         po_line = []
-#         if quotation_no:
+        po_line = []
+        if quotation_no:
             quotation = self.pool.get('tpt.purchase.quotation').browse(cr, uid, quotation_no)
-#             for line in quotation.purchase_quotation_line:
-#                 rs = {
-#                       'po_indent_no': line.po_indent_id and line.po_indent_id.id or False,
-#                       'product_id': line.product_id and line.product_id.id or False,
-#                       'product_qty': line.product_uom_qty or False,
-#                       'product_uom': line.uom_po_id and line.uom_po_id.id or False,
-#                       'price_unit': line.price_unit or False,
+            for line in quotation.purchase_quotation_line:
+                rs = {
+                      'po_indent_no': line.po_indent_id and line.po_indent_id.id or False,
+                      'product_id': line.product_id and line.product_id.id or False,
+                      'product_qty': line.product_uom_qty or False,
+                      'product_uom': line.uom_id and line.uom_id.id or False,
+                      'price_unit': line.price_unit or False,
+                      'discount': line.disc or False,
+                      'p_f': line.p_f or False,
+                      'p_f_type':line.p_f_type or False,
+                      'ed':line.e_d or False,
+                      'ed_type':line.e_d_type or False,
+                      'taxes_id': [(6,0,[line.tax_id and line.tax_id.id])],
+                      'fright':line.fright or False,
+                      'fright_type':line.fright_type or False,
+                
 #                       'price_subtotal': line.sub_total or False,
 #                       'date_planned':quotation.date_quotation or False,
-# #                       'name':'/'
-#                       }
-#                 po_line.append((0,0,rs))
+                      'name': line.product_id and line.product_id.name or False,
+                      }
+                po_line.append((0,0,rs))
             vals = {
                     'partner_id':quotation.supplier_id and quotation.supplier_id.id or '',
                     'for_basis':quotation.for_basis or '',
                     'state_id':quotation.supplier_location_id and quotation.supplier_location_id.id or '',
                     'deli_sche': quotation.schedule or '',
-                    'po_indent_no': False,
-                    'order_line': [],
+#                     'po_indent_no': False,
+                    'order_line': po_line,
                     }
         return {'value': vals}
     
@@ -1892,7 +1960,7 @@ class purchase_order(osv.osv):
         if new.po_indent_no.document_type == 'outside':
             if new.po_document_type != 'out':
                 raise osv.except_osv(_('Warning!'),_('Indent not allowed create with Document Type this'))
-        if new.po_indent_no.document_type in ('maintanance','spare','normal','base','consumable'):
+        if new.po_indent_no.document_type in ('maintenance','spare','normal','base','consumable'):
             if new.po_document_type != 'standard':
                 raise osv.except_osv(_('Warning!'),_('Indent not allowed create with Document Type this'))
         for line in new.order_line:        
@@ -2041,7 +2109,7 @@ class purchase_order(osv.osv):
             if new.po_indent_no.document_type == 'outside':
                 if new.po_document_type != 'out':
                     raise osv.except_osv(_('Warning!'),_('Indent not allowed create with Document Type this'))
-            if new.po_indent_no.document_type in ('maintanance','spare','normal','base','consumable'):
+            if new.po_indent_no.document_type in ('maintenance','spare','normal','base','consumable'):
                 if new.po_document_type != 'standard':
                     raise osv.except_osv(_('Warning!'),_('Indent not allowed create with Document Type this'))            
 
@@ -2209,6 +2277,8 @@ class purchase_order_line(osv.osv):
     
     _columns = {
 #                 'purchase_tax_id': fields.many2one('account.tax', 'Taxes', domain="[('type_tax_use','=','purchase')]", required = True), 
+                
+                'po_indent_no':fields.many2one('tpt.purchase.indent','Indent', required = True),
                 'product_id': fields.many2one('product.product', 'Product', domain=[('purchase_ok','=',True)], change_default=True, states={'amendement':[('readonly',True)]}),
                 'product_qty': fields.float('Quantity', digits_compute=dp.get_precision('Product Unit of Measure'), required=True, track_visibility='onchange'),    
                 'product_uom': fields.many2one('product.uom', 'Product Unit of Measure', required=True, track_visibility='onchange'),  
@@ -2864,7 +2934,7 @@ class tpt_request_for_quotation(osv.osv):
                     if line.po_indent_id.document_type  != 'outside':
                         raise osv.except_osv(_('Warning!'),_('Indent not allowed create with Document Type this'))
                 if rfq.po_document_type == 'standard' :
-                    if line.po_indent_id.document_type not in ('maintanance','spare','normal','base','consumable'):
+                    if line.po_indent_id.document_type not in ('maintenance','spare','normal','base','consumable'):
                         raise osv.except_osv(_('Warning!'),_('Indent not allowed create with Document Type this'))
         if rfq.rfq_category:
             if rfq.rfq_category != 'multiple':
@@ -2893,7 +2963,7 @@ class tpt_request_for_quotation(osv.osv):
                         if line.po_indent_id.document_type  != 'outside':
                             raise osv.except_osv(_('Warning!'),_('Indent not allowed create with Document Type this'))
                     if rfq.po_document_type == 'standard' :
-                        if line.po_indent_id.document_type not in ('maintanance','spare','normal','base','consumable'):
+                        if line.po_indent_id.document_type not in ('maintenance','spare','normal','base','consumable'):
                             raise osv.except_osv(_('Warning!'),_('Indent not allowed create with Document Type this'))
             if rfq.rfq_category:
                 if rfq.rfq_category != 'multiple':

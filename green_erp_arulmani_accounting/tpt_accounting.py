@@ -390,14 +390,14 @@ class stock_picking(osv.osv):
                 date_period = line.date,
                 sql = '''
                     select id from account_period where '%s' between date_start and date_stop
-                
+                 
                 '''%(date_period)
                 cr.execute(sql)
                 period_ids = [r[0] for r in cr.fetchall()]
 #                 a = self.browse(cr,uid,period_ids[0])
                 if not period_ids:
                     raise osv.except_osv(_('Warning!'),_('Period is not null, please configure it in Period master !'))
-                
+                 
                 for period_id in period_obj.browse(cr,uid,period_ids):
                     sql_journal = '''
                     select id from account_journal
@@ -414,7 +414,7 @@ class stock_picking(osv.osv):
                                         'partner_id': line.partner_id and line.partner_id.id,
                                         'debit':debit,
                                         'credit':0,
-                                        
+                                         
                                        })]
                     for p in line.move_lines:
                         amount_cer = p.purchase_line_id.price_unit * p.product_qty
@@ -428,7 +428,7 @@ class stock_picking(osv.osv):
                             'credit':credit,
                             'debit':0,
                         }))
-                        
+                         
                     value={
                         'journal_id':journal.id,
                         'period_id':period_id.id ,
@@ -449,7 +449,7 @@ class stock_picking(osv.osv):
                 journal = self.pool.get('account.journal').browse(cr,uid,journal_ids[0])
                 sql = '''
                     select id from account_period where '%s' between date_start and date_stop
-                 
+                  
                 '''%(date_period)
                 cr.execute(sql)
                 period_ids = [r[0] for r in cr.fetchall()]
@@ -464,7 +464,7 @@ class stock_picking(osv.osv):
                             cose_id = p.product_id.product_cose_acc_id.id
                         else: 
                             raise osv.except_osv(_('Warning!'),_('Product Cost of Goods Sold Account is not configured! Please configured it!'))
-                        
+                         
                         if p.product_id.product_asset_acc_id:
                             asset_id = p.product_id.product_asset_acc_id.id
                         else:
@@ -476,7 +476,7 @@ class stock_picking(osv.osv):
                                 'credit':0,
                                 'debit':debit,
                             }))
-                    
+                     
                     journal_line.append((0,0,{
                         'name':line.name, 
                         'account_id': asset_id,
@@ -484,7 +484,7 @@ class stock_picking(osv.osv):
                         'credit':debit,
                         'debit':0,
                     }))
-                         
+                          
                     value={
                         'journal_id':journal.id,
                         'period_id':period_id.id ,
