@@ -24,7 +24,7 @@ access_vvti_sale_8,"crm.application","green_erp_arulmani_crm.model_crm_applicati
 access_vvti_sale_9,"tpt.batch.request","green_erp_arulmani_sale.model_tpt_batch_request","green_erp_arulmani_sale.group_vvti_sale_user","True","True","True","False"
 access_vvti_sale_10,"tpt.product.information","green_erp_arulmani_sale.model_tpt_product_information","green_erp_arulmani_sale.group_vvti_sale_user","True","True","True","True"
 access_vvti_sale_11,"tpt.batch.allotment.line","green_erp_arulmani_sale.model_tpt_batch_allotment_line","green_erp_arulmani_sale.group_vvti_sale_user","True","True","True","True"
-access_vvti_sale_12,"tpt.batch.allotment","green_erp_arulmani_sale.model_tpt_batch_allotment","green_erp_arulmani_sale.group_vvti_sale_user","True","True","True","False"
+access_vvti_sale_12,"tpt.batch.allotment","green_erp_arulmani_sale.model_tpt_batch_allotment","green_erp_arulmani_sale.group_vvti_sale_user","True","False","False","False"
 access_vvti_sale_13,"stock.production.lot","green_erp_arulmani_sale.model_stock_production_lot","green_erp_arulmani_sale.group_vvti_sale_user","True","True","True","False"
 access_vvti_sale_14,"stock.production.lot.revision","stock.model_stock_production_lot_revision","green_erp_arulmani_sale.group_vvti_sale_user","True","True","True","False"
 access_vvti_sale_15,"tpt.pgi","green_erp_arulmani_sale.model_tpt_pgi","green_erp_arulmani_sale.group_vvti_sale_user","True","True","True","False"
@@ -50,3 +50,4 @@ access_vvti_sale_34,"tpt.batch.allotment","green_erp_arulmani_sale.model_tpt_bat
 access_vvti_sale_35,"tpt.batch.allotment.line","green_erp_arulmani_sale.model_tpt_batch_allotment_line","green_erp_arulmani_crm.group_qc_user","True","True","True","True"
 access_vvti_sale_36,"tpt.blanket.order","green_erp_arulmani_sale.model_tpt_blanket_order","green_erp_arulmani_crm.group_sample_user","True","True","True","False"
 access_vvti_sale_37,"tpt.blank.order.line","green_erp_arulmani_sale.model_tpt_blank_order_line","green_erp_arulmani_crm.group_sample_user","True","True","True","False"
+access_vvti_sale_38,"tpt.batch.allotment","green_erp_arulmani_sale.model_tpt_batch_allotment","green_erp_arulmani_sale.group_vvti_sale_manager","True","True","True","False"
