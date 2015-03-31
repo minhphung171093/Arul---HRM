@@ -454,7 +454,7 @@ class account_invoice(osv.osv):
                 excise_duty=0.0
                 amount_total_tax=0.0
                 total_tax = 0.0
-                fright=0.0
+                total_fright=0.0
                 qty = 0.0
                 for po in line.invoice_line:
                     tax = 0
@@ -463,11 +463,19 @@ class account_invoice(osv.osv):
                     amount_untaxed += basic
                     if po.p_f_type == '1' :
                         p_f = basic * po.p_f/100
+                    elif po.p_f_type == '2' :
+                        p_f = po.p_f
+                    elif po.p_f_type == '3' :
+                        p_f = po.p_f * po.quantity
                     else:
                         p_f = po.p_f
                     p_f_charge += p_f
                     if po.ed_type == '1' :
                         ed = (basic + p_f) * po.ed/100
+                    elif po.ed_type == '2' :
+                        ed = po.ed
+                    elif po.ed_type == '3' :
+                        ed = po.e_d *  po.quantity
                     else:
                         ed = po.ed
                     excise_duty += ed
@@ -477,15 +485,20 @@ class account_invoice(osv.osv):
                     amount_total_tax = (basic + p_f + ed)*(tax)
                     total_tax += amount_total_tax
                     if po.fright_type == '1' :
-                        fright += (basic + p_f + ed + amount_total_tax) * po.fright/100
+                        fright = (basic + p_f + ed + amount_total_tax) * po.fright/100
+                    elif po.fright_type == '2' :
+                        fright = po.fright
+                    elif po.fright_type == '3' :
+                        fright = po.fright * po.quantity
                     else:
-                        fright += po.fright
+                        fright = po.fright
+                    total_fright += fright
                 res[line.id]['amount_untaxed'] = amount_untaxed
                 res[line.id]['p_f_charge'] = p_f_charge
                 res[line.id]['excise_duty'] = excise_duty
                 res[line.id]['amount_tax'] = total_tax
-                res[line.id]['fright'] = fright
-                res[line.id]['amount_total'] = amount_untaxed+p_f_charge+excise_duty+total_tax+fright
+                res[line.id]['fright'] = total_fright
+                res[line.id]['amount_total'] = amount_untaxed+p_f_charge+excise_duty+total_tax+total_fright
         return res
     
     def _get_invoice_line(self, cr, uid, ids, context=None):
