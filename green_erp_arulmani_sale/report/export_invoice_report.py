@@ -38,6 +38,10 @@ class Parser(report_sxw.rml_parse):
             'get_rate_kgs':self.get_rate_kgs,
             'get_freight':self.get_freight, 
             'get_total_kgs':self.get_total_kgs,
+            'get_freight_lb':self.get_freight_lb, 
+            'get_ins_lb':self.get_ins_lb,
+            'get_other_lb':self.get_other_lb,
+            
         })
     
     def get_date(self, date=False):
@@ -111,8 +115,9 @@ class Parser(report_sxw.rml_parse):
         return round(mt_qty, 2)
     
     def get_qty_kgs(self, qty, uom, type):
-        kgs_qty = 0.00
+        kgs_qty = 0
         kgs_qty = qty * 1000
+        #raise osv.except_osv(_('Warning! %s'),_(round(kgs_qty,10)))
         return round(kgs_qty)
     def get_rate_kgs(self, rate):        
         kgs_rate = 0.00
@@ -136,7 +141,22 @@ class Parser(report_sxw.rml_parse):
         if obj.partner_id and obj.cons_loca and obj.partner_id.id != obj.cons_loca.id:
             buyer = (obj.cons_loca and obj.cons_loca.street or '') + ', ' + (obj.cons_loca and obj.cons_loca.street2 or '') + ', ' + (obj.cons_loca and obj.cons_loca.city or '') + ', ' + (obj.cons_loca and (obj.cons_loca.state_id and obj.cons_loca.state_id.name or '') or '') + ', ' + (obj.cons_loca and (obj.cons_loca.country_id and obj.cons_loca.country_id.name or '') or '') + ', ' + (obj.cons_loca and obj.cons_loca.zip or '')
         return buyer
-
+    def get_freight_lb(self, invoice):    
+        lb = ''    
+        if invoice.sale_id.incoterms_id.code=='CIF':
+            lb = 'FREIGHT:'         
+        return lb
+    def get_ins_lb(self, invoice):    
+        lb = ''    
+        if invoice.sale_id.incoterms_id.code=='CIF':
+            lb = 'INSURANCE:'         
+        return lb
+    def get_other_lb(self, invoice):    
+        lb = ''    
+        if invoice.sale_id.incoterms_id.code=='CIF':
+            lb = 'OTHER CHARGES:'         
+        return lb
+    
     def get_app(self, obj):       
         if obj:
             app = ''

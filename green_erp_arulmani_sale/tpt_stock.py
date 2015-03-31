@@ -272,7 +272,7 @@ class stock_picking(osv.osv):
         if journal_id:
             invoice_vals['journal_id'] = journal_id
         sql = '''
-            select name from stock_production_lot where id in 
+            select phy_batch_no from stock_production_lot where id in 
             (select prodlot_id from stock_move where picking_id in (select id from stock_picking 
             where id=%s) )
         '''%picking.id 
