@@ -78,7 +78,15 @@
 	        <field name="name">Admin</field>
 	        <field name="category_id" ref="module_category_vvti_hrm"/>
 	        <field name="users" eval="[(4, ref('base.user_root'))]"/>
-	        <field name="implied_ids" eval="[(4, ref('base.group_user')),(4, ref('group_vvti_hrm_hr_user')),(4, ref('group_vvti_hrm_hr_key_user')),(4, ref('group_vvti_hrm_time_key_user')),(4, ref('group_vvti_hrm_time_user')),(4, ref('group_vvti_hrm_hr_manager')),(4, ref('group_vvti_hrm_payroll_controller'))]"/>
+	        <field name="implied_ids" eval="[(4, ref('base.group_user')),
+	        								(4, ref('group_vvti_hrm_hr_user')),
+	        								(4, ref('group_vvti_hrm_hr_key_user')),
+	        								(4, ref('group_vvti_hrm_time_key_user')),
+	        								(4, ref('group_vvti_hrm_time_user')),
+	        								(4, ref('group_vvti_hrm_hr_manager')),
+	        								(4, ref('group_vvti_hrm_payroll_controller')),
+	        								(4, ref('group_vvti_hrm_plant_hr_user')),
+	        								(4, ref('group_vvti_hrm_time_manager'))]"/>
 	    </record>
 	    
 	    <record id="green_erp_arulmani_crm.group_sample_manager" model="res.groups">
