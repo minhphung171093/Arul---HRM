@@ -124,7 +124,7 @@ class stock_partial_picking(osv.osv_memory):
                     'specification_line':product_line,
                     }
             
-            quality_inspec.create(cr, uid, vals)
+            quality_inspec.create(cr, SUPERUSER_ID, vals)
             sql = '''
                 update stock_move set inspec='t' where id =%s
             '''%(line.id)
