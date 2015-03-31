@@ -234,7 +234,7 @@
 					<field name="other_info" />
 					</group>
 					
-					
+					 
 				</xpath>
 				
 				<xpath expr="//field[@name='journal_id']" position="replace">
