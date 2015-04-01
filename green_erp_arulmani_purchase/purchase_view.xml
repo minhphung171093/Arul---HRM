@@ -14,6 +14,8 @@
 						<field name="create_uid" options="{'create': false, 'create_edit': false}" />
 						<field name="date_expect"/>
 						<field name="requisitioner"/>
+						<field name="project_id"/>
+						<field name="project_section_id"/>
 						<field name="state" widget="statusbar" statusbar_visible="draft,cancel,done" statusbar_colors='{"draft":"blue","cancel":"blue"}'/>
 				</tree>
 			</field>
@@ -68,6 +70,8 @@
 							<field name="section_id" domain="[('department_id','=',department_id)]" options="{'create': false, 'create_edit': false}" />
 							<field name="date_expect"/>
 							<field name="requisitioner" options="{'create': false, 'create_edit': false}" domain="[('department_id','=',department_id)]"  />
+							<field name="project_id" options="{'create': false, 'create_edit': false}"/>
+							<field name="project_section_id" domain="[('project_id','=',project_id)]" options="{'create': false, 'create_edit': false}"/>
 							<field name="header_text" attrs="{'readonly': [('document_type', 'not in', ('service','consumable','capital')),('state', '=', 'done')]}"/>
 						</group>
 						<group >
@@ -1623,6 +1627,8 @@
 						<field name="department_id"  />
 						<field name="section_id"  />
 						<field name="requisitioner"  />
+						<field name="project_id"  />
+						<field name="project_section_id"  />
 						<field name="create_uid" options="{'create': false, 'create_edit': false}" />
 						<field name="state" widget="statusbar" statusbar_visible="draft,done" statusbar_colors='{"draft":"blue"}'/>
 				</tree>
@@ -1647,6 +1653,8 @@
 							<field name="requisitioner" options="{'create': false, 'create_edit': false}" domain="[('department_id','=',department_id)]"  />
 							<field name="create_uid" options="{'create': false, 'create_edit': false}"  />
 							<field name="date_expec"/>
+							<field name="project_id" options="{'create': false, 'create_edit': false}"/>
+							<field name="project_section_id" domain="[('project_id','=',project_id)]" options="{'create': false, 'create_edit': false}"/>
 						</group>
 						<notebook>
 							<page string = "Materials">
