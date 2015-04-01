@@ -280,7 +280,10 @@ class stock_picking(osv.osv):
         batch_no=''
         for p in cr.fetchall(): 
             batch_no = batch_no +',  '+ p[0]  
-        batch_no =  batch_no[1:]                          
+        batch_no =  batch_no[1:]   
+        if len(batch_no) < 399:
+            space_count = 399-len(batch_no)
+            batch_no = batch_no.ljust(space_count)                     
         invoice_vals['material_info'] = batch_no
         
         return invoice_vals
@@ -914,32 +917,33 @@ stock_move()
 class account_invoice(osv.osv):
     _inherit = "account.invoice"
     
-#     def _amount_all(self, cr, uid, ids, field_name, arg, context=None):
-#         res = {}
-#         for line in self.browse(cr,uid,ids,context=context):
-#             res[line.id] = {
-#                 'amount_untaxed': 0.0,
-#                 'amount_tax': 0.0,
-#                 'amount_total': 0.0,
-#             }
-#             val1 = 0.0
-#             val2 = 0.0
-#             val3 = 0.0
-#             freight = 0.0
-#             for invoiceline in line.invoice_line:
-#                 freight += invoiceline.freight
-#                 val1 += invoiceline.price_subtotal
-#                 val2 += invoiceline.price_subtotal * (line.sale_tax_id.amount and line.sale_tax_id.amount / 100 or 0)
-# #                 val3 = val1 + val2 + freight
-#             res[line.id]['amount_untaxed'] = val1
-#             res[line.id]['amount_tax'] = val2
-#             res[line.id]['amount_total'] = val1+val2+freight
-#             for taxline in line.tax_line:
-#                 sql='''
-#                     update account_invoice_tax set amount=%s where id=%s
-#                 '''%(val2+freight,taxline.id)
-#                 cr.execute(sql)
-#         return res
+    def _amount_all(self, cr, uid, ids, field_name, arg, context=None):
+        res = {}
+        for line in self.browse(cr,uid,ids,context=context):
+            res[line.id] = {
+                'amount_untaxed': 0.0,
+                'amount_tax': 0.0,
+                'amount_total': 0.0,
+            }
+            val1 = 0.0
+            val2 = 0.0
+            val3 = 0.0
+            freight = 0.0
+            for invoiceline in line.invoice_line:
+                freight += invoiceline.freight
+                val1 += invoiceline.price_subtotal
+                val2 += invoiceline.price_subtotal * (line.sale_tax_id.amount and line.sale_tax_id.amount / 100 or 0)
+#                 val3 = val1 + val2 + freight
+            res[line.id]['amount_untaxed'] = round(val1)
+            res[line.id]['amount_tax'] = round(val2)
+            res[line.id]['amount_total'] = round(val1+val2+freight)
+            for taxline in line.tax_line:
+                sql='''
+                    update account_invoice_tax set amount=%s where id=%s
+                '''%(round(val2+freight),taxline.id)
+                cr.execute(sql)
+        return res
+      
 #     
     def _get_invoice_line(self, cr, uid, ids, context=None):
         result = {}
@@ -972,25 +976,25 @@ class account_invoice(osv.osv):
         'material_info': fields.text('Material Additional Info',readonly=True, states={'draft':[('readonly',False)]}),
         'other_info': fields.text('Other Info', readonly=True, states={'draft':[('readonly',False)]}),
         #TPT
-        'street3':fields.char('Street3',size=128)
-#         'amount_untaxed': fields.function(_amount_all, digits_compute=dp.get_precision('Account'), string='Untaxed Amount',
-#             store={
-#                 'account.invoice': (lambda self, cr, uid, ids, c={}: ids, ['invoice_line'], 20),
-#                 'account.invoice.line': (_get_invoice_line, ['price_unit','invoice_line_tax_id','quantity','discount','invoice_id'], 20),
-#             },
-#             multi='sums', help="The amount without tax.", track_visibility='always'),
-#         'amount_tax': fields.function(_amount_all, digits_compute=dp.get_precision('Account'), string='Taxes',
-#             store={
-#                 'account.invoice': (lambda self, cr, uid, ids, c={}: ids, ['invoice_line'], 20),
-#                 'account.invoice.line': (_get_invoice_line, ['price_unit','invoice_line_tax_id','quantity','discount','invoice_id'], 20),
-#             },
-#             multi='sums', help="The tax amount."),
-#         'amount_total': fields.function(_amount_all, digits_compute=dp.get_precision('Account'), string='Total',
-#             store={
-#                 'account.invoice': (lambda self, cr, uid, ids, c={}: ids, ['invoice_line'], 20),
-#                 'account.invoice.line': (_get_invoice_line, ['price_unit','invoice_line_tax_id','quantity','discount','invoice_id'], 20),
-#             },
-#             multi='sums', help="The total amount."),
+        'street3':fields.char('Street3',size=128),
+        'amount_untaxed': fields.function(_amount_all, digits_compute=dp.get_precision('Account'), string='Untaxed Amount',
+            store={
+                'account.invoice': (lambda self, cr, uid, ids, c={}: ids, ['invoice_line'], 20),
+                'account.invoice.line': (_get_invoice_line, ['price_unit','invoice_line_tax_id','quantity','discount','invoice_id'], 20),
+            },
+            multi='sums', help="The amount without tax.", track_visibility='always'),
+        'amount_tax': fields.function(_amount_all, digits_compute=dp.get_precision('Account'), string='Taxes',
+            store={
+                'account.invoice': (lambda self, cr, uid, ids, c={}: ids, ['invoice_line'], 20),
+                'account.invoice.line': (_get_invoice_line, ['price_unit','invoice_line_tax_id','quantity','discount','invoice_id'], 20),
+            },
+            multi='sums', help="The tax amount."),
+        'amount_total': fields.function(_amount_all, digits_compute=dp.get_precision('Account'), string='Total',
+            store={
+                'account.invoice': (lambda self, cr, uid, ids, c={}: ids, ['invoice_line'], 20),
+                'account.invoice.line': (_get_invoice_line, ['price_unit','invoice_line_tax_id','quantity','discount','invoice_id'], 20),
+            },
+            multi='sums', help="The total amount."),
                 }
     _defaults = {
         'vvt_number': '/',
