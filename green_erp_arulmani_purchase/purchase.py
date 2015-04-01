@@ -1336,6 +1336,24 @@ class tpt_purchase_quotation_line(osv.osv):
         return super(tpt_purchase_quotation_line, self).unlink(cr, uid, ids, context)  
     
     def create(self, cr, uid, vals, context=None):
+        if 'price_unit' in vals:
+            if (vals['price_unit'] < 0):
+                raise osv.except_osv(_('Warning!'),_('Price Unit is not allowed as negative values'))
+        if 'disc' in vals:
+            if (vals['disc'] < 0):
+                raise osv.except_osv(_('Warning!'),_('Disc is not allowed as negative values'))
+        if 'p_f' in vals:
+            if (vals['p_f'] < 0):
+                raise osv.except_osv(_('Warning!'),_('PF is not allowed as negative values'))
+        if 'e_d' in vals:
+            if (vals['e_d'] < 0):
+                raise osv.except_osv(_('Warning!'),_('ED is not allowed as negative values'))
+        if 'fright' in vals:
+            if (vals['fright'] < 0):
+                raise osv.except_osv(_('Warning!'),_('Freight is not allowed as negative values'))
+        if 'order_charge' in vals:
+            if (vals['order_charge'] < 0):
+                raise osv.except_osv(_('Warning!'),_('Other Charge is not allowed as negative values'))
         if vals.get('purchase_quotation_id',False):
             vals['line_no'] = len(self.search(cr, uid,[('purchase_quotation_id', '=', vals['purchase_quotation_id'])])) + 1
         if 'po_indent_id' in vals:
@@ -1347,9 +1365,28 @@ class tpt_purchase_quotation_line(osv.osv):
                                 'uom_po_id':line.uom_po_id.id,
                                 'product_uom_qty':line.product_uom_qty,
                                 })
+        
         return super(tpt_purchase_quotation_line, self).create(cr, uid, vals, context)    
   
     def write(self, cr, uid,ids, vals, context=None):
+        if 'price_unit' in vals:
+            if (vals['price_unit'] < 0):
+                raise osv.except_osv(_('Warning!'),_('Price Unit is not allowed as negative values'))
+        if 'disc' in vals:
+            if (vals['disc'] < 0):
+                raise osv.except_osv(_('Warning!'),_('Disc is not allowed as negative values'))
+        if 'p_f' in vals:
+            if (vals['p_f'] < 0):
+                raise osv.except_osv(_('Warning!'),_('PF is not allowed as negative values'))
+        if 'e_d' in vals:
+            if (vals['e_d'] < 0):
+                raise osv.except_osv(_('Warning!'),_('ED is not allowed as negative values'))
+        if 'fright' in vals:
+            if (vals['fright'] < 0):
+                raise osv.except_osv(_('Warning!'),_('Freight is not allowed as negative values'))
+        if 'order_charge' in vals:
+            if (vals['order_charge'] < 0):
+                raise osv.except_osv(_('Warning!'),_('Other Charge is not allowed as negative values'))
         if 'po_indent_id' in vals:
             if 'product_id' in vals:
                 indent = self.pool.get('tpt.purchase.indent').browse(cr, uid, vals['po_indent_id'])
@@ -2315,7 +2352,39 @@ class purchase_order_line(osv.osv):
     def create(self, cr, uid, vals, context=None):
         if vals.get('order_id',False):
             vals['line_no'] = len(self.search(cr, uid,[('order_id', '=', vals['order_id'])])) + 1
+        if 'price_unit' in vals:
+            if (vals['price_unit'] < 0):
+                raise osv.except_osv(_('Warning!'),_('Price Unit is not allowed as negative values'))
+        if 'discount' in vals:
+            if (vals['discount'] < 0):
+                raise osv.except_osv(_('Warning!'),_('Disc is not allowed as negative values'))
+        if 'p_f' in vals:
+            if (vals['p_f'] < 0):
+                raise osv.except_osv(_('Warning!'),_('PF is not allowed as negative values'))
+        if 'ed' in vals:
+            if (vals['ed'] < 0):
+                raise osv.except_osv(_('Warning!'),_('ED is not allowed as negative values'))
+        if 'fright' in vals:
+            if (vals['fright'] < 0):
+                raise osv.except_osv(_('Warning!'),_('Freight is not allowed as negative values'))
         return super(purchase_order_line, self).create(cr, uid, vals, context)
+    def write(self, cr, uid,ids, vals, context=None):
+        if 'price_unit' in vals:
+            if (vals['price_unit'] < 0):
+                raise osv.except_osv(_('Warning!'),_('Price Unit is not allowed as negative values'))
+        if 'discount' in vals:
+            if (vals['discount'] < 0):
+                raise osv.except_osv(_('Warning!'),_('Disc is not allowed as negative values'))
+        if 'p_f' in vals:
+            if (vals['p_f'] < 0):
+                raise osv.except_osv(_('Warning!'),_('PF is not allowed as negative values'))
+        if 'ed' in vals:
+            if (vals['ed'] < 0):
+                raise osv.except_osv(_('Warning!'),_('ED is not allowed as negative values'))
+        if 'fright' in vals:
+            if (vals['fright'] < 0):
+                raise osv.except_osv(_('Warning!'),_('Freight is not allowed as negative values'))
+        return super(purchase_order_line, self).write(cr, uid,ids, vals, context)   
     def unlink(self, cr, uid, ids, context=None):
         procurement_ids_to_cancel = []
         for line in self.browse(cr, uid, ids, context=context):
@@ -2949,26 +3018,26 @@ class tpt_request_for_quotation(osv.osv):
     def write(self, cr, uid, ids, vals, context=None):
         new_write = super(tpt_request_for_quotation, self).write(cr, uid,ids, vals, context)
         for rfq in self.browse(cr,uid,ids):
-            for line in rfq.rfq_line:
-                 if rfq.po_document_type and line.po_indent_id.document_type:
-                    if rfq.po_document_type == 'local':
-                        if line.po_indent_id.document_type  != 'local':
-                            raise osv.except_osv(_('Warning!'),_('Indent not allowed create with Document Type this'))
-                    if rfq.po_document_type  == 'asset':
-                        if line.po_indent_id.document_type != 'capital' :
-                            raise osv.except_osv(_('Warning!'),_('Indent not allowed create with Document Type this'))
-                    if  rfq.po_document_type == 'raw':
-                        if line.po_indent_id.document_type != 'raw':
-                            raise osv.except_osv(_('Warning!'),_('Indent not allowed create with Document Type this'))
-                    if rfq.po_document_type == 'service':
-                        if line.po_indent_id.document_type  != 'service':
-                            raise osv.except_osv(_('Warning!'),_('Indent not allowed create with Document Type this'))
-                    if rfq.po_document_type == 'out':
-                        if line.po_indent_id.document_type  != 'outside':
-                            raise osv.except_osv(_('Warning!'),_('Indent not allowed create with Document Type this'))
-                    if rfq.po_document_type == 'standard' :
-                        if line.po_indent_id.document_type not in ('maintenance','spare','normal','base','consumable'):
-                            raise osv.except_osv(_('Warning!'),_('Indent not allowed create with Document Type this'))
+#             for line in rfq.rfq_line:
+#                  if rfq.po_document_type and line.po_indent_id.document_type:
+#                     if rfq.po_document_type == 'local':
+#                         if line.po_indent_id.document_type  != 'local':
+#                             raise osv.except_osv(_('Warning!'),_('Indent not allowed create with Document Type this'))
+#                     if rfq.po_document_type  == 'asset':
+#                         if line.po_indent_id.document_type != 'capital' :
+#                             raise osv.except_osv(_('Warning!'),_('Indent not allowed create with Document Type this'))
+#                     if  rfq.po_document_type == 'raw':
+#                         if line.po_indent_id.document_type != 'raw':
+#                             raise osv.except_osv(_('Warning!'),_('Indent not allowed create with Document Type this'))
+#                     if rfq.po_document_type == 'service':
+#                         if line.po_indent_id.document_type  != 'service':
+#                             raise osv.except_osv(_('Warning!'),_('Indent not allowed create with Document Type this'))
+#                     if rfq.po_document_type == 'out':
+#                         if line.po_indent_id.document_type  != 'outside':
+#                             raise osv.except_osv(_('Warning!'),_('Indent not allowed create with Document Type this'))
+#                     if rfq.po_document_type == 'standard' :
+#                         if line.po_indent_id.document_type not in ('maintenance','spare','normal','base','consumable'):
+#                             raise osv.except_osv(_('Warning!'),_('Indent not allowed create with Document Type this'))
             if rfq.rfq_category:
                 if rfq.rfq_category != 'multiple':
                     if (len(rfq.rfq_supplier) > 1):

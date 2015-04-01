@@ -631,11 +631,15 @@ class product_product(osv.osv):
             ids = [ids]
         if not ids:
             return res
-        reads = self.read(cr, uid, ids, ['default_code'], context)
-  
+#         reads = self.read(cr, uid, ids, ['default_code'], context)
+        reads = self.read(cr, uid, ids, ['name','default_code'], context=context)
         for record in reads:
-            name = record['default_code']
+            name = record['default_code']+ ' ' + (record['name'] or'')
             res.append((record['id'], name))
+  
+#         for record in reads:
+#             name = record['default_code']
+#             res.append((record['id'], name))
         return res
      
     def name_search(self, cr, user, name, args=None, operator='ilike', context=None, limit=100):
