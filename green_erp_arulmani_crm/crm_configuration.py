@@ -635,7 +635,7 @@ class product_product(osv.osv):
 #         reads = self.read(cr, uid, ids, ['default_code'], context)
         reads = self.read(cr, uid, ids, ['name','default_code'], context=context)
         for record in reads:
-            name = record['default_code']+ ' ' + (record['name'] or'')
+            name = record['default_code']+ ' '+'-'+' ' + (record['name'] or'')
             res.append((record['id'], name))
   
 #         for record in reads:

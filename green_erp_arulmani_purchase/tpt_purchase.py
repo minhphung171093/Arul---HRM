@@ -128,3 +128,54 @@ class tpt_mrp_process_line(osv.osv):
                'product_uom_qty': 1.00,
     }
 tpt_mrp_process_line()
+
+class tpt_project(osv.osv):
+    _name = 'tpt.project'
+    _columns = {
+        'name': fields.char('Name', size=1024, required = True),
+        'code': fields.char('Code', size=1024, required = True),
+        'description': fields.text('Description'),
+        'project_section_line': fields.one2many('tpt.project.section', 'project_id', 'Product Section'),
+        
+    }
+    
+    def _check_code(self, cr, uid, ids, context=None):
+        for department in self.browse(cr, uid, ids, context=context):
+            sql = '''
+                select id from tpt_project where id != %s and (lower(code) = lower('%s') or lower(name) = lower('%s'))
+            '''%(department.id,department.code,department.name)
+            cr.execute(sql)
+            department_ids = [row[0] for row in cr.fetchall()]
+            if department_ids:  
+                return False
+        return True
+    _constraints = [
+        (_check_code, 'Identical Data', ['code']),
+    ] 
+    
+tpt_project()
+
+class tpt_project_section(osv.osv):
+    _name = 'tpt.project.section'
+    _columns = {
+        'project_id': fields.many2one('tpt.project', 'Project',ondelete='cascade'),
+        'name': fields.char('Name', size=1024, required = True),
+        'code': fields.char('Code', size=1024, required = True),
+    }
+    
+    def _check_code(self, cr, uid, ids, context=None):
+        for department in self.browse(cr, uid, ids, context=context):
+            sql = '''
+                select id from tpt_project_section where id != %s and (lower(code) = lower('%s') or lower(name) = lower('%s'))
+            '''%(department.id,department.code,department.name)
+            cr.execute(sql)
+            department_ids = [row[0] for row in cr.fetchall()]
+            if department_ids:  
+                return False
+        return True
+    _constraints = [
+        (_check_code, 'Identical Data', ['code']),
+    ] 
+    
+    
+tpt_project_section()
