@@ -32,8 +32,16 @@
         			<filter string="RFQ Raised" name="rfq_raised" icon="terp-personal" domain="[('state','=','rfq_raised')]" context="{}"/>
         			<filter string="Quotation Raised" name="quotation_raised" icon="terp-personal" domain="[('state','=','quotation_raised')]" context="{}"/>
         			<filter string="PO Raised" name="po_raised" icon="terp-personal" domain="[('state','=','po_raised')]" context="{}"/>
+        			<separator/>
+        			<filter string="VV Raw Material PR" name="raw" icon="terp-personal" domain="[('document_type','=','raw')]" context="{}"/>
+        			<filter string="VV Consumable PR" name="consumable" icon="terp-personal" domain="[('document_type','=','consumable')]" context="{}"/>
+        			<filter string="VV Spare (Project) PR" name="spare" icon="terp-personal" domain="[('document_type','=','spare')]" context="{}"/>
+        			<filter string="VV Capital PR" name="capital" icon="terp-personal" domain="[('document_type','=','capital')]" context="{}"/>
+        			<filter string="VV Local Purchase PR" name="local" icon="terp-personal" domain="[('document_type','=','local')]" context="{}"/>
+        			<filter string="VV Normal PR" name="normal" icon="terp-personal" domain="[('document_type','=','normal')]" context="{}"/>
         			<group expand="0" string="Group By...">
                         <filter string='Status' icon="terp-stock_symbol-selection" domain="[]" context="{'group_by' : 'state'}"/>
+                        <filter string='Document Type' icon="terp-stock_symbol-selection" domain="[]" context="{'group_by' : 'document_type'}"/>
                     </group>				
 				</search>
 			</field>
