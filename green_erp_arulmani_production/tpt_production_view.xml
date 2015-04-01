@@ -256,7 +256,7 @@
                 	<xpath expr="//field[@name='bom_lines']/tree" position="replace">
                         <tree string="Components" editable="bottom">
 	                        <field name="product_id" options="{'create': false, 'create_edit': false}" context="{'default_supply_method':'produce'}" on_change="onchange_product_id(product_id, name)"/>
-	                        <field name="name" string="Description"/>
+	                        <field name="name" string="Description" invisible="1"/>
 	                        <field name="note" />
 	                        <field name="product_qty" string="Quantity"/>
 	                        <field name="product_uom" readonly="1" string="UOM" options="{'create': false, 'create_edit': false}" on_change="onchange_uom(product_id, product_uom)" groups="product.group_uom"/>
