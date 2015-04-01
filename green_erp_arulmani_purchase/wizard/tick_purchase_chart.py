@@ -49,9 +49,8 @@ class tick_purchase_chart(osv.osv_memory):
             if line.po_indent_id.document_type in ('maintanance','spare','normal','base','consumable'):
                 if tick.po_document_type != 'standard':
                     raise osv.except_osv(_('Warning!'),_('Indent not allowed create with Document Type this'))            
-            line_vals = purchase_order_obj.onchange_po_indent_no(cr, uid, [],chart.id,line.po_indent_id.id)['value']['order_line']
             purchase_line = [(0,0,{
-#                                         'po_indent_no':line.po_indent_id.id,
+                                        'po_indent_no':line.po_indent_id.id,
                                        'discount':line.disc,
                                        'p_f':line.p_f,
                                        'p_f_type':line.p_f_type,
@@ -63,21 +62,22 @@ class tick_purchase_chart(osv.osv_memory):
                                        'taxes_id':[(6,0,[line.tax_id and line.tax_id.id])],
                                         'name':'/',
                                        })]
-            vals = purchase_order_obj.onchange_partner_id(cr, uid, [],chart.supplier_id.id)['value']
-            vals.update({
-                        'po_document_type': tick.po_document_type,
-                        'quotation_no':chart.id,
-                        'partner_id':chart.supplier_id and chart.supplier_id.id,
-                        'partner_ref':chart.quotation_ref,
-                        'date_order':chart.date_quotation,
-                        'state_id':chart.supplier_id.state_id and chart.supplier_id.state_id.id,
-                        'invoice_method': 'picking',
-                        'po_indent_no':line.po_indent_id.id,
-                        'order_line': line_vals,
-                        'location_id':location.lot_stock_id.id,
-                        })
-            new_po_id = purchase_order_obj.create(cr, uid, vals)
-            new_po_ids.append(new_po_id)
+        line_vals = purchase_order_obj.onchange_quotation_no(cr, uid, [],chart.id)['value']['order_line']
+        vals = purchase_order_obj.onchange_partner_id(cr, uid, [],chart.supplier_id.id)['value']
+        vals.update({
+                    'po_document_type': tick.po_document_type,
+                    'quotation_no':chart.id,
+                    'partner_id':chart.supplier_id and chart.supplier_id.id,
+                    'partner_ref':chart.quotation_ref,
+                    'date_order':chart.date_quotation,
+                    'state_id':chart.supplier_id.state_id and chart.supplier_id.state_id.id,
+                    'invoice_method': 'picking',
+#                         'po_indent_no':line.po_indent_id.id,
+                    'order_line': line_vals,
+                    'location_id':location.lot_stock_id.id,
+                    })
+        new_po_id = purchase_order_obj.create(cr, uid, vals)
+        new_po_ids.append(new_po_id)
         sql = '''
             update tpt_purchase_quotation set state = 'done', comparison_chart_id=null where id = %s
         '''%(chart.id)
