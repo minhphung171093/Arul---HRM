@@ -29,7 +29,8 @@ class Parser(report_sxw.rml_parse):
 		'amount_to_text': self.amount_to_text,
 		'get_edu_cess':self.get_edu_cess,
 		'get_sec_cess':self.get_sec_cess,
-        #'get_item_txt':self.get_item_txt
+        'get_item_txt':self.get_item_txt,
+        'get_indent':self.get_indent
             
         })
 
@@ -53,7 +54,32 @@ class Parser(report_sxw.rml_parse):
         sec_cess = (basic_excise_duty)*1/100
         return sec_cess
 
-    
-    
+    def get_item_txt(self, indent_id):
+        if indent_id:
+            txt = ''
+            sql = '''
+            SELECT item_text FROM tpt_purchase_product WHERE pur_product_id=%s
+            '''%indent_id
+            self.cr.execute(sql)
+            txt = self.cr.fetchone()
+        
+        #raise osv.except_osv(_('Warning!%s'),_(p[0]))     
+            if txt:
+                txt = txt
+            return txt
+    def get_indent(self, order):
+        if order:         
+            sql = '''select name from tpt_purchase_indent where id in (select po_indent_no from 
+            purchase_order_line where order_id=%s)
+            '''%order
+            self.cr.execute(sql)
+            #txt = self.cr.fetchone()
+            
+            indent_nos = ''
+            for p in self.cr.fetchall(): 
+                indent_nos = indent_nos +' '+ p[0]                               
+            indent_nos = indent_nos[:20]    
+        
+            return indent_nos
 
 

@@ -1811,6 +1811,10 @@ class purchase_order(osv.osv):
                     'for_basis':quotation.for_basis or '',
                     'state_id':quotation.supplier_location_id and quotation.supplier_location_id.id or '',
                     'deli_sche': quotation.schedule or '',
+                    #TPT
+                    'mode_dis': quotation.mode_dis or '',
+                    'freight_term': quotation.freight_term or '',
+                    'quotation_ref': quotation.quotation_ref or '',
 #                     'po_indent_no': False,
                     'order_line': po_line,
                     }
@@ -1899,6 +1903,10 @@ class purchase_order(osv.osv):
                     'p_f_charge': quotation.amount_p_f or '',
                     'excise_duty': quotation.amount_ed or '',
                     'fright': quotation.amount_fright or '',
+                    
+                    'mode_dis': quotation.mode_dis or '',
+                    'freight_term': quotation.freight_term or '',
+                    'quotation_ref': quotation.quotation_ref or '',
 #                     'amount_untaxed': quotation.amount_basic or '',
 #                     'amount_tax': quotation.amount_total_tax or '',
                     'order_line': po_line,

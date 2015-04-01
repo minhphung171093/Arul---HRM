@@ -72,6 +72,12 @@ class tick_purchase_chart(osv.osv_memory):
                     'date_order':chart.date_quotation,
                     'state_id':chart.supplier_id.state_id and chart.supplier_id.state_id.id,
                     'invoice_method': 'picking',
+                    #TPT START
+                    'mode_dis': chart.mode_dis or '',
+                    'freight_term': chart.freight_term or '',
+                    'quotation_ref': chart.quotation_ref or '',
+                     #TPT END
+                    
 #                         'po_indent_no':line.po_indent_id.id,
                     'order_line': line_vals,
                     'location_id':location.lot_stock_id.id,
