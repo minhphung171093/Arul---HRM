@@ -1655,7 +1655,7 @@ class purchase_order(osv.osv):
     _columns = {
         'po_document_type':fields.selection([('raw','VV Raw material PO'),('asset','VV Capital PO'),('standard','VV Standard PO'),('local','VV Local PO'),('return','VV Return PO'),('service','VV Service PO'),('out','VV Out Service PO')],'PO Document Type', required = True, track_visibility='onchange'),
         'quotation_no': fields.many2one('tpt.purchase.quotation', 'Quotation No', required = True, track_visibility='onchange'),
-        'po_indent_no' : fields.many2one('tpt.purchase.indent', 'PO Indent No', required = True, track_visibility='onchange'),
+#         'po_indent_no' : fields.many2one('tpt.purchase.indent', 'PO Indent No', required = True, track_visibility='onchange'),
         'partner_ref': fields.char('Supplier Reference', states={'confirmed':[('readonly',True)], 'approved':[('readonly',True)],'done':[('readonly',True)]}, size=64,
             help="Reference of the sales order or quotation sent by your supplier. It's mainly used to do the matching when you receive the products as this reference is usually written on the delivery order sent by your supplier.", track_visibility='onchange'),
         'state_id': fields.many2one('res.country.state', 'Vendor Location', track_visibility='onchange'),
@@ -2006,17 +2006,17 @@ class purchase_order(osv.osv):
 #                 raise osv.except_osv(_('Warning!'),_('Indent not allowed create with Document Type this'))
         for line in new.order_line:        
             if new.quotation_no:
-                sql = '''
-                        select id from tpt_purchase_product where pur_product_id=%s and product_id=%s
-                        
-                        '''%(line.po_indent_no.id,line.product_id.id)
-                cr.execute(sql)
-                indent_line_ids = [row[0] for row in cr.fetchall()]
-                if indent_line_ids:
-                        self.pool.get('tpt.purchase.product').write(cr, uid, indent_line_ids,{'state':'po_raised'})
-                if line.product_id:
+                if line.po_indent_no:
                     sql = '''
-                                select product_id, sum(product_qty) as po_product_qty from purchase_order_line where order_id = %s group by product_id
+                            select id from tpt_purchase_product where pur_product_id=%s and product_id=%s
+                            
+                            '''%(line.po_indent_no.id,line.product_id.id)
+                    cr.execute(sql)
+                    indent_line_ids = [row[0] for row in cr.fetchall()]
+                    if indent_line_ids:
+                            self.pool.get('tpt.purchase.product').write(cr, uid, indent_line_ids,{'state':'po_raised'})
+                    sql = '''
+                                select po_indent_no, product_id, sum(product_qty) as po_product_qty from purchase_order_line where order_id = %s group by po_indent_no, product_id
                             '''%(new.id)
                     cr.execute(sql)
                     for purchase_line in cr.dictfetchall():
@@ -2024,7 +2024,7 @@ class purchase_order(osv.osv):
                                 select case when sum(product_uom_qty) <%s then 1 else 0 end quotation_product_qty 
                                 from tpt_purchase_quotation_line
                                 where po_indent_id=%s and product_id=%s and purchase_quotation_id=%s
-                            '''%(purchase_line['po_product_qty'], line.po_indent_no.id, purchase_line['product_id'], new.quotation_no.id)
+                            '''%(purchase_line['po_product_qty'], purchase_line['po_indent_no'], purchase_line['product_id'], new.quotation_no.id)
                         cr.execute(sql)
                         quantity = cr.dictfetchone()
                         if (quantity['quotation_product_qty']==1):
@@ -2092,67 +2092,67 @@ class purchase_order(osv.osv):
                     cr.execute(sql)
             date_order = datetime.datetime.strptime(new.date_order,'%Y-%m-%d')
             
-            if new.quotation_no and new.po_indent_no:
-                quotation = self.pool.get('tpt.purchase.quotation').browse(cr, uid, new.quotation_no)
-                sql = '''
-                    select case when sum(product_qty)!=0 then sum(product_qty) else 0 end product_qty_po from purchase_order_line where order_id in (select id from purchase_order where po_indent_no=%s and state!='cancel')
-                '''%(new.po_indent_no.id)
-                cr.execute(sql)
-                product_qty_po = cr.dictfetchone()['product_qty_po']
-                sql = '''
-                    select case when sum(product_uom_qty)!=0 then sum(product_uom_qty) else 0 end product_qty_quotation from tpt_purchase_quotation_line where po_indent_id = %s
-                '''%(new.po_indent_no.id)
-                cr.execute(sql)
-                product_qty_quotation = cr.dictfetchone()['product_qty_quotation']
-                if product_qty_po==product_qty_quotation:
-                    sql = '''
-                        update tpt_purchase_quotation set state = 'cancel' where id=%s 
-                    '''%(new.quotation_no.id)
-                    cr.execute(sql)
-            
-            if not new.quotation_no and new.po_indent_no:
-                date_order_month = date_order.month
-                date_order_year = date_order.year
-                sql = '''
-                        select sum(amount_total) as total from purchase_order where EXTRACT(month from date_order) = %s and EXTRACT(year from date_order) = %s
-                '''%(date_order_month,date_order_year)
-                cr.execute(sql)
-                amount_total = cr.dictfetchone()
-                if (amount_total['total'] > 200000):
-                    raise osv.except_osv(_('Warning!'),_('You are confirm %s the Emergency Purchase reaches 2 Lakhs Limit (2,00,000) in the current month. This can be processed only when the next month starts'%(amount_total['total'])))
-                
-                sql = '''
-                            select product_id, sum(product_qty) as po_product_qty from purchase_order_line where order_id = %s group by product_id
-                        '''%(new.id)
-                cr.execute(sql)
-                for purchase_line in cr.dictfetchall():
-                    sql = '''
-                            select case when sum(product_uom_qty) <%s then 1 else 0 end indent_product_qty 
-                            from tpt_purchase_product
-                            where product_id=%s and purchase_indent_id in (select id from tpt_purchase_indent where id = %s)
-                        '''%(purchase_line['po_product_qty'], purchase_line['product_id'], new.po_indent_no.id)
-                    cr.execute(sql)
-                    quantity = cr.dictfetchone()
-                    if (quantity['indent_product_qty']==1):
-                        raise osv.except_osv(_('Warning!'),_('You are input %s quantity in Purchase Order but quantity in Purchase Indent do not enough for this Product .' %(purchase_line['po_product_qty'])))        
-            if new.po_indent_no.document_type == 'local':
-                if new.po_document_type != 'local':
-                    raise osv.except_osv(_('Warning!'),_('Indent not allowed create with Document Type this'))
-            if new.po_indent_no.document_type == 'capital':
-                if new.po_document_type != 'asset':
-                    raise osv.except_osv(_('Warning!'),_('Indent not allowed create with Document Type this'))
-            if new.po_indent_no.document_type == 'raw':
-                if new.po_document_type != 'raw':
-                    raise osv.except_osv(_('Warning!'),_('Indent not allowed create with Document Type this'))
-            if new.po_indent_no.document_type == 'service':
-                if new.po_document_type != 'service':
-                    raise osv.except_osv(_('Warning!'),_('Indent not allowed create with Document Type this'))
-            if new.po_indent_no.document_type == 'outside':
-                if new.po_document_type != 'out':
-                    raise osv.except_osv(_('Warning!'),_('Indent not allowed create with Document Type this'))
-            if new.po_indent_no.document_type in ('maintenance','spare','normal','base','consumable'):
-                if new.po_document_type != 'standard':
-                    raise osv.except_osv(_('Warning!'),_('Indent not allowed create with Document Type this'))            
+#             if new.quotation_no and new.po_indent_no:
+#                 quotation = self.pool.get('tpt.purchase.quotation').browse(cr, uid, new.quotation_no)
+#                 sql = '''
+#                     select case when sum(product_qty)!=0 then sum(product_qty) else 0 end product_qty_po from purchase_order_line where order_id in (select id from purchase_order where po_indent_no=%s and state!='cancel')
+#                 '''%(new.po_indent_no.id)
+#                 cr.execute(sql)
+#                 product_qty_po = cr.dictfetchone()['product_qty_po']
+#                 sql = '''
+#                     select case when sum(product_uom_qty)!=0 then sum(product_uom_qty) else 0 end product_qty_quotation from tpt_purchase_quotation_line where po_indent_id = %s
+#                 '''%(new.po_indent_no.id)
+#                 cr.execute(sql)
+#                 product_qty_quotation = cr.dictfetchone()['product_qty_quotation']
+#                 if product_qty_po==product_qty_quotation:
+#                     sql = '''
+#                         update tpt_purchase_quotation set state = 'cancel' where id=%s 
+#                     '''%(new.quotation_no.id)
+#                     cr.execute(sql)
+#             
+#             if not new.quotation_no and new.po_indent_no:
+#                 date_order_month = date_order.month
+#                 date_order_year = date_order.year
+#                 sql = '''
+#                         select sum(amount_total) as total from purchase_order where EXTRACT(month from date_order) = %s and EXTRACT(year from date_order) = %s
+#                 '''%(date_order_month,date_order_year)
+#                 cr.execute(sql)
+#                 amount_total = cr.dictfetchone()
+#                 if (amount_total['total'] > 200000):
+#                     raise osv.except_osv(_('Warning!'),_('You are confirm %s the Emergency Purchase reaches 2 Lakhs Limit (2,00,000) in the current month. This can be processed only when the next month starts'%(amount_total['total'])))
+#                 
+#                 sql = '''
+#                             select product_id, sum(product_qty) as po_product_qty from purchase_order_line where order_id = %s group by product_id
+#                         '''%(new.id)
+#                 cr.execute(sql)
+#                 for purchase_line in cr.dictfetchall():
+#                     sql = '''
+#                             select case when sum(product_uom_qty) <%s then 1 else 0 end indent_product_qty 
+#                             from tpt_purchase_product
+#                             where product_id=%s and purchase_indent_id in (select id from tpt_purchase_indent where id = %s)
+#                         '''%(purchase_line['po_product_qty'], purchase_line['product_id'], new.po_indent_no.id)
+#                     cr.execute(sql)
+#                     quantity = cr.dictfetchone()
+#                     if (quantity['indent_product_qty']==1):
+#                         raise osv.except_osv(_('Warning!'),_('You are input %s quantity in Purchase Order but quantity in Purchase Indent do not enough for this Product .' %(purchase_line['po_product_qty'])))        
+#             if new.po_indent_no.document_type == 'local':
+#                 if new.po_document_type != 'local':
+#                     raise osv.except_osv(_('Warning!'),_('Indent not allowed create with Document Type this'))
+#             if new.po_indent_no.document_type == 'capital':
+#                 if new.po_document_type != 'asset':
+#                     raise osv.except_osv(_('Warning!'),_('Indent not allowed create with Document Type this'))
+#             if new.po_indent_no.document_type == 'raw':
+#                 if new.po_document_type != 'raw':
+#                     raise osv.except_osv(_('Warning!'),_('Indent not allowed create with Document Type this'))
+#             if new.po_indent_no.document_type == 'service':
+#                 if new.po_document_type != 'service':
+#                     raise osv.except_osv(_('Warning!'),_('Indent not allowed create with Document Type this'))
+#             if new.po_indent_no.document_type == 'outside':
+#                 if new.po_document_type != 'out':
+#                     raise osv.except_osv(_('Warning!'),_('Indent not allowed create with Document Type this'))
+#             if new.po_indent_no.document_type in ('maintenance','spare','normal','base','consumable'):
+#                 if new.po_document_type != 'standard':
+#                     raise osv.except_osv(_('Warning!'),_('Indent not allowed create with Document Type this'))            
 
 
             
@@ -2164,9 +2164,9 @@ class purchase_order(osv.osv):
                         raise osv.except_osv(_('Warning!'),_('Can not process because Total > 5000 for VV Local PO'))
                 
                         
-            if new.quotation_no and new.po_indent_no:
+            if new.quotation_no :
                 sql = '''
-                            select product_id, sum(product_qty) as po_product_qty from purchase_order_line where order_id = %s group by product_id
+                            select po_indent_no, product_id, sum(product_qty) as po_product_qty from purchase_order_line where order_id = %s group by po_indent_no, product_id
                         '''%(new.id)
                 cr.execute(sql)
                 for purchase_line in cr.dictfetchall():
@@ -2174,7 +2174,7 @@ class purchase_order(osv.osv):
                             select case when sum(product_uom_qty) <%s then 1 else 0 end quotation_product_qty 
                             from tpt_purchase_quotation_line
                             where po_indent_id=%s and product_id=%s and purchase_quotation_id=%s
-                        '''%(purchase_line['po_product_qty'], new.po_indent_no.id, purchase_line['product_id'], new.quotation_no.id)
+                        '''%(purchase_line['po_product_qty'], purchase_line['po_indent_no'], purchase_line['product_id'], new.quotation_no.id)
                     cr.execute(sql)
                     quantity = cr.dictfetchone()
                     if (quantity['quotation_product_qty']==1):
@@ -2251,7 +2251,7 @@ class purchase_order(osv.osv):
             'purchase_line_id': order_line.id,
             'company_id': order.company_id.id,
             'price_unit': order_line.price_unit,
-            'po_indent_id': order.po_indent_no and order.po_indent_no.id or False,
+            'po_indent_id': order_line.po_indent_no and order_line.po_indent_no.id or False,
         }
 purchase_order()
 
@@ -2989,26 +2989,26 @@ class tpt_request_for_quotation(osv.osv):
             vals['name'] = self.pool.get('ir.sequence').get(cr, uid, 'tpt.rfq.import') or '/'
         new_id = super(tpt_request_for_quotation, self).create(cr, uid, vals, context)
         rfq = self.browse(cr,uid,new_id)
-        for line in rfq.rfq_line:
-            if rfq.po_document_type and line.po_indent_id.document_type:
-                if rfq.po_document_type == 'local':
-                    if line.po_indent_id.document_type  != 'local':
-                        raise osv.except_osv(_('Warning!'),_('Indent not allowed create with Document Type this'))
-                if rfq.po_document_type  == 'asset':
-                    if line.po_indent_id.document_type != 'capital' :
-                        raise osv.except_osv(_('Warning!'),_('Indent not allowed create with Document Type this'))
-                if  rfq.po_document_type == 'raw':
-                    if line.po_indent_id.document_type != 'raw':
-                        raise osv.except_osv(_('Warning!'),_('Indent not allowed create with Document Type this'))
-                if rfq.po_document_type == 'service':
-                    if line.po_indent_id.document_type  != 'service':
-                        raise osv.except_osv(_('Warning!'),_('Indent not allowed create with Document Type this'))
-                if rfq.po_document_type == 'out':
-                    if line.po_indent_id.document_type  != 'outside':
-                        raise osv.except_osv(_('Warning!'),_('Indent not allowed create with Document Type this'))
-                if rfq.po_document_type == 'standard' :
-                    if line.po_indent_id.document_type not in ('maintenance','spare','normal','base','consumable'):
-                        raise osv.except_osv(_('Warning!'),_('Indent not allowed create with Document Type this'))
+#         for line in rfq.rfq_line:
+#             if rfq.po_document_type and line.po_indent_id.document_type:
+#                 if rfq.po_document_type == 'local':
+#                     if line.po_indent_id.document_type  != 'local':
+#                         raise osv.except_osv(_('Warning!'),_('Indent not allowed create with Document Type this'))
+#                 if rfq.po_document_type  == 'asset':
+#                     if line.po_indent_id.document_type != 'capital' :
+#                         raise osv.except_osv(_('Warning!'),_('Indent not allowed create with Document Type this'))
+#                 if  rfq.po_document_type == 'raw':
+#                     if line.po_indent_id.document_type != 'raw':
+#                         raise osv.except_osv(_('Warning!'),_('Indent not allowed create with Document Type this'))
+#                 if rfq.po_document_type == 'service':
+#                     if line.po_indent_id.document_type  != 'service':
+#                         raise osv.except_osv(_('Warning!'),_('Indent not allowed create with Document Type this'))
+#                 if rfq.po_document_type == 'out':
+#                     if line.po_indent_id.document_type  != 'outside':
+#                         raise osv.except_osv(_('Warning!'),_('Indent not allowed create with Document Type this'))
+#                 if rfq.po_document_type == 'standard' :
+#                     if line.po_indent_id.document_type not in ('maintenance','spare','normal','base','consumable'):
+#                         raise osv.except_osv(_('Warning!'),_('Indent not allowed create with Document Type this'))
         if rfq.rfq_category:
             if rfq.rfq_category != 'multiple':
                 if (len(rfq.rfq_supplier) > 1):
