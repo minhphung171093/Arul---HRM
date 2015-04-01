@@ -1695,7 +1695,7 @@ class purchase_order(osv.osv):
         'po_document_type':fields.selection([('raw','VV Raw material PO'),('asset','VV Capital PO'),('standard','VV Standard PO'),('local','VV Local PO'),('return','VV Return PO'),('service','VV Service PO'),('out','VV Out Service PO')],'PO Document Type', required = True, track_visibility='onchange'),
         'quotation_no': fields.many2one('tpt.purchase.quotation', 'Quotation No', required = True, track_visibility='onchange'),
 #         'po_indent_no' : fields.many2one('tpt.purchase.indent', 'PO Indent No', required = True, track_visibility='onchange'),
-        'partner_ref': fields.char('Supplier Reference', states={'confirmed':[('readonly',True)], 'approved':[('readonly',True)],'done':[('readonly',True)]}, size=64,
+        'partner_ref': fields.char('Quotation Reference', states={'confirmed':[('readonly',True)], 'approved':[('readonly',True)],'done':[('readonly',True)]}, size=64,
             help="Reference of the sales order or quotation sent by your supplier. It's mainly used to do the matching when you receive the products as this reference is usually written on the delivery order sent by your supplier.", track_visibility='onchange'),
         'state_id': fields.many2one('res.country.state', 'Vendor Location', track_visibility='onchange'),
         'for_basis': fields.char('For Basis', size = 1024, track_visibility='onchange'),
@@ -1764,7 +1764,7 @@ class purchase_order(osv.osv):
         
         #TPT START By BalamuruganPurushothaman ON 01/04/2015 - FOR PO PRINT
         'freight_term':fields.selection([('To Pay','To Pay'),('To Paid','To Paid')],('Freight Term')),   
-        'quotation_ref':fields.char('Quotation Reference',size = 1024,required=True),
+        #'quotation_ref':fields.char('Quotation Reference',size = 1024,required=True),
         #TPT END
         }
     
@@ -1940,7 +1940,7 @@ class purchase_order(osv.osv):
                     
                     'mode_dis': quotation.mode_dis or '',
                     'freight_term': quotation.freight_term or '',
-                    'quotation_ref': quotation.quotation_ref or '',
+                    #'quotation_ref': quotation.quotation_ref or '',
 #                     'amount_untaxed': quotation.amount_basic or '',
 #                     'amount_tax': quotation.amount_total_tax or '',
                     'order_line': po_line,

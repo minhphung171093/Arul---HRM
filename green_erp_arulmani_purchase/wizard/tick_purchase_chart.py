@@ -75,7 +75,7 @@ class tick_purchase_chart(osv.osv_memory):
                     #TPT START
                     'mode_dis': chart.mode_dis or '',
                     'freight_term': chart.freight_term or '',
-                    'quotation_ref': chart.quotation_ref or '',
+                    #'quotation_ref': chart.quotation_ref or '',
                      #TPT END
                     
 #                         'po_indent_no':line.po_indent_id.id,

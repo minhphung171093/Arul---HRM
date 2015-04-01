@@ -507,7 +507,7 @@
             		<field name="for_basis" />
 					<field name="mode_dis" />
 					<field name="freight_term"/>
-					<field name="quotation_ref"/>
+					<!-- <field name="quotation_ref"/>  -->
 					<field name="reason" attrs="{'required':[('state','=','amendement')]}" />
 					<field name="check_amendement" />
 				</xpath>
