@@ -607,7 +607,37 @@ class product_product(osv.osv):
                 new_id = inventory_obj.create(cr, uid, {'warehouse_id':inventory['loc'],'prodlot_id':inventory['prodlot_id'],'hand_quantity':inventory['ton_sl'],'uom_id':inventory['uom']})
                 result[id].append(new_id)
         return result
-    
+    def _onhand_qty(self, cr, uid, ids, field_name, arg, context=None):
+        res = {}
+        for time in self.browse(cr, uid, ids, context=context):
+            res[time.id] = {
+                'onhand_qty': 0.0,
+            }
+            if time.id : 
+                sql = '''
+                select sum(foo.product_qty) as ton_sl from 
+                    (select l2.id as loc,st.prodlot_id,pu.id,st.product_qty
+                        from stock_move st 
+                            inner join stock_location l2 on st.location_dest_id= l2.id
+                            inner join product_uom pu on st.product_uom = pu.id
+                        where st.state='done' and st.product_id=%s and l2.usage = 'internal'
+                    union all
+                    select l1.id as loc,st.prodlot_id,pu.id,st.product_qty*-1
+                        from stock_move st 
+                            inner join stock_location l1 on st.location_id= l1.id
+                            inner join product_uom pu on st.product_uom = pu.id
+                        where st.state='done' and st.product_id=%s and l1.usage = 'internal'
+                    )foo
+                    group by foo.loc,foo.prodlot_id,foo.id
+            '''%(time.id,time.id)
+                cr.execute(sql)
+                a = cr.fetchone()
+                if a:
+                    time_total = a[0]                            
+                else:
+                    time_total=0.0
+            res[time.id]['onhand_qty'] = time_total            
+        return res
     _columns = {
         'description':fields.text('Description'),
         'batch_appli_ok':fields.boolean('Is Batch Applicable'),
@@ -633,6 +663,7 @@ class product_product(osv.osv):
         'bin_location':fields.char('Bin Location', size = 1024),
         'old_no':fields.char('Old Material No.', size = 1024),
         'tpt_mater_type':fields.selection([('mechan','Mechanical'),('civil','Civil'),('elect','Electrical'),('inst','Instrumentation'),('raw_mat','Raw. Mat. & Prod'),('qc','QC and R&D'),('safe','Safety & Personnel'),('proj','Projects')],'Material Type'),
+        'onhand_qty': fields.function(_onhand_qty, string='OnHand Qty', multi='test_qty'),
         }
     
     _defaults = {
