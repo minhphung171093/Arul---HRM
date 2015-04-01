@@ -1582,7 +1582,9 @@ class purchase_order(osv.osv):
                 elif po.ed_type == '2' :
                     ed = po.ed
                 elif po.ed_type == '3' :
-                    ed = po.e_d *  po.product_qty
+                    ed = po.ed *  po.product_qty
+                else:
+                    ed = po.ed
                 excise_duty += ed
                 tax_amounts = [r.amount for r in po.taxes_id]
                 for tax_amount in tax_amounts:
@@ -1596,6 +1598,8 @@ class purchase_order(osv.osv):
                     fright = po.fright
                 elif po.fright_type == '3' :
                     fright = po.fright * po.product_qty
+                else:
+                    fright = po.fright
                 amount_fright += fright
             res[line.id]['amount_untaxed'] = amount_untaxed
             res[line.id]['p_f_charge'] = p_f_charge
@@ -1896,79 +1900,79 @@ class purchase_order(osv.osv):
             cr.execute(sql)
         #Hung sua khi tao PO se cap nhat lai trang thai cua PO indent la po_raised
 #         self.pool.get('tpt.purchase.indent').write(cr, uid, [new.po_indent_no.id],{'state':'done'})
-        if new.quotation_no and new.po_indent_no:
-            quotation = self.pool.get('tpt.purchase.quotation').browse(cr, uid, new.quotation_no)
-            
-            sql = '''
-                select case when sum(product_qty)!=0 then sum(product_qty) else 0 end product_qty_po from purchase_order_line where order_id in (select id from purchase_order where po_indent_no=%s and state!='cancel')
-            '''%(new.po_indent_no.id)
-            cr.execute(sql)
-            product_qty_po = cr.dictfetchone()['product_qty_po']
-            sql = '''
-                select case when sum(product_uom_qty)!=0 then sum(product_uom_qty) else 0 end product_qty_quotation from tpt_purchase_quotation_line where po_indent_id = %s
-            '''%(new.po_indent_no.id)
-            cr.execute(sql)
-            product_qty_quotation = cr.dictfetchone()['product_qty_quotation']
+#         if new.quotation_no and new.po_indent_no:
+#             quotation = self.pool.get('tpt.purchase.quotation').browse(cr, uid, new.quotation_no)
+#             
+#             sql = '''
+#                 select case when sum(product_qty)!=0 then sum(product_qty) else 0 end product_qty_po from purchase_order_line where order_id in (select id from purchase_order where po_indent_no=%s and state!='cancel')
+#             '''%(new.po_indent_no.id)
+#             cr.execute(sql)
+#             product_qty_po = cr.dictfetchone()['product_qty_po']
+#             sql = '''
+#                 select case when sum(product_uom_qty)!=0 then sum(product_uom_qty) else 0 end product_qty_quotation from tpt_purchase_quotation_line where po_indent_id = %s
+#             '''%(new.po_indent_no.id)
+#             cr.execute(sql)
+#             product_qty_quotation = cr.dictfetchone()['product_qty_quotation']
 #             if product_qty_po==product_qty_quotation:
 #                 sql = '''
 #                     update tpt_purchase_indent set state = 'cancel' where id=%s 
 #                 '''%(new.po_indent_no.id)
 #                 cr.execute(sql)
             
-        if not new.quotation_no and new.po_indent_no:    
-            date_order = datetime.datetime.strptime(new.date_order,'%Y-%m-%d')
-            date_order_month = date_order.month
-            date_order_year = date_order.year
-            sql = '''
-                    select sum(amount_total) as total from purchase_order where EXTRACT(month from date_order) = %s and EXTRACT(year from date_order) = %s
-            '''%(date_order_month,date_order_year)
-            cr.execute(sql)
-            amount_total = cr.dictfetchone()
-            if (amount_total['total'] > 200000):
-                raise osv.except_osv(_('Warning!'),_('You are confirm %s the Emergency Purchase reaches 2 Lakhs Limit (2,00,000) in the current month. This can be processed only when the next month starts'%(amount_total['total'])))
-            sql = '''
-                            select product_id, sum(product_qty) as po_product_qty from purchase_order_line where order_id = %s group by product_id
-                        '''%(new.id)
-            cr.execute(sql)
-            for purchase_line in cr.dictfetchall():
-                sql = '''
-                        select case when sum(product_uom_qty) <%s then 1 else 0 end indent_product_qty 
-                        from tpt_purchase_product
-                        where product_id=%s and purchase_indent_id in (select id from tpt_purchase_indent where id = %s)
-                    '''%(purchase_line['po_product_qty'], purchase_line['product_id'], new.po_indent_no.id)
-                cr.execute(sql)
-                quantity = cr.dictfetchone()
-                if (quantity['indent_product_qty']==1):
-                    raise osv.except_osv(_('Warning!'),_('You are input %s quantity in Purchase Order but quantity in Purchase Indent do not enough for this Product .' %(purchase_line['po_product_qty'])))        
+#         if not new.quotation_no and new.po_indent_no:    
+#             date_order = datetime.datetime.strptime(new.date_order,'%Y-%m-%d')
+#             date_order_month = date_order.month
+#             date_order_year = date_order.year
+#             sql = '''
+#                     select sum(amount_total) as total from purchase_order where EXTRACT(month from date_order) = %s and EXTRACT(year from date_order) = %s
+#             '''%(date_order_month,date_order_year)
+#             cr.execute(sql)
+#             amount_total = cr.dictfetchone()
+#             if (amount_total['total'] > 200000):
+#                 raise osv.except_osv(_('Warning!'),_('You are confirm %s the Emergency Purchase reaches 2 Lakhs Limit (2,00,000) in the current month. This can be processed only when the next month starts'%(amount_total['total'])))
+#             sql = '''
+#                             select product_id, sum(product_qty) as po_product_qty from purchase_order_line where order_id = %s group by product_id
+#                         '''%(new.id)
+#             cr.execute(sql)
+#             for purchase_line in cr.dictfetchall():
+#                 sql = '''
+#                         select case when sum(product_uom_qty) <%s then 1 else 0 end indent_product_qty 
+#                         from tpt_purchase_product
+#                         where product_id=%s and purchase_indent_id in (select id from tpt_purchase_indent where id = %s)
+#                     '''%(purchase_line['po_product_qty'], purchase_line['product_id'], new.po_indent_no.id)
+#                 cr.execute(sql)
+#                 quantity = cr.dictfetchone()
+#                 if (quantity['indent_product_qty']==1):
+#                     raise osv.except_osv(_('Warning!'),_('You are input %s quantity in Purchase Order but quantity in Purchase Indent do not enough for this Product .' %(purchase_line['po_product_qty'])))        
         
         if new.po_document_type == 'local':
             if new.quotation_no and new.quotation_no.quotation_cate:
                 if (new.amount_total > 5000):
                     raise osv.except_osv(_('Warning!'),_('Can not process because Total > 5000 for VV Local PO'))
-        if new.po_indent_no.document_type == 'local':
-            if new.po_document_type != 'local':
-                raise osv.except_osv(_('Warning!'),_('Indent not allowed create with Document Type this'))
-        if new.po_indent_no.document_type == 'capital':
-            if new.po_document_type != 'asset':
-                raise osv.except_osv(_('Warning!'),_('Indent not allowed create with Document Type this'))
-        if new.po_indent_no.document_type == 'raw':
-            if new.po_document_type != 'raw':
-                raise osv.except_osv(_('Warning!'),_('Indent not allowed create with Document Type this'))
-        if new.po_indent_no.document_type == 'service':
-            if new.po_document_type != 'service':
-                raise osv.except_osv(_('Warning!'),_('Indent not allowed create with Document Type this'))
-        if new.po_indent_no.document_type == 'outside':
-            if new.po_document_type != 'out':
-                raise osv.except_osv(_('Warning!'),_('Indent not allowed create with Document Type this'))
-        if new.po_indent_no.document_type in ('maintenance','spare','normal','base','consumable'):
-            if new.po_document_type != 'standard':
-                raise osv.except_osv(_('Warning!'),_('Indent not allowed create with Document Type this'))
+#         if new.po_indent_no.document_type == 'local':
+#             if new.po_document_type != 'local':
+#                 raise osv.except_osv(_('Warning!'),_('Indent not allowed create with Document Type this'))
+#         if new.po_indent_no.document_type == 'capital':
+#             if new.po_document_type != 'asset':
+#                 raise osv.except_osv(_('Warning!'),_('Indent not allowed create with Document Type this'))
+#         if new.po_indent_no.document_type == 'raw':
+#             if new.po_document_type != 'raw':
+#                 raise osv.except_osv(_('Warning!'),_('Indent not allowed create with Document Type this'))
+#         if new.po_indent_no.document_type == 'service':
+#             if new.po_document_type != 'service':
+#                 raise osv.except_osv(_('Warning!'),_('Indent not allowed create with Document Type this'))
+#         if new.po_indent_no.document_type == 'outside':
+#             if new.po_document_type != 'out':
+#                 raise osv.except_osv(_('Warning!'),_('Indent not allowed create with Document Type this'))
+#         if new.po_indent_no.document_type in ('maintenance','spare','normal','base','consumable'):
+#             if new.po_document_type != 'standard':
+#                 raise osv.except_osv(_('Warning!'),_('Indent not allowed create with Document Type this'))
         for line in new.order_line:        
-            if new.quotation_no and new.po_indent_no:
+            if new.quotation_no:
                 sql = '''
                         select id from tpt_purchase_product where pur_product_id=%s and product_id=%s
                         
-                        '''%(new.po_indent_no.id,line.product_id.id)
+                        '''%(line.po_indent_no.id,line.product_id.id)
                 cr.execute(sql)
                 indent_line_ids = [row[0] for row in cr.fetchall()]
                 if indent_line_ids:
@@ -1983,7 +1987,7 @@ class purchase_order(osv.osv):
                                 select case when sum(product_uom_qty) <%s then 1 else 0 end quotation_product_qty 
                                 from tpt_purchase_quotation_line
                                 where po_indent_id=%s and product_id=%s and purchase_quotation_id=%s
-                            '''%(purchase_line['po_product_qty'], new.po_indent_no.id, purchase_line['product_id'], new.quotation_no.id)
+                            '''%(purchase_line['po_product_qty'], line.po_indent_no.id, purchase_line['product_id'], new.quotation_no.id)
                         cr.execute(sql)
                         quantity = cr.dictfetchone()
                         if (quantity['quotation_product_qty']==1):
@@ -2000,12 +2004,12 @@ class purchase_order(osv.osv):
                 if 'state' in vals and vals['state']=='approved':
                     sql = '''
                         update tpt_purchase_product set state='close' where pur_product_id=%s and product_id=%s
-                    '''%(new.po_indent_no.id,line.product_id.id)
+                    '''%(line.po_indent_no.id,line.product_id.id)
                     cr.execute(sql)
                 if 'state' in vals and vals['state']=='cancel':
                     sql = '''
                         update tpt_purchase_product set state='cancel' where pur_product_id=%s and product_id=%s
-                    '''%(new.po_indent_no.id,line.product_id.id)
+                    '''%(line.po_indent_no.id,line.product_id.id)
                     cr.execute(sql)
 #             sql = '''
 #                 select code from account_fiscalyear where '%s' between date_start and date_stop
