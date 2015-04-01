@@ -3255,6 +3255,8 @@ class tpt_material_request(osv.osv):
         'create_uid':fields.many2one('res.users','Request Raised By', states={'done':[('readonly', True)]}),
         'section_id': fields.many2one('arul.hr.section','Section',ondelete='restrict', states={'done':[('readonly', True)]}),
         'requisitioner':fields.many2one('hr.employee','Requisitioner', states={'done':[('readonly', True)]}),
+        'project_id': fields.many2one('tpt.project','Project', states={'done':[('readonly', True)]}),
+        'project_section_id': fields.many2one('tpt.project.section','Project Section',ondelete='restrict',states={'done':[('readonly', True)]}),
         'material_request_line':fields.one2many('tpt.material.request.line','material_request_id','Vendor Group',states={'done':[('readonly', True)]}),
         'state':fields.selection([('draft', 'Draft'),('done', 'Approve')],'Status', readonly=True),
                 }
