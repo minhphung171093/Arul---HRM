@@ -506,6 +506,8 @@
 				<xpath expr="//field[@name='partner_ref']" position="after">
             		<field name="for_basis" />
 					<field name="mode_dis" />
+					<field name="freight_term"/>
+					<field name="quotation_ref"/>
 					<field name="reason" attrs="{'required':[('state','=','amendement')]}" />
 					<field name="check_amendement" />
 				</xpath>
@@ -922,6 +924,10 @@
 							<field name="schedule" />
 							<newline/>
 							<field name="payment_term_id" options="{'create': false, 'create_edit': false}" />
+							<!-- TPT START  -->
+							<field name="freight_term" />
+							<field name="mode_dis" />
+							<!-- TPT END -->
 							<field name="amount_line" />
 							<field name="amount_basic" />
 							<field name="amount_p_f" />

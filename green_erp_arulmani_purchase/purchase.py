@@ -1030,6 +1030,11 @@ class tpt_purchase_quotation(osv.osv):
         'payment_term_id': fields.many2one('account.payment.term','Payment Term'),
         'select':fields.boolean('Select'),
 #         'cate_char': fields.char('Cate Name', size = 1024),
+        
+        #TPT START - By BalamuruganPurushothaman ON 01/04/2015- FOR PO PRINT
+        'freight_term':fields.selection([('To Pay','To Pay'),('To Paid','To Paid')],('Freight Term')),
+        'mode_dis': fields.char('Mode Of Dispatch', size = 1024), 
+        #TPT END
     }
     _defaults = {
         'state': 'draft',
@@ -1724,7 +1729,12 @@ class purchase_order(osv.osv):
                                     ('cancel', 'Cancelled'),
                                    ], 'Status', required=True, readonly=True,
                                   ),
-        'check_amendement':fields.boolean("Amended",readonly=True)
+        'check_amendement':fields.boolean("Amended",readonly=True),
+        
+        #TPT START By BalamuruganPurushothaman ON 01/04/2015 - FOR PO PRINT
+        'freight_term':fields.selection([('To Pay','To Pay'),('To Paid','To Paid')],('Freight Term')),   
+        'quotation_ref':fields.char('Quotation Reference',size = 1024,required=True),
+        #TPT END
         }
     
     _default = {

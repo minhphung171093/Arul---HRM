@@ -28,7 +28,8 @@ class Parser(report_sxw.rml_parse):
 		
 		'amount_to_text': self.amount_to_text,
 		'get_edu_cess':self.get_edu_cess,
-		'get_sec_cess':self.get_sec_cess
+		'get_sec_cess':self.get_sec_cess,
+        #'get_item_txt':self.get_item_txt
             
         })
 
@@ -52,7 +53,7 @@ class Parser(report_sxw.rml_parse):
         sec_cess = (basic_excise_duty)*1/100
         return sec_cess
 
-
+    
     
 
 
