@@ -642,7 +642,7 @@ class product_product(osv.osv):
 #             name = record['default_code']
 #             res.append((record['id'], name))
         return res
-     
+    
     def name_search(self, cr, user, name, args=None, operator='ilike', context=None, limit=100):
         ids = self.search(cr, user, args, context=context, limit=limit)
         return self.name_get(cr, user, ids, context=context)
