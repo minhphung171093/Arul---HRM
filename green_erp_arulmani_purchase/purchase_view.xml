@@ -14,6 +14,8 @@
 						<field name="create_uid" options="{'create': false, 'create_edit': false}" />
 						<field name="date_expect"/>
 						<field name="requisitioner"/>
+						<field name="project_id"/>
+						<field name="project_section_id"/>
 						<field name="state" widget="statusbar" statusbar_visible="draft,cancel,done" statusbar_colors='{"draft":"blue","cancel":"blue"}'/>
 				</tree>
 			</field>
@@ -68,6 +70,8 @@
 							<field name="section_id" domain="[('department_id','=',department_id)]" options="{'create': false, 'create_edit': false}" />
 							<field name="date_expect"/>
 							<field name="requisitioner" options="{'create': false, 'create_edit': false}" domain="[('department_id','=',department_id)]"  />
+							<field name="project_id" options="{'create': false, 'create_edit': false}"/>
+							<field name="project_section_id" domain="[('project_id','=',project_id)]" options="{'create': false, 'create_edit': false}"/>
 							<field name="header_text" attrs="{'readonly': [('document_type', 'not in', ('service','consumable','capital')),('state', '=', 'done')]}"/>
 						</group>
 						<group >
@@ -502,6 +506,8 @@
 				<xpath expr="//field[@name='partner_ref']" position="after">
             		<field name="for_basis" />
 					<field name="mode_dis" />
+					<field name="freight_term"/>
+					<field name="quotation_ref"/>
 					<field name="reason" attrs="{'required':[('state','=','amendement')]}" />
 					<field name="check_amendement" />
 				</xpath>
@@ -918,6 +924,10 @@
 							<field name="schedule" />
 							<newline/>
 							<field name="payment_term_id" options="{'create': false, 'create_edit': false}" />
+							<!-- TPT START  -->
+							<field name="freight_term" />
+							<field name="mode_dis" />
+							<!-- TPT END -->
 							<field name="amount_line" />
 							<field name="amount_basic" />
 							<field name="amount_p_f" />
@@ -1617,6 +1627,8 @@
 						<field name="department_id"  />
 						<field name="section_id"  />
 						<field name="requisitioner"  />
+						<field name="project_id"  />
+						<field name="project_section_id"  />
 						<field name="create_uid" options="{'create': false, 'create_edit': false}" />
 						<field name="state" widget="statusbar" statusbar_visible="draft,done" statusbar_colors='{"draft":"blue"}'/>
 				</tree>
@@ -1641,6 +1653,8 @@
 							<field name="requisitioner" options="{'create': false, 'create_edit': false}" domain="[('department_id','=',department_id)]"  />
 							<field name="create_uid" options="{'create': false, 'create_edit': false}"  />
 							<field name="date_expec"/>
+							<field name="project_id" options="{'create': false, 'create_edit': false}"/>
+							<field name="project_section_id" domain="[('project_id','=',project_id)]" options="{'create': false, 'create_edit': false}"/>
 						</group>
 						<notebook>
 							<page string = "Materials">

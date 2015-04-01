@@ -48,6 +48,9 @@ class tpt_purchase_indent(osv.osv):
                                   ('quotation_raised','Quotation Raised'),
                                   ('po_raised','PO Raised')],'Status', readonly=True),
         'section_id': fields.many2one('arul.hr.section','Section',ondelete='restrict',states={'cancel': [('readonly', True)], 'done':[('readonly', True)]}),
+        'project_id': fields.many2one('tpt.project','Project', states={'cancel': [('readonly', True)], 'done':[('readonly', True)]}),
+        'project_section_id': fields.many2one('tpt.project.section','Project Section',ondelete='restrict',states={'cancel': [('readonly', True)], 'done':[('readonly', True)]}),
+    
     }
     
     def _get_department_id(self,cr,uid,context=None):
@@ -1027,6 +1030,11 @@ class tpt_purchase_quotation(osv.osv):
         'payment_term_id': fields.many2one('account.payment.term','Payment Term'),
         'select':fields.boolean('Select'),
 #         'cate_char': fields.char('Cate Name', size = 1024),
+        
+        #TPT START - By BalamuruganPurushothaman ON 01/04/2015- FOR PO PRINT
+        'freight_term':fields.selection([('To Pay','To Pay'),('To Paid','To Paid')],('Freight Term')),
+        'mode_dis': fields.char('Mode Of Dispatch', size = 1024), 
+        #TPT END
     }
     _defaults = {
         'state': 'draft',
@@ -1721,7 +1729,12 @@ class purchase_order(osv.osv):
                                     ('cancel', 'Cancelled'),
                                    ], 'Status', required=True, readonly=True,
                                   ),
-        'check_amendement':fields.boolean("Amended",readonly=True)
+        'check_amendement':fields.boolean("Amended",readonly=True),
+        
+        #TPT START By BalamuruganPurushothaman ON 01/04/2015 - FOR PO PRINT
+        'freight_term':fields.selection([('To Pay','To Pay'),('To Paid','To Paid')],('Freight Term')),   
+        'quotation_ref':fields.char('Quotation Reference',size = 1024,required=True),
+        #TPT END
         }
     
     _default = {
@@ -3242,6 +3255,8 @@ class tpt_material_request(osv.osv):
         'create_uid':fields.many2one('res.users','Request Raised By', states={'done':[('readonly', True)]}),
         'section_id': fields.many2one('arul.hr.section','Section',ondelete='restrict', states={'done':[('readonly', True)]}),
         'requisitioner':fields.many2one('hr.employee','Requisitioner', states={'done':[('readonly', True)]}),
+        'project_id': fields.many2one('tpt.project','Project', states={'done':[('readonly', True)]}),
+        'project_section_id': fields.many2one('tpt.project.section','Project Section',ondelete='restrict',states={'done':[('readonly', True)]}),
         'material_request_line':fields.one2many('tpt.material.request.line','material_request_id','Vendor Group',states={'done':[('readonly', True)]}),
         'state':fields.selection([('draft', 'Draft'),('done', 'Approve')],'Status', readonly=True),
                 }

@@ -1346,6 +1346,23 @@ class product_product(osv.osv):
                    }),
         'avg_cost_line':fields.one2many('tpt.product.avg.cost','product_id','Avg Cost Line'),
         }
+    
+    def search(self, cr, uid, args, offset=0, limit=None, order=None, context=None, count=False):
+        if context is None:
+            context = {}
+        if context.get('search_product_with_name', False):
+            name = context.get('name')
+            product_ids = self.search(cr, uid, ['|',('name','like',name),('default_code','like',name)])
+            args += [('id','in',product_ids)]
+        return super(product_product, self).search(cr, uid, args, offset=offset, limit=limit, order=order, context=context, count=count)
+    
+    def name_search(self, cr, user, name, args=None, operator='ilike', context=None, limit=100):
+        if context is None:
+            context = {}
+        if name:
+            context.update({'search_product_with_name':1,'name':name})
+        ids = self.search(cr, user, args, context=context, limit=limit)
+        return self.name_get(cr, user, ids, context=context)
 product_product()
 
 class account_voucher(osv.osv):
