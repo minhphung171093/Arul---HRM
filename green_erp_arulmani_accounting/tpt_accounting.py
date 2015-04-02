@@ -2163,7 +2163,7 @@ class mrp_production(osv.osv):
                                                     'credit':0,
                                                    }))
                                 else:
-                                    raise osv.except_osv(_('Warning!'),_("Purchase GL Account is not configured for Product '%s'! Please configured it!")%(mater.product_id.code))
+                                    raise osv.except_osv(_('Warning!'),_("Purchase GL Account is not configured for Product '%s'! Please configured it!")%(mat.product_id.code))
                     for act in line.bom_id.activities_line:
                         if act.activities_id.act_acc_id:
                             credit += act.product_cost
