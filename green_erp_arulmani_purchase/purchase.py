@@ -175,8 +175,13 @@ class tpt_purchase_indent(osv.osv):
 #         return {'value': vals}
     
     def onchange_document_type(self, cr, uid, ids,document_type=False, context=None):
-        vals = {}
+        vals = {'value':{
+                        'purchase_product_line':[],
+                      }
+                
+                }
         if document_type:
+            vals['purchase_product_line']=False
             if document_type == 'base':
                 warning = {  
                           'title': _('Warning!'),  
@@ -698,6 +703,44 @@ class product_product(osv.osv):
                 cr.execute(sql)
                 product_ids = [row[0] for row in cr.fetchall()]
                 args += [('id','in',product_ids)]
+        if context.get('search_indent_type_cate'):
+            if context.get('document_type'):
+                if context.get('document_type')=='raw':
+                    sql = '''
+                        select id from product_product where id in(select id from product_category where cate_name = 'raw') and id in (select id from product_template where purchase_ok = True)
+                    '''
+                    cr.execute(sql)
+                    pur_ids = [row[0] for row in cr.fetchall()]
+                    args += [('id','in',pur_ids)]
+                if context.get('document_type')=='consumable':
+                    sql = '''
+                        select id from product_product where id in(select id from product_category where cate_name = 'consum') and id in (select id from product_template where purchase_ok = True)
+                    '''
+                    cr.execute(sql)
+                    pur_ids = [row[0] for row in cr.fetchall()]
+                    args += [('id','in',pur_ids)]
+                if context.get('document_type')=='spare':
+                    sql = '''
+                        select id from product_product where id in(select id from product_category where cate_name = 'spares') and id in (select id from product_template where purchase_ok = True)
+                    '''
+                    cr.execute(sql)
+                    pur_ids = [row[0] for row in cr.fetchall()]
+                    args += [('id','in',pur_ids)]
+                if context.get('document_type')=='capital':
+                    sql = '''
+                        select id from product_product where id in(select id from product_category where cate_name = 'assets') and id in (select id from product_template where purchase_ok = True)
+                    '''
+                    cr.execute(sql)
+                    pur_ids = [row[0] for row in cr.fetchall()]
+                    args += [('id','in',pur_ids)]
+                if context.get('document_type') not in ('capital' or 'spare' or 'consumable' or 'raw' ):
+                    sql = '''
+                        select id from product_product where id in (select id from product_template where purchase_ok = True)
+                    '''
+                    cr.execute(sql)
+                    pur_ids = [row[0] for row in cr.fetchall()]
+                    args += [('id','in',pur_ids)]
+
         return super(product_product, self).search(cr, uid, args, offset=offset, limit=limit, order=order, context=context, count=count)
     
     def name_search(self, cr, user, name, args=None, operator='ilike', context=None, limit=100):

@@ -70,8 +70,8 @@
 							<field name="section_id" domain="[('department_id','=',department_id)]" options="{'create': false, 'create_edit': false}" />
 							<field name="date_expect"/>
 							<field name="requisitioner" options="{'create': false, 'create_edit': false}" domain="[('department_id','=',department_id)]"  />
-							<field name="project_id" options="{'create': false, 'create_edit': false}"/>
-							<field name="project_section_id" domain="[('project_id','=',project_id)]" options="{'create': false, 'create_edit': false}"/>
+							<field name="project_id" required = '1' options="{'create': false, 'create_edit': false}"/>
+							<field name="project_section_id" required = '1' domain="[('project_id','=',project_id)]" options="{'create': false, 'create_edit': false}"/>
 							<field name="header_text" attrs="{'readonly': [('document_type', 'not in', ('service','consumable','capital')),('state', '=', 'done')]}"/>
 						</group>
 						<group >
@@ -85,7 +85,7 @@
 								<field name="purchase_product_line" nolabel='1' context="{'default_doc_type_relate':document_type}">
 									<tree editable='bottom'>
 										<field name="doc_type_relate" invisible = '1'/>
-										<field name="product_id" on_change="onchange_product_id(product_id)" domain="[('purchase_ok','=',True)]" required='1' options="{'create': false, 'create_edit': false}"/>
+										<field name="product_id" context="{'search_indent_type_cate':True,'document_type':parent.document_type}" on_change="onchange_product_id(product_id)"  required='1' options="{'create': false, 'create_edit': false}"/>
 										<field name="description" required='1' attrs="{'readonly':[('doc_type_relate','not in',('service','consumable'))]}"/>
 										<field name="item_text" />
 										<field name="product_uom_qty" string = 'Indent Qty'/>
