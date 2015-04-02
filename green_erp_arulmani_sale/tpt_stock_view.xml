@@ -317,7 +317,8 @@
             <field name="model">stock.picking.out</field>
             <field name="inherit_id" ref="sale_stock.stock_picking_out_inherit_sale"/>
             <field name="arch" type="xml">
-                <xpath expr="//page[@string='Additional Info']/field[@name='sale_id']" position="replace"/>
+                <xpath expr="//page[@string='Additional Info']/field[@name='sale_id']" position="replace">
+                </xpath>
             </field>
         </record>-->
             

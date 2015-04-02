@@ -1704,7 +1704,8 @@ class purchase_order(osv.osv):
         'date_order':fields.date('Order Date', required=True, states={'confirmed':[('readonly',True)], 'approved':[('readonly',True)]}, select=True, help="Date on which this document has been created.", track_visibility='onchange'),
         'ecc_no': fields.char('ECC No', size = 1024, track_visibility='onchange'),
         'payment_term_id': fields.many2one('account.payment.term', 'Payment Term', track_visibility='onchange'),
-        'deli_sche': fields.char('Delivery Schedule', size = 1024, track_visibility='onchange'),
+        #'deli_sche': fields.char('Delivery Schedule', size = 1024, track_visibility='onchange'),
+        'deli_sche':fields.date('Delivery Schedule', states={'confirmed':[('readonly',True)], 'approved':[('readonly',True)]}, select=True, help="Date on which this document has been Scheduled to Dispatch.", track_visibility='onchange'),
         'partner_id':fields.many2one('res.partner', 'Supplier', required=True, states={'amendement':[('readonly',True)], 'confirmed':[('readonly',True)], 'approved':[('readonly',True)],'done':[('readonly',True)]},
             change_default=True, track_visibility='always'),
         'company_id': fields.many2one('res.company','Company',required=True,select=1, states={'confirmed':[('readonly',True)], 'approved':[('readonly',True)]}, track_visibility='onchange'),
@@ -1853,7 +1854,7 @@ class purchase_order(osv.osv):
                     #'quotation_ref': quotation.quotation_ref or '',
                     
                     'for_basis': quotation.for_basis or '',
-                    #'schedule': quotation.schedule or '',
+                    'deli_sche': quotation.schedule or '',
                     'payment_term_id':quotation.payment_term_id and quotation.payment_term_id.id or '',
 #                     'po_indent_no': False,
                     'order_line': po_line,
@@ -1948,7 +1949,7 @@ class purchase_order(osv.osv):
                     'freight_term': quotation.freight_term or '',
                     
                     'for_basis': quotation.for_basis or '',
-                    #'schedule': quotation.schedule or '',
+                    'deli_sche': quotation.schedule or '',
                     'payment_term_id':quotation.payment_term_id and quotation.payment_term_id.id or '',
                     #'quotation_ref': quotation.quotation_ref or '',
 #                     'amount_untaxed': quotation.amount_basic or '',
@@ -2377,9 +2378,6 @@ class purchase_order_line(osv.osv):
             
             for tax_amount in tax_amounts:
                     tax += tax_amount/100
-# #                 amount_total_tax += basic*tax
-#                 amount_total_tax = (basic + p_f + ed)*(tax)
-#                 total_tax += amount_total_tax
             total_tax = (amount_basic + amount_fright + amount_ed + amount_p_f)*(tax)
             amount_total_tax += total_tax
             sql = '''
