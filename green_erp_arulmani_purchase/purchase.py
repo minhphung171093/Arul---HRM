@@ -1846,9 +1846,14 @@ class purchase_order(osv.osv):
                     'state_id':quotation.supplier_location_id and quotation.supplier_location_id.id or '',
                     'deli_sche': quotation.schedule or '',
                     #TPT
+                    
                     'mode_dis': quotation.mode_dis or '',
                     'freight_term': quotation.freight_term or '',
-                    'quotation_ref': quotation.quotation_ref or '',
+                    #'quotation_ref': quotation.quotation_ref or '',
+                    
+                    'for_basis': quotation.for_basis or '',
+                    #'schedule': quotation.schedule or '',
+                    'payment_term_id':quotation.payment_term_id and quotation.payment_term_id.id or '',
 #                     'po_indent_no': False,
                     'order_line': po_line,
                     }
@@ -1940,6 +1945,10 @@ class purchase_order(osv.osv):
                     
                     'mode_dis': quotation.mode_dis or '',
                     'freight_term': quotation.freight_term or '',
+                    
+                    'for_basis': quotation.for_basis or '',
+                    #'schedule': quotation.schedule or '',
+                    'payment_term_id':quotation.payment_term_id and quotation.payment_term_id.id or '',
                     #'quotation_ref': quotation.quotation_ref or '',
 #                     'amount_untaxed': quotation.amount_basic or '',
 #                     'amount_tax': quotation.amount_total_tax or '',
