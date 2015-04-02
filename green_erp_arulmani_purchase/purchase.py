@@ -2374,15 +2374,13 @@ class purchase_order_line(osv.osv):
                 amount_fright = line.fright * line.product_qty
             else: 
                 amount_fright = line.fright
-<<<<<<< HEAD
-            total_tax = (amount_basic + amount_fright+amount_ed+amount_p_f)*(line.tax_id and line.tax_id.amount or 0) / 100
-=======
+
             tax_amounts = [r.amount for r in line.taxes_id]
             
             for tax_amount in tax_amounts:
                     tax += tax_amount/100
             total_tax = (amount_basic + amount_fright + amount_ed + amount_p_f)*(tax)
->>>>>>> 1672bd9190fd8763bc2232fa5a49fb18993fcb19
+
             amount_total_tax += total_tax
             sql = '''
                 SELECT name FROM account_tax
