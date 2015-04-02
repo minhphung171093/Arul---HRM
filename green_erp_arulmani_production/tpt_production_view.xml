@@ -436,6 +436,47 @@
             </field>
         </record>
 
+		<record id="mrp_production_product_form_view_inherit" model="ir.ui.view">
+            <field name="name">mrp.production.product.form.view.inherit</field>
+            <field name="model">mrp.production.product.line</field>
+            <field name="inherit_id" ref="mrp.mrp_production_product_form_view"/>
+            <field name="arch" type="xml">
+                <data>
+                	<xpath expr="//form[@string='Scheduled Products']/group/field[@name='product_id']" position="attributes">
+                		<attribute name='string'>Materials</attribute>
+                    </xpath>
+                    <xpath expr="//form[@string='Scheduled Products']/group/field[@name='product_qty']" position="attributes">
+                		<attribute name='string'>Required Quantity</attribute>
+                    </xpath>
+                    <xpath expr="//form[@string='Scheduled Products']/group/field[@name='product_uom']" position="attributes">
+                		<attribute name='string'>UOM</attribute>
+                    </xpath>
+                </data>
+            </field>
+        </record>
+
+		<record id="mrp_production_product_tree_view_inherit" model="ir.ui.view">
+            <field name="name">mrp.production.product.tree.view.inherit</field>
+            <field name="model">mrp.production.product.line</field>
+            <field name="inherit_id" ref="mrp.mrp_production_product_tree_view"/>
+            <field name="arch" type="xml">
+                <data>
+                	<xpath expr="//tree[@string='Scheduled Products']/field[@name='product_id']" position="attributes">
+                		<attribute name='string'>Materials</attribute>
+                    </xpath>
+                    <xpath expr="//tree[@string='Scheduled Products']/field[@name='product_qty']" position="attributes">
+                		<attribute name='string'>Required Quantity</attribute>
+                    </xpath>
+                    <xpath expr="//tree[@string='Scheduled Products']/field[@name='product_uom']" position="attributes">
+                		<attribute name='string'>UOM</attribute>
+                    </xpath>
+                    <xpath expr="//tree[@string='Scheduled Products']/field[@name='product_uom']" position="after">
+                		<field name="app_qty"/>
+                    </xpath>
+                </data>
+            </field>
+        </record>
+
 		<record id="tpt_quality_verification_search_view" model="ir.ui.view">
 			<field name="name">tpt.quality.verification.search</field>
 			<field name="model">tpt.quality.verification</field>

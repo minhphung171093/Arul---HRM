@@ -77,7 +77,7 @@ class tick_purchase_chart(osv.osv_memory):
                     'freight_term': chart.freight_term or '',
                     #'quotation_ref': chart.quotation_ref or '',
                     'for_basis': chart.for_basis or '',
-                    #'schedule': chart.schedule or '',
+                    'deli_sche': chart.schedule or '',
                     'payment_term_id':chart.payment_term_id and chart.payment_term_id.id or '',
                      #TPT END
                     
