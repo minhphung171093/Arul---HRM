@@ -180,7 +180,8 @@ class Parser(report_sxw.rml_parse):
             #total = round(gross + basic_ed + edu_cess + sec_edu_cess, 2)
             total = round(gross + basic_ed, 2)
             cst = round(total * sale_tax_id / 100,2)
-            total_amount += round(total + cst, 2)
+            freight = line.freight or 0
+            total_amount += round(total + cst + freight, 2)
         return round(total_amount,0)
     def get_subtotal(self,invoice_line,excise_duty_id,sale_tax_id):
         rate = 0.0
