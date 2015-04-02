@@ -155,7 +155,7 @@ class Parser(report_sxw.rml_parse):
         return round(basic_ed,0)
     
     def get_excise_duty_amt(self,qty,unit_price,ed):        
-        return round(qty*unit_price*ed/100,2)
+        return round(qty*unit_price*ed/100,0)
     
     def get_excise_duty(self, excise_duty_id):
         return round(excise_duty_id,2)
