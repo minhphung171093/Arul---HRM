@@ -35,7 +35,7 @@
 							</group>
 							<group >
 								<field name="name"/>
-								<field name="location_id" domain="[('usage','=','internal')]" options="{'create': false, 'create_edit': false}"/>
+								<field name="location_id" domain="[('usage','=','internal'),('chained_location_type','&lt;&gt;','customer')]" options="{'create': false, 'create_edit': false}"/>
 								<field name="available"/>
 							</group>
 						</group>
@@ -99,7 +99,7 @@
 			                <group>    
 								<field name="product_id" options="{'create': false, 'create_edit': false}" domain="['|',('name','in',['FERROUS SULPHATE','FSH','M0501010002']),('default_code','in',['FERROUS SULPHATE','FSH','M0501010002'])]"/>
 								<field name="mrp_id" context="{'search_mrp_fsh_batch': True, 'mrp_id': mrp_id, 'product_id': product_id}" on_change="onchange_mrp_id(mrp_id)" domain="[('product_id','=',product_id),('state','=','done')]" options="{'create': false, 'create_edit': false}"/>
-								<field name="location_id" domain="[('usage','=','internal')]" options="{'create': false, 'create_edit': false}"/>
+								<field name="location_id" domain="[('usage','=','internal'),('chained_location_type','&lt;&gt;','customer')]" options="{'create': false, 'create_edit': false}"/>
 							</group>
 							<group >
 								<field name="name"/>
@@ -269,8 +269,8 @@
                     <xpath expr="//label[@for='product_uos_qty']" position="before">
                         <field name="finish_product_cost" />
                         <field name="active" />
-                        <field name="location_src_id" options="{'create': false, 'create_edit': false}" domain="[('usage','=','internal')]" on_change="location_id_change(location_src_id,location_dest_id)"/>
-                        <field name="location_dest_id" options="{'create': false, 'create_edit': false}" domain="[('usage','=','internal')]"/>
+                        <field name="location_src_id" options="{'create': false, 'create_edit': false}" domain="[('usage','=','internal'),('chained_location_type','&lt;&gt;','customer')]" on_change="location_id_change(location_src_id,location_dest_id)"/>
+                        <field name="location_dest_id" options="{'create': false, 'create_edit': false}" domain="[('usage','=','internal'),('chained_location_type','&lt;&gt;','customer')]"/>
                     </xpath>
                     <xpath expr="//page[@string='Properties']/group/group/field[@name='active']" position="replace">
                     </xpath>
@@ -490,7 +490,7 @@
 	            			<field name="prod_batch_id" on_change = "onchange_prod_batch_id(prod_batch_id)" options="{'create': false, 'create_edit': false}" context="{'search_batch_no_tio2':1}" />
 	            			<field name="product_id" domain="['|',('name','in',['TITANIUM DIOXIDE-ANATASE','TiO2','M0501010001']),('default_code','in',['TITANIUM DIOXIDE-ANATASE','TiO2','M0501010001'])]" options="{'create': false, 'create_edit': false}" />
 	            			<field name="product_type"/>
-	            			<field name="warehouse_id" domain="[('usage','=','internal')]" options="{'create': false, 'create_edit': false}" />
+	            			<field name="warehouse_id" domain="[('usage','=','internal'),('chained_location_type','&lt;&gt;','customer')]" options="{'create': false, 'create_edit': false}" />
 	            		</group>
 	            		<group>
 	            			<field name="phy_batch_no" required = '1'/>
