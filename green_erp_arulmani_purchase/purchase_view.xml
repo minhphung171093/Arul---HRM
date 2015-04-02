@@ -564,7 +564,7 @@
 					<field name="product_qty" />
 				</xpath>
 				<xpath expr="//page[@string='PO Line']/field/tree/field[@name='product_qty']" position="after">
-					<field name="state" invisible = '1'/>
+					<field name="state" invisible = '1' required = '0'/>
 				</xpath>
 				<xpath expr="//page[@string='PO Line']/group/field[@name='amount_untaxed']" position="after">
 					<field name="p_f_charge" widget="monetary"/>

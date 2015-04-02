@@ -2372,10 +2372,18 @@ class purchase_order_line(osv.osv):
                 amount_fright = line.fright * line.product_qty
             else: 
                 amount_fright = line.fright
-            tax_amounts = [r.amount for r in line.taxes_id]
-            for tax in tax_amounts:
-                amount_total_tax += tax/100
-            res[line.id]['line_net'] = amount_total_tax+amount_fright+amount_ed+amount_p_f+amount_basic
+            total_tax = (amount_basic + amount_fright+amount_ed+amount_p_f)*(line.tax_id and line.tax_id.amount or 0) / 100
+            amount_total_tax += total_tax
+            sql = '''
+                SELECT name FROM account_tax
+                                WHERE name LIKE '%CST%'
+            '''
+            cr.execute(sql)
+            tax_name = cr.dictfetchone()['name']
+            if tax_name:
+                res[line.id]['line_net'] = amount_total_tax+amount_fright+amount_ed+amount_p_f+amount_basic
+            else:
+                res[line.id]['line_net'] = amount_fright+amount_ed+amount_p_f+amount_basic
         return res
     
     _columns = {

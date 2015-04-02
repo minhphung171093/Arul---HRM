@@ -146,7 +146,8 @@ class tpt_project(osv.osv):
             '''%(department.id,department.code,department.name)
             cr.execute(sql)
             department_ids = [row[0] for row in cr.fetchall()]
-            if department_ids:  
+            if department_ids: 
+                raise osv.except_osv(_('Warning!'),_('This name or code is duplicated!')) 
                 return False
         return True
     _constraints = [
@@ -171,6 +172,7 @@ class tpt_project_section(osv.osv):
             cr.execute(sql)
             department_ids = [row[0] for row in cr.fetchall()]
             if department_ids:  
+                raise osv.except_osv(_('Warning!'),_('This name or code is duplicated!'))
                 return False
         return True
     _constraints = [
