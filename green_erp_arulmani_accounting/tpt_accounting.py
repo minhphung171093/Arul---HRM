@@ -375,6 +375,32 @@ stock_location()
 class stock_picking(osv.osv):
     _inherit = "stock.picking"
         
+    def get_pro_account_id(self,cr,uid,name,channel):
+        account = False
+        account_obj = self.pool.get('account.account')
+        if name and channel:
+            product_name = name.strip()
+            dis_channel = channel.strip()
+            account_ids = []
+            if dis_channel in ['VVTi Domestic','VVTI Domestic']:
+                if product_name in ['TITANIUM DIOXIDE-ANATASE','TiO2','M0501010001']:
+                    account_ids = account_obj.search(cr, uid, [('code','=','0000810001')])
+                if product_name in ['FERROUS SULPHATE','FSH','M0501010002']:
+                    account_ids = account_obj.search(cr, uid, [('code','=','0000810031')])
+            if dis_channel in ['VVTi Direct Export','VVTI Direct Export']:
+                if product_name in ['TITANIUM DIOXIDE-ANATASE','TiO2','M0501010001']:
+                    account_ids = account_obj.search(cr, uid, [('code','=','0000810003')])
+                if product_name in ['FERROUS SULPHATE','FSH','M0501010002']:
+                    account_ids = account_obj.search(cr, uid, [('code','=','0000810032')])
+            if dis_channel in ['VVTi Indirect Export','VVTI Indirect Export']:
+                if product_name in ['TITANIUM DIOXIDE-ANATASE','TiO2','M0501010001']:
+                    account_ids = account_obj.search(cr, uid, [('code','=','0000810004')])
+                if product_name in ['FERROUS SULPHATE','FSH','M0501010002']:
+                    account_ids = account_obj.search(cr, uid, [('code','=','0000810033')])
+            if account_ids:
+                account = account_ids[0]
+        return account
+    
     def write(self, cr, uid, ids, vals, context=None):
         new_write = super(stock_picking, self).write(cr, uid,ids, vals, context)
         account_move_obj = self.pool.get('account.move')
@@ -440,7 +466,9 @@ class stock_picking(osv.osv):
             if 'state' in vals and line.type == 'out' and line.state=='done':
                 debit = 0.0
 #                 so_id = line.sale_id and line.sale_id.id or False
+                dis_channel = line.sale_id and line.sale_id.distribution_channel and line.sale_id.distribution_channel.name or False
                 date_period = line.date
+                account = False
                 sql_journal = '''
                     select id from account_journal
                     '''
@@ -460,10 +488,14 @@ class stock_picking(osv.osv):
                 #sinh but toan
                     for p in line.move_lines:
                         debit += p.sale_line_id and p.sale_line_id.price_unit * p.product_qty or 0
-                        if p.product_id.product_cose_acc_id:
-                            cose_id = p.product_id.product_cose_acc_id.id
-                        else: 
-                            raise osv.except_osv(_('Warning!'),_('Product Cost of Goods Sold Account is not configured! Please configured it!'))
+                        product_name = p.product_id.name
+                        account = self.get_pro_account_id(cr,uid,product_name,dis_channel)
+                        if not account:
+#                             raise osv.except_osv(_('Warning!'),_('Account is not created for this Distribution Channel! Please check it!'))
+                            if p.product_id.product_cose_acc_id:
+                                cose_id = p.product_id.product_cose_acc_id.id
+                            else: 
+                                raise osv.except_osv(_('Warning!'),_('Product Cost of Goods Sold Account is not configured! Please configured it!'))
                          
                         if p.product_id.product_asset_acc_id:
                             asset_id = p.product_id.product_asset_acc_id.id
@@ -471,7 +503,7 @@ class stock_picking(osv.osv):
                             raise osv.except_osv(_('Warning!'),_('Product Asset Account is not configured! Please configured it!'))
                     journal_line.append((0,0,{
                                 'name':line.name, 
-                                'account_id': cose_id,
+                                'account_id': account,
                                 'partner_id': line.partner_id and line.partner_id.id,
                                 'credit':0,
                                 'debit':debit,
