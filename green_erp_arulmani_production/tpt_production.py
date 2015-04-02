@@ -499,10 +499,28 @@ class mrp_bom(osv.osv):
         'bom_lines': fields.one2many('mrp.bom', 'bom_id', 'BoM Lines', states={'finance_manager':[('readonly', True)]}),
         'price_unit': fields.float('Unit Price', states={'finance_manager':[('readonly', True)]}),
         'state':fields.selection([('draft', 'Draft'),('product_manager', 'Production'),('finance_manager', 'Finance')],'Status', readonly=True),
+        'location_src_id': fields.many2one('stock.location', 'Production Source Location', required=True,
+            readonly=True, states={'draft':[('readonly',False)]},
+            help="Location where the system will look for components."),
+        'location_dest_id': fields.many2one('stock.location', 'Production Destination', required=True,
+            readonly=True, states={'draft':[('readonly',False)]},
+            help="Location where the system will stock the finished products."),
+    
     }
     _defaults = {
         'state': 'draft',
                  }
+    def location_id_change(self, cr, uid, ids, src, dest, context=None):
+        """ Changes destination location if source location is changed.
+        @param src: Source location id.
+        @param dest: Destination location id.
+        @return: Dictionary of values.
+        """
+        if dest:
+            return {}
+        if src:
+            return {'value': {'location_dest_id': src}}
+        return {}
     def search(self, cr, uid, args, offset=0, limit=None, order=None, context=None, count=False):
         if context is None:
             context = {}
@@ -730,6 +748,7 @@ tpt_activities_line()
 class mrp_production(osv.osv):
     _inherit = 'mrp.production'
     _columns = {
+            
             'move_lines': fields.many2many('stock.move', 'mrp_production_move_ids', 'production_id', 'move_id', 'Products to Consume',
             domain=[('state','not in', ('done', 'cancel'))], readonly=False, states={'draft':[('readonly',False)]}),
             'move_created_ids': fields.one2many('stock.move', 'production_id', 'Products to Produce',
@@ -772,6 +791,8 @@ class mrp_production(osv.osv):
                 'product_id':bom_point.product_id.id,
                 'routing_id': routing_id,
                 'product_uom': product_uom_id,
+                'location_src_id':bom_point.location_src_id and bom_point.location_src_id.id or False,
+                'location_dest_id':bom_point.location_dest_id and bom_point.location_dest_id.id or False,
             }
         return {'value': result}
     
@@ -1129,14 +1150,14 @@ class stock_move(osv.osv):
         """
         #TPT COMMENTED BY BalamuruganPurushothaman - 29/03/2015 - TO AVOID THROW THIS ERROR IN PRODUCTION DECLARATION SCREEN
         #=======================================================================
-        # if app_quantity and product_qty > app_quantity:
-        #     vals = {}
-        #     warning = {  
-        #                   'title': _('Warning!'),  
-        #                   'message': _('Applied Quantity is not greater than Product Quantity!'),  
-        #                   }  
-        #     vals['product_qty']=app_quantity
-        #     return {'value': vals,'warning':warning}
+        if app_quantity and product_qty > app_quantity:
+            vals = {}
+            warning = {  
+                          'title': _('Warning!'),  
+                          'message': _('Applied Quantity is not greater than Product Quantity!'),  
+                          }  
+            vals['product_qty']=app_quantity
+            return {'value': vals,'warning':warning}
         #=======================================================================
         result = {
                   'product_uos_qty': 0.00
