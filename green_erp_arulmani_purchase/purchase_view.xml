@@ -70,8 +70,15 @@
 							<field name="section_id" domain="[('department_id','=',department_id)]" options="{'create': false, 'create_edit': false}" />
 							<field name="date_expect"/>
 							<field name="requisitioner" options="{'create': false, 'create_edit': false}" domain="[('department_id','=',department_id)]"  />
+							
+							<!-- TPT COMMENTED -02/04/2015- TO MAKE THIS FIELD AS NON-MANDATORY
 							<field name="project_id" required = '1' options="{'create': false, 'create_edit': false}"/>
 							<field name="project_section_id" required = '1' domain="[('project_id','=',project_id)]" options="{'create': false, 'create_edit': false}"/>
+							-->
+							<field name="project_id"  options="{'create': false, 'create_edit': false}"/>
+							<field name="project_section_id"  domain="[('project_id','=',project_id)]" options="{'create': false, 'create_edit': false}"/>
+							
+							
 							<field name="header_text" attrs="{'readonly': [('document_type', 'not in', ('service','consumable','capital')),('state', '=', 'done')]}"/>
 						</group>
 						<group >
