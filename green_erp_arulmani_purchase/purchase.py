@@ -2372,7 +2372,7 @@ class purchase_order_line(osv.osv):
                 amount_fright = line.fright * line.product_qty
             else: 
                 amount_fright = line.fright
-            total_tax = (amount_basic + amount_fright+amount_ed+amount_p_f)*(line.taxes_id and line.taxes_id.amount or 0) / 100
+            total_tax = (amount_basic + amount_fright+amount_ed+amount_p_f)*(line.tax_id and line.tax_id.amount or 0) / 100
             amount_total_tax += total_tax
             sql = '''
                 SELECT name FROM account_tax
