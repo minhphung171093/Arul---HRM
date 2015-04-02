@@ -48,6 +48,7 @@ class Parser(report_sxw.rml_parse):
             'get_cst':self.get_cst,
             'get_tin':self.get_tin,
             'c':self.c, 
+            'z':self.z,
             'get_app':self.get_app, 
             'get_if_freight_lb':self.get_if_freight_lb,
             'get_if_freight_amt':self.get_if_freight_amt,
@@ -231,6 +232,13 @@ class Parser(report_sxw.rml_parse):
     def get_if_freight_lb(self,freight):
         if freight>0:
             return "Freight"
+        else:
+            return "     "
+    def z(self,freight):
+        if freight>0:
+            return "0"
+        else:
+            return " "
     def get_if_freight_amt(self,freight):
         if freight>0:
             return round(freight)   
@@ -241,7 +249,9 @@ class Parser(report_sxw.rml_parse):
         if tax_code[:3]=='CST':
             return "CST" 
         if tax_code[:3]=='VAT':
-            return "VAT"   
+            return "VAT"  
+        if tax_code[:3]=='TCS':
+            return "TCS" 
     def get_app(self, obj):       
         if obj:
             app = ''
