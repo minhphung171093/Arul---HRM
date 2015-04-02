@@ -229,7 +229,8 @@
 					<!-- <field name="rem_date" /> -->
 					<field name="lr_no" />	
 					<field name="inv_date_as_char" />
-					<field name="rem_date_as_char" />				
+					<field name="rem_date_as_char" />	
+					<field name="fsh_grade"/>			
 					<field name="material_info" />
 					<field name="other_info" />
 					</group>
