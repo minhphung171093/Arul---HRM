@@ -1267,17 +1267,16 @@ tpt_quality_verification()
 #     }
 # tpt_batch_quality_verification_line()
 
-# class product_product(osv.osv):
-#     _inherit = "product.product"
-#     def name_get(self, cr, uid, ids, context=None):
-#         
-#         res = []
-#         if ids:
-#             return res
-#         reads = self.read(cr, uid, ids, ['name','default_code'], context=context)
-#         for record in reads:
-#             name = record['name']+ ' ' + (record['default_code'] or'')
-#             res.append((record['id'], name))
-#         return res
-#     
-# product_product()   
+class mrp_production_product_line(osv.osv):
+    _inherit = 'mrp.production.product.line'
+    _columns = {
+            'app_qty':fields.float('Applied Quantity')
+            
+    }
+
+    _defaults={
+               'app_qty':0.0,
+    }   
+    
+    
+mrp_production_product_line()    
