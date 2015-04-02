@@ -1662,12 +1662,6 @@ class purchase_order(osv.osv):
                 else:
                     ed = po.ed
                 excise_duty += ed
-                tax_amounts = [r.amount for r in po.taxes_id]
-                for tax_amount in tax_amounts:
-                    tax += tax_amount/100
-#                 amount_total_tax += basic*tax
-                amount_total_tax = (basic + p_f + ed)*(tax)
-                total_tax += amount_total_tax
                 if po.fright_type == '1' :
                     fright = (basic + p_f + ed + amount_total_tax) * po.fright/100
                 elif po.fright_type == '2' :
@@ -1677,6 +1671,13 @@ class purchase_order(osv.osv):
                 else:
                     fright = po.fright
                 amount_fright += fright
+                tax_amounts = [r.amount for r in po.taxes_id]
+                for tax_amount in tax_amounts:
+                    tax += tax_amount/100
+#                 amount_total_tax += basic*tax
+                amount_total_tax = (basic + p_f + ed + fright )*(tax) #Trong them + frieght vao ham tinh Tax
+                total_tax += amount_total_tax
+
             res[line.id]['amount_untaxed'] = amount_untaxed
             res[line.id]['p_f_charge'] = p_f_charge
             res[line.id]['excise_duty'] = excise_duty
@@ -2341,12 +2342,13 @@ class purchase_order_line(osv.osv):
         amount_p_f=0.0
         amount_ed=0.0
         amount_fright=0.0
-         
+        tax = 0.0
         for line in self.browse(cr,uid,ids,context=context):
             res[line.id] = {
                     'line_net': 0.0,
                 }  
             amount_total_tax=0.0
+            total_tax = 0.0
             amount_basic = (line.product_qty * line.price_unit)-((line.product_qty * line.price_unit)*line.discount/100)
             if line.p_f_type == '1':
                amount_p_f = amount_basic * (line.p_f/100)
@@ -2372,7 +2374,15 @@ class purchase_order_line(osv.osv):
                 amount_fright = line.fright * line.product_qty
             else: 
                 amount_fright = line.fright
+<<<<<<< HEAD
             total_tax = (amount_basic + amount_fright+amount_ed+amount_p_f)*(line.tax_id and line.tax_id.amount or 0) / 100
+=======
+            tax_amounts = [r.amount for r in line.taxes_id]
+            
+            for tax_amount in tax_amounts:
+                    tax += tax_amount/100
+            total_tax = (amount_basic + amount_fright + amount_ed + amount_p_f)*(tax)
+>>>>>>> 1672bd9190fd8763bc2232fa5a49fb18993fcb19
             amount_total_tax += total_tax
             sql = '''
                 SELECT name FROM account_tax
