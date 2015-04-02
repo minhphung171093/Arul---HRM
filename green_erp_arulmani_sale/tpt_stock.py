@@ -977,6 +977,7 @@ class account_invoice(osv.osv):
         'other_info': fields.text('Other Info', readonly=True, states={'draft':[('readonly',False)]}),
         #TPT
         'street3':fields.char('Street3',size=128),
+        'fsh_grade':fields.char('FSH Grade',size=128),
         'amount_untaxed': fields.function(_amount_all, digits_compute=dp.get_precision('Account'), string='Untaxed Amount',
             store={
                 'account.invoice': (lambda self, cr, uid, ids, c={}: ids, ['invoice_line'], 20),

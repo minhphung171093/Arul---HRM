@@ -635,7 +635,25 @@ class product_product(osv.osv):
                     )foo
                     group by foo.loc,foo.prodlot_id,foo.id
             '''%(time.id,time.id)
-                cr.execute(sql)
+                sql1 = '''
+                SELECT sum(onhand_qty) onhand_qty
+            From
+            (SELECT
+                   
+                case when loc1.usage != 'internal' and loc2.usage = 'internal'
+                then stm.primary_qty
+                else
+                case when loc1.usage = 'internal' and loc2.usage != 'internal'
+                then -1*stm.primary_qty 
+                else 0.0 end
+                end onhand_qty
+                        
+            FROM stock_move stm 
+                join stock_location loc1 on stm.location_id=loc1.id
+                join stock_location loc2 on stm.location_dest_id=loc2.id
+            WHERE stm.state= 'done' and product_id=%s)foo
+                   '''% (time.id)
+                cr.execute(sql1)
                 a = cr.fetchone()
                 if a:
                     time_total = a[0]                            
@@ -2417,11 +2435,13 @@ class purchase_order_line(osv.osv):
                 amount_fright = line.fright * line.product_qty
             else: 
                 amount_fright = line.fright
+
             tax_amounts = [r.amount for r in line.taxes_id]
             
             for tax_amount in tax_amounts:
                     tax += tax_amount/100
             total_tax = (amount_basic + amount_fright + amount_ed + amount_p_f)*(tax)
+
             amount_total_tax += total_tax
             sql = '''
                 SELECT name FROM account_tax
