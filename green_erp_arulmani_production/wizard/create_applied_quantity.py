@@ -40,20 +40,20 @@ class mrp_product_produce(osv.osv_memory):
          'mode': lambda *x: 'consume_produce'
     }
    
-    def do_produce(self, cr, uid, ids, context=None):
-        production_id = context.get('active_id', False)
-        assert production_id, "Production Id should be specified in context as a Active ID."
-        data = self.browse(cr, uid, ids[0], context=context)
-        if context is None:
-            context = {}
-        prod = self.pool.get('mrp.production').browse(cr, uid,
-                                context['active_id'], context=context)
-        for line in prod.move_lines:
-            app_quantity = line.app_quantity
-            self.pool.get('mrp.production').action_produce(cr, uid, production_id,
-                            app_quantity, data.mode, context=context)
-            self.pool.get('stock.move').write(cr, uid, [line.id],{'app_quantity':line.product_qty-app_quantity})
-        return {}
+#     def do_produce(self, cr, uid, ids, context=None):
+#         production_id = context.get('active_id', False)
+#         assert production_id, "Production Id should be specified in context as a Active ID."
+#         data = self.browse(cr, uid, ids[0], context=context)
+#         if context is None:
+#             context = {}
+#         prod = self.pool.get('mrp.production').browse(cr, uid,
+#                                 context['active_id'], context=context)
+#         for line in prod.move_lines:
+#             app_quantity = line.app_quantity
+#             self.pool.get('mrp.production').action_produce(cr, uid, production_id,
+#                             app_quantity, data.mode, context=context)
+#             self.pool.get('stock.move').write(cr, uid, [line.id],{'app_quantity':line.product_qty-app_quantity})
+#         return {}
    
 mrp_product_produce()
 # vim:expandtab:smartindent:tabstop=4:softtabstop=4:shiftwidth=4:

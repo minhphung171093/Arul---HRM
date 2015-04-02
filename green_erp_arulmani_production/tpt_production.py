@@ -1150,20 +1150,26 @@ class stock_move(osv.osv):
         """
         #TPT COMMENTED BY BalamuruganPurushothaman - 29/03/2015 - TO AVOID THROW THIS ERROR IN PRODUCTION DECLARATION SCREEN
         #=======================================================================
-        if app_quantity and product_qty > app_quantity:
-            vals = {}
-            warning = {  
-                          'title': _('Warning!'),  
-                          'message': _('Applied Quantity is not greater than Product Quantity!'),  
-                          }  
-            vals['product_qty']=app_quantity
-            return {'value': vals,'warning':warning}
+#         if app_quantity and product_qty > app_quantity:
+#             vals = {}
+#             warning = {  
+#                           'title': _('Warning!'),  
+#                           'message': _('Applied Quantity is not greater than Product Quantity!'),  
+#                           }  
+#             vals['product_qty']=app_quantity
+#             return {'value': vals,'warning':warning}
         #=======================================================================
         result = {
                   'product_uos_qty': 0.00
           }
         warning = {}
-
+        if ids and is_tpt_production:
+            mrp_product_line_obj = self.pool.get('mrp.production.product.line')
+            cr.execute('select production_id from mrp_production_move_ids where move_id in %s group by production_id',(tuple(ids),))
+            production_ids = [row[0] for row in cr.fetchall()]
+            for move_line in self.browse(cr, uid, ids):
+                mrp_product_line_ids = mrp_product_line_obj.search(cr, uid, [('production_id','in',production_ids),('product_id','=',move_line.product_id.id),('product_uom','=',move_line.product_uom.id)])
+                mrp_product_line_obj.write(cr, uid, mrp_product_line_ids,{'product_qty':product_qty})
         if (not product_id) or (product_qty <=0.0):
             result['product_qty'] = 0.0
             return {'value': result}

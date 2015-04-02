@@ -2279,5 +2279,7 @@ class res_partner(osv.osv):
             domain="[('type', '=', 'receivable')]",
             help="This account will be used instead of the default one as the receivable account for the current partner",
             required=False),
+        'is_tds_applicable': fields.boolean('IsTDSApplicable'),
+        'tds_id': fields.many2one('account.tax', 'TDS %'),
         }
 res_partner()
