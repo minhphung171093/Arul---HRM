@@ -75,8 +75,8 @@
 							<field name="project_id" required = '1' options="{'create': false, 'create_edit': false}"/>
 							<field name="project_section_id" required = '1' domain="[('project_id','=',project_id)]" options="{'create': false, 'create_edit': false}"/>
 							-->
-							<field name="project_id"  options="{'create': false, 'create_edit': false}"/>
-							<field name="project_section_id"  domain="[('project_id','=',project_id)]" options="{'create': false, 'create_edit': false}"/>
+							<field name="project_id"  attrs="{'required': [('document_type', '=', 'spare')]}" options="{'create': false, 'create_edit': false}"/>
+							<field name="project_section_id" attrs="{'required': [('document_type', '=', 'spare')]}" domain="[('project_id','=',project_id)]" options="{'create': false, 'create_edit': false}"/>
 							
 							
 							<field name="header_text" attrs="{'readonly': [('document_type', 'not in', ('service','consumable','capital')),('state', '=', 'done')]}"/>
