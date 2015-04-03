@@ -225,6 +225,7 @@
 					<field name="mark_container_no" />
 					<field name="insurance" /> 
 					<field name="other_charges" /> 
+					<field name="agency_comm" /> 
 					
 					<group attrs="{'invisible': [('invoice_type', '=', 'export') ] }" colspan="2" >
 					
