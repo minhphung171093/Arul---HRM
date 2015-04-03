@@ -863,6 +863,32 @@ account_invoice()
 class account_invoice_line(osv.osv):
     _inherit = "account.invoice.line"
      
+    def get_pro_account_id(self,cr,uid,name,channel):
+        account = False
+        account_obj = self.pool.get('account.account')
+        if name and channel:
+            product_name = name.strip()
+            dis_channel = channel.strip()
+            account_ids = []
+            if dis_channel in ['VVTi Domestic','VVTI Domestic']:
+                if product_name in ['TITANIUM DIOXIDE-ANATASE','TiO2','M0501010001']:
+                    account_ids = account_obj.search(cr, uid, [('code','=','0000810001')])
+                if product_name in ['FERROUS SULPHATE','FSH','M0501010002']:
+                    account_ids = account_obj.search(cr, uid, [('code','=','0000810031')])
+            if dis_channel in ['VVTi Direct Export','VVTI Direct Export']:
+                if product_name in ['TITANIUM DIOXIDE-ANATASE','TiO2','M0501010001']:
+                    account_ids = account_obj.search(cr, uid, [('code','=','0000810003')])
+                if product_name in ['FERROUS SULPHATE','FSH','M0501010002']:
+                    account_ids = account_obj.search(cr, uid, [('code','=','0000810032')])
+            if dis_channel in ['VVTi Indirect Export','VVTI Indirect Export']:
+                if product_name in ['TITANIUM DIOXIDE-ANATASE','TiO2','M0501010001']:
+                    account_ids = account_obj.search(cr, uid, [('code','=','0000810004')])
+                if product_name in ['FERROUS SULPHATE','FSH','M0501010002']:
+                    account_ids = account_obj.search(cr, uid, [('code','=','0000810033')])
+            if account_ids:
+                account = account_ids[0]
+        return account
+    
     def move_line_get(self, cr, uid, invoice_id, context=None):
         res = []
         tax_obj = self.pool.get('account.tax')
@@ -960,33 +986,56 @@ class account_invoice_line(osv.osv):
      
     def move_line_customer_product_price(self, cr, uid, invoice_id):
         res = []
+        account = False
+        voucher_rate = 1
+        inv_id = self.pool.get('account.invoice').browse(cr, uid, invoice_id)
+        if inv_id:
+            channel = inv_id.delivery_order_id and inv_id.delivery_order_id.sale_id and inv_id.delivery_order_id.sale_id.distribution_channel or False
+            currency = inv_id.currency_id.name
+            currency_id = inv_id.currency_id.id
         cr.execute('SELECT * FROM account_invoice_line WHERE invoice_id=%s', (invoice_id,))
         for t in cr.dictfetchall():
-            sql = '''
-            SELECT sale_acc_id FROM product_product WHERE id=%s and sale_acc_id is not null
-            '''%(t['product_id'])
-            cr.execute(sql)
-            sale_acc_id = cr.dictfetchone()
-            if not sale_acc_id:
-                raise osv.except_osv(_('Warning!'),_('Account is not null, please configure it in Material master !'))
+            product_id = self.pool.get('product.product').browse(cr, uid, t['product_id'])
+            name = product_id.name or False
+            account = self.get_pro_account_id(cr,uid,product_name,dis_channel)
+            if not account:
+                sql = '''
+                SELECT sale_acc_id FROM product_product WHERE id=%s and sale_acc_id is not null
+                '''%(t['product_id'])
+                cr.execute(sql)
+                sale_acc_id = cr.dictfetchone()
+                if not sale_acc_id:
+                    raise osv.except_osv(_('Warning!'),_('Account is not null, please configure it in Material master !'))
+                else:
+                    account = sale_acc_id['sale_acc_id']
+            if currency != 'INR':
+                voucher_rate = self.pool.get('res.currency').read(cr, uid, currency_id, ['rate'], context=ctx)['rate']
             res.append({
                 'type':'tax',
                 'name':t['name'],
                 'price_unit': t['price_unit'],
                 'quantity': 1,
-                'price': t['price_unit']*t['quantity'],
-                'account_id': sale_acc_id and sale_acc_id['sale_acc_id'] or False,
+                'price': t['price_unit']*t['quantity']*voucher_rate,
+#                 'account_id': sale_acc_id and sale_acc_id['sale_acc_id'] or False,
+                'account_id': account,
                 'account_analytic_id': t['account_analytic_id'],
             })
         return res
     def move_line_customer_excise_duty(self, cr, uid, invoice_id):
         res = []
+        voucher_rate = 1
+        inv_id = self.pool.get('account.invoice').browse(cr, uid, invoice_id)
+        if inv_id:
+            currency = inv_id.currency_id.name or False
+            currency_id = inv_id.currency_id.id or False
+        if currency != 'INR':
+            voucher_rate = self.pool.get('res.currency').read(cr, uid, currency_id, ['rate'], context=ctx)['rate']
         cr.execute('SELECT * FROM account_invoice_line WHERE invoice_id=%s', (invoice_id,))
         account_line_ids = [r[0] for r in cr.fetchall()]
         for line in self.browse(cr,uid,account_line_ids):
 #             cr.execute('SELECT * FROM account_invoice WHERE id=%s', (invoice_id,))
 #             for account in cr.dictfetchall():
-            ed_amount = (line.quantity * line.price_unit) * (line.invoice_id.excise_duty_id.amount and line.invoice_id.excise_duty_id.amount/100 or 1)
+            ed_amount = voucher_rate * (line.quantity * line.price_unit) * (line.invoice_id.excise_duty_id.amount and line.invoice_id.excise_duty_id.amount/100 or 1)
             sql = '''
                     SELECT cus_inv_ed_id FROM tpt_posting_configuration WHERE name = 'cus_inv' and cus_inv_ed_id is not null
                 '''
@@ -1007,11 +1056,18 @@ class account_invoice_line(osv.osv):
         return res  
     def move_line_amount_tax(self, cr, uid, invoice_id):
         res = []
+        voucher_rate = 1
+        inv_id = self.pool.get('account.invoice').browse(cr, uid, invoice_id)
+        if inv_id:
+            currency = inv_id.currency_id.name or False
+            currency_id = inv_id.currency_id.id or False
+        if currency != 'INR':
+            voucher_rate = self.pool.get('res.currency').read(cr, uid, currency_id, ['rate'], context=ctx)['rate']
         cr.execute('SELECT * FROM account_invoice_line WHERE invoice_id=%s', (invoice_id,))
         for t in cr.dictfetchall():
             cr.execute('SELECT * FROM account_invoice WHERE id=%s', (invoice_id,))
             for account in cr.dictfetchall():
-                tax = account['amount_tax']
+                tax = account['amount_tax'] * voucher_rate
 #         invoice_ids = [r[0] for r in cr.fetchall()]
 #         for invoice_line in self.browse(cr,uid,invoice_ids):
 #             basic = (invoice_line.quantity * invoice_line.price_unit) - ( (invoice_line.quantity * invoice_line.price_unit)*invoice_line.disc/100)
@@ -1062,11 +1118,18 @@ class account_invoice_line(osv.osv):
     
     def move_line_customer_amount_tax(self, cr, uid, invoice_id):
         res = []
+        voucher_rate = 1
+        inv_id = self.pool.get('account.invoice').browse(cr, uid, invoice_id)
+        if inv_id:
+            currency = inv_id.currency_id.name or False
+            currency_id = inv_id.currency_id.id or False
+        if currency != 'INR':
+            voucher_rate = self.pool.get('res.currency').read(cr, uid, currency_id, ['rate'], context=ctx)['rate']
         cr.execute('SELECT * FROM account_invoice_line WHERE invoice_id=%s', (invoice_id,))
         for t in cr.dictfetchall():
             cr.execute('SELECT * FROM account_invoice WHERE id=%s', (invoice_id,))
             for account in cr.dictfetchall():
-                tax = account['amount_tax']
+                tax = account['amount_tax'] * voucher_rate
                 sql = '''
                     SELECT cus_inv_vat_id FROM tpt_posting_configuration WHERE name = 'cus_inv' and cus_inv_vat_id is not null
                 '''
@@ -1126,6 +1189,13 @@ class account_invoice_line(osv.osv):
         return res 
     def move_line_customer_fright(self, cr, uid, invoice_id):
         res = []
+        voucher_rate = 1
+        inv_id = self.pool.get('account.invoice').browse(cr, uid, invoice_id)
+        if inv_id:
+            currency = inv_id.currency_id.name or False
+            currency_id = inv_id.currency_id.id or False
+        if currency != 'INR':
+            voucher_rate = self.pool.get('res.currency').read(cr, uid, currency_id, ['rate'], context=ctx)['rate']
         cr.execute('SELECT * FROM account_invoice_line WHERE invoice_id=%s', (invoice_id,))
         for t in cr.dictfetchall():
             sql = '''
@@ -1141,7 +1211,7 @@ class account_invoice_line(osv.osv):
                     'name':t['name'],
                     'price_unit': t['price_unit'],
                     'quantity': 1,
-                    'price': t['freight'],
+                    'price': t['freight'] * voucher_rate,
                     'account_id': cus_inv_fright_id and cus_inv_fright_id['cus_inv_fright_id'] or False,
                     'account_analytic_id': t['account_analytic_id'],
                 })
