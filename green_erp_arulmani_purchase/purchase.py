@@ -175,8 +175,13 @@ class tpt_purchase_indent(osv.osv):
 #         return {'value': vals}
     
     def onchange_document_type(self, cr, uid, ids,document_type=False, context=None):
-        vals = {}
+        vals = {'value':{
+                        'purchase_product_line':[],
+                      }
+                
+                }
         if document_type:
+            vals['purchase_product_line']=False
             if document_type == 'base':
                 warning = {  
                           'title': _('Warning!'),  
@@ -607,7 +612,55 @@ class product_product(osv.osv):
                 new_id = inventory_obj.create(cr, uid, {'warehouse_id':inventory['loc'],'prodlot_id':inventory['prodlot_id'],'hand_quantity':inventory['ton_sl'],'uom_id':inventory['uom']})
                 result[id].append(new_id)
         return result
-    
+    def _onhand_qty(self, cr, uid, ids, field_name, arg, context=None):
+        res = {}
+        for time in self.browse(cr, uid, ids, context=context):
+            res[time.id] = {
+                'onhand_qty': 0.0,
+            }
+            if time.id : 
+                sql = '''
+                select sum(foo.product_qty) as ton_sl from 
+                    (select l2.id as loc,st.prodlot_id,pu.id,st.product_qty
+                        from stock_move st 
+                            inner join stock_location l2 on st.location_dest_id= l2.id
+                            inner join product_uom pu on st.product_uom = pu.id
+                        where st.state='done' and st.product_id=%s and l2.usage = 'internal'
+                    union all
+                    select l1.id as loc,st.prodlot_id,pu.id,st.product_qty*-1
+                        from stock_move st 
+                            inner join stock_location l1 on st.location_id= l1.id
+                            inner join product_uom pu on st.product_uom = pu.id
+                        where st.state='done' and st.product_id=%s and l1.usage = 'internal'
+                    )foo
+                    group by foo.loc,foo.prodlot_id,foo.id
+            '''%(time.id,time.id)
+                sql1 = '''
+                SELECT sum(onhand_qty) onhand_qty
+            From
+            (SELECT
+                   
+                case when loc1.usage != 'internal' and loc2.usage = 'internal'
+                then stm.primary_qty
+                else
+                case when loc1.usage = 'internal' and loc2.usage != 'internal'
+                then -1*stm.primary_qty 
+                else 0.0 end
+                end onhand_qty
+                        
+            FROM stock_move stm 
+                join stock_location loc1 on stm.location_id=loc1.id
+                join stock_location loc2 on stm.location_dest_id=loc2.id
+            WHERE stm.state= 'done' and product_id=%s)foo
+                   '''% (time.id)
+                cr.execute(sql1)
+                a = cr.fetchone()
+                if a:
+                    time_total = a[0]                            
+                else:
+                    time_total=0.0
+            res[time.id]['onhand_qty'] = time_total            
+        return res
     _columns = {
         'description':fields.text('Description'),
         'batch_appli_ok':fields.boolean('Is Batch Applicable'),
@@ -633,6 +686,7 @@ class product_product(osv.osv):
         'bin_location':fields.char('Bin Location', size = 1024),
         'old_no':fields.char('Old Material No.', size = 1024),
         'tpt_mater_type':fields.selection([('mechan','Mechanical'),('civil','Civil'),('elect','Electrical'),('inst','Instrumentation'),('raw_mat','Raw. Mat. & Prod'),('qc','QC and R&D'),('safe','Safety & Personnel'),('proj','Projects')],'Material Type'),
+        'onhand_qty': fields.function(_onhand_qty, string='OnHand Qty', multi='test_qty'),
         }
     
     _defaults = {
@@ -667,6 +721,44 @@ class product_product(osv.osv):
                 cr.execute(sql)
                 product_ids = [row[0] for row in cr.fetchall()]
                 args += [('id','in',product_ids)]
+        if context.get('search_indent_type_cate'):
+            if context.get('document_type'):
+                if context.get('document_type')=='raw':
+                    sql = '''
+                        select id from product_product where id in(select id from product_category where cate_name = 'raw') and id in (select id from product_template where purchase_ok = True)
+                    '''
+                    cr.execute(sql)
+                    pur_ids = [row[0] for row in cr.fetchall()]
+                    args += [('id','in',pur_ids)]
+                if context.get('document_type')=='consumable':
+                    sql = '''
+                        select id from product_product where id in(select id from product_category where cate_name = 'consum') and id in (select id from product_template where purchase_ok = True)
+                    '''
+                    cr.execute(sql)
+                    pur_ids = [row[0] for row in cr.fetchall()]
+                    args += [('id','in',pur_ids)]
+                if context.get('document_type')=='spare':
+                    sql = '''
+                        select id from product_product where id in(select id from product_category where cate_name = 'spares') and id in (select id from product_template where purchase_ok = True)
+                    '''
+                    cr.execute(sql)
+                    pur_ids = [row[0] for row in cr.fetchall()]
+                    args += [('id','in',pur_ids)]
+                if context.get('document_type')=='capital':
+                    sql = '''
+                        select id from product_product where id in(select id from product_category where cate_name = 'assets') and id in (select id from product_template where purchase_ok = True)
+                    '''
+                    cr.execute(sql)
+                    pur_ids = [row[0] for row in cr.fetchall()]
+                    args += [('id','in',pur_ids)]
+                if context.get('document_type') not in ('capital' or 'spare' or 'consumable' or 'raw' ):
+                    sql = '''
+                        select id from product_product where id in (select id from product_template where purchase_ok = True)
+                    '''
+                    cr.execute(sql)
+                    pur_ids = [row[0] for row in cr.fetchall()]
+                    args += [('id','in',pur_ids)]
+
         return super(product_product, self).search(cr, uid, args, offset=offset, limit=limit, order=order, context=context, count=count)
     
     def name_search(self, cr, user, name, args=None, operator='ilike', context=None, limit=100):
@@ -1631,12 +1723,6 @@ class purchase_order(osv.osv):
                 else:
                     ed = po.ed
                 excise_duty += ed
-                tax_amounts = [r.amount for r in po.taxes_id]
-                for tax_amount in tax_amounts:
-                    tax += tax_amount/100
-#                 amount_total_tax += basic*tax
-                amount_total_tax = (basic + p_f + ed)*(tax)
-                total_tax += amount_total_tax
                 if po.fright_type == '1' :
                     fright = (basic + p_f + ed + amount_total_tax) * po.fright/100
                 elif po.fright_type == '2' :
@@ -1646,6 +1732,13 @@ class purchase_order(osv.osv):
                 else:
                     fright = po.fright
                 amount_fright += fright
+                tax_amounts = [r.amount for r in po.taxes_id]
+                for tax_amount in tax_amounts:
+                    tax += tax_amount/100
+#                 amount_total_tax += basic*tax
+                amount_total_tax = (basic + p_f + ed + fright )*(tax) #Trong them + frieght vao ham tinh Tax
+                total_tax += amount_total_tax
+
             res[line.id]['amount_untaxed'] = amount_untaxed
             res[line.id]['p_f_charge'] = p_f_charge
             res[line.id]['excise_duty'] = excise_duty
@@ -1664,7 +1757,7 @@ class purchase_order(osv.osv):
         'po_document_type':fields.selection([('raw','VV Raw material PO'),('asset','VV Capital PO'),('standard','VV Standard PO'),('local','VV Local PO'),('return','VV Return PO'),('service','VV Service PO'),('out','VV Out Service PO')],'PO Document Type', required = True, track_visibility='onchange'),
         'quotation_no': fields.many2one('tpt.purchase.quotation', 'Quotation No', required = True, track_visibility='onchange'),
 #         'po_indent_no' : fields.many2one('tpt.purchase.indent', 'PO Indent No', required = True, track_visibility='onchange'),
-        'partner_ref': fields.char('Supplier Reference', states={'confirmed':[('readonly',True)], 'approved':[('readonly',True)],'done':[('readonly',True)]}, size=64,
+        'partner_ref': fields.char('Quotation Reference', states={'confirmed':[('readonly',True)], 'approved':[('readonly',True)],'done':[('readonly',True)]}, size=64,
             help="Reference of the sales order or quotation sent by your supplier. It's mainly used to do the matching when you receive the products as this reference is usually written on the delivery order sent by your supplier.", track_visibility='onchange'),
         'state_id': fields.many2one('res.country.state', 'Vendor Location', track_visibility='onchange'),
         'for_basis': fields.char('For Basis', size = 1024, track_visibility='onchange'),
@@ -1672,7 +1765,8 @@ class purchase_order(osv.osv):
         'date_order':fields.date('Order Date', required=True, states={'confirmed':[('readonly',True)], 'approved':[('readonly',True)]}, select=True, help="Date on which this document has been created.", track_visibility='onchange'),
         'ecc_no': fields.char('ECC No', size = 1024, track_visibility='onchange'),
         'payment_term_id': fields.many2one('account.payment.term', 'Payment Term', track_visibility='onchange'),
-        'deli_sche': fields.char('Delivery Schedule', size = 1024, track_visibility='onchange'),
+        #'deli_sche': fields.char('Delivery Schedule', size = 1024, track_visibility='onchange'),
+        'deli_sche':fields.date('Delivery Schedule', states={'confirmed':[('readonly',True)], 'approved':[('readonly',True)]}, select=True, help="Date on which this document has been Scheduled to Dispatch.", track_visibility='onchange'),
         'partner_id':fields.many2one('res.partner', 'Supplier', required=True, states={'amendement':[('readonly',True)], 'confirmed':[('readonly',True)], 'approved':[('readonly',True)],'done':[('readonly',True)]},
             change_default=True, track_visibility='always'),
         'company_id': fields.many2one('res.company','Company',required=True,select=1, states={'confirmed':[('readonly',True)], 'approved':[('readonly',True)]}, track_visibility='onchange'),
@@ -1733,7 +1827,7 @@ class purchase_order(osv.osv):
         
         #TPT START By BalamuruganPurushothaman ON 01/04/2015 - FOR PO PRINT
         'freight_term':fields.selection([('To Pay','To Pay'),('To Paid','To Paid')],('Freight Term')),   
-        'quotation_ref':fields.char('Quotation Reference',size = 1024,required=True),
+        #'quotation_ref':fields.char('Quotation Reference',size = 1024,required=True),
         #TPT END
         }
     
@@ -1814,6 +1908,15 @@ class purchase_order(osv.osv):
                     'for_basis':quotation.for_basis or '',
                     'state_id':quotation.supplier_location_id and quotation.supplier_location_id.id or '',
                     'deli_sche': quotation.schedule or '',
+                    #TPT
+                    
+                    'mode_dis': quotation.mode_dis or '',
+                    'freight_term': quotation.freight_term or '',
+                    #'quotation_ref': quotation.quotation_ref or '',
+                    
+                    'for_basis': quotation.for_basis or '',
+                    'deli_sche': quotation.schedule or '',
+                    'payment_term_id':quotation.payment_term_id and quotation.payment_term_id.id or '',
 #                     'po_indent_no': False,
                     'order_line': po_line,
                     }
@@ -1902,6 +2005,14 @@ class purchase_order(osv.osv):
                     'p_f_charge': quotation.amount_p_f or '',
                     'excise_duty': quotation.amount_ed or '',
                     'fright': quotation.amount_fright or '',
+                    
+                    'mode_dis': quotation.mode_dis or '',
+                    'freight_term': quotation.freight_term or '',
+                    
+                    'for_basis': quotation.for_basis or '',
+                    'deli_sche': quotation.schedule or '',
+                    'payment_term_id':quotation.payment_term_id and quotation.payment_term_id.id or '',
+                    #'quotation_ref': quotation.quotation_ref or '',
 #                     'amount_untaxed': quotation.amount_basic or '',
 #                     'amount_tax': quotation.amount_total_tax or '',
                     'order_line': po_line,
@@ -2292,12 +2403,13 @@ class purchase_order_line(osv.osv):
         amount_p_f=0.0
         amount_ed=0.0
         amount_fright=0.0
-         
+        tax = 0.0
         for line in self.browse(cr,uid,ids,context=context):
             res[line.id] = {
                     'line_net': 0.0,
                 }  
             amount_total_tax=0.0
+            total_tax = 0.0
             amount_basic = (line.product_qty * line.price_unit)-((line.product_qty * line.price_unit)*line.discount/100)
             if line.p_f_type == '1':
                amount_p_f = amount_basic * (line.p_f/100)
@@ -2323,10 +2435,24 @@ class purchase_order_line(osv.osv):
                 amount_fright = line.fright * line.product_qty
             else: 
                 amount_fright = line.fright
+
             tax_amounts = [r.amount for r in line.taxes_id]
-            for tax in tax_amounts:
-                amount_total_tax += tax/100
-            res[line.id]['line_net'] = amount_total_tax+amount_fright+amount_ed+amount_p_f+amount_basic
+            
+            for tax_amount in tax_amounts:
+                    tax += tax_amount/100
+            total_tax = (amount_basic + amount_fright + amount_ed + amount_p_f)*(tax)
+
+            amount_total_tax += total_tax
+            sql = '''
+                SELECT name FROM account_tax
+                                WHERE name LIKE '%CST%'
+            '''
+            cr.execute(sql)
+            tax_name = cr.dictfetchone()['name']
+            if tax_name:
+                res[line.id]['line_net'] = amount_total_tax+amount_fright+amount_ed+amount_p_f+amount_basic
+            else:
+                res[line.id]['line_net'] = amount_fright+amount_ed+amount_p_f+amount_basic
         return res
     
     _columns = {

@@ -70,8 +70,15 @@
 							<field name="section_id" domain="[('department_id','=',department_id)]" options="{'create': false, 'create_edit': false}" />
 							<field name="date_expect"/>
 							<field name="requisitioner" options="{'create': false, 'create_edit': false}" domain="[('department_id','=',department_id)]"  />
-							<field name="project_id" options="{'create': false, 'create_edit': false}"/>
-							<field name="project_section_id" domain="[('project_id','=',project_id)]" options="{'create': false, 'create_edit': false}"/>
+							
+							<!-- TPT COMMENTED -02/04/2015- TO MAKE THIS FIELD AS NON-MANDATORY
+							<field name="project_id" required = '1' options="{'create': false, 'create_edit': false}"/>
+							<field name="project_section_id" required = '1' domain="[('project_id','=',project_id)]" options="{'create': false, 'create_edit': false}"/>
+							-->
+							<field name="project_id"  options="{'create': false, 'create_edit': false}"/>
+							<field name="project_section_id"  domain="[('project_id','=',project_id)]" options="{'create': false, 'create_edit': false}"/>
+							
+							
 							<field name="header_text" attrs="{'readonly': [('document_type', 'not in', ('service','consumable','capital')),('state', '=', 'done')]}"/>
 						</group>
 						<group >
@@ -85,7 +92,7 @@
 								<field name="purchase_product_line" nolabel='1' context="{'default_doc_type_relate':document_type}">
 									<tree editable='bottom'>
 										<field name="doc_type_relate" invisible = '1'/>
-										<field name="product_id" on_change="onchange_product_id(product_id)" domain="[('purchase_ok','=',True)]" required='1' options="{'create': false, 'create_edit': false}"/>
+										<field name="product_id" context="{'search_indent_type_cate':True,'document_type':parent.document_type}" on_change="onchange_product_id(product_id)"  required='1' options="{'create': false, 'create_edit': false}"/>
 										<field name="description" required='1' attrs="{'readonly':[('doc_type_relate','not in',('service','consumable'))]}"/>
 										<field name="item_text" />
 										<field name="product_uom_qty" string = 'Indent Qty'/>
@@ -507,7 +514,7 @@
             		<field name="for_basis" />
 					<field name="mode_dis" />
 					<field name="freight_term"/>
-					<field name="quotation_ref"/>
+					<!-- <field name="quotation_ref"/>  -->
 					<field name="reason" attrs="{'required':[('state','=','amendement')]}" />
 					<field name="check_amendement" />
 				</xpath>
@@ -564,7 +571,7 @@
 					<field name="product_qty" />
 				</xpath>
 				<xpath expr="//page[@string='PO Line']/field/tree/field[@name='product_qty']" position="after">
-					<field name="state" invisible = '1'/>
+					<field name="state" invisible = '1' required = '0'/>
 				</xpath>
 				<xpath expr="//page[@string='PO Line']/group/field[@name='amount_untaxed']" position="after">
 					<field name="p_f_charge" widget="monetary"/>
@@ -706,6 +713,7 @@
 				<xpath expr="//div[@class='oe_title']" position="inside">
 					<group>
                           <field name="tpt_description"/>
+                          <!-- <field name="onhand_qty"/> -->
                      </group>
 				</xpath>
 				<xpath expr="//field[@name='categ_id']" position="replace">
@@ -1805,13 +1813,15 @@
 		                <field name="categ_id" invisible="1"/>
 		                <field name="type" invisible="1"/>
 		                <field name="variants" groups="product.group_product_variant"/>
+		                <field name="onhand_qty"/>
 		                <field name="uom_id" string="Unit of Measure" groups="product.group_uom"/>
-		                <field name="qty_available" invisible="1"/>
+		                <field name="qty_available" invisible="1"/>		                
 		                <field name="virtual_available" invisible="1"/>
 		                <field name="lst_price"/>
 		                <field name="price" invisible="not context.get('pricelist',False)"/>
 		                <field name="standard_price" invisible="1"/>
-		                <field name="state"/>
+		                <field name="state" invisible="1"/>
+		                
 		                <field name="company_id" groups="base.group_multi_company" invisible="1"/>
 		            </tree>
                 </tree>

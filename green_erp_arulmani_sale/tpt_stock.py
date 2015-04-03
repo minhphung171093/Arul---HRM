@@ -977,6 +977,7 @@ class account_invoice(osv.osv):
         'other_info': fields.text('Other Info', readonly=True, states={'draft':[('readonly',False)]}),
         #TPT
         'street3':fields.char('Street3',size=128),
+        'fsh_grade':fields.char('FSH Grade',size=128),
         'amount_untaxed': fields.function(_amount_all, digits_compute=dp.get_precision('Account'), string='Untaxed Amount',
             store={
                 'account.invoice': (lambda self, cr, uid, ids, c={}: ids, ['invoice_line'], 20),
@@ -1062,6 +1063,34 @@ class account_invoice(osv.osv):
         }
         invoice_ids = self.browse(cr, uid, ids[0])
         if invoice_ids.invoice_type == 'export':
+            if invoice_ids.sale_id.incoterms_id.code =='FOB':
+                return {
+                'type': 'ir.actions.report.xml',
+                'report_name': 'tpt_export_fob_account_invoice',
+#                 'datas': datas,
+#                 'nodestroy' : True
+                }
+            if invoice_ids.sale_id.incoterms_id.code =='CFR':
+                return {
+                'type': 'ir.actions.report.xml',
+                'report_name': 'tpt_export_cfr_account_invoice',
+#                 'datas': datas,
+#                 'nodestroy' : True
+                }
+            if invoice_ids.sale_id.incoterms_id.code =='CIF':
+                return {
+                'type': 'ir.actions.report.xml',
+                'report_name': 'tpt_export_cif_account_invoice',
+#                 'datas': datas,
+#                 'nodestroy' : True
+                }
+            else:
+                return {
+                'type': 'ir.actions.report.xml',
+                'report_name': 'tpt_export_account_invoice',
+#                 'datas': datas,
+#                 'nodestroy' : True
+                }
             return {
                 'type': 'ir.actions.report.xml',
                 'report_name': 'tpt_export_account_invoice',

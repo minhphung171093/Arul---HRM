@@ -47,8 +47,12 @@ class Parser(report_sxw.rml_parse):
             'get_pan':self.get_pan,
             'get_cst':self.get_cst,
             'get_tin':self.get_tin,
-            'c':self.c,
-            'get_app':self.get_app,
+            'c':self.c, 
+            'z':self.z,
+            'get_app':self.get_app, 
+            'get_if_freight_lb':self.get_if_freight_lb,
+            'get_if_freight_amt':self.get_if_freight_amt,
+            'get_cst_lb':self.get_cst_lb,
             
         })
     
@@ -152,7 +156,7 @@ class Parser(report_sxw.rml_parse):
         return round(basic_ed,0)
     
     def get_excise_duty_amt(self,qty,unit_price,ed):        
-        return round(qty*unit_price*ed/100,2)
+        return round(qty*unit_price*ed/100,0)
     
     def get_excise_duty(self, excise_duty_id):
         return round(excise_duty_id,2)
@@ -177,7 +181,8 @@ class Parser(report_sxw.rml_parse):
             #total = round(gross + basic_ed + edu_cess + sec_edu_cess, 2)
             total = round(gross + basic_ed, 2)
             cst = round(total * sale_tax_id / 100,2)
-            total_amount += round(total + cst, 2)
+            freight = line.freight or 0
+            total_amount += round(total + cst + freight, 2)
         return round(total_amount,0)
     def get_subtotal(self,invoice_line,excise_duty_id,sale_tax_id):
         rate = 0.0
@@ -194,7 +199,8 @@ class Parser(report_sxw.rml_parse):
             ed = round((gross*excise_duty_id/100),2)           
             total = gross + ed
             cst = round(total * sale_tax_id / 100,2)
-            total_amount += round(total + cst, 2)
+            freight = line.freight or 0
+            total_amount += round(total + cst + freight, 2)
         return round(total_amount,0)
     def get_range_label(self,invoice):
         if invoice.cons_loca:
@@ -223,6 +229,29 @@ class Parser(report_sxw.rml_parse):
     def c(self,invoice):
         if invoice.cons_loca:   
             return ":"
+    def get_if_freight_lb(self,freight):
+        if freight>0:
+            return "Freight"
+        else:
+            return "     "
+    def z(self,freight):
+        if freight>0:
+            return "0"
+        else:
+            return " "
+    def get_if_freight_amt(self,freight):
+        if freight>0:
+            return round(freight)   
+        
+    
+    def get_cst_lb(self,tax_code):
+        #raise osv.except_osv(_('Warning!%s'),tax_code[:2])
+        if tax_code[:3]=='CST':
+            return "CST" 
+        if tax_code[:3]=='VAT':
+            return "VAT"  
+        if tax_code[:3]=='TCS':
+            return "TCS" 
     def get_app(self, obj):       
         if obj:
             app = ''
