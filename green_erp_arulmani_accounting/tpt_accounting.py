@@ -963,11 +963,11 @@ class account_invoice_line(osv.osv):
         cr.execute('SELECT * FROM account_invoice_line WHERE invoice_id=%s', (invoice_id,))
         for t in cr.dictfetchall():
             sql = '''
-            SELECT purchase_acc_id FROM product_product WHERE id=%s and purchase_acc_id is not null
+            SELECT sale_acc_id FROM product_product WHERE id=%s and sale_acc_id is not null
             '''%(t['product_id'])
             cr.execute(sql)
-            purchase_acc_id = cr.dictfetchone()
-            if not purchase_acc_id:
+            sale_acc_id = cr.dictfetchone()
+            if not sale_acc_id:
                 raise osv.except_osv(_('Warning!'),_('Account is not null, please configure it in Material master !'))
             res.append({
                 'type':'tax',
@@ -975,7 +975,7 @@ class account_invoice_line(osv.osv):
                 'price_unit': t['price_unit'],
                 'quantity': 1,
                 'price': t['price_unit']*t['quantity'],
-                'account_id': purchase_acc_id and purchase_acc_id['purchase_acc_id'] or False,
+                'account_id': sale_acc_id and sale_acc_id['sale_acc_id'] or False,
                 'account_analytic_id': t['account_analytic_id'],
             })
         return res
