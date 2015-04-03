@@ -984,20 +984,24 @@ class account_invoice_line(osv.osv):
                 })
         return res
      
-    def move_line_customer_product_price(self, cr, uid, invoice_id):
+    def move_line_customer_product_price(self, cr, uid, invoice_id, context = None):
         res = []
         account = False
+        if context is None:
+            context = {}
+        ctx = context.copy()
+        ctx.update({'date': time.strftime('%Y-%m-%d')})
         voucher_rate = 1
         inv_id = self.pool.get('account.invoice').browse(cr, uid, invoice_id)
         if inv_id:
-            channel = inv_id.delivery_order_id and inv_id.delivery_order_id.sale_id and inv_id.delivery_order_id.sale_id.distribution_channel or False
+            channel = inv_id.delivery_order_id and inv_id.delivery_order_id.sale_id and inv_id.delivery_order_id.sale_id.distribution_channel and inv_id.delivery_order_id.sale_id.distribution_channel.name or False
             currency = inv_id.currency_id.name
             currency_id = inv_id.currency_id.id
         cr.execute('SELECT * FROM account_invoice_line WHERE invoice_id=%s', (invoice_id,))
         for t in cr.dictfetchall():
             product_id = self.pool.get('product.product').browse(cr, uid, t['product_id'])
             name = product_id.name or False
-            account = self.get_pro_account_id(cr,uid,product_name,dis_channel)
+            account = self.get_pro_account_id(cr,uid,name,channel)
             if not account:
                 sql = '''
                 SELECT sale_acc_id FROM product_product WHERE id=%s and sale_acc_id is not null
@@ -1021,9 +1025,13 @@ class account_invoice_line(osv.osv):
                 'account_analytic_id': t['account_analytic_id'],
             })
         return res
-    def move_line_customer_excise_duty(self, cr, uid, invoice_id):
+    def move_line_customer_excise_duty(self, cr, uid, invoice_id, context = None):
         res = []
         voucher_rate = 1
+        if context is None:
+            context = {}
+        ctx = context.copy()
+        ctx.update({'date': time.strftime('%Y-%m-%d')})
         inv_id = self.pool.get('account.invoice').browse(cr, uid, invoice_id)
         if inv_id:
             currency = inv_id.currency_id.name or False
@@ -1054,9 +1062,13 @@ class account_invoice_line(osv.osv):
                     'account_analytic_id': line.account_analytic_id.id,
                 })
         return res  
-    def move_line_amount_tax(self, cr, uid, invoice_id):
+    def move_line_amount_tax(self, cr, uid, invoice_id, context = None):
         res = []
         voucher_rate = 1
+        if context is None:
+            context = {}
+        ctx = context.copy()
+        ctx.update({'date': time.strftime('%Y-%m-%d')})
         inv_id = self.pool.get('account.invoice').browse(cr, uid, invoice_id)
         if inv_id:
             currency = inv_id.currency_id.name or False
@@ -1116,9 +1128,13 @@ class account_invoice_line(osv.osv):
             break
         return res
     
-    def move_line_customer_amount_tax(self, cr, uid, invoice_id):
+    def move_line_customer_amount_tax(self, cr, uid, invoice_id, context = None):
         res = []
         voucher_rate = 1
+        if context is None:
+            context = {}
+        ctx = context.copy()
+        ctx.update({'date': time.strftime('%Y-%m-%d')})
         inv_id = self.pool.get('account.invoice').browse(cr, uid, invoice_id)
         if inv_id:
             currency = inv_id.currency_id.name or False
@@ -1187,9 +1203,13 @@ class account_invoice_line(osv.osv):
                     break
             break
         return res 
-    def move_line_customer_fright(self, cr, uid, invoice_id):
+    def move_line_customer_fright(self, cr, uid, invoice_id, context = None):
         res = []
         voucher_rate = 1
+        if context is None:
+            context = {}
+        ctx = context.copy()
+        ctx.update({'date': time.strftime('%Y-%m-%d')})
         inv_id = self.pool.get('account.invoice').browse(cr, uid, invoice_id)
         if inv_id:
             currency = inv_id.currency_id.name or False

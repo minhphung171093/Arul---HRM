@@ -438,6 +438,10 @@ class account_invoice(osv.osv):
                 val3 = 0.0
                 freight = 0.0
                 voucher_rate = 1
+                if context is None:
+                    context = {}
+                ctx = context.copy()
+                ctx.update({'date': time.strftime('%Y-%m-%d')})
                 currency = line.currency_id.name or False
                 currency_id = line.currency_id.id or False
                 if currency != 'INR':
@@ -446,6 +450,7 @@ class account_invoice(osv.osv):
                     freight += invoiceline.freight
                     val1 += invoiceline.price_subtotal
                     val2 += invoiceline.price_subtotal * (line.sale_tax_id.amount and line.sale_tax_id.amount / 100 or 0)
+                    val2 = round(val2,2)
     #                 val3 = val1 + val2 + freight
                 res[line.id]['amount_untaxed'] = val1
                 res[line.id]['amount_tax'] = val2
