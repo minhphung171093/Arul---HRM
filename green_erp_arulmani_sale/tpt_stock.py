@@ -924,11 +924,17 @@ class account_invoice(osv.osv):
                 'amount_untaxed': 0.0,
                 'amount_tax': 0.0,
                 'amount_total': 0.0,
+                'amount_total_inr': 0.0,
             }
             val1 = 0.0
             val2 = 0.0
             val3 = 0.0
             freight = 0.0
+            voucher_rate = 1
+            currency = line.currency_id.name or False
+            currency_id = line.currency_id.id or False
+            if currency != 'INR':
+                voucher_rate = self.pool.get('res.currency').read(cr, uid, currency_id, ['rate'], context=ctx)['rate']
             for invoiceline in line.invoice_line:
                 freight += invoiceline.freight
                 val1 += invoiceline.price_subtotal
@@ -937,6 +943,7 @@ class account_invoice(osv.osv):
             res[line.id]['amount_untaxed'] = round(val1)
             res[line.id]['amount_tax'] = round(val2)
             res[line.id]['amount_total'] = round(val1+val2+freight)
+            res[line.id]['amount_total_inr'] = round((val1+val2+freight)*voucher_rate)
             for taxline in line.tax_line:
                 sql='''
                     update account_invoice_tax set amount=%s where id=%s
@@ -998,6 +1005,12 @@ class account_invoice(osv.osv):
             },
             multi='sums', help="The tax amount."),
         'amount_total': fields.function(_amount_all, digits_compute=dp.get_precision('Account'), string='Total',
+            store={
+                'account.invoice': (lambda self, cr, uid, ids, c={}: ids, ['invoice_line'], 20),
+                'account.invoice.line': (_get_invoice_line, ['price_unit','invoice_line_tax_id','quantity','discount','invoice_id'], 20),
+            },
+            multi='sums', help="The total amount."),
+        'amount_total_inr': fields.function(_amount_all, digits_compute=dp.get_precision('Account'), string='Total (INR)',
             store={
                 'account.invoice': (lambda self, cr, uid, ids, c={}: ids, ['invoice_line'], 20),
                 'account.invoice.line': (_get_invoice_line, ['price_unit','invoice_line_tax_id','quantity','discount','invoice_id'], 20),
