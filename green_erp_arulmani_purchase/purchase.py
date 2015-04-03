@@ -1753,7 +1753,7 @@ class purchase_order(osv.osv):
 #                 amount_total_tax += basic*tax
                 amount_total_tax = (basic + p_f + ed + fright )*(tax) #Trong them + frieght vao ham tinh Tax
                 total_tax += amount_total_tax
-
+                
             res[line.id]['amount_untaxed'] = amount_untaxed
             res[line.id]['p_f_charge'] = p_f_charge
             res[line.id]['excise_duty'] = excise_duty
