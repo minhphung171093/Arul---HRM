@@ -223,7 +223,8 @@
 					<field name="port_of_loading_id" options="{'create': false, 'create_edit': false}"/>
 					-->
 					<field name="mark_container_no" />
-					<field name="insurance" />
+					<field name="insurance" /> 
+					<field name="other_charges" /> 
 					
 					<group attrs="{'invisible': [('invoice_type', '=', 'export') ] }" colspan="2" >
 					

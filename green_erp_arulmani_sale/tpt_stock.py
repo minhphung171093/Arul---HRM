@@ -974,6 +974,7 @@ class account_invoice(osv.osv):
         
         'mark_container_no': fields.char('Marks & No Container No.', size = 1024, readonly=True, states={'draft':[('readonly',False)]}),
         'insurance': fields.float('Insurance in KGS', readonly=True, states={'draft':[('readonly',False)]}),
+        'other_charges': fields.float('Other Charges in KGS', readonly=True, states={'draft':[('readonly',False)]}),
         'pre_carriage_by': fields.selection([('sea','Sea')],'Pre Carriage By', readonly=True, states={'draft':[('readonly',False)]}),
         
         #TPT - By BalamuruganPurushothaman on 28/02/2015- The following are used for Domestic Invoice Print
