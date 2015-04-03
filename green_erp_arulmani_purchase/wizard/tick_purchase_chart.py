@@ -73,12 +73,12 @@ class tick_purchase_chart(osv.osv_memory):
                     'state_id':chart.supplier_id.state_id and chart.supplier_id.state_id.id,
                     'invoice_method': 'picking',
                     #TPT START
-                    'mode_dis': chart.mode_dis or '',
-                    'freight_term': chart.freight_term or '',
+                    'mode_dis': chart.mode_dis or False,
+                    'freight_term': chart.freight_term or False,
                     #'quotation_ref': chart.quotation_ref or '',
-                    'for_basis': chart.for_basis or '',
-                    'deli_sche': chart.schedule or '',
-                    'payment_term_id':chart.payment_term_id and chart.payment_term_id.id or '',
+                    'for_basis': chart.for_basis or False,
+                    'deli_sche': chart.schedule or False,
+                    'payment_term_id':chart.payment_term_id and chart.payment_term_id.id or False,
                      #TPT END
                     
 #                         'po_indent_no':line.po_indent_id.id,

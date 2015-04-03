@@ -219,7 +219,9 @@
 					<field name="excise_duty_id" options="{'create': false, 'create_edit': false}" domain="[('type_tax_use','=','excise_duty')]"/>
 					<field name="doc_status" readonly='1'/>
 					<field name="pre_carriage_by" />
+					<!--  
 					<field name="port_of_loading_id" options="{'create': false, 'create_edit': false}"/>
+					-->
 					<field name="mark_container_no" />
 					<field name="insurance" />
 					
@@ -253,10 +255,11 @@
 					<field name="payment_term" options="{'create': false, 'create_edit': false}"/>
 					<field name="sale_tax_id" domain="[('type_tax_use','=','sale')]" options="{'create': false, 'create_edit': false}"/>
 					<field name="invoice_type" required ='1'/>
-					<field name="vessel_flight_no" />										
-					<field name="port_of_discharge_id" options="{'create': false, 'create_edit': false}"/>
-					
-					
+					<field name="vessel_flight_no" />	
+					<field name="lc_no" />									
+					<field name="port_of_discharge_id" options="{'create': false, 'create_edit': false}"/>	
+					<field name="final_desti" />				
+					<field name="disc_goods" />	
 					
 					
 				</xpath>

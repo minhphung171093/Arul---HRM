@@ -968,8 +968,10 @@ class account_invoice(osv.osv):
         'doc_status':fields.selection([('draft','Drafted'),('waiting','Waiting for Approval'),('completed','Completed'),('cancelled','Cancelled')],'Document Status'),
         'invoice_type':fields.selection([ ('domestic','Domestic/Indirect Export'), ('export','Export'), ],'Invoice Type', readonly=True, states={'draft':[('readonly',False)]}),
         'vessel_flight_no': fields.char('Vessel/Flight No.', size = 1024),
-        'port_of_loading_id': fields.many2one('res.country','Port Of Loading', readonly=True, states={'draft':[('readonly',False)]}),
-        'port_of_discharge_id': fields.many2one('res.country','Port Of Discharge', readonly=True, states={'draft':[('readonly',False)]}),
+        
+        #'port_of_loading_id': fields.many2one('res.country','Port Of Loading', readonly=True, states={'draft':[('readonly',False)]}),
+        #'port_of_discharge_id': fields.many2one('res.country','Port Of Discharge', readonly=True, states={'draft':[('readonly',False)]}),
+        
         'mark_container_no': fields.char('Marks & No Container No.', size = 1024, readonly=True, states={'draft':[('readonly',False)]}),
         'insurance': fields.float('Insurance in KGS', readonly=True, states={'draft':[('readonly',False)]}),
         'pre_carriage_by': fields.selection([('sea','Sea')],'Pre Carriage By', readonly=True, states={'draft':[('readonly',False)]}),
@@ -982,6 +984,11 @@ class account_invoice(osv.osv):
         'rem_date_as_char':fields.char('Date & Time of Rem.Of Goods',readonly=True, states={'draft':[('readonly',False)]}),
         'material_info': fields.text('Material Additional Info',readonly=True, states={'draft':[('readonly',False)]}),
         'other_info': fields.text('Other Info', readonly=True, states={'draft':[('readonly',False)]}),
+        'lc_no': fields.char('L.C Number.', size = 1024, readonly=True, states={'draft':[('readonly',False)]}),
+        'port_of_loading_id': fields.char('Port Of Loading', size = 1024, readonly=True, states={'draft':[('readonly',False)]}),
+        'port_of_discharge_id': fields.char('Port Of Discharge', size = 1024, readonly=True, states={'draft':[('readonly',False)]}),
+        'disc_goods': fields.text('Disciption Of Goods', size = 1024, readonly=True, states={'draft':[('readonly',False)]}),
+        'final_desti': fields.char('Final Destination', size = 1024, readonly=True, states={'draft':[('readonly',False)]}),
         #TPT
         'street3':fields.char('Street3',size=128),
         'fsh_grade':fields.char('FSH Grade',size=128),
