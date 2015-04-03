@@ -725,39 +725,54 @@ class product_product(osv.osv):
             if context.get('document_type'):
                 if context.get('document_type')=='raw':
                     sql = '''
-                        select id from product_product where id in(select id from product_category where cate_name = 'raw') and id in (select id from product_template where purchase_ok = True)
+                            select product_product.id 
+                            from product_product,product_template 
+                            where product_template.categ_id in(select product_category.id from product_category where product_category.cate_name = 'raw') 
+                            and product_product.id = product_template.id and product_template.purchase_ok = True;
                     '''
                     cr.execute(sql)
                     pur_ids = [row[0] for row in cr.fetchall()]
                     args += [('id','in',pur_ids)]
-                if context.get('document_type')=='consumable':
+                elif context.get('document_type')=='consumable':
                     sql = '''
-                        select id from product_product where id in(select id from product_category where cate_name = 'consum') and id in (select id from product_template where purchase_ok = True)
+                        select product_product.id 
+                        from product_product,product_template 
+                        where product_template.categ_id in(select product_category.id from product_category where product_category.cate_name = 'consum') 
+                        and product_product.id = product_template.id and product_template.purchase_ok = True;
+ 
                     '''
                     cr.execute(sql)
                     pur_ids = [row[0] for row in cr.fetchall()]
                     args += [('id','in',pur_ids)]
-                if context.get('document_type')=='spare':
+                elif context.get('document_type')=='spare':
                     sql = '''
-                        select id from product_product where id in(select id from product_category where cate_name = 'spares') and id in (select id from product_template where purchase_ok = True)
+                                               select product_product.id 
+                        from product_product,product_template 
+                        where product_template.categ_id in(select product_category.id from product_category where product_category.cate_name = 'spares') 
+                        and product_product.id = product_template.id and product_template.purchase_ok = True;
+                     
                     '''
                     cr.execute(sql)
                     pur_ids = [row[0] for row in cr.fetchall()]
                     args += [('id','in',pur_ids)]
-                if context.get('document_type')=='capital':
+                elif context.get('document_type')=='capital':
                     sql = '''
-                        select id from product_product where id in(select id from product_category where cate_name = 'assets') and id in (select id from product_template where purchase_ok = True)
+                        select product_product.id 
+                        from product_product,product_template 
+                        where product_template.categ_id in(select product_category.id from product_category where product_category.cate_name = 'assets') 
+                        and product_product.id = product_template.id and product_template.purchase_ok = True;
+ 
                     '''
                     cr.execute(sql)
                     pur_ids = [row[0] for row in cr.fetchall()]
                     args += [('id','in',pur_ids)]
-                if context.get('document_type') not in ('capital' or 'spare' or 'consumable' or 'raw' ):
-                    sql = '''
-                        select id from product_product where id in (select id from product_template where purchase_ok = True)
-                    '''
-                    cr.execute(sql)
-                    pur_ids = [row[0] for row in cr.fetchall()]
-                    args += [('id','in',pur_ids)]
+                else:
+                        sql = '''
+                           select product_product.id from product_product,product_template where product_product.id = product_template.id and product_template.purchase_ok = True
+                        '''
+                        cr.execute(sql)
+                        pur_ids = [row[0] for row in cr.fetchall()]
+                        args += [('id','in',pur_ids)]
 
         return super(product_product, self).search(cr, uid, args, offset=offset, limit=limit, order=order, context=context, count=count)
     
