@@ -257,7 +257,8 @@
 					<field name="invoice_type" required ='1'/>
 					<field name="vessel_flight_no" />	
 					<field name="lc_no" />									
-					<field name="port_of_discharge_id" options="{'create': false, 'create_edit': false}"/>					
+					<field name="port_of_discharge_id" options="{'create': false, 'create_edit': false}"/>	
+					<field name="final_desti" />				
 					<field name="disc_goods" />	
 					
 					
