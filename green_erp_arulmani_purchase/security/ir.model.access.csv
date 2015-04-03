@@ -110,6 +110,6 @@ access_vvti_purchase_98,tpt.purchase.quotation.line,green_erp_arulmani_purchase.
 access_vvti_purchase_99,tpt.purchase.indent,green_erp_arulmani_purchase.model_tpt_purchase_indent,green_erp_arulmani_purchase.group_vvti_purchase_store_user,True,False,False,False
 
 access_vvti_purchase_100,tpt.project,green_erp_arulmani_purchase.model_tpt_project,purchase.group_purchase_user,True,True,True,False
-access_vvti_purchase_101,tpt.project.section,green_erp_arulmani_purchase.model_tpt_project,purchase.group_purchase_user,True,True,True,False
-access_vvti_purchase_100,tpt.project,green_erp_arulmani_purchase.model_tpt_project,base.group_user,True,True,True,False
-access_vvti_purchase_101,tpt.project.section,green_erp_arulmani_purchase.model_tpt_project,base.group_user,True,True,True,False
+access_vvti_purchase_101,tpt.project.section,green_erp_arulmani_purchase.model_tpt_project_section,purchase.group_purchase_user,True,True,True,False
+access_vvti_purchase_102,tpt.project,green_erp_arulmani_purchase.model_tpt_project,base.group_user,True,True,True,False
+access_vvti_purchase_103,tpt.project.section,green_erp_arulmani_purchase.model_tpt_project_section,base.group_user,True,True,True,False
