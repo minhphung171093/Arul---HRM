@@ -975,6 +975,7 @@ class account_invoice(osv.osv):
         'rem_date_as_char':fields.char('Date & Time of Rem.Of Goods',readonly=True, states={'draft':[('readonly',False)]}),
         'material_info': fields.text('Material Additional Info',readonly=True, states={'draft':[('readonly',False)]}),
         'other_info': fields.text('Other Info', readonly=True, states={'draft':[('readonly',False)]}),
+        'lc_no': fields.char('L.C Number.', size = 1024, readonly=True, states={'draft':[('readonly',False)]}),
         #TPT
         'street3':fields.char('Street3',size=128),
         'fsh_grade':fields.char('FSH Grade',size=128),
