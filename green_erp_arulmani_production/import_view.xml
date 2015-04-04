@@ -1,0 +1,192 @@
+<?xml version="1.0" encoding="utf-8"?>
+<openerp>
+    <data>
+    	<record id="tpt_import_batch_anatase_tree_view" model="ir.ui.view">
+			<field name="name">tpt.import.batch.anatase.tree</field>
+			<field name="model">tpt.import.batch.anatase</field>
+			<field name="arch" type="xml">
+				<tree string="Import Batch for TIO2 Anatase">
+					<field name ="name"/>
+					<field name="state"/>
+				</tree>
+			</field>
+		</record>
+
+		<record id="tpt_import_batch_anatase_form_view" model="ir.ui.view">
+            <field name="name">tpt.import.batch.anatase.form</field>
+            <field name="model">tpt.import.batch.anatase</field>
+            <field name="arch" type="xml">
+                <form string="Import Batch for TIO2 Anatase" version="7.0">
+                    <header>
+	                    <button name="import_batch_anatase" states='draft' string="Import" type="object" class="oe_highlight" />
+	                    <field name="state" widget="statusbar" statusbar_visible="draft,done" statusbar_colors='{"draft":"blue","done":"blue"}'/>
+	                </header>                
+                	<sheet>  
+                		<group>
+                		<field name ="name"/>
+						<label for="datas" string="Data Upload Field"/>
+							<div>
+								<field name="datas" filename="datas_fname"/>
+	                        	<field name="datas_fname" invisible="1" class="oe_inline oe_right"/>
+	                        </div>
+                		</group>
+                	</sheet>
+				</form>
+			</field>
+		</record>
+
+        <record id="action_tpt_import_batch_anatase_form_view" model="ir.actions.act_window">
+            <field name="name">Import Batch Anatase</field>
+			<field name="type">ir.actions.act_window</field>
+            <field name="res_model">tpt.import.batch.anatase</field>
+            <field name="view_type">form</field>
+            <field name="view_mode">tree,form</field>
+            <field name="view_id" ref="tpt_import_batch_anatase_tree_view"/>
+        </record>
+        
+        <menuitem action="action_tpt_import_batch_anatase_form_view"
+            id="menu_action_tpt_import_batch_anatase_form_view"
+            parent="mrp.menu_mrp_manufacturing" sequence="32"/>
+            
+        <record id="tpt_import_inventory_anatase_tree_view" model="ir.ui.view">
+			<field name="name">tpt.import.inventory.anatase.tree</field>
+			<field name="model">tpt.import.inventory.anatase</field>
+			<field name="arch" type="xml">
+				<tree string="Import Inventory for TIO2 Anatase">
+					<field name ="name"/>
+					<field name="state"/>
+				</tree>
+			</field>
+		</record>
+
+		<record id="tpt_import_inventory_anatase_form_view" model="ir.ui.view">
+            <field name="name">tpt.import.inventory.anatase</field>
+            <field name="model">tpt.import.inventory.anatase</field>
+            <field name="arch" type="xml">
+                <form string="Import Inventory for TIO2 Anatase" version="7.0">
+                    <header>
+	                    <button name="import_inventory_anatase" states='draft' string="Import" type="object" class="oe_highlight" />
+	                    <field name="state" widget="statusbar" statusbar_visible="draft,done" statusbar_colors='{"draft":"blue","done":"blue"}'/>
+	                </header>                
+                	<sheet>  
+                		<group>
+                		<field name ="name"/>
+						<label for="datas" string="Data Upload Field"/>
+							<div>
+								<field name="datas" filename="datas_fname"/>
+	                        	<field name="datas_fname" invisible="1" class="oe_inline oe_right"/>
+	                        </div>
+                		</group>
+                	</sheet>
+				</form>
+			</field>
+		</record>
+
+        <record id="action_tpt_import_inventory_anatase_form_view" model="ir.actions.act_window">
+            <field name="name">Import Inventory Anatase</field>
+			<field name="type">ir.actions.act_window</field>
+            <field name="res_model">tpt.import.inventory.anatase</field>
+            <field name="view_type">form</field>
+            <field name="view_mode">tree,form</field>
+            <field name="view_id" ref="tpt_import_inventory_anatase_tree_view"/>
+        </record>
+        
+        <menuitem action="action_tpt_import_inventory_anatase_form_view"
+            id="menu_action_tpt_import_inventory_anatase_form_view"
+            parent="mrp.menu_mrp_manufacturing" sequence="33"/>
+            
+        <record id="tpt_import_batch_rutile_tree_view" model="ir.ui.view">
+			<field name="name">tpt.import.batch.rutile.tree</field>
+			<field name="model">tpt.import.batch.rutile</field>
+			<field name="arch" type="xml">
+				<tree string="Import Batch for TIO2 Rutile">
+					<field name ="name"/>
+					<field name="state"/>
+				</tree>
+			</field>
+		</record>
+
+		<record id="tpt_import_batch_rutile_form_view" model="ir.ui.view">
+            <field name="name">tpt.import.batch.rutile.form</field>
+            <field name="model">tpt.import.batch.rutile</field>
+            <field name="arch" type="xml">
+                <form string="Import Batch for TIO2 Rutile" version="7.0">
+                    <header>
+	                    <button name="import_batch_rutile" states='draft' string="Import" type="object" class="oe_highlight" />
+	                    <field name="state" widget="statusbar" statusbar_visible="draft,done" statusbar_colors='{"draft":"blue","done":"blue"}'/>
+	                </header>                
+                	<sheet>  
+                		<group>
+                		<field name ="name"/>
+						<label for="datas" string="Data Upload Field"/>
+							<div>
+								<field name="datas" filename="datas_fname"/>
+	                        	<field name="datas_fname" invisible="1" class="oe_inline oe_right"/>
+	                        </div>
+                		</group>
+                	</sheet>
+				</form>
+			</field>
+		</record>
+
+        <record id="action_tpt_import_batch_rutile_form_view" model="ir.actions.act_window">
+            <field name="name">Import Batch Rutile</field>
+			<field name="type">ir.actions.act_window</field>
+            <field name="res_model">tpt.import.batch.rutile</field>
+            <field name="view_type">form</field>
+            <field name="view_mode">tree,form</field>
+            <field name="view_id" ref="tpt_import_batch_rutile_tree_view"/>
+        </record>
+        
+        <menuitem action="action_tpt_import_batch_rutile_form_view"
+            id="menu_action_tpt_import_batch_rutile_form_view"
+            parent="mrp.menu_mrp_manufacturing" sequence="34"/>
+            
+        <record id="tpt_import_inventory_rutile_tree_view" model="ir.ui.view">
+			<field name="name">tpt.import.inventory.rutile.tree</field>
+			<field name="model">tpt.import.inventory.rutile</field>
+			<field name="arch" type="xml">
+				<tree string="Import Inventory for TIO2 Rutile">
+					<field name ="name"/>
+					<field name="state"/>
+				</tree>
+			</field>
+		</record>
+
+		<record id="tpt_import_inventory_rutile_form_view" model="ir.ui.view">
+            <field name="name">tpt.import.inventory.rutile</field>
+            <field name="model">tpt.import.inventory.rutile</field>
+            <field name="arch" type="xml">
+                <form string="Import Inventory for TIO2 Rutile" version="7.0">
+                    <header>
+	                    <button name="import_inventory_rutile" states='draft' string="Import" type="object" class="oe_highlight" />
+	                    <field name="state" widget="statusbar" statusbar_visible="draft,done" statusbar_colors='{"draft":"blue","done":"blue"}'/>
+	                </header>                
+                	<sheet>  
+                		<group>
+                		<field name ="name"/>
+						<label for="datas" string="Data Upload Field"/>
+							<div>
+								<field name="datas" filename="datas_fname"/>
+	                        	<field name="datas_fname" invisible="1" class="oe_inline oe_right"/>
+	                        </div>
+                		</group>
+                	</sheet>
+				</form>
+			</field>
+		</record>
+
+        <record id="action_tpt_import_inventory_rutile_form_view" model="ir.actions.act_window">
+            <field name="name">Import Inventory Rutile</field>
+			<field name="type">ir.actions.act_window</field>
+            <field name="res_model">tpt.import.inventory.rutile</field>
+            <field name="view_type">form</field>
+            <field name="view_mode">tree,form</field>
+            <field name="view_id" ref="tpt_import_inventory_rutile_tree_view"/>
+        </record>
+        
+        <menuitem action="action_tpt_import_inventory_rutile_form_view"
+            id="menu_action_tpt_import_inventory_rutile_form_view"
+            parent="mrp.menu_mrp_manufacturing" sequence="35"/>
+    </data>
+</openerp>

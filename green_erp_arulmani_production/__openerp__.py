@@ -33,6 +33,7 @@
         'production_sequence.xml',
         'tpt_production_view.xml',
         'menu_inherit_view.xml',
+        'import_view.xml',
     ],
     'css' : [
     ],

@@ -543,6 +543,8 @@
 	            			<field name="phy_batch_no" required = '1'/>
 	            			<field name="name"/>
 	            			<field name="applicable_id" required="1" on_change = "onchange_applicable_id(applicable_id)" domain="[('product_id','=',product_id)]" options="{'create': false, 'create_edit': false}" />
+	            			<field name="location"/>
+	            			<field name="weight"/>
 	            		</group>
 	            		</group>
 	            		<notebook>

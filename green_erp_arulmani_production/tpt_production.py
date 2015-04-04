@@ -404,7 +404,7 @@ tpt_activities()
 class crm_application(osv.osv):
     _inherit = 'crm.application'
     _columns = {
-        'product_id': fields.many2one('product.product', 'Product', required = True),
+        'product_id': fields.many2one('product.product', 'Product',required=False),
         'application_line': fields.one2many('crm.application.line', 'application_id', 'Application Line'),
     }
     _defaults = {
@@ -1271,6 +1271,9 @@ class tpt_quality_verification(osv.osv):
         'name':fields.datetime('Created Date',readonly=True),
         'batch_quality_line':fields.one2many('crm.application.line', 'batch_verifi_id','Batch Quality', states={ 'done':[('readonly', True)]}),
         'applicable_id':fields.many2one('crm.application','Applicable for', states={ 'done':[('readonly', True)]}),
+        'phy_batch_no': fields.char('Physical Batch No', size=100, states={ 'done':[('readonly', True)]}),
+        'location': fields.char('Location', size=100, states={ 'done':[('readonly', True)]}),
+        'weight': fields.char('Weight', size=100, states={ 'done':[('readonly', True)]}),
         'state':fields.selection([('draft', 'Draft'),('done', 'Updated')],'Status', readonly=True),
     }
     _defaults={
