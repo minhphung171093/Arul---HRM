@@ -670,6 +670,23 @@ class stock_picking(osv.osv):
                     'context': context,
                     'nodestroy': True,
                 }
+            #TPT SATRT
+            if not picking.flag_confirm and limit == 0 and picking.sale_id and picking.sale_id.payment_term_id.name in ['Immediate Payment','Immediate']:
+                sql = '''
+                    update stock_picking set doc_status='waiting' where id = %s
+                    '''%(picking.id)
+                cr.execute(sql)
+                context.update({'default_name':'Not able to process DO due to credit limit is 0. Need management approval to proceed further!'})
+                return {
+                    'view_type': 'form',
+                    'view_mode': 'form',
+                    'res_model': 'alert.warning.form',
+                    'type': 'ir.actions.act_window',
+                    'target': 'new',
+                    'context': context,
+                    'nodestroy': True,
+                    }
+            
             # TPT COMMENTED - By BalamuruganPurushothaman    
             #===================================================================
             # if not picking.flag_confirm and limit == 0 and used == 0:

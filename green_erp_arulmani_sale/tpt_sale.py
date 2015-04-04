@@ -684,7 +684,22 @@ class sale_order(osv.osv):
                         picking_id = new_picking_id
                 if first_picking_id:
                     for line in picking_out_obj.browse(cr, uid, first_picking_id).move_lines:
-                        stock_move_obj.write(cr, uid, [line.id], {'product_type':line.sale_line_id.product_type,'application_id':line.sale_line_id.application_id and line.sale_line_id.application_id.id or False})
+                        ###TPT START - By BalamuruganPurushothaman ON 4/4/2014 - TO SET SYSTEM BATCH NO BY DEFAULT
+                        ### FOR FSH PRODUCT
+                        sql = '''
+                            select id from stock_production_lot where product_id = (select id from product_product where default_code = 'M0501010002')
+                            and application_id = %s
+                        '''%(line.sale_line_id.application_id.id)
+                        cr.execute(sql)
+                        fsh_prod_lot = cr.fetchone()
+                        if fsh_prod_lot:
+                            stock_move_obj.write(cr, uid, [line.id], {'product_type':line.sale_line_id.product_type,
+                                                                      'application_id':line.sale_line_id.application_id and line.sale_line_id.application_id.id or False, 
+                                                                      'prodlot_id':fsh_prod_lot})
+                        else:
+                            stock_move_obj.write(cr, uid, [line.id], {'product_type':line.sale_line_id.product_type,'application_id':line.sale_line_id.application_id and line.sale_line_id.application_id.id or False})
+                        ###TPT END
+                        #stock_move_obj.write(cr, uid, [line.id], {'product_type':line.sale_line_id.product_type,'application_id':line.sale_line_id.application_id and line.sale_line_id.application_id.id or False})
         return True
     
 sale_order()
