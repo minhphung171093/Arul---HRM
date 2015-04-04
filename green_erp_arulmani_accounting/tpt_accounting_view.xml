@@ -53,6 +53,7 @@
 										<field name="sup_inv_pf_id" options="{'create': false, 'create_edit': false}"/>
 										<field name="sup_inv_fright_id" options="{'create': false, 'create_edit': false}"/>
 										<field name="sup_inv_price_id" options="{'create': false, 'create_edit': false}"/>
+										<field name="sup_tds_id" options="{'create': false, 'create_edit': false}"/>
 								</group>
 								<group col="4" colspan="2" attrs="{'invisible': [('name', '!=', 'sup_pay')]}" >
 										<field name="sup_pay_bank_id" options="{'create': false, 'create_edit': false}"/>
@@ -297,6 +298,8 @@
                     <field name="period_id" invisible="1" groups="account.group_account_user"/>
                     <field name="company_id" groups="base.group_multi_company" widget="selection"/>
                     <field name="user_id"/>
+                    <field name="is_tds_applicable"/>
+                    <field name="tds_id" options="{'create': false, 'create_edit': false}"/>
                     <field name="date_due"/>
                     <field name="origin"/>
                     <field name="currency_id" groups="base.group_multi_currency"/>
@@ -340,6 +343,8 @@
                               context="{'default_customer': 0, 'search_default_supplier': 1, 'default_supplier': 1}"
                               domain="[('supplier', '=', True)]" options="{'create': false, 'create_edit': false}"/>
                             <field name="vendor_ref"/>
+                            <field name="is_tds_applicable"/>
+                            <field name="tds_id" attrs="{'invisible': [('is_tds_applicable','=',False)]}" options="{'create': false, 'create_edit': false}"/>
                             <field name="create_uid" options="{'create': false, 'create_edit': false}"/>
                             <field name="fiscal_position" widget="selection" invisible = '1'/>
                             <field name="origin" invisible = '1'/>
@@ -371,7 +376,7 @@
                                     <field name="account_id" string = 'GL Account' options="{'create': false, 'create_edit': false}" groups="account.group_account_user" />
                                     <field name="product_id" invisible = '1'
                                         on_change="product_id_change(product_id, uos_id, quantity, name, parent.type, parent.partner_id, parent.fiscal_position, price_unit, parent.currency_id, context, parent.company_id)"/>
-                                    <!--<field name="name"/>-->
+                                    <field name="name" required = '0' invisible="1"/>
                                     <field name="company_id" invisible="1"/>
                                     <field name="account_analytic_id" invisible="1" groups="analytic.group_analytic_accounting"
                                         domain="[('type','!=','view'), ('company_id', '=', parent.company_id)]"/>

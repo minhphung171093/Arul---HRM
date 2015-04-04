@@ -9,6 +9,7 @@ from openerp.report import report_sxw
 from openerp import pooler
 from openerp.osv import osv
 from openerp.tools.translate import _
+from amount_to_text_indian import Number2Words
 import random
 DATETIME_FORMAT = "%Y-%m-%d %H:%M:%S"
 DATE_FORMAT = "%Y-%m-%d"
@@ -40,9 +41,15 @@ class Parser(report_sxw.rml_parse):
         date = datetime.strptime(date, DATE_FORMAT)
         return date.strftime('%d/%m/%Y')  
 
-    def amount_to_text(self, nbr, lang='en'):
+    '''def amount_to_text(self, nbr, lang='en'):
         if lang == 'en':
             return amount_to_text_en.amount_to_text(nbr, lang, 'inr').upper()
+            '''
+    def amount_to_text(self, number):
+        text = Number2Words().convertNumberToWords(number).upper()
+        if text and len(text)>3 and text[:3]=='AND':
+            text = text[3:]
+        return text
 
     def get_edu_cess(self, basic_excise_duty):
         ecess = 0.0

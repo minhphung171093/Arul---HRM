@@ -462,56 +462,123 @@ class account_invoice(osv.osv):
                     '''%(val2+freight,taxline.id)
                     cr.execute(sql)
             else:
-                amount_untaxed = 0.0
-                p_f_charge=0.0
-                excise_duty=0.0
-                amount_total_tax=0.0
-                total_tax = 0.0
-                total_fright=0.0
-                qty = 0.0
-                for po in line.invoice_line:
-                    tax = 0
-                    qty += po.quantity
-                    basic = (po.quantity * po.price_unit) - ( (po.quantity * po.price_unit)*po.disc/100)
-                    amount_untaxed += basic
-                    if po.p_f_type == '1' :
-                        p_f = basic * po.p_f/100
-                    elif po.p_f_type == '2' :
-                        p_f = po.p_f
-                    elif po.p_f_type == '3' :
-                        p_f = po.p_f * po.quantity
-                    else:
-                        p_f = po.p_f
-                    p_f_charge += p_f
-                    if po.ed_type == '1' :
-                        ed = (basic + p_f) * po.ed/100
-                    elif po.ed_type == '2' :
-                        ed = po.ed
-                    elif po.ed_type == '3' :
-                        ed = po.e_d *  po.quantity
-                    else:
-                        ed = po.ed
-                    excise_duty += ed
-                    tax_amounts = [r.amount for r in po.invoice_line_tax_id]
-                    for tax_amount in tax_amounts:
-                        tax += tax_amount/100
-                    amount_total_tax = (basic + p_f + ed)*(tax)
-                    total_tax += amount_total_tax
-                    if po.fright_type == '1' :
-                        fright = (basic + p_f + ed + amount_total_tax) * po.fright/100
-                    elif po.fright_type == '2' :
-                        fright = po.fright
-                    elif po.fright_type == '3' :
-                        fright = po.fright * po.quantity
-                    else:
-                        fright = po.fright
-                    total_fright += fright
-                res[line.id]['amount_untaxed'] = amount_untaxed
-                res[line.id]['p_f_charge'] = p_f_charge
-                res[line.id]['excise_duty'] = excise_duty
-                res[line.id]['amount_tax'] = total_tax
-                res[line.id]['fright'] = total_fright
-                res[line.id]['amount_total'] = amount_untaxed+p_f_charge+excise_duty+total_tax+total_fright
+                if line.purchase_id:
+                    amount_untaxed = 0.0
+                    p_f_charge=0.0
+                    excise_duty=0.0
+                    amount_total_tax=0.0
+                    total_tax = 0.0
+                    total_fright=0.0
+                    qty = 0.0
+                    for po in line.invoice_line:
+                        tax = 0
+                        qty += po.quantity
+                        basic = (po.quantity * po.price_unit) - ( (po.quantity * po.price_unit)*po.disc/100)
+                        amount_untaxed += basic
+                        amount_untaxed = round(amount_untaxed,2)
+                        if po.p_f_type == '1' :
+                            p_f = basic * po.p_f/100
+                        elif po.p_f_type == '2' :
+                            p_f = po.p_f
+                        elif po.p_f_type == '3' :
+                            p_f = po.p_f * po.quantity
+                        else:
+                            p_f = po.p_f
+                        p_f_charge += p_f
+                        p_f_charge = round(p_f_charge,2)
+                        if po.ed_type == '1' :
+                            ed = (basic + p_f) * po.ed/100
+                        elif po.ed_type == '2' :
+                            ed = po.ed
+                        elif po.ed_type == '3' :
+                            ed = po.e_d *  po.quantity
+                        else:
+                            ed = po.ed
+                        excise_duty += ed
+                        excise_duty = round(excise_duty,2)
+                        tax_amounts = [r.amount for r in po.invoice_line_tax_id]
+                        for tax_amount in tax_amounts:
+                            tax += tax_amount/100
+                        amount_total_tax = (basic + p_f + ed)*(tax)
+                        total_tax += amount_total_tax
+                        total_tax = round(total_tax,2)
+                        if po.fright_type == '1' :
+                            fright = (basic + p_f + ed + amount_total_tax) * po.fright/100
+                        elif po.fright_type == '2' :
+                            fright = po.fright
+                        elif po.fright_type == '3' :
+                            fright = po.fright * po.quantity
+                        else:
+                            fright = po.fright
+                        total_fright += fright
+                        total_fright = round(total_fright,2)
+                    res[line.id]['amount_untaxed'] = amount_untaxed
+                    res[line.id]['p_f_charge'] = p_f_charge
+                    res[line.id]['excise_duty'] = excise_duty
+                    res[line.id]['amount_tax'] = total_tax
+                    res[line.id]['fright'] = total_fright
+                    res[line.id]['amount_total'] = amount_untaxed+p_f_charge+excise_duty+total_tax+total_fright
+                else:
+                    amount_untaxed = 0.0
+                    p_f_charge=0.0
+                    excise_duty=0.0
+                    amount_total_tax=0.0
+                    total_tax = 0.0
+                    total_fright=0.0
+                    qty = 0.0
+                    for po in line.invoice_line:
+                        tax = 0
+                        qty += po.quantity
+                        basic = (po.quantity * po.price_unit) - ( (po.quantity * po.price_unit)*po.disc/100)
+                        amount_untaxed += basic
+                        amount_untaxed = round(amount_untaxed,2)
+                        if po.p_f_type == '1' :
+                            p_f = basic * po.p_f/100
+                        elif po.p_f_type == '2' :
+                            p_f = po.p_f
+                        elif po.p_f_type == '3' :
+                            p_f = po.p_f * po.quantity
+                        else:
+                            p_f = po.p_f
+                        p_f_charge += p_f
+                        p_f_charge = round(p_f_charge,2)
+                        if po.ed_type == '1' :
+                            ed = (basic + p_f) * po.ed/100
+                        elif po.ed_type == '2' :
+                            ed = po.ed
+                        elif po.ed_type == '3' :
+                            ed = po.e_d *  po.quantity
+                        else:
+                            ed = po.ed
+                        excise_duty += ed
+                        excise_duty = round(excise_duty,2)
+                        tax_amounts = [r.amount for r in po.invoice_line_tax_id]
+                        for tax_amount in tax_amounts:
+                            tax += tax_amount/100
+                        amount_total_tax = (basic + p_f + ed)*(tax)
+                        total_tax += amount_total_tax
+                        total_tax = round(total_tax,2)
+                        if po.fright_type == '1' :
+                            fright = (basic + p_f + ed + amount_total_tax) * po.fright/100
+                        elif po.fright_type == '2' :
+                            fright = po.fright
+                        elif po.fright_type == '3' :
+                            fright = po.fright * po.quantity
+                        else:
+                            fright = po.fright
+                        total_fright += fright
+                        total_fright = round(total_fright,2)
+                        
+                    if line.tds_id:    
+                        tds_amount = amount_untaxed * line.tds_id.amount/100
+                        tds_amount = round(tds_amount,2)
+                    
+                    res[line.id]['amount_untaxed'] = amount_untaxed
+                    res[line.id]['p_f_charge'] = p_f_charge
+                    res[line.id]['excise_duty'] = excise_duty
+                    res[line.id]['amount_tax'] = total_tax
+                    res[line.id]['fright'] = total_fright
+                    res[line.id]['amount_total'] = amount_untaxed+p_f_charge+excise_duty+total_tax+total_fright-tds_amount
         return res
     
     def _get_invoice_line(self, cr, uid, ids, context=None):
@@ -526,6 +593,8 @@ class account_invoice(osv.osv):
         'created_on': fields.datetime('Created On', readonly=True),
         'purchase_id': fields.many2one('purchase.order', 'Purchase Order', readonly = True),
         'vendor_ref': fields.char('Vendor Reference', size = 1024, readonly=True, states={'draft':[('readonly',False)]}),
+        'is_tds_applicable': fields.boolean('IsTDSApplicable'),
+        'tds_id': fields.many2one('account.tax', 'TDS %'),
         
         'amount_untaxed': fields.function(amount_all_supplier_invoice_line, multi='sums', string='Untaxed Amount',
             store={
@@ -569,6 +638,75 @@ class account_invoice(osv.osv):
         'created_on': time.strftime('%Y-%m-%d %H:%M:%S'),
 #         'create_uid':  lambda self,cr,uid,c: uid
         }
+    
+    def onchange_partner_id(self, cr, uid, ids, type, partner_id,\
+            date_invoice=False, payment_term=False, partner_bank_id=False, company_id=False):
+        partner_payment_term = False
+        acc_id = False
+        bank_id = False
+        fiscal_position = False
+
+        opt = [('uid', str(uid))]
+        if partner_id:
+
+            opt.insert(0, ('id', partner_id))
+            p = self.pool.get('res.partner').browse(cr, uid, partner_id)
+            if company_id:
+                if (p.property_account_receivable.company_id and (p.property_account_receivable.company_id.id != company_id)) and (p.property_account_payable.company_id and (p.property_account_payable.company_id.id != company_id)):
+                    property_obj = self.pool.get('ir.property')
+                    rec_pro_id = property_obj.search(cr,uid,[('name','=','property_account_receivable'),('res_id','=','res.partner,'+str(partner_id)+''),('company_id','=',company_id)])
+                    pay_pro_id = property_obj.search(cr,uid,[('name','=','property_account_payable'),('res_id','=','res.partner,'+str(partner_id)+''),('company_id','=',company_id)])
+                    if not rec_pro_id:
+                        rec_pro_id = property_obj.search(cr,uid,[('name','=','property_account_receivable'),('company_id','=',company_id)])
+                    if not pay_pro_id:
+                        pay_pro_id = property_obj.search(cr,uid,[('name','=','property_account_payable'),('company_id','=',company_id)])
+                    rec_line_data = property_obj.read(cr,uid,rec_pro_id,['name','value_reference','res_id'])
+                    pay_line_data = property_obj.read(cr,uid,pay_pro_id,['name','value_reference','res_id'])
+                    rec_res_id = rec_line_data and rec_line_data[0].get('value_reference',False) and int(rec_line_data[0]['value_reference'].split(',')[1]) or False
+                    pay_res_id = pay_line_data and pay_line_data[0].get('value_reference',False) and int(pay_line_data[0]['value_reference'].split(',')[1]) or False
+                    if not rec_res_id and not pay_res_id:
+                        raise osv.except_osv(_('Configuration Error!'),
+                            _('Cannot find a chart of accounts for this company, you should create one.'))
+                    account_obj = self.pool.get('account.account')
+                    rec_obj_acc = account_obj.browse(cr, uid, [rec_res_id])
+                    pay_obj_acc = account_obj.browse(cr, uid, [pay_res_id])
+                    p.property_account_receivable = rec_obj_acc[0]
+                    p.property_account_payable = pay_obj_acc[0]
+
+            if type in ('out_invoice', 'out_refund'):
+                acc_id = p.property_account_receivable.id
+                partner_payment_term = p.property_payment_term and p.property_payment_term.id or False
+            else:
+                acc_id = p.property_account_payable.id
+                partner_payment_term = p.property_supplier_payment_term and p.property_supplier_payment_term.id or False
+            fiscal_position = p.property_account_position and p.property_account_position.id or False
+            if p.bank_ids:
+                bank_id = p.bank_ids[0].id
+
+        result = {'value': {
+            'account_id': acc_id,
+            'payment_term': partner_payment_term,
+            'fiscal_position': fiscal_position,
+            'is_tds_applicable': p.is_tds_applicable,
+            'tds_id': p.tds_id and p.tds_id.id or False
+            }
+        }
+
+        if type in ('in_invoice', 'in_refund'):
+            result['value']['partner_bank_id'] = bank_id
+
+        if payment_term != partner_payment_term:
+            if partner_payment_term:
+                to_update = self.onchange_payment_term_date_invoice(
+                    cr, uid, ids, partner_payment_term, date_invoice)
+                result['value'].update(to_update['value'])
+            else:
+                result['value']['date_due'] = False
+
+        if partner_bank_id != bank_id:
+            to_update = self.onchange_partner_bank(cr, uid, ids, bank_id)
+            result['value'].update(to_update['value'])
+        return result
     
     def create(self, cr, uid, vals, context=None):
         if vals.get('type','')=='in_invoice':
@@ -637,6 +775,10 @@ class account_invoice_line(osv.osv):
         'fright_type':fields.selection([('1','%'),('2','Rs'),('3','Per Qty')],('Freight Type')),
         'line_net': fields.function(line_net_line_supplier_invo, store = True, multi='deltas' ,string='Line Net'),
     }
+    _defaults = {
+        'name': '/',
+                 }
+    
     def onchange_gl_code_id(self, cr, uid, ids, gl_code_id=False, context=None):
         vals = {}
         if gl_code_id:
