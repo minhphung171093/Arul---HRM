@@ -67,7 +67,10 @@ class Parser(report_sxw.rml_parse):
             sql = '''
             SELECT item_text FROM tpt_purchase_product WHERE pur_product_id=%s
             '''%indent_id
-            self.cr.execute(sql)
+            sql1 = '''
+            SELECT item_text FROM tpt_rfq_line WHERE po_indent_id=%s
+            '''%indent_id
+            self.cr.execute(sql1)
             txt = self.cr.fetchone()
         
         #raise osv.except_osv(_('Warning!%s'),_(p[0]))     
