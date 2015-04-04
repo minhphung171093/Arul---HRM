@@ -72,10 +72,10 @@ class Parser(report_sxw.rml_parse):
             '''%indent_id
             self.cr.execute(sql1)
             txt = self.cr.fetchone()
-        
-            raise osv.except_osv(_('Warning!%s'),_(txt[0]))     
+                       
             if txt:
                 txt = txt
+                #raise osv.except_osv(_('Warning!%s'),_(txt[0]))  
             return txt
     def get_indent(self, order):
         if order:         
