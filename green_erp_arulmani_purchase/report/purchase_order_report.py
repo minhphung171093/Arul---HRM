@@ -73,7 +73,7 @@ class Parser(report_sxw.rml_parse):
             self.cr.execute(sql1)
             txt = self.cr.fetchone()
         
-        #raise osv.except_osv(_('Warning!%s'),_(p[0]))     
+            raise osv.except_osv(_('Warning!%s'),_(txt[0]))     
             if txt:
                 txt = txt
             return txt
@@ -88,7 +88,7 @@ class Parser(report_sxw.rml_parse):
             indent_nos = ''
             for p in self.cr.fetchall(): 
                 indent_nos = indent_nos +' '+ p[0]                               
-            indent_nos = indent_nos[:20]    
+            indent_nos = indent_nos[:25]    
         
             return indent_nos
 
