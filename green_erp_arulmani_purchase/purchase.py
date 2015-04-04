@@ -697,6 +697,16 @@ class product_product(osv.osv):
     def search(self, cr, uid, args, offset=0, limit=None, order=None, context=None, count=False):
         if context is None:
             context = {}
+        if context.get('search_cate_name'):
+                sql = '''
+                     select product_product.id 
+                        from product_product,product_template 
+                        where product_template.categ_id in(select product_category.id from product_category where product_category.cate_name = 'finish') 
+                        and product_product.id = product_template.id;
+                '''
+                cr.execute(sql)
+                product_ids = [row[0] for row in cr.fetchall()]
+                args += [('id','in',product_ids)]
         if context.get('search_product'):
             if context.get('po_indent_id'):
                 sql = '''
@@ -1139,7 +1149,9 @@ class tpt_purchase_quotation(osv.osv):
 #         'cate_char': fields.char('Cate Name', size = 1024),
         
         #TPT START - By BalamuruganPurushothaman ON 01/04/2015- FOR PO PRINT
-        'freight_term':fields.selection([('To Pay','To Pay'),('To Paid','To Paid')],('Freight Term')),
+        'freight_term':fields.selection([('To Pay','To Pay'),('Paid','Paid')],('Freight Term')),
+        
+
         'mode_dis': fields.char('Mode Of Dispatch', size = 1024), 
         #TPT END
     }
@@ -1841,7 +1853,7 @@ class purchase_order(osv.osv):
         'check_amendement':fields.boolean("Amended",readonly=True),
         
         #TPT START By BalamuruganPurushothaman ON 01/04/2015 - FOR PO PRINT
-        'freight_term':fields.selection([('To Pay','To Pay'),('To Paid','To Paid')],('Freight Term')),   
+        'freight_term':fields.selection([('To Pay','To Pay'),('Paid','Paid')],('Freight Term')),   
         #'quotation_ref':fields.char('Quotation Reference',size = 1024,required=True),
         #TPT END
         }

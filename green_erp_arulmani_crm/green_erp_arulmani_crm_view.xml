@@ -327,7 +327,7 @@
                         <page string="Product Line" autofocus="autofocus">
                             <field name="lead_line" nolabel='1'>
                             	<tree string="Product Line" editable='top'>
-                            		<field name="product_id" widget="selection" on_change="onchange_product_id(product_id)"/>
+                            		<field name="product_id" context="{'search_cate_name':True }" on_change="onchange_product_id(product_id)" options="{'create': false, 'create_edit': false}" />
                             		<field name="product_type" />
                             		<field name="application_id" domain="[('product_id','=',product_id)]" options="{'create': false, 'create_edit': false}"/>
                             		<field name="month" on_change="onchange_month(month)"/>
