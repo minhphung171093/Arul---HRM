@@ -924,11 +924,21 @@ class account_invoice(osv.osv):
                 'amount_untaxed': 0.0,
                 'amount_tax': 0.0,
                 'amount_total': 0.0,
+                'amount_total_inr': 0.0,
             }
             val1 = 0.0
             val2 = 0.0
             val3 = 0.0
             freight = 0.0
+            voucher_rate = 1
+            if context is None:
+                context = {}
+            ctx = context.copy()
+            ctx.update({'date': time.strftime('%Y-%m-%d')})
+            currency = line.currency_id.name or False
+            currency_id = line.currency_id.id or False
+            if currency != 'INR':
+                voucher_rate = self.pool.get('res.currency').read(cr, uid, currency_id, ['rate'], context=ctx)['rate']
             for invoiceline in line.invoice_line:
                 freight += invoiceline.freight
                 val1 += invoiceline.price_subtotal
@@ -937,6 +947,7 @@ class account_invoice(osv.osv):
             res[line.id]['amount_untaxed'] = round(val1)
             res[line.id]['amount_tax'] = round(val2)
             res[line.id]['amount_total'] = round(val1+val2+freight)
+            res[line.id]['amount_total_inr'] = round((val1+val2+freight)*voucher_rate)
             for taxline in line.tax_line:
                 sql='''
                     update account_invoice_tax set amount=%s where id=%s
@@ -961,10 +972,13 @@ class account_invoice(osv.osv):
         'doc_status':fields.selection([('draft','Drafted'),('waiting','Waiting for Approval'),('completed','Completed'),('cancelled','Cancelled')],'Document Status'),
         'invoice_type':fields.selection([ ('domestic','Domestic/Indirect Export'), ('export','Export'), ],'Invoice Type', readonly=True, states={'draft':[('readonly',False)]}),
         'vessel_flight_no': fields.char('Vessel/Flight No.', size = 1024),
-        'port_of_loading_id': fields.many2one('res.country','Port Of Loading', readonly=True, states={'draft':[('readonly',False)]}),
-        'port_of_discharge_id': fields.many2one('res.country','Port Of Discharge', readonly=True, states={'draft':[('readonly',False)]}),
+        
+        #'port_of_loading_id': fields.many2one('res.country','Port Of Loading', readonly=True, states={'draft':[('readonly',False)]}),
+        #'port_of_discharge_id': fields.many2one('res.country','Port Of Discharge', readonly=True, states={'draft':[('readonly',False)]}),
+        
         'mark_container_no': fields.char('Marks & No Container No.', size = 1024, readonly=True, states={'draft':[('readonly',False)]}),
         'insurance': fields.float('Insurance in KGS', readonly=True, states={'draft':[('readonly',False)]}),
+        'other_charges': fields.float('Other Charges in KGS', readonly=True, states={'draft':[('readonly',False)]}),
         'pre_carriage_by': fields.selection([('sea','Sea')],'Pre Carriage By', readonly=True, states={'draft':[('readonly',False)]}),
         
         #TPT - By BalamuruganPurushothaman on 28/02/2015- The following are used for Domestic Invoice Print
@@ -976,6 +990,11 @@ class account_invoice(osv.osv):
         'material_info': fields.text('Material Additional Info',readonly=True, states={'draft':[('readonly',False)]}),
         'other_info': fields.text('Other Info', readonly=True, states={'draft':[('readonly',False)]}),
         'lc_no': fields.char('L.C Number.', size = 1024, readonly=True, states={'draft':[('readonly',False)]}),
+        'port_of_loading_id': fields.char('Port Of Loading', size = 1024, readonly=True, states={'draft':[('readonly',False)]}),
+        'port_of_discharge_id': fields.char('Port Of Discharge', size = 1024, readonly=True, states={'draft':[('readonly',False)]}),
+        'disc_goods': fields.text('Disciption Of Goods', size = 1024, readonly=True, states={'draft':[('readonly',False)]}),
+        'final_desti': fields.char('Final Destination', size = 1024, readonly=True, states={'draft':[('readonly',False)]}),
+        'agency_comm': fields.char('Agency Commission', size = 1024),
         #TPT
         'street3':fields.char('Street3',size=128),
         'fsh_grade':fields.char('FSH Grade',size=128),
@@ -992,6 +1011,12 @@ class account_invoice(osv.osv):
             },
             multi='sums', help="The tax amount."),
         'amount_total': fields.function(_amount_all, digits_compute=dp.get_precision('Account'), string='Total',
+            store={
+                'account.invoice': (lambda self, cr, uid, ids, c={}: ids, ['invoice_line'], 20),
+                'account.invoice.line': (_get_invoice_line, ['price_unit','invoice_line_tax_id','quantity','discount','invoice_id'], 20),
+            },
+            multi='sums', help="The total amount."),
+        'amount_total_inr': fields.function(_amount_all, digits_compute=dp.get_precision('Account'), string='Total (INR)',
             store={
                 'account.invoice': (lambda self, cr, uid, ids, c={}: ids, ['invoice_line'], 20),
                 'account.invoice.line': (_get_invoice_line, ['price_unit','invoice_line_tax_id','quantity','discount','invoice_id'], 20),

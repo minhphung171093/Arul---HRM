@@ -122,6 +122,8 @@ class Parser(report_sxw.rml_parse):
     def get_rate_kgs(self, rate):        
         kgs_rate = 0.00
         kgs_rate = rate / 1000   
+        #kgs_rate = format(float(kgs_rate), '.5f')
+        #kgs_rate = "{:.5f}".format(12.12)
         #raise osv.except_osv(_('Warning! %s'),_(kgs_rate))    
         return round(kgs_rate,2)
     def get_freight(self, freight,qty):        

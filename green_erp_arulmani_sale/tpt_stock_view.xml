@@ -219,9 +219,13 @@
 					<field name="excise_duty_id" options="{'create': false, 'create_edit': false}" domain="[('type_tax_use','=','excise_duty')]"/>
 					<field name="doc_status" readonly='1'/>
 					<field name="pre_carriage_by" />
+					<!--  
 					<field name="port_of_loading_id" options="{'create': false, 'create_edit': false}"/>
+					-->
 					<field name="mark_container_no" />
-					<field name="insurance" />
+					<field name="insurance" /> 
+					<field name="other_charges" /> 
+					<field name="agency_comm" /> 
 					
 					<group attrs="{'invisible': [('invoice_type', '=', 'export') ] }" colspan="2" >
 					
@@ -255,9 +259,9 @@
 					<field name="invoice_type" required ='1'/>
 					<field name="vessel_flight_no" />	
 					<field name="lc_no" />									
-					<field name="port_of_discharge_id" options="{'create': false, 'create_edit': false}"/>
-					
-					
+					<field name="port_of_discharge_id" options="{'create': false, 'create_edit': false}"/>	
+					<field name="final_desti" />				
+					<field name="disc_goods" />	
 					
 					
 				</xpath>
@@ -294,6 +298,10 @@
 				<xpath expr="//form/sheet/notebook/page[@string='Invoice Lines']/field/tree/field[@name='price_subtotal']"  position="replace">
 					<field name="price_subtotal" string ="SubTotal"/>
 					<field name="freight" />
+				</xpath>
+				
+				<xpath expr="//field[@name='amount_total']" position="after">
+					<field name="amount_total_inr" readonly="1" class="oe_subtotal_footer_separator" widget="monetary" attrs="{'invisible': [('amount_total','=','amount_total_inr')]}"/>
 				</xpath>
             </field>
         </record>    

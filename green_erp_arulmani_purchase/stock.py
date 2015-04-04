@@ -423,26 +423,39 @@ class account_invoice(osv.osv):
                 'excise_duty': 0.0,
                 'amount_tax': 0.0,
                 'fright': 0.0,
-                'amount_total': 0.0
+                'amount_total': 0.0,
+                'amount_total_inr': 0.0
             }
             if line.type == 'out_invoice':
                 res[line.id] = {
                 'amount_untaxed': 0.0,
                 'amount_tax': 0.0,
                 'amount_total': 0.0,
+                'amount_total_inr': 0.0
                 }
                 val1 = 0.0
                 val2 = 0.0
                 val3 = 0.0
                 freight = 0.0
+                voucher_rate = 1
+                if context is None:
+                    context = {}
+                ctx = context.copy()
+                ctx.update({'date': time.strftime('%Y-%m-%d')})
+                currency = line.currency_id.name or False
+                currency_id = line.currency_id.id or False
+                if currency != 'INR':
+                    voucher_rate = self.pool.get('res.currency').read(cr, uid, currency_id, ['rate'], context=ctx)['rate']
                 for invoiceline in line.invoice_line:
                     freight += invoiceline.freight
                     val1 += invoiceline.price_subtotal
                     val2 += invoiceline.price_subtotal * (line.sale_tax_id.amount and line.sale_tax_id.amount / 100 or 0)
+                    val2 = round(val2,2)
     #                 val3 = val1 + val2 + freight
                 res[line.id]['amount_untaxed'] = val1
                 res[line.id]['amount_tax'] = val2
                 res[line.id]['amount_total'] = val1+val2+freight
+                res[line.id]['amount_total_inr'] = (val1+val2+freight) * voucher_rate
                 for taxline in line.tax_line:
                     sql='''
                         update account_invoice_tax set amount=%s where id=%s
@@ -542,6 +555,11 @@ class account_invoice(osv.osv):
                 'account.invoice.line': (_get_invoice_line, ['quantity', 'uos_id', 'price_unit','discount','p_f','p_f_type',   
                                                                 'ed', 'ed_type','invoice_line_tax_id','fright','fright_type'], 10)}),
         'amount_total': fields.function(amount_all_supplier_invoice_line, multi='sums', string='Total',
+             store={
+                'account.invoice': (lambda self, cr, uid, ids, c={}: ids, ['invoice_line'], 10),   
+                'account.invoice.line': (_get_invoice_line, ['quantity', 'uos_id', 'price_unit','discount','p_f','p_f_type',   
+                                                                'ed', 'ed_type','invoice_line_tax_id','fright','fright_type'], 10)}),
+        'amount_total_inr': fields.function(amount_all_supplier_invoice_line, multi='sums', string='Total (INR)',
              store={
                 'account.invoice': (lambda self, cr, uid, ids, c={}: ids, ['invoice_line'], 10),   
                 'account.invoice.line': (_get_invoice_line, ['quantity', 'uos_id', 'price_unit','discount','p_f','p_f_type',   
