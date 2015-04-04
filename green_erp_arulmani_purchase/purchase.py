@@ -697,6 +697,16 @@ class product_product(osv.osv):
     def search(self, cr, uid, args, offset=0, limit=None, order=None, context=None, count=False):
         if context is None:
             context = {}
+        if context.get('search_cate_name'):
+                sql = '''
+                     select product_product.id 
+                        from product_product,product_template 
+                        where product_template.categ_id in(select product_category.id from product_category where product_category.cate_name = 'finish') 
+                        and product_product.id = product_template.id;
+                '''
+                cr.execute(sql)
+                product_ids = [row[0] for row in cr.fetchall()]
+                args += [('id','in',product_ids)]
         if context.get('search_product'):
             if context.get('po_indent_id'):
                 sql = '''
