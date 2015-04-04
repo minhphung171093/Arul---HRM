@@ -36,6 +36,7 @@ class tpt_posting_configuration(osv.osv):
         'sup_inv_price_id': fields.many2one('account.account', 'Price Difference / Rounding', states={ 'done':[('readonly', True)]}),
         'sup_pay_bank_id': fields.many2one('account.account', 'Bank Account', states={ 'done':[('readonly', True)]}),
         'sup_pay_cash_id': fields.many2one('account.account', 'Cash Accout', states={ 'done':[('readonly', True)]}),
+        'sup_tds_id': fields.many2one('account.account', 'TDS Account', states={ 'done':[('readonly', True)]}),
         'salari_id': fields.many2one('account.account', ' Salaries and Allowances', states={ 'done':[('readonly', True)]}),
         'pfp_id': fields.many2one('account.account', 'Provident Fund Payable', states={ 'done':[('readonly', True)]}),
         'vpf_id': fields.many2one('account.account', 'VPF', states={ 'done':[('readonly', True)]}),
@@ -660,6 +661,7 @@ class account_invoice(osv.osv):
                     iml += invoice_line_obj.move_line_amount_untaxed(cr, uid, inv.id) 
                 else:
                     iml += invoice_line_obj.move_line_amount_untaxed_without_po(cr, uid, inv.id) 
+                    iml += invoice_line_obj.move_line_tds_amount_without_po(cr, uid, inv.id) 
             if (inv.type == 'out_invoice'):
                 iml = invoice_line_obj.move_line_customer_fright(cr, uid, inv.id) 
                 iml += invoice_line_obj.move_line_customer_amount_tax(cr, uid, inv.id) 
@@ -983,6 +985,36 @@ class account_invoice_line(osv.osv):
                 'account_analytic_id': t['account_analytic_id'],
                 })
         return res
+    
+    def move_line_tds_amount_without_po(self, cr, uid, invoice_id):
+        res = []
+        cr.execute('SELECT * FROM account_invoice_line WHERE invoice_id=%s', (invoice_id,))
+        for t in cr.dictfetchall():
+            invoice = self.pool.get('account.invoice').browse(cr, uid, t['invoice_id'])
+            cr.execute('SELECT * FROM account_invoice WHERE id=%s', (invoice_id,))
+            for account in cr.dictfetchall():
+                if account['tds_id']:
+                    tds_amount = account['amount_untaxed'] * invoice.tds_id.amount/100
+                sql = '''
+                    SELECT sup_tds_id FROM tpt_posting_configuration WHERE name = 'sup_inv' and sup_tds_id is not null
+                '''
+                cr.execute(sql)
+                sup_tds_id = cr.dictfetchone()
+                if not sup_tds_id:
+                    raise osv.except_osv(_('Warning!'),_('Account is not null, please configure TDS Account in GL Posting Configrution !'))
+                if tds_amount:
+                    res.append({
+                        'type':'tax',
+                        'name':t['name'],
+                        'price_unit': t['price_unit'],
+                        'quantity': 1,
+                        'price': -tds_amount,
+                        'account_id': sup_tds_id and sup_tds_id['sup_tds_id'] or False,
+                        'account_analytic_id': t['account_analytic_id'],
+                    })
+                    break
+            break
+        return res 
      
     def move_line_customer_product_price(self, cr, uid, invoice_id, context = None):
         res = []
