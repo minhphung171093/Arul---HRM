@@ -69,7 +69,8 @@ class Parser(report_sxw.rml_parse):
     
     def freight_amt(self,freight):
         if freight>0:
-            return round(freight)  
+            freight = format(freight, '.2f')           
+            return freight  
         
     def get_item_txt(self, indent_id):
         if indent_id:
