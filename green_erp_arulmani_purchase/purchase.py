@@ -1139,7 +1139,7 @@ class tpt_purchase_quotation(osv.osv):
 #         'cate_char': fields.char('Cate Name', size = 1024),
         
         #TPT START - By BalamuruganPurushothaman ON 01/04/2015- FOR PO PRINT
-        'freight_term':fields.selection([('To Pay','To Pay'),('To Paid','To Paid')],('Freight Term')),
+        'freight_term':fields.selection([('To Pay','To Pay'),('To Paid','Paid')],('Freight Term')),
         'mode_dis': fields.char('Mode Of Dispatch', size = 1024), 
         #TPT END
     }
