@@ -28,7 +28,9 @@
 					<field name="date_order" string = "SO Date" on_change = "onchange_so_date(date_order, blanket_id)"/>
                 	<field name="po_date" on_change="onchange_po_date(po_date)" />
                 	<field name="po_number" />
+                	<!-- 
                 	<field name="expected_date" />
+                	 -->
                 	<field name="quotaion_no"/>
                 	<field name="distribution_channel" options="{'create': false, 'create_edit': false}" />
                 	<field name="sale_tax_id" options="{'create': false, 'create_edit': false}"/>
@@ -197,7 +199,9 @@
 						<field name="po_date" />
 						<field name="po_number" />
 						<!-- <field name="exp_delivery_date" on_change = "onchange_exp_delivery_date(exp_delivery_date)"/>  -->
+						<!--  
 						<field name="dispatch_date" on_change = "onchange_sche_dispatch_date(dispatch_date)"/>
+						-->
 						<field name="quotaion_no" invisible='1'/>
 						<field name="channel" options="{'create': false, 'create_edit': false}"/>
 						<field name="sale_tax_id" domain="[('type_tax_use','=','sale')]" options="{'create': false, 'create_edit': false}"/>
@@ -214,7 +218,8 @@
 									    <field name="product_id" on_change="onchange_product_id(product_id)" options="{'create': false, 'create_edit': false}" domain="[('cate_name','=','finish')]"/>															
 										<field name="description" readonly='1'/>
 										<field name="product_type" readonly='1'/>
-										<field name="application_id" domain="[('product_id','=',product_id)]" options="{'create': false, 'create_edit': false}"/>
+										<field name="application_id" domain="[('product_id','=',product_id)]" attrs="{'required':[('is_fsh_tio2','=',True)]}" options="{'create': false, 'create_edit': false}"/>
+										<field name="is_fsh_tio2" invisible='1'/> 
 										<field name="product_uom_qty" />
 										<field name="uom_po_id" options="{'create': false, 'create_edit': false}" readonly='1'/>
 										<field name="price_unit" />
@@ -222,7 +227,9 @@
 										<field name="name_consignee_id" domain="[('consignee_parent_id','=',parent.customer_id)]" on_change = "onchange_consignee_id(name_consignee_id)" options="{'create': false, 'create_edit': false}"/>
 										<field name="location" />  
 										<field name="freight" />
+										<!-- 
 										<field name="expected_date" />
+										 -->
 									</tree>
 								</field>
 								<group class="oe_subtotal_footer oe_right" colspan="2" name="sale_total">
