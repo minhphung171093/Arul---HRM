@@ -504,7 +504,7 @@ class stock_picking(osv.osv):
                             raise osv.except_osv(_('Warning!'),_('Product Asset Account is not configured! Please configured it!'))
                     journal_line.append((0,0,{
                                 'name':line.name, 
-                                'account_id': account,
+                                'account_id': cose_id,
                                 'partner_id': line.partner_id and line.partner_id.id,
                                 'credit':0,
                                 'debit':debit,
@@ -1948,6 +1948,8 @@ class account_voucher(osv.osv):
             diff = line_total
             account_id = False
             write_off_name = ''
+            if voucher.type_trans:
+                voucher.partner_id = False
             if voucher.partner_id:
                 if voucher.payment_option == 'with_writeoff':
                     account_id = voucher.writeoff_acc_id.id
@@ -1963,7 +1965,7 @@ class account_voucher(osv.osv):
                 'name': write_off_name or name,
                 'account_id': account_id,
                 'move_id': move_id,
-                'partner_id': voucher.partner_id.id,
+#                 'partner_id': voucher.partner_id.id,
                 'date': voucher.date,
                 'credit': diff > 0 and diff or 0.0,
                 'debit': diff < 0 and -diff or 0.0,
@@ -1971,6 +1973,14 @@ class account_voucher(osv.osv):
                 'currency_id': company_currency <> current_currency and current_currency or False,
                 'analytic_account_id': voucher.analytic_id and voucher.analytic_id.id or False,
             }
+            if voucher.type_trans:
+                move_line.update({
+                                  'partner_id': False,
+                                  })
+            else:
+                move_line.update({
+                                  'partner_id': voucher.partner_id.id,
+                                  })
 
         return move_line
     def onchange_journal(self, cr, uid, ids, journal_id, line_ids, tax_id, partner_id, date, amount, ttype, company_id, context=None):
