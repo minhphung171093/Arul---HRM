@@ -1086,7 +1086,25 @@ class mrp_production(osv.osv):
         pick_obj = self.pool.get('stock.picking')
         pick_obj.force_assign(cr, uid, [prod.picking_id.id for prod in self.browse(cr, uid, ids)])
         return True
-    
+
+    def action_cancel(self, cr, uid, ids, context=None):
+        """ Cancels the production order and related stock moves.
+        @return: True
+        """
+        if context is None:
+            context = {}
+        move_obj = self.pool.get('stock.move')
+        for production in self.browse(cr, uid, ids, context=context):
+            if production.state == 'confirmed' and production.picking_id.state=='done':
+                raise osv.except_osv(
+                    _('Cannot cancel manufacturing order!'),
+                    _('You must first cancel related internal picking attached to this manufacturing order.'))
+            if production.move_created_ids:
+                move_obj.action_cancel(cr, uid, [x.id for x in production.move_created_ids])
+            move_obj.action_cancel(cr, uid, [x.id for x in production.move_lines])
+        self.write(cr, uid, ids, {'state': 'cancel'})
+        return True
+
 mrp_production()
 
 class stock_production_lot(osv.osv):
@@ -1170,7 +1188,17 @@ class stock_move(osv.osv):
         'app_quantity': fields.float('Required Quantity'),
         'is_tpt_production': fields.boolean('Is tpt production'),
     }
+
     
+    def unlink(self, cr, uid, ids, context=None):
+        
+        for production in self.browse(cr, uid, ids, context=context):
+            mrp_production_ids =self.pool.get('mrp.production.product.line').search(cr,uid,[('product_id','=',production.product_id.id)]) 
+            if mrp_production_ids:
+                self.pool.get('mrp.production.product.line').unlink(cr, uid, mrp_production_ids, context=context)
+        return super(stock_move, self).unlink(cr, uid, ids, context=context)
+
+        
     def onchange_app_qty_id(self, cr, uid, ids,app_quantity, product_qty,context=None):
         vals = {}
 #         if app_quantity > product_qty:
