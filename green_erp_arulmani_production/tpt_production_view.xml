@@ -269,8 +269,8 @@
                     <xpath expr="//label[@for='product_uos_qty']" position="before">
                         <field name="finish_product_cost" />
                         <field name="active" />
-                        <field name="location_src_id" options="{'create': false, 'create_edit': false}" domain="[('usage','=','internal'),('chained_location_type','&lt;&gt;','customer')]" on_change="location_id_change(location_src_id,location_dest_id)"/>
-                        <field name="location_dest_id" options="{'create': false, 'create_edit': false}" domain="[('usage','=','internal'),('chained_location_type','&lt;&gt;','customer')]"/>
+                        <field name="location_src_id" required='1' options="{'create': false, 'create_edit': false}" domain="[('usage','=','internal'),('chained_location_type','&lt;&gt;','customer')]" on_change="location_id_change(location_src_id,location_dest_id)"/>
+                        <field name="location_dest_id" required='1' options="{'create': false, 'create_edit': false}" domain="[('usage','=','internal'),('chained_location_type','&lt;&gt;','customer')]"/>
                     </xpath>
                     <xpath expr="//page[@string='Properties']/group/group/field[@name='active']" position="replace">
                     </xpath>

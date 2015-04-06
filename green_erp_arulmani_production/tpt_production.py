@@ -499,10 +499,10 @@ class mrp_bom(osv.osv):
         'bom_lines': fields.one2many('mrp.bom', 'bom_id', 'BoM Lines', states={'finance_manager':[('readonly', True)]}),
         'price_unit': fields.float('Unit Price', states={'finance_manager':[('readonly', True)]}),
         'state':fields.selection([('draft', 'Draft'),('product_manager', 'Production'),('finance_manager', 'Finance')],'Status', readonly=True),
-        'location_src_id': fields.many2one('stock.location', 'Production Source Location', required=True,
+        'location_src_id': fields.many2one('stock.location', 'Production Source Location',
             readonly=True, states={'draft':[('readonly',False)]},
             help="Location where the system will look for components."),
-        'location_dest_id': fields.many2one('stock.location', 'Production Destination', required=True,
+        'location_dest_id': fields.many2one('stock.location', 'Production Destination',
             readonly=True, states={'draft':[('readonly',False)]},
             help="Location where the system will stock the finished products."),
     
@@ -757,22 +757,13 @@ class mrp_production(osv.osv):
     _defaults={
         'name': '/',
     }
-#     def bom_id_change(self, cr, uid, ids, bom_id, context=None):
-#         """ Finds routing for changed BoM.
-#         @param product: Id of product.
-#         @return: Dictionary of values.
-#         """
-#         if not bom_id:
-#             return {'value': {
-#                 'routing_id': False
-#             }}
-#         bom_point = self.pool.get('mrp.bom').browse(cr, uid, bom_id, context=context)
-#         routing_id = bom_point.routing_id.id or False
-#         result = {
-#             'product_id':bom_point.product_id.id,
-#             'routing_id': routing_id
-#         }
-#         return {'value': result}
+#     def unlink(self, cr, uid, ids, context=None):
+#         
+#         for production in self.browse(cr, uid, ids, context=context):
+#             mrp_production_ids =self.pool.get('mrp.production.product.line').search(cr,uid,[('product_id','=',production.product_id.id)]) 
+#             if mrp_production_ids:
+#                 self.pool.get('mrp.production.product.line').unlink(cr, uid, mrp_production_ids, context=context)
+#         return super(stock_move, self).unlink(cr, uid, ids, context=context)
     def bom_id_change(self, cr, uid, ids, bom_id, context=None):
         """ Finds routing for changed BoM.
         @param product: Id of product.
@@ -1190,13 +1181,7 @@ class stock_move(osv.osv):
     }
 
     
-    def unlink(self, cr, uid, ids, context=None):
-        
-        for production in self.browse(cr, uid, ids, context=context):
-            mrp_production_ids =self.pool.get('mrp.production.product.line').search(cr,uid,[('product_id','=',production.product_id.id)]) 
-            if mrp_production_ids:
-                self.pool.get('mrp.production.product.line').unlink(cr, uid, mrp_production_ids, context=context)
-        return super(stock_move, self).unlink(cr, uid, ids, context=context)
+
 
         
     def onchange_app_qty_id(self, cr, uid, ids,app_quantity, product_qty,context=None):
