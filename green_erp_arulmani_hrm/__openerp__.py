@@ -48,7 +48,7 @@
         'report/print_report.xml',
         'report/gate_pass_view.xml',
         'report/tpt_time_evaluation_report.xml',
-#         'data_category.xml',
+ #         'data_category.xml',
         'import_view.xml',
         'green_erp_arulmani_sequence.xml',
         'menu_view.xml',
