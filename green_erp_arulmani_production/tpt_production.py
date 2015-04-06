@@ -201,12 +201,12 @@ class tpt_fsh_batch_split(osv.osv):
         for quantity in self.browse(cr, uid, ids, context=context):
             amount = 0
             if quantity.batchable_qty > quantity.available:
-                raise osv.except_osv(_('Warning!'),_('Quantity is not suitable !'))
+                raise osv.except_osv(_('Warning!'),_('Batchable Quantity is not more than Available Stock Quantity !'))
                 return False
             for line in quantity.batch_split_line:
                 amount += line.qty
                 if (amount > quantity.batchable_qty):
-                    raise osv.except_osv(_('Warning!'),_('Quantity is not suitable !'))
+                    raise osv.except_osv(_('Warning!'),_('The total Quantity for each line is not more than Batchable Quantity !'))
                     return False
             return True
         
