@@ -342,13 +342,15 @@
 					<field name="invoice_state" invisible="1"/>
 				</xpath> 
             	
-            	<button name="%(stock.act_stock_return_picking)d" position="after">
+            	<button name="%(stock.act_stock_return_picking)d" position="replace">
             		<button name="management_confirm" string="Management Confirm" attrs="{'invisible': ['|',('doc_status','!=','waiting'),('flag_confirm','=',True)]}" type="object" icon="gtk-apply" 
 		                confirm="This Delivery Order is reached the credit limit. Do you want to confirm this Delivery Order?"
 		                groups="green_erp_arulmani_sale.group_vvti_sale_gm"/>
+		                <!-- TPT ON 04/04/2015 - TO HIDE THIS REOPEN BUTTON
 	                <button name="action_revert_done" string="Reopen" states="done,cancel" type="object" icon="gtk-cancel" 
 	                	confirm="Do you want to reopen this Delivery Order?"
 	                />
+	                -->
 	            </button>
             	<xpath expr="//field[@name='stock_journal_id']"  position="replace">
             		<field name="stock_journal_id" invisible="1"/>

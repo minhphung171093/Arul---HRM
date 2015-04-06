@@ -684,7 +684,25 @@ class sale_order(osv.osv):
                         picking_id = new_picking_id
                 if first_picking_id:
                     for line in picking_out_obj.browse(cr, uid, first_picking_id).move_lines:
-                        stock_move_obj.write(cr, uid, [line.id], {'product_type':line.sale_line_id.product_type,'application_id':line.sale_line_id.application_id and line.sale_line_id.application_id.id or False})
+                        ###TPT START - By BalamuruganPurushothaman ON 4/4/2014 - TO SET SYSTEM BATCH NO BY DEFAULT
+                        ### FOR FSH PRODUCT
+                        if line.sale_line_id.application_id.id:
+                            sql = '''
+                            select id from stock_production_lot where product_id = (select id from product_product where default_code = 'M0501010002')
+                            and application_id = %s
+                        '''%(line.sale_line_id.application_id.id)
+                            cr.execute(sql)
+                            fsh_prod_lot = cr.fetchone()
+                        else:
+                            fsh_prod_lot = False    
+                        if fsh_prod_lot:
+                            stock_move_obj.write(cr, uid, [line.id], {'product_type':line.sale_line_id.product_type,
+                                                                      'application_id':line.sale_line_id.application_id and line.sale_line_id.application_id.id or False, 
+                                                                      'prodlot_id':fsh_prod_lot})
+                        else:
+                            stock_move_obj.write(cr, uid, [line.id], {'product_type':line.sale_line_id.product_type,'application_id':line.sale_line_id.application_id and line.sale_line_id.application_id.id or False})
+                        ###TPT END
+                        #stock_move_obj.write(cr, uid, [line.id], {'product_type':line.sale_line_id.product_type,'application_id':line.sale_line_id.application_id and line.sale_line_id.application_id.id or False})
         return True
     
 sale_order()
@@ -1163,6 +1181,10 @@ class tpt_blank_order_line(osv.osv):
         'name_consignee_id': fields.many2one('res.partner', 'Consignee', required = False),
         'location': fields.char('Location', size = 1024,readonly = True),
         'expected_date':fields.date('Expected delivery Date'),
+        
+        'is_fsh_tio2': fields.boolean('Is TiO2 or FSH'),
+        #'is_tio2': fields.boolean('Is TiO2'),
+        
                 }
     _defaults = {
         'expected_date': time.strftime('%Y-%m-%d'),
@@ -1273,6 +1295,22 @@ class tpt_blank_order_line(osv.osv):
                     'price_unit':product.list_price,
                     'description': product.name,
                     })
+            #TPT  START - By BalamuruganPurushothaman - 5/4/2015 TO MAKE APPLICATION FIELD 
+            #AS MANDATORY WHEN TIO2 , FSH IS SELECTED                  
+            if product.name == 'FERROUS SULPHATE' or product.default_code == 'FSH':                
+                #res.update({'is_fsh': True}) 
+                res['value'].update({
+                     'is_fsh_tio2': True,                   
+                    })
+            if product.name == 'TITANIUM DIOXIDE-ANATASE' or product.default_code == 'TiO2':                               
+                res['value'].update({
+                    'is_fsh_tio2': True,                                
+                    })
+            if product.name != 'FERROUS SULPHATE' and product.name != 'TITANIUM DIOXIDE-ANATASE':                
+                res['value'].update({
+                    'is_fsh_tio2': False,                     
+                    })
+            #TPT END
         return res
     
     def onchange_consignee_id(self, cr, uid, ids, name_consignee_id = False, context=None):

@@ -25,14 +25,15 @@ class Parser(report_sxw.rml_parse):
         super(Parser, self).__init__(cr, uid, name, context=context)
         pool = pooler.get_pool(self.cr.dbname)
         self.localcontext.update({
-		'get_date': self.get_date,
-		
+		'get_date': self.get_date,		
 		'amount_to_text': self.amount_to_text,
 		'get_edu_cess':self.get_edu_cess,
 		'get_sec_cess':self.get_sec_cess,
         'get_item_txt':self.get_item_txt,
-        'get_indent':self.get_indent
-            
+        'get_indent':self.get_indent,
+        'freight_lb':self.freight_lb,
+        'freight_amt':self.freight_amt,
+             
         })
 
     def get_date(self, date=False):
@@ -60,19 +61,32 @@ class Parser(report_sxw.rml_parse):
         sec_cess = 0.0
         sec_cess = (basic_excise_duty)*1/100
         return sec_cess
-
+    
+    def freight_lb(self,freight):
+        if freight>0:
+            return "FREIGHT"
+        
+    
+    def freight_amt(self,freight):
+        if freight>0:
+            freight = format(freight, '.2f')           
+            return freight  
+        
     def get_item_txt(self, indent_id):
         if indent_id:
             txt = ''
             sql = '''
             SELECT item_text FROM tpt_purchase_product WHERE pur_product_id=%s
             '''%indent_id
-            self.cr.execute(sql)
+            sql1 = '''
+            SELECT item_text FROM tpt_rfq_line WHERE po_indent_id=%s
+            '''%indent_id
+            self.cr.execute(sql1)
             txt = self.cr.fetchone()
-        
-        #raise osv.except_osv(_('Warning!%s'),_(p[0]))     
+                       
             if txt:
                 txt = txt
+                #raise osv.except_osv(_('Warning!%s'),_(txt[0]))  
             return txt
     def get_indent(self, order):
         if order:         
@@ -85,7 +99,7 @@ class Parser(report_sxw.rml_parse):
             indent_nos = ''
             for p in self.cr.fetchall(): 
                 indent_nos = indent_nos +' '+ p[0]                               
-            indent_nos = indent_nos[:20]    
+            indent_nos = indent_nos[:26]    
         
             return indent_nos
 

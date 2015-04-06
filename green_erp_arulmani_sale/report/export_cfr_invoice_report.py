@@ -41,6 +41,7 @@ class Parser(report_sxw.rml_parse):
             'get_freight_lb':self.get_freight_lb, 
             'get_ins_lb':self.get_ins_lb,
             'get_other_lb':self.get_other_lb,
+            'get_ins':self.get_ins,
             
         })
     
@@ -122,20 +123,26 @@ class Parser(report_sxw.rml_parse):
     def get_rate_kgs(self, rate):        
         kgs_rate = 0.00
         kgs_rate = rate / 1000   
-        #raise osv.except_osv(_('Warning! %s'),_(kgs_rate))    
-        return round(kgs_rate,2)
+        kgs_rate = format(kgs_rate, '.5f') 
+        return kgs_rate
     def get_freight(self, freight,qty):        
         mt_freight = 0.00
         kgs_freight = 0.00
         mt_freight = freight / qty   
-        kgs_freight =  mt_freight / 1000           
-        return round(kgs_freight,2)
+        kgs_freight =  mt_freight / 1000   
+        kgs_freight = format(kgs_freight, '.5f')          
+        return kgs_freight
+    def get_ins(self, ins):        
+        ins_amt = 0.00      
+        ins_amt = format(ins, '.5f')           
+        return ins_amt
     def get_total_kgs(self, invoice_line, insurance):
         val1 = 0.0
         for line in invoice_line:
             #mt_freight = freight / qty 
             val1 = val1 + (line.price_unit/1000) + (line.freight/line.quantity)/1000 + insurance
-        return round(val1, 2)
+        val1 = format(val1, '.5f')   
+        return val1
     def get_buyer(self, obj):
         buyer = ''
         if obj.partner_id and obj.cons_loca and obj.partner_id.id != obj.cons_loca.id:

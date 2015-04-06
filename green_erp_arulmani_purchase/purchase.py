@@ -1874,7 +1874,30 @@ class purchase_order(osv.osv):
             order_obj.write(cr, uid, purchase_ids,{'state':'amendement'})
         
         return True
-
+    
+    #TPT-PO PRINT ON 4/4/2015
+    def print_quotation(self, cr, uid, ids, context=None):
+        '''
+        This function prints the request for quotation and mark it as sent, so that we can see more easily the next step of the workflow
+        '''
+        
+        assert len(ids) == 1, 'This option should only be used for a single id at a time.'
+        self.write(cr, uid, ids, {'sent': True}, context=context)
+        datas = {
+             'ids': ids,
+             'model': 'purchase.order',
+             'form': self.read(cr, uid, ids[0], context=context)
+        }
+        invoice_ids = self.browse(cr, uid, ids[0])  
+        
+        return {
+                'type': 'ir.actions.report.xml',
+                'report_name': 'tpt_purchase_order',
+                 'datas': datas,
+#                 'nodestroy' : True
+                }
+        #TPT ENDss
+    
     def action_cancel(self, cr, uid, ids, context=None):
         wf_service = netsvc.LocalService("workflow")
         for purchase in self.browse(cr, uid, ids, context=context):
