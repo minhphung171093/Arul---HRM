@@ -526,6 +526,7 @@ class account_invoice(osv.osv):
                     total_tax = 0.0
                     total_fright=0.0
                     qty = 0.0
+                    tds_amount = 0.0
                     for po in line.invoice_line:
                         tax = 0
                         qty += po.quantity
