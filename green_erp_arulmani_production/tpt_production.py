@@ -848,6 +848,23 @@ class mrp_production(osv.osv):
         new_id = super(mrp_production, self).create(cr, uid, vals, context=context)   
         return new_id
     
+    def write(self, cr, uid, ids, vals, context=None):
+        product_line_obj = self.pool.get('mrp.production.product.line')
+        for mrp in self.browse(cr,uid,ids):
+            if 'move_lines' in vals:
+                for line in vals['move_lines']:
+                    if line[0]==6:
+                        move_ids = line[2]
+                        cr.execute('''
+                            select move_id from mrp_production_move_ids where production_id = %s and move_id not in %s
+                        ''',(mrp.id,tuple(move_ids)),)
+                        move_before_ids = [r[0] for r in cr.fetchall()]
+                        for move in self.pool.get('stock.move').browse(cr, uid, move_before_ids):
+                            product_line_ids = product_line_obj.search(cr, uid, [('product_id','=',move.product_id.id),('product_uom','=',move.product_uom.id)])
+                            product_line_obj.unlink(cr, uid, product_line_ids)
+        new_write = super(mrp_production, self).write(cr, uid,ids, vals, context)
+        return new_write
+    
     def _action_compute_lines(self, cr, uid, ids, properties=None, context=None):
         """ Compute product_lines and workcenter_lines from BoM structure
         @return: product_lines
