@@ -115,9 +115,17 @@ class tpt_tio2_batch_split(osv.osv):
                     cr.execute("UPDATE ir_sequence SET reset_time=%s WHERE id=%s ", (current_time,seq['id']))
                     self.pool.get('ir.sequence')._alter_sequence(cr, seq['id'], seq['number_increment'], seq['reset_init_number'])
                     cr.commit()
-    
-                cr.execute("SELECT setval('ir_sequence_%03d',nextval('ir_sequence_%03d')-1)+1" % (seq['id'],seq['id']))
-                seq['number_next'] = cr.fetchone()
+                temp = 0
+                try:
+                    cr.execute("SELECT setval('ir_sequence_%03d',nextval('ir_sequence_%03d')-1)+1" % (seq['id'],seq['id']))
+                    seq['number_next'] = cr.fetchone()
+                except Exception, e:
+                    cr.rollback()
+                    temp = 1
+                    pass
+#                 if temp==1:
+#                     cr.execute("SELECT setval('ir_sequence_%03d',nextval('ir_sequence_%03d')-1)+1" % (seq['id'],seq['id']))
+                seq['number_next'] = 1
             else:
                 cr.execute("SELECT number_next FROM ir_sequence WHERE id=%s FOR UPDATE NOWAIT", (seq['id'],))
             d = self.pool.get('ir.sequence')._interpolation_dict()
