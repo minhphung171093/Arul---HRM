@@ -119,10 +119,11 @@ class stock_picking(osv.osv):
         if dest_id:
             for stock in self.browse(cr, uid, ids):
                 for line in stock.move_lines:
-                    rs = {
-                          'location_dest_id': dest_id,
-                          }
-                    move_lines.append((1,line.id,rs))
+                    if line.action_taken != 'need':
+                        rs = {
+                              'location_dest_id': dest_id,
+                              }
+                        move_lines.append((1,line.id,rs))
             
             vals = {
                     'move_lines':move_lines
@@ -306,10 +307,11 @@ class stock_picking_in(osv.osv):
         if dest_id:
             for stock in self.browse(cr, uid, ids):
                 for line in stock.move_lines:
-                    rs = {
-                          'location_dest_id': dest_id,
-                          }
-                    move_lines.append((1,line.id,rs))
+                    if not line.action_taken or line.action_taken != 'need':
+                        rs = {
+                              'location_dest_id': dest_id,
+                              }
+                        move_lines.append((1,line.id,rs))
             
             vals = {
                     'move_lines':move_lines
@@ -406,6 +408,31 @@ class stock_move(osv.osv):
                           }  
                 vals['action_taken']=False
                 return {'value': vals,'warning':warning}
+            elif action_taken == 'need':
+                location_id = False
+                parent_ids = self.pool.get('stock.location').search(cr, uid, [('name','=','Quality Inspection'),('usage','=','view')])
+                if not parent_ids:
+                    warning = {  
+                          'title': _('Warning!'),  
+                          'message': _('System does not have Quality Inspection warehouse, please check it!'),  
+                          }  
+                    vals['action_taken']=False
+                    return {'value': vals,'warning':warning}
+                locat_ids = self.pool.get('stock.location').search(cr, uid, [('name','in',['Quality Inspection','Inspection']),('location_id','=',parent_ids[0])])
+                if not locat_ids:
+                    warning = {  
+                          'title': _('Warning!'),  
+                          'message': _('System does not have Quality Inspection location in Quality Inspection warehouse, please check it!'),  
+                          }  
+                    vals['action_taken']=False
+                    return {'value': vals,'warning':warning}
+                else:
+                    location_id = locat_ids[0]
+                vals['location_dest_id'] = location_id
+            elif action_taken == 'direct':   
+                for line in self.browse(cr, uid, ids, context=context):
+                    vals['location_dest_id'] = line.picking_id and line.picking_id.warehouse and line.picking_id.warehouse.id or False
+                    vals['action_taken']= action_taken
             else:
                 vals['action_taken']= action_taken
         return {'value': vals}
@@ -646,7 +673,6 @@ class account_invoice(osv.osv):
         acc_id = False
         bank_id = False
         fiscal_position = False
-
         opt = [('uid', str(uid))]
         if partner_id:
 

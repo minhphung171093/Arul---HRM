@@ -477,7 +477,7 @@ class stock_picking(osv.osv):
                 journal_ids = [r[0] for r in cr.fetchall()]
                 journal = self.pool.get('account.journal').browse(cr,uid,journal_ids[0])
                 sql = '''
-                    select id from account_period where '%s' between date_start and date_stop
+                    select id from account_period where special = False and '%s' between date_start and date_stop
                   
                 '''%(date_period)
                 cr.execute(sql)
@@ -502,21 +502,21 @@ class stock_picking(osv.osv):
                             asset_id = p.product_id.product_asset_acc_id.id
                         else:
                             raise osv.except_osv(_('Warning!'),_('Product Asset Account is not configured! Please configured it!'))
-                    journal_line.append((0,0,{
-                                'name':line.name, 
-                                'account_id': account,
-                                'partner_id': line.partner_id and line.partner_id.id,
-                                'credit':0,
-                                'debit':debit,
-                            }))
-                     
-                    journal_line.append((0,0,{
-                        'name':line.name, 
-                        'account_id': asset_id,
-                        'partner_id': line.partner_id and line.partner_id.id,
-                        'credit':debit,
-                        'debit':0,
-                    }))
+                        journal_line.append((0,0,{
+                                    'name':line.name, 
+                                    'account_id': account,
+                                    'partner_id': line.partner_id and line.partner_id.id,
+                                    'credit':0,
+                                    'debit':debit,
+                                }))
+                         
+                        journal_line.append((0,0,{
+                            'name':line.name, 
+                            'account_id': asset_id,
+                            'partner_id': line.partner_id and line.partner_id.id,
+                            'credit':debit,
+                            'debit':0,
+                        }))
                           
                     value={
                         'journal_id':journal.id,
