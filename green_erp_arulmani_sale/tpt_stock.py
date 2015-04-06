@@ -155,12 +155,12 @@ class stock_picking(osv.osv):
                                 (select st.product_qty
                                     from stock_move st 
                                     where st.state='done' and st.product_id=%s and st.location_dest_id = %s and prodlot_id = %s
-                                    and st.picking_id not in %s
+                                    and (st.picking_id is null or st.picking_id not in %s)
                                 union all
                                 select st.product_qty*-1
                                     from stock_move st 
                                     where st.state='done' and st.product_id=%s and st.location_id = %s and prodlot_id = %s
-                                    and st.picking_id not in %s
+                                    and (st.picking_id is null or st.picking_id not in %s)
                                 )foo
                         ''',(move_line['product_id'],picking.location_id.id,move_line['prodlot_id'] or 'null',tuple(ids),move_line['product_id'],picking.location_id.id,move_line['prodlot_id'] or 'null',tuple(ids)),)
                     else:
@@ -169,12 +169,12 @@ class stock_picking(osv.osv):
                                 (select st.product_qty
                                     from stock_move st 
                                     where st.state='done' and st.product_id=%s and st.location_dest_id = %s
-                                    and st.picking_id not in %s
+                                    and (st.picking_id is null or st.picking_id not in %s)
                                 union all
                                 select st.product_qty*-1
                                     from stock_move st 
                                     where st.state='done' and st.product_id=%s and st.location_id = %s
-                                    and st.picking_id not in %s
+                                    and (st.picking_id is null or st.picking_id not in %s)
                                 )foo
                         ''',(move_line['product_id'],picking.location_id.id,tuple(ids),move_line['product_id'],picking.location_id.id,tuple(ids)),)
                     ton_sl = cr.dictfetchone()['ton_sl']
