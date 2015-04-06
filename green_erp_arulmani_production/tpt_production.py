@@ -123,9 +123,9 @@ class tpt_tio2_batch_split(osv.osv):
                     cr.rollback()
                     temp = 1
                     pass
-#                 if temp==1:
-#                     cr.execute("SELECT setval('ir_sequence_%03d',nextval('ir_sequence_%03d')-1)+1" % (seq['id'],seq['id']))
-                seq['number_next'] = 1
+                if temp==1:
+                    self.pool.get('ir.sequence')._alter_sequence(cr, seq['id'], seq['number_increment'], seq['reset_init_number'])
+                    seq['number_next'] = 1
             else:
                 cr.execute("SELECT number_next FROM ir_sequence WHERE id=%s FOR UPDATE NOWAIT", (seq['id'],))
             d = self.pool.get('ir.sequence')._interpolation_dict()
@@ -137,7 +137,18 @@ class tpt_tio2_batch_split(osv.osv):
             sequence = interpolated_prefix + '%%0%sd' % seq['padding'] % seq['number_next'] + interpolated_suffix
             cr.execute("UPDATE ir_sequence SET number_next=number_next-number_increment WHERE id=%s ", (seq['id'],))
             
-            vals['stating_batch_no'] = sequence or '/'
+            line = self.pool.get('mrp.production').browse(cr, uid, vals['mrp_id'])
+            schedule_date = line.date_planned
+            schedule_date_day = schedule_date[8:10]
+            schedule_date_month = schedule_date[5:7]
+            schedule_date_year = schedule_date[:4]
+            prefix = ''
+            if line.product_id.name in ('TITANIUM DIOXIDE-RUTILE','M0501010008') or line.product_id.default_code in ('TITANIUM DIOXIDE-RUTILE','M0501010008'):
+                prefix = 'R'
+            if line.product_id.name in ('TITANIUM DIOXIDE-ANATASE','TiO2','M0501010001') or line.product_id.default_code in ('TITANIUM DIOXIDE-ANATASE','TiO2','M0501010001'):
+                prefix = 'A'
+            prodlot_name = prefix + str(schedule_date_year) + str(schedule_date_month) + str(schedule_date_day) + str(sequence)
+            vals['stating_batch_no'] = prodlot_name or '/'
         new_id = super(tpt_tio2_batch_split, self).create(cr, uid, vals, context=context)
         return new_id
     
@@ -839,6 +850,23 @@ class mrp_production(osv.osv):
             vals.update({'product_uom':product.uom_id.id})
         new_id = super(mrp_production, self).create(cr, uid, vals, context=context)   
         return new_id
+    
+    def write(self, cr, uid, ids, vals, context=None):
+        product_line_obj = self.pool.get('mrp.production.product.line')
+        for mrp in self.browse(cr,uid,ids):
+            if 'move_lines' in vals:
+                for line in vals['move_lines']:
+                    if line[0]==6:
+                        move_ids = line[2]
+                        cr.execute('''
+                            select move_id from mrp_production_move_ids where production_id = %s and move_id not in %s
+                        ''',(mrp.id,tuple(move_ids)),)
+                        move_before_ids = [r[0] for r in cr.fetchall()]
+                        for move in self.pool.get('stock.move').browse(cr, uid, move_before_ids):
+                            product_line_ids = product_line_obj.search(cr, uid, [('product_id','=',move.product_id.id),('product_uom','=',move.product_uom.id)])
+                            product_line_obj.unlink(cr, uid, product_line_ids)
+        new_write = super(mrp_production, self).write(cr, uid,ids, vals, context)
+        return new_write
     
     def _action_compute_lines(self, cr, uid, ids, properties=None, context=None):
         """ Compute product_lines and workcenter_lines from BoM structure
