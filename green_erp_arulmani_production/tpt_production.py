@@ -208,12 +208,12 @@ class tpt_fsh_batch_split(osv.osv):
         for quantity in self.browse(cr, uid, ids, context=context):
             amount = 0
             if quantity.batchable_qty > quantity.available:
-                raise osv.except_osv(_('Warning!'),_('Quantity is not suitable !'))
+                raise osv.except_osv(_('Warning!'),_('Batchable Quantity is not more than Available Stock Quantity !'))
                 return False
             for line in quantity.batch_split_line:
                 amount += line.qty
                 if (amount > quantity.batchable_qty):
-                    raise osv.except_osv(_('Warning!'),_('Quantity is not suitable !'))
+                    raise osv.except_osv(_('Warning!'),_('The total Quantity for each line is not more than Batchable Quantity !'))
                     return False
             return True
         
@@ -496,7 +496,7 @@ class mrp_bom(osv.osv):
         'name': fields.text('Name', states={'product_manager': [('readonly', True)], 'finance_manager':[('readonly', True)]}),
         'code': fields.char('Reference', size=16, states={'product_manager': [('readonly', True)], 'finance_manager':[('readonly', True)]}),
         'company_id': fields.many2one('res.company','Company',required=True, states={'product_manager': [('readonly', True)], 'finance_manager':[('readonly', True)]}),
-        'cost_type': fields.selection([('variable','Variable'),('fixed','Fixed')], 'Cost Type', states={'product_manager': [('readonly', True)], 'finance_manager':[('readonly', True)]}),
+        'cost_type': fields.selection([('variable','Variable'),('fixed','Fixed')], 'Cost Type', states={ 'finance_manager':[('readonly', True)]}),
         'activities_line': fields.one2many('tpt.activities.line', 'bom_id', 'Activities', states={'finance_manager':[('readonly', True)]}),
 #         'product_cost': fields.function(_norms, store = True, multi='sums', string='Product Cost'),
         'finish_product_cost': fields.function(sum_finish_function, string='Finish Product Cost', states={'product_manager': [('readonly', True)], 'finance_manager':[('readonly', True)]}),

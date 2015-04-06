@@ -371,7 +371,7 @@
                   	<xpath expr="//form/sheet/group/group/field[@name='bom_id']" position="replace"/>
                     
                   	<xpath expr="//form/sheet/group/group/field[@name='product_id']" position="replace">
-                  		<field name="bom_id" string = 'Norm' on_change="bom_id_change(bom_id)" options="{'create': false, 'create_edit': false}" required="1"/>
+                  		<field name="bom_id" domain="[('state','=','finance_manager')]" string = 'Norm' on_change="bom_id_change(bom_id)" options="{'create': false, 'create_edit': false}" required="1"/>
                   		<field name="product_id" on_change="product_id_change(product_id)" domain="[('bom_ids','!=',False),('bom_ids.id','=',bom_id)]" class="oe_inline" context="{&quot;default_supply_method&quot;:&quot;produce&quot;, &quot;default_type&quot;: &quot;product&quot;}" options="{'create': false, 'create_edit': false}"/>
                   	</xpath>
                   	
