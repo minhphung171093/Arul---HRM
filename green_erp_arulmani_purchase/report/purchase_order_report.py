@@ -73,23 +73,20 @@ class Parser(report_sxw.rml_parse):
             return freight  
         
     def get_item_txt(self, indent_id,productid):
-        if indent_id:
-            txt = ''
+        if indent_id:  
+            txt=""       
             sql = '''
-            SELECT item_text FROM tpt_purchase_product WHERE pur_product_id=%s
-            '''%indent_id
-            sql1 = '''
             SELECT item_text FROM tpt_rfq_line WHERE po_indent_id=%s and product_id=%s
             '''%(indent_id,productid.id)
-            self.cr.execute(sql1)
+            self.cr.execute(sql)
             txt = self.cr.fetchone()
-            a = txt[0]
-            txt1=""           
-            if a:
-                txt1 = a
+            temp_item_text = txt[0]
+            item_text=""           
+            if temp_item_text:
+                item_text = temp_item_text
             else:
-                txt1 = ""
-            return txt1
+                item_text = ""
+            return item_text
     def get_indent(self, order):
         if order:         
             sql = '''select name from tpt_purchase_indent where id in (select po_indent_no from 

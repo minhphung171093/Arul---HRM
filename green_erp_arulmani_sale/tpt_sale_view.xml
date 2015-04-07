@@ -81,6 +81,11 @@
 				<xpath expr="//form/sheet/notebook/page[@string='Order Lines']/field/tree/field[@name='product_uom']"  position="attributes">
 					<attribute name="readonly">1</attribute>
 				</xpath>
+				
+				<xpath expr="//form/sheet/notebook/page[@string='Order Lines']/field/tree/field[@name='price_subtotal']"  position="before">
+					<field name="amount_basic"/>
+					<field name="amount_ed"/>			
+				</xpath>
 				<xpath expr="//form/sheet/notebook/page[@string='Order Lines']/field/tree/field[@name='price_subtotal']"  position="after">
 					<field name="freight" />
 					<field name="name_consignee_id" domain="[('consignee_parent_id','=',parent.partner_id)]" on_change = "onchange_consignee_id(name_consignee_id)" options="{'create': false, 'create_edit': false}"/>

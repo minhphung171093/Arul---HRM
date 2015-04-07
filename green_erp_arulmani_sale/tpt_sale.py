@@ -756,7 +756,24 @@ class sale_order_line(osv.osv):
             subtotal = (line.product_uom_qty * line.price_unit) + (line.product_uom_qty * line.price_unit) * (line.order_id.excise_duty_id.amount/100)
             res[line.id] = subtotal
         return res
-     
+    def basic_amt_calc(self, cr, uid, ids, field_name, args, context=None):
+        res = {}
+        for line in self.browse(cr,uid,ids,context=context):
+            res[line.id] = {
+               'amount_basic' : 0.0,
+               }
+            subtotal = (line.product_uom_qty * line.price_unit) 
+            res[line.id]['amount_basic'] = subtotal
+        return res
+    def ed_amt_calc(self, cr, uid, ids, field_name, args, context=None):
+        res = {}
+        for line in self.browse(cr,uid,ids,context=context):
+            res[line.id] = {
+               'amount_ed' : 0.0,
+               }
+            subtotal = (line.product_uom_qty * line.price_unit) * (line.order_id.excise_duty_id.amount/100)
+            res[line.id]['amount_ed'] = subtotal
+        return res  
     _columns = {
         'product_id': fields.many2one('product.product', 'Product', required = True),
         'product_type':fields.selection([('rutile','Rutile'),('anatase','Anatase')],'Product Type'),
@@ -766,6 +783,9 @@ class sale_order_line(osv.osv):
         'name_consignee_id': fields.many2one('res.partner', 'Consignee', required = False), #TPT - modified required true to false
         'location': fields.char('Location', size = 1024),   
         'product_uom_qty': fields.float('Quantity', digits=(16,2), required=True, readonly=True, states={'draft': [('readonly', False)]}),
+        'amount_basic': fields.function(basic_amt_calc, store = True, multi='deltas3' ,string='Basic'),
+        'amount_ed': fields.function(ed_amt_calc, store = True, multi='deltas4' ,string='ED'),
+        
     }
     _defaults ={
       'product_uom_qty':0,
