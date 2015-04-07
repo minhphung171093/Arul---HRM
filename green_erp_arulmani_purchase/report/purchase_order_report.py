@@ -83,11 +83,13 @@ class Parser(report_sxw.rml_parse):
             '''%(indent_id,productid.id)
             self.cr.execute(sql1)
             txt = self.cr.fetchone()
-                       
-            if txt:
-                txt = txt
-                #raise osv.except_osv(_('Warning!%s'),_(txt[0]))  
-            return txt
+            a = txt[0]
+            txt1=""           
+            if a:
+                txt1 = a
+            else:
+                txt1 = ""
+            return txt1
     def get_indent(self, order):
         if order:         
             sql = '''select name from tpt_purchase_indent where id in (select po_indent_no from 
