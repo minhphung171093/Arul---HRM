@@ -199,7 +199,7 @@ class tpt_import_inventory_anatase(osv.osv):
             inventory_line_id = []
             try:
                 dem = 1
-                for row in range(2,sh.nrows):
+                for row in range(1,sh.nrows):
                     location_id = False
                     parent_ids = locat_obj.search(cr, uid, [('name','=','Store'),('usage','=','view')])
                     if not parent_ids:
@@ -438,7 +438,7 @@ class tpt_import_inventory_rutile(osv.osv):
             inventory_line_id = []
             try:
                 dem = 1
-                for row in range(2,sh.nrows):
+                for row in range(1,sh.nrows):
                     location_id = False
                     parent_ids = locat_obj.search(cr, uid, [('name','=','Store'),('usage','=','view')])
                     if not parent_ids:

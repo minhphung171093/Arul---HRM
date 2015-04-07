@@ -489,19 +489,23 @@
             <field name="inherit_id" ref="purchase.purchase_order_form"/>
             <field name="arch" type="xml">
             
-            <xpath expr="//form/header/button[@name='print_quotation']" position="replace">
-            <button name="print_quotation" string="Print" type="object"  class="oe_highlight" groups="base.group_user" invisible='1'/>
-            </xpath> 
+	            <xpath expr="//form/header/button[@name='print_quotation']" position="replace">
+	            	<button name="print_quotation" string="Print" type="object"  class="oe_highlight" groups="base.group_user" invisible='1'/>
+	            </xpath> 
+	            <xpath expr="//form/header/button[@name='action_cancel_draft']" position="replace">
+	            	<button name="action_cancel_draft" states="cancel,sent,confirmed,head" string="Set to Draft" type="object" groups="green_erp_arulmani_purchase.group_vvti_purchase_mgr,green_erp_arulmani_purchase.group_vvti_purchase_gm"/>
+	            	<button name="action_cancel_draft" states="gm" string="Set to Draft" type="object" groups="green_erp_arulmani_purchase.group_vvti_purchase_gm"/>
+	            </xpath> 
             
 				<xpath expr="//form/header/button[@name='purchase_confirm']" position="replace">
 					
 					<button name="print_quotation" string="Print PO" type="object"  class="oe_highlight" groups="base.group_user"/>
 					
-					<button name="purchase_draft_head" states="draft" string="Purchase Head Approval" class="oe_highlight"/>
-					<button name="purchase_head_gm" states="head" string="GM Approval" class="oe_highlight" groups="green_erp_arulmani_purchase.group_vvti_purchase_admin"/>
+					<button name="purchase_draft_head" states="draft" string="Purchase Head Approval" class="oe_highlight" groups="green_erp_arulmani_purchase.group_vvti_purchase_admin,green_erp_arulmani_purchase.group_vvti_purchase_mgr"/>
+					<button name="purchase_head_gm" states="head" string="GM Approval" class="oe_highlight" groups="green_erp_arulmani_purchase.group_vvti_purchase_admin,green_erp_arulmani_purchase.group_vvti_purchase_gm"/>
 					<button name="purchase_gm_amendement" states="gm" string="Amendement" class="oe_highlight"/>
 					<!--<button name="purchase_head_amendement" states="head" string="Amendement" class="oe_highlight"/>-->
-					<button name="purchase_amendement_head" states="amendement" string="Purchase Head Approval" class="oe_highlight"/>
+					<button name="purchase_amendement_head" states="amendement" string="Purchase Head Approval" class="oe_highlight" groups="green_erp_arulmani_purchase.group_vvti_purchase_admin,green_erp_arulmani_purchase.group_vvti_purchase_mgr"/>
 					<button name="purchase_gm_confirmed" states="gm" string="MD Approval" class="oe_highlight" groups="green_erp_arulmani_purchase.group_vvti_purchase_admin"/>
 				</xpath>  
             	<xpath expr="//field[@name='partner_id']" position="before">

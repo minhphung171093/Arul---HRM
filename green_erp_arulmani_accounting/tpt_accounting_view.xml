@@ -88,7 +88,7 @@
         </record>
         
         
-        <menuitem id="menu_tpt_accounting" name="Accounting" parent="account.menu_finance" sequence="0"/>
+        <menuitem id="menu_tpt_accounting" name="Accounting" parent="account.menu_finance" sequence="0" groups="green_erp_arulmani_sale.group_vvti_unit_account"/>
         <menuitem action="action_tpt_posting_configuration_form_view"
             id="menu_action_tpt_posting_configuration_form_view"
             parent="menu_tpt_accounting" sequence="13"/>
@@ -788,7 +788,8 @@
               </p>
             </field>
         </record>
-        <menuitem action="action_invoice_supplier_without_po" id="menu_action_invoice_supplier_without_po" parent="account.menu_finance_payables"/>
+        <menuitem action="action_invoice_supplier_without_po" id="menu_action_invoice_supplier_without_po" parent="account.menu_finance_payables"
+        	groups="green_erp_arulmani_sale.group_vvti_unit_account,account.group_account_manager"/>
         
         <record id="tpt_account_supplier_voucher_pay_form" model="ir.ui.view">
             <field name="name">tpt.account.supplier.voucher.pay.form</field>
@@ -1187,7 +1188,8 @@
         </record>
 
         <menuitem action="action_vendor_reconcile" icon="STOCK_JUSTIFY_FILL" sequence="13"
-            id="menu_action_vendor_reconcile"  parent="account.menu_finance_receivables"/>
+            id="menu_action_vendor_reconcile"  parent="account.menu_finance_receivables"
+            groups="green_erp_arulmani_sale.group_vvti_unit_account,account.group_account_manager"/>
             
         <!-- Supplier Reconciliation -->    
        	<record model="ir.ui.view" id="view_vendor_payment_form_reconcile">
@@ -1353,7 +1355,8 @@
         </record>
 
         <menuitem action="action_supplier_reconcile" icon="STOCK_JUSTIFY_FILL" sequence="13"
-            id="menu_action_supplier_reconcile"  parent="account.menu_finance_payables"/>
+            id="menu_action_supplier_reconcile"  parent="account.menu_finance_payables"
+            groups="green_erp_arulmani_sale.group_vvti_unit_account,account.group_account_manager"/>
         
         <record id="account_voucher.action_vendor_receipt" model="ir.actions.act_window">
             <field name="name">Customer Payments</field>

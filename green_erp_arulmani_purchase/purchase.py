@@ -2842,16 +2842,79 @@ class tpt_quanlity_inspection(osv.osv):
 
     def bt_approve(self,cr,uid,ids,context=None):
         move_obj = self.pool.get('stock.move')
+        locat_obj = self.pool.get('stock.location')
+        location_id = False
+        location_dest_id = False
+        parent_ids = locat_obj.search(cr, uid, [('name','=','Quality Inspection'),('usage','=','view')])
+        if not parent_ids:
+            raise osv.except_osv(_('Warning!'),_('System does not have Quality Inspection warehouse, please check it!'))
+        locat_ids = locat_obj.search(cr, uid, [('name','in',['Quality Inspection','Inspection']),('location_id','=',parent_ids[0])])
+        if not locat_ids:
+            raise osv.except_osv(_('Warning!'),_('System does not have Quality Inspection  location in Quality Inspection  warehouse, please check it!'))
+        else:
+            location_id = locat_ids[0]
+            
+        parent_dest_ids = locat_obj.search(cr, uid, [('name','=','Store'),('usage','=','view')])
+        if not parent_dest_ids:
+            raise osv.except_osv(_('Warning!'),_('System does not have Store warehouse, please check it!'))
+        location_dest_ids = locat_obj.search(cr, uid, [('name','in',['Raw material','Raw Material']),('location_id','=',parent_dest_ids[0])])
+        if not location_dest_ids:
+            raise osv.except_osv(_('Warning!'),_('System does not have Raw Material location in Store warehouse, please check it!'))
+        else:
+            location_dest_id = location_dest_ids[0]
         for line in self.browse(cr,uid,ids):
-            move_obj.action_done(cr, uid, [line.need_inspec_id.id])
+            rs = {
+                  'name': '/',
+                  'product_id':line.product_id and line.product_id.id or False,
+                  'product_qty':line.qty or False,
+                  'product_uom':line.product_id.uom_po_id and line.product_id.uom_po_id.id or False,
+                  'location_id':location_id,
+                  'location_dest_id':location_dest_id,
+                  
+                  }
+            move_id = move_obj.create(cr,uid,rs)
+            move_obj.action_done(cr, uid, [move_id])
+#             move_obj.action_done(cr, uid, [line.need_inspec_id.id])
         return self.write(cr, uid, ids, {'state':'done'})
     
     def bt_reject(self,cr,uid,ids,context=None):
         move_obj = self.pool.get('stock.move')
-        picking_obj = self.pool.get('stock.picking')
+#         picking_obj = self.pool.get('stock.picking')
+#         for line in self.browse(cr,uid,ids):
+#             move_obj.action_cancel(cr, uid, [line.need_inspec_id.id])
+#             picking_obj.do_partial(cr, uid, [line.name.id], {})
+        locat_obj = self.pool.get('stock.location')
+        location_id = False
+        location_dest_id = False
+        parent_ids = locat_obj.search(cr, uid, [('name','=','Quality Inspection'),('usage','=','view')])
+        if not parent_ids:
+            raise osv.except_osv(_('Warning!'),_('System does not have Quality Inspection warehouse, please check it!'))
+        locat_ids = locat_obj.search(cr, uid, [('name','in',['Quality Inspection','Inspection']),('location_id','=',parent_ids[0])])
+        if not locat_ids:
+            raise osv.except_osv(_('Warning!'),_('System does not have Quality Inspection  location in Quality Inspection  warehouse, please check it!'))
+        else:
+            location_id = locat_ids[0]
+            
+        parent_dest_ids = locat_obj.search(cr, uid, [('name','=','Blocked List'),('usage','=','view')])
+        if not parent_dest_ids:
+            raise osv.except_osv(_('Warning!'),_('System does not have Blocked List warehouse, please check it!'))
+        location_dest_ids = locat_obj.search(cr, uid, [('name','in',['Blocked List','Block List']),('location_id','=',parent_dest_ids[0])])
+        if not location_dest_ids:
+            raise osv.except_osv(_('Warning!'),_('System does not have Blocked List location in Blocked List warehouse, please check it!'))
+        else:
+            location_dest_id = location_dest_ids[0]
         for line in self.browse(cr,uid,ids):
-            move_obj.action_cancel(cr, uid, [line.need_inspec_id.id])
-            picking_obj.do_partial(cr, uid, [line.name.id], {})
+            rs = {
+                  'name': '/',
+                  'product_id':line.product_id and line.product_id.id or False,
+                  'product_qty':line.qty or False,
+                  'product_uom':line.product_id.uom_po_id and line.product_id.uom_po_id.id or False,
+                  'location_id':location_id,
+                  'location_dest_id':location_dest_id,
+                  
+                  }
+            move_id = move_obj.create(cr,uid,rs)
+            move_obj.action_done(cr, uid, [move_id])
         return self.write(cr, uid, ids, {'state':'cancel'})
 
 #     def onchange_grn_no(self, cr, uid, ids,name=False, context=None):
