@@ -2,15 +2,15 @@
 <openerp>
 	<data>
     	<record id="tpt_export_cif_account_invoice" model="ir.actions.report.xml">
-	        <field name="name">tpt.export.cfr.account.invoice</field>
+	        <field name="name">tpt.export.cif.account.invoice</field>
 	        <field name="type">ir.actions.report.xml</field>
 	        <field name="model">account.invoice</field>
 	        <field name="report_name">Account Invoice</field>
 	        <field name="report_type">aeroo</field>
 	        <field name="in_format">oo-odt</field>
 	        <field name="out_format" model="report.mimetypes" search="[('code','=','oo-pdf'),('compatible_types','=','oo-odt')]"/>
-	        <field name="parser_loc">green_erp_arulmani_sale/report/export_fob_invoice_report.py</field>
-	        <field name="report_rml">green_erp_arulmani_sale/report/export_fob_invoice_report.odt</field>
+	        <field name="parser_loc">green_erp_arulmani_sale/report/export_cif_invoice_report.py</field>
+	        <field name="report_rml">green_erp_arulmani_sale/report/export_cif_invoice_report.odt</field>
 	        <field name="parser_state">loc</field>
 	        <field name="tml_source">file</field>
 	        <field name="attachment_use" eval="0"/>

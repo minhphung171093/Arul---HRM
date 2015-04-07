@@ -53,6 +53,7 @@ class Parser(report_sxw.rml_parse):
             'get_if_freight_lb':self.get_if_freight_lb,
             'get_if_freight_amt':self.get_if_freight_amt,
             'get_cst_lb':self.get_cst_lb,
+            'get_s3':self.get_s3,
             
         })
     
@@ -239,6 +240,12 @@ class Parser(report_sxw.rml_parse):
             return "0"
         else:
             return " "
+    def get_s3(self,partner):
+        #raise osv.except_osv(_('Warning!%s'),s3)
+        if partner.street3:
+            return partner.street3+", "+partner.city
+        else:
+            return partner.city
     def get_if_freight_amt(self,freight):
         if freight>0:
             return round(freight)   
