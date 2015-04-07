@@ -56,7 +56,7 @@ class tpt_mrp_process(osv.osv):
                                         inner join product_uom pu on st.product_uom = pu.id
                                     where st.state='done' and st.product_id=product_product.id and l1.usage = 'internal'
                                 )foo
-                            ) <= re_stock and product_product.id = product_template.id
+                            ) <= re_stock and product_product.product_tmpl_id = product_template.id
                     and (product_product.id not in (select product_id from tpt_purchase_indent,tpt_purchase_product 
                             where tpt_purchase_indent.id = tpt_purchase_product.purchase_indent_id 
                             and tpt_purchase_indent.state != 'cancel' 

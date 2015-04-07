@@ -702,7 +702,7 @@ class product_product(osv.osv):
                      select product_product.id 
                         from product_product,product_template 
                         where product_template.categ_id in(select product_category.id from product_category where product_category.cate_name = 'finish') 
-                        and product_product.id = product_template.id;
+                        and product_product.product_tmpl_id = product_template.id;
                 '''
                 cr.execute(sql)
                 product_ids = [row[0] for row in cr.fetchall()]
@@ -738,7 +738,7 @@ class product_product(osv.osv):
                             select product_product.id 
                             from product_product,product_template 
                             where product_template.categ_id in(select product_category.id from product_category where product_category.cate_name = 'raw') 
-                            and product_product.id = product_template.id and product_template.purchase_ok = True;
+                            and product_product.product_tmpl_id = product_template.id and product_template.purchase_ok = True;
                     '''
                     cr.execute(sql)
                     pur_ids = [row[0] for row in cr.fetchall()]
@@ -748,7 +748,7 @@ class product_product(osv.osv):
                         select product_product.id 
                         from product_product,product_template 
                         where product_template.categ_id in(select product_category.id from product_category where product_category.cate_name = 'consum') 
-                        and product_product.id = product_template.id and product_template.purchase_ok = True;
+                        and product_product.product_tmpl_id = product_template.id and product_template.purchase_ok = True;
  
                     '''
                     cr.execute(sql)
@@ -759,7 +759,7 @@ class product_product(osv.osv):
                                                select product_product.id 
                         from product_product,product_template 
                         where product_template.categ_id in(select product_category.id from product_category where product_category.cate_name = 'spares') 
-                        and product_product.id = product_template.id and product_template.purchase_ok = True;
+                        and product_product.product_tmpl_id = product_template.id and product_template.purchase_ok = True;
                      
                     '''
                     cr.execute(sql)
@@ -770,7 +770,7 @@ class product_product(osv.osv):
                         select product_product.id 
                         from product_product,product_template 
                         where product_template.categ_id in(select product_category.id from product_category where product_category.cate_name = 'assets') 
-                        and product_product.id = product_template.id and product_template.purchase_ok = True;
+                        and product_product.product_tmpl_id = product_template.id and product_template.purchase_ok = True;
  
                     '''
                     cr.execute(sql)
@@ -778,7 +778,7 @@ class product_product(osv.osv):
                     args += [('id','in',pur_ids)]
                 else:
                         sql = '''
-                           select product_product.id from product_product,product_template where product_product.id = product_template.id and product_template.purchase_ok = True
+                           select product_product.id from product_product,product_template where product_product.product_tmpl_id = product_template.id and product_template.purchase_ok = True
                         '''
                         cr.execute(sql)
                         pur_ids = [row[0] for row in cr.fetchall()]
