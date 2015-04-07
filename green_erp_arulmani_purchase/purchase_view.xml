@@ -65,9 +65,9 @@
 							<field name="date_indent" on_change="onchange_date_expect(date_indent)" />
 							<field name="document_type" on_change="onchange_document_type(document_type)" />
 							<field name="intdent_cate" />
-							<field name="department_id" options="{'create': false, 'create_edit': false}" />
+							<field name="department_id" required='1' options="{'create': false, 'create_edit': false}" />
 							<field name="create_uid" options="{'create': false, 'create_edit': false}"  />
-							<field name="section_id" domain="[('department_id','=',department_id)]" options="{'create': false, 'create_edit': false}" />
+							<field name="section_id" required='1' domain="[('department_id','=',department_id)]" options="{'create': false, 'create_edit': false}" />
 							<field name="date_expect"/>
 							<field name="requisitioner" options="{'create': false, 'create_edit': false}" domain="[('department_id','=',department_id)]"  />
 							
@@ -1594,7 +1594,20 @@
         <menuitem action="action_view_tpt_request_for_quotation_form"
             id="menu_action_view_tpt_request_for_quotation_form"
             parent="purchase.menu_procurement_management" sequence="550"/>
-
+		
+		<record id="vsis_view_partner_form_inherit_tree" model="ir.ui.view">
+            <field name="name">res.partner.view.tree.inherit</field>
+            <field name="model">res.partner</field>
+            <field name="inherit_id" ref="base.view_partner_tree"/>
+            <field name="field_parent">child_ids</field>
+            <field name="arch" type="xml">
+            	<field name="name" position="before">
+                    <field name="vendor_code" />                   	
+                </field>
+                                   
+            </field>
+        </record>	
+        
         <record id="tpt_view_partner_form" model="ir.ui.view">
             <field name="name">tpt.partner.view.form.inherit</field>
             <field name="model">res.partner</field>
@@ -1668,8 +1681,8 @@
 		                <group col="4" colspan="2" >    
 							<field name="name"/>
 							<field name="date_request" on_change="onchange_date_expect(date_request)" />
-							<field name="department_id" options="{'create': false, 'create_edit': false}" />
-							<field name="section_id" domain="[('department_id','=',department_id)]" options="{'create': false, 'create_edit': false}" />
+							<field name="department_id" required='1' options="{'create': false, 'create_edit': false}" />
+							<field name="section_id" required='1' domain="[('department_id','=',department_id)]" options="{'create': false, 'create_edit': false}" />
 							<field name="requisitioner" options="{'create': false, 'create_edit': false}" domain="[('department_id','=',department_id)]"  />
 							<field name="create_uid" options="{'create': false, 'create_edit': false}"  />
 							<field name="date_expec"/>

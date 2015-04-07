@@ -742,7 +742,14 @@ class product_product(osv.osv):
         'tpt_description':fields.text('Description', size = 256),
         'bin_location':fields.char('Bin Location', size = 1024),
         'old_no':fields.char('Old Material No.', size = 1024),
-        'tpt_mater_type':fields.selection([('mechan','Mechanical'),('civil','Civil'),('elect','Electrical'),('inst','Instrumentation'),('raw_mat','Raw. Mat. & Prod'),('qc','QC and R&D'),('safe','Safety & Personnel'),('proj','Projects')],'Material Type'),
+        'tpt_mater_type':fields.selection([('mechan','Mechanical'),
+                                           ('store','Store'),
+                                           ('civil','Civil'),
+                                           ('elect','Electrical'),
+                                           ('inst','Instrumentation'),
+                                           ('raw_mat','Raw. Mat. & Prod'),
+                                           ('qc','QC and R&D'),
+                                           ('safe','Safety & Personnel'),('proj','Projects')],'Material Type'),
         'onhand_qty': fields.function(_onhand_qty, string='OnHand Qty', multi='test_qty'),
         }
     
