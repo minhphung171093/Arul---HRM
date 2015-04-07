@@ -42,9 +42,34 @@ class Parser(report_sxw.rml_parse):
             'get_ins_lb':self.get_ins_lb,
             'get_other_lb':self.get_other_lb,
             'get_ins':self.get_ins,
+            'get_s3':self.get_s3,
+            'get_s1_s2':self.get_s1_s2,
+            'get_s3_city_zip':self.get_s3_city_zip,
+            'get_state_country':self.get_state_country,
             
         })
-    
+    def get_s1_s2(self,partner):
+        if partner.street2:
+            return partner.street+", "+partner.street2
+        else:
+            return partner.street
+    def get_s3_city_zip(self,partner):
+        if partner.street3 and partner.city and partner.zip:
+            return partner.street3+", "+partner.city+", "+partner.zip
+        elif partner.street3 and partner.city and not partner.zip:
+            return partner.street3+", "+partner.city
+    def get_state_country(self,partner):
+        
+        if (partner.state_id.name).replace(" ", ""):
+            return partner.state_id.name+", "+partner.country_id.name
+        else:
+            return (partner.country_id.name).upper()
+    def get_s3(self,partner):
+        #raise osv.except_osv(_('Warning!%s'),s3)
+        if partner.street3:
+            return partner.street3+", "+partner.city
+        else:
+            return partner.city
     def get_date(self, date=False):
         if not date:
             date = time.strftime(DATE_FORMAT)
