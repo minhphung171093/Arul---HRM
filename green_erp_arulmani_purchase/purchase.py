@@ -1827,7 +1827,8 @@ class purchase_order(osv.osv):
                 for tax_amount in tax_amounts:
                     tax += tax_amount/100
 #                 amount_total_tax += basic*tax
-                amount_total_tax = (basic + p_f + ed + fright )*(tax) #Trong them + frieght vao ham tinh Tax
+                #amount_total_tax = (basic + p_f + ed + fright )*(tax) #Trong them + frieght vao ham tinh Tax
+                amount_total_tax = (basic + p_f + ed)*(tax)
                 total_tax += amount_total_tax
                 
             res[line.id]['amount_untaxed'] = amount_untaxed
@@ -2554,8 +2555,9 @@ class purchase_order_line(osv.osv):
             
             for tax_amount in tax_amounts:
                     tax += tax_amount/100
-            total_tax = (amount_basic + amount_fright + amount_ed + amount_p_f)*(tax)
-
+            #total_tax = (amount_basic + amount_fright + amount_ed + amount_p_f)*(tax)
+            total_tax = (amount_basic + amount_ed + amount_p_f)*(tax)
+            
             amount_total_tax += total_tax
             sql = '''
                 SELECT name FROM account_tax
