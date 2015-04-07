@@ -993,6 +993,7 @@ class account_invoice_line(osv.osv):
             invoice = self.pool.get('account.invoice').browse(cr, uid, t['invoice_id'])
             cr.execute('SELECT * FROM account_invoice WHERE id=%s', (invoice_id,))
             for account in cr.dictfetchall():
+                tds_amount = 0
                 if account['tds_id']:
                     tds_amount = account['amount_untaxed'] * invoice.tds_id.amount/100
                 sql = '''
