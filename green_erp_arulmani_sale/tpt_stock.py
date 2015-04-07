@@ -97,7 +97,7 @@ class stock_picking(osv.osv):
                         update stock_move set location_id = %s, location_dest_id = %s where picking_id = %s 
                     '''%(picking.location_id.id, picking.location_dest_id.id, picking.id)
             cr.execute(sql)
-            
+             
             sql = '''
                     select product_id, prodlot_id, product_uom,sum(product_qty) as product_qty from stock_move where picking_id = %s group by product_id, prodlot_id, product_uom
                 '''%(picking.id)

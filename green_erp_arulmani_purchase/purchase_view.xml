@@ -498,7 +498,7 @@
 					<button name="print_quotation" string="Print PO" type="object"  class="oe_highlight" groups="base.group_user"/>
 					
 					<button name="purchase_draft_head" states="draft" string="Purchase Head Approval" class="oe_highlight" groups="green_erp_arulmani_purchase.group_vvti_purchase_admin,green_erp_arulmani_purchase.group_vvti_purchase_mgr"/>
-					<button name="purchase_head_gm" states="head" string="GM Approval" class="oe_highlight" groups="green_erp_arulmani_purchase.group_vvti_purchase_admin"/>
+					<button name="purchase_head_gm" states="head" string="GM Approval" class="oe_highlight" groups="green_erp_arulmani_purchase.group_vvti_purchase_admin,green_erp_arulmani_purchase.group_vvti_purchase_gm"/>
 					<button name="purchase_gm_amendement" states="gm" string="Amendement" class="oe_highlight"/>
 					<!--<button name="purchase_head_amendement" states="head" string="Amendement" class="oe_highlight"/>-->
 					<button name="purchase_amendement_head" states="amendement" string="Purchase Head Approval" class="oe_highlight" groups="green_erp_arulmani_purchase.group_vvti_purchase_admin,green_erp_arulmani_purchase.group_vvti_purchase_mgr"/>
