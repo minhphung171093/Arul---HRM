@@ -1827,8 +1827,9 @@ class purchase_order(osv.osv):
                 for tax_amount in tax_amounts:
                     tax += tax_amount/100
 #                 amount_total_tax += basic*tax
+                #TPT-COMMENTED & ADDED BY BalamuruganPurushothaman ON 07/04/2015 - TO BLOCK FREIGHT AMT TO BE ADDED IN TAX CALCULATION
                 #amount_total_tax = (basic + p_f + ed + fright )*(tax) #Trong them + frieght vao ham tinh Tax
-                amount_total_tax = (basic + p_f + ed)*(tax)
+                amount_total_tax = (basic + p_f + ed)*(tax) #TPT-HERE fright IS REMOVED
                 total_tax += amount_total_tax
                 
             res[line.id]['amount_untaxed'] = amount_untaxed
@@ -2556,7 +2557,7 @@ class purchase_order_line(osv.osv):
             for tax_amount in tax_amounts:
                     tax += tax_amount/100
             #total_tax = (amount_basic + amount_fright + amount_ed + amount_p_f)*(tax)
-            total_tax = (amount_basic + amount_ed + amount_p_f)*(tax)
+            total_tax = (amount_basic + amount_ed + amount_p_f)*(tax) #TPT-HERE fright IS REMOVED
             
             amount_total_tax += total_tax
             sql = '''
@@ -2598,7 +2599,9 @@ class purchase_order_line(osv.osv):
                                        \n* The \'Cancelled\' status is set automatically when user cancel purchase order.'),
                 #TPT
                 #'item_text': fields.char('Item Text'), 
-                }
+                }   
+    
+
     _defaults = {
                  'date_planned':time.strftime('%Y-%m-%d'),
                  'state': 'draft',
@@ -2648,8 +2651,9 @@ class purchase_order_line(osv.osv):
                 cr.execute("UPDATE purchase_order_line SET line_no=line_no-1 WHERE id in %s",(tuple(update_ids),))
             if line.move_dest_id:
                 procurement_ids_to_cancel.extend(procurement.id for procurement in line.move_dest_id.procurements)
-            if (line.order_id.quotation_no.state == 'done'):
-                raise osv.except_osv(_('Warning!'), _('This PO line can not be deleted!'))
+            #TPT - Commented By BalamuruganPurushothaman - ON 08/04/2015 - TO AVOID THIS WARNING WHEN PO LINE IS DELETED
+            #if (line.order_id.quotation_no.state == 'done'):
+            #    raise osv.except_osv(_('Warning!'), _('This PO line can not be deleted!')) 
         if procurement_ids_to_cancel:
             self.pool['procurement.order'].action_cancel(cr, uid, procurement_ids_to_cancel)
         return super(purchase_order_line, self).unlink(cr, uid, ids, context=context)

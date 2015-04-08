@@ -1602,7 +1602,10 @@
             <field name="field_parent">child_ids</field>
             <field name="arch" type="xml">
             	<field name="name" position="before">
-                    <field name="vendor_code" />                   	
+            	<!--	
+            		<field name="vendor_code" attrs="{'invisible': [('supplier','=',False)]}" />     
+                    --> 
+                    <field name="vendor_code" attrs="{'invisible': [('supplier','=',False)],'required':[('supplier','!=',False)]}" />             	
                 </field>
                                    
             </field>
