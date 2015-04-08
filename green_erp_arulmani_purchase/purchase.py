@@ -394,12 +394,15 @@ class tpt_purchase_product(osv.osv):
         'section_id_relate': fields.related('pur_product_id', 'section_id',type = 'many2one', relation='arul.hr.section', string='Section',store=True),
         'requisitioner_relate':fields.related('pur_product_id', 'requisitioner',type = 'many2one', relation='hr.employee', string='Requisitioner',store=True),
         'date_indent_relate':fields.related('pur_product_id', 'date_indent',type = 'date', string='Indent Date',store=True),
-        
+        'flag': fields.boolean('Flag'),
         }  
 #     
     _defaults = {
         'state':'draft',
+        'flag': False,
     }
+    
+    
     def bt_approve(self, cr, uid, ids, context=None):
         for line in self.browse(cr,uid,ids):
 #             father = self.pool.get('tpt.purchase.indent').browse(cr,uid,line.pur_product_id.id)
@@ -450,10 +453,16 @@ class tpt_purchase_product(osv.osv):
                     'uom_po_id':False,
                     'price_unit':False,
                     'description': False,
+                    'flag': False,
                     'mrs_qty':0.0,
                     }}
         if product_id:
             product = self.pool.get('product.product').browse(cr, uid, product_id)
+#             if product.categ_id.cate_name == 'consum':
+#                 sql = '''
+#                         update tpt_purchase_product set flag = 't' where product_id = %s
+#                     '''%(product_id) 
+#                 cr.execute(sql)
             sql = '''
                 select case when sum(product_uom_qty) != 0 then sum(product_uom_qty) else 0 end product_mrs_qty from tpt_material_request_line where product_id=%s and material_request_id in (select id from tpt_material_request where state='done' and id not in (select name from tpt_material_issue where state='done'))
             '''%(product_id)
@@ -464,6 +473,10 @@ class tpt_purchase_product(osv.osv):
                     #'price_unit':product.list_price,
                     'description': product.name,
                     'mrs_qty':float(product_mrs_qty),
+                    })
+            if product.categ_id.cate_name == 'consum':
+                res['value'].update({
+                    'flag':True,
                     })
         return res
     
