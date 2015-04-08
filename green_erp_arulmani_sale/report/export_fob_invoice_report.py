@@ -73,7 +73,7 @@ class Parser(report_sxw.rml_parse):
         if (partner.state_id.name).replace(" ", ""):
             return partner.state_id.name+", "+partner.country_id.name
         else:
-            return (partner.country_id.name).upper()
+            return partner.country_id.name
     def get_s3(self,partner):
         if partner.street3:
             return partner.street3+", "+partner.city
