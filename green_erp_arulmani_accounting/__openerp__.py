@@ -30,8 +30,10 @@
     'data': [
         'security/green_erp_arulmani_accounting_security.xml',
         'security/ir.model.access.csv',
+        'wizard/daily_sale_form_view.xml',
         'tpt_accounting_sequence.xml',
         'tpt_accounting_view.xml',
+        'report/daily_sale_report_view.xml',
         'import_view.xml',
         'menu_inherit_view.xml',
     ],
