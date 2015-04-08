@@ -239,6 +239,16 @@ class tpt_fsh_batch_split(osv.osv):
         move_split_obj = self.pool.get('stock.move.split')
         move_obj = self.pool.get('stock.move')
         for line in self.browse(cr, uid, ids):
+            
+            available = 0.0
+            if line.product_id.default_code in ['FERROUS SULPHATE','FSH','M0501010002'] or line.product_id.name in ['FERROUS SULPHATE','FSH','M0501010002']:
+                sql = '''
+                        select id from stock_production_lot where name='temp_fsh'
+                    '''
+                cr.execute(sql)
+                prodlot_ids = cr.fetchone()
+                if prodlot_ids and self.pool.get('stock.production.lot').browse(cr, uid, prodlot_ids[0]).stock_available<line.available:
+                    raise osv.except_osv(_('Warning!'),_('Batchable Quantity is not more than Available Stock Quantity !'))
             move_ids = move_obj.search(cr, uid, [('scrapped','=',False),('production_id','=',line.mrp_id.id),('product_id','=',line.product_id.id)])
             cr.execute('update stock_move set location_dest_id=%s where id in %s',(line.location_id.id,tuple(move_ids),))
 #             move_obj.write(cr, uid, move_ids,{'location_dest_id':line.location_id.id})
@@ -302,19 +312,19 @@ class tpt_fsh_batch_split(osv.osv):
         return new_id
     
     def write(self, cr, uid, ids, vals, context=None):
-        for mrp in self.browse(cr, uid, ids):
-            available = 0.0
-            if mrp.product_id.default_code in ['FERROUS SULPHATE','FSH','M0501010002'] or mrp.product_id.name in ['FERROUS SULPHATE','FSH','M0501010002']:
-                sql = '''
-                        select id from stock_production_lot where name='temp_fsh'
-                    '''
-                cr.execute(sql)
-                prodlot_ids = cr.fetchone()
-                if prodlot_ids and self.pool.get('stock.production.lot').browse(cr, uid, prodlot_ids[0]).stock_available<mrp.mrp_id.product_qty:
-                    available = self.pool.get('stock.production.lot').browse(cr, uid, prodlot_ids[0]).stock_available
-                else:
-                    available = mrp.mrp_id.product_qty
-            vals.update({'available':available})
+#         for mrp in self.browse(cr, uid, ids):
+#             available = 0.0
+#             if mrp.product_id.default_code in ['FERROUS SULPHATE','FSH','M0501010002'] or mrp.product_id.name in ['FERROUS SULPHATE','FSH','M0501010002']:
+#                 sql = '''
+#                         select id from stock_production_lot where name='temp_fsh'
+#                     '''
+#                 cr.execute(sql)
+#                 prodlot_ids = cr.fetchone()
+#                 if prodlot_ids and self.pool.get('stock.production.lot').browse(cr, uid, prodlot_ids[0]).stock_available<mrp.mrp_id.product_qty:
+#                     available = self.pool.get('stock.production.lot').browse(cr, uid, prodlot_ids[0]).stock_available
+#                 else:
+#                     available = mrp.mrp_id.product_qty
+#             vals.update({'available':available})
         new_write = super(tpt_fsh_batch_split, self).write(cr, uid,ids, vals, context)
 #         for new in self.browse(cr, uid, ids):
 #             sum = 0
