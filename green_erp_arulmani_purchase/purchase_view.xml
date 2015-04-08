@@ -1604,7 +1604,7 @@
             <field name="arch" type="xml">
             	<field name="name" position="before">
             		
-            		<field name="vendor_code"/>     
+            		<field name="vendor_code" string="Code"/>     
                     
                                  	
                 </field>

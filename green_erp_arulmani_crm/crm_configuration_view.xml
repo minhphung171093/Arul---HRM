@@ -60,11 +60,10 @@
             <field name="field_parent">child_ids</field>
             <field name="arch" type="xml">
             	<field name="last_name" position="replace">
-                    <field name="customer_code" />                                    	
+                    <field name="customer_code" string="Code"/>                                    	
                 </field>
                 <field name="name" position="after">
-                    	<field name="city" /> 
-                    	                 	
+                    	<field name="city" />                    	                 	
                 </field>                    
             </field>
         </record>	
