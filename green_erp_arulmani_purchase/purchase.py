@@ -2671,6 +2671,7 @@ class purchase_order_line(osv.osv):
             self.pool['procurement.order'].action_cancel(cr, uid, procurement_ids_to_cancel)
         return super(purchase_order_line, self).unlink(cr, uid, ids, context=context)
     
+    
     def onchange_po_indent_no(self, cr, uid, ids,po_indent_no=False, context=None):
         if po_indent_no:
             return {'value': {'product_id': False}}    
