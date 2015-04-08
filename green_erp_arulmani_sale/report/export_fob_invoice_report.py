@@ -58,6 +58,14 @@ class Parser(report_sxw.rml_parse):
             return partner.street3+", "+partner.city+", "+partner.zip
         elif partner.street3 and partner.city and not partner.zip:
             return partner.street3+", "+partner.city
+        elif not partner.street3 and partner.city and partner.zip:
+            return partner.city+", "+partner.zip
+        elif partner.street3 and not partner.city and partner.zip:
+            return partner.street3+", "+partner.zip
+        elif partner.street3 and not partner.city and not partner.zip:
+            return partner.street3
+        elif not partner.street3 and partner.city and not partner.zip:
+            return partner.city
     def get_state_country(self,partner):
         
         if (partner.state_id.name).replace(" ", ""):
