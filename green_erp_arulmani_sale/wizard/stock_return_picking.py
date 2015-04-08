@@ -68,6 +68,7 @@ class stock_return_picking(osv.osv_memory):
             new_type = 'out'
             seq_obj_name = 'stock.picking.out'
         new_pick_name = self.pool.get('ir.sequence').get(cr, uid, seq_obj_name)
+        new_location = pick.location_dest_id.id
         new_picking = pick_obj.copy(cr, uid, pick.id, {
                                         'name': _('%s-%s-return') % (new_pick_name, pick.name),
                                         'move_lines': [], 
@@ -75,6 +76,8 @@ class stock_return_picking(osv.osv_memory):
                                         'type': new_type,
                                         'date':date_cur, 
                                         'invoice_state': data['invoice_state'],
+                                        'location_id': new_location, 
+                                        'location_dest_id': pick.location_id.id,
         })
         
         val_id = data['product_return_moves']

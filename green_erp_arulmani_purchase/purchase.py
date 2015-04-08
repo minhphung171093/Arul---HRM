@@ -154,6 +154,58 @@ class tpt_purchase_indent(osv.osv):
 #                 raise osv.except_osv(_('Warning!'),_(' You must choose Select is multiple if you want more than one product!'))
         return new_id
     
+    def write(self, cr, uid, ids, vals, context=None):
+        if 'document_type' in vals:
+            sql = '''
+                select code from account_fiscalyear where '%s' between date_start and date_stop
+            '''%(time.strftime('%Y-%m-%d'))
+            cr.execute(sql)
+            fiscalyear = cr.dictfetchone()
+            if not fiscalyear:
+                raise osv.except_osv(_('Warning!'),_('Financial year has not been configured. !'))
+            else:
+                if (vals['document_type']=='base'):
+                    if vals.get('name','/')=='/':
+                        sequence = self.pool.get('ir.sequence').get(cr, uid, 'indent.purchase.based')
+                        vals['name'] =  sequence and sequence+'/'+fiscalyear['code'] or '/'
+                if (vals['document_type']=='capital'):
+                    if vals.get('name','/')=='/':
+                        sequence = self.pool.get('ir.sequence').get(cr, uid, 'indent.purchase.capital')
+                        vals['name'] =  sequence and sequence +'/'+fiscalyear['code']or '/'
+                if (vals['document_type']=='local'):
+                    if vals.get('name','/')=='/':
+                        sequence = self.pool.get('ir.sequence').get(cr, uid, 'indent.purchase.local')
+                        vals['name'] =  sequence and sequence +'/'+fiscalyear['code']or '/'
+                if (vals['document_type']=='maintenance'):
+                    if vals.get('name','/')=='/':
+                        sequence = self.pool.get('ir.sequence').get(cr, uid, 'indent.purchase.maintenance')
+                        vals['name'] =  sequence and sequence +'/'+fiscalyear['code']or '/'
+                if (vals['document_type']=='consumable'):
+                    if vals.get('name','/')=='/':
+                        sequence = self.pool.get('ir.sequence').get(cr, uid, 'indent.purchase.consumable')
+                        vals['name'] =  sequence and sequence +'/'+fiscalyear['code']or '/'
+                if (vals['document_type']=='outside'):
+                    if vals.get('name','/')=='/':
+                        sequence = self.pool.get('ir.sequence').get(cr, uid, 'indent.purchase.outside')
+                        vals['name'] =  sequence and sequence +'/'+fiscalyear['code']or '/'
+                if (vals['document_type']=='spare'):
+                    if vals.get('name','/')=='/':
+                        sequence = self.pool.get('ir.sequence').get(cr, uid, 'indent.purchase.spare')
+                        vals['name'] =  sequence and sequence +'/'+fiscalyear['code']or '/'
+                if (vals['document_type']=='service'):
+                    if vals.get('name','/')=='/':
+                        sequence = self.pool.get('ir.sequence').get(cr, uid, 'indent.purchase.service')
+                        vals['name'] =  sequence and sequence +'/'+fiscalyear['code']or '/'
+                if (vals['document_type']=='normal'):
+                    if vals.get('name','/')=='/':
+                        sequence = self.pool.get('ir.sequence').get(cr, uid, 'indent.purchase.normal')
+                        vals['name'] =  sequence and sequence +'/'+fiscalyear['code']or '/'
+                if (vals['document_type']=='raw'):
+                    if vals.get('name','/')=='/':
+                        sequence = self.pool.get('ir.sequence').get(cr, uid, 'indent.purchase.raw')
+                        vals['name'] =  sequence and sequence +'/'+fiscalyear['code']or '/'
+        new_write = super(tpt_purchase_indent, self).write(cr, uid, ids, vals, context=context)    
+        return new_write
     
     def onchange_date_expect(self, cr, uid, ids,date_indent=False, context=None):
         vals = {}
@@ -180,6 +232,11 @@ class tpt_purchase_indent(osv.osv):
                       }
                 
                 }
+        for indent in self.browse(cr, uid, ids):
+            sql = '''
+                    delete from tpt_purchase_product where pur_product_id = %s
+            '''%(indent.id)
+            cr.execute(sql)
         if document_type:
             vals['purchase_product_line']=False
             if document_type == 'base':
@@ -685,7 +742,14 @@ class product_product(osv.osv):
         'tpt_description':fields.text('Description', size = 256),
         'bin_location':fields.char('Bin Location', size = 1024),
         'old_no':fields.char('Old Material No.', size = 1024),
-        'tpt_mater_type':fields.selection([('mechan','Mechanical'),('civil','Civil'),('elect','Electrical'),('inst','Instrumentation'),('raw_mat','Raw. Mat. & Prod'),('qc','QC and R&D'),('safe','Safety & Personnel'),('proj','Projects')],'Material Type'),
+        'tpt_mater_type':fields.selection([('mechan','Mechanical'),
+                                           ('store','Store'),
+                                           ('civil','Civil'),
+                                           ('elect','Electrical'),
+                                           ('inst','Instrumentation'),
+                                           ('raw_mat','Raw. Mat. & Prod'),
+                                           ('qc','QC and R&D'),
+                                           ('safe','Safety & Personnel'),('proj','Projects')],'Material Type'),
         'onhand_qty': fields.function(_onhand_qty, string='OnHand Qty', multi='test_qty'),
         }
     
@@ -702,7 +766,7 @@ class product_product(osv.osv):
                      select product_product.id 
                         from product_product,product_template 
                         where product_template.categ_id in(select product_category.id from product_category where product_category.cate_name = 'finish') 
-                        and product_product.id = product_template.id;
+                        and product_product.product_tmpl_id = product_template.id;
                 '''
                 cr.execute(sql)
                 product_ids = [row[0] for row in cr.fetchall()]
@@ -738,7 +802,7 @@ class product_product(osv.osv):
                             select product_product.id 
                             from product_product,product_template 
                             where product_template.categ_id in(select product_category.id from product_category where product_category.cate_name = 'raw') 
-                            and product_product.id = product_template.id and product_template.purchase_ok = True;
+                            and product_product.product_tmpl_id = product_template.id and product_template.purchase_ok = True;
                     '''
                     cr.execute(sql)
                     pur_ids = [row[0] for row in cr.fetchall()]
@@ -748,7 +812,7 @@ class product_product(osv.osv):
                         select product_product.id 
                         from product_product,product_template 
                         where product_template.categ_id in(select product_category.id from product_category where product_category.cate_name = 'consum') 
-                        and product_product.id = product_template.id and product_template.purchase_ok = True;
+                        and product_product.product_tmpl_id = product_template.id and product_template.purchase_ok = True;
  
                     '''
                     cr.execute(sql)
@@ -759,7 +823,7 @@ class product_product(osv.osv):
                                                select product_product.id 
                         from product_product,product_template 
                         where product_template.categ_id in(select product_category.id from product_category where product_category.cate_name = 'spares') 
-                        and product_product.id = product_template.id and product_template.purchase_ok = True;
+                        and product_product.product_tmpl_id = product_template.id and product_template.purchase_ok = True;
                      
                     '''
                     cr.execute(sql)
@@ -770,7 +834,7 @@ class product_product(osv.osv):
                         select product_product.id 
                         from product_product,product_template 
                         where product_template.categ_id in(select product_category.id from product_category where product_category.cate_name = 'assets') 
-                        and product_product.id = product_template.id and product_template.purchase_ok = True;
+                        and product_product.product_tmpl_id = product_template.id and product_template.purchase_ok = True;
  
                     '''
                     cr.execute(sql)
@@ -778,7 +842,7 @@ class product_product(osv.osv):
                     args += [('id','in',pur_ids)]
                 else:
                         sql = '''
-                           select product_product.id from product_product,product_template where product_product.id = product_template.id and product_template.purchase_ok = True
+                           select product_product.id from product_product,product_template where product_product.product_tmpl_id = product_template.id and product_template.purchase_ok = True
                         '''
                         cr.execute(sql)
                         pur_ids = [row[0] for row in cr.fetchall()]
@@ -1763,7 +1827,8 @@ class purchase_order(osv.osv):
                 for tax_amount in tax_amounts:
                     tax += tax_amount/100
 #                 amount_total_tax += basic*tax
-                amount_total_tax = (basic + p_f + ed + fright )*(tax) #Trong them + frieght vao ham tinh Tax
+                #amount_total_tax = (basic + p_f + ed + fright )*(tax) #Trong them + frieght vao ham tinh Tax
+                amount_total_tax = (basic + p_f + ed)*(tax)
                 total_tax += amount_total_tax
                 
             res[line.id]['amount_untaxed'] = amount_untaxed
@@ -2490,8 +2555,9 @@ class purchase_order_line(osv.osv):
             
             for tax_amount in tax_amounts:
                     tax += tax_amount/100
-            total_tax = (amount_basic + amount_fright + amount_ed + amount_p_f)*(tax)
-
+            #total_tax = (amount_basic + amount_fright + amount_ed + amount_p_f)*(tax)
+            total_tax = (amount_basic + amount_ed + amount_p_f)*(tax)
+            
             amount_total_tax += total_tax
             sql = '''
                 SELECT name FROM account_tax
@@ -2842,16 +2908,79 @@ class tpt_quanlity_inspection(osv.osv):
 
     def bt_approve(self,cr,uid,ids,context=None):
         move_obj = self.pool.get('stock.move')
+        locat_obj = self.pool.get('stock.location')
+        location_id = False
+        location_dest_id = False
+        parent_ids = locat_obj.search(cr, uid, [('name','=','Quality Inspection'),('usage','=','view')])
+        if not parent_ids:
+            raise osv.except_osv(_('Warning!'),_('System does not have Quality Inspection warehouse, please check it!'))
+        locat_ids = locat_obj.search(cr, uid, [('name','in',['Quality Inspection','Inspection']),('location_id','=',parent_ids[0])])
+        if not locat_ids:
+            raise osv.except_osv(_('Warning!'),_('System does not have Quality Inspection  location in Quality Inspection  warehouse, please check it!'))
+        else:
+            location_id = locat_ids[0]
+            
+        parent_dest_ids = locat_obj.search(cr, uid, [('name','=','Store'),('usage','=','view')])
+        if not parent_dest_ids:
+            raise osv.except_osv(_('Warning!'),_('System does not have Store warehouse, please check it!'))
+        location_dest_ids = locat_obj.search(cr, uid, [('name','in',['Raw material','Raw Material']),('location_id','=',parent_dest_ids[0])])
+        if not location_dest_ids:
+            raise osv.except_osv(_('Warning!'),_('System does not have Raw Material location in Store warehouse, please check it!'))
+        else:
+            location_dest_id = location_dest_ids[0]
         for line in self.browse(cr,uid,ids):
-            move_obj.action_done(cr, uid, [line.need_inspec_id.id])
+            rs = {
+                  'name': '/',
+                  'product_id':line.product_id and line.product_id.id or False,
+                  'product_qty':line.qty or False,
+                  'product_uom':line.product_id.uom_po_id and line.product_id.uom_po_id.id or False,
+                  'location_id':location_id,
+                  'location_dest_id':location_dest_id,
+                  
+                  }
+            move_id = move_obj.create(cr,uid,rs)
+            move_obj.action_done(cr, uid, [move_id])
+#             move_obj.action_done(cr, uid, [line.need_inspec_id.id])
         return self.write(cr, uid, ids, {'state':'done'})
     
     def bt_reject(self,cr,uid,ids,context=None):
         move_obj = self.pool.get('stock.move')
-        picking_obj = self.pool.get('stock.picking')
+#         picking_obj = self.pool.get('stock.picking')
+#         for line in self.browse(cr,uid,ids):
+#             move_obj.action_cancel(cr, uid, [line.need_inspec_id.id])
+#             picking_obj.do_partial(cr, uid, [line.name.id], {})
+        locat_obj = self.pool.get('stock.location')
+        location_id = False
+        location_dest_id = False
+        parent_ids = locat_obj.search(cr, uid, [('name','=','Quality Inspection'),('usage','=','view')])
+        if not parent_ids:
+            raise osv.except_osv(_('Warning!'),_('System does not have Quality Inspection warehouse, please check it!'))
+        locat_ids = locat_obj.search(cr, uid, [('name','in',['Quality Inspection','Inspection']),('location_id','=',parent_ids[0])])
+        if not locat_ids:
+            raise osv.except_osv(_('Warning!'),_('System does not have Quality Inspection  location in Quality Inspection  warehouse, please check it!'))
+        else:
+            location_id = locat_ids[0]
+            
+        parent_dest_ids = locat_obj.search(cr, uid, [('name','=','Blocked List'),('usage','=','view')])
+        if not parent_dest_ids:
+            raise osv.except_osv(_('Warning!'),_('System does not have Blocked List warehouse, please check it!'))
+        location_dest_ids = locat_obj.search(cr, uid, [('name','in',['Blocked List','Block List']),('location_id','=',parent_dest_ids[0])])
+        if not location_dest_ids:
+            raise osv.except_osv(_('Warning!'),_('System does not have Blocked List location in Blocked List warehouse, please check it!'))
+        else:
+            location_dest_id = location_dest_ids[0]
         for line in self.browse(cr,uid,ids):
-            move_obj.action_cancel(cr, uid, [line.need_inspec_id.id])
-            picking_obj.do_partial(cr, uid, [line.name.id], {})
+            rs = {
+                  'name': '/',
+                  'product_id':line.product_id and line.product_id.id or False,
+                  'product_qty':line.qty or False,
+                  'product_uom':line.product_id.uom_po_id and line.product_id.uom_po_id.id or False,
+                  'location_id':location_id,
+                  'location_dest_id':location_dest_id,
+                  
+                  }
+            move_id = move_obj.create(cr,uid,rs)
+            move_obj.action_done(cr, uid, [move_id])
         return self.write(cr, uid, ids, {'state':'cancel'})
 
 #     def onchange_grn_no(self, cr, uid, ids,name=False, context=None):

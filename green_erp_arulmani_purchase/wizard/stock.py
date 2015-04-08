@@ -32,14 +32,10 @@ class stock_partial_picking(osv.osv_memory):
             if picking.type != 'in':
                 moves = [self._partial_move_for(cr, uid, m) for m in picking.move_lines if m.state not in ('done','cancel')]
             else:
-                moves = [self._partial_move_for(cr, uid, m) for m in picking.move_lines if m.state not in ('done','cancel') and m.action_taken == 'direct']
+                moves = [self._partial_move_for(cr, uid, m) for m in picking.move_lines if m.state not in ('done','cancel') and m.action_taken in ['direct','need']]
             res.update(move_ids=moves)
         if 'date' in fields:
             res.update(date=time.strftime(DEFAULT_SERVER_DATETIME_FORMAT))
-            
-
-                
-            
         return res
     
     def do_partial(self, cr, uid, ids, context=None):
@@ -82,7 +78,7 @@ class stock_partial_picking(osv.osv_memory):
                     raise osv.except_osv(_('Warning!'), _('The rounding of the initial uom does not allow you to ship "%s %s", as it would let a quantity of "%s %s" to ship and only rounding of "%s %s" is accepted by the uom.') % (wizard_line.quantity, line_uom.name, wizard_line.move_id.product_qty - without_rounding_qty, initial_uom.name, initial_uom.rounding, initial_uom.name))
             else:
                 seq_obj_name =  'stock.picking.' + picking_type
-                move_id = stock_move.create(cr,uid,{'name' : self.pool.get('ir.sequence').get(cr, uid, seq_obj_name),
+                move_id = stock_move.cremove_idate(cr,uid,{'name' : self.pool.get('ir.sequence').get(cr, uid, seq_obj_name),
                                                     'product_id': wizard_line.product_id.id,
                                                     'product_qty': wizard_line.quantity,
                                                     'product_uom': wizard_line.product_uom.id,
@@ -101,33 +97,82 @@ class stock_partial_picking(osv.osv_memory):
             if (picking_type == 'in') and (wizard_line.product_id.cost_method == 'average'):
                 partial_data['move%s' % (wizard_line.move_id.id)].update(product_price=wizard_line.cost,
                                                                   product_currency=wizard_line.currency.id)
+            
+            if wizard_line.action_taken=='need':
+                product_line = []
+                if wizard_line.product_id.categ_id.cate_name=='raw':
+                    for para in wizard_line.product_id.spec_parameter_line: 
+                        product_line.append((0,0,{
+                                            'name':para.name,
+                                           'value':para.required_spec,
+                                           }))
+                vals = {
+                        'product_id':wizard_line.product_id.id,
+                        'qty':wizard_line.quantity,
+                        'name':partial.picking_id.id,
+                        'supplier_id':partial.picking_id.partner_id.id,
+                        'date':partial.picking_id.date,
+                        'specification_line':product_line,
+                        }
+                
+                quality_inspec.create(cr, SUPERUSER_ID, vals)
         stock_picking.do_partial(cr, uid, [partial.picking_id.id], partial_data, context=context)
         
-        a_ids = stock_move.search(cr, uid,[('picking_id','=',[partial.picking_id.id]),('action_taken','=','need'),('state','not in',['done','cancel']),('inspec','=',False)])
-        for line in stock_move.browse(cr,uid,a_ids):
-            product_line = []
-            if line.product_id.categ_id.cate_name=='raw':
-                for para in line.product_id.spec_parameter_line: 
-                    product_line.append((0,0,{
-                                        'name':para.name,
-                                       'value':para.required_spec,
-                                       }))
-
-                
-            vals = {
-                    'product_id':line.product_id.id,
-                    'qty':line.product_qty,
-                    'name':line.picking_id.id,
-                    'supplier_id':line.picking_id.partner_id.id,
-                    'date':line.picking_id.date,
-                    'need_inspec_id':line.id,
-                    'specification_line':product_line,
-                    }
-            
-            quality_inspec.create(cr, SUPERUSER_ID, vals)
-            sql = '''
-                update stock_move set inspec='t' where id =%s
-            '''%(line.id)
-            cr.execute(sql)
+        
+#         a_ids = stock_move.search(cr, uid,[('picking_id','=',[partial.picking_id.id]),('action_taken','=','need'),('state','not in',['done','cancel']),('inspec','=',False)])
+#         for line in stock_move.browse(cr,uid,a_ids):
+#             product_line = []
+#             if line.product_id.categ_id.cate_name=='raw':
+#                 for para in line.product_id.spec_parameter_line: 
+#                     product_line.append((0,0,{
+#                                         'name':para.name,
+#                                        'value':para.required_spec,
+#                                        }))
+# 
+#                 
+#             vals = {
+#                     'product_id':line.product_id.id,
+#                     'qty':line.product_qty,
+#                     'name':line.picking_id.id,
+#                     'supplier_id':line.picking_id.partner_id.id,
+#                     'date':line.picking_id.date,
+#                     'need_inspec_id':line.id,
+#                     'specification_line':product_line,
+#                     }
+#             
+#             quality_inspec.create(cr, SUPERUSER_ID, vals)
+#             sql = '''
+#                 update stock_move set inspec='t' where id =%s
+#             '''%(line.id)
+#             cr.execute(sql)
         return {'type': 'ir.actions.act_window_close'}
+    
+    def _partial_move_for(self, cr, uid, move):
+#         partial_move = {
+#             'product_id' : move.product_id.id,
+#             'quantity' : move.product_qty if move.state == 'assigned' or move.picking_id.type == 'in' else 0,
+#             'product_uom' : move.product_uom.id,
+#             'prodlot_id' : move.prodlot_id.id,
+#             'move_id' : move.id,
+#             'location_id' : move.location_id.id,
+#             'location_dest_id' : move.location_dest_id.id,
+#             'currency': move.picking_id and move.picking_id.company_id.currency_id.id or False,
+#             'action_taken': move.action_taken or False,
+#         }
+#         if move.picking_id.type == 'in' and move.product_id.cost_method == 'average':
+#             partial_move.update(update_cost=True, **self._product_cost_for_average_update(cr, uid, move))
+        partial_move = super(stock_partial_picking,self)._partial_move_for(cr, uid, move)
+        if move.picking_id.type == 'in':
+            partial_move.update({
+                                 'action_taken': move.action_taken or False,
+                                 })
+        return partial_move
+stock_partial_picking()
+    
+class stock_partial_picking_line(osv.osv_memory):
+    _inherit = "stock.partial.picking.line"
+    _columns = {
+        'action_taken':fields.selection([('direct','Direct Stock Update'),('move','Move to Consumption'),('need','Need Inspection')],'Action to be Taken'),
+    }
+stock_partial_picking_line()
     

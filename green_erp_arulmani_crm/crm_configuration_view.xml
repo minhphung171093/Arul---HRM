@@ -52,7 +52,23 @@
                     </field>
             </field>
         </record>
-      		
+      	<!-- TPT START - By BalamuruganPurushothaman ON 07/04/2015 - TO CUSTOMIZE LIST VIEW OF CUSTOMER MASTER-->	
+      	<record id="vsis_view_partner_form_inherit_tree" model="ir.ui.view">
+            <field name="name">res.partner.view.tree.inherit</field>
+            <field name="model">res.partner</field>
+            <field name="inherit_id" ref="base.view_partner_tree"/>
+            <field name="field_parent">child_ids</field>
+            <field name="arch" type="xml">
+            	<field name="last_name" position="replace">
+                    <field name="customer_code" />                                    	
+                </field>
+                <field name="name" position="after">
+                    	<field name="city" /> 
+                    	                 	
+                </field>                    
+            </field>
+        </record>	
+      	<!-- TPT END -->
         <record id="vsis_view_partner_form_inherit" model="ir.ui.view">
             <field name="name">res.partner.view.form.inherit</field>
             <field name="model">res.partner</field>

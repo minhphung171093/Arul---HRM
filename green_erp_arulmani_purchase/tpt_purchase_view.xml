@@ -20,8 +20,8 @@
 	             <header>
 	    <!--         	<button name="bt_approve" states='draft' string="Approve" type="object" class="oe_highlight" groups="green_erp_arulmani_purchase.group_vvti_purchase_admin"/>  -->
 	             	<button name="bt_cancel" states='draft' string="Cancel" type="object" class="oe_highlight" />
-            		<button name="bt_run_mrp" attrs="{'invisible': [('name','=',False)]}" string="Run MRP Process" type="object" class="oe_highlight" groups="green_erp_arulmani_purchase.group_vvti_purchase_admin"/>
-            		<button name="bt_generate_indent" string="Generate Indent" type="object" class="oe_highlight" attrs="{'invisible': ['|',('flag','=',True), ('state','not in',('approve'))]}" groups="green_erp_arulmani_purchase.group_vvti_purchase_admin"/>
+            		<button name="bt_run_mrp" attrs="{'invisible': [('name','=',False)]}" string="Run MRP Process" type="object" class="oe_highlight" groups="green_erp_arulmani_purchase.group_vvti_purchase_admin,green_erp_arulmani_purchase.group_vvti_purchase_store_mgr"/>
+            		<button name="bt_generate_indent" string="Generate Indent" type="object" class="oe_highlight" attrs="{'invisible': ['|',('flag','=',True), ('state','not in',('approve'))]}" groups="green_erp_arulmani_purchase.group_vvti_purchase_admin,green_erp_arulmani_purchase.group_vvti_purchase_store_mgr"/>
                     <field name="state" widget="statusbar" statusbar_visible="draft,cancel,approve" statusbar_colors='{"draft":"blue","cancel":"blue"}'/>
 	            </header>    
 	            	<sheet>
