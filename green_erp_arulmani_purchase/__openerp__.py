@@ -43,6 +43,7 @@
         'purchase_workflow.xml',
         'menu_inherit_view.xml',
         'import_view.xml',
+        'purchase_stock_data.xml',
     ],
     'css' : [
     ],
