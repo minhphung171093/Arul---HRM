@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="utf-8"?>
+<openerp>
+    <data>
+		<record id="daily_sale_form_view" model="ir.ui.view">
+	        <field name="name">daily.sale.form.view</field>
+	        <field name="model">daily.sale.form</field>
+	        <field name="arch" type="xml">
+	            <form string="Daily Sale Report" version="7.0">
+	            	<group>
+	                <field name="date_from" />
+	                <field name="date_to" />
+	                </group>
+	                <footer>
+	                    <button name="print_report" type='object' string="OK" class="oe_highlight"/>
+	                    or
+	                    <button string="Cancel" class="oe_highlight" special="cancel" />
+	                </footer>
+	            </form>
+	        </field>
+    	</record>
+
+	    <record model="ir.actions.act_window" id="action_daily_sale_form">
+	        <field name="name">Daily Sale Report</field>
+	        <field name="res_model">daily.sale.form</field>
+	        <field name="view_type">form</field>
+	        <field name="view_mode">form</field>
+	        <field name="view_id" ref="daily_sale_form_view" />
+	        <field name="target">new</field>
+	    </record>
+	    
+	    
+	    <menuitem id="menu_tpt_accounting" name="Accounting" parent="account.menu_finance" sequence="0" groups="green_erp_arulmani_sale.group_vvti_unit_account"/>
+        <menuitem action="action_daily_sale_form"
+            id="menu_action_daily_sale_form_view"
+            parent="menu_tpt_accounting" sequence="15"/>
+	 
+	    
+    </data>
+</openerp>
+

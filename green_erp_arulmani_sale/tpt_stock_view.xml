@@ -296,6 +296,8 @@
 				</xpath>
 				
 				<xpath expr="//form/sheet/notebook/page[@string='Invoice Lines']/field/tree/field[@name='price_subtotal']"  position="replace">
+					<field name="amount_basic"/>
+					<field name="amount_ed"/>
 					<field name="price_subtotal" string ="SubTotal"/>
 					<field name="freight" />
 				</xpath>

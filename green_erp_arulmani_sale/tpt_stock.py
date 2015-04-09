@@ -97,7 +97,7 @@ class stock_picking(osv.osv):
                         update stock_move set location_id = %s, location_dest_id = %s where picking_id = %s 
                     '''%(picking.location_id.id, picking.location_dest_id.id, picking.id)
             cr.execute(sql)
-             
+            
             sql = '''
                     select product_id, prodlot_id, product_uom,sum(product_qty) as product_qty from stock_move where picking_id = %s group by product_id, prodlot_id, product_uom
                 '''%(picking.id)
@@ -150,33 +150,31 @@ class stock_picking(osv.osv):
                 cr.execute(sql)
                 for move_line in cr.dictfetchall():
                     if move_line['prodlot_id']:
-                        cr.execute('''
+                        sql = '''
                             select case when sum(foo.product_qty)>0 then sum(foo.product_qty) else 0 end ton_sl from 
                                 (select st.product_qty
                                     from stock_move st 
                                     where st.state='done' and st.product_id=%s and st.location_dest_id = %s and prodlot_id = %s
-                                    and (st.picking_id is null or st.picking_id not in %s)
                                 union all
                                 select st.product_qty*-1
                                     from stock_move st 
                                     where st.state='done' and st.product_id=%s and st.location_id = %s and prodlot_id = %s
-                                    and (st.picking_id is null or st.picking_id not in %s)
                                 )foo
-                        ''',(move_line['product_id'],picking.location_id.id,move_line['prodlot_id'] or 'null',tuple(ids),move_line['product_id'],picking.location_id.id,move_line['prodlot_id'] or 'null',tuple(ids)),)
+                        '''%(move_line['product_id'],picking.location_id.id,move_line['prodlot_id'] or 'null',move_line['product_id'],picking.location_id.id,move_line['prodlot_id'] or 'null')
+                        cr.execute(sql)
                     else:
-                        cr.execute('''
+                        sql = '''
                             select case when sum(foo.product_qty)>0 then sum(foo.product_qty) else 0 end ton_sl from 
                                 (select st.product_qty
                                     from stock_move st 
                                     where st.state='done' and st.product_id=%s and st.location_dest_id = %s
-                                    and (st.picking_id is null or st.picking_id not in %s)
                                 union all
                                 select st.product_qty*-1
                                     from stock_move st 
                                     where st.state='done' and st.product_id=%s and st.location_id = %s
-                                    and (st.picking_id is null or st.picking_id not in %s)
                                 )foo
-                        ''',(move_line['product_id'],picking.location_id.id,tuple(ids),move_line['product_id'],picking.location_id.id,tuple(ids)),)
+                        '''%(move_line['product_id'],picking.location_id.id,move_line['product_id'],picking.location_id.id)
+                        cr.execute(sql)
                     ton_sl = cr.dictfetchone()['ton_sl']
                     if move_line['product_qty'] > ton_sl:
                         raise osv.except_osv(_('Warning!'),_('You are moving %s but only %s available for this product and serial number.' %(move_line['product_qty'], ton_sl)))
@@ -657,7 +655,25 @@ class stock_picking(osv.osv):
             sale = picking.sale_id and picking.sale_id.amount_total or 0
             limit = picking.partner_id and picking.partner_id.credit_limit_used or 0
             used = picking.partner_id and picking.partner_id.credit or 0
-            if not picking.flag_confirm and limit <= (sale + used) and picking.sale_id and picking.sale_id.payment_term_id.name not in ['Immediate Payment','Immediate']:
+            
+            if not picking.flag_confirm and limit == 0 and used == 0 and picking.sale_id:
+                sql = '''
+                    update stock_picking set doc_status='waiting' where id = %s
+                    '''%(picking.id)
+                cr.execute(sql)
+                context.update({'default_name':'Credit limit and Credit used are 0. Need management approval to proceed further!'})
+                return {
+                    'view_type': 'form',
+                    'view_mode': 'form',
+                    'res_model': 'alert.warning.form',
+                    'type': 'ir.actions.act_window',
+                    'target': 'new',
+                    'context': context,
+                    'nodestroy': True,
+                }
+                
+            #if not picking.flag_confirm and limit <= (sale + used) and picking.sale_id and picking.sale_id.payment_term_id.name not in ['Immediate Payment','Immediate']:
+            if not picking.flag_confirm and limit <= (sale + used) and picking.sale_id:
                 sql = '''
                     update stock_picking set doc_status='waiting' where id = %s
                     '''%(picking.id)
@@ -672,41 +688,8 @@ class stock_picking(osv.osv):
                     'context': context,
                     'nodestroy': True,
                 }
-            #TPT SATRT
-            if not picking.flag_confirm and limit == 0 and picking.sale_id and picking.sale_id.payment_term_id.name in ['Immediate Payment','Immediate']:
-                sql = '''
-                    update stock_picking set doc_status='waiting' where id = %s
-                    '''%(picking.id)
-                cr.execute(sql)
-                context.update({'default_name':'Not able to process DO due to credit limit is 0. Need management approval to proceed further!'})
-                return {
-                    'view_type': 'form',
-                    'view_mode': 'form',
-                    'res_model': 'alert.warning.form',
-                    'type': 'ir.actions.act_window',
-                    'target': 'new',
-                    'context': context,
-                    'nodestroy': True,
-                    }
             
-            # TPT COMMENTED - By BalamuruganPurushothaman    
-            #===================================================================
-            # if not picking.flag_confirm and limit == 0 and used == 0:
-            #     sql = '''
-            #         update stock_picking set doc_status='waiting' where id = %s
-            #         '''%(picking.id)
-            #     cr.execute(sql)
-            #     context.update({'default_name':'Credit limit and Credit used are 0. Need management approval to proceed further!'})
-            #     return {
-            #         'view_type': 'form',
-            #         'view_mode': 'form',
-            #         'res_model': 'alert.warning.form',
-            #         'type': 'ir.actions.act_window',
-            #         'target': 'new',
-            #         'context': context,
-            #         'nodestroy': True,
-            #     }
-            #===================================================================
+            
         """Open the partial picking wizard"""
         context.update({
             'active_model': self._name,
@@ -1186,12 +1169,34 @@ class account_invoice_line(osv.osv):
             subtotal = (line.quantity * line.price_unit) + (line.quantity * line.price_unit) * (line.invoice_id.excise_duty_id.amount and line.invoice_id.excise_duty_id.amount/100 or 1)          
             res[line.id] = subtotal
         return res
-    
+    def basic_amt_calc(self, cr, uid, ids, field_name, args, context=None):
+        res = {}
+        for line in self.browse(cr,uid,ids,context=context):
+            res[line.id] = {
+               'amount_basic' : 0.0,
+               }
+            subtotal = (line.quantity * line.price_unit)
+            res[line.id]['amount_basic'] = round(subtotal)
+        return res
+    def ed_amt_calc(self, cr, uid, ids, field_name, args, context=None):
+        res = {}
+        for line in self.browse(cr,uid,ids,context=context):
+            res[line.id] = {
+               'amount_ed' : 0.0,
+               }
+            subtotal = (line.quantity * line.price_unit) * (line.invoice_id.excise_duty_id.amount and line.invoice_id.excise_duty_id.amount/100 or 1)
+            res[line.id]['amount_ed'] = round(subtotal)
+        return res
     _columns = {
         'product_type':fields.selection([('rutile','Rutile'),('anatase','Anatase')],'Product Type'),
         'application_id': fields.many2one('crm.application', 'Application'),
         'freight': fields.float('FreightAmt'),
         'price_subtotal': fields.function(_amount_line, string='Subtotal', digits_compute= dp.get_precision('Account')),
+        #TPT-ED AMT SPLIT
+        'amount_basic': fields.function(basic_amt_calc, store = True, multi='deltas3' ,string='Basic'),
+        'amount_ed': fields.function(ed_amt_calc, store = True, multi='deltas4' ,string='ED'),
+        
+        
        } 
     
 account_invoice_line()
