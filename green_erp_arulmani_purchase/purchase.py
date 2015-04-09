@@ -2651,7 +2651,7 @@ class purchase_order_line(osv.osv):
                 raise osv.except_osv(_('Warning!'),_('ED is not allowed as negative values'))
         if 'fright' in vals:
             if (vals['fright'] < 0):
-                raise osv.except_osv(_('Warning!'),_('Freight is not allowed as negative values'))
+                raise osv.except_osv(_('Warning!'),_('Freight is not allowed as negative values'))  
         return super(purchase_order_line, self).write(cr, uid,ids, vals, context)   
     def unlink(self, cr, uid, ids, context=None):
         procurement_ids_to_cancel = []
