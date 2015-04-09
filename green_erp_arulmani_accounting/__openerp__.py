@@ -34,6 +34,7 @@
         'tpt_accounting_sequence.xml',
         'tpt_accounting_view.xml',
         'report/daily_sale_report_view.xml',
+        'report/cash_book_report_view.xml.xml',
         'import_view.xml',
         'menu_inherit_view.xml',
     ],
