@@ -38,6 +38,8 @@ class Parser(report_sxw.rml_parse):
         pool = pooler.get_pool(self.cr.dbname)
         self.localcontext.update({
             'get_invoice':self.get_invoice,
+            'get_invoice_type':self.get_invoice_type,
+            'get_customer_group': self.get_customer_group,
 #             'get_sale_line': self.get_sale_line,
         })
         
@@ -71,6 +73,20 @@ class Parser(report_sxw.rml_parse):
         self.cr.execute(sql)
         invoice_ids = [r[0] for r in self.cr.fetchall()]
         return invoice_obj.browse(self.cr,self.uid,invoice_ids)
+    
+    def get_invoice_type(self, invoice_type):
+        if invoice_type == 'domestic':
+            return "Domestic/Indirect Export"
+        if invoice_type == 'export':
+            return "Export"
+        
+    def get_customer_group(self, customer):
+        if customer == 'export':
+            return "Export"
+        if customer == 'domestic':
+            return "Domestic"
+        if customer == 'indirect_export':
+            return "Indirect Export"
     
 #     def get_sale_line(self,invoice):
 #         line = invoice[0]

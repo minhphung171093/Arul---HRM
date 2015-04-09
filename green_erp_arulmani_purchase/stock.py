@@ -119,7 +119,7 @@ class stock_picking(osv.osv):
         if dest_id:
             for stock in self.browse(cr, uid, ids):
                 for line in stock.move_lines:
-                    if line.action_taken != 'need':
+                    if line.action_taken not in ['need','move']:
                         rs = {
                               'location_dest_id': dest_id,
                               }
@@ -332,7 +332,7 @@ class stock_move(osv.osv):
         'si_no':fields.integer('SI.No',readonly = True),
                 }
     def onchange_product_id(self, cr, uid, ids, prod_id=False, loc_id=False,
-                            loc_dest_id=False, partner_id=False):
+                            loc_dest_id=False, partner_id=False, action=False):
         """ On change of product id, if finds UoM, UoS, quantity and UoS quantity.
         @param prod_id: Changed Product id
         @param loc_id: Source location id
@@ -365,6 +365,16 @@ class stock_move(osv.osv):
             result['location_id'] = loc_id
         if loc_dest_id:
             result['location_dest_id'] = loc_dest_id
+        if product.categ_id.cate_name == 'consum':
+            result['action_taken'] = 'move'
+        if action != 'move':
+            if product.categ_id.cate_name == 'consum':
+                result['action_taken'] = 'move'
+            else:
+                result['action_taken'] = False
+        else:
+            if product.categ_id.cate_name != 'consum':
+                result['action_taken'] = False
         return {'value': result}
     def write(self, cr, uid, ids, vals, context=None):
         new_write = super(stock_move, self).write(cr, uid,ids, vals, context)
@@ -401,13 +411,38 @@ class stock_move(osv.osv):
         if action_taken and product_id:
             product = self.pool.get('product.product').browse(cr, uid, product_id)
             cate = product.categ_id and product.categ_id.cate_name or False
-            if  action_taken == 'move' and (cate == 'raw' or cate == 'spares'):
+            if  action_taken == 'move' and (cate == 'raw' or cate == 'spares' or cate == 'finish'):
                 warning = {  
                           'title': _('Warning!'),  
                           'message': _('The action "Move to Consumption" can not be taken for this product!'),  
                           }  
-                vals['action_taken']=False
+                vals['action_taken']='False'
                 return {'value': vals,'warning':warning}
+            elif action_taken != 'move' and cate == 'consum':
+                vals['action_taken']='move'
+            elif action_taken == 'move' and cate == 'consum':
+#                 vals['action_taken']='move'
+                location_id = False
+                parent_ids = self.pool.get('stock.location').search(cr, uid, [('name','=','Virtual Locations'),('usage','=','view')])
+                if not parent_ids:
+                    warning = {  
+                          'title': _('Warning!'),  
+                          'message': _('System does not have Virtual Locations warehouse, please check it!'),  
+                          }  
+#                     vals['action_taken']=False
+                    return {'value': vals,'warning':warning}
+                locat_ids = self.pool.get('stock.location').search(cr, uid, [('name','in',['Consumption']),('location_id','=',parent_ids[0])])
+                if not locat_ids:
+                    warning = {  
+                          'title': _('Warning!'),  
+                          'message': _('System does not have Consumption location in Virtual Locations warehouse, please check it!'),  
+                          }  
+#                     vals['action_taken']=False
+                    return {'value': vals,'warning':warning}
+                else:
+                    location_id = locat_ids[0]
+                vals['location_dest_id'] = location_id
+                
             elif action_taken == 'need':
                 location_id = False
                 parent_ids = self.pool.get('stock.location').search(cr, uid, [('name','=','Quality Inspection'),('usage','=','view')])
