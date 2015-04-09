@@ -489,11 +489,16 @@ class tpt_purchase_product(osv.osv):
             '''%(vals['product_id'])
             cr.execute(sql)
             product_mrs_qty=cr.dictfetchone()['product_mrs_qty']
-            vals.update({
-                         'uom_po_id':product.uom_id.id,
-                         'description':product.name,
-                         'mrs_qty':float(product_mrs_qty),
-                         })
+            if product.categ_id.cate_name != 'consum':
+                vals.update({
+                             'uom_po_id':product.uom_id.id,
+                             'description':product.name,
+                             'mrs_qty':float(product_mrs_qty),
+                             })
+            else:
+                vals.update({
+                             'mrs_qty':float(product_mrs_qty),
+                             })
         new_id = super(tpt_purchase_product, self).create(cr, uid, vals, context)
         if 'product_uom_qty' in vals:
             if (vals['product_uom_qty'] < 0):
@@ -511,11 +516,16 @@ class tpt_purchase_product(osv.osv):
             '''%(vals['product_id'])
             cr.execute(sql)
             product_mrs_qty=cr.dictfetchone()['product_mrs_qty']
-            vals.update({
-                         'uom_po_id':product.uom_id.id,
-                         'description':product.name,
-                         'mrs_qty':float(product_mrs_qty),
-                         })
+            if product.categ_id.cate_name != 'consum':
+                vals.update({
+                             'uom_po_id':product.uom_id.id,
+                             'description':product.name,
+                             'mrs_qty':float(product_mrs_qty),
+                             })
+            else:
+                vals.update({
+                             'mrs_qty':float(product_mrs_qty),
+                             })
         new_write = super(tpt_purchase_product, self).write(cr, uid,ids, vals, context)
         for line in self.browse(cr,uid,ids):
             if line.product_uom_qty < 0:
@@ -2484,6 +2494,9 @@ class purchase_order(osv.osv):
         }
  
     def _prepare_order_line_move(self, cr, uid, order, order_line, picking_id, context=None):
+        act_taken = False
+        if order_line and order_line.product_id and order_line.product_id.categ_id and order_line.product_id.categ_id.cate_name == 'consum':
+            act_taken = 'move'
         return {
             'name': order_line.name or '',
             'product_id': order_line.product_id.id,
@@ -2505,6 +2518,7 @@ class purchase_order(osv.osv):
             'company_id': order.company_id.id,
             'price_unit': order_line.price_unit,
             'po_indent_id': order_line.po_indent_no and order_line.po_indent_no.id or False,
+            'action_taken': act_taken,
         }
 purchase_order()
 

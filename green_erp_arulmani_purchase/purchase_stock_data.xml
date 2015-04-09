@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<openerp>
+    <data noupdate='1'>
+		<record id="location_consumption" model="stock.location">
+            <field name="name">Consumption</field>
+            <field name="location_id" ref="stock.stock_location_locations_virtual"/>
+            <field name="usage">inventory</field>
+            <field name="company_id"></field>
+        </record>
+        
+        <!--<record forcecreate="True" id="property_stock_consumption" model="ir.property">
+            <field name="name">property_stock_consumption</field>
+            <field name="fields_id" search="[('model','=','product.template'),('name','=','property_stock_consumption')]"/>
+            <field eval="'stock.location,'+str(location_consumption)" name="value"/>
+        </record>-->
+        
+    </data>
+</openerp>
