@@ -656,21 +656,23 @@ class stock_picking(osv.osv):
             limit = picking.partner_id and picking.partner_id.credit_limit_used or 0
             used = picking.partner_id and picking.partner_id.credit or 0
             
-            if not picking.flag_confirm and limit == 0 and used == 0 and picking.sale_id:
-                sql = '''
-                    update stock_picking set doc_status='waiting' where id = %s
-                    '''%(picking.id)
-                cr.execute(sql)
-                context.update({'default_name':'Credit limit and Credit used are 0. Need management approval to proceed further!'})
-                return {
-                    'view_type': 'form',
-                    'view_mode': 'form',
-                    'res_model': 'alert.warning.form',
-                    'type': 'ir.actions.act_window',
-                    'target': 'new',
-                    'context': context,
-                    'nodestroy': True,
-                }
+            #===================================================================
+            # if not picking.flag_confirm and limit == 0 and used == 0 and picking.sale_id:
+            #     sql = '''
+            #         update stock_picking set doc_status='waiting' where id = %s
+            #         '''%(picking.id)
+            #     cr.execute(sql)
+            #     context.update({'default_name':'Credit limit and Credit used are 0. Need management approval to proceed further!'})
+            #     return {
+            #         'view_type': 'form',
+            #         'view_mode': 'form',
+            #         'res_model': 'alert.warning.form',
+            #         'type': 'ir.actions.act_window',
+            #         'target': 'new',
+            #         'context': context,
+            #         'nodestroy': True,
+            #     }
+            #===================================================================
                 
             #if not picking.flag_confirm and limit <= (sale + used) and picking.sale_id and picking.sale_id.payment_term_id.name not in ['Immediate Payment','Immediate']:
             if not picking.flag_confirm and limit <= (sale + used) and picking.sale_id:
