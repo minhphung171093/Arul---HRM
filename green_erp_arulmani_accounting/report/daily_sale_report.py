@@ -38,8 +38,7 @@ class Parser(report_sxw.rml_parse):
         pool = pooler.get_pool(self.cr.dbname)
         self.localcontext.update({
             'get_invoice':self.get_invoice,
-#             'convert_date': self.convert_date,
-#             'get_date': self.get_date,
+#             'get_sale_line': self.get_sale_line,
         })
         
     def convert_date(self,date):
@@ -65,12 +64,20 @@ class Parser(report_sxw.rml_parse):
         wizard_data = self.localcontext['data']['form']
         date_from = wizard_data['date_from']
         date_to = wizard_data['date_to']
-        invoice_obj = self.pool.get('account.invoice')
+        invoice_obj = self.pool.get('account.invoice.line')
         sql = '''
-            select id from account_invoice where date_invoice between '%s' and '%s' 
+            select id from account_invoice_line where invoice_id in (select id from account_invoice where date_invoice between '%s' and '%s')
             '''%(date_from, date_to)
         self.cr.execute(sql)
         invoice_ids = [r[0] for r in self.cr.fetchall()]
         return invoice_obj.browse(self.cr,self.uid,invoice_ids)
+    
+#     def get_sale_line(self,invoice):
+#         line = invoice[0]
+#         order_lines = line.invoice_id.sale_id.order_line
+#             
+#         return self.pool.get('sale.order.line').browse(self.cr,self.uid,order_lines[0])
+        
+    
 # vim:expandtab:smartindent:tabstop=4:softtabstop=4:shiftwidth=4:
 

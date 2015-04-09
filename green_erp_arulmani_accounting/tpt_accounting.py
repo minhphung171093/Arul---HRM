@@ -504,7 +504,7 @@ class stock_picking(osv.osv):
                             raise osv.except_osv(_('Warning!'),_('Product Asset Account is not configured! Please configured it!'))
                         journal_line.append((0,0,{
                                     'name':line.name, 
-                                    'account_id': account,
+                                    'account_id': cose_id,
                                     'partner_id': line.partner_id and line.partner_id.id,
                                     'credit':0,
                                     'debit':debit,
