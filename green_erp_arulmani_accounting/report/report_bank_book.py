@@ -40,18 +40,8 @@ class Parser(report_sxw.rml_parse):
             'get_invoice':self.get_invoice,
 #             'convert_date': self.convert_date,
 #             'get_date': self.get_date,
-            'get_date_from':self.get_date_from,
-            'get_date_to':self.get_date_to,
         })
-    def get_date_from(self):
-        wizard_data = self.localcontext['data']['form']
-        date = datetime.strptime(wizard_data['date_from'], DATE_FORMAT)
-        return date.strftime('%d/%m/%Y')
-    
-    def get_date_to(self):
-        wizard_data = self.localcontext['data']['form']
-        date = datetime.strptime(wizard_data['date_to'], DATE_FORMAT)
-        return date.strftime('%d/%m/%Y')        
+        
     def convert_date(self,date):
         date = datetime.strptime(date, DATE_FORMAT)
         return date.strftime('%d/%m/%Y')

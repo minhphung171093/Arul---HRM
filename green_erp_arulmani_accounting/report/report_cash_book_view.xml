@@ -1,16 +1,16 @@
 <?xml version="1.0" encoding="utf-8"?>
 <openerp>
     <data>
-    	<record id="daily_sale_report" model="ir.actions.report.xml">
-	        <field name="name">daily_sale_report</field>
+    	<record id="report_cash_book" model="ir.actions.report.xml">
+	        <field name="name">report_cash_book</field>
 	        <field name="type">ir.actions.report.xml</field>
-	        <field name="model">daily.sale.form</field>
-	        <field name="report_name">daily_sale_report</field>
+	        <field name="model">cash.book.report</field>
+	        <field name="report_name">report_cash_book</field>
 	        <field name="report_type">aeroo</field>
-	        <field name="in_format">oo-ods</field>
-	        <field name="out_format" model="report.mimetypes" search="[('code','=','oo-ods')]"/>
-	        <field name="parser_loc">green_erp_arulmani_accounting/report/daily_sale_report.py</field>
-	        <field name="report_rml">green_erp_arulmani_accounting/report/daily_sale_report.ods</field>
+	        <field name="in_format">oo-odt</field>
+	        <field name="out_format" model="report.mimetypes" search="[('code','=','oo-pdf'),('compatible_types','=','oo-odt')]"/>
+	        <field name="parser_loc">green_erp_arulmani_accounting/report/report_cash_book.py</field>
+	        <field name="report_rml">green_erp_arulmani_accounting/report/report_cash_book.odt</field>
 	        <field name="parser_state">loc</field>
 	        <field name="tml_source">file</field>
 	        <field name="attachment_use" eval="0"/>
@@ -19,10 +19,10 @@
 		<report 
 			auto="True" 
 			menu="False"
-			id="daily_sale_report" 
-			model="daily.sale.form" 
-			name="daily_sale_report"
-	        string="Daily Sale Report"
-	        rml="green_erp_arulmani_accounting/report/daily_sale_report.ods"/>	
+			id="report_cash_book" 
+			model="cash.book.report" 
+			name="report_cash_book"
+	        string="Cash Book Report"
+	        rml="green_erp_arulmani_accounting/report/report_cash_book.odt"/>	
     </data>
 </openerp>

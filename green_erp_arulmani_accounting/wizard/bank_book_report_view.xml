@@ -1,11 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
 <openerp>
     <data>
-		<record id="cash_book_report_view" model="ir.ui.view">
-	        <field name="name">cash.book.report.view</field>
-	        <field name="model">cash.book.report</field>
+		<record id="bank_book_report_view" model="ir.ui.view">
+	        <field name="name">bank.book.report.view</field>
+	        <field name="model">bank.book.report</field>
 	        <field name="arch" type="xml">
-	            <form string="Cash Book Report" version="7.0">
+	            <form string="Bank Book Report" version="7.0">
 	            	<group>
 	                <field name="date_from" />
 	                <field name="date_to" />
@@ -20,19 +20,19 @@
 	        </field>
     	</record>
 
-	    <record model="ir.actions.act_window" id="action_cash_book_report_view">
-	        <field name="name">Cash Book Report</field>
-	        <field name="res_model">cash.book.report</field>
+	    <record model="ir.actions.act_window" id="action_bank_book_report_view">
+	        <field name="name">Bank Book Report</field>
+	        <field name="res_model">bank.book.report</field>
 	        <field name="view_type">form</field>
 	        <field name="view_mode">form</field>
-	        <field name="view_id" ref="cash_book_report_view" />
+	        <field name="view_id" ref="bank_book_report_view" />
 	        <field name="target">new</field>
 	    </record>
 	    
 	    
-        <menuitem action="action_cash_book_report_view"
-            id="menu_action_cash_book_report_view"
-            parent="menu_tpt_accounting" sequence="100"/>
+        <menuitem action="action_bank_book_report_view"
+            id="menu_action_bank_book_report_view"
+            parent="menu_tpt_accounting" sequence="101"/>
 	 
 	    
     </data>

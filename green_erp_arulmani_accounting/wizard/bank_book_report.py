@@ -8,8 +8,8 @@ import openerp.tools
 from openerp.tools import DEFAULT_SERVER_DATE_FORMAT, DEFAULT_SERVER_DATETIME_FORMAT, float_compare
 
 
-class cash_book_report(osv.osv_memory):
-    _name = "cash.book.report"
+class bank_book_report(osv.osv_memory):
+    _name = "bank.book.report"
     _columns = {    
                 'date_from': fields.date('Date From', required=True),
                 'date_to': fields.date('Date To', required=True),
@@ -33,6 +33,6 @@ class cash_book_report(osv.osv_memory):
         datas['model'] = 'cash.book.report'
         datas['form'] = self.read(cr, uid, ids)[0]
         datas['form'].update({'active_id':context.get('active_ids',False)})
-        return {'type': 'ir.actions.report.xml', 'report_name': 'report_cash_book', 'datas': datas}
+        return {'type': 'ir.actions.report.xml', 'report_name': 'report_bank_book', 'datas': datas}
         
-cash_book_report()
+bank_book_report()

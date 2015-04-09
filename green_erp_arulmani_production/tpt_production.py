@@ -1376,15 +1376,35 @@ class tpt_quality_verification(osv.osv):
 
 tpt_quality_verification()
 
-# class tpt_batch_quality_verification_line(osv.osv):
-#     _name = 'tpt.batch.quality.verification.line'
-#     _columns = {
-#         'batch_verifi_id': fields.many2one('quality.verification','Batch Quality',ondelete='cascade'),
-#         'stand_value':fields.float('Standard Value'),
-#         'exp_value':fields.float('Experiment Value'),
-#         'parameter_id':fields.many2one('tpt.quality.parameters','Parameters',required=True),
-#     }
-# tpt_batch_quality_verification_line()
+# class product_product(osv.osv):
+#     _inherit = "product.product"
+#     
+#     
+#     def search(self, cr, uid, args, offset=0, limit=None, order=None, context=None, count=False):
+#         if context is None:
+#             context = {}
+#         if context.get('search_blanket_id'):
+#             if context.get('blanket_id'):
+#                 sql = '''
+#                     select product_id from tpt_blank_order_line where blanket_order_id in(select id from tpt_blanket_order where id = %s)
+#                 '''%(context.get('blanket_id'))
+#                 cr.execute(sql)
+#                 blanket_ids = [row[0] for row in cr.fetchall()]
+#                 args += [('id','in',blanket_ids)]
+#         if context.get('search_batch_request'):
+#             if context.get('batch_request_id'):
+#                 sql = '''
+#                     select product_id from tpt_product_information where product_information_id in(select id from tpt_batch_request where id = %s)
+#                 '''%(context.get('batch_request_id'))
+#                 cr.execute(sql)
+#                 request_ids = [row[0] for row in cr.fetchall()]
+#                 args += [('id','in',request_ids)]
+#         return super(product_product, self).search(cr, uid, args, offset=offset, limit=limit, order=order, context=context, count=count)
+#     def name_search(self, cr, user, name, args=None, operator='ilike', context=None, limit=100):
+#        ids = self.search(cr, user, args, context=context, limit=limit)
+#        return self.name_get(cr, user, ids, context=context)
+# 
+# product_product()
 
 class mrp_production_product_line(osv.osv):
     _inherit = 'mrp.production.product.line'

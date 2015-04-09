@@ -255,7 +255,7 @@
                     </xpath>
                 	<xpath expr="//field[@name='bom_lines']/tree" position="replace">
                         <tree string="Components" editable="bottom">
-	                        <field name="product_id" options="{'create': false, 'create_edit': false}" context="{'default_supply_method':'produce'}" on_change="onchange_product_id(product_id, name)"/>
+	                        <field name="product_id" options="{'create': false, 'create_edit': false}" domain="[('categ_id.cate_name','in',['finish','raw'])]" context="{'default_supply_method':'produce'}" on_change="onchange_product_id(product_id, name)"/>
 	                        <field name="name" string="Description" invisible="1"/>
 	                        <field name="note" />
 	                        <field name="product_qty" string="Quantity"/>
