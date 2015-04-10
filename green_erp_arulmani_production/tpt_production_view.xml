@@ -331,6 +331,7 @@
                 <data>
                 	<xpath expr="//field[@name='name']" position="after">
                 		<field name="app_quantity" string = "Quantity" readonly = "1"  />
+                		<field name="declar_id" invisible='1'  />
                     </xpath>
          <!--           <xpath expr="//field[@name='product_qty']" position="attributes">
                 		<attribute name='readonly'>1</attribute>
@@ -366,6 +367,9 @@
                     </xpath>
                     <xpath expr="//form/sheet/group/group/div/field[@name='product_uom']" position="attributes">
 						<attribute name='readonly'>1</attribute>
+                    </xpath>
+                    <xpath expr="//form/sheet/group/group/div/field[@name='product_uom']" position="attributes">
+						<attribute name='required'>0</attribute>
                     </xpath>
                   	
                   	<xpath expr="//form/sheet/group/group/field[@name='bom_id']" position="replace"/>
@@ -422,6 +426,18 @@
                     
                     <xpath expr="//form/sheet/notebook/page[@string='Consumed Products']/group/group[@string='Products to Consume']/field/tree/field[@name='product_uom']" position="after">
                     	<field name="product_qty" string="Applied Quantity"  />
+                    </xpath>
+                    
+                    <xpath expr="//form/sheet/notebook/page[@string='Consumed Products']" position="after">
+						<page string = "Add Material">
+								<field name="material_line" nolabel='1' >
+									<tree editable = 'bottom'>
+										<field name="product_id"  on_change = "onchange_product_uom(product_id)"  options="{'create': false, 'create_edit': false}"/>
+										<field name="product_uom_id"  />
+										<field name="app_qty" />
+									</tree>
+								</field>
+							</page>
                     </xpath>
                     
                     <xpath expr="//form/sheet/notebook/page[@string='Consumed Products']" position="attributes">
