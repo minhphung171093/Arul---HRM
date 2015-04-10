@@ -36,6 +36,7 @@
         'report/purchase_order_report.xml',
         'wizard/tick_purchase_chart_view.xml',
         'wizard/alert_form_purchase_view.xml',
+        'wizard/alert_form_line_view.xml',
         'purchase_view.xml',
         'stock_view.xml',
         'tpt_purchase_view.xml',

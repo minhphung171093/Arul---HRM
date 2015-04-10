@@ -1282,6 +1282,7 @@ class tpt_purchase_quotation(osv.osv):
                             'product_uom_qty':line.product_uom_qty or False,
                             'uom_id': line.uom_id and line.uom_id.id or False,
                             'price_unit':line.product_id and line.product_id.standard_price or False,
+                            'description':line.description or False,
                     })
             if rfq.rfq_category == 'single':
                 res['value'].update({
@@ -1539,6 +1540,7 @@ class tpt_purchase_quotation_line(osv.osv):
         'line_net': fields.function(line_net_line, store = True, multi='deltas' ,string='SubTotal'),
         'line_no': fields.integer('SI.No', readonly = True),
         'order_charge': fields.float('Other Charges'),
+        'description':fields.char('Mat.Desc', size = 50, readonly = True),
         #TPT
         #'item_text': fields.char('Item Text'), 
         }
@@ -2040,6 +2042,7 @@ class purchase_order(osv.osv):
 #                       'price_subtotal': line.sub_total or False,
 #                       'date_planned':quotation.date_quotation or False,
                       'name': line.product_id and line.product_id.name or False,
+                      'description':line.description or False,
                       }
                 po_line.append((0,0,rs))
             vals = {
@@ -2519,6 +2522,7 @@ class purchase_order(osv.osv):
             'price_unit': order_line.price_unit,
             'po_indent_id': order_line.po_indent_no and order_line.po_indent_no.id or False,
             'action_taken': act_taken,
+            'description':order_line.description or False,
         }
 purchase_order()
 
@@ -2624,6 +2628,7 @@ class purchase_order_line(osv.osv):
                                        \n* The \'Confirmed\' status is set automatically as confirm when purchase order in confirm status. \
                                        \n* The \'Done\' status is set automatically when purchase order is set as done. \
                                        \n* The \'Cancelled\' status is set automatically when user cancel purchase order.'),
+                'description':fields.char('Description', size = 50, readonly = True),
                 #TPT
                 #'item_text': fields.char('Item Text'), 
                 }   

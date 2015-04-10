@@ -581,6 +581,7 @@
 					<field name="po_indent_no" context="{'search_po_indent_no':True, 'quotation_no':parent.quotation_no}" options="{'create': false, 'create_edit': false}"/>
 				</xpath>
 				<xpath expr="//page[@string='PO Line']/field/tree/field[@name='product_qty']" position="replace">
+					<field name="description" />
 					<field name="product_qty" />
 				</xpath>
 				<xpath expr="//page[@string='PO Line']/field/tree/field[@name='product_qty']" position="after">
@@ -605,6 +606,7 @@
 					<field name="fright_type"/>
 					<field name="short_qty"/>
 					<field name="line_net"/>
+					<button name="%(action_alert_warning_purchase)d" icon = "STOCK_APPLY" string="Show Current Stock" type="action" groups="green_erp_arulmani_purchase.group_vvti_purchase_mgr,green_erp_arulmani_purchase.group_vvti_purchase_gm"/>
 				</xpath> 
 				<xpath expr="//page[@string='PO Line']/field/tree[@string='Purchase Order Lines']" position="attributes">
 					<attribute name="create">false</attribute>
@@ -923,6 +925,7 @@
 										<field name="line_no" />
 										<field name="po_indent_id" on_change = "onchange_po_indent_id(po_indent_id)" options="{'create': false, 'create_edit': false}" />
 										<field name="product_id" context="{'search_product':True, 'po_indent_id':po_indent_id }" on_change = "onchange_quotation_product_id(product_id, po_indent_id)" options="{'create': false, 'create_edit': false}" />
+										<field name="description" />
 										<field name="product_uom_qty" />
 										<field name="uom_id" edit='false' options="{'create': false, 'create_edit': false}"/>
 										<field name="price_unit" />

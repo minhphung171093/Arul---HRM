@@ -58,11 +58,10 @@ class tpt_mrp_process(osv.osv):
                                 )foo
                             ) <= re_stock and product_product.product_tmpl_id = product_template.id
                     and (product_product.id not in (select product_id from tpt_purchase_indent,tpt_purchase_product 
-                            where tpt_purchase_indent.id = tpt_purchase_product.purchase_indent_id 
-                            and tpt_purchase_indent.state != 'cancel' 
-                            and tpt_purchase_indent.id not in (select po_indent_id from stock_move))
+                            where tpt_purchase_indent.id = tpt_purchase_product.pur_product_id 
+                            and tpt_purchase_indent.state != 'cancel')
                         or product_product.id in (select product_id from tpt_purchase_indent,tpt_purchase_product 
-                            where tpt_purchase_indent.id = tpt_purchase_product.purchase_indent_id 
+                            where tpt_purchase_indent.id = tpt_purchase_product.pur_product_id 
                             and tpt_purchase_indent.state != 'cancel' 
                             and tpt_purchase_indent.id in (select po_indent_id from stock_move
                             where state = 'done')))
@@ -82,17 +81,6 @@ class tpt_mrp_process(osv.osv):
         count = 0
         po_indent_obj = self.pool.get('tpt.purchase.indent')
         for mrp in self.browse(cr, uid, ids):
-            if mrp.mrp_process_line:
-                for line in mrp.mrp_process_line:
-                    if line.select:
-                        count+=1
-                        purchase_product_line.append((0,0,{'product_id':line.product_id.id,
-                                                           'product_uom_qty':line.product_uom_qty or False,
-                                                           'uom_po_id':line.uom_po_id and line.uom_po_id.id or False,
-                                                           }))
-            else: count = 0
-            if count == 0:
-                raise osv.except_osv(_('Warning!'),_('Can not be generate indent without selected product'))
             sql = '''
                 select id from hr_department where name = 'PRODUCTION'
                 '''
@@ -100,17 +88,34 @@ class tpt_mrp_process(osv.osv):
             depa_ids = cr.fetchone()
             if depa_ids:
                 depa_id = depa_ids[0] or False
-                        
-            po_indent_obj.create(cr, uid,{'document_type': 'base',
+                
+            indent_id = po_indent_obj.create(cr, uid,{'document_type': 'base',
                                             'department_id': depa_id,
                                             'intdent_cate': 'normal',
                                             'purchase_product_line':purchase_product_line,
                                             'state': 'draft',
                                             }, context)
+            if mrp.mrp_process_line:
+                for line in mrp.mrp_process_line:
+                    if line.select:
+                        count+=1
+                        purchase_product_line.append((0,0,{'product_id':line.product_id.id,
+                                                           'product_uom_qty':line.product_uom_qty or False,
+                                                           'uom_po_id':line.uom_po_id and line.uom_po_id.id or False,
+                                                            'pur_product_id': indent_id or False,
+                                                           }))
+            else: count = 0
+            
+            if count == 0:
+                raise osv.except_osv(_('Warning!'),_('Can not be generate indent without selected product'))
+            po_indent_obj.write(cr, uid,indent_id,{
+                                            'purchase_product_line':purchase_product_line,
+                                            })
             sql = '''
                 update tpt_mrp_process set flag = True
                 '''
             cr.execute(sql)
+            
         return True
 tpt_mrp_process()
 

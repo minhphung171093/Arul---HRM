@@ -470,6 +470,7 @@ class stock_picking(osv.osv):
                 dis_channel = line.sale_id and line.sale_id.distribution_channel and line.sale_id.distribution_channel.name or False
                 date_period = line.date
                 account = False
+                asset_id = False
                 sql_journal = '''
                     select id from account_journal
                     '''
@@ -494,7 +495,7 @@ class stock_picking(osv.osv):
                         if not account:
 #                             raise osv.except_osv(_('Warning!'),_('Account is not created for this Distribution Channel! Please check it!'))
                             if p.product_id.product_cose_acc_id:
-                                cose_id = p.product_id.product_cose_acc_id.id
+                                account = p.product_id.product_cose_acc_id.id
                             else: 
                                 raise osv.except_osv(_('Warning!'),_('Product Cost of Goods Sold Account is not configured! Please configured it!'))
                          
@@ -504,7 +505,7 @@ class stock_picking(osv.osv):
                             raise osv.except_osv(_('Warning!'),_('Product Asset Account is not configured! Please configured it!'))
                         journal_line.append((0,0,{
                                     'name':line.name, 
-                                    'account_id': cose_id,
+                                    'account_id': account,
                                     'partner_id': line.partner_id and line.partner_id.id,
                                     'credit':0,
                                     'debit':debit,
