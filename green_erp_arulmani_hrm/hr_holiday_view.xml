@@ -200,11 +200,18 @@
 			<field name="arch" type="xml">
 				<search string="Employee Leave Details">
 					<field name="employee_id"/>
-					<field name="state"/>					
+					<field name="state"/>	
+					<filter string="Approve" name="done" icon="terp-personal" domain="[('state','=','done')]" context="{}"/>
+					<filter string="Draft" name="draft" icon="terp-personal" domain="[('state','=','draft')]" context="{}"/>
+					<filter string="Reject" name="reject" icon="terp-personal" domain="[('state','=','reject')]" context="{}"/>
+					<filter string="Cancel" name="cancel" icon="terp-personal" domain="[('state','=','cancel')]" context="{}"/>
+        			<separator/>
+        			<group expand="0" string="Group By...">
+                        <filter string='Status' icon="terp-stock_symbol-selection" domain="[]" context="{'group_by' : 'state'}"/>
+                    </group>						
 				</search>
 			</field>
 	    </record>
-        
 		<record id="view_arul_hr_employee_leave_details_tree_vew" model="ir.ui.view">
 			<field name="name">arul.hr.employee.leave.details.tree</field>
 			<field name="model">arul.hr.employee.leave.details</field>
@@ -270,19 +277,12 @@
             <field name="res_model">arul.hr.employee.leave.details</field>
             <field name="view_type">form</field>
             <field name="view_mode">tree,form</field>
-            <field name="context">{'search_for_primary_auditor':1}</field>
+            <field name="context">{'search_for_primary_auditor':1,'search_default_draft':1}</field>
+            <field name="domain">[]</field>
+            <field name="search_view_id" ref="view_arul_hr_employee_leave_details_search_vew"/>
             <field name="view_id" ref="view_arul_hr_employee_leave_details_tree_vew"/>
         </record>
         
-	<record id="view_arul_hr_permission_onduty_search_vew" model="ir.ui.view">
-			<field name="name">arul.hr.permission.onduty.search</field>
-			<field name="model">arul.hr.permission.onduty</field>
-			<field name="arch" type="xml">
-				<search string="Permission and On Duty">
-					<field name="employee_id"/>											
-				</search>
-			</field>
-	</record>
 
         <menuitem action="action_arul_hr_employee_leave_details_form"
             id="menu_action_arul_hr_employee_leave_details_form"
@@ -309,7 +309,24 @@
 				</tree>
 			</field>
 		</record>
-		
+
+		<record id="view_arul_hr_permission_onduty_search_vew" model="ir.ui.view">
+			<field name="name">view.arul.hr.permission.onduty.search</field>
+			<field name="model">arul.hr.permission.onduty</field>
+			<field name="arch" type="xml">
+				<search string="Permission and On Duty">
+					<field name="employee_id"/>		
+        			<filter string="Approve" name="done" icon="terp-personal" domain="[('state','=','done')]" context="{}"/>
+        			<filter string="Draft" name="draft" icon="terp-personal" domain="[('state','=','draft')]" context="{}"/>
+					<filter string="Reject" name="reject" icon="terp-personal" domain="[('state','=','reject')]" context="{}"/>
+					<filter string="Cancel" name="cancel" icon="terp-personal" domain="[('state','=','cancel')]" context="{}"/>
+        			<separator/>
+        			<group expand="0" string="Group By...">
+                        <filter string='Status' icon="terp-stock_symbol-selection" domain="[]" context="{'group_by' : 'state'}"/>
+                    </group>				
+				</search>
+			</field>
+		</record>		
 
 		<record id="view_arul_hr_permission_onduty_form_vew" model="ir.ui.view">
             <field name="name">arul.hr.permission.onduty.form</field>
@@ -370,7 +387,9 @@
             <field name="res_model">arul.hr.permission.onduty</field>
             <field name="view_type">form</field>
             <field name="view_mode">tree,form</field>
+            <field name="context">{'search_default_draft':1}</field>
             <field name="domain">[('parent_id','=',False)]</field>
+            <field name="search_view_id" ref="view_arul_hr_permission_onduty_search_vew"/>
             <field name="view_id" ref="view_arul_hr_permission_onduty_tree_vew"/>
         </record>
         
