@@ -37,6 +37,7 @@ class Parser(report_sxw.rml_parse):
             'get_qty_kgs':self.get_qty_kgs,
             'get_rate_kgs':self.get_rate_kgs,
             'get_freight':self.get_freight, 
+            'frt':self.frt, 
             'get_total_kgs':self.get_total_kgs,
             'get_freight_lb':self.get_freight_lb, 
             'get_ins_lb':self.get_ins_lb,
@@ -165,9 +166,17 @@ class Parser(report_sxw.rml_parse):
     def get_freight(self, freight,qty):        
         mt_freight = 0.00
         kgs_freight = 0.00
-        mt_freight = freight / qty   
-        kgs_freight =  mt_freight / 1000   
+        #mt_freight = freight / qty   
+        kgs_freight =  freight / 1000   
         kgs_freight = format(kgs_freight, '.5f')          
+        return kgs_freight
+    def frt(self, qty,freight):        
+        mt_freight = 0.00
+        kgs_freight = 0.00
+        #raise osv.except_osv(_('Warning! %s'),_(freight))
+        #mt_freight = freight / qty   
+        kgs_freight =  qty * freight   
+        kgs_freight = format(kgs_freight, '.2f')          
         return kgs_freight
     def get_ins(self, ins):        
         ins_amt = 0.00      

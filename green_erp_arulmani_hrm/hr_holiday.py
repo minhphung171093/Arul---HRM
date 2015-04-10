@@ -1409,6 +1409,7 @@ class arul_hr_employee_leave_details(osv.osv):
                     
                 a1 = cr.fetchone()
                 emp_leave_count = a1[0]
+                emp_leave_count = emp_leave_count - 1
                 
                 sql = '''   select id from arul_hr_leave_types where code ='CL'  '''
                 cr.execute(sql)                    
