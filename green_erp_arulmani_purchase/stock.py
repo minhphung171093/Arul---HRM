@@ -307,7 +307,7 @@ class stock_picking_in(osv.osv):
         if dest_id:
             for stock in self.browse(cr, uid, ids):
                 for line in stock.move_lines:
-                    if not line.action_taken or line.action_taken != 'need':
+                    if line.action_taken not in ['need','move']:
                         rs = {
                               'location_dest_id': dest_id,
                               }
@@ -316,7 +316,6 @@ class stock_picking_in(osv.osv):
             vals = {
                     'move_lines':move_lines
                     }
-        return {'value': vals}
     
 stock_picking_in()
 
