@@ -286,6 +286,11 @@ class stock_picking(osv.osv):
             batch_no = batch_no.ljust(space_count)                     
         invoice_vals['material_info'] = batch_no
         
+        invoice_vals['amount_untaxed'] = picking.sale_id and picking.sale_id.amount_untaxed or False
+        invoice_vals['amount_tax'] = picking.sale_id and picking.sale_id.amount_tax or False
+        invoice_vals['amount_total'] = picking.sale_id and picking.sale_id.amount_total or False
+        
+        
         return invoice_vals
     
     def _prepare_invoice_line(self, cr, uid, group, picking, move_line, invoice_id,
@@ -944,7 +949,7 @@ class account_invoice(osv.osv):
             if currency != 'INR':
                 voucher_rate = self.pool.get('res.currency').read(cr, uid, currency_id, ['rate'], context=ctx)['rate']
             for invoiceline in line.invoice_line:
-                freight += invoiceline.freight
+                freight += (invoiceline.quantity * invoiceline.freight)
                 val1 += invoiceline.price_subtotal
                 val2 += invoiceline.price_subtotal * (line.sale_tax_id.amount and line.sale_tax_id.amount / 100 or 0)
 #                 val3 = val1 + val2 + freight
@@ -1192,7 +1197,7 @@ class account_invoice_line(osv.osv):
     _columns = {
         'product_type':fields.selection([('rutile','Rutile'),('anatase','Anatase')],'Product Type'),
         'application_id': fields.many2one('crm.application', 'Application'),
-        'freight': fields.float('FreightAmt'),
+        'freight': fields.float('Frt/Qty'),
         'price_subtotal': fields.function(_amount_line, string='Subtotal', digits_compute= dp.get_precision('Account')),
         #TPT-ED AMT SPLIT
         'amount_basic': fields.function(basic_amt_calc, store = True, multi='deltas3' ,string='Basic'),

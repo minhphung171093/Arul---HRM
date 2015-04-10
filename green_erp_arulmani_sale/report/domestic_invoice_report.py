@@ -52,6 +52,7 @@ class Parser(report_sxw.rml_parse):
             'get_app':self.get_app, 
             'get_if_freight_lb':self.get_if_freight_lb,
             'get_if_freight_amt':self.get_if_freight_amt,
+            'get_if_freight_tamt':self.get_if_freight_tamt,
             'get_cst_lb':self.get_cst_lb,
             'get_s3':self.get_s3,
             
@@ -248,7 +249,19 @@ class Parser(report_sxw.rml_parse):
             return partner.city
     def get_if_freight_amt(self,freight):
         if freight>0:
-            return round(freight)   
+            #raise osv.except_osv(_('Warning!%s'),freight)
+            x=0.00
+            #raise osv.except_osv(_('Warning!%s'),freight)
+            x = int(float(freight))
+            #x = format(x, '.2f')  
+            return round(x)   
+    def get_if_freight_tamt(self,qty, freight):
+        #raise osv.except_osv(_('Warning!%s'),freight)
+        frt_amt = 0
+        if freight>0:
+            frt_amt = qty * freight
+           # frt_amt = format(frt_amt, '.2f')  
+            return round(frt_amt) 
         
     
     def get_cst_lb(self,tax_code):
