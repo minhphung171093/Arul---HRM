@@ -83,6 +83,7 @@
 		                    <field name="si_no" />
 		                    <field name="po_indent_id" string="Purchse Indent" options="{'create': false, 'create_edit': false}"/>
 		                    <field name="product_id" options="{'create': false, 'create_edit': false}" on_change="onchange_product_id(product_id,location_id,location_dest_id, False,action_taken)"/>
+		                    <field name="description"/>
 		                    <field name="product_qty" on_change="onchange_quantity(product_id, product_qty, product_uom, product_uos)"/>
 		                    <field name="product_uom" string="UOM" groups="product.group_uom"/>
 		                    <field name="action_taken" on_change="onchange_action_taken(action_taken,product_id)"/>
