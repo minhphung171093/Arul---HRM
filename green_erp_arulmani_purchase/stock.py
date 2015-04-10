@@ -26,6 +26,11 @@ class stock_picking(osv.osv):
     def write(self, cr, uid, ids, vals, context=None):
         new_write = super(stock_picking, self).write(cr, uid,ids, vals, context)
         for line in self.browse(cr,uid,ids):
+            if line.type=='in' and line.warehouse:
+                sql = '''
+                    update stock_move set location_dest_id = %s where picking_id=%s and (action_taken = 'direct' or action_taken is null)
+                '''%(line.warehouse.id,line.id)
+                cr.execute(sql)
             for move in line.move_lines:
                 if 'state' in vals and vals['state']=='cancel':
                     sql = '''
@@ -119,16 +124,20 @@ class stock_picking(osv.osv):
         if dest_id:
             for stock in self.browse(cr, uid, ids):
                 for line in stock.move_lines:
-                    if line.action_taken not in ['need','move']:
+                    if not line.action_taken or line.action_taken not in ['need','move']:
                         rs = {
                               'location_dest_id': dest_id,
                               }
                         move_lines.append((1,line.id,rs))
+                        sql = '''
+                            update stock_move set location_dest_id = %s where id=%s
+                        '''%(dest_id,line.id)
+                        cr.execute(sql)
             
-            vals = {
-                    'move_lines':move_lines
-                    }
-        return {'value': vals}
+#             vals = {
+#                     'move_lines':move_lines
+#                     }
+        return {'value':vals}    
     
     def _prepare_invoice(self, cr, uid, picking, partner, inv_type, journal_id, context=None):
         """ Builds the dict containing the values for the invoice
@@ -307,16 +316,20 @@ class stock_picking_in(osv.osv):
         if dest_id:
             for stock in self.browse(cr, uid, ids):
                 for line in stock.move_lines:
-                    if not line.action_taken or line.action_taken != 'need':
+                    if not line.action_taken or line.action_taken not in ['need','move']:
                         rs = {
                               'location_dest_id': dest_id,
                               }
                         move_lines.append((1,line.id,rs))
+                        sql = '''
+                            update stock_move set location_dest_id = %s where id=%s
+                        '''%(dest_id,line.id)
+                        cr.execute(sql)
             
-            vals = {
-                    'move_lines':move_lines
-                    }
-        return {'value': vals}
+#             vals = {
+#                     'move_lines':move_lines
+#                     }
+        return {'value':vals}
     
 stock_picking_in()
 
@@ -467,7 +480,8 @@ class stock_move(osv.osv):
                 vals['location_dest_id'] = location_id
             elif action_taken == 'direct':   
                 for line in self.browse(cr, uid, ids, context=context):
-                    vals['location_dest_id'] = line.picking_id and line.picking_id.warehouse and line.picking_id.warehouse.id or False
+                    if line.picking_id and line.picking_id.warehouse:
+                        vals['location_dest_id'] = line.picking_id and line.picking_id.warehouse and line.picking_id.warehouse.id or False
                     vals['action_taken']= action_taken
             else:
                 vals['action_taken']= action_taken
@@ -510,19 +524,19 @@ class account_invoice(osv.osv):
                 if currency != 'INR':
                     voucher_rate = self.pool.get('res.currency').read(cr, uid, currency_id, ['rate'], context=ctx)['rate']
                 for invoiceline in line.invoice_line:
-                    freight += invoiceline.freight
+                    freight += invoiceline.quantity * invoiceline.freight #TPT
                     val1 += invoiceline.price_subtotal
                     val2 += invoiceline.price_subtotal * (line.sale_tax_id.amount and line.sale_tax_id.amount / 100 or 0)
                     val2 = round(val2,2)
     #                 val3 = val1 + val2 + freight
-                res[line.id]['amount_untaxed'] = val1
-                res[line.id]['amount_tax'] = val2
-                res[line.id]['amount_total'] = val1+val2+freight
-                res[line.id]['amount_total_inr'] = (val1+val2+freight) * voucher_rate
+                res[line.id]['amount_untaxed'] = round(val1)
+                res[line.id]['amount_tax'] = round(val2)
+                res[line.id]['amount_total'] = round(val1+val2+freight)
+                res[line.id]['amount_total_inr'] = round((val1+val2+freight) * voucher_rate)
                 for taxline in line.tax_line:
                     sql='''
                         update account_invoice_tax set amount=%s where id=%s
-                    '''%(val2+freight,taxline.id)
+                    '''%(round(val2+freight),taxline.id)
                     cr.execute(sql)
             else:
                 if line.purchase_id:
