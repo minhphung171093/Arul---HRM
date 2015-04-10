@@ -51,20 +51,6 @@ class Parser(report_sxw.rml_parse):
         date = datetime.strptime(date, DATE_FORMAT)
         return date.strftime('%d/%m/%Y')
     
-    def get_date(self):
-        res = {}
-        date = time.strftime('%Y-%m-%d'),
-        date = datetime.strptime(date[0], DATE_FORMAT)
-        day = date.day
-        month = date.month
-        year = date.year
-        res = {
-               'day': day,
-               'month': month,
-               'year': year,
-               }
-        return res
-        
     def get_invoice(self):
         res = {}
         wizard_data = self.localcontext['data']['form']
@@ -72,56 +58,12 @@ class Parser(report_sxw.rml_parse):
         date_to = wizard_data['date_to']
         invoice_obj = self.pool.get('account.invoice.line')
         sql = '''
-            select id from account_invoice_line where invoice_id in (select id from account_invoice where date_invoice between '%s' and '%s')
+            select id from account_invoice_line where invoice_id in (select id from account_invoice where date_invoice between '%s' and '%s' and type = 'in_invoice')
             '''%(date_from, date_to)
         self.cr.execute(sql)
         invoice_ids = [r[0] for r in self.cr.fetchall()]
         return invoice_obj.browse(self.cr,self.uid,invoice_ids)
     
-    def get_invoice_type(self, invoice_type):
-        if invoice_type == 'domestic':
-            return "Domestic/Indirect Export"
-        if invoice_type == 'export':
-            return "Export"
-        
-    def get_order_type(self, order_type):
-        if order_type == 'domestic':
-            return "Domestic"
-        if order_type == 'export':
-            return "Export"
-        
-    def get_customer_group(self, customer):
-        if customer == 'export':
-            return "Export"
-        if customer == 'domestic':
-            return "Domestic"
-        if customer == 'indirect_export':
-            return "Indirect Export"
-        
-    def get_cst_tax(self, tax, untax):
-        amount = 0
-        if 'CST' in tax.name:
-            amount = tax.amount
-        return amount*untax/100
-    
-    def get_vat_tax(self, tax, untax):
-        amount = 0
-        if 'VAT' in tax.name:
-            amount = tax.amount
-        return amount*untax/100
-    
-    def get_tcs_tax(self, tax, untax):
-        amount = 0
-        if 'TCS' in tax.name:
-            amount = tax.amount
-        return amount*untax/100
-        
-    
-#     def get_sale_line(self,invoice):
-#         line = invoice[0]
-#         order_lines = line.invoice_id.sale_id.order_line
-#             
-#         return self.pool.get('sale.order.line').browse(self.cr,self.uid,order_lines[0])
         
     
 # vim:expandtab:smartindent:tabstop=4:softtabstop=4:shiftwidth=4:
