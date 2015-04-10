@@ -1413,7 +1413,8 @@ tpt_quality_verification()
 class mrp_production_product_line(osv.osv):
     _inherit = 'mrp.production.product.line'
     _columns = {
-            'app_qty':fields.float('Required Quantity')
+            'app_qty':fields.float('Required Quantity'),
+            'declar_id':fields.many2one('product.declaration.line','Declaration'),
             
     }
 
@@ -1483,7 +1484,8 @@ class product_declaration_line(osv.osv):
                 'product_uom': new.product_uom_id and new.product_uom_id.id or False,
                 'product_uos_qty': new.app_qty,
                 'product_uos': new.product_uom_id and new.product_uom_id.id or False,                                                  
-                'app_qty': new.app_qty,                                                            
+                'app_qty': new.app_qty, 
+                'declar_id':new.id,                                                           
         })
         new.mrp_production_id.write({'product_lines': [(4, result)]}, context=context)
         return new_id    
@@ -1498,7 +1500,10 @@ class product_declaration_line(osv.osv):
             update stock_move set product_id = %s where declar_id = %s
         '''%(new.product_id.id,new.id)
             cr.execute(sql)
-        
+            sql = '''
+            update mrp_production_product_line set product_id = %s where declar_id = %s
+        '''%(new.product_id.id,new.id)
+            cr.execute(sql)
         return new_write
     
 product_declaration_line()    
