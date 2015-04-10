@@ -112,7 +112,7 @@ class res_partner(osv.osv):
         'employee_id': fields.many2one('hr.employee', 'Salesperson', select=True, track_visibility='onchange'),
         'gender': fields.selection([('male', 'Male'),('female', 'Female')], 'Gender'),
         'last_name' : fields.char('Last Name', size=32),
-        'customer_code': fields.char('Customer Code', size=64, select=1, readonly=1),
+        'customer_code': fields.char('Customer Code', size=64, select=1),
 #         'is_company': fields.function(_get_is_company, type='boolean', size=5, string='Is a company',store=True, invisible=True),
         'currency_id': fields.many2one('res.currency','Currency'),
         'create_uid': fields.many2one('res.users','Create by'),

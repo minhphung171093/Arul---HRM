@@ -91,7 +91,7 @@ class sale_order(osv.osv):
             val3 = 0.0
             freight = 0.0
             for orderline in line.order_line:
-                freight = freight + orderline.freight
+                freight = freight + (orderline.product_uom_qty * orderline.freight)
                 val1 = val1 + orderline.price_subtotal
                 res[line.id]['amount_untaxed'] = round(val1)
                 val2 = val1 * line.sale_tax_id.amount / 100
@@ -776,13 +776,13 @@ class sale_order_line(osv.osv):
         return res  
     _columns = {
         'product_id': fields.many2one('product.product', 'Product', required = True),
-        'product_type':fields.selection([('rutile','Rutile'),('anatase','Anatase')],'Product Type'),
+        'product_type':fields.selection([('rutile','Rutile'),('anatase','Anatase')],'Prod Type'),
         'application_id': fields.many2one('crm.application', 'Application'),
-        'freight': fields.float('Freight'),
+        'freight': fields.float('Frt/Qty'),
         'price_subtotal': fields.function(_amount_line, string='Subtotal', digits_compute= dp.get_precision('Account')),
         'name_consignee_id': fields.many2one('res.partner', 'Consignee', required = False), #TPT - modified required true to false
         'location': fields.char('Location', size = 1024),   
-        'product_uom_qty': fields.float('Quantity', digits=(16,2), required=True, readonly=True, states={'draft': [('readonly', False)]}),
+        'product_uom_qty': fields.float('Qty', digits=(16,2), required=True, readonly=True, states={'draft': [('readonly', False)]}),
         'amount_basic': fields.function(basic_amt_calc, store = True, multi='deltas3' ,string='Basic'),
         'amount_ed': fields.function(ed_amt_calc, store = True, multi='deltas4' ,string='ED'),
         
@@ -971,7 +971,7 @@ class tpt_blanket_order(osv.osv):
             val3 = 0.0
             freight = 0.0
             for orderline in line.blank_order_line:
-                freight = freight + orderline.freight
+                freight = freight + (orderline.product_uom_qty * orderline.freight)
                 val1 += orderline.sub_total
             res[line.id]['amount_untaxed'] = round(val1)
             val2 = val1 * line.sale_tax_id.amount / 100
@@ -1214,7 +1214,7 @@ class tpt_blank_order_line(osv.osv):
         'uom_po_id': fields.many2one('product.uom', 'UOM', readonly = False),
         'price_unit': fields.float('Unit Price'),
         'sub_total': fields.function(subtotal_blanket_orderline, store = True, multi='deltas' ,string='SubTotal'),
-        'freight': fields.float('Freight'),
+        'freight': fields.float('Frt/Qty'),
         'name_consignee_id': fields.many2one('res.partner', 'Consignee', required = False),
         'location': fields.char('Location', size = 1024,readonly = True),
         'expected_date':fields.date('Expected delivery Date'),
