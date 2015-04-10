@@ -38,12 +38,6 @@ class Parser(report_sxw.rml_parse):
         pool = pooler.get_pool(self.cr.dbname)
         self.localcontext.update({
             'get_invoice':self.get_invoice,
-            'get_invoice_type':self.get_invoice_type,
-            'get_customer_group': self.get_customer_group,
-            'get_cst_tax': self.get_cst_tax,
-            'get_vat_tax': self.get_vat_tax,
-            'get_tcs_tax': self.get_tcs_tax,
-            'get_order_type': self.get_order_type,
 #             'get_sale_line': self.get_sale_line,
         })
         

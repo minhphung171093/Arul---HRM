@@ -440,7 +440,6 @@
                                 <group>
                                     <field domain="[('partner_id', '=', partner_id)]" name="partner_bank_id" on_change="onchange_partner_bank(partner_bank_id)"/>
                                     <field name="user_id"/>
-                                    <field name="name" invisible="1"/>
                                     <field name="payment_term" widget="selection"/>
                                 </group>
                                 <group>

@@ -72,7 +72,7 @@ class Parser(report_sxw.rml_parse):
         date_to = wizard_data['date_to']
         invoice_obj = self.pool.get('account.invoice.line')
         sql = '''
-            select id from account_invoice_line where invoice_id in (select id from account_invoice where date_invoice between '%s' and '%s')
+            select id from account_invoice_line where invoice_id in (select id from account_invoice where date_invoice between '%s' and '%s' and type = 'out_invoice')
             '''%(date_from, date_to)
         self.cr.execute(sql)
         invoice_ids = [r[0] for r in self.cr.fetchall()]
