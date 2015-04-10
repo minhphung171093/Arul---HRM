@@ -37,11 +37,11 @@ class Parser(report_sxw.rml_parse):
         super(Parser, self).__init__(cr, uid, name, context=context)
         pool = pooler.get_pool(self.cr.dbname)
         self.localcontext.update({
-            'get_invoice':self.get_invoice,
-#             'convert_date': self.convert_date,
-#             'get_date': self.get_date,
             'get_date_from':self.get_date_from,
             'get_date_to':self.get_date_to,
+            'get_cash': self.get_cash,
+            'convert_date_cash': self.convert_date_cash,
+            'get_total': self.get_total,
         })
     def get_date_from(self):
         wizard_data = self.localcontext['data']['form']
@@ -51,8 +51,9 @@ class Parser(report_sxw.rml_parse):
     def get_date_to(self):
         wizard_data = self.localcontext['data']['form']
         date = datetime.strptime(wizard_data['date_to'], DATE_FORMAT)
-        return date.strftime('%d/%m/%Y')        
-    def convert_date(self,date):
+        return date.strftime('%d/%m/%Y')
+            
+    def convert_date_cash(self, date):
         date = datetime.strptime(date, DATE_FORMAT)
         return date.strftime('%d/%m/%Y')
     
@@ -70,17 +71,32 @@ class Parser(report_sxw.rml_parse):
                }
         return res
         
-    def get_invoice(self):
+    def get_cash(self):
         res = {}
         wizard_data = self.localcontext['data']['form']
         date_from = wizard_data['date_from']
         date_to = wizard_data['date_to']
-        invoice_obj = self.pool.get('account.invoice')
-        sql = '''
-            select id from account_invoice where date_invoice between '%s' and '%s' 
-            '''%(date_from, date_to)
-        self.cr.execute(sql)
-        invoice_ids = [r[0] for r in self.cr.fetchall()]
-        return invoice_obj.browse(self.cr,self.uid,invoice_ids)
+        type = wizard_data['type_trans']
+        account_voucher_obj = self.pool.get('account.voucher')
+        voucher_line_obj = self.pool.get('account.move.line')
+        
+        if type == 'payment':
+            account_ids = account_voucher_obj.search(self.cr,self.uid,[('date', '>=', date_from), ('date', '<=', date_to), ('type_cash_bank', '=', 'cash'), ('type_trans', '=', 'payment')])
+        if type == 'receipt':
+            account_ids = account_voucher_obj.search(self.cr,self.uid,[('date', '>=', date_from), ('date', '<=', date_to), ('type_cash_bank', '=', 'cash'), ('type_trans', '=', 'receipt')])
+        else:
+            account_ids = account_voucher_obj.search(self.cr,self.uid,[('date', '>=', date_from), ('date', '<=', date_to), ('type_cash_bank', '=', 'cash')])
+#             list_line = []
+#             for vouc in account_voucher_obj.browse(self.cr,self.uid,account_ids):
+#                 for line in vouc.move_ids:
+#                     list_line.append(line)
+        return account_voucher_obj.browse(self.cr,self.uid,account_ids)
+    
+    def get_total(self, cash):
+        credit = 0.0
+        for voucher in cash:
+            for line in voucher.move_ids:
+                credit += line.credit
+        return credit
 # vim:expandtab:smartindent:tabstop=4:softtabstop=4:shiftwidth=4:
 

@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="utf-8"?>
+<openerp>
+    <data>
+		<record id="w_form_view" model="ir.ui.view">
+	        <field name="name">w.form.view</field>
+	        <field name="model">w.form</field>
+	        <field name="arch" type="xml">
+	            <form string="W Report" version="7.0">
+	            	<group>
+	                <field name="date_from" />
+	                <field name="date_to" />
+	                </group>
+	                <footer>
+	                    <button name="print_report" type='object' string="OK" class="oe_highlight"/>
+	                    or
+	                    <button string="Cancel" class="oe_highlight" special="cancel" />
+	                </footer>
+	            </form>
+	        </field>
+    	</record>
+
+	    <record model="ir.actions.act_window" id="action_w_form">
+	        <field name="name">W Report</field>
+	        <field name="res_model">w.form</field>
+	        <field name="view_type">form</field>
+	        <field name="view_mode">form</field>
+	        <field name="view_id" ref="w_form_view" />
+	        <field name="target">new</field>
+	    </record>
+	    
+	    
+	    <menuitem id="menu_tpt_accounting" name="Accounting" parent="account.menu_finance" sequence="0" groups="green_erp_arulmani_sale.group_vvti_unit_account"/>
+        <menuitem action="action_w_form"
+            id="menu_action_w_form_view"
+            parent="menu_tpt_accounting" sequence="20"/>
+	 
+	    
+    </data>
+</openerp>
+

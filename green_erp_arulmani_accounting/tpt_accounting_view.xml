@@ -440,7 +440,6 @@
                                 <group>
                                     <field domain="[('partner_id', '=', partner_id)]" name="partner_bank_id" on_change="onchange_partner_bank(partner_bank_id)"/>
                                     <field name="user_id"/>
-                                    <field name="name" invisible="1"/>
                                     <field name="payment_term" widget="selection"/>
                                 </group>
                                 <group>
@@ -547,6 +546,7 @@
                     	<field name="type" required="0" invisible = '1'/>
                     	<field name="number" invisible = '1'/>
                     	<field name="currency_id" invisible = '1' groups="base.group_multi_currency"/>
+                    	<field name="type_cash_bank" invisible = '1'/>
                     </group>
                     <notebook colspan="4">
                         <page string="Voucher Entry">
@@ -676,6 +676,7 @@
                     	<field name="type" required="0" invisible = '1'/>
                     	<field name="number" invisible = '1'/>
                     	<field name="currency_id" invisible = '1' groups="base.group_multi_currency"/>
+                    	<field name="type_cash_bank" invisible = '1'/>
                     </group>
                     <notebook colspan="4">
                         <page string="Voucher Entry">

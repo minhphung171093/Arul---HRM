@@ -470,6 +470,7 @@ class stock_picking(osv.osv):
                 dis_channel = line.sale_id and line.sale_id.distribution_channel and line.sale_id.distribution_channel.name or False
                 date_period = line.date
                 account = False
+                asset_id = False
                 sql_journal = '''
                     select id from account_journal
                     '''
@@ -494,7 +495,7 @@ class stock_picking(osv.osv):
                         if not account:
 #                             raise osv.except_osv(_('Warning!'),_('Account is not created for this Distribution Channel! Please check it!'))
                             if p.product_id.product_cose_acc_id:
-                                cose_id = p.product_id.product_cose_acc_id.id
+                                account = p.product_id.product_cose_acc_id.id
                             else: 
                                 raise osv.except_osv(_('Warning!'),_('Product Cost of Goods Sold Account is not configured! Please configured it!'))
                          
@@ -504,7 +505,7 @@ class stock_picking(osv.osv):
                             raise osv.except_osv(_('Warning!'),_('Product Asset Account is not configured! Please configured it!'))
                         journal_line.append((0,0,{
                                     'name':line.name, 
-                                    'account_id': cose_id,
+                                    'account_id': account,
                                     'partner_id': line.partner_id and line.partner_id.id,
                                     'credit':0,
                                     'debit':debit,
@@ -1532,6 +1533,12 @@ class account_voucher(osv.osv):
             ('payment','Payment'),
             ('receipt','Receipt'),
         ],'Default Type', readonly=True, states={'draft':[('readonly',False)]}),
+                
+        'type_cash_bank':fields.selection([
+            ('cash','Cash'),
+            ('bank','Bank'),
+        ],'Cash/Bank Type', readonly=True, states={'draft':[('readonly',False)]}),
+                
         'cheque_number': fields.char('Cheque Number'),
         'bank_name': fields.char('Bank Name'),
         'tpt_journal':fields.selection([('cash','Cash'),('bank','Bank')],'Type'),
@@ -1599,8 +1606,15 @@ class account_voucher(osv.osv):
         if vals.get('name','/')=='/':
             vals['name'] = self.pool.get('ir.sequence').get(cr, uid, 'tpt.journal.voucher.sequence') or '/'
         new_id = super(account_voucher, self).create(cr, uid, vals, context)
+        sql = '''
+            update account_voucher set type_cash_bank = 'cash' where journal_id in (select id from account_journal where type = 'cash')
+        '''
+        cr.execute(sql)
+        sql = '''
+            update account_voucher set type_cash_bank = 'bank' where journal_id in (select id from account_journal where type = 'bank')
+        '''
+        cr.execute(sql)
         return new_id
-            
     
     def first_move_line_get(self, cr, uid, voucher_id, move_id, company_currency, current_currency, context=None):
         '''

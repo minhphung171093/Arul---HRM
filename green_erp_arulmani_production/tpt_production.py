@@ -782,6 +782,9 @@ class mrp_production(osv.osv):
             domain=[('state','not in', ('done', 'cancel'))], readonly=False, states={'draft':[('readonly',False)]}),
             'move_created_ids': fields.one2many('stock.move', 'production_id', 'Products to Produce',
             domain=[('state','not in', ('done', 'cancel'))], readonly=True, states={'draft':[('readonly',False)],'confirmed':[('readonly',False)]}),
+            'material_line':fields.one2many('product.declaration.line', 'mrp_production_id', 'Add Material',
+            readonly=True, states={'draft':[('readonly',False)],'confirmed':[('readonly',False)]}),
+            
     }
     _defaults={
         'name': '/',
@@ -1224,6 +1227,7 @@ class stock_move(osv.osv):
     _columns = {
         'app_quantity': fields.float('Required Quantity'),
         'is_tpt_production': fields.boolean('Is tpt production'),
+        'declar_id':fields.many2one('product.declaration.line','Declaration'),
     }
 
     
@@ -1409,7 +1413,8 @@ tpt_quality_verification()
 class mrp_production_product_line(osv.osv):
     _inherit = 'mrp.production.product.line'
     _columns = {
-            'app_qty':fields.float('Required Quantity')
+            'app_qty':fields.float('Required Quantity'),
+            'declar_id':fields.many2one('product.declaration.line','Declaration'),
             
     }
 
@@ -1419,3 +1424,95 @@ class mrp_production_product_line(osv.osv):
     
     
 mrp_production_product_line()    
+
+class product_declaration_line(osv.osv):
+    _name = 'product.declaration.line'
+    _columns = {
+            'mrp_production_id':fields.many2one('mrp.production','Product Declaration',ondelete='restrict'),
+            'app_qty':fields.float('Applied Quantity',required=True),
+            'product_id':fields.many2one('product.product','Material',required=True),
+            'product_uom_id':fields.many2one('product.uom', 'UOM', readonly=True),
+            'stock_move_id':fields.many2one('stock.move','Stock Move'),
+            'mrp_product_line_id':fields.many2one('mrp.production.product.line','MRP line'),
+    }
+
+    _defaults={
+               'app_qty':0.00,
+    }  
+    
+    def onchange_product_uom(self, cr, uid, ids,product_id=False,context=None):
+        vals = {}
+        if product_id:
+            ac = self.pool.get('product.product').browse(cr, uid, product_id)
+            vals = {
+                    'product_uom_id': ac.uom_id.id }
+        return {'value': vals}
+     
+    def create(self, cr, uid, vals, context=None):
+        if 'product_id' in vals:
+            product = self.pool.get('product.product').browse(cr, uid, vals['product_id'])
+            vals.update({'product_uom_id':product.uom_id.id})
+        new_id = super(product_declaration_line, self).create(cr, uid, vals, context=context)   
+        new = self.browse(cr, uid, new_id)
+        stock_move = self.pool.get('stock.move')
+        destination_location_id = new.product_id.property_stock_production.id
+        source_location_id = new.mrp_production_id.location_src_id.id
+        move_id = stock_move.create(cr, uid, {
+            'name': new.mrp_production_id.name,
+            'date': new.mrp_production_id.date_planned,
+            'product_id': new.product_id.id,
+            'product_qty': new.app_qty,
+            'product_uom': new.product_uom_id and new.product_uom_id.id or False,
+            'product_uos_qty': new.app_qty,
+            'product_uos': new.product_uom_id and new.product_uom_id.id or False,
+            'location_id': source_location_id,
+            'location_dest_id': destination_location_id,
+            'move_dest_id': new.mrp_production_id.move_prod_id.id,
+            'state': 'waiting',
+            'company_id': new.mrp_production_id.company_id and new.mrp_production_id.company_id.id or False,
+            'prodlot_id':  False,
+            'app_quantity': new.app_qty,
+            'is_tpt_production': True,
+            'declar_id':new.id,
+        })
+        new.mrp_production_id.write({'move_lines': [(4, move_id)]}, context=context)
+        
+        result = self.pool.get('mrp.production.product.line').create(cr,uid,{
+                'name': new.mrp_production_id.name,
+                'product_id': new.product_id.id,
+                'product_qty': new.app_qty,
+                'product_uom': new.product_uom_id and new.product_uom_id.id or False,
+                'product_uos_qty': new.app_qty,
+                'product_uos': new.product_uom_id and new.product_uom_id.id or False,                                                  
+                'app_qty': new.app_qty, 
+                'declar_id':new.id,                                                           
+        })
+        new.mrp_production_id.write({'product_lines': [(4, result)]}, context=context)
+        return new_id    
+    def write(self, cr, uid, ids, vals, context=None):
+        if 'product_id' in vals:
+            product = self.pool.get('product.product').browse(cr, uid, vals['product_id'])
+            vals.update({'product_uom':product.uom_id.id})
+
+        new_write = super(product_declaration_line, self).write(cr, uid,ids, vals, context)
+        for new in self.browse(cr, uid, ids):
+            sql = '''
+            update stock_move set product_id = %s where declar_id = %s
+        '''%(new.product_id.id,new.id)
+            cr.execute(sql)
+            sql = '''
+            update mrp_production_product_line set product_id = %s where declar_id = %s
+        '''%(new.product_id.id,new.id)
+            cr.execute(sql)
+        return new_write
+    
+product_declaration_line()    
+
+
+
+
+
+
+
+
+

@@ -8,12 +8,11 @@ import openerp.tools
 from openerp.tools import DEFAULT_SERVER_DATE_FORMAT, DEFAULT_SERVER_DATETIME_FORMAT, float_compare
 
 
-class bank_book_report(osv.osv_memory):
-    _name = "bank.book.report"
+class w_form(osv.osv_memory):
+    _name = "w.form"
     _columns = {    
                 'date_from': fields.date('Date From', required=True),
                 'date_to': fields.date('Date To', required=True),
-                'type_trans':fields.selection([('payment', 'Payment'),('receipt', 'Receipt')],'Transaction type')
                 }
     
     def _check_date(self, cr, uid, ids, context=None):
@@ -30,9 +29,9 @@ class bank_book_report(osv.osv_memory):
         if context is None:
             context = {}
         datas = {'ids': context.get('active_ids', [])}
-        datas['model'] = 'bank.book.report'
+        datas['model'] = 'daily.sale.form'
         datas['form'] = self.read(cr, uid, ids)[0]
         datas['form'].update({'active_id':context.get('active_ids',False)})
-        return {'type': 'ir.actions.report.xml', 'report_name': 'report_bank_book', 'datas': datas}
+        return {'type': 'ir.actions.report.xml', 'report_name': 'w_report', 'datas': datas}
         
-bank_book_report()
+w_form()

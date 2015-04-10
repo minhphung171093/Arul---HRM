@@ -26,6 +26,11 @@ class stock_picking(osv.osv):
     def write(self, cr, uid, ids, vals, context=None):
         new_write = super(stock_picking, self).write(cr, uid,ids, vals, context)
         for line in self.browse(cr,uid,ids):
+            if line.type=='in' and line.warehouse:
+                sql = '''
+                    update stock_move set location_dest_id = %s where picking_id=%s and (action_taken = 'direct' or action_taken is null)
+                '''%(line.warehouse.id,line.id)
+                cr.execute(sql)
             for move in line.move_lines:
                 if 'state' in vals and vals['state']=='cancel':
                     sql = '''
@@ -119,16 +124,20 @@ class stock_picking(osv.osv):
         if dest_id:
             for stock in self.browse(cr, uid, ids):
                 for line in stock.move_lines:
-                    if line.action_taken not in ['need','move']:
+                    if not line.action_taken or line.action_taken not in ['need','move']:
                         rs = {
                               'location_dest_id': dest_id,
                               }
                         move_lines.append((1,line.id,rs))
+                        sql = '''
+                            update stock_move set location_dest_id = %s where id=%s
+                        '''%(dest_id,line.id)
+                        cr.execute(sql)
             
-            vals = {
-                    'move_lines':move_lines
-                    }
-        return {'value': vals}
+#             vals = {
+#                     'move_lines':move_lines
+#                     }
+        return {'value':vals}    
     
     def _prepare_invoice(self, cr, uid, picking, partner, inv_type, journal_id, context=None):
         """ Builds the dict containing the values for the invoice
@@ -307,16 +316,20 @@ class stock_picking_in(osv.osv):
         if dest_id:
             for stock in self.browse(cr, uid, ids):
                 for line in stock.move_lines:
-                    if not line.action_taken or line.action_taken != 'need':
+                    if not line.action_taken or line.action_taken not in ['need','move']:
                         rs = {
                               'location_dest_id': dest_id,
                               }
                         move_lines.append((1,line.id,rs))
+                        sql = '''
+                            update stock_move set location_dest_id = %s where id=%s
+                        '''%(dest_id,line.id)
+                        cr.execute(sql)
             
-            vals = {
-                    'move_lines':move_lines
-                    }
-        return {'value': vals}
+#             vals = {
+#                     'move_lines':move_lines
+#                     }
+        return {'value':vals}
     
 stock_picking_in()
 
@@ -467,7 +480,8 @@ class stock_move(osv.osv):
                 vals['location_dest_id'] = location_id
             elif action_taken == 'direct':   
                 for line in self.browse(cr, uid, ids, context=context):
-                    vals['location_dest_id'] = line.picking_id and line.picking_id.warehouse and line.picking_id.warehouse.id or False
+                    if line.picking_id and line.picking_id.warehouse:
+                        vals['location_dest_id'] = line.picking_id and line.picking_id.warehouse and line.picking_id.warehouse.id or False
                     vals['action_taken']= action_taken
             else:
                 vals['action_taken']= action_taken
@@ -773,6 +787,8 @@ class account_invoice(osv.osv):
     
     def create(self, cr, uid, vals, context=None):
         if vals.get('type','')=='in_invoice':
+            vals['name'] = self.pool.get('ir.sequence').get(cr, uid, 'tpt.supplier.invoice.sequence') or '/'
+        if 'purchase_id' not in vals:
             vals['name'] = self.pool.get('ir.sequence').get(cr, uid, 'tpt.supplier.invoice.sequence') or '/'
         new_id = super(account_invoice, self).create(cr, uid, vals, context)
         return new_id
