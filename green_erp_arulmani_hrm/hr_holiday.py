@@ -1506,7 +1506,61 @@ class arul_hr_employee_leave_details(osv.osv):
 #                 vals2['date_to'] = date_to
 #                 new_id2 = super(arul_hr_employee_leave_details, self).create(cr, uid, vals2, context)
 #         return super(arul_hr_employee_leave_details, self).write(cr, uid, vals, context)
-    
+    def emp_total_leave_count(self, cr, uid, ids, date_from=False, date_to=False,employee_id=False,leave_type_id=False,haft_day_leave=False, context=None):
+        if employee_id:
+            now = datetime.datetime.now()
+            current_year = now.year
+            sql = '''
+            SELECT CASE WHEN SUM(total_day)!=0 THEN SUM(total_day) ELSE 0 END cl_count FROM employee_leave_detail 
+            WHERE emp_leave_id IN 
+            (SELECT id FROM employee_leave WHERE employee_id = %s AND year='%s')
+            AND leave_type_id = (SELECT id FROM arul_hr_leave_types WHERE code='CL')
+            '''%(employee_id,current_year)
+            cr.execute(sql)
+            cl = cr.fetchone()
+            cl = str(cl)
+            cl = cl.replace("(","")
+            cl = cl.replace(",)","")
+            
+            sql = '''
+            SELECT CASE WHEN SUM(total_day)!=0 THEN SUM(total_day) ELSE 0 END sl_count FROM employee_leave_detail 
+            WHERE emp_leave_id IN 
+            (SELECT id FROM employee_leave WHERE employee_id = %s AND year='%s')
+            AND leave_type_id = (SELECT id FROM arul_hr_leave_types WHERE code='SL')
+            '''%(employee_id,current_year)
+            cr.execute(sql)
+            sl = cr.fetchone()
+            sl = str(sl)
+            sl = sl.replace("(","")
+            sl = sl.replace(",)","")
+            
+            sql = '''
+            SELECT CASE WHEN SUM(total_day)!=0 THEN SUM(total_day) ELSE 0 END pl_count FROM employee_leave_detail 
+            WHERE emp_leave_id IN 
+            (SELECT id FROM employee_leave WHERE employee_id = %s AND year='%s')
+            AND leave_type_id = (SELECT id FROM arul_hr_leave_types WHERE code='PL')
+            '''%(employee_id,current_year)
+            cr.execute(sql)
+            pl = cr.fetchone()
+            pl = str(pl)
+            pl = sl.replace("(","")
+            pl = sl.replace(",)","")
+            
+            sql = '''
+            SELECT CASE WHEN SUM(total_day)!=0 THEN SUM(total_day) ELSE 0 END coff_count FROM employee_leave_detail 
+            WHERE emp_leave_id IN 
+            (SELECT id FROM employee_leave WHERE employee_id = %s AND year='%s')
+            AND leave_type_id = (SELECT id FROM arul_hr_leave_types WHERE code='C.Off')
+            '''%(employee_id,current_year)
+            cr.execute(sql)
+            coff = cr.fetchone()
+            coff = str(coff)
+            coff = coff.replace("(","")
+            coff = coff.replace(",)","")
+            
+            leave_count_details = "CL: " + cl +'\n' + "SL: " + sl +'\n' + "PL: "+ pl + "\n" + "C.Off: " + coff
+            raise osv.except_osv(_('Available Leave Counts:'),_(leave_count_details))
+        
     def onchange_date(self, cr, uid, ids, date_from=False, date_to=False,employee_id=False,leave_type_id=False,haft_day_leave=False, context=None):
         DATETIME_FORMAT = "%Y-%m-%d"
         vals = {}
@@ -1653,8 +1707,9 @@ class arul_hr_employee_leave_details(osv.osv):
     def cancel_leave_request(self, cr, uid, ids, context=None):
         date_now = time.strftime('%Y-%m-%d')
         for line in self.browse(cr, uid, ids):
-            if line.date_from < date_now:
-                raise osv.except_osv(_('Warning!'),_('Can not Cancel for past day!'))
+            #TPT-Commented By BalamuruganPurushothaman ON 11/04/2015 - TO AVOID THROW THIS WARNING
+            #if line.date_from < date_now:
+            #    raise osv.except_osv(_('Warning!'),_('Can not Cancel for past day!'))
             sql = '''
                 select %s in (select uid from res_groups_users_rel where gid in (select id from res_groups where name='Time Manager' 
                 and category_id in (select id from ir_module_category where name='VVTI - HRM')))
@@ -1664,14 +1719,15 @@ class arul_hr_employee_leave_details(osv.osv):
                 
             if line.employee_id.department_id and line.employee_id.department_id.primary_auditor_id and line.employee_id.department_id.primary_auditor_id.id==uid \
             or p:
-                continue
+                #continue
+                self.write(cr, uid, [line.id],{'state':'cancel','leave_evaluate_id':False})
             else:
                 raise osv.except_osv(_('Warning!'),_('User does not have permission to cancel for this employee department!'))
 #             sql = '''
 #                 update arul_hr_employee_leave_details set state='cancel', leave_evaluate_id = null where id = %s
 #             '''%(line.id)
 #             cr.execute(sql)
-            self.write(cr, uid, [line.id],{'state':'cancel','leave_evaluate_id':False})
+            #self.write(cr, uid, [line.id],{'state':'cancel','leave_evaluate_id':False})
         return True  
     
     def _check_days(self, cr, uid, ids, context=None): 

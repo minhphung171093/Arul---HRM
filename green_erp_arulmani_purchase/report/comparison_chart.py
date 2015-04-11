@@ -27,6 +27,8 @@ class Parser(report_sxw.rml_parse):
             'get_disc':self.get_disc,
             'get_info': self.get_info,
             'is_bold': self.is_bold,
+            'get_date':self.get_date,
+            'get_supplier_code_name': self.get_supplier_code_name,
         })
     
     def get_vendor(self,o,num,line):
@@ -86,15 +88,17 @@ class Parser(report_sxw.rml_parse):
         else:
             return False
         
-        
-        
-        
-        
-        
-        
-        
-        
-        
+    def get_date(self, date=False):
+        if not date:
+            date = time.strftime(DATE_FORMAT)
+        date = datetime.strptime(date, DATE_FORMAT)
+        return date.strftime('%d/%m/%Y')     
+           
+    def get_supplier_code_name(self, supplier_id=False):
+        code_name = ""
+        if supplier_id:
+            code_name = supplier_id.vendor_code + " - "  + supplier_id.name
+        return code_name    
         
         
         

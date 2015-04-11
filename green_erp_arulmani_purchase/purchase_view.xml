@@ -787,6 +787,7 @@
 				<xpath expr="//field[@name='uom_id']" position="before">
 					<field name="tpt_product_type" attrs="{'invisible': [('cate_name','!=','finish')]}"/>
 					<field name="tpt_mater_type" attrs="{'invisible': [('cate_name','=','finish')]}"/>
+					<field name="tolerance_qty"/><!-- TPT -->
 				</xpath>
 				
 				<xpath expr="//field[@name='default_code']" position="after">
