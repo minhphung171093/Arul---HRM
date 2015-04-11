@@ -1447,6 +1447,18 @@ class product_declaration_line(osv.osv):
             vals = {
                     'product_uom_id': ac.uom_id.id }
         return {'value': vals}
+
+    def _check_product_id(self, cr, uid, ids, context=None):
+        for product in self.browse(cr, uid, ids, context=context):
+            product_ids = self.search(cr, uid, [('id','!=',product.id),('product_id','=',product.product_id.id),('mrp_production_id','=',product.mrp_production_id.id)])
+            if product_ids:
+                raise osv.except_osv(_('Warning!'),_('Different Products are not allowed in same Add Material Master!'))           
+                return False
+            return True
+         
+    _constraints = [
+        (_check_product_id, 'Identical Data', []),
+    ]
      
     def create(self, cr, uid, vals, context=None):
         if 'product_id' in vals:
@@ -1497,12 +1509,12 @@ class product_declaration_line(osv.osv):
         new_write = super(product_declaration_line, self).write(cr, uid,ids, vals, context)
         for new in self.browse(cr, uid, ids):
             sql = '''
-            update stock_move set product_id = %s where declar_id = %s
-        '''%(new.product_id.id,new.id)
+            update stock_move set product_id = %s,product_qty=%s,product_uos_qty=%s,app_quantity=%s where declar_id = %s
+        '''%(new.product_id.id,new.app_qty,new.app_qty,new.app_qty,new.id)
             cr.execute(sql)
             sql = '''
-            update mrp_production_product_line set product_id = %s where declar_id = %s
-        '''%(new.product_id.id,new.id)
+            update mrp_production_product_line set product_id = %s,product_qty=%s,app_qty=%s where declar_id = %s
+        '''%(new.product_id.id,new.app_qty,new.app_qty,new.id)
             cr.execute(sql)
         return new_write
     
