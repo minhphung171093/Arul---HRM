@@ -1014,6 +1014,7 @@
 							<field name ="medical_reimbursement"/>
 							<field name ="bonus"/>
 							<field name ="pf_settlement"/>
+							<field name ="gratuity"/>
 						</group>
 
                 	</sheet>
