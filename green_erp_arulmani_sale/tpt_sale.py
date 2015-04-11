@@ -1936,9 +1936,8 @@ class res_partner(osv.osv):
         'shipping_location': fields.boolean('Is Shipping Location'), 
         #TPT By BalamuruganPurushothaman To Load Consignee List
         'consignee_shift_party': fields.many2one('res.partner', 'Consignee'),
-        
-        
                  }
+    
     def onchange_consignee_shift_party(self, cr, uid, ids,customer_id=False, context=None):
         vals = {}
         consignee_lines = []
@@ -1992,6 +1991,24 @@ class res_partner(osv.osv):
     def name_search(self, cr, user, name, args=None, operator='ilike', context=None, limit=100):
        ids = self.search(cr, user, args, context=context, limit=limit)
        return self.name_get(cr, user, ids, context=context)
+   
+    def approve_customer(self,cr, uid, ids,vals, context=None):
+       if context is None:
+           context = {}
+       context.update({'approve':1})
+       for line in self.browse(cr, uid, ids, context=context):
+           if line.disapprove:
+               self.write(cr, uid, ids, {'disapprove':False},context)
+           else:
+               self.write(cr, uid, ids, {'disapprove':True},context)
+       return True
+   
+    def write(self, cr, uid, ids, vals, context=None):
+        if context is None:
+            context = {}
+        if not context.get('approve',False):
+            vals.update({'disapprove':False})
+        return super(res_partner, self).write(cr, uid,ids, vals, context)
        
 #      def name_search(self, cr, uid, name, args=None, operator='ilike', context=None, limit=100):
 #        if not args:
