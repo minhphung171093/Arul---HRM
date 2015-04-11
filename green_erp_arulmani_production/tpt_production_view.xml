@@ -331,7 +331,7 @@
                 <data>
                 	<xpath expr="//field[@name='name']" position="after">
                 		<field name="app_quantity" string = "Quantity" readonly = "1"  />
-                		<field name="declar_id" invisible='1'  />
+                		<!--<field name="declar_id" invisible='1'  />-->
                     </xpath>
          <!--           <xpath expr="//field[@name='product_qty']" position="attributes">
                 		<attribute name='readonly'>1</attribute>
@@ -468,7 +468,7 @@
                 		<attribute name='string'>UOM</attribute>
                     </xpath>
                     <xpath expr="//form[@string='Scheduled Products']/group/field[@name='product_id']" position="after">
-                		<field name="declar_id" invisible = '1'/>
+                		<!--<field name="declar_id" invisible = '1'/>-->
                     </xpath>
                 </data>
             </field>
@@ -494,7 +494,7 @@
 
                     <xpath expr="//tree[@string='Scheduled Products']/field[@name='product_uom']" position="after">
                 		<field name="product_qty"/>
-                		<field name="declar_id" invisible = '1'/>
+                		<!--<field name="declar_id" invisible = '1'/>-->
                     </xpath>
                     <xpath expr="//tree[@string='Scheduled Products']/field[@name='product_qty']" position="attributes">
                 		<attribute name='string'>Applied Quantity</attribute>
