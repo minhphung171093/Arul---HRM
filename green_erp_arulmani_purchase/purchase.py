@@ -1130,7 +1130,8 @@ class tpt_purchase_quotation(osv.osv):
                 '''
                 cr.execute(sql)
                 tax_name = cr.dictfetchone()['name']
-                if tax_name:
+                #if tax_name:
+                if quotation.tax_id.name[:3]=='CST':
                     amount_net = amount_basic + amount_p_f + amount_fright + amount_total_tax
                 else:
                     amount_net = amount_basic + amount_p_f + amount_fright
@@ -2557,6 +2558,7 @@ class purchase_order_line(osv.osv):
         for line in self.browse(cr,uid,ids,context=context):
             res[line.id] = {
                     'line_net': 0.0,
+                    'amount_basic': 0.0,
                 }  
             amount_total_tax=0.0
             total_tax = 0.0
@@ -2600,10 +2602,16 @@ class purchase_order_line(osv.osv):
             '''
             cr.execute(sql)
             tax_name = cr.dictfetchone()['name']
-            if tax_name:
+            po_tax_name =''
+            po_tax_name = [r.name for r in line.taxes_id]
+            po_tax_name = str(po_tax_name)
+            #if tax_name:
+            if po_tax_name[3:6]=='CST':
                 res[line.id]['line_net'] = amount_total_tax+amount_fright+amount_ed+amount_p_f+amount_basic
             else:
                 res[line.id]['line_net'] = amount_fright+amount_ed+amount_p_f+amount_basic
+            
+            res[line.id]['amount_basic'] = amount_basic
         return res
     
     _columns = {
@@ -2625,6 +2633,7 @@ class purchase_order_line(osv.osv):
                 'line_no': fields.integer('SI.No', readonly = True),
                 # ham function line_net
                 'short_qty': fields.function(get_short_qty,type='float',digits=(16,0),multi='sum', string='Short Closed Qty'),
+                'amount_basic': fields.function(line_net_line_po, store = True, multi='deltas' ,string='Value'),
                 'line_net': fields.function(line_net_line_po, store = True, multi='deltas' ,string='Line Net'),
                 'state': fields.selection([('amendement', 'Amendement'), ('draft', 'Draft'), ('confirmed', 'Confirmed'), ('done', 'Done'), ('cancel', 'Cancelled')], 'Status', required=True, readonly=True,
                                   help=' * The \'Draft\' status is set automatically when purchase order in draft status. \
