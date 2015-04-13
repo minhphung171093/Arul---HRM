@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="utf-8"?>
+<openerp>
+    <data>
+		<record id="customer_ledger_statement_view" model="ir.ui.view">
+	        <field name="name">customer.ledger.statement.view</field>
+	        <field name="model">customer.ledger.statement</field>
+	        <field name="arch" type="xml">
+	            <form string="Customer Ledger Statement" version="7.0">
+	            	<group>
+	                <field name="date_from" />
+	                <field name="date_to" />
+	                <field name="customer_id"  options="{'create': false, 'create_edit': false}" />
+	                </group>
+	                <footer>
+	                    <button name="print_report" type='object' string="OK" class="oe_highlight"/>
+	                    or
+	                    <button string="Cancel" class="oe_highlight" special="cancel" />
+	                </footer>
+	            </form>
+	        </field>
+    	</record>
+
+	    <record model="ir.actions.act_window" id="action_customer_ledger_statement_view">
+	        <field name="name">Customer Ledger Statement</field>
+	        <field name="res_model">customer.ledger.statement</field>
+	        <field name="view_type">form</field>
+	        <field name="view_mode">form</field>
+	        <field name="view_id" ref="customer_ledger_statement_view" />
+	        <field name="target">new</field>
+	    </record>
+	    
+	    
+        <menuitem action="action_customer_ledger_statement_view"
+            id="menu_action_customer_ledger_statement_view"
+            parent="menu_tpt_accounting" sequence="105"/>
+	 
+	    
+    </data>
+</openerp>
+
