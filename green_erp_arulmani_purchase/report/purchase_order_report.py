@@ -33,9 +33,12 @@ class Parser(report_sxw.rml_parse):
         'get_indent':self.get_indent,
         'freight_lb':self.freight_lb,
         'freight_amt':self.freight_amt,
+        'v':self.v,
              
         })
-
+    def v(self, line):
+        a = (line.product_qty * line.price_unit)-((line.product_qty * line.price_unit)*line.discount/100)
+        return a
     def get_date(self, date=False):
         if not date:
             date = time.strftime(DATE_FORMAT)
