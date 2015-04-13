@@ -363,6 +363,20 @@ class account_move_line(osv.osv):
     _columns = {
         'invoice': fields.function(_invoice, string='Invoice', store=True,
             type='many2one', relation='account.invoice', fnct_search=_invoice_search),
+        'doc_type': fields.related('move_id', 'doc_type', type="selection", store=True,
+                selection=[('cus_inv', 'Customer Invoice'),('cus_pay', 'Customer Payment'),
+                                  ('sup_inv_po', 'Supplier Invoice(With PO)'),('sup_inv', 'Supplier Invoice(Without PO)'),('sup_pay', 'Supplier Payment'),
+                                  ('payroll', 'Payroll'),
+                                  ('grn', 'GRN'),
+                                  ('good', 'Good Issue'),
+                                  ('do', 'DO'),
+                                  ('inventory', 'Inventory Transfer'),
+                                  ('manual', 'Manual Journal'),
+                                  ('cash_pay', 'Cash Payment'),
+                                  ('cash_rec', 'Cash Receipt'),
+                                  ('bank_pay', 'Bank Payment'),
+                                  ('bank_rec', 'Bank Receipt'),
+                                  ('product', 'Production')], string="Document Type", readonly=True, select=True),
     }
 account_move_line()
 
@@ -1523,6 +1537,20 @@ product_product()
 
 class account_voucher(osv.osv):
     _inherit = "account.voucher"
+    
+    def _get_tpt_currency_amount(self, cr, uid, ids, name, args, context=None):
+        res = {}
+        if context is None:
+            context = {}
+        for voucher in self.browse(cr, uid, ids, context=context):
+            amount = 0
+            if voucher.tpt_currency_id and voucher.tpt_currency_amount:
+                context.update({'date': time.strftime('%Y-%m-%d')})
+                voucher_rate = self.pool.get('res.currency').read(cr, uid, voucher.tpt_currency_id.id, ['rate'], context=context)['rate']
+                amount = voucher.tpt_currency_amount/voucher_rate
+            res[voucher.id] = amount
+        return res
+    
     _columns = {
         'name': fields.char( 'Journal no.',size = 256),
         'memo':fields.char('Memo', size=256, readonly=True, states={'draft':[('readonly',False)]}),
@@ -1554,6 +1582,10 @@ class account_voucher(osv.osv):
                         \n* The \'Pro-forma\' when voucher is in Pro-forma status,voucher does not have an voucher number. \
                         \n* The \'Posted\' status is used when user create voucher,a voucher number is generated and voucher entries are created in account \
                         \n* The \'Cancelled\' status is used when user cancel voucher.'),
+        'tpt_currency_id':fields.many2one('res.currency','Currency'),
+        'is_tpt_currency':fields.boolean('Is TPT Currency'),
+        'tpt_amount':fields.function(_get_tpt_currency_amount,type='float',string='Paid Amount (INR)'),
+        'tpt_currency_amount':fields.float('Paid Amount'),
         }
     
     def default_get(self, cr, uid, fields, context=None):
@@ -1583,9 +1615,23 @@ class account_voucher(osv.osv):
                 return ids[0]
         return False
     
+    def _get_tpt_currency(self, cr, uid, context=None):
+        if context is None:
+            context = {}
+        user = self.pool.get('res.users').browse(cr, uid, uid)
+        return user.company_id and user.company_id.currency_id and user.company_id.currency_id.id or False 
+    
+    def _get_is_tpt_currency(self, cr, uid, context=None):
+        if context is None:
+            context = {}
+        user = self.pool.get('res.users').browse(cr, uid, uid)
+        return user.company_id and user.company_id.currency_id and True or False 
+    
     _defaults = {
         'name': '/',
         'journal_id': _default_journal_id,
+        'tpt_currency_id': _get_tpt_currency,
+        'is_tpt_currency': _get_is_tpt_currency,
     }
     
     def _check_sum_amount(self, cr, uid, ids, context=None):
@@ -1601,6 +1647,40 @@ class account_voucher(osv.osv):
     _constraints = [
         (_check_sum_amount, 'Identical Data', []),
     ]
+    
+    def onchange_tpt_currency(self, cr, uid, ids, tpt_currency_id, currency_id, type, context=None):
+        if context is None:
+            context = {}
+        vals = {}
+        if type in ['receipt','payment']:
+            if tpt_currency_id and currency_id:
+                if tpt_currency_id!=currency_id:
+                    vals = {
+                        'is_tpt_currency': False
+                    }
+                else:
+                    vals = {
+                        'is_tpt_currency': True
+                    }
+        return {'value': vals}
+    
+    def onchange_tpt_currency_amount(self, cr, uid, ids, tpt_currency_id, tpt_currency_amount, type, context=None):
+        if context is None:
+            context = {}
+        vals = {}
+        if type in ['receipt','payment']:
+            vals = {
+                'amount': 0,
+                'tpt_amount': 0,
+            }
+            if tpt_currency_id and tpt_currency_amount:
+                context.update({'date': time.strftime('%Y-%m-%d')})
+                voucher_rate = self.pool.get('res.currency').read(cr, uid, tpt_currency_id, ['rate'], context=context)['rate']
+                vals = {
+                    'amount': tpt_currency_amount/voucher_rate,
+                    'tpt_amount': tpt_currency_amount/voucher_rate,
+                }
+        return {'value': vals}
     
     def create(self, cr, uid, vals, context=None):
         if vals.get('name','/')=='/':

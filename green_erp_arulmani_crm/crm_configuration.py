@@ -153,7 +153,7 @@ class res_partner(osv.osv):
         'is_company': True,
         'sychronized':False,
         #tien
-        'disapprove': True,
+        'disapprove': False,
     }
     
     def init(self, cr):

@@ -846,6 +846,7 @@
             <field name="inherit_id" ref="account_voucher.view_vendor_receipt_form"/>
             <field name="arch" type="xml">
                 <data>
+                	
                     <xpath expr="//field[@name='account_id']" position="replace"/>
                     <xpath expr="//field[@name='partner_id']" position="attributes">
                     	<attribute name='options'>{'create': false, 'create_edit': false}</attribute>
@@ -878,6 +879,14 @@
                     <xpath expr="//page[@string='Payment Information']/field/tree/field[@name='account_id']" position="attributes">
 						<attribute name='invisible'>1</attribute>
 					</xpath> 
+					
+					<xpath expr="//field[@name='amount']" position="replace">
+                    	<field name="tpt_currency_id" required="1" on_change="onchange_tpt_currency(tpt_currency_id,currency_id,type)"/>
+                    	<field name="is_tpt_currency" invisible='1'/>
+                    	<field name="amount" attrs="{'invisible':[('is_tpt_currency','=',False)]}" class="oe_inline" string="Paid Amount" widget="monetary" options="{'currency_field': 'currency_id'}" on_change="onchange_amount(amount, payment_rate, partner_id, journal_id, currency_id, type, date, payment_rate_currency_id, company_id, context)"/>
+                    	<field name="tpt_currency_amount" widget="monetary" options="{'currency_field': 'tpt_currency_id'}" on_change="onchange_tpt_currency_amount(tpt_currency_id,tpt_currency_amount,type)" attrs="{'invisible':[('is_tpt_currency','=',True)],'required':[('is_tpt_currency','=',False)]}"/>
+                    	<field name="tpt_amount" attrs="{'invisible':[('is_tpt_currency','=',True)]}" widget="monetary" options="{'currency_field': 'currency_id'}"/>
+                    </xpath>
 					
                 </data>
             </field>
@@ -923,7 +932,15 @@
                     
                     <xpath expr="//page[@string='Payment Information']/field/tree/field[@name='account_id']" position="attributes">
 						<attribute name='invisible'>1</attribute>
-					</xpath> 
+					</xpath>
+					
+					<xpath expr="//field[@name='amount']" position="replace">
+                    	<field name="tpt_currency_id" required="1" on_change="onchange_tpt_currency(tpt_currency_id,currency_id,type)"/>
+                    	<field name="is_tpt_currency" invisible='1'/>
+                    	<field name="amount" attrs="{'invisible':[('is_tpt_currency','=',False)]}" class="oe_inline" string="Paid Amount" widget="monetary" options="{'currency_field': 'currency_id'}" on_change="onchange_amount(amount, payment_rate, partner_id, journal_id, currency_id, type, date, payment_rate_currency_id, company_id, context)"/>
+                    	<field name="tpt_currency_amount" widget="monetary" options="{'currency_field': 'tpt_currency_id'}" on_change="onchange_tpt_currency_amount(tpt_currency_id,tpt_currency_amount,type)" attrs="{'invisible':[('is_tpt_currency','=',True)],'required':[('is_tpt_currency','=',False)]}"/>
+                    	<field name="tpt_amount" attrs="{'invisible':[('is_tpt_currency','=',True)]}" widget="monetary" options="{'currency_field': 'currency_id'}"/>
+                    </xpath>
 					
                 </data>
             </field>
@@ -971,6 +988,297 @@
 						<attribute name='invisible'>1</attribute>
 					</xpath>
 					
+                </data>
+			</field>
+		</record>
+		
+		<record id="view_move_tree_inherit" model="ir.ui.view">
+            <field name="name">view.move.tree.inherit</field>
+            <field name="model">account.move</field>
+            <field name="inherit_id" ref="account.view_move_tree"/>
+            <field name="arch" type="xml">
+	            <data>
+                    <xpath expr="//field[@name='state']" position="after">
+                    	<field name="doc_type" invisible='1'/>
+                    </xpath>
+                </data>
+			</field>
+		</record>
+		
+		<record id="view_move_filter_inherit" model="ir.ui.view">
+            <field name="name">view.move.filter.inherit</field>
+            <field name="model">account.move</field>
+            <field name="inherit_id" ref="account.view_account_move_filter"/>
+            <field name="arch" type="xml">
+	            <data>
+                    <xpath expr="//field[@name='period_id']" position="after">
+                    	<separator/>
+                    	<filter icon="terp-gtk-jump-to-ltr" string="Customer Invoice" domain="[('doc_type','=','cus_inv')]"/>
+                    	<filter icon="terp-gtk-jump-to-ltr" string="Customer Payment" domain="[('doc_type','=','cus_pay')]"/>
+                    	<filter icon="terp-gtk-jump-to-ltr" string="Supplier Invoice(With PO)" domain="[('doc_type','=','sup_inv_po')]"/>
+                    	<filter icon="terp-gtk-jump-to-ltr" string="Supplier Invoice(Without PO)" domain="[('doc_type','=','sup_inv')]"/>
+                    	<filter icon="terp-gtk-jump-to-ltr" string="Supplier Payment" domain="[('doc_type','=','sup_pay')]"/>
+                    	<filter icon="terp-gtk-jump-to-ltr" string="Payroll" domain="[('doc_type','=','payroll')]"/>
+                    	<filter icon="terp-gtk-jump-to-ltr" string="GRN" domain="[('doc_type','=','grn')]"/>
+                    	<filter icon="terp-gtk-jump-to-ltr" string="Good Issue" domain="[('doc_type','=','good')]"/>
+                    	<filter icon="terp-gtk-jump-to-ltr" string="DO" domain="[('doc_type','=','do')]"/>
+                    	<filter icon="terp-gtk-jump-to-ltr" string="Inventory Transfer" domain="[('doc_type','=','inventory')]"/>
+                    	<filter icon="terp-gtk-jump-to-ltr" string="Manual Journal" domain="[('doc_type','=','manual')]"/>
+                    	<filter icon="terp-gtk-jump-to-ltr" string="Cash Payment" domain="[('doc_type','=','cash_pay')]"/>
+                    	<filter icon="terp-gtk-jump-to-ltr" string="Cash Receipt" domain="[('doc_type','=','cash_rec')]"/>
+                    	<filter icon="terp-gtk-jump-to-ltr" string="Bank Payment" domain="[('doc_type','=','bank_pay')]"/>
+                    	<filter icon="terp-gtk-jump-to-ltr" string="Bank Receipt" domain="[('doc_type','=','bank_rec')]"/>
+                    	<filter icon="terp-gtk-jump-to-ltr" string="Production" domain="[('doc_type','=','product')]"/>
+                    </xpath>
+                    <xpath expr="//filter[@string='Date']" position="after">
+                    	<filter string="Document Type" icon="terp-go-month" domain="[]" context="{'group_by':'doc_type'}"/>
+                    </xpath>
+                </data>
+			</field>
+		</record>
+		
+		<record id="view_move_tree_noedit" model="ir.ui.view">
+            <field name="name">account.move.tree.noedit</field>
+            <field name="model">account.move</field>
+            <field name="arch" type="xml">
+                <tree colors="blue:state == 'draft';black:state == 'posted'" string="Journal Entries" edit="false">
+                    <field name="name"/>
+                    <field name="ref"/>
+                    <field name="date"/>
+                    <field name="period_id"/>
+                    <field name="journal_id"/>
+                    <field name="partner_id"/>
+                    <field name="amount" sum="Total Amount"/>
+                    <field name="to_check"/>
+                    <field name="state"/>
+                    <field name="doc_type" invisible='1'/>
+                </tree>
+            </field>
+        </record>
+        
+		<record id="view_move_form_noedit" model="ir.ui.view">
+            <field name="name">account.move.form.noedit</field>
+            <field name="model">account.move</field>
+            <field name="arch" type="xml">
+                <form string="Account Entry" version="7.0" edit="false">
+                <header>
+                    <button name="button_validate" states="draft" string="Post" type="object" class="oe_highlight" groups="account.group_account_invoice"/>
+                    <button name="button_cancel" states="posted" string="Cancel Entry" type="object" groups="account.group_account_invoice"/>
+                    <field name="state" widget="statusbar"/>
+                </header>
+                <sheet string="Journal Entries" >
+                    <label for="name" class="oe_edit_only" attrs="{'invisible':[('name','=','/')]}"/>
+                    <h1>
+                        <field name="name" readonly="True" attrs="{'invisible':[('name','=','/')]}"/>
+                    </h1>
+                    <group>
+                        <group>
+                            <field name="journal_id" invisible="1"/>
+                            <field name="period_id"/>
+                            <field name="doc_type" />
+                            <field name="company_id" required="1" groups="base.group_multi_company"/>
+                            <field name="partner_id" invisible="1"/>
+                        </group>
+                        <group>
+                            <field name="ref"/>
+                            <field name="date"/>
+                            <field name="to_check" invisible="1"/>
+                            <field name="amount" invisible="1"/>
+                        </group>
+                    </group>
+                    <notebook>
+                        <page string="Journal Items">
+                            <field name="line_id" widget="one2many_list"
+                              context="{'line_id': line_id , 'journal_id': journal_id }">
+                                <form string="Journal Item" version="7.0">
+                                    <group col="6" colspan="4">
+                                        <field name="name"/>
+                                        <field name="ref"/>
+                                        <field name="partner_id" on_change="onchange_partner_id(False, partner_id, account_id, debit, credit, date, journal_id, context)"/>
+
+                                        <field name="journal_id"/>
+                                        <field name="period_id"/>
+                                        <field name="company_id" required="1" groups="base.group_multi_company"/>
+                                    </group>
+                                    <notebook colspan="4">
+                                        <page string="Information">
+                                            <group>
+                                                <group string="Amount">
+                                                    <field name="account_id" domain="[('company_id', '=', parent.company_id), ('type','&lt;&gt;','view'),('type','&lt;&gt;','consolidation')]"/>
+                                                    <field name="debit"/>
+                                                    <field name="credit"/>
+                                                    <field name="quantity"/>
+                                                </group>
+
+                                                <group string="Accounting Documents">
+                                                    <field name="invoice"/>
+                                                    <field name="move_id" required="False"/>
+                                                    <field name="statement_id"/>
+                                                </group>
+
+                                                <group string="Dates">
+                                                    <field name="date"/>
+                                                    <field name="date_maturity"/>
+                                                    <field name="date_created"/>
+                                                </group>
+
+                                                <group string="Taxes">
+                                                    <field name="tax_code_id"/>
+                                                    <field name="tax_amount"/>
+                                                    <field name="account_tax_id" domain="[('parent_id','=',False)]"/>
+                                                </group>
+
+                                                <group string="Currency" groups="base.group_multi_currency">
+                                                    <field name="currency_id"/>
+                                                    <field name="amount_currency"/>
+                                                </group>
+
+                                                <group string="Reconciliation">
+                                                    <field name="reconcile_id" invisible="1"/>
+                                                    <field name="reconcile_partial_id" invisible="1"/>
+                                                </group>
+
+                                                <group string="States">
+                                                    <field name="state"/>
+                                                    <field name="blocked"/>
+                                                </group>
+
+                                                <group groups="analytic.group_analytic_accounting" string="Analytic">
+                                                    <field name="analytic_account_id"/>
+                                                </group>
+                                            </group>
+                                            <separator string="Internal Note"/>
+                                            <field name="narration"/>
+                                        </page>
+                                        <page string="Analytic Lines" groups="analytic.group_analytic_accounting">
+                                            <field colspan="4" name="analytic_lines" nolabel="1" context="{'default_general_account_id':account_id, 'default_name': name, 'default_date':date, 'amount': (debit or 0.0)-(credit or 0.0)}"/>
+                                        </page>
+                                    </notebook>
+                                </form>
+                                <tree colors="blue:state == 'draft';black:state == 'posted'" editable="top" string="Journal Items">
+                                    <field name="invoice"/>
+                                    <field name="name"/>
+                                    <field name="partner_id" on_change="onchange_partner_id(False, partner_id, account_id, debit, credit, parent.date, parent.journal_id, context)"/>
+                                    <field name="account_id" domain="[('journal_id','=',parent.journal_id),('company_id', '=', parent.company_id)]"/>
+                                    <field name="date_maturity"/>
+                                    <field name="debit" sum="Total Debit"/>
+                                    <field name="credit" sum="Total Credit"/>
+                                    <field name="analytic_account_id" groups="analytic.group_analytic_accounting"/>
+                                    <field name="amount_currency"/>
+                                    <field name="currency_id" groups="base.group_multi_currency"/>
+                                    <field name="tax_code_id"/>
+                                    <field name="tax_amount"/>
+                                    <field name="state"/>
+                                    <field name="reconcile_id"/>
+                                    <field name="reconcile_partial_id"/>
+                                </tree>
+                            </field>
+                            <field name="narration" colspan="4" placeholder="Add an internal note..." nolabel="1" height="50"/>
+                        </page>
+                    </notebook>
+                    </sheet>
+                </form>
+            </field>
+        </record>
+		
+        <record id="action_move_journal_line1" model="ir.actions.act_window.view">
+            <field eval="0" name="sequence"/>
+            <field name="view_mode">tree</field>
+            <field name="view_id" ref="view_move_tree_noedit"/>
+            <field name="act_window_id" ref="account.action_move_journal_line"/>
+        </record>
+		
+        <record id="action_move_journal_line2" model="ir.actions.act_window.view">
+            <field eval="2" name="sequence"/>
+            <field name="view_mode">form</field>
+            <field name="view_id" ref="view_move_form_noedit"/>
+            <field name="act_window_id" ref="account.action_move_journal_line"/>
+        </record>
+        
+        <record id="action_move_journal_line_editable" model="ir.actions.act_window">
+            <field name="name">Journal Entries (Editable)</field>
+            <field name="res_model">account.move</field>
+            <field name="view_type">form</field>
+            <field name="view_mode">tree,form</field>
+            <field name="view_id" ref="account.view_move_tree"/>
+            <field name="search_view_id" ref="account.view_account_move_filter"/>
+            <field name="help" type="html">
+              <p class="oe_view_nocontent_create">
+                Click to create a journal entry.
+              </p><p>
+                A journal entry consists of several journal items, each of
+                which is either a debit or a credit transaction.
+              </p><p>
+                OpenERP automatically creates one journal entry per accounting
+                document: invoice, refund, supplier payment, bank statements,
+                etc. So, you should record journal entries manually only/mainly
+                for miscellaneous operations.
+              </p>
+            </field>
+        </record>
+        <record id="action_move_journal_line_editable1" model="ir.actions.act_window.view">
+            <field eval="0" name="sequence"/>
+            <field name="view_mode">tree</field>
+            <field name="view_id" ref="account.view_move_tree"/>
+            <field name="act_window_id" ref="action_move_journal_line_editable"/>
+        </record>
+		
+        <record id="action_move_journal_line_editable2" model="ir.actions.act_window.view">
+            <field eval="2" name="sequence"/>
+            <field name="view_mode">form</field>
+            <field name="view_id" ref="account.view_move_form"/>
+            <field name="act_window_id" ref="action_move_journal_line_editable"/>
+        </record>
+        
+        <menuitem
+            icon="STOCK_JUSTIFY_FILL"
+            action="action_move_journal_line_editable"
+            id="menu_action_move_journal_line_editable"
+            parent="account.menu_configuration_misc"
+            groups="base.group_no_one"
+            sequence="5"/>
+		
+		<record id="view_move_line_tree_inherit" model="ir.ui.view">
+            <field name="name">account.move.line.tree.inherit</field>
+            <field name="model">account.move.line</field>
+            <field name="inherit_id" ref="account.view_move_line_tree"/>
+            <field name="arch" type="xml">
+	            <data>
+                    <xpath expr="//field[@name='state']" position="after">
+                    	<field name="doc_type" invisible='1'/>
+                    </xpath>
+                </data>
+			</field>
+		</record>
+		
+		<record id="view_account_move_line_filter_inherit" model="ir.ui.view">
+            <field name="name">account.move.line.filter.inherit</field>
+            <field name="model">account.move.line</field>
+            <field name="inherit_id" ref="account.view_account_move_line_filter"/>
+            <field name="arch" type="xml">
+	            <data>
+                    <xpath expr="//field[@name='period_id']" position="after">
+                    	<separator/>
+                    	<filter icon="terp-gtk-jump-to-ltr" string="Customer Invoice" domain="[('doc_type','=','cus_inv')]"/>
+                    	<filter icon="terp-gtk-jump-to-ltr" string="Customer Payment" domain="[('doc_type','=','cus_pay')]"/>
+                    	<filter icon="terp-gtk-jump-to-ltr" string="Supplier Invoice(With PO)" domain="[('doc_type','=','sup_inv_po')]"/>
+                    	<filter icon="terp-gtk-jump-to-ltr" string="Supplier Invoice(Without PO)" domain="[('doc_type','=','sup_inv')]"/>
+                    	<filter icon="terp-gtk-jump-to-ltr" string="Supplier Payment" domain="[('doc_type','=','sup_pay')]"/>
+                    	<filter icon="terp-gtk-jump-to-ltr" string="Payroll" domain="[('doc_type','=','payroll')]"/>
+                    	<filter icon="terp-gtk-jump-to-ltr" string="GRN" domain="[('doc_type','=','grn')]"/>
+                    	<filter icon="terp-gtk-jump-to-ltr" string="Good Issue" domain="[('doc_type','=','good')]"/>
+                    	<filter icon="terp-gtk-jump-to-ltr" string="DO" domain="[('doc_type','=','do')]"/>
+                    	<filter icon="terp-gtk-jump-to-ltr" string="Inventory Transfer" domain="[('doc_type','=','inventory')]"/>
+                    	<filter icon="terp-gtk-jump-to-ltr" string="Manual Journal" domain="[('doc_type','=','manual')]"/>
+                    	<filter icon="terp-gtk-jump-to-ltr" string="Cash Payment" domain="[('doc_type','=','cash_pay')]"/>
+                    	<filter icon="terp-gtk-jump-to-ltr" string="Cash Receipt" domain="[('doc_type','=','cash_rec')]"/>
+                    	<filter icon="terp-gtk-jump-to-ltr" string="Bank Payment" domain="[('doc_type','=','bank_pay')]"/>
+                    	<filter icon="terp-gtk-jump-to-ltr" string="Bank Receipt" domain="[('doc_type','=','bank_rec')]"/>
+                    	<filter icon="terp-gtk-jump-to-ltr" string="Production" domain="[('doc_type','=','product')]"/>
+                    </xpath>
+                    <xpath expr="//filter[@string='Period']" position="after">
+                    	<filter string="Document Type" icon="terp-go-month" domain="[]" context="{'group_by':'doc_type'}"/>
+                    </xpath>
                 </data>
 			</field>
 		</record>
