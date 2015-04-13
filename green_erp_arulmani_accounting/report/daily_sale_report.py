@@ -44,6 +44,7 @@ class Parser(report_sxw.rml_parse):
             'get_vat_tax': self.get_vat_tax,
             'get_tcs_tax': self.get_tcs_tax,
             'get_order_type': self.get_order_type,
+            'convert_date': self.convert_date,
 #             'get_sale_line': self.get_sale_line,
         })
         
