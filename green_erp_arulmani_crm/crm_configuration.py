@@ -147,13 +147,13 @@ class res_partner(osv.osv):
         'tcs': fields.many2one('tax.category','TCS %'), 
         #'is_approved': fields.boolean('Is Approved'),
         #tien
-#         'disapprove': fields.boolean('Approve'), 
+        'disapprove': fields.boolean('Approve'), 
     }
     _defaults = {
         'is_company': True,
         'sychronized':False,
         #tien
-#         'disapprove': True,
+        'disapprove': True,
     }
     
     def init(self, cr):
