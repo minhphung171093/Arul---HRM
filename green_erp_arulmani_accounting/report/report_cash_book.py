@@ -71,6 +71,23 @@ class Parser(report_sxw.rml_parse):
                }
         return res
         
+#     def get_cash(self):
+#         res = {}
+#         wizard_data = self.localcontext['data']['form']
+#         date_from = wizard_data['date_from']
+#         date_to = wizard_data['date_to']
+#         type = wizard_data['type_trans']
+#         account_voucher_obj = self.pool.get('account.voucher')
+#         voucher_line_obj = self.pool.get('account.move.line')
+#           
+#         if type == 'payment':
+#             account_ids = account_voucher_obj.search(self.cr,self.uid,[('date', '>=', date_from), ('date', '<=', date_to), ('type_cash_bank', '=', 'cash'), ('type_trans', '=', 'payment')])
+#         if type == 'receipt':
+#             account_ids = account_voucher_obj.search(self.cr,self.uid,[('date', '>=', date_from), ('date', '<=', date_to), ('type_cash_bank', '=', 'cash'), ('type_trans', '=', 'receipt')])
+#         else:
+#             account_ids = account_voucher_obj.search(self.cr,self.uid,[('date', '>=', date_from), ('date', '<=', date_to), ('type_cash_bank', '=', 'cash')])
+#         return account_voucher_obj.browse(self.cr,self.uid,account_ids)
+
     def get_cash(self):
         res = {}
         wizard_data = self.localcontext['data']['form']
@@ -79,18 +96,20 @@ class Parser(report_sxw.rml_parse):
         type = wizard_data['type_trans']
         account_voucher_obj = self.pool.get('account.voucher')
         voucher_line_obj = self.pool.get('account.move.line')
-        
+        dates= []
+          
         if type == 'payment':
             account_ids = account_voucher_obj.search(self.cr,self.uid,[('date', '>=', date_from), ('date', '<=', date_to), ('type_cash_bank', '=', 'cash'), ('type_trans', '=', 'payment')])
         if type == 'receipt':
             account_ids = account_voucher_obj.search(self.cr,self.uid,[('date', '>=', date_from), ('date', '<=', date_to), ('type_cash_bank', '=', 'cash'), ('type_trans', '=', 'receipt')])
         else:
             account_ids = account_voucher_obj.search(self.cr,self.uid,[('date', '>=', date_from), ('date', '<=', date_to), ('type_cash_bank', '=', 'cash')])
-#             list_line = []
-#             for vouc in account_voucher_obj.browse(self.cr,self.uid,account_ids):
-#                 for line in vouc.move_ids:
-#                     list_line.append(line)
-        return account_voucher_obj.browse(self.cr,self.uid,account_ids)
+#             account1_ids = account_ids.search(self.cr,self.uid,[('date', '=', account.date)])
+            
+            dates = [r.date for r in account_voucher_obj.browse(self.cr,self.uid,account_ids)]
+        return dates
+    
+    
     
     def get_total(self, cash):
         credit = 0.0

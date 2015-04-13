@@ -38,6 +38,8 @@ class Parser(report_sxw.rml_parse):
         pool = pooler.get_pool(self.cr.dbname)
         self.localcontext.update({
             'get_invoice':self.get_invoice,
+            'get_tax': self.get_tax,
+            'get_paid_tax': self.get_paid_tax,
 #             'get_sale_line': self.get_sale_line,
         })
         
@@ -58,6 +60,18 @@ class Parser(report_sxw.rml_parse):
         invoice_ids = [r[0] for r in self.cr.fetchall()]
         return invoice_obj.browse(self.cr,self.uid,invoice_ids)
     
+    def get_tax(self, invoice_line_tax_id):
+        tax_amounts = 0
+        tax_amounts = [r.amount for r in invoice_line_tax_id]
+        return tax_amounts
+    
+    def get_paid_tax(self, invoice_line_tax_id, total):
+        tax_paid = 0
+        if invoice_line_tax_id:
+            tax_amounts = [r.amount for r in invoice_line_tax_id]
+            for tax in tax_amounts:
+                tax_paid = tax*total/100
+        return round(tax_paid,2)
         
     
 # vim:expandtab:smartindent:tabstop=4:softtabstop=4:shiftwidth=4:

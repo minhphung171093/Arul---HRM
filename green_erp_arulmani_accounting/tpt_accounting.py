@@ -1523,6 +1523,8 @@ product_product()
 
 class account_voucher(osv.osv):
     _inherit = "account.voucher"
+    
+    
     _columns = {
         'name': fields.char( 'Journal no.',size = 256),
         'memo':fields.char('Memo', size=256, readonly=True, states={'draft':[('readonly',False)]}),
@@ -1555,6 +1557,7 @@ class account_voucher(osv.osv):
                         \n* The \'Posted\' status is used when user create voucher,a voucher number is generated and voucher entries are created in account \
                         \n* The \'Cancelled\' status is used when user cancel voucher.'),
         }
+    
     
     def default_get(self, cr, uid, fields, context=None):
         if context is None:
