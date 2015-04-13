@@ -170,6 +170,7 @@ class arul_hr_employee_action_history(osv.osv):
         'medical_reimbursement': fields.boolean('Medical Reimbursement (Y/N)'),
         'gratuity': fields.boolean('Gratuity (Y/N)'),
         'pf_settlement': fields.boolean('PF Settlement (Y/N)'),
+        'gratuity': fields.boolean('Gratuity (Y/N)'),
         'block_list': fields.boolean('Block list'),
         'create_date': fields.datetime('Created Date',readonly = True),
         'create_uid': fields.many2one('res.users','Created By',ondelete='restrict',readonly = True),
