@@ -1131,7 +1131,7 @@ class tpt_purchase_quotation(osv.osv):
                 cr.execute(sql)
                 tax_name = cr.dictfetchone()['name']
                 #if tax_name:
-                if quotation.tax_id.name[:3]=='CST':
+                if quotation.tax_id.description[:3]=='CST':
                     amount_net = amount_basic + amount_p_f + amount_fright + amount_total_tax
                 else:
                     amount_net = amount_basic + amount_p_f + amount_fright
@@ -2603,7 +2603,7 @@ class purchase_order_line(osv.osv):
             cr.execute(sql)
             tax_name = cr.dictfetchone()['name']
             po_tax_name =''
-            po_tax_name = [r.name for r in line.taxes_id]
+            po_tax_name = [r.description for r in line.taxes_id]
             po_tax_name = str(po_tax_name)
             #if tax_name:
             if po_tax_name[3:6]=='CST':
