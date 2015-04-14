@@ -396,6 +396,7 @@ class stock_move(osv.osv):
             if line.po_indent_id.document_type == 'consumable':
                 if line.action_taken == 'direct' or line.action_taken == 'need':
                     raise osv.except_osv(_('Warning!'),_('Consumable PR type should be processed with Move To Consumption Type only'))
+            #TPT-FOLLOWING LINES ARE COMMENTED DUE TO BLOCK THIS MSG WHILE MD APPROVAL BUTTON IS TRIGGERED UP
             #===================================================================
             # if line.po_indent_id.document_type != 'consumable':
             #     if line.action_taken == 'move':
