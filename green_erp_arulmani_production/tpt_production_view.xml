@@ -292,7 +292,7 @@
                 <data>
                 	<xpath expr="//field[@name='sub_products']/tree" position="replace">
                 		<tree string="Byproducts"  editable="top">
-	                        <field name="product_id" options="{'create': false, 'create_edit': false}" on_change="onchange_product_id(product_id)"/>
+	                        <field name="product_id" domain="[('categ_id.cate_name','in',['finish'])]" options="{'create': false, 'create_edit': false}" on_change="onchange_product_id(product_id)"/>
 	                        <field name="description"/>
 		                    <field name="product_qty" string="Quantity"/>
 		                    <field name="product_uom" string="UOM" options="{'create': false, 'create_edit': false}" on_change="onchange_uom(product_id, product_uom)" groups="product.group_uom"/>
