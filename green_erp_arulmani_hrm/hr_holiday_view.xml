@@ -575,9 +575,9 @@
 										<field name="non_availability_type_id" options="{'create': false, 'create_edit': false}"/>
 										<field name="date"/>										
 										<field name="duty_location"/>
-										<field name="start_time"/>
-										<field name="end_time"/>
-										<field name="time_total"/>
+										<field name="start_time" widget="float_time"/>
+										<field name="end_time" widget="float_time"/>
+										<field name="time_total" widget="float_time"/>
 										<field name="total_shift_worked"/>
 										<field name="reason"/>
 										<field name="approval"/>
