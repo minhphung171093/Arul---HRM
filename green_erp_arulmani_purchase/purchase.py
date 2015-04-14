@@ -1287,6 +1287,7 @@ class tpt_purchase_quotation(osv.osv):
                             'uom_id': line.uom_id and line.uom_id.id or False,
                             'price_unit':line.product_id and line.product_id.standard_price or False,
                             'description':line.description or False,
+                            'item_text':line.item_text or False,
                     })
             if rfq.rfq_category == 'single':
                 res['value'].update({
@@ -1546,7 +1547,7 @@ class tpt_purchase_quotation_line(osv.osv):
         'order_charge': fields.float('Other Charges'),
         'description':fields.char('Mat.Desc', size = 50, readonly = True),
         #TPT
-        #'item_text': fields.char('Item Text'), 
+        'item_text': fields.char('Item Text'), 
         }
     def unlink(self, cr, uid, ids, context=None):
         for line in self.browse(cr, uid, ids):
