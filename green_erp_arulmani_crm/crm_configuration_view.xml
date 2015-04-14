@@ -75,8 +75,6 @@
             <field name="arch" type="xml">
                 <data>
                 	
-                	
-                	
                 	<xpath expr="//field[@name='country_id']" position="replace">
                     </xpath>
                     
@@ -131,6 +129,7 @@
                         <field name="inco_terms_id" widget="selection"  /> 
                         <field name="tcs" /> 
                         <field name="credit_limit_used" attrs="{'invisible': [('customer', '=',False)]}" />
+                        <field name="disapprove" readonly="1"/>
                         <!--<field name="order_probability_id" widget="selection" attrs="{'invisible': [('customer', '=',False)]}" />--> 
                         <!--<field name="reconciliation_acct_id" widget="selection"/>--> 
                         
@@ -182,8 +181,6 @@
 			        --> 
 			        <xpath expr="//field[@name='category_id']" position="replace">
 			        	<field name="customer_account_group_id" attrs="{'invisible': [('customer', '=',False)]}" placeholder="Customer Account Group" options="{'create': false, 'create_edit': false}" />
-			        	<field name="disapprove" readonly="1"/>
-			        	<label for="disapprove" string="Approve"/>
 			        </xpath>
 			        <!--<xpath expr="//page[@string='Sales &amp; Purchases']" position="replace">
 			            attribute name="string">Sales Team</attribute>

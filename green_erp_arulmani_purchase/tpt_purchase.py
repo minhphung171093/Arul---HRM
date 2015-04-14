@@ -33,6 +33,8 @@ class tpt_mrp_process(osv.osv):
     
     def bt_run_mrp(self, cr, uid, ids, context=None):
         mrp_process_line = []
+        quantity = 1.00
+        hand_quantity = 0
         for mrp in self.browse(cr, uid, ids):
             sql = '''
                     delete from tpt_mrp_process_line
@@ -40,7 +42,7 @@ class tpt_mrp_process(osv.osv):
                 '''%(mrp.id)
             cr.execute(sql)
             sql = '''
-                    select product_product.id, uom_po_id
+                    select product_product.id, uom_po_id, max_stock
                     from product_product, product_template
                     where mrp_control = True and  (
                             select case when sum(foo.product_qty)!=0 then sum(foo.product_qty) else 0 end ton_sl from 
@@ -70,15 +72,40 @@ class tpt_mrp_process(osv.osv):
             prod_ids = cr.dictfetchall()
             if prod_ids:
                 for prod in prod_ids:
+                    sql = '''
+                        select case when sum(foo.product_qty)!=0 then sum(foo.product_qty) else 0 end ton_sl from 
+                                (select st.product_qty
+                                    from stock_move st 
+                                        inner join stock_location l2 on st.location_dest_id= l2.id
+                                        inner join product_uom pu on st.product_uom = pu.id
+                                    where st.state='done' and st.product_id = %s and l2.usage = 'internal'
+                                union all
+                                select st.product_qty*-1
+                                    from stock_move st 
+                                        inner join stock_location l1 on st.location_id= l1.id
+                                        inner join product_uom pu on st.product_uom = pu.id
+                                    where st.state='done' and st.product_id = %s and l1.usage = 'internal'
+                                )foo
+                    '''%(prod['id'],prod['id'])
+                    cr.execute(sql)
+                    out = cr.dictfetchone()
+                    if out:
+                        hand_quantity = hand_quantity+float(out['ton_sl'])
+#                     maximum = line.product_id.max_stock or 0.0
+                    if prod['max_stock'] > 0:
+                        quantity =  prod['max_stock'] - hand_quantity
                     mrp_process_line.append((0,0,{'product_id':prod['id'],
                                                   'uom_po_id':prod['uom_po_id'],
+                                                  'product_uom_qty':quantity,
                                                   }))
         return self.write(cr,uid,ids,{'mrp_process_line':mrp_process_line, 'state':'approve'})
     
     def bt_generate_indent(self, cr, uid, ids, context=None):
         purchase_product_line = []
         depa_id = False
+        section_id = False
         count = 0
+        hand_quantity = 0
         po_indent_obj = self.pool.get('tpt.purchase.indent')
         for mrp in self.browse(cr, uid, ids):
             sql = '''
@@ -89,8 +116,17 @@ class tpt_mrp_process(osv.osv):
             if depa_ids:
                 depa_id = depa_ids[0] or False
                 
+                sql = '''
+                    select id from arul_hr_section where name = 'PRODUCTION' and department_id = %s
+                    '''%(depa_id)
+                cr.execute(sql)
+                section_ids = cr.fetchone()
+                if section_ids:
+                    section_id = section_ids[0] or False
+                
             indent_id = po_indent_obj.create(cr, uid,{'document_type': 'base',
                                             'department_id': depa_id,
+                                            'section_id': section_id,
                                             'intdent_cate': 'normal',
                                             'purchase_product_line':purchase_product_line,
                                             'state': 'draft',
@@ -100,7 +136,8 @@ class tpt_mrp_process(osv.osv):
                     if line.select:
                         count+=1
                         purchase_product_line.append((0,0,{'product_id':line.product_id.id,
-                                                           'product_uom_qty':line.product_uom_qty or False,
+#                                                            'product_uom_qty':quantity,
+                                                            'product_uom_qty':line.product_uom_qty or False,
                                                            'uom_po_id':line.uom_po_id and line.uom_po_id.id or False,
                                                             'pur_product_id': indent_id or False,
                                                            }))
