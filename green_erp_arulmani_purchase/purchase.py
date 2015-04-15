@@ -1131,7 +1131,7 @@ class tpt_purchase_quotation(osv.osv):
                 cr.execute(sql)
                 tax_name = cr.dictfetchone()['name']
                 #if tax_name:
-                if quotation.tax_id.name[:3]=='CST':
+                if quotation.tax_id.description[:3]=='CST':
                     amount_net = amount_basic + amount_p_f + amount_fright + amount_total_tax
                 else:
                     amount_net = amount_basic + amount_p_f + amount_fright
@@ -1287,6 +1287,7 @@ class tpt_purchase_quotation(osv.osv):
                             'uom_id': line.uom_id and line.uom_id.id or False,
                             'price_unit':line.product_id and line.product_id.standard_price or False,
                             'description':line.description or False,
+                            'item_text':line.item_text or False,
                     })
             if rfq.rfq_category == 'single':
                 res['value'].update({
@@ -1546,7 +1547,7 @@ class tpt_purchase_quotation_line(osv.osv):
         'order_charge': fields.float('Other Charges'),
         'description':fields.char('Mat.Desc', size = 50, readonly = True),
         #TPT
-        #'item_text': fields.char('Item Text'), 
+        'item_text': fields.char('Item Text'), 
         }
     def unlink(self, cr, uid, ids, context=None):
         for line in self.browse(cr, uid, ids):
@@ -1876,23 +1877,23 @@ class purchase_order(osv.osv):
             result[line.order_id.id] = True
         return result.keys()
     _columns = {
-        'po_document_type':fields.selection([('raw','VV Raw material PO'),('asset','VV Capital PO'),('standard','VV Standard PO'),('local','VV Local PO'),('return','VV Return PO'),('service','VV Service PO'),('out','VV Out Service PO')],'PO Document Type', required = True, track_visibility='onchange'),
-        'quotation_no': fields.many2one('tpt.purchase.quotation', 'Quotation No', required = True, track_visibility='onchange'),
+        'po_document_type':fields.selection([('raw','VV Raw material PO'),('asset','VV Capital PO'),('standard','VV Standard PO'),('local','VV Local PO'),('return','VV Return PO'),('service','VV Service PO'),('out','VV Out Service PO')],'PO Document Type', required = True, track_visibility='onchange',states={'cancel':[('readonly',True)],'confirmed':[('readonly',True)],'head':[('readonly',True)],'gm':[('readonly',True)], 'approved':[('readonly',True)],'done':[('readonly',True)]}),
+        'quotation_no': fields.many2one('tpt.purchase.quotation', 'Quotation No', required = True, track_visibility='onchange',states={'cancel':[('readonly',True)],'confirmed':[('readonly',True)],'head':[('readonly',True)],'gm':[('readonly',True)], 'approved':[('readonly',True)],'done':[('readonly',True)]}),
 #         'po_indent_no' : fields.many2one('tpt.purchase.indent', 'PO Indent No', required = True, track_visibility='onchange'),
-        'partner_ref': fields.char('Quotation Reference', states={'confirmed':[('readonly',True)], 'approved':[('readonly',True)],'done':[('readonly',True)]}, size=64,
+        'partner_ref': fields.char('Quotation Reference', states={'cancel':[('readonly',True)],'confirmed':[('readonly',True)],'head':[('readonly',True)],'gm':[('readonly',True)], 'approved':[('readonly',True)],'done':[('readonly',True)]}, size=64,
             help="Reference of the sales order or quotation sent by your supplier. It's mainly used to do the matching when you receive the products as this reference is usually written on the delivery order sent by your supplier.", track_visibility='onchange'),
-        'state_id': fields.many2one('res.country.state', 'Vendor Location', track_visibility='onchange'),
-        'for_basis': fields.char('For Basis', size = 1024, track_visibility='onchange'),
-        'mode_dis': fields.char('Mode Of Dispatch', size = 1024, track_visibility='onchange'),
-        'date_order':fields.date('Order Date', required=True, states={'confirmed':[('readonly',True)], 'approved':[('readonly',True)]}, select=True, help="Date on which this document has been created.", track_visibility='onchange'),
+        'state_id': fields.many2one('res.country.state', 'Vendor Location', track_visibility='onchange',states={'cancel':[('readonly',True)],'confirmed':[('readonly',True)],'head':[('readonly',True)],'gm':[('readonly',True)], 'approved':[('readonly',True)],'done':[('readonly',True)]}),
+        'for_basis': fields.char('For Basis', size = 1024, track_visibility='onchange',states={'cancel':[('readonly',True)],'confirmed':[('readonly',True)],'head':[('readonly',True)],'gm':[('readonly',True)], 'approved':[('readonly',True)],'done':[('readonly',True)]}),
+        'mode_dis': fields.char('Mode Of Dispatch', size = 1024, track_visibility='onchange',states={'cancel':[('readonly',True)],'confirmed':[('readonly',True)],'head':[('readonly',True)],'gm':[('readonly',True)], 'approved':[('readonly',True)],'done':[('readonly',True)]}),
+        'date_order':fields.date('Order Date', required=True, states={'cancel':[('readonly',True)],'confirmed':[('readonly',True)],'head':[('readonly',True)],'gm':[('readonly',True)], 'approved':[('readonly',True)],'done':[('readonly',True)]}, select=True, help="Date on which this document has been created.", track_visibility='onchange',),
         'ecc_no': fields.char('ECC No', size = 1024, track_visibility='onchange'),
-        'payment_term_id': fields.many2one('account.payment.term', 'Payment Term', track_visibility='onchange'),
+        'payment_term_id': fields.many2one('account.payment.term', 'Payment Term', track_visibility='onchange',states={'cancel':[('readonly',True)],'confirmed':[('readonly',True)],'head':[('readonly',True)],'gm':[('readonly',True)], 'approved':[('readonly',True)],'done':[('readonly',True)]}),
         #'deli_sche': fields.char('Delivery Schedule', size = 1024, track_visibility='onchange'),
-        'deli_sche':fields.date('Delivery Schedule', states={'confirmed':[('readonly',True)], 'approved':[('readonly',True)]}, select=True, help="Date on which this document has been Scheduled to Dispatch.", track_visibility='onchange'),
-        'partner_id':fields.many2one('res.partner', 'Supplier', required=True, states={'amendement':[('readonly',True)], 'confirmed':[('readonly',True)], 'approved':[('readonly',True)],'done':[('readonly',True)]},
+        'deli_sche':fields.date('Delivery Schedule', states={'cancel':[('readonly',True)],'confirmed':[('readonly',True)],'head':[('readonly',True)],'gm':[('readonly',True)], 'approved':[('readonly',True)],'done':[('readonly',True)]}, select=True, help="Date on which this document has been Scheduled to Dispatch.", track_visibility='onchange'),
+        'partner_id':fields.many2one('res.partner', 'Supplier', required=True, states={'cancel':[('readonly',True)],'confirmed':[('readonly',True)],'head':[('readonly',True)],'gm':[('readonly',True)], 'approved':[('readonly',True)],'done':[('readonly',True)]},
             change_default=True, track_visibility='always'),
-        'company_id': fields.many2one('res.company','Company',required=True,select=1, states={'confirmed':[('readonly',True)], 'approved':[('readonly',True)]}, track_visibility='onchange'),
-        'reason': fields.text('Reason', size = 1024, track_visibility='onchange'),        
+        'company_id': fields.many2one('res.company','Company',required=True,select=1, states={'cancel':[('readonly',True)],'confirmed':[('readonly',True)],'head':[('readonly',True)],'gm':[('readonly',True)], 'approved':[('readonly',True)],'done':[('readonly',True)]}, track_visibility='onchange'),
+        'reason': fields.text('Reason', size = 1024, track_visibility='onchange',states={'cancel':[('readonly',True)],'confirmed':[('readonly',True)],'head':[('readonly',True)],'gm':[('readonly',True)], 'approved':[('readonly',True)],'done':[('readonly',True)]}),        
         
         
         #ham function
@@ -1948,7 +1949,7 @@ class purchase_order(osv.osv):
         'check_amendement':fields.boolean("Amended",readonly=True),
         
         #TPT START By BalamuruganPurushothaman ON 01/04/2015 - FOR PO PRINT
-        'freight_term':fields.selection([('To Pay','To Pay'),('Paid','Paid')],('Freight Term')),   
+        'freight_term':fields.selection([('To Pay','To Pay'),('Paid','Paid')],('Freight Term'),states={'cancel':[('readonly',True)],'confirmed':[('readonly',True)],'head':[('readonly',True)],'gm':[('readonly',True)], 'approved':[('readonly',True)],'done':[('readonly',True)]}),   
         #'quotation_ref':fields.char('Quotation Reference',size = 1024,required=True),
         #TPT END
         }
@@ -2603,7 +2604,7 @@ class purchase_order_line(osv.osv):
             cr.execute(sql)
             tax_name = cr.dictfetchone()['name']
             po_tax_name =''
-            po_tax_name = [r.name for r in line.taxes_id]
+            po_tax_name = [r.description for r in line.taxes_id]
             po_tax_name = str(po_tax_name)
             #if tax_name:
             if po_tax_name[3:6]=='CST':
@@ -2617,24 +2618,24 @@ class purchase_order_line(osv.osv):
     _columns = {
 #                 'purchase_tax_id': fields.many2one('account.tax', 'Taxes', domain="[('type_tax_use','=','purchase')]", required = True), 
                 
-                'po_indent_no':fields.many2one('tpt.purchase.indent','Indent No', required = True),
-                'product_id': fields.many2one('product.product', 'Material', domain=[('purchase_ok','=',True)], change_default=True, states={'amendement':[('readonly',True)]}),
-                'product_qty': fields.float('Qty', digits_compute=dp.get_precision('Product Unit of Measure'), required=True, track_visibility='onchange'),    
-                'product_uom': fields.many2one('product.uom', 'Product Unit of Measure', required=True, track_visibility='onchange'),  
-                'price_unit': fields.float('Unit Price', required=True, digits_compute= dp.get_precision('Product Price'), track_visibility='onchange'),  
-                'discount': fields.float('Disc', track_visibility='onchange'),  
-                'p_f': fields.float('P&F', track_visibility='onchange'),  
-                'p_f_type':fields.selection([('1','%'),('2','Rs'),('3','Per Qty')],('P&F Type'), track_visibility='onchange'),
-                'ed': fields.float('ED', track_visibility='onchange'),  
-                'ed_type':fields.selection([('1','%'),('2','Rs'),('3','Per Qty')],('ED Type'), track_visibility='onchange'),  
-                'taxes_id': fields.many2many('account.tax', 'purchase_order_taxe', 'ord_id', 'tax_id', 'Taxes', track_visibility='onchange'),  
-                'fright': fields.float('Frt', track_visibility='onchange'),  
-                'fright_type':fields.selection([('1','%'),('2','Rs'), ('3','Per Qty')],('Frt Type'), track_visibility='onchange'),  
-                'line_no': fields.integer('SI.No', readonly = True),
+                'po_indent_no':fields.many2one('tpt.purchase.indent','Indent No', required = True,states={'cancel':[('readonly',True)],'confirmed':[('readonly',True)],'head':[('readonly',True)],'gm':[('readonly',True)], 'approved':[('readonly',True)],'done':[('readonly',True)]}),
+                'product_id': fields.many2one('product.product', 'Material', domain=[('purchase_ok','=',True)], change_default=True, states={'cancel':[('readonly',True)],'confirmed':[('readonly',True)],'head':[('readonly',True)],'gm':[('readonly',True)], 'approved':[('readonly',True)],'done':[('readonly',True)],'amendement':[('readonly',True)]}),
+                'product_qty': fields.float('Qty', digits_compute=dp.get_precision('Product Unit of Measure'), required=True, track_visibility='onchange',states={'cancel':[('readonly',True)],'confirmed':[('readonly',True)],'head':[('readonly',True)],'gm':[('readonly',True)], 'approved':[('readonly',True)],'done':[('readonly',True)]}),    
+                'product_uom': fields.many2one('product.uom', 'Product Unit of Measure', required=True, track_visibility='onchange',states={'cancel':[('readonly',True)],'confirmed':[('readonly',True)],'head':[('readonly',True)],'gm':[('readonly',True)], 'approved':[('readonly',True)],'done':[('readonly',True)]}),  
+                'price_unit': fields.float('Unit Price', required=True, digits_compute= dp.get_precision('Product Price'), track_visibility='onchange',states={'cancel':[('readonly',True)],'confirmed':[('readonly',True)],'head':[('readonly',True)],'gm':[('readonly',True)], 'approved':[('readonly',True)],'done':[('readonly',True)]}),  
+                'discount': fields.float('Disc', track_visibility='onchange',states={'cancel':[('readonly',True)],'confirmed':[('readonly',True)],'head':[('readonly',True)],'gm':[('readonly',True)], 'approved':[('readonly',True)],'done':[('readonly',True)]}),  
+                'p_f': fields.float('P&F', track_visibility='onchange',states={'cancel':[('readonly',True)],'confirmed':[('readonly',True)],'head':[('readonly',True)],'gm':[('readonly',True)], 'approved':[('readonly',True)],'done':[('readonly',True)]}),  
+                'p_f_type':fields.selection([('1','%'),('2','Rs'),('3','Per Qty')],('P&F Type'), track_visibility='onchange',states={'cancel':[('readonly',True)],'confirmed':[('readonly',True)],'head':[('readonly',True)],'gm':[('readonly',True)], 'approved':[('readonly',True)],'done':[('readonly',True)]}),
+                'ed': fields.float('ED', track_visibility='onchange',states={'cancel':[('readonly',True)],'confirmed':[('readonly',True)],'head':[('readonly',True)],'gm':[('readonly',True)], 'approved':[('readonly',True)],'done':[('readonly',True)]}),  
+                'ed_type':fields.selection([('1','%'),('2','Rs'),('3','Per Qty')],('ED Type'), track_visibility='onchange',states={'cancel':[('readonly',True)],'confirmed':[('readonly',True)],'head':[('readonly',True)],'gm':[('readonly',True)], 'approved':[('readonly',True)],'done':[('readonly',True)]}),  
+                'taxes_id': fields.many2many('account.tax', 'purchase_order_taxe', 'ord_id', 'tax_id', 'Taxes', track_visibility='onchange',states={'cancel':[('readonly',True)],'confirmed':[('readonly',True)],'head':[('readonly',True)],'gm':[('readonly',True)], 'approved':[('readonly',True)],'done':[('readonly',True)]}),  
+                'fright': fields.float('Frt', track_visibility='onchange',states={'cancel':[('readonly',True)],'confirmed':[('readonly',True)],'head':[('readonly',True)],'gm':[('readonly',True)], 'approved':[('readonly',True)],'done':[('readonly',True)]}),  
+                'fright_type':fields.selection([('1','%'),('2','Rs'), ('3','Per Qty')],('Frt Type'), track_visibility='onchange',states={'cancel':[('readonly',True)],'confirmed':[('readonly',True)],'head':[('readonly',True)],'gm':[('readonly',True)], 'approved':[('readonly',True)],'done':[('readonly',True)]}),  
+                'line_no': fields.integer('Sl.No', readonly = True),
                 # ham function line_net
-                'short_qty': fields.function(get_short_qty,type='float',digits=(16,0),multi='sum', string='Short Closed Qty'),
-                'amount_basic': fields.function(line_net_line_po, store = True, multi='deltas' ,string='Value'),
-                'line_net': fields.function(line_net_line_po, store = True, multi='deltas' ,string='Line Net'),
+                'short_qty': fields.function(get_short_qty,type='float',digits=(16,0),multi='sum', string='Short Closed Qty',),
+                'amount_basic': fields.function(line_net_line_po, store = True, multi='deltas' ,string='Value',),
+                'line_net': fields.function(line_net_line_po, store = True, multi='deltas' ,string='Line Net',),
                 'state': fields.selection([('amendement', 'Amendement'), ('draft', 'Draft'), ('confirmed', 'Confirmed'), ('done', 'Done'), ('cancel', 'Cancelled')], 'Status', required=True, readonly=True,
                                   help=' * The \'Draft\' status is set automatically when purchase order in draft status. \
                                        \n* The \'Confirmed\' status is set automatically as confirm when purchase order in confirm status. \

@@ -260,7 +260,9 @@ class arul_hr_audit_shift_time(osv.osv):
         
     _columns={
               'employee_id':fields.many2one('hr.employee','Employee ID', required = True, states={'done': [('readonly', True)], 'cancel': [('readonly', True)]}),
-              'work_date':fields.date('Work Date', required = True, states={'done': [('readonly', True)], 'cancel': [('readonly', True)]}),
+## Tien che lai de test
+            'work_date':fields.date('Work Date', required = True, states={'done': [('readonly', True)], 'cancel': [('readonly', True)]}),
+#               'work_date':fields.date('Work Date', required = False, states={'done': [('readonly', True)], 'cancel': [('readonly', True)]}),
               'employee_category_id':fields.many2one('vsis.hr.employee.category','Work Group', states={'done': [('readonly', True)], 'cancel': [('readonly', True)]}),
               'planned_work_shift_id':fields.many2one('arul.hr.capture.work.shift','Planned Work Shift', states={'done': [('readonly', True)], 'cancel': [('readonly', True)]}),
               'actual_work_shift_id':fields.many2one('arul.hr.capture.work.shift','Actual Work Shift', states={'done': [('readonly', True)], 'cancel': [('readonly', True)]}),
@@ -1073,7 +1075,7 @@ class arul_hr_audit_shift_time(osv.osv):
                                 val4={'punch_in_out_id':details_ids[0],'employee_id':line_id.employee_id.id,
                                       'planned_work_shift_id':line.planned_work_shift_id.id,
                                       'actual_work_shift_id':line.actual_work_shift_id.id,
-                                      'work_date':line_id.from_date,#TPT CHANGED work_date AS from_date
+                                      'work_date':line_id.date,#TPT CHANGED work_date AS from_date
                                       'in_time':line_id.start_time,
                                       'out_time':line_id.end_time,'approval':1}
                                 detail_obj4.create(cr, uid, val4)
@@ -1900,6 +1902,7 @@ class arul_hr_permission_onduty(osv.osv):
 
     def write(self, cr, uid, ids, vals, context=None):#Trong them
         new_write = super(arul_hr_permission_onduty, self).write(cr, uid, ids, vals, context)
+        punch_obj = self.pool.get('arul.hr.punch.in.out')
         for new in self.browse(cr, uid, ids):
             if new.non_availability_type_id=='permission':   
                 if new.date: 
@@ -1908,13 +1911,36 @@ class arul_hr_permission_onduty(osv.osv):
                     payroll_ids = self.pool.get('arul.hr.payroll.executions').search(cr,uid,[('month','=',month),('year','=',year),('state','=','approve'),('payroll_area_id','=',new.employee_id.payroll_area_id.id)])
                     if payroll_ids :
                         raise osv.except_osv(_('Warning!'),_('Payroll were already exists, not allowed to edit again!'))
-            if new.non_availability_type_id=='on_duty':   
+            if new.non_availability_type_id=='on_duty' and not new.date and not new.parent_id:   
+#                 sql = '''
+#                     delete from arul_hr_permission_onduty where parent_id = %s
+#                 '''%(new.id)
+#                 cr.execute(sql)
                 if new.from_date: 
                     month = new.from_date[5:7]
                     year = new.from_date[:4]
                     payroll_ids = self.pool.get('arul.hr.payroll.executions').search(cr,uid,[('month','=',month),('year','=',year),('state','=','approve'),('payroll_area_id','=',new.employee_id.payroll_area_id.id)])
                     if payroll_ids :
                         raise osv.except_osv(_('Warning!'),_('Payroll were already exists, not allowed to edit again!'))
+            #
+#                 date_from = datetime.datetime.strptime(new.from_date,'%Y-%m-%d')
+#                 date_to = datetime.datetime.strptime(new.to_date,'%Y-%m-%d')
+#                 while (date_from<=date_to):
+#                     day = date_from.day
+#                     month = date_from.month
+#                     year = date_from.year
+#                     shift_id = punch_obj.get_work_shift(cr, uid, new.employee_id.id, int(day), int(month), year)
+#                     self.create(cr, uid, {
+#                                             'employee_id': new.employee_id.id,
+#                                             'non_availability_type_id': 'on_duty',
+#                                             'date': date_from,
+#                                             'duty_location': new.duty_location,
+#                                             'start_time': new.start_time,
+#                                             'end_time': new.end_time,
+#                                             'reason':new.reason,
+#                                             'parent_id': new.id,
+#                                             }, context)
+#                     date_from += datetime.timedelta(days=1)
         return new_write    
    
     def _time_total(self, cr, uid, ids, field_name, arg, context=None):
@@ -2012,7 +2038,10 @@ class arul_hr_permission_onduty(osv.osv):
             #
             date_from = datetime.datetime.strptime(permission.from_date,'%Y-%m-%d')
             date_to = datetime.datetime.strptime(permission.to_date,'%Y-%m-%d')
-            while (date_from<=date_to):
+#            while (date_from<=date_to):
+            for line in permission.permission_onduty_line:
+                
+                date_from = datetime.datetime.strptime(line.date,'%Y-%m-%d')
                 day = date_from.day
                 month = date_from.month
                 year = date_from.year
@@ -2030,18 +2059,18 @@ class arul_hr_permission_onduty(osv.osv):
                  
                 audit_id = audit_obj.create(cr, SUPERUSER_ID, {
                     'employee_id':permission.employee_id.id,
-#                     'work_date':date_from,
-                    'work_date':permission.from_date,
+                    'work_date':line.date,
+#                     'work_date':permission.from_date,
                     'employee_category_id':permission.employee_id.employee_category_id and permission.employee_id.employee_category_id.id or False,
                     'planned_work_shift_id': shift_id,
                     'actual_work_shift_id': work_shift_ids and work_shift_ids[0] or False,
                     'in_time':permission.start_time,
                     'out_time':permission.end_time,
                     'type': 'permission',
-                    'permission_id':ids[0],
+                    'permission_id':line.id,
                 })
                 audit_obj.approve_shift_time(cr, SUPERUSER_ID,[audit_id])
-                date_from += datetime.timedelta(days=1)
+               # date_from += datetime.timedelta(days=1)
         else:
             day = permission.date[8:10]
             month = permission.date[5:7]

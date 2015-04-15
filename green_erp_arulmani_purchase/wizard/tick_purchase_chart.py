@@ -33,22 +33,22 @@ class tick_purchase_chart(osv.osv_memory):
         for line in chart.purchase_quotation_line:
             if line.po_indent_id.document_type == 'local':
                 if tick.po_document_type != 'local':
-                    raise osv.except_osv(_('Warning!'),_('Indent not allowed create with Document Type this'))
+                    raise osv.except_osv(_('Warning!'),_('Indent not allowed create with this Document Type'))
             if line.po_indent_id.document_type == 'capital':
                 if tick.po_document_type != 'asset':
-                    raise osv.except_osv(_('Warning!'),_('Indent not allowed create with Document Type this'))
+                    raise osv.except_osv(_('Warning!'),_('Indent not allowed create with this Document Type'))
             if line.po_indent_id.document_type == 'raw':
                 if tick.po_document_type != 'raw':
-                    raise osv.except_osv(_('Warning!'),_('Indent not allowed create with Document Type this'))
+                    raise osv.except_osv(_('Warning!'),_('Indent not allowed create with this Document Type'))
             if line.po_indent_id.document_type == 'service':
                 if tick.po_document_type != 'service':
-                    raise osv.except_osv(_('Warning!'),_('Indent not allowed create with Document Type this'))
+                    raise osv.except_osv(_('Warning!'),_('Indent not allowed create with this Document Type'))
             if line.po_indent_id.document_type == 'outside':
                 if tick.po_document_type != 'out':
-                    raise osv.except_osv(_('Warning!'),_('Indent not allowed create with Document Type this'))
+                    raise osv.except_osv(_('Warning!'),_('Indent not allowed create with this Document Type'))
             if line.po_indent_id.document_type in ('maintanance','spare','normal','base','consumable'):
                 if tick.po_document_type != 'standard':
-                    raise osv.except_osv(_('Warning!'),_('Indent not allowed create with Document Type this'))            
+                    raise osv.except_osv(_('Warning!'),_('Indent not allowed create with this Document Type'))            
             purchase_line = [(0,0,{
                                         'po_indent_no':line.po_indent_id.id,
                                        'discount':line.disc,
