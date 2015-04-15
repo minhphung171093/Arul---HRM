@@ -1588,6 +1588,7 @@ class account_voucher(osv.osv):
         'tpt_currency_amount':fields.float('Paid Amount'),
         }
     
+    
     def default_get(self, cr, uid, fields, context=None):
         if context is None:
             context = {}

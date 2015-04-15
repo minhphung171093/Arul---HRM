@@ -58,7 +58,9 @@
 					<field name="order_type" />
 				</xpath>
 				<xpath expr="//field[@name='currency_id']"  position="replace">
-					<field name="currency_id" invisible="0" readonly = "0" required = "0" options="{'create': false, 'create_edit': false}" />
+					<field name="currency_id" invisible="0" readonly = "0" 
+					attrs="{'readonly': [('state','in',('done','progress'))]}"
+					required = "0" options="{'create': false, 'create_edit': false}" />
 				</xpath>
 				<xpath expr="//field[@name='payment_term']"  position="replace">
 				</xpath>
@@ -702,7 +704,7 @@
         		
         		<xpath expr="//sheet" position="before">
         			<header>
-		        		<button name="approve_customer" string="Approve/Disapprove" type="object" class="oe_highlight" groups="green_erp_arulmani_sale.group_vvti_sale_manager"/>
+		        		<button name="approve_customer" string="Approve" type="object" class="oe_highlight" attrs="{'invisible':[('disapprove','=',True)]}" groups="green_erp_arulmani_sale.group_vvti_sale_manager"/>
 		        	</header>
 			    </xpath>
             </field>

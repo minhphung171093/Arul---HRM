@@ -518,7 +518,7 @@
 				<xpath expr="//field[@name='date_order']" position="after">
 					<field name="quotation_no" context="{'search_quotation_no':True}" on_change = "onchange_quotation_no(quotation_no)" options="{'create': false, 'create_edit': false}"/>
 					<field name="state_id" options="{'create': false, 'create_edit': false}"/>
-					<field name="ecc_no" />
+					<!-- <field name="ecc_no" />  -->
 					<field name="payment_term_id" options="{'create': false, 'create_edit': false}" widget="selection"/>
 					<field name="deli_sche" />
 		<!--			<field name="purchase_tax_id" options="{'create': false, 'create_edit': false}"/> -->
@@ -928,6 +928,7 @@
 										<field name="po_indent_id" on_change = "onchange_po_indent_id(po_indent_id)" options="{'create': false, 'create_edit': false}" />
 										<field name="product_id" context="{'search_product':True, 'po_indent_id':po_indent_id }" on_change = "onchange_quotation_product_id(product_id, po_indent_id)" options="{'create': false, 'create_edit': false}" />
 										<field name="description" />
+										<field name="item_text" />
 										<field name="product_uom_qty" />
 										<field name="uom_id" edit='false' options="{'create': false, 'create_edit': false}"/>
 										<field name="price_unit" />
