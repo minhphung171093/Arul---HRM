@@ -68,7 +68,7 @@
                     <field name="partner_id" readonly="1" options="{'create': false, 'create_edit': false}" on_change="onchange_partner_in(partner_id)" string="Supplier" domain="[('supplier','=',True)]" context="{'default_supplier':1,'default_customer':0}"/>
                     <field name="document_type"/>
                     <field name="warehouse" domain="[('usage','=','internal'),('chained_location_type','&lt;&gt;','customer')]" on_change="onchange_dest_loca_id(warehouse)" options="{'create': false, 'create_edit': false}"/>
-                    <field name="gate_in_pass_no"/>
+                    <field name="gate_in_pass_no" options="{'create': false, 'create_edit': false}"/>
                     <field name="truck"/>
                     <field name="invoice_no"/>
                 </xpath>
