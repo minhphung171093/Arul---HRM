@@ -149,6 +149,8 @@
 						<field name="department_id_relate"/> 
 						<field name="date_indent_relate"/> 
 						<field name="requisitioner_relate"/>  
+						<field name="store_date"/>  
+						<field name="hod_date"/>  
 						<field name="state"/>
 				</tree>
 			</field>
@@ -179,6 +181,8 @@
 						<field name="department_id_relate" options="{'create': false, 'create_edit': false}" />
 						<field name="requisitioner_relate" options="{'create': false, 'create_edit': false}"/>
 						<field name="date_indent_relate" />  
+						<field name="store_date"/>  
+						<field name="hod_date"/>  
 						<field name="state" required='1' />
 						<field name="item_text" />
 				</group>
@@ -255,6 +259,8 @@
 						<field name="department_id_relate"/> 
 						<field name="date_indent_relate"/> 
 						<field name="requisitioner_relate"/>  
+						<field name="store_date"/>  
+						<field name="hod_date"/>  
 						<field name="state"/>
 				</tree>
 			</field>
@@ -285,6 +291,8 @@
 						<field name="department_id_relate" options="{'create': false, 'create_edit': false}" />
 						<field name="requisitioner_relate" options="{'create': false, 'create_edit': false}"/>
 						<field name="date_indent_relate" />  
+						<field name="store_date"/>  
+						<field name="hod_date"/>  
 						<field name="state" required='1' />
 						<field name="item_text" />
 				</group>
@@ -378,6 +386,8 @@
 						<field name="department_id_relate"/> 
 						<field name="date_indent_relate"/> 
 						<field name="requisitioner_relate"/>  
+						<field name="store_date"/>  
+						<field name="hod_date"/>  
 						<field name="state"/>
 				</tree>
 			</field>
@@ -404,6 +414,8 @@
 						<field name="department_id_relate" options="{'create': false, 'create_edit': false}" />
 						<field name="requisitioner_relate" options="{'create': false, 'create_edit': false}"/>
 						<field name="date_indent_relate" />  
+						<field name="store_date"/>  
+						<field name="hod_date"/>  
 						<field name="state" required='1' />
 						<field name="item_text" />
 				</group>

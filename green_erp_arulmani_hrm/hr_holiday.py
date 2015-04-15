@@ -1911,11 +1911,11 @@ class arul_hr_permission_onduty(osv.osv):
                     payroll_ids = self.pool.get('arul.hr.payroll.executions').search(cr,uid,[('month','=',month),('year','=',year),('state','=','approve'),('payroll_area_id','=',new.employee_id.payroll_area_id.id)])
                     if payroll_ids :
                         raise osv.except_osv(_('Warning!'),_('Payroll were already exists, not allowed to edit again!'))
-            if new.non_availability_type_id=='on_duty' and not new.date and not new.parent_id:   
-#                 sql = '''
-#                     delete from arul_hr_permission_onduty where parent_id = %s
-#                 '''%(new.id)
-#                 cr.execute(sql)
+            if new.non_availability_type_id=='on_duty' and not new.date and not new.parent_id and 'state' not in vals:   
+                sql = '''
+                    delete from arul_hr_permission_onduty where parent_id = %s
+                '''%(new.id)
+                cr.execute(sql)
                 if new.from_date: 
                     month = new.from_date[5:7]
                     year = new.from_date[:4]
@@ -1923,24 +1923,24 @@ class arul_hr_permission_onduty(osv.osv):
                     if payroll_ids :
                         raise osv.except_osv(_('Warning!'),_('Payroll were already exists, not allowed to edit again!'))
             #
-#                 date_from = datetime.datetime.strptime(new.from_date,'%Y-%m-%d')
-#                 date_to = datetime.datetime.strptime(new.to_date,'%Y-%m-%d')
-#                 while (date_from<=date_to):
-#                     day = date_from.day
-#                     month = date_from.month
-#                     year = date_from.year
-#                     shift_id = punch_obj.get_work_shift(cr, uid, new.employee_id.id, int(day), int(month), year)
-#                     self.create(cr, uid, {
-#                                             'employee_id': new.employee_id.id,
-#                                             'non_availability_type_id': 'on_duty',
-#                                             'date': date_from,
-#                                             'duty_location': new.duty_location,
-#                                             'start_time': new.start_time,
-#                                             'end_time': new.end_time,
-#                                             'reason':new.reason,
-#                                             'parent_id': new.id,
-#                                             }, context)
-#                     date_from += datetime.timedelta(days=1)
+                date_from = datetime.datetime.strptime(new.from_date,'%Y-%m-%d')
+                date_to = datetime.datetime.strptime(new.to_date,'%Y-%m-%d')
+                while (date_from<=date_to):
+                    day = date_from.day
+                    month = date_from.month
+                    year = date_from.year
+                    shift_id = punch_obj.get_work_shift(cr, uid, new.employee_id.id, int(day), int(month), year)
+                    self.create(cr, uid, {
+                                            'employee_id': new.employee_id.id,
+                                            'non_availability_type_id': 'on_duty',
+                                            'date': date_from,
+                                            'duty_location': new.duty_location,
+                                            'start_time': new.start_time,
+                                            'end_time': new.end_time,
+                                            'reason':new.reason,
+                                            'parent_id': new.id,
+                                            }, context)
+                    date_from += datetime.timedelta(days=1)
         return new_write    
    
     def _time_total(self, cr, uid, ids, field_name, arg, context=None):
