@@ -99,7 +99,7 @@ class Parser(report_sxw.rml_parse):
             select id from account_move_line 
             where move_id in (
                                 select id from account_move 
-                                where date between '%s' and '%s' and doc_type in ('cus_inv','cus_pay') and partner_id = %s  ) 
+                                where date between '%s' and '%s' and doc_type in ('cus_inv','cus_pay') and partner_id = %s and state='posted' ) 
             '''%(date_from, date_to,cus[0])
         self.cr.execute(sql)
         cus_ids = [r[0] for r in self.cr.fetchall()]
