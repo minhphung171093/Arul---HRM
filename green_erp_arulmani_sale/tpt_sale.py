@@ -118,7 +118,7 @@ class sale_order(osv.osv):
         'reason':fields.text('Reason',states={'progress':[('readonly',True)],'done':[('readonly',True)]}),
         'quotaion_no':fields.char('Quotaion No', size = 40,states={'progress':[('readonly',True)],'done':[('readonly',True)]}),
         'expected_date':fields.date('Expected delivery Date',states={'progress':[('readonly',True)],'done':[('readonly',True)]}),
-        #'dispatch_date':fields.date('Scheduled Dispatch Date'), #TPT
+        'dispatch_date':fields.date('Scheduled Dispatch Date'), #TPT
         'document_status':fields.selection([('draft','Draft'),
                                             ('waiting','Waiting for Approval'),
                                             ('batch_allotted','Batch Allotted'),
@@ -2296,5 +2296,28 @@ class stock_production_lot(osv.osv):
        return self.name_get(cr, user, ids, context=context)
    
 stock_production_lot()  
+
+class tpt_schedule_dispatch_update(osv.osv):
+    _name = "tpt.schedule.dispatch.update"
+    
+    _columns = {
+        'name': fields.many2one('tpt.blanket.order', 'Blanket Order', required = True, states={'done':[('readonly', True)]}),
+        'bo_line_id': fields.many2one('tpt.blank.order.line', 'Blanket Order Line', required=True, states={'done':[('readonly', True)]}),
+        'schedule_date': fields.date('Schedule Dispatch Date', states={'done':[('readonly', True)]}),
+        'state':fields.selection([('draft', 'Draft'),('done', 'Approve')],'Status', readonly=True, states={'done':[('readonly', True)]}),
+                }
+    _defaults = {
+        'state': 'draft',
+    }
+    
+    def bt_approve(self, cr, uid, ids, context=None):
+        for line in self.browse(cr, uid, ids):
+            if line.schedule_date:
+                self.pool.get('tpt.blanket.order').write(cr, uid,[line.name.id], {'dispatch_date':line.schedule_date}, context)
+            else:
+                raise osv.except_osv(_('Warning!'),_('Please select Schedule Dispatch Date!')) 
+        return self.write(cr, uid, ids,{'state':'done'})
+    
+tpt_schedule_dispatch_update()
 
 # vim:expandtab:smartindent:tabstop=4:softtabstop=4:shiftwidth=4:
