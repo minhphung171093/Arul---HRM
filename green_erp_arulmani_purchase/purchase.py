@@ -1938,6 +1938,7 @@ class purchase_order(osv.osv):
                                     ('amendement', 'Amendement'),
                                     ('head', 'Purchase Head Approved'),
                                     ('gm', 'GM Approval'),
+                                    ('md', 'MD Approval'),
                                     ('confirmed', 'Waiting Approval'),
                                     ('approved', 'Purchase Order'),
                                     ('except_picking', 'Shipping Exception'),
@@ -1970,6 +1971,12 @@ class purchase_order(osv.osv):
             order_obj.write(cr, uid, purchase_ids,{'state':'amendement'})
         
         return True
+    
+    def action_gm(self, cr, uid, ids, context=None):
+        return self.write(cr, uid, ids,{'state':'gm'})
+    
+    def action_md(self, cr, uid, ids, context=None):
+        return self.write(cr, uid, ids,{'state':'md'})
     
     #TPT-PO PRINT ON 4/4/2015
     def print_quotation(self, cr, uid, ids, context=None):
