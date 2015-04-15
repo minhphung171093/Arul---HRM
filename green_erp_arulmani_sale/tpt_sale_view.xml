@@ -206,9 +206,7 @@
 						<field name="po_date" />
 						<field name="po_number" />
 						<!-- <field name="exp_delivery_date" on_change = "onchange_exp_delivery_date(exp_delivery_date)"/>  -->
-						<!--  
 						<field name="dispatch_date" on_change = "onchange_sche_dispatch_date(dispatch_date)"/>
-						-->
 						<field name="quotaion_no" invisible='1'/>
 						<field name="channel" options="{'create': false, 'create_edit': false}"/>
 						<field name="sale_tax_id" domain="[('type_tax_use','=','sale')]" options="{'create': false, 'create_edit': false}"/>
@@ -830,7 +828,51 @@
             </field>
         </record> 
         
- 
+        <record id="view_tpt_schedule_dispatch_update_tree_vew" model="ir.ui.view">
+			<field name="name">tpt.schedule.dispatch.update.tree</field>
+			<field name="model">tpt.schedule.dispatch.update</field>
+			<field name="arch" type="xml">
+				<tree string="Schedule Dispatch Date Update">
+						<field name="name"/>
+						<field name="bo_line_id"/>
+						<field name="schedule_date"/>
+						<field name="state" widget="statusbar" statusbar_visible="draft,done" statusbar_colors='{"draft":"blue"}'/>
+				</tree>
+			</field>
+		</record>
+		
+		<record id="view_tpt_schedule_dispatch_update_form_vew" model="ir.ui.view">
+            <field name="name">tpt.schedule.dispatch.update.form</field>
+            <field name="model">tpt.schedule.dispatch.update</field>
+            <field name="arch" type="xml">
+	            <form string="Schedule Dispatch Date Update" version="7.0">   
+	            <header>
+	            	<button name="bt_approve" states='draft' string="Submit" type="object" class="oe_highlight" groups="green_erp_arulmani_sale.group_vvti_sale_user"/>
+                    <field name="state" widget="statusbar" statusbar_visible="draft,done" statusbar_colors='{"draft":"blue"}'/>
+	            </header>
+	            	<sheet>
+		                <group>    
+							<field name="name" domain="[('blank_order_line','!=',False), ('state','=','approve')]" required = "1" options="{'create': false, 'create_edit': false}"/>
+							<field name="bo_line_id" required = "1" domain="[('blanket_order_id','=',name)]" context="{'search_blanket_line':1,'blanket_id':name}" options="{'create': false, 'create_edit': false}"/>
+							<field name="schedule_date"/>
+						</group>
+		         	</sheet>
+		         </form>
+			</field>
+		</record>
+          
+		<record id="action_tpt_schedule_dispatch_update_form" model="ir.actions.act_window">
+            <field name="name">Schedule Dispatch Date Update</field>
+            <field name="type">ir.actions.act_window</field>
+            <field name="res_model">tpt.schedule.dispatch.update</field>
+            <field name="view_type">form</field>
+            <field name="view_mode">tree,form</field>
+            <field name="view_id" ref="view_tpt_schedule_dispatch_update_tree_vew"/>
+        </record>
         
+        <menuitem action="action_tpt_schedule_dispatch_update_form"
+            id="menu_action_tpt_schedule_dispatch_update_form"
+            parent="menu_hr_sale_management" sequence="50"/>
+ 
     </data>
 </openerp>
