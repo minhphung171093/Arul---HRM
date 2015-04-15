@@ -51,7 +51,12 @@ class Parser(report_sxw.rml_parse):
             'get_each_date': self.get_each_date,
             'get_total_balance': self.get_total_balance,
             'get_line_balance': self.get_line_balance,
-            
+            'get_total_debit_section': self.get_total_debit_section,
+            'get_total_credit_section': self.get_total_credit_section,
+            'get_ids': self.get_ids,
+            'get_do_no': self.get_do_no,
+            'get_account_code': self.get_account_code,
+            'get_account_name': self.get_account_name,
         })
     def get_convert_date(self, datetime):
         date_convert =''
@@ -138,17 +143,79 @@ class Parser(report_sxw.rml_parse):
         else:
             account_ids = account_voucher_obj.search(self.cr,self.uid,[('date', '=', single_date), ('type_cash_bank', '=', 'cash')])
         return account_voucher_obj.browse(self.cr,self.uid,account_ids)
+    
+    def get_ids(self, single_date):
+        account_voucher_obj = self.pool.get('account.voucher')
+        wizard_data = self.localcontext['data']['form']
+        type = wizard_data['type_trans']
+        account_ids = []
+        if type == 'payment':
+            account_ids = account_voucher_obj.search(self.cr,self.uid,[('date', '=', single_date), ('type_cash_bank', '=', 'cash'), ('type_trans', '=', 'payment')])
+        elif type == 'receipt':
+            account_ids = account_voucher_obj.search(self.cr,self.uid,[('date', '=', single_date), ('type_cash_bank', '=', 'cash'), ('type_trans', '=', 'receipt')])
+        else:
+            account_ids = account_voucher_obj.search(self.cr,self.uid,[('date', '=', single_date), ('type_cash_bank', '=', 'cash')])
+        return account_ids
+    
            
     def get_line_balance(self, get_each_date):  
+        wizard_data = self.localcontext['data']['form']
+        date_from = wizard_data['date_from']
+        date_to = wizard_data['date_to']
+        type = wizard_data['type_trans']
         balance = 0.0  
         credit = 0.0
         debit = 0.0
         for voucher in get_each_date:
+            sql = '''
+                select case when sum(debit)!=0 then sum(debit) else 0 end debit from account_move_line 
+                    where move_id in (select move_id from account_voucher where date < '%s')
+            '''%(date_from)
+        
             for line in voucher.move_ids:
                 credit += line.credit
                 debit += line.debit
         balance = debit - credit
         return balance
+    
+    def get_total_debit_section(self, account_id):
+        debit = 0.0
+        account_voucher_obj = self.pool.get('account.voucher')
+        voucher = account_voucher_obj.browse(self.cr,self.uid,account_id)
+        sql = '''
+            select case when sum(debit)!=0 then sum(debit) else 0 end debit from account_move_line where move_id in (select move_id from account_voucher where id = %s)
+        '''%(voucher.id)
+        self.cr.execute(sql)
+        debit = self.cr.dictfetchone()['debit']
+        return debit
+    
+    def get_do_no(self, account_id):
+        account_voucher_obj = self.pool.get('account.voucher')
+        voucher = account_voucher_obj.browse(self.cr,self.uid,account_id)
+        return voucher.name
+    
+    def get_account_code(self, account_id):
+        account_voucher_obj = self.pool.get('account.voucher')
+        voucher = account_voucher_obj.browse(self.cr,self.uid,account_id)
+        if voucher.account_id:
+            return voucher.account_id.code
+        
+    def get_account_name(self, account_id):
+        account_voucher_obj = self.pool.get('account.voucher')
+        voucher = account_voucher_obj.browse(self.cr,self.uid,account_id)
+        if voucher.account_id:
+            return voucher.account_id.name
+    
+    def get_total_credit_section(self, account_id):
+        credit = 0.0
+        account_voucher_obj = self.pool.get('account.voucher')
+        voucher = account_voucher_obj.browse(self.cr,self.uid,account_id)
+        sql = '''
+            select case when sum(credit)!=0 then sum(credit) else 0 end credit from account_move_line where move_id in (select move_id from account_voucher where id = %s)
+        '''%(voucher.id)
+        self.cr.execute(sql)
+        credit = self.cr.dictfetchone()['credit']
+        return credit
             
     def get_total_debit(self, cash):
         debit = 0.0
@@ -174,5 +241,7 @@ class Parser(report_sxw.rml_parse):
                 debit += line.debit
         balance = debit - credit
         return balance
+    
+    
 # vim:expandtab:smartindent:tabstop=4:softtabstop=4:shiftwidth=4:
 
