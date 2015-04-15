@@ -1513,7 +1513,7 @@ class arul_hr_employee_leave_details(osv.osv):
             now = datetime.datetime.now()
             current_year = now.year
             sql = '''
-            SELECT CASE WHEN SUM(total_day)!=0 THEN SUM(total_day) ELSE 0 END cl_count FROM employee_leave_detail 
+            SELECT CASE WHEN SUM(total_day-total_taken)!=0 THEN SUM(total_day-total_taken) ELSE 0 END cl_count FROM employee_leave_detail 
             WHERE emp_leave_id IN 
             (SELECT id FROM employee_leave WHERE employee_id = %s AND year='%s')
             AND leave_type_id = (SELECT id FROM arul_hr_leave_types WHERE code='CL')
@@ -1525,7 +1525,7 @@ class arul_hr_employee_leave_details(osv.osv):
             cl = cl.replace(",)","")
             
             sql = '''
-            SELECT CASE WHEN SUM(total_day)!=0 THEN SUM(total_day) ELSE 0 END sl_count FROM employee_leave_detail 
+            SELECT CASE WHEN SUM(total_day-total_taken)!=0 THEN SUM(total_day-total_taken) ELSE 0 END sl_count FROM employee_leave_detail 
             WHERE emp_leave_id IN 
             (SELECT id FROM employee_leave WHERE employee_id = %s AND year='%s')
             AND leave_type_id = (SELECT id FROM arul_hr_leave_types WHERE code='SL')
@@ -1537,7 +1537,7 @@ class arul_hr_employee_leave_details(osv.osv):
             sl = sl.replace(",)","")
             
             sql = '''
-            SELECT CASE WHEN SUM(total_day)!=0 THEN SUM(total_day) ELSE 0 END pl_count FROM employee_leave_detail 
+            SELECT CASE WHEN SUM(total_day-total_taken)!=0 THEN SUM(total_day-total_taken) ELSE 0 END pl_count FROM employee_leave_detail 
             WHERE emp_leave_id IN 
             (SELECT id FROM employee_leave WHERE employee_id = %s AND year='%s')
             AND leave_type_id = (SELECT id FROM arul_hr_leave_types WHERE code='PL')
@@ -1545,11 +1545,11 @@ class arul_hr_employee_leave_details(osv.osv):
             cr.execute(sql)
             pl = cr.fetchone()
             pl = str(pl)
-            pl = sl.replace("(","")
-            pl = sl.replace(",)","")
+            pl = pl.replace("(","")
+            pl = pl.replace(",)","")
             
             sql = '''
-            SELECT CASE WHEN SUM(total_day)!=0 THEN SUM(total_day) ELSE 0 END coff_count FROM employee_leave_detail 
+            SELECT CASE WHEN SUM(total_day-total_taken)!=0 THEN SUM(total_day-total_taken) ELSE 0 END coff_count FROM employee_leave_detail 
             WHERE emp_leave_id IN 
             (SELECT id FROM employee_leave WHERE employee_id = %s AND year='%s')
             AND leave_type_id = (SELECT id FROM arul_hr_leave_types WHERE code='C.Off')
