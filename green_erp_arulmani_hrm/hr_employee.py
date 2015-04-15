@@ -465,12 +465,13 @@ class arul_hr_employee_action_history(osv.osv):
         for act in self.browse(cr, uid, ids, context=context):
             if act.period_from and act.action_date:
                 if act.period_from < act.action_date:
-                    raise osv.except_osv(_('Warning!'),_('The Valid From Date must be the same as/greater than The Date Of Rehiring!'))
+                    raise osv.except_osv(_('Warning!'),_('With Effective Date must be the same as/greater than The Date Of Order Issued!'))
                     return False
         return True
     _constraints = [
         (_check_date, 'Identical Data', ['period_from','period_to']),
-        (_check_rehiring_date, 'Identical Data', ['period_from','action_date']),
+        #TPT-COMMENTED BY BalamuruganPurushothaman ON 15/04/2015
+        #(_check_rehiring_date, 'Identical Data', ['period_from','action_date']),
     ]
     
     def search(self, cr, uid, args, offset=0, limit=None, order=None, context=None, count=False):
