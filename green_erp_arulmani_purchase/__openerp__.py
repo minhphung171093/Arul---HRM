@@ -34,6 +34,7 @@
         'report/print_rfq_view.xml',
         'report/comparison_chart_view.xml',
         'report/purchase_order_report.xml',
+        'report/grn_report_view.xml',
         'wizard/tick_purchase_chart_view.xml',
         'wizard/alert_form_purchase_view.xml',
         'wizard/alert_form_line_view.xml',
