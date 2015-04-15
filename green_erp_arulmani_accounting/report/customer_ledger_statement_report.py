@@ -95,14 +95,23 @@ class Parser(report_sxw.rml_parse):
         cus = wizard_data['customer_id']
         acount_move_line_obj = self.pool.get('account.move.line')
         acount_move_obj = self.pool.get('account.move')
+        cus_ids = []
         sql = '''
             select id from account_move_line 
             where move_id in (
                                 select id from account_move 
-                                where date between '%s' and '%s' and doc_type in ('cus_inv','cus_pay') and partner_id = %s  ) 
+                                where date between '%s' and '%s' and doc_type in ('cus_inv') and partner_id = %s and state='posted' ) and debit is not null and debit !=0   
             '''%(date_from, date_to,cus[0])
         self.cr.execute(sql)
         cus_ids = [r[0] for r in self.cr.fetchall()]
+        sql = '''
+            select id from account_move_line 
+            where move_id in (
+                                select id from account_move 
+                                where date between '%s' and '%s' and doc_type in ('cus_pay') and partner_id = %s and state='posted' ) and credit is not null and credit !=0   
+            '''%(date_from, date_to,cus[0])
+        self.cr.execute(sql)
+        cus_ids += [r[0] for r in self.cr.fetchall()]
         return acount_move_line_obj.browse(self.cr,self.uid,cus_ids)
     
     def get_total(self, cash,type):

@@ -395,6 +395,8 @@ class tpt_purchase_product(osv.osv):
         'requisitioner_relate':fields.related('pur_product_id', 'requisitioner',type = 'many2one', relation='hr.employee', string='Requisitioner',store=True),
         'date_indent_relate':fields.related('pur_product_id', 'date_indent',type = 'date', string='Indent Date',store=True),
         'flag': fields.boolean('Flag'),
+        'store_date':fields.datetime('Store Approved Date',readonly = True),
+        'hod_date':fields.datetime('HOD Approved Date',readonly = True),
         }  
 #     
     _defaults = {
@@ -415,12 +417,12 @@ class tpt_purchase_product(osv.osv):
 #                 fq = self.pool.get('res_users').browse(cr,uid,uid)
             if line.state == 'confirm':
                 if mana[0]:
-                    return self.write(cr, uid, ids,{'state':'+'})
+                    return self.write(cr, uid, ids,{'state':'+','store_date':time.strftime('%Y-%m-%d %H:%M:%S')})
                 else:
                     raise osv.except_osv(_('Warning!'),_('User does not have permission to approve!'))
             if line.state == '+':
                 if line.pur_product_id.department_id and line.pur_product_id.department_id.primary_auditor_id and line.pur_product_id.department_id.primary_auditor_id.id==uid:
-                    return self.write(cr, uid, ids,{'state':'++'})
+                    return self.write(cr, uid, ids,{'state':'++','hod_date':time.strftime('%Y-%m-%d %H:%M:%S')})
                 else:
                     raise osv.except_osv(_('Warning!'),_('User does not have permission to approve!'))
     def bt_reject(self, cr, uid, ids, context=None):
@@ -434,12 +436,12 @@ class tpt_purchase_product(osv.osv):
             
             if line.state == 'confirm':
                 if mana[0]:
-                    return self.write(cr, uid, ids,{'state':'x'})
+                    return self.write(cr, uid, ids,{'state':'x','store_date':time.strftime('%Y-%m-%d %H:%M:%S')})
                 else:
                     raise osv.except_osv(_('Warning!'),_('User does not have permission to reject!'))
             if line.state == '+':
                 if line.pur_product_id.department_id and line.pur_product_id.department_id.primary_auditor_id and line.pur_product_id.department_id.primary_auditor_id.id==uid:
-                    return self.write(cr, uid, ids,{'state':'xx'})
+                    return self.write(cr, uid, ids,{'state':'xx','hod_date':time.strftime('%Y-%m-%d %H:%M:%S')})
                 else:
                     raise osv.except_osv(_('Warning!'),_('User does not have permission to reject!'))
             
@@ -553,21 +555,26 @@ class tpt_purchase_product(osv.osv):
             res.append((record['id'],cate_name))
         return res    
     
-    def search(self, cr, uid, args, offset=0, limit=None, order=None, context=None, count=False):
-        if context is None:
-            context = {}
-        if context.get('search_indent_hod'):
-            primary_auditor_ids = self.pool.get('hr.department').search(cr, uid, [('primary_auditor_id','=',uid)])
-            user_id = self.pool.get('res.users').browse(cr, uid, uid)
-            department_id = user_id.employee_id and user_id.employee_id.department_id and user_id.employee_id.department_id.id or False
-            if primary_auditor_ids and department_id:
-                sql = '''
-                    select id from tpt_purchase_product where pur_product_id in (select id from tpt_purchase_indent where department_id =%s)
-                '''%(department_id)
-                cr.execute(sql)
-                leave_details_ids = [r[0] for r in cr.fetchall()]
-                args += [('id','in',leave_details_ids)]
-        return super(tpt_purchase_product, self).search(cr, uid, args, offset, limit, order, context, count)
+#     def search(self, cr, uid, args, offset=0, limit=None, order=None, context=None, count=False):
+#         if context is None:
+#             context = {}
+#         if context.get('search_indent_hod'):
+#             primary_auditor_ids = self.pool.get('hr.department').search(cr, uid, [('primary_auditor_id','=',uid)])
+#             user_id = self.pool.get('res.users').browse(cr, uid, uid)
+#             department_id = user_id.employee_id and user_id.employee_id.department_id and user_id.employee_id.department_id.id or False
+#             if primary_auditor_ids and department_id:
+#                 sql = '''
+#                     select id from tpt_purchase_product where pur_product_id in (select id from tpt_purchase_indent where department_id =%s)
+#                 '''%(department_id)
+#                 cr.execute(sql)
+#                 leave_details_ids = [r[0] for r in cr.fetchall()]
+#                 args += [('id','in',leave_details_ids)]
+#         return super(tpt_purchase_product, self).search(cr, uid, args, offset, limit, order, context, count)
+#     
+#     def name_search(self, cr, user, name, args=None, operator='ilike', context=None, limit=100):
+#        ids = self.search(cr, user, args, context=context, limit=limit)
+#        return self.name_get(cr, user, ids, context=context)
+   
 tpt_purchase_product()
 
 class product_category(osv.osv):
@@ -1938,6 +1945,7 @@ class purchase_order(osv.osv):
                                     ('amendement', 'Amendement'),
                                     ('head', 'Purchase Head Approved'),
                                     ('gm', 'GM Approval'),
+                                    ('md', 'MD Approval'),
                                     ('confirmed', 'Waiting Approval'),
                                     ('approved', 'Purchase Order'),
                                     ('except_picking', 'Shipping Exception'),
@@ -1970,6 +1978,12 @@ class purchase_order(osv.osv):
             order_obj.write(cr, uid, purchase_ids,{'state':'amendement'})
         
         return True
+    
+    def action_gm(self, cr, uid, ids, context=None):
+        return self.write(cr, uid, ids,{'state':'gm'})
+    
+    def action_md(self, cr, uid, ids, context=None):
+        return self.write(cr, uid, ids,{'state':'md'})
     
     #TPT-PO PRINT ON 4/4/2015
     def print_quotation(self, cr, uid, ids, context=None):
@@ -2607,10 +2621,10 @@ class purchase_order_line(osv.osv):
             po_tax_name = [r.description for r in line.taxes_id]
             po_tax_name = str(po_tax_name)
             #if tax_name:
-            if po_tax_name[3:6]=='CST':
-                res[line.id]['line_net'] = amount_total_tax+amount_fright+amount_ed+amount_p_f+amount_basic
-            else:
-                res[line.id]['line_net'] = amount_fright+amount_ed+amount_p_f+amount_basic
+            #if po_tax_name[3:6]=='CST':
+            res[line.id]['line_net'] = amount_total_tax+amount_fright+amount_ed+amount_p_f+amount_basic
+            #else:
+            #    res[line.id]['line_net'] = amount_fright+amount_ed+amount_p_f+amount_basic
             
             res[line.id]['amount_basic'] = amount_basic
         return res
