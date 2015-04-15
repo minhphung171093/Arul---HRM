@@ -730,7 +730,7 @@ class stock_picking(osv.osv):
         for picking in self.browse(cr, uid, ids, context=context):
             if picking.doc_status == 'waiting':
                 sql = '''
-                    update stock_picking set flag_confirm = True where id = %s
+                    update stock_picking set flag_confirm = True, doc_status='approved' where id = %s
                     '''%(picking.id)
                 cr.execute(sql)
         return True
@@ -745,7 +745,10 @@ class stock_picking_out(osv.osv):
         'transporter':fields.char('Transporter Name', size = 64),
         'truck':fields.char('Truck Number', size = 64),
         'remarks':fields.text('Remarks'),
-        'doc_status':fields.selection([('draft','Drafted'),('waiting','Waiting for Approval'),('completed','Completed'),('cancelled','Cancelled')],'Document Status'),
+        'doc_status':fields.selection([('draft','Drafted'),
+                                       ('waiting','Waiting for Approval'),
+                                       ('approved','Management Approved'),
+                                       ('completed','Completed'),('cancelled','Cancelled')],'Document Status'),
         'sale_id': fields.many2one('sale.order', 'Sales Order', readonly = True,ondelete='set null', select=True),
         'flag_confirm': fields.boolean('Flag', readonly =  True),
         'bag_detail':fields.char('Bag Details', size = 64),
