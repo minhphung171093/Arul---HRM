@@ -1945,6 +1945,7 @@ class purchase_order(osv.osv):
                                     ('amendement', 'Amendement'),
                                     ('head', 'Purchase Head Approved'),
                                     ('gm', 'GM Approval'),
+                                    ('md', 'MD Approval'),
                                     ('confirmed', 'Waiting Approval'),
                                     ('approved', 'Purchase Order'),
                                     ('except_picking', 'Shipping Exception'),
@@ -1977,6 +1978,12 @@ class purchase_order(osv.osv):
             order_obj.write(cr, uid, purchase_ids,{'state':'amendement'})
         
         return True
+    
+    def action_gm(self, cr, uid, ids, context=None):
+        return self.write(cr, uid, ids,{'state':'gm'})
+    
+    def action_md(self, cr, uid, ids, context=None):
+        return self.write(cr, uid, ids,{'state':'md'})
     
     #TPT-PO PRINT ON 4/4/2015
     def print_quotation(self, cr, uid, ids, context=None):
@@ -2614,10 +2621,10 @@ class purchase_order_line(osv.osv):
             po_tax_name = [r.description for r in line.taxes_id]
             po_tax_name = str(po_tax_name)
             #if tax_name:
-            if po_tax_name[3:6]=='CST':
-                res[line.id]['line_net'] = amount_total_tax+amount_fright+amount_ed+amount_p_f+amount_basic
-            else:
-                res[line.id]['line_net'] = amount_fright+amount_ed+amount_p_f+amount_basic
+            #if po_tax_name[3:6]=='CST':
+            res[line.id]['line_net'] = amount_total_tax+amount_fright+amount_ed+amount_p_f+amount_basic
+            #else:
+            #    res[line.id]['line_net'] = amount_fright+amount_ed+amount_p_f+amount_basic
             
             res[line.id]['amount_basic'] = amount_basic
         return res
