@@ -433,11 +433,12 @@ class stock_move(osv.osv):
                           'title': _('Warning!'),  
                           'message': _('The action "Move to Consumption" can not be taken for this product!'),  
                           }  
-                vals['action_taken']='False'
+                vals['action_taken']=False
                 return {'value': vals,'warning':warning}
-            elif action_taken != 'move' and cate == 'consum':
+            elif cate == 'consum':
+#             elif action_taken != 'move' and cate == 'consum':
                 vals['action_taken']='move'
-            elif action_taken == 'move' and cate == 'consum':
+#             elif action_taken == 'move' and cate == 'consum':
 #                 vals['action_taken']='move'
                 location_id = False
                 parent_ids = self.pool.get('stock.location').search(cr, uid, [('name','=','Virtual Locations'),('usage','=','view')])
@@ -446,7 +447,7 @@ class stock_move(osv.osv):
                           'title': _('Warning!'),  
                           'message': _('System does not have Virtual Locations warehouse, please check it!'),  
                           }  
-#                     vals['action_taken']=False
+                    vals['action_taken']=False
                     return {'value': vals,'warning':warning}
                 locat_ids = self.pool.get('stock.location').search(cr, uid, [('name','in',['Consumption']),('location_id','=',parent_ids[0])])
                 if not locat_ids:
@@ -454,7 +455,7 @@ class stock_move(osv.osv):
                           'title': _('Warning!'),  
                           'message': _('System does not have Consumption location in Virtual Locations warehouse, please check it!'),  
                           }  
-#                     vals['action_taken']=False
+                    vals['action_taken']=False
                     return {'value': vals,'warning':warning}
                 else:
                     location_id = locat_ids[0]

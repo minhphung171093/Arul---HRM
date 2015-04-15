@@ -19,7 +19,14 @@
             <field name="wkf_id" ref="purchase.purchase_order"/>
             <field name="name">gm</field>
             <field name="kind">function</field>
-            <field name="action">write({'state':'gm'})</field>
+            <field name="action">action_gm()</field>
+        </record>
+        
+        <record id="act_md" model="workflow.activity">
+            <field name="wkf_id" ref="purchase.purchase_order"/>
+            <field name="name">md</field>
+            <field name="kind">function</field>
+            <field name="action">action_md()</field>
         </record>
         
         <record id="purchase.trans_draft_confirmed" model="workflow.transition">
@@ -34,10 +41,29 @@
             <field name="signal">purchase_head_gm</field>
         </record>
         
-        <record id="trans_gm_confirmed" model="workflow.transition">
+        <record id="trans_gm_md" model="workflow.transition">
             <field name="act_from" ref="act_gm"/>
-            <field name="act_to" ref="purchase.act_confirmed"/>
+            <field name="act_to" ref="act_md"/>
+            <field name="condition">amount_total &gt;= 5000</field>
             <field name="signal">purchase_gm_confirmed</field>
+        </record>
+        
+        <record id="trans_head_md" model="workflow.transition">
+            <field name="act_from" ref="act_gm"/>
+            <field name="act_to" ref="act_md"/>
+            <field name="condition">amount_total &lt; 5000</field>
+        </record>
+        
+        <record id="trans_md_confirmed" model="workflow.transition">
+            <field name="act_from" ref="act_md"/>
+            <field name="act_to" ref="purchase.act_confirmed"/>
+            <field name="signal">purchase_md_confirmed</field>
+        </record>
+        
+        <record id="trans_md_amendement" model="workflow.transition">
+            <field name="act_from" ref="act_md"/>
+            <field name="act_to" ref="act_amendement"/>
+            <field name="signal">purchase_md_amendement</field>
         </record>
         
         <record id="trans_gm_amendement" model="workflow.transition">

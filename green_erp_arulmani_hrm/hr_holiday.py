@@ -1513,7 +1513,7 @@ class arul_hr_employee_leave_details(osv.osv):
             now = datetime.datetime.now()
             current_year = now.year
             sql = '''
-            SELECT CASE WHEN SUM(total_day)!=0 THEN SUM(total_day) ELSE 0 END cl_count FROM employee_leave_detail 
+            SELECT CASE WHEN SUM(total_day-total_taken)!=0 THEN SUM(total_day-total_taken) ELSE 0 END cl_count FROM employee_leave_detail 
             WHERE emp_leave_id IN 
             (SELECT id FROM employee_leave WHERE employee_id = %s AND year='%s')
             AND leave_type_id = (SELECT id FROM arul_hr_leave_types WHERE code='CL')
@@ -1525,7 +1525,7 @@ class arul_hr_employee_leave_details(osv.osv):
             cl = cl.replace(",)","")
             
             sql = '''
-            SELECT CASE WHEN SUM(total_day)!=0 THEN SUM(total_day) ELSE 0 END sl_count FROM employee_leave_detail 
+            SELECT CASE WHEN SUM(total_day-total_taken)!=0 THEN SUM(total_day-total_taken) ELSE 0 END sl_count FROM employee_leave_detail 
             WHERE emp_leave_id IN 
             (SELECT id FROM employee_leave WHERE employee_id = %s AND year='%s')
             AND leave_type_id = (SELECT id FROM arul_hr_leave_types WHERE code='SL')
@@ -1537,7 +1537,7 @@ class arul_hr_employee_leave_details(osv.osv):
             sl = sl.replace(",)","")
             
             sql = '''
-            SELECT CASE WHEN SUM(total_day)!=0 THEN SUM(total_day) ELSE 0 END pl_count FROM employee_leave_detail 
+            SELECT CASE WHEN SUM(total_day-total_taken)!=0 THEN SUM(total_day-total_taken) ELSE 0 END pl_count FROM employee_leave_detail 
             WHERE emp_leave_id IN 
             (SELECT id FROM employee_leave WHERE employee_id = %s AND year='%s')
             AND leave_type_id = (SELECT id FROM arul_hr_leave_types WHERE code='PL')
@@ -1545,11 +1545,11 @@ class arul_hr_employee_leave_details(osv.osv):
             cr.execute(sql)
             pl = cr.fetchone()
             pl = str(pl)
-            pl = sl.replace("(","")
-            pl = sl.replace(",)","")
+            pl = pl.replace("(","")
+            pl = pl.replace(",)","")
             
             sql = '''
-            SELECT CASE WHEN SUM(total_day)!=0 THEN SUM(total_day) ELSE 0 END coff_count FROM employee_leave_detail 
+            SELECT CASE WHEN SUM(total_day-total_taken)!=0 THEN SUM(total_day-total_taken) ELSE 0 END coff_count FROM employee_leave_detail 
             WHERE emp_leave_id IN 
             (SELECT id FROM employee_leave WHERE employee_id = %s AND year='%s')
             AND leave_type_id = (SELECT id FROM arul_hr_leave_types WHERE code='C.Off')
@@ -1911,11 +1911,11 @@ class arul_hr_permission_onduty(osv.osv):
                     payroll_ids = self.pool.get('arul.hr.payroll.executions').search(cr,uid,[('month','=',month),('year','=',year),('state','=','approve'),('payroll_area_id','=',new.employee_id.payroll_area_id.id)])
                     if payroll_ids :
                         raise osv.except_osv(_('Warning!'),_('Payroll were already exists, not allowed to edit again!'))
-            if new.non_availability_type_id=='on_duty' and not new.date and not new.parent_id:   
-#                 sql = '''
-#                     delete from arul_hr_permission_onduty where parent_id = %s
-#                 '''%(new.id)
-#                 cr.execute(sql)
+            if new.non_availability_type_id=='on_duty' and not new.date and not new.parent_id and 'state' not in vals:   
+                sql = '''
+                    delete from arul_hr_permission_onduty where parent_id = %s
+                '''%(new.id)
+                cr.execute(sql)
                 if new.from_date: 
                     month = new.from_date[5:7]
                     year = new.from_date[:4]
@@ -1923,24 +1923,24 @@ class arul_hr_permission_onduty(osv.osv):
                     if payroll_ids :
                         raise osv.except_osv(_('Warning!'),_('Payroll were already exists, not allowed to edit again!'))
             #
-#                 date_from = datetime.datetime.strptime(new.from_date,'%Y-%m-%d')
-#                 date_to = datetime.datetime.strptime(new.to_date,'%Y-%m-%d')
-#                 while (date_from<=date_to):
-#                     day = date_from.day
-#                     month = date_from.month
-#                     year = date_from.year
-#                     shift_id = punch_obj.get_work_shift(cr, uid, new.employee_id.id, int(day), int(month), year)
-#                     self.create(cr, uid, {
-#                                             'employee_id': new.employee_id.id,
-#                                             'non_availability_type_id': 'on_duty',
-#                                             'date': date_from,
-#                                             'duty_location': new.duty_location,
-#                                             'start_time': new.start_time,
-#                                             'end_time': new.end_time,
-#                                             'reason':new.reason,
-#                                             'parent_id': new.id,
-#                                             }, context)
-#                     date_from += datetime.timedelta(days=1)
+                date_from = datetime.datetime.strptime(new.from_date,'%Y-%m-%d')
+                date_to = datetime.datetime.strptime(new.to_date,'%Y-%m-%d')
+                while (date_from<=date_to):
+                    day = date_from.day
+                    month = date_from.month
+                    year = date_from.year
+                    shift_id = punch_obj.get_work_shift(cr, uid, new.employee_id.id, int(day), int(month), year)
+                    self.create(cr, uid, {
+                                            'employee_id': new.employee_id.id,
+                                            'non_availability_type_id': 'on_duty',
+                                            'date': date_from,
+                                            'duty_location': new.duty_location,
+                                            'start_time': new.start_time,
+                                            'end_time': new.end_time,
+                                            'reason':new.reason,
+                                            'parent_id': new.id,
+                                            }, context)
+                    date_from += datetime.timedelta(days=1)
         return new_write    
    
     def _time_total(self, cr, uid, ids, field_name, arg, context=None):
@@ -2985,7 +2985,7 @@ class arul_hr_monthly_work_schedule(osv.osv):
             else:
                 month = int(line.month)-1
                 year = line.year
-            work_schedule_pre_ids = self.search(cr, uid, [('year','=',str(year)),('month','=',str(month)),('department_id','=',line.department_id.id)])
+            work_schedule_pre_ids = self.search(cr, uid, [('year','=',str(year)),('month','=',str(month)),('department_id','=',line.department_id.id),('section_id','=',line.section_id.id)])
             if work_schedule_pre_ids:
                 work_vals = []
                 work_schedule_pre = self.browse(cr, uid, work_schedule_pre_ids[0])
@@ -2993,44 +2993,121 @@ class arul_hr_monthly_work_schedule(osv.osv):
                     delete from arul_hr_monthly_shift_schedule where monthly_work_id = %s
                 '''%(line.id)
                 cr.execute(sql)
+                num_of_month_new = calendar.monthrange(int(line.year),int(line.month))[1]
                 for work in work_schedule_pre.monthly_shift_line:
-                    work_vals.append((0,0,{
-                                           'employee_id': work.employee_id.id,
-                                           'year': line.year,
-                                           'month': line.month,
-                                           'num_of_month': calendar.monthrange(int(line.year),int(line.month))[1],
-                                           'day_1': work.day_1.id,
-                                           'day_2': work.day_2.id,
-                                           'day_3': work.day_3.id,
-                                           'day_4': work.day_4.id,
-                                           'day_5': work.day_5.id,
-                                           'day_6': work.day_6.id,
-                                           'day_7': work.day_7.id,
-                                           'day_8': work.day_8.id,
-                                           'day_9': work.day_9.id,
-                                           'day_10': work.day_10.id,
-                                           'day_11': work.day_11.id,
-                                           'day_12': work.day_12.id,
-                                           'day_13': work.day_13.id,
-                                           'day_14': work.day_14.id,
-                                           'day_15': work.day_15.id,
-                                           'day_16': work.day_16.id,
-                                           'day_17': work.day_17.id,
-                                           'day_18': work.day_18.id,
-                                           'day_19': work.day_19.id,
-                                           'day_20': work.day_20.id,
-                                           'day_21': work.day_21.id,
-                                           'day_22': work.day_22.id,
-                                           'day_23': work.day_23.id,
-                                           'day_24': work.day_24.id,
-                                           'day_25': work.day_25.id,
-                                           'day_26': work.day_26.id,
-                                           'day_27': work.day_27.id,
-                                           'day_28': work.day_28.id,
-                                           'day_29': work.day_29.id,
-                                           'day_30': work.day_30.id,
-                                           'day_31': work.day_31.id,
-                                           }))
+                    vals = {
+                       'employee_id': work.employee_id.id,
+                       'year': line.year,
+                       'month': line.month,
+                       'num_of_month': num_of_month_new,
+#                        'day_1': work.day_1.id,
+#                        'day_2': work.day_2.id,
+#                        'day_3': work.day_3.id,
+#                        'day_4': work.day_4.id,
+#                        'day_5': work.day_5.id,
+#                        'day_6': work.day_6.id,
+#                        'day_7': work.day_7.id,
+#                        'day_8': work.day_8.id,
+#                        'day_9': work.day_9.id,
+#                        'day_10': work.day_10.id,
+#                        'day_11': work.day_11.id,
+#                        'day_12': work.day_12.id,
+#                        'day_13': work.day_13.id,
+#                        'day_14': work.day_14.id,
+#                        'day_15': work.day_15.id,
+#                        'day_16': work.day_16.id,
+#                        'day_17': work.day_17.id,
+#                        'day_18': work.day_18.id,
+#                        'day_19': work.day_19.id,
+#                        'day_20': work.day_20.id,
+#                        'day_21': work.day_21.id,
+#                        'day_22': work.day_22.id,
+#                        'day_23': work.day_23.id,
+#                        'day_24': work.day_24.id,
+#                        'day_25': work.day_25.id,
+#                        'day_26': work.day_26.id,
+#                        'day_27': work.day_27.id,
+#                        'day_28': work.day_28.id,
+#                        'day_29': work.day_29.id,
+#                        'day_30': work.day_30.id,
+#                        'day_31': work.day_31.id,
+                       }
+                    for num in range(1,8):
+                        date = datetime.date (line.year, int(line.month), num)
+                        name_of_day = date.strftime("%A")
+                        if work.name_of_day_1 == name_of_day:
+                            break
+                    work_day = {}
+                    for seq in range(1,work.num_of_month+1):
+                        if seq == 1:
+                            work_day[seq]=work.day_1 and work.day_1.id or False
+                        if seq == 2:
+                            work_day[seq]=work.day_2 and work.day_2.id or False
+                        if seq == 3:
+                            work_day[seq]=work.day_3 and work.day_3.id or False
+                        if seq == 4:
+                            work_day[seq]=work.day_4 and work.day_4.id or False
+                        if seq == 5:
+                            work_day[seq]=work.day_5 and work.day_5.id or False
+                        if seq == 6:
+                            work_day[seq]=work.day_6 and work.day_6.id or False
+                        if seq == 7:
+                            work_day[seq]=work.day_7 and work.day_7.id or False
+                        if seq == 8:
+                            work_day[seq]=work.day_8 and work.day_8.id or False
+                        if seq == 9:
+                            work_day[seq]=work.day_9 and work.day_9.id or False
+                        if seq == 10:
+                            work_day[seq]=work.day_10 and work.day_10.id or False
+                        if seq == 11:
+                            work_day[seq]=work.day_11 and work.day_11.id or False
+                        if seq == 12:
+                            work_day[seq]=work.day_12 and work.day_12.id or False
+                        if seq == 13:
+                            work_day[seq]=work.day_13 and work.day_13.id or False
+                        if seq == 14:
+                            work_day[seq]=work.day_14 and work.day_14.id or False
+                        if seq == 15:
+                            work_day[seq]=work.day_15 and work.day_15.id or False
+                        if seq == 16:
+                            work_day[seq]=work.day_16 and work.day_16.id or False
+                        if seq == 17:
+                            work_day[seq]=work.day_17 and work.day_17.id or False
+                        if seq == 18:
+                            work_day[seq]=work.day_18 and work.day_18.id or False
+                        if seq == 19:
+                            work_day[seq]=work.day_19 and work.day_19.id or False
+                        if seq == 20:
+                            work_day[seq]=work.day_20 and work.day_20.id or False
+                        if seq == 21:
+                            work_day[seq]=work.day_21 and work.day_21.id or False
+                        if seq == 22:
+                            work_day[seq]=work.day_22 and work.day_22.id or False
+                        if seq == 23:
+                            work_day[seq]=work.day_23 and work.day_23.id or False
+                        if seq == 24:
+                            work_day[seq]=work.day_24 and work.day_24.id or False
+                        if seq == 25:
+                            work_day[seq]=work.day_25 and work.day_25.id or False
+                        if seq == 26:
+                            work_day[seq]=work.day_26 and work.day_26.id or False
+                        if seq == 27:
+                            work_day[seq]=work.day_27 and work.day_27.id or False
+                        if seq == 28:
+                            work_day[seq]=work.day_28 and work.day_28.id or False
+                        if seq == 29:
+                            work_day[seq]=work.day_29 and work.day_29.id or False
+                        if seq == 30:
+                            work_day[seq]=work.day_30 and work.day_30.id or False
+                        if seq == 31:
+                            work_day[seq]=work.day_31 and work.day_31.id or False
+                    old_num = 1
+                    for num_new in range(num,num_of_month_new+1):
+                        if num_new <= work.num_of_month:
+                            vals['day_%d'%(num_new)] = work_day[old_num]
+                            old_num += 1
+                    
+                    work_vals.append((0,0,vals))
                 self.write(cr, uid, [line.id], {'monthly_shift_line':work_vals,'state':'load'})
         return True
     def approve_current_month(self, cr, uid, ids, context=None):

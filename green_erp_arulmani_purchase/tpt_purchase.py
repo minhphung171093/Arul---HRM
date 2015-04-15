@@ -33,8 +33,6 @@ class tpt_mrp_process(osv.osv):
     
     def bt_run_mrp(self, cr, uid, ids, context=None):
         mrp_process_line = []
-        quantity = 1.00
-        hand_quantity = 0
         for mrp in self.browse(cr, uid, ids):
             sql = '''
                     delete from tpt_mrp_process_line
@@ -72,6 +70,8 @@ class tpt_mrp_process(osv.osv):
             prod_ids = cr.dictfetchall()
             if prod_ids:
                 for prod in prod_ids:
+                    quantity = 1.00
+                    hand_quantity = 0
                     sql = '''
                         select case when sum(foo.product_qty)!=0 then sum(foo.product_qty) else 0 end ton_sl from 
                                 (select st.product_qty
