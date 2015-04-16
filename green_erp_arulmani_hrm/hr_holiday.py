@@ -973,7 +973,7 @@ class arul_hr_audit_shift_time(osv.osv):
                                 }
                     
                     #if flag==1 or line.additional_shifts or (extra_hours>8 and line.employee_id.employee_category_id and line.employee_id.employee_category_id.code!='S1'): # Commented By BalamuruganPurushothaman - TO do not calculate COFF for S1 categ
-                if flag==1 and line.employee_id.employee_category_id and line.employee_id.employee_category_id.code!='S1':
+                if flag==1 or line.additional_shifts or (extra_hours>7.39 and line.employee_id.employee_category_id and line.employee_id.employee_category_id.code!='S1'):
                     c_off_day = 0.0   		    
                     if line.additional_shifts:
                         if extra_hours >= 3.7 and extra_hours < 7.39:
@@ -1988,7 +1988,7 @@ class arul_hr_permission_onduty(osv.osv):
         'duty_location':fields.char('On Duty Location', size = 1024, states={'done': [('readonly', True)], 'cancel': [('readonly', True)]}),
         'start_time': fields.float('Start Time', states={'done': [('readonly', True)], 'cancel': [('readonly', True)]}),
         'end_time': fields.float('End Time', states={'done': [('readonly', True)], 'cancel': [('readonly', True)]}),
-        'time_total': fields.function(_time_total, string='Total Hours', multi='sums', help="The total amount.", states={'done': [('readonly', True)], 'cancel': [('readonly', True)]}),
+        'time_total': fields.function(_time_total, store=True, string='Total Hours', multi='sums', help="The total amount.", states={'done': [('readonly', True)], 'cancel': [('readonly', True)]}),
         'reason':fields.text('Reason', states={'done': [('readonly', True)], 'cancel': [('readonly', True)]}),
         'permission_onduty_id':fields.many2one('arul.hr.employee.attendence.details','Permission/Onduty',ondelete='cascade'),
         'approval': fields.boolean('Is Approved?', readonly =  True),
@@ -2302,10 +2302,11 @@ class arul_hr_punch_in_out_time(osv.osv):
             permission_count = 0
             onduty_count = 0
             perm_onduty_count = 0
+            total_hrs = 0
             sql = '''
-            SELECT SUM(total_shift_worked) FROM arul_hr_permission_onduty WHERE 
+            SELECT SUM(time_total) FROM arul_hr_permission_onduty WHERE 
             non_availability_type_id='permission' 
-                AND TO_CHAR(date,'YYYY-MM-DD') = ('%s') and employee_id =%s
+                AND TO_CHAR(date,'YYYY-MM-DD') = ('%s') and employee_id =%s and state='done'
                 '''%(time.work_date,time.employee_id.id)
             cr.execute(sql)
             b =  cr.fetchone()
@@ -2314,8 +2315,8 @@ class arul_hr_punch_in_out_time(osv.osv):
                 
             #OnDuty
             sql = '''
-                SELECT SUM(total_shift_worked) FROM arul_hr_permission_onduty WHERE non_availability_type_id='on_duty' 
-                AND TO_CHAR(to_date,'YYYY-MM-DD') = ('%s') and employee_id =%s
+                SELECT SUM(time_total) FROM arul_hr_permission_onduty WHERE non_availability_type_id='on_duty' 
+                AND TO_CHAR(to_date,'YYYY-MM-DD') = ('%s') and employee_id =%s and state='done'
                 '''%(time.work_date,time.employee_id.id)
             cr.execute(sql)
             c =  cr.fetchone()
@@ -2323,27 +2324,144 @@ class arul_hr_punch_in_out_time(osv.osv):
                 onduty_count = c[0]
             
             perm_onduty_count =   permission_count + onduty_count
+            total_hrs = time.total_hours + perm_onduty_count
             
-            if time.total_hours <= 1.0:            
-                res[time.id]['total_shift_worked'] = 0.125 + perm_onduty_count
-            if time.total_hours >= 1.1 and time.total_hours <= 2.0:            
-                res[time.id]['total_shift_worked'] = 0.25 + perm_onduty_count
-            if time.total_hours >= 2.1 and time.total_hours <= 3.0:            
-                res[time.id]['total_shift_worked'] = 0.375 + perm_onduty_count        
-            if time.total_hours >= 4.0 and time.total_hours <= 7.44:            
-                res[time.id]['total_shift_worked'] = 0.5 + perm_onduty_count 
-            if time.total_hours >= 7.45 and time.total_hours <= 8.30:            
-                res[time.id]['total_shift_worked'] = 1.0 + perm_onduty_count
-            if time.total_hours >8.30  and time.total_hours <= 11.44:            
-                res[time.id]['total_shift_worked'] = 1.0 + perm_onduty_count
-            if time.total_hours >=11.45  and time.total_hours <= 15.44:            
-                res[time.id]['total_shift_worked'] = 1.5 + perm_onduty_count
-            if time.total_hours >=15.45  and time.total_hours <= 15.45:            
-                res[time.id]['total_shift_worked'] = 1.5 + perm_onduty_count
-            if time.total_hours >=15.45:            
-                res[time.id]['total_shift_worked'] = 2.0 + perm_onduty_count
-            if time.total_hours >=23.45:            
-                res[time.id]['total_shift_worked'] = 3.0 + perm_onduty_count
+            if time.actual_work_shift_id.code=='A' or time.actual_work_shift_id.code=='B' :
+                if 3.7 <= time.total_hours <= 4.15:  
+                    res[time.id]['total_shift_worked'] = 0.5 
+                    
+                if 4.15 <= time.total_hours <= 7.45:  
+                    res[time.id]['total_shift_worked'] = 0.5
+                #        
+                if 7.45 <= time.total_hours <= 8.30:  
+                    res[time.id]['total_shift_worked'] = 1
+                
+                if 8.30 <= time.total_hours <= 11.175:  
+                    res[time.id]['total_shift_worked'] = 1
+                #        
+                if 11.175 <= time.total_hours <= 12.45:  
+                    res[time.id]['total_shift_worked'] = 1.5
+                
+                if 12.45 <= time.total_hours <= 15.3:  
+                    res[time.id]['total_shift_worked'] = 1.5
+                #    
+                if 15.3 <= time.total_hours <= 17.00:  
+                    res[time.id]['total_shift_worked'] = 2
+                
+                if 17 <= time.total_hours <= 19.00:  
+                    res[time.id]['total_shift_worked'] = 2
+                
+                #
+                if 19.025 <= time.total_hours <= 21.15:  
+                    res[time.id]['total_shift_worked'] = 2.5
+                
+                if 21.15 <= time.total_hours <= 22.75:  
+                    res[time.id]['total_shift_worked'] = 2.5
+                #        
+                if 22.75 <= time.total_hours <= 25.3:  
+                    res[time.id]['total_shift_worked'] = 3
+                
+                if 25.3 <= time.total_hours <= 28:  
+                    res[time.id]['total_shift_worked'] = 3    
+                 
+            if time.actual_work_shift_id.code=='G1':
+                if 3.7 <= time.total_hours <= 4.15:  
+                    res[time.id]['total_shift_worked'] = 0.5 
+                    
+                if 4.15 <= time.total_hours <= 7.45:  
+                    res[time.id]['total_shift_worked'] = 0.5
+                #        
+                if 7.45 <= time.total_hours <= 8.30:  
+                    res[time.id]['total_shift_worked'] = 1
+                
+                if 8.30 <= time.total_hours <= 11.175:  
+                    res[time.id]['total_shift_worked'] = 1
+                #        
+                if 11.175 <= time.total_hours <= 12.45:  
+                    res[time.id]['total_shift_worked'] = 1.5
+                
+                if 12.45 <= time.total_hours <= 15.3:  
+                    res[time.id]['total_shift_worked'] = 1.5
+                #    
+                if 15.3 <= time.total_hours <= 17.00:  
+                    res[time.id]['total_shift_worked'] = 2
+                
+                if 17 <= time.total_hours <= 19.00:  
+                    res[time.id]['total_shift_worked'] = 2
+                
+                #
+                if 19.025 <= time.total_hours <= 21.15:  
+                    res[time.id]['total_shift_worked'] = 2.5
+                
+                if 21.15 <= time.total_hours <= 22.75:  
+                    res[time.id]['total_shift_worked'] = 2.5
+                #        
+                if 22.75 <= time.total_hours <= 25.3:  
+                    res[time.id]['total_shift_worked'] = 3
+                
+                if 25.3 <= time.total_hours <= 28:  
+                    res[time.id]['total_shift_worked'] = 3 
+               
+            if time.actual_work_shift_id.code=='G2' or time.actual_work_shift_id.code=='C':
+                if 3.7 <= time.total_hours <= 4.15:  
+                    res[time.id]['total_shift_worked'] = 0.5 
+                    
+                if 4.15 <= time.total_hours <= 7.45:  
+                    res[time.id]['total_shift_worked'] = 0.5
+                #        
+                if 7.45 <= time.total_hours <= 8.30:  
+                    res[time.id]['total_shift_worked'] = 1
+                
+                if 8.30 <= time.total_hours <= 11.175:  
+                    res[time.id]['total_shift_worked'] = 1
+                #        
+                if 11.175 <= time.total_hours <= 12.45:  
+                    res[time.id]['total_shift_worked'] = 1.5
+                
+                if 12.45 <= time.total_hours <= 15.3:  
+                    res[time.id]['total_shift_worked'] = 1.5
+                #    
+                if 15.3 <= time.total_hours <= 17.00:  
+                    res[time.id]['total_shift_worked'] = 2
+                
+                if 17 <= time.total_hours <= 19.00:  
+                    res[time.id]['total_shift_worked'] = 2
+                
+                #
+                if 19.025 <= time.total_hours <= 21.15:  
+                    res[time.id]['total_shift_worked'] = 2.5
+                
+                if 21.15 <= time.total_hours <= 22.75:  
+                    res[time.id]['total_shift_worked'] = 2.5
+                #        
+                if 22.75 <= time.total_hours <= 25.3:  
+                    res[time.id]['total_shift_worked'] = 3
+                
+                if 25.3 <= time.total_hours <= 28:  
+                    res[time.id]['total_shift_worked'] = 3 
+            
+            #===================================================================
+            # if time.total_hours <= 1.0:            
+            #     res[time.id]['total_shift_worked'] = 0.125 + perm_onduty_count
+            # if time.total_hours >= 1.1 and time.total_hours <= 2.0:            
+            #     res[time.id]['total_shift_worked'] = 0.25 + perm_onduty_count
+            # if time.total_hours >= 2.1 and time.total_hours <= 3.0:            
+            #     res[time.id]['total_shift_worked'] = 0.375 + perm_onduty_count        
+            # if time.total_hours >= 4.0 and time.total_hours <= 7.44:            
+            #     res[time.id]['total_shift_worked'] = 0.5 + perm_onduty_count 
+            # if time.total_hours >= 7.45 and time.total_hours <= 8.30:            
+            #     res[time.id]['total_shift_worked'] = 1.0 + perm_onduty_count
+            # if time.total_hours >8.30  and time.total_hours <= 11.44:            
+            #     res[time.id]['total_shift_worked'] = 1.0 + perm_onduty_count
+            # if time.total_hours >=11.45  and time.total_hours <= 15.44:            
+            #     res[time.id]['total_shift_worked'] = 1.5 + perm_onduty_count
+            # if time.total_hours >=15.45  and time.total_hours <= 15.45:            
+            #     res[time.id]['total_shift_worked'] = 1.5 + perm_onduty_count
+            # if time.total_hours >=15.45:            
+            #     res[time.id]['total_shift_worked'] = 2.0 + perm_onduty_count
+            # if time.total_hours >=23.45:            
+            #     res[time.id]['total_shift_worked'] = 3.0 + perm_onduty_count
+            #===================================================================
             
             #res[time.id]['shift_count']=res[time.id]['total_shift_worked']
             #res.update({'shift_count': res[time.id]['total_shift_worked']})
@@ -2358,7 +2476,7 @@ class arul_hr_punch_in_out_time(osv.osv):
         'actual_work_shift_id':fields.many2one('arul.hr.capture.work.shift','Actual Work Shift', states={'done': [('readonly', True)], 'cancel': [('readonly', True)]}),
         'in_time': fields.float('In Time', states={'done': [('readonly', True)], 'cancel': [('readonly', True)]}),
         'out_time': fields.float('Out Time', states={'done': [('readonly', True)], 'cancel': [('readonly', True)]}),
-        'total_hours': fields.function(_time_total, string='Total Hours', multi='sums', help="The total amount.", states={'done': [('readonly', True)], 'cancel': [('readonly', True)]}),
+        'total_hours': fields.function(_time_total, store=True, string='Total Hours', multi='sums', help="The total amount.", states={'done': [('readonly', True)], 'cancel': [('readonly', True)]}),
         'approval': fields.boolean('Select for Approval', readonly =  True, states={'done': [('readonly', True)], 'cancel': [('readonly', True)]}),
         'state':fields.selection([('draft', 'Draft'),('cancel', 'Reject'),('done', 'Approve')],'Status', readonly=True),
         'type':fields.selection([('permission', 'Permission'),('shift', 'Waiting'),('punch', 'Punch In/Out')],'Type', readonly=True),
