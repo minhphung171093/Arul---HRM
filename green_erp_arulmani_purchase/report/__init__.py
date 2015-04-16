@@ -3,3 +3,4 @@
 import print_rfq
 import comparison_chart
 import purchase_order_report
+import report_stock_on_hand
