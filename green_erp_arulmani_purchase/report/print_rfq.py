@@ -25,7 +25,17 @@ class Parser(report_sxw.rml_parse):
         self.localcontext.update({
 		'get_date': self.get_date,
             	'get_date_timestamp': self.get_date_timestamp,
+                #'get_desc': self.get_desc,
         })
+    
+    #===========================================================================
+    # def get_desc(self, line=False):
+    #     if line.product_id.name:
+    #         a = line.product_id.name
+    #     else:
+    #         a= line.description
+    #     return a
+    #===========================================================================
     
     def get_date(self, date=False):
         if not date:
