@@ -25,7 +25,7 @@ class Parser(report_sxw.rml_parse):
         self.localcontext.update({
             'convert_date': self.convert_date,
             'convert_date_time': self.convert_date_time,
-            
+            'get_move': self.get_move,
         })
     
     def convert_date(self, date):
@@ -36,19 +36,15 @@ class Parser(report_sxw.rml_parse):
         date = datetime.strptime(date, DATETIME_FORMAT)
         return date.strftime('%d/%m/%Y')
     
-#     def get_date(self,date):
-#         res = {}
-#         date = time.strftime('%d/%m/%Y'),
-#         date = datetime.strptime(date[0], DATE_FORMAT)
-#         day = date.day
-#         month = date.month
-#         year = date.year
-#         res = {
-#                'day': day,
-#                'month': month,
-#                'year': year,
-#                }
-#         return res
+    def get_move(self,move):
+        res = ''
+        if move == 'direct':
+            res = 'Direct Stock Update'
+        elif move == 'move':
+            res = 'Move to Consumption'
+        else:
+            res = 'Need Inspection'
+        return res
     
 
     
