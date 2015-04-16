@@ -27,7 +27,11 @@ class stock_on_hand_report(osv.osv_memory):
                                   'location_id': False,
                                   'product_id': False,
                                   } }
-        if categ_id and product_id:
+        elif categ_id and product_id:
+            return {'value': {
+                              'location_id': False,
+                              } }
+        elif product_id and not categ_id:
             return {'value': {
                               'location_id': False,
                               } }

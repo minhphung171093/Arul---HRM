@@ -45,6 +45,7 @@ class Parser(report_sxw.rml_parse):
             'get_invoice':self.get_invoice,
             'get_doc_type':self.get_doc_type,
             'get_balance':self.get_balance,
+            'get_cheque': self.get_cheque,
         })
         
     def get_cus(self):
@@ -131,5 +132,15 @@ class Parser(report_sxw.rml_parse):
         balance = float(debit) - float(credit)
         balance = float(balance)
         return balance
+    
+    def get_cheque(self, cheque):
+        sql = '''
+            select cheque_number from account_voucher where number = '%s'
+        '''%(cheque)
+        self.cr.execute(sql)
+        p = self.cr.dictfetchone()
+        return p and p['cheque_number'] or ''
+        
+        
 # vim:expandtab:smartindent:tabstop=4:softtabstop=4:shiftwidth=4:
 
