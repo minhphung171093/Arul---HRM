@@ -562,7 +562,7 @@
 										<field name="b_shift_count" widget="float_time"/>
 										<field name="c_shift_count" widget="float_time"/>
 										<field name="total_shift_worked"/>
-										<field name="approval" string="Is Approved?"/>
+										<!-- <field name="approval" string="Is Approved?"/>  -->
 										<field name="state" invisible = '1'/>
 									</tree>
 								</field>
@@ -578,9 +578,9 @@
 										<field name="start_time" widget="float_time"/>
 										<field name="end_time" widget="float_time"/>
 										<field name="time_total" widget="float_time"/>
-										<field name="total_shift_worked"/>
+										<!-- <field name="total_shift_worked"/>  -->
 										<field name="reason"/>
-										<field name="approval"/>
+										<!-- <field name="approval"/>  -->
 										<field name="state" invisible='1'/>
 									</tree>
 								</field>
