@@ -7,10 +7,10 @@
 	        <field name="model">stock.on.hand.report</field>
 	        <field name="report_name">report_stock_on_hand</field>
 	        <field name="report_type">aeroo</field>
-	        <field name="in_format">oo-ods</field>
-	        <field name="out_format" model="report.mimetypes" search="[('code','=','oo-xls')]"/>
+	        <field name="in_format">oo-odt</field>
+	        <field name="out_format" model="report.mimetypes" search="[('code','=','oo-pdf')]"/>
 	        <field name="parser_loc">green_erp_arulmani_purchase/report/report_stock_on_hand.py</field>
-	        <field name="report_rml">green_erp_arulmani_purchase/report/report_stock_on_hand.ods</field>
+	        <field name="report_rml">green_erp_arulmani_purchase/report/report_stock_on_hand.odt</field>
 	        <field name="parser_state">loc</field>
 	        <field name="tml_source">file</field>
 	        <field name="attachment_use" eval="0"/>
@@ -23,6 +23,6 @@
 			model="stock.on.hand.report" 
 			name="report_stock_on_hand"
 	        string="Stock On Hand Report"
-	        rml="green_erp_arulmani_purchase/report/report_stock_on_hand.ods"/>	
+	        rml="green_erp_arulmani_purchase/report/report_stock_on_hand.odt"/>	
     </data>
 </openerp>

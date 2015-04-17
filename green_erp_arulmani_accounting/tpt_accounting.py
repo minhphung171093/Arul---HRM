@@ -2133,7 +2133,7 @@ class tpt_material_issue(osv.osv):
     _inherit = "tpt.material.issue"
     _columns = {
                 'gl_account_id': fields.many2one('account.account', 'GL Account'),
-                'warehouse':fields.many2one('stock.location','Warehouse Location'),
+                'warehouse':fields.many2one('stock.location','Source Location'),
                 }
     def bt_approve(self, cr, uid, ids, context=None):
         price = 0.0

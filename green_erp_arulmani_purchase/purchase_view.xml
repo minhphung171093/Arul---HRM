@@ -149,8 +149,8 @@
 						<field name="department_id_relate"/> 
 						<field name="date_indent_relate"/> 
 						<field name="requisitioner_relate"/>  
-						<field name="store_date"/>  
-						<field name="hod_date"/>  
+						<field name="store_date" invisible = '1'/>  
+						<field name="hod_date" invisible = '1' />  
 						<field name="state"/>
 				</tree>
 			</field>
@@ -181,8 +181,8 @@
 						<field name="department_id_relate" options="{'create': false, 'create_edit': false}" />
 						<field name="requisitioner_relate" options="{'create': false, 'create_edit': false}"/>
 						<field name="date_indent_relate" />  
-						<field name="store_date"/>  
-						<field name="hod_date"/>  
+						<field name="store_date" invisible = '1' />  
+						<field name="hod_date" invisible = '1' />  
 						<field name="state" required='1' />
 						<field name="item_text" />
 				</group>
@@ -260,7 +260,7 @@
 						<field name="date_indent_relate"/> 
 						<field name="requisitioner_relate"/>  
 						<field name="store_date"/>  
-						<field name="hod_date"/>  
+						<field name="hod_date" invisible = '1' />  
 						<field name="state"/>
 				</tree>
 			</field>
@@ -292,7 +292,7 @@
 						<field name="requisitioner_relate" options="{'create': false, 'create_edit': false}"/>
 						<field name="date_indent_relate" />  
 						<field name="store_date"/>  
-						<field name="hod_date"/>  
+						<field name="hod_date" invisible = '1' />  
 						<field name="state" required='1' />
 						<field name="item_text" />
 				</group>
@@ -521,8 +521,11 @@
 					<!--<button name="purchase_head_amendement" states="head" string="Amendement" class="oe_highlight"/>-->
 					<button name="purchase_amendement_head" states="amendement" string="Purchase Head Approval" class="oe_highlight" groups="green_erp_arulmani_purchase.group_vvti_purchase_admin,green_erp_arulmani_purchase.group_vvti_purchase_mgr"/>
 					<button name="purchase_gm_confirmed" states="gm" string="MD Approval" class="oe_highlight" groups="green_erp_arulmani_purchase.group_vvti_purchase_admin"/>
-					<button name="purchase_md_confirmed" states="md" string="Create GRN" class="oe_highlight" groups="green_erp_arulmani_purchase.group_vvti_purchase_admin"/>
+					<button name="purchase_md_confirmed" states="md" string="Create GRN" class="oe_highlight" groups="green_erp_arulmani_purchase.group_vvti_purchase_admin,green_erp_arulmani_purchase.group_vvti_purchase_store_mgr"/>
 				</xpath>  
+				<xpath expr="//form/header/button[@name='view_picking']" position="attributes">
+					<attribute name='string'>View GRN</attribute>
+				</xpath>
             	<xpath expr="//field[@name='partner_id']" position="before">
             		
             		<field name="po_document_type" />
@@ -1705,6 +1708,7 @@
 		                <group col="4" colspan="2" >    
 							<field name="name"/>
 							<field name="date_request" on_change="onchange_date_expect(date_request)" />
+							<field name="request_type" on_change="onchange_request_type(request_type)"/>
 							<field name="department_id" required='1' options="{'create': false, 'create_edit': false}" />
 							<field name="section_id" required='1' domain="[('department_id','=',department_id)]" options="{'create': false, 'create_edit': false}" />
 							<field name="requisitioner" options="{'create': false, 'create_edit': false}" domain="[('department_id','=',department_id)]"  />
@@ -1715,13 +1719,15 @@
 						</group>
 						<notebook>
 							<page string = "Materials">
-								<field name="material_request_line" nolabel='1'>
+								<field name="material_request_line" nolabel='1' context="{'default_request_type':request_type}">
 									<tree editable='bottom'>
-										<field name="product_id" on_change="onchange_product_id(product_id)" options="{'create': false, 'create_edit': false}"/>
+										<field name="product_id" domain="['|',('default_code','in',['FERROUS SULPHATE','FSH','M0501010002']),('categ_id.cate_name','in',['raw','spares'])]" on_change="onchange_product_id(product_id)" options="{'create': false, 'create_edit': false}"/>
 										<field name="dec_material"/>
+										<field name="prodlot_id" domain="[('product_id','=',product_id),('name','in',['DRIER','AGRI','WET'])]" options="{'create': false, 'create_edit': false}"/>
 										<field name="product_uom_qty" />
 										<field name="on_hand_qty" />
 										<field name="uom_po_id" edit='false' options="{'create': false, 'create_edit': false}"/>
+										<field name="request_type" invisible='1'/>
 									</tree>
 								</field>
 							</page>
@@ -1777,6 +1783,7 @@
 						<field name="date_request"/>
 						<field name="date_expec"/>
 						<field name="department_id"  />
+						<field name="request_type"  />
 						<field name="state" widget="statusbar" statusbar_visible="draft,done" statusbar_colors='{"draft":"blue"}'/>
 				</tree>
 			</field>
@@ -1796,6 +1803,7 @@
 							<field name="name" domain="[('state','=','done')]" on_change="onchange_material(name)" options="{'create': false, 'create_edit': false}" />
 							<field name="date_request" on_change="onchange_date_expect(date_request)" />
 							<field name="date_expec"/>
+							<field name="request_type"  />
 							<field name="department_id" options="{'create': false, 'create_edit': false}" />
 						</group>
 						<notebook>

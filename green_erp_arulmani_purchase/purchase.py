@@ -1884,23 +1884,23 @@ class purchase_order(osv.osv):
             result[line.order_id.id] = True
         return result.keys()
     _columns = {
-        'po_document_type':fields.selection([('raw','VV Raw material PO'),('asset','VV Capital PO'),('standard','VV Standard PO'),('local','VV Local PO'),('return','VV Return PO'),('service','VV Service PO'),('out','VV Out Service PO')],'PO Document Type', required = True, track_visibility='onchange',states={'cancel':[('readonly',True)],'confirmed':[('readonly',True)],'head':[('readonly',True)],'gm':[('readonly',True)], 'approved':[('readonly',True)],'done':[('readonly',True)]}),
-        'quotation_no': fields.many2one('tpt.purchase.quotation', 'Quotation No', required = True, track_visibility='onchange',states={'cancel':[('readonly',True)],'confirmed':[('readonly',True)],'head':[('readonly',True)],'gm':[('readonly',True)], 'approved':[('readonly',True)],'done':[('readonly',True)]}),
+        'po_document_type':fields.selection([('raw','VV Raw material PO'),('asset','VV Capital PO'),('standard','VV Standard PO'),('local','VV Local PO'),('return','VV Return PO'),('service','VV Service PO'),('out','VV Out Service PO')],'PO Document Type', required = True, track_visibility='onchange',states={'cancel':[('readonly',True)],'confirmed':[('readonly',True)],'head':[('readonly',True)],'gm':[('readonly',True)],'md':[('readonly',True)], 'approved':[('readonly',True)],'done':[('readonly',True)]}),
+        'quotation_no': fields.many2one('tpt.purchase.quotation', 'Quotation No', required = True, track_visibility='onchange',states={'cancel':[('readonly',True)],'confirmed':[('readonly',True)],'head':[('readonly',True)],'gm':[('readonly',True)],'md':[('readonly',True)], 'approved':[('readonly',True)],'done':[('readonly',True)]}),
 #         'po_indent_no' : fields.many2one('tpt.purchase.indent', 'PO Indent No', required = True, track_visibility='onchange'),
-        'partner_ref': fields.char('Quotation Reference', states={'cancel':[('readonly',True)],'confirmed':[('readonly',True)],'head':[('readonly',True)],'gm':[('readonly',True)], 'approved':[('readonly',True)],'done':[('readonly',True)]}, size=64,
+        'partner_ref': fields.char('Quotation Reference', states={'cancel':[('readonly',True)],'confirmed':[('readonly',True)],'head':[('readonly',True)],'gm':[('readonly',True)],'md':[('readonly',True)], 'approved':[('readonly',True)],'done':[('readonly',True)]}, size=64,
             help="Reference of the sales order or quotation sent by your supplier. It's mainly used to do the matching when you receive the products as this reference is usually written on the delivery order sent by your supplier.", track_visibility='onchange'),
-        'state_id': fields.many2one('res.country.state', 'Vendor Location', track_visibility='onchange',states={'cancel':[('readonly',True)],'confirmed':[('readonly',True)],'head':[('readonly',True)],'gm':[('readonly',True)], 'approved':[('readonly',True)],'done':[('readonly',True)]}),
-        'for_basis': fields.char('For Basis', size = 1024, track_visibility='onchange',states={'cancel':[('readonly',True)],'confirmed':[('readonly',True)],'head':[('readonly',True)],'gm':[('readonly',True)], 'approved':[('readonly',True)],'done':[('readonly',True)]}),
-        'mode_dis': fields.char('Mode Of Dispatch', size = 1024, track_visibility='onchange',states={'cancel':[('readonly',True)],'confirmed':[('readonly',True)],'head':[('readonly',True)],'gm':[('readonly',True)], 'approved':[('readonly',True)],'done':[('readonly',True)]}),
-        'date_order':fields.date('Order Date', required=True, states={'cancel':[('readonly',True)],'confirmed':[('readonly',True)],'head':[('readonly',True)],'gm':[('readonly',True)], 'approved':[('readonly',True)],'done':[('readonly',True)]}, select=True, help="Date on which this document has been created.", track_visibility='onchange',),
+        'state_id': fields.many2one('res.country.state', 'Vendor Location', track_visibility='onchange',states={'cancel':[('readonly',True)],'confirmed':[('readonly',True)],'head':[('readonly',True)],'gm':[('readonly',True)],'md':[('readonly',True)], 'approved':[('readonly',True)],'done':[('readonly',True)]}),
+        'for_basis': fields.char('For Basis', size = 1024, track_visibility='onchange',states={'cancel':[('readonly',True)],'confirmed':[('readonly',True)],'head':[('readonly',True)],'gm':[('readonly',True)],'md':[('readonly',True)], 'approved':[('readonly',True)],'done':[('readonly',True)]}),
+        'mode_dis': fields.char('Mode Of Dispatch', size = 1024, track_visibility='onchange',states={'cancel':[('readonly',True)],'confirmed':[('readonly',True)],'head':[('readonly',True)],'gm':[('readonly',True)],'md':[('readonly',True)], 'approved':[('readonly',True)],'done':[('readonly',True)]}),
+        'date_order':fields.date('Order Date', required=True, states={'cancel':[('readonly',True)],'confirmed':[('readonly',True)],'head':[('readonly',True)],'gm':[('readonly',True)],'md':[('readonly',True)], 'approved':[('readonly',True)],'done':[('readonly',True)]}, select=True, help="Date on which this document has been created.", track_visibility='onchange',),
         'ecc_no': fields.char('ECC No', size = 1024, track_visibility='onchange'),
-        'payment_term_id': fields.many2one('account.payment.term', 'Payment Term', track_visibility='onchange',states={'cancel':[('readonly',True)],'confirmed':[('readonly',True)],'head':[('readonly',True)],'gm':[('readonly',True)], 'approved':[('readonly',True)],'done':[('readonly',True)]}),
+        'payment_term_id': fields.many2one('account.payment.term', 'Payment Term', track_visibility='onchange',states={'cancel':[('readonly',True)],'confirmed':[('readonly',True)],'head':[('readonly',True)],'gm':[('readonly',True)],'md':[('readonly',True)], 'approved':[('readonly',True)],'done':[('readonly',True)]}),
         #'deli_sche': fields.char('Delivery Schedule', size = 1024, track_visibility='onchange'),
-        'deli_sche':fields.date('Delivery Schedule', states={'cancel':[('readonly',True)],'confirmed':[('readonly',True)],'head':[('readonly',True)],'gm':[('readonly',True)], 'approved':[('readonly',True)],'done':[('readonly',True)]}, select=True, help="Date on which this document has been Scheduled to Dispatch.", track_visibility='onchange'),
-        'partner_id':fields.many2one('res.partner', 'Supplier', required=True, states={'cancel':[('readonly',True)],'confirmed':[('readonly',True)],'head':[('readonly',True)],'gm':[('readonly',True)], 'approved':[('readonly',True)],'done':[('readonly',True)]},
+        'deli_sche':fields.date('Delivery Schedule', states={'cancel':[('readonly',True)],'confirmed':[('readonly',True)],'head':[('readonly',True)],'gm':[('readonly',True)],'md':[('readonly',True)], 'approved':[('readonly',True)],'done':[('readonly',True)]}, select=True, help="Date on which this document has been Scheduled to Dispatch.", track_visibility='onchange'),
+        'partner_id':fields.many2one('res.partner', 'Supplier', required=True, states={'cancel':[('readonly',True)],'confirmed':[('readonly',True)],'head':[('readonly',True)],'gm':[('readonly',True)],'md':[('readonly',True)], 'approved':[('readonly',True)],'done':[('readonly',True)]},
             change_default=True, track_visibility='always'),
-        'company_id': fields.many2one('res.company','Company',required=True,select=1, states={'cancel':[('readonly',True)],'confirmed':[('readonly',True)],'head':[('readonly',True)],'gm':[('readonly',True)], 'approved':[('readonly',True)],'done':[('readonly',True)]}, track_visibility='onchange'),
-        'reason': fields.text('Reason', size = 1024, track_visibility='onchange',states={'cancel':[('readonly',True)],'confirmed':[('readonly',True)],'head':[('readonly',True)],'gm':[('readonly',True)], 'approved':[('readonly',True)],'done':[('readonly',True)]}),        
+        'company_id': fields.many2one('res.company','Company',required=True,select=1, states={'cancel':[('readonly',True)],'confirmed':[('readonly',True)],'head':[('readonly',True)],'gm':[('readonly',True)],'md':[('readonly',True)], 'approved':[('readonly',True)],'done':[('readonly',True)]}, track_visibility='onchange'),
+        'reason': fields.text('Reason', size = 1024, track_visibility='onchange',states={'cancel':[('readonly',True)],'confirmed':[('readonly',True)],'head':[('readonly',True)],'gm':[('readonly',True)],'md':[('readonly',True)], 'approved':[('readonly',True)],'done':[('readonly',True)]}),        
         
         
         #ham function
@@ -1945,7 +1945,7 @@ class purchase_order(osv.osv):
                                     ('amendement', 'Amendement'),
                                     ('head', 'Purchase Head Approved'),
                                     ('gm', 'GM Approval'),
-                                    ('md', 'MD Approval'),
+                                    ('md', 'Ready For GRN'),
                                     ('confirmed', 'Waiting Approval'),
                                     ('approved', 'Purchase Order'),
                                     ('except_picking', 'Shipping Exception'),
@@ -1955,9 +1955,10 @@ class purchase_order(osv.osv):
                                    ], 'Status', required=True, readonly=True,
                                   ),
         'check_amendement':fields.boolean("Amended",readonly=True),
+        'order_line': fields.one2many('purchase.order.line', 'order_id', 'Order Lines', states={'cancel':[('readonly',True)],'confirmed':[('readonly',True)],'head':[('readonly',True)],'gm':[('readonly',True)],'md':[('readonly',True)], 'approved':[('readonly',True)],'done':[('readonly',True)]}),
         
         #TPT START By BalamuruganPurushothaman ON 01/04/2015 - FOR PO PRINT
-        'freight_term':fields.selection([('To Pay','To Pay'),('Paid','Paid')],('Freight Term'),states={'cancel':[('readonly',True)],'confirmed':[('readonly',True)],'head':[('readonly',True)],'gm':[('readonly',True)], 'approved':[('readonly',True)],'done':[('readonly',True)]}),   
+        'freight_term':fields.selection([('To Pay','To Pay'),('Paid','Paid')],('Freight Term'),states={'cancel':[('readonly',True)],'confirmed':[('readonly',True)],'head':[('readonly',True)],'gm':[('readonly',True)],'md':[('readonly',True)], 'approved':[('readonly',True)],'done':[('readonly',True)]}),   
         #'quotation_ref':fields.char('Quotation Reference',size = 1024,required=True),
         #TPT END
         }
@@ -3628,6 +3629,7 @@ class tpt_material_request(osv.osv):
         'project_section_id': fields.many2one('tpt.project.section','Project Section',ondelete='restrict',states={'done':[('readonly', True)]}),
         'material_request_line':fields.one2many('tpt.material.request.line','material_request_id','Vendor Group',states={'done':[('readonly', True)]}),
         'state':fields.selection([('draft', 'Draft'),('done', 'Approve')],'Status', readonly=True),
+        'request_type':fields.selection([('norm', 'Against Norms'),('consum', 'Against consumption')],'Request Type', states={'done':[('readonly', True)]}),
                 }
     _defaults = {
         'state':'draft',      
@@ -3639,6 +3641,7 @@ class tpt_material_request(osv.osv):
     
     def create(self, cr, uid, vals, context=None):
         user = self.pool.get('res.users').browse(cr,uid,uid)
+        product_obj = self.pool.get('product.product')
 #         vals['department_id'] = user.employee_id and user.employee_id.department_id and user.employee_id.department_id.id or False
         if vals.get('name','/')=='/':
             sql = '''
@@ -3654,32 +3657,95 @@ class tpt_material_request(osv.osv):
         new_id = super(tpt_material_request, self).create(cr, uid, vals, context)
         material = self.browse(cr,uid,new_id)
         sql = '''
-                select product_id, sum(product_uom_qty) as product_qty from tpt_material_request_line where material_request_id = %s group by product_id
+                select product_id, prodlot_id, sum(product_uom_qty) as product_qty from tpt_material_request_line where material_request_id = %s group by product_id,prodlot_id
                 '''%(material.id)
         cr.execute(sql)
         for order_line in cr.dictfetchall():
-            sql = '''
-            SELECT sum(onhand_qty) onhand_qty
-            From
-            (SELECT
-                   
-                case when loc1.usage != 'internal' and loc2.usage = 'internal'
-                then stm.primary_qty
-                else
-                case when loc1.usage = 'internal' and loc2.usage != 'internal'
-                then -1*stm.primary_qty 
-                else 0.0 end
-                end onhand_qty
-                        
-            FROM stock_move stm 
-                join stock_location loc1 on stm.location_id=loc1.id
-                join stock_location loc2 on stm.location_dest_id=loc2.id
-            WHERE stm.state= 'done' and product_id=%s)foo
-            '''%(order_line['product_id'])
-            cr.execute(sql)
-            onhand_qty = cr.dictfetchone()['onhand_qty']
-            if (order_line['product_qty'] > onhand_qty):
-                raise osv.except_osv(_('Warning!'),_('You are confirm %s but only %s available for this product in stock.' %(order_line['product_qty'], onhand_qty)))
+            location_id = False
+            product_id = product_obj.browse(cr,uid,order_line['product_id'])
+            cate_name = product_id.categ_id and product_id.categ_id.cate_name or False
+            if cate_name == 'finish':
+                lot = order_line['prodlot_id'] or False
+                parent_ids = self.pool.get('stock.location').search(cr, uid, [('name','=','Store'),('usage','=','view')])
+                if parent_ids:
+                    locat_ids = self.pool.get('stock.location').search(cr, uid, [('name','=','FSH'),('location_id','=',parent_ids[0])])
+                if locat_ids:
+                    location_id = locat_ids[0]
+                    if lot:
+                        sql = '''
+                        SELECT sum(onhand_qty) onhand_qty
+                        From
+                        (SELECT
+                            case when loc1.usage != 'internal' and loc2.usage = 'internal' and loc2.id = %s and prodlot_id = %s
+                            then stm.primary_qty
+                            else
+                            case when loc1.usage = 'internal' and loc2.usage != 'internal' and loc1.id = %s and prodlot_id = %s
+                            then -1*stm.primary_qty 
+                            else 0.0 end
+                            end onhand_qty
+                                    
+                        FROM stock_move stm 
+                            join stock_location loc1 on stm.location_id=loc1.id
+                            join stock_location loc2 on stm.location_dest_id=loc2.id
+                        WHERE stm.state= 'done' and product_id=%s)foo
+                        '''%(location_id,lot,location_id,lot,order_line['product_id'])
+                    else:
+                        sql = '''
+                        SELECT sum(onhand_qty) onhand_qty
+                        From
+                        (SELECT
+                            case when loc1.usage != 'internal' and loc2.usage = 'internal' and loc2.id = %s
+                            then stm.primary_qty
+                            else
+                            case when loc1.usage = 'internal' and loc2.usage != 'internal' and loc1.id = %s
+                            then -1*stm.primary_qty 
+                            else 0.0 end
+                            end onhand_qty
+                                    
+                        FROM stock_move stm 
+                            join stock_location loc1 on stm.location_id=loc1.id
+                            join stock_location loc2 on stm.location_dest_id=loc2.id
+                        WHERE stm.state= 'done' and product_id=%s)foo
+                        '''%(location_id,location_id,order_line['product_id'])
+                    cr.execute(sql)
+                    onhand_qty = cr.dictfetchone()['onhand_qty']
+                    if (order_line['product_qty'] > onhand_qty):
+                        raise osv.except_osv(_('Warning!'),_('You are confirm %s but only %s available for this product in stock.' %(order_line['product_qty'], onhand_qty)))
+            if cate_name == 'raw':
+                parent_ids = self.pool.get('stock.location').search(cr, uid, [('name','=','Store'),('usage','=','view')])
+                if parent_ids:
+                    locat_ids = self.pool.get('stock.location').search(cr, uid, [('name','in',['Raw material','Raw Material']),('location_id','=',parent_ids[0])])
+                if locat_ids:
+                    location_id = locat_ids[0]
+            if cate_name == 'spares':
+                parent_ids = self.pool.get('stock.location').search(cr, uid, [('name','=','Store'),('usage','=','view')])
+                if parent_ids:
+                    locat_ids = self.pool.get('stock.location').search(cr, uid, [('name','=','Spare'),('location_id','=',parent_ids[0])])
+                if locat_ids:
+                    location_id = locat_ids[0]
+            if location_id and cate_name != 'finish':
+                sql = '''
+                SELECT sum(onhand_qty) onhand_qty
+                From
+                (SELECT
+                       
+                    case when loc1.usage != 'internal' and loc2.usage = 'internal' and loc2.id = %s
+                    then stm.primary_qty
+                    else
+                    case when loc1.usage = 'internal' and loc2.usage != 'internal' and loc1.id = %s
+                    then -1*stm.primary_qty 
+                    else 0.0 end
+                    end onhand_qty
+                            
+                FROM stock_move stm 
+                    join stock_location loc1 on stm.location_id=loc1.id
+                    join stock_location loc2 on stm.location_dest_id=loc2.id
+                WHERE stm.state= 'done' and product_id=%s)foo
+                '''%(location_id,location_id,order_line['product_id'])
+                cr.execute(sql)
+                onhand_qty = cr.dictfetchone()['onhand_qty']
+                if (order_line['product_qty'] > onhand_qty):
+                    raise osv.except_osv(_('Warning!'),_('You are confirm %s but only %s available for this product in stock.' %(order_line['product_qty'], onhand_qty)))
         return new_id
 
     def onchange_create_uid(self, cr, uid, ids,create_uid=False, context=None):
@@ -3703,34 +3769,98 @@ class tpt_material_request(osv.osv):
 #                 sequence = self.pool.get('ir.sequence').get(cr, uid, 'tpt.material.request.import')
 #                 vals['name'] =  sequence and sequence+'/'+fiscalyear['code'] or '/'
         new_write = super(tpt_material_request, self).write(cr, uid,ids, vals, context)
+        product_obj = self.pool.get('product.product')
         for material in self.browse(cr,uid,ids):
             sql = '''
-                select product_id, sum(product_uom_qty) as product_qty from tpt_material_request_line where material_request_id = %s group by product_id
+                select product_id, prodlot_id, sum(product_uom_qty) as product_qty from tpt_material_request_line where material_request_id = %s group by product_id,prodlot_id
                 '''%(material.id)
             cr.execute(sql)
             for order_line in cr.dictfetchall():
-                sql = '''
-                SELECT sum(onhand_qty) onhand_qty
-                From
-                (SELECT
-                       
-                    case when loc1.usage != 'internal' and loc2.usage = 'internal'
-                    then stm.primary_qty
-                    else
-                    case when loc1.usage = 'internal' and loc2.usage != 'internal'
-                    then -1*stm.primary_qty 
-                    else 0.0 end
-                    end onhand_qty
-                            
-                FROM stock_move stm 
-                    join stock_location loc1 on stm.location_id=loc1.id
-                    join stock_location loc2 on stm.location_dest_id=loc2.id
-                WHERE stm.state= 'done' and product_id=%s)foo
-                '''%(order_line['product_id'])
-                cr.execute(sql)
-                onhand_qty = cr.dictfetchone()['onhand_qty']
-                if (order_line['product_qty'] > onhand_qty):
-                    raise osv.except_osv(_('Warning!'),_('You are confirm %s but only %s available for this product in stock.' %(order_line['product_qty'], onhand_qty)))
+                location_id = False
+                product_id = product_obj.browse(cr,uid,order_line['product_id'])
+                cate_name = product_id.categ_id and product_id.categ_id.cate_name or False
+                if cate_name == 'finish':
+                    lot = order_line['prodlot_id'] or False
+                    parent_ids = self.pool.get('stock.location').search(cr, uid, [('name','=','Store'),('usage','=','view')])
+                    if parent_ids:
+                        locat_ids = self.pool.get('stock.location').search(cr, uid, [('name','=','FSH'),('location_id','=',parent_ids[0])])
+                    if locat_ids:
+                        location_id = locat_ids[0]
+                        if lot:
+                            sql = '''
+                            SELECT sum(onhand_qty) onhand_qty
+                            From
+                            (SELECT
+                                case when loc1.usage != 'internal' and loc2.usage = 'internal' and loc2.id = %s and prodlot_id = %s
+                                then stm.primary_qty
+                                else
+                                case when loc1.usage = 'internal' and loc2.usage != 'internal' and loc1.id = %s and prodlot_id = %s
+                                then -1*stm.primary_qty 
+                                else 0.0 end
+                                end onhand_qty
+                                        
+                            FROM stock_move stm 
+                                join stock_location loc1 on stm.location_id=loc1.id
+                                join stock_location loc2 on stm.location_dest_id=loc2.id
+                            WHERE stm.state= 'done' and product_id=%s)foo
+                            '''%(location_id,lot,location_id,lot,order_line['product_id'])
+                        else:
+                            sql = '''
+                            SELECT sum(onhand_qty) onhand_qty
+                            From
+                            (SELECT
+                                case when loc1.usage != 'internal' and loc2.usage = 'internal' and loc2.id = %s
+                                then stm.primary_qty
+                                else
+                                case when loc1.usage = 'internal' and loc2.usage != 'internal' and loc1.id = %s
+                                then -1*stm.primary_qty 
+                                else 0.0 end
+                                end onhand_qty
+                                        
+                            FROM stock_move stm 
+                                join stock_location loc1 on stm.location_id=loc1.id
+                                join stock_location loc2 on stm.location_dest_id=loc2.id
+                            WHERE stm.state= 'done' and product_id=%s)foo
+                            '''%(location_id,location_id,order_line['product_id'])
+                        cr.execute(sql)
+                        onhand_qty = cr.dictfetchone()['onhand_qty']
+                        if (order_line['product_qty'] > onhand_qty):
+                            raise osv.except_osv(_('Warning!'),_('You are confirm %s but only %s available for this product in stock.' %(order_line['product_qty'], onhand_qty)))
+                if cate_name == 'raw':
+                    parent_ids = self.pool.get('stock.location').search(cr, uid, [('name','=','Store'),('usage','=','view')])
+                    if parent_ids:
+                        locat_ids = self.pool.get('stock.location').search(cr, uid, [('name','in',['Raw material','Raw Material']),('location_id','=',parent_ids[0])])
+                    if locat_ids:
+                        location_id = locat_ids[0]
+                if cate_name == 'spares':
+                    parent_ids = self.pool.get('stock.location').search(cr, uid, [('name','=','Store'),('usage','=','view')])
+                    if parent_ids:
+                        locat_ids = self.pool.get('stock.location').search(cr, uid, [('name','=','Spare'),('location_id','=',parent_ids[0])])
+                    if locat_ids:
+                        location_id = locat_ids[0]
+                if location_id and cate_name != 'finish':
+                    sql = '''
+                    SELECT sum(onhand_qty) onhand_qty
+                    From
+                    (SELECT
+                           
+                        case when loc1.usage != 'internal' and loc2.usage = 'internal' and loc2.id = %s
+                        then stm.primary_qty
+                        else
+                        case when loc1.usage = 'internal' and loc2.usage != 'internal' and loc1.id = %s
+                        then -1*stm.primary_qty 
+                        else 0.0 end
+                        end onhand_qty
+                                
+                    FROM stock_move stm 
+                        join stock_location loc1 on stm.location_id=loc1.id
+                        join stock_location loc2 on stm.location_dest_id=loc2.id
+                    WHERE stm.state= 'done' and product_id=%s)foo
+                    '''%(location_id,location_id,order_line['product_id'])
+                    cr.execute(sql)
+                    onhand_qty = cr.dictfetchone()['onhand_qty']
+                    if (order_line['product_qty'] > onhand_qty):
+                        raise osv.except_osv(_('Warning!'),_('You are confirm %s but only %s available for this product in stock.' %(order_line['product_qty'], onhand_qty)))
         return new_write
 
     def bt_approve(self, cr, uid, ids, context=None):
@@ -3747,6 +3877,17 @@ class tpt_material_request(osv.osv):
             cr.execute(sql)
             dates = cr.dictfetchone()['date_request']
         return {'value': {'date_expec':dates}}
+    
+    def onchange_request_type(self, cr, uid, ids,request_type=False, context=None):
+        vals = {}
+        if request_type:
+            for request in self.browse(cr, uid, ids):
+                for line in request.material_request_line:
+                    sql = '''
+                        update tpt_material_request_line set request_type = '%s' where id=%s
+                    '''%(request_type,line.id)
+                    cr.execute(sql)
+        return {'value':vals} 
 tpt_material_request()
 
 
@@ -3784,6 +3925,8 @@ class tpt_material_request_line(osv.osv):
         'uom_po_id': fields.many2one('product.uom', 'UOM', readonly = True),
         'material_request_id': fields.many2one('tpt.material.request', 'Material'),
         'on_hand_qty':fields.function(_get_on_hand_qty,digits=(16,2),type='float',string='On Hand Qty',multi='sum',store=False),
+        'request_type':fields.selection([('norm', 'Against Norms'),('consum', 'Against consumption')],'Request Type'),
+        'prodlot_id': fields.many2one('stock.production.lot', 'Batch No'),
                 }
     def onchange_product_id(self, cr, uid, ids,product_id=False, context=None):
         res = {'value':{
@@ -3822,10 +3965,11 @@ tpt_material_request_line()
 class tpt_material_issue(osv.osv):
     _name = "tpt.material.issue"
     _columns = {
-        'name': fields.many2one('tpt.material.request','Material Issue No',required = True,states={'done':[('readonly', True)]}),
+        'name': fields.many2one('tpt.material.request','Material Request No',required = True,states={'done':[('readonly', True)]}),
         'date_request':fields.date('Material Request Date',states={'done':[('readonly', True)]}),
         'date_expec':fields.date('Material Issue Date',states={'done':[('readonly', True)]}),
         'department_id':fields.many2one('hr.department','Department',readonly=True),
+        'request_type':fields.selection([('ag_norm', 'Against Norms'),('ag_consumption', 'Against Consumption')],'Request type', states={'done':[('readonly', True)]}),
         'material_issue_line':fields.one2many('tpt.material.issue.line','material_issue_id','Vendor Group',states={'done':[('readonly', True)]}),
         'state':fields.selection([('draft', 'Draft'),('done', 'Approve')],'Status', readonly=True),
                 }

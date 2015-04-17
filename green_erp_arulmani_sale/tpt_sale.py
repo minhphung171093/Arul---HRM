@@ -1223,6 +1223,7 @@ class tpt_blank_order_line(osv.osv):
         'amount_ed': fields.function(ed_amt_calc, store = True, multi='deltas2' ,string='ED'),
                 
         'is_fsh_tio2': fields.boolean('Is TiO2 or FSH'),
+        'dispatch_date':fields.date('Scheduled Dispatch Date'),
         
                 }
     _defaults = {
@@ -2313,7 +2314,7 @@ class tpt_schedule_dispatch_update(osv.osv):
     def bt_approve(self, cr, uid, ids, context=None):
         for line in self.browse(cr, uid, ids):
             if line.schedule_date:
-                self.pool.get('tpt.blanket.order').write(cr, uid,[line.name.id], {'dispatch_date':line.schedule_date}, context)
+                self.pool.get('tpt.blank.order.line').write(cr, uid,[line.bo_line_id.id], {'dispatch_date':line.schedule_date}, context)
             else:
                 raise osv.except_osv(_('Warning!'),_('Please select Schedule Dispatch Date!')) 
         return self.write(cr, uid, ids,{'state':'done'})
