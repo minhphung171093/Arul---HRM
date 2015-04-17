@@ -1777,6 +1777,7 @@
 						<field name="date_request"/>
 						<field name="date_expec"/>
 						<field name="department_id"  />
+						<field name="request_type"  />
 						<field name="state" widget="statusbar" statusbar_visible="draft,done" statusbar_colors='{"draft":"blue"}'/>
 				</tree>
 			</field>
@@ -1796,6 +1797,7 @@
 							<field name="name" domain="[('state','=','done')]" on_change="onchange_material(name)" options="{'create': false, 'create_edit': false}" />
 							<field name="date_request" on_change="onchange_date_expect(date_request)" />
 							<field name="date_expec"/>
+							<field name="request_type"  />
 							<field name="department_id" options="{'create': false, 'create_edit': false}" />
 						</group>
 						<notebook>
