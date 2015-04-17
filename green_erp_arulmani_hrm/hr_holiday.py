@@ -3225,6 +3225,48 @@ class arul_hr_monthly_work_schedule(osv.osv):
                             vals['day_%d'%(num_new)] = work_day[old_num]
                             old_num += 1
                     
+                    for num_remain in range(1,num):
+                        date = datetime.date (line.year, int(line.month), num_remain)
+                        name_of_day = date.strftime("%A")
+                        if num_remain==1 and work.name_of_day_1 == name_of_day:
+                            break
+                        if num_remain==2 and work.name_of_day_2 == name_of_day:
+                            break
+                        if num_remain==3 and work.name_of_day_3 == name_of_day:
+                            break
+                        if num_remain==4 and work.name_of_day_4 == name_of_day:
+                            break
+                        if num_remain==5 and work.name_of_day_5 == name_of_day:
+                            break
+                        if num_remain==6 and work.name_of_day_6 == name_of_day:
+                            break
+                        if num_remain==7 and work.name_of_day_7 == name_of_day:
+                            break
+                    for num_back in range(1,num):
+                        if num_back <= work.num_of_month:
+                            vals['day_%d'%(num_back)] = work_day[num_remain]
+                            num_remain += 1
+                    
+                    if num_of_month_new>work.num_of_month:
+                        for num_last in range(work.num_of_month+1,num_of_month_new+1):
+                            date = datetime.date (line.year, int(line.month), num_last)
+                            name_of_day = date.strftime("%A")
+                            if work.name_of_day_1 == name_of_day:
+                                work_day[num_last]=work.day_1 and work.day_1.id or False
+                            if work.name_of_day_2 == name_of_day:
+                                work_day[num_last]=work.day_2 and work.day_2.id or False
+                            if work.name_of_day_3 == name_of_day:
+                                work_day[num_last]=work.day_3 and work.day_3.id or False
+                            if work.name_of_day_4 == name_of_day:
+                                work_day[num_last]=work.day_4 and work.day_4.id or False
+                            if work.name_of_day_5 == name_of_day:
+                                work_day[num_last]=work.day_5 and work.day_5.id or False
+                            if work.name_of_day_6 == name_of_day:
+                                work_day[num_last]=work.day_6 and work.day_6.id or False
+                            if work.name_of_day_7 == name_of_day:
+                                work_day[num_last]=work.day_7 and work.day_7.id or False
+                        for num_next in range(work.num_of_month+1,num_of_month_new+1):
+                            vals['day_%d'%(num_next)] = work_day[num_next]
                     work_vals.append((0,0,vals))
                 self.write(cr, uid, [line.id], {'monthly_shift_line':work_vals,'state':'load'})
         return True
