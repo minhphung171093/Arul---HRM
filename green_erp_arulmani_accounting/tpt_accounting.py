@@ -2134,6 +2134,7 @@ class tpt_material_issue(osv.osv):
     _columns = {
                 'gl_account_id': fields.many2one('account.account', 'GL Account'),
                 'warehouse':fields.many2one('stock.location','Source Location'),
+                'dest_warehouse_id': fields.many2one('stock.location','Destination Location'),
                 }
     def bt_approve(self, cr, uid, ids, context=None):
         price = 0.0
@@ -2142,11 +2143,17 @@ class tpt_material_issue(osv.osv):
         journal_obj = self.pool.get('account.journal')
         avg_cost_obj = self.pool.get('tpt.product.avg.cost')
         journal_line = []
-        
+        dest_id = False
         move_obj = self.pool.get('stock.move')
-        location_ids=self.pool.get('stock.location').search(cr, uid,[('name','=','Scrapped')])
+        
         
         for line in self.browse(cr, uid, ids):
+            if line.request_type == 'norm':
+                dest_id = line.dest_warehouse_id and line.dest_warehouse_id.id or False
+            else:
+                location_ids=self.pool.get('stock.location').search(cr, uid,[('name','=','Scrapped')])
+                if location_ids:
+                    dest_id = location_ids[0]
             
             for p in line.material_issue_line:
                 
@@ -2156,7 +2163,7 @@ class tpt_material_issue(osv.osv):
                       'product_qty':p.product_isu_qty or False,
                       'product_uom':p.uom_po_id and p.uom_po_id.id or False,
                       'location_id':line.warehouse and line.warehouse.id or False,
-                      'location_dest_id':location_ids[0],
+                      'location_dest_id':dest_id,
                       
                       }
                 move_id = move_obj.create(cr,uid,rs)
