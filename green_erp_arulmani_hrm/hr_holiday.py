@@ -546,7 +546,7 @@ class arul_hr_audit_shift_time(osv.osv):
                         continue
                 
                 #if flag==1 or line.additional_shifts or (extra_hours>8 and line.employee_id.employee_category_id and line.employee_id.employee_category_id.code!='S1'): # Commented By BalamuruganPurushothaman - TO do not calculate COFF for S1 categ
-		if flag==1 and line.employee_id.employee_category_id and line.employee_id.employee_category_id.code!='S1':
+		if flag==1 or line.additional_shifts or (extra_hours>7.39 and line.employee_id.employee_category_id and line.employee_id.employee_category_id.code!='S1'):
                     c_off_day = 0.0
 		    #raise osv.except_osv(_('Warning!'),_('inside c.off'))
                     if line.additional_shifts:
@@ -757,7 +757,7 @@ class arul_hr_audit_shift_time(osv.osv):
         employee_leave_obj = self.pool.get('employee.leave')
         employee_leave_detail_obj = self.pool.get('employee.leave.detail')
         leave_type_obj = self.pool.get('arul.hr.leave.types')
-	#raise osv.except_osv(_('Warning!%s'),leave_type_obj)	
+	    #raise osv.except_osv(_('Warning!%s'),leave_type_obj)	
         for line in self.browse(cr, uid, ids):
             #Trong them
             if line.work_date: 
@@ -2306,7 +2306,7 @@ class arul_hr_punch_in_out_time(osv.osv):
             sql = '''
             SELECT SUM(time_total) FROM arul_hr_permission_onduty WHERE 
             non_availability_type_id='permission' 
-                AND TO_CHAR(date,'YYYY-MM-DD') = ('%s') and employee_id =%s and state='done'
+                AND TO_CHAR(date,'YYYY-MM-DD') = ('%s') and employee_id =%s and approval='t'
                 '''%(time.work_date,time.employee_id.id)
             cr.execute(sql)
             b =  cr.fetchone()
@@ -2316,7 +2316,7 @@ class arul_hr_punch_in_out_time(osv.osv):
             #OnDuty
             sql = '''
                 SELECT SUM(time_total) FROM arul_hr_permission_onduty WHERE non_availability_type_id='on_duty' 
-                AND TO_CHAR(to_date,'YYYY-MM-DD') = ('%s') and employee_id =%s and state='done'
+                AND TO_CHAR(date,'YYYY-MM-DD') = ('%s') and employee_id =%s and approval='t'
                 '''%(time.work_date,time.employee_id.id)
             cr.execute(sql)
             c =  cr.fetchone()
@@ -2327,117 +2327,117 @@ class arul_hr_punch_in_out_time(osv.osv):
             total_hrs = time.total_hours + perm_onduty_count
             
             if time.actual_work_shift_id.code=='A' or time.actual_work_shift_id.code=='B' :
-                if 3.7 <= time.total_hours <= 4.15:  
+                if 3.7 <= total_hrs <= 4.15:  
                     res[time.id]['total_shift_worked'] = 0.5 
                     
-                if 4.15 <= time.total_hours <= 7.45:  
+                if 4.15 <= total_hrs <= 7.45:  
                     res[time.id]['total_shift_worked'] = 0.5
                 #        
-                if 7.45 <= time.total_hours <= 8.30:  
+                if 7.45 <= total_hrs <= 8.30:  
                     res[time.id]['total_shift_worked'] = 1
                 
-                if 8.30 <= time.total_hours <= 11.175:  
+                if 8.30 <= total_hrs <= 11.175:  
                     res[time.id]['total_shift_worked'] = 1
                 #        
-                if 11.175 <= time.total_hours <= 12.45:  
+                if 11.175 <= total_hrs <= 12.45:  
                     res[time.id]['total_shift_worked'] = 1.5
                 
-                if 12.45 <= time.total_hours <= 15.3:  
+                if 12.45 <= total_hrs <= 15.3:  
                     res[time.id]['total_shift_worked'] = 1.5
                 #    
-                if 15.3 <= time.total_hours <= 17.00:  
+                if 15.3 <= total_hrs <= 17.00:  
                     res[time.id]['total_shift_worked'] = 2
                 
-                if 17 <= time.total_hours <= 19.00:  
+                if 17 <= total_hrs <= 19.00:  
                     res[time.id]['total_shift_worked'] = 2
                 
                 #
-                if 19.025 <= time.total_hours <= 21.15:  
+                if 19.025 <= total_hrs <= 21.15:  
                     res[time.id]['total_shift_worked'] = 2.5
                 
-                if 21.15 <= time.total_hours <= 22.75:  
+                if 21.15 <= total_hrs <= 22.75:  
                     res[time.id]['total_shift_worked'] = 2.5
                 #        
-                if 22.75 <= time.total_hours <= 25.3:  
+                if 22.75 <= total_hrs <= 25.3:  
                     res[time.id]['total_shift_worked'] = 3
                 
-                if 25.3 <= time.total_hours <= 28:  
+                if 25.3 <= total_hrs <= 28:  
                     res[time.id]['total_shift_worked'] = 3    
                  
             if time.actual_work_shift_id.code=='G1':
-                if 3.7 <= time.total_hours <= 4.15:  
+                if 3.7 <= total_hrs <= 4.15:  
                     res[time.id]['total_shift_worked'] = 0.5 
                     
-                if 4.15 <= time.total_hours <= 7.45:  
+                if 4.15 <= total_hrs <= 7.45:  
                     res[time.id]['total_shift_worked'] = 0.5
                 #        
-                if 7.45 <= time.total_hours <= 8.30:  
+                if 7.45 <= total_hrs <= 8.30:  
                     res[time.id]['total_shift_worked'] = 1
                 
-                if 8.30 <= time.total_hours <= 11.175:  
+                if 8.30 <= total_hrs <= 11.175:  
                     res[time.id]['total_shift_worked'] = 1
                 #        
-                if 11.175 <= time.total_hours <= 12.45:  
+                if 11.175 <= total_hrs <= 12.45:  
                     res[time.id]['total_shift_worked'] = 1.5
                 
-                if 12.45 <= time.total_hours <= 15.3:  
+                if 12.45 <= total_hrs <= 15.3:  
                     res[time.id]['total_shift_worked'] = 1.5
                 #    
-                if 15.3 <= time.total_hours <= 17.00:  
+                if 15.3 <= total_hrs <= 17.00:  
                     res[time.id]['total_shift_worked'] = 2
                 
-                if 17 <= time.total_hours <= 19.00:  
+                if 17 <= total_hrs <= 19.00:  
                     res[time.id]['total_shift_worked'] = 2
                 
                 #
-                if 19.025 <= time.total_hours <= 21.15:  
+                if 19.025 <= total_hrs <= 21.15:  
                     res[time.id]['total_shift_worked'] = 2.5
                 
-                if 21.15 <= time.total_hours <= 22.75:  
+                if 21.15 <= total_hrs <= 22.75:  
                     res[time.id]['total_shift_worked'] = 2.5
                 #        
-                if 22.75 <= time.total_hours <= 25.3:  
+                if 22.75 <= total_hrs <= 25.3:  
                     res[time.id]['total_shift_worked'] = 3
                 
-                if 25.3 <= time.total_hours <= 28:  
+                if 25.3 <= total_hrs <= 28:  
                     res[time.id]['total_shift_worked'] = 3 
                
             if time.actual_work_shift_id.code=='G2' or time.actual_work_shift_id.code=='C':
-                if 3.7 <= time.total_hours <= 4.15:  
+                if 3.7 <= total_hrs <= 4.15:  
                     res[time.id]['total_shift_worked'] = 0.5 
                     
-                if 4.15 <= time.total_hours <= 7.45:  
+                if 4.15 <= total_hrs <= 7.45:  
                     res[time.id]['total_shift_worked'] = 0.5
                 #        
-                if 7.45 <= time.total_hours <= 8.30:  
+                if 7.45 <= total_hrs <= 8.30:  
                     res[time.id]['total_shift_worked'] = 1
                 
-                if 8.30 <= time.total_hours <= 11.175:  
+                if 8.30 <= total_hrs <= 11.175:  
                     res[time.id]['total_shift_worked'] = 1
                 #        
-                if 11.175 <= time.total_hours <= 12.45:  
+                if 11.175 <= total_hrs <= 12.45:  
                     res[time.id]['total_shift_worked'] = 1.5
                 
-                if 12.45 <= time.total_hours <= 15.3:  
+                if 12.45 <= total_hrs <= 15.3:  
                     res[time.id]['total_shift_worked'] = 1.5
                 #    
-                if 15.3 <= time.total_hours <= 17.00:  
+                if 15.3 <= total_hrs <= 17.00:  
                     res[time.id]['total_shift_worked'] = 2
                 
-                if 17 <= time.total_hours <= 19.00:  
+                if 17 <= total_hrs <= 19.00:  
                     res[time.id]['total_shift_worked'] = 2
                 
                 #
-                if 19.025 <= time.total_hours <= 21.15:  
+                if 19.025 <= total_hrs <= 21.15:  
                     res[time.id]['total_shift_worked'] = 2.5
                 
-                if 21.15 <= time.total_hours <= 22.75:  
+                if 21.15 <= total_hrs <= 22.75:  
                     res[time.id]['total_shift_worked'] = 2.5
                 #        
-                if 22.75 <= time.total_hours <= 25.3:  
+                if 22.75 <= total_hrs <= 25.3:  
                     res[time.id]['total_shift_worked'] = 3
                 
-                if 25.3 <= time.total_hours <= 28:  
+                if 25.3 <= total_hrs <= 28:  
                     res[time.id]['total_shift_worked'] = 3 
             
             #===================================================================
@@ -2487,7 +2487,7 @@ class arul_hr_punch_in_out_time(osv.osv):
         'diff_day': fields.boolean('Difference Day', readonly = True),
         #TPT
         #TPT-Punch InOut - THIS COLUMN IS STORE IN DB TO GET THIS COUNT DURING PAYROLL PROCESS
-        'total_shift_worked': fields.function(_shift_total, store=True, string='No.Of Shift Worked', multi='shift_punchinout_sums', help="The total amount."),
+        'total_shift_worked': fields.function(_shift_total, string='No.Of Shift Worked', multi='shift_punchinout_sums', help="The total amount."),
         #'shift_count': fields.function(_shift_total, store=True,string='Shift Count', multi='shift_punchinout2_sums', help="The total amount."),
         'a_shift_count': fields.function(_shift_total, string='A', multi='a_shift'),
         'b_shift_count': fields.function(_shift_total, string='B', multi='b_shift'),
@@ -2499,11 +2499,18 @@ class arul_hr_punch_in_out_time(osv.osv):
         #'g2_shift_count': fields.float('G2', states={'done': [('readonly', True)], 'cancel': [('readonly', True)]}),
         #'b_shift_count': fields.float('B', states={'done': [('readonly', True)], 'cancel': [('readonly', True)]}),
         #'c_shift_count': fields.float('C', states={'done': [('readonly', True)], 'cancel': [('readonly', True)]}),
-              
+        
+        'shift_plus': fields.float('S+', states={'done': [('readonly', True)], 'cancel': [('readonly', True)]}),
+        'shift_minus': fields.float('S-', states={'done': [('readonly', True)], 'cancel': [('readonly', True)]}),
+        'reason_for_adj': fields.selection([('sys_err', 'System Error'),
+                                            ('clerk_err', 'Clerical Error')],'Reason for Change'),
+         'reason_details': fields.text('Reason In Details'),             
     }
     
     _defaults = {
         'state':'draft',
+        'shift_plus':0.0,
+        'shift_minus':0.0,
     }
     def name_get(self, cr, uid, ids, context=None):
         res = []
@@ -6443,3 +6450,62 @@ class shift_change(osv.osv):
                 args += [('id','in',leave_details_ids)]
         return super(shift_change, self).search(cr, uid, args, offset, limit, order, context, count)
 shift_change()
+
+class shift_adjustment(osv.osv):
+    _name='shift.adjustment'
+    
+    def shift_adj(self, cr, uid, ids, context=None):
+        #emp = self.pool.get('hr.employee')
+        emp_attendence_obj = self.pool.get('arul.hr.employee.attendence.details')
+        punch_obj = self.pool.get('arul.hr.punch.in.out.time')
+        
+        for line in self.browse(cr, uid, ids, context=context):
+            sql = '''
+                
+            '''
+            #cr.execute(sql)
+            if not line.work_date:
+                raise osv.except_osv(_('Warning!'),_('Pls Select Work Date'))
+            att = self.pool.get('arul.hr.punch.in.out.time').search(cr, uid, [('work_date','=',line.work_date),('employee_id','=',line.employee_id.id)])
+            if not att:
+                raise osv.except_osv(_('Warning!'),_('There is no attendance Entry for this Day'))
+            else:
+                    
+                att = str(att[0]).replace('[', '')
+                att = att.replace(']', '')
+                #raise osv.except_osv(_('Warning!%s'),_(line.reason_for_adj))   
+                if line.adj_type=='increase':
+                    sql = '''
+                    update arul_hr_punch_in_out_time set shift_plus =%s,reason_for_adj = '%s',reason_details='%s' where id=%s 
+                    '''%(line.increase_count,line.reason_for_adj,line.reason_details, att)
+                    cr.execute(sql)
+                if line.adj_type=='decrease':
+                    sql = '''
+                    update arul_hr_punch_in_out_time set shift_minus =%s,reason_for_adj = '%s',reason_details='%s' where id=%s
+                    '''%(line.decrease_count,line.reason_for_adj,line.reason_details,att)
+                    cr.execute(sql)
+        return self.write(cr, uid, ids, {'state':'done'})
+       
+    _columns={
+              'employee_id': fields.many2one('hr.employee','Employee ID',required = True),
+              'work_date': fields.date('Work Date',required = True),             
+              'adj_type': fields.selection([('increase', 'Increase'),
+                                            ('decrease', 'Decrease')],'Adjustment Type',required = True),
+              'increase_count': fields.float('Increase Count'),
+              'decrease_count': fields.float('Decrease Count'),
+              'reason_for_adj': fields.selection([('sys_err', 'System Error'),
+                                            ('clerk_err', 'Clerical Error')],'Reason for Change'),
+              'reason_details': fields.text('Reason In Details'),
+              'state':fields.selection([('draft', 'Draft'),('cancel', 'Reject'),
+                                            ('done', 'Approve')],'Status', readonly=True),              
+              'create_date': fields.datetime('Created Date',readonly = True),
+              'create_uid': fields.many2one('res.users','Created By',ondelete='restrict',readonly = True),
+        
+              }
+    
+    _defaults = {
+        'state':'draft',        
+        
+    }
+shift_adjustment()
+
