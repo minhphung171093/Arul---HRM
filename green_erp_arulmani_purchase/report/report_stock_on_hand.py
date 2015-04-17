@@ -37,6 +37,18 @@ class Parser(report_sxw.rml_parse):
         super(Parser, self).__init__(cr, uid, name, context=context)
         pool = pooler.get_pool(self.cr.dbname)
         self.localcontext.update({
+              'get_date':self.get_date,
+              'get_warehouse':self.get_warehouse,
+              'get_categ':self.get_categ,
+              'get_ton_sl':self.get_ton_sl,
+              'get_category':self.get_category,
+              'get_product':self.get_product,
+              'get_ins_qty':self.get_ins_qty,
+              'get_blo_qty':self.get_blo_qty,
+#               'get_categ_product':self.get_categ_product
+              
+              
+              
         })
         
     def convert_date(self,date):
@@ -44,76 +56,141 @@ class Parser(report_sxw.rml_parse):
         return date.strftime('%d/%m/%Y')
     
     def get_date(self):
-        res = {}
         date = time.strftime('%Y-%m-%d'),
         date = datetime.strptime(date[0], DATE_FORMAT)
-        day = date.day
-        month = date.month
-        year = date.year
-        res = {
-               'day': day,
-               'month': month,
-               'year': year,
-               }
-        return res
-        
-    def get_invoice(self):
-        res = {}
+        return date.strftime('%d/%m/%Y')
+    
+    def get_warehouse(self):
         wizard_data = self.localcontext['data']['form']
-        date_from = wizard_data['date_from']
-        date_to = wizard_data['date_to']
-        invoice_obj = self.pool.get('account.invoice.line')
+        loc = wizard_data['location_id']
+        loc_obj = self.pool.get('stock.location').browse(self.cr,self.uid,loc[0])
+        return loc_obj   
+    
+    def get_category(self):
+        wizard_data = self.localcontext['data']['form']
+        cat = wizard_data['categ_id']
+        if cat:
+            cat_obj = self.pool.get('product.category').browse(self.cr,self.uid,cat[0])
+            return cat_obj
+        return False
+    
+    def get_product(self):
+        wizard_data = self.localcontext['data']['form']
+        pro = wizard_data['product_id']
+        if pro:
+            pro_obj = self.pool.get('product.product').browse(self.cr,self.uid,pro[0])
+            return pro_obj
+        return False
+
+    def get_categ(self):
+        wizard_data = self.localcontext['data']['form']
+        loc = wizard_data['location_id']
+        categ = wizard_data['categ_id']
+        product = wizard_data['product_id']
+        pro_obj = self.pool.get('product.product')
+        categ_ids = []
+
+        if categ and product:
+            sql='''
+                        select product_product.id 
+                        from product_product,product_template 
+                        where product_template.categ_id in(select product_category.id from product_category where product_category.id = %s) 
+                        and product_product.product_tmpl_id = product_template.id and product_product.id = %s ;
+            '''%(categ[0],product[0])
+            self.cr.execute(sql)
+            categ_ids += [r[0] for r in self.cr.fetchall()]
+            return self.pool.get('product.product').browse(self.cr,self.uid,categ_ids)
+        if categ:
+            sql='''
+                        select product_product.id 
+                        from product_product,product_template 
+                        where product_template.categ_id in(select product_category.id from product_category where product_category.id = %s) 
+                        and product_product.product_tmpl_id = product_template.id;
+            '''%(categ[0])
+            self.cr.execute(sql)
+            categ_ids += [r[0] for r in self.cr.fetchall()]
+            return pro_obj.browse(self.cr,self.uid,categ_ids)
+        if product and not categ:
+            sql='''
+                        select product_product.id 
+                        from product_product,product_template 
+                        where product_template.categ_id in(select product_category.id from product_category) 
+                        and product_product.product_tmpl_id = product_template.id and product_product.id = %s ;
+            '''%(product[0])
+            self.cr.execute(sql)
+            categ_ids += [r[0] for r in self.cr.fetchall()]
+            return self.pool.get('product.product').browse(self.cr,self.uid,categ_ids)
+        if not product and not categ :
+            sql='''
+                        select product_product.id 
+                        from product_product,product_template 
+                        where product_template.categ_id in(select product_category.id from product_category) 
+                        and product_product.product_tmpl_id = product_template.id  ;
+            '''
+            self.cr.execute(sql)
+            categ_ids += [r[0] for r in self.cr.fetchall()]
+            return self.pool.get('product.product').browse(self.cr,self.uid,categ_ids)
+        
+    def get_ton_sl(self, line):
+        wizard_data = self.localcontext['data']['form']
+        loc = wizard_data['location_id']
+        location = self.pool.get('stock.location').browse(self.cr,self.uid,loc[0])
         sql = '''
-            select id from account_invoice_line where invoice_id in (select id from account_invoice where date_invoice between '%s' and '%s' and type = 'out_invoice')
-            '''%(date_from, date_to)
+                        select case when sum(foo.product_qty)>0 then sum(foo.product_qty) else 0 end ton_sl from 
+                            (select st.product_qty
+                                from stock_move st 
+                                where st.state='done' and st.product_id = %s and st.location_dest_id = %s
+                            union all
+                            select st.product_qty*-1
+                                from stock_move st 
+                                where st.state='done' and st.product_id = %s and st.location_id = %s
+                            )foo
+                    '''%(line.id,location.id,line.id,location.id)
         self.cr.execute(sql)
-        invoice_ids = [r[0] for r in self.cr.fetchall()]
-        return invoice_obj.browse(self.cr,self.uid,invoice_ids)
+        ton_sl = self.cr.dictfetchone()
+        return ton_sl and ton_sl['ton_sl'] or 0
     
-    def get_invoice_type(self, invoice_type):
-        if invoice_type == 'domestic':
-            return "Domestic/Indirect Export"
-        if invoice_type == 'export':
-            return "Export"
-        
-    def get_order_type(self, order_type):
-        if order_type == 'domestic':
-            return "Domestic"
-        if order_type == 'export':
-            return "Export"
-        
-    def get_customer_group(self, customer):
-        if customer == 'export':
-            return "Export"
-        if customer == 'domestic':
-            return "Domestic"
-        if customer == 'indirect_export':
-            return "Indirect Export"
-        
-    def get_cst_tax(self, tax, untax):
-        amount = 0
-        if 'CST' in tax.name:
-            amount = tax.amount
-        return round(amount*untax/100,2)
-    
-    def get_vat_tax(self, tax, untax):
-        amount = 0
-        if 'VAT' in tax.name:
-            amount = tax.amount
-        return round(amount*untax/100,2)
-    
-    def get_tcs_tax(self, tax, untax):
-        amount = 0
-        if 'TCS' in tax.name:
-            amount = tax.amount
-        return round(amount*untax/100,2)
-        
-    
-#     def get_sale_line(self,invoice):
-#         line = invoice[0]
-#         order_lines = line.invoice_id.sale_id.order_line
-#             
-#         return self.pool.get('sale.order.line').browse(self.cr,self.uid,order_lines[0])
+    def get_ins_qty(self, line):
+        wizard_data = self.localcontext['data']['form']
+        loc = wizard_data['location_id']
+        location = self.pool.get('stock.location').browse(self.cr,self.uid,loc[0])
+        parent_ids = self.pool.get('stock.location').search(self.cr, self.uid, [('name','=','Quality Inspection'),('usage','=','view')])
+        locat_ids = self.pool.get('stock.location').search(self.cr, self.uid, [('name','in',['Inspection']),('location_id','=',parent_ids[0])])
+        sql = '''
+                        select case when sum(foo.product_qty)>0 then sum(foo.product_qty) else 0 end ton from 
+                            (select st.product_qty
+                                from stock_move st 
+                                where st.state='done' and st.product_id = %s and st.location_dest_id = %s
+                            union all
+                            select st.product_qty*-1
+                                from stock_move st 
+                                where st.state='done' and st.product_id = %s and st.location_id = %s
+                            )foo
+                    '''%(line.id,locat_ids[0],line.id,locat_ids[0])
+        self.cr.execute(sql)
+        ton = self.cr.dictfetchone()
+        return ton and ton['ton'] or 0
+    def get_blo_qty(self, line):
+        wizard_data = self.localcontext['data']['form']
+        loc = wizard_data['location_id']
+        location = self.pool.get('stock.location').browse(self.cr,self.uid,loc[0])
+        parent_ids = self.pool.get('stock.location').search(self.cr, self.uid, [('name','=','Block List'),('usage','=','view')])
+        locat_ids = self.pool.get('stock.location').search(self.cr, self.uid, [('name','in',['Blocked']),('location_id','=',parent_ids[0])])
+        sql = '''
+                        select case when sum(foo.product_qty)>0 then sum(foo.product_qty) else 0 end ton from 
+                            (select st.product_qty
+                                from stock_move st 
+                                where st.state='done' and st.product_id = %s and st.location_dest_id = %s
+                            union all
+                            select st.product_qty*-1
+                                from stock_move st 
+                                where st.state='done' and st.product_id = %s and st.location_id = %s
+                            )foo
+                    '''%(line.id,locat_ids[0],line.id,locat_ids[0])
+        self.cr.execute(sql)
+        ton = self.cr.dictfetchone()
+        return ton and ton['ton'] or 0        
+
         
     
 # vim:expandtab:smartindent:tabstop=4:softtabstop=4:shiftwidth=4:
