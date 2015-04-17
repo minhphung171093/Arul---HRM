@@ -3628,6 +3628,7 @@ class tpt_material_request(osv.osv):
         'project_section_id': fields.many2one('tpt.project.section','Project Section',ondelete='restrict',states={'done':[('readonly', True)]}),
         'material_request_line':fields.one2many('tpt.material.request.line','material_request_id','Vendor Group',states={'done':[('readonly', True)]}),
         'state':fields.selection([('draft', 'Draft'),('done', 'Approve')],'Status', readonly=True),
+        'request_type':fields.selection([('norm', 'Against Norms'),('consum', 'Against consumption')],'Request Type', states={'done':[('readonly', True)]}),
                 }
     _defaults = {
         'state':'draft',      
@@ -3639,6 +3640,7 @@ class tpt_material_request(osv.osv):
     
     def create(self, cr, uid, vals, context=None):
         user = self.pool.get('res.users').browse(cr,uid,uid)
+        product_obj = self.pool.get('product.product')
 #         vals['department_id'] = user.employee_id and user.employee_id.department_id and user.employee_id.department_id.id or False
         if vals.get('name','/')=='/':
             sql = '''
@@ -3654,32 +3656,95 @@ class tpt_material_request(osv.osv):
         new_id = super(tpt_material_request, self).create(cr, uid, vals, context)
         material = self.browse(cr,uid,new_id)
         sql = '''
-                select product_id, sum(product_uom_qty) as product_qty from tpt_material_request_line where material_request_id = %s group by product_id
+                select product_id, prodlot_id, sum(product_uom_qty) as product_qty from tpt_material_request_line where material_request_id = %s group by product_id,prodlot_id
                 '''%(material.id)
         cr.execute(sql)
         for order_line in cr.dictfetchall():
-            sql = '''
-            SELECT sum(onhand_qty) onhand_qty
-            From
-            (SELECT
-                   
-                case when loc1.usage != 'internal' and loc2.usage = 'internal'
-                then stm.primary_qty
-                else
-                case when loc1.usage = 'internal' and loc2.usage != 'internal'
-                then -1*stm.primary_qty 
-                else 0.0 end
-                end onhand_qty
-                        
-            FROM stock_move stm 
-                join stock_location loc1 on stm.location_id=loc1.id
-                join stock_location loc2 on stm.location_dest_id=loc2.id
-            WHERE stm.state= 'done' and product_id=%s)foo
-            '''%(order_line['product_id'])
-            cr.execute(sql)
-            onhand_qty = cr.dictfetchone()['onhand_qty']
-            if (order_line['product_qty'] > onhand_qty):
-                raise osv.except_osv(_('Warning!'),_('You are confirm %s but only %s available for this product in stock.' %(order_line['product_qty'], onhand_qty)))
+            location_id = False
+            product_id = product_obj.browse(cr,uid,order_line['product_id'])
+            cate_name = product_id.categ_id and product_id.categ_id.cate_name or False
+            if cate_name == 'finish':
+                lot = order_line['prodlot_id'] or False
+                parent_ids = self.pool.get('stock.location').search(cr, uid, [('name','=','Store'),('usage','=','view')])
+                if parent_ids:
+                    locat_ids = self.pool.get('stock.location').search(cr, uid, [('name','=','FSH'),('location_id','=',parent_ids[0])])
+                if locat_ids:
+                    location_id = locat_ids[0]
+                    if lot:
+                        sql = '''
+                        SELECT sum(onhand_qty) onhand_qty
+                        From
+                        (SELECT
+                            case when loc1.usage != 'internal' and loc2.usage = 'internal' and loc2.id = %s and prodlot_id = %s
+                            then stm.primary_qty
+                            else
+                            case when loc1.usage = 'internal' and loc2.usage != 'internal' and loc1.id = %s and prodlot_id = %s
+                            then -1*stm.primary_qty 
+                            else 0.0 end
+                            end onhand_qty
+                                    
+                        FROM stock_move stm 
+                            join stock_location loc1 on stm.location_id=loc1.id
+                            join stock_location loc2 on stm.location_dest_id=loc2.id
+                        WHERE stm.state= 'done' and product_id=%s)foo
+                        '''%(location_id,lot,location_id,lot,order_line['product_id'])
+                    else:
+                        sql = '''
+                        SELECT sum(onhand_qty) onhand_qty
+                        From
+                        (SELECT
+                            case when loc1.usage != 'internal' and loc2.usage = 'internal' and loc2.id = %s
+                            then stm.primary_qty
+                            else
+                            case when loc1.usage = 'internal' and loc2.usage != 'internal' and loc1.id = %s
+                            then -1*stm.primary_qty 
+                            else 0.0 end
+                            end onhand_qty
+                                    
+                        FROM stock_move stm 
+                            join stock_location loc1 on stm.location_id=loc1.id
+                            join stock_location loc2 on stm.location_dest_id=loc2.id
+                        WHERE stm.state= 'done' and product_id=%s)foo
+                        '''%(location_id,location_id,order_line['product_id'])
+                    cr.execute(sql)
+                    onhand_qty = cr.dictfetchone()['onhand_qty']
+                    if (order_line['product_qty'] > onhand_qty):
+                        raise osv.except_osv(_('Warning!'),_('You are confirm %s but only %s available for this product in stock.' %(order_line['product_qty'], onhand_qty)))
+            if cate_name == 'raw':
+                parent_ids = self.pool.get('stock.location').search(cr, uid, [('name','=','Store'),('usage','=','view')])
+                if parent_ids:
+                    locat_ids = self.pool.get('stock.location').search(cr, uid, [('name','in',['Raw material','Raw Material']),('location_id','=',parent_ids[0])])
+                if locat_ids:
+                    location_id = locat_ids[0]
+            if cate_name == 'spares':
+                parent_ids = self.pool.get('stock.location').search(cr, uid, [('name','=','Store'),('usage','=','view')])
+                if parent_ids:
+                    locat_ids = self.pool.get('stock.location').search(cr, uid, [('name','=','Spare'),('location_id','=',parent_ids[0])])
+                if locat_ids:
+                    location_id = locat_ids[0]
+            if location_id and cate_name != 'finish':
+                sql = '''
+                SELECT sum(onhand_qty) onhand_qty
+                From
+                (SELECT
+                       
+                    case when loc1.usage != 'internal' and loc2.usage = 'internal' and loc2.id = %s
+                    then stm.primary_qty
+                    else
+                    case when loc1.usage = 'internal' and loc2.usage != 'internal' and loc1.id = %s
+                    then -1*stm.primary_qty 
+                    else 0.0 end
+                    end onhand_qty
+                            
+                FROM stock_move stm 
+                    join stock_location loc1 on stm.location_id=loc1.id
+                    join stock_location loc2 on stm.location_dest_id=loc2.id
+                WHERE stm.state= 'done' and product_id=%s)foo
+                '''%(location_id,location_id,order_line['product_id'])
+                cr.execute(sql)
+                onhand_qty = cr.dictfetchone()['onhand_qty']
+                if (order_line['product_qty'] > onhand_qty):
+                    raise osv.except_osv(_('Warning!'),_('You are confirm %s but only %s available for this product in stock.' %(order_line['product_qty'], onhand_qty)))
         return new_id
 
     def onchange_create_uid(self, cr, uid, ids,create_uid=False, context=None):
@@ -3703,34 +3768,98 @@ class tpt_material_request(osv.osv):
 #                 sequence = self.pool.get('ir.sequence').get(cr, uid, 'tpt.material.request.import')
 #                 vals['name'] =  sequence and sequence+'/'+fiscalyear['code'] or '/'
         new_write = super(tpt_material_request, self).write(cr, uid,ids, vals, context)
+        product_obj = self.pool.get('product.product')
         for material in self.browse(cr,uid,ids):
             sql = '''
-                select product_id, sum(product_uom_qty) as product_qty from tpt_material_request_line where material_request_id = %s group by product_id
+                select product_id, prodlot_id, sum(product_uom_qty) as product_qty from tpt_material_request_line where material_request_id = %s group by product_id,prodlot_id
                 '''%(material.id)
             cr.execute(sql)
             for order_line in cr.dictfetchall():
-                sql = '''
-                SELECT sum(onhand_qty) onhand_qty
-                From
-                (SELECT
-                       
-                    case when loc1.usage != 'internal' and loc2.usage = 'internal'
-                    then stm.primary_qty
-                    else
-                    case when loc1.usage = 'internal' and loc2.usage != 'internal'
-                    then -1*stm.primary_qty 
-                    else 0.0 end
-                    end onhand_qty
-                            
-                FROM stock_move stm 
-                    join stock_location loc1 on stm.location_id=loc1.id
-                    join stock_location loc2 on stm.location_dest_id=loc2.id
-                WHERE stm.state= 'done' and product_id=%s)foo
-                '''%(order_line['product_id'])
-                cr.execute(sql)
-                onhand_qty = cr.dictfetchone()['onhand_qty']
-                if (order_line['product_qty'] > onhand_qty):
-                    raise osv.except_osv(_('Warning!'),_('You are confirm %s but only %s available for this product in stock.' %(order_line['product_qty'], onhand_qty)))
+                location_id = False
+                product_id = product_obj.browse(cr,uid,order_line['product_id'])
+                cate_name = product_id.categ_id and product_id.categ_id.cate_name or False
+                if cate_name == 'finish':
+                    lot = order_line['prodlot_id'] or False
+                    parent_ids = self.pool.get('stock.location').search(cr, uid, [('name','=','Store'),('usage','=','view')])
+                    if parent_ids:
+                        locat_ids = self.pool.get('stock.location').search(cr, uid, [('name','=','FSH'),('location_id','=',parent_ids[0])])
+                    if locat_ids:
+                        location_id = locat_ids[0]
+                        if lot:
+                            sql = '''
+                            SELECT sum(onhand_qty) onhand_qty
+                            From
+                            (SELECT
+                                case when loc1.usage != 'internal' and loc2.usage = 'internal' and loc2.id = %s and prodlot_id = %s
+                                then stm.primary_qty
+                                else
+                                case when loc1.usage = 'internal' and loc2.usage != 'internal' and loc1.id = %s and prodlot_id = %s
+                                then -1*stm.primary_qty 
+                                else 0.0 end
+                                end onhand_qty
+                                        
+                            FROM stock_move stm 
+                                join stock_location loc1 on stm.location_id=loc1.id
+                                join stock_location loc2 on stm.location_dest_id=loc2.id
+                            WHERE stm.state= 'done' and product_id=%s)foo
+                            '''%(location_id,lot,location_id,lot,order_line['product_id'])
+                        else:
+                            sql = '''
+                            SELECT sum(onhand_qty) onhand_qty
+                            From
+                            (SELECT
+                                case when loc1.usage != 'internal' and loc2.usage = 'internal' and loc2.id = %s
+                                then stm.primary_qty
+                                else
+                                case when loc1.usage = 'internal' and loc2.usage != 'internal' and loc1.id = %s
+                                then -1*stm.primary_qty 
+                                else 0.0 end
+                                end onhand_qty
+                                        
+                            FROM stock_move stm 
+                                join stock_location loc1 on stm.location_id=loc1.id
+                                join stock_location loc2 on stm.location_dest_id=loc2.id
+                            WHERE stm.state= 'done' and product_id=%s)foo
+                            '''%(location_id,location_id,order_line['product_id'])
+                        cr.execute(sql)
+                        onhand_qty = cr.dictfetchone()['onhand_qty']
+                        if (order_line['product_qty'] > onhand_qty):
+                            raise osv.except_osv(_('Warning!'),_('You are confirm %s but only %s available for this product in stock.' %(order_line['product_qty'], onhand_qty)))
+                if cate_name == 'raw':
+                    parent_ids = self.pool.get('stock.location').search(cr, uid, [('name','=','Store'),('usage','=','view')])
+                    if parent_ids:
+                        locat_ids = self.pool.get('stock.location').search(cr, uid, [('name','in',['Raw material','Raw Material']),('location_id','=',parent_ids[0])])
+                    if locat_ids:
+                        location_id = locat_ids[0]
+                if cate_name == 'spares':
+                    parent_ids = self.pool.get('stock.location').search(cr, uid, [('name','=','Store'),('usage','=','view')])
+                    if parent_ids:
+                        locat_ids = self.pool.get('stock.location').search(cr, uid, [('name','=','Spare'),('location_id','=',parent_ids[0])])
+                    if locat_ids:
+                        location_id = locat_ids[0]
+                if location_id and cate_name != 'finish':
+                    sql = '''
+                    SELECT sum(onhand_qty) onhand_qty
+                    From
+                    (SELECT
+                           
+                        case when loc1.usage != 'internal' and loc2.usage = 'internal' and loc2.id = %s
+                        then stm.primary_qty
+                        else
+                        case when loc1.usage = 'internal' and loc2.usage != 'internal' and loc1.id = %s
+                        then -1*stm.primary_qty 
+                        else 0.0 end
+                        end onhand_qty
+                                
+                    FROM stock_move stm 
+                        join stock_location loc1 on stm.location_id=loc1.id
+                        join stock_location loc2 on stm.location_dest_id=loc2.id
+                    WHERE stm.state= 'done' and product_id=%s)foo
+                    '''%(location_id,location_id,order_line['product_id'])
+                    cr.execute(sql)
+                    onhand_qty = cr.dictfetchone()['onhand_qty']
+                    if (order_line['product_qty'] > onhand_qty):
+                        raise osv.except_osv(_('Warning!'),_('You are confirm %s but only %s available for this product in stock.' %(order_line['product_qty'], onhand_qty)))
         return new_write
 
     def bt_approve(self, cr, uid, ids, context=None):
@@ -3747,6 +3876,17 @@ class tpt_material_request(osv.osv):
             cr.execute(sql)
             dates = cr.dictfetchone()['date_request']
         return {'value': {'date_expec':dates}}
+    
+    def onchange_request_type(self, cr, uid, ids,request_type=False, context=None):
+        vals = {}
+        if request_type:
+            for request in self.browse(cr, uid, ids):
+                for line in request.material_request_line:
+                    sql = '''
+                        update tpt_material_request_line set request_type = '%s' where id=%s
+                    '''%(request_type,line.id)
+                    cr.execute(sql)
+        return {'value':vals} 
 tpt_material_request()
 
 
@@ -3784,6 +3924,8 @@ class tpt_material_request_line(osv.osv):
         'uom_po_id': fields.many2one('product.uom', 'UOM', readonly = True),
         'material_request_id': fields.many2one('tpt.material.request', 'Material'),
         'on_hand_qty':fields.function(_get_on_hand_qty,digits=(16,2),type='float',string='On Hand Qty',multi='sum',store=False),
+        'request_type':fields.selection([('norm', 'Against Norms'),('consum', 'Against consumption')],'Request Type'),
+        'prodlot_id': fields.many2one('stock.production.lot', 'Batch No'),
                 }
     def onchange_product_id(self, cr, uid, ids,product_id=False, context=None):
         res = {'value':{
