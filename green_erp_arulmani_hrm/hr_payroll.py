@@ -378,6 +378,11 @@ class arul_hr_payroll_employee_structure(osv.osv):
     def onchange_employee_structure_id(self, cr, uid, ids,employee_id=False, context=None):
         vals = {}
         configuration_obj = self.pool.get('arul.hr.payroll.structure.configuration')
+        employee_ids = self.search(cr, uid, [('employee_id','=',employee_id)])
+        #TPT START
+        if employee_ids:  
+            raise osv.except_osv(_('Warning!'),_('Already Pay Structure Defined for this Employee!'))
+        #TPT END
         if employee_id:
             earning_obj = self.pool.get('arul.hr.payroll.earning.structure')
             earning_ids = earning_obj.search(cr, uid, [('earning_structure_id','in',ids)])
@@ -1071,14 +1076,18 @@ class arul_hr_payroll_executions(osv.osv):
                 onduty_count = c[0]
                 
                 #TOTAL SHIFT WORKED
-                #raise osv.except_osv(_('Warning!%s'),_(permission_count))      
+                #raise osv.except_osv(_('Warning!%s'),_(permission_count))  
+                total_shift_worked = 0.0    
                 if  shift_count:
-                    if permission_count:
-                        total_shift_worked = shift_count + permission_count
-                    else:
-                        total_shift_worked = shift_count
-                    if onduty_count:
-                        total_shift_worked = total_shift_worked + onduty_count
+                    total_shift_worked = shift_count
+                    #===========================================================
+                    # if permission_count:
+                    #     total_shift_worked = shift_count + permission_count
+                    # else:
+                    #     total_shift_worked = shift_count
+                    # if onduty_count:
+                    #     total_shift_worked = total_shift_worked + onduty_count
+                    #===========================================================
                         
                 #total_shift_worked = round(shift_count) + round(permission_count) + round(onduty_count)
                 

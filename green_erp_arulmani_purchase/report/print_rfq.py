@@ -23,10 +23,16 @@ class Parser(report_sxw.rml_parse):
         super(Parser, self).__init__(cr, uid, name, context=context)
         pool = pooler.get_pool(self.cr.dbname)
         self.localcontext.update({
-		'get_date': self.get_date,
+		        'get_date': self.get_date,
             	'get_date_timestamp': self.get_date_timestamp,
+                'get_prod_name':self.get_prod_name,
         })
     
+    def get_prod_name(self,prod,desc):
+        if desc:               
+            return desc 
+        else:                    
+            return prod 
     def get_date(self, date=False):
         if not date:
             date = time.strftime(DATE_FORMAT)
