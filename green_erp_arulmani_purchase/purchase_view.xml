@@ -149,8 +149,8 @@
 						<field name="department_id_relate"/> 
 						<field name="date_indent_relate"/> 
 						<field name="requisitioner_relate"/>  
-						<field name="store_date"/>  
-						<field name="hod_date"/>  
+						<field name="store_date" invisible = '1'/>  
+						<field name="hod_date" invisible = '1' />  
 						<field name="state"/>
 				</tree>
 			</field>
@@ -181,8 +181,8 @@
 						<field name="department_id_relate" options="{'create': false, 'create_edit': false}" />
 						<field name="requisitioner_relate" options="{'create': false, 'create_edit': false}"/>
 						<field name="date_indent_relate" />  
-						<field name="store_date"/>  
-						<field name="hod_date"/>  
+						<field name="store_date" invisible = '1' />  
+						<field name="hod_date" invisible = '1' />  
 						<field name="state" required='1' />
 						<field name="item_text" />
 				</group>
@@ -260,7 +260,7 @@
 						<field name="date_indent_relate"/> 
 						<field name="requisitioner_relate"/>  
 						<field name="store_date"/>  
-						<field name="hod_date"/>  
+						<field name="hod_date" invisible = '1' />  
 						<field name="state"/>
 				</tree>
 			</field>
@@ -292,7 +292,7 @@
 						<field name="requisitioner_relate" options="{'create': false, 'create_edit': false}"/>
 						<field name="date_indent_relate" />  
 						<field name="store_date"/>  
-						<field name="hod_date"/>  
+						<field name="hod_date" invisible = '1' />  
 						<field name="state" required='1' />
 						<field name="item_text" />
 				</group>
@@ -523,6 +523,9 @@
 					<button name="purchase_gm_confirmed" states="gm" string="MD Approval" class="oe_highlight" groups="green_erp_arulmani_purchase.group_vvti_purchase_admin"/>
 					<button name="purchase_md_confirmed" states="md" string="Create GRN" class="oe_highlight" groups="green_erp_arulmani_purchase.group_vvti_purchase_admin,green_erp_arulmani_purchase.group_vvti_purchase_store_mgr"/>
 				</xpath>  
+				<xpath expr="//form/header/button[@name='view_picking']" position="attributes">
+					<attribute name='string'>View GRN</attribute>
+				</xpath>
             	<xpath expr="//field[@name='partner_id']" position="before">
             		
             		<field name="po_document_type" />
