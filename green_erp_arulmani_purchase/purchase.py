@@ -3662,6 +3662,9 @@ class tpt_material_request(osv.osv):
         cr.execute(sql)
         for order_line in cr.dictfetchall():
             location_id = False
+            locat_ids = []
+            parent_ids = []
+            
             product_id = product_obj.browse(cr,uid,order_line['product_id'])
             cate_name = product_id.categ_id and product_id.categ_id.cate_name or False
             if cate_name == 'finish':
@@ -3777,6 +3780,8 @@ class tpt_material_request(osv.osv):
             cr.execute(sql)
             for order_line in cr.dictfetchall():
                 location_id = False
+                locat_ids = []
+                parent_ids = []
                 product_id = product_obj.browse(cr,uid,order_line['product_id'])
                 cate_name = product_id.categ_id and product_id.categ_id.cate_name or False
                 if cate_name == 'finish':
