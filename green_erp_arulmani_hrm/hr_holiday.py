@@ -546,7 +546,7 @@ class arul_hr_audit_shift_time(osv.osv):
                         continue
                 
                 #if flag==1 or line.additional_shifts or (extra_hours>8 and line.employee_id.employee_category_id and line.employee_id.employee_category_id.code!='S1'): # Commented By BalamuruganPurushothaman - TO do not calculate COFF for S1 categ
-		if flag==1 and line.employee_id.employee_category_id and line.employee_id.employee_category_id.code!='S1':
+		if flag==1 or line.additional_shifts or (extra_hours>7.39 and line.employee_id.employee_category_id and line.employee_id.employee_category_id.code!='S1'):
                     c_off_day = 0.0
 		    #raise osv.except_osv(_('Warning!'),_('inside c.off'))
                     if line.additional_shifts:
@@ -757,7 +757,7 @@ class arul_hr_audit_shift_time(osv.osv):
         employee_leave_obj = self.pool.get('employee.leave')
         employee_leave_detail_obj = self.pool.get('employee.leave.detail')
         leave_type_obj = self.pool.get('arul.hr.leave.types')
-	#raise osv.except_osv(_('Warning!%s'),leave_type_obj)	
+	    #raise osv.except_osv(_('Warning!%s'),leave_type_obj)	
         for line in self.browse(cr, uid, ids):
             #Trong them
             if line.work_date: 
@@ -2487,7 +2487,7 @@ class arul_hr_punch_in_out_time(osv.osv):
         'diff_day': fields.boolean('Difference Day', readonly = True),
         #TPT
         #TPT-Punch InOut - THIS COLUMN IS STORE IN DB TO GET THIS COUNT DURING PAYROLL PROCESS
-        'total_shift_worked': fields.function(_shift_total, store=True, string='No.Of Shift Worked', multi='shift_punchinout_sums', help="The total amount."),
+        'total_shift_worked': fields.function(_shift_total, string='No.Of Shift Worked', multi='shift_punchinout_sums', help="The total amount."),
         #'shift_count': fields.function(_shift_total, store=True,string='Shift Count', multi='shift_punchinout2_sums', help="The total amount."),
         'a_shift_count': fields.function(_shift_total, string='A', multi='a_shift'),
         'b_shift_count': fields.function(_shift_total, string='B', multi='b_shift'),
@@ -2499,11 +2499,18 @@ class arul_hr_punch_in_out_time(osv.osv):
         #'g2_shift_count': fields.float('G2', states={'done': [('readonly', True)], 'cancel': [('readonly', True)]}),
         #'b_shift_count': fields.float('B', states={'done': [('readonly', True)], 'cancel': [('readonly', True)]}),
         #'c_shift_count': fields.float('C', states={'done': [('readonly', True)], 'cancel': [('readonly', True)]}),
-              
+        
+        'shift_plus': fields.float('S+', states={'done': [('readonly', True)], 'cancel': [('readonly', True)]}),
+        'shift_minus': fields.float('S-', states={'done': [('readonly', True)], 'cancel': [('readonly', True)]}),
+        'reason_for_adj': fields.selection([('sys_err', 'System Error'),
+                                            ('clerk_err', 'Clerical Error')],'Reason for Change'),
+         'reason_details': fields.text('Reason In Details'),             
     }
     
     _defaults = {
         'state':'draft',
+        'shift_plus':0.0,
+        'shift_minus':0.0,
     }
     def name_get(self, cr, uid, ids, context=None):
         res = []
@@ -6401,3 +6408,62 @@ class shift_change(osv.osv):
                 args += [('id','in',leave_details_ids)]
         return super(shift_change, self).search(cr, uid, args, offset, limit, order, context, count)
 shift_change()
+
+class shift_adjustment(osv.osv):
+    _name='shift.adjustment'
+    
+    def shift_adj(self, cr, uid, ids, context=None):
+        #emp = self.pool.get('hr.employee')
+        emp_attendence_obj = self.pool.get('arul.hr.employee.attendence.details')
+        punch_obj = self.pool.get('arul.hr.punch.in.out.time')
+        
+        for line in self.browse(cr, uid, ids, context=context):
+            sql = '''
+                
+            '''
+            #cr.execute(sql)
+            if not line.work_date:
+                raise osv.except_osv(_('Warning!'),_('Pls Select Work Date'))
+            att = self.pool.get('arul.hr.punch.in.out.time').search(cr, uid, [('work_date','=',line.work_date),('employee_id','=',line.employee_id.id)])
+            if not att:
+                raise osv.except_osv(_('Warning!'),_('There is no attendance Entry for this Day'))
+            else:
+                    
+                att = str(att[0]).replace('[', '')
+                att = att.replace(']', '')
+                #raise osv.except_osv(_('Warning!%s'),_(line.reason_for_adj))   
+                if line.adj_type=='increase':
+                    sql = '''
+                    update arul_hr_punch_in_out_time set shift_plus =%s,reason_for_adj = '%s',reason_details='%s' where id=%s 
+                    '''%(line.increase_count,line.reason_for_adj,line.reason_details, att)
+                    cr.execute(sql)
+                if line.adj_type=='decrease':
+                    sql = '''
+                    update arul_hr_punch_in_out_time set shift_minus =%s,reason_for_adj = '%s',reason_details='%s' where id=%s
+                    '''%(line.decrease_count,line.reason_for_adj,line.reason_details,att)
+                    cr.execute(sql)
+        return self.write(cr, uid, ids, {'state':'done'})
+       
+    _columns={
+              'employee_id': fields.many2one('hr.employee','Employee ID',required = True),
+              'work_date': fields.date('Work Date',required = True),             
+              'adj_type': fields.selection([('increase', 'Increase'),
+                                            ('decrease', 'Decrease')],'Adjustment Type',required = True),
+              'increase_count': fields.float('Increase Count'),
+              'decrease_count': fields.float('Decrease Count'),
+              'reason_for_adj': fields.selection([('sys_err', 'System Error'),
+                                            ('clerk_err', 'Clerical Error')],'Reason for Change'),
+              'reason_details': fields.text('Reason In Details'),
+              'state':fields.selection([('draft', 'Draft'),('cancel', 'Reject'),
+                                            ('done', 'Approve')],'Status', readonly=True),              
+              'create_date': fields.datetime('Created Date',readonly = True),
+              'create_uid': fields.many2one('res.users','Created By',ondelete='restrict',readonly = True),
+        
+              }
+    
+    _defaults = {
+        'state':'draft',        
+        
+    }
+shift_adjustment()
+
