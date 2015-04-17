@@ -562,7 +562,11 @@
 										<field name="b_shift_count" widget="float_time"/>
 										<field name="c_shift_count" widget="float_time"/>
 										<field name="total_shift_worked"/>
-										<field name="approval" string="Is Approved?"/>
+										<!-- TPT: For Shift Adjustment -->
+										<field name="shift_plus"/>
+										<field name="shift_minus"/>
+										<field name="reason_for_adj"/>
+										<!-- <field name="approval" string="Is Approved?"/>  -->
 										<field name="state" invisible = '1'/>
 									</tree>
 								</field>
@@ -578,9 +582,9 @@
 										<field name="start_time" widget="float_time"/>
 										<field name="end_time" widget="float_time"/>
 										<field name="time_total" widget="float_time"/>
-										<field name="total_shift_worked"/>
+										<!-- <field name="total_shift_worked"/>  -->
 										<field name="reason"/>
-										<field name="approval"/>
+										<!-- <field name="approval"/>  -->
 										<field name="state" invisible='1'/>
 									</tree>
 								</field>
@@ -1543,5 +1547,62 @@
             <field name="view_id" ref="view_shift_group_tree_vew"/>
         </record>
         
+        <record id="shift_adj_tree_view" model="ir.ui.view">
+			<field name="name">shift.adjustment.tree</field>
+			<field name="model">shift.adjustment</field>
+			<field name="arch" type="xml">
+				<tree string="Shift Adjustment">
+					<field name ="employee_id"/>
+					<field name ="work_date"/>
+					<field name="state"/>
+					<field name="create_date"/>
+					<field name="create_uid"/>
+				</tree>
+			</field>
+		</record>
+		
+      <record id="shift_adj_form_view" model="ir.ui.view">
+            <field name="name">shift.adjustment.form</field>
+            <field name="model">shift.adjustment</field>
+            <field name="arch" type="xml">
+                <form string="Shift Adjustment" version="7.0">
+                    <header>                 
+	                    <button name="shift_adj" states='draft' string="Submit" type="object" class="oe_highlight" />
+	                    <field name="state" widget="statusbar" statusbar_visible="draft,done" statusbar_colors='{"draft":"blue","done":"blue"}'/>
+	                </header>                
+                	<sheet>  
+                		<group>
+                		<field name ="employee_id" options="{'create': false, 'create_edit': false}"/>
+                		<field name ="work_date"/>
+                		<field name ="adj_type"/>
+                		<field name ="increase_count" attrs="{'invisible':[('adj_type','=','decrease')]}"/>
+                		<field name ="decrease_count" attrs="{'invisible':[('adj_type','=','increase')]}"/>
+                		<field name ="reason_for_adj" required='1'/>
+                		<field name ="reason_details" required='1'/>
+                		<field name="create_date"/>
+						<field name="create_uid"/>
+						
+                		</group>
+                	</sheet>
+				</form>
+			</field>
+		</record>
+
+        <record id="action_shift_adj_form" model="ir.actions.act_window">
+            <field name="name">Shift Adjustment</field>
+			<field name="type">ir.actions.act_window</field>
+            <field name="res_model">shift.adjustment</field>
+            <field name="view_type">form</field>
+            <field name="view_mode">tree,form</field>
+            <field name="view_id" ref="shift_adj_tree_view"/>
+        </record>
+        
+        <menuitem action="action_shift_adj_form"
+            id="menu_action_shift_adj_form"
+            parent="menu_hr_leave_management" sequence="33"
+            groups="group_vvti_hrm_hr_key_user,group_vvti_hrm_time_user,group_vvti_hrm_hr_manager,group_vvti_hrm_payroll_controller"/>
+         
+        
 	</data>
 </openerp>
+

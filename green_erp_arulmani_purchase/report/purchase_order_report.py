@@ -34,11 +34,16 @@ class Parser(report_sxw.rml_parse):
         'freight_lb':self.freight_lb,
         'freight_amt':self.freight_amt,
         'v':self.v,
-             
+        'get_prod_name':self.get_prod_name,
         })
     def v(self, line):
         a = (line.product_qty * line.price_unit)-((line.product_qty * line.price_unit)*line.discount/100)
         return a
+    def get_prod_name(self,prod,desc):
+        if desc:               
+            return desc 
+        else:                    
+            return prod 
     def get_date(self, date=False):
         if not date:
             date = time.strftime(DATE_FORMAT)
