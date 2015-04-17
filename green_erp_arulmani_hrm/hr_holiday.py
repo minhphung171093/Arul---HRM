@@ -2316,7 +2316,7 @@ class arul_hr_punch_in_out_time(osv.osv):
             #OnDuty
             sql = '''
                 SELECT SUM(time_total) FROM arul_hr_permission_onduty WHERE non_availability_type_id='on_duty' 
-                AND TO_CHAR(to_date,'YYYY-MM-DD') = ('%s') and employee_id =%s and state='done'
+                AND TO_CHAR(date,'YYYY-MM-DD') = ('%s') and employee_id =%s and state='done'
                 '''%(time.work_date,time.employee_id.id)
             cr.execute(sql)
             c =  cr.fetchone()
