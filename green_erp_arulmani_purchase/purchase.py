@@ -404,17 +404,17 @@ class tpt_purchase_product(osv.osv):
         'flag': False,
     }
     
-    def _check_product_id(self, cr, uid, ids, context=None):
-        for product in self.browse(cr, uid, ids, context=context):
-            product_ids = self.search(cr, uid, [('id','!=',product.id),('product_id', '=',product.product_id.id),('pur_product_id','=',product.pur_product_id.id)])
-            if product_ids:
-                raise osv.except_osv(_('Warning!'),_('Product was existed !'))
-                return False
-            return True
-        
-    _constraints = [
-        (_check_product_id, 'Identical Data', ['pur_product_id', 'product_id']),
-    ]   
+#     def _check_product_id(self, cr, uid, ids, context=None):
+#         for product in self.browse(cr, uid, ids, context=context):
+#             product_ids = self.search(cr, uid, [('id','!=',product.id),('product_id', '=',product.product_id.id),('pur_product_id','=',product.pur_product_id.id)])
+#             if product_ids:
+#                 raise osv.except_osv(_('Warning!'),_('Product was existed !'))
+#                 return False
+#             return True
+#         
+#     _constraints = [
+#         (_check_product_id, 'Identical Data', ['pur_product_id', 'product_id']),
+#     ]   
     
     def bt_approve(self, cr, uid, ids, context=None):
         for line in self.browse(cr,uid,ids):
@@ -550,19 +550,11 @@ class tpt_purchase_product(osv.osv):
         res = []
         if not ids:
             return res
-        reads = self.read(cr, uid, ids, ['id'], context)
+        reads = self.read(cr, uid, ids, ['id', 'product_id'], context)
  
         for record in reads:
-            cate_name = record['id']
-#             name = ''
-#             if cate_name == 'raw':
-#                 name = 'Raw Materials'
-#             if cate_name == 'finish':
-#                 name = 'Finished Product'
-#             if cate_name == 'spares':
-#                 name = 'Spares'
-#             if cate_name == 'consum':
-#                 name = 'Consumables'
+            for line in self.browse(cr,uid,ids):
+                cate_name = line.product_id.default_code + ' - ' + line.product_id.name
             res.append((record['id'],cate_name))
         return res    
     
@@ -1149,7 +1141,7 @@ class tpt_purchase_quotation(osv.osv):
                 cr.execute(sql)
                 tax_name = cr.dictfetchone()['name']
                 #if tax_name:
-                if quotation.tax_id.description[:3]=='CST':
+                if quotation.tax_id.description and 'CST' in quotation.tax_id.description:
                     amount_net = amount_basic + amount_p_f + amount_fright + amount_total_tax
                 else:
                     amount_net = amount_basic + amount_p_f + amount_fright
@@ -1300,10 +1292,10 @@ class tpt_purchase_quotation(osv.osv):
             for line in rfq.rfq_line:
                 rfq_no_line.append({
                             'po_indent_id': line.po_indent_id and line.po_indent_id.id or False,
-                            'product_id': line.product_id and line.product_id.id or False,
+                            'product_id': line.indent_line_id.product_id and line.indent_line_id.product_id.id or False,
                             'product_uom_qty':line.product_uom_qty or False,
                             'uom_id': line.uom_id and line.uom_id.id or False,
-                            'price_unit':line.product_id and line.product_id.standard_price or False,
+                            'price_unit':line.indent_line_id.product_id and line.indent_line_id.product_id.standard_price or False,
                             'description':line.description or False,
                             'item_text':line.item_text or False,
                     })
@@ -1601,8 +1593,8 @@ class tpt_purchase_quotation_line(osv.osv):
                 for line in indent.purchase_product_line:
                     if vals['product_id'] == line.product_id.id:
                         vals.update({
-                                'uom_po_id':line.uom_po_id.id,
-                                'product_uom_qty':line.product_uom_qty,
+#                                 'uom_po_id':line.uom_po_id.id,
+#                                 'product_uom_qty':line.product_uom_qty,
                                 })
         
         return super(tpt_purchase_quotation_line, self).create(cr, uid, vals, context)    
@@ -1632,8 +1624,8 @@ class tpt_purchase_quotation_line(osv.osv):
                 for line in indent.purchase_product_line:
                     if vals['product_id'] == line.product_id.id:
                         vals.update({
-                                'uom_po_id':line.uom_po_id.id,
-                                'product_uom_qty':line.product_uom_qty,
+#                                 'uom_po_id':line.uom_po_id.id,
+#                                 'product_uom_qty':line.product_uom_qty,
                                 })
         return super(tpt_purchase_quotation_line, self).write(cr, uid,ids, vals, context)    
     
@@ -1657,17 +1649,17 @@ class tpt_purchase_quotation_line(osv.osv):
 
 
 
-    def _check_quotation(self, cr, uid, ids, context=None):
-        for quotation in self.browse(cr, uid, ids, context=context):
-            quotation_ids = self.search(cr, uid, [('id','!=',quotation.id),('po_indent_id','=',quotation.po_indent_id.id),('product_id', '=',quotation.product_id.id),('purchase_quotation_id','=',quotation.purchase_quotation_id.id)])
-            if quotation_ids:
-                raise osv.except_osv(_('Warning!'),_('PO Indent and Product were existed !'))
-                return False
-            return True
-        
-    _constraints = [
-        (_check_quotation, 'Identical Data', ['po_indent_id', 'product_id']),
-    ]       
+#     def _check_quotation(self, cr, uid, ids, context=None):
+#         for quotation in self.browse(cr, uid, ids, context=context):
+#             quotation_ids = self.search(cr, uid, [('id','!=',quotation.id),('po_indent_id','=',quotation.po_indent_id.id),('product_id', '=',quotation.product_id.id),('purchase_quotation_id','=',quotation.purchase_quotation_id.id)])
+#             if quotation_ids:
+#                 raise osv.except_osv(_('Warning!'),_('PO Indent and Product were existed !'))
+#                 return False
+#             return True
+#         
+#     _constraints = [
+#         (_check_quotation, 'Identical Data', ['po_indent_id', 'product_id']),
+#     ]       
     
 tpt_purchase_quotation_line()
 
@@ -3446,6 +3438,7 @@ class tpt_rfq_line(osv.osv):
         'rfq_id': fields.many2one('tpt.request.for.quotation','RFQ',ondelete='cascade'),
         'po_indent_id':fields.many2one('tpt.purchase.indent','PO Indent', required = True),
         'product_id': fields.many2one('product.product', 'Material',required = True),
+        'indent_line_id': fields.many2one('tpt.purchase.product', 'Material', required = True),
         'description': fields.char('Mat.Desc'), 
         'recom_vendor': fields.char('Recom.Vendor'), 
         'item_text': fields.char('Item Text'), 
@@ -3457,65 +3450,77 @@ class tpt_rfq_line(osv.osv):
         'state': 'draft',         
                  }
     
-    def _check_rfq_line(self, cr, uid, ids, context=None):
-        for product in self.browse(cr, uid, ids, context=context):
-            product_ids = self.search(cr, uid, [('id','!=',product.id),('po_indent_id', '=',product.po_indent_id.id), ('product_id', '=',product.product_id.id),('rfq_id','=',product.rfq_id.id)])
-            if product_ids:
-                raise osv.except_osv(_('Warning!'),_('PO Indent and Product were existed !'))
-                return False
-            return True
-        
-    _constraints = [
-        (_check_rfq_line, 'Identical Data', ['pur_product_id', 'product_id','po_indent_id']),
-    ]   
+#     def _check_rfq_line(self, cr, uid, ids, context=None):
+#         for product in self.browse(cr, uid, ids, context=context):
+#             product_ids = self.search(cr, uid, [('id','!=',product.id),('po_indent_id', '=',product.po_indent_id.id), ('product_id', '=',product.product_id.id),('rfq_id','=',product.rfq_id.id)])
+#             if product_ids:
+#                 raise osv.except_osv(_('Warning!'),_('PO Indent and Product were existed !'))
+#                 return False
+#             return True
+#         
+#     _constraints = [
+#         (_check_rfq_line, 'Identical Data', ['pur_product_id', 'product_id','po_indent_id']),
+#     ]   
     
     def create(self, cr, uid, vals, context=None):
         if 'po_indent_id' in vals:
-            if 'product_id' in vals:
-                indent = self.pool.get('tpt.purchase.indent').browse(cr, uid, vals['po_indent_id'])
-                for line in indent.purchase_product_line:
-                    if vals['product_id'] == line.product_id.id:
-                        vals.update({
-                                'uom_id':line.uom_po_id.id,
-                                'product_uom_qty':line.product_uom_qty,
-                                })
+            if 'indent_line_id' in vals:
+                line = self.pool.get('tpt.purchase.product').browse(cr, uid, vals['indent_line_id'])
+                vals.update({
+                        'uom_id':line.uom_po_id.id,
+                        'product_uom_qty':line.product_uom_qty,
+                        })
         return super(tpt_rfq_line, self).create(cr, uid, vals, context)    
   
     def write(self, cr, uid, ids, vals, context=None):
         if 'po_indent_id' in vals:
-            if 'product_id' in vals:
-                indent = self.pool.get('tpt.purchase.indent').browse(cr, uid, vals['po_indent_id'])
-                for line in indent.purchase_product_line:
-                    if vals['product_id'] == line.product_id.id:
-                        vals.update({
-                                'uom_id':line.uom_po_id.id,
-                                'product_uom_qty':line.product_uom_qty,
-                                })
+            if 'indent_line_id' in vals:
+                line = self.pool.get('tpt.purchase.product').browse(cr, uid, vals['indent_line_id'])
+                vals.update({
+                        'uom_id':line.uom_po_id.id,
+                        'product_uom_qty':line.product_uom_qty,
+                        })
         return super(tpt_rfq_line, self).write(cr, uid, ids, vals, context)    
     
     def onchange_rfq_indent_id(self, cr, uid, ids,po_indent_id=False, context=None):
         if po_indent_id:
             indent = self.pool.get('tpt.purchase.indent').browse(cr,uid,po_indent_id)
             return {'value': {
-                              'product_id': False,
+                              'indent_line_id': False,
                               'item_text': indent.header_text,
                               }}  
         
-    def onchange_rfq_product_id(self, cr, uid, ids,product_id=False, po_indent_id=False, context=None):
+#     def onchange_rfq_product_id(self, cr, uid, ids,product_id=False, po_indent_id=False, context=None):
+#         vals = {}
+#         if po_indent_id and product_id: 
+#             indent = self.pool.get('tpt.purchase.indent').browse(cr, uid, po_indent_id)
+#             product = self.pool.get('product.product').browse(cr, uid, product_id)
+#             for line in indent.purchase_product_line:
+#                 if product_id == line.product_id.id:
+#                     vals = {
+#                             'description':line.description and line.description or False,
+#                             'item_text':line.item_text and line.item_text or False,
+#                             'recom_vendor':line.recom_vendor and line.recom_vendor or False,
+#                             'uom_id':line.uom_po_id and line.uom_po_id.id or False,
+#                             'product_uom_qty':line.product_uom_qty or False,
+#                             }
+#         return {'value': vals}
+    
+    def onchange_rfq_indent_line_id(self, cr, uid, ids,indent_line_id=False, po_indent_id=False, context=None):
         vals = {}
-        if po_indent_id and product_id: 
+        if po_indent_id and indent_line_id: 
             indent = self.pool.get('tpt.purchase.indent').browse(cr, uid, po_indent_id)
-            product = self.pool.get('product.product').browse(cr, uid, product_id)
-            for line in indent.purchase_product_line:
-                if product_id == line.product_id.id:
-                    vals = {
-                            'description':line.description and line.description or False,
-                            'item_text':line.item_text and line.item_text or False,
-                            'recom_vendor':line.recom_vendor and line.recom_vendor or False,
-                            'uom_id':line.uom_po_id and line.uom_po_id.id or False,
-                            'product_uom_qty':line.product_uom_qty or False,
-                            }
-        return {'value': vals}   
+#             product = self.pool.get('product.product').browse(cr, uid, product_id)
+            line = self.pool.get('tpt.purchase.product').browse(cr, uid, indent_line_id)
+            vals = {
+                    'description':line.description and line.description or False,
+                    'item_text':line.item_text and line.item_text or False,
+                    'recom_vendor':line.recom_vendor and line.recom_vendor or False,
+                    'uom_id':line.uom_po_id and line.uom_po_id.id or False,
+                    'product_uom_qty':line.product_uom_qty or False,
+                    'product_id':line.product_id.id,
+                    }
+        return {'value': vals}  
 tpt_rfq_line()
 
 class tpt_rfq_supplier(osv.osv):
