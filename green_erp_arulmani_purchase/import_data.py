@@ -472,3 +472,181 @@ class tpt_import_inventory(osv.osv):
         return self.write(cr, uid, ids, {'state':'done'})
     
 tpt_import_inventory()
+
+class stock_inventory_line(osv.osv):
+    _inherit = "stock.inventory.line"
+    _columns = {
+        'unit_price': fields.float('Price'),
+    }
+stock_inventory_line()
+
+class stock_inventory(osv.osv):
+    _inherit = "stock.inventory"
+    
+    def action_confirm(self, cr, uid, ids, context=None):
+        """ Confirm the inventory and writes its finished date
+        @return: True
+        """
+        if context is None:
+            context = {}
+        # to perform the correct inventory corrections we need analyze stock location by
+        # location, never recursively, so we use a special context
+        product_context = dict(context, compute_child=False)
+
+        location_obj = self.pool.get('stock.location')
+        for inv in self.browse(cr, uid, ids, context=context):
+            move_ids = []
+            for line in inv.inventory_line_id:
+                pid = line.product_id.id
+                product_context.update(uom=line.product_uom.id, to_date=inv.date, date=inv.date, prodlot_id=line.prod_lot_id.id)
+                amount = location_obj._product_get(cr, uid, line.location_id.id, [pid], product_context)[pid]
+                change = line.product_qty - amount
+                lot_id = line.prod_lot_id.id
+                if change:
+                    location_id = line.product_id.property_stock_inventory.id
+                    value = {
+                        'name': _('INV:') + (line.inventory_id.name or ''),
+                        'product_id': line.product_id.id,
+                        'product_uom': line.product_uom.id,
+                        'prodlot_id': lot_id,
+                        'date': inv.date,
+                        'price_unit':line.unit_price,
+                    }
+
+                    if change > 0:
+                        value.update( {
+                            'product_qty': change,
+                            'location_id': location_id,
+                            'location_dest_id': line.location_id.id,
+                        })
+                    else:
+                        value.update( {
+                            'product_qty': -change,
+                            'location_id': line.location_id.id,
+                            'location_dest_id': location_id,
+                        })
+                    move_ids.append(self._inventory_line_hook(cr, uid, line, value))
+            self.write(cr, uid, [inv.id], {'state': 'confirm', 'move_ids': [(6, 0, move_ids)]})
+            self.pool.get('stock.move').action_confirm(cr, uid, move_ids, context=context)
+        return True
+    
+stock_inventory()
+
+class tpt_import_inventory_spare(osv.osv):
+    _name = 'tpt.import.inventory.spare'
+    def _data_get(self, cr, uid, ids, name, arg, context=None):
+        if context is None:
+            context = {}
+        result = {}
+        location = self.pool.get('ir.config_parameter').get_param(cr, uid, 'hr_identities_attachment.location')
+        bin_size = context.get('bin_size')
+        for attach in self.browse(cr, uid, ids, context=context):
+            if location and attach.store_fname:
+                result[attach.id] = self._file_read(cr, uid, location, attach.store_fname, bin_size)
+            else:
+                result[attach.id] = attach.db_datas
+        return result
+
+    def _data_set(self, cr, uid, id, name, value, arg, context=None):
+        # We dont handle setting data to null
+        if not value:
+            return True
+        if context is None:
+            context = {}
+        location = self.pool.get('ir.config_parameter').get_param(cr, uid, 'hr_identities_attachment.location')
+        file_size = len(value.decode('base64'))
+        if location:
+            attach = self.browse(cr, uid, id, context=context)
+            if attach.store_fname:
+                self._file_delete(cr, uid, location, attach.store_fname)
+            fname = self._file_write(cr, uid, location, value)
+            # SUPERUSER_ID as probably don't have write access, trigger during create
+            super(tpt_import_inventory_spare, self).write(cr, SUPERUSER_ID, [id], {'store_fname': fname, 'file_size': file_size}, context=context)
+        else:
+            super(tpt_import_inventory_spare, self).write(cr, SUPERUSER_ID, [id], {'db_datas': value, 'file_size': file_size}, context=context)
+        return True
+
+    _columns = {
+        'name': fields.date('Date Import', required=True,states={'done': [('readonly', True)]}),
+        'datas_fname': fields.char('File Name',size=256),
+        'datas': fields.function(_data_get, fnct_inv=_data_set, string='Material Data', type="binary", nodrop=True,states={'done': [('readonly', True)]}),
+        'store_fname': fields.char('Stored Filename', size=256),
+        'db_datas': fields.binary('Database Data'),
+        'file_size': fields.integer('File Size'),
+        'state':fields.selection([('draft', 'Draft'),('done', 'Done')],'Status', readonly=True)
+    }
+    
+    _defaults = {
+        'state':'draft',
+        'name': time.strftime('%Y-%m-%d'),
+        
+    }
+    
+    def import_inventory_spare(self, cr, uid, ids, context=None):
+        this = self.browse(cr, uid, ids[0])
+        try:
+            recordlist = base64.decodestring(this.datas)
+            excel = xlrd.open_workbook(file_contents = recordlist)
+            sh = excel.sheet_by_index(0)
+        except Exception, e:
+            raise osv.except_osv(_('Warning!'), str(e))
+        if sh:
+            pro_pro_obj = self.pool.get('product.product')
+            locat_obj = self.pool.get('stock.location')
+            inve_obj = self.pool.get('stock.inventory')
+            inventory_line_id = []
+            try:
+                dem = 1
+                sql = '''
+                delete from stock_move 
+                where stock_move.id in (select stock_move.id from stock_move,product_product where stock_move.product_id = product_product.id and product_product.default_code not in ('M0501010001','M0501010008')) 
+                and stock_move.id in (select move_id from stock_inventory_move_rel where inventory_id in (select id from stock_inventory where name='Update'))
+                '''
+                cr.execute(sql)
+                
+                sql = '''
+                delete from stock_inventory where name='Update' 
+                and stock_inventory.id not in (select inventory_id from stock_inventory_line,product_product where stock_inventory_line.product_id = product_product.id and product_product.default_code in ('M0501010001','M0501010008'))
+                '''
+                cr.execute(sql)
+                
+                for row in range(1,sh.nrows):
+                    locat = sh.cell(row, 9).value.strip() or ''
+                    qty = sh.cell(row, 10).value or 0
+                    mate = sh.cell(row, 0).value.strip() or False
+                    price = sh.cell(row, 11).value or 0.0
+                    locat_id = False
+#                     if qty > 0:
+                    if locat != '':
+                        locat = locat.strip()
+                        locat_ids = locat_obj.search(cr, uid, [('name','=',locat)])
+                        if locat_ids:
+                            locat_id = locat_ids[0]
+                        if mate:
+                            product_ids = pro_pro_obj.search(cr, uid, [('default_code','=',mate)])
+                            for product in pro_pro_obj.browse(cr, uid, product_ids):
+                                inventory_line_id.append((0,0,{
+                                                                'location_id':locat_id, 
+                                                                'product_id': product.id,
+                                                                'product_qty':qty,
+                                                                'product_uom':product.uom_po_id.id,
+                                                                'unit_price':price,
+                                                               }))
+                    dem += 1
+                        
+                        ##############################################                         
+                if inventory_line_id:
+                    inve_id = inve_obj.create(cr, uid, {
+                        'name': 'Update',
+#                         'date': time.strftime('%Y-%m-%d %H:%M:%S'),
+                        'date': '2015-03-01 00:00:00',
+                        'inventory_line_id': inventory_line_id,
+                    })
+                    inve_obj.action_confirm(cr, uid, [inve_id],context=None)
+                    inve_obj.action_done(cr, uid, [inve_id],context=None)
+#                         
+            except Exception, e:
+                raise osv.except_osv(_('Warning!'), str(e)+ ' Line: '+str(dem+1))
+        return self.write(cr, uid, ids, {'state':'done'})
+    
+tpt_import_inventory_spare()
