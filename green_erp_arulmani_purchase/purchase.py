@@ -2523,6 +2523,16 @@ class purchase_order(osv.osv):
         act_taken = False
         if order_line and order_line.product_id and order_line.product_id.categ_id and order_line.product_id.categ_id.cate_name == 'consum':
             act_taken = 'move'
+        
+        location_dest_id = order.location_id.id
+        if order_line.product_id.categ_id.cate_name == 'consum':
+            parent_ids = self.pool.get('stock.location').search(cr, uid, [('name','=','Virtual Locations'),('usage','=','view')])
+            if not parent_ids:
+                raise osv.except_osv(_('Warning!'),_('System does not have Virtual Locations warehouse, please check it!'))
+            locat_ids = self.pool.get('stock.location').search(cr, uid, [('name','in',['Consumption']),('location_id','=',parent_ids[0])])
+            if not locat_ids:
+                raise osv.except_osv(_('Warning!'),_('System does not have Consumption location in Virtual Locations warehouse, please check it!'))
+            location_dest_id = locat_ids[0]
         return {
             'name': order_line.name or '',
             'product_id': order_line.product_id.id,
@@ -2534,7 +2544,7 @@ class purchase_order(osv.osv):
             'date': self.date_to_datetime(cr, uid, order.date_order, context),
             'date_expected': self.date_to_datetime(cr, uid, order_line.date_planned, context),
             'location_id': order.partner_id.property_stock_supplier.id,
-            'location_dest_id': order.location_id.id,
+            'location_dest_id': location_dest_id,
             'picking_id': picking_id,
             'partner_id': order.dest_address_id.id or order.partner_id.id,
             'move_dest_id': order_line.move_dest_id.id,
