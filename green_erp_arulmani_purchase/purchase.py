@@ -404,6 +404,17 @@ class tpt_purchase_product(osv.osv):
         'flag': False,
     }
     
+    def _check_product_id(self, cr, uid, ids, context=None):
+        for product in self.browse(cr, uid, ids, context=context):
+            product_ids = self.search(cr, uid, [('id','!=',product.id),('product_id', '=',product.product_id.id),('pur_product_id','=',product.pur_product_id.id)])
+            if product_ids:
+                raise osv.except_osv(_('Warning!'),_('Product was existed !'))
+                return False
+            return True
+        
+    _constraints = [
+        (_check_product_id, 'Identical Data', ['pur_product_id', 'product_id']),
+    ]   
     
     def bt_approve(self, cr, uid, ids, context=None):
         for line in self.browse(cr,uid,ids):
@@ -3445,6 +3456,18 @@ class tpt_rfq_line(osv.osv):
     _defaults = {
         'state': 'draft',         
                  }
+    
+    def _check_rfq_line(self, cr, uid, ids, context=None):
+        for product in self.browse(cr, uid, ids, context=context):
+            product_ids = self.search(cr, uid, [('id','!=',product.id),('po_indent_id', '=',product.po_indent_id.id), ('product_id', '=',product.product_id.id),('rfq_id','=',product.rfq_id.id)])
+            if product_ids:
+                raise osv.except_osv(_('Warning!'),_('PO Indent and Product were existed !'))
+                return False
+            return True
+        
+    _constraints = [
+        (_check_rfq_line, 'Identical Data', ['pur_product_id', 'product_id','po_indent_id']),
+    ]   
     
     def create(self, cr, uid, vals, context=None):
         if 'po_indent_id' in vals:
