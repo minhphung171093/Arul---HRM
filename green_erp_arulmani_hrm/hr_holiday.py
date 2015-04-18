@@ -280,7 +280,7 @@ class arul_hr_audit_shift_time(osv.osv):
                                        ('permission_edited', 'Permission-Edited'),
                                        ('on_duty_edited', 'On Duty-Edited'),
                                        ('manual_edited', 'Manual Entry-Edited'),
-                                       ('manual','Manual Entry')],'Type'),#TPT Onduty, Manual Entry type is added in Audit Shift Time Screen.
+                                       ('manual','Manual Entry')],'Type',states={'done': [('readonly', True)], 'cancel': [('readonly', True)]}),#TPT Onduty, Manual Entry type is added in Audit Shift Time Screen.
               'permission_id':fields.many2one('arul.hr.permission.onduty','Permission/On Duty'),
               'time_evaluate_id': fields.many2one('tpt.time.leave.evaluation','Time Evaluation'),
               'diff_day': fields.boolean('Difference Day', readonly = True),
@@ -5474,7 +5474,17 @@ class shift_change(osv.osv):
         'state':'draft',
         'year': int(time.strftime('%Y')),
     }
-    
+    #TPT-STAT By BalamuruganPurushothaman - ON 18/04/2015 - TO BLOCK BACK DATED SHIFT CHANGE REQUEST
+    def create(self, cr, uid, vals, context=None):
+        if 'date_from' in vals:
+            date_from = vals['date_from']
+            #today = fields.date.today()
+            now = datetime.datetime.now()
+            current_day = now.day          
+            if current_day > date_from:
+                raise osv.except_osv(_('Warning!'),_('System could not allow Back Dated Shift Change Request')) 
+        return super(shift_change, self).create(cr, uid, vals, context)
+    #TPT END
     def submit(self, cr, uid, ids, context=None):
         for line in self.browse(cr, uid, ids):
             sql = '''
