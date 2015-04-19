@@ -153,7 +153,9 @@ class arul_hr_employee_action_history(osv.osv):
         'designation_from_id':fields.many2one('hr.job','Designation From',ondelete='restrict'),
         'designation_to_id':fields.many2one('hr.job','Designation To',ondelete='restrict'),
         'employee_category_id':fields.many2one('vsis.hr.employee.category','Employee Category',ondelete='restrict'),
+        'employee_category_to_id':fields.many2one('vsis.hr.employee.category','Employee Category To',ondelete='restrict'),#TPT
         'sub_category_id':fields.many2one('hr.employee.sub.category','Sub Category',ondelete='restrict'),
+        'sub_category_to_id':fields.many2one('hr.employee.sub.category','Sub Category To',ondelete='restrict'),#TPT
         'payroll_area_id':fields.many2one('arul.hr.payroll.area','Payroll Area',ondelete='restrict'),
         'payroll_sub_area_id':fields.many2one('arul.hr.payroll.sub.area','Payroll Sub Area',ondelete='restrict'),
         'approve_rehiring': fields.boolean('Approve Rehiring'),
@@ -325,6 +327,7 @@ class arul_hr_employee_action_history(osv.osv):
         if employee_id:
             emp = self.pool.get('hr.employee').browse(cr, uid, employee_id)
             vals = {'employee_category_id':emp.employee_category_id.id,
+                    'designation_from_id':emp.job_id.id,#TPT
                     'sub_category_id':emp.employee_sub_category_id.id}
         return {'value': vals}
     

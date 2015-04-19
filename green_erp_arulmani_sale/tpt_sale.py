@@ -162,6 +162,8 @@ class sale_order(osv.osv):
         'flag_t':fields.boolean('Flag',readonly =True,states={'progress':[('readonly',True)],'done':[('readonly',True)]} ),
         'flag_p':fields.boolean('Flag',readonly =True,states={'progress':[('readonly',True)],'done':[('readonly',True)]} ),
         'blanket_line_id':fields.many2one('tpt.blank.order.line','Blanket Order Line',states={'progress':[('readonly',True)],'done':[('readonly',True)]}),
+        'currency_id': fields.many2one('res.currency', 'Currency', states={'cancel': [('readonly', True)], 'done':[('readonly', True)], 'approve':[('readonly', True)]}),#TPT
+              
     }
     _defaults = {
 #                  'name': lambda obj, cr, uid, context: '/',

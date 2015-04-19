@@ -747,7 +747,7 @@ class stock_picking_out(osv.osv):
         'remarks':fields.text('Remarks'),
         'doc_status':fields.selection([('draft','Drafted'),
                                        ('waiting','Waiting for Approval'),
-                                       ('approved','Management Approved'),
+                                       ('approved','Released for Invoice'),
                                        ('completed','Completed'),('cancelled','Cancelled')],'Document Status'),
         'sale_id': fields.many2one('sale.order', 'Sales Order', readonly = True,ondelete='set null', select=True),
         'flag_confirm': fields.boolean('Flag', readonly =  True),
