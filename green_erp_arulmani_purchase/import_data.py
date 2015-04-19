@@ -637,7 +637,7 @@ class tpt_import_inventory_spare(osv.osv):
                         ##############################################                         
                 if inventory_line_id:
                     inve_id = inve_obj.create(cr, uid, {
-                        'name': 'Update',
+                        'name': 'Update Spare',
 #                         'date': time.strftime('%Y-%m-%d %H:%M:%S'),
                         'date': '2015-03-01 00:00:00',
                         'inventory_line_id': inventory_line_id,
