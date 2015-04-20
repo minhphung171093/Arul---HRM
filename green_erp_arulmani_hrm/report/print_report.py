@@ -63,9 +63,20 @@ class Parser(report_sxw.rml_parse):
             'get_sub_total_ear': self.get_sub_total_ear,
             'get_sub_total_ded': self.get_sub_total_ded,
             'get_sub_net': self.get_sub_net,     
-            'get_vpf_amt': self.get_vpf_amt                                 
+            'get_vpf_amt': self.get_vpf_amt,
+            
+            'get_sub_i_lic_prem': self.get_sub_i_lic_prem,   
+            'get_sub_i_others': self.get_sub_i_others,             
+            'get_sub_l_vvti_loan': self.get_sub_l_vvti_loan, 
+            'get_sub_l_lic_hfl': self.get_sub_l_lic_hfl, 
+            'get_sub_l_hdfc': self.get_sub_l_hdfc, 
+            'get_sub_l_tmb': self.get_sub_l_tmb, 
+            'get_sub_l_sbt': self.get_sub_l_sbt, 
+            'get_sub_l_others': self.get_sub_l_others, 
+                                           
         })
         
+    
     def get_vpf_amt(self,net_basic,net_da,vpf_in_percent):               
         #return round(net_basic+net_da*vpf_in_percent/100, 2)
         basic_da = 0.0
@@ -217,7 +228,48 @@ class Parser(report_sxw.rml_parse):
         for line in self.get_payslip():
             subtotal_net += line['net']          
         return round(subtotal_net,2)
-    
+    #TPT
+    def get_sub_i_lic_prem(self):
+        subtotal_i_lic_prem = 0
+        for line in self.get_payslip():
+            subtotal_i_lic_prem += line['i_lic_prem']          
+        return round(subtotal_i_lic_prem,2)
+    def get_sub_i_others(self):
+        subtotal_i_others = 0
+        for line in self.get_payslip():
+            subtotal_i_others += line['i_others']          
+        return round(subtotal_i_others,2)
+    def get_sub_l_vvti_loan(self):
+        subtotal_i_lic_prem = 0
+        for line in self.get_payslip():
+            subtotal_i_lic_prem += line['l_vvti_loan']          
+        return round(subtotal_i_lic_prem,2)
+    def get_sub_l_lic_hfl(self):
+        subtotal_i_lic_prem = 0
+        for line in self.get_payslip():
+            subtotal_i_lic_prem += line['l_lic_hfl']          
+        return round(subtotal_i_lic_prem,2)
+    def get_sub_l_hdfc(self):
+        subtotal_i_lic_prem = 0
+        for line in self.get_payslip():
+            subtotal_i_lic_prem += line['l_hdfc']          
+        return round(subtotal_i_lic_prem,2)
+    def get_sub_l_tmb(self):
+        subtotal_i_lic_prem = 0
+        for line in self.get_payslip():
+            subtotal_i_lic_prem += line['l_tmb']          
+        return round(subtotal_i_lic_prem,2)
+    def get_sub_l_sbt(self):
+        subtotal_i_lic_prem = 0
+        for line in self.get_payslip():
+            subtotal_i_lic_prem += line['l_sbt']          
+        return round(subtotal_i_lic_prem,2)
+    def get_sub_l_others(self):
+        subtotal_i_lic_prem = 0
+        for line in self.get_payslip():
+            subtotal_i_lic_prem += line['l_others']          
+        return round(subtotal_i_lic_prem,2)
+     #TPT END       
     def get_month(self):
         return self.ids
 
@@ -252,6 +304,16 @@ class Parser(report_sxw.rml_parse):
             total_ded = 0
             net = 0
             ma = 0
+            
+            i_lic_prem = 0
+            i_others = 0 
+            l_vvti_loan = 0 
+            l_lic_hfl = 0 
+            l_hdfc = 0 
+            l_tmb = 0 
+            l_sbt = 0 
+            l_others = 0 
+            
 
             for earning in line.earning_structure_line:
                 if earning.earning_parameters_id.code=='BASIC':
@@ -301,6 +363,22 @@ class Parser(report_sxw.rml_parse):
                     total_ded += deduction.float
                 if deduction.deduction_parameters_id.code=='LOP':
                     lop += deduction.float
+                if deduction.deduction_parameters_id.code == 'INS_LIC_PREM':
+                    i_lic_prem += deduction.float
+                if deduction.deduction_parameters_id.code == 'INS_OTHERS':
+                    i_others += deduction.float
+                if deduction.deduction_parameters_id.code == 'LOAN_VVTI':
+                    l_vvti_loan += deduction.float
+                if deduction.deduction_parameters_id.code == 'LOAN_LIC_HFL':
+                    l_lic_hfl += deduction.float
+                if deduction.deduction_parameters_id.code == 'LOAN_HDFC':
+                    l_hdfc += deduction.float
+                if deduction.deduction_parameters_id.code == 'LOAN_TMB':
+                    l_tmb += deduction.float
+                if deduction.deduction_parameters_id.code == 'LOAN_SBT':
+                    l_sbt += deduction.float
+                if deduction.deduction_parameters_id.code == 'LOAN_OTHERS':
+                    l_others += deduction.float
             res.append({
                 'payslip': line,
                 'basic': basic,
@@ -326,6 +404,14 @@ class Parser(report_sxw.rml_parse):
                 'net': round(net),
                 'ma': ma,
                 'shd': shd,#
+                'i_lic_prem' : i_lic_prem,
+                'i_others' : i_others,
+                'l_vvti_loan' : l_vvti_loan,
+                'l_lic_hfl' : l_lic_hfl, 
+                'l_hdfc' : l_hdfc, 
+                'l_tmb' : l_tmb, 
+                'l_sbt' : l_sbt, 
+                'l_others' : l_others, 
             })
         return res
 # vim:expandtab:smartindent:tabstop=4:softtabstop=4:shiftwidth=4:
