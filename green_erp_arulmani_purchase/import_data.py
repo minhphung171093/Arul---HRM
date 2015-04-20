@@ -623,7 +623,8 @@ class tpt_import_inventory_spare(osv.osv):
                         if locat_ids:
                             locat_id = locat_ids[0]
                         if mate:
-                            product_ids = pro_pro_obj.search(cr, uid, [('default_code','=',mate)])
+                            product_ids = pro_pro_obj.search(cr, uid, [('default_code','ilike',mate)])
+                            pro_pro_obj.write(cr, uid, product_ids, {'standard_price':price})
                             for product in pro_pro_obj.browse(cr, uid, product_ids):
                                 inventory_line_id.append((0,0,{
                                                                 'location_id':locat_id, 
@@ -637,7 +638,7 @@ class tpt_import_inventory_spare(osv.osv):
                         ##############################################                         
                 if inventory_line_id:
                     inve_id = inve_obj.create(cr, uid, {
-                        'name': 'Update',
+                        'name': 'Update Spare',
 #                         'date': time.strftime('%Y-%m-%d %H:%M:%S'),
                         'date': '2015-03-01 00:00:00',
                         'inventory_line_id': inventory_line_id,
