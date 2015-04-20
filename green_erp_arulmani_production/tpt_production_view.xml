@@ -418,7 +418,7 @@
 						<attribute name='invisible'>1</attribute>
                     </xpath>
                     <xpath expr="//form/sheet/notebook/page[@string='Consumed Products']/group/group[@string='Products to Consume']/field/tree/field[@name='product_id']" position="after">
-                    	<field name="app_quantity" readonly = "1" />
+                    	<field name="app_quantity" string = 'As per Norms Qty' readonly = "1" />
                     </xpath>
                     
                     <xpath expr="//form/sheet/notebook/page[@string='Consumed Products']/group/group[@string='Products to Consume']/field/tree/field[@name='product_qty']" position="replace">
@@ -439,6 +439,24 @@
 								</field>
 							</page>
                     </xpath>
+                    
+                    <xpath expr="//form/sheet/notebook/page[@string='Consumed Products']" position="after">
+	                    <page string="Activities">
+		                    	<field name="activities_line" nplabel='1'>
+			                		<tree string="Activities" editable="top">
+				                        <field name="activities_id" on_change = "onchange_description(activities_id)" options="{'create': false, 'create_edit': false}"/>
+				                        <field name="description"  />
+				                        <field name="note"  />
+					                    <field name="product_qty"/>
+					                    <field name="product_uom" options="{'create': false, 'create_edit': false}"/>
+					                    <field name="cost_type"/>
+					                    <field name="price_unit"/>
+					                    <field name="product_cost"/>
+					                    <field name="state" invisible = '1' widget="statusbar" statusbar_visible="draft,product_manager,finance_manager" statusbar_colors='{"finance_manager":"red","product_manager":"blue"}'/>
+				                    </tree>
+			                    </field>
+		                </page>
+		            </xpath>
                     
                     <xpath expr="//form/sheet/notebook/page[@string='Consumed Products']" position="attributes">
 						<attribute name='string'>Products to Consume</attribute>
@@ -493,7 +511,7 @@
                     </xpath>
 
                     <xpath expr="//tree[@string='Scheduled Products']/field[@name='product_uom']" position="after">
-                		<field name="product_qty"/>
+                		<field name="product_qty" string = 'As per Norms Qty'/>
                 		<field name="declar_id" invisible = '1'/>
                     </xpath>
                     <xpath expr="//tree[@string='Scheduled Products']/field[@name='product_qty']" position="attributes">
