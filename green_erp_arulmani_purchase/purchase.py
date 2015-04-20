@@ -550,12 +550,12 @@ class tpt_purchase_product(osv.osv):
         res = []
         if not ids:
             return res
-        reads = self.read(cr, uid, ids, ['id', 'product_id'], context)
- 
-        for record in reads:
-            for line in self.browse(cr,uid,ids):
-                cate_name = line.product_id.default_code + ' - ' + line.product_id.name
-            res.append((record['id'],cate_name))
+#         reads = self.read(cr, uid, ids, ['id', 'product_id'], context)
+#  
+#         for record in reads:
+        for line in self.browse(cr,uid,ids):
+            cate_name = line.product_id.default_code + ' - ' + line.product_id.name
+            res.append((line.id,cate_name))
         return res    
     
 #     def search(self, cr, uid, args, offset=0, limit=None, order=None, context=None, count=False):
