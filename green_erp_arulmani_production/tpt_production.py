@@ -470,6 +470,7 @@ crm_application_line()
 
 class mrp_bom(osv.osv):
     _inherit = 'mrp.bom'
+    _order = "product_id"
 
     def _norms(self, cr, uid, ids, field_name, args, context=None):
         res = {}
@@ -1342,6 +1343,7 @@ stock_production_lot()
 
 class stock_move(osv.osv):
     _inherit = 'stock.move'
+    _order = 'product_id'
     _columns = {
         'app_quantity': fields.float('Required Quantity'),
         'is_tpt_production': fields.boolean('Is tpt production'),
@@ -1530,6 +1532,7 @@ tpt_quality_verification()
 
 class mrp_production_product_line(osv.osv):
     _inherit = 'mrp.production.product.line'
+    _order = "product_id"
     _columns = {
             'app_qty':fields.float('As per Norms Qty'),
             'declar_id':fields.many2one('product.declaration.line','Declaration'),
@@ -1544,6 +1547,7 @@ mrp_production_product_line()
 
 class product_declaration_line(osv.osv):
     _name = 'product.declaration.line'
+    _order = "product_id"
     _columns = {
             'mrp_production_id':fields.many2one('mrp.production','Product Declaration',ondelete='restrict'),
             'app_qty':fields.float('Applied Quantity',required=True),
