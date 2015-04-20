@@ -505,7 +505,8 @@ class account_invoice(osv.osv):
                 'amount_tax': 0.0,
                 'fright': 0.0,
                 'amount_total': 0.0,
-                'amount_total_inr': 0.0
+                'amount_total_inr': 0.0,
+                'amount_total_tds': 0.0,
             }
             if line.type == 'out_invoice':
                 res[line.id] = {
@@ -650,16 +651,16 @@ class account_invoice(osv.osv):
                             fright = po.fright
                         total_fright += fright
                         total_fright = round(total_fright,2)
-                        
-                    if line.tds_id:    
-                        tds_amount = amount_untaxed * line.tds_id.amount/100
-                        tds_amount = round(tds_amount,2)
+                        if po.tds_id:    
+                            tds_amount += po.quantity * po.price_unit * po.tds_id.amount/100
+                            tds_amount = round(tds_amount,2)
                     
                     res[line.id]['amount_untaxed'] = amount_untaxed
                     res[line.id]['p_f_charge'] = p_f_charge
                     res[line.id]['excise_duty'] = excise_duty
                     res[line.id]['amount_tax'] = total_tax
                     res[line.id]['fright'] = total_fright
+                    res[line.id]['amount_total_tds'] = tds_amount
                     res[line.id]['amount_total'] = amount_untaxed+p_f_charge+excise_duty+total_tax+total_fright-tds_amount
         return res
     
@@ -683,39 +684,44 @@ class account_invoice(osv.osv):
             store={
                 'account.invoice': (lambda self, cr, uid, ids, c={}: ids, ['invoice_line'], 10),   
                 'account.invoice.line': (_get_invoice_line, ['quantity', 'uos_id', 'price_unit','discount','p_f','p_f_type',   
-                                                                'ed', 'ed_type','invoice_line_tax_id','fright','fright_type'], 10)}),
+                                                                'ed', 'ed_type','invoice_line_tax_id','fright','fright_type', 'tds_id'], 10)}),
                 
         'p_f_charge': fields.function(amount_all_supplier_invoice_line, multi='sums',string='P & F charges',
             store={
                 'account.invoice': (lambda self, cr, uid, ids, c={}: ids, ['invoice_line'], 10),   
                 'account.invoice.line': (_get_invoice_line, ['quantity', 'uos_id', 'price_unit','discount','p_f','p_f_type',   
-                                                                'ed', 'ed_type','invoice_line_tax_id','fright','fright_type'], 10)}),
+                                                                'ed', 'ed_type','invoice_line_tax_id','fright','fright_type', 'tds_id'], 10)}),
         'excise_duty': fields.function(amount_all_supplier_invoice_line, multi='sums',string='Excise Duty',
             store={
                'account.invoice': (lambda self, cr, uid, ids, c={}: ids, ['invoice_line'], 10),   
                'account.invoice.line': (_get_invoice_line, ['quantity', 'uos_id', 'price_unit','discount','p_f','p_f_type',   
-                                                               'ed', 'ed_type','invoice_line_tax_id','fright','fright_type'], 10)}),
+                                                               'ed', 'ed_type','invoice_line_tax_id','fright','fright_type', 'tds_id'], 10)}),
         'fright': fields.function(amount_all_supplier_invoice_line, multi='sums',string='Freight',
               store={
                 'account.invoice': (lambda self, cr, uid, ids, c={}: ids, ['invoice_line'], 10),   
                 'account.invoice.line': (_get_invoice_line, ['quantity', 'uos_id', 'price_unit','discount','p_f','p_f_type',   
-                                                                'ed', 'ed_type','invoice_line_tax_id','fright','fright_type'], 10)}),
+                                                                'ed', 'ed_type','invoice_line_tax_id','fright','fright_type', 'tds_id'], 10)}),
                  
         'amount_tax': fields.function(amount_all_supplier_invoice_line, multi='sums', string='Taxes',
             store={
                 'account.invoice': (lambda self, cr, uid, ids, c={}: ids, ['invoice_line'], 10),   
                 'account.invoice.line': (_get_invoice_line, ['quantity', 'uos_id', 'price_unit','discount','p_f','p_f_type',   
-                                                                'ed', 'ed_type','invoice_line_tax_id','fright','fright_type'], 10)}),
+                                                                'ed', 'ed_type','invoice_line_tax_id','fright','fright_type', 'tds_id'], 10)}),
         'amount_total': fields.function(amount_all_supplier_invoice_line, multi='sums', string='Total',
              store={
                 'account.invoice': (lambda self, cr, uid, ids, c={}: ids, ['invoice_line'], 10),   
                 'account.invoice.line': (_get_invoice_line, ['quantity', 'uos_id', 'price_unit','discount','p_f','p_f_type',   
-                                                                'ed', 'ed_type','invoice_line_tax_id','fright','fright_type'], 10)}),
+                                                                'ed', 'ed_type','invoice_line_tax_id','fright','fright_type', 'tds_id'], 10)}),
         'amount_total_inr': fields.function(amount_all_supplier_invoice_line, multi='sums', string='Total (INR)',
              store={
                 'account.invoice': (lambda self, cr, uid, ids, c={}: ids, ['invoice_line'], 10),   
                 'account.invoice.line': (_get_invoice_line, ['quantity', 'uos_id', 'price_unit','discount','p_f','p_f_type',   
-                                                                'ed', 'ed_type','invoice_line_tax_id','fright','fright_type'], 10)}),
+                                                                'ed', 'ed_type','invoice_line_tax_id','fright','fright_type', 'tds_id'], 10)}),
+        'amount_total_tds': fields.function(amount_all_supplier_invoice_line, multi='sums', string='Total TDS',
+             store={
+                'account.invoice': (lambda self, cr, uid, ids, c={}: ids, ['invoice_line'], 10),   
+                'account.invoice.line': (_get_invoice_line, ['quantity', 'uos_id', 'price_unit','discount','p_f','p_f_type',   
+                                                                'ed', 'ed_type','invoice_line_tax_id','fright','fright_type', 'tds_id'], 10)}),
         }
     _defaults = {
         'created_on': time.strftime('%Y-%m-%d %H:%M:%S'),
@@ -859,6 +865,7 @@ class account_invoice_line(osv.osv):
         'fright_type':fields.selection([('1','%'),('2','Rs'),('3','Per Qty')],('Freight Type')),
         'line_net': fields.function(line_net_line_supplier_invo, store = True, multi='deltas' ,string='Line Net'),
         'tax_id': fields.many2one('account.tax', 'Taxes'),
+        'tds_id': fields.many2one('account.tax', 'TDS %'),
     }
     _defaults = {
         'name': '/',
@@ -867,10 +874,9 @@ class account_invoice_line(osv.osv):
     def onchange_tax_id(self, cr, uid, ids, tax_id=False, context=None):
         vals = {}
         if tax_id:
-            for line in self.browse(cr,uid,ids):
-                vals = {
-                    'invoice_line_tax_id': [(6,0,[line.tax_id and line.tax_id.id])],
-                        }
+            vals = {
+                'invoice_line_tax_id': [(6,0,[tax_id])],
+                    }
         return {'value': vals}
     
     def onchange_gl_code_id(self, cr, uid, ids, gl_code_id=False, context=None):

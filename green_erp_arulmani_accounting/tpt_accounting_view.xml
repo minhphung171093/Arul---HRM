@@ -343,8 +343,8 @@
                               context="{'default_customer': 0, 'search_default_supplier': 1, 'default_supplier': 1}"
                               domain="[('supplier', '=', True)]" options="{'create': false, 'create_edit': false}"/>
                             <field name="vendor_ref"/>
-                            <field name="is_tds_applicable"/>
-                            <field name="tds_id" attrs="{'invisible': [('is_tds_applicable','=',False)]}" options="{'create': false, 'create_edit': false}"/>
+                            <field name="is_tds_applicable" invisible = '1'/>
+                            <field name="tds_id" attrs="{'invisible': [('is_tds_applicable','=',False)]}" options="{'create': false, 'create_edit': false}" invisible = '1'/>
                             <field name="create_uid" options="{'create': false, 'create_edit': false}"/>
                             <field name="fiscal_position" widget="selection" invisible = '1'/>
                             <field name="origin" invisible = '1'/>
@@ -369,7 +369,7 @@
                     </group>
                     <notebook>
                         <page string="Invoice">
-                            <field context="{'partner_id': partner_id, 'price_type': context.get('price_type') or False, 'type': type}" name="invoice_line">
+                            <field context="{'partner_id': partner_id, 'price_type': context.get('price_type') or False, 'type': type, 'default_p_f_type':'2', 'default_fright_type':'2'}" name="invoice_line">
                                 <tree string="Invoice lines" editable="bottom">
                                     <field name="sequence" widget="handle" invisible = '1'/>
                             <!--        <field name="gl_code_id" required = '1' on_change="onchange_gl_code_id(gl_code_id)" options="{'create': false, 'create_edit': false}"/> -->
@@ -386,16 +386,17 @@
                                     <field name="price_unit"/>
                                     <field name="disc"/>
                                     <field name="discount" invisible = '1' groups="sale.group_discount_per_so_line"/>
+                                    <field name="tds_id" options="{'create': false, 'create_edit': false}"/>
                                     <field name="p_f"/>
-                                    <field name="p_f_type"/>
+                                    <field name="p_f_type" invisible = '1'/>
                                     <field name="ed"/>
                                     <field name="ed_type"/>
                                     <field name="tax_id" on_change = "onchange_tax_id(tax_id)" context="{'type':parent.type}"
                                         domain="[('parent_id','=',False),('company_id', '=', parent.company_id)]" options="{'create': false, 'create_edit': false}"/>
                                     <field name="invoice_line_tax_id" string = 'tax many2many' widget="many2many_tags" context="{'type':parent.type}"
-                                        domain="[('parent_id','=',False),('company_id', '=', parent.company_id)]"/>
+                                        domain="[('parent_id','=',False),('company_id', '=', parent.company_id)]" invisible = '1'/>
                                     <field name="fright"/>
-                                    <field name="fright_type"/>
+                                    <field name="fright_type" invisible = '1'/>
                                     <field name="line_net"/>
                                     <field name="price_subtotal" invisible = '1'/>
                                 </tree>
@@ -412,6 +413,7 @@
                                 </div>
                                 <field name="amount_tax" nolabel="1" widget="monetary" options="{'currency_field': 'currency_id'}"/>
                                 <field name="fright" widget="monetary"/>
+                                <field name="amount_total_tds" widget="monetary"/>
                                 <field name="amount_total" class="oe_subtotal_footer_separator" widget="monetary" options="{'currency_field': 'currency_id'}"/>
 								<field name="residual" widget="monetary" options="{'currency_field': 'currency_id'}" invisible = '1'/>
                                 <field name="reconciled" invisible="1"/>
