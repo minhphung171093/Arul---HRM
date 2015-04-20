@@ -696,6 +696,7 @@
         			<attribute name='string'>Credit Used</attribute>
         		</xpath>
         		
+        		
         		<!--<xpath expr="//field[@name='is_company']" position="after">
         			<field name="disapprove" readonly="1"/>
         		</xpath>-->

@@ -2524,7 +2524,6 @@ class product_category(osv.osv):
 product_category()
 
 class res_partner(osv.osv):
-    _name = 'res.partner'
     _inherit = 'res.partner'
     _description = 'Partner'
     _columns = {
@@ -2549,4 +2548,24 @@ class res_partner(osv.osv):
         'is_tds_applicable': fields.boolean('IsTDSApplicable'),
         'tds_id': fields.many2one('account.tax', 'TDS %'),
         }
+    
+    def create(self, cr, uid, vals, context=None):
+        if 'customer' in vals and vals['customer']:
+            acc_obj = self.pool.get('account.account')
+            acc_type_ids = self.pool.get('account.account.type').search(cr,uid, [('code','=','receivable')])
+            if 'arulmani_type' in vals and vals['arulmani_type']=='export':
+                acc_parent_ids = self.pool.get('account.account').search(cr,uid, [('code','=','0000119002')])
+            if 'arulmani_type' in vals and vals['arulmani_type']=='domestic':
+                acc_parent_ids = self.pool.get('account.account').search(cr,uid, [('code','=','0000119001')])
+            if 'arulmani_type' in vals and vals['arulmani_type']=='indirect_export':
+                acc_parent_ids = self.pool.get('account.account').search(cr,uid, [('code','=','0000119003')])
+            acc_id = acc_obj.create(cr,uid,{
+                'code':'0000' + vals['customer_code'],
+                'name': vals['name'],
+                'type':'receivable',
+                'user_type':acc_type_ids[0],
+                'parent_id':acc_parent_ids[0],
+                                            })
+            vals.update({'property_account_receivable':acc_id})
+        return super(res_partner, self).create(cr, uid, vals, context)
 res_partner()

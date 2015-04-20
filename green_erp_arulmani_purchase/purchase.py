@@ -550,12 +550,12 @@ class tpt_purchase_product(osv.osv):
         res = []
         if not ids:
             return res
-        reads = self.read(cr, uid, ids, ['id', 'product_id'], context)
- 
-        for record in reads:
-            for line in self.browse(cr,uid,ids):
-                cate_name = line.product_id.default_code + ' - ' + line.product_id.name
-            res.append((record['id'],cate_name))
+#         reads = self.read(cr, uid, ids, ['id', 'product_id'], context)
+#  
+#         for record in reads:
+        for line in self.browse(cr,uid,ids):
+            cate_name = line.product_id.default_code + ' - ' + line.product_id.name
+            res.append((line.id,cate_name))
         return res    
     
 #     def search(self, cr, uid, args, offset=0, limit=None, order=None, context=None, count=False):
@@ -1386,10 +1386,6 @@ class tpt_purchase_quotation(osv.osv):
             indent_line_ids = [row[0] for row in cr.fetchall()]
             if indent_line_ids:
                 self.pool.get('tpt.purchase.product').write(cr, uid, indent_line_ids,{'state':'quotation_raised'})
-#         if quotation.quotation_cate:
-#             if quotation.quotation_cate != 'multiple':
-#                 if (len(quotation.purchase_quotation_line) > 1):
-#                     raise osv.except_osv(_('Warning!'),_('You must choose Quotation category is multiple if you want more than one vendors!'))
         return new_id  
     
     def write(self, cr, uid, ids, vals, context=None):
@@ -1415,10 +1411,6 @@ class tpt_purchase_quotation(osv.osv):
                 self.pool.get('tpt.request.for.quotation').write(cr,uid,rfq_ids,{
                                                                          'raised_ok': True
                                                                          })
-#             if quotation.quotation_cate:
-#                 if quotation.quotation_cate != 'multiple':
-#                     if (len(quotation.purchase_quotation_line) > 1):
-#                         raise osv.except_osv(_('Warning!'),_('You must choose Quotation category is multiple if you want more than one vendors!'))
         return new_write    
     
     
