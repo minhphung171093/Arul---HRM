@@ -51,7 +51,44 @@
           <field name="name">Loss of Pay</field>
           <field name="code">LOP</field>
       </record>
+      <!-- TPT start-->
+      <!-- 
+       
+      <record id="deduction_parameters_12" model="arul.hr.payroll.deduction.parameters">
+          <field name="name">LIC Premium Insurance</field>
+          <field name="code">INS_LIC_PREM</field>
+      </record>
+      <record id="deduction_parameters_13" model="arul.hr.payroll.deduction.parameters">
+          <field name="name">Other Insurances</field>
+          <field name="code">INS_OTHERS</field>
+      </record>
       
+      <record id="deduction_parameters_14" model="arul.hr.payroll.deduction.parameters">
+          <field name="name">VVTi Loan</field>
+          <field name="code">LOAN_VVTI</field>
+      </record>
+      
+      <record id="deduction_parameters_15" model="arul.hr.payroll.deduction.parameters">
+          <field name="name">LIC HFL Loan</field>
+          <field name="code">LOAN_LIC_HFL</field>
+      </record>
+      <record id="deduction_parameters_16" model="arul.hr.payroll.deduction.parameters">
+          <field name="name">HDFC Loan</field>
+          <field name="code">LOAN_HDFC</field>
+      </record>
+      <record id="deduction_parameters_17" model="arul.hr.payroll.deduction.parameters">
+          <field name="name">TMB Loan</field>
+          <field name="code">LOAN_TMB</field>
+      </record>
+      <record id="deduction_parameters_18" model="arul.hr.payroll.deduction.parameters">
+          <field name="name">SBT Loan</field>
+          <field name="code">LOAN_SBT</field>
+      </record>
+      <record id="deduction_parameters_19" model="arul.hr.payroll.deduction.parameters">
+          <field name="name">Other Loans</field>
+          <field name="code">LOAN_OTHERS</field>
+      </record>-->
+      <!-- TPT End -->
       <record id="deduction_parameters_10" model="arul.hr.payroll.deduction.parameters">
           <field name="name">Total Deduction</field>
           <field name="code">TOTAL_DEDUCTION</field>

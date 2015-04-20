@@ -470,6 +470,7 @@ crm_application_line()
 
 class mrp_bom(osv.osv):
     _inherit = 'mrp.bom'
+    _order = "product_id"
 
     def _norms(self, cr, uid, ids, field_name, args, context=None):
         res = {}
@@ -733,6 +734,7 @@ class tpt_activities_line(osv.osv):
     
     _columns = {
         'bom_id': fields.many2one('mrp.bom', 'BoM', ondelete='cascade'),
+        'mrp_production_id': fields.many2one('mrp.production', 'MRP Production', ondelete='cascade'),
         'activities_id': fields.many2one('tpt.activities', 'Activities', required=True, states={'product_manager': [('readonly', True)], 'finance_manager':[('readonly', True)]}),
         'description':fields.char('Description',size=256, states={'product_manager': [('readonly', True)], 'finance_manager':[('readonly', True)]}),
         'product_qty': fields.float('Quantity', digits_compute=dp.get_precision('Product Unit of Measure'), required=True, states={'product_manager': [('readonly', True)], 'finance_manager':[('readonly', True)]}),
@@ -784,6 +786,9 @@ class mrp_production(osv.osv):
             domain=[('state','not in', ('done', 'cancel'))], readonly=True, states={'draft':[('readonly',False)],'confirmed':[('readonly',False)]}),
             'material_line':fields.one2many('product.declaration.line', 'mrp_production_id', 'Add Material',
             readonly=True, states={'draft':[('readonly',False)],'confirmed':[('readonly',False)]}),
+                
+            'activities_line': fields.one2many('tpt.activities.line', 'mrp_production_id', 'Activities'),   
+                
             
     }
     _defaults={
@@ -806,17 +811,31 @@ class mrp_production(osv.osv):
                 'routing_id': False
             }}
         bom_point = self.pool.get('mrp.bom').browse(cr, uid, bom_id, context=context)
+        acc_line_ids = []
         if bom_point.product_id:
             product = self.pool.get('product.product').browse(cr, uid, bom_point.product_id.id, context=context)
             routing_id = bom_point.routing_id.id or False
             product_uom_id = product.uom_id and product.uom_id.id or False
+            for acc_line in bom_point.activities_line:
+                value = {
+                    'activities_id': acc_line.activities_id and acc_line.activities_id.id or False,
+                    'description': acc_line.description,
+                    'note': acc_line.note,
+                    'product_qty': acc_line.product_qty,
+                    'product_uom': acc_line.product_uom and acc_line.product_uom.id or False,
+                    'cost_type': acc_line.cost_type,
+                    'price_unit': acc_line.price_unit,
+                    'product_cost': acc_line.product_cost,
+                         }
+                acc_line_ids.append((0,0,value))
             result = {
                 'product_id':bom_point.product_id.id,
                 'routing_id': routing_id,
                 'product_uom': product_uom_id,
                 'location_src_id':bom_point.location_src_id and bom_point.location_src_id.id or False,
                 'location_dest_id':bom_point.location_dest_id and bom_point.location_dest_id.id or False,
-            }
+                'activities_line': acc_line_ids,    
+                }
         return {'value': result}
     
     def product_id_change(self, cr, uid, ids, product_id, context=None):
@@ -1324,6 +1343,7 @@ stock_production_lot()
 
 class stock_move(osv.osv):
     _inherit = 'stock.move'
+    _order = 'product_id'
     _columns = {
         'app_quantity': fields.float('Required Quantity'),
         'is_tpt_production': fields.boolean('Is tpt production'),
@@ -1512,10 +1532,10 @@ tpt_quality_verification()
 
 class mrp_production_product_line(osv.osv):
     _inherit = 'mrp.production.product.line'
+    _order = "product_id"
     _columns = {
-            'app_qty':fields.float('Required Quantity'),
+            'app_qty':fields.float('As per Norms Qty'),
             'declar_id':fields.many2one('product.declaration.line','Declaration'),
-            
     }
 
     _defaults={
@@ -1527,6 +1547,7 @@ mrp_production_product_line()
 
 class product_declaration_line(osv.osv):
     _name = 'product.declaration.line'
+    _order = "product_id"
     _columns = {
             'mrp_production_id':fields.many2one('mrp.production','Product Declaration',ondelete='restrict'),
             'app_qty':fields.float('Applied Quantity',required=True),
