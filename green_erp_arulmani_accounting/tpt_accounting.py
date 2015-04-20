@@ -2051,9 +2051,15 @@ class account_voucher(osv.osv):
                     account_id = voucher.writeoff_acc_id.id
                     write_off_name = voucher.comment
                 elif voucher.type in ('sale', 'receipt'):
-                    account_id = voucher.partner_id.property_account_receivable.id
+                    if voucher.partner_id.supplier:
+                        account_id = voucher.partner_id.property_account_payable.id
+                    else:
+                        account_id = voucher.partner_id.property_account_receivable.id
                 else:
-                    account_id = voucher.partner_id.property_account_payable.id
+                    if voucher.partner_id.customer:
+                        account_id = voucher.partner_id.property_account_receivable.id
+                    else:
+                        account_id = voucher.partner_id.property_account_payable.id
             else:
                 account_id = voucher.account_id.id
             sign = voucher.type == 'payment' and -1 or 1
