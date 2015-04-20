@@ -386,8 +386,12 @@ class arul_hr_employee_action_history(osv.osv):
             self.pool.get('hr.employee').write(cr, uid, [action_history.employee_id.id], {'active': False})
         if context.get('create_promotion_employee'):
             action_history = self.browse(cr, uid, new_id)
-            self.pool.get('hr.employee').write(cr, uid, [action_history.employee_id.id], {'employee_category_id': action_history.employee_category_id and action_history.employee_category_id.id or False,
-                                                                                          'employee_sub_category_id': action_history.sub_category_id and action_history.sub_category_id.id or False,
+            self.pool.get('hr.employee').write(cr, uid, [action_history.employee_id.id], {#'employee_category_id': action_history.employee_category_id and action_history.employee_category_id.id or False,
+                                                                                          #'employee_sub_category_id': action_history.sub_category_id and action_history.sub_category_id.id or False,
+                                                                                          'employee_category_id': action_history.employee_category_to_id and action_history.employee_category_to_id.id or False,
+                                                                                          'employee_sub_category_id': action_history.sub_category_to_id and action_history.sub_category_to_id.id or False,
+                                                                                         
+                                                                                          
                                                                                           'job_id': action_history.designation_to_id.id and action_history.designation_to_id.id or action_history.designation_from_id.id,
                                                                                           'department_id': action_history.department_to_id.id and action_history.department_to_id.id or action_history.department_from_id.id},
                                                                                           )
