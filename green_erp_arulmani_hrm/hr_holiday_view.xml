@@ -465,7 +465,7 @@
 		                <group col='4' colspan='2'>
 							<field name="employee_id" on_change="onchange_category_employee_id(employee_id)" options="{'create': false, 'create_edit': false}"/>
 							<field name="additional_shifts"/>
-							<field name="planned_work_shift_id" options="{'create': false, 'create_edit': false}"/>
+							<field name="planned_work_shift_id" options="{'create': false, 'create_edit': false}" readonly='1'/>
 							<field name="actual_work_shift_id" options="{'create': false, 'create_edit': false}"/>
 							<field name="punch_in_date"/>
 							<field name="punch_out_date"/>
