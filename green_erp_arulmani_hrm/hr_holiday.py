@@ -2511,7 +2511,7 @@ class arul_hr_punch_in_out_time(osv.osv):
         #TPT
         #TPT-Punch InOut - THIS COLUMN IS STORE IN DB TO GET THIS COUNT DURING PAYROLL PROCESS
         'total_hrs_worked': fields.function(_shift_hrs_total, string='No.Of Hrs Worked', multi='shift_punchinout_hrs_sums', help="The total Hrs Worked."),
-        'total_shift_worked': fields.function(_shift_total, string='No.Of Shift Worked',  multi='shift_punchinout_sums', help="The total Shift Worked Per day which includes punch in times and/or Permission OnDuty Hrs."),        
+        'total_shift_worked': fields.function(_shift_total, string='No.Of Shift Worked', store=True, multi='shift_punchinout_sums', help="The total Shift Worked Per day which includes punch in times and/or Permission OnDuty Hrs."),        
         #'shift_count': fields.function(_shift_total, store=True,string='Shift Count', multi='shift_punchinout2_sums', help="The total amount."),
         'a_shift_count': fields.function(_shift_count, string='A', multi='a_shift'),
         'b_shift_count': fields.function(_shift_count, string='B', multi='b_shift'),
