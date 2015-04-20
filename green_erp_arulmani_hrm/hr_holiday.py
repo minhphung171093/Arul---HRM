@@ -2461,35 +2461,11 @@ class arul_hr_punch_in_out_time(osv.osv):
                 
                 if 25.3 <= total_hrs <= 28:  
                     res[time.id]['total_shift_worked'] = 3 
-            
-            #===================================================================
-            # if time.total_hours <= 1.0:            
-            #     res[time.id]['total_shift_worked'] = 0.125 + perm_onduty_count
-            # if time.total_hours >= 1.1 and time.total_hours <= 2.0:            
-            #     res[time.id]['total_shift_worked'] = 0.25 + perm_onduty_count
-            # if time.total_hours >= 2.1 and time.total_hours <= 3.0:            
-            #     res[time.id]['total_shift_worked'] = 0.375 + perm_onduty_count        
-            # if time.total_hours >= 4.0 and time.total_hours <= 7.44:            
-            #     res[time.id]['total_shift_worked'] = 0.5 + perm_onduty_count 
-            # if time.total_hours >= 7.45 and time.total_hours <= 8.30:            
-            #     res[time.id]['total_shift_worked'] = 1.0 + perm_onduty_count
-            # if time.total_hours >8.30  and time.total_hours <= 11.44:            
-            #     res[time.id]['total_shift_worked'] = 1.0 + perm_onduty_count
-            # if time.total_hours >=11.45  and time.total_hours <= 15.44:            
-            #     res[time.id]['total_shift_worked'] = 1.5 + perm_onduty_count
-            # if time.total_hours >=15.45  and time.total_hours <= 15.45:            
-            #     res[time.id]['total_shift_worked'] = 1.5 + perm_onduty_count
-            # if time.total_hours >=15.45:            
-            #     res[time.id]['total_shift_worked'] = 2.0 + perm_onduty_count
-            # if time.total_hours >=23.45:            
-            #     res[time.id]['total_shift_worked'] = 3.0 + perm_onduty_count
-            #===================================================================
-            
+                       
             #res[time.id]['shift_count']=res[time.id]['total_shift_worked']
             #res.update({'shift_count': res[time.id]['total_shift_worked']})
             
         return res
-    #TPT 
     #TPT 
     _columns = {
         'employee_id':fields.many2one('hr.employee','Employee ID', required = True, states={'done': [('readonly', True)], 'cancel': [('readonly', True)]}),
@@ -2511,7 +2487,7 @@ class arul_hr_punch_in_out_time(osv.osv):
         #TPT
         #TPT-Punch InOut - THIS COLUMN IS STORE IN DB TO GET THIS COUNT DURING PAYROLL PROCESS
         'total_hrs_worked': fields.function(_shift_hrs_total, string='No.Of Hrs Worked', multi='shift_punchinout_hrs_sums', help="The total Hrs Worked."),
-        'total_shift_worked': fields.function(_shift_total, string='No.Of Shift Worked', store=True, multi='shift_punchinout_sums', help="The total Shift Worked Per day which includes punch in times and/or Permission OnDuty Hrs."),        
+        'total_shift_worked': fields.function(_shift_total, string='No.Of Shift Worked',  multi='shift_punchinout_sums', help="The total Shift Worked Per day which includes punch in times and/or Permission OnDuty Hrs."),        
         #'shift_count': fields.function(_shift_total, store=True,string='Shift Count', multi='shift_punchinout2_sums', help="The total amount."),
         'a_shift_count': fields.function(_shift_count, string='A', multi='a_shift'),
         'b_shift_count': fields.function(_shift_count, string='B', multi='b_shift'),
