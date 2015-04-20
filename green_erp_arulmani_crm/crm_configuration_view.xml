@@ -60,7 +60,7 @@
             <field name="field_parent">child_ids</field>
             <field name="arch" type="xml">
             	<field name="last_name" position="replace">
-                    <field name="customer_code" string="Code"/>                                    	
+                    <field name="customer_code" string="Code" />                                    	
                 </field>
                 <field name="name" position="after">
                     	<field name="city" />                    	                 	
@@ -103,11 +103,11 @@
                         <field name="user_id" invisible="1"/>
                     </xpath>
                     <xpath expr="//field[@name='phone']" position="before">
-                    <field name="customer_code" attrs="{'invisible': [('customer', '=',False)]}" />
+                    <field name="customer_code" required='1' attrs="{'invisible': [('customer', '=',False)]}" />
                     </xpath>
                     
                     <xpath expr="//field[@name='website']" position="after">                       
-                        <field name="arulmani_type" attrs="{'invisible': [('customer', '=',False)]}" />
+                        <field name="arulmani_type" required = '1' attrs="{'invisible': [('customer', '=',False)]}" />
                         <field name="zone" attrs="{'invisible': [('customer', '=',False)]}" />
                         <!--  TPT
                         <field name="excise_duty" attrs="{'invisible': [('customer', '=',False)]}" />

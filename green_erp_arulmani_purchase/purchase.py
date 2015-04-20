@@ -1386,10 +1386,6 @@ class tpt_purchase_quotation(osv.osv):
             indent_line_ids = [row[0] for row in cr.fetchall()]
             if indent_line_ids:
                 self.pool.get('tpt.purchase.product').write(cr, uid, indent_line_ids,{'state':'quotation_raised'})
-#         if quotation.quotation_cate:
-#             if quotation.quotation_cate != 'multiple':
-#                 if (len(quotation.purchase_quotation_line) > 1):
-#                     raise osv.except_osv(_('Warning!'),_('You must choose Quotation category is multiple if you want more than one vendors!'))
         return new_id  
     
     def write(self, cr, uid, ids, vals, context=None):
@@ -1415,10 +1411,6 @@ class tpt_purchase_quotation(osv.osv):
                 self.pool.get('tpt.request.for.quotation').write(cr,uid,rfq_ids,{
                                                                          'raised_ok': True
                                                                          })
-#             if quotation.quotation_cate:
-#                 if quotation.quotation_cate != 'multiple':
-#                     if (len(quotation.purchase_quotation_line) > 1):
-#                         raise osv.except_osv(_('Warning!'),_('You must choose Quotation category is multiple if you want more than one vendors!'))
         return new_write    
     
     
