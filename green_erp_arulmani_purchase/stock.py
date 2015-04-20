@@ -677,6 +677,7 @@ class account_invoice(osv.osv):
         'vendor_ref': fields.char('Vendor Reference', size = 1024, readonly=True, states={'draft':[('readonly',False)]}),
         'is_tds_applicable': fields.boolean('IsTDSApplicable'),
         'tds_id': fields.many2one('account.tax', 'TDS %'),
+        'tax_id': fields.many2one('account.tax', 'Taxes'),
         
         'amount_untaxed': fields.function(amount_all_supplier_invoice_line, multi='sums', string='Untaxed Amount',
             store={
@@ -857,10 +858,20 @@ class account_invoice_line(osv.osv):
         'fright': fields.float('Freight'),
         'fright_type':fields.selection([('1','%'),('2','Rs'),('3','Per Qty')],('Freight Type')),
         'line_net': fields.function(line_net_line_supplier_invo, store = True, multi='deltas' ,string='Line Net'),
+        'tax_id': fields.many2one('account.tax', 'Taxes'),
     }
     _defaults = {
         'name': '/',
                  }
+    
+    def onchange_tax_id(self, cr, uid, ids, tax_id=False, context=None):
+        vals = {}
+        if tax_id:
+            for line in self.browse(cr,uid,ids):
+                vals = {
+                    'invoice_line_tax_id': [(6,0,[line.tax_id and line.tax_id.id])],
+                        }
+        return {'value': vals}
     
     def onchange_gl_code_id(self, cr, uid, ids, gl_code_id=False, context=None):
         vals = {}

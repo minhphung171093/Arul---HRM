@@ -3667,7 +3667,7 @@ class tpt_material_request(osv.osv):
         'project_section_id': fields.many2one('tpt.project.section','Project Section',ondelete='restrict',states={'done':[('readonly', True)]}),
         'material_request_line':fields.one2many('tpt.material.request.line','material_request_id','Vendor Group',states={'done':[('readonly', True)]}),
         'state':fields.selection([('draft', 'Draft'),('done', 'Approve')],'Status', readonly=True),
-        'request_type':fields.selection([('norm', 'Against Norms'),('consum', 'Against consumption')],'Request Type', states={'done':[('readonly', True)]}),
+        'request_type':fields.selection([('production', 'Production'),('normal', 'Normal'),('main', 'Maintenance')],'Request Type', states={'done':[('readonly', True)]}),
                 }
     _defaults = {
         'state':'draft',      
@@ -3968,7 +3968,7 @@ class tpt_material_request_line(osv.osv):
         'uom_po_id': fields.many2one('product.uom', 'UOM', readonly = True),
         'material_request_id': fields.many2one('tpt.material.request', 'Material'),
         'on_hand_qty':fields.function(_get_on_hand_qty,digits=(16,2),type='float',string='On Hand Qty',multi='sum',store=False),
-        'request_type':fields.selection([('norm', 'Against Norms'),('consum', 'Against consumption')],'Request Type'),
+        'request_type':fields.selection([('production', 'Production'),('normal', 'Normal'),('main', 'Maintenance')],'Request Type'),
         'prodlot_id': fields.many2one('stock.production.lot', 'Batch No'),
                 }
     def onchange_product_id(self, cr, uid, ids,product_id=False, context=None):
@@ -4012,7 +4012,7 @@ class tpt_material_issue(osv.osv):
         'date_request':fields.date('Material Request Date',states={'done':[('readonly', True)]}),
         'date_expec':fields.date('Material Issue Date',states={'done':[('readonly', True)]}),
         'department_id':fields.many2one('hr.department','Department',readonly=True),
-        'request_type':fields.selection([('norm', 'Against Norms'),('consum', 'Against consumption')],'Request Type', states={'done':[('readonly', True)]}),
+        'request_type':fields.selection([('production', 'Production'),('normal', 'Normal'),('main', 'Maintenance')],'Request Type', states={'done':[('readonly', True)]}),
         'material_issue_line':fields.one2many('tpt.material.issue.line','material_issue_id','Vendor Group',states={'done':[('readonly', True)]}),
         'state':fields.selection([('draft', 'Draft'),('done', 'Approve')],'Status', readonly=True),
                 }

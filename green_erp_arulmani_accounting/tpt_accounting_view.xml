@@ -390,7 +390,9 @@
                                     <field name="p_f_type"/>
                                     <field name="ed"/>
                                     <field name="ed_type"/>
-                                    <field name="invoice_line_tax_id" widget="many2many_tags" context="{'type':parent.type}"
+                                    <field name="tax_id" on_change = "onchange_tax_id(tax_id)" context="{'type':parent.type}"
+                                        domain="[('parent_id','=',False),('company_id', '=', parent.company_id)]" options="{'create': false, 'create_edit': false}"/>
+                                    <field name="invoice_line_tax_id" string = 'tax many2many' widget="many2many_tags" context="{'type':parent.type}"
                                         domain="[('parent_id','=',False),('company_id', '=', parent.company_id)]"/>
                                     <field name="fright"/>
                                     <field name="fright_type"/>
@@ -956,7 +958,7 @@
                     <xpath expr="//field[@name='department_id']" position="after">
                     	<field name="warehouse" domain="[('usage','=','internal'),('chained_location_type','&lt;&gt;','customer')]" options="{'create': false, 'create_edit': false}"/>
                     	<field name="gl_account_id" options="{'create': false, 'create_edit': false}"/>   
-                    	<field name="dest_warehouse_id" domain="[('usage','=','internal'),('chained_location_type','&lt;&gt;','customer')]" options="{'create': false, 'create_edit': false}" attrs="{'invisible':[('request_type','!=','norm')], 'required':[('request_type','=','norm')]}"/>
+                    	<field name="dest_warehouse_id" domain="[('usage','=','internal'),('chained_location_type','&lt;&gt;','customer')]" options="{'create': false, 'create_edit': false}" attrs="{'invisible':[('request_type','!=','production')], 'required':[('request_type','=','norm')]}"/>
                     </xpath>
                     
                 </data>

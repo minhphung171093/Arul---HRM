@@ -2148,7 +2148,7 @@ class tpt_material_issue(osv.osv):
         
         
         for line in self.browse(cr, uid, ids):
-            if line.request_type == 'norm':
+            if line.request_type == 'production':
                 dest_id = line.dest_warehouse_id and line.dest_warehouse_id.id or False
             else:
                 location_ids=self.pool.get('stock.location').search(cr, uid,[('name','=','Scrapped')])
