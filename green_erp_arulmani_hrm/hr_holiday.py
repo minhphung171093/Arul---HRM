@@ -1776,7 +1776,7 @@ class arul_hr_employee_leave_details(osv.osv):
     _constraints = [
         (_check_days, _(''), ['date_from', 'date_to']),
         (_check_days_2, _(''), ['employee_id','date_from', 'date_to']),
-        (_check_date_holiday, _(''), ['employee_id','date_from', 'date_to']),
+        #(_check_date_holiday, _(''), ['employee_id','date_from', 'date_to']), TPT-COMMENTED
     ]
     
     def search(self, cr, uid, args, offset=0, limit=None, order=None, context=None, count=False):

@@ -61,6 +61,9 @@
             	<xpath expr="//field[@name='date']" position="attributes">
 					<attribute name='string'>GRN Date</attribute>
 				</xpath>
+				<xpath expr="//field[@name='date']" position="after">
+				<field name="header_text"/>
+				</xpath>
 				<xpath expr="//field[@name='backorder_id']" position="attributes">
 					<attribute name='invisible'>1</attribute>
 				</xpath>
@@ -70,7 +73,7 @@
                     <field name="warehouse" domain="[('usage','=','internal'),('chained_location_type','&lt;&gt;','customer')]" on_change="onchange_dest_loca_id(warehouse)" options="{'create': false, 'create_edit': false}"/>
                     <field name="gate_in_pass_no" options="{'create': false, 'create_edit': false}"/>
                     <field name="truck"/>
-                    <field name="invoice_no"/>
+                    <field name="invoice_no"/>                   
                 </xpath>
                 <xpath expr="//field[@name='move_lines']" position="replace">
                     <field name="move_lines" string="Stock Move" context="{'address_in_id': partner_id, 'picking_type': 'in', 'form_view_ref':'stock.view_move_picking_form', 'tree_view_ref':'stock.view_move_picking_tree'}" options='{"reload_on_button": true}'>
