@@ -2321,7 +2321,7 @@ class arul_hr_punch_in_out_time(osv.osv):
         res = {}
         for time in self.browse(cr, uid, ids, context=context):
             res[time.id] = {
-                'total_shift_worked': 0.0,
+                'shift_worked': 0.0,
             }          
             permission_count = 0
             onduty_count = 0
@@ -6502,17 +6502,17 @@ class shift_adjustment(osv.osv):
         return self.write(cr, uid, ids, {'state':'done'})
        
     _columns={
-              'employee_id': fields.many2one('hr.employee','Employee ID',required = True),
-              'work_date': fields.date('Work Date',required = True),             
+             'employee_id': fields.many2one('hr.employee','Employee ID',required = True, states={'done': [('readonly', True)], 'cancel': [('readonly', True)]}),
+              'work_date': fields.date('Work Date',required = True, states={'done': [('readonly', True)], 'cancel': [('readonly', True)]}),             
               'adj_type': fields.selection([('increase', 'Increase'),
-                                            ('decrease', 'Decrease')],'Adjustment Type',required = True),
-              'increase_count': fields.float('Increase Count'),
-              'decrease_count': fields.float('Decrease Count'),
+                                            ('decrease', 'Decrease')],'Adjustment Type',required = True, states={'done': [('readonly', True)], 'cancel': [('readonly', True)]}),
+              'increase_count': fields.float('Increase Count', states={'done': [('readonly', True)], 'cancel': [('readonly', True)]}),
+              'decrease_count': fields.float('Decrease Count', states={'done': [('readonly', True)], 'cancel': [('readonly', True)]}),
               'reason_for_adj': fields.selection([('sys_err', 'System Error'),
-                                            ('clerk_err', 'Clerical Error')],'Reason for Change'),
-              'reason_details': fields.text('Reason In Details'),
+                                            ('clerk_err', 'Clerical Error')],'Reason for Change', states={'done': [('readonly', True)], 'cancel': [('readonly', True)]}),
+              'reason_details': fields.text('Reason In Details', states={'done': [('readonly', True)], 'cancel': [('readonly', True)]}),
               'state':fields.selection([('draft', 'Draft'),('cancel', 'Reject'),
-                                            ('done', 'Approve')],'Status', readonly=True),              
+                                            ('done', 'Approve')],'Status', readonly=True, states={'done': [('readonly', True)], 'cancel': [('readonly', True)]}),              
               'create_date': fields.datetime('Created Date',readonly = True),
               'create_uid': fields.many2one('res.users','Created By',ondelete='restrict',readonly = True),
         
@@ -6524,3 +6524,80 @@ class shift_adjustment(osv.osv):
     }
 shift_adjustment()
 
+class leave_adjustment(osv.osv):
+    _name='leave.adjustment'
+    
+    def leave_adj(self, cr, uid, ids, context=None):
+        #emp = self.pool.get('hr.employee')
+        #leave_details = self.pool.get('employee.leave.detail')
+        #punch_obj = self.pool.get('arul.hr.punch.in.out.time')
+        employee_leave_obj = self.pool.get('employee.leave')
+        employee_leave_detail_obj = self.pool.get('employee.leave.detail')
+        leave_type_obj = self.pool.get('arul.hr.leave.types')
+        
+        for line in self.browse(cr, uid, ids, context=context):
+            if not line.work_date:
+                raise osv.except_osv(_('Warning!'),_('Pls Select Work Date'))
+            
+            employee_leave_ids = employee_leave_obj.search(cr, uid, [('year','=',line.work_date[:4]),('employee_id','=',line.employee_id.id)])
+            leave_type_ids = leave_type_obj.search(cr, uid, [('code','=','C.Off')])
+            if not leave_type_ids:
+                raise osv.except_osv(_('Warning!'),_('Can not find Leave Type C.Off. Please Create Leave Type C.Off before'))
+            if employee_leave_ids:
+                employee_leave_detail_ids = employee_leave_detail_obj.search(cr, uid, [('emp_leave_id','in',employee_leave_ids),('leave_type_id','=',leave_type_ids[0])])
+                if employee_leave_detail_ids:
+                    if line.adj_type=='increase':
+                        sql = '''
+                                    update employee_leave_detail set total_day = total_day+%s where id = %s
+                            '''%(line.increase_count,employee_leave_detail_ids[0])
+                        cr.execute(sql)                             
+                    if line.adj_type=='decrease':
+                        sql = '''
+                                    update employee_leave_detail set total_day = total_day-%s where id = %s
+                            '''%(line.decrease_count,employee_leave_detail_ids[0])
+                        cr.execute(sql) 
+                
+                    
+        return self.write(cr, uid, ids, {'state':'done'})
+       
+    _columns={
+              'employee_id': fields.many2one('hr.employee','Employee ID',required = True,states={'done': [('readonly', True)], 'cancel': [('readonly', True)]}),
+              'work_date': fields.date('Work Date',required = True,states={'done': [('readonly', True)], 'cancel': [('readonly', True)]}),   
+              'available_coff_count': fields.float('Available C.Off',readonly=True),          
+              'adj_type': fields.selection([('increase', 'Increase'),
+                                            ('decrease', 'Decrease')],'Adjustment Type',required = True,states={'done': [('readonly', True)], 'cancel': [('readonly', True)]}),
+              'increase_count': fields.float('Increase Count', states={'done': [('readonly', True)], 'cancel': [('readonly', True)]}),
+              'decrease_count': fields.float('Decrease Count', states={'done': [('readonly', True)], 'cancel': [('readonly', True)]}),
+              'reason_for_adj': fields.selection([('sys_err', 'System Error'),
+                                            ('clerk_err', 'Clerical Error')],'Reason for Change',states={'done': [('readonly', True)], 'cancel': [('readonly', True)]}),
+              'reason_details': fields.text('Reason In Details', states={'done': [('readonly', True)], 'cancel': [('readonly', True)]}),
+              'state':fields.selection([('draft', 'Draft'),('cancel', 'Reject'),
+                                            ('done', 'Approve')],'Status', readonly=True),              
+              'create_date': fields.datetime('Created Date',readonly = True),
+              'create_uid': fields.many2one('res.users','Created By',ondelete='restrict',readonly = True),
+        
+              }
+    
+    _defaults = {
+        'state':'draft',               
+    }
+    
+    def create(self, cr, uid, vals, context=None):
+        now = datetime.datetime.now()
+        current_year = now.year
+        sql = '''
+            SELECT CASE WHEN SUM(total_day-total_taken)!=0 THEN SUM(total_day-total_taken) ELSE 0 END pl_count FROM employee_leave_detail 
+            WHERE emp_leave_id IN 
+            (SELECT id FROM employee_leave WHERE employee_id = %s AND year='%s')
+            AND leave_type_id = (SELECT id FROM arul_hr_leave_types WHERE code='C.Off')
+            '''%(vals['employee_id'],current_year)
+        cr.execute(sql)
+        coff = cr.fetchone()
+        coff = str(coff)
+        coff = coff.replace("(","")
+        coff = coff.replace(",)","")
+        vals['available_coff_count'] = coff
+        
+        return super(leave_adjustment, self).create(cr, uid, vals, context)
+        
+leave_adjustment()
