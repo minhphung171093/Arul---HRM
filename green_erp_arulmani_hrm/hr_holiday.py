@@ -2351,117 +2351,117 @@ class arul_hr_punch_in_out_time(osv.osv):
             
             if time.actual_work_shift_id.code=='A' or time.actual_work_shift_id.code=='B' :
                 if 3.7 <= total_hrs <= 4.15:  
-                    res[time.id]['total_shift_worked'] = 0.5 
+                    res[time.id]['shift_worked'] = 0.5 
                     
                 if 4.15 <= total_hrs <= 7.45:  
-                    res[time.id]['total_shift_worked'] = 0.5
+                    res[time.id]['shift_worked'] = 0.5
                 #        
                 if 7.45 <= total_hrs <= 8.30:  
-                    res[time.id]['total_shift_worked'] = 1
+                    res[time.id]['shift_worked'] = 1
                 
                 if 8.30 <= total_hrs <= 11.175:  
-                    res[time.id]['total_shift_worked'] = 1
+                    res[time.id]['shift_worked'] = 1
                 #        
                 if 11.175 <= total_hrs <= 12.45:  
-                    res[time.id]['total_shift_worked'] = 1.5
+                    res[time.id]['shift_worked'] = 1.5
                 
                 if 12.45 <= total_hrs <= 15.3:  
-                    res[time.id]['total_shift_worked'] = 1.5
+                    res[time.id]['shift_worked'] = 1.5
                 #    
                 if 15.3 <= total_hrs <= 17.00:  
-                    res[time.id]['total_shift_worked'] = 2
+                    res[time.id]['shift_worked'] = 2
                 
                 if 17 <= total_hrs <= 19.00:  
-                    res[time.id]['total_shift_worked'] = 2
+                    res[time.id]['shift_worked'] = 2
                 
                 #
                 if 19.025 <= total_hrs <= 21.15:  
-                    res[time.id]['total_shift_worked'] = 2.5
+                    res[time.id]['shift_worked'] = 2.5
                 
                 if 21.15 <= total_hrs <= 22.75:  
-                    res[time.id]['total_shift_worked'] = 2.5
+                    res[time.id]['shift_worked'] = 2.5
                 #        
                 if 22.75 <= total_hrs <= 25.3:  
-                    res[time.id]['total_shift_worked'] = 3
+                    res[time.id]['shift_worked'] = 3
                 
                 if 25.3 <= total_hrs <= 28:  
-                    res[time.id]['total_shift_worked'] = 3    
+                    res[time.id]['shift_worked'] = 3    
                  
             if time.actual_work_shift_id.code=='G1':
                 if 3.7 <= total_hrs <= 4.15:  
-                    res[time.id]['total_shift_worked'] = 0.5 
+                    res[time.id]['shift_worked'] = 0.5 
                     
                 if 4.15 <= total_hrs <= 7.45:  
-                    res[time.id]['total_shift_worked'] = 0.5
+                    res[time.id]['shift_worked'] = 0.5
                 #        
                 if 7.45 <= total_hrs <= 8.30:  
-                    res[time.id]['total_shift_worked'] = 1
+                    res[time.id]['shift_worked'] = 1
                 
                 if 8.30 <= total_hrs <= 11.175:  
-                    res[time.id]['total_shift_worked'] = 1
+                    res[time.id]['shift_worked'] = 1
                 #        
                 if 11.175 <= total_hrs <= 12.45:  
-                    res[time.id]['total_shift_worked'] = 1.5
+                    res[time.id]['shift_worked'] = 1.5
                 
                 if 12.45 <= total_hrs <= 15.3:  
-                    res[time.id]['total_shift_worked'] = 1.5
+                    res[time.id]['shift_worked'] = 1.5
                 #    
                 if 15.3 <= total_hrs <= 17.00:  
-                    res[time.id]['total_shift_worked'] = 2
+                    res[time.id]['shift_worked'] = 2
                 
                 if 17 <= total_hrs <= 19.00:  
-                    res[time.id]['total_shift_worked'] = 2
+                    res[time.id]['shift_worked'] = 2
                 
                 #
                 if 19.025 <= total_hrs <= 21.15:  
-                    res[time.id]['total_shift_worked'] = 2.5
+                    res[time.id]['shift_worked'] = 2.5
                 
                 if 21.15 <= total_hrs <= 22.75:  
-                    res[time.id]['total_shift_worked'] = 2.5
+                    res[time.id]['shift_worked'] = 2.5
                 #        
                 if 22.75 <= total_hrs <= 25.3:  
-                    res[time.id]['total_shift_worked'] = 3
+                    res[time.id]['shift_worked'] = 3
                 
                 if 25.3 <= total_hrs <= 28:  
-                    res[time.id]['total_shift_worked'] = 3 
+                    res[time.id]['shift_worked'] = 3 
                
             if time.actual_work_shift_id.code=='G2' or time.actual_work_shift_id.code=='C':
                 if 3.7 <= total_hrs <= 4.15:  
-                    res[time.id]['total_shift_worked'] = 0.5 
+                    res[time.id]['shift_worked'] = 0.5 
                     
                 if 4.15 <= total_hrs <= 7.45:  
-                    res[time.id]['total_shift_worked'] = 0.5
+                    res[time.id]['shift_worked'] = 0.5
                 #        
                 if 7.45 <= total_hrs <= 8.30:  
-                    res[time.id]['total_shift_worked'] = 1
+                    res[time.id]['shift_worked'] = 1
                 
                 if 8.30 <= total_hrs <= 11.175:  
-                    res[time.id]['total_shift_worked'] = 1
+                    res[time.id]['shift_worked'] = 1
                 #        
                 if 11.175 <= total_hrs <= 12.45:  
-                    res[time.id]['total_shift_worked'] = 1.5
+                    res[time.id]['shift_worked'] = 1.5
                 
                 if 12.45 <= total_hrs <= 15.3:  
-                    res[time.id]['total_shift_worked'] = 1.5
+                    res[time.id]['shift_worked'] = 1.5
                 #    
                 if 15.3 <= total_hrs <= 17.00:  
-                    res[time.id]['total_shift_worked'] = 2
+                    res[time.id]['shift_worked'] = 2
                 
                 if 17 <= total_hrs <= 19.00:  
-                    res[time.id]['total_shift_worked'] = 2
+                    res[time.id]['shift_worked'] = 2
                 
                 #
                 if 19.025 <= total_hrs <= 21.15:  
-                    res[time.id]['total_shift_worked'] = 2.5
+                    res[time.id]['shift_worked'] = 2.5
                 
                 if 21.15 <= total_hrs <= 22.75:  
-                    res[time.id]['total_shift_worked'] = 2.5
+                    res[time.id]['shift_worked'] = 2.5
                 #        
                 if 22.75 <= total_hrs <= 25.3:  
-                    res[time.id]['total_shift_worked'] = 3
+                    res[time.id]['shift_worked'] = 3
                 
                 if 25.3 <= total_hrs <= 28:  
-                    res[time.id]['total_shift_worked'] = 3 
+                    res[time.id]['shift_worked'] = 3 
                        
             #res[time.id]['shift_count']=res[time.id]['total_shift_worked']
             #res.update({'shift_count': res[time.id]['total_shift_worked']})
@@ -2489,7 +2489,10 @@ class arul_hr_punch_in_out_time(osv.osv):
         #TPT
         #TPT-Punch InOut - THIS COLUMN IS STORE IN DB TO GET THIS COUNT DURING PAYROLL PROCESS
         'total_hrs_worked': fields.function(_shift_hrs_total, string='No.Of Hrs Worked', multi='shift_punchinout_hrs_sums', help="The total Hrs Worked."),
-        'total_shift_worked': fields.function(_shift_total, string='No.Of Shift Worked',  multi='shift_punchinout_sums', help="The total Shift Worked Per day which includes punch in times and/or Permission OnDuty Hrs."),        
+        #'total_shift_worked': fields.function(_shift_total, string='No.Of Shift Worked',  multi='shift_punchinout_sums', help="The total Shift Worked Per day which includes punch in times and/or Permission OnDuty Hrs."),
+        
+        'shift_worked': fields.function(_shift_total, string='No.Of Shift Worked',  multi='shift_punchinout_sums', help="The total Shift Worked Per day which includes punch in times and/or Permission OnDuty Hrs."),
+                
         #'shift_count': fields.function(_shift_total, store=True,string='Shift Count', multi='shift_punchinout2_sums', help="The total amount."),
         'a_shift_count': fields.function(_shift_count, string='A', multi='a_shift'),
         'b_shift_count': fields.function(_shift_count, string='B', multi='b_shift'),

@@ -561,7 +561,7 @@
 										<field name="g2_shift_count" widget="float_time"/>
 										<field name="b_shift_count" widget="float_time"/>
 										<field name="c_shift_count" widget="float_time"/>
-										<field name="total_shift_worked"/>
+										<field name="shift_worked"/>
 										<!-- TPT: For Shift Adjustment -->
 										<field name="shift_plus"/>
 										<field name="shift_minus"/>
@@ -644,7 +644,7 @@
 					<field name="g2_shift_count" widget="float_time"/>
 					<field name="b_shift_count" widget="float_time"/>
 					<field name="c_shift_count" widget="float_time"/>
-					<field name="total_shift_worked"/>					
+					<field name="shift_worked"/>					
 					<field name="state" invisible = '1'/>
 				</tree>
 			</field>
