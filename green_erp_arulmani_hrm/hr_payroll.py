@@ -2741,9 +2741,9 @@ class hr_employee(osv.osv):
                 request_ids.append(context.get('name'))
             args += [('id','in',request_ids)]
         return super(hr_employee, self).search(cr, uid, args, offset, limit, order, context, count)
-    def name_search(self, cr, user, name, args=None, operator='ilike', context=None, limit=100):
-        ids = self.search(cr, user, args, context=context, limit=limit)
-        return self.name_get(cr, user, ids, context=context)
+#     def name_search(self, cr, user, name, args=None, operator='ilike', context=None, limit=100):
+#         ids = self.search(cr, user, args, context=context, limit=limit)
+#         return self.name_get(cr, user, ids, context=context)
 
 hr_employee()
 
