@@ -83,7 +83,7 @@
 		</record>
 		
 		<record model="ir.ui.menu" id="hr.menu_open_view_employee_list_my">
-	    	<field name="groups_id" eval="[(6,0, [ref('green_erp_arulmani_purchase.group_vvti_purchase_user'),ref('green_erp_arulmani_hrm.group_vvti_hrm_time_user')])]"/>
+	    	<field name="groups_id" eval="[(6,0, [ref('green_erp_arulmani_hrm.group_vvti_hrm_hr_manager'),ref('green_erp_arulmani_hrm.group_vvti_hrm_hr_user'),ref('green_erp_arulmani_hrm.group_vvti_hrm_time_user')])]"/>
 		</record>
 		
     </data>
