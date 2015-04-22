@@ -2586,7 +2586,7 @@ tpt_activities()
 class product_category(osv.osv):
     _inherit = "product.category"
     _columns = {
-        'cate_name':fields.selection([('raw','Raw Materials'),('finish','Finished Product'),('spares','Spares'),('consum','Consumables'),('assets','Assets')], 'Category Name', required = True),
+        'cate_name':fields.selection([('raw','Raw Materials'),('finish','Finished Product'),('spares','Spares'),('consum','Consumables'),('assets','Assets'),('service','Services')], 'Category Name', required = True),
         }
     def name_get(self, cr, uid, ids, context=None):
         res = []
@@ -2607,6 +2607,8 @@ class product_category(osv.osv):
                 name = 'Consumables'
             if cate_name == 'assets':
                 name = 'Assets'
+            if cate_name == 'service':
+                name = 'Service'
             res.append((record['id'], name))
         return res
 product_category()
