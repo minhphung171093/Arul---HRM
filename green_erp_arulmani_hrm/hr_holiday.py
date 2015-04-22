@@ -550,24 +550,32 @@ class arul_hr_audit_shift_time(osv.osv):
                     c_off_day = 0.0
 		    #raise osv.except_osv(_('Warning!'),_('inside c.off'))
                     if line.additional_shifts:
-                        if extra_hours >= 3.7 and extra_hours < 7.39:
+                        if extra_hours >= 3.7 and extra_hours < 7.45:
                             c_off_day = 0.5
-                        if extra_hours >= 7.4 and extra_hours < 12:
+                        if extra_hours >= 7.45 and extra_hours < 11.175:
                             c_off_day = 1
-                        if extra_hours >= 12 and extra_hours < 16:
-                            c_off_day = 1.5
-                        if extra_hours >= 16:
-                            c_off_day = 2
+                        if extra_hours >= 11.175 and extra_hours < 15.3:
+                            c_off_day = 1.5                       
+                        if extra_hours >= 15.3 and extra_hours < 19.00:
+                            c_off_day = 2 
+                        if extra_hours >= 19.00 and extra_hours < 22.75:
+                            c_off_day = 2.5 
+                        if extra_hours >= 25.75 and extra_hours < 28:
+                            c_off_day = 3
                     else:
                         extra_hours = extra_hours-shift_hours
-                        if extra_hours >= 3.7 and extra_hours < 7.39:
+                        if extra_hours >= 3.7 and extra_hours < 7.45:
                             c_off_day = 0.5
-                        if extra_hours >= 7.4 and extra_hours < 12:
+                        if extra_hours >= 7.45 and extra_hours < 11.175:
                             c_off_day = 1
-                        if extra_hours >= 12 and extra_hours < 16:
-                            c_off_day = 1.5
-                        if extra_hours >= 16:
-                            c_off_day = 2
+                        if extra_hours >= 11.175 and extra_hours < 15.3:
+                            c_off_day = 1.5                       
+                        if extra_hours >= 15.3 and extra_hours < 19.00:
+                            c_off_day = 2 
+                        if extra_hours >= 19.00 and extra_hours < 22.75:
+                            c_off_day = 2.5 
+                        if extra_hours >= 25.75 and extra_hours < 28:
+                            c_off_day = 3
                     employee_leave_ids = employee_leave_obj.search(cr, uid, [('year','=',line.work_date[:4]),('employee_id','=',line.employee_id.id)])
                     leave_type_ids = leave_type_obj.search(cr, uid, [('code','=','C.Off')])
                     if not leave_type_ids:
@@ -976,24 +984,32 @@ class arul_hr_audit_shift_time(osv.osv):
                 if flag==1 or line.additional_shifts or (extra_hours>7.39 and line.employee_id.employee_category_id and line.employee_id.employee_category_id.code!='S1'):
                     c_off_day = 0.0   		    
                     if line.additional_shifts:
-                        if extra_hours >= 3.7 and extra_hours < 7.39:
+                        if extra_hours >= 3.7 and extra_hours < 7.45:
                             c_off_day = 0.5
-                        if extra_hours >= 7.4 and extra_hours < 12:
+                        if extra_hours >= 7.45 and extra_hours < 11.175:
                             c_off_day = 1
-                        if extra_hours >= 12 and extra_hours < 16:
-                            c_off_day = 1.5
-                        if extra_hours >= 16:
-                            c_off_day = 2
+                        if extra_hours >= 11.175 and extra_hours < 15.3:
+                            c_off_day = 1.5                       
+                        if extra_hours >= 15.3 and extra_hours < 19.00:
+                            c_off_day = 2 
+                        if extra_hours >= 19.00 and extra_hours < 22.75:
+                            c_off_day = 2.5 
+                        if extra_hours >= 25.75 and extra_hours < 28:
+                            c_off_day = 3
                     else:
                         extra_hours = extra_hours-shift_hours
-                        if extra_hours >= 3.7 and extra_hours < 7.39:
+                        if extra_hours >= 3.7 and extra_hours < 7.45:
                             c_off_day = 0.5
-                        if extra_hours >= 7.4 and extra_hours < 12:
+                        if extra_hours >= 7.45 and extra_hours < 11.175:
                             c_off_day = 1
-                        if extra_hours >= 12 and extra_hours < 16:
-                            c_off_day = 1.5
-                        if extra_hours >= 16:
-                            c_off_day = 2
+                        if extra_hours >= 11.175 and extra_hours < 15.3:
+                            c_off_day = 1.5                       
+                        if extra_hours >= 15.3 and extra_hours < 19.00:
+                            c_off_day = 2 
+                        if extra_hours >= 19.00 and extra_hours < 22.75:
+                            c_off_day = 2.5 
+                        if extra_hours >= 25.75 and extra_hours < 28:
+                            c_off_day = 3
                     employee_leave_ids = employee_leave_obj.search(cr, uid, [('year','=',line.work_date[:4]),('employee_id','=',line.employee_id.id)])
                     leave_type_ids = leave_type_obj.search(cr, uid, [('code','=','C.Off')])
                     if not leave_type_ids:

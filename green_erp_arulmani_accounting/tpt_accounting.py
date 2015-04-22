@@ -27,7 +27,7 @@ class tpt_posting_configuration(osv.osv):
         'cus_inv_insurance_id': fields.many2one('account.account', 'Insurance Charges', states={ 'done':[('readonly', True)]}),
         'cus_inv_price_id': fields.many2one('account.account', 'Price Difference / Rounding', states={ 'done':[('readonly', True)]}),
         'cus_pay_bank_id': fields.many2one('account.account', 'Bank Account', states={ 'done':[('readonly', True)]}),
-        'cus_pay_cash_id': fields.many2one('account.account', 'Cash Accout', states={ 'done':[('readonly', True)]}),
+        'cus_pay_cash_id': fields.many2one('account.account', 'Cash Account', states={ 'done':[('readonly', True)]}),
         'sup_inv_vat_id': fields.many2one('account.account', 'VAT Receivables', states={ 'done':[('readonly', True)]}),
         'sup_inv_cst_id': fields.many2one('account.account', 'CST Receivables', states={ 'done':[('readonly', True)]}),
         'sup_inv_ed_id': fields.many2one('account.account', 'Excise Duty', states={ 'done':[('readonly', True)]}),
@@ -35,7 +35,7 @@ class tpt_posting_configuration(osv.osv):
         'sup_inv_fright_id': fields.many2one('account.account', 'Freight Charges', states={ 'done':[('readonly', True)]}),
         'sup_inv_price_id': fields.many2one('account.account', 'Price Difference / Rounding', states={ 'done':[('readonly', True)]}),
         'sup_pay_bank_id': fields.many2one('account.account', 'Bank Account', states={ 'done':[('readonly', True)]}),
-        'sup_pay_cash_id': fields.many2one('account.account', 'Cash Accout', states={ 'done':[('readonly', True)]}),
+        'sup_pay_cash_id': fields.many2one('account.account', 'Cash Account', states={ 'done':[('readonly', True)]}),
         'sup_tds_id': fields.many2one('account.account', 'TDS Account', states={ 'done':[('readonly', True)]}),
         'salari_id': fields.many2one('account.account', ' Salaries and Allowances', states={ 'done':[('readonly', True)]}),
         'pfp_id': fields.many2one('account.account', 'Provident Fund Payable', states={ 'done':[('readonly', True)]}),
@@ -1194,34 +1194,78 @@ class account_invoice_line(osv.osv):
             cr.execute('SELECT * FROM account_invoice WHERE id=%s', (invoice_id,))
             for account in cr.dictfetchall():
                 tax = account['amount_tax'] * voucher_rate
-                sql = '''
-                    SELECT cus_inv_vat_id FROM tpt_posting_configuration WHERE name = 'cus_inv' and cus_inv_vat_id is not null
-                '''
-                cr.execute(sql)
-                cus_inv_vat_id = cr.dictfetchone()
-                if cus_inv_vat_id:
-                    account = cus_inv_vat_id and cus_inv_vat_id['cus_inv_vat_id'] or False
-                sql = '''
-                    SELECT cus_inv_cst_id FROM tpt_posting_configuration WHERE name = 'cus_inv' and cus_inv_cst_id is not null
-                '''
-                cr.execute(sql)
-                cus_inv_cst_id = cr.dictfetchone()
-                if cus_inv_cst_id:
-                    account = cus_inv_cst_id and cus_inv_cst_id['cus_inv_cst_id'] or False
-                if cus_inv_cst_id or cus_inv_vat_id:
-                    if tax:
-                        res.append({
-                            'type':'tax',
-                            'name':t['name'],
-                            'price_unit': t['price_unit'],
-                            'quantity': 1,
-                            'price': tax,
-                            'account_id': account,
-                            'account_analytic_id': t['account_analytic_id'],
-                        })
-                else :
-                    raise osv.except_osv(_('Warning!'),_('Account is not null, please configure it in GL Posting Configrution !'))
-                break
+                if inv_id.sale_tax_id:
+                    if 'CST' in inv_id.sale_tax_id.name:
+                        sql = '''
+                            SELECT cus_inv_cst_id FROM tpt_posting_configuration WHERE name = 'cus_inv' and cus_inv_cst_id is not null
+                        '''
+                        cr.execute(sql)
+                        cus_inv_cst_id = cr.dictfetchone()
+                        if cus_inv_cst_id:
+                            account = cus_inv_cst_id and cus_inv_cst_id['cus_inv_cst_id'] or False
+                        else :
+                            raise osv.except_osv(_('Warning!'),_('Account is not null, please configure CST Payable in GL Posting Configrution !'))
+                        if tax:
+                                res.append({
+                                    'type':'tax',
+                                    'name':t['name'],
+                                    'price_unit': t['price_unit'],
+                                    'quantity': 1,
+                                    'price': tax,
+                                    'account_id': account,
+                                    'account_analytic_id': t['account_analytic_id'],
+                                })
+                                break
+                    elif 'VAT' in inv_id.sale_tax_id.name:
+                        sql = '''
+                            SELECT cus_inv_vat_id FROM tpt_posting_configuration WHERE name = 'cus_inv' and cus_inv_vat_id is not null
+                        '''
+                        cr.execute(sql)
+                        cus_inv_vat_id = cr.dictfetchone()
+                        if cus_inv_vat_id:
+                            account = cus_inv_vat_id and cus_inv_vat_id['cus_inv_vat_id'] or False
+                        else :
+                            raise osv.except_osv(_('Warning!'),_('Account is not null, please configure VAT Payable in GL Posting Configrution !'))
+                        if tax:
+                                res.append({
+                                    'type':'tax',
+                                    'name':t['name'],
+                                    'price_unit': t['price_unit'],
+                                    'quantity': 1,
+                                    'price': tax,
+                                    'account_id': account,
+                                    'account_analytic_id': t['account_analytic_id'],
+                                })
+                                break
+                    else:
+                        sql = '''
+                            SELECT cus_inv_vat_id FROM tpt_posting_configuration WHERE name = 'cus_inv' and cus_inv_vat_id is not null
+                        '''
+                        cr.execute(sql)
+                        cus_inv_vat_id = cr.dictfetchone()
+                        if cus_inv_vat_id:
+                            account = cus_inv_vat_id and cus_inv_vat_id['cus_inv_vat_id'] or False
+                        sql = '''
+                            SELECT cus_inv_cst_id FROM tpt_posting_configuration WHERE name = 'cus_inv' and cus_inv_cst_id is not null
+                        '''
+                        cr.execute(sql)
+                        cus_inv_cst_id = cr.dictfetchone()
+                        if cus_inv_cst_id:
+                            account = cus_inv_cst_id and cus_inv_cst_id['cus_inv_cst_id'] or False
+                        if cus_inv_cst_id or cus_inv_vat_id:
+                            if tax:
+                                res.append({
+                                    'type':'tax',
+                                    'name':t['name'],
+                                    'price_unit': t['price_unit'],
+                                    'quantity': 1,
+                                    'price': tax,
+                                    'account_id': account,
+                                    'account_analytic_id': t['account_analytic_id'],
+                                })
+                                break
+                        else :
+                            raise osv.except_osv(_('Warning!'),_('Account is not null, please configure it in GL Posting Configrution !'))
             break
         return res 
     
@@ -2052,14 +2096,52 @@ class account_voucher(osv.osv):
                     write_off_name = voucher.comment
                 elif voucher.type in ('sale', 'receipt'):
                     if voucher.partner_id.supplier:
-                        account_id = voucher.partner_id.property_account_payable.id
+                       account_id = voucher.partner_id.property_account_payable.id
                     else:
-                        account_id = voucher.partner_id.property_account_receivable.id
+#  start  phuoc                         
+#  goc                       account_id = voucher.partner_id.property_account_receivable.id
+                        if voucher.journal_id.type == 'cash':
+                            sql = '''
+                                SELECT cus_pay_cash_id FROM tpt_posting_configuration WHERE name = 'cus_pay' and cus_pay_cash_id is not null
+                            '''
+                            cr.execute(sql)
+                            cus_pay_cash_id = cr.dictfetchone()
+                            if not cus_pay_cash_id:
+                                raise osv.except_osv(_('Warning!'),_('Account is not null, please configure Cash Account for Document Type is Customer Payment in GL Posting Configrution !'))
+                            account_id = cus_pay_cash_id and cus_pay_cash_id['cus_pay_cash_id'] or False
+                        else:
+                            sql = '''
+                                SELECT cus_pay_bank_id FROM tpt_posting_configuration WHERE name = 'cus_pay' and cus_pay_bank_id is not null
+                            '''
+                            cr.execute(sql)
+                            cus_pay_bank_id = cr.dictfetchone()
+                            if not cus_pay_bank_id:
+                                raise osv.except_osv(_('Warning!'),_('Account is not null, please configure Bank Account for Document Type is Customer Payment in GL Posting Configrution !'))
+                            account_id = cus_pay_bank_id and cus_pay_bank_id['cus_pay_bank_id'] or False
+# end phuoc
                 else:
                     if voucher.partner_id.customer:
                         account_id = voucher.partner_id.property_account_receivable.id
                     else:
-                        account_id = voucher.partner_id.property_account_payable.id
+#                         account_id = voucher.partner_id.property_account_payable.id
+                        if voucher.journal_id.type == 'cash':
+                            sql = '''
+                                SELECT sup_pay_cash_id FROM tpt_posting_configuration WHERE name = 'sup_pay' and sup_pay_cash_id is not null
+                            '''
+                            cr.execute(sql)
+                            sup_pay_cash_id = cr.dictfetchone()
+                            if not sup_pay_cash_id:
+                                raise osv.except_osv(_('Warning!'),_('Account is not null, please configure Cash Account for Document Type is Supplier Payment in GL Posting Configrution !'))
+                            account_id = sup_pay_cash_id and sup_pay_cash_id['sup_pay_cash_id'] or False
+                        else:
+                            sql = '''
+                                SELECT sup_pay_bank_id FROM tpt_posting_configuration WHERE name = 'sup_pay' and sup_pay_bank_id is not null
+                            '''
+                            cr.execute(sql)
+                            sup_pay_bank_id = cr.dictfetchone()
+                            if not sup_pay_bank_id:
+                                raise osv.except_osv(_('Warning!'),_('Account is not null, please configure Bank Account for Document Type is Supplier Payment in GL Posting Configrution !'))
+                            account_id = sup_pay_bank_id and sup_pay_bank_id['sup_pay_bank_id'] or False
             else:
                 account_id = voucher.account_id.id
             sign = voucher.type == 'payment' and -1 or 1
@@ -2504,7 +2586,7 @@ tpt_activities()
 class product_category(osv.osv):
     _inherit = "product.category"
     _columns = {
-        'cate_name':fields.selection([('raw','Raw Materials'),('finish','Finished Product'),('spares','Spares'),('consum','Consumables'),('assets','Assets')], 'Category Name', required = True),
+        'cate_name':fields.selection([('raw','Raw Materials'),('finish','Finished Product'),('spares','Spares'),('consum','Consumables'),('assets','Assets'),('service','Services')], 'Category Name', required = True),
         }
     def name_get(self, cr, uid, ids, context=None):
         res = []
@@ -2525,6 +2607,8 @@ class product_category(osv.osv):
                 name = 'Consumables'
             if cate_name == 'assets':
                 name = 'Assets'
+            if cate_name == 'service':
+                name = 'Service'
             res.append((record['id'], name))
         return res
 product_category()

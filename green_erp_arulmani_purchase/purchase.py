@@ -487,7 +487,7 @@ class tpt_purchase_product(osv.osv):
                     'description': product.name,
                     'mrs_qty':float(product_mrs_qty),
                     })
-            if product.categ_id.cate_name == 'consum':
+            if product.categ_id.cate_name == 'consum' or product.categ_id.cate_name == 'service':
                 res['value'].update({
                     'flag':True,
                     })
@@ -848,6 +848,17 @@ class product_product(osv.osv):
                         select product_product.id 
                         from product_product,product_template 
                         where product_template.categ_id in(select product_category.id from product_category where product_category.cate_name = 'consum') 
+                        and product_product.product_tmpl_id = product_template.id and product_template.purchase_ok = True;
+ 
+                    '''
+                    cr.execute(sql)
+                    pur_ids = [row[0] for row in cr.fetchall()]
+                    args += [('id','in',pur_ids)]
+                elif context.get('document_type')=='service':
+                    sql = '''
+                        select product_product.id 
+                        from product_product,product_template 
+                        where product_template.categ_id in(select product_category.id from product_category where product_category.cate_name = 'service') 
                         and product_product.product_tmpl_id = product_template.id and product_template.purchase_ok = True;
  
                     '''
