@@ -94,5 +94,6 @@
 	    	<field name="groups_id" eval="[(6,0, [ref('green_erp_arulmani_hrm.group_vvti_hrm_hr_manager'),ref('green_erp_arulmani_hrm.group_vvti_hrm_hr_user'),ref('green_erp_arulmani_hrm.group_vvti_hrm_time_user')])]"/>
 		</record>
 		
+		<menuitem action="base.action_currency_form" id="base.menu_action_currency_form" parent="account.menu_finance_configuration" sequence="123" groups="base.group_multi_currency,green_erp_arulmani_sale.group_vvti_unit_account"/>
     </data>
 </openerp>
