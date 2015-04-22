@@ -220,24 +220,59 @@ class arul_hr_audit_shift_time(osv.osv):
             res[time.id] = {
                 'total_shift_worked': 0.0,
             }
-            if time.total_hours <= 1.0:            
-                res[time.id]['total_shift_worked'] = 0.125
-            if time.total_hours >= 1.1 and time.total_hours <= 2.0:            
-                res[time.id]['total_shift_worked'] = 0.25
-            if time.total_hours >= 2.1 and time.total_hours <= 3.0:            
-                res[time.id]['total_shift_worked'] = 0.375            
-            if time.total_hours >= 4.0 and time.total_hours <= 7.44:            
-                res[time.id]['total_shift_worked'] = 0.5    
-            if time.total_hours >= 7.45 and time.total_hours <= 8.30:            
-                res[time.id]['total_shift_worked'] = 1.0
-            if time.total_hours >8.30  and time.total_hours <= 11.44:            
-                res[time.id]['total_shift_worked'] = 1.0
-            if time.total_hours >=11.45  and time.total_hours <= 15.44:            
+            #===================================================================
+            # if time.total_hours <= 1.0:            
+            #     res[time.id]['total_shift_worked'] = 0.125
+            # if time.total_hours >= 1.1 and time.total_hours <= 2.0:            
+            #     res[time.id]['total_shift_worked'] = 0.25
+            # if time.total_hours >= 2.1 and time.total_hours <= 3.0:            
+            #     res[time.id]['total_shift_worked'] = 0.375            
+            # if time.total_hours >= 4.0 and time.total_hours <= 7.44:            
+            #     res[time.id]['total_shift_worked'] = 0.5    
+            # if time.total_hours >= 7.45 and time.total_hours <= 8.30:            
+            #     res[time.id]['total_shift_worked'] = 1.0
+            # if time.total_hours >8.30  and time.total_hours <= 11.44:            
+            #     res[time.id]['total_shift_worked'] = 1.0
+            # if time.total_hours >=11.45  and time.total_hours <= 15.44:            
+            #     res[time.id]['total_shift_worked'] = 1.5
+            # if time.total_hours >=15.45  and time.total_hours <= 15.45:            
+            #     res[time.id]['total_shift_worked'] = 1.5
+            # if time.total_hours >=15.45:            
+            #     res[time.id]['total_shift_worked'] = 2.0
+            #===================================================================
+            total_hrs = time.total_hours    
+            
+            if 3.7 <= total_hrs <= 4.15:  
+                res[time.id]['total_shift_worked'] = 0.5                    
+            if 4.15 <= total_hrs <= 7.45:  
+                res[time.id]['total_shift_worked'] = 0.5
+                #        
+            if 7.45 <= total_hrs <= 8.30:  
+                res[time.id]['total_shift_worked'] = 1               
+            if 8.30 <= total_hrs <= 11.175:  
+                res[time.id]['total_shift_worked'] = 1
+                #        
+            if 11.175 <= total_hrs <= 12.45:  
+                res[time.id]['total_shift_worked'] = 1.5                
+            if 12.45 <= total_hrs <= 15.3:  
                 res[time.id]['total_shift_worked'] = 1.5
-            if time.total_hours >=15.45  and time.total_hours <= 15.45:            
-                res[time.id]['total_shift_worked'] = 1.5
-            if time.total_hours >=15.45:            
-                res[time.id]['total_shift_worked'] = 2.0
+                #    
+            if 15.3 <= total_hrs <= 17.00:  
+                res[time.id]['total_shift_worked'] = 2                
+            if 17 <= total_hrs <= 19.00:  
+                res[time.id]['total_shift_worked'] = 2
+                
+                #
+            if 19.025 <= total_hrs <= 21.15:  
+                res[time.id]['total_shift_worked'] = 2.5               
+            if 21.15 <= total_hrs <= 22.75:  
+                res[time.id]['total_shift_worked'] = 2.5
+                #        
+            if 22.75 <= total_hrs <= 25.3:  
+                res[time.id]['total_shift_worked'] = 3               
+            if 25.3 <= total_hrs <= 28:  
+                res[time.id]['total_shift_worked'] = 3
+            
         return res
     
     def _check_additional_shift(self, cr, uid, ids, field_name, arg, context=None):
