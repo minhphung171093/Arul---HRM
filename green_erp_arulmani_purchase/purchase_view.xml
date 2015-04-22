@@ -1796,7 +1796,7 @@
             <field name="arch" type="xml">
 	            <form string="Material Issue" version="7.0">   
 	             <header>
-	            		<button name="bt_approve" states='draft' string="Issue Goods" type="object" class="oe_highlight" groups="green_erp_arulmani_purchase.group_vvti_purchase_admin"/>
+	            		<button name="bt_approve" states='draft' string="Issue Goods" type="object" class="oe_highlight" groups="green_erp_arulmani_purchase.group_vvti_purchase_admin,green_erp_arulmani_purchase.group_vvti_purchase_store_user"/>
 	                    <field name="state" widget="statusbar" statusbar_visible="draft,done" statusbar_colors='{"draft":"blue"}'/>
 	            </header>    
 	            	<sheet>

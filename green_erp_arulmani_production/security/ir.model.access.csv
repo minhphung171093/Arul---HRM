@@ -17,6 +17,7 @@ mrp.access_mrp_bom_manager,mrp.bom.manager,model_mrp_bom,mrp.group_mrp_manager,1
 mrp.access_mrp_production,mrp.production user,model_mrp_production,mrp.group_mrp_user,1,1,1,0
 access_vvti_production_15,tpt.quality.verification,green_erp_arulmani_production.model_tpt_quality_verification,green_erp_arulmani_crm.group_qc_user,True,True,True,False
 access_vvti_production_16,crm.application.line,green_erp_arulmani_production.model_crm_application_line,green_erp_arulmani_crm.group_qc_user,True,True,True,False
+access_vvti_production_17,product.declaration.line,green_erp_arulmani_production.model_product_declaration_line,green_erp_arulmani_production.group_vvti_production_admin,True,True,True,False
 
 
 
