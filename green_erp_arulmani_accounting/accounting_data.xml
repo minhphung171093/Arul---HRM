@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<openerp>
+    <data noupdate='1'>
+		<!--<record model="account.account.template" id="vvti_receivable">
+            <field name="name">VVTi Pigments Accounts Receivable</field>
+            <field name="code">Receivable</field>
+            <field name="type">receivable</field>
+            <field name="user_type" ref="account.data_account_type_receivable"/>
+            <field name="reconcile" eval="True"/>
+        </record>
+        
+        <record model="account.account.template" id="vvti_payable">
+            <field name="name">VVTi Pigments Accounts Payable</field>
+            <field name="code">Payable</field>
+            <field name="type">payable</field>
+            <field name="user_type" ref="account.data_account_type_payable"/>
+            <field name="reconcile" eval="True"/>
+        </record>-->
+        
+    </data>
+</openerp>

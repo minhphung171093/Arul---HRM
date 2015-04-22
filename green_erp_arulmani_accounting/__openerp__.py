@@ -43,6 +43,7 @@
         'report/w_report_view.xml',
         'report/customer_ledger_statement_report_view.xml',
         'import_view.xml',
+        'accounting_data.xml',
         'menu_inherit_view.xml',
     ],
     'css' : [
