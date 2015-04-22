@@ -1776,7 +1776,7 @@ class arul_hr_employee_leave_details(osv.osv):
     _constraints = [
         (_check_days, _(''), ['date_from', 'date_to']),
         (_check_days_2, _(''), ['employee_id','date_from', 'date_to']),
-        (_check_date_holiday, _(''), ['employee_id','date_from', 'date_to']),
+        #(_check_date_holiday, _(''), ['employee_id','date_from', 'date_to']), TPT-COMMENTED
     ]
     
     def search(self, cr, uid, args, offset=0, limit=None, order=None, context=None, count=False):
@@ -1979,6 +1979,7 @@ class arul_hr_permission_onduty(osv.osv):
                 res[time.id]['total_shift_worked'] = 2.0
         return res
     #TPT
+    _order = "date asc"
     _columns={
         'employee_id':fields.many2one('hr.employee','Employee',required=True, states={'done': [('readonly', True)], 'cancel': [('readonly', True)]}),
         'non_availability_type_id':fields.selection([('permission','Permission'),('on_duty','On duty')],'Non Availability Type',required = True, states={'done': [('readonly', True)], 'cancel': [('readonly', True)]}),
@@ -2259,20 +2260,16 @@ class arul_hr_punch_in_out_time(osv.osv):
             res[time.id]['total_hours'] = time_total 
         return res
     #TPT - Punch InOut
-    def _shift_total(self, cr, uid, ids, field_name, arg, context=None):
+    def _shift_count(self, cr, uid, ids, field_name, arg, context=None):
         res = {}
         for time in self.browse(cr, uid, ids, context=context):
             res[time.id] = {
-                'total_shift_worked': 0.0,
-            }
-            #raise osv.except_osv(_('Warning!%s'),time.actual_work_shift_id.code)
-            sql = '''
-            select start_time,end_time from arul_hr_capture_work_shift where code = '%s'
-
-            '''%(time.actual_work_shift_id.code)
-            cr.execute(sql)
-            a = cr.fetchall()
-            #TPT SHIFT
+                'a_shift_count': 0.0,
+                'b_shift_count': 0.0,
+                'c_shift_count': 0.0,
+                'g1_shift_count': 0.0,
+                'g2_shift_count': 0.0,
+            }          
             if time.in_time != 0 and time.out_time!=0: 
                 if time.actual_work_shift_id.code=='A':
                     res[time.id]['a_shift_count'] = 1.0
@@ -2283,48 +2280,225 @@ class arul_hr_punch_in_out_time(osv.osv):
                 if time.actual_work_shift_id.code=='G1':
                     res[time.id]['g1_shift_count'] = 1.0
                 if time.actual_work_shift_id.code=='G2':
-                    res[time.id]['g2_shift_count'] = 1.0
-                '''    
-                if time.in_time >= 6.00:
-                    if time.out_time <= 14.30:         
-                        res[time.id]['a_shift_count'] = 1.0
-                if 13.45 >=time.in_time and 23.55 <= time.out_time:         
-                    res[time.id]['b_shift_count'] = 1.0
-                #if 21.30 >=time.in_time and 9.55 <= time.out_time:         
-                #    res[time.id]['c_shift_count'] = 1.0
-                #if 8.00 >=time.in_time and 16.45 <= time.out_time:
-                if 8.00 >=time.in_time and 16.45 <= time.out_time:          
-                    res[time.id]['g1_shift_count'] = 1.0
-                if 9.00 >=time.in_time and 17.45 <= time.out_time:         
-                    res[time.id]['g2_shift_count'] = 1.0
-                '''  
+                    res[time.id]['g2_shift_count'] = 1.0                   
+        return res
+    
+    def _shift_hrs_total(self, cr, uid, ids, field_name, arg, context=None):
+        res = {}
+        for time in self.browse(cr, uid, ids, context=context):
+            res[time.id] = {
+                'total_hrs_worked': 0.0,
+            }                                  
             #Permission
             permission_count = 0
             onduty_count = 0
             perm_onduty_count = 0
             total_hrs = 0
             sql = '''
-            SELECT SUM(time_total) FROM arul_hr_permission_onduty WHERE 
+            SELECT CASE WHEN SUM(time_total)!=0 THEN SUM(time_total) ELSE 0 END time_total FROM arul_hr_permission_onduty WHERE 
             non_availability_type_id='permission' 
                 AND TO_CHAR(date,'YYYY-MM-DD') = ('%s') and employee_id =%s and approval='t'
                 '''%(time.work_date,time.employee_id.id)
             cr.execute(sql)
             b =  cr.fetchone()
-            if b[0]:
-                permission_count = b[0]
+            permission_count = b[0]
                 
             #OnDuty
             sql = '''
-                SELECT SUM(time_total) FROM arul_hr_permission_onduty WHERE non_availability_type_id='on_duty' 
+                SELECT CASE WHEN SUM(time_total)!=0 THEN SUM(time_total) ELSE 0 END time_total FROM arul_hr_permission_onduty WHERE non_availability_type_id='on_duty' 
                 AND TO_CHAR(date,'YYYY-MM-DD') = ('%s') and employee_id =%s and approval='t'
                 '''%(time.work_date,time.employee_id.id)
             cr.execute(sql)
             c =  cr.fetchone()
-            if c[0]:
-                onduty_count = c[0]
+            onduty_count = c[0]
             
             perm_onduty_count =   permission_count + onduty_count
             total_hrs = time.total_hours + perm_onduty_count
+            res[time.id]['total_hrs_worked'] = total_hrs
+        return res
+        
+    def _shift_total(self, cr, uid, ids, field_name, arg, context=None):
+        res = {}
+        for time in self.browse(cr, uid, ids, context=context):
+            res[time.id] = {
+                'shift_worked': 0.0,
+            }          
+            permission_count = 0
+            onduty_count = 0
+            perm_onduty_count = 0
+            total_hrs = 0
+            sql = '''
+            SELECT CASE WHEN SUM(time_total)!=0 THEN SUM(time_total) ELSE 0 END time_total FROM arul_hr_permission_onduty WHERE 
+            non_availability_type_id='permission' 
+                AND TO_CHAR(date,'YYYY-MM-DD') = ('%s') and employee_id =%s and approval='t'
+                '''%(time.work_date,time.employee_id.id)
+            cr.execute(sql)
+            b =  cr.fetchone()
+            permission_count = b[0]
+                
+            #OnDuty
+            sql = '''
+                SELECT CASE WHEN SUM(time_total)!=0 THEN SUM(time_total) ELSE 0 END time_total FROM arul_hr_permission_onduty WHERE non_availability_type_id='on_duty' 
+                AND TO_CHAR(date,'YYYY-MM-DD') = ('%s') and employee_id =%s and approval='t'
+                '''%(time.work_date,time.employee_id.id)
+            cr.execute(sql)
+            c =  cr.fetchone()
+            onduty_count = c[0]
+            
+            perm_onduty_count =   permission_count + onduty_count
+            total_hrs = time.total_hours + perm_onduty_count
+            #res[time.id]['total_hrs_worked'] = total_hrs
+            
+            if time.actual_work_shift_id.code=='A' or time.actual_work_shift_id.code=='B' :
+                if 3.7 <= total_hrs <= 4.15:  
+                    res[time.id]['shift_worked'] = 0.5 
+                    
+                if 4.15 <= total_hrs <= 7.45:  
+                    res[time.id]['shift_worked'] = 0.5
+                #        
+                if 7.45 <= total_hrs <= 8.30:  
+                    res[time.id]['shift_worked'] = 1
+                
+                if 8.30 <= total_hrs <= 11.175:  
+                    res[time.id]['shift_worked'] = 1
+                #        
+                if 11.175 <= total_hrs <= 12.45:  
+                    res[time.id]['shift_worked'] = 1.5
+                
+                if 12.45 <= total_hrs <= 15.3:  
+                    res[time.id]['shift_worked'] = 1.5
+                #    
+                if 15.3 <= total_hrs <= 17.00:  
+                    res[time.id]['shift_worked'] = 2
+                
+                if 17 <= total_hrs <= 19.00:  
+                    res[time.id]['shift_worked'] = 2
+                
+                #
+                if 19.025 <= total_hrs <= 21.15:  
+                    res[time.id]['shift_worked'] = 2.5
+                
+                if 21.15 <= total_hrs <= 22.75:  
+                    res[time.id]['shift_worked'] = 2.5
+                #        
+                if 22.75 <= total_hrs <= 25.3:  
+                    res[time.id]['shift_worked'] = 3
+                
+                if 25.3 <= total_hrs <= 28:  
+                    res[time.id]['shift_worked'] = 3    
+                 
+            if time.actual_work_shift_id.code=='G1':
+                if 3.7 <= total_hrs <= 4.15:  
+                    res[time.id]['shift_worked'] = 0.5 
+                    
+                if 4.15 <= total_hrs <= 7.45:  
+                    res[time.id]['shift_worked'] = 0.5
+                #        
+                if 7.45 <= total_hrs <= 8.30:  
+                    res[time.id]['shift_worked'] = 1
+                
+                if 8.30 <= total_hrs <= 11.175:  
+                    res[time.id]['shift_worked'] = 1
+                #        
+                if 11.175 <= total_hrs <= 12.45:  
+                    res[time.id]['shift_worked'] = 1.5
+                
+                if 12.45 <= total_hrs <= 15.3:  
+                    res[time.id]['shift_worked'] = 1.5
+                #    
+                if 15.3 <= total_hrs <= 17.00:  
+                    res[time.id]['shift_worked'] = 2
+                
+                if 17 <= total_hrs <= 19.00:  
+                    res[time.id]['shift_worked'] = 2
+                
+                #
+                if 19.025 <= total_hrs <= 21.15:  
+                    res[time.id]['shift_worked'] = 2.5
+                
+                if 21.15 <= total_hrs <= 22.75:  
+                    res[time.id]['shift_worked'] = 2.5
+                #        
+                if 22.75 <= total_hrs <= 25.3:  
+                    res[time.id]['shift_worked'] = 3
+                
+                if 25.3 <= total_hrs <= 28:  
+                    res[time.id]['shift_worked'] = 3 
+               
+            if time.actual_work_shift_id.code=='G2' or time.actual_work_shift_id.code=='C':
+                if 3.7 <= total_hrs <= 4.15:  
+                    res[time.id]['shift_worked'] = 0.5 
+                    
+                if 4.15 <= total_hrs <= 7.45:  
+                    res[time.id]['shift_worked'] = 0.5
+                #        
+                if 7.45 <= total_hrs <= 8.30:  
+                    res[time.id]['shift_worked'] = 1
+                
+                if 8.30 <= total_hrs <= 11.175:  
+                    res[time.id]['shift_worked'] = 1
+                #        
+                if 11.175 <= total_hrs <= 12.45:  
+                    res[time.id]['shift_worked'] = 1.5
+                
+                if 12.45 <= total_hrs <= 15.3:  
+                    res[time.id]['shift_worked'] = 1.5
+                #    
+                if 15.3 <= total_hrs <= 17.00:  
+                    res[time.id]['shift_worked'] = 2
+                
+                if 17 <= total_hrs <= 19.00:  
+                    res[time.id]['shift_worked'] = 2
+                
+                #
+                if 19.025 <= total_hrs <= 21.15:  
+                    res[time.id]['shift_worked'] = 2.5
+                
+                if 21.15 <= total_hrs <= 22.75:  
+                    res[time.id]['shift_worked'] = 2.5
+                #        
+                if 22.75 <= total_hrs <= 25.3:  
+                    res[time.id]['shift_worked'] = 3
+                
+                if 25.3 <= total_hrs <= 28:  
+                    res[time.id]['shift_worked'] = 3 
+                       
+            #res[time.id]['shift_count']=res[time.id]['total_shift_worked']
+            #res.update({'shift_count': res[time.id]['total_shift_worked']})
+            
+        return res
+    #TPT 
+    def _shift_total_db(self, cr, uid, ids, field_name, arg, context=None):
+        res = {}
+        for time in self.browse(cr, uid, ids, context=context):
+            res[time.id] = {
+                'total_shift_worked': 0.0,
+            }          
+            permission_count = 0
+            onduty_count = 0
+            perm_onduty_count = 0
+            total_hrs = 0
+            sql = '''
+            SELECT CASE WHEN SUM(time_total)!=0 THEN SUM(time_total) ELSE 0 END time_total FROM arul_hr_permission_onduty WHERE 
+            non_availability_type_id='permission' 
+                AND TO_CHAR(date,'YYYY-MM-DD') = ('%s') and employee_id =%s and approval='t'
+                '''%(time.work_date,time.employee_id.id)
+            cr.execute(sql)
+            b =  cr.fetchone()
+            permission_count = b[0]
+                
+            #OnDuty
+            sql = '''
+                SELECT CASE WHEN SUM(time_total)!=0 THEN SUM(time_total) ELSE 0 END time_total FROM arul_hr_permission_onduty WHERE non_availability_type_id='on_duty' 
+                AND TO_CHAR(date,'YYYY-MM-DD') = ('%s') and employee_id =%s and approval='t'
+                '''%(time.work_date,time.employee_id.id)
+            cr.execute(sql)
+            c =  cr.fetchone()
+            onduty_count = c[0]
+            
+            perm_onduty_count =   permission_count + onduty_count
+            total_hrs = time.total_hours + perm_onduty_count
+            #res[time.id]['total_hrs_worked'] = total_hrs
             
             if time.actual_work_shift_id.code=='A' or time.actual_work_shift_id.code=='B' :
                 if 3.7 <= total_hrs <= 4.15:  
@@ -2438,36 +2612,10 @@ class arul_hr_punch_in_out_time(osv.osv):
                     res[time.id]['total_shift_worked'] = 3
                 
                 if 25.3 <= total_hrs <= 28:  
-                    res[time.id]['total_shift_worked'] = 3 
-            
-            #===================================================================
-            # if time.total_hours <= 1.0:            
-            #     res[time.id]['total_shift_worked'] = 0.125 + perm_onduty_count
-            # if time.total_hours >= 1.1 and time.total_hours <= 2.0:            
-            #     res[time.id]['total_shift_worked'] = 0.25 + perm_onduty_count
-            # if time.total_hours >= 2.1 and time.total_hours <= 3.0:            
-            #     res[time.id]['total_shift_worked'] = 0.375 + perm_onduty_count        
-            # if time.total_hours >= 4.0 and time.total_hours <= 7.44:            
-            #     res[time.id]['total_shift_worked'] = 0.5 + perm_onduty_count 
-            # if time.total_hours >= 7.45 and time.total_hours <= 8.30:            
-            #     res[time.id]['total_shift_worked'] = 1.0 + perm_onduty_count
-            # if time.total_hours >8.30  and time.total_hours <= 11.44:            
-            #     res[time.id]['total_shift_worked'] = 1.0 + perm_onduty_count
-            # if time.total_hours >=11.45  and time.total_hours <= 15.44:            
-            #     res[time.id]['total_shift_worked'] = 1.5 + perm_onduty_count
-            # if time.total_hours >=15.45  and time.total_hours <= 15.45:            
-            #     res[time.id]['total_shift_worked'] = 1.5 + perm_onduty_count
-            # if time.total_hours >=15.45:            
-            #     res[time.id]['total_shift_worked'] = 2.0 + perm_onduty_count
-            # if time.total_hours >=23.45:            
-            #     res[time.id]['total_shift_worked'] = 3.0 + perm_onduty_count
-            #===================================================================
-            
-            #res[time.id]['shift_count']=res[time.id]['total_shift_worked']
-            #res.update({'shift_count': res[time.id]['total_shift_worked']})
+                    res[time.id]['total_shift_worked'] = 3                     
             
         return res
-    #TPT 
+    _order = "work_date asc"
     _columns = {
         'employee_id':fields.many2one('hr.employee','Employee ID', required = True, states={'done': [('readonly', True)], 'cancel': [('readonly', True)]}),
         'work_date':fields.date('Work Date', required = True, states={'done': [('readonly', True)], 'cancel': [('readonly', True)]}),
@@ -2487,13 +2635,17 @@ class arul_hr_punch_in_out_time(osv.osv):
         'diff_day': fields.boolean('Difference Day', readonly = True),
         #TPT
         #TPT-Punch InOut - THIS COLUMN IS STORE IN DB TO GET THIS COUNT DURING PAYROLL PROCESS
-        'total_shift_worked': fields.function(_shift_total, string='No.Of Shift Worked', multi='shift_punchinout_sums', help="The total amount."),
+        'total_hrs_worked': fields.function(_shift_hrs_total, string='No.Of Hrs Worked', multi='shift_punchinout_hrs_sums', help="The total Hrs Worked."),
+        'total_shift_worked': fields.function(_shift_total_db, string='No.Of Shift Worked', store=True, multi='shift_punchinout_sums', help="The total Shift Worked Per day which includes punch in times and/or Permission OnDuty Hrs."),
+        
+        'shift_worked': fields.function(_shift_total, string='No.Of Shift Worked',  multi='shift_punchinout_sums', help="The total Shift Worked Per day which includes punch in times and/or Permission OnDuty Hrs."),
+                
         #'shift_count': fields.function(_shift_total, store=True,string='Shift Count', multi='shift_punchinout2_sums', help="The total amount."),
-        'a_shift_count': fields.function(_shift_total, string='A', multi='a_shift'),
-        'b_shift_count': fields.function(_shift_total, string='B', multi='b_shift'),
-        'c_shift_count': fields.function(_shift_total, string='C', multi='c_shift'),
-        'g1_shift_count': fields.function(_shift_total, string='G1', multi='g1_shift'),
-        'g2_shift_count': fields.function(_shift_total, string='G2', multi='g2_shift'),
+        'a_shift_count': fields.function(_shift_count, string='A', multi='a_shift'),
+        'b_shift_count': fields.function(_shift_count, string='B', multi='b_shift'),
+        'c_shift_count': fields.function(_shift_count, string='C', multi='c_shift'),
+        'g1_shift_count': fields.function(_shift_count, string='G1', multi='g1_shift'),
+        'g2_shift_count': fields.function(_shift_count, string='G2', multi='g2_shift'),
         
         #'g1_shift_count': fields.float('G1', states={'done': [('readonly', True)], 'cancel': [('readonly', True)]}),
         #'g2_shift_count': fields.float('G2', states={'done': [('readonly', True)], 'cancel': [('readonly', True)]}),
@@ -6497,17 +6649,17 @@ class shift_adjustment(osv.osv):
         return self.write(cr, uid, ids, {'state':'done'})
        
     _columns={
-              'employee_id': fields.many2one('hr.employee','Employee ID',required = True),
-              'work_date': fields.date('Work Date',required = True),             
+             'employee_id': fields.many2one('hr.employee','Employee ID',required = True, states={'done': [('readonly', True)], 'cancel': [('readonly', True)]}),
+              'work_date': fields.date('Work Date',required = True, states={'done': [('readonly', True)], 'cancel': [('readonly', True)]}),             
               'adj_type': fields.selection([('increase', 'Increase'),
-                                            ('decrease', 'Decrease')],'Adjustment Type',required = True),
-              'increase_count': fields.float('Increase Count'),
-              'decrease_count': fields.float('Decrease Count'),
+                                            ('decrease', 'Decrease')],'Adjustment Type',required = True, states={'done': [('readonly', True)], 'cancel': [('readonly', True)]}),
+              'increase_count': fields.float('Increase Count', states={'done': [('readonly', True)], 'cancel': [('readonly', True)]}),
+              'decrease_count': fields.float('Decrease Count', states={'done': [('readonly', True)], 'cancel': [('readonly', True)]}),
               'reason_for_adj': fields.selection([('sys_err', 'System Error'),
-                                            ('clerk_err', 'Clerical Error')],'Reason for Change'),
-              'reason_details': fields.text('Reason In Details'),
+                                            ('clerk_err', 'Clerical Error')],'Reason for Change', states={'done': [('readonly', True)], 'cancel': [('readonly', True)]}),
+              'reason_details': fields.text('Reason In Details', states={'done': [('readonly', True)], 'cancel': [('readonly', True)]}),
               'state':fields.selection([('draft', 'Draft'),('cancel', 'Reject'),
-                                            ('done', 'Approve')],'Status', readonly=True),              
+                                            ('done', 'Approve')],'Status', readonly=True, states={'done': [('readonly', True)], 'cancel': [('readonly', True)]}),              
               'create_date': fields.datetime('Created Date',readonly = True),
               'create_uid': fields.many2one('res.users','Created By',ondelete='restrict',readonly = True),
         
@@ -6519,3 +6671,80 @@ class shift_adjustment(osv.osv):
     }
 shift_adjustment()
 
+class leave_adjustment(osv.osv):
+    _name='leave.adjustment'
+    
+    def leave_adj(self, cr, uid, ids, context=None):
+        #emp = self.pool.get('hr.employee')
+        #leave_details = self.pool.get('employee.leave.detail')
+        #punch_obj = self.pool.get('arul.hr.punch.in.out.time')
+        employee_leave_obj = self.pool.get('employee.leave')
+        employee_leave_detail_obj = self.pool.get('employee.leave.detail')
+        leave_type_obj = self.pool.get('arul.hr.leave.types')
+        
+        for line in self.browse(cr, uid, ids, context=context):
+            if not line.work_date:
+                raise osv.except_osv(_('Warning!'),_('Pls Select Work Date'))
+            
+            employee_leave_ids = employee_leave_obj.search(cr, uid, [('year','=',line.work_date[:4]),('employee_id','=',line.employee_id.id)])
+            leave_type_ids = leave_type_obj.search(cr, uid, [('code','=','C.Off')])
+            if not leave_type_ids:
+                raise osv.except_osv(_('Warning!'),_('Can not find Leave Type C.Off. Please Create Leave Type C.Off before'))
+            if employee_leave_ids:
+                employee_leave_detail_ids = employee_leave_detail_obj.search(cr, uid, [('emp_leave_id','in',employee_leave_ids),('leave_type_id','=',leave_type_ids[0])])
+                if employee_leave_detail_ids:
+                    if line.adj_type=='increase':
+                        sql = '''
+                                    update employee_leave_detail set total_day = total_day+%s where id = %s
+                            '''%(line.increase_count,employee_leave_detail_ids[0])
+                        cr.execute(sql)                             
+                    if line.adj_type=='decrease':
+                        sql = '''
+                                    update employee_leave_detail set total_day = total_day-%s where id = %s
+                            '''%(line.decrease_count,employee_leave_detail_ids[0])
+                        cr.execute(sql) 
+                
+                    
+        return self.write(cr, uid, ids, {'state':'done'})
+       
+    _columns={
+              'employee_id': fields.many2one('hr.employee','Employee ID',required = True,states={'done': [('readonly', True)], 'cancel': [('readonly', True)]}),
+              'work_date': fields.date('Work Date',required = True,states={'done': [('readonly', True)], 'cancel': [('readonly', True)]}),   
+              'available_coff_count': fields.float('Available C.Off',readonly=True),          
+              'adj_type': fields.selection([('increase', 'Increase'),
+                                            ('decrease', 'Decrease')],'Adjustment Type',required = True,states={'done': [('readonly', True)], 'cancel': [('readonly', True)]}),
+              'increase_count': fields.float('Increase Count', states={'done': [('readonly', True)], 'cancel': [('readonly', True)]}),
+              'decrease_count': fields.float('Decrease Count', states={'done': [('readonly', True)], 'cancel': [('readonly', True)]}),
+              'reason_for_adj': fields.selection([('sys_err', 'System Error'),
+                                            ('clerk_err', 'Clerical Error')],'Reason for Change',states={'done': [('readonly', True)], 'cancel': [('readonly', True)]}),
+              'reason_details': fields.text('Reason In Details', states={'done': [('readonly', True)], 'cancel': [('readonly', True)]}),
+              'state':fields.selection([('draft', 'Draft'),('cancel', 'Reject'),
+                                            ('done', 'Approve')],'Status', readonly=True),              
+              'create_date': fields.datetime('Created Date',readonly = True),
+              'create_uid': fields.many2one('res.users','Created By',ondelete='restrict',readonly = True),
+        
+              }
+    
+    _defaults = {
+        'state':'draft',               
+    }
+    
+    def create(self, cr, uid, vals, context=None):
+        now = datetime.datetime.now()
+        current_year = now.year
+        sql = '''
+            SELECT CASE WHEN SUM(total_day-total_taken)!=0 THEN SUM(total_day-total_taken) ELSE 0 END pl_count FROM employee_leave_detail 
+            WHERE emp_leave_id IN 
+            (SELECT id FROM employee_leave WHERE employee_id = %s AND year='%s')
+            AND leave_type_id = (SELECT id FROM arul_hr_leave_types WHERE code='C.Off')
+            '''%(vals['employee_id'],current_year)
+        cr.execute(sql)
+        coff = cr.fetchone()
+        coff = str(coff)
+        coff = coff.replace("(","")
+        coff = coff.replace(",)","")
+        vals['available_coff_count'] = coff
+        
+        return super(leave_adjustment, self).create(cr, uid, vals, context)
+        
+leave_adjustment()

@@ -212,9 +212,15 @@
 	            	<sheet>
 		                <group col='4' colspan='2'>
 		                	<field name="flag" invisible='1'/>
-			                <field name="employee_id" attrs="{'readonly':[('flag','=',True)]}" options="{'create': false, 'create_edit': false}" on_change="onchange_employee_structure_id(employee_id)"/>
+		                	<!-- TPT-CONTEXT IS APPLIED OVER EMP ID - TOAVOID CREATING DUPLICATE PAY STRUCTURE -->
+			                <field name="employee_id" attrs="{'readonly':[('flag','=',True)]}" options="{'create': false, 'create_edit': false}" 
+			                on_change="onchange_employee_structure_id(employee_id)"
+			                context="{'pay_structured_emp':1}"
+			                />
 			                <newline/>
-							<field name="employee_category_id" on_change="onchange_employee_category_id(employee_category_id,sub_category_id)" attrs="{'readonly':[('flag','=',False)]}" options="{'create': true, 'create_edit': true}"/>
+							<field name="employee_category_id" on_change="onchange_employee_category_id(employee_category_id,sub_category_id)" 
+							attrs="{'readonly':[('flag','=',False)]}" options="{'create': true, 'create_edit': true}"							
+							/>
 							<field name="sub_category_id" attrs="{'readonly':[('flag','=',False)]}" domain="[('category_id','=',employee_category_id)]" options="{'create': true, 'create_edit': true}"/>
 
 							<field name ="create_date"/>
@@ -261,6 +267,7 @@
 								</field>
 							</group>
 						<!--- Start:TPT - BalamuruganPurushothaman on 22/02/2015 -To Add Loan & Insurance Deatils Tab-->
+						<!--  TPT COMMENTED ON 18/04/2015
 						<notebook>
 						    <page string="Loan Details">
 						        <field name="loan_line" nolabel="1">
@@ -281,12 +288,13 @@
 								<field name="insurance_branch"/>
 								<field name="insurance_no"/>
 								<field name="insurance_period_start"/>
-								<!--field name="insurance_period_end"/-->
-								<field name="insurance_amount"/>
+								--><!--field name="insurance_period_end"/-->
+								<!-- <field name="insurance_amount"/>
 							    </tree>
 						        </field>						
 						    </page>
-						</notebook><!--End:TPTP-->
+						</notebook>
+						 --><!--End:TPTP-->
 						</group>
 						<!--
 						<group class="oe_subtotal_footer oe_right" colspan="2" name="sale_total">

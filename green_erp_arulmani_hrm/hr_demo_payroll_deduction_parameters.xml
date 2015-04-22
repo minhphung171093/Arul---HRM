@@ -52,8 +52,6 @@
           <field name="code">LOP</field>
       </record>
       <!-- TPT start-->
-      <!-- 
-       
       <record id="deduction_parameters_12" model="arul.hr.payroll.deduction.parameters">
           <field name="name">LIC Premium Insurance</field>
           <field name="code">INS_LIC_PREM</field>
@@ -87,7 +85,7 @@
       <record id="deduction_parameters_19" model="arul.hr.payroll.deduction.parameters">
           <field name="name">Other Loans</field>
           <field name="code">LOAN_OTHERS</field>
-      </record>-->
+      </record>
       <!-- TPT End -->
       <record id="deduction_parameters_10" model="arul.hr.payroll.deduction.parameters">
           <field name="name">Total Deduction</field>

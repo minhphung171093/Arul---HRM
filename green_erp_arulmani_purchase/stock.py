@@ -21,6 +21,7 @@ class stock_picking(osv.osv):
         'gate_in_pass_no':fields.many2one('tpt.gate.in.pass','Gate In Pass No'),
         'truck':fields.char('Truck No', size = 64),
         'invoice_no':fields.char('DC/Invoice No', size = 64),
+        'header_text':fields.text('Header Text'),#TPT
                 }
 
     def write(self, cr, uid, ids, vals, context=None):
@@ -263,6 +264,7 @@ class stock_picking_in(osv.osv):
         'gate_in_pass_no':fields.many2one('tpt.gate.in.pass','Gate In Pass No'),
         'truck':fields.char('Truck No', size = 64),
         'invoice_no':fields.char('DC/Invoice No', size = 64),
+        'header_text':fields.text('Header Text'),#TPT
                 }
 
 
