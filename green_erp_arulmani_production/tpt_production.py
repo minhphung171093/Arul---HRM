@@ -470,7 +470,7 @@ crm_application_line()
 
 class mrp_bom(osv.osv):
     _inherit = 'mrp.bom'
-    _order = "product_id"
+    _order = 'name'
 
     def _norms(self, cr, uid, ids, field_name, args, context=None):
         res = {}
@@ -942,7 +942,7 @@ class mrp_production(osv.osv):
             # reset product_lines in production order
             for line in results:
                 line['production_id'] = production.id
-                line['app_qty'] = production.product_qty
+                line['app_qty'] = line['product_qty']
                 prod_line_obj.create(cr, uid, line)
     
             #reset workcenter_lines in production order
@@ -1343,8 +1343,9 @@ stock_production_lot()
 
 class stock_move(osv.osv):
     _inherit = 'stock.move'
-    _order = 'product_id'
+    _order = 'product_name'
     _columns = {
+        'product_name': fields.related('product_id', 'name',type='char',string='Product name',store=True,readonly=True),
         'app_quantity': fields.float('Required Quantity'),
         'is_tpt_production': fields.boolean('Is tpt production'),
         'declar_id':fields.many2one('product.declaration.line','Declaration'),
@@ -1532,8 +1533,9 @@ tpt_quality_verification()
 
 class mrp_production_product_line(osv.osv):
     _inherit = 'mrp.production.product.line'
-    _order = "product_id"
+#     _order = "product_name"
     _columns = {
+#             'product_name': fields.related('product_id', 'name',string='Product name',store=True,readonly=True),
             'app_qty':fields.float('As per Norms Qty'),
             'declar_id':fields.many2one('product.declaration.line','Declaration'),
     }
@@ -1547,8 +1549,9 @@ mrp_production_product_line()
 
 class product_declaration_line(osv.osv):
     _name = 'product.declaration.line'
-    _order = "product_id"
+    _order = "product_name"
     _columns = {
+            'product_name': fields.related('product_id', 'name',type='char',string='Product name',store=True,readonly=True),
             'mrp_production_id':fields.many2one('mrp.production','Product Declaration',ondelete='restrict'),
             'app_qty':fields.float('Applied Quantity',required=True),
             'product_id':fields.many2one('product.product','Material',required=True),
