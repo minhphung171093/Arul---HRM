@@ -592,9 +592,35 @@ class arul_hr_audit_shift_time(osv.osv):
                         continue
                 
                 #if flag==1 or line.additional_shifts or (extra_hours>8 and line.employee_id.employee_category_id and line.employee_id.employee_category_id.code!='S1'): # Commented By BalamuruganPurushothaman - TO do not calculate COFF for S1 categ
-		if flag==1 or line.additional_shifts or (extra_hours>7.39 and line.employee_id.employee_category_id and line.employee_id.employee_category_id.code!='S1'):
+		if flag==1 or line.additional_shifts or (line.employee_id.employee_category_id and line.employee_id.employee_category_id.code!='S1'):
                     c_off_day = 0.0
 		    #raise osv.except_osv(_('Warning!'),_('inside c.off'))
+                    #Permission
+                    permission_count = 0
+                    onduty_count = 0
+                    perm_onduty_count = 0
+                    total_hrs = 0
+                    sql = '''
+                    SELECT CASE WHEN SUM(time_total)!=0 THEN SUM(time_total) ELSE 0 END time_total FROM arul_hr_permission_onduty WHERE 
+                    non_availability_type_id='permission' 
+                        AND TO_CHAR(date,'YYYY-MM-DD') = ('%s') and employee_id =%s and approval='t'
+                        '''%(line.work_date,line.employee_id.id)
+                    cr.execute(sql)
+                    b =  cr.fetchone()
+                    permission_count = b[0]
+                        
+                    #OnDuty
+                    sql = '''
+                        SELECT CASE WHEN SUM(time_total)!=0 THEN SUM(time_total) ELSE 0 END time_total FROM arul_hr_permission_onduty WHERE non_availability_type_id='on_duty' 
+                        AND TO_CHAR(date,'YYYY-MM-DD') = ('%s') and employee_id =%s and approval='t'
+                        '''%(line.work_date,line.employee_id.id)
+                    cr.execute(sql)
+                    c =  cr.fetchone()
+                    onduty_count = c[0]
+                    
+                    perm_onduty_count =   permission_count + onduty_count
+                    extra_hours = extra_hours + perm_onduty_count 
+                    
                     if line.additional_shifts:
                         if extra_hours >= 3.7 and extra_hours < 7.45:
                             c_off_day = 0.5
@@ -1038,8 +1064,33 @@ class arul_hr_audit_shift_time(osv.osv):
                                 }
                     
                     #if flag==1 or line.additional_shifts or (extra_hours>8 and line.employee_id.employee_category_id and line.employee_id.employee_category_id.code!='S1'): # Commented By BalamuruganPurushothaman - TO do not calculate COFF for S1 categ
-                if flag==1 or line.additional_shifts or (extra_hours>7.39 and line.employee_id.employee_category_id and line.employee_id.employee_category_id.code!='S1'):
-                    c_off_day = 0.0   		    
+                if flag==1 or line.additional_shifts or (line.employee_id.employee_category_id and line.employee_id.employee_category_id.code!='S1'):
+                    c_off_day = 0.0   
+                    #Permission
+                    permission_count = 0
+                    onduty_count = 0
+                    perm_onduty_count = 0
+                    total_hrs = 0
+                    sql = '''
+                    SELECT CASE WHEN SUM(time_total)!=0 THEN SUM(time_total) ELSE 0 END time_total FROM arul_hr_permission_onduty WHERE 
+                    non_availability_type_id='permission' 
+                        AND TO_CHAR(date,'YYYY-MM-DD') = ('%s') and employee_id =%s and approval='t'
+                        '''%(line.work_date,line.employee_id.id)
+                    cr.execute(sql)
+                    b =  cr.fetchone()
+                    permission_count = b[0]
+                        
+                    #OnDuty
+                    sql = '''
+                        SELECT CASE WHEN SUM(time_total)!=0 THEN SUM(time_total) ELSE 0 END time_total FROM arul_hr_permission_onduty WHERE non_availability_type_id='on_duty' 
+                        AND TO_CHAR(date,'YYYY-MM-DD') = ('%s') and employee_id =%s and approval='t'
+                        '''%(line.work_date,line.employee_id.id)
+                    cr.execute(sql)
+                    c =  cr.fetchone()
+                    onduty_count = c[0]
+                    
+                    perm_onduty_count =   permission_count + onduty_count
+                    extra_hours = extra_hours + perm_onduty_count 		    
                     if line.additional_shifts:
                         if extra_hours >= 3.7 and extra_hours < 7.45:
                             c_off_day = 0.5
@@ -1086,11 +1137,12 @@ class arul_hr_audit_shift_time(osv.osv):
                                                                            })
                     else:
                         employee_leave_detail_obj.create(cr, uid, {
-                                                                       'employee_id': employee_ids[0],
-                                                                       'year': data1[7:11],
+                                                                       #'employee_id': employee_ids[0],
+                                                                       'employee_id': line.employee_id.id,
+                                                                       'year': line.work_date[:4],
                                                                        'emp_leave_details_ids': [(0,0,{
                                                                                                    'leave_type_id': leave_type_ids[0],
-                                                                                                   'emp_leave_id': employee_leave_ids[0],
+                                                                                                   #'emp_leave_id': employee_leave_ids[0],
                                                                                                    'total_day': c_off_day,
                                                                                                        })],
                                                                        })
