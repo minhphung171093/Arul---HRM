@@ -400,6 +400,17 @@ class arul_hr_audit_shift_time(osv.osv):
                 t=1
             else:
                 raise osv.except_osv(_('Warning!'),_('User does not have permission to approve for this employee department!'))
+            ##TPT START - By BalamuruganPurushothaman - TO RESTRICT DUPLICATE ATTENDANCE ENTRY FOR A DAY
+            sql = '''
+                    SELECT COUNT(*) FROM arul_hr_punch_in_out_time WHERE 
+                    in_time <='%s' AND out_time >= '%s' and employee_id=%s 
+                    AND to_char(work_date,'YYYY-MM-DD')=('%s')       
+                    ''' %(line.in_time,line.out_time,line.employee_id.id,line.work_date)
+            cr.execute(sql)
+            p = cr.fetchone()                  
+            if p[0]>0:
+                raise osv.except_osv(_('Warning!'),_('Attendance Already Entered for this Time Period')) 
+            #TPT END
         for line in self.browse(cr,uid,ids):
 #             emp = self.pool.get('hr.employee')
             emp_attendence_obj = self.pool.get('arul.hr.employee.attendence.details')
@@ -822,6 +833,17 @@ class arul_hr_audit_shift_time(osv.osv):
                 t=1
             else:
                 raise osv.except_osv(_('Warning!'),_('User does not have permission to approve for this employee department!'))
+            ##TPT START - By BalamuruganPurushothaman - TO RESTRICT DUPLICATE ATTENDANCE ENTRY FOR A DAY
+            sql = '''
+                    SELECT COUNT(*) FROM arul_hr_punch_in_out_time WHERE 
+                    in_time <='%s' AND out_time >= '%s' and employee_id=%s 
+                    AND to_char(work_date,'YYYY-MM-DD')=('%s')       
+                    ''' %(line.in_time,line.out_time,line.employee_id.id,line.work_date)
+            cr.execute(sql)
+            p = cr.fetchone()                  
+            if p[0]>0:
+                raise osv.except_osv(_('Warning!'),_('Attendance Already Entered for this Time Period')) 
+            #TPT END
         for line in self.browse(cr,uid,ids):
 #             emp = self.pool.get('hr.employee')
             emp_attendence_obj = self.pool.get('arul.hr.employee.attendence.details')
@@ -2320,18 +2342,89 @@ class arul_hr_punch_in_out_time(osv.osv):
                 'c_shift_count': 0.0,
                 'g1_shift_count': 0.0,
                 'g2_shift_count': 0.0,
-            }          
+            }        
+            total_hrs = 0  
+            total_hrs = time.total_hours     
+            #===========================================================
+                    # 3.7 to 4.15  = 0.5
+                    # 4.15 to 7.45 = 0.5
+                    # 7.45 to 8.30 = 1
+                    # 8.30 to 11.175 = 1
+                    # 11.175 to 12.45 = 1.5
+                    # 12.45 to 15.3 = 1.5
+                    # 15.3 to 17 = 2
+                    # 17 to 19 = 2
+            #===========================================================
             if time.in_time != 0 and time.out_time!=0: 
-                if time.actual_work_shift_id.code=='A':
-                    res[time.id]['a_shift_count'] = 1.0
-                if time.actual_work_shift_id.code=='B':
-                    res[time.id]['b_shift_count'] = 1.0
-                if time.actual_work_shift_id.code=='C':
-                    res[time.id]['c_shift_count'] = 1.0
-                if time.actual_work_shift_id.code=='G1':
-                    res[time.id]['g1_shift_count'] = 1.0
-                if time.actual_work_shift_id.code=='G2':
-                    res[time.id]['g2_shift_count'] = 1.0                   
+                if time.actual_work_shift_id.code=='A':  
+                    if 3.7 <= total_hrs <= 7.45:
+                        res[time.id]['a_shift_count'] = 0.5
+                    if 7.45 <= total_hrs <= 11.175:
+                        res[time.id]['a_shift_count'] = 1.0                    
+                    if 11.175 <=total_hrs<=15.3:
+                        res[time.id]['a_shift_count'] = 1.0                       
+                    if 11.1 <=total_hrs<=15.3:
+                        res[time.id]['a_shift_count'] = 1.0
+                        res[time.id]['b_shift_count'] = 0.5
+                    if 15.3 <=total_hrs<=19.00:#19.00
+                        res[time.id]['a_shift_count'] = 1.0
+                        res[time.id]['b_shift_count'] = 1.0                                           
+                        
+                if time.actual_work_shift_id.code=='B':                      
+                    if 3.7 <= total_hrs <= 7.45:
+                        res[time.id]['b_shift_count'] = 0.5
+                    if 7.45 <= total_hrs <= 11.175:
+                        res[time.id]['b_shift_count'] = 1.0                    
+                    if 11.175 <=total_hrs<=15.3:
+                        res[time.id]['b_shift_count'] = 1.0                       
+                    if 11.1 <=total_hrs<=15.3:
+                        res[time.id]['b_shift_count'] = 1.0
+                        res[time.id]['c_shift_count'] = 0.5
+                    if 15.3 <=total_hrs<=19.00:#19.00
+                        res[time.id]['b_shift_count'] = 1.0
+                        res[time.id]['c_shift_count'] = 1.0 
+                                        
+                if time.actual_work_shift_id.code=='C':                                        
+                    if 3.7 <= total_hrs <= 7.45:
+                        res[time.id]['c_shift_count'] = 0.5
+                    if 7.45 <= total_hrs <= 11.175:
+                        res[time.id]['c_shift_count'] = 1.0                    
+                    if 11.175 <=total_hrs<=15.3:
+                        res[time.id]['c_shift_count'] = 1.0                       
+                    if 11.1 <=total_hrs<=15.3:
+                        res[time.id]['c_shift_count'] = 1.0
+                        res[time.id]['a_shift_count'] = 0.5
+                    if 15.3 <=total_hrs<=19.00:#19.00
+                        res[time.id]['c_shift_count'] = 1.0
+                        res[time.id]['a_shift_count'] = 1.0 
+                    
+                if time.actual_work_shift_id.code=='G1':                                        
+                    if 3.7 <= total_hrs <= 7.45:
+                        res[time.id]['g1_shift_count'] = 0.5
+                    if 7.45 <= total_hrs <= 11.175:
+                        res[time.id]['g1_shift_count'] = 1.0                    
+                    if 11.175 <=total_hrs<=15.3:
+                        res[time.id]['g1_shift_count'] = 1.0                       
+                    if 11.1 <=total_hrs<=15.3:
+                        res[time.id]['g1_shift_count'] = 1.0
+                        res[time.id]['b_shift_count'] = 0.5
+                    if 15.3 <=total_hrs<=19.00:#19.00
+                        res[time.id]['g1_shift_count'] = 1.0
+                        res[time.id]['b_shift_count'] = 1.0 
+                        
+                if time.actual_work_shift_id.code=='G2':                    
+                    if 3.7 <= total_hrs <= 7.45:
+                        res[time.id]['g2_shift_count'] = 0.5
+                    if 7.45 <= total_hrs <= 11.175:
+                        res[time.id]['g2_shift_count'] = 1.0                    
+                    if 11.175 <=total_hrs<=15.3:
+                        res[time.id]['g2_shift_count'] = 1.0                       
+                    if 11.1 <=total_hrs<=15.3:
+                        res[time.id]['g2_shift_count'] = 1.0
+                        res[time.id]['b_shift_count'] = 0.5
+                    if 15.3 <=total_hrs<=19.00:#19.00
+                        res[time.id]['g2_shift_count'] = 1.0
+                        res[time.id]['b_shift_count'] = 1.0                     
         return res
     
     def _shift_hrs_total(self, cr, uid, ids, field_name, arg, context=None):
