@@ -4107,10 +4107,10 @@ class tpt_material_issue(osv.osv):
             else:
                 sequence = self.pool.get('ir.sequence').get(cr, uid, 'tpt.material.issue.import')
                 vals['doc_no'] =  sequence and sequence+'/'+fiscalyear['code'] or '/'
-        if 'department_id' in vals:
-            department_id = self.pool.get('hr.department').browse(cr, uid, vals['department_id'])
-            if department_id:
-                vals.update({'department_id':department_id.id}) 
+        if 'name' in vals:
+            request = self.pool.get('tpt.material.request').browse(cr, uid, vals['name'])
+        
+            vals.update({'department_id':request.department_id.id}) 
         new_id = super(tpt_material_issue, self).create(cr, uid, vals, context)
         return new_id
     
