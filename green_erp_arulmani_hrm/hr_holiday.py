@@ -2355,6 +2355,20 @@ class arul_hr_punch_in_out_time(osv.osv):
                     # 15.3 to 17 = 2
                     # 17 to 19 = 2
             #===========================================================
+            sql = '''
+                    SELECT min_start_time,start_time FROM arul_hr_capture_work_shift WHERE code='B'
+                    '''
+            cr.execute(sql)
+            for k in cr.fetchall():
+                a_min_start_time=k[0]
+                b=k[1]
+            sql = '''
+                    SELECT min_start_time FROM arul_hr_capture_work_shift WHERE code='C'
+                    '''
+            cr.execute(sql)
+            k = cr.fetchone()
+            c_min_start_time=k[0]
+                
             if time.in_time != 0 and time.out_time!=0: 
                 if time.actual_work_shift_id.code=='A':  
                     if 3.7 <= total_hrs <= 7.45:
@@ -2378,11 +2392,19 @@ class arul_hr_punch_in_out_time(osv.osv):
                     if 11.175 <=total_hrs<=15.3:
                         res[time.id]['b_shift_count'] = 1.0                       
                     if 11.1 <=total_hrs<=15.3:
-                        res[time.id]['b_shift_count'] = 1.0
-                        res[time.id]['c_shift_count'] = 0.5
+                        if time.in_time<=a_min_start_time:
+                            res[time.id]['b_shift_count'] = 1.0
+                            res[time.id]['a_shift_count'] = 0.5
+                        else:
+                            res[time.id]['b_shift_count'] = 1.0
+                            res[time.id]['c_shift_count'] = 0.5
                     if 15.3 <=total_hrs<=19.00:#19.00
-                        res[time.id]['b_shift_count'] = 1.0
-                        res[time.id]['c_shift_count'] = 1.0 
+                        if time.in_time<=a_min_start_time:
+                            res[time.id]['b_shift_count'] = 1.0
+                            res[time.id]['a_shift_count'] = 1.0 
+                        else:
+                            res[time.id]['b_shift_count'] = 1.0
+                            res[time.id]['c_shift_count'] = 1.0 
                                         
                 if time.actual_work_shift_id.code=='C':                                        
                     if 3.7 <= total_hrs <= 7.45:
@@ -2406,11 +2428,19 @@ class arul_hr_punch_in_out_time(osv.osv):
                     if 11.175 <=total_hrs<=15.3:
                         res[time.id]['g1_shift_count'] = 1.0                       
                     if 11.1 <=total_hrs<=15.3:
-                        res[time.id]['g1_shift_count'] = 1.0
-                        res[time.id]['b_shift_count'] = 0.5
+                        if time.in_time<=c_min_start_time:
+                            res[time.id]['c_shift_count'] = 1.0
+                            res[time.id]['b_shift_count'] = 0.5
+                        else:    
+                            res[time.id]['c_shift_count'] = 1.0
+                            res[time.id]['a_shift_count'] = 0.5
                     if 15.3 <=total_hrs<=19.00:#19.00
-                        res[time.id]['g1_shift_count'] = 1.0
-                        res[time.id]['b_shift_count'] = 1.0 
+                        if time.in_time<=c_min_start_time:
+                            res[time.id]['c_shift_count'] = 1.0
+                            res[time.id]['b_shift_count'] = 1.0
+                        else:    
+                            res[time.id]['c_shift_count'] = 1.0
+                            res[time.id]['a_shift_count'] = 1.0 
                         
                 if time.actual_work_shift_id.code=='G2':                    
                     if 3.7 <= total_hrs <= 7.45:
