@@ -679,18 +679,29 @@
             <field name="model">product.category</field>
             <field name="inherit_id" ref="stock.view_category_property_form"/>
             <field name="arch" type="xml">
-				<xpath expr="//field[@name='property_stock_account_input_categ']" position="replace">
+				<!--<xpath expr="//field[@name='property_stock_account_input_categ']" position="replace">
 					<field name="property_stock_account_input_categ" domain="[('type','&lt;&gt;','view'),('type','&lt;&gt;','consolidation')]" options="{'create': false, 'create_edit': false}"/>
 				</xpath>
 				<xpath expr="//field[@name='property_stock_account_output_categ']" position="replace">
 					<field name="property_account_expense_categ" domain="[('type','&lt;&gt;','view'),('type','&lt;&gt;','consolidation')]" options="{'create': false, 'create_edit': false}"/>
-				</xpath>
+				</xpath>-->
 				<xpath expr="//field[@name='property_stock_valuation_account_id']" position="replace">
 					<field name="property_stock_valuation_account_id" domain="[('type','&lt;&gt;','view'), ('type','&lt;&gt;','consolidation')]" options="{'create': false, 'create_edit': false}"/>
 				</xpath>
 				<xpath expr="//field[@name='property_stock_journal']" position="replace">
 					<field name="property_stock_journal" options="{'create': false, 'create_edit': false}"/>
 				</xpath>
+				
+				<xpath expr="//field[@name='property_stock_account_output_categ']" position="attributes">
+					<attribute name='domain'>[('type','&lt;&gt;','view'),('type','&lt;&gt;','consolidation')]</attribute>
+					<attribute name='options'>{'create': false, 'create_edit': false}</attribute>
+				</xpath>
+				
+				<xpath expr="//field[@name='property_stock_account_input_categ']" position="attributes">
+					<attribute name='domain'>[('type','&lt;&gt;','view'),('type','&lt;&gt;','consolidation')]</attribute>
+					<attribute name='options'>{'create': false, 'create_edit': false}</attribute>
+				</xpath>
+				
 			</field>
 		</record>   
 		
@@ -1780,6 +1791,7 @@
 			<field name="model">tpt.material.issue</field>
 			<field name="arch" type="xml">
 				<tree string="Material Issue">
+						<field name="doc_no"/>
 						<field name="name"/>
 						<field name="date_request"/>
 						<field name="date_expec"/>
@@ -1801,6 +1813,7 @@
 	            </header>    
 	            	<sheet>
 		                <group col="4" colspan="2" >    
+							<field name="doc_no"/>
 							<field name="name" domain="[('state','=','done')]" on_change="onchange_material(name)" options="{'create': false, 'create_edit': false}" />
 							<field name="date_request" on_change="onchange_date_expect(date_request)" />
 							<field name="date_expec"/>

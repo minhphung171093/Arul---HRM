@@ -4018,9 +4018,11 @@ class tpt_material_issue(osv.osv):
         'request_type':fields.selection([('production', 'Production'),('normal', 'Normal'),('main', 'Maintenance')],'Request Type', states={'done':[('readonly', True)]}),
         'material_issue_line':fields.one2many('tpt.material.issue.line','material_issue_id','Vendor Group',states={'done':[('readonly', True)]}),
         'state':fields.selection([('draft', 'Draft'),('done', 'Approve')],'Status', readonly=True),
+        'doc_no': fields.char('Document Number', size = 1024,readonly = True),
                 }
     _defaults = {
-        'state':'draft',      
+        'state':'draft',    
+        'doc_no': '/',  
     }
 
 #     def create(self, cr, uid, vals, context=None):
@@ -4092,6 +4094,34 @@ class tpt_material_issue(osv.osv):
             cr.execute(sql)
             dates = cr.dictfetchone()['date_request']
         return {'value': {'date_expec':dates}}    
+    
+    def create(self, cr, uid, vals, context=None):
+        if vals.get('doc_no','/')=='/':
+            sql = '''
+                select code from account_fiscalyear where '%s' between date_start and date_stop
+            '''%(time.strftime('%Y-%m-%d'))
+            cr.execute(sql)
+            fiscalyear = cr.dictfetchone()
+            if not fiscalyear:
+                raise osv.except_osv(_('Warning!'),_('Financial year has not been configured. !'))
+            else:
+                sequence = self.pool.get('ir.sequence').get(cr, uid, 'tpt.material.issue.import')
+                vals['doc_no'] =  sequence and sequence+'/'+fiscalyear['code'] or '/'
+        if 'department_id' in vals:
+            department_id = self.pool.get('hr.department').browse(cr, uid, vals['department_id'])
+            if department_id:
+                vals.update({'department_id':department_id.id}) 
+        new_id = super(tpt_material_issue, self).create(cr, uid, vals, context)
+        return new_id
+    
+    def write(self, cr, uid, ids, vals, context=None):
+        if 'department_id' in vals:
+            department_id = self.pool.get('hr.department').browse(cr, uid, vals['department_id'])
+            if department_id:
+                vals.update({'department_id':department_id.id})   
+        new_write = super(tpt_material_issue, self).write(cr, uid,ids, vals, context)
+        return new_write
+    
 tpt_material_issue()
 
 class tpt_material_issue_line(osv.osv):
