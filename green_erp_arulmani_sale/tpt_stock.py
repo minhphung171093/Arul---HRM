@@ -680,7 +680,7 @@ class stock_picking(osv.osv):
             #===================================================================
                 
             #if not picking.flag_confirm and limit <= (sale + used) and picking.sale_id and picking.sale_id.payment_term_id.name not in ['Immediate Payment','Immediate']:
-            if not picking.flag_confirm and limit <= (sale + used) and picking.sale_id:
+            if not picking.flag_confirm and limit < (sale + used) and picking.sale_id:
                 sql = '''
                     update stock_picking set doc_status='waiting' where id = %s
                     '''%(picking.id)
