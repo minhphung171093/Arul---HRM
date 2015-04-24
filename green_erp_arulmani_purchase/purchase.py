@@ -3934,6 +3934,42 @@ class tpt_material_request(osv.osv):
                     '''%(request_type,line.id)
                     cr.execute(sql)
         return {'value':vals} 
+    
+    def search(self, cr, uid, args, offset=0, limit=None, order=None, context=None, count=False):
+        if context is None:
+            context = {}
+        if context.get('search_ma_request'):
+            request_id = context.get('request_id')
+            request_master_full_ids = []
+            sql = '''
+                select request_line_id,case when sum(product_isu_qty)!=0 then sum(product_isu_qty) else 0 end product_isu_qty
+                    from tpt_material_issue_line group by request_line_id
+            '''
+            cr.execute(sql)
+            request_line_ids = []
+            for request_line in cr.fetchall():
+                if request_line[0]:
+                    sql = '''
+                        select case when sum(product_uom_qty)!=0 then sum(product_uom_qty) else 0 end product_uom_qty
+                            from tpt_material_request_line where id = %s
+                    '''%(request_line[0])
+                    cr.execute(sql)
+                    product_uom_qty = cr.fetchone()[0]
+                    if product_uom_qty <= request_line[1]:
+                        request_line_ids.append(request_line[0])
+            if request_line_ids:
+                cr.execute('''
+                    select material_request_id from tpt_material_request_line where id in %s
+                ''',(tuple(request_line_ids),))
+                request_master_full_ids = [r[0] for r in cr.fetchall()]
+            request_master_ids = self.pool.get('tpt.material.request').search(cr, uid, [('id','not in',request_master_full_ids)])
+            args += [('id','in',request_master_ids)]
+        return super(tpt_material_request, self).search(cr, uid, args, offset=offset, limit=limit, order=order, context=context, count=count)
+    
+    def name_search(self, cr, user, name, args=None, operator='ilike', context=None, limit=100):
+       ids = self.search(cr, user, args, context=context, limit=limit)
+       return self.name_get(cr, user, ids, context=context)
+   
 tpt_material_request()
 
 
@@ -3969,10 +4005,11 @@ class tpt_material_request_line(osv.osv):
         'dec_material':fields.text('Material Decription', readonly = True),
         'product_uom_qty': fields.float('Requested Qty'),   
         'uom_po_id': fields.many2one('product.uom', 'UOM', readonly = True),
-        'material_request_id': fields.many2one('tpt.material.request', 'Material'),
+        'material_request_id': fields.many2one('tpt.material.request', 'Material',ondelete='cascade'),
         'on_hand_qty':fields.function(_get_on_hand_qty,digits=(16,2),type='float',string='On Hand Qty',multi='sum',store=False),
         'request_type':fields.selection([('production', 'Production'),('normal', 'Normal'),('main', 'Maintenance')],'Request Type'),
         'prodlot_id': fields.many2one('stock.production.lot', 'Batch No'),
+        'bin': fields.related('product_id','bin_location',type='char',string='Bin Location',readonly=True),
                 }
     def onchange_product_id(self, cr, uid, ids,product_id=False, context=None):
         res = {'value':{
@@ -4023,6 +4060,7 @@ class tpt_material_issue(osv.osv):
     _defaults = {
         'state':'draft',    
         'doc_no': '/',  
+        'date_expec': time.strftime('%Y-%m-%d'),
     }
 
 #     def create(self, cr, uid, vals, context=None):
@@ -4047,18 +4085,42 @@ class tpt_material_issue(osv.osv):
                 delete from tpt_material_issue_line where material_issue_id = %s
             '''%(issue.id)
             cr.execute(sql)
+        
         if name:
             request = self.pool.get('tpt.material.request').browse(cr, uid, name)
-            for line in request.material_request_line:
-                rs = {
-                      'product_id': line.product_id and line.product_id.id or False,
-                      'product_uom_qty': line.product_uom_qty or False,
-                      'uom_po_id': line.uom_po_id and line.uom_po_id.id or False,
-                      'dec_material':line.dec_material or False,
-                      'product_isu_qty': line.product_uom_qty or False,
-                      
-                      }
-                product_information_line.append((0,0,rs))
+            for request_line in request.material_request_line:
+                sql = '''
+                    select re.id, sum(iss.product_isu_qty) as qty
+                    from tpt_material_issue_line iss
+                    inner join tpt_material_request_line re on re.id = iss.request_line_id
+                    where re.material_request_id = %s and re.id = %s
+                    group by re.id
+                '''%(name,request_line.id)
+                cr.execute(sql)
+                kq = cr.fetchall()
+                if kq:
+                    for data in kq:
+                        if request_line.product_uom_qty > data[1]:
+    #             for line in request.material_request_line:
+                            rs = {
+                                  'product_id': request_line.product_id and request_line.product_id.id or False,
+                                  'product_uom_qty': request_line.product_uom_qty or False,
+                                  'uom_po_id': request_line.uom_po_id and request_line.uom_po_id.id or False,
+                                  'dec_material':request_line.dec_material or False,
+                                  'product_isu_qty': request_line.product_uom_qty - data[1] or False,
+                                  'request_line_id': request_line.id,
+                                  }
+                            product_information_line.append((0,0,rs))
+                else:
+                    rs = {
+                          'product_id': request_line.product_id and request_line.product_id.id or False,
+                          'product_uom_qty': request_line.product_uom_qty or False,
+                          'uom_po_id': request_line.uom_po_id and request_line.uom_po_id.id or False,
+                          'dec_material':request_line.dec_material or False,
+                          'product_isu_qty': request_line.product_uom_qty or False,
+                          'request_line_id': request_line.id,
+                          }
+                    product_information_line.append((0,0,rs))
             vals = {'date_request': request.date_request or False,
                     'date_expec':request.date_expec or False,
                     'department_id':request.department_id and request.department_id.id or False,
@@ -4112,6 +4174,18 @@ class tpt_material_issue(osv.osv):
         
             vals.update({'department_id':request.department_id.id}) 
         new_id = super(tpt_material_issue, self).create(cr, uid, vals, context)
+        issue = self.browse(cr, uid, new_id)
+        for line in issue.material_issue_line:
+            sql = '''
+                select case when sum(product_isu_qty)!=0 then sum(product_isu_qty) else 0 end product_isu_qty 
+                from tpt_material_issue_line iss
+                inner join tpt_material_request_line re on re.id = iss.request_line_id
+                where re.material_request_id = %s and re.id = %s
+            '''%(line.material_issue_id.name.id,line.id)
+            cr.execute(sql)
+            product_isu_qty = cr.dictfetchone()['product_isu_qty']
+            if line.product_isu_qty > line.request_line_id.product_uom_qty-product_isu_qty:
+                raise osv.except_osv(_('Warning!'),_('Quantity must be less than Material Request quantity!'))
         return new_id
     
     def write(self, cr, uid, ids, vals, context=None):
@@ -4132,7 +4206,9 @@ class tpt_material_issue_line(osv.osv):
         'product_uom_qty': fields.float('Requested Qty',readonly = True),  
         'product_isu_qty': fields.float('Issue Qty',required = True), 
         'uom_po_id': fields.many2one('product.uom', 'UOM', readonly = True),
-        'material_issue_id': fields.many2one('tpt.material.issue', 'Material'),
+        'material_issue_id': fields.many2one('tpt.material.issue', 'Material',ondelete='cascade'),
+        'request_line_id': fields.many2one('tpt.material.request.line', 'Request line'),
+        'bin': fields.related('product_id','bin_location',type='char',string='Bin Location',readonly=True),
                 }
     def create(self, cr, uid, vals, context=None):
         if 'product_id' in vals:

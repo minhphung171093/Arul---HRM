@@ -1740,6 +1740,7 @@
 										<field name="on_hand_qty" />
 										<field name="uom_po_id" edit='false' options="{'create': false, 'create_edit': false}"/>
 										<field name="request_type" invisible='1'/>
+										<field name="bin" />
 									</tree>
 								</field>
 							</page>
@@ -1814,7 +1815,7 @@
 	            	<sheet>
 		                <group col="4" colspan="2" >    
 							<field name="doc_no"/>
-							<field name="name" domain="[('state','=','done')]" on_change="onchange_material(name)" options="{'create': false, 'create_edit': false}" />
+							<field name="name" domain="[('state','=','done')]" on_change="onchange_material(name)" context="{'search_ma_request':1,'request_id':name}" options="{'create': false, 'create_edit': false}" />
 							<field name="date_request" on_change="onchange_date_expect(date_request)" />
 							<field name="date_expec"/>
 							<field name="request_type" />
@@ -1829,6 +1830,7 @@
 										<field name="product_uom_qty" />
 										<field name="uom_po_id" edit='false' options="{'create': false, 'create_edit': false}"/>
 										<field name="product_isu_qty" />
+										<field name="bin" />
 									</tree>
 								</field>
 							</page>
