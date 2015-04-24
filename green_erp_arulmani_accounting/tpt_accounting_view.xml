@@ -70,6 +70,15 @@
 										<field name="lwf_id" options="{'create': false, 'create_edit': false}"/>
 										<field name="staff_advance_id" options="{'create': false, 'create_edit': false}"/>
 										<field name="salari_payable_id" options="{'create': false, 'create_edit': false}"/>
+										<field name="wages_id" options="{'create': false, 'create_edit': false}"/>
+										<field name="wages_payable_id" options="{'create': false, 'create_edit': false}"/>
+										<field name="other_insu" options="{'create': false, 'create_edit': false}"/>
+										<field name="vvti_id" options="{'create': false, 'create_edit': false}"/>
+										<field name="lic_hfl_id" options="{'create': false, 'create_edit': false}"/>
+										<field name="hdfc_id" options="{'create': false, 'create_edit': false}"/>
+										<field name="tmb_id" options="{'create': false, 'create_edit': false}"/>
+										<field name="sbt_id" options="{'create': false, 'create_edit': false}"/>
+										<field name="other_loan_id" options="{'create': false, 'create_edit': false}"/>
 								</group>
 							</page>
 						</notebook>

@@ -47,6 +47,18 @@ class tpt_posting_configuration(osv.osv):
         'lwf_id': fields.many2one('account.account', 'Labour welfare Fund', states={ 'done':[('readonly', True)]}),
         'staff_advance_id': fields.many2one('account.account', 'Staff Advance', states={ 'done':[('readonly', True)]}),
         'salari_payable_id': fields.many2one('account.account', 'Salaries And Allowance Payable', states={ 'done':[('readonly', True)]}),
+        
+        
+        
+        'wages_id': fields.many2one('account.account', 'Wages and Allowances', states={ 'done':[('readonly', True)]}),
+        'wages_payable_id': fields.many2one('account.account', ' Wages and Allowances Payable', states={ 'done':[('readonly', True)]}),
+        'other_insu': fields.many2one('account.account', 'Other Insurances', states={ 'done':[('readonly', True)]}),
+        'vvti_id': fields.many2one('account.account', 'VVTi Loan', states={ 'done':[('readonly', True)]}),
+        'lic_hfl_id': fields.many2one('account.account', 'LIC HFL Loan', states={ 'done':[('readonly', True)]}),
+        'hdfc_id': fields.many2one('account.account', 'HDFC Loan', states={ 'done':[('readonly', True)]}),
+        'tmb_id': fields.many2one('account.account', 'TMB Loan', states={ 'done':[('readonly', True)]}),
+        'sbt_id': fields.many2one('account.account', 'SBT Loan', states={ 'done':[('readonly', True)]}),
+        'other_loan_id': fields.many2one('account.account', 'Other Loans', states={ 'done':[('readonly', True)]}),
         'state':fields.selection([('draft', 'Draft'),('done', 'Done')],'Status', readonly=True),
         
     }
