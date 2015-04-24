@@ -521,19 +521,20 @@
 					<!--<button name="purchase_head_amendement" states="head" string="Amendement" class="oe_highlight"/>-->
 					<button name="purchase_amendement_head" states="amendement" string="Purchase Head Approval" class="oe_highlight" groups="green_erp_arulmani_purchase.group_vvti_purchase_admin,green_erp_arulmani_purchase.group_vvti_purchase_mgr"/>
 					<button name="purchase_gm_confirmed" states="gm" string="MD Approval" class="oe_highlight" groups="green_erp_arulmani_purchase.group_vvti_purchase_admin"/>
-					<button name="purchase_md_confirmed" states="md" string="Create GRN" class="oe_highlight" groups="green_erp_arulmani_purchase.group_vvti_purchase_admin,green_erp_arulmani_purchase.group_vvti_purchase_store_mgr"/>
+					<button name="purchase_md_confirmed" attrs="{'invisible':['|',('state','!=','md'),('po_document_type','=','service')]}" string="Create GRN" class="oe_highlight" groups="green_erp_arulmani_purchase.group_vvti_purchase_admin,green_erp_arulmani_purchase.group_vvti_purchase_store_mgr"/>
+					<button name="bt_purchase_done" attrs="{'invisible':['|',('state','!=','md'),('po_document_type','!=','service')]}" string="Service Confirm" type='object' class="oe_highlight" groups="green_erp_arulmani_purchase.group_vvti_purchase_admin,green_erp_arulmani_purchase.group_vvti_purchase_store_mgr"/>
 				</xpath>  
 				<xpath expr="//form/header/button[@name='view_picking']" position="attributes">
 					<attribute name='string'>View GRN</attribute>
 				</xpath>
             	<xpath expr="//field[@name='partner_id']" position="before">
             		
-            		<field name="po_document_type" />
+            		<field name="po_document_type" on_change = "onchange_po_document_type(po_document_type)"/>
 					<field name="name" readonly = '1' string = 'PO Document No' />
 		<!--			<field name="po_indent_no" domain="[('state','!=','cancel')]" on_change = "onchange_po_indent_no(quotation_no, po_indent_no)" context="{'search_po_indent_no':True, 'quotation_no':quotation_no, 'search_po_indent_no_emergency':True }" options="{'create': false, 'create_edit': false}"/>   -->
 				</xpath> 
 				<xpath expr="//field[@name='date_order']" position="after">
-					<field name="quotation_no" context="{'search_quotation_no':True}" on_change = "onchange_quotation_no(quotation_no)" options="{'create': false, 'create_edit': false}"/>
+					<field name="quotation_no" context="{'search_quotation_no':True, 'search_quotation_no_type': True, 'po_document_type': po_document_type}" on_change = "onchange_quotation_no(quotation_no)" options="{'create': false, 'create_edit': false}"/>
 					<field name="state_id" options="{'create': false, 'create_edit': false}"/>
 					<!-- <field name="ecc_no" />  -->
 					<field name="payment_term_id" options="{'create': false, 'create_edit': false}" widget="selection"/>

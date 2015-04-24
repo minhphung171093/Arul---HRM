@@ -801,7 +801,9 @@ class account_invoice(osv.osv):
     def create(self, cr, uid, vals, context=None):
         if vals.get('type','')=='in_invoice':
             vals['name'] = self.pool.get('ir.sequence').get(cr, uid, 'tpt.supplier.invoice.sequence') or '/'
-        if 'purchase_id' not in vals:
+        elif 'purchase_id' not in vals:
+            vals['name'] = self.pool.get('ir.sequence').get(cr, uid, 'tpt.supplier.invoice.sequence') or '/'
+        else:
             vals['name'] = self.pool.get('ir.sequence').get(cr, uid, 'tpt.supplier.invoice.sequence') or '/'
         new_id = super(account_invoice, self).create(cr, uid, vals, context)
         return new_id

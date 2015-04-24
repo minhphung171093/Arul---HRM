@@ -1286,6 +1286,52 @@ class tpt_purchase_quotation(osv.osv):
             cr.execute(sql)
             purchase_ids = [row[0] for row in cr.fetchall()]
             args += [('id','in',purchase_ids)]
+            
+        if context.get('search_quotation_no_type'):
+            if context.get('po_document_type'):
+                if context.get('po_document_type')=='standard':
+                    sql = '''
+                        select id from tpt_purchase_quotation where state != 'cancel' and rfq_no_id in (select id from tpt_request_for_quotation where po_document_type = 'standard' and state = 'done')
+                    '''
+                    cr.execute(sql)
+                    pur_ids = [row[0] for row in cr.fetchall()]
+                    args += [('id','in',pur_ids)]
+                if context.get('po_document_type')=='local':
+                    sql = '''
+                        select id from tpt_purchase_quotation where state != 'cancel' and rfq_no_id in (select id from tpt_request_for_quotation where po_document_type = 'local' and state = 'done')
+                    '''
+                    cr.execute(sql)
+                    pur_ids = [row[0] for row in cr.fetchall()]
+                    args += [('id','in',pur_ids)]
+                if context.get('po_document_type')=='asset':
+                    sql = '''
+                        select id from tpt_purchase_quotation where state != 'cancel' and rfq_no_id in (select id from tpt_request_for_quotation where po_document_type = 'asset' and state = 'done') 
+                    '''
+                    cr.execute(sql)
+                    pur_ids = [row[0] for row in cr.fetchall()]
+                    args += [('id','in',pur_ids)]
+                if context.get('po_document_type')=='raw':
+                    sql = '''
+                        select id from tpt_purchase_quotation where state != 'cancel' and rfq_no_id in (select id from tpt_request_for_quotation where po_document_type = 'raw' and state = 'done')
+                    '''
+                    cr.execute(sql)
+                    pur_ids = [row[0] for row in cr.fetchall()]
+                    args += [('id','in',pur_ids)]
+                if context.get('po_document_type')=='service':
+                    sql = '''
+                        select id from tpt_purchase_quotation where state != 'cancel' and rfq_no_id in (select id from tpt_request_for_quotation where po_document_type = 'service' and state = 'done') 
+                    '''
+                    cr.execute(sql)
+                    pur_ids = [row[0] for row in cr.fetchall()]
+                    args += [('id','in',pur_ids)]
+                if context.get('po_document_type')=='out':
+                    sql = '''
+                        select id from tpt_purchase_quotation where state != 'cancel' and rfq_no_id in (select id from tpt_request_for_quotation where po_document_type = 'out' and state = 'done')
+                    '''
+                    cr.execute(sql)
+                    pur_ids = [row[0] for row in cr.fetchall()]
+                    args += [('id','in',pur_ids)]
+                    
         return super(tpt_purchase_quotation, self).search(cr, uid, args, offset=offset, limit=limit, order=order, context=context, count=count)
     def name_search(self, cr, user, name, args=None, operator='ilike', context=None, limit=100):
        ids = self.search(cr, user, args, context=context, limit=limit)
@@ -1883,7 +1929,6 @@ class purchase_order(osv.osv):
             res[line.id]['amount_total'] = amount_untaxed+p_f_charge+excise_duty+total_tax+amount_fright
         return res
     
-    
     def _get_order(self, cr, uid, ids, context=None):
         result = {}
         for line in self.pool.get('purchase.order.line').browse(cr, uid, ids, context=context):
@@ -1907,7 +1952,6 @@ class purchase_order(osv.osv):
             change_default=True, track_visibility='always'),
         'company_id': fields.many2one('res.company','Company',required=True,select=1, states={'cancel':[('readonly',True)],'confirmed':[('readonly',True)],'head':[('readonly',True)],'gm':[('readonly',True)],'md':[('readonly',True)], 'approved':[('readonly',True)],'done':[('readonly',True)]}, track_visibility='onchange'),
         'reason': fields.text('Reason', size = 1024, track_visibility='onchange',states={'cancel':[('readonly',True)],'confirmed':[('readonly',True)],'head':[('readonly',True)],'gm':[('readonly',True)],'md':[('readonly',True)], 'approved':[('readonly',True)],'done':[('readonly',True)]}),        
-        
         
         #ham function
         
@@ -1973,6 +2017,10 @@ class purchase_order(osv.osv):
         'name':'/',
         'check_amendement':False,
                }
+    
+    def bt_purchase_done(self, cr, uid, ids, context=None):
+        return self.write(cr, uid, ids, {'state':'done'})
+    
     def action_amendement(self, cr, uid, ids, context=None):
         for purchase in self.browse(cr,uid,ids):
             self.write(cr, uid, ids,{'state':'amendement','check_amendement':True}) 
@@ -2037,6 +2085,10 @@ class purchase_order(osv.osv):
         for (id, name) in self.name_get(cr, uid, ids):
             wf_service.trg_validate(uid, 'purchase.order', id, 'purchase_cancel', cr)
         return True
+    
+    def onchange_po_document_type(self, cr, uid, ids,po_document_type=False, context=None):
+        if po_document_type:
+            return {'value': {'quotation_no': False}}
    
     def onchange_quotation_no(self, cr, uid, ids,quotation_no=False, context=None):
         vals = {}
@@ -2072,6 +2124,7 @@ class purchase_order(osv.osv):
                       }
                 po_line.append((0,0,rs))
             vals = {
+                    'po_document_type': quotation.rfq_no_id and quotation.rfq_no_id.po_document_type or '',
                     'partner_id':quotation.supplier_id and quotation.supplier_id.id or '',
                     'for_basis':quotation.for_basis or '',
                     'state_id':quotation.supplier_location_id and quotation.supplier_location_id.id or '',
@@ -2501,6 +2554,16 @@ class purchase_order(osv.osv):
             cr.execute(sql)
             po_ids = [row[0] for row in cr.fetchall()]
             args += [('id','in',po_ids)]
+            
+        if context.get('search_po_document'):
+            sql = '''
+                select id from purchase_order 
+                where state != 'cancel' and po_document_type = 'service' and id not in (select purchase_id from account_invoice where state != 'cancel' and purchase_id is not null)
+            '''
+            cr.execute(sql)
+            po_ids = [row[0] for row in cr.fetchall()]
+            args += [('id','in',po_ids)]
+            
         return super(purchase_order, self).search(cr, uid, args, offset=offset, limit=limit, order=order, context=context, count=count)
     
     def name_search(self, cr, user, name, args=None, operator='ilike', context=None, limit=100):
