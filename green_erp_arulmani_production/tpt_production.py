@@ -1333,7 +1333,7 @@ class stock_production_lot(osv.osv):
         lot_name = self.read(cr, uid, ids, ['name'], context=context)
         unlink_ids = []
         for lot in lot_name:
-            if lot['name'] in ('temp_tio2','Argi','Wet','Drier','temp_fsh'):
+            if lot['name'] in ('temp_tio2','Argi','Wet','Drier','temp_fsh','AGRI','WET','DRIER'):
                 raise osv.except_osv(_('Warning!'), _('This Batch Number can not be deleted. It is default Batch Number!'))
             else:
                 unlink_ids.append(lot['id'])

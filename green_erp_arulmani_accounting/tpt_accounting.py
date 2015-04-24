@@ -1658,16 +1658,28 @@ class account_voucher(osv.osv):
         
         return res
     
+#     def _default_journal_id(self, cr, uid, context=None):
+#         if context is None:
+#             context = {}
+#         journal_pool = self.pool.get('account.journal')
+#         journal_type = context.get('journal_type', False)
+#         company_id = self.pool.get('res.company')._company_default_get(cr, uid, 'account.bank.statement',context=context)
+#         if journal_type:
+#             ids = journal_pool.search(cr, uid, [('type', '=', journal_type),('company_id','=',company_id)])
+#             if ids:
+#                 return ids[0]
+#         return False
+
     def _default_journal_id(self, cr, uid, context=None):
         if context is None:
             context = {}
         journal_pool = self.pool.get('account.journal')
-        journal_type = context.get('journal_type', False)
-        company_id = self.pool.get('res.company')._company_default_get(cr, uid, 'account.bank.statement',context=context)
-        if journal_type:
-            ids = journal_pool.search(cr, uid, [('type', '=', journal_type),('company_id','=',company_id)])
-            if ids:
-                return ids[0]
+#         journal_type = context.get('journal_type', False)
+#         company_id = self.pool.get('res.company')._company_default_get(cr, uid, 'account.bank.statement',context=context)
+#         if journal_type:
+        ids = journal_pool.search(cr, uid, ['|',('code', '=', 'MISC'),('name', 'ilike', 'Miscellaneous Journal')])
+        if ids:
+            return ids[0]
         return False
     
     def _get_tpt_currency(self, cr, uid, context=None):
