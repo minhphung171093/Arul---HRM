@@ -86,8 +86,8 @@ class tpt_tio2_batch_split(osv.osv):
                 'use_exist': True,
                 'line_exist_ids': line_exist_ids,
             }
-            move_split_id = move_split_obj.create(cr, uid, vals, context)
-            res = move_split_obj.split(cr, uid, [move_split_id],[move_ids and move_ids[0] or []],context)
+            move_split_id = move_split_obj.create(cr, 1, vals, context)
+            res = move_split_obj.split(cr, 1, [move_split_id],[move_ids and move_ids[0] or []],context)
         return self.write(cr, uid, ids,{'state':'confirm'})
     
     def onchange_mrp_id(self, cr, uid, ids, mrp_id, context=None):
@@ -263,8 +263,8 @@ class tpt_fsh_batch_split(osv.osv):
                 'use_exist': True,
                 'line_exist_ids': line_exist_ids,
             }
-            move_split_id = move_split_obj.create(cr, uid, vals, context)
-            res = move_split_obj.split(cr, uid, [move_split_id],[move_ids and move_ids[0] or []],context)
+            move_split_id = move_split_obj.create(cr, 1, vals, context)
+            res = move_split_obj.split(cr, 1, [move_split_id],[move_ids and move_ids[0] or []],context)
         return self.write(cr, uid, ids,{'state':'confirm'})
     
     def onchange_mrp_id(self, cr, uid, ids, mrp_id, context=None):

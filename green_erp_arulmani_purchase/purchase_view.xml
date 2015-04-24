@@ -1230,8 +1230,10 @@
             <field name="arch" type="xml">
 	            <form string="Quanlity Inspection Result" version="7.0">   
 	             <header>
-	            		<button name="bt_approve" states='draft' string="Approve" type="object" class="oe_highlight" groups="green_erp_arulmani_purchase.group_vvti_purchase_admin,green_erp_arulmani_purchase.group_vvti_hrm_plant_mm_user"/>
-	                    <button name="bt_reject" states='draft' string="Reject" type="object" class="oe_highlight" />
+	            		<!--<button name="bt_approve" states='draft' string="Approve" type="object" class="oe_highlight" groups="green_erp_arulmani_purchase.group_vvti_purchase_admin,green_erp_arulmani_purchase.group_vvti_hrm_plant_mm_user"/>
+	                    <button name="bt_reject" states='draft' string="Reject" type="object" class="oe_highlight" />-->
+	                    <button name="%(action_approve_reject_quanlity_inspection)d" states='draft,remaining' string="Approve" type="action" class="oe_highlight" context="{'default_type':'approve'}"/>
+	                    <button name="%(action_approve_reject_quanlity_inspection)d" states='draft,remaining' string="Reject" type="action" class="oe_highlight" context="{'default_type':'reject'}"/>
 	                    <field name="state" widget="statusbar" statusbar_visible="draft,cancel,done" statusbar_colors='{"draft":"blue","cancel":"blue"}'/>
 	            </header>    
 	            	<sheet>
@@ -1242,6 +1244,7 @@
 						<field name="product_id" options="{'create': false, 'create_edit': false}"  />
 						<field name="reason"/>
 						<field name="qty" invisible = "1" />
+						<field name="remaining_qty"/>
 					</group>
 						<notebook>
 							<page string = "Products Specification">

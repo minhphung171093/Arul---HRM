@@ -109,6 +109,7 @@ class stock_partial_picking(osv.osv_memory):
                 vals = {
                         'product_id':wizard_line.product_id.id,
                         'qty':wizard_line.quantity,
+                        'remaining_qty':wizard_line.quantity,
                         'name':partial.picking_id.id,
                         'supplier_id':partial.picking_id.partner_id.id,
                         'date':partial.picking_id.date,
