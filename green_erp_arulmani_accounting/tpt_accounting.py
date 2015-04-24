@@ -1471,15 +1471,15 @@ tpt_product_avg_cost()
 class product_product(osv.osv):
     _inherit = "product.product"
     
-    def init(self,cr):
-        category_obj = self.pool.get('product.category')
-        category_ids = category_obj.search(cr, 1, [('cate_name','=','spares')])
-        for category in category_obj.browse(cr, 1, category_ids):
-            produc_ids = self.search(cr, 1, [('categ_id','=',category.id)])
-            self.write(cr, 1, produc_ids, {
-                'property_account_income':category.property_account_income_categ and category.property_account_income_categ.id or False,
-                'property_account_expense':category.property_account_expense_categ and category.property_account_expense_categ.id or False,
-            })
+#     def init(self,cr):
+#         category_obj = self.pool.get('product.category')
+#         category_ids = category_obj.search(cr, 1, [('cate_name','=','spares')])
+#         for category in category_obj.browse(cr, 1, category_ids):
+#             produc_ids = self.search(cr, 1, [('categ_id','=',category.id)])
+#             self.write(cr, 1, produc_ids, {
+#                 'property_account_income':category.property_account_income_categ and category.property_account_income_categ.id or False,
+#                 'property_account_expense':category.property_account_expense_categ and category.property_account_expense_categ.id or False,
+#             })
     
     def _avg_cost(self, cr, uid, ids, field_names=None, arg=None, context=None):
         result = {}
