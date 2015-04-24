@@ -22,6 +22,9 @@ class stock_picking(osv.osv):
         'truck':fields.char('Truck No', size = 64),
         'invoice_no':fields.char('DC/Invoice No', size = 64),
         'header_text':fields.text('Header Text'),#TPT
+        'action_taken': fields.related('move_lines', 'action_taken', type='selection',selection=[
+            ('direct','Direct Stock Update'),('move','Move to Consumption'),('need','Need Inspection')
+            ], string='Action to be Taken'),
                 }
 
     def write(self, cr, uid, ids, vals, context=None):
@@ -265,6 +268,9 @@ class stock_picking_in(osv.osv):
         'truck':fields.char('Truck No', size = 64),
         'invoice_no':fields.char('DC/Invoice No', size = 64),
         'header_text':fields.text('Header Text'),#TPT
+        'action_taken': fields.related('move_lines', 'action_taken', type='selection',selection=[
+            ('direct','Direct Stock Update'),('move','Move to Consumption'),('need','Need Inspection')
+            ], string='Action to be Taken'),
                 }
 
 
