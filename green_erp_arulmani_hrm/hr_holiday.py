@@ -3438,24 +3438,24 @@ class arul_hr_monthly_work_schedule(osv.osv):
                     for num_remain in range(1,num):
                         date = datetime.date (line.year, int(line.month), num_remain)
                         name_of_day = date.strftime("%A")
-                        if num_remain==1 and work.name_of_day_1 == name_of_day:
-                            break
-                        if num_remain==2 and work.name_of_day_2 == name_of_day:
-                            break
-                        if num_remain==3 and work.name_of_day_3 == name_of_day:
-                            break
-                        if num_remain==4 and work.name_of_day_4 == name_of_day:
-                            break
-                        if num_remain==5 and work.name_of_day_5 == name_of_day:
-                            break
-                        if num_remain==6 and work.name_of_day_6 == name_of_day:
-                            break
-                        if num_remain==7 and work.name_of_day_7 == name_of_day:
-                            break
-                    for num_back in range(1,num):
-                        if num_back <= work.num_of_month:
-                            vals['day_%d'%(num_back)] = work_day[num_remain]
-                            num_remain += 1
+                        if work.name_of_day_1 == name_of_day:
+                            vals['day_%d'%(num_remain)] = work_day[1]
+                        if work.name_of_day_2 == name_of_day:
+                            vals['day_%d'%(num_remain)] = work_day[2]
+                        if work.name_of_day_3 == name_of_day:
+                            vals['day_%d'%(num_remain)] = work_day[3]
+                        if work.name_of_day_4 == name_of_day:
+                            vals['day_%d'%(num_remain)] = work_day[4]
+                        if work.name_of_day_5 == name_of_day:
+                            vals['day_%d'%(num_remain)] = work_day[5]
+                        if work.name_of_day_6 == name_of_day:
+                            vals['day_%d'%(num_remain)] = work_day[6]
+                        if work.name_of_day_7 == name_of_day:
+                            vals['day_%d'%(num_remain)] = work_day[7]
+#                     for num_back in range(1,num):
+#                         if num_back <= work.num_of_month:
+#                             vals['day_%d'%(num_back)] = work_day[num_remain]
+#                             num_remain += 1
                     
                     if num_of_month_new>work.num_of_month:
                         for num_last in range(work.num_of_month+1,num_of_month_new+1):
