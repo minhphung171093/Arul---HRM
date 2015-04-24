@@ -342,5 +342,19 @@
             <field name="implementation">no_gap</field>
         </record>
         
+        <!-- Material Issue -->
+		<record id="sequence_tpt_material_request_issue_code" model="ir.sequence.type">
+            <field name="name">Material Issue</field>
+            <field name="code">tpt.material.issue.import</field>
+        </record>
+        
+        <record id="sequence_tpt_material_issue_import_item" model="ir.sequence">
+            <field name="name">Material Issue Import</field>
+            <field name="code">tpt.material.issue.import</field>
+            <field name="padding">7</field>
+            <field name="number_next_actual">1000000</field>
+            <field name="implementation">no_gap</field>
+        </record>
+        
 	</data>
 </openerp>

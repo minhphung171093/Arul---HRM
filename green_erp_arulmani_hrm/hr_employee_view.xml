@@ -491,9 +491,9 @@
 							<field name ="employee_id" options="{'create': false, 'create_edit': false}" required='1' on_change="onchange_promotion_employee_id(employee_id)" context="{'search_promotion_employee':True, 'employee_id':employee_id}"/>
 							<newline/>
 							<field name ="employee_category_id" on_change="onchange_employee_category_id(employee_category_id,sub_category_id)" options="{'create': false, 'create_edit': false}"/>
-							<field name ="employee_category_to_id" on_change="onchange_employee_category_id(employee_category_id,sub_category_id)" options="{'create': false, 'create_edit': false}"/>
+							<field name ="employee_category_to_id" options="{'create': false, 'create_edit': false}"/>
 							<field name ="sub_category_id" domain="[('category_id','=',employee_category_id)]" context="{'check_employee_category_id':1,'employee_category_id':employee_category_id}" options="{'create': false, 'create_edit': false}"/>
-							<field name ="sub_category_to_id" domain="[('category_id','=',employee_category_id)]" context="{'check_employee_category_id':1,'employee_category_id':employee_category_id}" options="{'create': false, 'create_edit': false}"/>
+							<field name ="sub_category_to_id" domain="[('category_id','=',employee_category_to_id)]" options="{'create': false, 'create_edit': false}"/>
 							<!-- TPT:TO UPDATE DESIGNATION WHEN EMP SELECTED -->
 							<!-- <field name ="department_from_id" options="{'create': false, 'create_edit': false}" on_change="onchange_department_from_id(department_from_id)"/>-->
 							<field name ="department_from_id" options="{'create': false, 'create_edit': false}"/>
@@ -1216,8 +1216,12 @@
                 <form string="Meals Deduction Master" version="7.0">  
                 	<sheet>  
                 		<group>
-                			<field name ="meals_date" on_change="onchange_date(meals_date,meals_for)"/>
+                		<!--  
+                			<field name ="meals_date" on_change="onchange_date(meals_date,meals_for)"/>                			
                 			<field name ="meals_for" style="width:40%%" on_change="onchange_date(meals_date,meals_for)"/>
+                			-->
+                			<field name ="meals_date" />
+                			<field name ="meals_for" style="width:40%%" />
                 			<field name ="create_date"/>
                 			<field name ="create_uid"/>
                 		</group>

@@ -319,11 +319,19 @@ class tpt_purchase_indent(osv.osv):
                     cr.execute(sql)
                     pur_ids = [row[0] for row in cr.fetchall()]
                     args += [('id','in',pur_ids)]
+        if context.get('search_name_of_indent',False):
+            name = context['search_name_of_indent']
+            pur_ids = self.search(cr, uid, [('name','ilike',name)])
+            args += [('id','in',pur_ids)]
         return super(tpt_purchase_indent, self).search(cr, uid, args, offset=offset, limit=limit, order=order, context=context, count=count)
     
     def name_search(self, cr, user, name, args=None, operator='ilike', context=None, limit=100):
-       ids = self.search(cr, user, args, context=context, limit=limit)
-       return self.name_get(cr, user, ids, context=context)
+        if context is None:
+            context = {}
+        if name:
+            context.update({'search_name_of_indent': name})
+        ids = self.search(cr, user, args, context=context, limit=limit)
+        return self.name_get(cr, user, ids, context=context)
 
 tpt_purchase_indent()
 class tpt_purchase_product(osv.osv):
@@ -3025,7 +3033,8 @@ class tpt_quanlity_inspection(osv.osv):
         'reason':fields.text('Reason',states={'cancel': [('readonly', True)], 'done':[('readonly', True)]}),
         'specification_line':fields.one2many('tpt.product.specification','specification_id','Product Specification'),
         'qty':fields.float('Qty',digits=(16,3),states={'cancel': [('readonly', True)], 'done':[('readonly', True)]}),
-        'state':fields.selection([('draft', 'Draft'),('cancel', 'Rejected'),('done', 'Approved')],'Status', readonly=True),
+        'remaining_qty':fields.float('Remaining Qty', readonly= True),
+        'state':fields.selection([('draft', 'Draft'),('remaining', 'Remaining'),('done', 'Done')],'Status', readonly=True),
                 }
     _defaults = {
         'state':'draft',
@@ -4062,9 +4071,11 @@ class tpt_material_issue(osv.osv):
         'request_type':fields.selection([('production', 'Production'),('normal', 'Normal'),('main', 'Maintenance')],'Request Type', states={'done':[('readonly', True)]}),
         'material_issue_line':fields.one2many('tpt.material.issue.line','material_issue_id','Vendor Group',states={'done':[('readonly', True)]}),
         'state':fields.selection([('draft', 'Draft'),('done', 'Approve')],'Status', readonly=True),
+        'doc_no': fields.char('Document Number', size = 1024,readonly = True),
                 }
     _defaults = {
-        'state':'draft',      
+        'state':'draft',    
+        'doc_no': '/',  
     }
 
 #     def create(self, cr, uid, vals, context=None):
@@ -4136,6 +4147,34 @@ class tpt_material_issue(osv.osv):
             cr.execute(sql)
             dates = cr.dictfetchone()['date_request']
         return {'value': {'date_expec':dates}}    
+    
+    def create(self, cr, uid, vals, context=None):
+        if vals.get('doc_no','/')=='/':
+            sql = '''
+                select code from account_fiscalyear where '%s' between date_start and date_stop
+            '''%(time.strftime('%Y-%m-%d'))
+            cr.execute(sql)
+            fiscalyear = cr.dictfetchone()
+            if not fiscalyear:
+                raise osv.except_osv(_('Warning!'),_('Financial year has not been configured. !'))
+            else:
+                sequence = self.pool.get('ir.sequence').get(cr, uid, 'tpt.material.issue.import')
+                vals['doc_no'] =  sequence and sequence+'/'+fiscalyear['code'] or '/'
+        if 'name' in vals:
+            request = self.pool.get('tpt.material.request').browse(cr, uid, vals['name'])
+        
+            vals.update({'department_id':request.department_id.id}) 
+        new_id = super(tpt_material_issue, self).create(cr, uid, vals, context)
+        return new_id
+    
+    def write(self, cr, uid, ids, vals, context=None):
+        if 'department_id' in vals:
+            department_id = self.pool.get('hr.department').browse(cr, uid, vals['department_id'])
+            if department_id:
+                vals.update({'department_id':department_id.id})   
+        new_write = super(tpt_material_issue, self).write(cr, uid,ids, vals, context)
+        return new_write
+    
 tpt_material_issue()
 
 class tpt_material_issue_line(osv.osv):

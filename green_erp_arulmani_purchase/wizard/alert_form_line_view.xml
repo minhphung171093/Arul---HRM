@@ -24,6 +24,36 @@
 	        <field name="target">new</field>
 	    </record>
 	    
+	    <record id="approve_reject_quanlity_inspection_form_view" model="ir.ui.view">
+	        <field name="name">approve.reject.quanlity.inspection</field>
+	        <field name="model">approve.reject.quanlity.inspection</field>
+	        <field eval="20" name="priority"/>
+	        <field name="arch" type="xml">
+	            <form string="Alert" version="7.0">
+	            	<group>
+		                <field name="type" invisible="1"/>
+		                <field name="inspection_quantity" invisible="1"/>
+		                <field name="quantity" on_change="onchange_quantity(quantity,inspection_quantity)"/>
+		            </group>
+	                <footer>
+	                    <button name='bt_approve' attrs="{'invisible':[('type','!=','approve')]}" type='object' string="Approve" class="oe_highlight"/>
+	                    <button name='bt_reject' attrs="{'invisible':[('type','!=','reject')]}" type='object' string="Reject" class="oe_highlight"/>
+	                    or
+	                    <button string="Cancel" special="cancel" />
+	                </footer>
+	            </form>
+	        </field>
+    	</record>
+
+	    <record model="ir.actions.act_window" id="action_approve_reject_quanlity_inspection">
+	        <field name="name">Quanlity Inspection</field>
+	        <field name="res_model">approve.reject.quanlity.inspection</field>
+	        <field name="view_type">form</field>
+	        <field name="view_mode">form</field>
+	        <field name="view_id" ref="approve_reject_quanlity_inspection_form_view" />
+	        <field name="target">new</field>
+	    </record>
+	    
     </data>
 </openerp>
 

@@ -9,7 +9,8 @@
         <menuitem action="base.action_country" id="base.menu_country_partner" parent="menu_global_master" sequence="0" groups="base.group_no_one"/>        
         <menuitem action="base.action_country_state" id="base.menu_country_state_partner" name="State" parent="menu_global_master" sequence="1" groups="base.group_no_one"/>        
         <menuitem action="product.product_uom_categ_form_action" id="product.menu_product_uom_categ_form_action" parent="menu_global_master" sequence="2" groups="base.group_no_one"/>       
-        <menuitem action="base.action_currency_form" id="base.menu_action_currency_form" parent="menu_global_master" sequence="3" groups="base.group_multi_currency"/>
+        <!-- che lai de menu tro ve ben accounting theo y Bala -->
+        <!--<menuitem action="base.action_currency_form" id="base.menu_action_currency_form" parent="menu_global_master" sequence="3" groups="base.group_multi_currency"/>-->
         
         <menuitem name="VVTI Master"
             id="menu_vvti_master"
