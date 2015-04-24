@@ -22,6 +22,9 @@ class stock_picking(osv.osv):
         'truck':fields.char('Truck No', size = 64),
         'invoice_no':fields.char('DC/Invoice No', size = 64),
         'header_text':fields.text('Header Text'),#TPT
+        'action_taken': fields.related('move_lines', 'action_taken', type='selection',selection=[
+            ('direct','Direct Stock Update'),('move','Move to Consumption'),('need','Need Inspection')
+            ], string='Action to be Taken'),
                 }
 
     def write(self, cr, uid, ids, vals, context=None):
@@ -265,6 +268,9 @@ class stock_picking_in(osv.osv):
         'truck':fields.char('Truck No', size = 64),
         'invoice_no':fields.char('DC/Invoice No', size = 64),
         'header_text':fields.text('Header Text'),#TPT
+        'action_taken': fields.related('move_lines', 'action_taken', type='selection',selection=[
+            ('direct','Direct Stock Update'),('move','Move to Consumption'),('need','Need Inspection')
+            ], string='Action to be Taken'),
                 }
 
 
@@ -801,7 +807,9 @@ class account_invoice(osv.osv):
     def create(self, cr, uid, vals, context=None):
         if vals.get('type','')=='in_invoice':
             vals['name'] = self.pool.get('ir.sequence').get(cr, uid, 'tpt.supplier.invoice.sequence') or '/'
-        if 'purchase_id' not in vals:
+        elif 'purchase_id' not in vals:
+            vals['name'] = self.pool.get('ir.sequence').get(cr, uid, 'tpt.supplier.invoice.sequence') or '/'
+        else:
             vals['name'] = self.pool.get('ir.sequence').get(cr, uid, 'tpt.supplier.invoice.sequence') or '/'
         new_id = super(account_invoice, self).create(cr, uid, vals, context)
         return new_id

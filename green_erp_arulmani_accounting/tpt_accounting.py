@@ -47,6 +47,18 @@ class tpt_posting_configuration(osv.osv):
         'lwf_id': fields.many2one('account.account', 'Labour welfare Fund', states={ 'done':[('readonly', True)]}),
         'staff_advance_id': fields.many2one('account.account', 'Staff Advance', states={ 'done':[('readonly', True)]}),
         'salari_payable_id': fields.many2one('account.account', 'Salaries And Allowance Payable', states={ 'done':[('readonly', True)]}),
+        
+        
+        
+        'wages_id': fields.many2one('account.account', 'Wages and Allowances', states={ 'done':[('readonly', True)]}),
+        'wages_payable_id': fields.many2one('account.account', ' Wages and Allowances Payable', states={ 'done':[('readonly', True)]}),
+        'other_insu': fields.many2one('account.account', 'Other Insurances', states={ 'done':[('readonly', True)]}),
+        'vvti_id': fields.many2one('account.account', 'VVTi Loan', states={ 'done':[('readonly', True)]}),
+        'lic_hfl_id': fields.many2one('account.account', 'LIC HFL Loan', states={ 'done':[('readonly', True)]}),
+        'hdfc_id': fields.many2one('account.account', 'HDFC Loan', states={ 'done':[('readonly', True)]}),
+        'tmb_id': fields.many2one('account.account', 'TMB Loan', states={ 'done':[('readonly', True)]}),
+        'sbt_id': fields.many2one('account.account', 'SBT Loan', states={ 'done':[('readonly', True)]}),
+        'other_loan_id': fields.many2one('account.account', 'Other Loans', states={ 'done':[('readonly', True)]}),
         'state':fields.selection([('draft', 'Draft'),('done', 'Done')],'Status', readonly=True),
         
     }
@@ -574,8 +586,43 @@ class account_invoice(osv.osv):
 #             for key in compute_taxes:
 #                 if not key in tax_key:
 #                     raise osv.except_osv(_('Warning!'), _('Taxes are missing!\nClick on compute button.'))
-#                 
-#                 
+
+    def onchange_purchase_id(self, cr, uid, ids,purchase_id=False, context=None):
+        vals = {}
+        if purchase_id:
+            for line in self.browse(cr, uid, ids):
+                sql = '''
+                    delete from invoice_line where invoice_id = %s
+                '''%(line.id)
+                cr.execute(sql)
+        service_line = []
+        purchase = self.pool.get('purchase.order').browse(cr, uid, purchase_id)
+        for line in purchase.order_line:
+            taxes_ids = [t.id for t in line.taxes_id]
+            rs = {
+                  'product_id': line.product_id and line.product_id.id or False,
+                  'name': line.description,
+                  'quantity': line.product_qty or False,
+                  'uos_id': line.product_uom and line.product_uom.id or False,
+                  'price_unit': line.price_unit or False,
+                  'disc': line.discount or False,
+                  'p_f': line.p_f or False,
+                  'p_f_type':line.p_f_type or False,
+                  'ed':line.ed or False,
+                  'ed_type':line.ed_type or False,
+#                   'taxes_id': [(6,0,[line.tax_id and line.tax_id.id])],
+                  'invoice_line_tax_id': [(6,0,taxes_ids)],
+                  'fright':line.fright or False,
+                  'fright_type':line.fright_type or False,
+                  'line_net': line.line_net or False,
+                  }
+            service_line.append((0,0,rs))
+        vals = {
+                'partner_id':purchase.partner_id and purchase.partner_id.id or False,
+                'vendor_ref':purchase.partner_ref or False,
+                'invoice_line': service_line,
+                }
+        return {'value': vals}
     def compute_invoice_totals(self, cr, uid, inv, company_currency, ref, invoice_move_lines, context=None):
         if context is None:
             context={}
@@ -815,8 +862,11 @@ class account_invoice(osv.osv):
                 move['doc_type'] = 'cus_inv'
             if (inv.type == 'in_invoice'):
                 if inv.purchase_id:
-                    move['doc_type'] = 'sup_inv_po'
-                    move['ref'] = inv.grn_no.name
+                    if inv.purchase_id.po_document_type == 'service':
+                        move['doc_type'] = 'ser_inv'
+                    else:
+                        move['doc_type'] = 'sup_inv_po'
+                        move['ref'] = inv.grn_no.name
                 else:
                     move['doc_type'] = 'sup_inv'
   
@@ -1471,6 +1521,16 @@ tpt_product_avg_cost()
 class product_product(osv.osv):
     _inherit = "product.product"
     
+#     def init(self,cr):
+#         category_obj = self.pool.get('product.category')
+#         category_ids = category_obj.search(cr, 1, [('cate_name','=','spares')])
+#         for category in category_obj.browse(cr, 1, category_ids):
+#             produc_ids = self.search(cr, 1, [('categ_id','=',category.id)])
+#             self.write(cr, 1, produc_ids, {
+#                 'property_account_income':category.property_account_income_categ and category.property_account_income_categ.id or False,
+#                 'property_account_expense':category.property_account_expense_categ and category.property_account_expense_categ.id or False,
+#             })
+    
     def _avg_cost(self, cr, uid, ids, field_names=None, arg=None, context=None):
         result = {}
         if not ids: return result
@@ -1648,28 +1708,21 @@ class account_voucher(osv.osv):
         
         return res
     
-#     def _default_journal_id(self, cr, uid, context=None):
-#         if context is None:
-#             context = {}
-#         journal_pool = self.pool.get('account.journal')
-#         journal_type = context.get('journal_type', False)
-#         company_id = self.pool.get('res.company')._company_default_get(cr, uid, 'account.bank.statement',context=context)
-#         if journal_type:
-#             ids = journal_pool.search(cr, uid, [('type', '=', journal_type),('company_id','=',company_id)])
-#             if ids:
-#                 return ids[0]
-#         return False
-
     def _default_journal_id(self, cr, uid, context=None):
         if context is None:
             context = {}
+        if context.get('type',False) and context['type']=='general': 
+            journal_pool = self.pool.get('account.journal')
+            ids = journal_pool.search(cr, uid, ['|',('code', '=', 'MISC'),('name', 'ilike', 'Miscellaneous Journal')])
+            if ids:
+                return ids[0]
         journal_pool = self.pool.get('account.journal')
-#         journal_type = context.get('journal_type', False)
-#         company_id = self.pool.get('res.company')._company_default_get(cr, uid, 'account.bank.statement',context=context)
-#         if journal_type:
-        ids = journal_pool.search(cr, uid, ['|',('code', '=', 'MISC'),('name', 'ilike', 'Miscellaneous Journal')])
-        if ids:
-            return ids[0]
+        journal_type = context.get('journal_type', False)
+        company_id = self.pool.get('res.company')._company_default_get(cr, uid, 'account.bank.statement',context=context)
+        if journal_type:
+            ids = journal_pool.search(cr, uid, [('type', '=', journal_type),('company_id','=',company_id)])
+            if ids:
+                return ids[0]
         return False
     
     def _get_tpt_currency(self, cr, uid, context=None):
@@ -2584,6 +2637,7 @@ class account_move(osv.osv):
                                   ('cash_rec', 'Cash Receipt'),
                                   ('bank_pay', 'Bank Payment'),
                                   ('bank_rec', 'Bank Receipt'),
+                                  ('ser_inv', 'Service Invoice'),
                                   ('product', 'Production'),],'Document Type'),      
                 }
 account_move()
