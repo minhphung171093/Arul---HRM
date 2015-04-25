@@ -534,7 +534,7 @@
             <field name="name">arul.hr.employee.attendence.details.form</field>
             <field name="model">arul.hr.employee.attendence.details</field>
             <field name="arch" type="xml">
-	            <form string="Employee Attendence Details" version="7.0">   
+	            <form string="Employee Attendence Details" version="7.0" create='false' edit='false'>   
 	            	<sheet>
 		                <group col='4' colspan='2'>    
 			                <field name="employee_id" context="{'search_employee_id':True}"  on_change="onchange_attendence_datails_employee_id(employee_id)"/>
@@ -549,7 +549,7 @@
 						<notebook>
 							<page string = "Punch In/Punch Out Details">
 								<field name="punch_in_out_line" nolabel='1'>
-									<tree editable='top'>
+									<tree create='false'>
 										<field name="work_date"/>
 										<field name="planned_work_shift_id" options="{'create': false, 'create_edit': false}"/>
 										<field name="actual_work_shift_id" options="{'create': false, 'create_edit': false}"/>
