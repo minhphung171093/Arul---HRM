@@ -1056,8 +1056,9 @@ class arul_hr_payroll_executions(osv.osv):
                 
                 #TPT START - By BalamurganPurushothaman - ON 13/03/2015-TO CALCULATE TOTAL NO.OF SHIFT WORKED FOR SPECIAL ALLOWANCE CALCULATION
                 #PUNCH IN OUT
+                #TPT - Attendance Total Shift Count for Payroll Month
                 sql = '''
-                SELECT CASE WHEN SUM(total_shift_worked)!=0 THEN SUM(total_shift_worked) ELSE 0 END total_shift_worked FROM arul_hr_punch_in_out_time WHERE EXTRACT(year FROM work_date) = %s 
+                SELECT CASE WHEN SUM(total_shift_worked + shift_plus - shift_minus)!=0 THEN SUM(total_shift_worked + shift_plus - shift_minus) ELSE 0 END total_shift_worked FROM arul_hr_punch_in_out_time WHERE EXTRACT(year FROM work_date) = %s 
                 AND EXTRACT(month FROM work_date) = %s AND employee_id =%s
                 '''%(line.year,line.month,p.id)
                 cr.execute(sql)
