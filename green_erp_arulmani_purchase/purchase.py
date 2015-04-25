@@ -504,7 +504,7 @@ class tpt_purchase_product(osv.osv):
                     'price_unit':float(avg_cost),
                     })
             if product.categ_id.cate_name == 'spares':
-                parent_ids = self.pool.get('stock.location').search(cr, uid, [('name','=','Spare'),('usage','=','view')])
+                parent_ids = self.pool.get('stock.location').search(cr, uid, [('name','=','Store'),('usage','=','view')])
                 locat_ids = self.pool.get('stock.location').search(cr, uid, [('name','in',['Spare','Spares']),('location_id','=',parent_ids[0])])
                 sql = '''
                     select avg_cost from tpt_product_avg_cost where warehouse_id = %s and product_id=%s
