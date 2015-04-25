@@ -470,7 +470,7 @@ crm_application_line()
 
 class mrp_bom(osv.osv):
     _inherit = 'mrp.bom'
-    _order = 'name'
+    _order = 'product_name'
 
     def _norms(self, cr, uid, ids, field_name, args, context=None):
         res = {}
@@ -511,6 +511,7 @@ class mrp_bom(osv.osv):
         return res
     
     _columns = {
+        'product_name': fields.related('product_id', 'default_code',type='char',string='Product name',store=True,readonly=True),
         'product_id': fields.many2one('product.product', 'Product', required=True, states={'product_manager': [('readonly', True)], 'finance_manager':[('readonly', True)]}),
         'date_start': fields.date('Valid From', help="Validity of this BoM or component. Keep empty if it's always valid.", states={'product_manager': [('readonly', True)], 'finance_manager':[('readonly', True)]}),
         'date_stop': fields.date('Valid Until', help="Validity of this BoM or component. Keep empty if it's always valid.", states={'product_manager': [('readonly', True)], 'finance_manager':[('readonly', True)]}),
@@ -1345,7 +1346,7 @@ class stock_move(osv.osv):
     _inherit = 'stock.move'
     _order = 'product_name'
     _columns = {
-        'product_name': fields.related('product_id', 'name',type='char',string='Product name',store=True,readonly=True),
+        'product_name': fields.related('product_id', 'default_code',type='char',string='Product name',store=True,readonly=True),
         'app_quantity': fields.float('Required Quantity'),
         'is_tpt_production': fields.boolean('Is tpt production'),
         'declar_id':fields.many2one('product.declaration.line','Declaration'),
@@ -1551,7 +1552,7 @@ class product_declaration_line(osv.osv):
     _name = 'product.declaration.line'
     _order = "product_name"
     _columns = {
-            'product_name': fields.related('product_id', 'name',type='char',string='Product name',store=True,readonly=True),
+            'product_name': fields.related('product_id', 'default_code',type='char',string='Product name',store=True,readonly=True),
             'mrp_production_id':fields.many2one('mrp.production','Product Declaration',ondelete='restrict'),
             'app_qty':fields.float('Applied Quantity',required=True),
             'product_id':fields.many2one('product.product','Material',required=True),

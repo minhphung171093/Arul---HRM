@@ -97,6 +97,7 @@
 										<field name="item_text" />
 										<field name="flag" invisible = '1'/>
 										<field name="product_uom_qty" string = 'Indent Qty'/>
+										<field name="price_unit" />
 										<field name="recom_vendor" />
 										<field name="pending_qty" invisible = '1'/>
 										<field name="mrs_qty" readonly = '1'/>
@@ -104,7 +105,9 @@
 										<field name="on_hand_qty"/>
 										<field name="uom_po_id" attrs="{'readonly':[('flag','=',False)]}" options="{'create': false, 'create_edit': false}"/>
 										<!-- <field name="release_by" required='1'/>  -->
+										<field name="total_val" />
 										<field name="state" required='1'/>
+										
 									</tree>
 								</field>
 							</page>
@@ -141,6 +144,7 @@
 						<field name="description"/>
 						<field name="item_text" />
 						<field name="product_uom_qty" />
+						<field name="price_unit" />
 						<field name="recom_vendor" />
 						<field name="mrs_qty" />
 						<field name="uom_po_id" />
@@ -151,6 +155,7 @@
 						<field name="requisitioner_relate"/>  
 						<field name="store_date" invisible = '1'/>  
 						<field name="hod_date" invisible = '1' />  
+						<field name="total_val" />
 						<field name="state"/>
 				</tree>
 			</field>
@@ -174,6 +179,8 @@
 						<field name="product_id" readonly = "1" options="{'create': false, 'create_edit': false}" />
 						<field name="description"/>
 						<field name="product_uom_qty" />
+						<field name="price_unit" />
+						<field name="total_val" />
 						<field name="mrs_qty" />
 						<field name="uom_po_id" edit='false' options="{'create': false, 'create_edit': false}" />
 						<field name="on_hand_qty"/>
@@ -251,6 +258,7 @@
 						<field name="description"/>
 						<field name="item_text" />
 						<field name="product_uom_qty" />
+						<field name="price_unit" />
 						<field name="recom_vendor" />
 						<field name="mrs_qty" />
 						<field name="uom_po_id" />
@@ -261,6 +269,7 @@
 						<field name="requisitioner_relate"/>  
 						<field name="store_date"/>  
 						<field name="hod_date" invisible = '1' />  
+						<field name="total_val" />
 						<field name="state"/>
 				</tree>
 			</field>
@@ -270,7 +279,7 @@
             <field name="name">tpt.purchase.indent.line.form</field>
             <field name="model">tpt.purchase.product</field>
             <field name="arch" type="xml">
-	            <form string="Indent Release - By HOD" version="7.0" edit = 'false' delete = 'false' create = 'false' >   
+	            <form string="Indent Release - By HOD" version="7.0"  delete = 'false' create = 'false' >   
 	             <header>
 	            		<button name="bt_approve" states='+' string="HOD Approve" type="object" class="oe_highlight" groups="green_erp_arulmani_hrm.group_vvti_unit_user"/>
 	                    <button name="%(action_reject_pur_line_form)d" states='+' string="HOD Reject" type="action" class="oe_highlight" groups="green_erp_arulmani_hrm.group_vvti_unit_user"/> 
@@ -278,23 +287,25 @@
 	            </header>  
 	            <sheet> 
 	            	<group col="4" colspan="2"> 
-						<field name="doc_type_relate" />
+						<field name="doc_type_relate" readonly="1" />
 						<field name="pur_product_id" readonly="1"  options="{'create': false, 'create_edit': false}"/> 
-						<field name="recom_vendor" />
+						<field name="recom_vendor" readonly="1"/>
 						<field name="product_id" readonly = "1" options="{'create': false, 'create_edit': false}" />
-						<field name="description"/>
-						<field name="product_uom_qty" />
-						<field name="mrs_qty" />
-						<field name="uom_po_id" edit='false' options="{'create': false, 'create_edit': false}" />
-						<field name="on_hand_qty"/>
-						<field name="section_id_relate" />
-						<field name="department_id_relate" options="{'create': false, 'create_edit': false}" />
-						<field name="requisitioner_relate" options="{'create': false, 'create_edit': false}"/>
-						<field name="date_indent_relate" />  
-						<field name="store_date"/>  
+						<field name="description" readonly="1" />
+						<field name="product_uom_qty" on_change="onchange_hod_qty(product_uom_qty)" />
+						<field name="price_unit" />
+						<field name="total_val" />
+						<field name="mrs_qty" readonly="1" />
+						<field name="uom_po_id" readonly="1" edit='false' options="{'create': false, 'create_edit': false}" />
+						<field name="on_hand_qty" readonly="1" />
+						<field name="section_id_relate" readonly="1" />
+						<field name="department_id_relate" readonly="1" options="{'create': false, 'create_edit': false}" />
+						<field name="requisitioner_relate" readonly="1" options="{'create': false, 'create_edit': false}"/>
+						<field name="date_indent_relate" readonly="1" />  
+						<field name="store_date" readonly="1" />  
 						<field name="hod_date" invisible = '1' />  
 						<field name="state" required='1' />
-						<field name="item_text" />
+						<field name="item_text" readonly="1" />
 				</group>
 				</sheet>  
 		       </form>
@@ -377,6 +388,7 @@
 						<field name="description"/>
 						<field name="item_text" />
 						<field name="product_uom_qty" />
+						<field name="price_unit" />
 						<field name="recom_vendor" />
 						<field name="pending_qty" invisible="1" />
 						<field name="mrs_qty" />
@@ -388,6 +400,7 @@
 						<field name="requisitioner_relate"/>  
 						<field name="store_date"/>  
 						<field name="hod_date"/>  
+						<field name="total_val" />
 						<field name="state"/>
 				</tree>
 			</field>
@@ -406,6 +419,8 @@
 						<field name="product_id" readonly = "1" options="{'create': false, 'create_edit': false}" />
 						<field name="description"/>
 						<field name="product_uom_qty" />
+						<field name="price_unit" />
+						<field name="total_val" />
 						<field name="pending_qty" invisible="1" />
 						<field name="mrs_qty" />
 						<field name="inspection_qty" invisible="1" />  
@@ -521,19 +536,20 @@
 					<!--<button name="purchase_head_amendement" states="head" string="Amendement" class="oe_highlight"/>-->
 					<button name="purchase_amendement_head" states="amendement" string="Purchase Head Approval" class="oe_highlight" groups="green_erp_arulmani_purchase.group_vvti_purchase_admin,green_erp_arulmani_purchase.group_vvti_purchase_mgr"/>
 					<button name="purchase_gm_confirmed" states="gm" string="MD Approval" class="oe_highlight" groups="green_erp_arulmani_purchase.group_vvti_purchase_admin"/>
-					<button name="purchase_md_confirmed" states="md" string="Create GRN" class="oe_highlight" groups="green_erp_arulmani_purchase.group_vvti_purchase_admin,green_erp_arulmani_purchase.group_vvti_purchase_store_mgr"/>
+					<button name="purchase_md_confirmed" attrs="{'invisible':['|',('state','!=','md'),('po_document_type','=','service')]}" string="Create GRN" class="oe_highlight" groups="green_erp_arulmani_purchase.group_vvti_purchase_admin,green_erp_arulmani_purchase.group_vvti_purchase_store_mgr"/>
+					<button name="bt_purchase_done" attrs="{'invisible':['|',('state','!=','md'),('po_document_type','!=','service')]}" string="Service Confirm" type='object' class="oe_highlight" groups="green_erp_arulmani_purchase.group_vvti_purchase_admin,green_erp_arulmani_purchase.group_vvti_purchase_store_mgr"/>
 				</xpath>  
 				<xpath expr="//form/header/button[@name='view_picking']" position="attributes">
 					<attribute name='string'>View GRN</attribute>
 				</xpath>
             	<xpath expr="//field[@name='partner_id']" position="before">
             		
-            		<field name="po_document_type" />
+            		<field name="po_document_type" on_change = "onchange_po_document_type(po_document_type)"/>
 					<field name="name" readonly = '1' string = 'PO Document No' />
 		<!--			<field name="po_indent_no" domain="[('state','!=','cancel')]" on_change = "onchange_po_indent_no(quotation_no, po_indent_no)" context="{'search_po_indent_no':True, 'quotation_no':quotation_no, 'search_po_indent_no_emergency':True }" options="{'create': false, 'create_edit': false}"/>   -->
 				</xpath> 
 				<xpath expr="//field[@name='date_order']" position="after">
-					<field name="quotation_no" context="{'search_quotation_no':True}" on_change = "onchange_quotation_no(quotation_no)" options="{'create': false, 'create_edit': false}"/>
+					<field name="quotation_no" context="{'search_quotation_no':True, 'search_quotation_no_type': True, 'po_document_type': po_document_type}" on_change = "onchange_quotation_no(quotation_no)" options="{'create': false, 'create_edit': false}"/>
 					<field name="state_id" options="{'create': false, 'create_edit': false}"/>
 					<!-- <field name="ecc_no" />  -->
 					<field name="payment_term_id" options="{'create': false, 'create_edit': false}" widget="selection"/>
@@ -1569,7 +1585,7 @@
 							<field name="rfq_line" nolabel='1'>
 									<tree editable='bottom'>
 										<field name="po_indent_id" attrs="{'readonly': [('state','not in',('draft'))]}" context="{'search_po_indent_line':True, 'po_document_type':parent.po_document_type}"   on_change = "onchange_rfq_indent_id(po_indent_id)" options="{'create': false, 'create_edit': false}"/>
-										<field name="product_id" attrs="{'readonly': [('state','not in',('draft'))]}" context="{'search_rfq_product':True, 'po_indent_id':po_indent_id }"  options="{'create': false, 'create_edit': false}" invisible = '1' required = '0'/>
+										<field name="product_id" context="{'search_rfq_product':True, 'po_indent_id':po_indent_id }"  options="{'create': false, 'create_edit': false}" invisible = '1' required = '0'/>
 										<field name="indent_line_id" attrs="{'readonly': [('state','not in',('draft'))]}" domain="[('pur_product_id','=',po_indent_id)]" on_change = "onchange_rfq_indent_line_id(indent_line_id, po_indent_id)" options="{'create': false, 'create_edit': false}"/>
 										<field name="description" attrs="{'readonly': [('state','not in',('draft'))]}"/>
 										<field name="item_text" attrs="{'readonly': [('state','not in',('draft', 'done'))]}"/>
@@ -1743,6 +1759,7 @@
 										<field name="on_hand_qty" />
 										<field name="uom_po_id" edit='false' options="{'create': false, 'create_edit': false}"/>
 										<field name="request_type" invisible='1'/>
+										<field name="bin" />
 									</tree>
 								</field>
 							</page>
@@ -1817,7 +1834,7 @@
 	            	<sheet>
 		                <group col="4" colspan="2" >    
 							<field name="doc_no"/>
-							<field name="name" domain="[('state','=','done')]" on_change="onchange_material(name)" options="{'create': false, 'create_edit': false}" />
+							<field name="name" domain="[('state','=','done')]" on_change="onchange_material(name)" context="{'search_ma_request':1,'request_id':name}" options="{'create': false, 'create_edit': false}" />
 							<field name="date_request" on_change="onchange_date_expect(date_request)" />
 							<field name="date_expec"/>
 							<field name="request_type" />
@@ -1832,6 +1849,7 @@
 										<field name="product_uom_qty" />
 										<field name="uom_po_id" edit='false' options="{'create': false, 'create_edit': false}"/>
 										<field name="product_isu_qty" />
+										<field name="bin" />
 									</tree>
 								</field>
 							</page>
