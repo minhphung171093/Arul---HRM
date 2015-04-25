@@ -2084,24 +2084,19 @@ class arul_hr_permission_onduty(osv.osv):
             res[time.id] = {
                 'total_shift_worked': 0.0,
             }
-            if time.time_total <= 1.0:            
-                res[time.id]['total_shift_worked'] = 0.125
-            if time.time_total >= 1.1 and time.time_total <= 2.0:            
-                res[time.id]['total_shift_worked'] = 0.25
-            if time.time_total >= 2.1 and time.time_total <= 3.0:            
-                res[time.id]['total_shift_worked'] = 0.375             
-            if time.time_total >= 4.0 and time.time_total <= 7.44:            
-                res[time.id]['total_shift_worked'] = 0.5    
-            if time.time_total >= 7.45 and time.time_total <= 8.30:            
-                res[time.id]['total_shift_worked'] = 1.0
-            if time.time_total >8.30  and time.time_total <= 11.44:            
-                res[time.id]['total_shift_worked'] = 1.0
-            if time.time_total >=11.45  and time.time_total <= 15.44:            
-                res[time.id]['total_shift_worked'] = 1.5
-            if time.time_total >=15.45  and time.time_total <= 15.45:            
-                res[time.id]['total_shift_worked'] = 1.5
-            if time.time_total >=15.45:            
-                res[time.id]['total_shift_worked'] = 2.0
+            total_hrs = 0.0
+            total_hrs = time.time_total
+            if 3.7 <= total_hrs <= 4.15:  
+                res[time.id]['total_shift_worked'] = 0.5 
+                    
+            if 4.15 <= total_hrs <= 7.45:  
+                res[time.id]['total_shift_worked'] = 0.5
+                #        
+            if 7.45 <= total_hrs <= 8.30:  
+                res[time.id]['total_shift_worked'] = 1
+                
+            if 8.30 <= total_hrs <= 11.175:  
+                res[time.id]['total_shift_worked'] = 1
         return res
     #TPT
     _order = "date asc"

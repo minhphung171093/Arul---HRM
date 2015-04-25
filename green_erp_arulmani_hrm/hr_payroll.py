@@ -1074,9 +1074,9 @@ class arul_hr_payroll_executions(osv.osv):
                 b =  cr.fetchone()
                 permission_count = b[0]
                 
-                #Permission
+                #OnDuty
                 sql = '''
-                SELECT SUM(total_shift_worked) FROM arul_hr_permission_onduty WHERE non_availability_type_id='on_duty' 
+                SELECT CASE WHEN SUM(total_shift_worked)!=0 THEN SUM(total_shift_worked) ELSE 0 END total_shift_worked FROM arul_hr_permission_onduty WHERE non_availability_type_id='on_duty' 
                 AND EXTRACT(year FROM to_date) = %s AND EXTRACT(month FROM to_date) = %s and employee_id =%s
                 '''%(line.year,line.month,p.id)
                 cr.execute(sql)
@@ -1087,7 +1087,7 @@ class arul_hr_payroll_executions(osv.osv):
                 #raise osv.except_osv(_('Warning!%s'),_(permission_count))  
                 total_shift_worked = 0.0    
                 #if  shift_count:
-                total_shift_worked = shift_count
+                total_shift_worked = shift_count + onduty_count
                     #===========================================================
                     # if permission_count:
                     #     total_shift_worked = shift_count + permission_count
