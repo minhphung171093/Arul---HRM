@@ -279,7 +279,8 @@ class sale_order(osv.osv):
                   'freight': blanket_line.freight or False,
                   'state': 'draft',
                   'type': 'make_to_stock',
-                  'name_consignee_id' : blanket_line.name_consignee_id.id,
+                  #'name_consignee_id' : blanket_line.name_consignee_id.id,
+                  'name_consignee_id' : blanket_line.tpt_name_consignee_id.tpt_consignee_id.id,#TPT
                   'location':blanket_line.location,
                             }
             vals = {
@@ -1000,7 +1001,7 @@ class tpt_blanket_order(osv.osv):
         'zip': fields.char('', size = 1024, readonly=True, states={'cancel': [('readonly', True)], 'done':[('readonly', True)], 'approve':[('readonly', True)]}),
         'payment_term_id': fields.many2one('account.payment.term', 'Payment Term', states={'cancel': [('readonly', True)], 'done':[('readonly', True)], 'approve':[('readonly', True)]}),
         'currency_id': fields.many2one('res.currency', 'Currency', states={'cancel': [('readonly', True)], 'done':[('readonly', True)], 'approve':[('readonly', True)]}),
-        'bo_date': fields.date('BO Date', required = True, readonly = True,  states={'cancel': [('readonly', True)], 'done':[('readonly', True)], 'approve':[('readonly', True)]}),
+        'bo_date': fields.date('BO Date', required = True,   states={'cancel': [('readonly', True)], 'done':[('readonly', True)], 'approve':[('readonly', True)]}),
         'po_date': fields.date('PO Date', required = True, states={'cancel': [('readonly', True)], 'done':[('readonly', True)], 'approve':[('readonly', True)]}),
         'po_number': fields.char('PO Number', size = 1024, states={'cancel': [('readonly', True)], 'done':[('readonly', True)], 'approve':[('readonly', True)]}),
         'quotaion_no': fields.char('Quotation No', size = 1024, states={'cancel': [('readonly', True)], 'done':[('readonly', True)], 'approve':[('readonly', True)]}),
@@ -1217,6 +1218,9 @@ class tpt_blank_order_line(osv.osv):
         'price_unit': fields.float('Unit Price'),
         'sub_total': fields.function(subtotal_blanket_orderline, store = True, multi='deltas' ,string='SubTotal'),
         'freight': fields.float('Frt/Qty'),
+        
+        'tpt_name_consignee_id': fields.many2one('tpt.cus.consignee', 'Effective Consignee', required = False),
+        
         'name_consignee_id': fields.many2one('res.partner', 'Consignee', required = False),
         'location': fields.char('Location', size = 1024,readonly = True),
         'expected_date':fields.date('Expected delivery Date'),
@@ -1939,6 +1943,8 @@ class res_partner(osv.osv):
         'shipping_location': fields.boolean('Is Shipping Location'), 
         #TPT By BalamuruganPurushothaman To Load Consignee List
         'consignee_shift_party': fields.many2one('res.partner', 'Consignee'),
+        
+        'tpt_consignee_line': fields.one2many('tpt.cus.consignee', 'tpt_consignee_header_id', 'TPT Consignee'),
                  }
     
     def onchange_consignee_shift_party(self, cr, uid, ids,customer_id=False, context=None):
@@ -2084,6 +2090,42 @@ class res_partner(osv.osv):
 # #         return self.name_get(cr, user, ids, context=context)
     
 res_partner()
+
+class tpt_cus_consignee(osv.osv):
+    _name = "tpt.cus.consignee"
+      
+    _columns = {
+        'tpt_consignee_header_id': fields.many2one('res.partner', 'Parent', ondelete = 'cascade'),        
+        'tpt_consignee_id': fields.many2one('res.partner', 'Consignee Name'),
+        'tpt_consignee_code': fields.char('Consignee Code'),
+    }
+    
+    def onchange_tpt_consignee_id(self, cr, uid, ids, name_consignee_id = False, context=None):
+        vals = {}
+        if name_consignee_id :
+            line = self.pool.get('res.partner').browse(cr, uid, name_consignee_id)
+            vals = {
+                    'tpt_consignee_code': line.customer_code,    
+                    }
+        return {'value': vals}
+    
+    def name_get(self, cr, uid, ids, context=None):
+        res = []
+        if isinstance(ids, (int, long)):
+            ids = [ids]
+        if not ids:
+            return res
+        reads = self.read(cr, uid, ids, ['tpt_consignee_id','tpt_consignee_code'], context)
+        for record in reads:
+            name = ''
+            if record['tpt_consignee_code']:
+                name += record['tpt_consignee_code'][0:6]+'_'
+            if record['tpt_consignee_id']:
+                name += record['tpt_consignee_id'][1]
+            
+            res.append((record['id'], name))
+        return res
+tpt_cus_consignee()   
 
 class tpt_batch_allotment_line(osv.osv):
     _name = "tpt.batch.allotment.line"
