@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="utf-8"?>
+<openerp>
+    <data>
+		<record id="batch_wise_stock_view" model="ir.ui.view">
+	        <field name="name">batch.wise.stock.view</field>
+	        <field name="model">batch.wise.stock</field>
+	        <field name="arch" type="xml">
+	            <form string="Batch Wise Stock" version="7.0">
+	            	<group>
+		                <field name="product_id" domain="[('categ_id.cate_name','=','finish')]" options="{'create': false, 'create_edit': false}" />
+		                <field name="location_id" domain="[('usage','=','internal'),('chained_location_type','!=','customer')]" options="{'create': false, 'create_edit': false}" />
+		                <field name="application_id" options="{'create': false, 'create_edit': false}" />
+	                </group>
+	                <footer>
+	                    <button name="print_report" type='object' string="Print" class="oe_highlight"/>
+	                    or
+	                    <button string="Cancel" class="oe_highlight" special="cancel" />
+	                </footer>
+	            </form>
+	        </field>
+    	</record>
+
+	    <record model="ir.actions.act_window" id="action_batch_wise_stock_view">
+	        <field name="name">Batch Wise Stock</field>
+	        <field name="res_model">batch.wise.stock</field>
+	        <field name="view_type">form</field>
+	        <field name="view_mode">form</field>
+	        <field name="view_id" ref="batch_wise_stock_view"/>
+	        <field name="target">new</field>
+	    </record>
+	    
+	    
+        <menuitem action="action_batch_wise_stock_view"
+            id="menu_action_batch_wise_stock_view"
+            parent="stock.menu_stock_warehouse_mgmt" sequence="105"/>
+	 
+	    
+    </data>
+</openerp>
+
