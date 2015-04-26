@@ -541,7 +541,7 @@ class tpt_purchase_product(osv.osv):
             '''%(vals['product_id'])
             cr.execute(sql)
             product_mrs_qty=cr.dictfetchone()['product_mrs_qty']
-            if product.categ_id.cate_name != 'consum':
+            if product.categ_id.cate_name not in ['consum','service']:
                 vals.update({
                              'uom_po_id':product.uom_id.id,
                              'description':product.name,
@@ -568,7 +568,7 @@ class tpt_purchase_product(osv.osv):
             '''%(vals['product_id'])
             cr.execute(sql)
             product_mrs_qty=cr.dictfetchone()['product_mrs_qty']
-            if product.categ_id.cate_name != 'consum':
+            if product.categ_id.cate_name not in ['consum','service']:
                 vals.update({
                              'uom_po_id':product.uom_id.id,
                              'description':product.name,

@@ -94,6 +94,7 @@
 										<field name="doc_type_relate" invisible = '1'/>
 										<field name="product_id" context="{'search_indent_type_cate':True,'document_type':parent.document_type}" on_change="onchange_product_id(product_id)"  required='1' options="{'create': false, 'create_edit': false}"/>
 										<field name="description" required='1' attrs="{'readonly':[('flag','=',False)]}"/>
+										<!--<field name="description" required='1' attrs="{'readonly':[('doc_type_relate','in',['consumable','service']),('flag','=',False)]}"/>-->
 										<field name="item_text" />
 										<field name="flag" invisible = '1'/>
 										<field name="product_uom_qty" string = 'Indent Qty'/>
@@ -104,6 +105,7 @@
 										<field name="inspection_qty" invisible = '1'/> 
 										<field name="on_hand_qty"/>
 										<field name="uom_po_id" attrs="{'readonly':[('flag','=',False)]}" options="{'create': false, 'create_edit': false}"/>
+										<!--<field name="uom_po_id" required='1' attrs="{'readonly':[('doc_type_relate','in',['consumable','service']),('flag','=',False)]}" options="{'create': false, 'create_edit': false}"/>-->
 										<!-- <field name="release_by" required='1'/>  -->
 										<field name="total_val" />
 										<field name="state" required='1'/>
