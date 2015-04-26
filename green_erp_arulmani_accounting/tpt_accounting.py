@@ -615,6 +615,7 @@ class account_invoice(osv.osv):
                   'fright':line.fright or False,
                   'fright_type':line.fright_type or False,
                   'line_net': line.line_net or False,
+                  'account_id':line.product_id and line.product_id.purchase_acc_id and line.product_id.purchase_acc_id.id or False,
                   }
             service_line.append((0,0,rs))
         vals = {
