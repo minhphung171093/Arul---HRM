@@ -62,8 +62,8 @@ class approve_reject_quanlity_inspection(osv.osv_memory):
     
     _columns = {    
         'type': fields.selection([('approve','Approve'),('reject','Reject')]),
-        'quantity': fields.float('Quantity', required=True, degits=(16,3)),
-        'inspection_quantity': fields.float('Inspection Quantity', degits=(16,3)),
+        'quantity': fields.float('Quantity', required=True, digits=(16,3)),
+        'inspection_quantity': fields.float('Inspection Quantity', digits=(16,3)),
     }
     
     def onchange_quantity(self, cr, uid, ids,quantity=False,inspection_quantity=False, context=None):
@@ -122,7 +122,7 @@ class approve_reject_quanlity_inspection(osv.osv_memory):
             move_id = move_obj.create(cr,uid,rs)
             move_obj.action_done(cr, uid, [move_id])
 #             move_obj.action_done(cr, uid, [line.need_inspec_id.id])
-            if line.remaining_qty==wizard.quantity:
+            if line.remaining_qty==wizard.quantity or wizard.inspection_quantity==wizard.quantity:
                 inspection_obj.write(cr, uid, [line.id], {'state':'done'})
             else:
                 inspection_obj.write(cr, uid, [line.id], {'state':'remaining','remaining_qty': line.remaining_qty-wizard.quantity})
@@ -168,7 +168,7 @@ class approve_reject_quanlity_inspection(osv.osv_memory):
                   }
             move_id = move_obj.create(cr,uid,rs)
             move_obj.action_done(cr, uid, [move_id])
-            if line.remaining_qty==wizard.quantity:
+            if line.remaining_qty==wizard.quantity or wizard.inspection_quantity==wizard.quantity:
                 inspection_obj.write(cr, uid, [line.id], {'state':'done'})
             else:
                 inspection_obj.write(cr, uid, [line.id], {'state':'remaining','remaining_qty': line.remaining_qty-wizard.quantity})
