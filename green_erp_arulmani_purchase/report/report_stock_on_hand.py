@@ -174,8 +174,8 @@ class Parser(report_sxw.rml_parse):
         wizard_data = self.localcontext['data']['form']
         loc = wizard_data['location_id']
         location = self.pool.get('stock.location').browse(self.cr,self.uid,loc[0])
-        parent_ids = self.pool.get('stock.location').search(self.cr, self.uid, [('name','=','Block List'),('usage','=','view')])
-        locat_ids = self.pool.get('stock.location').search(self.cr, self.uid, [('name','in',['Blocked']),('location_id','=',parent_ids[0])])
+        parent_ids = self.pool.get('stock.location').search(self.cr, self.uid, [('name','in',['Block List','Block','Blocked List','Blocked']),('usage','=','view')])
+        locat_ids = self.pool.get('stock.location').search(self.cr, self.uid, [('name','in',['Block List','Block','Blocked List','Blocked']),('location_id','=',parent_ids[0])])
         sql = '''
                         select case when sum(foo.product_qty)>0 then sum(foo.product_qty) else 0 end ton from 
                             (select st.product_qty
