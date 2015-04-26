@@ -1084,7 +1084,7 @@ class account_invoice(osv.osv):
         return {'value': vals}
     
     def create(self, cr, uid, vals, context=None):
-        if vals.get('vvt_number','/')=='/':
+        if vals.get('vvt_number','/')=='/' and 'type' in vals and vals['type']=='out_invoice':
             vals['vvt_number'] = self.pool.get('ir.sequence').get(cr, uid, 'tpt.customer.invoice.import') or '/'
         return super(account_invoice, self).create(cr, uid, vals, context=context)
     
