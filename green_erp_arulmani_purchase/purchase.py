@@ -504,7 +504,7 @@ class tpt_purchase_product(osv.osv):
                     'price_unit':float(avg_cost),
                     })
             if product.categ_id.cate_name == 'spares':
-                parent_ids = self.pool.get('stock.location').search(cr, uid, [('name','=','Spare'),('usage','=','view')])
+                parent_ids = self.pool.get('stock.location').search(cr, uid, [('name','=','Store'),('usage','=','view')])
                 locat_ids = self.pool.get('stock.location').search(cr, uid, [('name','in',['Spare','Spares']),('location_id','=',parent_ids[0])])
                 sql = '''
                     select avg_cost from tpt_product_avg_cost where warehouse_id = %s and product_id=%s
@@ -3096,7 +3096,7 @@ class tpt_quanlity_inspection(osv.osv):
         'reason':fields.text('Reason',states={'cancel': [('readonly', True)], 'done':[('readonly', True)]}),
         'specification_line':fields.one2many('tpt.product.specification','specification_id','Product Specification'),
         'qty':fields.float('Qty',digits=(16,3),states={'cancel': [('readonly', True)], 'done':[('readonly', True)]}),
-        'remaining_qty':fields.float('Remaining Qty', readonly= True),
+        'remaining_qty':fields.float('Remaining Qty',digits=(16,3), readonly= True),
         'state':fields.selection([('draft', 'Draft'),('remaining', 'Remaining'),('done', 'Done')],'Status', readonly=True),
                 }
     _defaults = {
