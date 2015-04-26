@@ -286,7 +286,7 @@ class tpt_purchase_indent(osv.osv):
                     args += [('id','in',pur_ids)]
                 if context.get('po_document_type')=='local':
                     sql = '''
-                        select pur_product_id from tpt_purchase_product where state = '++' and (doc_type_relate = 'local' or doc_type_relate = 'base')
+                        select pur_product_id from tpt_purchase_product where state = '++' and doc_type_relate = 'local' 
                     '''
                     cr.execute(sql)
                     pur_ids = [row[0] for row in cr.fetchall()]
@@ -499,10 +499,7 @@ class tpt_purchase_product(osv.osv):
                     
                 '''%(locat_ids[0],product_id)
                 cr.execute(sql)
-                avg = cr.dictfetchone()
-                avg_cost = 0
-                if avg:
-                    avg_cost=avg['avg_cost']
+                avg_cost=cr.dictfetchone()['avg_cost']
                 res['value'].update({
                     'price_unit':float(avg_cost),
                     })
@@ -514,10 +511,7 @@ class tpt_purchase_product(osv.osv):
                     
                 '''%(locat_ids[0],product_id)
                 cr.execute(sql)
-                avg = cr.dictfetchone()
-                avg_cost = 0
-                if avg:
-                    avg_cost=avg['avg_cost']
+                avg_cost=cr.dictfetchone()['avg_cost']
                 res['value'].update({
                     'price_unit':float(avg_cost),
                     })
@@ -547,7 +541,7 @@ class tpt_purchase_product(osv.osv):
             '''%(vals['product_id'])
             cr.execute(sql)
             product_mrs_qty=cr.dictfetchone()['product_mrs_qty']
-            if product.categ_id.cate_name not in ['consum','service']:
+            if product.categ_id.cate_name != 'consum':
                 vals.update({
                              'uom_po_id':product.uom_id.id,
                              'description':product.name,
@@ -574,7 +568,7 @@ class tpt_purchase_product(osv.osv):
             '''%(vals['product_id'])
             cr.execute(sql)
             product_mrs_qty=cr.dictfetchone()['product_mrs_qty']
-            if product.categ_id.cate_name not in ['consum','service']:
+            if product.categ_id.cate_name != 'consum':
                 vals.update({
                              'uom_po_id':product.uom_id.id,
                              'description':product.name,
@@ -615,24 +609,6 @@ class tpt_purchase_product(osv.osv):
                     vals['product_uom_qty']=move['product_uom_qty']
                     return {'value': vals,'warning':warning}
         return {'value': vals}  
-    
-    def search(self, cr, uid, args, offset=0, limit=None, order=None, context=None, count=False):
-        if context is None:
-            context = {}
-        if context.get('search_indent_line'):
-            if context.get('po_indent_id'):
-                sql = '''
-                    select id from tpt_purchase_product
-                    where pur_product_id = %s and state = '++'
-                '''%(context.get('po_indent_id'))
-                cr.execute(sql)
-                indent_ids = [row[0] for row in cr.fetchall()]
-                args += [('id','in',indent_ids)]
-        return super(tpt_purchase_product, self).search(cr, uid, args, offset=offset, limit=limit, order=order, context=context, count=count)
-    
-    def name_search(self, cr, user, name, args=None, operator='ilike', context=None, limit=100):
-       ids = self.search(cr, user, args, context=context, limit=limit)
-       return self.name_get(cr, user, ids, context=context)
 
 #     def search(self, cr, uid, args, offset=0, limit=None, order=None, context=None, count=False):
 #         if context is None:
@@ -1510,11 +1486,11 @@ class tpt_purchase_quotation(osv.osv):
                                                                          'raised_ok': True
                                                                          })
         
-        for rfq_line in quotation.rfq_no_id.rfq_line:
+        for rfq_line in quotation.purchase_quotation_line:
             sql = '''
-                    select id from tpt_purchase_product where id = %s
-                    
-                '''%(rfq_line.indent_line_id.id)
+                select id from tpt_purchase_product where pur_product_id=%s and product_id=%s
+                
+                '''%(rfq_line.po_indent_id.id,rfq_line.product_id.id)
             cr.execute(sql)
             indent_line_ids = [row[0] for row in cr.fetchall()]
             if indent_line_ids:
@@ -2428,33 +2404,28 @@ class purchase_order(osv.osv):
         for line in new.order_line:        
             if new.quotation_no:
                 if line.po_indent_no:
-                    for rfq_line in new.quotation_no.rfq_no_id.rfq_line:
-#                         sql = '''
-#                                 select id from tpt_purchase_product where pur_product_id=%s and product_id=%s and 
-#                                 
-#                                 '''%(line.po_indent_no.id,line.product_id.id)
+                    sql = '''
+                            select id from tpt_purchase_product where pur_product_id=%s and product_id=%s
+                            
+                            '''%(line.po_indent_no.id,line.product_id.id)
+                    cr.execute(sql)
+                    indent_line_ids = [row[0] for row in cr.fetchall()]
+                    if indent_line_ids:
+                            self.pool.get('tpt.purchase.product').write(cr, uid, indent_line_ids,{'state':'po_raised'})
+                    sql = '''
+                                select po_indent_no, product_id, sum(product_qty) as po_product_qty from purchase_order_line where order_id = %s group by po_indent_no, product_id
+                            '''%(new.id)
+                    cr.execute(sql)
+                    for purchase_line in cr.dictfetchall():
                         sql = '''
-                                select id from tpt_purchase_product where id = %s
-                                
-                            '''%(rfq_line.indent_line_id.id)
+                                select case when sum(product_uom_qty) <%s then 1 else 0 end quotation_product_qty 
+                                from tpt_purchase_quotation_line
+                                where po_indent_id=%s and product_id=%s and purchase_quotation_id=%s
+                            '''%(purchase_line['po_product_qty'], purchase_line['po_indent_no'], purchase_line['product_id'], new.quotation_no.id)
                         cr.execute(sql)
-                        indent_line_ids = [row[0] for row in cr.fetchall()]
-                        if indent_line_ids:
-                                self.pool.get('tpt.purchase.product').write(cr, uid, indent_line_ids,{'state':'po_raised'})
-                        sql = '''
-                                    select po_indent_no, product_id, sum(product_qty) as po_product_qty from purchase_order_line where order_id = %s group by po_indent_no, product_id
-                                '''%(new.id)
-                        cr.execute(sql)
-                        for purchase_line in cr.dictfetchall():
-                            sql = '''
-                                    select case when sum(product_uom_qty) <%s then 1 else 0 end quotation_product_qty 
-                                    from tpt_purchase_quotation_line
-                                    where po_indent_id=%s and product_id=%s and purchase_quotation_id=%s
-                                '''%(purchase_line['po_product_qty'], purchase_line['po_indent_no'], purchase_line['product_id'], new.quotation_no.id)
-                            cr.execute(sql)
-                            quantity = cr.dictfetchone()
-                            if (quantity['quotation_product_qty']==1):
-                                raise osv.except_osv(_('Warning!'),_('You are input %s quantity in Purchase Order but quantity in Quotation do not enough for this Purchase Indent and Product .' %(purchase_line['po_product_qty'])))        
+                        quantity = cr.dictfetchone()
+                        if (quantity['quotation_product_qty']==1):
+                            raise osv.except_osv(_('Warning!'),_('You are input %s quantity in Purchase Order but quantity in Quotation do not enough for this Purchase Indent and Product .' %(purchase_line['po_product_qty'])))        
             
         return new_id
     
@@ -3125,7 +3096,7 @@ class tpt_quanlity_inspection(osv.osv):
         'reason':fields.text('Reason',states={'cancel': [('readonly', True)], 'done':[('readonly', True)]}),
         'specification_line':fields.one2many('tpt.product.specification','specification_id','Product Specification'),
         'qty':fields.float('Qty',digits=(16,3),states={'cancel': [('readonly', True)], 'done':[('readonly', True)]}),
-        'remaining_qty':fields.float('Remaining Qty',digits=(16,3), readonly= True),
+        'remaining_qty':fields.float('Remaining Qty', readonly= True),
         'state':fields.selection([('draft', 'Draft'),('remaining', 'Remaining'),('done', 'Done')],'Status', readonly=True),
                 }
     _defaults = {
@@ -3501,8 +3472,8 @@ class tpt_request_for_quotation(osv.osv):
         for line in self.browse(cr,uid,ids):
             for po_indent in line.rfq_line:
                 sql = '''
-                    select id from tpt_purchase_product where id = %s
-                '''%(po_indent.indent_line_id.id)
+                    select id from tpt_purchase_product where pur_product_id=%s and product_id=%s
+                '''%(po_indent.po_indent_id.id,po_indent.product_id.id)
                 cr.execute(sql)
                 indent_line_ids = [row[0] for row in cr.fetchall()]
                 if indent_line_ids:
@@ -4234,31 +4205,28 @@ class tpt_material_issue(osv.osv):
         if name:
             request = self.pool.get('tpt.material.request').browse(cr, uid, name)
             for request_line in request.material_request_line:
-                
                 sql = '''
-                    select case when sum(product_isu_qty)!=0 then sum(product_isu_qty) else 0 end product_isu_qty from tpt_material_issue_line where request_line_id = %s
-                '''%(request_line.id)
+                    select re.id, sum(iss.product_isu_qty) as qty
+                    from tpt_material_issue_line iss
+                    inner join tpt_material_request_line re on re.id = iss.request_line_id
+                    where re.material_request_id = %s and re.id = %s
+                    group by re.id
+                '''%(name,request_line.id)
                 cr.execute(sql)
-#                 sql = '''
-#                     select re.id, sum(iss.product_isu_qty) as qty
-#                     from tpt_material_issue_line iss
-#                     inner join tpt_material_request_line re on re.id = iss.request_line_id
-#                     where re.material_request_id = %s and re.id = %s
-#                     group by re.id
-#                 '''%(name,request_line.id)
-#                 cr.execute(sql)
-                kq = cr.fetchone()
+                kq = cr.fetchall()
                 if kq:
-                    if request_line.product_uom_qty > kq[0]:
-                        rs = {
-                              'product_id': request_line.product_id and request_line.product_id.id or False,
-                              'product_uom_qty': request_line.product_uom_qty or False,
-                              'uom_po_id': request_line.uom_po_id and request_line.uom_po_id.id or False,
-                              'dec_material':request_line.dec_material or False,
-                              'product_isu_qty': request_line.product_uom_qty - kq[0] or False,
-                              'request_line_id': request_line.id,
-                              }
-                        product_information_line.append((0,0,rs))
+                    for data in kq:
+                        if request_line.product_uom_qty > data[1]:
+    #             for line in request.material_request_line:
+                            rs = {
+                                  'product_id': request_line.product_id and request_line.product_id.id or False,
+                                  'product_uom_qty': request_line.product_uom_qty or False,
+                                  'uom_po_id': request_line.uom_po_id and request_line.uom_po_id.id or False,
+                                  'dec_material':request_line.dec_material or False,
+                                  'product_isu_qty': request_line.product_uom_qty - data[1] or False,
+                                  'request_line_id': request_line.id,
+                                  }
+                            product_information_line.append((0,0,rs))
                 else:
                     rs = {
                           'product_id': request_line.product_id and request_line.product_id.id or False,
@@ -4323,17 +4291,17 @@ class tpt_material_issue(osv.osv):
             vals.update({'department_id':request.department_id.id}) 
         new_id = super(tpt_material_issue, self).create(cr, uid, vals, context)
         issue = self.browse(cr, uid, new_id)
-#         for line in issue.material_issue_line:
-#             sql = '''
-#                 select case when sum(product_isu_qty)!=0 then sum(product_isu_qty) else 0 end product_isu_qty 
-#                 from tpt_material_issue_line iss
-#                 inner join tpt_material_request_line re on re.id = iss.request_line_id
-#                 where re.material_request_id = %s and re.id = %s
-#             '''%(line.material_issue_id.name.id,line.id)
-#             cr.execute(sql)
-#             product_isu_qty = cr.dictfetchone()['product_isu_qty']
-#             if line.product_isu_qty > line.request_line_id.product_uom_qty-product_isu_qty:
-#                 raise osv.except_osv(_('Warning!'),_('Quantity must be less than Material Request quantity!'))
+        for line in issue.material_issue_line:
+            sql = '''
+                select case when sum(product_isu_qty)!=0 then sum(product_isu_qty) else 0 end product_isu_qty 
+                from tpt_material_issue_line iss
+                inner join tpt_material_request_line re on re.id = iss.request_line_id
+                where re.material_request_id = %s and re.id = %s
+            '''%(line.material_issue_id.name.id,line.id)
+            cr.execute(sql)
+            product_isu_qty = cr.dictfetchone()['product_isu_qty']
+            if line.product_isu_qty > line.request_line_id.product_uom_qty-product_isu_qty:
+                raise osv.except_osv(_('Warning!'),_('Quantity must be less than Material Request quantity!'))
         return new_id
     
     def write(self, cr, uid, ids, vals, context=None):
@@ -4361,15 +4329,7 @@ class tpt_material_issue_line(osv.osv):
     def create(self, cr, uid, vals, context=None):
         if 'product_id' in vals:
             product = self.pool.get('product.product').browse(cr, uid, vals['product_id'])
-            vals.update({'uom_po_id':product.uom_id.id})
-        if 'request_line_id' in vals:
-            sql = '''
-                select case when sum(product_isu_qty)!=0 then sum(product_isu_qty) else 0 end product_isu_qty from tpt_material_issue_line where request_line_id = %s
-            '''%(vals['request_line_id'])
-            cr.execute(sql)
-            kq = cr.fetchone()[0]
-            if 'request_line_id' in vals and (vals['product_uom_qty']-kq) < vals['product_isu_qty']:
-                raise osv.except_osv(_('Warning!'),_('Quantity must be less than Material Request quantity!'))
+            vals.update({'uom_po_id':product.uom_id.id})    
         new_id = super(tpt_material_issue_line, self).create(cr, uid, vals, context)
         if 'product_isu_qty' in vals:
             if (vals['product_isu_qty'] < 0):
@@ -4384,14 +4344,6 @@ class tpt_material_issue_line(osv.osv):
         for line in self.browse(cr,uid,ids):
             if line.product_isu_qty < 0:
                 raise osv.except_osv(_('Warning!'),_('Issue Quantity is not allowed as negative values'))
-            sql = '''
-                select case when sum(product_isu_qty)!=0 then sum(product_isu_qty) else 0 end product_isu_qty
-                    from tpt_material_issue_line where request_line_id = %s and id != %s
-            '''%(line.request_line_id.id,line.id)
-            cr.execute(sql)
-            kq = cr.fetchone()[0]
-            if (line.product_uom_qty-kq) < line.product_isu_qty:
-                raise osv.except_osv(_('Warning!'),_('Quantity must be less than Material Request quantity!'))
         return new_write
 tpt_material_issue_line()
 
