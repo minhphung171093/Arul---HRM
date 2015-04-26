@@ -1077,7 +1077,7 @@ class arul_hr_payroll_executions(osv.osv):
                 #OnDuty
                 sql = '''
                 SELECT CASE WHEN SUM(total_shift_worked)!=0 THEN SUM(total_shift_worked) ELSE 0 END total_shift_worked FROM arul_hr_permission_onduty WHERE non_availability_type_id='on_duty' 
-                AND EXTRACT(year FROM to_date) = %s AND EXTRACT(month FROM to_date) = %s and employee_id =%s
+                AND EXTRACT(year FROM date) = %s AND EXTRACT(month FROM date) = %s and employee_id =%s
                 '''%(line.year,line.month,p.id)
                 cr.execute(sql)
                 c =  cr.fetchone()

@@ -5221,8 +5221,16 @@ class tpt_time_leave_evaluation(osv.osv):
             monthly_shift_ids = monthly_shift_obj.search(cr, uid, [('employee_id.payroll_area_id','=',sub.payroll_area_id.id),('monthly_work_id.year','=',sub.year),('monthly_work_id.month','=',sub.month)])
             for shift in monthly_shift_obj.browse(cr, uid, monthly_shift_ids):
                 emp_id = shift.employee_id.id
+                #===============================================================
+                # sql = '''
+                #     select EXTRACT(day FROM work_date) from arul_hr_audit_shift_time where employee_id = %s and EXTRACT(year FROM work_date) = %s and EXTRACT(month FROM work_date) = %s
+                # '''%(emp_id, sub.year, sub.month)
+                # cr.execute(sql)
+                # audit_days = [row[0] for row in cr.fetchall()]
+                #===============================================================
+                
                 sql = '''
-                    select EXTRACT(day FROM work_date) from arul_hr_audit_shift_time where employee_id = %s and EXTRACT(year FROM work_date) = %s and EXTRACT(month FROM work_date) = %s
+                    select EXTRACT(day FROM date) from arul_hr_permission_onduty where employee_id = %s and EXTRACT(year FROM date) = %s and EXTRACT(month FROM date) = %s
                 '''%(emp_id, sub.year, sub.month)
                 cr.execute(sql)
                 audit_days = [row[0] for row in cr.fetchall()]
