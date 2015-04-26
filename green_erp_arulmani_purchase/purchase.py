@@ -286,7 +286,7 @@ class tpt_purchase_indent(osv.osv):
                     args += [('id','in',pur_ids)]
                 if context.get('po_document_type')=='local':
                     sql = '''
-                        select pur_product_id from tpt_purchase_product where state = '++' and doc_type_relate = 'local' 
+                        select pur_product_id from tpt_purchase_product where state = '++' and (doc_type_relate = 'local' or doc_type_relate = 'base')
                     '''
                     cr.execute(sql)
                     pur_ids = [row[0] for row in cr.fetchall()]
@@ -499,7 +499,10 @@ class tpt_purchase_product(osv.osv):
                     
                 '''%(locat_ids[0],product_id)
                 cr.execute(sql)
-                avg_cost=cr.dictfetchone()['avg_cost']
+                avg = cr.dictfetchone()
+                avg_cost = 0
+                if avg:
+                    avg_cost=avg['avg_cost']
                 res['value'].update({
                     'price_unit':float(avg_cost),
                     })
@@ -511,7 +514,10 @@ class tpt_purchase_product(osv.osv):
                     
                 '''%(locat_ids[0],product_id)
                 cr.execute(sql)
-                avg_cost=cr.dictfetchone()['avg_cost']
+                avg = cr.dictfetchone()
+                avg_cost = 0
+                if avg:
+                    avg_cost=avg['avg_cost']
                 res['value'].update({
                     'price_unit':float(avg_cost),
                     })
@@ -609,6 +615,24 @@ class tpt_purchase_product(osv.osv):
                     vals['product_uom_qty']=move['product_uom_qty']
                     return {'value': vals,'warning':warning}
         return {'value': vals}  
+    
+    def search(self, cr, uid, args, offset=0, limit=None, order=None, context=None, count=False):
+        if context is None:
+            context = {}
+        if context.get('search_indent_line'):
+            if context.get('po_indent_id'):
+                sql = '''
+                    select id from tpt_purchase_product
+                    where pur_product_id = %s and state = '++'
+                '''%(context.get('po_indent_id'))
+                cr.execute(sql)
+                indent_ids = [row[0] for row in cr.fetchall()]
+                args += [('id','in',indent_ids)]
+        return super(tpt_purchase_product, self).search(cr, uid, args, offset=offset, limit=limit, order=order, context=context, count=count)
+    
+    def name_search(self, cr, user, name, args=None, operator='ilike', context=None, limit=100):
+       ids = self.search(cr, user, args, context=context, limit=limit)
+       return self.name_get(cr, user, ids, context=context)
 
 #     def search(self, cr, uid, args, offset=0, limit=None, order=None, context=None, count=False):
 #         if context is None:
@@ -1486,11 +1510,11 @@ class tpt_purchase_quotation(osv.osv):
                                                                          'raised_ok': True
                                                                          })
         
-        for rfq_line in quotation.purchase_quotation_line:
+        for rfq_line in quotation.rfq_no_id.rfq_line:
             sql = '''
-                select id from tpt_purchase_product where pur_product_id=%s and product_id=%s
-                
-                '''%(rfq_line.po_indent_id.id,rfq_line.product_id.id)
+                    select id from tpt_purchase_product where id = %s
+                    
+                '''%(rfq_line.indent_line_id.id)
             cr.execute(sql)
             indent_line_ids = [row[0] for row in cr.fetchall()]
             if indent_line_ids:
@@ -2404,28 +2428,33 @@ class purchase_order(osv.osv):
         for line in new.order_line:        
             if new.quotation_no:
                 if line.po_indent_no:
-                    sql = '''
-                            select id from tpt_purchase_product where pur_product_id=%s and product_id=%s
-                            
-                            '''%(line.po_indent_no.id,line.product_id.id)
-                    cr.execute(sql)
-                    indent_line_ids = [row[0] for row in cr.fetchall()]
-                    if indent_line_ids:
-                            self.pool.get('tpt.purchase.product').write(cr, uid, indent_line_ids,{'state':'po_raised'})
-                    sql = '''
-                                select po_indent_no, product_id, sum(product_qty) as po_product_qty from purchase_order_line where order_id = %s group by po_indent_no, product_id
-                            '''%(new.id)
-                    cr.execute(sql)
-                    for purchase_line in cr.dictfetchall():
+                    for rfq_line in new.quotation_no.rfq_no_id.rfq_line:
+#                         sql = '''
+#                                 select id from tpt_purchase_product where pur_product_id=%s and product_id=%s and 
+#                                 
+#                                 '''%(line.po_indent_no.id,line.product_id.id)
                         sql = '''
-                                select case when sum(product_uom_qty) <%s then 1 else 0 end quotation_product_qty 
-                                from tpt_purchase_quotation_line
-                                where po_indent_id=%s and product_id=%s and purchase_quotation_id=%s
-                            '''%(purchase_line['po_product_qty'], purchase_line['po_indent_no'], purchase_line['product_id'], new.quotation_no.id)
+                                select id from tpt_purchase_product where id = %s
+                                
+                            '''%(rfq_line.indent_line_id.id)
                         cr.execute(sql)
-                        quantity = cr.dictfetchone()
-                        if (quantity['quotation_product_qty']==1):
-                            raise osv.except_osv(_('Warning!'),_('You are input %s quantity in Purchase Order but quantity in Quotation do not enough for this Purchase Indent and Product .' %(purchase_line['po_product_qty'])))        
+                        indent_line_ids = [row[0] for row in cr.fetchall()]
+                        if indent_line_ids:
+                                self.pool.get('tpt.purchase.product').write(cr, uid, indent_line_ids,{'state':'po_raised'})
+                        sql = '''
+                                    select po_indent_no, product_id, sum(product_qty) as po_product_qty from purchase_order_line where order_id = %s group by po_indent_no, product_id
+                                '''%(new.id)
+                        cr.execute(sql)
+                        for purchase_line in cr.dictfetchall():
+                            sql = '''
+                                    select case when sum(product_uom_qty) <%s then 1 else 0 end quotation_product_qty 
+                                    from tpt_purchase_quotation_line
+                                    where po_indent_id=%s and product_id=%s and purchase_quotation_id=%s
+                                '''%(purchase_line['po_product_qty'], purchase_line['po_indent_no'], purchase_line['product_id'], new.quotation_no.id)
+                            cr.execute(sql)
+                            quantity = cr.dictfetchone()
+                            if (quantity['quotation_product_qty']==1):
+                                raise osv.except_osv(_('Warning!'),_('You are input %s quantity in Purchase Order but quantity in Quotation do not enough for this Purchase Indent and Product .' %(purchase_line['po_product_qty'])))        
             
         return new_id
     
@@ -3472,8 +3501,8 @@ class tpt_request_for_quotation(osv.osv):
         for line in self.browse(cr,uid,ids):
             for po_indent in line.rfq_line:
                 sql = '''
-                    select id from tpt_purchase_product where pur_product_id=%s and product_id=%s
-                '''%(po_indent.po_indent_id.id,po_indent.product_id.id)
+                    select id from tpt_purchase_product where id = %s
+                '''%(po_indent.indent_line_id.id)
                 cr.execute(sql)
                 indent_line_ids = [row[0] for row in cr.fetchall()]
                 if indent_line_ids:

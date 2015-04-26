@@ -140,6 +140,7 @@ class tpt_mrp_process(osv.osv):
                                                             'product_uom_qty':line.product_uom_qty or False,
                                                            'uom_po_id':line.uom_po_id and line.uom_po_id.id or False,
                                                             'pur_product_id': indent_id or False,
+                                                            'doc_type_relate': 'base',
                                                            }))
             else: count = 0
             

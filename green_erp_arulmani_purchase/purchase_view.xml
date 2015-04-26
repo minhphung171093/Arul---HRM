@@ -1586,7 +1586,7 @@
 									<tree editable='bottom'>
 										<field name="po_indent_id" attrs="{'readonly': [('state','not in',('draft'))]}" context="{'search_po_indent_line':True, 'po_document_type':parent.po_document_type}"   on_change = "onchange_rfq_indent_id(po_indent_id)" options="{'create': false, 'create_edit': false}"/>
 										<field name="product_id" context="{'search_rfq_product':True, 'po_indent_id':po_indent_id }"  options="{'create': false, 'create_edit': false}" invisible = '1' required = '0'/>
-										<field name="indent_line_id" attrs="{'readonly': [('state','not in',('draft'))]}" domain="[('pur_product_id','=',po_indent_id)]" on_change = "onchange_rfq_indent_line_id(indent_line_id, po_indent_id)" options="{'create': false, 'create_edit': false}"/>
+										<field name="indent_line_id" context="{'search_indent_line':True, 'po_indent_id':po_indent_id}" attrs="{'readonly': [('state','not in',('draft'))]}" domain="[('pur_product_id','=',po_indent_id)]" on_change = "onchange_rfq_indent_line_id(indent_line_id, po_indent_id)" options="{'create': false, 'create_edit': false}"/>
 										<field name="description" attrs="{'readonly': [('state','not in',('draft'))]}"/>
 										<field name="item_text" attrs="{'readonly': [('state','not in',('draft', 'done'))]}"/>
 										<field name="recom_vendor" attrs="{'readonly': [('state','not in',('draft'))]}"/>
