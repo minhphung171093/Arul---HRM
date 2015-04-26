@@ -1347,15 +1347,22 @@ class stock_move(osv.osv):
     _order = 'product_name'
     _columns = {
         'product_name': fields.related('product_id', 'default_code',type='char',string='Product name',store=True,readonly=True),
-        'app_quantity': fields.float('Required Quantity'),
+        'app_quantity': fields.float('Required Quantity',digits=(16,3)),
         'is_tpt_production': fields.boolean('Is tpt production'),
         'declar_id':fields.many2one('product.declaration.line','Declaration'),
     }
 
-    
+    def unlink(self, cr, uid, ids, context=None):
+        if context is None:
+            context = {}
+        ctx = context.copy()
+        ctx.update({'call_unlink': True})
+        for move in self.browse(cr, uid, ids, context=context):
+            if move.state != 'draft' and not ctx.get('call_unlink', False):
+                raise osv.except_osv(_('User Error!'), _('You can only delete draft moves.'))
+        return super(stock_move, self).unlink(
+            cr, uid, ids, context=ctx)
 
-
-        
     def onchange_app_qty_id(self, cr, uid, ids,app_quantity, product_qty,context=None):
         vals = {}
 #         if app_quantity > product_qty:
@@ -1554,7 +1561,7 @@ class product_declaration_line(osv.osv):
     _columns = {
             'product_name': fields.related('product_id', 'default_code',type='char',string='Product name',store=True,readonly=True),
             'mrp_production_id':fields.many2one('mrp.production','Product Declaration',ondelete='restrict'),
-            'app_qty':fields.float('Applied Quantity',required=True),
+            'app_qty':fields.float('Applied Quantity',digits=(16,3),required=True),
             'product_id':fields.many2one('product.product','Material',required=True),
             'product_uom_id':fields.many2one('product.uom', 'UOM', readonly=True),
             'stock_move_id':fields.many2one('stock.move','Stock Move'),
