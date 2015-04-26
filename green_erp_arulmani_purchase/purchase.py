@@ -4234,28 +4234,31 @@ class tpt_material_issue(osv.osv):
         if name:
             request = self.pool.get('tpt.material.request').browse(cr, uid, name)
             for request_line in request.material_request_line:
+                
                 sql = '''
-                    select re.id, sum(iss.product_isu_qty) as qty
-                    from tpt_material_issue_line iss
-                    inner join tpt_material_request_line re on re.id = iss.request_line_id
-                    where re.material_request_id = %s and re.id = %s
-                    group by re.id
-                '''%(name,request_line.id)
+                    select case when sum(product_isu_qty)!=0 then sum(product_isu_qty) else 0 end product_isu_qty from tpt_material_issue_line where request_line_id = %s
+                '''%(request_line.id)
                 cr.execute(sql)
-                kq = cr.fetchall()
+#                 sql = '''
+#                     select re.id, sum(iss.product_isu_qty) as qty
+#                     from tpt_material_issue_line iss
+#                     inner join tpt_material_request_line re on re.id = iss.request_line_id
+#                     where re.material_request_id = %s and re.id = %s
+#                     group by re.id
+#                 '''%(name,request_line.id)
+#                 cr.execute(sql)
+                kq = cr.fetchone()
                 if kq:
-                    for data in kq:
-                        if request_line.product_uom_qty > data[1]:
-    #             for line in request.material_request_line:
-                            rs = {
-                                  'product_id': request_line.product_id and request_line.product_id.id or False,
-                                  'product_uom_qty': request_line.product_uom_qty or False,
-                                  'uom_po_id': request_line.uom_po_id and request_line.uom_po_id.id or False,
-                                  'dec_material':request_line.dec_material or False,
-                                  'product_isu_qty': request_line.product_uom_qty - data[1] or False,
-                                  'request_line_id': request_line.id,
-                                  }
-                            product_information_line.append((0,0,rs))
+                    if request_line.product_uom_qty > kq[0]:
+                        rs = {
+                              'product_id': request_line.product_id and request_line.product_id.id or False,
+                              'product_uom_qty': request_line.product_uom_qty or False,
+                              'uom_po_id': request_line.uom_po_id and request_line.uom_po_id.id or False,
+                              'dec_material':request_line.dec_material or False,
+                              'product_isu_qty': request_line.product_uom_qty - kq[0] or False,
+                              'request_line_id': request_line.id,
+                              }
+                        product_information_line.append((0,0,rs))
                 else:
                     rs = {
                           'product_id': request_line.product_id and request_line.product_id.id or False,
@@ -4320,17 +4323,17 @@ class tpt_material_issue(osv.osv):
             vals.update({'department_id':request.department_id.id}) 
         new_id = super(tpt_material_issue, self).create(cr, uid, vals, context)
         issue = self.browse(cr, uid, new_id)
-        for line in issue.material_issue_line:
-            sql = '''
-                select case when sum(product_isu_qty)!=0 then sum(product_isu_qty) else 0 end product_isu_qty 
-                from tpt_material_issue_line iss
-                inner join tpt_material_request_line re on re.id = iss.request_line_id
-                where re.material_request_id = %s and re.id = %s
-            '''%(line.material_issue_id.name.id,line.id)
-            cr.execute(sql)
-            product_isu_qty = cr.dictfetchone()['product_isu_qty']
-            if line.product_isu_qty > line.request_line_id.product_uom_qty-product_isu_qty:
-                raise osv.except_osv(_('Warning!'),_('Quantity must be less than Material Request quantity!'))
+#         for line in issue.material_issue_line:
+#             sql = '''
+#                 select case when sum(product_isu_qty)!=0 then sum(product_isu_qty) else 0 end product_isu_qty 
+#                 from tpt_material_issue_line iss
+#                 inner join tpt_material_request_line re on re.id = iss.request_line_id
+#                 where re.material_request_id = %s and re.id = %s
+#             '''%(line.material_issue_id.name.id,line.id)
+#             cr.execute(sql)
+#             product_isu_qty = cr.dictfetchone()['product_isu_qty']
+#             if line.product_isu_qty > line.request_line_id.product_uom_qty-product_isu_qty:
+#                 raise osv.except_osv(_('Warning!'),_('Quantity must be less than Material Request quantity!'))
         return new_id
     
     def write(self, cr, uid, ids, vals, context=None):
@@ -4358,7 +4361,15 @@ class tpt_material_issue_line(osv.osv):
     def create(self, cr, uid, vals, context=None):
         if 'product_id' in vals:
             product = self.pool.get('product.product').browse(cr, uid, vals['product_id'])
-            vals.update({'uom_po_id':product.uom_id.id})    
+            vals.update({'uom_po_id':product.uom_id.id})
+        if 'request_line_id' in vals:
+            sql = '''
+                select case when sum(product_isu_qty)!=0 then sum(product_isu_qty) else 0 end product_isu_qty from tpt_material_issue_line where request_line_id = %s
+            '''%(vals['request_line_id'])
+            cr.execute(sql)
+            kq = cr.fetchone()[0]
+            if 'request_line_id' in vals and (vals['product_uom_qty']-kq) < vals['product_isu_qty']:
+                raise osv.except_osv(_('Warning!'),_('Quantity must be less than Material Request quantity!'))
         new_id = super(tpt_material_issue_line, self).create(cr, uid, vals, context)
         if 'product_isu_qty' in vals:
             if (vals['product_isu_qty'] < 0):
@@ -4373,6 +4384,14 @@ class tpt_material_issue_line(osv.osv):
         for line in self.browse(cr,uid,ids):
             if line.product_isu_qty < 0:
                 raise osv.except_osv(_('Warning!'),_('Issue Quantity is not allowed as negative values'))
+            sql = '''
+                select case when sum(product_isu_qty)!=0 then sum(product_isu_qty) else 0 end product_isu_qty
+                    from tpt_material_issue_line where request_line_id = %s and id != %s
+            '''%(line.request_line_id.id,line.id)
+            cr.execute(sql)
+            kq = cr.fetchone()[0]
+            if (line.product_uom_qty-kq) < line.product_isu_qty:
+                raise osv.except_osv(_('Warning!'),_('Quantity must be less than Material Request quantity!'))
         return new_write
 tpt_material_issue_line()
 
