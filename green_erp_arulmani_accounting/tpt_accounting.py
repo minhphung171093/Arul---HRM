@@ -2393,43 +2393,43 @@ class tpt_hr_payroll_approve_reject(osv.osv):
         res = {}
         welfare = 0.0
         if payroll_ids:
-            payroll_ids = str(payroll_ids).replace("[","(")
-            payroll_ids = payroll_ids.replace("]",")")
+#             payroll_ids = str(payroll_ids).replace("[","(")
+#             payroll_ids = payroll_ids.replace("]",")")
             
             sql_gross = '''
                 select sum(float) as gross_salary from arul_hr_payroll_earning_structure where earning_parameters_id in (select id from arul_hr_payroll_earning_parameters where code='GROSS_SALARY')
-                and executions_details_id in (select id from arul_hr_payroll_executions_details where payroll_executions_id in %s)
+                and executions_details_id in (select id from arul_hr_payroll_executions_details where payroll_executions_id = %s)
             '''%(payroll_ids)
             cr.execute(sql_gross)
             gross = cr.dictfetchone()['gross_salary'] or 0.0
             sql_provident = '''
                 select sum(float) as provident from arul_hr_payroll_other_deductions where deduction_parameters_id in (select id from arul_hr_payroll_deduction_parameters where code='PF.D')
-                and executions_details_id in (select id from arul_hr_payroll_executions_details where payroll_executions_id in %s)
+                and executions_details_id in (select id from arul_hr_payroll_executions_details where payroll_executions_id = %s)
             '''%(payroll_ids)
             cr.execute(sql_provident)
             provident = cr.dictfetchone()['provident'] or 0.0
             sql_vpf = '''
                 select sum(float) as vpf from arul_hr_payroll_other_deductions where deduction_parameters_id in (select id from arul_hr_payroll_deduction_parameters where code='VPF.D')
-                and executions_details_id in (select id from arul_hr_payroll_executions_details where payroll_executions_id in %s)
+                and executions_details_id in (select id from arul_hr_payroll_executions_details where payroll_executions_id = %s)
             '''%(payroll_ids)
             cr.execute(sql_vpf)
             vpf = cr.dictfetchone()['vpf'] or 0.0
             sql_tax = '''
                 select sum(float) as tax from arul_hr_payroll_other_deductions where deduction_parameters_id in (select id from arul_hr_payroll_deduction_parameters where code='PT')
-                and executions_details_id in (select id from arul_hr_payroll_executions_details where payroll_executions_id in %s)
+                and executions_details_id in (select id from arul_hr_payroll_executions_details where payroll_executions_id = %s)
             '''%(payroll_ids)
             cr.execute(sql_tax)
             tax = cr.dictfetchone()['tax'] or 0.0
             sql_lwf = '''
                 select sum(float) as tax from arul_hr_payroll_other_deductions where deduction_parameters_id in (select id from arul_hr_payroll_deduction_parameters where code='LWF')
-                and executions_details_id in (select id from arul_hr_payroll_executions_details where payroll_executions_id in %s)
+                and executions_details_id in (select id from arul_hr_payroll_executions_details where payroll_executions_id = %s)
             '''%(payroll_ids)
             cr.execute(sql_lwf)
             lwf = cr.dictfetchone()['tax'] or 0.0
             
             sql_prem = '''
                 select sum(float) as tax from arul_hr_payroll_other_deductions where deduction_parameters_id in (select id from arul_hr_payroll_deduction_parameters where code='INS_LIC_PREM')
-                and executions_details_id in (select id from arul_hr_payroll_executions_details where payroll_executions_id in %s)
+                and executions_details_id in (select id from arul_hr_payroll_executions_details where payroll_executions_id = %s)
             '''%(payroll_ids)
             cr.execute(sql_prem)
             lic_premium = cr.dictfetchone()['tax'] or 0.0
@@ -2437,63 +2437,63 @@ class tpt_hr_payroll_approve_reject(osv.osv):
             ### Excutive & Staff - Worker
             sql_ins = '''
                 select sum(float) as tax from arul_hr_payroll_other_deductions where deduction_parameters_id in (select id from arul_hr_payroll_deduction_parameters where code='INS_OTHERS')
-                and executions_details_id in (select id from arul_hr_payroll_executions_details where payroll_executions_id in %s)
+                and executions_details_id in (select id from arul_hr_payroll_executions_details where payroll_executions_id = %s)
             '''%(payroll_ids)
             cr.execute(sql_ins)
             ins_oth = cr.dictfetchone()['tax'] or 0.0
             
             sql_loan = '''
                 select sum(float) as tax from arul_hr_payroll_other_deductions where deduction_parameters_id in (select id from arul_hr_payroll_deduction_parameters where code='LOAN_VVTI')
-                and executions_details_id in (select id from arul_hr_payroll_executions_details where payroll_executions_id in %s)
+                and executions_details_id in (select id from arul_hr_payroll_executions_details where payroll_executions_id = %s)
             '''%(payroll_ids)
             cr.execute(sql_loan)
             vvt_loan = cr.dictfetchone()['tax'] or 0.0
             
             sql_hdfc = '''
                 select sum(float) as tax from arul_hr_payroll_other_deductions where deduction_parameters_id in (select id from arul_hr_payroll_deduction_parameters where code='LOAN_HDFC')
-                and executions_details_id in (select id from arul_hr_payroll_executions_details where payroll_executions_id in %s)
+                and executions_details_id in (select id from arul_hr_payroll_executions_details where payroll_executions_id = %s)
             '''%(payroll_ids)
             cr.execute(sql_hdfc)
             vvt_hdfc = cr.dictfetchone()['tax'] or 0.0
             
             sql_hfl = '''
                 select sum(float) as tax from arul_hr_payroll_other_deductions where deduction_parameters_id in (select id from arul_hr_payroll_deduction_parameters where code='LOAN_LIC_HFL')
-                and executions_details_id in (select id from arul_hr_payroll_executions_details where payroll_executions_id in %s)
+                and executions_details_id in (select id from arul_hr_payroll_executions_details where payroll_executions_id = %s)
             '''%(payroll_ids)
             cr.execute(sql_hfl)
             hfl = cr.dictfetchone()['tax'] or 0.0
             
             sql_tmb = '''
                 select sum(float) as tax from arul_hr_payroll_other_deductions where deduction_parameters_id in (select id from arul_hr_payroll_deduction_parameters where code='LOAN_TMB')
-                and executions_details_id in (select id from arul_hr_payroll_executions_details where payroll_executions_id in %s)
+                and executions_details_id in (select id from arul_hr_payroll_executions_details where payroll_executions_id = %s)
             '''%(payroll_ids)
             cr.execute(sql_tmb)
             tmb = cr.dictfetchone()['tax'] or 0.0
             
             sql_sbt = '''
                 select sum(float) as tax from arul_hr_payroll_other_deductions where deduction_parameters_id in (select id from arul_hr_payroll_deduction_parameters where code='LOAN_SBT')
-                and executions_details_id in (select id from arul_hr_payroll_executions_details where payroll_executions_id in %s)
+                and executions_details_id in (select id from arul_hr_payroll_executions_details where payroll_executions_id = %s)
             '''%(payroll_ids)
             cr.execute(sql_sbt)
             sbt = cr.dictfetchone()['tax'] or 0.0
             
             sql_other = '''
                 select sum(float) as tax from arul_hr_payroll_other_deductions where deduction_parameters_id in (select id from arul_hr_payroll_deduction_parameters where code='LOAN_OTHERS')
-                and executions_details_id in (select id from arul_hr_payroll_executions_details where payroll_executions_id in %s)
+                and executions_details_id in (select id from arul_hr_payroll_executions_details where payroll_executions_id = %s)
             '''%(payroll_ids)
             cr.execute(sql_other)
             other = cr.dictfetchone()['tax'] or 0.0
             
             sql_oa = '''
                 select sum(float) as allowance from arul_hr_payroll_earning_structure where earning_parameters_id in (select id from arul_hr_payroll_earning_parameters where code='OA')
-                and executions_details_id in (select id from arul_hr_payroll_executions_details where payroll_executions_id in %s)
+                and executions_details_id in (select id from arul_hr_payroll_executions_details where payroll_executions_id = %s)
             '''%(payroll_ids)
             cr.execute(sql_oa)
             oa = cr.dictfetchone()['allowance'] or 0.0
             
             sql_ma = '''
                 select sum(float) as allowance from arul_hr_payroll_earning_structure where earning_parameters_id in (select id from arul_hr_payroll_earning_parameters where code='MA')
-                and executions_details_id in (select id from arul_hr_payroll_executions_details where payroll_executions_id in %s)
+                and executions_details_id in (select id from arul_hr_payroll_executions_details where payroll_executions_id = %s)
             '''%(payroll_ids)
             cr.execute(sql_ma)
             ma = cr.dictfetchone()['allowance'] or 0.0
@@ -2501,7 +2501,7 @@ class tpt_hr_payroll_approve_reject(osv.osv):
             
             ### END Excutive & Staff - Worker
             
-            sum_credit = (provident + vpf + tax + lwf + welfare + lic_premium /
+            sum_credit = (provident + vpf + tax + lwf + welfare + lic_premium +
                            + ins_oth + vvt_loan + vvt_hdfc + hfl + tmb + sbt + other)
             diff = gross - sum_credit
             
@@ -2552,7 +2552,9 @@ class tpt_hr_payroll_approve_reject(osv.osv):
                     payroll_workers_id = payroll_workers_ids[0]
             
             configuration_obj = self.pool.get('tpt.posting.configuration')
-            configuration_ids = configuration_obj.search(cr, uid, [('name', '=','payroll')])
+            configuration_ids = configuration_obj.search(cr, uid, [('name', '=','payroll'),('state', '=','done')])
+            if not configuration_ids:
+                raise osv.except_osv(_('Warning!'),_('GL Posting Configuration is missed. Please configure it in GL Posting Configuration master!'))
             year = str(line.year)
             month = str(line.month)
             sql_journal = '''
@@ -2578,13 +2580,15 @@ class tpt_hr_payroll_approve_reject(osv.osv):
                 other_loan_acc = configuration.other_loan_id and configuration.other_loan_id.id or False
                
                 salari_acc = configuration.salari_payable_id and configuration.salari_payable_id.id or False
+                wages_acc = configuration.wages_id and configuration.wages_id.id or False
                 wages_payable_acc = configuration.wages_payable_id and configuration.wages_payable_id.id or False
                 if not gross_acc or not provident_acc or not vpf_acc or not welfare_acc or not lic_premium_acc \
                 or not pro_tax_acc or not lwf_acc or not other_insu_acc or not vvti_acc or not lic_hfl_acc or not hdfc_acc \
                 or not tmb_acc or not sbt_acc or not other_loan_acc or not salari_acc or not wages_acc or not wages_payable_acc:
                     raise osv.except_osv(_('Warning!'),_('GL Posting Configuration is missed. Please configure it in GL Posting Configuration master!'))
                 
-            for excutive in payroll_obj.browse(cr,uid,payroll_excutive_id):
+            if payroll_excutive_id:
+                excutive = payroll_obj.browse(cr,uid,payroll_excutive_id)
                 sql = '''
                     select id
                     from account_period where EXTRACT(year from date_start)='%s' and EXTRACT(month from date_start)='%s'
@@ -2597,7 +2601,7 @@ class tpt_hr_payroll_approve_reject(osv.osv):
                 for period_id in period_obj.browse(cr,uid,period_ids):
                     res1 = {}
                     
-                    res1 = self.get_account_amount(cr,uid,excutive_ids)
+                    res1 = self.get_account_amount(cr,uid,payroll_excutive_id)
                     
                     
                     journal_s1_line = [(0,0,{
@@ -2685,7 +2689,8 @@ class tpt_hr_payroll_approve_reject(osv.osv):
                     }
                 new_s1_jour_id = account_move_obj.create(cr,uid,value_s1)
                 payroll_obj.write(cr, uid, excutive.id, {'state':'approve'})
-            for staff in payroll_obj.browse(cr,uid,payroll_staff_id):
+            if payroll_staff_id:
+                staff = payroll_obj.browse(cr,uid,payroll_staff_id)
                 sql = '''
                     select id
                     from account_period where EXTRACT(year from date_start)='%s' and EXTRACT(month from date_start)='%s'
@@ -2697,7 +2702,7 @@ class tpt_hr_payroll_approve_reject(osv.osv):
                 for period_id in period_obj.browse(cr,uid,period_ids):
                     res2 = {}
                         
-                    res2 = self.get_account_amount(cr,uid,staff_ids)
+                    res2 = self.get_account_amount(cr,uid,payroll_staff_id)
                     
                     journal_s2_line = [(0,0,{
                                     'name':line.year, 
@@ -2784,7 +2789,8 @@ class tpt_hr_payroll_approve_reject(osv.osv):
                     }
                 new_s2_jour_id = account_move_obj.create(cr,uid,value_s2)
                 payroll_obj.write(cr, uid, staff.id, {'state':'approve'})
-            for workers in payroll_obj.browse(cr,uid,payroll_workers_id):
+            if payroll_workers_id:
+                workers = payroll_obj.browse(cr,uid,payroll_workers_id)
                 sql = '''
                     select id
                     from account_period where EXTRACT(year from date_start)='%s' and EXTRACT(month from date_start)='%s'
@@ -2797,7 +2803,7 @@ class tpt_hr_payroll_approve_reject(osv.osv):
                 for period_id in period_obj.browse(cr,uid,period_ids):
                     res3 = {}
                         
-                    res3 = self.get_account_amount(cr,uid,workers_ids)
+                    res3 = self.get_account_amount(cr,uid,payroll_workers_id)
                     
                     journal_s3_line = [(0,0,{
                                     'name':line.year, 
