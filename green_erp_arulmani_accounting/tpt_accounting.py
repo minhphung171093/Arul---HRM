@@ -1828,14 +1828,58 @@ class account_voucher(osv.osv):
         if voucher.type_trans:   
             if voucher.type_trans in ('payment'):
                 credit = voucher.sum_amount
+                account_id = voucher.account_id.id
             elif voucher.type_trans in ('receipt'):
                 debit = voucher.sum_amount
+                account_id = voucher.account_id.id
 #/phuoc
         else:
             if voucher.type in ('purchase', 'payment'):
                 credit = voucher.paid_amount_in_company_currency
+                if voucher.type == 'payment':
+                    if voucher.journal_id.type == 'cash':
+                        sql = '''
+                            SELECT sup_pay_cash_id FROM tpt_posting_configuration WHERE name = 'sup_pay' and sup_pay_cash_id is not null
+                        '''
+                        cr.execute(sql)
+                        sup_pay_cash_id = cr.dictfetchone()
+                        if not sup_pay_cash_id:
+                            raise osv.except_osv(_('Warning!'),_('Account is not null, please configure Cash Account for Document Type is Supplier Payment in GL Posting Configrution !'))
+                        account_id = sup_pay_cash_id and sup_pay_cash_id['sup_pay_cash_id'] or False
+                    else:
+                        sql = '''
+                            SELECT sup_pay_bank_id FROM tpt_posting_configuration WHERE name = 'sup_pay' and sup_pay_bank_id is not null
+                        '''
+                        cr.execute(sql)
+                        sup_pay_bank_id = cr.dictfetchone()
+                        if not sup_pay_bank_id:
+                            raise osv.except_osv(_('Warning!'),_('Account is not null, please configure Bank Account for Document Type is Supplier Payment in GL Posting Configrution !'))
+                        account_id = sup_pay_bank_id and sup_pay_bank_id['sup_pay_bank_id'] or False
+                else:
+                    account_id = voucher.account_id.id
             elif voucher.type in ('sale', 'receipt'):
                 debit = voucher.paid_amount_in_company_currency
+                if voucher.type == 'receipt':
+                    if voucher.journal_id.type == 'cash':
+                        sql = '''
+                            SELECT cus_pay_cash_id FROM tpt_posting_configuration WHERE name = 'cus_pay' and cus_pay_cash_id is not null
+                        '''
+                        cr.execute(sql)
+                        cus_pay_cash_id = cr.dictfetchone()
+                        if not cus_pay_cash_id:
+                            raise osv.except_osv(_('Warning!'),_('Account is not null, please configure Cash Account for Document Type is Customer Payment in GL Posting Configrution !'))
+                        account_id = cus_pay_cash_id and cus_pay_cash_id['cus_pay_cash_id'] or False
+                    else:
+                        sql = '''
+                            SELECT cus_pay_bank_id FROM tpt_posting_configuration WHERE name = 'cus_pay' and cus_pay_bank_id is not null
+                        '''
+                        cr.execute(sql)
+                        cus_pay_bank_id = cr.dictfetchone()
+                        if not cus_pay_bank_id:
+                            raise osv.except_osv(_('Warning!'),_('Account is not null, please configure Bank Account for Document Type is Customer Payment in GL Posting Configrution !'))
+                        account_id = cus_pay_bank_id and cus_pay_bank_id['cus_pay_bank_id'] or False
+                else:
+                    account_id = voucher.account_id.id
             if debit < 0: credit = -debit; debit = 0.0
             if credit < 0: debit = -credit; credit = 0.0
             sign = debit - credit < 0 and -1 or 1
@@ -1847,7 +1891,7 @@ class account_voucher(osv.osv):
                 'name': voucher.name or '/',
                 'debit': debit,
                 'credit': credit,
-                'account_id': voucher.account_id.id,
+                'account_id': account_id,
                 'move_id': move_id,
                 'journal_id': voucher.journal_id.id,
                 'period_id': voucher.period_id.id,
@@ -1857,6 +1901,31 @@ class account_voucher(osv.osv):
                 'date': voucher.date,
                 'date_maturity': voucher.date_due
             }
+# phuoc
+#         if voucher.type:
+#             if voucher.type in ('purchase', 'payment'):
+#                 if voucher.journal_id.type == 'cash':
+#                     sql = '''
+#                         SELECT sup_pay_cash_id FROM tpt_posting_configuration WHERE name = 'sup_pay' and sup_pay_cash_id is not null
+#                     '''
+#                     cr.execute(sql)
+#                     sup_pay_cash_id = cr.dictfetchone()
+#                     if not sup_pay_cash_id:
+#                         raise osv.except_osv(_('Warning!'),_('Account is not null, please configure Cash Account for Document Type is Supplier Payment in GL Posting Configrution !'))
+#                     account_id = sup_pay_cash_id and sup_pay_cash_id['sup_pay_cash_id'] or False
+#                 else:
+#                     sql = '''
+#                         SELECT sup_pay_bank_id FROM tpt_posting_configuration WHERE name = 'sup_pay' and sup_pay_bank_id is not null
+#                     '''
+#                     cr.execute(sql)
+#                     sup_pay_bank_id = cr.dictfetchone()
+#                     if not sup_pay_bank_id:
+#                         raise osv.except_osv(_('Warning!'),_('Account is not null, please configure Bank Account for Document Type is Supplier Payment in GL Posting Configrution !'))
+#                     account_id = sup_pay_bank_id and sup_pay_bank_id['sup_pay_bank_id'] or False
+#                 move_line.update({
+#                     'account_id': account_id,
+#                 })
+# end phuoc
         return move_line
     def voucher_move_line_create(self, cr, uid, voucher_id, line_total, move_id, company_currency, current_currency, context=None):
         '''
@@ -2162,52 +2231,60 @@ class account_voucher(osv.osv):
                     write_off_name = voucher.comment
                 elif voucher.type in ('sale', 'receipt'):
                     if voucher.partner_id.supplier:
-                       account_id = voucher.partner_id.property_account_payable.id
+                       account_id = voucher.partner_id.property_account_payable and voucher.partner_id.property_account_payable.id or False
+                       if not account_id:
+                           raise osv.except_osv(_('Warning !'), _("Please configure Account Payable for this customer!"))
                     else:
 #  start  phuoc                         
-#  goc                       account_id = voucher.partner_id.property_account_receivable.id
-                        if voucher.journal_id.type == 'cash':
-                            sql = '''
-                                SELECT cus_pay_cash_id FROM tpt_posting_configuration WHERE name = 'cus_pay' and cus_pay_cash_id is not null
-                            '''
-                            cr.execute(sql)
-                            cus_pay_cash_id = cr.dictfetchone()
-                            if not cus_pay_cash_id:
-                                raise osv.except_osv(_('Warning!'),_('Account is not null, please configure Cash Account for Document Type is Customer Payment in GL Posting Configrution !'))
-                            account_id = cus_pay_cash_id and cus_pay_cash_id['cus_pay_cash_id'] or False
-                        else:
-                            sql = '''
-                                SELECT cus_pay_bank_id FROM tpt_posting_configuration WHERE name = 'cus_pay' and cus_pay_bank_id is not null
-                            '''
-                            cr.execute(sql)
-                            cus_pay_bank_id = cr.dictfetchone()
-                            if not cus_pay_bank_id:
-                                raise osv.except_osv(_('Warning!'),_('Account is not null, please configure Bank Account for Document Type is Customer Payment in GL Posting Configrution !'))
-                            account_id = cus_pay_bank_id and cus_pay_bank_id['cus_pay_bank_id'] or False
+                       account_id = voucher.partner_id.property_account_receivable and voucher.partner_id.property_account_receivable.id or False
+                       if not account_id:
+                           raise osv.except_osv(_('Warning !'), _("Please configure Account Receivable for this customer!"))
+#                         if voucher.journal_id.type == 'cash':
+#                             sql = '''
+#                                 SELECT cus_pay_cash_id FROM tpt_posting_configuration WHERE name = 'cus_pay' and cus_pay_cash_id is not null
+#                             '''
+#                             cr.execute(sql)
+#                             cus_pay_cash_id = cr.dictfetchone()
+#                             if not cus_pay_cash_id:
+#                                 raise osv.except_osv(_('Warning!'),_('Account is not null, please configure Cash Account for Document Type is Customer Payment in GL Posting Configrution !'))
+#                             account_id = cus_pay_cash_id and cus_pay_cash_id['cus_pay_cash_id'] or False
+#                         else:
+#                             sql = '''
+#                                 SELECT cus_pay_bank_id FROM tpt_posting_configuration WHERE name = 'cus_pay' and cus_pay_bank_id is not null
+#                             '''
+#                             cr.execute(sql)
+#                             cus_pay_bank_id = cr.dictfetchone()
+#                             if not cus_pay_bank_id:
+#                                 raise osv.except_osv(_('Warning!'),_('Account is not null, please configure Bank Account for Document Type is Customer Payment in GL Posting Configrution !'))
+#                             account_id = cus_pay_bank_id and cus_pay_bank_id['cus_pay_bank_id'] or False
 # end phuoc
                 else:
                     if voucher.partner_id.customer:
-                        account_id = voucher.partner_id.property_account_receivable.id
+                        account_id = voucher.partner_id.property_account_receivable and voucher.partner_id.property_account_receivable.id or False
+                        if not account_id:
+                           raise osv.except_osv(_('Warning !'), _("Please configure Account Receivable for this customer!"))
                     else:
-#                         account_id = voucher.partner_id.property_account_payable.id
-                        if voucher.journal_id.type == 'cash':
-                            sql = '''
-                                SELECT sup_pay_cash_id FROM tpt_posting_configuration WHERE name = 'sup_pay' and sup_pay_cash_id is not null
-                            '''
-                            cr.execute(sql)
-                            sup_pay_cash_id = cr.dictfetchone()
-                            if not sup_pay_cash_id:
-                                raise osv.except_osv(_('Warning!'),_('Account is not null, please configure Cash Account for Document Type is Supplier Payment in GL Posting Configrution !'))
-                            account_id = sup_pay_cash_id and sup_pay_cash_id['sup_pay_cash_id'] or False
-                        else:
-                            sql = '''
-                                SELECT sup_pay_bank_id FROM tpt_posting_configuration WHERE name = 'sup_pay' and sup_pay_bank_id is not null
-                            '''
-                            cr.execute(sql)
-                            sup_pay_bank_id = cr.dictfetchone()
-                            if not sup_pay_bank_id:
-                                raise osv.except_osv(_('Warning!'),_('Account is not null, please configure Bank Account for Document Type is Supplier Payment in GL Posting Configrution !'))
-                            account_id = sup_pay_bank_id and sup_pay_bank_id['sup_pay_bank_id'] or False
+                        account_id = voucher.partner_id.property_account_payable and voucher.partner_id.property_account_payable.id or False
+                        if not account_id:
+                           raise osv.except_osv(_('Warning !'), _("Please configure Account Payable for this customer!"))
+#                         if voucher.journal_id.type == 'cash':
+#                             sql = '''
+#                                 SELECT sup_pay_cash_id FROM tpt_posting_configuration WHERE name = 'sup_pay' and sup_pay_cash_id is not null
+#                             '''
+#                             cr.execute(sql)
+#                             sup_pay_cash_id = cr.dictfetchone()
+#                             if not sup_pay_cash_id:
+#                                 raise osv.except_osv(_('Warning!'),_('Account is not null, please configure Cash Account for Document Type is Supplier Payment in GL Posting Configrution !'))
+#                             account_id = sup_pay_cash_id and sup_pay_cash_id['sup_pay_cash_id'] or False
+#                         else:
+#                             sql = '''
+#                                 SELECT sup_pay_bank_id FROM tpt_posting_configuration WHERE name = 'sup_pay' and sup_pay_bank_id is not null
+#                             '''
+#                             cr.execute(sql)
+#                             sup_pay_bank_id = cr.dictfetchone()
+#                             if not sup_pay_bank_id:
+#                                 raise osv.except_osv(_('Warning!'),_('Account is not null, please configure Bank Account for Document Type is Supplier Payment in GL Posting Configrution !'))
+#                             account_id = sup_pay_bank_id and sup_pay_bank_id['sup_pay_bank_id'] or False
             else:
                 account_id = voucher.account_id.id
             sign = voucher.type == 'payment' and -1 or 1
