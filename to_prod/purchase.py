@@ -3158,10 +3158,10 @@ class tpt_quanlity_inspection(osv.osv):
         else:
             location_id = locat_ids[0]
             
-        parent_dest_ids = locat_obj.search(cr, uid, [('name','=','Blocked List'),('usage','=','view')])
+        parent_dest_ids = locat_obj.search(cr, uid, [('name','in',['Block List','Block','Blocked List','Blocked']),('usage','=','view')])
         if not parent_dest_ids:
             raise osv.except_osv(_('Warning!'),_('System does not have Blocked List warehouse, please check it!'))
-        location_dest_ids = locat_obj.search(cr, uid, [('name','in',['Blocked List','Block List']),('location_id','=',parent_dest_ids[0])])
+        location_dest_ids = locat_obj.search(cr, uid, [('name','in',['Block List','Block','Blocked List','Blocked']),('location_id','=',parent_dest_ids[0])])
         if not location_dest_ids:
             raise osv.except_osv(_('Warning!'),_('System does not have Blocked List location in Blocked List warehouse, please check it!'))
         else:

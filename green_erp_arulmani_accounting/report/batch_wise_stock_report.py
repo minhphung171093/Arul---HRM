@@ -41,6 +41,10 @@ class Parser(report_sxw.rml_parse):
             'get_line_product':self.get_line_product,
             'get_date': self.get_date,
             'get_location': self.get_location,
+            'get_line_batch': self.get_line_batch,
+            'get_batch_name': self.get_batch_name,
+            'get_application': self.get_application,
+            'get_total_qty': self.get_total_qty,
         })
     
     def convert_date(self, date):
@@ -61,41 +65,150 @@ class Parser(report_sxw.rml_parse):
         if product_data:
             product_ids = [product_data[0]]
         else:
-            sql = '''
-                select foo.product_id,case when sum(foo.product_qty)>0 then sum(foo.product_qty) else 0 end ton_sl from 
-                    (select st.product_id,st.product_qty
-                        from stock_move st 
-                        where st.state='done' and st.location_dest_id = %s
-                    union all
-                    select st.product_id,st.product_qty*-1
-                        from stock_move st 
-                        where st.state='done' and st.location_id = %s
-                    )foo
-                    group by foo.product_id
-            '''%(location_data[0],location_data[0])
-            self.cr.execute(sql)
-            product_ids = []
-            for r in self.cr.fetchall():
-                if r[1]>0:
-                    product_ids.append(r[0])
+            application_data = wizard_data['application_id']
+            if application_data:
+                sql = '''
+                    select foo.product_id,case when sum(foo.product_qty)>0 then sum(foo.product_qty) else 0 end ton_sl from 
+                        (select st.product_id,st.product_qty
+                            from stock_move st 
+                            where st.state='done' and st.location_dest_id = %s
+                                and st.prodlot_id in (select prod_batch_id from tpt_quality_verification where applicable_id = %s )
+                        union all
+                        select st.product_id,st.product_qty*-1
+                            from stock_move st 
+                            where st.state='done' and st.location_id = %s
+                                and st.prodlot_id in (select prod_batch_id from tpt_quality_verification where applicable_id = %s )
+                        )foo
+                        group by foo.product_id
+                '''%(location_data[0],application_data[0],location_data[0],application_data[0])
+                self.cr.execute(sql)
+                product_ids = []
+                for r in self.cr.fetchall():
+                    if r[1]>0:
+                        product_ids.append(r[0])
+            else:
+                sql = '''
+                    select foo.product_id,case when sum(foo.product_qty)>0 then sum(foo.product_qty) else 0 end ton_sl from 
+                        (select st.product_id,st.product_qty
+                            from stock_move st 
+                            where st.state='done' and st.location_dest_id = %s
+                        union all
+                        select st.product_id,st.product_qty*-1
+                            from stock_move st 
+                            where st.state='done' and st.location_id = %s
+                        )foo
+                        group by foo.product_id
+                '''%(location_data[0],location_data[0])
+                self.cr.execute(sql)
+                product_ids = []
+                for r in self.cr.fetchall():
+                    if r[1]>0:
+                        product_ids.append(r[0])
         return self.pool.get('product.product').browse(self.cr, self.uid, product_ids)
     
     def get_line_batch(self,product):
         wizard_data = self.localcontext['data']['form']
         location_data = wizard_data['location_id']
-        sql = '''
-            select foo.prodlot_id,case when sum(foo.product_qty)>0 then sum(foo.product_qty) else 0 end ton_sl from 
-                (select st.prodlot_id,st.product_qty
-                    from stock_move st 
-                    where st.state='done' and st.product_id = %s and st.location_dest_id = %s
-                union all
-                select st.prodlot_id,st.product_qty*-1
-                    from stock_move st 
-                    where st.state='done' and st.product_id = %s and st.location_id = %s
-                )foo
-                group by st.prodlot_id
-        '''%(product.id,location_data[0],product.id,location_data[0])
-        self.cr.execute(sql)
-        return True
+        application_data = wizard_data['application_id']
+        if application_data:
+            sql = '''
+                select foo.prodlot_id,case when sum(foo.product_qty)!=0 then sum(foo.product_qty) else 0 end ton_sl from 
+                    (select st.prodlot_id,st.product_qty
+                        from stock_move st 
+                        where st.state='done' and st.product_id = %s and st.location_dest_id = %s
+                    union all
+                    select st.prodlot_id,st.product_qty*-1
+                        from stock_move st 
+                        where st.state='done' and st.product_id = %s and st.location_id = %s
+                    )foo
+                    where foo.prodlot_id in (select prod_batch_id from tpt_quality_verification where applicable_id = %s )
+                    group by foo.prodlot_id
+            '''%(product.id,location_data[0],product.id,location_data[0],application_data[0])
+            self.cr.execute(sql)
+            tons = []
+            for r in self.cr.fetchall():
+                if r[1]!=0:
+                    tons.append(r)
+        else: 
+            sql = '''
+                select foo.prodlot_id,case when sum(foo.product_qty)!=0 then sum(foo.product_qty) else 0 end ton_sl from 
+                    (select st.prodlot_id,st.product_qty
+                        from stock_move st 
+                        where st.state='done' and st.product_id = %s and st.location_dest_id = %s
+                    union all
+                    select st.prodlot_id,st.product_qty*-1
+                        from stock_move st 
+                        where st.state='done' and st.product_id = %s and st.location_id = %s
+                    )foo
+                    group by foo.prodlot_id
+            '''%(product.id,location_data[0],product.id,location_data[0])
+            self.cr.execute(sql)
+            tons = []
+            for r in self.cr.fetchall():
+                if r[1]!=0:
+                    tons.append(r)
+        return tons
+    
+    def get_application(self,product,batch_id):
+        def get_name_application(application_id=False):
+            if application_id:
+                return self.pool.get('crm.application').browse(self.cr, self.uid, application_id).name
+            else:
+                return ''
+        wizard_data = self.localcontext['data']['form']
+        application_data = wizard_data['application_id']
+        if application_data:
+            return application_data[1]
+        else:
+            if product and batch_id:
+                sql = 'select applicable_id from tpt_quality_verification where product_id = %s and prod_batch_id=%s'%(product.id,batch_id)
+                self.cr.execute(sql)
+                kq = self.cr.fetchone()
+                
+                return kq and get_name_application(kq[0]) or ''
+            else:
+                return ''
+    
+    def get_batch_name(self,batch_id=False):
+        if batch_id:
+            return self.pool.get('stock.production.lot').browse(self.cr,self.uid,batch_id).name
+        else:
+            return 'Undefined'
+        
+    def get_total_qty(self, product):
+        wizard_data = self.localcontext['data']['form']
+        location_data = wizard_data['location_id']
+        application_data = wizard_data['application_id']
+        if application_data:
+            sql = '''
+                select case when sum(foo.product_qty)!=0 then sum(foo.product_qty) else 0 end ton_sl from 
+                    (select st.product_qty
+                        from stock_move st 
+                        where st.state='done' and st.product_id = %s and st.location_dest_id = %s
+                            and st.prodlot_id in (select prod_batch_id from tpt_quality_verification where applicable_id = %s )
+                    union all
+                    select st.product_qty*-1
+                        from stock_move st 
+                        where st.state='done' and st.product_id = %s and st.location_id = %s
+                            and st.prodlot_id in (select prod_batch_id from tpt_quality_verification where applicable_id = %s )
+                    )foo
+            '''%(product.id,location_data[0],application_data[0],product.id,location_data[0],application_data[0])
+            self.cr.execute(sql)
+            tons = self.cr.fetchone()[0]
+        else: 
+            sql = '''
+                select case when sum(foo.product_qty)!=0 then sum(foo.product_qty) else 0 end ton_sl from 
+                    (select st.product_qty
+                        from stock_move st 
+                        where st.state='done' and st.product_id = %s and st.location_dest_id = %s
+                    union all
+                    select st.product_qty*-1
+                        from stock_move st 
+                        where st.state='done' and st.product_id = %s and st.location_id = %s
+                    )foo
+            '''%(product.id,location_data[0],product.id,location_data[0])
+            self.cr.execute(sql)
+            tons = self.cr.fetchone()[0]
+        return float(tons)
 # vim:expandtab:smartindent:tabstop=4:softtabstop=4:shiftwidth=4:
 
