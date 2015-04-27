@@ -2232,9 +2232,13 @@ class account_voucher(osv.osv):
                 elif voucher.type in ('sale', 'receipt'):
                     if voucher.partner_id.supplier:
                        account_id = voucher.partner_id.property_account_payable and voucher.partner_id.property_account_payable.id or False
+                       if not account_id:
+                           raise osv.except_osv(_('Warning !'), _("Please configure Account Payable for this customer!"))
                     else:
 #  start  phuoc                         
                        account_id = voucher.partner_id.property_account_receivable and voucher.partner_id.property_account_receivable.id or False
+                       if not account_id:
+                           raise osv.except_osv(_('Warning !'), _("Please configure Account Receivable for this customer!"))
 #                         if voucher.journal_id.type == 'cash':
 #                             sql = '''
 #                                 SELECT cus_pay_cash_id FROM tpt_posting_configuration WHERE name = 'cus_pay' and cus_pay_cash_id is not null
@@ -2256,9 +2260,13 @@ class account_voucher(osv.osv):
 # end phuoc
                 else:
                     if voucher.partner_id.customer:
-                        account_id = voucher.partner_id.property_account_receivable.id
+                        account_id = voucher.partner_id.property_account_receivable and voucher.partner_id.property_account_receivable.id or False
+                        if not account_id:
+                           raise osv.except_osv(_('Warning !'), _("Please configure Account Receivable for this customer!"))
                     else:
-                        account_id = voucher.partner_id.property_account_payable.id
+                        account_id = voucher.partner_id.property_account_payable and voucher.partner_id.property_account_payable.id or False
+                        if not account_id:
+                           raise osv.except_osv(_('Warning !'), _("Please configure Account Payable for this customer!"))
 #                         if voucher.journal_id.type == 'cash':
 #                             sql = '''
 #                                 SELECT sup_pay_cash_id FROM tpt_posting_configuration WHERE name = 'sup_pay' and sup_pay_cash_id is not null
