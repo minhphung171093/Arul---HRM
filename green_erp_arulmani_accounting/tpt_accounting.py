@@ -2785,7 +2785,7 @@ class tpt_hr_payroll_approve_reject(osv.osv):
                     'period_id':period_id.id ,
                     'date': time.strftime('%Y-%m-%d'),
                     'line_id': journal_s2_line,
-                    'doc_type':'payroll'
+                    'doc_type':'staff_payroll'
                     }
                 new_s2_jour_id = account_move_obj.create(cr,uid,value_s2)
                 payroll_obj.write(cr, uid, staff.id, {'state':'approve'})
@@ -2886,7 +2886,7 @@ class tpt_hr_payroll_approve_reject(osv.osv):
                     'period_id':period_id.id ,
                     'date': time.strftime('%Y-%m-%d'),
                     'line_id': journal_s3_line,
-                    'doc_type':'payroll'
+                    'doc_type':'worker_payroll'
                     }
                 new_s3_jour_id = account_move_obj.create(cr,uid,value_s3)
                 payroll_obj.write(cr, uid, workers.id, {'state':'approve'})
@@ -3132,7 +3132,7 @@ class account_move(osv.osv):
     _columns = {
            'doc_type': fields.selection([('cus_inv', 'Customer Invoice'),('cus_pay', 'Customer Payment'),
                                   ('sup_inv_po', 'Supplier Invoice(With PO)'),('sup_inv', 'Supplier Invoice(Without PO)'),('sup_pay', 'Supplier Payment'),
-                                  ('payroll', 'Payroll'),
+                                  ('payroll', 'Executives Payroll'),
                                   ('grn', 'GRN'),
                                   ('good', 'Good Issue'),
                                   ('do', 'DO'),
@@ -3143,7 +3143,10 @@ class account_move(osv.osv):
                                   ('bank_pay', 'Bank Payment'),
                                   ('bank_rec', 'Bank Receipt'),
                                   ('ser_inv', 'Service Invoice'),
-                                  ('product', 'Production'),],'Document Type'),      
+                                  ('product', 'Production'),
+                                  ('staff_payroll', 'Staff Payroll'),
+                                  ('worker_payroll', 'Workers Payroll')],'Document Type'),     
+                                  
                 }
 account_move()
 
