@@ -2231,10 +2231,10 @@ class account_voucher(osv.osv):
                     write_off_name = voucher.comment
                 elif voucher.type in ('sale', 'receipt'):
                     if voucher.partner_id.supplier:
-                       account_id = voucher.partner_id.property_account_payable.id
+                       account_id = voucher.partner_id.property_account_payable and voucher.partner_id.property_account_payable.id or False
                     else:
 #  start  phuoc                         
-                       account_id = voucher.partner_id.property_account_receivable.id
+                       account_id = voucher.partner_id.property_account_receivable and voucher.partner_id.property_account_receivable.id or False
 #                         if voucher.journal_id.type == 'cash':
 #                             sql = '''
 #                                 SELECT cus_pay_cash_id FROM tpt_posting_configuration WHERE name = 'cus_pay' and cus_pay_cash_id is not null
