@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="utf-8"?>
+<openerp>
+<data>
+
+	    <record id="view_purchase_order_list_tree" model="ir.ui.view">
+	        <field name="name">purchase.order.list.tree</field>
+	        <field name="model">purchase.order.list</field>
+	        <field name="arch" type="xml">
+	            <tree string="Purchase Order List" create="false" edit="false" delete="false">
+	                <field name="si_no"/>
+	                <field name="po_id"/>
+	                <field name="po_date"/>
+	                <field name="po_release_date"/>
+	                <field name="supplier_id"/>
+	                <field name="line_no"/>
+	                <field name="product_id"/>
+	                <field name="material_name"/>
+	                <field name="department_id"/>
+	                <field name="uom_id"/>
+	                <field name="quantity"/>
+	                <field name="unit_price"/>
+	                <field name="currency_id"/>
+	                <field name="value"/>
+	                <field name="pending_quantity"/>
+	           </tree>
+	        </field>
+	    </record>
+	
+		<record id="purchase_order_list_wizard_view" model="ir.ui.view">
+	        <field name="name">purchase.order.list.wizard.view</field>
+	        <field name="model">purchase.order.list.wizard</field>
+	        <field name="arch" type="xml">
+	            <form string="Purchase Order List" version="7.0">
+	            	<group>
+		                <field name="date_from" />
+	                	<field name="date_to" />
+	                </group>
+	                <footer>
+	                    <button name="view_report" type='object' string="View" class="oe_highlight"/>
+	                    or
+	                    <button string="Cancel" class="oe_highlight" special="cancel" />
+	                </footer>
+	            </form>
+	        </field>
+    	</record>
+
+	    <record model="ir.actions.act_window" id="action_purchase_order_list_wizard_view">
+	        <field name="name">Purchase Order List</field>
+	        <field name="res_model">purchase.order.list.wizard</field>
+	        <field name="view_type">form</field>
+	        <field name="view_mode">form</field>
+	        <field name="view_id" ref="purchase_order_list_wizard_view"/>
+	        <field name="target">new</field>
+	    </record>
+	    
+	    
+        <menuitem action="action_purchase_order_list_wizard_view"
+            id="menu_action_purchase_order_list_wizard_view"
+            parent="stock.menu_stock_warehouse_mgmt" sequence="105"/>
+
+</data>
+</openerp>
