@@ -1060,8 +1060,8 @@ class account_invoice_line(osv.osv):
             cr.execute('SELECT * FROM account_invoice WHERE id=%s', (invoice_id,))
             for account in cr.dictfetchall():
                 tds_amount = 0
-                if account['tds_id']:
-                    tds_amount = account['amount_untaxed'] * invoice.tds_id.amount/100
+                if account['amount_total_tds']:
+                    tds_amount = account['amount_total_tds']
                 sql = '''
                     SELECT sup_tds_id FROM tpt_posting_configuration WHERE name = 'sup_inv' and sup_tds_id is not null
                 '''
@@ -1174,57 +1174,129 @@ class account_invoice_line(osv.osv):
             currency_id = inv_id.currency_id.id or False
         if currency != 'INR':
             voucher_rate = self.pool.get('res.currency').read(cr, uid, currency_id, ['rate'], context=ctx)['rate']
-        cr.execute('SELECT * FROM account_invoice_line WHERE invoice_id=%s', (invoice_id,))
-        for t in cr.dictfetchall():
-            cr.execute('SELECT * FROM account_invoice WHERE id=%s', (invoice_id,))
-            for account in cr.dictfetchall():
-                tax = account['amount_tax'] * voucher_rate
-#         invoice_ids = [r[0] for r in cr.fetchall()]
-#         for invoice_line in self.browse(cr,uid,invoice_ids):
-#             basic = (invoice_line.quantity * invoice_line.price_unit) - ( (invoice_line.quantity * invoice_line.price_unit)*invoice_line.disc/100)
-#             if (invoice_line.p_f_type == '1'):
-#                 p_f = basic * invoice_line.p_f/100
-#             else:
-#                 p_f = invoice_line.p_f
-#             if invoice_line.ed_type == '1' :
-#                 ed = (basic + p_f) * invoice_line.ed/100
-#             else:
-#                 ed = invoice_line.ed
-#             
-#             tax_amounts = [r.amount for r in invoice_line.invoice_line_tax_id]
-#             tax = 0
-#             for tax_amount in tax_amounts:
-#                 tax += tax_amount/100
-#             amount_total_tax = (basic + p_f + ed)*(tax)
-                sql = '''
-                    SELECT cus_inv_vat_id FROM tpt_posting_configuration WHERE name = 'cus_inv' and cus_inv_vat_id is not null
-                '''
-                cr.execute(sql)
-                cus_inv_vat_id = cr.dictfetchone()
-                if cus_inv_vat_id:
-                    account = cus_inv_vat_id and cus_inv_vat_id['cus_inv_vat_id'] or False
-                sql = '''
-                    SELECT cus_inv_cst_id FROM tpt_posting_configuration WHERE name = 'cus_inv' and cus_inv_cst_id is not null
-                '''
-                cr.execute(sql)
-                cus_inv_cst_id = cr.dictfetchone()
-                if cus_inv_cst_id:
-                    account = cus_inv_cst_id and cus_inv_cst_id['cus_inv_cst_id'] or False
-                if cus_inv_cst_id or cus_inv_vat_id:
-                    if tax:
-                        res.append({
-                            'type':'tax',
-                            'name':t['name'],
-                            'price_unit': t['price_unit'],
-                            'quantity': 1,
-                            'price': tax,
-                            'account_id': account,
-                            'account_analytic_id': t['account_analytic_id'],
-                        })
-                else :
-                        raise osv.except_osv(_('Warning!'),_('Account is not null, please configure it in GL Posting Configrution !'))
-                break
-            break
+        for line in inv_id.invoice_line:
+            basic = 0.0
+            p_f = 0.0
+            ed = 0.0
+            tax_value = 0.0
+            if line.invoice_line_tax_id:
+                tax_names = [r.name for r in line.invoice_line_tax_id]
+                for tax_name in tax_names:
+                    if 'CST' in tax_name:
+                        tax_amounts = [r.amount for r in line.invoice_line_tax_id]
+                        for tax_amount in tax_amounts:
+                            tax_value += tax_amount/100
+                            basic = (line.quantity * line.price_unit) - ( (line.quantity * line.price_unit)*line.disc/100)
+                            if line.p_f_type == '1' :
+                                p_f = basic * line.p_f/100
+                            elif line.p_f_type == '2' :
+                                p_f = line.p_f
+                            elif line.p_f_type == '3' :
+                                p_f = line.p_f * line.quantity
+                            else:
+                                p_f = line.p_f
+                            if line.ed_type == '1' :
+                                ed = (basic + p_f) * line.ed/100
+                            elif line.ed_type == '2' :
+                                ed = line.ed
+                            elif line.ed_type == '3' :
+                                ed = line.e_d * line.quantity
+                            else:
+                                ed = line.ed
+                            tax = (basic + p_f + ed)*(tax_value) * voucher_rate
+                        sql = '''
+                            SELECT cus_inv_cst_id FROM tpt_posting_configuration WHERE name = 'cus_inv' and cus_inv_cst_id is not null
+                        '''
+                        cr.execute(sql)
+                        cus_inv_cst_id = cr.dictfetchone()
+                        if cus_inv_cst_id:
+                            account = cus_inv_cst_id and cus_inv_cst_id['cus_inv_cst_id'] or False
+                        else:
+                            raise osv.except_osv(_('Warning!'),_('Account is not null, please configure CST Receivables in GL Posting Configrution !'))
+                        if tax:
+                            res.append({
+                                'type':'tax',
+                                'name':line.name,
+                                'price_unit': line.price_unit,
+                                'quantity': 1,
+                                'price': tax,
+                                'account_id': account,
+                                'account_analytic_id': line.account_analytic_id.id,
+                                })
+                        break
+                    elif 'VAT' in tax_name:
+                        tax_amounts = [r.amount for r in line.invoice_line_tax_id]
+                        for tax_amount in tax_amounts:
+                            tax_value += tax_amount/100
+                            basic = (line.quantity * line.price_unit) - ( (line.quantity * line.price_unit)*line.disc/100)
+                            if line.p_f_type == '1' :
+                                p_f = basic * line.p_f/100
+                            elif line.p_f_type == '2' :
+                                p_f = line.p_f
+                            elif line.p_f_type == '3' :
+                                p_f = line.p_f * line.quantity
+                            else:
+                                p_f = line.p_f
+                            if line.ed_type == '1' :
+                                ed = (basic + p_f) * line.ed/100
+                            elif line.ed_type == '2' :
+                                ed = line.ed
+                            elif line.ed_type == '3' :
+                                ed = line.e_d * line.quantity
+                            else:
+                                ed = line.ed
+                            tax = (basic + p_f + ed)*(tax_value) * voucher_rate
+                        sql = '''
+                            SELECT cus_inv_vat_id FROM tpt_posting_configuration WHERE name = 'cus_inv' and cus_inv_vat_id is not null
+                        '''
+                        cr.execute(sql)
+                        cus_inv_vat_id = cr.dictfetchone()
+                        if cus_inv_vat_id:
+                            account = cus_inv_vat_id and cus_inv_vat_id['cus_inv_vat_id'] or False
+                        else:
+                            raise osv.except_osv(_('Warning!'),_('Account is not null, please configure VAT Receivables in GL Posting Configrution !'))
+                        if tax:
+                            res.append({
+                                'type':'tax',
+                                'name':line.name,
+                                'price_unit': line.price_unit,
+                                'quantity': 1,
+                                'price': tax,
+                                'account_id': account,
+                                'account_analytic_id': line.account_analytic_id.id,
+                            })
+                        break
+                    else:
+                        tax = voucher_rate * inv.amount_tax
+                        sql = '''
+                            SELECT cus_inv_vat_id FROM tpt_posting_configuration WHERE name = 'cus_inv' and cus_inv_vat_id is not null
+                        '''
+                        cr.execute(sql)
+                        cus_inv_vat_id = cr.dictfetchone()
+                        if cus_inv_vat_id:
+                            account = cus_inv_vat_id and cus_inv_vat_id['cus_inv_vat_id'] or False
+                        sql = '''
+                            SELECT cus_inv_cst_id FROM tpt_posting_configuration WHERE name = 'cus_inv' and cus_inv_cst_id is not null
+                        '''
+                        cr.execute(sql)
+                        cus_inv_cst_id = cr.dictfetchone()
+                        if cus_inv_cst_id:
+                            account = cus_inv_cst_id and cus_inv_cst_id['cus_inv_cst_id'] or False
+                        if cus_inv_cst_id or cus_inv_vat_id:
+                            if tax:
+                                res.append({
+                                    'type':'tax',
+                                    'name':line.name,
+                                    'price_unit': line.price_unit,
+                                    'quantity': 1,
+                                    'price': tax,
+                                    'account_id': account,
+                                    'account_analytic_id': line.account_analytic_id.id,
+                                })
+                            break
+                        else :
+                                raise osv.except_osv(_('Warning!'),_('Account is not null, please configure it in GL Posting Configrution !'))
+               
         return res
     
     def move_line_customer_amount_tax(self, cr, uid, invoice_id, context = None):
