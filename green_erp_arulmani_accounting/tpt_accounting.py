@@ -564,7 +564,10 @@ stock_picking()
 class account_invoice(osv.osv):
     _inherit = "account.invoice"
      
-     
+    _columns = {
+        'bill_number': fields.char('Bill Number', size=1024),
+        'bill_date': fields.date('Bill Date'),
+    }
       
 #     def check_tax_lines(self, cr, uid, inv, compute_taxes, ait_obj):
 #         company_currency = self.pool['res.company'].browse(cr, uid, inv.company_id.id).currency_id
