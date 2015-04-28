@@ -1290,46 +1290,47 @@ class arul_hr_payroll_executions(osv.osv):
                                           'deduction_parameters_id':_other_deductions_id.deduction_parameters_id.id,
                                           'float': pt,
                                     }))
-                            if _other_deductions_id.deduction_parameters_id.code == 'INS_LIC_PREM':
-                                vals_other_deductions.append((0,0, {
-                                          'deduction_parameters_id':_other_deductions_id.deduction_parameters_id.id,
-                                          'float': i_lic_prem,
-                                    }))
-                            if _other_deductions_id.deduction_parameters_id.code == 'INS_OTHERS':
-                                vals_other_deductions.append((0,0, {
-                                          'deduction_parameters_id':_other_deductions_id.deduction_parameters_id.id,
-                                          'float': i_lic_prem,
-                                    }))
-                            if _other_deductions_id.deduction_parameters_id.code == 'LOAN_VVTI':
-                                vals_other_deductions.append((0,0, {
-                                          'deduction_parameters_id':_other_deductions_id.deduction_parameters_id.id,
-                                          'float': l_vvti_loan,
-                                    }))
-                            if _other_deductions_id.deduction_parameters_id.code == 'LOAN_LIC_HFL':
-                                vals_other_deductions.append((0,0, {
-                                          'deduction_parameters_id':_other_deductions_id.deduction_parameters_id.id,
-                                          'float': l_lic_hfl,
-                                    }))
-                            if _other_deductions_id.deduction_parameters_id.code == 'LOAN_HDFC':
-                                vals_other_deductions.append((0,0, {
-                                          'deduction_parameters_id':_other_deductions_id.deduction_parameters_id.id,
-                                          'float': l_hdfc,
-                                    }))
-                            if _other_deductions_id.deduction_parameters_id.code == 'LOAN_TMB':
-                                vals_other_deductions.append((0,0, {
-                                          'deduction_parameters_id':_other_deductions_id.deduction_parameters_id.id,
-                                          'float': l_tmb,
-                                    }))
-                            if _other_deductions_id.deduction_parameters_id.code == 'LOAN_SBT':
-                                vals_other_deductions.append((0,0, {
-                                          'deduction_parameters_id':_other_deductions_id.deduction_parameters_id.id,
-                                          'float': l_sbt,
-                                    }))
-                            if _other_deductions_id.deduction_parameters_id.code == 'LOAN_OTHERS':
-                                vals_other_deductions.append((0,0, {
-                                          'deduction_parameters_id':_other_deductions_id.deduction_parameters_id.id,
-                                          'float': l_others,
-                                    }))
+#                             if _other_deductions_id.deduction_parameters_id.code == 'INS_LIC_PREM':
+#                                 vals_other_deductions.append((0,0, {
+#                                           'deduction_parameters_id':_other_deductions_id.deduction_parameters_id.id,
+#                                           'float': i_lic_prem,
+#                                     }))
+#                             if _other_deductions_id.deduction_parameters_id.code == 'INS_OTHERS':
+#                                 vals_other_deductions.append((0,0, {
+#                                           'deduction_parameters_id':_other_deductions_id.deduction_parameters_id.id,
+#                                           'float': i_lic_prem,
+#                                     }))
+#                             if _other_deductions_id.deduction_parameters_id.code == 'LOAN_VVTI':
+#                                 vals_other_deductions.append((0,0, {
+#                                           'deduction_parameters_id':_other_deductions_id.deduction_parameters_id.id,
+#                                           'float': l_vvti_loan,
+#                                     }))
+#                             if _other_deductions_id.deduction_parameters_id.code == 'LOAN_LIC_HFL':
+#                                 vals_other_deductions.append((0,0, {
+#                                           'deduction_parameters_id':_other_deductions_id.deduction_parameters_id.id,
+#                                           'float': l_lic_hfl,
+#                                     }))
+#                             if _other_deductions_id.deduction_parameters_id.code == 'LOAN_HDFC':
+#                                 vals_other_deductions.append((0,0, {
+#                                           'deduction_parameters_id':_other_deductions_id.deduction_parameters_id.id,
+#                                           'float': l_hdfc,
+#                                     }))
+#                             if _other_deductions_id.deduction_parameters_id.code == 'LOAN_TMB':
+#                                 vals_other_deductions.append((0,0, {
+#                                           'deduction_parameters_id':_other_deductions_id.deduction_parameters_id.id,
+#                                           'float': l_tmb,
+#                                     }))
+#                             if _other_deductions_id.deduction_parameters_id.code == 'LOAN_SBT':
+#                                 vals_other_deductions.append((0,0, {
+#                                           'deduction_parameters_id':_other_deductions_id.deduction_parameters_id.id,
+#                                           'float': l_sbt,
+#                                     }))
+#                             if _other_deductions_id.deduction_parameters_id.code == 'LOAN_OTHERS':
+#                                 vals_other_deductions.append((0,0, {
+#                                           'deduction_parameters_id':_other_deductions_id.deduction_parameters_id.id,
+#                                           'float': l_others,
+#                                     }))
+
 #                             if _other_deductions_id.deduction_parameters_id.code == 'LWF':
 #                                 vals_other_deductions.append((0,0, {
 #                                           'deduction_parameters_id':_other_deductions_id.deduction_parameters_id.id,
@@ -1754,46 +1755,47 @@ class arul_hr_payroll_executions(osv.osv):
                                           'deduction_parameters_id':_other_deductions_id.deduction_parameters_id.id,
                                           'float': pt,
                                     }))
-                            if _other_deductions_id.deduction_parameters_id.code == 'INS_LIC_PREM':
-                                vals_other_deductions.append((0,0, {
-                                          'deduction_parameters_id':_other_deductions_id.deduction_parameters_id.id,
-                                          'float': i_lic_prem,
-                                    }))
-                            if _other_deductions_id.deduction_parameters_id.code == 'INS_OTHERS':
-                                vals_other_deductions.append((0,0, {
-                                          'deduction_parameters_id':_other_deductions_id.deduction_parameters_id.id,
-                                          'float': i_lic_prem,
-                                    }))
-                            if _other_deductions_id.deduction_parameters_id.code == 'LOAN_VVTI':
-                                vals_other_deductions.append((0,0, {
-                                          'deduction_parameters_id':_other_deductions_id.deduction_parameters_id.id,
-                                          'float': l_vvti_loan,
-                                    }))
-                            if _other_deductions_id.deduction_parameters_id.code == 'LOAN_LIC_HFL':
-                                vals_other_deductions.append((0,0, {
-                                          'deduction_parameters_id':_other_deductions_id.deduction_parameters_id.id,
-                                          'float': l_lic_hfl,
-                                    }))
-                            if _other_deductions_id.deduction_parameters_id.code == 'LOAN_HDFC':
-                                vals_other_deductions.append((0,0, {
-                                          'deduction_parameters_id':_other_deductions_id.deduction_parameters_id.id,
-                                          'float': l_hdfc,
-                                    }))
-                            if _other_deductions_id.deduction_parameters_id.code == 'LOAN_TMB':
-                                vals_other_deductions.append((0,0, {
-                                          'deduction_parameters_id':_other_deductions_id.deduction_parameters_id.id,
-                                          'float': l_tmb,
-                                    }))
-                            if _other_deductions_id.deduction_parameters_id.code == 'LOAN_SBT':
-                                vals_other_deductions.append((0,0, {
-                                          'deduction_parameters_id':_other_deductions_id.deduction_parameters_id.id,
-                                          'float': l_sbt,
-                                    }))
-                            if _other_deductions_id.deduction_parameters_id.code == 'LOAN_OTHERS':
-                                vals_other_deductions.append((0,0, {
-                                          'deduction_parameters_id':_other_deductions_id.deduction_parameters_id.id,
-                                          'float': l_others,
-                                    }))
+#                             if _other_deductions_id.deduction_parameters_id.code == 'INS_LIC_PREM':
+#                                 vals_other_deductions.append((0,0, {
+#                                           'deduction_parameters_id':_other_deductions_id.deduction_parameters_id.id,
+#                                           'float': i_lic_prem,
+#                                     }))
+#                             if _other_deductions_id.deduction_parameters_id.code == 'INS_OTHERS':
+#                                 vals_other_deductions.append((0,0, {
+#                                           'deduction_parameters_id':_other_deductions_id.deduction_parameters_id.id,
+#                                           'float': i_lic_prem,
+#                                     }))
+#                             if _other_deductions_id.deduction_parameters_id.code == 'LOAN_VVTI':
+#                                 vals_other_deductions.append((0,0, {
+#                                           'deduction_parameters_id':_other_deductions_id.deduction_parameters_id.id,
+#                                           'float': l_vvti_loan,
+#                                     }))
+#                             if _other_deductions_id.deduction_parameters_id.code == 'LOAN_LIC_HFL':
+#                                 vals_other_deductions.append((0,0, {
+#                                           'deduction_parameters_id':_other_deductions_id.deduction_parameters_id.id,
+#                                           'float': l_lic_hfl,
+#                                     }))
+#                             if _other_deductions_id.deduction_parameters_id.code == 'LOAN_HDFC':
+#                                 vals_other_deductions.append((0,0, {
+#                                           'deduction_parameters_id':_other_deductions_id.deduction_parameters_id.id,
+#                                           'float': l_hdfc,
+#                                     }))
+#                             if _other_deductions_id.deduction_parameters_id.code == 'LOAN_TMB':
+#                                 vals_other_deductions.append((0,0, {
+#                                           'deduction_parameters_id':_other_deductions_id.deduction_parameters_id.id,
+#                                           'float': l_tmb,
+#                                     }))
+#                             if _other_deductions_id.deduction_parameters_id.code == 'LOAN_SBT':
+#                                 vals_other_deductions.append((0,0, {
+#                                           'deduction_parameters_id':_other_deductions_id.deduction_parameters_id.id,
+#                                           'float': l_sbt,
+#                                     }))
+#                             if _other_deductions_id.deduction_parameters_id.code == 'LOAN_OTHERS':
+#                                 vals_other_deductions.append((0,0, {
+#                                           'deduction_parameters_id':_other_deductions_id.deduction_parameters_id.id,
+#                                           'float': l_others,
+#                                     }))
+
 #                             if _other_deductions_id.deduction_parameters_id.code == 'LWF':
 #                                 vals_other_deductions.append((0,0, {
 #                                           'deduction_parameters_id':_other_deductions_id.deduction_parameters_id.id,
@@ -2237,46 +2239,47 @@ class arul_hr_payroll_executions(osv.osv):
                                           'deduction_parameters_id':_other_deductions_id.deduction_parameters_id.id,
                                           'float': pt,
                                     }))
-                            if _other_deductions_id.deduction_parameters_id.code == 'INS_LIC_PREM':
-                                vals_other_deductions.append((0,0, {
-                                          'deduction_parameters_id':_other_deductions_id.deduction_parameters_id.id,
-                                          'float': i_lic_prem,
-                                    }))
-                            if _other_deductions_id.deduction_parameters_id.code == 'INS_OTHERS':
-                                vals_other_deductions.append((0,0, {
-                                          'deduction_parameters_id':_other_deductions_id.deduction_parameters_id.id,
-                                          'float': i_lic_prem,
-                                    }))
-                            if _other_deductions_id.deduction_parameters_id.code == 'LOAN_VVTI':
-                                vals_other_deductions.append((0,0, {
-                                          'deduction_parameters_id':_other_deductions_id.deduction_parameters_id.id,
-                                          'float': l_vvti_loan,
-                                    }))
-                            if _other_deductions_id.deduction_parameters_id.code == 'LOAN_LIC_HFL':
-                                vals_other_deductions.append((0,0, {
-                                          'deduction_parameters_id':_other_deductions_id.deduction_parameters_id.id,
-                                          'float': l_lic_hfl,
-                                    }))
-                            if _other_deductions_id.deduction_parameters_id.code == 'LOAN_HDFC':
-                                vals_other_deductions.append((0,0, {
-                                          'deduction_parameters_id':_other_deductions_id.deduction_parameters_id.id,
-                                          'float': l_hdfc,
-                                    }))
-                            if _other_deductions_id.deduction_parameters_id.code == 'LOAN_TMB':
-                                vals_other_deductions.append((0,0, {
-                                          'deduction_parameters_id':_other_deductions_id.deduction_parameters_id.id,
-                                          'float': l_tmb,
-                                    }))
-                            if _other_deductions_id.deduction_parameters_id.code == 'LOAN_SBT':
-                                vals_other_deductions.append((0,0, {
-                                          'deduction_parameters_id':_other_deductions_id.deduction_parameters_id.id,
-                                          'float': l_sbt,
-                                    }))
-                            if _other_deductions_id.deduction_parameters_id.code == 'LOAN_OTHERS':
-                                vals_other_deductions.append((0,0, {
-                                          'deduction_parameters_id':_other_deductions_id.deduction_parameters_id.id,
-                                          'float': l_others,
-                                    }))
+#                             if _other_deductions_id.deduction_parameters_id.code == 'INS_LIC_PREM':
+#                                 vals_other_deductions.append((0,0, {
+#                                           'deduction_parameters_id':_other_deductions_id.deduction_parameters_id.id,
+#                                           'float': i_lic_prem,
+#                                     }))
+#                             if _other_deductions_id.deduction_parameters_id.code == 'INS_OTHERS':
+#                                 vals_other_deductions.append((0,0, {
+#                                           'deduction_parameters_id':_other_deductions_id.deduction_parameters_id.id,
+#                                           'float': i_lic_prem,
+#                                     }))
+#                             if _other_deductions_id.deduction_parameters_id.code == 'LOAN_VVTI':
+#                                 vals_other_deductions.append((0,0, {
+#                                           'deduction_parameters_id':_other_deductions_id.deduction_parameters_id.id,
+#                                           'float': l_vvti_loan,
+#                                     }))
+#                             if _other_deductions_id.deduction_parameters_id.code == 'LOAN_LIC_HFL':
+#                                 vals_other_deductions.append((0,0, {
+#                                           'deduction_parameters_id':_other_deductions_id.deduction_parameters_id.id,
+#                                           'float': l_lic_hfl,
+#                                     }))
+#                             if _other_deductions_id.deduction_parameters_id.code == 'LOAN_HDFC':
+#                                 vals_other_deductions.append((0,0, {
+#                                           'deduction_parameters_id':_other_deductions_id.deduction_parameters_id.id,
+#                                           'float': l_hdfc,
+#                                     }))
+#                             if _other_deductions_id.deduction_parameters_id.code == 'LOAN_TMB':
+#                                 vals_other_deductions.append((0,0, {
+#                                           'deduction_parameters_id':_other_deductions_id.deduction_parameters_id.id,
+#                                           'float': l_tmb,
+#                                     }))
+#                             if _other_deductions_id.deduction_parameters_id.code == 'LOAN_SBT':
+#                                 vals_other_deductions.append((0,0, {
+#                                           'deduction_parameters_id':_other_deductions_id.deduction_parameters_id.id,
+#                                           'float': l_sbt,
+#                                     }))
+#                             if _other_deductions_id.deduction_parameters_id.code == 'LOAN_OTHERS':
+#                                 vals_other_deductions.append((0,0, {
+#                                           'deduction_parameters_id':_other_deductions_id.deduction_parameters_id.id,
+#                                           'float': l_others,
+#                                     }))
+
 #                             if _other_deductions_id.deduction_parameters_id.code == 'LWF':
 #                                 vals_other_deductions.append((0,0, {
 #                                           'deduction_parameters_id':_other_deductions_id.deduction_parameters_id.id,
