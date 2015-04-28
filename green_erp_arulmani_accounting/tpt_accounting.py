@@ -1887,9 +1887,19 @@ class account_voucher(osv.osv):
             for line in new.line_ids:
                 total += line.amount 
             if new.sum_amount != total:
-                raise osv.except_osv(_('Configuration Error !'),
+                raise osv.except_osv(_('Warning!'),
                     _('Total amount in Voucher Entry must equal Amount!'))
-        
+        else:
+            total_debit = 0
+            total_credit = 0
+            for line in new.line_ids:
+                if line.type=='dr':
+                    total_debit += line.amount
+                if line.type=='cr':
+                    total_credit += line.amount 
+            if total_debit != total_credit:
+                raise osv.except_osv(_('Warning!'),
+                    _('Total Debit must be equal Total Credit!'))
         return new_id
     
     def write(self, cr, uid, ids, vals, context=None):
@@ -1900,8 +1910,19 @@ class account_voucher(osv.osv):
                 for line in voucher.line_ids:
                     total += line.amount 
                 if voucher.sum_amount != total:
-                    raise osv.except_osv(_('Configuration Error !'),
+                    raise osv.except_osv(_('Warning!'),
                         _('Total amount in Voucher Entry must equal Amount!'))
+            else:
+                total_debit = 0
+                total_credit = 0
+                for line in voucher.line_ids:
+                    if line.type=='dr':
+                        total_debit += line.amount
+                    if line.type=='cr':
+                        total_credit += line.amount 
+                if total_debit != total_credit:
+                    raise osv.except_osv(_('Warning!'),
+                        _('Total Debit must be equal Total Credit!'))
         return new_write
     
     def first_move_line_get(self, cr, uid, voucher_id, move_id, company_currency, current_currency, context=None):
