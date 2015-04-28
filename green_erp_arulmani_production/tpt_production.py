@@ -43,7 +43,17 @@ class tpt_tio2_batch_split(osv.osv):
             if line.product_id.name in ('TITANIUM DIOXIDE-ANATASE','TiO2','M0501010001') or line.product_id.default_code in ('TITANIUM DIOXIDE-ANATASE','TiO2','M0501010001'):
                 prefix = 'A'
             for num in range(0,int(line.available)):
-                prodlot = self.pool.get('ir.sequence').get(cr, uid, 'batching.tio2')
+#                 prodlot = self.pool.get('ir.sequence').get(cr, uid, 'batching.tio2')
+                
+                batch_split_line_obj = self.pool.get('tpt.batch.split.line')
+                batch_split_ids = self.search(cr, uid, [('mrp_id.date_planned','<=',schedule_date[:10]),('mrp_id.date_planned','>=',schedule_date[:10])])
+                batch_split_line_ids = batch_split_line_obj.search(cr, uid, [('tio2_id','in',batch_split_ids)], limit=1,order = 'id desc')
+                if batch_split_line_ids:
+                    batch_split_line = batch_split_line_obj.browse(cr, uid, batch_split_line_ids[0])
+                    next = int(batch_split_line.prodlot_id.name[-2:])+1
+                else:
+                    next = 1
+                prodlot = "%02d" % (next,)
                 prodlot_name = prefix + str(schedule_date_year) + str(schedule_date_month) + str(schedule_date_day) + str(prodlot)
                 prodlot_id = prodlot_obj.create(cr, uid, {'name': prodlot_name,
                                             'phy_batch_no': prodlot_name,
@@ -103,39 +113,39 @@ class tpt_tio2_batch_split(osv.osv):
             company_ids = self.pool.get('res.company').search(cr, uid, [], context=context) + [False]
             seq_ids = self.pool.get('ir.sequence').search(cr, uid, ['&', ('code', '=', 'batching.tio2'), ('company_id', 'in', company_ids)])
             
-            force_company = context.get('force_company')
-            if not force_company:
-                force_company = self.pool.get('res.users').browse(cr, uid, uid).company_id.id
-            sequences = self.pool.get('ir.sequence').read(cr, uid, seq_ids, ['name','company_id','implementation','number_next','prefix','suffix','padding', 'number_increment', 'auto_reset', 'reset_period', 'reset_time', 'reset_init_number'])
-            preferred_sequences = [s for s in sequences if s['company_id'] and s['company_id'][0] == force_company ]
-            seq = preferred_sequences[0] if preferred_sequences else sequences[0]
-            if seq['implementation'] == 'standard':
-                current_time =':'.join([seq['reset_period'], self.pool.get('ir.sequence')._interpolation_dict().get(seq['reset_period'])])
-                if seq['auto_reset'] and current_time != seq['reset_time']:
-                    cr.execute("UPDATE ir_sequence SET reset_time=%s WHERE id=%s ", (current_time,seq['id']))
-                    self.pool.get('ir.sequence')._alter_sequence(cr, seq['id'], seq['number_increment'], seq['reset_init_number'])
-                    cr.commit()
-                temp = 0
-                try:
-                    cr.execute("SELECT setval('ir_sequence_%03d',nextval('ir_sequence_%03d')-1)+1" % (seq['id'],seq['id']))
-                    seq['number_next'] = cr.fetchone()
-                except Exception, e:
-                    cr.rollback()
-                    temp = 1
-                    pass
-                if temp==1:
-                    self.pool.get('ir.sequence')._alter_sequence(cr, seq['id'], seq['number_increment'], seq['reset_init_number'])
-                    seq['number_next'] = 1
-            else:
-                cr.execute("SELECT number_next FROM ir_sequence WHERE id=%s FOR UPDATE NOWAIT", (seq['id'],))
-            d = self.pool.get('ir.sequence')._interpolation_dict()
-            try:
-                interpolated_prefix = self.pool.get('ir.sequence')._interpolate(seq['prefix'], d)
-                interpolated_suffix = self.pool.get('ir.sequence')._interpolate(seq['suffix'], d)
-            except ValueError:
-                raise osv.except_osv(_('Warning'), _('Invalid prefix or suffix for sequence \'%s\'') % (seq.get('name')))
-            sequence = interpolated_prefix + '%%0%sd' % seq['padding'] % seq['number_next'] + interpolated_suffix
-            cr.execute("UPDATE ir_sequence SET number_next=number_next-number_increment WHERE id=%s ", (seq['id'],))
+#             force_company = context.get('force_company')
+#             if not force_company:
+#                 force_company = self.pool.get('res.users').browse(cr, uid, uid).company_id.id
+#             sequences = self.pool.get('ir.sequence').read(cr, uid, seq_ids, ['name','company_id','implementation','number_next','prefix','suffix','padding', 'number_increment', 'auto_reset', 'reset_period', 'reset_time', 'reset_init_number'])
+#             preferred_sequences = [s for s in sequences if s['company_id'] and s['company_id'][0] == force_company ]
+#             seq = preferred_sequences[0] if preferred_sequences else sequences[0]
+#             if seq['implementation'] == 'standard':
+#                 current_time =':'.join([seq['reset_period'], self.pool.get('ir.sequence')._interpolation_dict().get(seq['reset_period'])])
+#                 if seq['auto_reset'] and current_time != seq['reset_time']:
+#                     cr.execute("UPDATE ir_sequence SET reset_time=%s WHERE id=%s ", (current_time,seq['id']))
+#                     self.pool.get('ir.sequence')._alter_sequence(cr, seq['id'], seq['number_increment'], seq['reset_init_number'])
+#                     cr.commit()
+#                 temp = 0
+#                 try:
+#                     cr.execute("SELECT setval('ir_sequence_%03d',nextval('ir_sequence_%03d')-1)+1" % (seq['id'],seq['id']))
+#                     seq['number_next'] = cr.fetchone()
+#                 except Exception, e:
+#                     cr.rollback()
+#                     temp = 1
+#                     pass
+#                 if temp==1:
+#                     self.pool.get('ir.sequence')._alter_sequence(cr, seq['id'], seq['number_increment'], seq['reset_init_number'])
+#                     seq['number_next'] = 1
+#             else:
+#                 cr.execute("SELECT number_next FROM ir_sequence WHERE id=%s FOR UPDATE NOWAIT", (seq['id'],))
+#             d = self.pool.get('ir.sequence')._interpolation_dict()
+#             try:
+#                 interpolated_prefix = self.pool.get('ir.sequence')._interpolate(seq['prefix'], d)
+#                 interpolated_suffix = self.pool.get('ir.sequence')._interpolate(seq['suffix'], d)
+#             except ValueError:
+#                 raise osv.except_osv(_('Warning'), _('Invalid prefix or suffix for sequence \'%s\'') % (seq.get('name')))
+#             sequence = interpolated_prefix + '%%0%sd' % seq['padding'] % seq['number_next'] + interpolated_suffix
+#             cr.execute("UPDATE ir_sequence SET number_next=number_next-number_increment WHERE id=%s ", (seq['id'],))
             
             line = self.pool.get('mrp.production').browse(cr, uid, vals['mrp_id'])
             schedule_date = line.date_planned
@@ -147,6 +157,17 @@ class tpt_tio2_batch_split(osv.osv):
                 prefix = 'R'
             if line.product_id.name in ('TITANIUM DIOXIDE-ANATASE','TiO2','M0501010001') or line.product_id.default_code in ('TITANIUM DIOXIDE-ANATASE','TiO2','M0501010001'):
                 prefix = 'A'
+                
+            batch_split_line_obj = self.pool.get('tpt.batch.split.line')
+            batch_split_ids = self.search(cr, uid, [('mrp_id.date_planned','<=',schedule_date[:10]),('mrp_id.date_planned','>=',schedule_date[:10])])
+            batch_split_line_ids = batch_split_line_obj.search(cr, uid, [('tio2_id','in',batch_split_ids)], limit=1,order = 'id desc')
+            if batch_split_line_ids:
+                batch_split_line = batch_split_line_obj.browse(cr, uid, batch_split_line_ids[0])
+                next = int(batch_split_line.prodlot_id.name[-2:])+1
+            else:
+                next = 1
+            sequence = "%02d" % (next,)
+            
             prodlot_name = prefix + str(schedule_date_year) + str(schedule_date_month) + str(schedule_date_day) + str(sequence)
             vals['stating_batch_no'] = prodlot_name or '/'
         new_id = super(tpt_tio2_batch_split, self).create(cr, uid, vals, context=context)
@@ -250,7 +271,7 @@ class tpt_fsh_batch_split(osv.osv):
                 if prodlot_ids and self.pool.get('stock.production.lot').browse(cr, uid, prodlot_ids[0]).stock_available<line.available:
                     raise osv.except_osv(_('Warning!'),_('Batchable Quantity is not more than Available Stock Quantity !'))
             move_ids = move_obj.search(cr, uid, [('scrapped','=',False),('production_id','=',line.mrp_id.id),('product_id','=',line.product_id.id)])
-            cr.execute('update stock_move set location_dest_id=%s where id in %s',(line.location_id.id,tuple(move_ids),))
+#             cr.execute('update stock_move set location_dest_id=%s where id in %s',(line.location_id.id,tuple(move_ids),))
 #             move_obj.write(cr, uid, move_ids,{'location_dest_id':line.location_id.id})
             context.update({'active_id': move_ids and move_ids[0] or False,'active_model': 'stock.move','tpt_copy_prodlot':True})
             line_exist_ids = []
@@ -265,6 +286,9 @@ class tpt_fsh_batch_split(osv.osv):
             }
             move_split_id = move_split_obj.create(cr, 1, vals, context)
             res = move_split_obj.split(cr, 1, [move_split_id],[move_ids and move_ids[0] or []],context)
+            
+            move_need_ids = move_obj.search(cr, uid, [('scrapped','=',False),('production_id','=',line.mrp_id.id),('product_id','=',line.product_id.id),('prodlot_id','not in',prodlot_ids)])
+            cr.execute('update stock_move set location_dest_id=%s where id in %s',(line.location_id.id,tuple(move_need_ids),))
         return self.write(cr, uid, ids,{'state':'confirm'})
     
     def onchange_mrp_id(self, cr, uid, ids, mrp_id, context=None):
