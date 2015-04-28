@@ -1880,7 +1880,29 @@ class account_voucher(osv.osv):
             update account_voucher set type_cash_bank = 'bank' where journal_id in (select id from account_journal where type = 'bank')
         '''
         cr.execute(sql)
+        
+        new = self.browse(cr, uid, new_id)
+        if new.type_trans:
+            total = 0
+            for line in new.line_ids:
+                total += line.amount 
+            if new.sum_amount != total:
+                raise osv.except_osv(_('Configuration Error !'),
+                    _('Total amount in Voucher Entry must equal Amount!'))
+        
         return new_id
+    
+    def write(self, cr, uid, ids, vals, context=None):
+        new_write = super(account_voucher, self).write(cr, uid, ids, vals, context)
+        for voucher in self.browse(cr, uid, ids):
+            if voucher.type_trans:
+                total = 0
+                for line in voucher.line_ids:
+                    total += line.amount 
+                if voucher.sum_amount != total:
+                    raise osv.except_osv(_('Configuration Error !'),
+                        _('Total amount in Voucher Entry must equal Amount!'))
+        return new_write
     
     def first_move_line_get(self, cr, uid, voucher_id, move_id, company_currency, current_currency, context=None):
         '''
@@ -2188,15 +2210,16 @@ class account_voucher(osv.osv):
                         move_line_pool.create(cr, uid, ml_writeoff, local_context)
 #phuoc
             else: 
-                move_line_id = move_line_pool.create(cr, uid, self.first_move_line_get(cr,uid,voucher.id, move_id, company_currency, current_currency, local_context), local_context)
-                move_line_brw = move_line_pool.browse(cr, uid, move_line_id, context=context)
-                line_total = move_line_brw.debit - move_line_brw.credit
+#                 move_line_id = move_line_pool.create(cr, uid, self.first_move_line_get(cr,uid,voucher.id, move_id, company_currency, current_currency, local_context), local_context)
+#                 move_line_brw = move_line_pool.browse(cr, uid, move_line_id, context=context)
+#                 line_total = move_line_brw.debit - move_line_brw.credit
                 rec_list_ids = []
                 if voucher.type == 'sale':
                     line_total = line_total - self._convert_amount(cr, uid, voucher.tax_amount, voucher.id, context=ctx)
                 elif voucher.type == 'purchase':
                     line_total = line_total + self._convert_amount(cr, uid, voucher.tax_amount, voucher.id, context=ctx)
     #             Create one move line per voucher line where amount is not 0.0
+                
                 line_total, rec_list_ids = self.voucher_move_line_create(cr, uid, voucher.id, line_total, move_id, company_currency, current_currency, context)
     
                 # Create the writeoff line if needed
@@ -2204,7 +2227,7 @@ class account_voucher(osv.osv):
                 ml_writeoff = self.writeoff_move_line_get(cr, uid, voucher.id, line_total, move_id, name, company_currency, current_currency, local_context)
                 if ml_writeoff:
                     move_line_pool.create(cr, uid, ml_writeoff, local_context)
-            
+        
             
             # We post the voucher.
             self.write(cr, uid, [voucher.id], {
