@@ -1098,6 +1098,95 @@ class arul_hr_payroll_executions(osv.osv):
                     #===========================================================
                         
                 #total_shift_worked = round(shift_count) + round(permission_count) + round(onduty_count)
+                total_g1_shift_allowance = 0
+                total_g2_shift_allowance = 0
+                total_a_shift_allowance = 0
+                total_b_shift_allowance = 0
+                total_c_shift_allowance = 0
+                              
+                sql = '''
+                    SELECT CASE WHEN SUM(a_shift_count1)!=0 THEN SUM(a_shift_count1) ELSE 0 END a_shift_count FROM arul_hr_punch_in_out_time WHERE EXTRACT(year FROM work_date) = %s 
+                    AND EXTRACT(month FROM work_date) = %s AND employee_id =%s
+                    '''%(line.year,line.month,p.id)
+                cr.execute(sql)
+                a_c =  cr.fetchone()
+                a_shift_count = a_c[0]
+                
+                sql = '''
+                    SELECT CASE WHEN SUM(b_shift_count1)!=0 THEN SUM(b_shift_count1) ELSE 0 END b_shift_count FROM arul_hr_punch_in_out_time WHERE EXTRACT(year FROM work_date) = %s 
+                    AND EXTRACT(month FROM work_date) = %s AND employee_id =%s
+                    '''%(line.year,line.month,p.id)
+                cr.execute(sql)
+                b_c =  cr.fetchone()
+                b_shift_count = b_c[0]
+                
+                sql = '''
+                    SELECT CASE WHEN SUM(c_shift_count1)!=0 THEN SUM(c_shift_count1) ELSE 0 END c_shift_count FROM arul_hr_punch_in_out_time WHERE EXTRACT(year FROM work_date) = %s 
+                    AND EXTRACT(month FROM work_date) = %s AND employee_id =%s
+                    '''%(line.year,line.month,p.id)
+                cr.execute(sql)
+                c_c =  cr.fetchone()
+                c_shift_count = c_c[0]
+                
+                sql = '''
+                    SELECT CASE WHEN SUM(g1_shift_count1)!=0 THEN SUM(g1_shift_count1) ELSE 0 END g1_shift_count FROM arul_hr_punch_in_out_time WHERE EXTRACT(year FROM work_date) = %s 
+                    AND EXTRACT(month FROM work_date) = %s AND employee_id =%s
+                    '''%(line.year,line.month,p.id)
+                cr.execute(sql)
+                g1_c =  cr.fetchone()
+                g1_shift_count = g1_c[0]
+                
+                sql = '''
+                    SELECT CASE WHEN SUM(g2_shift_count1)!=0 THEN SUM(g2_shift_count1) ELSE 0 END g2_shift_count FROM arul_hr_punch_in_out_time WHERE EXTRACT(year FROM work_date) = %s 
+                    AND EXTRACT(month FROM work_date) = %s AND employee_id =%s
+                    '''%(line.year,line.month,p.id)
+                cr.execute(sql)
+                g2_c =  cr.fetchone()
+                g2_shift_count = g2_c[0]
+                
+                sql = '''
+                    select allowance from arul_hr_capture_work_shift where code='G1'
+                    '''
+                cr.execute(sql)
+                g1_all =  cr.fetchone()
+                g1_shift_allowance = g1_all[0]
+                
+                sql = '''
+                    select allowance from arul_hr_capture_work_shift where code='G2'
+                    '''
+                cr.execute(sql)
+                g2_all =  cr.fetchone()
+                g2_shift_allowance = g2_all[0]
+                
+                sql = '''
+                    select allowance from arul_hr_capture_work_shift where code='A'
+                    '''
+                cr.execute(sql)
+                a_all =  cr.fetchone()
+                a_shift_allowance = a_all[0]
+                
+                sql = '''
+                    select allowance from arul_hr_capture_work_shift where code='B'
+                    '''
+                cr.execute(sql)
+                b_all =  cr.fetchone()
+                b_shift_allowance = b_all[0]
+                
+                sql = '''
+                    select allowance from arul_hr_capture_work_shift where code='C'
+                    '''
+                cr.execute(sql)
+                c_all =  cr.fetchone()
+                c_shift_allowance = c_all[0]
+                
+                total_g1_shift_allowance = g1_shift_count * g1_shift_allowance
+                total_g2_shift_allowance = g2_shift_count * g2_shift_allowance
+                total_a_shift_allowance = a_shift_count * a_shift_allowance
+                total_b_shift_allowance = b_shift_count * b_shift_allowance
+                total_c_shift_allowance = c_shift_count * c_shift_allowance
+                
+                total_all_shift_allowance =  total_g1_shift_allowance + total_g2_shift_allowance + total_a_shift_allowance + total_b_shift_allowance + total_c_shift_allowance
+                #TPT
                 
                 special_holiday_worked_count =  0                              
                 sql = '''
@@ -2363,7 +2452,9 @@ class arul_hr_payroll_executions(osv.osv):
                         #oa = total_shift_allowance + total_days*4 + la  # this calculation shifted to ma. oa is treated as same that of entered in paystructure
 			
                         spa = spa/(calendar_days - 4 - special_holidays) * total_shift_worked #TPT total_days <->total_shift_worked 
-                        ma = total_shift_allowance + total_days * 4 + la + wa
+                        #ma = total_shift_allowance + total_days * 4 + la + wa 
+                        
+                        ma = total_all_shift_allowance + total_days * 4 + la + wa #based on individual shift
 
                         #total_earning = basic + da + c + hra + fa + pc + cre + ea +spa + la + aa + sha + oa + lta + med
                         #gross_before = basic + c + hra  +spa + oa + da + ea

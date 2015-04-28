@@ -2380,6 +2380,7 @@ class arul_hr_punch_in_out_time(osv.osv):
             res[time.id]['total_hours'] = time_total 
         return res
     #TPT - Punch InOut
+    
     def _shift_count(self, cr, uid, ids, field_name, arg, context=None):
         res = {}
         for time in self.browse(cr, uid, ids, context=context):
@@ -2503,7 +2504,119 @@ class arul_hr_punch_in_out_time(osv.osv):
                         res[time.id]['g2_shift_count'] = 1.0
                         res[time.id]['b_shift_count'] = 1.0                     
         return res
-    
+    def _db_shift_count(self, cr, uid, ids, field_name, arg, context=None):
+        res = {}
+        for time in self.browse(cr, uid, ids, context=context):
+            res[time.id] = {
+                'a_shift_count1': 0.0,
+                'b_shift_count1': 0.0,
+                'c_shift_count1': 0.0,
+                'g1_shift_count1': 0.0,
+                'g2_shift_count1': 0.0,
+            }        
+            total_hrs = 0  
+            total_hrs = time.total_hours            
+            sql = '''
+                    SELECT min_start_time,start_time FROM arul_hr_capture_work_shift WHERE code='B'
+                    '''
+            cr.execute(sql)
+            for k in cr.fetchall():
+                a_min_start_time=k[0]
+                b=k[1]
+            sql = '''
+                    SELECT min_start_time FROM arul_hr_capture_work_shift WHERE code='C'
+                    '''
+            cr.execute(sql)
+            k = cr.fetchone()
+            c_min_start_time=k[0]
+                
+            if time.in_time != 0 and time.out_time!=0: 
+                if time.actual_work_shift_id.code=='A':  
+                    if 3.7 <= total_hrs <= 7.45:
+                        res[time.id]['a_shift_count1'] = 0.5
+                    if 7.45 <= total_hrs <= 11.175:
+                        res[time.id]['a_shift_count1'] = 1.0                    
+                    if 11.175 <=total_hrs<=15.3:
+                        res[time.id]['a_shift_count1'] = 1.0                       
+                    if 11.1 <=total_hrs<=15.3:
+                        res[time.id]['a_shift_count1'] = 1.0
+                        res[time.id]['b_shift_count1'] = 0.5
+                    if 15.3 <=total_hrs<=19.00:#19.00
+                        res[time.id]['a_shift_count1'] = 1.0
+                        res[time.id]['b_shift_count1'] = 1.0                                           
+                        
+                if time.actual_work_shift_id.code=='B':                      
+                    if 3.7 <= total_hrs <= 7.45:
+                        res[time.id]['b_shift_count1'] = 0.5
+                    if 7.45 <= total_hrs <= 11.175:
+                        res[time.id]['b_shift_count1'] = 1.0                    
+                    if 11.175 <=total_hrs<=15.3:
+                        res[time.id]['b_shift_count1'] = 1.0                       
+                    if 11.1 <=total_hrs<=15.3:
+                        if time.in_time<=a_min_start_time:
+                            res[time.id]['b_shift_count1'] = 1.0
+                            res[time.id]['a_shift_count1'] = 0.5
+                        else:
+                            res[time.id]['b_shift_count1'] = 1.0
+                            res[time.id]['c_shift_count1'] = 0.5
+                    if 15.3 <=total_hrs<=19.00:#19.00
+                        if time.in_time<=a_min_start_time:
+                            res[time.id]['b_shift_count1'] = 1.0
+                            res[time.id]['a_shift_count1'] = 1.0 
+                        else:
+                            res[time.id]['b_shift_count1'] = 1.0
+                            res[time.id]['c_shift_count1'] = 1.0 
+                                        
+                if time.actual_work_shift_id.code=='C':                                        
+                    if 3.7 <= total_hrs <= 7.45:
+                        res[time.id]['c_shift_count1'] = 0.5
+                    if 7.45 <= total_hrs <= 11.175:
+                        res[time.id]['c_shift_count1'] = 1.0                    
+                    if 11.175 <=total_hrs<=15.3:
+                        res[time.id]['c_shift_count1'] = 1.0                       
+                    if 11.1 <=total_hrs<=15.3:
+                        res[time.id]['c_shift_count1'] = 1.0
+                        res[time.id]['a_shift_count1'] = 0.5
+                    if 15.3 <=total_hrs<=19.00:#19.00
+                        res[time.id]['c_shift_count1'] = 1.0
+                        res[time.id]['a_shift_count1'] = 1.0 
+                    
+                if time.actual_work_shift_id.code=='G1':                                        
+                    if 3.7 <= total_hrs <= 7.45:
+                        res[time.id]['g1_shift_count1'] = 0.5
+                    if 7.45 <= total_hrs <= 11.175:
+                        res[time.id]['g1_shift_count1'] = 1.0                    
+                    if 11.175 <=total_hrs<=15.3:
+                        res[time.id]['g1_shift_count1'] = 1.0                       
+                    if 11.1 <=total_hrs<=15.3:
+                        if time.in_time<=c_min_start_time:
+                            res[time.id]['c_shift_count1'] = 1.0
+                            res[time.id]['b_shift_count1'] = 0.5
+                        else:    
+                            res[time.id]['c_shift_count1'] = 1.0
+                            res[time.id]['a_shift_count1'] = 0.5
+                    if 15.3 <=total_hrs<=19.00:#19.00
+                        if time.in_time<=c_min_start_time:
+                            res[time.id]['c_shift_count1'] = 1.0
+                            res[time.id]['b_shift_count1'] = 1.0
+                        else:    
+                            res[time.id]['c_shift_count1'] = 1.0
+                            res[time.id]['a_shift_count1'] = 1.0 
+                        
+                if time.actual_work_shift_id.code=='G2':                    
+                    if 3.7 <= total_hrs <= 7.45:
+                        res[time.id]['g2_shift_count1'] = 0.5
+                    if 7.45 <= total_hrs <= 11.175:
+                        res[time.id]['g2_shift_count1'] = 1.0                    
+                    if 11.175 <=total_hrs<=15.3:
+                        res[time.id]['g2_shift_count1'] = 1.0                       
+                    if 11.1 <=total_hrs<=15.3:
+                        res[time.id]['g2_shift_count1'] = 1.0
+                        res[time.id]['b_shift_count1'] = 0.5
+                    if 15.3 <=total_hrs<=19.00:#19.00
+                        res[time.id]['g2_shift_count1'] = 1.0
+                        res[time.id]['b_shift_count1'] = 1.0                     
+        return res
     def _shift_hrs_total(self, cr, uid, ids, field_name, arg, context=None):
         res = {}
         for time in self.browse(cr, uid, ids, context=context):
@@ -2857,7 +2970,7 @@ class arul_hr_punch_in_out_time(osv.osv):
         #TPT
         #TPT-Punch InOut - THIS COLUMN IS STORE IN DB TO GET THIS COUNT DURING PAYROLL PROCESS
         'total_hrs_worked': fields.function(_shift_hrs_total, string='No.Of Hrs Worked', multi='shift_punchinout_hrs_sums', help="The total Hrs Worked."),
-        'total_shift_worked': fields.function(_shift_total_db, string='No.Of Shift Worked', store=True, multi='shift_punchinout_sums', help="The total Shift Worked Per day which includes punch in times and/or Permission OnDuty Hrs."),
+        'total_shift_worked': fields.function(_shift_total_db, store=True, string='No.Of Shift Worked',  multi='shift_punchinout_sums', help="The total Shift Worked Per day which includes punch in times and/or Permission OnDuty Hrs."),
         
         'shift_worked': fields.function(_shift_total, string='No.Of Shift Worked',  multi='shift_punchinout_sums', help="The total Shift Worked Per day which includes punch in times and/or Permission OnDuty Hrs."),
                 
@@ -2868,6 +2981,11 @@ class arul_hr_punch_in_out_time(osv.osv):
         'g1_shift_count': fields.function(_shift_count, string='G1', multi='g1_shift'),
         'g2_shift_count': fields.function(_shift_count, string='G2', multi='g2_shift'),
         
+        'a_shift_count1': fields.function(_db_shift_count, store=True, string='A', multi='a_shift'),
+        'b_shift_count1': fields.function(_db_shift_count, store=True, string='B', multi='b_shift'),
+        'c_shift_count1': fields.function(_db_shift_count, store=True, string='C', multi='c_shift'),
+        'g1_shift_count1': fields.function(_db_shift_count, store=True, string='G1', multi='g1_shift'),
+        'g2_shift_count1': fields.function(_db_shift_count, store=True, string='G2', multi='g2_shift'),
         #'g1_shift_count': fields.float('G1', states={'done': [('readonly', True)], 'cancel': [('readonly', True)]}),
         #'g2_shift_count': fields.float('G2', states={'done': [('readonly', True)], 'cancel': [('readonly', True)]}),
         #'b_shift_count': fields.float('B', states={'done': [('readonly', True)], 'cancel': [('readonly', True)]}),
