@@ -111,6 +111,13 @@
             	<xpath expr="//field[@name='partner_id']" position="before">
 					<field name="name" string = "Document No" readonly = '1'/>
 				</xpath>
+				<xpath expr="//field[@name='date_invoice']" position="attributes">
+					<attribute name='string'>Posting Date</attribute>
+				</xpath>
+				<xpath expr="//field[@name='date_invoice']" position="after">
+					<field name='bill_number'/>
+					<field name='bill_date'/>
+				</xpath>
 				<xpath expr="//field[@name='partner_id']" position="attributes">
 					<attribute name='string'>Vendor</attribute>
 				</xpath>
@@ -241,7 +248,14 @@
             <field name="arch" type="xml">	
             	<xpath expr="//button[@name='%(account.action_account_invoice_refund)d']" position="attributes">
 					<attribute name='invisible'>1</attribute>
-				</xpath>	
+				</xpath>
+				<xpath expr="//field[@name='date_invoice']" position="attributes">
+					<attribute name='string'>Posting Date</attribute>
+				</xpath>
+				<xpath expr="//field[@name='date_invoice']" position="after">
+					<field name='bill_number'/>
+					<field name='bill_date'/>
+				</xpath>
 			</field>
 		</record>
 		
@@ -365,7 +379,9 @@
                             </div>
                         </group>
                         <group>
-                            <field name="date_invoice"/>
+                            <field name="date_invoice" string="Posting Date"/>
+                            <field name='bill_number'/>
+							<field name='bill_date'/>
                             <field name="date_due"/>
                             <field name="created_on"/>
                             <field domain="[('company_id', '=', company_id), ('type', '=', 'payable')]"
@@ -584,7 +600,9 @@
                             </div>
                         </group>
                         <group>
-                            <field name="date_invoice"/>
+                            <field name="date_invoice" string="Posting Date"/>
+                            <field name='bill_number'/>
+							<field name='bill_date'/>
                             <field name="date_due"/>
                             <field name="created_on"/>
                             <field domain="[('company_id', '=', company_id), ('type', '=', 'payable')]"
