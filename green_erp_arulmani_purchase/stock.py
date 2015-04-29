@@ -581,7 +581,7 @@ class account_invoice(osv.osv):
                         elif po.ed_type == '2' :
                             ed = po.ed
                         elif po.ed_type == '3' :
-                            ed = po.e_d *  po.quantity
+                            ed = po.ed *  po.quantity
                         else:
                             ed = po.ed
                         excise_duty += ed
@@ -638,7 +638,7 @@ class account_invoice(osv.osv):
                         elif po.ed_type == '2' :
                             ed = po.ed
                         elif po.ed_type == '3' :
-                            ed = po.e_d *  po.quantity
+                            ed = po.ed *  po.quantity
                         else:
                             ed = po.ed
                         excise_duty += ed
