@@ -1959,6 +1959,16 @@
             </field>
         </record>
         
+        <record id="account_voucher.action_voucher_list" model="ir.actions.act_window">
+            <field name="name">Journal Vouchers</field>
+            <field name="res_model">account.voucher</field>
+            <field name="view_type">form</field>
+            <field name="view_mode">tree,form,graph</field>
+            <field name="context">{'journal_entry_create':1}</field>
+            <field name="view_id" ref="account_voucher.view_voucher_tree"/>
+            <field name="search_view_id" ref="account_voucher.view_voucher_filter"/>
+        </record>
+        
         <record model="ir.ui.menu" id="account.periodical_processing_reconciliation">
 	    	<field name="groups_id" eval="[(6,0, [ref('green_erp_arulmani_crm.group_invisible')])]"/>
 		</record>

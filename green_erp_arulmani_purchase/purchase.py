@@ -2028,7 +2028,7 @@ class purchase_order(osv.osv):
             change_default=True, track_visibility='always'),
         'company_id': fields.many2one('res.company','Company',required=True,select=1, states={'cancel':[('readonly',True)],'confirmed':[('readonly',True)],'head':[('readonly',True)],'gm':[('readonly',True)],'md':[('readonly',True)], 'approved':[('readonly',True)],'done':[('readonly',True)]}, track_visibility='onchange'),
         'reason': fields.text('Reason', size = 1024, track_visibility='onchange',states={'cancel':[('readonly',True)],'confirmed':[('readonly',True)],'head':[('readonly',True)],'gm':[('readonly',True)],'md':[('readonly',True)], 'approved':[('readonly',True)],'done':[('readonly',True)]}),        
-        
+        'md_approve_date': fields.date('MD Approve Date'),
         #ham function
         
         'amount_untaxed': fields.function(amount_all_po_line, multi='sums', string='Untaxed Amount',
@@ -2114,7 +2114,7 @@ class purchase_order(osv.osv):
         return self.write(cr, uid, ids,{'state':'gm'})
     
     def action_md(self, cr, uid, ids, context=None):
-        return self.write(cr, uid, ids,{'state':'md'})
+        return self.write(cr, uid, ids,{'state':'md','md_approve_date':time.strftime('%Y-%m-%d')})
     
     #TPT-PO PRINT ON 4/4/2015
     def print_quotation(self, cr, uid, ids, context=None):
