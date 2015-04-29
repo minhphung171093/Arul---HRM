@@ -838,6 +838,16 @@ class stock_picking_out(osv.osv):
     
 stock_picking_out()
 
+class stock_picking_in(osv.osv):
+    _inherit = "stock.picking.in"
+    
+    def action_revert_done(self, cr, uid, ids, context=None):
+        #override in order to redirect to stock.picking object
+        return self.pool.get('stock.picking').action_revert_done(
+            cr, uid, ids, context=context)
+        
+stock_picking_in()
+
 class stock_move(osv.osv):
     _inherit = "stock.move"
     

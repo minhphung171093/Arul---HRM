@@ -56,6 +56,11 @@
             <field name="model">stock.picking.in</field>
             <field name="inherit_id" ref="stock.view_picking_in_form"/>
             <field name="arch" type="xml">
+            	<xpath expr="//header"  position="inside">
+            		<button name="action_revert_done" string="Reopen" states="done,cancel" type="object" icon="gtk-cancel" 
+	                	confirm="Do you want to reopen this GRN?" groups="base.group_no_one"
+	                />
+            	</xpath>
             	<xpath expr="//field[@name='name']"  position="before">
             		<label for="name" string="GRN Document No" class="oe_inline"/>
             	</xpath>

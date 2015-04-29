@@ -40,7 +40,7 @@ class stock_partial_picking(osv.osv_memory):
     
     def do_partial(self, cr, uid, ids, context=None):
         assert len(ids) == 1, 'Partial picking processing may only be done one at a time.'
-        vals = []
+        quanlity_vals = []
         quality_inspec = self.pool.get('tpt.quanlity.inspection')
         product_obj = self.pool.get('product.product')
         stock_picking = self.pool.get('stock.picking')
@@ -106,7 +106,7 @@ class stock_partial_picking(osv.osv_memory):
                                             'name':para.name,
                                            'value':para.required_spec,
                                            }))
-                vals = {
+                quanlity_vals.append({
                         'product_id':wizard_line.product_id.id,
                         'qty':wizard_line.quantity,
                         'remaining_qty':wizard_line.quantity,
@@ -114,12 +114,15 @@ class stock_partial_picking(osv.osv_memory):
                         'supplier_id':partial.picking_id.partner_id.id,
                         'date':partial.picking_id.date,
                         'specification_line':product_line,
-                        }
+                        })
                 
+#                 quality_inspec.create(cr, SUPERUSER_ID, vals)
+        res = stock_picking.do_partial(cr, uid, [partial.picking_id.id], partial_data, context=context)
+        new_picking_id = res[partial.picking_id.id]['delivered_picking']
+        if new_picking_id:
+            for vals in quanlity_vals:
+                vals['name'] = new_picking_id
                 quality_inspec.create(cr, SUPERUSER_ID, vals)
-        stock_picking.do_partial(cr, uid, [partial.picking_id.id], partial_data, context=context)
-        
-        
 #         a_ids = stock_move.search(cr, uid,[('picking_id','=',[partial.picking_id.id]),('action_taken','=','need'),('state','not in',['done','cancel']),('inspec','=',False)])
 #         for line in stock_move.browse(cr,uid,a_ids):
 #             product_line = []
