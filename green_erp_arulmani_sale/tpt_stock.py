@@ -644,7 +644,7 @@ class stock_picking(osv.osv):
                             Remove them first') % (line.name,
                                                    line.picking_id.name))
                 line.write({'state': 'draft'})
-            self.write(cr, uid, [picking.id], {'state': 'draft'})
+            self.write(cr, uid, [picking.id], {'state': 'draft','invoice_state':'2binvoiced'})
             wf_service = netsvc.LocalService("workflow")
             # Deleting the existing instance of workflow
             wf_service.trg_delete(uid, 'stock.picking', picking.id, cr)
