@@ -109,12 +109,14 @@ class stock_picking(osv.osv):
                             (select st.product_qty
                                 from stock_move st 
                                 where st.state='done' and st.product_id=%s and st.location_dest_id = %s and prodlot_id = %s
+                                    and (picking_id != %s or picking_id is null)
                             union all
                             select st.product_qty*-1
                                 from stock_move st 
                                 where st.state='done' and st.product_id=%s and st.location_id = %s and prodlot_id = %s
+                                    and (picking_id != %s or picking_id is null)
                             )foo
-                    '''%(move_line['product_id'],picking.location_id.id,move_line['prodlot_id'] or 'null',move_line['product_id'],picking.location_id.id,move_line['prodlot_id'] or 'null')
+                    '''%(move_line['product_id'],picking.location_id.id,move_line['prodlot_id'] or 'null',picking.id,move_line['product_id'],picking.location_id.id,move_line['prodlot_id'] or 'null',picking.id)
                     cr.execute(sql)
                 else:
                     sql = '''
@@ -122,12 +124,14 @@ class stock_picking(osv.osv):
                             (select st.product_qty
                                 from stock_move st 
                                 where st.state='done' and st.product_id=%s and st.location_dest_id = %s
+                                    and (picking_id != %s or picking_id is null)
                             union all
                             select st.product_qty*-1
                                 from stock_move st 
                                 where st.state='done' and st.product_id=%s and st.location_id = %s
+                                    and (picking_id != %s or picking_id is null)
                             )foo
-                    '''%(move_line['product_id'],picking.location_id.id,move_line['product_id'],picking.location_id.id)
+                    '''%(move_line['product_id'],picking.location_id.id,picking.id,move_line['product_id'],picking.location_id.id,picking.id)
                     cr.execute(sql)
                 ton_sl = cr.dictfetchone()['ton_sl']
                 if move_line['product_qty'] > ton_sl:
@@ -155,12 +159,14 @@ class stock_picking(osv.osv):
                                 (select st.product_qty
                                     from stock_move st 
                                     where st.state='done' and st.product_id=%s and st.location_dest_id = %s and prodlot_id = %s
+                                        and (picking_id != %s or picking_id is null)
                                 union all
                                 select st.product_qty*-1
                                     from stock_move st 
                                     where st.state='done' and st.product_id=%s and st.location_id = %s and prodlot_id = %s
+                                        and (picking_id != %s or picking_id is null)
                                 )foo
-                        '''%(move_line['product_id'],picking.location_id.id,move_line['prodlot_id'] or 'null',move_line['product_id'],picking.location_id.id,move_line['prodlot_id'] or 'null')
+                        '''%(move_line['product_id'],picking.location_id.id,move_line['prodlot_id'] or 'null',picking.id,move_line['product_id'],picking.location_id.id,move_line['prodlot_id'] or 'null',picking.id)
                         cr.execute(sql)
                     else:
                         sql = '''
@@ -168,12 +174,14 @@ class stock_picking(osv.osv):
                                 (select st.product_qty
                                     from stock_move st 
                                     where st.state='done' and st.product_id=%s and st.location_dest_id = %s
+                                        and (picking_id != %s or picking_id is null)
                                 union all
                                 select st.product_qty*-1
                                     from stock_move st 
                                     where st.state='done' and st.product_id=%s and st.location_id = %s
+                                        and (picking_id != %s or picking_id is null)
                                 )foo
-                        '''%(move_line['product_id'],picking.location_id.id,move_line['product_id'],picking.location_id.id)
+                        '''%(move_line['product_id'],picking.location_id.id,picking.id,move_line['product_id'],picking.location_id.id,picking.id)
                         cr.execute(sql)
                     ton_sl = cr.dictfetchone()['ton_sl']
                     if move_line['product_qty'] > ton_sl:
@@ -643,7 +651,7 @@ class stock_picking(osv.osv):
             wf_service.trg_create(uid, 'stock.picking', picking.id, cr)
             self.draft_force_assign(cr, uid, [picking.id])
             sql = '''
-                update stock_picking set doc_status='draft' where id = %s
+                update stock_picking set doc_status='draft',invoice_state='2binvoiced' where id = %s
                 '''%(picking.id)
             cr.execute(sql)
         for (id, name) in self.name_get(cr, uid, ids):
