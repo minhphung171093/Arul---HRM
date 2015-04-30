@@ -101,6 +101,17 @@
         <menuitem action="action_tpt_posting_configuration_form_view"
             id="menu_action_tpt_posting_configuration_form_view"
             parent="menu_tpt_accounting" sequence="13"/>
+            
+       	<record id="tpt_account_tax_inherit_form" model="ir.ui.view">
+            <field name="name">tpt.account.tax.inherit.form</field>
+            <field name="model">account.tax</field>
+            <field name="inherit_id" ref="account.view_tax_form"/>
+            <field name="arch" type="xml">
+            	<xpath expr="//page[@string='Tax Definition']/group/group[@string='Invoices']/field[@name='tax_sign']" position="after">
+					<field name="gl_account_id" options="{'create': false, 'create_edit': false}"/>
+				</xpath>
+			</field>
+		</record>
 
 
 		<record id="tpt_account_supplier_invoice_form" model="ir.ui.view">
@@ -271,6 +282,9 @@
 				<xpath expr="//page[@string='Accounting']/group[@name='properties']/group/field[@name='supplier_taxes_id']" position="after">
 					<field name="product_asset_acc_id" options="{'create': false, 'create_edit': false}"/>
 					<field name="product_cose_acc_id" options="{'create': false, 'create_edit': false}"/>
+				</xpath>
+				<xpath expr="//page[@string='Information']/group/group/field[@name='default_code']" position="after">
+					<field name="chapter" />
 				</xpath>
 					
 			</field>
@@ -1982,6 +1996,7 @@
                 <data>
                      <xpath expr="//field[@name='email']" position="after">
                         <field name="is_tds_applicable" attrs="{'invisible': [('supplier','=',False)]}"/>
+                        <field name="vendor_type" attrs="{'invisible': [('supplier','=',False)]}"/>
                         <field name="tds_id" attrs="{'invisible': [('is_tds_applicable','=',False)]}" options="{'create': false, 'create_edit': false}"/>
                     </xpath>
                 </data>

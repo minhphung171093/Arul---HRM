@@ -1,5 +1,5 @@
 id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
-access_vvti_production_16,tpt.product.avg.cost,green_erp_arulmani_accounting.model_tpt_product_avg_cost,base.group_user,True,True,True,True
+access_vvti_production_22,tpt.product.avg.cost,green_erp_arulmani_accounting.model_tpt_product_avg_cost,base.group_user,True,True,True,True
 access_vvti_accounting_1,stock.picking.in,green_erp_arulmani_purchase.model_stock_picking_in,green_erp_arulmani_accounting.group_vvti_accounting_admin,True,True,True,False
 access_vvti_accounting_2,tpt.posting.configuration,green_erp_arulmani_accounting.model_tpt_posting_configuration,green_erp_arulmani_accounting.group_vvti_accounting_admin,True,True,True,False
 access_vvti_accounting_3,tpt.gate.in.pass,green_erp_arulmani_purchase.model_tpt_gate_in_pass,green_erp_arulmani_accounting.group_vvti_accounting_admin,True,False,False,False
@@ -30,7 +30,8 @@ account.access_account_invoice_uinvoice,account.invoice,account.model_account_in
 account.access_account_move_uinvoice,account.move,account.model_account_move,account.group_account_invoice,1,1,1,0
 account_voucher.access_account_voucher_invoice,account.voucher invoice,account_voucher.model_account_voucher,account.group_account_invoice,1,1,1,0
 
-
+access_vvti_accounting_23,tpt.product.specification,green_erp_arulmani_purchase.model_tpt_product_specification,green_erp_arulmani_accounting.group_vvti_accounting_admin,True,True,True,False
+access_vvti_accounting_24,tpt.quanlity.inspection,green_erp_arulmani_purchase.model_tpt_quanlity_inspection,green_erp_arulmani_accounting.group_vvti_accounting_admin,True,True,True,False
 
 
 

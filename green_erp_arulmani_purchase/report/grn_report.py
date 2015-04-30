@@ -29,12 +29,14 @@ class Parser(report_sxw.rml_parse):
         })
     
     def convert_date(self, date):
-        date = datetime.strptime(date, DATE_FORMAT)
-        return date.strftime('%d/%m/%Y')
+        if date:
+            date = datetime.strptime(date, DATE_FORMAT)
+            return date.strftime('%d/%m/%Y')
     
     def convert_date_time(self, date):
-        date = datetime.strptime(date, DATETIME_FORMAT)
-        return date.strftime('%d/%m/%Y')
+        if date:
+            date = datetime.strptime(date, DATETIME_FORMAT)
+            return date.strftime('%d/%m/%Y')
     
     def get_move(self,move):
         res = ''
