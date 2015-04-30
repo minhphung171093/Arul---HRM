@@ -1039,12 +1039,26 @@ class arul_hr_payroll_executions(osv.osv):
                 select employee_id from arul_hr_punch_in_out_time where EXTRACT(year FROM work_date) = %s and EXTRACT(month FROM work_date) = %s
             '''%(line.year,line.month)
             cr.execute(sql)
-            punch_in_out_emp_ids = [row[0] for row in cr.fetchall()]          
+            punch_in_out_emp_ids = [row[0] for row in cr.fetchall()]     
+            ##TPT
+            sql = '''
+                SELECT employee_id FROM 
+                arul_hr_permission_onduty WHERE non_availability_type_id='on_duty' 
+                AND EXTRACT(year FROM date) = %s AND EXTRACT(month FROM date) = %s and total_shift_worked>=1
+            '''%(line.year,line.month)
+            cr.execute(sql)
+            onduty_emps = [row[0] for row in cr.fetchall()] 
+            punch_onduty_emps = punch_in_out_emp_ids+onduty_emps
+            
+            #TPT     
             #TPT COMMENTED BY BalamuruganPurushothaman ON 24/03/2015 - TO GENERATE THE PAYROLL FOR EMPLOYEES ARE NOT IN MONTHLY WORK SCHEDULE
             #SINCE NEW EMPLOYEE CAN HAVE ONLY ATTENDANCE DETAILS
             #employee_ids = emp_obj.search(cr, uid, [('payroll_area_id','=',line.payroll_area_id.id),('id','in',monthly_shift_emp_ids),('id','in',employee_structure_emp_ids),('id','in',punch_in_out_emp_ids)])
-            employee_ids = emp_obj.search(cr, uid, [('payroll_area_id','=',line.payroll_area_id.id),('id','in',employee_structure_emp_ids),('id','in',punch_in_out_emp_ids)])
-            employee_ids_no_emp_pay_struct = emp_obj.search(cr, uid, [('payroll_area_id','=',line.payroll_area_id.id),('id','not in',employee_structure_emp_ids),('id','in',punch_in_out_emp_ids)])
+            
+            #employee_ids = emp_obj.search(cr, uid, [('payroll_area_id','=',line.payroll_area_id.id),('id','in',employee_structure_emp_ids),('id','in',punch_in_out_emp_ids)])
+            #employee_ids_no_emp_pay_struct = emp_obj.search(cr, uid, [('payroll_area_id','=',line.payroll_area_id.id),('id','not in',employee_structure_emp_ids),('id','in',punch_in_out_emp_ids)])
+            employee_ids = emp_obj.search(cr, uid, [('payroll_area_id','=',line.payroll_area_id.id),('id','in',employee_structure_emp_ids),('id','in',punch_onduty_emps)])
+            employee_ids_no_emp_pay_struct = emp_obj.search(cr, uid, [('payroll_area_id','=',line.payroll_area_id.id),('id','not in',employee_structure_emp_ids),('id','in',punch_onduty_emps)])
             if employee_ids_no_emp_pay_struct:  
                 emp_code='' 
                 for p in emp_obj.browse(cr,uid,employee_ids_no_emp_pay_struct): 
