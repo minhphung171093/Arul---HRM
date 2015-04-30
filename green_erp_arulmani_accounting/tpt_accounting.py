@@ -1259,7 +1259,7 @@ class account_invoice_line(osv.osv):
                             })
                         break
                     else:
-                        tax = voucher_rate * inv.amount_tax
+                        tax = voucher_rate * inv_id.amount_tax
                         sql = '''
                             SELECT sup_inv_vat_id FROM tpt_posting_configuration WHERE name = 'sup_inv' and sup_inv_vat_id is not null
                         '''
