@@ -6,6 +6,10 @@
 	    	<field name="groups_id" eval="[(4, ref('green_erp_arulmani_accounting.group_vvti_accounting_admin'))]"/>
 		</record>
 		
+		<record model="ir.ui.menu" id="green_erp_arulmani_purchase.menu_action_view_tpt_quanlity_inspection_spares_form">
+	    	<field name="groups_id" eval="[(4, ref('green_erp_arulmani_accounting.group_vvti_accounting_admin'))]"/>
+		</record>
+		
 		<record model="ir.ui.menu" id="stock.menu_stock_product">
 	    	<field name="groups_id" eval="[(4, ref('green_erp_arulmani_accounting.group_vvti_accounting_admin'))]"/>
 		</record>
