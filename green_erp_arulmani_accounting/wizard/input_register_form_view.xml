@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="utf-8"?>
+<openerp>
+    <data>
+		<record id="input_register_form_view" model="ir.ui.view">
+	        <field name="name">input.register.form.view</field>
+	        <field name="model">input.register.form</field>
+	        <field name="arch" type="xml">
+	            <form string="Input Register Report" version="7.0">
+	            	<group>
+	                <field name="date_from" />
+	                <field name="date_to" />
+	                <field name="product_cate_id" domain="[('cate_name','in',('raw', 'spares'))]" options="{'create': false, 'create_edit': false}"/>
+	                </group>
+	                <footer>
+	                    <button name="print_report" type='object' string="OK" class="oe_highlight"/>
+	                    or
+	                    <button string="Cancel" class="oe_highlight" special="cancel" />
+	                </footer>
+	            </form>
+	        </field>
+    	</record>
+
+	    <record model="ir.actions.act_window" id="action_input_register_form_view">
+	        <field name="name">Input Register Report</field>
+	        <field name="res_model">input.register.form</field>
+	        <field name="view_type">form</field>
+	        <field name="view_mode">form</field>
+	        <field name="view_id" ref="input_register_form_view" />
+	        <field name="target">new</field>
+	    </record>
+	    
+	    <menuitem id="menu_tpt_accounting" name="Accounting" parent="account.menu_finance" sequence="0" groups="green_erp_arulmani_sale.group_vvti_unit_account"/>
+        <menuitem action="action_input_register_form_view"
+            id="menu_action_input_register_form_view"
+            parent="menu_tpt_accounting" sequence="100"/>
+	 
+	    
+    </data>
+</openerp>
+

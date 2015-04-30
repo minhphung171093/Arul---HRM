@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<openerp>
+    <data>
+    	<record id="input_register_report" model="ir.actions.report.xml">
+	        <field name="name">input_register_report</field>
+	        <field name="type">ir.actions.report.xml</field>
+	        <field name="model">input.register.form</field>
+	        <field name="report_name">input_register_report</field>
+	        <field name="report_type">aeroo</field>
+	        <field name="in_format">oo-ods</field>
+	        <field name="out_format" model="report.mimetypes" search="[('code','=','oo-xls')]"/>
+	        <field name="parser_loc">green_erp_arulmani_accounting/report/input_register_report.py</field>
+	        <field name="report_rml">green_erp_arulmani_accounting/report/input_register_report.ods</field>
+	        <field name="parser_state">loc</field>
+	        <field name="tml_source">file</field>
+	        <field name="attachment_use" eval="0"/>
+    	</record>		    
+		
+		<report 
+			auto="True" 
+			menu="False"
+			id="input_register_report" 
+			model="input.register.form" 
+			name="input_register_report"
+	        string="Input Register Report"
+	        rml="green_erp_arulmani_accounting/report/input_register_report.ods"/>	
+    </data>
+</openerp>

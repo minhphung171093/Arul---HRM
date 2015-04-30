@@ -38,20 +38,26 @@ class Parser(report_sxw.rml_parse):
         pool = pooler.get_pool(self.cr.dbname)
         self.localcontext.update({
             'get_invoice':self.get_invoice,
-            'get_invoice_type':self.get_invoice_type,
-            'get_customer_group': self.get_customer_group,
-            'get_cst_tax': self.get_cst_tax,
-            'get_vat_tax': self.get_vat_tax,
-            'get_tcs_tax': self.get_tcs_tax,
-            'get_order_type': self.get_order_type,
-            'convert_date': self.convert_date,
-#             'get_sale_line': self.get_sale_line,
+            'convert_date':self.convert_date,
+            'get_date_from': self.get_date_from,
+            'get_date_to': self.get_date_to,
+            'get_document_type': self.get_document_type,
         })
         
     def convert_date(self,date):
         if date:
             date = datetime.strptime(date, DATE_FORMAT)
             return date.strftime('%d/%m/%Y')
+        
+    def get_date_from(self):
+        wizard_data = self.localcontext['data']['form']
+        date = datetime.strptime(wizard_data['date_from'], DATE_FORMAT)
+        return date.strftime('%d/%m/%Y')
+    
+    def get_date_to(self):
+        wizard_data = self.localcontext['data']['form']
+        date = datetime.strptime(wizard_data['date_to'], DATE_FORMAT)
+        return date.strftime('%d/%m/%Y')
     
     def get_date(self):
         res = {}
@@ -72,58 +78,44 @@ class Parser(report_sxw.rml_parse):
         wizard_data = self.localcontext['data']['form']
         date_from = wizard_data['date_from']
         date_to = wizard_data['date_to']
+        product_cate_id = wizard_data['product_cate_id']
         invoice_obj = self.pool.get('account.invoice.line')
-        sql = '''
-            select id from account_invoice_line where invoice_id in (select id from account_invoice where date_invoice between '%s' and '%s' and type = 'out_invoice')
-            '''%(date_from, date_to)
-        self.cr.execute(sql)
-        invoice_ids = [r[0] for r in self.cr.fetchall()]
+        invoice_ids = []
+        if product_cate_id:
+            sql = '''
+                select id from account_invoice_line where invoice_id in 
+                (select id from account_invoice where date_invoice between '%s' and '%s' and type = 'in_invoice' and purchase_id is not null) 
+                and ed is not null and ed != 0
+                and product_id in (select id from product_product where product_tmpl_id in (select id from product_template where categ_id = %s))
+                '''%(date_from, date_to, product_cate_id[0])
+            self.cr.execute(sql)
+            invoice_ids = [r[0] for r in self.cr.fetchall()]
+        else:
+            sql = '''
+                select id from account_invoice_line where invoice_id in 
+                (select id from account_invoice where date_invoice between '%s' and '%s' and type = 'in_invoice' and purchase_id is not null) 
+                and ed is not null and ed != 0
+                and product_id in (select id from product_product where product_tmpl_id in (select id from product_template where categ_id in (select id from product_category where cate_name in ('raw','spares'))))
+                '''%(date_from, date_to)
+            self.cr.execute(sql)
+            invoice_ids = [r[0] for r in self.cr.fetchall()]
         return invoice_obj.browse(self.cr,self.uid,invoice_ids)
     
-    def get_invoice_type(self, invoice_type):
-        if invoice_type == 'domestic':
-            return "Domestic/Indirect Export"
-        if invoice_type == 'export':
-            return "Export"
-        
-    def get_order_type(self, order_type):
-        if order_type == 'domestic':
-            return "Domestic"
-        if order_type == 'export':
-            return "Export"
-        
-    def get_customer_group(self, customer):
-        if customer == 'export':
-            return "Export"
-        if customer == 'domestic':
-            return "Domestic"
-        if customer == 'indirect_export':
-            return "Indirect Export"
-        
-    def get_cst_tax(self, tax, untax):
-        amount = 0
-        if 'CST' in tax.name:
-            amount = tax.amount
-        return round(amount*untax/100,2)
+    def get_document_type(self, document_type):
+        if document_type == 'raw':
+            return "VV Raw material PO"
+        if document_type == 'asset':
+            return "VV Capital PO"
+        if document_type == 'standard':
+            return "VV Standard PO"
+        if document_type == 'return':
+            return "VV Return PO"
+        if document_type == 'service':
+            return "VV Service PO"
+        if document_type == 'out':
+            return "VV Out Service PO"
     
-    def get_vat_tax(self, tax, untax):
-        amount = 0
-        if 'VAT' in tax.name:
-            amount = tax.amount
-        return round(amount*untax/100,2)
-    
-    def get_tcs_tax(self, tax, untax):
-        amount = 0
-        if 'TCS' in tax.name:
-            amount = tax.amount
-        return round(amount*untax/100,2)
         
-    
-#     def get_sale_line(self,invoice):
-#         line = invoice[0]
-#         order_lines = line.invoice_id.sale_id.order_line
-#             
-#         return self.pool.get('sale.order.line').browse(self.cr,self.uid,order_lines[0])
         
     
 # vim:expandtab:smartindent:tabstop=4:softtabstop=4:shiftwidth=4:

@@ -65,8 +65,9 @@ class Parser(report_sxw.rml_parse):
         return date.strftime('%d/%m/%Y')
             
     def convert_date_cash(self, date):
-        date = datetime.strptime(date, DATE_FORMAT)
-        return date.strftime('%d/%m/%Y')
+        if date:
+            date = datetime.strptime(date, DATE_FORMAT)
+            return date.strftime('%d/%m/%Y')
     
     def get_date(self):
         res = {}
