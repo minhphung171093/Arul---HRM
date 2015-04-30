@@ -3,6 +3,7 @@ from openerp import tools
 from openerp.osv import osv, fields
 from openerp.tools.translate import _
 import time
+import math
 from openerp.tools import DEFAULT_SERVER_DATE_FORMAT, DEFAULT_SERVER_DATETIME_FORMAT, DATETIME_FORMATS_MAP, float_compare
 from datetime import datetime
 import openerp.addons.decimal_precision as dp
@@ -1553,10 +1554,10 @@ class arul_hr_payroll_executions(osv.osv):
 			if gross_sal >= emp_esi_limit:
                             emp_esi_con_amount = 0
                         else:
-                            emp_esi_con_amount = total_earning*emp_esi_con/100
+                            emp_esi_con_amount = math.ceil(total_earning*emp_esi_con/100)
 
                         base_amount = net_basic + net_da 
-                        emp_pf_con_amount = base_amount*emp_pf_con/100
+                        emp_pf_con_amount = math.ceil(base_amount*emp_pf_con/100)
                         vpfd_amount = base_amount * vpfd / 100 	
 			total_deduction += (emp_pf_con_amount + emp_esi_con_amount + emp_lwf_amt + vpfd_amount)
 			net_sala = gross_sal - total_deduction
@@ -2030,10 +2031,10 @@ class arul_hr_payroll_executions(osv.osv):
                         if gross_sal >= emp_esi_limit:
                             emp_esi_con_amount = 0
                         else:
-                            emp_esi_con_amount = total_earning*emp_esi_con/100
+                            emp_esi_con_amount = math.ceil(total_earning*emp_esi_con/100)
 
                         base_amount = net_basic + net_da 
-                        emp_pf_con_amount = base_amount*emp_pf_con/100
+                        emp_pf_con_amount = math.ceil(base_amount*emp_pf_con/100)
                         vpfd_amount = base_amount * vpfd / 100 	
                         total_deduction += (emp_pf_con_amount + emp_esi_con_amount + emp_lwf_amt + vpfd_amount)
                         net_sala = gross_sal - total_deduction
@@ -2525,10 +2526,10 @@ class arul_hr_payroll_executions(osv.osv):
                         if gross_sal >= emp_esi_limit:
                             emp_esi_con_amount = 0
                         else:
-                            emp_esi_con_amount = total_earning*emp_esi_con/100
+                            emp_esi_con_amount = math.ceil(total_earning*emp_esi_con/100)
 
                         base_amount = net_basic + net_da 
-                        emp_pf_con_amount = base_amount*emp_pf_con/100
+                        emp_pf_con_amount = math.ceil(base_amount*emp_pf_con/100)
                         vpfd_amount = base_amount * vpfd / 100 	
                         total_deduction += (emp_pf_con_amount + emp_esi_con_amount + emp_lwf_amt + vpfd_amount)
                         net_sala = gross_sal - total_deduction
