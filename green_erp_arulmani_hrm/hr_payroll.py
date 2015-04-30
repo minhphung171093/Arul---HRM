@@ -1076,8 +1076,9 @@ class arul_hr_payroll_executions(osv.osv):
                 
                 #OnDuty
                 sql = '''
-                SELECT CASE WHEN SUM(total_shift_worked)!=0 THEN SUM(total_shift_worked) ELSE 0 END total_shift_worked FROM arul_hr_permission_onduty WHERE non_availability_type_id='on_duty' 
-                AND EXTRACT(year FROM date) = %s AND EXTRACT(month FROM date) = %s and employee_id =%s
+                SELECT CASE WHEN SUM(total_shift_worked)!=0 THEN SUM(total_shift_worked) ELSE 0 END total_shift_worked 
+                FROM arul_hr_permission_onduty WHERE non_availability_type_id='on_duty' 
+                AND EXTRACT(year FROM date) = %s AND EXTRACT(month FROM date) = %s and employee_id =%s and total_shift_worked>=1
                 '''%(line.year,line.month,p.id)
                 cr.execute(sql)
                 c =  cr.fetchone()
@@ -2454,7 +2455,10 @@ class arul_hr_payroll_executions(osv.osv):
                         spa = spa/(calendar_days - 4 - special_holidays) * total_shift_worked #TPT total_days <->total_shift_worked 
                         #ma = total_shift_allowance + total_days * 4 + la + wa 
                         
-                        ma = total_all_shift_allowance + total_days * 4 + la + wa #based on individual shift
+                        #ma = total_all_shift_allowance + total_days * 4 + la + wa #based on individual shift
+                        lunch_allowance = 5 # Rs.5 is Fixed as Lunch Allowance as per VVTi Rules
+                        washing_allowane = 4 # Rs.4 is Fixed as per VVTi Rules
+                        ma = (total_shift_worked * ( lunch_allowance + washing_allowane )) + total_all_shift_allowance
 
                         #total_earning = basic + da + c + hra + fa + pc + cre + ea +spa + la + aa + sha + oa + lta + med
                         #gross_before = basic + c + hra  +spa + oa + da + ea
