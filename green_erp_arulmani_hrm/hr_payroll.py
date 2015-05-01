@@ -1204,9 +1204,11 @@ class arul_hr_payroll_executions(osv.osv):
                 total_all_shift_allowance =  total_g1_shift_allowance + total_g2_shift_allowance + total_a_shift_allowance + total_b_shift_allowance + total_c_shift_allowance
                 #TPT
                 
-                special_holiday_worked_count =  0                              
+                special_holiday_worked_count =  0  
+                #SELECT COUNT(work_date) AS date_holiday_count                             
                 sql = '''
-                        SELECT COUNT(work_date) AS date_holiday_count 
+                        SELECT CASE WHEN SUM(total_shift_worked)!=0 
+                            THEN SUM(total_shift_worked) ELSE 0 END total_shift_worked 
                         FROM arul_hr_punch_in_out_time 
                         WHERE work_date IN (SELECT date FROM arul_hr_holiday_special 
                         WHERE EXTRACT(month from date)=%s AND EXTRACT(year from date)=%s ) AND 
@@ -1214,7 +1216,7 @@ class arul_hr_payroll_executions(osv.osv):
                         punch_in_out_id IN (SELECT id FROM arul_hr_employee_attendence_details WHERE employee_id=%s)
                     '''%(line.month, line.year, line.month, line.year, p.id)
                 cr.execute(sql)
-                special_holiday_worked_count = cr.dictfetchone()['date_holiday_count']
+                special_holiday_worked_count = cr.dictfetchone()['total_shift_worked']
                         
                 #TPT END
                         
