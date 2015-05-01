@@ -407,9 +407,11 @@ class arul_hr_audit_shift_time(osv.osv):
                     AND to_char(work_date,'YYYY-MM-DD')=('%s')       
                     ''' %(line.in_time,line.out_time,line.employee_id.id,line.work_date)
             cr.execute(sql)
-            p = cr.fetchone()                  
-            if p[0]>0:
-                raise osv.except_osv(_('Warning!'),_('Attendance Already Entered for this Time Period')) 
+            p = cr.fetchone()   
+            #TPT-COMMENTED TEMPORARILY               
+            #if p[0]>0:
+            #    raise osv.except_osv(_('Warning!'),_('Attendance Already Entered for this Time Period')) 
+           
             #TPT END
         for line in self.browse(cr,uid,ids):
 #             emp = self.pool.get('hr.employee')
@@ -866,9 +868,10 @@ class arul_hr_audit_shift_time(osv.osv):
                     AND to_char(work_date,'YYYY-MM-DD')=('%s')       
                     ''' %(line.in_time,line.out_time,line.employee_id.id,line.work_date)
             cr.execute(sql)
-            p = cr.fetchone()                  
-            if p[0]>0:
-                raise osv.except_osv(_('Warning!'),_('Attendance Already Entered for this Time Period')) 
+            p = cr.fetchone()  
+            #TPT-COMMENTED TEMP                
+            #if p[0]>0:
+            #    raise osv.except_osv(_('Warning!'),_('Attendance Already Entered for this Time Period')) 
             #TPT END
         for line in self.browse(cr,uid,ids):
 #             emp = self.pool.get('hr.employee')
