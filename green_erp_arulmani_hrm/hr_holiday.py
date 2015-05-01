@@ -2122,6 +2122,7 @@ class arul_hr_permission_onduty(osv.osv):
         'create_uid': fields.many2one('res.users','Created By',ondelete='restrict',readonly = True),
 #         'detail_id':fields.many2one('arul.hr.employee.attendence.details','Detail'),
         #TPT-Permission On Duty
+        'shift_type':fields.char('Shift Type', size = 1024),
         'total_shift_worked': fields.function(_shift_total, store=True, string='No.Of Shift Worked', multi='shift_sums', help="The total amount."),
         'state':fields.selection([('draft', 'Draft'),('cancel', 'Reject'),('done', 'Approve')],'Status', readonly=True),
               }
