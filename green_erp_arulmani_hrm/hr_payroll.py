@@ -1558,7 +1558,7 @@ class arul_hr_payroll_executions(osv.osv):
 
                         base_amount = net_basic + net_da 
                         emp_pf_con_amount = math.ceil(base_amount*emp_pf_con/100)
-                        vpfd_amount = base_amount * vpfd / 100 	
+                        vpfd_amount = math.ceil(base_amount * vpfd / 100) 	
 			total_deduction += (emp_pf_con_amount + emp_esi_con_amount + emp_lwf_amt + vpfd_amount)
 			net_sala = gross_sal - total_deduction
 
@@ -1997,6 +1997,7 @@ class arul_hr_payroll_executions(osv.osv):
                         
                         #total_deduction += (lop + emp_pf_con_amount + emp_esi_con_amount + emp_lwf_amt)
                         #net_sala = gross_before - total_deduction
+                        for_esi_base_spa = spa
                         spa = spa / (calendar_days - 4 - special_holidays) * total_shift_worked # TPT total_days <-> total_shift_worked
                         #total_earning = basic + da + c + hra + fa + pc + cre + ea +spa + la + aa + sha + oa + lta + med
                         #spa = spa / (calendar_days - 4 - special_holidays) * total_days
@@ -2014,7 +2015,8 @@ class arul_hr_payroll_executions(osv.osv):
             
                         total_earning =  net_basic + net_da + net_c + net_hra + net_ea + net_aa + net_la + net_oa + fa + spa + pc + cre + sha + lta + med
                         gross_sal =  net_basic + net_da + net_c + net_hra + net_ea + net_aa + net_la + net_oa + fa + spa + pc + cre + sha + lta + med
-		                
+                        for_esi_base_gross_sal =  basic + da + c + hra + ea + aa + la + oa + fa + for_esi_base_spa + pc + cre + sha + lta + med
+                        
                         gross_shd_calc = net_basic + net_da + net_c + net_hra + net_ea + net_aa + net_la + net_oa
                         shd = (gross_shd_calc / calendar_days) * special_holiday_worked_count
                         total_earning = total_earning + shd
@@ -2028,14 +2030,14 @@ class arul_hr_payroll_executions(osv.osv):
                         #    lop = 0
                         #lop = gross_before - gross_sal
 
-                        if gross_sal >= emp_esi_limit:
+                        if for_esi_base_gross_sal >= emp_esi_limit:#S2
                             emp_esi_con_amount = 0
                         else:
                             emp_esi_con_amount = math.ceil(total_earning*emp_esi_con/100)
 
                         base_amount = net_basic + net_da 
                         emp_pf_con_amount = math.ceil(base_amount*emp_pf_con/100)
-                        vpfd_amount = base_amount * vpfd / 100 	
+                        vpfd_amount = math.ceil(base_amount * vpfd / 100) 	
                         total_deduction += (emp_pf_con_amount + emp_esi_con_amount + emp_lwf_amt + vpfd_amount)
                         net_sala = gross_sal - total_deduction
   
@@ -2466,7 +2468,7 @@ class arul_hr_payroll_executions(osv.osv):
                                 med = earning_struc_id.float
                         #spa = spa/(26 - 4)*total_days 
                         #oa = total_shift_allowance + total_days*4 + la  # this calculation shifted to ma. oa is treated as same that of entered in paystructure
-			
+                        for_esi_base_spa = spa
                         spa = spa/(calendar_days - 4 - special_holidays) * total_shift_worked #TPT total_days <->total_shift_worked 
                         #ma = total_shift_allowance + total_days * 4 + la + wa 
                         
@@ -2508,7 +2510,8 @@ class arul_hr_payroll_executions(osv.osv):
 
                         total_earning =  net_basic + net_da + net_c + net_hra + net_ea + net_aa + net_la + net_oa + fa + spa + pc + cre + sha + lta + med + ma
                         gross_sal =  net_basic + net_da + net_c + net_hra + net_ea + net_aa + net_la + net_oa + fa + spa + pc + cre + sha + lta + med + ma
-		                #S3
+                        for_esi_base_gross_sal =  basic + da + c + hra + ea + aa + la + oa + fa + for_esi_base_spa + pc + cre + sha + lta + med
+                        #S3
                         gross_shd_calc = net_basic + net_da + net_c + net_hra + net_ea + net_aa + net_la + net_oa
                         shd = (gross_shd_calc / 26) * special_holiday_worked_count
                         total_earning = total_earning + shd
@@ -2523,14 +2526,14 @@ class arul_hr_payroll_executions(osv.osv):
                         #    lop = 0
                         #lop = gross_before - gross_sal
 
-                        if gross_sal >= emp_esi_limit:
+                        if for_esi_base_gross_sal >= emp_esi_limit:
                             emp_esi_con_amount = 0
                         else:
                             emp_esi_con_amount = math.ceil(total_earning*emp_esi_con/100)
 
                         base_amount = net_basic + net_da 
                         emp_pf_con_amount = math.ceil(base_amount*emp_pf_con/100)
-                        vpfd_amount = base_amount * vpfd / 100 	
+                        vpfd_amount = math.ceil(base_amount * vpfd / 100) 	
                         total_deduction += (emp_pf_con_amount + emp_esi_con_amount + emp_lwf_amt + vpfd_amount)
                         net_sala = gross_sal - total_deduction
 
