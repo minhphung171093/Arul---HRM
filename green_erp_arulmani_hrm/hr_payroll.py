@@ -1194,6 +1194,18 @@ class arul_hr_payroll_executions(osv.osv):
                 cr.execute(sql)
                 c_all =  cr.fetchone()
                 c_shift_allowance = c_all[0]
+                ###TPT
+                total_onduty_g2_alLowance = 0
+                sql = '''
+                    select count(*) from arul_hr_permission_onduty where shift_type='G2' and 
+                    EXTRACT(year FROM date) = %s AND EXTRACT(month FROM date) = %s and employee_id=%s
+                    '''%(line.year,line.month,p.id)
+                cr.execute(sql)
+                onduty_shift =  cr.fetchone()
+                onduty_shift_count = onduty_shift[0]
+                total_onduty_g2_allowance = onduty_shift_count * g2_shift_allowance
+                ###TPT
+                
                 
                 total_g1_shift_allowance = g1_shift_count * g1_shift_allowance
                 total_g2_shift_allowance = g2_shift_count * g2_shift_allowance
@@ -1202,6 +1214,7 @@ class arul_hr_payroll_executions(osv.osv):
                 total_c_shift_allowance = c_shift_count * c_shift_allowance
                 
                 total_all_shift_allowance =  total_g1_shift_allowance + total_g2_shift_allowance + total_a_shift_allowance + total_b_shift_allowance + total_c_shift_allowance
+                total_all_shift_allowance = total_all_shift_allowance + total_onduty_g2_allowance
                 #TPT
                 
                 special_holiday_worked_count =  0  
@@ -1277,7 +1290,7 @@ class arul_hr_payroll_executions(osv.osv):
 
                 if emp_struc_ids:
                     payroll_emp_struc = payroll_emp_struc_obj.browse(cr,uid,emp_struc_ids[0])
-                    contribution_ids = contribution_obj.search(cr, uid, [('employee_category_id','=',payroll_emp_struc.employee_category_id.id),('sub_category_id','=',payroll_emp_struc.sub_category_id.id)])
+                    contribution_ids = contribution_obj.search(cr, uid, [('employee_category_id','=',p.employee_category_id.id),('sub_category_id','=',p.employee_sub_category_id.id)])
                     if contribution_ids:
                         contribution = contribution_obj.browse(cr, uid, contribution_ids[0])
                         emp_esi_limit = contribution.emp_esi_limit
