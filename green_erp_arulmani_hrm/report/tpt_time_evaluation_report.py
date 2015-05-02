@@ -110,11 +110,14 @@ class Parser(report_sxw.rml_parse):
             #OnDuty
             sql = '''
                 SELECT CASE WHEN SUM(total_shift_worked)!=0 THEN SUM(total_shift_worked) ELSE 0 END sum_onduty FROM arul_hr_permission_onduty WHERE non_availability_type_id='on_duty' 
-                AND EXTRACT(year FROM to_date) = %s AND EXTRACT(month FROM to_date) = %s and employee_id =%s
+                AND EXTRACT(year FROM to_date) = %s AND EXTRACT(month FROM to_date) = %s and employee_id =%s and total_shift_worked>=1
                 '''%(int(year), int(month),employee.id)
             self.cr.execute(sql)
             o_c =  self.cr.fetchone()
             onduty_count = o_c[0]
+            
+            total_shift_worked = shift_count + onduty_count
+            perm_onduty_count =   onduty_count  
             
             ##TPT
             sql = '''
@@ -160,8 +163,9 @@ class Parser(report_sxw.rml_parse):
                 #TOTAL SHIFT WORKED
             #raise osv.except_osv(_('Warning!%s'),_(sql))      
             
-            total_shift_worked = round(shift_count+permission_count + onduty_count,1)
-            perm_onduty_count =  round(permission_count + onduty_count,1)   
+            #total_shift_worked = round(shift_count+permission_count + onduty_count,1)
+            #perm_onduty_count =  round(permission_count + onduty_count,1)   
+            
                 #total_shift_worked = round(shift_count) + round(permission_count) + round(onduty_count)
                 
                 #TPT END     
