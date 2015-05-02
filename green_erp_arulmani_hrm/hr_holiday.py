@@ -5347,417 +5347,380 @@ class tpt_time_leave_evaluation(osv.osv):
                 delete from tpt_non_availability where leave_evaluate_id = %s
             '''%(sub.id)
             cr.execute(sql)
-            ##TPT
-            emp_obj = self.pool.get('hr.employee')
-            
-            sql = '''
-                select id from hr_employee 
-                where resource_id in (select id from resource_resource where active='t')
-            '''
-            cr.execute(sql)
-            active_emp = [row[0] for row in cr.fetchall()]  
-            
-            sql = '''
-                select employee_id from arul_hr_employee_action_history where
-                extract(month from action_date)=%s and extract(year from action_date)=%s
-                and action_id = (select id from arul_employee_actions where code='Leaving');
-            '''%(sub.month,sub.year)
-            cr.execute(sql)
-            inactive_emp_leaving = [row[0] for row in cr.fetchall()] 
-            active_emp = active_emp+inactive_emp_leaving
-            employee_ids = emp_obj.search(cr, uid, [('id','in',active_emp)])
-            active_inactive_emp = emp_obj.browse(cr,uid,employee_ids)
-            ##TPT
             monthly_shift_ids = monthly_shift_obj.search(cr, uid, [('employee_id.payroll_area_id','=',sub.payroll_area_id.id),('monthly_work_id.year','=',sub.year),('monthly_work_id.month','=',sub.month)])
-            #for shift in monthly_shift_obj.browse(cr, uid, monthly_shift_ids): #TPT
-            for emp in active_inactive_emp: #TPT
-                #emp_id = shift.employee_id.id
-                emp_id = emp.id
-                monthly_shift = monthly_shift_obj.search(cr, uid, [('employee_id.payroll_area_id','=',sub.payroll_area_id.id),
-                                                           ('monthly_work_id.year','=',sub.year),
-                                                           ('monthly_work_id.month','=',sub.month),
-                                                           ('employee_id','=',emp_id)
-                                                           ])
-                for shift in  monthly_shift_obj.browse(cr, uid, monthly_shift):#TPT
-                    #===============================================================
-                    # sql = '''
-                    #     select EXTRACT(day FROM work_date) from arul_hr_audit_shift_time where employee_id = %s and EXTRACT(year FROM work_date) = %s and EXTRACT(month FROM work_date) = %s
-                    # '''%(emp_id, sub.year, sub.month)
-                    # cr.execute(sql)
-                    # audit_days = [row[0] for row in cr.fetchall()]
-                    #===============================================================
-                    
-                    sql = '''
-                        select EXTRACT(day FROM date) from arul_hr_permission_onduty where employee_id = %s and EXTRACT(year FROM date) = %s and EXTRACT(month FROM date) = %s
-                    '''%(emp_id, sub.year, sub.month)
-                    cr.execute(sql)
-                    audit_days = [row[0] for row in cr.fetchall()]
-                    
-                    sql = '''
-                        select EXTRACT(day FROM work_date) from arul_hr_punch_in_out_time where employee_id = %s and EXTRACT(year FROM work_date) = %s and EXTRACT(month FROM work_date) = %s
-                    '''%(emp_id, sub.year, sub.month)
-                    cr.execute(sql)
-                    punch_days = [row[0] for row in cr.fetchall()]
-                    
-                    sql = '''
-                        select EXTRACT(day FROM date_from) from arul_hr_employee_leave_details where employee_id = %s and EXTRACT(year FROM date_from) = %s and EXTRACT(month FROM date_from) = %s
-                    '''%(emp_id, sub.year, sub.month)
-                    cr.execute(sql)
-                    leave_days = [row[0] for row in cr.fetchall()]
-                    
-                    sql = '''
-                        select EXTRACT(day FROM date) from arul_hr_holiday_special where EXTRACT(year FROM date) = %s and EXTRACT(month FROM date) = %s
-                    '''%(sub.year, sub.month)
-                    cr.execute(sql)
-                    holiday_days = [row[0] for row in cr.fetchall()]
-                    
-                    day_now = int(time.strftime('%d'))
-                    month_now = int(time.strftime('%d'))
-                    year_now = int(time.strftime('%Y'))
-                    if month_now >= int(sub.month):
-                        day_now = 31
-                    if year_now >= sub.year:
-                        if shift.day_1 and shift.day_1.code != 'W' and day_now>=1 and 1.0 not in holiday_days:
-                            sql = '''
-                                select id from arul_hr_employee_leave_details
-                                    where employee_id = %s and EXTRACT(year FROM date_from) = %s and EXTRACT(month FROM date_from) = %s
-                                        and (1.0 between EXTRACT(day FROM date_from) and EXTRACT(day FROM date_to))
-                            '''%(emp_id, sub.year, sub.month)
-                            cr.execute(sql)
-                            leave_days = [row[0] for row in cr.fetchall()]
-                            if 1.0 not in audit_days and 1.0 not in punch_days and not leave_days:
-                                date = datetime.datetime(sub.year,int(sub.month),1)
-                                non_availability_obj.create(cr, uid, {'employee_id':emp_id,'state':'draft','date':date,'leave_evaluate_id':sub.id})
-                        if shift.day_2 and shift.day_2.code != 'W' and day_now>=2 and 2.0 not in holiday_days:
-                            sql = '''
-                                select id from arul_hr_employee_leave_details
-                                    where employee_id = %s and EXTRACT(year FROM date_from) = %s and EXTRACT(month FROM date_from) = %s
-                                        and (2.0 between EXTRACT(day FROM date_from) and EXTRACT(day FROM date_to))
-                            '''%(emp_id, sub.year, sub.month)
-                            cr.execute(sql)
-                            leave_days = [row[0] for row in cr.fetchall()]
-                            if 2.0 not in audit_days and 2.0 not in punch_days and not leave_days:
-                                date = datetime.datetime(sub.year,int(sub.month),2)
-                                non_availability_obj.create(cr, uid, {'employee_id':emp_id,'state':'draft','date':date,'leave_evaluate_id':sub.id})
-                        if shift.day_3 and shift.day_3.code != 'W' and day_now>=3 and 3.0 not in holiday_days:
-                            sql = '''
-                                select id from arul_hr_employee_leave_details
-                                    where employee_id = %s and EXTRACT(year FROM date_from) = %s and EXTRACT(month FROM date_from) = %s
-                                        and (3.0 between EXTRACT(day FROM date_from) and EXTRACT(day FROM date_to))
-                            '''%(emp_id, sub.year, sub.month)
-                            cr.execute(sql)
-                            leave_days = [row[0] for row in cr.fetchall()]
-                            if 3.0 not in audit_days and 3.0 not in punch_days and not leave_days:
-                                date = datetime.datetime(sub.year,int(sub.month),3)
-                                non_availability_obj.create(cr, uid, {'employee_id':emp_id,'state':'draft','date':date,'leave_evaluate_id':sub.id})
-                        if shift.day_4 and shift.day_4.code != 'W' and day_now>=4 and 4.0 not in holiday_days:
-                            sql = '''
-                                select id from arul_hr_employee_leave_details
-                                    where employee_id = %s and EXTRACT(year FROM date_from) = %s and EXTRACT(month FROM date_from) = %s
-                                        and (4.0 between EXTRACT(day FROM date_from) and EXTRACT(day FROM date_to))
-                            '''%(emp_id, sub.year, sub.month)
-                            cr.execute(sql)
-                            leave_days = [row[0] for row in cr.fetchall()]
-                            if 4.0 not in audit_days and 4.0 not in punch_days and not leave_days:
-                                date = datetime.datetime(sub.year,int(sub.month),4)
-                                non_availability_obj.create(cr, uid, {'employee_id':emp_id,'state':'draft','date':date,'leave_evaluate_id':sub.id})
-                        if shift.day_5 and shift.day_5.code != 'W' and day_now>=5 and 5.0 not in holiday_days:
-                            sql = '''
-                                select id from arul_hr_employee_leave_details
-                                    where employee_id = %s and EXTRACT(year FROM date_from) = %s and EXTRACT(month FROM date_from) = %s
-                                        and (5.0 between EXTRACT(day FROM date_from) and EXTRACT(day FROM date_to))
-                            '''%(emp_id, sub.year, sub.month)
-                            cr.execute(sql)
-                            leave_days = [row[0] for row in cr.fetchall()]
-                            if 5.0 not in audit_days and 5.0 not in punch_days and not leave_days:
-                                date = datetime.datetime(sub.year,int(sub.month),5)
-                                non_availability_obj.create(cr, uid, {'employee_id':emp_id,'state':'draft','date':date,'leave_evaluate_id':sub.id})
-                        if shift.day_6 and shift.day_6.code != 'W' and day_now>=6 and 6.0 not in holiday_days:
-                            sql = '''
-                                select id from arul_hr_employee_leave_details
-                                    where employee_id = %s and EXTRACT(year FROM date_from) = %s and EXTRACT(month FROM date_from) = %s
-                                        and (6.0 between EXTRACT(day FROM date_from) and EXTRACT(day FROM date_to))
-                            '''%(emp_id, sub.year, sub.month)
-                            cr.execute(sql)
-                            leave_days = [row[0] for row in cr.fetchall()]
-                            if 6.0 not in audit_days and 6.0 not in punch_days and not leave_days:
-                                date = datetime.datetime(sub.year,int(sub.month),6)
-                                non_availability_obj.create(cr, uid, {'employee_id':emp_id,'state':'draft','date':date,'leave_evaluate_id':sub.id})
-                        if shift.day_7 and shift.day_7.code != 'W' and day_now>=7 and 7.0 not in holiday_days:
-                            sql = '''
-                                select id from arul_hr_employee_leave_details
-                                    where employee_id = %s and EXTRACT(year FROM date_from) = %s and EXTRACT(month FROM date_from) = %s
-                                        and (7.0 between EXTRACT(day FROM date_from) and EXTRACT(day FROM date_to))
-                            '''%(emp_id, sub.year, sub.month)
-                            cr.execute(sql)
-                            leave_days = [row[0] for row in cr.fetchall()]
-                            if 7.0 not in audit_days and 7.0 not in punch_days and not leave_days:
-                                date = datetime.datetime(sub.year,int(sub.month),7)
-                                non_availability_obj.create(cr, uid, {'employee_id':emp_id,'state':'draft','date':date,'leave_evaluate_id':sub.id})
-                        if shift.day_8 and shift.day_8.code != 'W' and day_now>=8 and 8.0 not in holiday_days:
-                            sql = '''
-                                select id from arul_hr_employee_leave_details
-                                    where employee_id = %s and EXTRACT(year FROM date_from) = %s and EXTRACT(month FROM date_from) = %s
-                                        and (8.0 between EXTRACT(day FROM date_from) and EXTRACT(day FROM date_to))
-                            '''%(emp_id, sub.year, sub.month)
-                            cr.execute(sql)
-                            leave_days = [row[0] for row in cr.fetchall()]
-                            if 8.0 not in audit_days and 8.0 not in punch_days and not leave_days:
-                                date = datetime.datetime(sub.year,int(sub.month),8)
-                                non_availability_obj.create(cr, uid, {'employee_id':emp_id,'state':'draft','date':date,'leave_evaluate_id':sub.id})
-                        if shift.day_9 and shift.day_9.code != 'W' and day_now>=9 and 9.0 not in holiday_days:
-                            sql = '''
-                                select id from arul_hr_employee_leave_details
-                                    where employee_id = %s and EXTRACT(year FROM date_from) = %s and EXTRACT(month FROM date_from) = %s
-                                        and (9.0 between EXTRACT(day FROM date_from) and EXTRACT(day FROM date_to))
-                            '''%(emp_id, sub.year, sub.month)
-                            cr.execute(sql)
-                            leave_days = [row[0] for row in cr.fetchall()]
-                            if 9.0 not in audit_days and 9.0 not in punch_days and not leave_days:
-                                date = datetime.datetime(sub.year,int(sub.month),9)
-                                non_availability_obj.create(cr, uid, {'employee_id':emp_id,'state':'draft','date':date,'leave_evaluate_id':sub.id})
-                        if shift.day_10 and shift.day_10.code != 'W' and day_now>=10 and 10.0 not in holiday_days:
-                            sql = '''
-                                select id from arul_hr_employee_leave_details
-                                    where employee_id = %s and EXTRACT(year FROM date_from) = %s and EXTRACT(month FROM date_from) = %s
-                                        and (10.0 between EXTRACT(day FROM date_from) and EXTRACT(day FROM date_to))
-                            '''%(emp_id, sub.year, sub.month)
-                            cr.execute(sql)
-                            leave_days = [row[0] for row in cr.fetchall()]
-                            if 10.0 not in audit_days and 10.0 not in punch_days and not leave_days:
-                                date = datetime.datetime(sub.year,int(sub.month),10)
-                                non_availability_obj.create(cr, uid, {'employee_id':emp_id,'state':'draft','date':date,'leave_evaluate_id':sub.id})
-                        if shift.day_11 and shift.day_11.code != 'W' and day_now>=11 and 11.0 not in holiday_days:
-                            sql = '''
-                                select id from arul_hr_employee_leave_details
-                                    where employee_id = %s and EXTRACT(year FROM date_from) = %s and EXTRACT(month FROM date_from) = %s
-                                        and (11.0 between EXTRACT(day FROM date_from) and EXTRACT(day FROM date_to))
-                            '''%(emp_id, sub.year, sub.month)
-                            cr.execute(sql)
-                            leave_days = [row[0] for row in cr.fetchall()]
-                            if 11.0 not in audit_days and 11.0 not in punch_days and not leave_days:
-                                date = datetime.datetime(sub.year,int(sub.month),11)
-                                non_availability_obj.create(cr, uid, {'employee_id':emp_id,'state':'draft','date':date,'leave_evaluate_id':sub.id})
-                        if shift.day_12 and shift.day_12.code != 'W' and day_now>=12 and 12.0 not in holiday_days:
-                            sql = '''
-                                select id from arul_hr_employee_leave_details
-                                    where employee_id = %s and EXTRACT(year FROM date_from) = %s and EXTRACT(month FROM date_from) = %s
-                                        and (12.0 between EXTRACT(day FROM date_from) and EXTRACT(day FROM date_to))
-                            '''%(emp_id, sub.year, sub.month)
-                            cr.execute(sql)
-                            leave_days = [row[0] for row in cr.fetchall()]
-                            if 12.0 not in audit_days and 12.0 not in punch_days and not leave_days:
-                                date = datetime.datetime(sub.year,int(sub.month),12)
-                                non_availability_obj.create(cr, uid, {'employee_id':emp_id,'state':'draft','date':date,'leave_evaluate_id':sub.id})
-                        if shift.day_13 and shift.day_13.code != 'W' and day_now>=13 and 13.0 not in holiday_days:
-                            sql = '''
-                                select id from arul_hr_employee_leave_details
-                                    where employee_id = %s and EXTRACT(year FROM date_from) = %s and EXTRACT(month FROM date_from) = %s
-                                        and (13.0 between EXTRACT(day FROM date_from) and EXTRACT(day FROM date_to))
-                            '''%(emp_id, sub.year, sub.month)
-                            cr.execute(sql)
-                            leave_days = [row[0] for row in cr.fetchall()]
-                            if 13.0 not in audit_days and 13.0 not in punch_days and not leave_days:
-                                date = datetime.datetime(sub.year,int(sub.month),13)
-                                non_availability_obj.create(cr, uid, {'employee_id':emp_id,'state':'draft','date':date,'leave_evaluate_id':sub.id})
-                        if shift.day_14 and shift.day_14.code != 'W' and day_now>=14 and 14.0 not in holiday_days:
-                            sql = '''
-                                select id from arul_hr_employee_leave_details
-                                    where employee_id = %s and EXTRACT(year FROM date_from) = %s and EXTRACT(month FROM date_from) = %s
-                                        and (14.0 between EXTRACT(day FROM date_from) and EXTRACT(day FROM date_to))
-                            '''%(emp_id, sub.year, sub.month)
-                            cr.execute(sql)
-                            leave_days = [row[0] for row in cr.fetchall()]
-                            if 14.0 not in audit_days and 14.0 not in punch_days and not leave_days:
-                                date = datetime.datetime(sub.year,int(sub.month),14)
-                                non_availability_obj.create(cr, uid, {'employee_id':emp_id,'state':'draft','date':date,'leave_evaluate_id':sub.id})
-                        if shift.day_15 and shift.day_15.code != 'W' and day_now>=15 and 15.0 not in holiday_days:
-                            sql = '''
-                                select id from arul_hr_employee_leave_details
-                                    where employee_id = %s and EXTRACT(year FROM date_from) = %s and EXTRACT(month FROM date_from) = %s
-                                        and (15.0 between EXTRACT(day FROM date_from) and EXTRACT(day FROM date_to))
-                            '''%(emp_id, sub.year, sub.month)
-                            cr.execute(sql)
-                            leave_days = [row[0] for row in cr.fetchall()]
-                            if 15.0 not in audit_days and 15.0 not in punch_days and not leave_days:
-                                date = datetime.datetime(sub.year,int(sub.month),15)
-                                non_availability_obj.create(cr, uid, {'employee_id':emp_id,'state':'draft','date':date,'leave_evaluate_id':sub.id})
-                        if shift.day_16 and shift.day_16.code != 'W' and day_now>=16 and 16.0 not in holiday_days:
-                            sql = '''
-                                select id from arul_hr_employee_leave_details
-                                    where employee_id = %s and EXTRACT(year FROM date_from) = %s and EXTRACT(month FROM date_from) = %s
-                                        and (16.0 between EXTRACT(day FROM date_from) and EXTRACT(day FROM date_to))
-                            '''%(emp_id, sub.year, sub.month)
-                            cr.execute(sql)
-                            leave_days = [row[0] for row in cr.fetchall()]
-                            if 16.0 not in audit_days and 16.0 not in punch_days and not leave_days:
-                                date = datetime.datetime(sub.year,int(sub.month),16)
-                                non_availability_obj.create(cr, uid, {'employee_id':emp_id,'state':'draft','date':date,'leave_evaluate_id':sub.id})
-                        if shift.day_17 and shift.day_17.code != 'W' and day_now>=17 and 17.0 not in holiday_days:
-                            sql = '''
-                                select id from arul_hr_employee_leave_details
-                                    where employee_id = %s and EXTRACT(year FROM date_from) = %s and EXTRACT(month FROM date_from) = %s
-                                        and (17.0 between EXTRACT(day FROM date_from) and EXTRACT(day FROM date_to))
-                            '''%(emp_id, sub.year, sub.month)
-                            cr.execute(sql)
-                            leave_days = [row[0] for row in cr.fetchall()]
-                            if 17.0 not in audit_days and 17.0 not in punch_days and not leave_days:
-                                date = datetime.datetime(sub.year,int(sub.month),17)
-                                non_availability_obj.create(cr, uid, {'employee_id':emp_id,'state':'draft','date':date,'leave_evaluate_id':sub.id})
-                        if shift.day_18 and shift.day_18.code != 'W' and day_now>=18 and 18.0 not in holiday_days:
-                            sql = '''
-                                select id from arul_hr_employee_leave_details
-                                    where employee_id = %s and EXTRACT(year FROM date_from) = %s and EXTRACT(month FROM date_from) = %s
-                                        and (18.0 between EXTRACT(day FROM date_from) and EXTRACT(day FROM date_to))
-                            '''%(emp_id, sub.year, sub.month)
-                            cr.execute(sql)
-                            leave_days = [row[0] for row in cr.fetchall()]
-                            if 18.0 not in audit_days and 18.0 not in punch_days and not leave_days:
-                                date = datetime.datetime(sub.year,int(sub.month),18)
-                                non_availability_obj.create(cr, uid, {'employee_id':emp_id,'state':'draft','date':date,'leave_evaluate_id':sub.id})
-                        if shift.day_19 and shift.day_19.code != 'W' and day_now>=19 and 19.0 not in holiday_days:
-                            sql = '''
-                                select id from arul_hr_employee_leave_details
-                                    where employee_id = %s and EXTRACT(year FROM date_from) = %s and EXTRACT(month FROM date_from) = %s
-                                        and (19.0 between EXTRACT(day FROM date_from) and EXTRACT(day FROM date_to))
-                            '''%(emp_id, sub.year, sub.month)
-                            cr.execute(sql)
-                            leave_days = [row[0] for row in cr.fetchall()]
-                            if 19.0 not in audit_days and 19.0 not in punch_days and not leave_days:
-                                date = datetime.datetime(sub.year,int(sub.month),19)
-                                non_availability_obj.create(cr, uid, {'employee_id':emp_id,'state':'draft','date':date,'leave_evaluate_id':sub.id})
-                        if shift.day_20 and shift.day_20.code != 'W' and day_now>=20 and 20.0 not in holiday_days:
-                            sql = '''
-                                select id from arul_hr_employee_leave_details
-                                    where employee_id = %s and EXTRACT(year FROM date_from) = %s and EXTRACT(month FROM date_from) = %s
-                                        and (20.0 between EXTRACT(day FROM date_from) and EXTRACT(day FROM date_to))
-                            '''%(emp_id, sub.year, sub.month)
-                            cr.execute(sql)
-                            leave_days = [row[0] for row in cr.fetchall()]
-                            if 20.0 not in audit_days and 20.0 not in punch_days and not leave_days:
-                                date = datetime.datetime(sub.year,int(sub.month),20)
-                                non_availability_obj.create(cr, uid, {'employee_id':emp_id,'state':'draft','date':date,'leave_evaluate_id':sub.id})
-                        if shift.day_21 and shift.day_21.code != 'W' and day_now>=21 and 21.0 not in holiday_days:
-                            sql = '''
-                                select id from arul_hr_employee_leave_details
-                                    where employee_id = %s and EXTRACT(year FROM date_from) = %s and EXTRACT(month FROM date_from) = %s
-                                        and (21.0 between EXTRACT(day FROM date_from) and EXTRACT(day FROM date_to))
-                            '''%(emp_id, sub.year, sub.month)
-                            cr.execute(sql)
-                            leave_days = [row[0] for row in cr.fetchall()]
-                            if 21.0 not in audit_days and 21.0 not in punch_days and not leave_days:
-                                date = datetime.datetime(sub.year,int(sub.month),21)
-                                non_availability_obj.create(cr, uid, {'employee_id':emp_id,'state':'draft','date':date,'leave_evaluate_id':sub.id})
-                        if shift.day_22 and shift.day_22.code != 'W' and day_now>=22 and 22.0 not in holiday_days:
-                            sql = '''
-                                select id from arul_hr_employee_leave_details
-                                    where employee_id = %s and EXTRACT(year FROM date_from) = %s and EXTRACT(month FROM date_from) = %s
-                                        and (22.0 between EXTRACT(day FROM date_from) and EXTRACT(day FROM date_to))
-                            '''%(emp_id, sub.year, sub.month)
-                            cr.execute(sql)
-                            leave_days = [row[0] for row in cr.fetchall()]
-                            if 22.0 not in audit_days and 22.0 not in punch_days and not leave_days:
-                                date = datetime.datetime(sub.year,int(sub.month),22)
-                                non_availability_obj.create(cr, uid, {'employee_id':emp_id,'state':'draft','date':date,'leave_evaluate_id':sub.id})
-                        if shift.day_23 and shift.day_23.code != 'W' and day_now>=23 and 23.0 not in holiday_days:
-                            sql = '''
-                                select id from arul_hr_employee_leave_details
-                                    where employee_id = %s and EXTRACT(year FROM date_from) = %s and EXTRACT(month FROM date_from) = %s
-                                        and (23.0 between EXTRACT(day FROM date_from) and EXTRACT(day FROM date_to))
-                            '''%(emp_id, sub.year, sub.month)
-                            cr.execute(sql)
-                            leave_days = [row[0] for row in cr.fetchall()]
-                            if 23.0 not in audit_days and 23.0 not in punch_days and not leave_days:
-                                date = datetime.datetime(sub.year,int(sub.month),23)
-                                non_availability_obj.create(cr, uid, {'employee_id':emp_id,'state':'draft','date':date,'leave_evaluate_id':sub.id})
-                        if shift.day_24 and shift.day_24.code != 'W' and day_now>=24 and 24.0 not in holiday_days:
-                            sql = '''
-                                select id from arul_hr_employee_leave_details
-                                    where employee_id = %s and EXTRACT(year FROM date_from) = %s and EXTRACT(month FROM date_from) = %s
-                                        and (24.0 between EXTRACT(day FROM date_from) and EXTRACT(day FROM date_to))
-                            '''%(emp_id, sub.year, sub.month)
-                            cr.execute(sql)
-                            leave_days = [row[0] for row in cr.fetchall()]
-                            if 24.0 not in audit_days and 24.0 not in punch_days and not leave_days:
-                                date = datetime.datetime(sub.year,int(sub.month),24)
-                                non_availability_obj.create(cr, uid, {'employee_id':emp_id,'state':'draft','date':date,'leave_evaluate_id':sub.id})
-                        if shift.day_25 and shift.day_25.code != 'W' and day_now>=25 and 25.0 not in holiday_days:
-                            sql = '''
-                                select id from arul_hr_employee_leave_details
-                                    where employee_id = %s and EXTRACT(year FROM date_from) = %s and EXTRACT(month FROM date_from) = %s
-                                        and (25.0 between EXTRACT(day FROM date_from) and EXTRACT(day FROM date_to))
-                            '''%(emp_id, sub.year, sub.month)
-                            cr.execute(sql)
-                            leave_days = [row[0] for row in cr.fetchall()]
-                            if 25.0 not in audit_days and 25.0 not in punch_days and not leave_days:
-                                date = datetime.datetime(sub.year,int(sub.month),25)
-                                non_availability_obj.create(cr, uid, {'employee_id':emp_id,'state':'draft','date':date,'leave_evaluate_id':sub.id})
-                        if shift.day_26 and shift.day_26.code != 'W' and day_now>=26 and 26.0 not in holiday_days:
-                            sql = '''
-                                select id from arul_hr_employee_leave_details
-                                    where employee_id = %s and EXTRACT(year FROM date_from) = %s and EXTRACT(month FROM date_from) = %s
-                                        and (26.0 between EXTRACT(day FROM date_from) and EXTRACT(day FROM date_to))
-                            '''%(emp_id, sub.year, sub.month)
-                            cr.execute(sql)
-                            leave_days = [row[0] for row in cr.fetchall()]
-                            if 26.0 not in audit_days and 26.0 not in punch_days and not leave_days:
-                                date = datetime.datetime(sub.year,int(sub.month),26)
-                                non_availability_obj.create(cr, uid, {'employee_id':emp_id,'state':'draft','date':date,'leave_evaluate_id':sub.id})
-                        if shift.day_27 and shift.day_27.code != 'W' and day_now>=27 and 27.0 not in holiday_days:
-                            sql = '''
-                                select id from arul_hr_employee_leave_details
-                                    where employee_id = %s and EXTRACT(year FROM date_from) = %s and EXTRACT(month FROM date_from) = %s
-                                        and (27.0 between EXTRACT(day FROM date_from) and EXTRACT(day FROM date_to))
-                            '''%(emp_id, sub.year, sub.month)
-                            cr.execute(sql)
-                            leave_days = [row[0] for row in cr.fetchall()]
-                            if 27.0 not in audit_days and 27.0 not in punch_days and not leave_days:
-                                date = datetime.datetime(sub.year,int(sub.month),27)
-                                non_availability_obj.create(cr, uid, {'employee_id':emp_id,'state':'draft','date':date,'leave_evaluate_id':sub.id})
-                        if shift.day_28 and shift.day_28.code != 'W' and day_now>=28 and 28.0 not in holiday_days:
-                            sql = '''
-                                select id from arul_hr_employee_leave_details
-                                    where employee_id = %s and EXTRACT(year FROM date_from) = %s and EXTRACT(month FROM date_from) = %s
-                                        and (28.0 between EXTRACT(day FROM date_from) and EXTRACT(day FROM date_to))
-                            '''%(emp_id, sub.year, sub.month)
-                            cr.execute(sql)
-                            leave_days = [row[0] for row in cr.fetchall()]
-                            if 28.0 not in audit_days and 28.0 not in punch_days and not leave_days:
-                                date = datetime.datetime(sub.year,int(sub.month),28)
-                                non_availability_obj.create(cr, uid, {'employee_id':emp_id,'state':'draft','date':date,'leave_evaluate_id':sub.id})
-                        if shift.day_29 and shift.day_29.code != 'W' and shift.num_of_month>=29 and day_now>=29 and 29.0 not in holiday_days:
-                            sql = '''
-                                select id from arul_hr_employee_leave_details
-                                    where employee_id = %s and EXTRACT(year FROM date_from) = %s and EXTRACT(month FROM date_from) = %s
-                                        and (29.0 between EXTRACT(day FROM date_from) and EXTRACT(day FROM date_to))
-                            '''%(emp_id, sub.year, sub.month)
-                            cr.execute(sql)
-                            leave_days = [row[0] for row in cr.fetchall()]
-                            if 29.0 not in audit_days and 29.0 not in punch_days and not leave_days:
-                                date = datetime.datetime(sub.year,int(sub.month),29)
-                                non_availability_obj.create(cr, uid, {'employee_id':emp_id,'state':'draft','date':date,'leave_evaluate_id':sub.id})
-                        if shift.day_30 and shift.day_30.code != 'W' and shift.num_of_month>=30 and day_now>=30 and 30.0 not in holiday_days:
-                            sql = '''
-                                select id from arul_hr_employee_leave_details
-                                    where employee_id = %s and EXTRACT(year FROM date_from) = %s and EXTRACT(month FROM date_from) = %s
-                                        and (30.0 between EXTRACT(day FROM date_from) and EXTRACT(day FROM date_to))
-                            '''%(emp_id, sub.year, sub.month)
-                            cr.execute(sql)
-                            leave_days = [row[0] for row in cr.fetchall()]
-                            if 30.0 not in audit_days and 30.0 not in punch_days and not leave_days:
-                                date = datetime.datetime(sub.year,int(sub.month),30)
-                                non_availability_obj.create(cr, uid, {'employee_id':emp_id,'state':'draft','date':date,'leave_evaluate_id':sub.id})
-                        if shift.day_31 and shift.day_31.code != 'W' and shift.num_of_month>=31 and day_now>=31 and 31.0 not in holiday_days:
-                            sql = '''
-                                select id from arul_hr_employee_leave_details
-                                    where employee_id = %s and EXTRACT(year FROM date_from) = %s and EXTRACT(month FROM date_from) = %s
-                                        and (31.0 between EXTRACT(day FROM date_from) and EXTRACT(day FROM date_to))
-                            '''%(emp_id, sub.year, sub.month)
-                            cr.execute(sql)
-                            leave_days = [row[0] for row in cr.fetchall()]
-                            if 31.0 not in audit_days and 31.0 not in punch_days and not leave_days:
-                                date = datetime.datetime(sub.year,int(sub.month),31)
-                                non_availability_obj.create(cr, uid, {'employee_id':emp_id,'state':'draft','date':date,'leave_evaluate_id':sub.id})
+            for shift in monthly_shift_obj.browse(cr, uid, monthly_shift_ids):
+                emp_id = shift.employee_id.id
+                sql = '''
+                    select EXTRACT(day FROM work_date) from arul_hr_audit_shift_time where employee_id = %s and EXTRACT(year FROM work_date) = %s and EXTRACT(month FROM work_date) = %s
+                '''%(emp_id, sub.year, sub.month)
+                cr.execute(sql)
+                audit_days = [row[0] for row in cr.fetchall()]
+                
+                sql = '''
+                    select EXTRACT(day FROM work_date) from arul_hr_punch_in_out_time where employee_id = %s and EXTRACT(year FROM work_date) = %s and EXTRACT(month FROM work_date) = %s
+                '''%(emp_id, sub.year, sub.month)
+                cr.execute(sql)
+                punch_days = [row[0] for row in cr.fetchall()]
+                
+                sql = '''
+                    select EXTRACT(day FROM date_from) from arul_hr_employee_leave_details where employee_id = %s and EXTRACT(year FROM date_from) = %s and EXTRACT(month FROM date_from) = %s
+                '''%(emp_id, sub.year, sub.month)
+                cr.execute(sql)
+                leave_days = [row[0] for row in cr.fetchall()]
+                
+                sql = '''
+                    select EXTRACT(day FROM date) from arul_hr_holiday_special where EXTRACT(year FROM date) = %s and EXTRACT(month FROM date) = %s
+                '''%(sub.year, sub.month)
+                cr.execute(sql)
+                holiday_days = [row[0] for row in cr.fetchall()]
+                
+                day_now = int(time.strftime('%d'))
+                month_now = int(time.strftime('%d'))
+                year_now = int(time.strftime('%Y'))
+                if month_now >= int(sub.month):
+                    day_now = 31
+                if year_now >= sub.year:
+                    if shift.day_1 and shift.day_1.code != 'W' and day_now>=1 and 1.0 not in holiday_days:
+                        sql = '''
+                            select id from arul_hr_employee_leave_details
+                                where employee_id = %s and EXTRACT(year FROM date_from) = %s and EXTRACT(month FROM date_from) = %s
+                                    and (1.0 between EXTRACT(day FROM date_from) and EXTRACT(day FROM date_to))
+                        '''%(emp_id, sub.year, sub.month)
+                        cr.execute(sql)
+                        leave_days = [row[0] for row in cr.fetchall()]
+                        if 1.0 not in audit_days and 1.0 not in punch_days and not leave_days:
+                            date = datetime.datetime(sub.year,int(sub.month),1)
+                            non_availability_obj.create(cr, uid, {'employee_id':emp_id,'state':'draft','date':date,'leave_evaluate_id':sub.id})
+                    if shift.day_2 and shift.day_2.code != 'W' and day_now>=2 and 2.0 not in holiday_days:
+                        sql = '''
+                            select id from arul_hr_employee_leave_details
+                                where employee_id = %s and EXTRACT(year FROM date_from) = %s and EXTRACT(month FROM date_from) = %s
+                                    and (2.0 between EXTRACT(day FROM date_from) and EXTRACT(day FROM date_to))
+                        '''%(emp_id, sub.year, sub.month)
+                        cr.execute(sql)
+                        leave_days = [row[0] for row in cr.fetchall()]
+                        if 2.0 not in audit_days and 2.0 not in punch_days and not leave_days:
+                            date = datetime.datetime(sub.year,int(sub.month),2)
+                            non_availability_obj.create(cr, uid, {'employee_id':emp_id,'state':'draft','date':date,'leave_evaluate_id':sub.id})
+                    if shift.day_3 and shift.day_3.code != 'W' and day_now>=3 and 3.0 not in holiday_days:
+                        sql = '''
+                            select id from arul_hr_employee_leave_details
+                                where employee_id = %s and EXTRACT(year FROM date_from) = %s and EXTRACT(month FROM date_from) = %s
+                                    and (3.0 between EXTRACT(day FROM date_from) and EXTRACT(day FROM date_to))
+                        '''%(emp_id, sub.year, sub.month)
+                        cr.execute(sql)
+                        leave_days = [row[0] for row in cr.fetchall()]
+                        if 3.0 not in audit_days and 3.0 not in punch_days and not leave_days:
+                            date = datetime.datetime(sub.year,int(sub.month),3)
+                            non_availability_obj.create(cr, uid, {'employee_id':emp_id,'state':'draft','date':date,'leave_evaluate_id':sub.id})
+                    if shift.day_4 and shift.day_4.code != 'W' and day_now>=4 and 4.0 not in holiday_days:
+                        sql = '''
+                            select id from arul_hr_employee_leave_details
+                                where employee_id = %s and EXTRACT(year FROM date_from) = %s and EXTRACT(month FROM date_from) = %s
+                                    and (4.0 between EXTRACT(day FROM date_from) and EXTRACT(day FROM date_to))
+                        '''%(emp_id, sub.year, sub.month)
+                        cr.execute(sql)
+                        leave_days = [row[0] for row in cr.fetchall()]
+                        if 4.0 not in audit_days and 4.0 not in punch_days and not leave_days:
+                            date = datetime.datetime(sub.year,int(sub.month),4)
+                            non_availability_obj.create(cr, uid, {'employee_id':emp_id,'state':'draft','date':date,'leave_evaluate_id':sub.id})
+                    if shift.day_5 and shift.day_5.code != 'W' and day_now>=5 and 5.0 not in holiday_days:
+                        sql = '''
+                            select id from arul_hr_employee_leave_details
+                                where employee_id = %s and EXTRACT(year FROM date_from) = %s and EXTRACT(month FROM date_from) = %s
+                                    and (5.0 between EXTRACT(day FROM date_from) and EXTRACT(day FROM date_to))
+                        '''%(emp_id, sub.year, sub.month)
+                        cr.execute(sql)
+                        leave_days = [row[0] for row in cr.fetchall()]
+                        if 5.0 not in audit_days and 5.0 not in punch_days and not leave_days:
+                            date = datetime.datetime(sub.year,int(sub.month),5)
+                            non_availability_obj.create(cr, uid, {'employee_id':emp_id,'state':'draft','date':date,'leave_evaluate_id':sub.id})
+                    if shift.day_6 and shift.day_6.code != 'W' and day_now>=6 and 6.0 not in holiday_days:
+                        sql = '''
+                            select id from arul_hr_employee_leave_details
+                                where employee_id = %s and EXTRACT(year FROM date_from) = %s and EXTRACT(month FROM date_from) = %s
+                                    and (6.0 between EXTRACT(day FROM date_from) and EXTRACT(day FROM date_to))
+                        '''%(emp_id, sub.year, sub.month)
+                        cr.execute(sql)
+                        leave_days = [row[0] for row in cr.fetchall()]
+                        if 6.0 not in audit_days and 6.0 not in punch_days and not leave_days:
+                            date = datetime.datetime(sub.year,int(sub.month),6)
+                            non_availability_obj.create(cr, uid, {'employee_id':emp_id,'state':'draft','date':date,'leave_evaluate_id':sub.id})
+                    if shift.day_7 and shift.day_7.code != 'W' and day_now>=7 and 7.0 not in holiday_days:
+                        sql = '''
+                            select id from arul_hr_employee_leave_details
+                                where employee_id = %s and EXTRACT(year FROM date_from) = %s and EXTRACT(month FROM date_from) = %s
+                                    and (7.0 between EXTRACT(day FROM date_from) and EXTRACT(day FROM date_to))
+                        '''%(emp_id, sub.year, sub.month)
+                        cr.execute(sql)
+                        leave_days = [row[0] for row in cr.fetchall()]
+                        if 7.0 not in audit_days and 7.0 not in punch_days and not leave_days:
+                            date = datetime.datetime(sub.year,int(sub.month),7)
+                            non_availability_obj.create(cr, uid, {'employee_id':emp_id,'state':'draft','date':date,'leave_evaluate_id':sub.id})
+                    if shift.day_8 and shift.day_8.code != 'W' and day_now>=8 and 8.0 not in holiday_days:
+                        sql = '''
+                            select id from arul_hr_employee_leave_details
+                                where employee_id = %s and EXTRACT(year FROM date_from) = %s and EXTRACT(month FROM date_from) = %s
+                                    and (8.0 between EXTRACT(day FROM date_from) and EXTRACT(day FROM date_to))
+                        '''%(emp_id, sub.year, sub.month)
+                        cr.execute(sql)
+                        leave_days = [row[0] for row in cr.fetchall()]
+                        if 8.0 not in audit_days and 8.0 not in punch_days and not leave_days:
+                            date = datetime.datetime(sub.year,int(sub.month),8)
+                            non_availability_obj.create(cr, uid, {'employee_id':emp_id,'state':'draft','date':date,'leave_evaluate_id':sub.id})
+                    if shift.day_9 and shift.day_9.code != 'W' and day_now>=9 and 9.0 not in holiday_days:
+                        sql = '''
+                            select id from arul_hr_employee_leave_details
+                                where employee_id = %s and EXTRACT(year FROM date_from) = %s and EXTRACT(month FROM date_from) = %s
+                                    and (9.0 between EXTRACT(day FROM date_from) and EXTRACT(day FROM date_to))
+                        '''%(emp_id, sub.year, sub.month)
+                        cr.execute(sql)
+                        leave_days = [row[0] for row in cr.fetchall()]
+                        if 9.0 not in audit_days and 9.0 not in punch_days and not leave_days:
+                            date = datetime.datetime(sub.year,int(sub.month),9)
+                            non_availability_obj.create(cr, uid, {'employee_id':emp_id,'state':'draft','date':date,'leave_evaluate_id':sub.id})
+                    if shift.day_10 and shift.day_10.code != 'W' and day_now>=10 and 10.0 not in holiday_days:
+                        sql = '''
+                            select id from arul_hr_employee_leave_details
+                                where employee_id = %s and EXTRACT(year FROM date_from) = %s and EXTRACT(month FROM date_from) = %s
+                                    and (10.0 between EXTRACT(day FROM date_from) and EXTRACT(day FROM date_to))
+                        '''%(emp_id, sub.year, sub.month)
+                        cr.execute(sql)
+                        leave_days = [row[0] for row in cr.fetchall()]
+                        if 10.0 not in audit_days and 10.0 not in punch_days and not leave_days:
+                            date = datetime.datetime(sub.year,int(sub.month),10)
+                            non_availability_obj.create(cr, uid, {'employee_id':emp_id,'state':'draft','date':date,'leave_evaluate_id':sub.id})
+                    if shift.day_11 and shift.day_11.code != 'W' and day_now>=11 and 11.0 not in holiday_days:
+                        sql = '''
+                            select id from arul_hr_employee_leave_details
+                                where employee_id = %s and EXTRACT(year FROM date_from) = %s and EXTRACT(month FROM date_from) = %s
+                                    and (11.0 between EXTRACT(day FROM date_from) and EXTRACT(day FROM date_to))
+                        '''%(emp_id, sub.year, sub.month)
+                        cr.execute(sql)
+                        leave_days = [row[0] for row in cr.fetchall()]
+                        if 11.0 not in audit_days and 11.0 not in punch_days and not leave_days:
+                            date = datetime.datetime(sub.year,int(sub.month),11)
+                            non_availability_obj.create(cr, uid, {'employee_id':emp_id,'state':'draft','date':date,'leave_evaluate_id':sub.id})
+                    if shift.day_12 and shift.day_12.code != 'W' and day_now>=12 and 12.0 not in holiday_days:
+                        sql = '''
+                            select id from arul_hr_employee_leave_details
+                                where employee_id = %s and EXTRACT(year FROM date_from) = %s and EXTRACT(month FROM date_from) = %s
+                                    and (12.0 between EXTRACT(day FROM date_from) and EXTRACT(day FROM date_to))
+                        '''%(emp_id, sub.year, sub.month)
+                        cr.execute(sql)
+                        leave_days = [row[0] for row in cr.fetchall()]
+                        if 12.0 not in audit_days and 12.0 not in punch_days and not leave_days:
+                            date = datetime.datetime(sub.year,int(sub.month),12)
+                            non_availability_obj.create(cr, uid, {'employee_id':emp_id,'state':'draft','date':date,'leave_evaluate_id':sub.id})
+                    if shift.day_13 and shift.day_13.code != 'W' and day_now>=13 and 13.0 not in holiday_days:
+                        sql = '''
+                            select id from arul_hr_employee_leave_details
+                                where employee_id = %s and EXTRACT(year FROM date_from) = %s and EXTRACT(month FROM date_from) = %s
+                                    and (13.0 between EXTRACT(day FROM date_from) and EXTRACT(day FROM date_to))
+                        '''%(emp_id, sub.year, sub.month)
+                        cr.execute(sql)
+                        leave_days = [row[0] for row in cr.fetchall()]
+                        if 13.0 not in audit_days and 13.0 not in punch_days and not leave_days:
+                            date = datetime.datetime(sub.year,int(sub.month),13)
+                            non_availability_obj.create(cr, uid, {'employee_id':emp_id,'state':'draft','date':date,'leave_evaluate_id':sub.id})
+                    if shift.day_14 and shift.day_14.code != 'W' and day_now>=14 and 14.0 not in holiday_days:
+                        sql = '''
+                            select id from arul_hr_employee_leave_details
+                                where employee_id = %s and EXTRACT(year FROM date_from) = %s and EXTRACT(month FROM date_from) = %s
+                                    and (14.0 between EXTRACT(day FROM date_from) and EXTRACT(day FROM date_to))
+                        '''%(emp_id, sub.year, sub.month)
+                        cr.execute(sql)
+                        leave_days = [row[0] for row in cr.fetchall()]
+                        if 14.0 not in audit_days and 14.0 not in punch_days and not leave_days:
+                            date = datetime.datetime(sub.year,int(sub.month),14)
+                            non_availability_obj.create(cr, uid, {'employee_id':emp_id,'state':'draft','date':date,'leave_evaluate_id':sub.id})
+                    if shift.day_15 and shift.day_15.code != 'W' and day_now>=15 and 15.0 not in holiday_days:
+                        sql = '''
+                            select id from arul_hr_employee_leave_details
+                                where employee_id = %s and EXTRACT(year FROM date_from) = %s and EXTRACT(month FROM date_from) = %s
+                                    and (15.0 between EXTRACT(day FROM date_from) and EXTRACT(day FROM date_to))
+                        '''%(emp_id, sub.year, sub.month)
+                        cr.execute(sql)
+                        leave_days = [row[0] for row in cr.fetchall()]
+                        if 15.0 not in audit_days and 15.0 not in punch_days and not leave_days:
+                            date = datetime.datetime(sub.year,int(sub.month),15)
+                            non_availability_obj.create(cr, uid, {'employee_id':emp_id,'state':'draft','date':date,'leave_evaluate_id':sub.id})
+                    if shift.day_16 and shift.day_16.code != 'W' and day_now>=16 and 16.0 not in holiday_days:
+                        sql = '''
+                            select id from arul_hr_employee_leave_details
+                                where employee_id = %s and EXTRACT(year FROM date_from) = %s and EXTRACT(month FROM date_from) = %s
+                                    and (16.0 between EXTRACT(day FROM date_from) and EXTRACT(day FROM date_to))
+                        '''%(emp_id, sub.year, sub.month)
+                        cr.execute(sql)
+                        leave_days = [row[0] for row in cr.fetchall()]
+                        if 16.0 not in audit_days and 16.0 not in punch_days and not leave_days:
+                            date = datetime.datetime(sub.year,int(sub.month),16)
+                            non_availability_obj.create(cr, uid, {'employee_id':emp_id,'state':'draft','date':date,'leave_evaluate_id':sub.id})
+                    if shift.day_17 and shift.day_17.code != 'W' and day_now>=17 and 17.0 not in holiday_days:
+                        sql = '''
+                            select id from arul_hr_employee_leave_details
+                                where employee_id = %s and EXTRACT(year FROM date_from) = %s and EXTRACT(month FROM date_from) = %s
+                                    and (17.0 between EXTRACT(day FROM date_from) and EXTRACT(day FROM date_to))
+                        '''%(emp_id, sub.year, sub.month)
+                        cr.execute(sql)
+                        leave_days = [row[0] for row in cr.fetchall()]
+                        if 17.0 not in audit_days and 17.0 not in punch_days and not leave_days:
+                            date = datetime.datetime(sub.year,int(sub.month),17)
+                            non_availability_obj.create(cr, uid, {'employee_id':emp_id,'state':'draft','date':date,'leave_evaluate_id':sub.id})
+                    if shift.day_18 and shift.day_18.code != 'W' and day_now>=18 and 18.0 not in holiday_days:
+                        sql = '''
+                            select id from arul_hr_employee_leave_details
+                                where employee_id = %s and EXTRACT(year FROM date_from) = %s and EXTRACT(month FROM date_from) = %s
+                                    and (18.0 between EXTRACT(day FROM date_from) and EXTRACT(day FROM date_to))
+                        '''%(emp_id, sub.year, sub.month)
+                        cr.execute(sql)
+                        leave_days = [row[0] for row in cr.fetchall()]
+                        if 18.0 not in audit_days and 18.0 not in punch_days and not leave_days:
+                            date = datetime.datetime(sub.year,int(sub.month),18)
+                            non_availability_obj.create(cr, uid, {'employee_id':emp_id,'state':'draft','date':date,'leave_evaluate_id':sub.id})
+                    if shift.day_19 and shift.day_19.code != 'W' and day_now>=19 and 19.0 not in holiday_days:
+                        sql = '''
+                            select id from arul_hr_employee_leave_details
+                                where employee_id = %s and EXTRACT(year FROM date_from) = %s and EXTRACT(month FROM date_from) = %s
+                                    and (19.0 between EXTRACT(day FROM date_from) and EXTRACT(day FROM date_to))
+                        '''%(emp_id, sub.year, sub.month)
+                        cr.execute(sql)
+                        leave_days = [row[0] for row in cr.fetchall()]
+                        if 19.0 not in audit_days and 19.0 not in punch_days and not leave_days:
+                            date = datetime.datetime(sub.year,int(sub.month),19)
+                            non_availability_obj.create(cr, uid, {'employee_id':emp_id,'state':'draft','date':date,'leave_evaluate_id':sub.id})
+                    if shift.day_20 and shift.day_20.code != 'W' and day_now>=20 and 20.0 not in holiday_days:
+                        sql = '''
+                            select id from arul_hr_employee_leave_details
+                                where employee_id = %s and EXTRACT(year FROM date_from) = %s and EXTRACT(month FROM date_from) = %s
+                                    and (20.0 between EXTRACT(day FROM date_from) and EXTRACT(day FROM date_to))
+                        '''%(emp_id, sub.year, sub.month)
+                        cr.execute(sql)
+                        leave_days = [row[0] for row in cr.fetchall()]
+                        if 20.0 not in audit_days and 20.0 not in punch_days and not leave_days:
+                            date = datetime.datetime(sub.year,int(sub.month),20)
+                            non_availability_obj.create(cr, uid, {'employee_id':emp_id,'state':'draft','date':date,'leave_evaluate_id':sub.id})
+                    if shift.day_21 and shift.day_21.code != 'W' and day_now>=21 and 21.0 not in holiday_days:
+                        sql = '''
+                            select id from arul_hr_employee_leave_details
+                                where employee_id = %s and EXTRACT(year FROM date_from) = %s and EXTRACT(month FROM date_from) = %s
+                                    and (21.0 between EXTRACT(day FROM date_from) and EXTRACT(day FROM date_to))
+                        '''%(emp_id, sub.year, sub.month)
+                        cr.execute(sql)
+                        leave_days = [row[0] for row in cr.fetchall()]
+                        if 21.0 not in audit_days and 21.0 not in punch_days and not leave_days:
+                            date = datetime.datetime(sub.year,int(sub.month),21)
+                            non_availability_obj.create(cr, uid, {'employee_id':emp_id,'state':'draft','date':date,'leave_evaluate_id':sub.id})
+                    if shift.day_22 and shift.day_22.code != 'W' and day_now>=22 and 22.0 not in holiday_days:
+                        sql = '''
+                            select id from arul_hr_employee_leave_details
+                                where employee_id = %s and EXTRACT(year FROM date_from) = %s and EXTRACT(month FROM date_from) = %s
+                                    and (22.0 between EXTRACT(day FROM date_from) and EXTRACT(day FROM date_to))
+                        '''%(emp_id, sub.year, sub.month)
+                        cr.execute(sql)
+                        leave_days = [row[0] for row in cr.fetchall()]
+                        if 22.0 not in audit_days and 22.0 not in punch_days and not leave_days:
+                            date = datetime.datetime(sub.year,int(sub.month),22)
+                            non_availability_obj.create(cr, uid, {'employee_id':emp_id,'state':'draft','date':date,'leave_evaluate_id':sub.id})
+                    if shift.day_23 and shift.day_23.code != 'W' and day_now>=23 and 23.0 not in holiday_days:
+                        sql = '''
+                            select id from arul_hr_employee_leave_details
+                                where employee_id = %s and EXTRACT(year FROM date_from) = %s and EXTRACT(month FROM date_from) = %s
+                                    and (23.0 between EXTRACT(day FROM date_from) and EXTRACT(day FROM date_to))
+                        '''%(emp_id, sub.year, sub.month)
+                        cr.execute(sql)
+                        leave_days = [row[0] for row in cr.fetchall()]
+                        if 23.0 not in audit_days and 23.0 not in punch_days and not leave_days:
+                            date = datetime.datetime(sub.year,int(sub.month),23)
+                            non_availability_obj.create(cr, uid, {'employee_id':emp_id,'state':'draft','date':date,'leave_evaluate_id':sub.id})
+                    if shift.day_24 and shift.day_24.code != 'W' and day_now>=24 and 24.0 not in holiday_days:
+                        sql = '''
+                            select id from arul_hr_employee_leave_details
+                                where employee_id = %s and EXTRACT(year FROM date_from) = %s and EXTRACT(month FROM date_from) = %s
+                                    and (24.0 between EXTRACT(day FROM date_from) and EXTRACT(day FROM date_to))
+                        '''%(emp_id, sub.year, sub.month)
+                        cr.execute(sql)
+                        leave_days = [row[0] for row in cr.fetchall()]
+                        if 24.0 not in audit_days and 24.0 not in punch_days and not leave_days:
+                            date = datetime.datetime(sub.year,int(sub.month),24)
+                            non_availability_obj.create(cr, uid, {'employee_id':emp_id,'state':'draft','date':date,'leave_evaluate_id':sub.id})
+                    if shift.day_25 and shift.day_25.code != 'W' and day_now>=25 and 25.0 not in holiday_days:
+                        sql = '''
+                            select id from arul_hr_employee_leave_details
+                                where employee_id = %s and EXTRACT(year FROM date_from) = %s and EXTRACT(month FROM date_from) = %s
+                                    and (25.0 between EXTRACT(day FROM date_from) and EXTRACT(day FROM date_to))
+                        '''%(emp_id, sub.year, sub.month)
+                        cr.execute(sql)
+                        leave_days = [row[0] for row in cr.fetchall()]
+                        if 25.0 not in audit_days and 25.0 not in punch_days and not leave_days:
+                            date = datetime.datetime(sub.year,int(sub.month),25)
+                            non_availability_obj.create(cr, uid, {'employee_id':emp_id,'state':'draft','date':date,'leave_evaluate_id':sub.id})
+                    if shift.day_26 and shift.day_26.code != 'W' and day_now>=26 and 26.0 not in holiday_days:
+                        sql = '''
+                            select id from arul_hr_employee_leave_details
+                                where employee_id = %s and EXTRACT(year FROM date_from) = %s and EXTRACT(month FROM date_from) = %s
+                                    and (26.0 between EXTRACT(day FROM date_from) and EXTRACT(day FROM date_to))
+                        '''%(emp_id, sub.year, sub.month)
+                        cr.execute(sql)
+                        leave_days = [row[0] for row in cr.fetchall()]
+                        if 26.0 not in audit_days and 26.0 not in punch_days and not leave_days:
+                            date = datetime.datetime(sub.year,int(sub.month),26)
+                            non_availability_obj.create(cr, uid, {'employee_id':emp_id,'state':'draft','date':date,'leave_evaluate_id':sub.id})
+                    if shift.day_27 and shift.day_27.code != 'W' and day_now>=27 and 27.0 not in holiday_days:
+                        sql = '''
+                            select id from arul_hr_employee_leave_details
+                                where employee_id = %s and EXTRACT(year FROM date_from) = %s and EXTRACT(month FROM date_from) = %s
+                                    and (27.0 between EXTRACT(day FROM date_from) and EXTRACT(day FROM date_to))
+                        '''%(emp_id, sub.year, sub.month)
+                        cr.execute(sql)
+                        leave_days = [row[0] for row in cr.fetchall()]
+                        if 27.0 not in audit_days and 27.0 not in punch_days and not leave_days:
+                            date = datetime.datetime(sub.year,int(sub.month),27)
+                            non_availability_obj.create(cr, uid, {'employee_id':emp_id,'state':'draft','date':date,'leave_evaluate_id':sub.id})
+                    if shift.day_28 and shift.day_28.code != 'W' and day_now>=28 and 28.0 not in holiday_days:
+                        sql = '''
+                            select id from arul_hr_employee_leave_details
+                                where employee_id = %s and EXTRACT(year FROM date_from) = %s and EXTRACT(month FROM date_from) = %s
+                                    and (28.0 between EXTRACT(day FROM date_from) and EXTRACT(day FROM date_to))
+                        '''%(emp_id, sub.year, sub.month)
+                        cr.execute(sql)
+                        leave_days = [row[0] for row in cr.fetchall()]
+                        if 28.0 not in audit_days and 28.0 not in punch_days and not leave_days:
+                            date = datetime.datetime(sub.year,int(sub.month),28)
+                            non_availability_obj.create(cr, uid, {'employee_id':emp_id,'state':'draft','date':date,'leave_evaluate_id':sub.id})
+                    if shift.day_29 and shift.day_29.code != 'W' and shift.num_of_month>=29 and day_now>=29 and 29.0 not in holiday_days:
+                        sql = '''
+                            select id from arul_hr_employee_leave_details
+                                where employee_id = %s and EXTRACT(year FROM date_from) = %s and EXTRACT(month FROM date_from) = %s
+                                    and (29.0 between EXTRACT(day FROM date_from) and EXTRACT(day FROM date_to))
+                        '''%(emp_id, sub.year, sub.month)
+                        cr.execute(sql)
+                        leave_days = [row[0] for row in cr.fetchall()]
+                        if 29.0 not in audit_days and 29.0 not in punch_days and not leave_days:
+                            date = datetime.datetime(sub.year,int(sub.month),29)
+                            non_availability_obj.create(cr, uid, {'employee_id':emp_id,'state':'draft','date':date,'leave_evaluate_id':sub.id})
+                    if shift.day_30 and shift.day_30.code != 'W' and shift.num_of_month>=30 and day_now>=30 and 30.0 not in holiday_days:
+                        sql = '''
+                            select id from arul_hr_employee_leave_details
+                                where employee_id = %s and EXTRACT(year FROM date_from) = %s and EXTRACT(month FROM date_from) = %s
+                                    and (30.0 between EXTRACT(day FROM date_from) and EXTRACT(day FROM date_to))
+                        '''%(emp_id, sub.year, sub.month)
+                        cr.execute(sql)
+                        leave_days = [row[0] for row in cr.fetchall()]
+                        if 30.0 not in audit_days and 30.0 not in punch_days and not leave_days:
+                            date = datetime.datetime(sub.year,int(sub.month),30)
+                            non_availability_obj.create(cr, uid, {'employee_id':emp_id,'state':'draft','date':date,'leave_evaluate_id':sub.id})
+                    if shift.day_31 and shift.day_31.code != 'W' and shift.num_of_month>=31 and day_now>=31 and 31.0 not in holiday_days:
+                        sql = '''
+                            select id from arul_hr_employee_leave_details
+                                where employee_id = %s and EXTRACT(year FROM date_from) = %s and EXTRACT(month FROM date_from) = %s
+                                    and (31.0 between EXTRACT(day FROM date_from) and EXTRACT(day FROM date_to))
+                        '''%(emp_id, sub.year, sub.month)
+                        cr.execute(sql)
+                        leave_days = [row[0] for row in cr.fetchall()]
+                        if 31.0 not in audit_days and 31.0 not in punch_days and not leave_days:
+                            date = datetime.datetime(sub.year,int(sub.month),31)
+                            non_availability_obj.create(cr, uid, {'employee_id':emp_id,'state':'draft','date':date,'leave_evaluate_id':sub.id})
         return True
      
 tpt_time_leave_evaluation()
