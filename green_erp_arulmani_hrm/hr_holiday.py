@@ -2985,11 +2985,11 @@ class arul_hr_punch_in_out_time(osv.osv):
 #         'g1_shift_count': fields.function(_shift_count, string='G1', multi='g1_shift'),
 #         'g2_shift_count': fields.function(_shift_count, string='G2', multi='g2_shift'),
         
-        'a_shift_count': fields.function(_shift_count, store=True, string='A', multi='a_shift'),
-        'b_shift_count': fields.function(_shift_count, store=True, string='B', multi='b_shift'),
-        'c_shift_count': fields.function(_shift_count, store=True, string='C', multi='c_shift'),
-        'g1_shift_count': fields.function(_shift_count, store=True, string='G1', multi='g1_shift'),
-        'g2_shift_count': fields.function(_shift_count, store=True, string='G2', multi='g2_shift'),
+        'a_shift_count': fields.function(_shift_count,  string='A', multi='a_shift'),
+        'b_shift_count': fields.function(_shift_count,  string='B', multi='b_shift'),
+        'c_shift_count': fields.function(_shift_count,  string='C', multi='c_shift'),
+        'g1_shift_count': fields.function(_shift_count,  string='G1', multi='g1_shift'),
+        'g2_shift_count': fields.function(_shift_count,  string='G2', multi='g2_shift'),
 #         
         'a_shift_count1': fields.function(_db_shift_count, store=True, string='A', multi='a_shift'),
         'b_shift_count1': fields.function(_db_shift_count, store=True, string='B', multi='b_shift'),
