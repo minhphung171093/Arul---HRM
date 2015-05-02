@@ -3416,7 +3416,7 @@ class res_partner(osv.osv):
             required=False),
         'is_tds_applicable': fields.boolean('IsTDSApplicable'),
         'tds_id': fields.many2one('account.tax', 'TDS %'),
-#         'vendor_type': fields.selection([('manu', 'Manufacturer'),('trade', 'Traders')],'Vendor Type'),
+        'vendor_type': fields.selection([('manu', 'Manufacturer'),('trade', 'Traders')],'Vendor Type'),
         }
     
     def create(self, cr, uid, vals, context=None):
