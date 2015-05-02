@@ -5374,11 +5374,11 @@ class tpt_time_leave_evaluation(osv.osv):
                 cr.execute(sql)
                 holiday_days = [row[0] for row in cr.fetchall()]
                 
-                day_now = int(time.strftime('%d'))
-                month_now = int(time.strftime('%d'))
+                day_now = 31
+                month_now = int(time.strftime('%m'))
                 year_now = int(time.strftime('%Y'))
-                if month_now >= int(sub.month):
-                    day_now = 31
+                if year_now == sub.year and month_now == int(sub.month):
+                    day_now = int(time.strftime('%d'))
                 if year_now >= sub.year:
                     if shift.day_1 and shift.day_1.code != 'W' and day_now>=1 and 1.0 not in holiday_days:
                         sql = '''
