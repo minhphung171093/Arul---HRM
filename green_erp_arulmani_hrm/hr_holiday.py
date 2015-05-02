@@ -407,9 +407,11 @@ class arul_hr_audit_shift_time(osv.osv):
                     AND to_char(work_date,'YYYY-MM-DD')=('%s')       
                     ''' %(line.in_time,line.out_time,line.employee_id.id,line.work_date)
             cr.execute(sql)
-            p = cr.fetchone()                  
-            if p[0]>0:
-                raise osv.except_osv(_('Warning!'),_('Attendance Already Entered for this Time Period')) 
+            p = cr.fetchone()   
+            #TPT-COMMENTED TEMPORARILY               
+            #if p[0]>0:
+            #    raise osv.except_osv(_('Warning!'),_('Attendance Already Entered for this Time Period')) 
+           
             #TPT END
         for line in self.browse(cr,uid,ids):
 #             emp = self.pool.get('hr.employee')
@@ -866,9 +868,10 @@ class arul_hr_audit_shift_time(osv.osv):
                     AND to_char(work_date,'YYYY-MM-DD')=('%s')       
                     ''' %(line.in_time,line.out_time,line.employee_id.id,line.work_date)
             cr.execute(sql)
-            p = cr.fetchone()                  
-            if p[0]>0:
-                raise osv.except_osv(_('Warning!'),_('Attendance Already Entered for this Time Period')) 
+            p = cr.fetchone()  
+            #TPT-COMMENTED TEMP                
+            #if p[0]>0:
+            #    raise osv.except_osv(_('Warning!'),_('Attendance Already Entered for this Time Period')) 
             #TPT END
         for line in self.browse(cr,uid,ids):
 #             emp = self.pool.get('hr.employee')
@@ -2119,6 +2122,7 @@ class arul_hr_permission_onduty(osv.osv):
         'create_uid': fields.many2one('res.users','Created By',ondelete='restrict',readonly = True),
 #         'detail_id':fields.many2one('arul.hr.employee.attendence.details','Detail'),
         #TPT-Permission On Duty
+        'shift_type':fields.char('Shift Type', size = 1024),
         'total_shift_worked': fields.function(_shift_total, store=True, string='No.Of Shift Worked', multi='shift_sums', help="The total amount."),
         'state':fields.selection([('draft', 'Draft'),('cancel', 'Reject'),('done', 'Approve')],'Status', readonly=True),
               }
