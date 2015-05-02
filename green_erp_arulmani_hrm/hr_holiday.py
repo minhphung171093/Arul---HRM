@@ -2974,7 +2974,7 @@ class arul_hr_punch_in_out_time(osv.osv):
         #TPT
         #TPT-Punch InOut - THIS COLUMN IS STORE IN DB TO GET THIS COUNT DURING PAYROLL PROCESS
         'total_hrs_worked': fields.function(_shift_hrs_total, string='No.Of Hrs Worked', multi='shift_punchinout_hrs_sums', help="The total Hrs Worked."),
-        'total_shift_worked': fields.function(_shift_total_db,   string='No.Of Shift Worked',  multi='shift_punchinout_sums', help="The total Shift Worked Per day which includes punch in times and/or Permission OnDuty Hrs."),
+        'total_shift_worked': fields.function(_shift_total_db, store=True,  string='No.Of Shift Worked',  multi='shift_punchinout_sums', help="The total Shift Worked Per day which includes punch in times and/or Permission OnDuty Hrs."),
         
         'shift_worked': fields.function(_shift_total, string='No.Of Shift Worked',  multi='shift_punchinout_sums', help="The total Shift Worked Per day which includes punch in times and/or Permission OnDuty Hrs."),
                 
@@ -2991,11 +2991,11 @@ class arul_hr_punch_in_out_time(osv.osv):
         'g1_shift_count': fields.function(_shift_count,  string='G1', multi='g1_shift'),
         'g2_shift_count': fields.function(_shift_count,  string='G2', multi='g2_shift'),
 #         
-        'a_shift_count1': fields.function(_db_shift_count,  string='A', multi='a_shift'),
-        'b_shift_count1': fields.function(_db_shift_count,  string='B', multi='b_shift'),
-        'c_shift_count1': fields.function(_db_shift_count,  string='C', multi='c_shift'),
-        'g1_shift_count1': fields.function(_db_shift_count,   string='G1', multi='g1_shift'),
-        'g2_shift_count1': fields.function(_db_shift_count,  string='G2', multi='g2_shift'),
+        'a_shift_count1': fields.function(_db_shift_count, store=True, string='A', multi='a_shift'),
+        'b_shift_count1': fields.function(_db_shift_count, store=True, string='B', multi='b_shift'),
+        'c_shift_count1': fields.function(_db_shift_count, store=True, string='C', multi='c_shift'),
+        'g1_shift_count1': fields.function(_db_shift_count, store=True,  string='G1', multi='g1_shift'),
+        'g2_shift_count1': fields.function(_db_shift_count, store=True, string='G2', multi='g2_shift'),
         
         #'g1_shift_count': fields.float('G1', states={'done': [('readonly', True)], 'cancel': [('readonly', True)]}),
         #'g2_shift_count': fields.float('G2', states={'done': [('readonly', True)], 'cancel': [('readonly', True)]}),
