@@ -300,125 +300,123 @@ class Parser(report_sxw.rml_parse):
             punch_in_out_time_ids = [r[0] for r in self.cr.fetchall()]
             A = self.pool.get('arul.hr.punch.in.out.time').browse(self.cr, self.uid, punch_in_out_time_ids)
             c_off_day = 0
-#===============================================================================
-#             
-#             for i,line1 in enumerate(A):
-#                 date1 = line1.work_date
-#                 if (line1.planned_work_shift_id and line1.planned_work_shift_id.code != 'W') or (line1.actual_work_shift_id and line1.actual_work_shift_id.code != 'W'):
-# # trường hợp không 'W' và planned = actual                        
-#                     if (line1.planned_work_shift_id == line1.actual_work_shift_id):
-#                         if line1.in_time > line1.out_time:
-#                             time_total_actual = 24 - line1.in_time + line1.out_time
-#                         else:
-#                             time_total_actual = line1.out_time - line1.in_time
-#                         if line1.diff_day and (line1.in_time <= line1.out_time):
-#                             time_total_actual += 24
-#                         
-#                         if line1.planned_work_shift_id.start_time > line1.planned_work_shift_id.end_time:
-#                             time_total_planned = 24 - line1.planned_work_shift_id.start_time + line1.planned_work_shift_id.end_time
-#                         else:
-#                             time_total_planned = line1.planned_work_shift_id.end_time - line1.planned_work_shift_id.start_time
-#                         extra_hours = time_total_actual - time_total_planned
-#                         if extra_hours >= 4 and extra_hours < 8:
-#                             c_off_day += 0.5
-#                         if extra_hours >= 8 and extra_hours < 12:
-#                             c_off_day += 1
-#                         if extra_hours >= 12 and extra_hours < 16:
-#                             c_off_day += 1.5
-#                         if extra_hours >= 16:
-#                             c_off_day += 2
-#                         
-#                         B = A[i+1:]
-#                         for j,line2 in enumerate(B):
-#                             date2 = line2.work_date
-#                             if (date1==date2):
-#                                 if line2.in_time > line2.out_time:
-#                                     time_total_actual = 24 - line2.in_time + line2.out_time
-#                                 else:
-#                                     time_total_actual = line2.out_time - line2.in_time
-#                                 if line2.diff_day and (line2.in_time <= line2.out_time):
-#                                     time_total_actual += 24
-#                                 # tinh sum_c_off lam them 1 ca
-#                                 if line2.actual_work_shift_id:
-#                                     if line2.actual_work_shift_id.start_time > line2.actual_work_shift_id.end_time:
-#                                         shift_hours = 24-line2.actual_work_shift_id.start_time + line2.actual_work_shift_id.end_time
-#                                     else:
-#                                         shift_hours = line2.actual_work_shift_id.end_time - line2.actual_work_shift_id.start_time
-#                                 elif line2.planned_work_shift_id:
-#                                     if line2.planned_work_shift_id.start_time > line2.planned_work_shift_id.end_time:
-#                                         shift_hours = 24-line2.planned_work_shift_id.start_time + line2.planned_work_shift_id.end_time
-#                                     else:
-#                                         shift_hours = line2.planned_work_shift_id.end_time - line2.planned_work_shift_id.start_time
-#                                 else:
-#                                     shift_hours = 8
-#                                 extra_hours = time_total_actual-shift_hours
-#                                 if extra_hours >= 4 and extra_hours < 8:
-#                                     c_off_day += 0.5
-#                                 if extra_hours >= 8 and extra_hours < 12:
-#                                     c_off_day += 1
-#                                 if extra_hours >= 12 and extra_hours < 16:
-#                                     c_off_day += 1.5
-#                                 if extra_hours >= 16:
-#                                     c_off_day += 2
-#                                 c_off_day += 1
-#                                 test = A.pop(i+j+1)
-#                             else: 
-#                                 break
-# # trường hợp không 'W' và planned != actual
-# #                     else:
-# # trường hợp có 'W'                          
-#                 else: 
-# # trường hợp có 'W' và planned = actual
-#                     if (line1.planned_work_shift_id == line1.actual_work_shift_id):
-#                         if line1.in_time > line1.out_time:
-#                             time_total_actual = 24 - line1.in_time + line1.out_time
-#                         else:
-#                             time_total_actual = line1.out_time - line1.in_time
-#                         if line1.diff_day and (line1.in_time <= line1.out_time):
-#                             time_total_actual += 24
-#                         
-#                         if line1.planned_work_shift_id.start_time > line1.planned_work_shift_id.end_time:
-#                             time_total_planned = 24 - line1.planned_work_shift_id.start_time + line1.planned_work_shift_id.end_time
-#                         else:
-#                             time_total_planned = line1.planned_work_shift_id.end_time - line1.planned_work_shift_id.start_time
-#                         extra_hours = time_total_actual - time_total_planned
-#                         if extra_hours >= 4 and extra_hours < 8:
-#                             c_off_day += 0.5
-#                         if extra_hours >= 8 and extra_hours < 12:
-#                             c_off_day += 1
-#                         if extra_hours >= 12 and extra_hours < 16:
-#                             c_off_day += 1.5
-#                         if extra_hours >= 16:
-#                             c_off_day += 2
-#                         
-#                         B = A[i+1:]
-#                         for j,line2 in enumerate(B):
-#                             date2 = line2.work_date
-#                             if (date1==date2):
-#                                 if line2.in_time > line2.out_time:
-#                                     time_total_actual = 24 - line2.in_time + line2.out_time
-#                                 else:
-#                                     time_total_actual = line2.out_time - line2.in_time
-#                                 if line2.diff_day and (line2.in_time <= line2.out_time):
-#                                     time_total_actual += 24
-#                                 shift_hours = 0
-#                                 extra_hours = time_total_actual-shift_hours
-#                                 if extra_hours >= 4 and extra_hours < 8:
-#                                     c_off_day += 0.5
-#                                 if extra_hours >= 8 and extra_hours < 12:
-#                                     c_off_day += 1
-#                                 if extra_hours >= 12 and extra_hours < 16:
-#                                     c_off_day += 1.5
-#                                 if extra_hours >= 16:
-#                                     c_off_day += 2
-#                                 c_off_day += 1
-#                                 test = A.pop(i+j+1)
-#                             else: 
-#                                 break
-# #                     else:
-#                         #trường họp có W và planned != actual
-#                     
-#===============================================================================
+            
+            for i,line1 in enumerate(A):
+                date1 = line1.work_date
+                if (line1.planned_work_shift_id and line1.planned_work_shift_id.code != 'W') or (line1.actual_work_shift_id and line1.actual_work_shift_id.code != 'W'):
+# trường hợp không 'W' và planned = actual                        
+                    if (line1.planned_work_shift_id == line1.actual_work_shift_id):
+                        if line1.in_time > line1.out_time:
+                            time_total_actual = 24 - line1.in_time + line1.out_time
+                        else:
+                            time_total_actual = line1.out_time - line1.in_time
+                        if line1.diff_day and (line1.in_time <= line1.out_time):
+                            time_total_actual += 24
+                        
+                        if line1.planned_work_shift_id.start_time > line1.planned_work_shift_id.end_time:
+                            time_total_planned = 24 - line1.planned_work_shift_id.start_time + line1.planned_work_shift_id.end_time
+                        else:
+                            time_total_planned = line1.planned_work_shift_id.end_time - line1.planned_work_shift_id.start_time
+                        extra_hours = time_total_actual - time_total_planned
+                        if extra_hours >= 4 and extra_hours < 8:
+                            c_off_day += 0.5
+                        if extra_hours >= 8 and extra_hours < 12:
+                            c_off_day += 1
+                        if extra_hours >= 12 and extra_hours < 16:
+                            c_off_day += 1.5
+                        if extra_hours >= 16:
+                            c_off_day += 2
+                        
+                        B = A[i+1:]
+                        for j,line2 in enumerate(B):
+                            date2 = line2.work_date
+                            if (date1==date2):
+                                if line2.in_time > line2.out_time:
+                                    time_total_actual = 24 - line2.in_time + line2.out_time
+                                else:
+                                    time_total_actual = line2.out_time - line2.in_time
+                                if line2.diff_day and (line2.in_time <= line2.out_time):
+                                    time_total_actual += 24
+                                # tinh sum_c_off lam them 1 ca
+                                if line2.actual_work_shift_id:
+                                    if line2.actual_work_shift_id.start_time > line2.actual_work_shift_id.end_time:
+                                        shift_hours = 24-line2.actual_work_shift_id.start_time + line2.actual_work_shift_id.end_time
+                                    else:
+                                        shift_hours = line2.actual_work_shift_id.end_time - line2.actual_work_shift_id.start_time
+                                elif line2.planned_work_shift_id:
+                                    if line2.planned_work_shift_id.start_time > line2.planned_work_shift_id.end_time:
+                                        shift_hours = 24-line2.planned_work_shift_id.start_time + line2.planned_work_shift_id.end_time
+                                    else:
+                                        shift_hours = line2.planned_work_shift_id.end_time - line2.planned_work_shift_id.start_time
+                                else:
+                                    shift_hours = 8
+                                extra_hours = time_total_actual-shift_hours
+                                if extra_hours >= 4 and extra_hours < 8:
+                                    c_off_day += 0.5
+                                if extra_hours >= 8 and extra_hours < 12:
+                                    c_off_day += 1
+                                if extra_hours >= 12 and extra_hours < 16:
+                                    c_off_day += 1.5
+                                if extra_hours >= 16:
+                                    c_off_day += 2
+                                c_off_day += 1
+                                test = A.pop(i+j+1)
+                            else: 
+                                break
+# trường hợp không 'W' và planned != actual
+#                     else:
+# trường hợp có 'W'                          
+                else: 
+# trường hợp có 'W' và planned = actual
+                    if (line1.planned_work_shift_id == line1.actual_work_shift_id):
+                        if line1.in_time > line1.out_time:
+                            time_total_actual = 24 - line1.in_time + line1.out_time
+                        else:
+                            time_total_actual = line1.out_time - line1.in_time
+                        if line1.diff_day and (line1.in_time <= line1.out_time):
+                            time_total_actual += 24
+                        
+                        if line1.planned_work_shift_id.start_time > line1.planned_work_shift_id.end_time:
+                            time_total_planned = 24 - line1.planned_work_shift_id.start_time + line1.planned_work_shift_id.end_time
+                        else:
+                            time_total_planned = line1.planned_work_shift_id.end_time - line1.planned_work_shift_id.start_time
+                        extra_hours = time_total_actual - time_total_planned
+                        if extra_hours >= 4 and extra_hours < 8:
+                            c_off_day += 0.5
+                        if extra_hours >= 8 and extra_hours < 12:
+                            c_off_day += 1
+                        if extra_hours >= 12 and extra_hours < 16:
+                            c_off_day += 1.5
+                        if extra_hours >= 16:
+                            c_off_day += 2
+                        
+                        B = A[i+1:]
+                        for j,line2 in enumerate(B):
+                            date2 = line2.work_date
+                            if (date1==date2):
+                                if line2.in_time > line2.out_time:
+                                    time_total_actual = 24 - line2.in_time + line2.out_time
+                                else:
+                                    time_total_actual = line2.out_time - line2.in_time
+                                if line2.diff_day and (line2.in_time <= line2.out_time):
+                                    time_total_actual += 24
+                                shift_hours = 0
+                                extra_hours = time_total_actual-shift_hours
+                                if extra_hours >= 4 and extra_hours < 8:
+                                    c_off_day += 0.5
+                                if extra_hours >= 8 and extra_hours < 12:
+                                    c_off_day += 1
+                                if extra_hours >= 12 and extra_hours < 16:
+                                    c_off_day += 1.5
+                                if extra_hours >= 16:
+                                    c_off_day += 2
+                                c_off_day += 1
+                                test = A.pop(i+j+1)
+                            else: 
+                                break
+#                     else:
+                        #trường họp có W và planned != actual
+                    
             #
                 
             res.append({
