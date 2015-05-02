@@ -360,7 +360,9 @@ class Parser(report_sxw.rml_parse):
                                 if extra_hours >= 16:
                                     c_off_day += 2
                                 c_off_day += 1
-                                test = A.pop(i+j+1)
+                                if j==0:
+                                    index = i+j+1
+                                test = A.pop(index)
                             else: 
                                 break
 # trường hợp không 'W' và planned != actual
@@ -411,7 +413,9 @@ class Parser(report_sxw.rml_parse):
                                 if extra_hours >= 16:
                                     c_off_day += 2
                                 c_off_day += 1
-                                test = A.pop(i+j+1)
+                                if j==0:
+                                    index = i+j+1
+                                test = A.pop(index)
                             else: 
                                 break
 #                     else:
