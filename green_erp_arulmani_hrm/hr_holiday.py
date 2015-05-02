@@ -1561,8 +1561,8 @@ class arul_hr_employee_leave_details(osv.osv):
                 coff1 = cr.fetchone()
                 coff = coff1[0]
                     
-                if emp_leave_count == 1 and vals['leave_type_id']==cl:                                         
-                    raise osv.except_osv(_('Warning!'),_('Only LOP/ESI is possible for another Half a Day Leave'))
+                #if emp_leave_count == 1 and vals['leave_type_id']==cl:                                         
+                #    raise osv.except_osv(_('Warning!'),_('Only LOP/ESI is possible for another Half a Day Leave'))
                 if emp_leave_count == 1 and vals['leave_type_id']==sl:                                         
                     raise osv.except_osv(_('Warning!'),_('Only LOP/ESI is possible for another Half a Day Leave'))
                 if emp_leave_count == 1 and vals['leave_type_id']==coff:                                         
