@@ -124,9 +124,9 @@ class Parser(report_sxw.rml_parse):
             sql = '''
                     select count(*) from arul_hr_permission_onduty where shift_type='G2' and 
                     EXTRACT(year FROM date) = %s AND EXTRACT(month FROM date) = %s and employee_id=%s
-                    '''%(line.year,line.month,p.id)
-            cr.execute(sql)
-            onduty_shift =  cr.fetchone()
+                    '''%(int(year), int(month),employee.id)
+            self.cr.execute(sql)
+            onduty_shift =  self.cr.fetchone()
             onduty_g2_shift_count = onduty_shift[0]
            #########        
             ##TPT
