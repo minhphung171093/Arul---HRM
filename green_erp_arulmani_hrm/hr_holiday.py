@@ -2973,7 +2973,7 @@ class arul_hr_punch_in_out_time(osv.osv):
         'diff_day': fields.boolean('Difference Day', readonly = True),
         #TPT
         #TPT-Punch InOut - THIS COLUMN IS STORE IN DB TO GET THIS COUNT DURING PAYROLL PROCESS
-        'total_hrs_worked': fields.function(_shift_hrs_total, string='No.Of Hrs Worked', multi='shift_punchinout_hrs_sums', help="The total Hrs Worked."),
+        'total_hrs_worked': fields.function(_shift_hrs_total, string='No.Of Hrs Worked', multi='shift_hrs_total', help="The total Hrs Worked."),
         'total_shift_worked': fields.function(_shift_total_db, store=True,type='float',  string='No.Of Shift Worked',  multi='shift_total_db', help="The total Shift Worked Per day which includes punch in times and/or Permission OnDuty Hrs."),
         
         'shift_worked': fields.function(_shift_total, string='No.Of Shift Worked',type='float',  multi='shift_total', help="The total Shift Worked Per day which includes punch in times and/or Permission OnDuty Hrs."),
