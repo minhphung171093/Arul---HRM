@@ -87,6 +87,7 @@ class Parser(report_sxw.rml_parse):
             #TPT
             perm_onduty_count=0
             total_shift_worked=0
+            onduty_g2_shift_count = 0
             #onduty_count = False
             #permission_count=False
             #PUNCH IN OUT
@@ -110,7 +111,7 @@ class Parser(report_sxw.rml_parse):
             #OnDuty
             sql = '''
                 SELECT CASE WHEN SUM(total_shift_worked)!=0 THEN SUM(total_shift_worked) ELSE 0 END sum_onduty FROM arul_hr_permission_onduty WHERE non_availability_type_id='on_duty' 
-                AND EXTRACT(year FROM to_date) = %s AND EXTRACT(month FROM to_date) = %s and employee_id =%s and total_shift_worked>=0.5
+                AND EXTRACT(year FROM to_date) = %s AND EXTRACT(month FROM to_date) = %s and employee_id =%s and total_shift_worked>=1
                 '''%(int(year), int(month),employee.id)
             self.cr.execute(sql)
             o_c =  self.cr.fetchone()
@@ -118,7 +119,16 @@ class Parser(report_sxw.rml_parse):
             
             total_shift_worked = shift_count + onduty_count
             perm_onduty_count =   onduty_count  
-            
+
+            ####### TPT - TEMP FIX FOR ON DUTY COUNT
+            sql = '''
+                    select count(*) from arul_hr_permission_onduty where shift_type='G2' and 
+                    EXTRACT(year FROM date) = %s AND EXTRACT(month FROM date) = %s and employee_id=%s
+                    '''%(line.year,line.month,p.id)
+            cr.execute(sql)
+            onduty_shift =  cr.fetchone()
+            onduty_g2_shift_count = onduty_shift[0]
+           #########        
             ##TPT
             sql = '''
                 SELECT CASE WHEN SUM(a_shift_count)!=0 THEN SUM(a_shift_count) ELSE 0 END a_shift FROM arul_hr_punch_in_out_time WHERE EXTRACT(year FROM work_date) = %s 
@@ -159,6 +169,7 @@ class Parser(report_sxw.rml_parse):
             self.cr.execute(sql)
             t_g2 =  self.cr.fetchone()
             tpt_g2 = t_g2[0]
+            tpt_g2 = tpt_g2+onduty_g2_shift_count
             ##TPT    
                 #TOTAL SHIFT WORKED
             #raise osv.except_osv(_('Warning!%s'),_(sql))      

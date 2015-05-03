@@ -1100,7 +1100,7 @@ class arul_hr_payroll_executions(osv.osv):
                 onduty_count = c[0]
                 
                 #TOTAL SHIFT WORKED
-                #raise osv.except_osv(_('Warning!%s'),_(permission_count))  
+                
                 total_shift_worked = 0.0    
                 #if  shift_count:
                 total_shift_worked = shift_count + onduty_count
@@ -1121,7 +1121,7 @@ class arul_hr_payroll_executions(osv.osv):
                 total_c_shift_allowance = 0
                               
                 sql = '''
-                    SELECT CASE WHEN SUM(a_shift_count1)!=0 THEN SUM(a_shift_count1) ELSE 0 END a_shift_count FROM arul_hr_punch_in_out_time WHERE EXTRACT(year FROM work_date) = %s 
+                    SELECT CASE WHEN SUM(a_shift_count)!=0 THEN SUM(a_shift_count) ELSE 0 END a_shift_count FROM arul_hr_punch_in_out_time WHERE EXTRACT(year FROM work_date) = %s 
                     AND EXTRACT(month FROM work_date) = %s AND employee_id =%s
                     '''%(line.year,line.month,p.id)
                 cr.execute(sql)
@@ -1129,7 +1129,7 @@ class arul_hr_payroll_executions(osv.osv):
                 a_shift_count = a_c[0]
                 
                 sql = '''
-                    SELECT CASE WHEN SUM(b_shift_count1)!=0 THEN SUM(b_shift_count1) ELSE 0 END b_shift_count FROM arul_hr_punch_in_out_time WHERE EXTRACT(year FROM work_date) = %s 
+                    SELECT CASE WHEN SUM(b_shift_count)!=0 THEN SUM(b_shift_count) ELSE 0 END b_shift_count FROM arul_hr_punch_in_out_time WHERE EXTRACT(year FROM work_date) = %s 
                     AND EXTRACT(month FROM work_date) = %s AND employee_id =%s
                     '''%(line.year,line.month,p.id)
                 cr.execute(sql)
@@ -1137,7 +1137,7 @@ class arul_hr_payroll_executions(osv.osv):
                 b_shift_count = b_c[0]
                 
                 sql = '''
-                    SELECT CASE WHEN SUM(c_shift_count1)!=0 THEN SUM(c_shift_count1) ELSE 0 END c_shift_count FROM arul_hr_punch_in_out_time WHERE EXTRACT(year FROM work_date) = %s 
+                    SELECT CASE WHEN SUM(c_shift_count)!=0 THEN SUM(c_shift_count) ELSE 0 END c_shift_count FROM arul_hr_punch_in_out_time WHERE EXTRACT(year FROM work_date) = %s 
                     AND EXTRACT(month FROM work_date) = %s AND employee_id =%s
                     '''%(line.year,line.month,p.id)
                 cr.execute(sql)
@@ -1145,7 +1145,7 @@ class arul_hr_payroll_executions(osv.osv):
                 c_shift_count = c_c[0]
                 
                 sql = '''
-                    SELECT CASE WHEN SUM(g1_shift_count1)!=0 THEN SUM(g1_shift_count1) ELSE 0 END g1_shift_count FROM arul_hr_punch_in_out_time WHERE EXTRACT(year FROM work_date) = %s 
+                    SELECT CASE WHEN SUM(g1_shift_count)!=0 THEN SUM(g1_shift_count) ELSE 0 END g1_shift_count FROM arul_hr_punch_in_out_time WHERE EXTRACT(year FROM work_date) = %s 
                     AND EXTRACT(month FROM work_date) = %s AND employee_id =%s
                     '''%(line.year,line.month,p.id)
                 cr.execute(sql)
@@ -1153,7 +1153,7 @@ class arul_hr_payroll_executions(osv.osv):
                 g1_shift_count = g1_c[0]
                 
                 sql = '''
-                    SELECT CASE WHEN SUM(g2_shift_count1)!=0 THEN SUM(g2_shift_count1) ELSE 0 END g2_shift_count FROM arul_hr_punch_in_out_time WHERE EXTRACT(year FROM work_date) = %s 
+                    SELECT CASE WHEN SUM(g2_shift_count)!=0 THEN SUM(g2_shift_count) ELSE 0 END g2_shift_count FROM arul_hr_punch_in_out_time WHERE EXTRACT(year FROM work_date) = %s 
                     AND EXTRACT(month FROM work_date) = %s AND employee_id =%s
                     '''%(line.year,line.month,p.id)
                 cr.execute(sql)
@@ -1380,11 +1380,12 @@ class arul_hr_payroll_executions(osv.osv):
                                           'deduction_parameters_id':_other_deductions_id.deduction_parameters_id.id,
                                           'float': pd,
                                     }))
-                            if _other_deductions_id.deduction_parameters_id.code == 'VPF.D':
-                                vals_other_deductions.append((0,0, {
-                                          'deduction_parameters_id':_other_deductions_id.deduction_parameters_id.id,
-                                          'float': vpfd,
-                                    }))
+#                             if _other_deductions_id.deduction_parameters_id.code == 'VPF.D':
+#                                 vals_other_deductions.append((0,0, {
+#                                           'deduction_parameters_id':_other_deductions_id.deduction_parameters_id.id,
+#                                           'float': vpfd,
+#                                     }))
+
 #                             if _other_deductions_id.deduction_parameters_id.code == 'ESI.D':
 #                                 vals_other_deductions.append((0,0, {
 #                                           'deduction_parameters_id':_other_deductions_id.deduction_parameters_id.id,
@@ -1697,7 +1698,7 @@ class arul_hr_payroll_executions(osv.osv):
                                       'earning_parameters_id':earning.id,
                                       'float': net_sala,
                                 }))
-                        deduction_ids = deduction_obj.search(cr, uid, [('code','in',['TOTAL_DEDUCTION','PF.D','ESI.D','LWF','F.D','LOP',
+                        deduction_ids = deduction_obj.search(cr, uid, [('code','in',['TOTAL_DEDUCTION','VPF.D','PF.D','ESI.D','LWF','F.D','LOP',
                                     'INS_LIC_PREM','INS_OTHERS','LOAN_VVTI','LOAN_LIC_HFL','LOAN_HDFC','LOAN_TMB', 'LOAN_SBT','LOAN_OTHERS'               
                                                                                      ])])
                         for deduction in deduction_obj.browse(cr, uid, deduction_ids):
@@ -1705,6 +1706,11 @@ class arul_hr_payroll_executions(osv.osv):
                                 vals_other_deductions.append((0,0, {
                                           'deduction_parameters_id':deduction.id,
                                           'float': total_deduction,
+                                    }))
+                            if deduction.code == 'VPF.D':
+                                vals_other_deductions.append((0,0, {
+                                          'deduction_parameters_id':deduction.id,
+                                          'float': vpfd_amount,
                                     }))
                             if deduction.code == 'PF.D':
                                 vals_other_deductions.append((0,0, {
@@ -1845,11 +1851,12 @@ class arul_hr_payroll_executions(osv.osv):
                                           'deduction_parameters_id':_other_deductions_id.deduction_parameters_id.id,
                                           'float': pd,
                                     }))
-                            if _other_deductions_id.deduction_parameters_id.code == 'VPF.D':
-                                vals_other_deductions.append((0,0, {
-                                          'deduction_parameters_id':_other_deductions_id.deduction_parameters_id.id,
-                                          'float': vpfd,
-                                    }))
+#                             if _other_deductions_id.deduction_parameters_id.code == 'VPF.D':
+#                                 vals_other_deductions.append((0,0, {
+#                                           'deduction_parameters_id':_other_deductions_id.deduction_parameters_id.id,
+#                                           'float': vpfd,
+#                                     }))
+
 #                             if _other_deductions_id.deduction_parameters_id.code == 'ESI.D':
 #                                 vals_other_deductions.append((0,0, {
 #                                           'deduction_parameters_id':_other_deductions_id.deduction_parameters_id.id,
@@ -2181,7 +2188,7 @@ class arul_hr_payroll_executions(osv.osv):
                                       'earning_parameters_id':earning.id,
                                       'float': net_sala,
                                 }))
-                        deduction_ids = deduction_obj.search(cr, uid, [('code','in',['TOTAL_DEDUCTION','PF.D','ESI.D','LWF','F.D','LOP',
+                        deduction_ids = deduction_obj.search(cr, uid, [('code','in',['TOTAL_DEDUCTION','VPF.D','PF.D','ESI.D','LWF','F.D','LOP',
                                         'INS_LIC_PREM','INS_OTHERS','LOAN_VVTI','LOAN_LIC_HFL','LOAN_HDFC','LOAN_TMB', 'LOAN_SBT','LOAN_OTHERS'                                               
                                                                                      ])])
                         for deduction in deduction_obj.browse(cr, uid, deduction_ids):
@@ -2189,6 +2196,11 @@ class arul_hr_payroll_executions(osv.osv):
                                 vals_other_deductions.append((0,0, {
                                           'deduction_parameters_id':deduction.id,
                                           'float': total_deduction,
+                                    }))
+                            if deduction.code == 'VPF.D':
+                                vals_other_deductions.append((0,0, {
+                                          'deduction_parameters_id':deduction.id,
+                                          'float': vpfd_amount,
                                     }))
                             if deduction.code == 'PF.D':
                                 vals_other_deductions.append((0,0, {
@@ -2331,11 +2343,12 @@ class arul_hr_payroll_executions(osv.osv):
                                           'deduction_parameters_id':_other_deductions_id.deduction_parameters_id.id,
                                           'float': pd,
                                     }))
-                            if _other_deductions_id.deduction_parameters_id.code == 'VPF.D':
-                                vals_other_deductions.append((0,0, {
-                                          'deduction_parameters_id':_other_deductions_id.deduction_parameters_id.id,
-                                          'float': vpfd,
-                                    }))
+#                             if _other_deductions_id.deduction_parameters_id.code == 'VPF.D':
+#                                 vals_other_deductions.append((0,0, {
+#                                           'deduction_parameters_id':_other_deductions_id.deduction_parameters_id.id,
+#                                           'float': vpfd,
+#                                     }))
+
 #                             if _other_deductions_id.deduction_parameters_id.code == 'ESI.D':
 #                                 vals_other_deductions.append((0,0, {
 #                                           'deduction_parameters_id':_other_deductions_id.deduction_parameters_id.id,
@@ -2681,7 +2694,7 @@ class arul_hr_payroll_executions(osv.osv):
                                       'earning_parameters_id':earning.id,
                                       'float': net_sala,
                                 }))
-                        deduction_ids = deduction_obj.search(cr, uid, [('code','in',['TOTAL_DEDUCTION','PF.D','ESI.D','LWF','F.D','LOP',
+                        deduction_ids = deduction_obj.search(cr, uid, [('code','in',['TOTAL_DEDUCTION','VPF.D','PF.D','ESI.D','LWF','F.D','LOP',
                                     'INS_LIC_PREM','INS_OTHERS','LOAN_VVTI','LOAN_LIC_HFL','LOAN_HDFC','LOAN_TMB', 'LOAN_SBT','LOAN_OTHERS'                                                   
                                                                                      ])])
                         for deduction in deduction_obj.browse(cr, uid, deduction_ids):
@@ -2689,6 +2702,11 @@ class arul_hr_payroll_executions(osv.osv):
                                 vals_other_deductions.append((0,0, {
                                           'deduction_parameters_id':deduction.id,
                                           'float': total_deduction,
+                                    }))
+                            if deduction.code == 'VPF.D':
+                                vals_other_deductions.append((0,0, {
+                                          'deduction_parameters_id':deduction.id,
+                                          'float': vpfd_amount,
                                     }))
                             if deduction.code == 'PF.D':
                                 vals_other_deductions.append((0,0, {
