@@ -561,7 +561,9 @@
 										<field name="g2_shift_count" />
 										<field name="b_shift_count" />
 										<field name="c_shift_count" />
-										<field name="shift_worked"/>
+										<field name="total_shift_worked"/>
+										<!-- 
+										<field name="shift_worked"/>  -->
 										<!-- TPT: For Shift Adjustment -->
 										<field name="shift_plus"/>
 										<field name="shift_minus"/>

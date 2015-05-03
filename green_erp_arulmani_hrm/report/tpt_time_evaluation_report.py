@@ -110,7 +110,7 @@ class Parser(report_sxw.rml_parse):
             #OnDuty
             sql = '''
                 SELECT CASE WHEN SUM(total_shift_worked)!=0 THEN SUM(total_shift_worked) ELSE 0 END sum_onduty FROM arul_hr_permission_onduty WHERE non_availability_type_id='on_duty' 
-                AND EXTRACT(year FROM to_date) = %s AND EXTRACT(month FROM to_date) = %s and employee_id =%s and total_shift_worked>=1
+                AND EXTRACT(year FROM to_date) = %s AND EXTRACT(month FROM to_date) = %s and employee_id =%s and total_shift_worked>=0.5
                 '''%(int(year), int(month),employee.id)
             self.cr.execute(sql)
             o_c =  self.cr.fetchone()
@@ -121,7 +121,7 @@ class Parser(report_sxw.rml_parse):
             
             ##TPT
             sql = '''
-                SELECT CASE WHEN SUM(a_shift_count1)!=0 THEN SUM(a_shift_count1) ELSE 0 END a_shift FROM arul_hr_punch_in_out_time WHERE EXTRACT(year FROM work_date) = %s 
+                SELECT CASE WHEN SUM(a_shift_count)!=0 THEN SUM(a_shift_count) ELSE 0 END a_shift FROM arul_hr_punch_in_out_time WHERE EXTRACT(year FROM work_date) = %s 
                 AND EXTRACT(month FROM work_date) = %s AND employee_id =%s
                 '''%(int(year), int(month),employee.id)
             self.cr.execute(sql)
@@ -129,7 +129,7 @@ class Parser(report_sxw.rml_parse):
             tpt_a = t_a[0]
             
             sql = '''
-                SELECT CASE WHEN SUM(b_shift_count1)!=0 THEN SUM(b_shift_count1) ELSE 0 END b_shift FROM arul_hr_punch_in_out_time WHERE EXTRACT(year FROM work_date) = %s 
+                SELECT CASE WHEN SUM(b_shift_count)!=0 THEN SUM(b_shift_count) ELSE 0 END b_shift FROM arul_hr_punch_in_out_time WHERE EXTRACT(year FROM work_date) = %s 
                 AND EXTRACT(month FROM work_date) = %s AND employee_id =%s
                 '''%(int(year), int(month),employee.id)
             self.cr.execute(sql)
@@ -137,7 +137,7 @@ class Parser(report_sxw.rml_parse):
             tpt_b = t_b[0]
             
             sql = '''
-                SELECT CASE WHEN SUM(c_shift_count1)!=0 THEN SUM(c_shift_count1) ELSE 0 END c_shift FROM arul_hr_punch_in_out_time WHERE EXTRACT(year FROM work_date) = %s 
+                SELECT CASE WHEN SUM(c_shift_count)!=0 THEN SUM(c_shift_count) ELSE 0 END c_shift FROM arul_hr_punch_in_out_time WHERE EXTRACT(year FROM work_date) = %s 
                 AND EXTRACT(month FROM work_date) = %s AND employee_id =%s
                 '''%(int(year), int(month),employee.id)
             self.cr.execute(sql)
@@ -145,7 +145,7 @@ class Parser(report_sxw.rml_parse):
             tpt_c = t_c[0]
             
             sql = '''
-                SELECT CASE WHEN SUM(g1_shift_count1)!=0 THEN SUM(g1_shift_count1) ELSE 0 END g1_shift FROM arul_hr_punch_in_out_time WHERE EXTRACT(year FROM work_date) = %s 
+                SELECT CASE WHEN SUM(g1_shift_count)!=0 THEN SUM(g1_shift_count) ELSE 0 END g1_shift FROM arul_hr_punch_in_out_time WHERE EXTRACT(year FROM work_date) = %s 
                 AND EXTRACT(month FROM work_date) = %s AND employee_id =%s
                 '''%(int(year), int(month),employee.id)
             self.cr.execute(sql)
@@ -153,7 +153,7 @@ class Parser(report_sxw.rml_parse):
             tpt_g1 = t_g1[0]
             
             sql = '''
-                SELECT CASE WHEN SUM(g2_shift_count1)!=0 THEN SUM(g2_shift_count1) ELSE 0 END g2_shift FROM arul_hr_punch_in_out_time WHERE EXTRACT(year FROM work_date) = %s 
+                SELECT CASE WHEN SUM(g2_shift_count)!=0 THEN SUM(g2_shift_count) ELSE 0 END g2_shift FROM arul_hr_punch_in_out_time WHERE EXTRACT(year FROM work_date) = %s 
                 AND EXTRACT(month FROM work_date) = %s AND employee_id =%s
                 '''%(int(year), int(month),employee.id)
             self.cr.execute(sql)
@@ -444,7 +444,8 @@ class Parser(report_sxw.rml_parse):
                 #'date_holiday_count':date_holiday_count or '', #TPT COMMENTED
                 'date_holiday_count':special_holiday_worked_count or '',
                 'perm_onduty_count':perm_onduty_count,
-                'total_shift_worked':total_shift_worked,
+                #'total_shift_worked':total_shift_worked,
+                'total_shift_worked':tpt_a+tpt_b+tpt_c+tpt_g1+tpt_g2+perm_onduty_count,
             })
         return res
 # vim:expandtab:smartindent:tabstop=4:softtabstop=4:shiftwidth=4:
