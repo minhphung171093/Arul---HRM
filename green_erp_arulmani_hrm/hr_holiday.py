@@ -2123,7 +2123,7 @@ class arul_hr_permission_onduty(osv.osv):
 #         'detail_id':fields.many2one('arul.hr.employee.attendence.details','Detail'),
         #TPT-Permission On Duty
         'shift_type':fields.char('Shift Type', size = 1024),
-        'total_shift_worked': fields.function(_shift_total, type='float', string='No.Of Shift Worked', multi='shift_total', help="The total amount."),
+        'total_shift_worked': fields.function(_shift_total,store=True, type='float', string='No.Of Shift Worked', multi='shift_total', help="The total amount."),
         'state':fields.selection([('draft', 'Draft'),('cancel', 'Reject'),('done', 'Approve')],'Status', readonly=True),
               }
     _defaults = {
@@ -2974,7 +2974,7 @@ class arul_hr_punch_in_out_time(osv.osv):
         #TPT
         #TPT-Punch InOut - THIS COLUMN IS STORE IN DB TO GET THIS COUNT DURING PAYROLL PROCESS
         'total_hrs_worked': fields.function(_shift_hrs_total, string='No.Of Hrs Worked', multi='shift_hrs_total', help="The total Hrs Worked."),
-        'total_shift_worked': fields.function(_shift_total_db,type='float',  string='No.Of Shift Worked',  multi='shift_total_db', help="The total Shift Worked Per day which includes punch in times and/or Permission OnDuty Hrs."),
+        'total_shift_worked': fields.function(_shift_total_db, store=True,type='float',  string='No.Of Shift Worked',  multi='shift_total_db', help="The total Shift Worked Per day which includes punch in times and/or Permission OnDuty Hrs."),
         
         'shift_worked': fields.function(_shift_total, string='No.Of Shift Worked',type='float',  multi='shift_total', help="The total Shift Worked Per day which includes punch in times and/or Permission OnDuty Hrs."),
                 
