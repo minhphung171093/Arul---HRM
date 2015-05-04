@@ -19,7 +19,10 @@ class stock_picking(osv.osv):
         'transporter':fields.char('Transporter Name', size = 64),
         'truck':fields.char('Truck Number', size = 64),
         'remarks':fields.text('Remarks'),
-        'doc_status':fields.selection([('draft','Drafted'),('waiting','Waiting for Approval'),('completed','Completed'),('cancelled','Cancelled')],'Document Status'),
+        'doc_status':fields.selection([('draft','Drafted'),
+                                       ('waiting','Waiting for Approval'),
+                                       ('approved','Released for Invoice'),
+                                       ('completed','Completed'),('cancelled','Cancelled')],'Document Status'),
         'sale_id': fields.many2one('sale.order', 'Sales Order',readonly = True, ondelete='set null', select=True),
         'do_ref_id': fields.many2one('stock.picking.out','DO Reference'),   
         'move_date': fields.date('Movement Date', required = True),
@@ -400,7 +403,8 @@ class stock_picking(osv.osv):
                 invoice_id = invoice_obj.create(cr, uid, invoice_vals, context=context)
                 invoices_group[partner.id] = invoice_id
             res[picking.id] = invoice_id
-            if len(picking.move_lines)>0:
+            ### VSIS fix
+            if len(picking.move_lines)>0 and picking.type == 'out':
                 move_line = picking.move_lines[0]
                 inv_qty_count = 0
                 for move_line in picking.move_lines:          
@@ -420,6 +424,19 @@ class stock_picking(osv.osv):
                     invoice_line_id = invoice_line_obj.create(cr, uid, vals, context=context)
                     #invoice_line_id['product_qty'] = a
                     self._invoice_line_hook(cr, uid, move_line, invoice_line_id)
+            if picking.type != 'out':
+                for move_line in picking.move_lines:
+                    if move_line.state == 'cancel':
+                        continue
+                    if move_line.scrapped:
+                        # do no invoice scrapped products
+                        continue
+                    vals = self._prepare_invoice_line(cr, uid, group, picking, move_line,
+                                    invoice_id, invoice_vals, context=context)
+                    if vals:
+                        invoice_line_id = invoice_line_obj.create(cr, uid, vals, context=context)
+                        self._invoice_line_hook(cr, uid, move_line, invoice_line_id)
+            ### VSIS end fix
 
             invoice_obj.button_compute(cr, uid, [invoice_id], context=context,
                     set_total=(inv_type in ('in_invoice', 'in_refund')))
