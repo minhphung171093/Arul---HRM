@@ -82,7 +82,7 @@ class Parser(report_sxw.rml_parse):
         if partner.street3:
             return partner.street3+", "+partner.city
         else:
-            return partner.city
+            return partner.city or ''
     def get_date(self, date=False):
         if not date:
             date = time.strftime(DATE_FORMAT)
