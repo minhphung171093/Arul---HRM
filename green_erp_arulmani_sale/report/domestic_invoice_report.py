@@ -246,7 +246,7 @@ class Parser(report_sxw.rml_parse):
         if partner.street3:
             return partner.street3+", "+partner.city
         else:
-            return partner.city
+            return partner.city or ''
     def get_if_freight_amt(self,freight):
         if freight>0:
             #raise osv.except_osv(_('Warning!%s'),freight)
