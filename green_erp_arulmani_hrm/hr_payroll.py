@@ -1002,7 +1002,7 @@ class arul_hr_payroll_executions(osv.osv):
                         total_shift_allowance += monthly_shift_schedule_id.day_31.time_total
                     else:
                         total_week_off += 1
-        return total_days,total_shift_allowance,total_lop,total_esi,total_week_off,special_holidays
+        return total_days,total_shift_allowance,total_lop,total_esi,total_week_off #,special_holidays
     
     def generate_payroll(self, cr, uid, ids, context=None):
         details_line = []
@@ -1244,6 +1244,15 @@ class arul_hr_payroll_executions(osv.osv):
                     '''%(line.month, line.year, line.month, line.year, p.id)
                 cr.execute(sql)
                 special_holiday_worked_count = cr.dictfetchone()['total_shift_worked']
+                
+                #TPT-TAKING SHD HOLIDAY COUONT FOR PAYROLL MONTH
+                special_holidays = 0
+                sql = '''
+                        select count(*) from arul_hr_holiday_special where EXTRACT(year FROM date) = %s and EXTRACT(month FROM date) = %s and is_local_holiday='f'
+                    '''%(line.year,line.month)
+                cr.execute(sql)
+                spl =  cr.fetchone()
+                special_holidays = spl[0]
                         
                 #TPT END
                         
@@ -1312,7 +1321,7 @@ class arul_hr_payroll_executions(osv.osv):
                             emp_lwf_amt = contribution.emp_lwf_amt
                         emp_esi_con = contribution.emp_esi_con
                         emp_pf_con = contribution.emp_pf_con
-                    total_days,total_shift_allowance,total_lop,total_esi,total_week_off,special_holidays = self.get_timesheet(cr,uid,p.id,line.month,line.year,context=context)
+                    total_days,total_shift_allowance,total_lop,total_esi,total_week_off = self.get_timesheet(cr,uid,p.id,line.month,line.year,context=context)
                     calendar_days = self.length_month(int(line.year),int(line.month))
                     sql = '''
                         select case when sum(employee_amt)!=0 then sum(employee_amt) else 0 end total_fd from meals_details where emp_id = %s and meals_id in (select id from meals_deduction where meals_for='employees' and EXTRACT(year FROM meals_date) = %s and EXTRACT(month FROM meals_date) = %s)
