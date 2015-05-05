@@ -86,7 +86,7 @@ class tpt_purchase_indent(osv.osv):
     
     def bt_cancel(self, cr, uid, ids, context=None):
         for line in self.browse(cr, uid, ids):
-            rfq_ids = self.pool.get('tpt.rfq.line').search(cr,uid,[('po_indent_id','=',line.id), ('state','=','done')])
+            rfq_ids = self.pool.get('tpt.rfq.line').searchtpt_purchase_product(cr,uid,[('po_indent_id','=',line.id), ('state','=','done')])
             po_ids = self.pool.get('purchase.order').search(cr,uid,[('po_indent_no','=',line.id),('state','=','approved')])
             if po_ids:
                 raise osv.except_osv(_('Warning!'),_('Purchase Indent was existed at the Purchase Order.!'))
@@ -276,45 +276,45 @@ class tpt_purchase_indent(osv.osv):
                 gate_ids = [row[0] for row in cr.fetchall()]
                 args += [('id','in',gate_ids)]
         if context.get('search_po_indent_line'):
-            if context.get('po_document_type'):
+            if context.get('po_document_type'): ### them trang thai rfq_raise de xet so luong cho tung line indent, 1 indent co the duoc tao nhieu rfq
                 if context.get('po_document_type')=='standard':
                     sql = '''
-                        select pur_product_id from tpt_purchase_product where state = '++' and (doc_type_relate = 'normal' or doc_type_relate = 'maintenance' or doc_type_relate = 'spare' or doc_type_relate = 'base' or doc_type_relate = 'consumable')
+                        select pur_product_id from tpt_purchase_product where state in ('++','rfq_raised') and (doc_type_relate = 'normal' or doc_type_relate = 'maintenance' or doc_type_relate = 'spare' or doc_type_relate = 'base' or doc_type_relate = 'consumable')
                     '''
                     cr.execute(sql)
                     pur_ids = [row[0] for row in cr.fetchall()]
                     args += [('id','in',pur_ids)]
                 if context.get('po_document_type')=='local':
                     sql = '''
-                        select pur_product_id from tpt_purchase_product where state = '++' and (doc_type_relate = 'local' or doc_type_relate = 'base')
+                        select pur_product_id from tpt_purchase_product where state in ('++','rfq_raised') and (doc_type_relate = 'local' or doc_type_relate = 'base')
                     '''
                     cr.execute(sql)
                     pur_ids = [row[0] for row in cr.fetchall()]
                     args += [('id','in',pur_ids)]
                 if context.get('po_document_type')=='asset':
                     sql = '''
-                        select pur_product_id from tpt_purchase_product where state = '++' and doc_type_relate = 'capital' 
+                        select pur_product_id from tpt_purchase_product where state in ('++','rfq_raised') and doc_type_relate = 'capital' 
                     '''
                     cr.execute(sql)
                     pur_ids = [row[0] for row in cr.fetchall()]
                     args += [('id','in',pur_ids)]
                 if context.get('po_document_type')=='raw':
                     sql = '''
-                        select pur_product_id from tpt_purchase_product where state = '++' and doc_type_relate = 'raw' 
+                        select pur_product_id from tpt_purchase_product where state in ('++','rfq_raised') and doc_type_relate = 'raw' 
                     '''
                     cr.execute(sql)
                     pur_ids = [row[0] for row in cr.fetchall()]
                     args += [('id','in',pur_ids)]
                 if context.get('po_document_type')=='service':
                     sql = '''
-                        select pur_product_id from tpt_purchase_product where state = '++' and doc_type_relate = 'service' 
+                        select pur_product_id from tpt_purchase_product where state in ('++','rfq_raised') and doc_type_relate = 'service' 
                     '''
                     cr.execute(sql)
                     pur_ids = [row[0] for row in cr.fetchall()]
                     args += [('id','in',pur_ids)]
                 if context.get('po_document_type')=='out':
                     sql = '''
-                        select pur_product_id from tpt_purchase_product where state = '++' and doc_type_relate = 'outside'
+                        select pur_product_id from tpt_purchase_product where state in ('++','rfq_raised') and doc_type_relate = 'outside'
                     '''
                     cr.execute(sql)
                     pur_ids = [row[0] for row in cr.fetchall()]
@@ -369,6 +369,12 @@ class tpt_purchase_product(osv.osv):
             res[line.id]['total_val'] = total
         return res
     
+    def _get_pending_qty(self, cr, uid, ids, field_name, arg, context=None):
+        res = {}
+        for line in self.browse(cr, uid, ids, context=context):
+            res[line.id]  =  line.product_uom_qty - line.rfq_qty
+        return res
+    
     _columns = {
         'pur_product_id':fields.many2one('tpt.purchase.indent','Purchase Indent',ondelete='cascade' ),
         'product_id': fields.many2one('product.product', 'Material Code'),
@@ -390,7 +396,7 @@ class tpt_purchase_product(osv.osv):
         'item_text':fields.text('Item Text' ),
         'product_uom_qty': fields.float('Indent Qty' ),   
         'uom_po_id': fields.many2one('product.uom', 'UOM', readonly = True),
-        'pending_qty': fields.float('Pending Qty' ), 
+        'pending_qty': fields.function(_get_pending_qty,digits=(16,3),type='float',string='Pending Qty'),
         #'recom_vendor_id': fields.many2one('res.partner', 'Recommended Vendor'),
         'recom_vendor': fields.char('Recommended Vendor', size = 30 ),
         'release_by':fields.selection([('1','Store Level'),('2','HOD Level')],'Released By'),
@@ -416,12 +422,14 @@ class tpt_purchase_product(osv.osv):
         'hod_date':fields.datetime('HOD Approved Date',readonly = True),
         'price_unit': fields.float('Unit Price',digits=(16,3) ), 
         'total_val':fields.function(_get_total_val,digits=(16,3),type='float',string='Total Value',multi='avg',store=False),
+        'rfq_qty': fields.float('RFQ Qty',digits=(16,3)),   
         }  
 #     
     _defaults = {
         'state':'draft',
         'flag': False,
-        'price_unit':0.0
+        'price_unit':0.0,
+        'rfq_qty':0.0
     }
     
 #     def _check_product_id(self, cr, uid, ids, context=None):
@@ -623,7 +631,7 @@ class tpt_purchase_product(osv.osv):
             if context.get('po_indent_id'):
                 sql = '''
                     select id from tpt_purchase_product
-                    where pur_product_id = %s and state = '++'
+                    where pur_product_id = %s and state in ('++','rfq_raised') and product_uom_qty != rfq_qty
                 '''%(context.get('po_indent_id'))
                 cr.execute(sql)
                 indent_ids = [row[0] for row in cr.fetchall()]
@@ -3500,13 +3508,20 @@ class tpt_request_for_quotation(osv.osv):
     def bt_approve(self, cr, uid, ids, context=None):
         for line in self.browse(cr,uid,ids):
             for po_indent in line.rfq_line:
+                qty = 0
                 sql = '''
                     select id from tpt_purchase_product where id = %s
                 '''%(po_indent.indent_line_id.id)
                 cr.execute(sql)
                 indent_line_ids = [row[0] for row in cr.fetchall()]
                 if indent_line_ids:
-                    self.pool.get('tpt.purchase.product').write(cr, uid, indent_line_ids,{'state':'rfq_raised'})
+#                     for line in self.browse(cr, uid, ids):
+                    for indent_line in self.pool.get('tpt.purchase.product').browse(cr, uid, indent_line_ids):
+                        if po_indent.product_uom_qty > indent_line.pending_qty:
+                            raise osv.except_osv(_('Warning!'),_('Pending quantity are %s. Can not request more than pending quantity!'%indent_line.pending_qty))
+                        qty = indent_line.rfq_qty + po_indent.product_uom_qty
+                        self.pool.get('tpt.purchase.product').write(cr, uid, indent_line_ids,{'state':'rfq_raised',
+                                                                                          'rfq_qty':qty,})
                     
             rfq_line_obj = self.pool.get('tpt.rfq.line')        
             sql = '''
@@ -3621,22 +3636,31 @@ class tpt_rfq_line(osv.osv):
 #     ]   
     
     def create(self, cr, uid, vals, context=None):
+        if 'product_uom_qty' in vals and 'indent_line_id' in vals:
+            indent_line = self.pool.get('tpt.purchase.product').browse(cr, uid, vals['indent_line_id'])
+            if vals['product_uom_qty'] > indent_line.pending_qty:
+                raise osv.except_osv(_('Warning!'),_('Pending quantity are %s. Can not request more than pending quantity!'%indent_line.pending_qty)) 
         if 'po_indent_id' in vals:
             if 'indent_line_id' in vals:
                 line = self.pool.get('tpt.purchase.product').browse(cr, uid, vals['indent_line_id'])
                 vals.update({
                         'uom_id':line.uom_po_id.id,
-                        'product_uom_qty':line.product_uom_qty,
+#                         'product_uom_qty':line.pending_qty,
                         })
         return super(tpt_rfq_line, self).create(cr, uid, vals, context)    
   
     def write(self, cr, uid, ids, vals, context=None):
+        if 'product_uom_qty' in vals:
+            for line in self.browse(cr, uid, ids):
+                indent_line = self.pool.get('tpt.purchase.product').browse(cr, uid, line.indent_line_id.id)
+                if vals['product_uom_qty'] > indent_line.pending_qty:
+                    raise osv.except_osv(_('Warning!'),_('Pending quantity are %s. Can not request more than pending quantity!'%indent_line.pending_qty)) 
         if 'po_indent_id' in vals:
             if 'indent_line_id' in vals:
                 line = self.pool.get('tpt.purchase.product').browse(cr, uid, vals['indent_line_id'])
                 vals.update({
                         'uom_id':line.uom_po_id.id,
-                        'product_uom_qty':line.product_uom_qty,
+#                         'product_uom_qty':line.pending_qty,
                         })
         return super(tpt_rfq_line, self).write(cr, uid, ids, vals, context)    
     
@@ -3675,7 +3699,7 @@ class tpt_rfq_line(osv.osv):
                     'item_text':line.item_text and line.item_text or False,
                     'recom_vendor':line.recom_vendor and line.recom_vendor or False,
                     'uom_id':line.uom_po_id and line.uom_po_id.id or False,
-                    'product_uom_qty':line.product_uom_qty or False,
+                    'product_uom_qty':line.pending_qty or False,
                     'product_id':line.product_id.id,
                     }
         return {'value': vals}  
