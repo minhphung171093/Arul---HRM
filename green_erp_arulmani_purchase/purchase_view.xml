@@ -146,6 +146,7 @@
 						<field name="description"/>
 						<field name="item_text" />
 						<field name="product_uom_qty" />
+						<!--<field name="pending_qty" />-->
 						<field name="price_unit" />
 						<field name="recom_vendor" />
 						<field name="mrs_qty" />
@@ -181,6 +182,7 @@
 						<field name="product_id" readonly = "1" options="{'create': false, 'create_edit': false}" />
 						<field name="description"/>
 						<field name="product_uom_qty" />
+						<field name="pending_qty" />
 						<field name="price_unit" />
 						<field name="total_val" />
 						<field name="mrs_qty" />
@@ -260,6 +262,7 @@
 						<field name="description"/>
 						<field name="item_text" />
 						<field name="product_uom_qty" />
+						<field name="pending_qty" />
 						<field name="price_unit" />
 						<field name="recom_vendor" />
 						<field name="mrs_qty" />
@@ -295,6 +298,7 @@
 						<field name="product_id" readonly = "1" options="{'create': false, 'create_edit': false}" />
 						<field name="description" readonly="1" />
 						<field name="product_uom_qty" on_change="onchange_hod_qty(product_uom_qty)" />
+						<field name="pending_qty" />
 						<field name="price_unit" />
 						<field name="total_val" />
 						<field name="mrs_qty" readonly="1" />
@@ -392,7 +396,6 @@
 						<field name="product_uom_qty" />
 						<field name="price_unit" />
 						<field name="recom_vendor" />
-						<field name="pending_qty" invisible="1" />
 						<field name="mrs_qty" />
 						<field name="inspection_qty" invisible="1" /> 
 						<field name="uom_po_id" />
@@ -423,7 +426,6 @@
 						<field name="product_uom_qty" />
 						<field name="price_unit" />
 						<field name="total_val" />
-						<field name="pending_qty" invisible="1" />
 						<field name="mrs_qty" />
 						<field name="inspection_qty" invisible="1" />  
 						<field name="uom_po_id" edit='false' options="{'create': false, 'create_edit': false}" />
@@ -435,7 +437,7 @@
 						<field name="hod_date"/>  
 						<field name="state" required='1' />
 						<field name="item_text" />
-				</group>
+					</group>
 				</sheet>  
 		       </form>
 			</field>
