@@ -54,6 +54,7 @@
 										<field name="sup_inv_fright_id" options="{'create': false, 'create_edit': false}"/>
 										<field name="sup_inv_price_id" options="{'create': false, 'create_edit': false}"/>
 										<field name="sup_tds_id" options="{'create': false, 'create_edit': false}"/>
+										<field name="sup_inv_aed_id" options="{'create': false, 'create_edit': false}"/>
 								</group>
 								<group col="4" colspan="2" attrs="{'invisible': [('name', '!=', 'sup_pay')]}" >
 										<field name="sup_pay_bank_id" options="{'create': false, 'create_edit': false}"/>
@@ -155,11 +156,12 @@
 				<xpath expr="//page[@string='Other Info']/group/group/field[@name='name']" position="replace">
 				</xpath>
 				<xpath expr="//page[@string='Invoice']/group/field[@name='amount_untaxed']" position="after">
-					<field name="p_f_charge" widget="monetary"/>
-					<field name="excise_duty" widget="monetary"/>
+					<field name="p_f_charge" widget="monetary" options="{'currency_field': 'currency_id'}"/>
+					<field name="excise_duty" widget="monetary" options="{'currency_field': 'currency_id'}"/>
+					<field name="aed" widget="monetary" options="{'currency_field': 'currency_id'}"/>
 				</xpath>
 				<xpath expr="//page[@string='Invoice']/group/field[@name='amount_tax']" position="after">
-					<field name="fright" widget="monetary"/>
+					<field name="fright" widget="monetary" options="{'currency_field': 'currency_id'}"/>
 				</xpath>
 				<xpath expr="//page[@string='Invoice']/group/field[@name='residual']" position="attributes">
 					<attribute name='invisible'>1</attribute>
@@ -303,6 +305,7 @@
 					<field name="ed_type"/>
 				</xpath> 
 				<xpath expr="//page[@string='Invoice']/field/tree/field[@name='invoice_line_tax_id']" position="after">
+					<field name="aed_id" domain="[('type_tax_use','=','excise_duty')]"/>
 					<field name="fright"/>
 					<field name="fright_type"/>
 					<field name="line_net"/>
