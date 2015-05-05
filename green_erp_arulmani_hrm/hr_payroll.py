@@ -1002,7 +1002,7 @@ class arul_hr_payroll_executions(osv.osv):
                         total_shift_allowance += monthly_shift_schedule_id.day_31.time_total
                     else:
                         total_week_off += 1
-        return total_days,total_shift_allowance,total_lop,total_esi,total_week_off,special_holidays
+        return total_days,total_shift_allowance,total_lop,total_esi,total_week_off #,special_holidays
     
     def generate_payroll(self, cr, uid, ids, context=None):
         details_line = []
@@ -1072,6 +1072,20 @@ class arul_hr_payroll_executions(osv.osv):
                 #TPT START - By BalamurganPurushothaman - ON 13/03/2015-TO CALCULATE TOTAL NO.OF SHIFT WORKED FOR SPECIAL ALLOWANCE CALCULATION
                 #PUNCH IN OUT
                 #TPT - Attendance Total Shift Count for Payroll Month
+                
+                sql = '''
+                SELECT CASE WHEN SUM(days_total)!=0 THEN 
+                SUM(days_total) ELSE 0 END days_total FROM 
+                arul_hr_employee_leave_details WHERE EXTRACT(year FROM date_from) = %s 
+                AND EXTRACT(month FROM date_from) = %s AND employee_id =%s AND
+                leave_type_id in (select id from arul_hr_leave_types where code in ('LOP','ESI'))
+                '''%(line.year,line.month,p.id)
+                cr.execute(sql)
+                lop_esi =  cr.fetchone()
+                tpt_lop_esi = lop_esi[0]
+                total_no_of_leave = tpt_lop_esi
+                
+                
                 sql = '''
                 SELECT CASE WHEN SUM(total_shift_worked + shift_plus - shift_minus)!=0 THEN SUM(total_shift_worked + shift_plus - shift_minus) ELSE 0 END total_shift_worked FROM arul_hr_punch_in_out_time WHERE EXTRACT(year FROM work_date) = %s 
                 AND EXTRACT(month FROM work_date) = %s AND employee_id =%s
@@ -1093,14 +1107,14 @@ class arul_hr_payroll_executions(osv.osv):
                 sql = '''
                 SELECT CASE WHEN SUM(total_shift_worked)!=0 THEN SUM(total_shift_worked) ELSE 0 END total_shift_worked 
                 FROM arul_hr_permission_onduty WHERE non_availability_type_id='on_duty' 
-                AND EXTRACT(year FROM date) = %s AND EXTRACT(month FROM date) = %s and employee_id =%s and total_shift_worked>=1
+                AND EXTRACT(year FROM date) = %s AND EXTRACT(month FROM date) = %s and employee_id =%s and total_shift_worked>=1 and approval='t'
                 '''%(line.year,line.month,p.id)
                 cr.execute(sql)
                 c =  cr.fetchone()
                 onduty_count = c[0]
                 
                 #TOTAL SHIFT WORKED
-                
+                #raise osv.except_osv(_('Warning!%s'),_(permission_count))  
                 total_shift_worked = 0.0    
                 #if  shift_count:
                 total_shift_worked = shift_count + onduty_count
@@ -1230,6 +1244,15 @@ class arul_hr_payroll_executions(osv.osv):
                     '''%(line.month, line.year, line.month, line.year, p.id)
                 cr.execute(sql)
                 special_holiday_worked_count = cr.dictfetchone()['total_shift_worked']
+                
+                #TPT-TAKING SHD HOLIDAY COUONT FOR PAYROLL MONTH
+                special_holidays = 0
+                sql = '''
+                        select count(*) from arul_hr_holiday_special where EXTRACT(year FROM date) = %s and EXTRACT(month FROM date) = %s and is_local_holiday='f'
+                    '''%(line.year,line.month)
+                cr.execute(sql)
+                spl =  cr.fetchone()
+                special_holidays = spl[0]
                         
                 #TPT END
                         
@@ -1298,7 +1321,7 @@ class arul_hr_payroll_executions(osv.osv):
                             emp_lwf_amt = contribution.emp_lwf_amt
                         emp_esi_con = contribution.emp_esi_con
                         emp_pf_con = contribution.emp_pf_con
-                    total_days,total_shift_allowance,total_lop,total_esi,total_week_off,special_holidays = self.get_timesheet(cr,uid,p.id,line.month,line.year,context=context)
+                    total_days,total_shift_allowance,total_lop,total_esi,total_week_off = self.get_timesheet(cr,uid,p.id,line.month,line.year,context=context)
                     calendar_days = self.length_month(int(line.year),int(line.month))
                     sql = '''
                         select case when sum(employee_amt)!=0 then sum(employee_amt) else 0 end total_fd from meals_details where emp_id = %s and meals_id in (select id from meals_deduction where meals_for='employees' and EXTRACT(year FROM meals_date) = %s and EXTRACT(month FROM meals_date) = %s)
@@ -1380,12 +1403,11 @@ class arul_hr_payroll_executions(osv.osv):
                                           'deduction_parameters_id':_other_deductions_id.deduction_parameters_id.id,
                                           'float': pd,
                                     }))
-#                             if _other_deductions_id.deduction_parameters_id.code == 'VPF.D':
-#                                 vals_other_deductions.append((0,0, {
-#                                           'deduction_parameters_id':_other_deductions_id.deduction_parameters_id.id,
-#                                           'float': vpfd,
-#                                     }))
-
+                            if _other_deductions_id.deduction_parameters_id.code == 'VPF.D':
+                                vals_other_deductions.append((0,0, {
+                                          'deduction_parameters_id':_other_deductions_id.deduction_parameters_id.id,
+                                          'float': math.ceil(vpfd),
+                                    }))
 #                             if _other_deductions_id.deduction_parameters_id.code == 'ESI.D':
 #                                 vals_other_deductions.append((0,0, {
 #                                           'deduction_parameters_id':_other_deductions_id.deduction_parameters_id.id,
@@ -1545,7 +1567,8 @@ class arul_hr_payroll_executions(osv.osv):
                        #total_deduction += (lop + emp_pf_con_amount + emp_esi_con_amount + emp_lwf_amt)
 
 			#total_earning = basic + da + c + hra + c + pc + cre + ea +spa + la + aa + sha + oa + lta + med
-			total_no_of_leave = total_lop + total_esi
+			
+            #total_no_of_leave = total_lop + total_esi
 
 			net_basic = basic - (basic / calendar_days) * total_no_of_leave
 			net_da = da - (da / calendar_days) * total_no_of_leave 
@@ -1698,7 +1721,7 @@ class arul_hr_payroll_executions(osv.osv):
                                       'earning_parameters_id':earning.id,
                                       'float': net_sala,
                                 }))
-                        deduction_ids = deduction_obj.search(cr, uid, [('code','in',['TOTAL_DEDUCTION','VPF.D','PF.D','ESI.D','LWF','F.D','LOP',
+                        deduction_ids = deduction_obj.search(cr, uid, [('code','in',['TOTAL_DEDUCTION','PF.D','ESI.D','LWF','F.D','LOP',
                                     'INS_LIC_PREM','INS_OTHERS','LOAN_VVTI','LOAN_LIC_HFL','LOAN_HDFC','LOAN_TMB', 'LOAN_SBT','LOAN_OTHERS'               
                                                                                      ])])
                         for deduction in deduction_obj.browse(cr, uid, deduction_ids):
@@ -1706,11 +1729,6 @@ class arul_hr_payroll_executions(osv.osv):
                                 vals_other_deductions.append((0,0, {
                                           'deduction_parameters_id':deduction.id,
                                           'float': total_deduction,
-                                    }))
-                            if deduction.code == 'VPF.D':
-                                vals_other_deductions.append((0,0, {
-                                          'deduction_parameters_id':deduction.id,
-                                          'float': vpfd_amount,
                                     }))
                             if deduction.code == 'PF.D':
                                 vals_other_deductions.append((0,0, {
@@ -1851,12 +1869,11 @@ class arul_hr_payroll_executions(osv.osv):
                                           'deduction_parameters_id':_other_deductions_id.deduction_parameters_id.id,
                                           'float': pd,
                                     }))
-#                             if _other_deductions_id.deduction_parameters_id.code == 'VPF.D':
-#                                 vals_other_deductions.append((0,0, {
-#                                           'deduction_parameters_id':_other_deductions_id.deduction_parameters_id.id,
-#                                           'float': vpfd,
-#                                     }))
-
+                            if _other_deductions_id.deduction_parameters_id.code == 'VPF.D':
+                                vals_other_deductions.append((0,0, {
+                                          'deduction_parameters_id':_other_deductions_id.deduction_parameters_id.id,
+                                          'float': math.ceil(vpfd),
+                                    }))
 #                             if _other_deductions_id.deduction_parameters_id.code == 'ESI.D':
 #                                 vals_other_deductions.append((0,0, {
 #                                           'deduction_parameters_id':_other_deductions_id.deduction_parameters_id.id,
@@ -2023,7 +2040,7 @@ class arul_hr_payroll_executions(osv.osv):
                         spa = spa / (calendar_days - 4 - special_holidays) * total_shift_worked # TPT total_days <-> total_shift_worked
                         #total_earning = basic + da + c + hra + fa + pc + cre + ea +spa + la + aa + sha + oa + lta + med
                         #spa = spa / (calendar_days - 4 - special_holidays) * total_days
-                        total_no_of_leave = total_lop + total_esi
+                        #total_no_of_leave = total_lop + total_esi
 			
                         net_basic = basic - (basic / calendar_days) * total_no_of_leave
                         net_da = da - (da / calendar_days) * total_no_of_leave 
@@ -2188,7 +2205,7 @@ class arul_hr_payroll_executions(osv.osv):
                                       'earning_parameters_id':earning.id,
                                       'float': net_sala,
                                 }))
-                        deduction_ids = deduction_obj.search(cr, uid, [('code','in',['TOTAL_DEDUCTION','VPF.D','PF.D','ESI.D','LWF','F.D','LOP',
+                        deduction_ids = deduction_obj.search(cr, uid, [('code','in',['TOTAL_DEDUCTION','PF.D','ESI.D','LWF','F.D','LOP',
                                         'INS_LIC_PREM','INS_OTHERS','LOAN_VVTI','LOAN_LIC_HFL','LOAN_HDFC','LOAN_TMB', 'LOAN_SBT','LOAN_OTHERS'                                               
                                                                                      ])])
                         for deduction in deduction_obj.browse(cr, uid, deduction_ids):
@@ -2196,11 +2213,6 @@ class arul_hr_payroll_executions(osv.osv):
                                 vals_other_deductions.append((0,0, {
                                           'deduction_parameters_id':deduction.id,
                                           'float': total_deduction,
-                                    }))
-                            if deduction.code == 'VPF.D':
-                                vals_other_deductions.append((0,0, {
-                                          'deduction_parameters_id':deduction.id,
-                                          'float': vpfd_amount,
                                     }))
                             if deduction.code == 'PF.D':
                                 vals_other_deductions.append((0,0, {
@@ -2343,12 +2355,11 @@ class arul_hr_payroll_executions(osv.osv):
                                           'deduction_parameters_id':_other_deductions_id.deduction_parameters_id.id,
                                           'float': pd,
                                     }))
-#                             if _other_deductions_id.deduction_parameters_id.code == 'VPF.D':
-#                                 vals_other_deductions.append((0,0, {
-#                                           'deduction_parameters_id':_other_deductions_id.deduction_parameters_id.id,
-#                                           'float': vpfd,
-#                                     }))
-
+                            if _other_deductions_id.deduction_parameters_id.code == 'VPF.D':
+                                vals_other_deductions.append((0,0, {
+                                          'deduction_parameters_id':_other_deductions_id.deduction_parameters_id.id,
+                                          'float': math.ceil(vpfd),
+                                    }))
 #                             if _other_deductions_id.deduction_parameters_id.code == 'ESI.D':
 #                                 vals_other_deductions.append((0,0, {
 #                                           'deduction_parameters_id':_other_deductions_id.deduction_parameters_id.id,
@@ -2525,7 +2536,7 @@ class arul_hr_payroll_executions(osv.osv):
                         #total_deduction += (lop + emp_pf_con_amount + emp_esi_con_amount + emp_lwf_amt)
                         #net_sala = gross_before - total_deduction
                         #
-                        total_no_of_leave = total_lop + total_esi
+                        #total_no_of_leave = total_lop + total_esi
 			
                         net_basic = basic - (basic / 26) * total_no_of_leave
                         net_da = da - (da / 26) * total_no_of_leave 
@@ -2694,7 +2705,7 @@ class arul_hr_payroll_executions(osv.osv):
                                       'earning_parameters_id':earning.id,
                                       'float': net_sala,
                                 }))
-                        deduction_ids = deduction_obj.search(cr, uid, [('code','in',['TOTAL_DEDUCTION','VPF.D','PF.D','ESI.D','LWF','F.D','LOP',
+                        deduction_ids = deduction_obj.search(cr, uid, [('code','in',['TOTAL_DEDUCTION','PF.D','ESI.D','LWF','F.D','LOP',
                                     'INS_LIC_PREM','INS_OTHERS','LOAN_VVTI','LOAN_LIC_HFL','LOAN_HDFC','LOAN_TMB', 'LOAN_SBT','LOAN_OTHERS'                                                   
                                                                                      ])])
                         for deduction in deduction_obj.browse(cr, uid, deduction_ids):
@@ -2702,11 +2713,6 @@ class arul_hr_payroll_executions(osv.osv):
                                 vals_other_deductions.append((0,0, {
                                           'deduction_parameters_id':deduction.id,
                                           'float': total_deduction,
-                                    }))
-                            if deduction.code == 'VPF.D':
-                                vals_other_deductions.append((0,0, {
-                                          'deduction_parameters_id':deduction.id,
-                                          'float': vpfd_amount,
                                     }))
                             if deduction.code == 'PF.D':
                                 vals_other_deductions.append((0,0, {
