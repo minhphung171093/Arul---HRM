@@ -3444,7 +3444,7 @@ class res_partner(osv.osv):
             required=False),
         'is_tds_applicable': fields.boolean('IsTDSApplicable'),
         'tds_id': fields.many2one('account.tax', 'TDS %'),
-        'vendor_type': fields.selection([('manu', 'Manufacturer'),('trade', 'Traders')],'Vendor Type'),
+        'vendor_type': fields.selection([('manu', 'Manufacturer'),('trade', 'Traders'),('first_stage', 'First Stage'),('Import', 'import')],'Vendor Type'),
         }
     
     def create(self, cr, uid, vals, context=None):
@@ -3476,4 +3476,31 @@ class account_tax(osv.osv):
         }
     
 account_tax()
+
+class res_currency(osv.osv):
+    _inherit = 'res.currency'
+    
+    def _current_rate(self, cr, uid, ids, name, arg, context=None):
+        return self._current_rate_computation(cr, uid, ids, name, arg, True, context=context)
+
+    def _current_rate_silent(self, cr, uid, ids, name, arg, context=None):
+        return self._current_rate_computation(cr, uid, ids, name, arg, False, context=context)
+
+    _columns = {
+        'rate': fields.function(_current_rate, string='Current Rate', digits=(12,14),
+            help='The rate of the currency to the currency of rate 1.'),
+        'rate_silent': fields.function(_current_rate_silent, string='Current Rate', digits=(12,14),
+            help='The rate of the currency to the currency of rate 1 (0 if no rate defined).'),
+        'rounding': fields.float('Rounding Factor', digits=(12,14)),
+        }
+    
+res_currency()
+
+class res_currency_rate(osv.osv):
+    _inherit = 'res.currency.rate'
+    _columns = {
+        'rate': fields.float('Rate', digits=(12,14), help='The rate of the currency to the currency of rate 1'),
+    }
+    
+res_currency_rate()
     
