@@ -1775,6 +1775,7 @@ class account_voucher(osv.osv):
         'is_tpt_currency':fields.boolean('Is TPT Currency'),
         'tpt_amount':fields.function(_get_tpt_currency_amount,type='float',string='Paid Amount (INR)'),
         'tpt_currency_amount':fields.float('Paid Amount'),
+        'payee':fields.char('Payee', size=1024),
         }
     
     
