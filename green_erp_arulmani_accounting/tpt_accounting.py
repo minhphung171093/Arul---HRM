@@ -2247,7 +2247,7 @@ class account_voucher(osv.osv):
                         move_line_pool.create(cr, uid, ml_writeoff, local_context)
 #phuoc
             else:
-                if not voucher.line_cr_ids or not voucher.line_dr_ids or writeoff_amount!=0:
+                if not voucher.line_cr_ids or not voucher.line_dr_ids or voucher.writeoff_amount!=0:
                     move_line_id = move_line_pool.create(cr, uid, self.first_move_line_get(cr,uid,voucher.id, move_id, company_currency, current_currency, local_context), local_context)
                     move_line_brw = move_line_pool.browse(cr, uid, move_line_id, context=context)
                     line_total = move_line_brw.debit - move_line_brw.credit
