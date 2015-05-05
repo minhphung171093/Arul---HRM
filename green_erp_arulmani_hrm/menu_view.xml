@@ -3,6 +3,7 @@
     <data>
 		<menuitem id="hr.menu_hr_configuration" name="Configuration" parent="hr.menu_hr_root" groups="base.group_hr_manager,group_vvti_hrm_time_user" sequence="50"/>
 		<menuitem id="menu_action_print_payslip_report" action="action_print_payslip_report" parent="menu_hr_payroll_management" sequence="20" groups="group_vvti_hrm_payroll_controller"/>
+		<menuitem id="menu_action_epf_statement_report" action="action_epf_statement_report" parent="menu_hr_payroll_management" sequence="30" groups="group_vvti_hrm_payroll_controller"/>
 		<menuitem id="menu_employee_actions"
 			name="Employee Actions"
 			parent="hr.menu_hr_root"
