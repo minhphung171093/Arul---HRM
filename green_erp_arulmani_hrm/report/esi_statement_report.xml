@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<openerp>
+    <data>
+    	<record id="esi_statement_report" model="ir.actions.report.xml">
+	        <field name="name">esi_statement_report</field>
+	        <field name="type">ir.actions.report.xml</field>
+	        <field name="model">esi.statement</field>
+	        <field name="report_name">esi_statement_report</field>
+	        <field name="report_type">aeroo</field>
+	        <field name="in_format">oo-ods</field>
+	        <field name="out_format" model="report.mimetypes" search="[('code','=','oo-xls'),('compatible_types','=','oo-ods')]"/>
+	        <field name="parser_loc">green_erp_arulmani_hrm/report/esi_statement_report.py</field>
+	        <field name="report_rml">green_erp_arulmani_hrm/report/esi_statement_report.ods</field>
+	        <field name="parser_state">loc</field>
+	        <field name="tml_source">file</field>
+	        <field name="attachment_use" eval="0"/>
+    	</record>		    
+		
+		<report 
+			auto="True" 
+			menu="False"
+			id="esi_statement_report" 
+			model="esi.statement" 
+			name="esi_statement_report"
+	        string="ESI Statement Report"
+	        rml="green_erp_arulmani_hrm/report/esi_statement_report.ods"/>	
+    </data>
+</openerp>
