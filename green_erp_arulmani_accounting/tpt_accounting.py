@@ -30,6 +30,7 @@ class tpt_posting_configuration(osv.osv):
         'cus_pay_cash_id': fields.many2one('account.account', 'Cash Account', states={ 'done':[('readonly', True)]}),
         'sup_inv_vat_id': fields.many2one('account.account', 'VAT Receivables', states={ 'done':[('readonly', True)]}),
         'sup_inv_cst_id': fields.many2one('account.account', 'CST Receivables', states={ 'done':[('readonly', True)]}),
+        'sup_inv_aed_id': fields.many2one('account.account', 'AED', states={ 'done':[('readonly', True)]}),
         'sup_inv_ed_id': fields.many2one('account.account', 'Excise Duty', states={ 'done':[('readonly', True)]}),
         'sup_inv_pf_id': fields.many2one('account.account', 'P & F Charges', states={ 'done':[('readonly', True)]}),
         'sup_inv_fright_id': fields.many2one('account.account', 'Freight Charges', states={ 'done':[('readonly', True)]}),
@@ -378,7 +379,7 @@ class account_move_line(osv.osv):
         'doc_type': fields.related('move_id', 'doc_type', type="selection", store=True,
                 selection=[('cus_inv', 'Customer Invoice'),('cus_pay', 'Customer Payment'),
                                   ('sup_inv_po', 'Supplier Invoice(With PO)'),('sup_inv', 'Supplier Invoice(Without PO)'),('sup_pay', 'Supplier Payment'),
-                                  ('payroll', 'Payroll'),
+                                  ('payroll', 'Executives Payroll'),
                                   ('grn', 'GRN'),
                                   ('good', 'Good Issue'),
                                   ('do', 'DO'),
@@ -388,7 +389,10 @@ class account_move_line(osv.osv):
                                   ('cash_rec', 'Cash Receipt'),
                                   ('bank_pay', 'Bank Payment'),
                                   ('bank_rec', 'Bank Receipt'),
-                                  ('product', 'Production')], string="Document Type", readonly=True, select=True),
+                                  ('ser_inv', 'Service Invoice'),
+                                  ('product', 'Production'),
+                                  ('staff_payroll', 'Staff Payroll'),
+                                  ('worker_payroll', 'Workers Payroll')], string="Document Type", readonly=True, select=True),
     }
 account_move_line()
 
@@ -722,7 +726,8 @@ class account_invoice(osv.osv):
                 iml = invoice_line_obj.move_line_pf(cr, uid, inv.id)
                 iml += invoice_line_obj.move_line_fright(cr, uid, inv.id) 
                 iml += invoice_line_obj.move_line_amount_tax(cr, uid, inv.id)
-                iml += invoice_line_obj.move_line_excise_duty(cr, uid, inv.id)  
+                iml += invoice_line_obj.move_line_excise_duty(cr, uid, inv.id)
+                iml += invoice_line_obj.move_line_aed(cr, uid, inv.id)
                 if inv.purchase_id:
                     iml += invoice_line_obj.move_line_amount_untaxed(cr, uid, inv.id) 
                 else:
@@ -1477,7 +1482,32 @@ class account_invoice_line(osv.osv):
                     })
                     break
             break
-        return res  
+        return res
+    
+    def move_line_aed(self, cr, uid, invoice_id):
+        res = []
+        cr.execute('SELECT * FROM account_invoice WHERE id=%s', (invoice_id,))
+        for account in cr.dictfetchall():
+            sql = '''
+                SELECT sup_inv_aed_id FROM tpt_posting_configuration WHERE name = 'sup_inv' and sup_inv_aed_id is not null
+            '''
+            cr.execute(sql)
+            sup_inv_aed_id = cr.dictfetchone()
+            if not sup_inv_aed_id:
+                raise osv.except_osv(_('Warning!'),_('Account is not null, please configure it in GL Posting Configrution !'))
+            if account['aed']:
+                res.append({
+                    'type':'tax',
+                    'name':'/',
+                    'price_unit': account['aed'],
+                    'quantity': 1,
+                    'price': account['aed'],
+                    'account_id': sup_inv_aed_id and sup_inv_aed_id['sup_inv_aed_id'] or False,
+                    'account_analytic_id': False,
+                })
+                break
+            break
+        return res
     
     def move_line_pf(self, cr, uid, invoice_id):
         res = []
@@ -1775,6 +1805,7 @@ class account_voucher(osv.osv):
         'is_tpt_currency':fields.boolean('Is TPT Currency'),
         'tpt_amount':fields.function(_get_tpt_currency_amount,type='float',string='Paid Amount (INR)'),
         'tpt_currency_amount':fields.float('Paid Amount'),
+        'payee':fields.char('Payee', size=1024),
         }
     
     
@@ -2928,7 +2959,7 @@ class tpt_hr_payroll_approve_reject(osv.osv):
                                     'name':line.year, 
                                     'account_id': welfare_acc,
                                     'debit':0,
-                                    'credit':res3['welfare'],
+                                    'credit':res2['welfare'],
                                    }),(0,0,{
                                     'name':line.year, 
                                     'account_id': lic_premium_acc,
@@ -3416,7 +3447,7 @@ class res_partner(osv.osv):
             required=False),
         'is_tds_applicable': fields.boolean('IsTDSApplicable'),
         'tds_id': fields.many2one('account.tax', 'TDS %'),
-        'vendor_type': fields.selection([('manu', 'Manufacturer'),('trade', 'Traders')],'Vendor Type'),
+        'vendor_type': fields.selection([('manu', 'Manufacturer'),('trade', 'Traders'),('first_stage', 'First Stage'),('Import', 'import')],'Vendor Type'),
         }
     
     def create(self, cr, uid, vals, context=None):
@@ -3448,4 +3479,31 @@ class account_tax(osv.osv):
         }
     
 account_tax()
+
+class res_currency(osv.osv):
+    _inherit = 'res.currency'
+    
+    def _current_rate(self, cr, uid, ids, name, arg, context=None):
+        return self._current_rate_computation(cr, uid, ids, name, arg, True, context=context)
+
+    def _current_rate_silent(self, cr, uid, ids, name, arg, context=None):
+        return self._current_rate_computation(cr, uid, ids, name, arg, False, context=context)
+
+    _columns = {
+        'rate': fields.function(_current_rate, string='Current Rate', digits=(12,14),
+            help='The rate of the currency to the currency of rate 1.'),
+        'rate_silent': fields.function(_current_rate_silent, string='Current Rate', digits=(12,14),
+            help='The rate of the currency to the currency of rate 1 (0 if no rate defined).'),
+        'rounding': fields.float('Rounding Factor', digits=(12,14)),
+        }
+    
+res_currency()
+
+class res_currency_rate(osv.osv):
+    _inherit = 'res.currency.rate'
+    _columns = {
+        'rate': fields.float('Rate', digits=(12,14), help='The rate of the currency to the currency of rate 1'),
+    }
+    
+res_currency_rate()
     

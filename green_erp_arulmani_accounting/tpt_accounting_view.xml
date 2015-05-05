@@ -54,6 +54,7 @@
 										<field name="sup_inv_fright_id" options="{'create': false, 'create_edit': false}"/>
 										<field name="sup_inv_price_id" options="{'create': false, 'create_edit': false}"/>
 										<field name="sup_tds_id" options="{'create': false, 'create_edit': false}"/>
+										<field name="sup_inv_aed_id" options="{'create': false, 'create_edit': false}"/>
 								</group>
 								<group col="4" colspan="2" attrs="{'invisible': [('name', '!=', 'sup_pay')]}" >
 										<field name="sup_pay_bank_id" options="{'create': false, 'create_edit': false}"/>
@@ -155,11 +156,12 @@
 				<xpath expr="//page[@string='Other Info']/group/group/field[@name='name']" position="replace">
 				</xpath>
 				<xpath expr="//page[@string='Invoice']/group/field[@name='amount_untaxed']" position="after">
-					<field name="p_f_charge" widget="monetary"/>
-					<field name="excise_duty" widget="monetary"/>
+					<field name="p_f_charge" widget="monetary" options="{'currency_field': 'currency_id'}"/>
+					<field name="excise_duty" widget="monetary" options="{'currency_field': 'currency_id'}"/>
+					<field name="aed" widget="monetary" options="{'currency_field': 'currency_id'}"/>
 				</xpath>
 				<xpath expr="//page[@string='Invoice']/group/field[@name='amount_tax']" position="after">
-					<field name="fright" widget="monetary"/>
+					<field name="fright" widget="monetary" options="{'currency_field': 'currency_id'}"/>
 				</xpath>
 				<xpath expr="//page[@string='Invoice']/group/field[@name='residual']" position="attributes">
 					<attribute name='invisible'>1</attribute>
@@ -303,6 +305,7 @@
 					<field name="ed_type"/>
 				</xpath> 
 				<xpath expr="//page[@string='Invoice']/field/tree/field[@name='invoice_line_tax_id']" position="after">
+					<field name="aed_id" domain="[('type_tax_use','=','excise_duty')]"/>
 					<field name="fright"/>
 					<field name="fright_type"/>
 					<field name="line_net"/>
@@ -807,6 +810,7 @@
                         <field name="sum_amount"/>
                         <field name="cheque_date"/>
                         <field name="cheque_no"/>
+                        <field name="payee"/>
                         <field name="payment_rate_currency_id" invisible="1"/>
                         <field name="partner_id" invisible = '1' on_change="onchange_journal_voucher(line_ids, tax_id, amount, partner_id, journal_id, type)"/>
                     	<field name="type" required="0" invisible = '1'/>
@@ -937,6 +941,7 @@
                         <field name="sum_amount"/>
                         <field name="cheque_date"/>
                         <field name="cheque_no"/>
+                        <field name="payee"/>
                         <field name="payment_rate_currency_id" invisible="1"/>
                         <field name="partner_id" invisible = '1' on_change="onchange_journal_voucher(line_ids, tax_id, amount, partner_id, journal_id, type)"/>
                     	<field name="type" required="0" invisible = '1'/>
@@ -1285,7 +1290,9 @@
                     	<filter icon="terp-gtk-jump-to-ltr" string="Supplier Invoice(With PO)" domain="[('doc_type','=','sup_inv_po')]"/>
                     	<filter icon="terp-gtk-jump-to-ltr" string="Supplier Invoice(Without PO)" domain="[('doc_type','=','sup_inv')]"/>
                     	<filter icon="terp-gtk-jump-to-ltr" string="Supplier Payment" domain="[('doc_type','=','sup_pay')]"/>
-                    	<filter icon="terp-gtk-jump-to-ltr" string="Payroll" domain="[('doc_type','=','payroll')]"/>
+                    	<filter icon="terp-gtk-jump-to-ltr" string="Payroll for Executives" domain="[('doc_type','=','payroll')]"/>
+                    	<filter icon="terp-gtk-jump-to-ltr" string="Payroll for Staff" domain="[('doc_type','=','staff_payroll')]"/>
+                    	<filter icon="terp-gtk-jump-to-ltr" string="Payroll for Workers" domain="[('doc_type','=','worker_payroll')]"/>
                     	<filter icon="terp-gtk-jump-to-ltr" string="GRN" domain="[('doc_type','=','grn')]"/>
                     	<filter icon="terp-gtk-jump-to-ltr" string="Good Issue" domain="[('doc_type','=','good')]"/>
                     	<filter icon="terp-gtk-jump-to-ltr" string="DO" domain="[('doc_type','=','do')]"/>
@@ -1531,7 +1538,9 @@
                     	<filter icon="terp-gtk-jump-to-ltr" string="Supplier Invoice(With PO)" domain="[('doc_type','=','sup_inv_po')]"/>
                     	<filter icon="terp-gtk-jump-to-ltr" string="Supplier Invoice(Without PO)" domain="[('doc_type','=','sup_inv')]"/>
                     	<filter icon="terp-gtk-jump-to-ltr" string="Supplier Payment" domain="[('doc_type','=','sup_pay')]"/>
-                    	<filter icon="terp-gtk-jump-to-ltr" string="Payroll" domain="[('doc_type','=','payroll')]"/>
+                    	<filter icon="terp-gtk-jump-to-ltr" string="Payroll for Executives" domain="[('doc_type','=','payroll')]"/>
+                    	<filter icon="terp-gtk-jump-to-ltr" string="Payroll for Staff" domain="[('doc_type','=','staff_payroll')]"/>
+                    	<filter icon="terp-gtk-jump-to-ltr" string="Payroll for Workers" domain="[('doc_type','=','worker_payroll')]"/>
                     	<filter icon="terp-gtk-jump-to-ltr" string="GRN" domain="[('doc_type','=','grn')]"/>
                     	<filter icon="terp-gtk-jump-to-ltr" string="Good Issue" domain="[('doc_type','=','good')]"/>
                     	<filter icon="terp-gtk-jump-to-ltr" string="DO" domain="[('doc_type','=','do')]"/>
