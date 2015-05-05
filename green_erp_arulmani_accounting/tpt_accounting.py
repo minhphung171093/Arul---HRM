@@ -30,6 +30,7 @@ class tpt_posting_configuration(osv.osv):
         'cus_pay_cash_id': fields.many2one('account.account', 'Cash Account', states={ 'done':[('readonly', True)]}),
         'sup_inv_vat_id': fields.many2one('account.account', 'VAT Receivables', states={ 'done':[('readonly', True)]}),
         'sup_inv_cst_id': fields.many2one('account.account', 'CST Receivables', states={ 'done':[('readonly', True)]}),
+        'sup_inv_aed_id': fields.many2one('account.account', 'AED', states={ 'done':[('readonly', True)]}),
         'sup_inv_ed_id': fields.many2one('account.account', 'Excise Duty', states={ 'done':[('readonly', True)]}),
         'sup_inv_pf_id': fields.many2one('account.account', 'P & F Charges', states={ 'done':[('readonly', True)]}),
         'sup_inv_fright_id': fields.many2one('account.account', 'Freight Charges', states={ 'done':[('readonly', True)]}),
@@ -722,7 +723,8 @@ class account_invoice(osv.osv):
                 iml = invoice_line_obj.move_line_pf(cr, uid, inv.id)
                 iml += invoice_line_obj.move_line_fright(cr, uid, inv.id) 
                 iml += invoice_line_obj.move_line_amount_tax(cr, uid, inv.id)
-                iml += invoice_line_obj.move_line_excise_duty(cr, uid, inv.id)  
+                iml += invoice_line_obj.move_line_excise_duty(cr, uid, inv.id)
+                iml += invoice_line_obj.move_line_aed(cr, uid, inv.id)
                 if inv.purchase_id:
                     iml += invoice_line_obj.move_line_amount_untaxed(cr, uid, inv.id) 
                 else:
@@ -1477,7 +1479,32 @@ class account_invoice_line(osv.osv):
                     })
                     break
             break
-        return res  
+        return res
+    
+    def move_line_aed(self, cr, uid, invoice_id):
+        res = []
+        cr.execute('SELECT * FROM account_invoice WHERE id=%s', (invoice_id,))
+        for account in cr.dictfetchall():
+            sql = '''
+                SELECT sup_inv_aed_id FROM tpt_posting_configuration WHERE name = 'sup_inv' and sup_inv_aed_id is not null
+            '''
+            cr.execute(sql)
+            sup_inv_aed_id = cr.dictfetchone()
+            if not sup_inv_aed_id:
+                raise osv.except_osv(_('Warning!'),_('Account is not null, please configure it in GL Posting Configrution !'))
+            if account['aed']:
+                res.append({
+                    'type':'tax',
+                    'name':'/',
+                    'price_unit': account['aed'],
+                    'quantity': 1,
+                    'price': account['aed'],
+                    'account_id': sup_inv_aed_id and sup_inv_aed_id['sup_inv_aed_id'] or False,
+                    'account_analytic_id': False,
+                })
+                break
+            break
+        return res
     
     def move_line_pf(self, cr, uid, invoice_id):
         res = []
