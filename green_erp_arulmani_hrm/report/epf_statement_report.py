@@ -40,6 +40,9 @@ class Parser(report_sxw.rml_parse):
             'get_month':self.get_month,
             'get_year':self.get_year,
             'get_payroll':self.get_payroll,
+            'get_epf_wages': self.get_epf_wages,
+            'get_epf_contribution_due': self.get_epf_contribution_due,
+            'get_eps_contribution_due': self.get_eps_contribution_due,
         })
         
     def get_month(self):
@@ -61,5 +64,34 @@ class Parser(report_sxw.rml_parse):
         self.cr.execute(sql)
         payroll_ids = [r[0] for r in self.cr.fetchall()]
         return payroll_oj.browse(self.cr,self.uid,payroll_ids)
+    
+    def get_epf_wages(self, earning):
+        for line in earning:
+            epf_wages = 0
+            if line.earning_parameters_id.code == 'BASIC':
+                epf_wages += line.float
+            elif line.earning_parameters_id.code == 'DA':
+                epf_wages += line.float
+            return epf_wages
+        
+    def get_epf_contribution_due(self, deduction):
+        for line in deduction:
+            epf_contribution_due = 0.0
+            if line.deduction_parameters_id.code == 'PF.D':
+                epf_contribution_due += line.float
+            return epf_contribution_due
+        
+    def get_eps_contribution_due(self, employee):
+        if employee.employee_category_id and employee.employee_sub_category_id:
+            sql = '''
+                select case when employer_pension_con!=0 then employer_pension_con else 0 end employer_pension_con from arul_hr_payroll_contribution_parameters where employee_category_id=%s and sub_category_id=%s
+            '''%(employee.employee_category_id.id,employee.employee_sub_category_id.id)
+            self.cr.execute(sql)
+            pension = self.cr.fetchone()
+            if pension:
+                return pension and pension[0] or 0
+            else:
+                return 0
+                
 # vim:expandtab:smartindent:tabstop=4:softtabstop=4:shiftwidth=4:
 
