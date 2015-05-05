@@ -1289,7 +1289,9 @@
                     	<filter icon="terp-gtk-jump-to-ltr" string="Supplier Invoice(With PO)" domain="[('doc_type','=','sup_inv_po')]"/>
                     	<filter icon="terp-gtk-jump-to-ltr" string="Supplier Invoice(Without PO)" domain="[('doc_type','=','sup_inv')]"/>
                     	<filter icon="terp-gtk-jump-to-ltr" string="Supplier Payment" domain="[('doc_type','=','sup_pay')]"/>
-                    	<filter icon="terp-gtk-jump-to-ltr" string="Payroll" domain="[('doc_type','=','payroll')]"/>
+                    	<filter icon="terp-gtk-jump-to-ltr" string="Payroll for Executives" domain="[('doc_type','=','payroll')]"/>
+                    	<filter icon="terp-gtk-jump-to-ltr" string="Payroll for Staff" domain="[('doc_type','=','staff_payroll')]"/>
+                    	<filter icon="terp-gtk-jump-to-ltr" string="Payroll for Workers" domain="[('doc_type','=','worker_payroll')]"/>
                     	<filter icon="terp-gtk-jump-to-ltr" string="GRN" domain="[('doc_type','=','grn')]"/>
                     	<filter icon="terp-gtk-jump-to-ltr" string="Good Issue" domain="[('doc_type','=','good')]"/>
                     	<filter icon="terp-gtk-jump-to-ltr" string="DO" domain="[('doc_type','=','do')]"/>
@@ -1535,7 +1537,9 @@
                     	<filter icon="terp-gtk-jump-to-ltr" string="Supplier Invoice(With PO)" domain="[('doc_type','=','sup_inv_po')]"/>
                     	<filter icon="terp-gtk-jump-to-ltr" string="Supplier Invoice(Without PO)" domain="[('doc_type','=','sup_inv')]"/>
                     	<filter icon="terp-gtk-jump-to-ltr" string="Supplier Payment" domain="[('doc_type','=','sup_pay')]"/>
-                    	<filter icon="terp-gtk-jump-to-ltr" string="Payroll" domain="[('doc_type','=','payroll')]"/>
+                    	<filter icon="terp-gtk-jump-to-ltr" string="Payroll for Executives" domain="[('doc_type','=','payroll')]"/>
+                    	<filter icon="terp-gtk-jump-to-ltr" string="Payroll for Staff" domain="[('doc_type','=','staff_payroll')]"/>
+                    	<filter icon="terp-gtk-jump-to-ltr" string="Payroll for Workers" domain="[('doc_type','=','worker_payroll')]"/>
                     	<filter icon="terp-gtk-jump-to-ltr" string="GRN" domain="[('doc_type','=','grn')]"/>
                     	<filter icon="terp-gtk-jump-to-ltr" string="Good Issue" domain="[('doc_type','=','good')]"/>
                     	<filter icon="terp-gtk-jump-to-ltr" string="DO" domain="[('doc_type','=','do')]"/>

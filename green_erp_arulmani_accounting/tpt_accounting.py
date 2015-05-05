@@ -378,7 +378,7 @@ class account_move_line(osv.osv):
         'doc_type': fields.related('move_id', 'doc_type', type="selection", store=True,
                 selection=[('cus_inv', 'Customer Invoice'),('cus_pay', 'Customer Payment'),
                                   ('sup_inv_po', 'Supplier Invoice(With PO)'),('sup_inv', 'Supplier Invoice(Without PO)'),('sup_pay', 'Supplier Payment'),
-                                  ('payroll', 'Payroll'),
+                                  ('payroll', 'Executives Payroll'),
                                   ('grn', 'GRN'),
                                   ('good', 'Good Issue'),
                                   ('do', 'DO'),
@@ -388,7 +388,10 @@ class account_move_line(osv.osv):
                                   ('cash_rec', 'Cash Receipt'),
                                   ('bank_pay', 'Bank Payment'),
                                   ('bank_rec', 'Bank Receipt'),
-                                  ('product', 'Production')], string="Document Type", readonly=True, select=True),
+                                  ('ser_inv', 'Service Invoice'),
+                                  ('product', 'Production'),
+                                  ('staff_payroll', 'Staff Payroll'),
+                                  ('worker_payroll', 'Workers Payroll')], string="Document Type", readonly=True, select=True),
     }
 account_move_line()
 
@@ -2933,7 +2936,7 @@ class tpt_hr_payroll_approve_reject(osv.osv):
                                     'name':line.year, 
                                     'account_id': welfare_acc,
                                     'debit':0,
-                                    'credit':res3['welfare'],
+                                    'credit':res2['welfare'],
                                    }),(0,0,{
                                     'name':line.year, 
                                     'account_id': lic_premium_acc,
