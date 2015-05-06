@@ -2514,7 +2514,11 @@ class arul_hr_payroll_executions(osv.osv):
                         #ma = total_all_shift_allowance + total_days * 4 + la + wa #based on individual shift
                         lunch_allowance = 5 # Rs.5 is Fixed as Lunch Allowance as per VVTi Rules
                         washing_allowane = 4 # Rs.4 is Fixed as per VVTi Rules
-                        ma = (total_shift_worked * ( lunch_allowance + washing_allowane )) + total_all_shift_allowance
+                        #TPT-MISCELLANEOUS AMOUNT NOT CALCULATE FOR TRAINEES
+                        if p.employee_sub_category_id.code=='T2':
+                            ma = 0
+                        else:
+                            ma = (total_shift_worked * ( lunch_allowance + washing_allowane )) + total_all_shift_allowance
 
                         #total_earning = basic + da + c + hra + fa + pc + cre + ea +spa + la + aa + sha + oa + lta + med
                         #gross_before = basic + c + hra  +spa + oa + da + ea
