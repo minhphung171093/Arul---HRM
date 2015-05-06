@@ -162,9 +162,13 @@ class Parser(report_sxw.rml_parse):
             if emp.date_of_resignation:
                 date = datetime.strptime(emp.date_of_resignation, "%Y-%m-%d")
                 date_of_resignation = date.strftime('%d-%m-%Y')
+            
+            name_last_name =''
+            name_last_name =str(emp.name) +' '+str(emp.last_name)
+            
             res.append({
                     'code': emp.employee_id,
-                    'name': emp.name,
+                    'name': name_last_name,
                     'birthday': birthday,
                     'date_of_wedding': date_of_wedding,
                     'date_of_joining': date_of_joining,
@@ -172,6 +176,7 @@ class Parser(report_sxw.rml_parse):
                     'designation': emp.job_id.name,
                     'category': emp.employee_category_id.code,
                     'department': emp.department_id.name,
+                    'section': emp.section_id.name,
                     'email': emp.work_email,
                     'mobile': emp.work_phone,
                     'communication_address': comu_add,
