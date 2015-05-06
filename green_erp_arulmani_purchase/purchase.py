@@ -3832,7 +3832,7 @@ class tpt_material_request(osv.osv):
         'date_request':fields.date('Material Request Date',required = True,states={'done':[('readonly', True)]}),
         'date_expec':fields.date('Expected Date',states={'done':[('readonly', True)]}),
         'department_id':fields.many2one('hr.department','Department',required = True,  states={ 'done':[('readonly', True)]}),
-        'create_uid':fields.many2one('res.users','Request Raised By', states={'done':[('readonly', True)]}),
+        'create_uid':fields.many2one('res.users','Request Raised By', readonly = True),
         'section_id': fields.many2one('arul.hr.section','Section',ondelete='restrict', states={'done':[('readonly', True)]}),
         'requisitioner':fields.many2one('hr.employee','Requisitioner', states={'done':[('readonly', True)]}),
         'project_id': fields.many2one('tpt.project','Project', states={'done':[('readonly', True)]}),
@@ -3853,6 +3853,7 @@ class tpt_material_request(osv.osv):
         user = self.pool.get('res.users').browse(cr,uid,uid)
         product_obj = self.pool.get('product.product')
 #         vals['department_id'] = user.employee_id and user.employee_id.department_id and user.employee_id.department_id.id or False
+        vals['create_uid'] = user.id or False
         if vals.get('name','/')=='/':
             sql = '''
                 select code from account_fiscalyear where '%s' between date_start and date_stop
@@ -3933,7 +3934,7 @@ class tpt_material_request(osv.osv):
             if cate_name == 'spares':
                 parent_ids = self.pool.get('stock.location').search(cr, uid, [('name','=','Store'),('usage','=','view')])
                 if parent_ids:
-                    locat_ids = self.pool.get('stock.location').search(cr, uid, [('name','=','Spare'),('location_id','=',parent_ids[0])])
+                    locat_ids = self.pool.get('stock.location').search(cr, uid, [('name','in',['Spare','Spares']),('location_id','=',parent_ids[0])])
                 if locat_ids:
                     location_id = locat_ids[0]
             if location_id and cate_name != 'finish':
@@ -3981,6 +3982,8 @@ class tpt_material_request(osv.osv):
 #             else:
 #                 sequence = self.pool.get('ir.sequence').get(cr, uid, 'tpt.material.request.import')
 #                 vals['name'] =  sequence and sequence+'/'+fiscalyear['code'] or '/'
+        user = self.pool.get('res.users').browse(cr,uid,uid)
+        vals['create_uid'] = user.id or False
         new_write = super(tpt_material_request, self).write(cr, uid,ids, vals, context)
         product_obj = self.pool.get('product.product')
         for material in self.browse(cr,uid,ids):
@@ -4050,7 +4053,7 @@ class tpt_material_request(osv.osv):
                 if cate_name == 'spares':
                     parent_ids = self.pool.get('stock.location').search(cr, uid, [('name','=','Store'),('usage','=','view')])
                     if parent_ids:
-                        locat_ids = self.pool.get('stock.location').search(cr, uid, [('name','=','Spare'),('location_id','=',parent_ids[0])])
+                        locat_ids = self.pool.get('stock.location').search(cr, uid, [('name','in',['Spare','Spares']),('location_id','=',parent_ids[0])])
                     if locat_ids:
                         location_id = locat_ids[0]
                 if location_id and cate_name != 'finish':
