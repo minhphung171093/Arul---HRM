@@ -1962,7 +1962,7 @@ class account_voucher(osv.osv):
                         _('Total amount in Voucher Entry must equal Amount!'))
             elif context.get('journal_entry_create',False):
                 sql = '''
-                    update account_voucher set type_cash_bank = 'journal' where journal_id = %s
+                    update account_voucher set type_cash_bank = 'journal' where id = %s
                 '''%(new_id)
                 cr.execute(sql)
                 total_debit = 0
