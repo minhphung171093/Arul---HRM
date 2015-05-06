@@ -215,13 +215,21 @@ class Parser(report_sxw.rml_parse):
                 self.cr.execute(sql)
                 special_holiday_worked_count = self.cr.dictfetchone()['total_shift_worked']
                 
-                
+                title=''
+                if payroll.employee_id.gender=='male':
+                    title='Mr'
+                elif payroll.employee_id.gender=='female':
+                    if payroll.employee_id.marital=='married':
+                        title='Ms'
+                    elif payroll.employee_id.marital=='single':
+                        title='Miss'
                 
                 res.append({
                     'emp_id': emp_id,
                     'emp_name': payroll.employee_id.name + ' ' + (payroll.employee_id.last_name and payroll.employee_id.last_name or ''),
                     'emp_code':payroll.employee_id.employee_id,
                     'emp_designation':payroll.designation_id.name,
+                    'emp_title':title,
                     'emp_doj': payroll.employee_id.date_of_joining and (payroll.employee_id.date_of_joining[8:10]+'.'+payroll.employee_id.date_of_joining[5:7]+'.'+payroll.employee_id.date_of_joining[:4]) or '',
                     'basic': basic,
                     'da':da,
