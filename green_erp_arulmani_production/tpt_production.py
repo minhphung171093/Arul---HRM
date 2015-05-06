@@ -813,8 +813,8 @@ class mrp_production(osv.osv):
             readonly=True, states={'draft':[('readonly',False)],'confirmed':[('readonly',False)]}),
                 
             'activities_line': fields.one2many('tpt.activities.line', 'mrp_production_id', 'Activities'),   
-            'date_planned': fields.date('Scheduled Date', required=True, select=1, readonly=True, states={'draft':[('readonly',False)]}),    
-            
+#             'date_planned': fields.date('Scheduled Date', required=True, select=1, readonly=True, states={'draft':[('readonly',False)]}),    
+            'sub_date': fields.date('Scheduled Date', required=True, select=1, readonly=True, states={'draft':[('readonly',False)]}),  
     }
     _defaults={
         'name': '/',
