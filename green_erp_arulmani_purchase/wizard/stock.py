@@ -52,6 +52,20 @@ class stock_partial_picking(osv.osv_memory):
         }
         picking_type = partial.picking_id.type
         for wizard_line in partial.move_ids:
+            
+            if picking_type=='in':
+                po_qty = wizard_line.move_id.purchase_line_id.product_qty
+                tolerance_qty = po_qty*wizard_line.product_id.tolerance_qty/100
+                sql = '''
+                    select case when sum(product_qty)!=0 then sum(product_qty) else 0 end product_qty from stock_move
+                        where product_id=%s
+                            and picking_id in (select id from stock_picking where state='done' and type='in' and purchase_id=%s)
+                '''%(wizard_line.product_id.id,wizard_line.move_id.picking_id.purchase_id.id)
+                cr.execute(sql)
+                received_qty = cr.fetchone()[0]
+                if (received_qty+wizard_line.quantity)>po_qty+tolerance_qty:
+                    raise osv.except_osv(_('Warning!'),_('Tolerance Limit reached for the product %s!'%(wizard_line.product_id.name)))
+            
             line_uom = wizard_line.product_uom
             move_id = wizard_line.move_id.id
 
