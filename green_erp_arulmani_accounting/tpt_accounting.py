@@ -1784,6 +1784,7 @@ class account_voucher(osv.osv):
         'type_cash_bank':fields.selection([
             ('cash','Cash'),
             ('bank','Bank'),
+            ('journal','Journal Voucher'),
         ],'Cash/Bank Type', readonly=True, states={'draft':[('readonly',False)]}),
                 
         'cheque_number': fields.char('Cheque Number'),
@@ -1912,25 +1913,29 @@ class account_voucher(osv.osv):
         if vals.get('name','/')=='/':
             vals['name'] = self.pool.get('ir.sequence').get(cr, uid, 'tpt.journal.voucher.sequence') or '/'
         new_id = super(account_voucher, self).create(cr, uid, vals, context)
-        sql = '''
-            update account_voucher set type_cash_bank = 'cash' where journal_id in (select id from account_journal where type = 'cash')
-        '''
-        cr.execute(sql)
-        sql = '''
-            update account_voucher set type_cash_bank = 'bank' where journal_id in (select id from account_journal where type = 'bank')
-        '''
-        cr.execute(sql)
         if context is None:
             context = {}
         new = self.browse(cr, uid, new_id)
         if new.type_trans:
             total = 0
+            sql = '''
+                update account_voucher set type_cash_bank = 'cash' where journal_id in (select id from account_journal where type = 'cash')
+            '''
+            cr.execute(sql)
+            sql = '''
+                update account_voucher set type_cash_bank = 'bank' where journal_id in (select id from account_journal where type = 'bank')
+            '''
+            cr.execute(sql)
             for line in new.line_ids:
                 total += line.amount 
             if new.sum_amount != total:
                 raise osv.except_osv(_('Warning!'),
                     _('Total amount in Voucher Entry must equal Amount!'))
         elif context.get('journal_entry_create',False):
+            sql = '''
+                update account_voucher set type_cash_bank = 'journal' where id = %s
+            '''%(new_id)
+            cr.execute(sql)
             total_debit = 0
             total_credit = 0
             for line in new.line_ids:
@@ -1956,6 +1961,10 @@ class account_voucher(osv.osv):
                     raise osv.except_osv(_('Warning!'),
                         _('Total amount in Voucher Entry must equal Amount!'))
             elif context.get('journal_entry_create',False):
+                sql = '''
+                    update account_voucher set type_cash_bank = 'journal' where journal_id = %s
+                '''%(new_id)
+                cr.execute(sql)
                 total_debit = 0
                 total_credit = 0
                 for line in voucher.line_ids:
@@ -2275,9 +2284,10 @@ class account_voucher(osv.osv):
 #phuoc
             else:
                 if not voucher.line_cr_ids or not voucher.line_dr_ids or voucher.writeoff_amount!=0:
-                    move_line_id = move_line_pool.create(cr, uid, self.first_move_line_get(cr,uid,voucher.id, move_id, company_currency, current_currency, local_context), local_context)
-                    move_line_brw = move_line_pool.browse(cr, uid, move_line_id, context=context)
-                    line_total = move_line_brw.debit - move_line_brw.credit
+                    if voucher.type_cash_bank != 'journal':
+                        move_line_id = move_line_pool.create(cr, uid, self.first_move_line_get(cr,uid,voucher.id, move_id, company_currency, current_currency, local_context), local_context)
+                        move_line_brw = move_line_pool.browse(cr, uid, move_line_id, context=context)
+                        line_total = move_line_brw.debit - move_line_brw.credit
                 rec_list_ids = []
                 if voucher.type == 'sale':
                     line_total = line_total - self._convert_amount(cr, uid, voucher.tax_amount, voucher.id, context=ctx)
@@ -2288,10 +2298,10 @@ class account_voucher(osv.osv):
                 line_total, rec_list_ids = self.voucher_move_line_create(cr, uid, voucher.id, line_total, move_id, company_currency, current_currency, context)
     
                 # Create the writeoff line if needed
-
-                ml_writeoff = self.writeoff_move_line_get(cr, uid, voucher.id, line_total, move_id, name, company_currency, current_currency, local_context)
-                if ml_writeoff:
-                    move_line_pool.create(cr, uid, ml_writeoff, local_context)
+                if voucher.type_cash_bank != 'journal':
+                    ml_writeoff = self.writeoff_move_line_get(cr, uid, voucher.id, line_total, move_id, name, company_currency, current_currency, local_context)
+                    if ml_writeoff:
+                        move_line_pool.create(cr, uid, ml_writeoff, local_context)
         
             
             # We post the voucher.
