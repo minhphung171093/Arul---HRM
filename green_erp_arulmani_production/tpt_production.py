@@ -818,6 +818,7 @@ class mrp_production(osv.osv):
     }
     _defaults={
         'name': '/',
+#         'date_planned':time.strftime('%Y-%m-%d'),
     }
 #     def unlink(self, cr, uid, ids, context=None):
 #         
