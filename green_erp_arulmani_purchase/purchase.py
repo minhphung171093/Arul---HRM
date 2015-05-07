@@ -3934,7 +3934,7 @@ class tpt_material_request(osv.osv):
             if cate_name == 'spares':
                 parent_ids = self.pool.get('stock.location').search(cr, uid, [('name','=','Store'),('usage','=','view')])
                 if parent_ids:
-                    locat_ids = self.pool.get('stock.location').search(cr, uid, [('name','in',['Spare','Spares']),('location_id','=',parent_ids[0])])
+                    locat_ids = self.pool.get('stock.location').search(cr, uid, [('name','=','Spare'),('location_id','=',parent_ids[0])])
                 if locat_ids:
                     location_id = locat_ids[0]
             if location_id and cate_name != 'finish':
@@ -4053,7 +4053,7 @@ class tpt_material_request(osv.osv):
                 if cate_name == 'spares':
                     parent_ids = self.pool.get('stock.location').search(cr, uid, [('name','=','Store'),('usage','=','view')])
                     if parent_ids:
-                        locat_ids = self.pool.get('stock.location').search(cr, uid, [('name','in',['Spare','Spares']),('location_id','=',parent_ids[0])])
+                        locat_ids = self.pool.get('stock.location').search(cr, uid, [('name','=','Spare'),('location_id','=',parent_ids[0])])
                     if locat_ids:
                         location_id = locat_ids[0]
                 if location_id and cate_name != 'finish':
