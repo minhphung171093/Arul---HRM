@@ -818,7 +818,7 @@ class mrp_production(osv.osv):
     }
     _defaults={
         'name': '/',
-#         'date_planned':time.strftime('%Y-%m-%d'),
+        'date_planned':time.strftime('%Y-%m-%d'),
     }
 #     def unlink(self, cr, uid, ids, context=None):
 #         
@@ -838,11 +838,11 @@ class mrp_production(osv.osv):
 #                 '''%(sub,line.id)
 #                 cr.execute(sql)
 
-    def init(self, cr):
-                sql = '''
-                    update mrp_production set sub_date = date_planned
-                '''
-                cr.execute(sql)
+#     def init(self, cr):
+#                 sql = '''
+#                     update mrp_production set sub_date = date_planned
+#                 '''
+#                 cr.execute(sql)
             
     def bom_id_change(self, cr, uid, ids, bom_id, context=None):
         """ Finds routing for changed BoM.
