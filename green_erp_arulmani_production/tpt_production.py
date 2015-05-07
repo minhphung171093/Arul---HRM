@@ -813,7 +813,7 @@ class mrp_production(osv.osv):
             readonly=True, states={'draft':[('readonly',False)],'confirmed':[('readonly',False)]}),
                 
             'activities_line': fields.one2many('tpt.activities.line', 'mrp_production_id', 'Activities'),   
-#             'date_planned': fields.date('Scheduled Date', required=True, select=1, readonly=True, states={'draft':[('readonly',False)]}),    
+            'date_planned': fields.date('Scheduled Date', required=True, select=1, readonly=True, states={'draft':[('readonly',False)]}),    
             'sub_date': fields.date('Scheduled Date', select=1, states={'draft':[('readonly',False)]}),  
     }
     _defaults={
@@ -828,21 +828,21 @@ class mrp_production(osv.osv):
 #                 self.pool.get('mrp.production.product.line').unlink(cr, uid, mrp_production_ids, context=context)
 #         return super(stock_move, self).unlink(cr, uid, ids, context=context)
     
-    def init(self, cr):
-        production_ids = self.pool.get('mrp.production').search(cr, 1, [])
-        if production_ids:
-            for line in self.browse(cr,1,production_ids):
-                sub = line.date_planned[0:4] + '-' + line.date_planned[5:7] + '-' + line.date_planned[8:10]
-                sql = '''
-                    update mrp_production set sub_date = '%s' where id = %s
-                '''%(sub,line.id)
-                cr.execute(sql)
-
 #     def init(self, cr):
+#         production_ids = self.pool.get('mrp.production').search(cr, 1, [])
+#         if production_ids:
+#             for line in self.browse(cr,1,production_ids):
+#                 sub = line.date_planned[0:4] + '-' + line.date_planned[5:7] + '-' + line.date_planned[8:10]
 #                 sql = '''
-#                     update mrp_production set sub_date = date_planned
-#                 '''
+#                     update mrp_production set sub_date = '%s' where id = %s
+#                 '''%(sub,line.id)
 #                 cr.execute(sql)
+
+    def init(self, cr):
+                sql = '''
+                    update mrp_production set sub_date = date_planned
+                '''
+                cr.execute(sql)
             
     def bom_id_change(self, cr, uid, ids, bom_id, context=None):
         """ Finds routing for changed BoM.
