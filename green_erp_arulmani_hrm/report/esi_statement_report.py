@@ -147,7 +147,7 @@ class Parser(report_sxw.rml_parse):
 #         year = wizard_data['year']
         sql = '''
             select CASE WHEN SUM(float)!=0 THEN SUM(float) ELSE 0 END sum_float from arul_hr_payroll_earning_structure earn, arul_hr_payroll_employee_structure stru
-                where earn.earning_structure_id = stru.id and stru.employee_id = '%s'
+                where earn.earning_structure_id = stru.id and stru.employee_id = '%s' and stru.history_id is NULL
         '''%(employee.id)
         self.cr.execute(sql)
         gross =  self.cr.fetchone()
