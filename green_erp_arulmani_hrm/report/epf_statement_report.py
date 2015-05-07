@@ -43,8 +43,13 @@ class Parser(report_sxw.rml_parse):
             'get_epf_wages': self.get_epf_wages,
             'get_epf_contribution_due': self.get_epf_contribution_due,
             'get_eps_contribution_due': self.get_eps_contribution_due,
+            'get_pf_no': self.get_pf_no,
         })
-        
+    def get_pf_no(self, employee):
+        esi_no = ''
+        if employee and employee.statutory_ids:
+            esi_no = employee.statutory_ids[0].name
+        return esi_no     
     def get_month(self):
         wizard_data = self.localcontext['data']['form']
         return self.get_month_name(wizard_data['month'])
