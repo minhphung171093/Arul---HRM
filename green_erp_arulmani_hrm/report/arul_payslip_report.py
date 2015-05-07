@@ -68,7 +68,7 @@ class Parser(report_sxw.rml_parse):
                 pf_no = line.name
                 esi_no = line.esi_no
                 break
-            res.update({'pf_no': pf_no,'esi_no': esi_no})
+            res.update({'pf_no': str(pf_no),'esi_no': str(esi_no)})
         return res
     
     def get_month_name(self, month):
@@ -106,9 +106,15 @@ class Parser(report_sxw.rml_parse):
             da = 0
             hra = 0
             conv = 0
+            la = 0
+            ea = 0
+            aa = 0
+            oa = 0
+            ma = 0
             gross = 0
             spa = 0
             oa = 0
+            shd = 0
             total_erning = 0
             net = 0
             total_ded = 0
@@ -149,10 +155,26 @@ class Parser(report_sxw.rml_parse):
                         basic += earning.float
                     if earning.earning_parameters_id.code=='DA':
                         da += earning.float
+                    if earning.earning_parameters_id.code=='HRA':
+                        hra += earning.float
+                    if earning.earning_parameters_id.code=='C':
+                        conv += earning.float
                     if earning.earning_parameters_id.code=='SpA':
                         spa += earning.float
+                    
+                    if earning.earning_parameters_id.code=='LA':
+                        la += earning.float
+                    if earning.earning_parameters_id.code=='EA':
+                        ea += earning.float
+                    if earning.earning_parameters_id.code=='AA':
+                        aa += earning.float     
                     if earning.earning_parameters_id.code=='OA':
                         oa += earning.float
+                    if earning.earning_parameters_id.code=='MA':
+                        ma += earning.float
+                    if earning.earning_parameters_id.code=='SHD':
+                        shd += earning.float
+                    
                     if earning.earning_parameters_id.code=='TOTAL_EARNING':
                         total_erning += earning.float
                     if earning.earning_parameters_id.code=='NET':
@@ -223,6 +245,9 @@ class Parser(report_sxw.rml_parse):
                         title='Ms'
                     elif payroll.employee_id.marital=='single':
                         title='Miss'
+                        
+                base_amount = basic + da 
+                vpf = base_amount * vpf / 100
                 
                 res.append({
                     'emp_id': emp_id,
@@ -235,17 +260,19 @@ class Parser(report_sxw.rml_parse):
                     'da':da,
                     'hra': hra,
                     'conv': conv,
-                    'pf_gros': round(basic+da,2),
-                    'gross': round(gross,2),
+                    'pf_gros': format(basic+da,'.2f'),
+                    'gross': format(gross,'.2f'),
                     'spa': spa,
-                    'oa': oa,
-                    'total_erning': round(total_erning,2),
-                    'net':round(net,2),
-                    'total_ded':total_ded,
+                    'oa': la + ea + aa + oa ,
+                    'ma': ma,
+                    'shd': shd,
+                    'total_erning': format(total_erning,'.2f'),
+                    'net':format(net,'.2f'),
+                    'total_ded':format(total_ded,'.2f'),
                     'pt':pt,
                     #'lop':lop, 
                     'lop':total_no_of_leave,
-                    'vpf': vpf,
+                    'vpf': format(vpf,'.2f'),
                     'esi_con': esi_con,
                     'esi_limit':esi_limit,
                     'loan': loan ,
