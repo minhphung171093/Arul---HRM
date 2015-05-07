@@ -66,8 +66,8 @@ class Parser(report_sxw.rml_parse):
         return payroll_oj.browse(self.cr,self.uid,payroll_ids)
     
     def get_epf_wages(self, earning):
+        epf_wages = 0
         for line in earning:
-            epf_wages = 0
             if line.earning_parameters_id.code == 'BASIC':
                 epf_wages += line.float
             elif line.earning_parameters_id.code == 'DA':
@@ -75,8 +75,8 @@ class Parser(report_sxw.rml_parse):
             return epf_wages
         
     def get_epf_contribution_due(self, deduction):
+        epf_contribution_due = 0.0
         for line in deduction:
-            epf_contribution_due = 0.0
             if line.deduction_parameters_id.code == 'PF.D':
                 epf_contribution_due += line.float
             return epf_contribution_due
