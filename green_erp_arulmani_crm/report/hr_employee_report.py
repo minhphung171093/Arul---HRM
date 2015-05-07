@@ -164,7 +164,10 @@ class Parser(report_sxw.rml_parse):
                 date_of_resignation = date.strftime('%d-%m-%Y')
             
             name_last_name =''
-            name_last_name =str(emp.name) +' '+str(emp.last_name)
+            if emp.last_name:
+                name_last_name = str(emp.name) + ' ' + str(emp.last_name)
+            else:
+                name_last_name = emp.name
             
             res.append({
                     'code': emp.employee_id,
