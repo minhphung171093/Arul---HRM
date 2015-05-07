@@ -53,13 +53,26 @@ class Parser(report_sxw.rml_parse):
         wizard_data = self.localcontext['data']['form']
         return wizard_data['year']
     
+#     def get_payroll(self):
+#         wizard_data = self.localcontext['data']['form']
+#         month=wizard_data['month']
+#         year=wizard_data['year']
+#         payroll_oj = self.pool.get('arul.hr.payroll.executions.details')
+#         sql = '''
+#             select id from arul_hr_payroll_executions_details where month = '%s' and year = '%s'
+#             '''%(str(month), str(year))
+#         self.cr.execute(sql)
+#         payroll_ids = [r[0] for r in self.cr.fetchall()]
+#         return payroll_oj.browse(self.cr,self.uid,payroll_ids)
+    
     def get_payroll(self):
         wizard_data = self.localcontext['data']['form']
         month=wizard_data['month']
         year=wizard_data['year']
         payroll_oj = self.pool.get('arul.hr.payroll.executions.details')
         sql = '''
-            select id from arul_hr_payroll_executions_details where month = '%s' and year = '%s'
+            select pa.id from arul_hr_payroll_executions_details pa,hr_employee em 
+                where pa.month = '%s' and pa.year = '%s' and em.id = pa.employee_id order by em.employee_id
             '''%(str(month), str(year))
         self.cr.execute(sql)
         payroll_ids = [r[0] for r in self.cr.fetchall()]
@@ -72,14 +85,14 @@ class Parser(report_sxw.rml_parse):
                 epf_wages += line.float
             elif line.earning_parameters_id.code == 'DA':
                 epf_wages += line.float
-            return epf_wages
+        return epf_wages
         
     def get_epf_contribution_due(self, deduction):
         epf_contribution_due = 0.0
         for line in deduction:
             if line.deduction_parameters_id.code == 'PF.D':
                 epf_contribution_due += line.float
-            return epf_contribution_due
+        return epf_contribution_due
         
     def get_eps_contribution_due(self, employee):
         if employee.employee_category_id and employee.employee_sub_category_id:
