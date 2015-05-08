@@ -3848,6 +3848,20 @@ class tpt_material_request(osv.osv):
         'department_id': _get_department_id,
     }
     
+    def bt_load_norm(self, cr, uid, ids, context=None):
+        res = self.pool.get('ir.model.data').get_object_reference(cr, uid, 
+                                        'green_erp_arulmani_purchase', 'load_line_from_norm_form_view')
+        return {
+                    'name': 'Norm',
+                    'view_type': 'form',
+                    'view_mode': 'form',
+                    'view_id': res[1],
+                    'res_model': 'load.line.from.norm',
+                    'domain': [],
+                    'context': {'default_message':'Do you want to load Line from Norm?'},
+                    'type': 'ir.actions.act_window',
+                    'target': 'new',
+                }
     
     def create(self, cr, uid, vals, context=None):
         user = self.pool.get('res.users').browse(cr,uid,uid)
