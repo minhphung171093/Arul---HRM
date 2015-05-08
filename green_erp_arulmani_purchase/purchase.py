@@ -3938,24 +3938,37 @@ class tpt_material_request(osv.osv):
                 if locat_ids:
                     location_id = locat_ids[0]
             if location_id and cate_name != 'finish':
+#                 sql = '''
+#                 SELECT sum(onhand_qty) onhand_qty
+#                 From
+#                 (SELECT
+#                        
+#                     case when loc1.usage != 'internal' and loc2.usage = 'internal' and loc2.id = %s
+#                     then stm.primary_qty
+#                     else
+#                     case when loc1.usage = 'internal' and loc2.usage != 'internal' and loc1.id = %s
+#                     then -1*stm.primary_qty 
+#                     else 0.0 end
+#                     end onhand_qty
+#                             
+#                 FROM stock_move stm 
+#                     join stock_location loc1 on stm.location_id=loc1.id
+#                     join stock_location loc2 on stm.location_dest_id=loc2.id
+#                 WHERE stm.state= 'done' and product_id=%s)foo
+#                 '''%(location_id,location_id,order_line['product_id'])
                 sql = '''
-                SELECT sum(onhand_qty) onhand_qty
-                From
-                (SELECT
-                       
-                    case when loc1.usage != 'internal' and loc2.usage = 'internal' and loc2.id = %s
-                    then stm.primary_qty
-                    else
-                    case when loc1.usage = 'internal' and loc2.usage != 'internal' and loc1.id = %s
-                    then -1*stm.primary_qty 
-                    else 0.0 end
-                    end onhand_qty
-                            
-                FROM stock_move stm 
-                    join stock_location loc1 on stm.location_id=loc1.id
-                    join stock_location loc2 on stm.location_dest_id=loc2.id
-                WHERE stm.state= 'done' and product_id=%s)foo
-                '''%(location_id,location_id,order_line['product_id'])
+                    select case when sum(foo.product_qty)!=0 then sum(foo.product_qty) else 0 end onhand_qty from 
+                        (select st.product_qty as product_qty
+                            from stock_move st 
+                            where st.state='done' and st.product_id=%s and st.location_dest_id=%s and st.location_dest_id != st.location_id
+                         union all
+                         select st.product_qty*-1 as product_qty
+                            from stock_move st 
+                            where st.product_id=%s
+                                        and location_id=%s
+                                        and location_dest_id != location_id
+                        )foo
+                '''%(order_line['product_id'],location_id,order_line['product_id'],location_id)
                 cr.execute(sql)
                 onhand_qty = cr.dictfetchone()['onhand_qty']
                 if (order_line['product_qty'] > onhand_qty):
