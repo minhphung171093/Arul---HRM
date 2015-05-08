@@ -394,7 +394,7 @@ class tpt_purchase_product(osv.osv):
         #'dec_material':fields.text('Material Description'),
         'description':fields.char('Mat. Description', size = 50),
         'item_text':fields.text('Item Text' ),
-        'product_uom_qty': fields.float('Indent Qty' ),   
+        'product_uom_qty': fields.float('Indent Qty',digits=(16,3), states={'++': [('readonly', True)],'xx': [('readonly', True)]} ),   
         'uom_po_id': fields.many2one('product.uom', 'UOM', readonly = True),
         'pending_qty': fields.function(_get_pending_qty,digits=(16,3),type='float',string='Pending Qty'),
         #'recom_vendor_id': fields.many2one('res.partner', 'Recommended Vendor'),
@@ -410,7 +410,7 @@ class tpt_purchase_product(osv.osv):
                                           ('quotation_cancel','Quotation Cancelled'),
                                           ],'Indent Status', readonly=True),
 #Hung moi them 2 Qty theo yeu casu bala
-        'mrs_qty': fields.float('Reserved Qty'),
+        'mrs_qty': fields.float('Reserved Qty',digits=(16,3)),
         'inspection_qty': fields.float('Inspection Quantity' ), 
         'on_hand_qty':fields.function(_get_on_hand_qty,digits=(16,3),type='float',string='On Hand Qty',multi='sum',store=False),
         'department_id_relate':fields.related('pur_product_id', 'department_id',type = 'many2one', relation='hr.department', string='Department',store=True),
@@ -420,7 +420,7 @@ class tpt_purchase_product(osv.osv):
         'flag': fields.boolean('Flag'),
         'store_date':fields.datetime('Store Approved Date',readonly = True),
         'hod_date':fields.datetime('HOD Approved Date',readonly = True),
-        'price_unit': fields.float('Unit Price',digits=(16,3) ), 
+        'price_unit': fields.float('Unit Price',digits=(16,3), states={'++': [('readonly', True)],'xx': [('readonly', True)]} ), 
         'total_val':fields.function(_get_total_val,digits=(16,3),type='float',string='Total Value',multi='avg',store=False),
         'rfq_qty': fields.float('RFQ Qty',digits=(16,3)),   
         }  
@@ -3615,7 +3615,7 @@ class tpt_rfq_line(osv.osv):
         'description': fields.char('Mat.Desc'), 
         'recom_vendor': fields.char('Recom.Vendor'), 
         'item_text': fields.char('Item Text'), 
-        'product_uom_qty': fields.float('Quantity', readonly = True),   
+        'product_uom_qty': fields.float('Quantity', readonly = True,digits=(16,3)),   
         'uom_id': fields.many2one('product.uom', 'UOM', readonly = True),
         'state':fields.selection([('draft', 'Draft'),('cancel', 'Cancel'),('done', 'Confirm'),('close', 'Closed')],'Status', readonly=True),
         }  
