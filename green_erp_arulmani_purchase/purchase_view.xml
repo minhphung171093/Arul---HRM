@@ -1651,6 +1651,7 @@
 	            <header>
 	            		<button name="bt_approve" states='draft' string="Confirm" type="object" class="oe_highlight" groups="green_erp_arulmani_purchase.group_vvti_purchase_user"/>
 	                    <button name="bt_cancel" states='draft,done' string="Cancel" type="object" class="oe_highlight" groups="green_erp_arulmani_purchase.group_vvti_purchase_user"/>
+	                    <button name="bt_set_to_draft" states='cancel' string="Set to Draft" type="object" class="oe_highlight" groups="green_erp_arulmani_purchase.group_vvti_purchase_user"/>
 	                    <field name="state" widget="statusbar" statusbar_visible="draft,cancel,done,close" statusbar_colors='{"draft":"blue","cancel":"blue"}'/>
 	            </header>   
 	            	<sheet>
@@ -1675,7 +1676,7 @@
 										<field name="recom_vendor" attrs="{'readonly': [('state','not in',('draft'))]}"/>
 										<field name="product_uom_qty" attrs="{'readonly': [('state','not in',('draft'))]}"/>
 										<field name="uom_id" attrs="{'readonly': [('state','not in',('draft'))]}" options="{'create': false, 'create_edit': false}"/>
-										<field name="state" invisible = '1'/>
+										<field name="state" />
 									</tree>
 								</field>
 							</page>

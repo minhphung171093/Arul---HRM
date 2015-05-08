@@ -3535,13 +3535,32 @@ class tpt_request_for_quotation(osv.osv):
     def bt_cancel(self, cr, uid, ids, context=None):
         for line in self.browse(cr, uid, ids):
             quotation_ids = self.pool.get('tpt.purchase.quotation').search(cr,uid,[('rfq_no_id','=',line.id)])
+#             po_ids = self.pool.get('purchase.order').search(cr,uid,[('rfq_no_id','=',line.id)])
             chart_ids = self.pool.get('tpt.comparison.chart').search(cr,uid,[('name','=',line.id)])
             if quotation_ids:
                 raise osv.except_osv(_('Warning!'),_('RFQ was existed at the Quotation.!'))
             if chart_ids:
                 raise osv.except_osv(_('Warning!'),_('RFQ was existed at the Comparison Chart.!'))
+            rfq_line_obj = self.pool.get('tpt.rfq.line')        
+            sql = '''
+                select id from tpt_rfq_line where rfq_id = %s
+            '''%(line.id)
+            cr.execute(sql)
+            rfq_line_ids = [r[0] for r in cr.fetchall()]
+            rfq_line_obj.write(cr, uid, rfq_line_ids,{'state':'cancel'})
             self.write(cr, uid, ids,{'state':'cancel'})
         return True   
+    def bt_set_to_draft(self, cr, uid, ids, context=None):
+        for line in self.browse(cr, uid, ids):
+            rfq_line_obj = self.pool.get('tpt.rfq.line')        
+            sql = '''
+                select id from tpt_rfq_line where rfq_id = %s
+            '''%(line.id)
+            cr.execute(sql)
+            rfq_line_ids = [r[0] for r in cr.fetchall()]
+            rfq_line_obj.write(cr, uid, rfq_line_ids,{'state':'raised'})
+            self.write(cr, uid, ids,{'state':'draft'})
+        return True
     
     def create(self, cr, uid, vals, context=None):
         if vals.get('name','/')=='/':
@@ -3617,7 +3636,7 @@ class tpt_rfq_line(osv.osv):
         'item_text': fields.char('Item Text'), 
         'product_uom_qty': fields.float('Quantity', readonly = True),   
         'uom_id': fields.many2one('product.uom', 'UOM', readonly = True),
-        'state':fields.selection([('draft', 'Draft'),('cancel', 'Cancel'),('done', 'Confirm'),('close', 'Closed')],'Status', readonly=True),
+        'state':fields.selection([('draft', 'Draft'),('cancel', 'RFQ Cancelled'),('done', 'Confirm'),('close', 'Closed'),('raised', 'RFQ Raised')],'Status', readonly=True),
         }  
     _defaults = {
         'state': 'draft',         
