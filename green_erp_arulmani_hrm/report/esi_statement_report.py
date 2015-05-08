@@ -68,7 +68,12 @@ class Parser(report_sxw.rml_parse):
         if employee and employee.statutory_ids:
             esi_no = employee.statutory_ids[0].esi_no
         return esi_no
-    
+    def length_month(self,year, month):
+        if month == 2 and (year % 4 == 0) and (year % 100 != 0) or (year % 400 == 0):
+            value =  29
+        else: 
+            value =  [0, 31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31][month]
+        return value
     def get_no_of_day_work(self, employee):
         wizard_data = self.localcontext['data']['form']
         month = wizard_data['month']
@@ -80,7 +85,23 @@ class Parser(report_sxw.rml_parse):
                         punch_in_out_id in (select id from arul_hr_employee_attendence_details where employee_id=%s)
         '''%(int(month), int(year),employee.id)
         self.cr.execute(sql)
-        no_of_day_work = self.cr.fetchone()
+        #no_of_day_work = self.cr.fetchone()
+        
+        calendar_days = self.length_month(int(year),int(month))
+                
+        sql = '''
+                SELECT CASE WHEN SUM(days_total)!=0 THEN 
+                SUM(days_total) ELSE 0 END days_total FROM 
+                arul_hr_employee_leave_details WHERE EXTRACT(year FROM date_from) = %s 
+                AND EXTRACT(month FROM date_from) = %s AND employee_id =%s AND
+                leave_type_id in (select id from arul_hr_leave_types where code in ('LOP','ESI'))
+        '''%(int(month), int(year),employee.id)
+        self.cr.execute(sql)
+        lop_esi =  self.cr.fetchone()
+        tpt_lop_esi = lop_esi[0]
+        total_no_of_leave = tpt_lop_esi
+        no_of_day_work = calendar_days - total_no_of_leave
+        
         return no_of_day_work
     
     def get_no_of_shift_work(self, employee):
