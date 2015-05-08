@@ -3749,6 +3749,8 @@ class tpt_rfq_supplier(osv.osv):
     def bt_print(self, cr, uid, ids, context=None):
         assert len(ids) == 1, 'This option should only be used for a single id at a time.'
         self.write(cr, uid, ids, {'sent': True}, context=context)
+        self_browse = self.browse(cr, uid, ids)
+
         datas = {
              'ids': ids,
              'model': 'tpt.rfq.supplier',
@@ -3757,6 +3759,7 @@ class tpt_rfq_supplier(osv.osv):
         return {
             'type': 'ir.actions.report.xml',
             'report_name': 'tpt_rfq_supplier',
+            'name': self_browse[0].rfq_id.name + '-' + self_browse[0].vendor_id.vendor_code 
 #                 'datas': datas,
 #                 'nodestroy' : True
         }
