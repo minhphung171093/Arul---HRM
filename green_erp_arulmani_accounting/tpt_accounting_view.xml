@@ -151,7 +151,7 @@
 					<attribute name='required'>0</attribute>
 				</xpath>
 				<xpath expr="//page[@string='Invoice']/div/field[@name='tax_line']" position="attributes">
-					<attribute name='invisible'>1</attribute>
+					<attribute name='invisible'>0</attribute>
 				</xpath>
 				<xpath expr="//page[@string='Other Info']/group/group/field[@name='name']" position="replace">
 				</xpath>
