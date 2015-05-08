@@ -44,6 +44,7 @@ class Parser(report_sxw.rml_parse):
             'get_gross': self.get_gross,
             'get_esi_employer': self.get_esi_employer,
             'get_esi_employee': self.get_esi_employee,
+            'get_gross_earning': self.get_gross_earning,
         })
     
     def get_emp(self):
@@ -136,6 +137,18 @@ class Parser(report_sxw.rml_parse):
                 where executions_details_id in (select id from arul_hr_payroll_executions_details where employee_id=%s and month='%s' and year='%s')
                     and earning_parameters_id in (select id from arul_hr_payroll_earning_parameters where code='GROSS_SALARY')
         '''%(employee.id,month,year)
+        self.cr.execute(sql)
+        gross =  self.cr.fetchone()
+        return gross
+
+    def get_gross_earning(self, employee):
+        wizard_data = self.localcontext['data']['form']
+#         month = wizard_data['month']
+#         year = wizard_data['year']
+        sql = '''
+            select CASE WHEN SUM(float)!=0 THEN SUM(float) ELSE 0 END sum_float from arul_hr_payroll_earning_structure earn, arul_hr_payroll_employee_structure stru
+                where earn.earning_structure_id = stru.id and stru.employee_id = '%s' and stru.history_id is NULL
+        '''%(employee.id)
         self.cr.execute(sql)
         gross =  self.cr.fetchone()
         return gross

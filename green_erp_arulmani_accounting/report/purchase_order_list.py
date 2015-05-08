@@ -90,7 +90,7 @@ class purchase_order_list_wizard(osv.osv_memory):
                 'line_no': order_line.line_no,
                 'product_id': order_line.product_id.id,
                 'material_name': order_line.name,
-                'department_id': order_line.po_indent_no.department_id.id,
+                'department_id': order_line.po_indent_no.department_id and order_line.po_indent_no.department_id.id or False,
                 'uom_id': order_line.product_uom.id,
                 'quantity': order_line.product_qty,
                 'unit_price': order_line.price_unit,

@@ -68,7 +68,7 @@ class Parser(report_sxw.rml_parse):
                 pf_no = line.name
                 esi_no = line.esi_no
                 break
-            res.update({'pf_no': pf_no,'esi_no': esi_no})
+            res.update({'pf_no': str(pf_no),'esi_no': str(esi_no)})
         return res
     
     def get_month_name(self, month):
@@ -106,9 +106,15 @@ class Parser(report_sxw.rml_parse):
             da = 0
             hra = 0
             conv = 0
+            la = 0
+            ea = 0
+            aa = 0
+            oa = 0
+            ma = 0
             gross = 0
             spa = 0
             oa = 0
+            shd = 0
             total_erning = 0
             net = 0
             total_ded = 0
@@ -149,10 +155,26 @@ class Parser(report_sxw.rml_parse):
                         basic += earning.float
                     if earning.earning_parameters_id.code=='DA':
                         da += earning.float
+                    if earning.earning_parameters_id.code=='HRA':
+                        hra += earning.float
+                    if earning.earning_parameters_id.code=='C':
+                        conv += earning.float
                     if earning.earning_parameters_id.code=='SpA':
                         spa += earning.float
+                    
+                    if earning.earning_parameters_id.code=='LA':
+                        la += earning.float
+                    if earning.earning_parameters_id.code=='EA':
+                        ea += earning.float
+                    if earning.earning_parameters_id.code=='AA':
+                        aa += earning.float     
                     if earning.earning_parameters_id.code=='OA':
                         oa += earning.float
+                    if earning.earning_parameters_id.code=='MA':
+                        ma += earning.float
+                    if earning.earning_parameters_id.code=='SHD':
+                        shd += earning.float
+                    
                     if earning.earning_parameters_id.code=='TOTAL_EARNING':
                         total_erning += earning.float
                     if earning.earning_parameters_id.code=='NET':
@@ -223,6 +245,9 @@ class Parser(report_sxw.rml_parse):
                         title='Ms'
                     elif payroll.employee_id.marital=='single':
                         title='Miss'
+                        
+                base_amount = basic + da 
+                vpf = base_amount * vpf / 100
                 
                 res.append({
                     'emp_id': emp_id,
@@ -231,32 +256,34 @@ class Parser(report_sxw.rml_parse):
                     'emp_designation':payroll.designation_id.name,
                     'emp_title':title,
                     'emp_doj': payroll.employee_id.date_of_joining and (payroll.employee_id.date_of_joining[8:10]+'.'+payroll.employee_id.date_of_joining[5:7]+'.'+payroll.employee_id.date_of_joining[:4]) or '',
-                    'basic': basic,
-                    'da':da,
-                    'hra': hra,
-                    'conv': conv,
-                    'pf_gros': round(basic+da,2),
-                    'gross': round(gross,2),
-                    'spa': spa,
-                    'oa': oa,
-                    'total_erning': round(total_erning,2),
-                    'net':round(net,2),
-                    'total_ded':total_ded,
+                    'basic': format(basic,'.2f'),
+                    'da':format(da,'.2f'),
+                    'hra': format(hra,'.2f'),
+                    'conv': format(conv,'.2f'),
+                    'pf_gros': format(basic+da,'.2f'),
+                    'gross': format(gross,'.2f'),
+                    'spa': format(spa,'.2f'),
+                    'oa': format(la + ea + aa + oa,'.2f') ,
+                    'ma': format(ma,'.2f'),
+                    'shd': format(shd,'.2f'),
+                    'total_erning': format(total_erning,'.2f'),
+                    'net':format(net,'.2f'),
+                    'total_ded':format(total_ded,'.2f'),
                     'pt':pt,
                     #'lop':lop, 
                     'lop':total_no_of_leave,
-                    'vpf': vpf,
-                    'esi_con': esi_con,
-                    'esi_limit':esi_limit,
-                    'loan': loan ,
+                    'vpf': format(vpf,'.2f'),
+                    'esi_con': format(esi_con,'.2f'),
+                    'esi_limit':format(esi_limit,'.2f'),
+                    'loan': format(loan,'.2f') ,
                     'epf': epf,
                     'lwf':lwf,
-                    'total_fd':total_fd,
+                    'total_fd':format(total_fd,'.2f'),
                    
                     'calendar_days':calendar_days, 
                     'ndw':calendar_days-total_no_of_leave,
                     'special_holiday_worked_count':special_holiday_worked_count,
-                    'md1':i_lic_prem + i_others + l_vvti_loan + l_lic_hfl + l_hdfc + l_tmb + l_sbt + l_others
+                    'md1':format(i_lic_prem + i_others + l_vvti_loan + l_lic_hfl + l_hdfc + l_tmb + l_sbt + l_others,'.2f'),
                 
                 })
         return res
