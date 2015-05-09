@@ -3534,8 +3534,19 @@ class tpt_request_for_quotation(osv.osv):
     
     def bt_cancel(self, cr, uid, ids, context=None):
         for line in self.browse(cr, uid, ids):
+            for po_indent in line.rfq_line:
+                qty = 0
+                sql = '''
+                    select id from tpt_purchase_product where id = %s
+                '''%(po_indent.indent_line_id.id)
+                cr.execute(sql)
+                indent_line_ids = [row[0] for row in cr.fetchall()]
+                if indent_line_ids:
+                    for indent_line in self.pool.get('tpt.purchase.product').browse(cr, uid, indent_line_ids):
+                        qty = indent_line.rfq_qty - po_indent.product_uom_qty
+                        self.pool.get('tpt.purchase.product').write(cr, uid, indent_line_ids,{'state':'++',
+                                                                                          'rfq_qty':qty,})
             quotation_ids = self.pool.get('tpt.purchase.quotation').search(cr,uid,[('rfq_no_id','=',line.id)])
-#             po_ids = self.pool.get('purchase.order').search(cr,uid,[('rfq_no_id','=',line.id)])
             chart_ids = self.pool.get('tpt.comparison.chart').search(cr,uid,[('name','=',line.id)])
             if quotation_ids:
                 raise osv.except_osv(_('Warning!'),_('RFQ was existed at the Quotation.!'))
@@ -3558,7 +3569,7 @@ class tpt_request_for_quotation(osv.osv):
             '''%(line.id)
             cr.execute(sql)
             rfq_line_ids = [r[0] for r in cr.fetchall()]
-            rfq_line_obj.write(cr, uid, rfq_line_ids,{'state':'raised'})
+            rfq_line_obj.write(cr, uid, rfq_line_ids,{'state':'draft'})
             self.write(cr, uid, ids,{'state':'draft'})
         return True
     
@@ -3621,7 +3632,11 @@ class tpt_request_for_quotation(osv.osv):
                     if (len(rfq.rfq_supplier) > 1):
                         raise osv.except_osv(_('Warning!'),_('You must choose RFQ category is multiple if you want more than one vendors!'))
         return new_write
-    
+    def onchange_document_type(self, cr, uid, ids,po_document_type=False, context=None):
+        if po_document_type:
+            return {'value': {
+                                'rfq_line':False,
+                              }}
 tpt_request_for_quotation()
 
 class tpt_rfq_line(osv.osv):

@@ -1662,7 +1662,7 @@
 							<field name="create_on"/>
 							<field name="expect_quote_date"/>
 							<field name="create_uid" options="{'create': false, 'create_edit': false}" />
-							<field name="po_document_type"/>
+							<field name="po_document_type" on_change = "onchange_document_type(po_document_type)"/>
 	            		</group>
 	            		<notebook>
 							<page string = "RFQ Line">
