@@ -1692,7 +1692,8 @@ class product_product(osv.osv):
                              union all
                              select st.product_qty*-1 as product_qty
                                 from stock_move st 
-                                where st.product_id=%s
+                                where st.state='done'
+                                        and st.product_id=%s
                                             and location_id=%s
                                             and location_dest_id != location_id
                                              and production_id is not null
