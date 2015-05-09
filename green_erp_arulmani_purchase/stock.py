@@ -604,9 +604,10 @@ class account_invoice(osv.osv):
                             fright = po.fright
                         total_fright += fright
                         total_fright = round(total_fright,2)
-                        
-                        if po.aed_id:
-                            aed += basic*po.aed_id.amount/100
+                         
+#                         if po.aed_id:
+#                             aed += basic*po.aed_id.amount/100
+                        aed += po.aed_id
                         
                     res[line.id]['amount_untaxed'] = round(amount_untaxed)
                     res[line.id]['p_f_charge'] = round(p_f_charge)
@@ -888,7 +889,8 @@ class account_invoice_line(osv.osv):
         'line_net': fields.function(line_net_line_supplier_invo, store = True, multi='deltas' ,string='Line Net'),
         'tax_id': fields.many2one('account.tax', 'Taxes'),
         'tds_id': fields.many2one('account.tax', 'TDS %'),
-        'aed_id': fields.many2one('account.tax', 'AED'),
+#         'aed_id': fields.many2one('account.tax', 'AED'),
+        'aed_id': fields.float('AED'),
     }
     _defaults = {
         'name': '/',
