@@ -305,7 +305,7 @@
 					<field name="ed_type"/>
 				</xpath> 
 				<xpath expr="//page[@string='Invoice']/field/tree/field[@name='invoice_line_tax_id']" position="after">
-					<field name="aed_id" domain="[('type_tax_use','=','excise_duty')]"/>
+					<field name="aed_id_1" />
 					<field name="fright"/>
 					<field name="fright_type"/>
 					<field name="line_net"/>
