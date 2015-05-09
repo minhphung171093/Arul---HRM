@@ -279,42 +279,42 @@ class tpt_purchase_indent(osv.osv):
             if context.get('po_document_type'): ### them trang thai rfq_raise de xet so luong cho tung line indent, 1 indent co the duoc tao nhieu rfq
                 if context.get('po_document_type')=='standard':
                     sql = '''
-                        select pur_product_id from tpt_purchase_product where state in ('++','rfq_raised') and (doc_type_relate = 'normal' or doc_type_relate = 'maintenance' or doc_type_relate = 'spare' or doc_type_relate = 'base' or doc_type_relate = 'consumable')
+                        select pur_product_id from tpt_purchase_product where state in ('++','rfq_raised','quotation_raised','po_raised') and (doc_type_relate = 'normal' or doc_type_relate = 'maintenance' or doc_type_relate = 'spare' or doc_type_relate = 'base' or doc_type_relate = 'consumable')
                     '''
                     cr.execute(sql)
                     pur_ids = [row[0] for row in cr.fetchall()]
                     args += [('id','in',pur_ids)]
                 if context.get('po_document_type')=='local':
                     sql = '''
-                        select pur_product_id from tpt_purchase_product where state in ('++','rfq_raised') and (doc_type_relate = 'local' or doc_type_relate = 'base')
+                        select pur_product_id from tpt_purchase_product where state in ('++','rfq_raised','quotation_raised','po_raised') and (doc_type_relate = 'local' or doc_type_relate = 'base')
                     '''
                     cr.execute(sql)
                     pur_ids = [row[0] for row in cr.fetchall()]
                     args += [('id','in',pur_ids)]
                 if context.get('po_document_type')=='asset':
                     sql = '''
-                        select pur_product_id from tpt_purchase_product where state in ('++','rfq_raised') and doc_type_relate = 'capital' 
+                        select pur_product_id from tpt_purchase_product where state in ('++','rfq_raised','quotation_raised','po_raised') and doc_type_relate = 'capital' 
                     '''
                     cr.execute(sql)
                     pur_ids = [row[0] for row in cr.fetchall()]
                     args += [('id','in',pur_ids)]
                 if context.get('po_document_type')=='raw':
                     sql = '''
-                        select pur_product_id from tpt_purchase_product where state in ('++','rfq_raised') and doc_type_relate = 'raw' 
+                        select pur_product_id from tpt_purchase_product where state in ('++','rfq_raised','quotation_raised','po_raised') and doc_type_relate = 'raw' 
                     '''
                     cr.execute(sql)
                     pur_ids = [row[0] for row in cr.fetchall()]
                     args += [('id','in',pur_ids)]
                 if context.get('po_document_type')=='service':
                     sql = '''
-                        select pur_product_id from tpt_purchase_product where state in ('++','rfq_raised') and doc_type_relate = 'service' 
+                        select pur_product_id from tpt_purchase_product where state in ('++','rfq_raised','quotation_raised','po_raised') and doc_type_relate = 'service' 
                     '''
                     cr.execute(sql)
                     pur_ids = [row[0] for row in cr.fetchall()]
                     args += [('id','in',pur_ids)]
                 if context.get('po_document_type')=='out':
                     sql = '''
-                        select pur_product_id from tpt_purchase_product where state in ('++','rfq_raised') and doc_type_relate = 'outside'
+                        select pur_product_id from tpt_purchase_product where state in ('++','rfq_raised','quotation_raised','po_raised') and doc_type_relate = 'outside'
                     '''
                     cr.execute(sql)
                     pur_ids = [row[0] for row in cr.fetchall()]
@@ -631,7 +631,7 @@ class tpt_purchase_product(osv.osv):
             if context.get('po_indent_id'):
                 sql = '''
                     select id from tpt_purchase_product
-                    where pur_product_id = %s and state in ('++','rfq_raised') and product_uom_qty != rfq_qty
+                    where pur_product_id = %s and state in ('++','rfq_raised','quotation_raised','po_raised') and product_uom_qty != rfq_qty
                 '''%(context.get('po_indent_id'))
                 cr.execute(sql)
                 indent_ids = [row[0] for row in cr.fetchall()]
@@ -1279,55 +1279,55 @@ class tpt_purchase_quotation(osv.osv):
         'quotation_ref':fields.char('Quotation Reference',size = 1024,required=True),
 #         'tax_id': fields.many2one('account.tax', 'Taxes',required=True ,states={'cancel': [('readonly', True)], 'done':[('readonly', True)]}),
         'purchase_quotation_line':fields.one2many('tpt.purchase.quotation.line','purchase_quotation_id','Quotation Line' ,states={'cancel': [('readonly', True)], 'done':[('readonly', True)]}),
-        'amount_line': fields.function(amount_all_quotation_line, multi='sums',digits=(16,3),string='Line Amount',
+        'amount_line': fields.function(amount_all_quotation_line, multi='sums',string='Line Amount',digits=(16,3),
                                          store={
                 'tpt.purchase.quotation': (lambda self, cr, uid, ids, c={}: ids, ['purchase_quotation_line'], 10),
                 'tpt.purchase.quotation.line': (_get_order, ['product_uom_qty', 'uom_id', 'price_unit','disc','p_f','p_f_type',   
                                                                 'e_d', 'e_d_type','tax_id','fright','fright_type'], 10),}, 
             states={'cancel': [('readonly', True)], 'done':[('readonly', True)]}),
-        'amount_basic': fields.function(amount_all_quotation_line, multi='sums',digits=(16,3),string='Basic Amounts',
+        'amount_basic': fields.function(amount_all_quotation_line, multi='sums',string='Basic Amounts',digits=(16,3),
                                       store={
                 'tpt.purchase.quotation': (lambda self, cr, uid, ids, c={}: ids, ['purchase_quotation_line'], 10),
                 'tpt.purchase.quotation.line': (_get_order, ['product_uom_qty', 'uom_id', 'price_unit','disc','p_f','p_f_type',   
                                                                 'e_d', 'e_d_type','tax_id','fright','fright_type'], 10), }, 
             states={'cancel': [('readonly', True)], 'done':[('readonly', True)]}),
-        'amount_p_f': fields.function(amount_all_quotation_line, multi='sums',digits=(16,3),string='P & F charges',
+        'amount_p_f': fields.function(amount_all_quotation_line, multi='sums',string='P & F charges',digits=(16,3),
                                         store={
                 'tpt.purchase.quotation': (lambda self, cr, uid, ids, c={}: ids, ['purchase_quotation_line'], 10),
                 'tpt.purchase.quotation.line': (_get_order, ['product_uom_qty', 'uom_id', 'price_unit','disc','p_f','p_f_type',   
                                                                 'e_d', 'e_d_type','tax_id','fright','fright_type'], 10), },
              states={'cancel': [('readonly', True)], 'done':[('readonly', True)]}),
-        'amount_ed': fields.function(amount_all_quotation_line, multi='sums',digits=(16,3),string='Excise Duty',
+        'amount_ed': fields.function(amount_all_quotation_line, multi='sums',string='Excise Duty',digits=(16,3),
                                          store={
                 'tpt.purchase.quotation': (lambda self, cr, uid, ids, c={}: ids, ['purchase_quotation_line'], 10),
                 'tpt.purchase.quotation.line': (_get_order, ['product_uom_qty', 'uom_id', 'price_unit','disc','p_f','p_f_type',   
                                                                 'e_d', 'e_d_type','tax_id','fright','fright_type'], 10),}, 
             states={'cancel': [('readonly', True)], 'done':[('readonly', True)]}),
-        'amount_total_tax': fields.function(amount_all_quotation_line, multi='sums',digits=(16,3),string='Total Tax(CST/VAT)',
+        'amount_total_tax': fields.function(amount_all_quotation_line, multi='sums',string='Total Tax(CST/VAT)',digits=(16,3),
                                       store={
                 'tpt.purchase.quotation': (lambda self, cr, uid, ids, c={}: ids, ['purchase_quotation_line'], 10),
                 'tpt.purchase.quotation.line': (_get_order, ['product_uom_qty', 'uom_id', 'price_unit','disc','p_f','p_f_type',   
                                                                 'e_d', 'e_d_type','tax_id','fright','fright_type'], 10), }, 
             states={'cancel': [('readonly', True)], 'done':[('readonly', True)]}),
-        'amount_fright': fields.function(amount_all_quotation_line, multi='sums',digits=(16,3),string='Freight',
+        'amount_fright': fields.function(amount_all_quotation_line, multi='sums',string='Freight',digits=(16,3),
                                         store={
                 'tpt.purchase.quotation': (lambda self, cr, uid, ids, c={}: ids, ['purchase_quotation_line'], 10),
                 'tpt.purchase.quotation.line': (_get_order, ['product_uom_qty', 'uom_id', 'price_unit','disc','p_f','p_f_type',   
                                                                 'e_d', 'e_d_type','tax_id','fright','fright_type'], 10), },
              states={'cancel': [('readonly', True)], 'done':[('readonly', True)]}),
-        'amount_gross': fields.function(amount_all_quotation_line, multi='sums',digits=(16,3),string='Gross Landed Cost',
+        'amount_gross': fields.function(amount_all_quotation_line, multi='sums',string='Gross Landed Cost',digits=(16,3),
                                          store={
                 'tpt.purchase.quotation': (lambda self, cr, uid, ids, c={}: ids, ['purchase_quotation_line'], 10),
                 'tpt.purchase.quotation.line': (_get_order, ['product_uom_qty', 'uom_id', 'price_unit','disc','p_f','p_f_type',   
                                                                 'e_d', 'e_d_type','tax_id','fright','fright_type'], 10),}, 
             states={'cancel': [('readonly', True)], 'done':[('readonly', True)]}),
-        'amount_net': fields.function(amount_all_quotation_line, multi='sums',digits=(16,3),string='Net Landed Cost',
+        'amount_net': fields.function(amount_all_quotation_line, multi='sums',string='Net Landed Cost',digits=(16,3),
                                       store={
                 'tpt.purchase.quotation': (lambda self, cr, uid, ids, c={}: ids, ['purchase_quotation_line'], 10),
                 'tpt.purchase.quotation.line': (_get_order, ['product_uom_qty', 'uom_id', 'price_unit','disc','p_f','p_f_type',   
                                                                 'e_d', 'e_d_type','tax_id','fright','fright_type'], 10), }, 
             states={'cancel': [('readonly', True)], 'done':[('readonly', True)]}),
-        'amount_unit_net': fields.function(amount_all_quotation_line, multi='sums',digits=(16,3),string='Unit Net Landed Cost',
+        'amount_unit_net': fields.function(amount_all_quotation_line, multi='sums',string='Unit Net Landed Cost',digits=(16,3),
                                         store={
                 'tpt.purchase.quotation': (lambda self, cr, uid, ids, c={}: ids, ['purchase_quotation_line'], 10),
                 'tpt.purchase.quotation.line': (_get_order, ['product_uom_qty', 'uom_id', 'price_unit','disc','p_f','p_f_type',   
@@ -3534,14 +3534,44 @@ class tpt_request_for_quotation(osv.osv):
     
     def bt_cancel(self, cr, uid, ids, context=None):
         for line in self.browse(cr, uid, ids):
+            for po_indent in line.rfq_line:
+                qty = 0
+                sql = '''
+                    select id from tpt_purchase_product where id = %s
+                '''%(po_indent.indent_line_id.id)
+                cr.execute(sql)
+                indent_line_ids = [row[0] for row in cr.fetchall()]
+                if indent_line_ids:
+                    for indent_line in self.pool.get('tpt.purchase.product').browse(cr, uid, indent_line_ids):
+                        qty = indent_line.rfq_qty - po_indent.product_uom_qty
+                        self.pool.get('tpt.purchase.product').write(cr, uid, indent_line_ids,{'state':'++',
+                                                                                          'rfq_qty':qty,})
             quotation_ids = self.pool.get('tpt.purchase.quotation').search(cr,uid,[('rfq_no_id','=',line.id)])
             chart_ids = self.pool.get('tpt.comparison.chart').search(cr,uid,[('name','=',line.id)])
             if quotation_ids:
                 raise osv.except_osv(_('Warning!'),_('RFQ was existed at the Quotation.!'))
             if chart_ids:
                 raise osv.except_osv(_('Warning!'),_('RFQ was existed at the Comparison Chart.!'))
+            rfq_line_obj = self.pool.get('tpt.rfq.line')        
+            sql = '''
+                select id from tpt_rfq_line where rfq_id = %s
+            '''%(line.id)
+            cr.execute(sql)
+            rfq_line_ids = [r[0] for r in cr.fetchall()]
+            rfq_line_obj.write(cr, uid, rfq_line_ids,{'state':'cancel'})
             self.write(cr, uid, ids,{'state':'cancel'})
         return True   
+    def bt_set_to_draft(self, cr, uid, ids, context=None):
+        for line in self.browse(cr, uid, ids):
+            rfq_line_obj = self.pool.get('tpt.rfq.line')        
+            sql = '''
+                select id from tpt_rfq_line where rfq_id = %s
+            '''%(line.id)
+            cr.execute(sql)
+            rfq_line_ids = [r[0] for r in cr.fetchall()]
+            rfq_line_obj.write(cr, uid, rfq_line_ids,{'state':'draft'})
+            self.write(cr, uid, ids,{'state':'draft'})
+        return True
     
     def create(self, cr, uid, vals, context=None):
         if vals.get('name','/')=='/':
@@ -3602,7 +3632,11 @@ class tpt_request_for_quotation(osv.osv):
                     if (len(rfq.rfq_supplier) > 1):
                         raise osv.except_osv(_('Warning!'),_('You must choose RFQ category is multiple if you want more than one vendors!'))
         return new_write
-    
+    def onchange_document_type(self, cr, uid, ids,po_document_type=False, context=None):
+        if po_document_type:
+            return {'value': {
+                                'rfq_line':False,
+                              }}
 tpt_request_for_quotation()
 
 class tpt_rfq_line(osv.osv):
@@ -3617,7 +3651,7 @@ class tpt_rfq_line(osv.osv):
         'item_text': fields.char('Item Text'), 
         'product_uom_qty': fields.float('Quantity', readonly = True,digits=(16,3)),   
         'uom_id': fields.many2one('product.uom', 'UOM', readonly = True),
-        'state':fields.selection([('draft', 'Draft'),('cancel', 'Cancel'),('done', 'Confirm'),('close', 'Closed')],'Status', readonly=True),
+        'state':fields.selection([('draft', 'Draft'),('cancel', 'RFQ Cancelled'),('done', 'Confirm'),('close', 'Closed'),('raised', 'RFQ Raised')],'Status', readonly=True),
         }  
     _defaults = {
         'state': 'draft',         
@@ -3730,6 +3764,8 @@ class tpt_rfq_supplier(osv.osv):
     def bt_print(self, cr, uid, ids, context=None):
         assert len(ids) == 1, 'This option should only be used for a single id at a time.'
         self.write(cr, uid, ids, {'sent': True}, context=context)
+        self_browse = self.browse(cr, uid, ids)
+
         datas = {
              'ids': ids,
              'model': 'tpt.rfq.supplier',
@@ -3738,6 +3774,7 @@ class tpt_rfq_supplier(osv.osv):
         return {
             'type': 'ir.actions.report.xml',
             'report_name': 'tpt_rfq_supplier',
+            'name': self_browse[0].rfq_id.name + '-' + self_browse[0].vendor_id.vendor_code 
 #                 'datas': datas,
 #                 'nodestroy' : True
         }
