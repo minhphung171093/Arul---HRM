@@ -573,11 +573,11 @@ class account_invoice(osv.osv):
         'bill_date': fields.date('Bill Date'),
     }
       
-#     def check_tax_lines(self, cr, uid, inv, compute_taxes, ait_obj):
-#         company_currency = self.pool['res.company'].browse(cr, uid, inv.company_id.id).currency_id
-#         if not inv.tax_line:
-#             for tax in compute_taxes.values():
-#                 ait_obj.create(cr, uid, tax)
+    def check_tax_lines(self, cr, uid, inv, compute_taxes, ait_obj):
+        company_currency = self.pool['res.company'].browse(cr, uid, inv.company_id.id).currency_id
+        if not inv.tax_line:
+            for tax in compute_taxes.values():
+                ait_obj.create(cr, uid, tax)
 #         else:
 #             tax_key = []
 #             for tax in inv.tax_line:
