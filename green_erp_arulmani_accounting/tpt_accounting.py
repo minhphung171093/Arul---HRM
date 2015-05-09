@@ -706,6 +706,8 @@ class account_invoice(osv.osv):
         if context is None:
             context = {}
         for inv in self.browse(cr, uid, ids, context=context):
+#             if inv.tax_line:
+#                 cr.execute('delete from account_invoice_tax where invoice_id = %s', (inv.id,))
             if not inv.journal_id.sequence_id:
                 raise osv.except_osv(_('Error!'), _('Please define sequence on the journal related to this invoice.'))
             if not inv.invoice_line:

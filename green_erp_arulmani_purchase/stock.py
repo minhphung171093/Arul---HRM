@@ -833,6 +833,22 @@ account_invoice()
 class account_invoice_line(osv.osv):
     _inherit = "account.invoice.line"
     
+    def button_reset_taxes(self, cr, uid, ids, context=None):
+        if context is None:
+            context = {}
+        ctx = context.copy()
+        ait_obj = self.pool.get('account.invoice.tax')
+        for id in ids:
+            cr.execute("DELETE FROM account_invoice_tax WHERE invoice_id=%s AND manual is False", (id,))
+#             partner = self.browse(cr, uid, id, context=ctx).partner_id
+#             if partner.lang:
+#                 ctx.update({'lang': partner.lang})
+#             for taxe in ait_obj.compute(cr, uid, id, context=ctx).values():
+#                 ait_obj.create(cr, uid, taxe)
+#         # Update the stored value (fields.function), so we write to trigger recompute
+        self.pool.get('account.invoice').write(cr, uid, ids, {'invoice_line':[]}, context=ctx)
+        return True
+    
     def line_net_line_supplier_invo(self, cr, uid, ids, field_name, args, context=None):
         res = {}
         amount_basic = 0.0
