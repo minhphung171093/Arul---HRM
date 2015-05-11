@@ -1151,6 +1151,227 @@ class arul_hr_audit_shift_time(osv.osv):
                                                                        })
                     
                 employee_ids = emp_attendence_obj.search(cr, uid, [('employee_id','=',line.employee_id.id)])
+                ##
+                if line.in_time > line.out_time:
+                    time_total = 24-line.in_time + line.out_time
+                else:
+                    time_total = line.out_time - line.in_time
+                if line.diff_day and (line.in_time <= line.out_time):
+                    time_total += 24
+                    
+                #res[time.id]['total_hours'] = time_total 
+                ##
+                permission_count = 0
+                onduty_count = 0
+                perm_onduty_count = 0
+                total_hrs = 0
+                a_shift_count = 0
+                g1_shift_count = 0
+                g2_shift_count = 0
+                b_shift_count = 0
+                c_shift_count = 0
+                
+                total_shift_worked = 0
+                sql = '''
+                SELECT CASE WHEN SUM(time_total)!=0 THEN SUM(time_total) ELSE 0 END time_total FROM arul_hr_permission_onduty WHERE 
+                non_availability_type_id='permission' 
+                    AND TO_CHAR(date,'YYYY-MM-DD') = ('%s') and employee_id =%s and approval='t'
+                    '''%(line.work_date,line.employee_id.id)
+                cr.execute(sql)
+                b =  cr.fetchone()
+                permission_count = b[0]
+            
+                #OnDuty
+                sql = '''
+                    SELECT CASE WHEN SUM(time_total)!=0 THEN SUM(time_total) ELSE 0 END time_total FROM arul_hr_permission_onduty WHERE non_availability_type_id='on_duty' 
+                    AND TO_CHAR(date,'YYYY-MM-DD') = ('%s') and employee_id =%s and approval='t'
+                    '''%(line.work_date,line.employee_id.id)
+                cr.execute(sql)
+                c =  cr.fetchone()
+                onduty_count = c[0]
+                
+                perm_onduty_count =   permission_count + onduty_count
+                total_hrs = time_total + perm_onduty_count
+                
+                if line.actual_work_shift_id.code=='A' or line.actual_work_shift_id.code=='B' :
+                    if 3.7 <= total_hrs <= 4.15:  
+                        total_shift_worked = 0.5 
+                    if 4.15 <= total_hrs <= 7.45:  
+                        total_shift_worked = 0.5
+                    #        
+                    if 7.45 <= total_hrs <= 8.30:  
+                        total_shift_worked = 1
+                    if 8.30 <= total_hrs <= 11.175:  
+                        total_shift_worked = 1
+                    #        
+                    if 11.175 <= total_hrs <= 12.45:  
+                        total_shift_worked = 1.5
+                    if 12.45 <= total_hrs <= 15.3:  
+                        total_shift_worked = 1.5
+                    #    
+                    if 15.3 <= total_hrs <= 17.00:  
+                        total_shift_worked = 2
+                    if 17 <= total_hrs <= 19.00:  
+                        total_shift_worked = 2
+                    #
+                    if 19.025 <= total_hrs <= 21.15:  
+                        total_shift_worked = 2.5
+                    if 21.15 <= total_hrs <= 22.75:  
+                        total_shift_worked = 2.5
+                    #        
+                    if 22.75 <= total_hrs <= 25.3:  
+                        total_shift_worked = 3
+                    if 25.3 <= total_hrs <= 28:  
+                        total_shift_worked = 3
+                if line.actual_work_shift_id.code=='G1':
+                    if 3.7 <= total_hrs <= 4.15:  
+                        total_shift_worked = 0.5 
+                    if 4.15 <= total_hrs <= 7.45:  
+                        total_shift_worked = 0.5
+                    #        
+                    if 7.45 <= total_hrs <= 8.30:  
+                        total_shift_worked = 1
+                    if 8.30 <= total_hrs <= 11.175:  
+                        total_shift_worked = 1
+                    #        
+                    if 11.175 <= total_hrs <= 12.45:  
+                        total_shift_worked = 1.5
+                    if 12.45 <= total_hrs <= 15.3:  
+                        total_shift_worked = 1.5
+                    #    
+                    if 15.3 <= total_hrs <= 17.00:  
+                        total_shift_worked = 2
+                    if 17 <= total_hrs <= 19.00:  
+                        total_shift_worked = 2
+                    
+                    #
+                    if 19.025 <= total_hrs <= 21.15:  
+                        total_shift_worked= 2.5
+                    if 21.15 <= total_hrs <= 22.75:  
+                        total_shift_worked = 2.5
+                    #        
+                    if 22.75 <= total_hrs <= 25.3:  
+                        total_shift_worked = 3
+                    if 25.3 <= total_hrs <= 28:  
+                        total_shift_worked = 3 
+               
+                if line.actual_work_shift_id.code=='G2' or line.actual_work_shift_id.code=='C':
+                    if 3.7 <= total_hrs <= 4.15:  
+                        total_shift_worked = 0.5 
+                    if 4.15 <= total_hrs <= 7.45:  
+                        total_shift_worked = 0.5
+                    #        
+                    if 7.45 <= total_hrs <= 8.30:  
+                        total_shift_worked = 1
+                    if 8.30 <= total_hrs <= 11.175:  
+                        total_shift_worked = 1
+                    #        
+                    if 11.175 <= total_hrs <= 12.45:  
+                        total_shift_worked = 1.5
+                    if 12.45 <= total_hrs <= 15.3:  
+                        total_shift_worked = 1.5
+                    #    
+                    if 15.3 <= total_hrs <= 17.00:  
+                       total_shift_worked = 2
+                    if 17 <= total_hrs <= 19.00:  
+                        total_shift_worked = 2
+                    #
+                    if 19.025 <= total_hrs <= 21.15:  
+                        total_shift_worked = 2.5
+                    if 21.15 <= total_hrs <= 22.75:  
+                        total_shift_worked = 2.5
+                    #        
+                    if 22.75 <= total_hrs <= 25.3:  
+                        total_shift_worked = 3
+                    if 25.3 <= total_hrs <= 28:  
+                        total_shift_worked = 3   
+                #############
+                if line.in_time != 0 and line.out_time!=0: 
+                    if line.actual_work_shift_id.code=='A':  
+                        if 3.7 <= total_hrs <= 7.45:
+                            a_shift_count = 0.5
+                        if 7.45 <= total_hrs <= 11.175:
+                            a_shift_count = 1.0                    
+                        if 11.175 <=total_hrs<=15.3:
+                            a_shift_count = 1.0                       
+                        if 11.1 <=total_hrs<=15.3:
+                            a_shift_count = 1.0
+                            b_shift_count = 0.5
+                        if 15.3 <=total_hrs<=19.00:#19.00
+                            a_shift_count = 1.0
+                            b_shift_count = 1.0                                           
+                            
+                    if line.actual_work_shift_id.code=='B':                      
+                        if 3.7 <= total_hrs <= 7.45:
+                            b_shift_count = 0.5
+                        if 7.45 <= total_hrs <= 11.175:
+                            b_shift_count = 1.0                    
+                        if 11.175 <=total_hrs<=15.3:
+                            b_shift_count = 1.0                       
+                        if 11.1 <=total_hrs<=15.3:
+                            if line.in_time<=a_min_start_time:
+                                b_shift_count = 1.0
+                                a_shift_count = 0.5
+                            else:
+                                b_shift_count = 1.0
+                                c_shift_count = 0.5
+                        if 15.3 <=total_hrs<=19.00:#19.00
+                            if line.in_time<=a_min_start_time:
+                                b_shift_count = 1.0
+                                a_shift_count = 1.0 
+                            else:
+                                b_shift_count = 1.0
+                                c_shift_count = 1.0 
+                                            
+                    if line.actual_work_shift_id.code=='C':                                        
+                        if 3.7 <= total_hrs <= 7.45:
+                            c_shift_count = 0.5
+                        if 7.45 <= total_hrs <= 11.175:
+                            c_shift_count = 1.0                    
+                        if 11.175 <=total_hrs<=15.3:
+                            c_shift_count = 1.0                       
+                        if 11.1 <=total_hrs<=15.3:
+                            c_shift_count = 1.0
+                            a_shift_count = 0.5
+                        if 15.3 <=total_hrs<=19.00:#19.00
+                            c_shift_count = 1.0
+                            a_shift_count = 1.0 
+                        
+                    if line.actual_work_shift_id.code=='G1':                                        
+                        if 3.7 <= total_hrs <= 7.45:
+                            g1_shift_count = 0.5
+                        if 7.45 <= total_hrs <= 11.175:
+                            g1_shift_count = 1.0                    
+                        if 11.175 <=total_hrs<=15.3:
+                            g1_shift_count = 1.0                       
+                        if 11.1 <=total_hrs<=15.3:
+                            if line.in_time<=c_min_start_time:
+                                #c_shift_count = 1.0
+                                b_shift_count = 0.5
+                            else:    
+                                c_shift_count = 1.0
+                                #a_shift_count = 0.5
+                        if 15.3 <=total_hrs<=19.00:#19.00
+                            if line.in_time<=c_min_start_time:
+                                c_shift_count = 1.0
+                                b_shift_count = 1.0
+                            else:    
+                                c_shift_count = 1.0
+                                a_shift_count = 1.0 
+                            
+                    if line.actual_work_shift_id.code=='G2':                    
+                        if 3.7 <= total_hrs <= 7.45:
+                            g2_shift_count = 0.5
+                        if 7.45 <= total_hrs <= 11.175:
+                            g2_shift_count = 1.0                    
+                        if 11.175 <=total_hrs<=15.3:
+                            g2_shift_count = 1.0                       
+                        if 11.1 <=total_hrs<=15.3:
+                            g2_shift_count = 1.0
+                            b_shift_count = 0.5
+                        if 15.3 <=total_hrs<=19.00:#19.00
+                            g2_shift_count = 1.0
+                            b_shift_count = 1.0      
                 if employee_ids:                        
                     val2={'punch_in_out_id':employee_ids[0], 
                               'employee_id': line.employee_id.id,
@@ -1159,6 +1380,22 @@ class arul_hr_audit_shift_time(osv.osv):
                               'actual_work_shift_id':line.actual_work_shift_id.id,
                               'in_time':line.in_time,
                               'out_time':line.out_time,
+                              
+                              'total_hours':total_hrs,
+                              'a_shift_count':a_shift_count,
+                              'g1_shift_count':g1_shift_count,
+                              'g2_shift_count':g2_shift_count,
+                              'b_shift_count':b_shift_count,
+                              'c_shift_count':c_shift_count,
+                              'total_shift_worked':total_shift_worked,
+                              
+                              'a_shift_count1':a_shift_count,
+                              'g1_shift_count1':g1_shift_count,
+                              'g2_shift_count1':g2_shift_count,
+                              'b_shift_count1':b_shift_count,
+                              'c_shift_count1':c_shift_count,
+                              'total_shift_worked1':total_shift_worked,
+                              
                               'approval':1,
                               'diff_day': line.diff_day,
                                 }
@@ -1171,6 +1408,22 @@ class arul_hr_audit_shift_time(osv.osv):
                               'actual_work_shift_id':line.actual_work_shift_id.id,
                               'in_time':line.in_time,
                               'out_time':line.out_time,
+                              
+                              'total_hours':total_hrs,
+                              'a_shift_count':a_shift_count,
+                              'g1_shift_count':g1_shift_count,
+                              'g2_shift_count':g2_shift_count,
+                              'b_shift_count':b_shift_count,
+                              'c_shift_count':c_shift_count,
+                              'total_shift_worked':total_shift_worked,
+                              
+                              'a_shift_count1':a_shift_count,
+                              'g1_shift_count1':g1_shift_count,
+                              'g2_shift_count1':g2_shift_count,
+                              'b_shift_count1':b_shift_count,
+                              'c_shift_count1':c_shift_count,
+                              'total_shift_worked1':total_shift_worked,
+                              
                               'approval':1,
                               'diff_day': line.diff_day,
                               }
@@ -2722,10 +2975,13 @@ class arul_hr_punch_in_out_time(osv.osv):
         'g2_shift_count': fields.function(_shift_count,store=True,type='float',  string='G2', multi='shift_count'),
 #         
         
-        #'g1_shift_count': fields.float('G1', states={'done': [('readonly', True)], 'cancel': [('readonly', True)]}),
-        #'g2_shift_count': fields.float('G2', states={'done': [('readonly', True)], 'cancel': [('readonly', True)]}),
-        #'b_shift_count': fields.float('B', states={'done': [('readonly', True)], 'cancel': [('readonly', True)]}),
-        #'c_shift_count': fields.float('C', states={'done': [('readonly', True)], 'cancel': [('readonly', True)]}),
+        'total_shift_worked1': fields.float('Total Shift'),
+        
+        'a_shift_count1': fields.float('A-1'),
+        'g1_shift_count1': fields.float('G1-1'),
+        'g2_shift_count1': fields.float('G2-1'),
+        'b_shift_count1': fields.float('B-1'),
+        'c_shift_count1': fields.float('C-1'),
         
         'shift_plus': fields.float('S+', states={'done': [('readonly', True)], 'cancel': [('readonly', True)]}),
         'shift_minus': fields.float('S-', states={'done': [('readonly', True)], 'cancel': [('readonly', True)]}),
@@ -2736,6 +2992,13 @@ class arul_hr_punch_in_out_time(osv.osv):
     
     _defaults = {
         'state':'draft',
+        'a_shift_count1':0.0,
+        'g1_shift_count1':0.0,
+        'g2_shift_count1':0.0,
+        'b_shift_count1':0.0,
+        'c_shift_count1':0.0,
+        'total_shift_worked1':0.0,
+        
         'shift_plus':0.0,
         'shift_minus':0.0,
     }

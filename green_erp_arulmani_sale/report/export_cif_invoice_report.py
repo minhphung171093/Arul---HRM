@@ -71,13 +71,14 @@ class Parser(report_sxw.rml_parse):
         elif not partner.street3 and not partner.city and partner.zip:
             return partner.zip
     def get_state_country(self,partner):
-        
-        if (partner.state_id.name).replace(" ", ""):
-            return partner.state_id.name+", "+partner.country_id.name
-        else:
-            return partner.country_id.name
+        #raise osv.except_osv(_('Warning!:'),_(partner.state_id.name))
+        if partner.state_id.name:
+            if (partner.state_id.name).replace(" ", ""):
+                return partner.state_id.name+", "+partner.country_id.name
+            else:
+                return partner.country_id.name
     def get_s3(self,partner):
-        if partner.street3:
+        if partner.street3 and partner.city:
             return partner.street3+", "+partner.city
         else:
             return partner.city
