@@ -1966,7 +1966,7 @@ class account_voucher(osv.osv):
             elif context.get('journal_entry_create',False):
                 sql = '''
                     update account_voucher set type_cash_bank = 'journal' where id = %s
-                '''%(new_id)
+                '''%(voucher.id)
                 cr.execute(sql)
                 total_debit = 0
                 total_credit = 0
