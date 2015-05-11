@@ -55,8 +55,9 @@ class Parser(report_sxw.rml_parse):
             select executions_details_id from arul_hr_payroll_other_deductions
                 where deduction_parameters_id in (select id from arul_hr_payroll_deduction_parameters where code='ESI.D') and "float"!=0
                     and executions_details_id in (select id from arul_hr_payroll_executions_details where month='%s' and year='%s')
-                group by executions_details_id
+                
         '''%(month,year)
+        #group by executions_details_id
         self.cr.execute(sql)
         payroll_detail_obj = self.pool.get('arul.hr.payroll.executions.details')
         payroll_detail_ids = [r[0] for r in self.cr.fetchall()]
@@ -67,7 +68,12 @@ class Parser(report_sxw.rml_parse):
         if employee and employee.statutory_ids:
             esi_no = employee.statutory_ids[0].esi_no
         return esi_no
-    
+    def length_month(self,year, month):
+        if month == 2 and (year % 4 == 0) and (year % 100 != 0) or (year % 400 == 0):
+            value =  29
+        else: 
+            value =  [0, 31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31][month]
+        return value
     def get_no_of_day_work(self, employee):
         wizard_data = self.localcontext['data']['form']
         month = wizard_data['month']
@@ -79,7 +85,23 @@ class Parser(report_sxw.rml_parse):
                         punch_in_out_id in (select id from arul_hr_employee_attendence_details where employee_id=%s)
         '''%(int(month), int(year),employee.id)
         self.cr.execute(sql)
-        no_of_day_work = self.cr.fetchone()
+        #no_of_day_work = self.cr.fetchone()
+        
+        calendar_days = self.length_month(int(year),int(month))
+                
+        sql = '''
+                SELECT CASE WHEN SUM(days_total)!=0 THEN 
+                SUM(days_total) ELSE 0 END days_total FROM 
+                arul_hr_employee_leave_details WHERE EXTRACT(year FROM date_from) = %s 
+                AND EXTRACT(month FROM date_from) = %s AND employee_id =%s AND
+                leave_type_id in (select id from arul_hr_leave_types where code in ('LOP','ESI'))
+        '''%(int(month), int(year),employee.id)
+        self.cr.execute(sql)
+        lop_esi =  self.cr.fetchone()
+        tpt_lop_esi = lop_esi[0]
+        total_no_of_leave = tpt_lop_esi
+        no_of_day_work = calendar_days - total_no_of_leave
+        
         return no_of_day_work
     
     def get_no_of_shift_work(self, employee):
@@ -126,7 +148,33 @@ class Parser(report_sxw.rml_parse):
         t_g2 =  self.cr.fetchone()
         tpt_g2 = t_g2[0]
         
-        return tpt_a+tpt_b+tpt_c+tpt_g1+tpt_g2
+        total_shift_worked = 0.0  
+        #Shift Count
+        sql = '''
+                SELECT CASE WHEN SUM(total_shift_worked + shift_plus - shift_minus)!=0 THEN SUM(total_shift_worked + shift_plus - shift_minus) ELSE 0 END total_shift_worked FROM arul_hr_punch_in_out_time WHERE EXTRACT(year FROM work_date) = %s 
+                AND EXTRACT(month FROM work_date) = %s AND employee_id =%s
+                '''%(int(year), int(month),employee.id)
+        self.cr.execute(sql)
+        a =  self.cr.fetchone()
+        shift_count = a[0]
+        #OnDuty
+        sql = '''
+                SELECT CASE WHEN SUM(total_shift_worked)!=0 THEN SUM(total_shift_worked) ELSE 0 END total_shift_worked 
+                FROM arul_hr_permission_onduty WHERE non_availability_type_id='on_duty' 
+                AND EXTRACT(year FROM date) = %s AND EXTRACT(month FROM date) = %s and employee_id =%s and total_shift_worked>=1 and approval='t'
+                '''%(int(year), int(month),employee.id)
+        self.cr.execute(sql)
+        c =  self.cr.fetchone()
+        onduty_count = c[0]
+                
+                #TOTAL SHIFT WORKED
+                #raise osv.except_osv(_('Warning!%s'),_(permission_count))  
+          
+                #if  shift_count:
+        total_shift_worked = shift_count + onduty_count
+                        
+        #return tpt_a+tpt_b+tpt_c+tpt_g1+tpt_g2
+        return total_shift_worked
     
     def get_gross(self, employee):
         wizard_data = self.localcontext['data']['form']

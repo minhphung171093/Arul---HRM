@@ -216,12 +216,24 @@ class Parser(report_sxw.rml_parse):
                 SUM(days_total) ELSE 0 END days_total FROM 
                 arul_hr_employee_leave_details WHERE EXTRACT(year FROM date_from) = %s 
                 AND EXTRACT(month FROM date_from) = %s AND employee_id =%s AND
-                leave_type_id in (select id from arul_hr_leave_types where code in ('LOP','ESI'))
+                leave_type_id in (select id from arul_hr_leave_types where code in ('LOP'))
                 '''%(year,month,emp_id)
                 self.cr.execute(sql)
-                lop_esi =  self.cr.fetchone()
-                tpt_lop_esi = lop_esi[0]
-                total_no_of_leave = tpt_lop_esi
+                lop_leave =  self.cr.fetchone()
+                tpt_lop_leave = lop_leave[0]
+                #total_no_of_leave = tpt_lop_leave
+                
+                sql = '''
+                SELECT CASE WHEN SUM(days_total)!=0 THEN 
+                SUM(days_total) ELSE 0 END days_total FROM 
+                arul_hr_employee_leave_details WHERE EXTRACT(year FROM date_from) = %s 
+                AND EXTRACT(month FROM date_from) = %s AND employee_id =%s AND
+                leave_type_id in (select id from arul_hr_leave_types where code in ('ESI'))
+                '''%(year,month,emp_id)
+                self.cr.execute(sql)
+                esi_leave =  self.cr.fetchone()
+                tpt_esi_leave = esi_leave[0]
+                #total_no_of_leave = tpt_lop_esi
                 
                 special_holiday_worked_count =  0  
                 #SELECT COUNT(work_date) AS date_holiday_count                             
@@ -271,7 +283,8 @@ class Parser(report_sxw.rml_parse):
                     'total_ded':format(total_ded,'.2f'),
                     'pt':pt,
                     #'lop':lop, 
-                    'lop':total_no_of_leave,
+                    'lop':tpt_lop_leave,
+                    'esi':tpt_esi_leave,
                     'vpf': format(vpf,'.2f'),
                     'esi_con': format(esi_con,'.2f'),
                     'esi_limit':format(esi_limit,'.2f'),
@@ -281,7 +294,7 @@ class Parser(report_sxw.rml_parse):
                     'total_fd':format(total_fd,'.2f'),
                    
                     'calendar_days':calendar_days, 
-                    'ndw':calendar_days-total_no_of_leave,
+                    'ndw':calendar_days-(tpt_lop_leave+tpt_esi_leave),
                     'special_holiday_worked_count':special_holiday_worked_count,
                     'md1':format(i_lic_prem + i_others + l_vvti_loan + l_lic_hfl + l_hdfc + l_tmb + l_sbt + l_others,'.2f'),
                 
