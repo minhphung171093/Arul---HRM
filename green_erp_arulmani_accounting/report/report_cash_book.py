@@ -169,7 +169,8 @@ class Parser(report_sxw.rml_parse):
     
     def get_account_master_name(self):  
         sql = '''
-            select name from account_account where id in (select account_id from account_voucher where type_cash_bank = 'cash')
+            SELECT name FROM account_account
+                WHERE name LIKE '%CASH IN HAND%'
         '''
         self.cr.execute(sql)
         name = self.cr.dictfetchone()
@@ -177,7 +178,8 @@ class Parser(report_sxw.rml_parse):
     
     def get_account_master_code(self):  
         sql = '''
-            select code from account_account where id in (select account_id from account_voucher where type_cash_bank = 'cash')
+            SELECT code FROM account_account
+                WHERE code LIKE '%0000110001%'
         '''
         self.cr.execute(sql)
         code = self.cr.dictfetchone()
