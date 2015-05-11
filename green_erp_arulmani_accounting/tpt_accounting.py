@@ -1807,6 +1807,7 @@ class account_voucher(osv.osv):
         'tpt_amount':fields.function(_get_tpt_currency_amount,type='float',string='Paid Amount (INR)'),
         'tpt_currency_amount':fields.float('Paid Amount'),
         'payee':fields.char('Payee', size=1024),
+        'employee_id':fields.many2one('hr.employee','Employee'),
         }
     
     
