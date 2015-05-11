@@ -80,6 +80,7 @@
 							
 							
 							<field name="header_text" attrs="{'readonly': [('document_type', 'not in', ('service','consumable','capital')),('state', '=', 'done')]}"/>
+							<field name="cost_center_id" options="{'create': false, 'create_edit': false}" />
 						</group>
 						<group >
 							<field name="select_normal" invisible = '1' widget = "radio" attrs="{'invisible': [('intdent_cate', '!=', 'normal')]}" />
@@ -558,6 +559,7 @@
 					<!-- <field name="ecc_no" />  -->
 					<field name="payment_term_id" options="{'create': false, 'create_edit': false}" widget="selection"/>
 					<field name="deli_sche" />
+					<field name="cost_center_id" options="{'create': false, 'create_edit': false}" />
 		<!--			<field name="purchase_tax_id" options="{'create': false, 'create_edit': false}"/> -->
 				</xpath> 
 				<xpath expr="//field[@name='partner_ref']" position="after">
@@ -1834,6 +1836,7 @@
 							<field name="date_expec"/>
 							<field name="project_id" options="{'create': false, 'create_edit': false}"/>
 							<field name="project_section_id" domain="[('project_id','=',project_id)]" options="{'create': false, 'create_edit': false}"/>
+							<field name="cost_center_id" options="{'create': false, 'create_edit': false}" />
 						</group>
 						<notebook>
 							<page string = "Materials">
