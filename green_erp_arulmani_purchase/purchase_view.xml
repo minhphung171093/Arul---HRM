@@ -1817,6 +1817,7 @@
 	            <form string="Material Request" version="7.0">   
 	             <header>
 	            		<button name="bt_approve" states='draft' string="Confirm" type="object" class="oe_highlight" />
+	            		<button name="bt_load_norm" attrs="{'invisible': ['|',('request_type', '!=', 'production'), ('state', '=', 'done')]}" string="Load Lines from Norms" type="object" class="oe_highlight" />
 	                    <field name="state" widget="statusbar" statusbar_visible="draft,done" statusbar_colors='{"draft":"blue"}'/>
 	            </header>    
 	            	<sheet>
