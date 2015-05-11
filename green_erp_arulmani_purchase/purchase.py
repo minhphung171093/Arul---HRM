@@ -82,7 +82,7 @@ class tpt_purchase_indent(osv.osv):
         for line in self.browse(cr, uid, ids):
             for indent_line in line.purchase_product_line:
                 if line.document_type == 'service':
-                    self.pool.get('tpt.purchase.product').write(cr, uid,  [indent_line.id],{'state':'++'})
+                    self.pool.get('tpt.purchase.product').write(cr, uid,  [indent_line.id],{'state':'+'})
                 else:
                     self.pool.get('tpt.purchase.product').write(cr, uid,  [indent_line.id],{'state':'confirm'})
         return self.write(cr, uid, ids,{'state':'done'})
