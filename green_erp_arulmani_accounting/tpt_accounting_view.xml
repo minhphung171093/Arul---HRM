@@ -810,6 +810,7 @@
                         <field name="sum_amount"/>
                         <field name="cheque_date"/>
                         <field name="cheque_no"/>
+                        <field name="employee_id" options="{'create': false, 'create_edit': false}" />
                         <field name="payee"/>
                         <field name="payment_rate_currency_id" invisible="1"/>
                         <field name="partner_id" invisible = '1' on_change="onchange_journal_voucher(line_ids, tax_id, amount, partner_id, journal_id, type)"/>
@@ -941,6 +942,7 @@
                         <field name="sum_amount"/>
                         <field name="cheque_date"/>
                         <field name="cheque_no"/>
+                        <field name="employee_id" options="{'create': false, 'create_edit': false}" />
                         <field name="payee"/>
                         <field name="payment_rate_currency_id" invisible="1"/>
                         <field name="partner_id" invisible = '1' on_change="onchange_journal_voucher(line_ids, tax_id, amount, partner_id, journal_id, type)"/>
