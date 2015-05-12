@@ -1,6 +1,27 @@
 <?xml version="1.0" encoding="utf-8"?>
 <openerp>
     <data>
+    	
+    	<record id="base.action_partner_supplier_form" model="ir.actions.act_window">
+            <field name="name">Suppliers</field>
+            <field name="type">ir.actions.act_window</field>
+            <field name="res_model">res.partner</field>
+            <field name="view_type">form</field>
+            <field name="domain">[('supplier','=',1)]</field>
+            <field name="view_mode">kanban,tree,form</field>
+            <field name="context">{'search_default_supplier': 1,'default_customer': 0,'default_supplier': 1}</field>
+            <field name="filter" eval="True"/>
+            <field name="help" type="html">
+              <p class="oe_view_nocontent_create">
+                Click to add a contact in your address book.
+              </p><p>
+                OpenERP helps you easily track all activities related to
+                a supplier: discussions, history of purchases,
+                documents, etc.
+              </p>
+            </field>
+        </record>
+    	
 	   	<record id="view_tpt_purchase_indent_tree" model="ir.ui.view">
 			<field name="name">tpt.purchase.indent.tree</field>
 			<field name="model">tpt.purchase.indent</field>
@@ -1272,9 +1293,10 @@
 							<page string = "Products Specification">
 								<field name="specification_line" nolabel='1'>
 									<tree editable='bottom'>
-										<field name="name" />
+										<field name="name" options="{'create': false, 'create_edit': false}"/>
 										<field name="value" />
 										<field name="exp_value" />
+										<field name="uom_id" options="{'create': false, 'create_edit': false}"/>
 									</tree>
 								</field>
 							</page>
@@ -1340,6 +1362,7 @@
 										<field name="name" />
 										<field name="value" />
 										<field name="exp_value" />
+										<field name="uom_id" options="{'create': false, 'create_edit': false}"/>
 									</tree>
 								</field>
 							</page>
@@ -1819,6 +1842,7 @@
 	            <form string="Material Request" version="7.0">   
 	             <header>
 	            		<button name="bt_approve" states='draft' string="Confirm" type="object" class="oe_highlight" />
+	            		<button name="bt_load_norm" attrs="{'invisible': ['|',('request_type', '!=', 'production'), ('state', '=', 'done')]}" string="Load Lines from Norms" type="object" class="oe_highlight" />
 	                    <field name="state" widget="statusbar" statusbar_visible="draft,done" statusbar_colors='{"draft":"blue"}'/>
 	            </header>    
 	            	<sheet>

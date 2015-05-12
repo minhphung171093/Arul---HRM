@@ -402,7 +402,38 @@ class stock_location(osv.osv):
         'gl_pos_verification_id': fields.many2one('account.account', 'Account Warehouse'),
         }
 stock_location()
- 
+class stock_picking_in(osv.osv):
+    _inherit = "stock.picking.in"
+    
+    def search(self, cr, uid, args, offset=0, limit=None, order=None, context=None, count=False):
+        if context is None:
+            context = {}
+        if context.get('search_grn_no_id'):
+            sql = '''
+                select picking_id from stock_move where state = 'cancel' group by picking_id
+            '''
+            cr.execute(sql)
+            picking_ids = [row[0] for row in cr.fetchall()]
+            args += [('id','in',picking_ids)]
+            
+        if context.get('search_grn_with_name', False):
+            name = context.get('name')
+            grn_ids = self.search(cr, uid, [('name','like',name)])
+            args += [('id','in',grn_ids)]
+        return super(stock_picking_in, self).search(cr, uid, args, offset=offset, limit=limit, order=order, context=context, count=count)
+    
+    def name_search(self, cr, user, name, args=None, operator='ilike', context=None, limit=100):
+        if context is None:
+            context = {}
+        if name:
+            context.update({'search_grn_with_name':1,'name':name})
+        ids = self.search(cr, user, args, context=context, limit=limit)
+        return self.name_get(cr, user, ids, context=context)
+
+
+    
+stock_picking_in() 
+
 class stock_picking(osv.osv):
     _inherit = "stock.picking"
         
@@ -563,6 +594,23 @@ class stock_picking(osv.osv):
 #                         '''%(so_id)
 #                         cr.execute(sql)
         return new_write
+    
+    def search(self, cr, uid, args, offset=0, limit=None, order=None, context=None, count=False):
+        if context is None:
+            context = {}
+        if context.get('search_grn_with_name', False):
+            name = context.get('name')
+            grn_ids = self.search(cr, uid, [('name','like',name)])
+            args += [('id','in',grn_ids)]
+        return super(stock_picking, self).search(cr, uid, args, offset=offset, limit=limit, order=order, context=context, count=count)
+    
+    def name_search(self, cr, user, name, args=None, operator='ilike', context=None, limit=100):
+        if context is None:
+            context = {}
+        if name:
+            context.update({'search_grn_with_name':1,'name':name})
+        ids = self.search(cr, user, args, context=context, limit=limit)
+        return self.name_get(cr, user, ids, context=context)
         
 stock_picking()
 class account_invoice(osv.osv):
@@ -706,6 +754,8 @@ class account_invoice(osv.osv):
         if context is None:
             context = {}
         for inv in self.browse(cr, uid, ids, context=context):
+#             if inv.tax_line:
+#                 cr.execute('delete from account_invoice_tax where invoice_id = %s', (inv.id,))
             if not inv.journal_id.sequence_id:
                 raise osv.except_osv(_('Error!'), _('Please define sequence on the journal related to this invoice.'))
             if not inv.invoice_line:
@@ -1690,7 +1740,8 @@ class product_product(osv.osv):
                              union all
                              select st.product_qty*-1 as product_qty
                                 from stock_move st 
-                                where st.product_id=%s
+                                where st.state='done'
+                                        and st.product_id=%s
                                             and location_id=%s
                                             and location_dest_id != location_id
                                              and production_id is not null
@@ -3484,6 +3535,23 @@ class res_partner(osv.osv):
                                             })
             vals.update({'property_account_receivable':acc_id})
         return super(res_partner, self).create(cr, uid, vals, context)
+    
+    def search(self, cr, uid, args, offset=0, limit=None, order=None, context=None, count=False):
+        if context is None:
+            context = {}
+        if context.get('search_partner_with_name', False):
+            name = context.get('name')
+            partner_ids = self.search(cr, uid, [('name','like',name)])
+            args += [('id','in',partner_ids)]
+        return super(res_partner, self).search(cr, uid, args, offset=offset, limit=limit, order=order, context=context, count=count)
+    
+    def name_search(self, cr, user, name, args=None, operator='ilike', context=None, limit=100):
+        if context is None:
+            context = {}
+        if name:
+            context.update({'search_partner_with_name':1,'name':name})
+        ids = self.search(cr, user, args, context=context, limit=limit)
+        return self.name_get(cr, user, ids, context=context)
 res_partner()
 
 class account_tax(osv.osv):

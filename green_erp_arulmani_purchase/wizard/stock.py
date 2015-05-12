@@ -118,8 +118,9 @@ class stock_partial_picking(osv.osv_memory):
                 if wizard_line.product_id.categ_id.cate_name=='raw':
                     for para in wizard_line.product_id.spec_parameter_line: 
                         product_line.append((0,0,{
-                                            'name':para.name,
+                                            'name':para.name and para.name.id or False,
                                            'value':para.required_spec,
+                                           'uom_id':para.uom_po_id and para.uom_po_id.id or False,
                                            }))
                 quanlity_vals.append({
                         'product_id':wizard_line.product_id.id,

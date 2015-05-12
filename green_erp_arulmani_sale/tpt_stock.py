@@ -901,10 +901,12 @@ class stock_move(osv.osv):
                             }
             if line.product_id and line.product_uom:
                 if line.product_uom.id != line.product_id.uom_id.id:
-                    if line.product_id.__hasattr__('uom_ids'):
-                        res[line.id]['primary_qty'] = uom_obj._compute_qty(cr, uid, line.product_uom.id, line.product_qty, line.product_id.uom_id.id, product_id=line.product_id.id)
-                    else:
-                        res[line.id]['primary_qty'] = uom_obj._compute_qty(cr, uid, line.product_uom.id, line.product_qty, line.product_id.uom_id.id)
+                    cate = line.product_id.categ_id and line.product_id.categ_id.cate_name or False
+                    if cate != 'consum':
+                        if line.product_id.__hasattr__('uom_ids') and (line.product_id.categ_id.cate_name == 'consum'):
+                            res[line.id]['primary_qty'] = uom_obj._compute_qty(cr, uid, line.product_uom.id, line.product_qty, line.product_id.uom_id.id, product_id=line.product_id.id)
+                        else:
+                            res[line.id]['primary_qty'] = uom_obj._compute_qty(cr, uid, line.product_uom.id, line.product_qty, line.product_id.uom_id.id)
                 else:
                     res[line.id]['primary_qty'] = line.product_qty
         return res
