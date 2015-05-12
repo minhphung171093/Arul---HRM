@@ -136,6 +136,8 @@ class Parser(report_sxw.rml_parse):
             l_tmb = 0 
             l_sbt = 0 
             l_others = 0
+            md1 = 0
+            lic = 0
             
             if payroll_ids:
                 payroll = payroll_obj.browse(self.cr, self.uid, payroll_ids[0])
@@ -296,7 +298,8 @@ class Parser(report_sxw.rml_parse):
                     'calendar_days':calendar_days, 
                     'ndw':calendar_days-(tpt_lop_leave+tpt_esi_leave),
                     'special_holiday_worked_count':special_holiday_worked_count,
-                    'md1':format(i_lic_prem + i_others + l_vvti_loan + l_lic_hfl + l_hdfc + l_tmb + l_sbt + l_others,'.2f'),
+                    'md1':format(l_vvti_loan + l_lic_hfl + l_hdfc + l_tmb + l_sbt + l_others,'.2f'),
+                    'lic':format(i_lic_prem + i_others,'.2f'),
                 
                 })
         return res
