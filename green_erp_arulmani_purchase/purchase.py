@@ -2653,11 +2653,21 @@ class purchase_order(osv.osv):
             po_ids = [row[0] for row in cr.fetchall()]
             args += [('id','in',po_ids)]
             
+        if context.get('search_po_with_name', False):
+            name = context.get('name')
+            po_ids = self.search(cr, uid, [('name','like',name)])
+            args += [('id','in',po_ids)]
+
+            
         return super(purchase_order, self).search(cr, uid, args, offset=offset, limit=limit, order=order, context=context, count=count)
     
     def name_search(self, cr, user, name, args=None, operator='ilike', context=None, limit=100):
-       ids = self.search(cr, user, args, context=context, limit=limit)
-       return self.name_get(cr, user, ids, context=context)
+        if context is None:
+            context = {}
+        if name:
+            context.update({'search_po_with_name':1,'name':name})
+        ids = self.search(cr, user, args, context=context, limit=limit)
+        return self.name_get(cr, user, ids, context=context)
    
     def _prepare_order_picking(self, cr, uid, order, context=None):
         return {
@@ -3039,11 +3049,20 @@ class stock_picking_in(osv.osv):
             cr.execute(sql)
             picking_ids = [row[0] for row in cr.fetchall()]
             args += [('id','in',picking_ids)]
+            
+        if context.get('search_grn_with_name', False):
+            name = context.get('name')
+            grn_ids = self.search(cr, uid, [('name','like',name)])
+            args += [('id','in',grn_ids)]
         return super(stock_picking_in, self).search(cr, uid, args, offset=offset, limit=limit, order=order, context=context, count=count)
     
     def name_search(self, cr, user, name, args=None, operator='ilike', context=None, limit=100):
-       ids = self.search(cr, user, args, context=context, limit=limit)
-       return self.name_get(cr, user, ids, context=context)
+        if context is None:
+            context = {}
+        if name:
+            context.update({'search_grn_with_name':1,'name':name})
+        ids = self.search(cr, user, args, context=context, limit=limit)
+        return self.name_get(cr, user, ids, context=context)
 
 
     
@@ -3076,8 +3095,8 @@ class tpt_good_return_request(osv.osv):
     
     def onchange_grn_no_id(self, cr, uid, ids,grn_no_id=False,context=None):
         vals = {}
+        details = []
         if grn_no_id :
-            details = []
             picking = self.pool.get('stock.picking.in').browse(cr, uid, grn_no_id)
             stock = self.pool.get('stock.move')
             stock_ids = stock.search(cr,uid,[('picking_id','=',grn_no_id), ('state', '=', 'cancel')])
@@ -3091,7 +3110,7 @@ class tpt_good_return_request(osv.osv):
                           'state': 'reject',
                           'reason': quality.reason,
                           }
-                details.append((0,0,rs))
+                    details.append((0,0,rs))
                      
         return {'value': {'product_detail_line': details}}
     
