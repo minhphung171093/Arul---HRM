@@ -113,6 +113,34 @@
 				</xpath>
 			</field>
 		</record>
+		
+		<record id="view_account_invoice_filter" model="ir.ui.view">
+            <field name="name">account.invoice.select</field>
+            <field name="model">account.invoice</field>
+            <field name="arch" type="xml">
+                <search string="Search Invoice">
+                	<field name="name" string = 'Document No'/>
+                	<field name="partner_id"/>
+                	<field name="purchase_id"/>
+                	<field name="grn_no"/>
+                    <filter name="draft" string="Draft" domain="[('state','=','draft')]" help="Draft Invoices"/>
+                    <filter name="proforma" string="Proforma" domain="[('state','=','proforma2')]" help="Proforma Invoices" groups="account.group_proforma_invoices"/>
+                    <filter name="invoices" string="Invoices" domain="[('state','not in',['draft','cancel'])]" help="Proforma/Open/Paid Invoices"/>
+                    <filter name="unpaid" string="Unpaid" domain="[('state','=','open')]" help="Unpaid Invoices"/>
+                    <separator/>
+                    <filter domain="[('user_id','=',uid)]" help="My Invoices" icon="terp-personal"/>
+                    <group expand="0" string="Group By...">
+                        <filter string="Partner" icon="terp-partner" domain="[]" context="{'group_by':'partner_id'}"/>
+                        <filter string="Responsible" icon="terp-personal" domain="[]"  context="{'group_by':'user_id'}"/>
+                        <filter string="Journal" icon="terp-folder-orange" domain="[]" context="{'group_by':'journal_id'}"/>
+                        <filter string="Status" icon="terp-stock_effects-object-colorize" domain="[]"  context="{'group_by':'state'}"/>
+                        <filter string="Period" icon="terp-go-month" domain="[]" context="{'group_by':'period_id'}"/>
+                        <filter string="Invoice Date" icon="terp-go-month" domain="[]"  context="{'group_by':'date_invoice'}"/>
+                        <filter string="Due Date" icon="terp-go-month" domain="[]"  context="{'group_by':'date_due'}"/>
+                    </group>
+               </search>
+            </field>
+        </record>
 
 
 		<record id="tpt_account_supplier_invoice_form" model="ir.ui.view">
@@ -305,7 +333,7 @@
 					<field name="ed_type"/>
 				</xpath> 
 				<xpath expr="//page[@string='Invoice']/field/tree/field[@name='invoice_line_tax_id']" position="after">
-					<field name="aed_id" domain="[('type_tax_use','=','excise_duty')]"/>
+					<field name="aed_id_1" />
 					<field name="fright"/>
 					<field name="fright_type"/>
 					<field name="line_net"/>
@@ -529,7 +557,7 @@
             <field eval="False" name="view_id" ref="view_tpt_supplier_invoice_without_po_tree"/>
             <field name="domain">[('type','=','in_invoice'),('purchase_id','=',False)]</field>
             <field name="context">{'default_type': 'in_invoice', 'type': 'in_invoice', 'journal_type': 'purchase'}</field>
-            <field name="search_view_id" ref="account.view_account_invoice_filter"/>
+            <field name="search_view_id" ref="view_account_invoice_filter"/>
         </record>
         <record id="action_invoice_supplier_without_po1" model="ir.actions.act_window.view">
             <field eval="3" name="sequence"/>
@@ -749,7 +777,7 @@
             <field eval="False" name="view_id" ref="view_tpt_service_invoice_tree"/>
             <field name="domain">[('type','=','in_invoice'), ('purchase_id.po_document_type','=', 'service')]</field>
             <field name="context">{'default_type': 'in_invoice', 'type': 'in_invoice', 'journal_type': 'purchase'}</field>
-            <field name="search_view_id" ref="account.view_account_invoice_filter"/>
+            <field name="search_view_id" ref="view_account_invoice_filter"/>
         </record>
         <record id="action_invoice_service1" model="ir.actions.act_window.view">
             <field eval="5" name="sequence"/>
@@ -1051,7 +1079,7 @@
             <field eval="False" name="view_id"/>
             <field name="domain">[('type','=','in_invoice'),('purchase_id','!=',False)]</field>
             <field name="context">{'default_type': 'in_invoice', 'type': 'in_invoice', 'journal_type': 'purchase'}</field>
-            <field name="search_view_id" ref="account.view_account_invoice_filter"/>
+            <field name="search_view_id" ref="view_account_invoice_filter"/>
             <field name="help" type="html">
               <p class="oe_view_nocontent_create">
                 Click to record a new supplier invoice.

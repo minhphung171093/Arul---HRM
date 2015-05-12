@@ -1272,9 +1272,10 @@
 							<page string = "Products Specification">
 								<field name="specification_line" nolabel='1'>
 									<tree editable='bottom'>
-										<field name="name" />
+										<field name="name" options="{'create': false, 'create_edit': false}"/>
 										<field name="value" />
 										<field name="exp_value" />
+										<field name="uom_id" options="{'create': false, 'create_edit': false}"/>
 									</tree>
 								</field>
 							</page>
@@ -1340,6 +1341,7 @@
 										<field name="name" />
 										<field name="value" />
 										<field name="exp_value" />
+										<field name="uom_id" options="{'create': false, 'create_edit': false}"/>
 									</tree>
 								</field>
 							</page>
@@ -1819,6 +1821,7 @@
 	            <form string="Material Request" version="7.0">   
 	             <header>
 	            		<button name="bt_approve" states='draft' string="Confirm" type="object" class="oe_highlight" />
+	            		<button name="bt_load_norm" attrs="{'invisible': ['|',('request_type', '!=', 'production'), ('state', '=', 'done')]}" string="Load Lines from Norms" type="object" class="oe_highlight" />
 	                    <field name="state" widget="statusbar" statusbar_visible="draft,done" statusbar_colors='{"draft":"blue"}'/>
 	            </header>    
 	            	<sheet>

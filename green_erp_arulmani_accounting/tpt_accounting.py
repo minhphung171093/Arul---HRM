@@ -706,6 +706,8 @@ class account_invoice(osv.osv):
         if context is None:
             context = {}
         for inv in self.browse(cr, uid, ids, context=context):
+#             if inv.tax_line:
+#                 cr.execute('delete from account_invoice_tax where invoice_id = %s', (inv.id,))
             if not inv.journal_id.sequence_id:
                 raise osv.except_osv(_('Error!'), _('Please define sequence on the journal related to this invoice.'))
             if not inv.invoice_line:
@@ -1690,7 +1692,8 @@ class product_product(osv.osv):
                              union all
                              select st.product_qty*-1 as product_qty
                                 from stock_move st 
-                                where st.product_id=%s
+                                where st.state='done'
+                                        and st.product_id=%s
                                             and location_id=%s
                                             and location_dest_id != location_id
                                              and production_id is not null
