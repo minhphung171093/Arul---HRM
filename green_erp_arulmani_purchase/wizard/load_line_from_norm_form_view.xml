@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<openerp>
+    <data>
+	    <record id="load_line_from_norm_form_view" model="ir.ui.view">
+	        <field name="name">load.line.from.norm.form</field>
+	        <field name="model">load.line.from.norm</field>
+	        <field eval="20" name="priority"/>
+	        <field name="arch" type="xml">
+	            <form string="Notify" version="7.0">
+	            <h1>
+	                <field name="message"  nolabel="1" />
+	            </h1>
+	            <group>
+	            	<field name="bom_id" domain="[('state','=','finance_manager'),('bom_id','=',False)]" options="{'create': false, 'create_edit': false}"/>
+	            </group>
+	                <footer>
+	                    <button name="tick_ok" type='object' string="OK" class="oe_highlight"/>
+	                    or
+	                    <button string="Cancel" class="oe_highlight" special="cancel" />
+	                </footer>
+	            </form>
+	        </field>
+    	</record>
+	    
+    </data>
+</openerp>
+
