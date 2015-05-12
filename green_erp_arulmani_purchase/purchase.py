@@ -4223,7 +4223,7 @@ class tpt_material_request_line(osv.osv):
 #             ton_sl = cr.dictfetchone()['ton_sl']
             
             
-            
+            onhand_qty = 0
             location_id = False
             locat_ids = []
             parent_ids = []
