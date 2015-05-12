@@ -59,10 +59,10 @@ class tpt_mrp_process(osv.osv):
                             ) <= re_stock and product_product.product_tmpl_id = product_template.id
                     and (product_product.id not in (select product_id from tpt_purchase_indent,tpt_purchase_product 
                             where tpt_purchase_indent.id = tpt_purchase_product.pur_product_id 
-                            and tpt_purchase_indent.state != 'cancel')
+                            and tpt_purchase_indent.state != 'cancel' and tpt_purchase_indent.document_type = 'base')
                         or product_product.id in (select product_id from tpt_purchase_indent,tpt_purchase_product 
                             where tpt_purchase_indent.id = tpt_purchase_product.pur_product_id 
-                            and tpt_purchase_indent.state != 'cancel' 
+                            and tpt_purchase_indent.state != 'cancel' and tpt_purchase_indent.document_type = 'base'
                             and tpt_purchase_indent.id not in (select po_indent_id from stock_move
                             where state != 'done')))
                 '''
