@@ -740,6 +740,32 @@ class account_invoice(osv.osv):
 #                 })]
 #         return iml
      
+#     def group_lines(self, cr, uid, iml, line, inv):
+#         """Merge account move lines (and hence analytic lines) if invoice line hashcodes are equals"""
+#         if inv.journal_id.group_invoice_lines:
+#             line2 = {}
+#             length = 0
+#             for x, y, l in line:
+#                 tmp = self.inv_line_characteristic_hashcode(inv, l)
+# 
+#                 if tmp in line2:
+#                     am = line2[tmp]['debit'] - line2[tmp]['credit'] + (l['debit'] - l['credit'])
+#                     line2[tmp]['debit'] = (am > 0) and am or 0.0
+#                     line2[tmp]['credit'] = (am < 0) and -am or 0.0
+#                     line2[tmp]['tax_amount'] += l['tax_amount']
+#                     line2[tmp]['analytic_lines'] += l['analytic_lines']
+#                 else:
+#                     line2[tmp] = l
+#                 length += 1
+#                 if length == len(line):
+#                     am = round(am)
+#                     line2[tmp]['debit'] = (am > 0) and am or 0.0
+#                     line2[tmp]['credit'] = (am < 0) and -am or 0.0
+#             line = []
+#             for key, val in line2.items():
+#                 line.append((0,0,val))
+#         return line
+    
     def action_move_create(self, cr, uid, ids, context=None):
         """Creates invoice related analytics and financial move lines"""
         ait_obj = self.pool.get('account.invoice.tax')
