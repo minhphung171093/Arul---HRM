@@ -1843,7 +1843,7 @@
 	             <header>
 	            		<button name="bt_approve" states='draft' string="Confirm" type="object" class="oe_highlight" />
 	            		<button name="bt_load_norm" attrs="{'invisible': ['|',('request_type', '!=', 'production'), ('state', '=', 'done')]}" string="Load Lines from Norms" type="object" class="oe_highlight" />
-	                    <field name="state" widget="statusbar" statusbar_visible="draft,done" statusbar_colors='{"draft":"blue"}'/>
+	                    <field name="state" widget="statusbar" statusbar_visible="draft,done,partially,closed" statusbar_colors='{"draft":"blue"}'/>
 	            </header>    
 	            	<sheet>
 		                <group col="4" colspan="2" >    
@@ -1945,7 +1945,7 @@
 	            	<sheet>
 		                <group col="4" colspan="2" >    
 							<field name="doc_no"/>
-							<field name="name" domain="[('state','=','done')]" on_change="onchange_material(name)" context="{'search_ma_request':1,'request_id':name}" options="{'create': false, 'create_edit': false}" />
+							<field name="name" domain="[('state','in',['done','partially'])]" on_change="onchange_material(name)" context="{'search_ma_request':1,'request_id':name}" options="{'create': false, 'create_edit': false}" />
 							<field name="date_request" on_change="onchange_date_expect(date_request)" />
 							<field name="date_expec"/>
 							<field name="request_type" />
