@@ -315,7 +315,9 @@ class tpt_fsh_batch_split(osv.osv):
                 '''%(mrp.id)
                 cr.execute(sql)
                 qty = cr.fetchone()[0]
-                available = available - qty
+                avai = mrp.product_qty - qty
+                if avai<=available:
+                    available = avai
                 batchable = available
 #                 sql = '''
 #                     update tpt_fsh_batch_split set line_qty = %s, available = %s where mrp_id = %s and id = %s
@@ -353,7 +355,10 @@ class tpt_fsh_batch_split(osv.osv):
                 '''%(mrp.id)
                 cr.execute(sql)
                 qty = cr.fetchone()[0]
-            vals.update({'available':available - qty
+            avai = mrp.product_qty - qty
+            if avai<=available:
+                available = avai
+            vals.update({'available':available
                          })
             
         new_id = super(tpt_fsh_batch_split, self).create(cr, uid, vals, context=context)
@@ -405,9 +410,9 @@ class tpt_fsh_batch_split(osv.osv):
             '''%(new.mrp_id.id)
             cr.execute(sql)
             qty = cr.fetchone()[0]
-            if (qty > available):
-                raise osv.except_osv(_('Warning!'),_('The total Quantity for each line is not more than Batchable Quantity !'))
-            elif qty < available:
+#             if (qty > new.batchable_qty):
+#                 raise osv.except_osv(_('Warning!'),_('The total Quantity for each line is not more than Batchable Quantity !'))
+            if qty < new.mrp_id.product_qty:
                 sql = '''
                     update mrp_production set flag = 'f' where id = %s
                 '''%(new.mrp_id.id)
