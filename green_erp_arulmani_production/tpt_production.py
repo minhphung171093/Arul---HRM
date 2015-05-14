@@ -272,7 +272,7 @@ class tpt_fsh_batch_split(osv.osv):
                 prodlot_ids = cr.fetchone()
                 if prodlot_ids and self.pool.get('stock.production.lot').browse(cr, uid, prodlot_ids[0]).stock_available<line.available:
                     raise osv.except_osv(_('Warning!'),_('Batchable Quantity is not more than Available Stock Quantity !'))
-            move_ids = move_obj.search(cr, uid, [('scrapped','=',False),('production_id','=',line.mrp_id.id),('product_id','=',line.product_id.id)])
+            move_ids = move_obj.search(cr, uid, [('scrapped','=',False),('production_id','=',line.mrp_id.id),('product_id','=',line.product_id.id),('prodlot_id','in',prodlot_ids)], order='product_qty desc')
 #             cr.execute('update stock_move set location_dest_id=%s where id in %s',(line.location_id.id,tuple(move_ids),))
 #             move_obj.write(cr, uid, move_ids,{'location_dest_id':line.location_id.id})
             context.update({'active_id': move_ids and move_ids[0] or False,'active_model': 'stock.move','tpt_copy_prodlot':True})
@@ -290,8 +290,8 @@ class tpt_fsh_batch_split(osv.osv):
             res = move_split_obj.split(cr, 1, [move_split_id],[move_ids and move_ids[0] or []],context)
             
             move_need_ids = move_obj.search(cr, uid, [('scrapped','=',False),('production_id','=',line.mrp_id.id),('product_id','=',line.product_id.id),('prodlot_id','not in',prodlot_ids)])
-            if move_need_ids:
-                cr.execute('update stock_move set location_dest_id=%s where id in %s',(line.location_id.id,tuple(move_need_ids),))
+            if res:
+                cr.execute('update stock_move set location_dest_id=%s where id in %s',(line.location_id.id,tuple(res),))
         return self.write(cr, uid, ids,{'state':'confirm'})
     
     def onchange_mrp_id(self, cr, uid, ids, mrp_id, context=None):
