@@ -1345,7 +1345,27 @@ class account_invoice_line(osv.osv):
                             })
                         break
                     else:
-                        tax = voucher_rate * inv_id.amount_tax
+                        tax_amounts = [r.amount for r in line.invoice_line_tax_id]
+                        for tax_amount in tax_amounts:
+                            tax_value += tax_amount/100
+                            basic = (line.quantity * line.price_unit) - ( (line.quantity * line.price_unit)*line.disc/100)
+                            if line.p_f_type == '1' :
+                                p_f = basic * line.p_f/100
+                            elif line.p_f_type == '2' :
+                                p_f = line.p_f
+                            elif line.p_f_type == '3' :
+                                p_f = line.p_f * line.quantity
+                            else:
+                                p_f = line.p_f
+                            if line.ed_type == '1' :
+                                ed = (basic + p_f) * line.ed/100
+                            elif line.ed_type == '2' :
+                                ed = line.ed
+                            elif line.ed_type == '3' :
+                                ed = line.e_d * line.quantity
+                            else:
+                                ed = line.ed
+                            tax = (basic + p_f + ed)*(tax_value) * voucher_rate
                         sql = '''
                             SELECT sup_inv_vat_id FROM tpt_posting_configuration WHERE name = 'sup_inv' and sup_inv_vat_id is not null
                         '''
@@ -1371,10 +1391,10 @@ class account_invoice_line(osv.osv):
                                     'account_id': account,
                                     'account_analytic_id': line.account_analytic_id.id,
                                 })
+                                break
                             break
                         else :
                                 raise osv.except_osv(_('Warning!'),_('Account is not null, please configure it in GL Posting Configrution !'))
-               
         return res
     
     def move_line_customer_amount_tax(self, cr, uid, invoice_id, context = None):
