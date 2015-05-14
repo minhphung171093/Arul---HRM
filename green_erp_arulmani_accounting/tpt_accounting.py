@@ -806,6 +806,7 @@ class account_invoice(osv.osv):
                 iml += invoice_line_obj.move_line_aed(cr, uid, inv.id)
                 if inv.purchase_id:
                     iml += invoice_line_obj.move_line_amount_untaxed(cr, uid, inv.id) 
+                    iml += invoice_line_obj.move_line_tds_amount_without_po(cr, uid, inv.id) 
                 else:
                     iml += invoice_line_obj.move_line_amount_untaxed_without_po(cr, uid, inv.id) 
                     iml += invoice_line_obj.move_line_tds_amount_without_po(cr, uid, inv.id) 
