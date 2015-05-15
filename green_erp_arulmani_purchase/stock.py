@@ -208,6 +208,7 @@ class stock_picking(osv.osv):
 #         if tax_id:
                 
         if picking.type=='in':
+            qty = move_line.product_uos_qty or move_line.product_qty
             invoice_line_vals.update({
                 'name': name,
                 'origin': origin,
@@ -217,7 +218,7 @@ class stock_picking(osv.osv):
                 'account_id': account_id,
                 'price_unit': self._get_price_unit_invoice(cr, uid, move_line, invoice_vals['type']),
                 'discount': self._get_discount_invoice(cr, uid, move_line),
-                'quantity': move_line.product_uos_qty or move_line.product_qty,
+                'quantity':qty ,
                 
                 'disc': move_line.purchase_line_id and move_line.purchase_line_id.discount or False,
                 'p_f': move_line.purchase_line_id and move_line.purchase_line_id.p_f or False,
@@ -236,6 +237,25 @@ class stock_picking(osv.osv):
     #                 'application_id':move_line.application_id or False,
         #                 'freight':move_line.freight or False,
             })
+            if move_line.action_taken == 'need' :
+                inpec_obj = self.pool.get('tpt.quanlity.inspection')
+                inpec_ids = inpec_obj.search(cr, uid, [('need_inspec_id','=',move_line.id)])
+                if inpec_ids:
+                    qty = inpec_obj.browse(cr, uid, inpec_ids[0]).qty_approve
+                    if qty:
+                        invoice_line_vals.update({'quantity':qty})
+                    else:
+                        invoice_line_vals = {}
+                else:
+                    inpec_ids = inpec_obj.search(cr, uid, [('name','=',move_line.picking_id.id),('product_id','=',move_line.product_id.id),('qty','=',move_line.product_qty)])
+                    if inpec_ids:
+                        qty = inpec_obj.browse(cr, uid, inpec_ids[0]).qty_approve
+                        if qty:
+                            invoice_line_vals.update({'quantity':qty})
+                        else:
+                            invoice_line_vals = {}
+                            
+                    
 #         else:
 #             invoice_line_vals.update({
 #                 'name': name,
