@@ -277,7 +277,9 @@ class tpt_fsh_batch_split(osv.osv):
 #             move_obj.write(cr, uid, move_ids,{'location_dest_id':line.location_id.id})
             context.update({'active_id': move_ids and move_ids[0] or False,'active_model': 'stock.move','tpt_copy_prodlot':True})
             line_exist_ids = []
+            qty = 0
             for split_line in line.batch_split_line:
+                qty+=split_line.qty
                 line_exist_ids.append((0,0,{
                     'quantity': split_line.qty,
                     'prodlot_id': split_line.prodlot_id.id,
@@ -288,10 +290,14 @@ class tpt_fsh_batch_split(osv.osv):
             }
             move_split_id = move_split_obj.create(cr, 1, vals, context)
             res = move_split_obj.split(cr, 1, [move_split_id],[move_ids and move_ids[0] or []],context)
-            
+            if qty==line.mrp_id.product_qty and move_ids:
+                res.append(move_ids[0])
             move_need_ids = move_obj.search(cr, uid, [('scrapped','=',False),('production_id','=',line.mrp_id.id),('product_id','=',line.product_id.id),('prodlot_id','not in',prodlot_ids)])
+            if not res and move_ids:
+                res=[move_ids[0]]
             if res:
                 cr.execute('update stock_move set location_dest_id=%s where id in %s',(line.location_id.id,tuple(res),))
+            
         return self.write(cr, uid, ids,{'state':'confirm'})
     
     def onchange_mrp_id(self, cr, uid, ids, mrp_id, context=None):
