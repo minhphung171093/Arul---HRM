@@ -613,6 +613,7 @@ class stock_picking(osv.osv):
         return self.name_get(cr, user, ids, context=context)
         
 stock_picking()
+
 class account_invoice(osv.osv):
     _inherit = "account.invoice"
      
@@ -642,6 +643,7 @@ class account_invoice(osv.osv):
 #                 if not key in tax_key:
 #                     raise osv.except_osv(_('Warning!'), _('Taxes are missing!\nClick on compute button.'))
 
+
     def onchange_purchase_id(self, cr, uid, ids,purchase_id=False, context=None):
         vals = {}
         if purchase_id:
@@ -654,31 +656,155 @@ class account_invoice(osv.osv):
         purchase = self.pool.get('purchase.order').browse(cr, uid, purchase_id)
         for line in purchase.order_line:
             taxes_ids = [t.id for t in line.taxes_id]
-            rs = {
-                  'product_id': line.product_id and line.product_id.id or False,
-                  'name': line.description,
-                  'quantity': line.product_qty or False,
-                  'uos_id': line.product_uom and line.product_uom.id or False,
-                  'price_unit': line.price_unit or False,
-                  'disc': line.discount or False,
-                  'p_f': line.p_f or False,
-                  'p_f_type':line.p_f_type or False,
-                  'ed':line.ed or False,
-                  'ed_type':line.ed_type or False,
-#                   'taxes_id': [(6,0,[line.tax_id and line.tax_id.id])],
-                  'invoice_line_tax_id': [(6,0,taxes_ids)],
-                  'fright':line.fright or False,
-                  'fright_type':line.fright_type or False,
-                  'line_net': line.line_net or False,
-                  'account_id':line.product_id and line.product_id.purchase_acc_id and line.product_id.purchase_acc_id.id or False,
-                  }
-            service_line.append((0,0,rs))
+            if purchase.po_document_type == 'service':
+                sql = '''
+                    select case when sum(quantity)!=0 then sum(quantity) else 0 end quantity from account_invoice_line where invoice_id in (select id from account_invoice where purchase_id = %s and state!='cancel') and po_line_id = %s
+                '''%(purchase_id, line.id)
+                cr.execute(sql)
+                quantity = cr.dictfetchone()['quantity']
+                if line.product_qty > quantity:
+                    rs = {
+                          'product_id': line.product_id and line.product_id.id or False,
+                          'name': line.description,
+                          'quantity': line.product_qty - quantity or False,
+                          'uos_id': line.product_uom and line.product_uom.id or False,
+                          'price_unit': line.price_unit or False,
+                          'disc': line.discount or False,
+                          'p_f': line.p_f or False,
+                          'p_f_type':line.p_f_type or False,
+                          'ed':line.ed or False,
+                          'ed_type':line.ed_type or False,
+        #                   'taxes_id': [(6,0,[line.tax_id and line.tax_id.id])],
+                          'invoice_line_tax_id': [(6,0,taxes_ids)],
+                          'fright':line.fright or False,
+                          'fright_type':line.fright_type or False,
+                          'line_net': line.line_net or False,
+                          'account_id':line.product_id and line.product_id.purchase_acc_id and line.product_id.purchase_acc_id.id or False,
+                          'po_line_id': line.id,
+                      }
+                    service_line.append((0,0,rs))
+            else:
+                rs = {
+                      'product_id': line.product_id and line.product_id.id or False,
+                      'name': line.description,
+                      'quantity': line.product_qty or False,
+                      'uos_id': line.product_uom and line.product_uom.id or False,
+                      'price_unit': line.price_unit or False,
+                      'disc': line.discount or False,
+                      'p_f': line.p_f or False,
+                      'p_f_type':line.p_f_type or False,
+                      'ed':line.ed or False,
+                      'ed_type':line.ed_type or False,
+    #                   'taxes_id': [(6,0,[line.tax_id and line.tax_id.id])],
+                      'invoice_line_tax_id': [(6,0,taxes_ids)],
+                      'fright':line.fright or False,
+                      'fright_type':line.fright_type or False,
+                      'line_net': line.line_net or False,
+                      'account_id':line.product_id and line.product_id.purchase_acc_id and line.product_id.purchase_acc_id.id or False,
+                      }
+                service_line.append((0,0,rs))
         vals = {
                 'partner_id':purchase.partner_id and purchase.partner_id.id or False,
                 'vendor_ref':purchase.partner_ref or False,
                 'invoice_line': service_line,
                 }
         return {'value': vals}
+    
+    
+    def create(self, cr, uid, vals, context=None):
+        new_id = super(account_invoice, self).create(cr, uid, vals, context=context)
+        new = self.browse(cr,uid,new_id)
+        if new.purchase_id.po_document_type == 'service':
+            for purchase_line in new.purchase_id.order_line:
+                sql = '''
+                        select case when sum(quantity)!=0 then sum(quantity) else 0 end quantity from account_invoice_line where invoice_id in (select id from account_invoice where purchase_id = %s and state!='cancel') and po_line_id = %s
+                    '''%(new.purchase_id.id, purchase_line.id)
+                cr.execute(sql)
+                quantity = cr.dictfetchone()['quantity']
+                 
+                sql = '''
+                        select product_qty from purchase_order_line where order_id in (select id from purchase_order where id = %s) and id = %s
+                    '''%(new.purchase_id.id, purchase_line.id)
+                cr.execute(sql)
+                product_qty = cr.dictfetchone()['product_qty']
+                if quantity == product_qty:
+                    sql = '''
+                        update purchase_order_line set flag_line = 't' where id = %s and id = %s
+                    '''%(purchase_line.id, purchase_line.id)
+                    cr.execute(sql)
+                elif quantity<product_qty:
+                    sql = '''
+                        update purchase_order_line set flag_line = 'f' where id = %s and id = %s
+                    '''%(purchase_line.id, purchase_line.id)
+                    cr.execute(sql)
+                else:
+                    raise osv.except_osv(_('Error!'), _('Quantity in Account Invoice is not more than quantity in Purchase Order'))
+            sql = '''
+                select id from purchase_order_line where flag_line = 'f' and order_id = %s
+            '''%(new.purchase_id.id)
+            cr.execute(sql)
+            purchase_orders = [row[0] for row in cr.fetchall()]
+            if purchase_orders: 
+# con so luong doi voi purchase order do
+                sql = '''
+                        update purchase_order set flag = 'f' where id = %s
+                    '''%(new.purchase_id.id)
+                cr.execute(sql)
+            else:
+# khong con so luong doi voi purchase order do
+                sql = '''
+                        update purchase_order set flag = 't' where id = %s
+                    '''%(new.purchase_id.id)
+                cr.execute(sql)
+        return new_id
+     
+    def write(self, cr, uid, ids, vals, context=None):
+        new_write = super(account_invoice, self).write(cr, uid,ids, vals, context)
+        for new in self.browse(cr,uid,ids):
+            if new.purchase_id.po_document_type == 'service':
+                for purchase_line in new.purchase_id.order_line:
+                    sql = '''
+                            select case when sum(quantity)!=0 then sum(quantity) else 0 end quantity from account_invoice_line where invoice_id in (select id from account_invoice where purchase_id = %s and state!='cancel') and po_line_id = %s
+                        '''%(new.purchase_id.id, purchase_line.id)
+                    cr.execute(sql)
+                    quantity = cr.dictfetchone()['quantity']
+                     
+                    sql = '''
+                            select product_qty from purchase_order_line where order_id in (select id from purchase_order where id = %s) and id = %s
+                        '''%(new.purchase_id.id, purchase_line.id)
+                    cr.execute(sql)
+                    product_qty = cr.dictfetchone()['product_qty']
+                    if quantity == product_qty:
+                        sql = '''
+                            update purchase_order_line set flag_line = 't' where id = %s and id = %s
+                        '''%(purchase_line.id, purchase_line.id)
+                        cr.execute(sql)
+                    elif quantity<product_qty:
+                        sql = '''
+                            update purchase_order_line set flag_line = 'f' where id = %s and id = %s
+                        '''%(purchase_line.id, purchase_line.id)
+                        cr.execute(sql)
+                    else:
+                        raise osv.except_osv(_('Error!'), _('Quantity in Account Invoice is not more than quantity in Purchase Order'))
+                sql = '''
+                    select id from purchase_order_line where flag_line = 'f' and order_id = %s
+                '''%(new.purchase_id.id)
+                cr.execute(sql)
+                purchase_orders = [row[0] for row in cr.fetchall()]
+                if purchase_orders: 
+    # con so luong doi voi purchase order do
+                    sql = '''
+                            update purchase_order set flag = 'f' where id = %s
+                        '''%(new.purchase_id.id)
+                    cr.execute(sql)
+                else:
+    # khong con so luong doi voi purchase order do
+                    sql = '''
+                            update purchase_order set flag = 't' where id = %s
+                        '''%(new.purchase_id.id)
+                    cr.execute(sql)
+        return new_write
+    
     def compute_invoice_totals(self, cr, uid, inv, company_currency, ref, invoice_move_lines, context=None):
         if context is None:
             context={}

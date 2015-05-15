@@ -626,7 +626,7 @@
                     <group>
                         <group>
                         	<field name="name" string="Document No" readonly="1"/>
-                        	<field name="purchase_id" context="{'search_po_document':True}" on_change = 'onchange_purchase_id(purchase_id)' string = 'Service PO' domain="[('po_document_type','=','service'), ('state','=','done')]" required = '1' readonly="0" options="{'create': false, 'create_edit': false}"/>
+                        	<field name="purchase_id" context="{'search_po_document':True, 'purchase_id':purchase_id}" on_change = 'onchange_purchase_id(purchase_id)' string = 'Service PO' domain="[('po_document_type','=','service'), ('state','=','done')]" required = '1' readonly="0" options="{'create': false, 'create_edit': false}"/>
                         	<field string="Vendor" name="partner_id"
                               on_change="onchange_partner_id(type,partner_id,date_invoice,payment_term, partner_bank_id,company_id)"
                               context="{'default_customer': 0, 'search_default_supplier': 1, 'default_supplier': 1}"
@@ -662,7 +662,7 @@
                         <page string="Invoice">
 	                            <field context="{'partner_id': partner_id, 'price_type': context.get('price_type') or False, 'type': type, 'default_p_f_type':'2', 'default_fright_type':'2'}" name="invoice_line">
 	                                <tree string="Invoice lines" editable="bottom">
-	                                    <field name="sequence" widget="handle" invisible = '1'/>
+	                                    <field name="sequence" invisible = '1'/>
 	                            <!--        <field name="gl_code_id" required = '1' on_change="onchange_gl_code_id(gl_code_id)" options="{'create': false, 'create_edit': false}"/> -->
 	                                    <field name="account_id" invisible = '1' string = 'GL Account' options="{'create': false, 'create_edit': false}" groups="account.group_account_user" />
 	                                    <field name="product_id" string = 'Code'
