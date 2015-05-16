@@ -374,6 +374,11 @@
 				<xpath expr="//field[@name='backorder_id']" position="attributes">
 					<attribute name="invisible">1</attribute>
 				</xpath>
+				
+				<button name="action_assign" position="replace">
+					<button name="tpt_check_stock" states="confirmed" string="Check Availability" type="object" class="oe_highlight"/>
+				</button>
+				
             	<xpath expr="//field[@name='partner_id']"  position="replace">
                     <field name="partner_id" on_change="onchange_partner_in(partner_id)" string="Customer" domain="[('customer','=',1),('is_company','=',1)]" readonly = "1" options="{'create': false, 'create_edit': false}"/>
             		<field name="sale_id" readonly="1" domain="[('state','=','progress')]" options="{'create': false, 'create_edit': false}"/>
