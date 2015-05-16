@@ -761,6 +761,31 @@ class stock_picking(osv.osv):
                 cr.execute(sql)
         return True
     
+    def tpt_check_stock(self, cr, uid, ids, context=None):
+        for picking in self.browse(cr, uid, ids, context=context):
+            if picking.warehouse:
+                for line in picking.move_lines:
+                    sql = '''
+                        select case when sum(foo.product_qty)!=0 then sum(foo.product_qty) else 0 end onhand_qty from 
+                            (select st.product_qty as product_qty
+                                from stock_move st 
+                                where st.state='done' and st.product_id=%s and st.location_dest_id=%s and st.location_dest_id != st.location_id
+                             union all
+                             select st.product_qty*-1 as product_qty
+                                from stock_move st 
+                                where st.state='done'
+                                and st.product_id=%s
+                                and location_id=%s
+                                and location_dest_id != location_id
+                            )foo
+                    '''%(line.product_id.id,picking.warehouse.id,line.product_id.id,picking.warehouse.id)
+                    cr.execute(sql)
+                    onhand_qty = cr.dictfetchone()['onhand_qty']
+                    if onhand_qty < line.product_qty:
+                        raise osv.except_osv(_('Warning!'),_('Do not have enough quantity for this product on stock!'))
+                picking.force_assign(cr, uid, [picking.id])
+        return True
+    
 stock_picking()
 
 class stock_picking_out(osv.osv):
@@ -861,6 +886,9 @@ class stock_picking_out(osv.osv):
     def management_confirm(self, cr, uid, ids, context=None):
         return self.pool.get('stock.picking').management_confirm(
             cr, uid, ids, context=context)
+    def tpt_check_stock(self, cr, uid, ids, context=None):
+        return self.pool.get('stock.picking').tpt_check_stock(
+            cr, uid, ids)
     
 stock_picking_out()
 
