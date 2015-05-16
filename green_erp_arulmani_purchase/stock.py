@@ -615,7 +615,7 @@ class account_invoice(osv.osv):
                     res[line.id]['amount_tax'] = round(total_tax)
                     res[line.id]['fright'] = round(total_fright)
                     res[line.id]['aed'] = round(aed)
-                    res[line.id]['amount_total'] = round(amount_untaxed+p_f_charge+excise_duty+total_tax+total_fright+aed)
+                    res[line.id]['amount_total'] = round(amount_untaxed) + round(p_f_charge) + round(excise_duty) + round(total_tax) + round(total_fright) + round(aed)
                 else:
                     amount_untaxed = 0.0
                     p_f_charge=0.0
@@ -677,7 +677,7 @@ class account_invoice(osv.osv):
                     res[line.id]['amount_tax'] = round(total_tax)
                     res[line.id]['fright'] = round(total_fright)
                     res[line.id]['amount_total_tds'] = round(tds_amount)
-                    res[line.id]['amount_total'] = round(amount_untaxed+p_f_charge+excise_duty+total_tax+total_fright-tds_amount)
+                    res[line.id]['amount_total'] = round(amount_untaxed) +round(p_f_charge) + round(excise_duty) + round(total_tax) + round(total_fright) - round(tds_amount)
         return res
     
     def _get_invoice_line(self, cr, uid, ids, context=None):

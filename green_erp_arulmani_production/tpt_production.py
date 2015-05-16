@@ -77,7 +77,8 @@ class tpt_tio2_batch_split(osv.osv):
         move_obj = self.pool.get('stock.move')
         for line in self.browse(cr, uid, ids):
             move_ids = move_obj.search(cr, uid, [('scrapped','=',False),('production_id','=',line.mrp_id.id),('product_id','=',line.product_id.id)])
-            cr.execute('update stock_move set location_dest_id=%s where id in %s',(line.location_id.id,tuple(move_ids),))
+            if move_ids:
+                cr.execute('update stock_move set location_dest_id=%s where id in %s',(line.location_id.id,tuple(move_ids),))
 #             move_obj.write(cr, uid, move_ids,{'location_dest_id':line.location_id.id})
             context.update({'active_id': move_ids and move_ids[0] or False,'active_model': 'stock.move','tpt_copy_prodlot':True})
             line_exist_ids = []
@@ -271,12 +272,14 @@ class tpt_fsh_batch_split(osv.osv):
                 prodlot_ids = cr.fetchone()
                 if prodlot_ids and self.pool.get('stock.production.lot').browse(cr, uid, prodlot_ids[0]).stock_available<line.available:
                     raise osv.except_osv(_('Warning!'),_('Batchable Quantity is not more than Available Stock Quantity !'))
-            move_ids = move_obj.search(cr, uid, [('scrapped','=',False),('production_id','=',line.mrp_id.id),('product_id','=',line.product_id.id)])
+            move_ids = move_obj.search(cr, uid, [('scrapped','=',False),('production_id','=',line.mrp_id.id),('product_id','=',line.product_id.id),('prodlot_id','in',prodlot_ids)], order='product_qty desc')
 #             cr.execute('update stock_move set location_dest_id=%s where id in %s',(line.location_id.id,tuple(move_ids),))
 #             move_obj.write(cr, uid, move_ids,{'location_dest_id':line.location_id.id})
             context.update({'active_id': move_ids and move_ids[0] or False,'active_model': 'stock.move','tpt_copy_prodlot':True})
             line_exist_ids = []
+            qty = 0
             for split_line in line.batch_split_line:
+                qty+=split_line.qty
                 line_exist_ids.append((0,0,{
                     'quantity': split_line.qty,
                     'prodlot_id': split_line.prodlot_id.id,
@@ -287,9 +290,14 @@ class tpt_fsh_batch_split(osv.osv):
             }
             move_split_id = move_split_obj.create(cr, 1, vals, context)
             res = move_split_obj.split(cr, 1, [move_split_id],[move_ids and move_ids[0] or []],context)
-            
+            if qty==line.mrp_id.product_qty and move_ids:
+                res.append(move_ids[0])
             move_need_ids = move_obj.search(cr, uid, [('scrapped','=',False),('production_id','=',line.mrp_id.id),('product_id','=',line.product_id.id),('prodlot_id','not in',prodlot_ids)])
-            cr.execute('update stock_move set location_dest_id=%s where id in %s',(line.location_id.id,tuple(move_need_ids),))
+            if not res and move_ids:
+                res=[move_ids[0]]
+            if res:
+                cr.execute('update stock_move set location_dest_id=%s where id in %s',(line.location_id.id,tuple(res),))
+            
         return self.write(cr, uid, ids,{'state':'confirm'})
     
     def onchange_mrp_id(self, cr, uid, ids, mrp_id, context=None):
@@ -313,7 +321,9 @@ class tpt_fsh_batch_split(osv.osv):
                 '''%(mrp.id)
                 cr.execute(sql)
                 qty = cr.fetchone()[0]
-                available = available - qty
+                avai = mrp.product_qty - qty
+                if avai<=available:
+                    available = avai
                 batchable = available
 #                 sql = '''
 #                     update tpt_fsh_batch_split set line_qty = %s, available = %s where mrp_id = %s and id = %s
@@ -351,7 +361,10 @@ class tpt_fsh_batch_split(osv.osv):
                 '''%(mrp.id)
                 cr.execute(sql)
                 qty = cr.fetchone()[0]
-            vals.update({'available':available - qty
+            avai = mrp.product_qty - qty
+            if avai<=available:
+                available = avai
+            vals.update({'available':available
                          })
             
         new_id = super(tpt_fsh_batch_split, self).create(cr, uid, vals, context=context)
@@ -403,9 +416,9 @@ class tpt_fsh_batch_split(osv.osv):
             '''%(new.mrp_id.id)
             cr.execute(sql)
             qty = cr.fetchone()[0]
-            if (qty > available):
-                raise osv.except_osv(_('Warning!'),_('The total Quantity for each line is not more than Batchable Quantity !'))
-            elif qty < available:
+#             if (qty > new.batchable_qty):
+#                 raise osv.except_osv(_('Warning!'),_('The total Quantity for each line is not more than Batchable Quantity !'))
+            if qty < new.mrp_id.product_qty:
                 sql = '''
                     update mrp_production set flag = 'f' where id = %s
                 '''%(new.mrp_id.id)
