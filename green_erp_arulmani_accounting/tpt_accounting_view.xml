@@ -113,6 +113,34 @@
 				</xpath>
 			</field>
 		</record>
+		
+		<record id="view_account_invoice_filter" model="ir.ui.view">
+            <field name="name">account.invoice.select</field>
+            <field name="model">account.invoice</field>
+            <field name="arch" type="xml">
+                <search string="Search Invoice">
+                	<field name="name" string = 'Document No'/>
+                	<field name="partner_id"/>
+                	<field name="purchase_id"/>
+                	<field name="grn_no"/>
+                    <filter name="draft" string="Draft" domain="[('state','=','draft')]" help="Draft Invoices"/>
+                    <filter name="proforma" string="Proforma" domain="[('state','=','proforma2')]" help="Proforma Invoices" groups="account.group_proforma_invoices"/>
+                    <filter name="invoices" string="Invoices" domain="[('state','not in',['draft','cancel'])]" help="Proforma/Open/Paid Invoices"/>
+                    <filter name="unpaid" string="Unpaid" domain="[('state','=','open')]" help="Unpaid Invoices"/>
+                    <separator/>
+                    <filter domain="[('user_id','=',uid)]" help="My Invoices" icon="terp-personal"/>
+                    <group expand="0" string="Group By...">
+                        <filter string="Partner" icon="terp-partner" domain="[]" context="{'group_by':'partner_id'}"/>
+                        <filter string="Responsible" icon="terp-personal" domain="[]"  context="{'group_by':'user_id'}"/>
+                        <filter string="Journal" icon="terp-folder-orange" domain="[]" context="{'group_by':'journal_id'}"/>
+                        <filter string="Status" icon="terp-stock_effects-object-colorize" domain="[]"  context="{'group_by':'state'}"/>
+                        <filter string="Period" icon="terp-go-month" domain="[]" context="{'group_by':'period_id'}"/>
+                        <filter string="Invoice Date" icon="terp-go-month" domain="[]"  context="{'group_by':'date_invoice'}"/>
+                        <filter string="Due Date" icon="terp-go-month" domain="[]"  context="{'group_by':'date_due'}"/>
+                    </group>
+               </search>
+            </field>
+        </record>
 
 
 		<record id="tpt_account_supplier_invoice_form" model="ir.ui.view">
@@ -305,7 +333,7 @@
 					<field name="ed_type"/>
 				</xpath> 
 				<xpath expr="//page[@string='Invoice']/field/tree/field[@name='invoice_line_tax_id']" position="after">
-					<field name="aed_id" domain="[('type_tax_use','=','excise_duty')]"/>
+					<field name="aed_id_1" />
 					<field name="fright"/>
 					<field name="fright_type"/>
 					<field name="line_net"/>
@@ -529,7 +557,7 @@
             <field eval="False" name="view_id" ref="view_tpt_supplier_invoice_without_po_tree"/>
             <field name="domain">[('type','=','in_invoice'),('purchase_id','=',False)]</field>
             <field name="context">{'default_type': 'in_invoice', 'type': 'in_invoice', 'journal_type': 'purchase'}</field>
-            <field name="search_view_id" ref="account.view_account_invoice_filter"/>
+            <field name="search_view_id" ref="view_account_invoice_filter"/>
         </record>
         <record id="action_invoice_supplier_without_po1" model="ir.actions.act_window.view">
             <field eval="3" name="sequence"/>
@@ -749,7 +777,7 @@
             <field eval="False" name="view_id" ref="view_tpt_service_invoice_tree"/>
             <field name="domain">[('type','=','in_invoice'), ('purchase_id.po_document_type','=', 'service')]</field>
             <field name="context">{'default_type': 'in_invoice', 'type': 'in_invoice', 'journal_type': 'purchase'}</field>
-            <field name="search_view_id" ref="account.view_account_invoice_filter"/>
+            <field name="search_view_id" ref="view_account_invoice_filter"/>
         </record>
         <record id="action_invoice_service1" model="ir.actions.act_window.view">
             <field eval="5" name="sequence"/>
@@ -810,6 +838,7 @@
                         <field name="sum_amount"/>
                         <field name="cheque_date"/>
                         <field name="cheque_no"/>
+                        <field name="employee_id" options="{'create': false, 'create_edit': false}" />
                         <field name="payee"/>
                         <field name="payment_rate_currency_id" invisible="1"/>
                         <field name="partner_id" invisible = '1' on_change="onchange_journal_voucher(line_ids, tax_id, amount, partner_id, journal_id, type)"/>
@@ -941,6 +970,7 @@
                         <field name="sum_amount"/>
                         <field name="cheque_date"/>
                         <field name="cheque_no"/>
+                        <field name="employee_id" options="{'create': false, 'create_edit': false}" />
                         <field name="payee"/>
                         <field name="payment_rate_currency_id" invisible="1"/>
                         <field name="partner_id" invisible = '1' on_change="onchange_journal_voucher(line_ids, tax_id, amount, partner_id, journal_id, type)"/>
@@ -1041,6 +1071,23 @@
   
         <menuitem action="action_cash_transaction" id="menu_action_cash_transaction" parent="account.menu_finance_entries" sequence="15" groups="base.group_no_one,green_erp_arulmani_accounting.group_vvti_accounting_admin"/>  
         
+        <record id="view_tpt_supplier_invoice_with_po_tree" model="ir.ui.view">
+			<field name="name">view.tpt.supplier.invoice.without.po.tree</field>
+			<field name="model">account.invoice</field>
+			<field name="arch" type="xml">
+				<tree string="Supplier Invoice">
+					<field name="name" invisible="0"/>
+                    <field name="partner_id" groups="base.group_user"/>
+                    <field name="date_invoice"/>
+                    <field name="purchase_id"/>
+                	<field name="grn_no"/>
+                    <field name="amount_untaxed" sum="Untaxed Amount"/>
+                    <field name="amount_total" sum="Total Amount"/>
+                    <field name="state" invisible="1"/>
+                </tree>
+			</field>
+		</record>
+        
         <record id="account.action_invoice_tree2" model="ir.actions.act_window">
             <field name="name">Supplier Invoices(with po)</field>
             <field name="res_model">account.invoice</field>
@@ -1049,7 +1096,7 @@
             <field eval="False" name="view_id"/>
             <field name="domain">[('type','=','in_invoice'),('purchase_id','!=',False)]</field>
             <field name="context">{'default_type': 'in_invoice', 'type': 'in_invoice', 'journal_type': 'purchase'}</field>
-            <field name="search_view_id" ref="account.view_account_invoice_filter"/>
+            <field name="search_view_id" ref="view_account_invoice_filter"/>
             <field name="help" type="html">
               <p class="oe_view_nocontent_create">
                 Click to record a new supplier invoice.
@@ -1060,6 +1107,32 @@
               </p>
             </field>
         </record>
+        <record id="action_invoice_tree21" model="ir.actions.act_window.view">
+            <field eval="5" name="sequence"/>
+            <field name="view_mode">tree</field>
+            <field name="view_id" ref="view_tpt_supplier_invoice_with_po_tree"/>
+            <field name="act_window_id" ref="account.action_invoice_tree2"/>
+        </record>
+        <record id="action_invoice_tree22" model="ir.actions.act_window.view">
+            <field eval="6" name="sequence"/>
+            <field name="view_mode">form</field>
+            <field name="view_id" ref="account.invoice_supplier_form"/>
+            <field name="act_window_id" ref="account.action_invoice_tree2"/>
+        </record>
+
+        <record id="account.action_invoice_tree1_view1" model="ir.actions.act_window.view">
+            <field eval="7" name="sequence"/>
+            <field name="view_mode">tree</field>
+            <field name="view_id" ref="account.invoice_tree"/>
+            <field name="act_window_id" ref="account.action_invoice_tree1"/>
+        </record>
+        <record id="account.action_invoice_tree1_view2" model="ir.actions.act_window.view">
+            <field eval="8" name="sequence"/>
+            <field name="view_mode">form</field>
+            <field name="view_id" ref="account.invoice_form"/>
+            <field name="act_window_id" ref="account.action_invoice_tree1"/>
+        </record>
+        
         <menuitem action="action_invoice_supplier_without_po" id="menu_action_invoice_supplier_without_po" parent="account.menu_finance_payables"
         	groups="green_erp_arulmani_sale.group_vvti_unit_account,account.group_account_manager"/>
         
@@ -1231,6 +1304,7 @@
                     <xpath expr="//field[@name='department_id']" position="after">
                     	<field name="warehouse" required='1' domain="[('usage','=','internal'),('chained_location_type','&lt;&gt;','customer')]" options="{'create': false, 'create_edit': false}"/>
                     	<field name="gl_account_id" options="{'create': false, 'create_edit': false}"/>   
+                    	<field name="cost_center_id" options="{'create': false, 'create_edit': false}" />
                     	<field name="dest_warehouse_id" domain="[('usage','=','internal'),('chained_location_type','&lt;&gt;','customer')]" options="{'create': false, 'create_edit': false}" attrs="{'invisible':[('request_type','!=','production')], 'required':[('request_type','=','norm')]}"/>
                     </xpath>
                     

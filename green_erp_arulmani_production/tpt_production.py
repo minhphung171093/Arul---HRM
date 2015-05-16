@@ -77,7 +77,8 @@ class tpt_tio2_batch_split(osv.osv):
         move_obj = self.pool.get('stock.move')
         for line in self.browse(cr, uid, ids):
             move_ids = move_obj.search(cr, uid, [('scrapped','=',False),('production_id','=',line.mrp_id.id),('product_id','=',line.product_id.id)])
-            cr.execute('update stock_move set location_dest_id=%s where id in %s',(line.location_id.id,tuple(move_ids),))
+            if move_ids:
+                cr.execute('update stock_move set location_dest_id=%s where id in %s',(line.location_id.id,tuple(move_ids),))
 #             move_obj.write(cr, uid, move_ids,{'location_dest_id':line.location_id.id})
             context.update({'active_id': move_ids and move_ids[0] or False,'active_model': 'stock.move','tpt_copy_prodlot':True})
             line_exist_ids = []
@@ -229,6 +230,7 @@ class tpt_fsh_batch_split(osv.osv):
         'location_id': fields.many2one('stock.location', 'Warehouse Location', required=True),
         'available': fields.float('Available Stock', readonly=True),
         'batchable_qty': fields.float('Batchable Quantity'),
+        'line_qty': fields.float('Line Quantity'),
         'batch_split_line': fields.one2many('tpt.fsh.batch.split.line', 'fsh_id', 'Batch Split Line'),
         'state':fields.selection([('draft', 'Draft'),('confirm', 'Confirm')],'Status', readonly=True),
     }
@@ -270,12 +272,14 @@ class tpt_fsh_batch_split(osv.osv):
                 prodlot_ids = cr.fetchone()
                 if prodlot_ids and self.pool.get('stock.production.lot').browse(cr, uid, prodlot_ids[0]).stock_available<line.available:
                     raise osv.except_osv(_('Warning!'),_('Batchable Quantity is not more than Available Stock Quantity !'))
-            move_ids = move_obj.search(cr, uid, [('scrapped','=',False),('production_id','=',line.mrp_id.id),('product_id','=',line.product_id.id)])
+            move_ids = move_obj.search(cr, uid, [('scrapped','=',False),('production_id','=',line.mrp_id.id),('product_id','=',line.product_id.id),('prodlot_id','in',prodlot_ids)], order='product_qty desc')
 #             cr.execute('update stock_move set location_dest_id=%s where id in %s',(line.location_id.id,tuple(move_ids),))
 #             move_obj.write(cr, uid, move_ids,{'location_dest_id':line.location_id.id})
             context.update({'active_id': move_ids and move_ids[0] or False,'active_model': 'stock.move','tpt_copy_prodlot':True})
             line_exist_ids = []
+            qty = 0
             for split_line in line.batch_split_line:
+                qty+=split_line.qty
                 line_exist_ids.append((0,0,{
                     'quantity': split_line.qty,
                     'prodlot_id': split_line.prodlot_id.id,
@@ -286,9 +290,14 @@ class tpt_fsh_batch_split(osv.osv):
             }
             move_split_id = move_split_obj.create(cr, 1, vals, context)
             res = move_split_obj.split(cr, 1, [move_split_id],[move_ids and move_ids[0] or []],context)
-            
+            if qty==line.mrp_id.product_qty and move_ids:
+                res.append(move_ids[0])
             move_need_ids = move_obj.search(cr, uid, [('scrapped','=',False),('production_id','=',line.mrp_id.id),('product_id','=',line.product_id.id),('prodlot_id','not in',prodlot_ids)])
-            cr.execute('update stock_move set location_dest_id=%s where id in %s',(line.location_id.id,tuple(move_need_ids),))
+            if not res and move_ids:
+                res=[move_ids[0]]
+            if res:
+                cr.execute('update stock_move set location_dest_id=%s where id in %s',(line.location_id.id,tuple(res),))
+            
         return self.write(cr, uid, ids,{'state':'confirm'})
     
     def onchange_mrp_id(self, cr, uid, ids, mrp_id, context=None):
@@ -306,10 +315,31 @@ class tpt_fsh_batch_split(osv.osv):
                     available = self.pool.get('stock.production.lot').browse(cr, uid, prodlot_ids[0]).stock_available
                 else:
                     available = mrp.product_qty
+                sql = '''
+                    select case when sum(qty)!=0 then sum(qty) else 0 end qty
+                        from tpt_fsh_batch_split_line where fsh_id in (select id from tpt_fsh_batch_split where mrp_id = %s)
+                '''%(mrp.id)
+                cr.execute(sql)
+                qty = cr.fetchone()[0]
+                avai = mrp.product_qty - qty
+                if avai<=available:
+                    available = avai
                 batchable = available
-            v = {'available': available,'batchable_qty': batchable, 'location_id': mrp.location_dest_id.id}
+#                 sql = '''
+#                     update tpt_fsh_batch_split set line_qty = %s, available = %s where mrp_id = %s and id = %s
+#                 '''%(qty, available, new.mrp_id.id, new.id)
+#                 cr.execute(sql)
+            v = {'available': available,'batchable_qty': batchable,'line_qty': qty, 'location_id': mrp.location_dest_id.id}
             return {'value': v}
         return {}
+    
+    def unlink(self, cr, uid, ids, context=None):
+        for unlink in self.browse(cr,uid,ids):
+            sql = '''
+                update mrp_production set flag = 'f' where id = %s
+            '''%(unlink.mrp_id.id)
+            cr.execute(sql)
+        return super(tpt_fsh_batch_split, self).unlink(cr, uid, ids, context=context)
     
     def create(self, cr, uid, vals, context=None):
         if 'mrp_id' in vals:
@@ -325,8 +355,37 @@ class tpt_fsh_batch_split(osv.osv):
                     available = self.pool.get('stock.production.lot').browse(cr, uid, prodlot_ids[0]).stock_available
                 else:
                     available = mrp.product_qty
-            vals.update({'available':available})
+                sql = '''
+                            select case when sum(qty)!=0 then sum(qty) else 0 end qty
+                                from tpt_fsh_batch_split_line where fsh_id in (select id from tpt_fsh_batch_split where mrp_id = %s)
+                '''%(mrp.id)
+                cr.execute(sql)
+                qty = cr.fetchone()[0]
+            avai = mrp.product_qty - qty
+            if avai<=available:
+                available = avai
+            vals.update({'available':available
+                         })
+            
         new_id = super(tpt_fsh_batch_split, self).create(cr, uid, vals, context=context)
+        new = self.browse(cr,uid,new_id)
+        sql = '''
+                    select case when sum(qty)!=0 then sum(qty) else 0 end qty
+                        from tpt_fsh_batch_split_line where fsh_id in (select id from tpt_fsh_batch_split where mrp_id = %s)
+        '''%(new.mrp_id.id)
+        cr.execute(sql)
+        qty = cr.fetchone()[0]
+        if available == qty:
+            sql = '''
+                update mrp_production set flag = 't' where id = %s
+            '''%(new.mrp_id.id)
+            cr.execute(sql)
+#         available = available - qty
+#         sql = '''
+#             update tpt_fsh_batch_split set line_qty = %s, available = %s, batchable_qty = %s where mrp_id = %s and id = %s
+#         '''%(qty, available, available, new.mrp_id.id, new.id)
+#         cr.execute(sql)
+
 #         new = self.browse(cr, uid, new_id)
 #         sum = 0
 #         for line in new.batch_split_line:
@@ -336,20 +395,41 @@ class tpt_fsh_batch_split(osv.osv):
         return new_id
     
     def write(self, cr, uid, ids, vals, context=None):
-#         for mrp in self.browse(cr, uid, ids):
-#             available = 0.0
-#             if mrp.product_id.default_code in ['FERROUS SULPHATE','FSH','M0501010002'] or mrp.product_id.name in ['FERROUS SULPHATE','FSH','M0501010002']:
-#                 sql = '''
-#                         select id from stock_production_lot where name='temp_fsh'
-#                     '''
-#                 cr.execute(sql)
-#                 prodlot_ids = cr.fetchone()
-#                 if prodlot_ids and self.pool.get('stock.production.lot').browse(cr, uid, prodlot_ids[0]).stock_available<mrp.mrp_id.product_qty:
-#                     available = self.pool.get('stock.production.lot').browse(cr, uid, prodlot_ids[0]).stock_available
-#                 else:
-#                     available = mrp.mrp_id.product_qty
-#             vals.update({'available':available})
+        for mrp in self.browse(cr, uid, ids):
+            available = 0.0
+            if mrp.product_id.default_code in ['FERROUS SULPHATE','FSH','M0501010002'] or mrp.product_id.name in ['FERROUS SULPHATE','FSH','M0501010002']:
+                sql = '''
+                        select id from stock_production_lot where name='temp_fsh'
+                    '''
+                cr.execute(sql)
+                prodlot_ids = cr.fetchone()
+                if prodlot_ids and self.pool.get('stock.production.lot').browse(cr, uid, prodlot_ids[0]).stock_available<mrp.mrp_id.product_qty:
+                    available = self.pool.get('stock.production.lot').browse(cr, uid, prodlot_ids[0]).stock_available
+                else:
+                    available = mrp.mrp_id.product_qty
+        
         new_write = super(tpt_fsh_batch_split, self).write(cr, uid,ids, vals, context)
+        for new in self.browse(cr,uid,ids):
+            sql = '''
+                        select case when sum(qty)!=0 then sum(qty) else 0 end qty
+                            from tpt_fsh_batch_split_line where fsh_id in (select id from tpt_fsh_batch_split where mrp_id = %s)
+            '''%(new.mrp_id.id)
+            cr.execute(sql)
+            qty = cr.fetchone()[0]
+#             if (qty > new.batchable_qty):
+#                 raise osv.except_osv(_('Warning!'),_('The total Quantity for each line is not more than Batchable Quantity !'))
+            if qty < new.mrp_id.product_qty:
+                sql = '''
+                    update mrp_production set flag = 'f' where id = %s
+                '''%(new.mrp_id.id)
+                cr.execute(sql)
+            else:
+                sql = '''
+                    update mrp_production set flag = 't' where id = %s
+                '''%(new.mrp_id.id)
+                cr.execute(sql)
+                
+        
 #         for new in self.browse(cr, uid, ids):
 #             sum = 0
 #             for line in new.batch_split_line:
@@ -813,11 +893,14 @@ class mrp_production(osv.osv):
             readonly=True, states={'draft':[('readonly',False)],'confirmed':[('readonly',False)]}),
                 
             'activities_line': fields.one2many('tpt.activities.line', 'mrp_production_id', 'Activities'),   
-                
-            
+            'date_planned': fields.date('Scheduled Date', required=True, select=1, readonly=True, states={'draft':[('readonly',False)]}),    
+            'sub_date': fields.date('Scheduled Date', select=1, states={'draft':[('readonly',False)]}),  
+            'flag': fields.boolean('Flag'),
     }
     _defaults={
         'name': '/',
+        'date_planned':time.strftime('%Y-%m-%d'),
+        'flag': False,
     }
 #     def unlink(self, cr, uid, ids, context=None):
 #         
@@ -826,6 +909,23 @@ class mrp_production(osv.osv):
 #             if mrp_production_ids:
 #                 self.pool.get('mrp.production.product.line').unlink(cr, uid, mrp_production_ids, context=context)
 #         return super(stock_move, self).unlink(cr, uid, ids, context=context)
+    
+#     def init(self, cr):
+#         production_ids = self.pool.get('mrp.production').search(cr, 1, [])
+#         if production_ids:
+#             for line in self.browse(cr,1,production_ids):
+#                 sub = line.date_planned[0:4] + '-' + line.date_planned[5:7] + '-' + line.date_planned[8:10]
+#                 sql = '''
+#                     update mrp_production set sub_date = '%s' where id = %s
+#                 '''%(sub,line.id)
+#                 cr.execute(sql)
+
+#     def init(self, cr):
+#                 sql = '''
+#                     update mrp_production set sub_date = date_planned
+#                 '''
+#                 cr.execute(sql)
+            
     def bom_id_change(self, cr, uid, ids, bom_id, context=None):
         """ Finds routing for changed BoM.
         @param product: Id of product.
@@ -1062,15 +1162,47 @@ class mrp_production(osv.osv):
             if context.get('mrp_id', False):
                 mrp_ids.append(context.get('mrp_id'))
             args += [('id','in',mrp_ids)]
+            
         if context.get('search_mrp_fsh_batch', False) and context.get('product_id', False):
             sql = '''
-                select id from mrp_production where product_id=%s and id not in (select mrp_id from tpt_fsh_batch_split)
+                select id from mrp_production where product_id=%s and flag = 'f'
             '''%(context.get('product_id'))
             cr.execute(sql)
             mrp_ids = [row[0] for row in cr.fetchall()]
             if context.get('mrp_id', False):
                 mrp_ids.append(context.get('mrp_id'))
             args += [('id','in',mrp_ids)]
+
+#         if context.get('search_mrp_fsh_batch', False) and context.get('product_id', False):
+#             sql = '''
+#                         select id from stock_production_lot where name='temp_fsh'
+#                     '''
+#             cr.execute(sql)
+#             prodlot_ids = cr.fetchone()
+#             sql = '''
+#                     select id from mrp_bom where active = 't'
+#                 '''
+#             cr.execute(sql)
+#             bom_ids = cr.fetchone()
+#             if bom_ids:
+#                 for line in self.pool.get('mrp.bom').browse(cr,uid,bom_ids):
+#                     available = line.product_qty
+#                     id = line.id
+#                     sql = '''
+#                          select tpt.mrp_id, sum(tpt_line.qty) as qty from tpt_fsh_batch_split tpt, tpt_fsh_batch_split_line tpt_line where tpt.id = tpt_line.fsh_id group by tpt.mrp_id
+#                             '''
+#                     cr.execute(sql)
+#                     for qty in cr.dictfetchall():
+#                         if id == qty['mrp_id']:
+#                             if available != qty['qty']:
+#                                 sql = '''
+#                                     select id from mrp_production where product_id=%s
+#                                 '''%(context.get('product_id'))
+#                                 cr.execute(sql)
+#                                 mrp_ids = [row[0] for row in cr.fetchall()]
+#                                 if context.get('mrp_id', False):
+#                                     mrp_ids.append(context.get('mrp_id'))
+#                                 args += [('id','in',mrp_ids)]
         return super(mrp_production, self).search(cr, uid, args, offset=offset, limit=limit, order=order, context=context, count=count)
     
     def name_search(self, cr, user, name, args=None, operator='ilike', context=None, limit=100):

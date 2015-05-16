@@ -68,7 +68,7 @@ class Parser(report_sxw.rml_parse):
                 pf_no = line.name
                 esi_no = line.esi_no
                 break
-            res.update({'pf_no': pf_no,'esi_no': esi_no})
+            res.update({'pf_no': str(pf_no),'esi_no': str(esi_no)})
         return res
     
     def get_month_name(self, month):
@@ -84,7 +84,13 @@ class Parser(report_sxw.rml_parse):
     def get_year(self):
         wizard_data = self.localcontext['data']['form']
         return wizard_data['year']
-
+    
+    def length_month(self,year, month):
+        if month == 2 and (year % 4 == 0) and (year % 100 != 0) or (year % 400 == 0):
+            value =  29
+        else: 
+            value =  [0, 31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31][month]
+        return value
 
     def get_emp(self):
         wizard_data = self.localcontext['data']['form']
@@ -97,12 +103,19 @@ class Parser(report_sxw.rml_parse):
         for emp_id in emp_ids :
             payroll_ids = payroll_obj.search(self.cr, self.uid,[('month','=',month),('year','=',year),('employee_id','=',emp_id),('payroll_executions_id.state','in',['confirm','approve'])])
             basic = 0
+            da = 0
             hra = 0
             conv = 0
+            la = 0
+            ea = 0
+            aa = 0
+            oa = 0
+            ma = 0
             gross = 0
             spa = 0
             oa = 0
-            tatal_erning = 0
+            shd = 0
+            total_erning = 0
             net = 0
             total_ded = 0
             pt = 0
@@ -114,6 +127,18 @@ class Parser(report_sxw.rml_parse):
             epf = 0
             lwf = 0
             total_fd = 0
+            pf_gros = 0
+            i_lic_prem = 0
+            i_others = 0 
+            l_vvti_loan = 0 
+            l_lic_hfl = 0 
+            l_hdfc = 0 
+            l_tmb = 0 
+            l_sbt = 0 
+            l_others = 0
+            md1 = 0
+            lic = 0
+            
             if payroll_ids:
                 payroll = payroll_obj.browse(self.cr, self.uid, payroll_ids[0])
                 epf = payroll.emp_pf_con
@@ -130,18 +155,30 @@ class Parser(report_sxw.rml_parse):
                 for earning in payroll.earning_structure_line:
                     if earning.earning_parameters_id.code=='BASIC':
                         basic += earning.float
+                    if earning.earning_parameters_id.code=='DA':
+                        da += earning.float
                     if earning.earning_parameters_id.code=='HRA':
                         hra += earning.float
                     if earning.earning_parameters_id.code=='C':
                         conv += earning.float
-                    if earning.earning_parameters_id.code=='GROSS_SALARY':
-                        gross += earning.float
                     if earning.earning_parameters_id.code=='SpA':
                         spa += earning.float
+                    
+                    if earning.earning_parameters_id.code=='LA':
+                        la += earning.float
+                    if earning.earning_parameters_id.code=='EA':
+                        ea += earning.float
+                    if earning.earning_parameters_id.code=='AA':
+                        aa += earning.float     
                     if earning.earning_parameters_id.code=='OA':
                         oa += earning.float
+                    if earning.earning_parameters_id.code=='MA':
+                        ma += earning.float
+                    if earning.earning_parameters_id.code=='SHD':
+                        shd += earning.float
+                    
                     if earning.earning_parameters_id.code=='TOTAL_EARNING':
-                        tatal_erning += earning.float
+                        total_erning += earning.float
                     if earning.earning_parameters_id.code=='NET':
                         net += earning.float                        
                 for deduction in payroll.other_deduction_line:
@@ -157,32 +194,112 @@ class Parser(report_sxw.rml_parse):
                         total_ded += deduction.float
                     if deduction.deduction_parameters_id.code=='LOP':
                         lop += deduction.float
+                    if deduction.deduction_parameters_id.code == 'INS_LIC_PREM':
+                        i_lic_prem += deduction.float
+                    if deduction.deduction_parameters_id.code == 'INS_OTHERS':
+                        i_others += deduction.float
+                    if deduction.deduction_parameters_id.code == 'LOAN_VVTI':
+                        l_vvti_loan += deduction.float
+                    if deduction.deduction_parameters_id.code == 'LOAN_LIC_HFL':
+                        l_lic_hfl += deduction.float
+                    if deduction.deduction_parameters_id.code == 'LOAN_HDFC':
+                        l_hdfc += deduction.float
+                    if deduction.deduction_parameters_id.code == 'LOAN_TMB':
+                        l_tmb += deduction.float
+                    if deduction.deduction_parameters_id.code == 'LOAN_SBT':
+                        l_sbt += deduction.float
+                    if deduction.deduction_parameters_id.code == 'LOAN_OTHERS':
+                        l_others += deduction.float
                            
-
+                calendar_days = self.length_month(int(year),int(month))
+                
+                sql = '''
+                SELECT CASE WHEN SUM(days_total)!=0 THEN 
+                SUM(days_total) ELSE 0 END days_total FROM 
+                arul_hr_employee_leave_details WHERE EXTRACT(year FROM date_from) = %s 
+                AND EXTRACT(month FROM date_from) = %s AND employee_id =%s AND
+                leave_type_id in (select id from arul_hr_leave_types where code in ('LOP'))
+                '''%(year,month,emp_id)
+                self.cr.execute(sql)
+                lop_leave =  self.cr.fetchone()
+                tpt_lop_leave = lop_leave[0]
+                #total_no_of_leave = tpt_lop_leave
+                
+                sql = '''
+                SELECT CASE WHEN SUM(days_total)!=0 THEN 
+                SUM(days_total) ELSE 0 END days_total FROM 
+                arul_hr_employee_leave_details WHERE EXTRACT(year FROM date_from) = %s 
+                AND EXTRACT(month FROM date_from) = %s AND employee_id =%s AND
+                leave_type_id in (select id from arul_hr_leave_types where code in ('ESI'))
+                '''%(year,month,emp_id)
+                self.cr.execute(sql)
+                esi_leave =  self.cr.fetchone()
+                tpt_esi_leave = esi_leave[0]
+                #total_no_of_leave = tpt_lop_esi
+                
+                special_holiday_worked_count =  0  
+                #SELECT COUNT(work_date) AS date_holiday_count                             
+                sql = '''
+                        SELECT CASE WHEN SUM(total_shift_worked)!=0 
+                            THEN SUM(total_shift_worked) ELSE 0 END total_shift_worked 
+                        FROM arul_hr_punch_in_out_time 
+                        WHERE work_date IN (SELECT date FROM arul_hr_holiday_special 
+                        WHERE EXTRACT(month from date)=%s AND EXTRACT(year from date)=%s ) AND 
+                        EXTRACT(month from work_date)=%s AND EXTRACT(year from work_date)=%s AND
+                        punch_in_out_id IN (SELECT id FROM arul_hr_employee_attendence_details WHERE employee_id=%s)
+                    '''%(month, year, month, year, emp_id)
+                self.cr.execute(sql)
+                special_holiday_worked_count = self.cr.dictfetchone()['total_shift_worked']
+                
+                title=''
+                if payroll.employee_id.gender=='male':
+                    title='Mr'
+                elif payroll.employee_id.gender=='female':
+                    if payroll.employee_id.marital=='married':
+                        title='Ms'
+                    elif payroll.employee_id.marital=='single':
+                        title='Miss'
+                        
+                base_amount = basic + da 
+                vpf = base_amount * vpf / 100
+                
                 res.append({
                     'emp_id': emp_id,
                     'emp_name': payroll.employee_id.name + ' ' + (payroll.employee_id.last_name and payroll.employee_id.last_name or ''),
                     'emp_code':payroll.employee_id.employee_id,
                     'emp_designation':payroll.designation_id.name,
-                    'emp_doj': payroll.employee_id.date_of_joining and (payroll.employee_id.date_of_joining[8:10]+'/'+payroll.employee_id.date_of_joining[5:7]+'/'+payroll.employee_id.date_of_joining[:4]) or '',
-                    'basic': basic,
-                    'hra': hra,
-                    'conv': conv,
-                    'gross': gross,
-                    'spa': spa,
-                    'oa': oa,
-                    'tatal_erning': tatal_erning,
-                    'net':net,
-                    'total_ded':total_ded,
+                    'emp_title':title,
+                    'emp_doj': payroll.employee_id.date_of_joining and (payroll.employee_id.date_of_joining[8:10]+'.'+payroll.employee_id.date_of_joining[5:7]+'.'+payroll.employee_id.date_of_joining[:4]) or '',
+                    'basic': format(basic,'.2f'),
+                    'da':format(da,'.2f'),
+                    'hra': format(hra,'.2f'),
+                    'conv': format(conv,'.2f'),
+                    'pf_gros': format(basic+da,'.2f'),
+                    'gross': format(gross,'.2f'),
+                    'spa': format(spa,'.2f'),
+                    'oa': format(la + ea + aa + oa,'.2f') ,
+                    'ma': format(ma,'.2f'),
+                    'shd': format(shd,'.2f'),
+                    'total_erning': format(total_erning,'.2f'),
+                    'net':format(net,'.2f'),
+                    'total_ded':format(total_ded,'.2f'),
                     'pt':pt,
-                    'lop':lop,
-                    'vpf': vpf,
-                    'esi_con': esi_con,
-                    'esi_limit':esi_limit,
-                    'loan': loan ,
+                    #'lop':lop, 
+                    'lop':tpt_lop_leave,
+                    'esi':tpt_esi_leave,
+                    'vpf': format(vpf,'.2f'),
+                    'esi_con': format(esi_con,'.2f'),
+                    'esi_limit':format(esi_limit,'.2f'),
+                    'loan': format(loan,'.2f') ,
                     'epf': epf,
                     'lwf':lwf,
-                    'total_fd':total_fd,
+                    'total_fd':format(total_fd,'.2f'),
+                   
+                    'calendar_days':calendar_days, 
+                    'ndw':calendar_days-(tpt_lop_leave+tpt_esi_leave),
+                    'special_holiday_worked_count':special_holiday_worked_count,
+                    'md1':format(l_vvti_loan + l_lic_hfl + l_hdfc + l_tmb + l_sbt + l_others,'.2f'),
+                    'lic':format(i_lic_prem + i_others,'.2f'),
                 
                 })
         return res

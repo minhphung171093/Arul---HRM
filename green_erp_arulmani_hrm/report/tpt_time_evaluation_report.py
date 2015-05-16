@@ -329,14 +329,15 @@ class Parser(report_sxw.rml_parse):
                         else:
                             time_total_planned = line1.planned_work_shift_id.end_time - line1.planned_work_shift_id.start_time
                         extra_hours = time_total_actual - time_total_planned
-                        if extra_hours >= 4 and extra_hours < 8:
-                            c_off_day += 0.5
-                        if extra_hours >= 8 and extra_hours < 12:
-                            c_off_day += 1
-                        if extra_hours >= 12 and extra_hours < 16:
-                            c_off_day += 1.5
-                        if extra_hours >= 16:
-                            c_off_day += 2
+                        if not line1.employee_id.employee_category_id.code=='S1':
+                            if extra_hours >= 4 and extra_hours < 8:
+                                c_off_day += 0.5
+                            if extra_hours >= 8 and extra_hours < 12:
+                                c_off_day += 1
+                            if extra_hours >= 12 and extra_hours < 16:
+                                c_off_day += 1.5
+                            if extra_hours >= 16:
+                                c_off_day += 2
                         
                         B = A[i+1:]
                         for j,line2 in enumerate(B):

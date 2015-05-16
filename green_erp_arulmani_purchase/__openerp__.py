@@ -40,6 +40,7 @@
         'wizard/alert_form_purchase_view.xml',
         'wizard/alert_form_line_view.xml',
         'wizard/stock_on_hand_report_view.xml',
+        'wizard/load_line_from_norm_form_view.xml',
         'purchase_view.xml',
         'stock_view.xml',
         'tpt_purchase_view.xml',

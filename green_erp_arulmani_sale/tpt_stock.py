@@ -901,10 +901,12 @@ class stock_move(osv.osv):
                             }
             if line.product_id and line.product_uom:
                 if line.product_uom.id != line.product_id.uom_id.id:
-                    if line.product_id.__hasattr__('uom_ids'):
-                        res[line.id]['primary_qty'] = uom_obj._compute_qty(cr, uid, line.product_uom.id, line.product_qty, line.product_id.uom_id.id, product_id=line.product_id.id)
-                    else:
-                        res[line.id]['primary_qty'] = uom_obj._compute_qty(cr, uid, line.product_uom.id, line.product_qty, line.product_id.uom_id.id)
+                    cate = line.product_id.categ_id and line.product_id.categ_id.cate_name or False
+                    if cate != 'consum':
+                        if line.product_id.__hasattr__('uom_ids') and (line.product_id.categ_id.cate_name == 'consum'):
+                            res[line.id]['primary_qty'] = uom_obj._compute_qty(cr, uid, line.product_uom.id, line.product_qty, line.product_id.uom_id.id, product_id=line.product_id.id)
+                        else:
+                            res[line.id]['primary_qty'] = uom_obj._compute_qty(cr, uid, line.product_uom.id, line.product_qty, line.product_id.uom_id.id)
                 else:
                     res[line.id]['primary_qty'] = line.product_qty
         return res
@@ -1211,7 +1213,7 @@ class account_invoice_line(osv.osv):
         subtotal = 0.0
         res = {}
         for line in self.browse(cr,uid,ids,context=context):
-            subtotal = (line.quantity * line.price_unit) + (line.quantity * line.price_unit) * (line.invoice_id.excise_duty_id.amount and line.invoice_id.excise_duty_id.amount/100 or 1)          
+            subtotal = (line.quantity * line.price_unit) + (line.quantity * line.price_unit) * (line.invoice_id.excise_duty_id and line.invoice_id.excise_duty_id.amount/100 or 0)          
             res[line.id] = subtotal
         return res
     def basic_amt_calc(self, cr, uid, ids, field_name, args, context=None):
@@ -1229,7 +1231,7 @@ class account_invoice_line(osv.osv):
             res[line.id] = {
                'amount_ed' : 0.0,
                }
-            subtotal = (line.quantity * line.price_unit) * (line.invoice_id.excise_duty_id.amount and line.invoice_id.excise_duty_id.amount/100 or 1)
+            subtotal = (line.quantity * line.price_unit) * (line.invoice_id.excise_duty_id and line.invoice_id.excise_duty_id.amount/100 or 0)
             res[line.id]['amount_ed'] = round(subtotal)
         return res
     _columns = {

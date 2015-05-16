@@ -59,12 +59,12 @@ class tpt_mrp_process(osv.osv):
                             ) <= re_stock and product_product.product_tmpl_id = product_template.id
                     and (product_product.id not in (select product_id from tpt_purchase_indent,tpt_purchase_product 
                             where tpt_purchase_indent.id = tpt_purchase_product.pur_product_id 
-                            and tpt_purchase_indent.state != 'cancel')
+                            and tpt_purchase_indent.state != 'cancel' and tpt_purchase_indent.document_type = 'base')
                         or product_product.id in (select product_id from tpt_purchase_indent,tpt_purchase_product 
                             where tpt_purchase_indent.id = tpt_purchase_product.pur_product_id 
-                            and tpt_purchase_indent.state != 'cancel' 
-                            and tpt_purchase_indent.id in (select po_indent_id from stock_move
-                            where state = 'done')))
+                            and tpt_purchase_indent.state != 'cancel' and tpt_purchase_indent.document_type = 'base'
+                            and tpt_purchase_indent.id in (select line.po_indent_no from purchase_order_line line, purchase_order po
+                            where line.order_id = po.id and po.state in ('approved','except_picking','except_invoice'))))
                 '''
             cr.execute(sql)
             prod_ids = cr.dictfetchall()

@@ -246,9 +246,10 @@
 				<xpath expr="//field[@name='date_invoice']" position="attributes">
 					<attribute name="on_change">onchange_date_invoice(date_invoice)</attribute>
 				</xpath>
+				
 				<xpath expr="//field[@name='currency_id']" position="attributes">
-					<attribute name="readonly">1</attribute>
-				</xpath>
+					<attribute name="readonly">0</attribute>
+				</xpath>  
 				<xpath expr="//field[@name='account_id']" position="replace">
 					<field name="account_id" required = "0" invisible = "1"/>
 					<field name="sale_id" readonly="1" options="{'create': false, 'create_edit': false}"/>
