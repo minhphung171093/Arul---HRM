@@ -1288,7 +1288,7 @@
 						<field name="reason"/>
 						<field name="qty" invisible = "1" />
 						<field name="remaining_qty"/>
-						<field name="qty_approve" invisible = "0" />
+						<field name="qty_approve" invisible = "1" />
 					</group>
 						<notebook>
 							<page string = "Products Specification">
@@ -1355,13 +1355,13 @@
 						<field name="reason"/>
 						<field name="qty" invisible = "1" />
 						<field name="remaining_qty"/>
-						<field name="qty_approve" invisible = "0" />
+						<field name="qty_approve" invisible = "1" />
 					</group>
 						<notebook>
 							<page string = "Products Specification">
 								<field name="specification_line" nolabel='1'>
 									<tree editable='bottom'>
-										<field name="name" />
+										<field name="name" options="{'create': false, 'create_edit': false}" />
 										<field name="value" />
 										<field name="exp_value" />
 										<field name="uom_id" options="{'create': false, 'create_edit': false}"/>
