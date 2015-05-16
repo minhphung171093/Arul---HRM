@@ -3627,6 +3627,18 @@ class res_partner(osv.osv):
         'vendor_code':'/',
     }
     
+    def _check_vendor_code(self, cr, uid, ids, context=None):
+        for vendor in self.browse(cr, uid, ids, context=context):
+            if vendor.vendor_code:
+                vendor_ids = self.search(cr, uid, [('id','!=',vendor.id),('vendor_code','=',vendor.vendor_code)])
+                if vendor_ids:  
+                    raise osv.except_osv(_('Warning!'),_('The Vendor Code must be unique!'))
+                    return False
+        return True
+    _constraints = [
+        (_check_vendor_code, 'Identical Data', []),
+    ]
+    
     def create(self, cr, uid, vals, context=None):
         if 'customer' in vals and vals['customer']:
             acc_obj = self.pool.get('account.account')
@@ -3647,47 +3659,46 @@ class res_partner(osv.osv):
             vals.update({'property_account_receivable':acc_id})
         if 'supplier' in vals and vals['supplier']:
             acc_obj = self.pool.get('account.account')
+            acc_parent_ids = []
             acc_type_ids = self.pool.get('account.account.type').search(cr,uid, [('code','=','payable')])
             if 'vendor_group_id' in vals and vals['vendor_group_id']:
                 group = self.pool.get('tpt.vendor.group').browse(cr,uid,vals['vendor_group_id'])
                 if 'Domestic' in group.name:
-                    if vals.get('vendor_code','/')=='/':
-                        vals['vendor_code'] = self.pool.get('ir.sequence').get(cr, uid, 'tpt.domestic.vendor') or '/'
-                        acc_parent_ids = self.pool.get('account.account').search(cr,uid, [('code','=','0000215201')])
-                        if not acc_parent_ids:
-                            raise osv.except_osv(_('Warning!'),_('Please create GL Account for code is "0000215201" and name is "SUNDRY CREDITORS – DOMESTIC"!!'))
-                if 'Spares' in group.name:
-                    if vals.get('vendor_code','/')=='/':
-                        vals['vendor_code'] = self.pool.get('ir.sequence').get(cr, uid, 'tpt.spares.vendor') or '/'
-                        acc_parent_ids = self.pool.get('account.account').search(cr,uid, [('code','=','0000215204')])
-                        if not acc_parent_ids:
-                            raise osv.except_osv(_('Warning!'),_('Please create GL Account for code is "0000215204" and name is "SUNDRY CREDITORS - SPARES SUPPLIERS"!!'))
-                if 'Service Providers' in group.name:
-                    if vals.get('vendor_code','/')=='/':
-                        vals['vendor_code'] = self.pool.get('ir.sequence').get(cr, uid, 'tpt.service.providers.vendor') or '/'
-                        acc_parent_ids = self.pool.get('account.account').search(cr,uid, [('code','=','0000215203')])
-                        if not acc_parent_ids:
-                            raise osv.except_osv(_('Warning!'),_('Please create GL Account for code is "0000215203" and name is "SUNDRY CREDITORS - SERVICE PROVIDERS"!!'))
-                if 'Transporters and C & F' in group.name:
-                    if vals.get('vendor_code','/')=='/':
-                        vals['vendor_code'] = self.pool.get('ir.sequence').get(cr, uid, 'tpt.transporters.vendor') or '/'
-                        acc_parent_ids = self.pool.get('account.account').search(cr,uid, [('code','=','0000215200')])
-                        if not acc_parent_ids:
-                            raise osv.except_osv(_('Warning!'),_('Please create GL Account for code is "0000215200" and name is "SUNDRY CREDITORS - TRANSPORTES AND C&F"!!'))
-                if 'Foreign' in group.name:
-                    if vals.get('vendor_code','/')=='/':
-                        vals['vendor_code'] = self.pool.get('ir.sequence').get(cr, uid, 'tpt.foreign.vendor') or '/'
-                        acc_parent_ids = self.pool.get('account.account').search(cr,uid, [('code','=','0000215202')])
-                        if not acc_parent_ids:
-                            raise osv.except_osv(_('Warning!'),_('Please create GL Account for code is "0000215202" and name is "SUNDRY CREDITORS - FOREIGN"!!'))
-            acc_id = acc_obj.create(cr,uid,{
-                'code':vals['vendor_code'],
-                'name': vals['name'],
-                'type':'payable',
-                'reconcile': True,
-                'user_type':acc_type_ids[0],
-                'parent_id':acc_parent_ids[0],
-                                            })
+                    vals['vendor_code'] = self.pool.get('ir.sequence').get(cr, uid, 'tpt.domestic.vendor') or '/'
+                    acc_parent_ids = self.pool.get('account.account').search(cr,uid, [('code','=','0000215201')])
+                    if not acc_parent_ids:
+                        raise osv.except_osv(_('Warning!'),_('Please create GL Account for code is "0000215201" and name is "SUNDRY CREDITORS – DOMESTIC"!!'))
+                elif 'Spares' in group.name:
+                    vals['vendor_code'] = self.pool.get('ir.sequence').get(cr, uid, 'tpt.spares.vendor') or '/'
+                    acc_parent_ids = self.pool.get('account.account').search(cr,uid, [('code','=','0000215204')])
+                    if not acc_parent_ids:
+                        raise osv.except_osv(_('Warning!'),_('Please create GL Account for code is "0000215204" and name is "SUNDRY CREDITORS - SPARES SUPPLIERS"!!'))
+                elif 'Service Providers' in group.name:
+                    vals['vendor_code'] = self.pool.get('ir.sequence').get(cr, uid, 'tpt.service.providers.vendor') or '/'
+                    acc_parent_ids = self.pool.get('account.account').search(cr,uid, [('code','=','0000215203')])
+                    if not acc_parent_ids:
+                        raise osv.except_osv(_('Warning!'),_('Please create GL Account for code is "0000215203" and name is "SUNDRY CREDITORS - SERVICE PROVIDERS"!!'))
+                elif 'Transporters and C & F' in group.name:
+                    vals['vendor_code'] = self.pool.get('ir.sequence').get(cr, uid, 'tpt.transporters.vendor') or '/'
+                    acc_parent_ids = self.pool.get('account.account').search(cr,uid, [('code','=','0000215200')])
+                    if not acc_parent_ids:
+                        raise osv.except_osv(_('Warning!'),_('Please create GL Account for code is "0000215200" and name is "SUNDRY CREDITORS - TRANSPORTES AND C&F"!!'))
+                elif 'Foreign' in group.name:
+                    vals['vendor_code'] = self.pool.get('ir.sequence').get(cr, uid, 'tpt.foreign.vendor') or '/'
+                    acc_parent_ids = self.pool.get('account.account').search(cr,uid, [('code','=','0000215202')])
+                    if not acc_parent_ids:
+                        raise osv.except_osv(_('Warning!'),_('Please create GL Account for code is "0000215202" and name is "SUNDRY CREDITORS - FOREIGN"!!'))
+                else:
+                    raise osv.except_osv(_('Warning!'),_('Can not create Vendor Code for this Vendor Class'))
+            if acc_parent_ids:
+                acc_id = acc_obj.create(cr,uid,{
+                    'code':vals['vendor_code'],
+                    'name': vals['name'],
+                    'type':'payable',
+                    'reconcile': True,
+                    'user_type':acc_type_ids[0],
+                    'parent_id':acc_parent_ids[0],
+                                                })
         return super(res_partner, self).create(cr, uid, vals, context)
     
     def search(self, cr, uid, args, offset=0, limit=None, order=None, context=None, count=False):
