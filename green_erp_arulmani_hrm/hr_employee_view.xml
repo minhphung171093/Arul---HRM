@@ -1273,6 +1273,7 @@
                                  	<field name="no_of_mid_dinner" nolabel="1" class="oe_subtotal_footer_separator" widget="monetary" />  
                             	 -->
                             	</group>  
+                            	<div class="oe_clear"/>  
                             	
                 			</page>
                 		</notebook>
