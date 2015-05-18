@@ -1643,11 +1643,15 @@
                 	<sheet>  
                 		<group>
                 		<field name ="employee_id" options="{'create': false, 'create_edit': false}"/>
-                		<field name ="work_date"/>
-                		<field name ="available_coff_count"/>
+                		<field name ="work_date"/> 
+                		<field name ="leave_type_id" domain="[('code','in',('CL','C.Off','PL','SL'))]" options="{'create': false, 'create_edit': false}"/>
+                		<field name ="available_leave_count"/>
                 		<field name ="adj_type"/>
+                		<field name ="increase_count"/>
+                		<!--  
                 		<field name ="increase_count" attrs="{'invisible':[('adj_type','=','decrease')]}"/>
                 		<field name ="decrease_count" attrs="{'invisible':[('adj_type','=','increase')]}"/>
+                		-->
                 		<field name ="reason_for_adj" required='1'/>
                 		<field name ="reason_details" required='1'/>
                 		<field name="create_date"/>
