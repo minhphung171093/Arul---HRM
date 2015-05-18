@@ -3696,6 +3696,31 @@ class res_currency(osv.osv):
     def _current_rate_silent(self, cr, uid, ids, name, arg, context=None):
         return self._current_rate_computation(cr, uid, ids, name, arg, False, context=context)
 
+    def _current_rate_computation(self, cr, uid, ids, name, arg, raise_on_no_rate, context=None):
+        if context is None:
+            context = {}
+        res = {}
+        if 'date' in context:
+            date = context['date']
+        else:
+            date = time.strftime('%Y-%m-%d')
+        date = date or time.strftime('%Y-%m-%d')
+        # Convert False values to None ...
+        currency_rate_type = context.get('currency_rate_type_id') or None
+        # ... and use 'is NULL' instead of '= some-id'.
+        operator = '=' if currency_rate_type else 'is'
+        for id in ids:
+            cr.execute("SELECT currency_id, rate FROM res_currency_rate WHERE currency_id = %s AND name <= %s AND currency_rate_type_id " + operator +" %s ORDER BY name desc LIMIT 1" ,(id, date, currency_rate_type))
+            if cr.rowcount:
+                id, rate = cr.fetchall()[0]
+                res[id] = rate
+            elif not raise_on_no_rate:
+                res[id] = 0
+            else:
+                p =self.browse(cr,uid,id)
+                raise osv.except_osv(_('Error!'),_("No currency rate associated for currency %s for the given period" % (p.name)))
+        return res
+
     _columns = {
         'rate': fields.function(_current_rate, string='Current Rate', digits=(12,14),
             help='The rate of the currency to the currency of rate 1.'),
