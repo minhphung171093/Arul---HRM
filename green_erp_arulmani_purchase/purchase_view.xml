@@ -567,7 +567,7 @@
 					<button name="purchase_amendement_head" states="amendement" string="Purchase Head Approval" class="oe_highlight" groups="green_erp_arulmani_purchase.group_vvti_purchase_admin,green_erp_arulmani_purchase.group_vvti_purchase_mgr"/>
 					<button name="purchase_gm_confirmed" states="gm" string="MD Approval" class="oe_highlight" groups="green_erp_arulmani_purchase.group_vvti_purchase_admin"/>
 					<button name="purchase_md_confirmed" attrs="{'invisible':['|',('state','!=','md'),('po_document_type','=','service')]}" string="Create GRN" class="oe_highlight" groups="green_erp_arulmani_purchase.group_vvti_purchase_admin,green_erp_arulmani_purchase.group_vvti_purchase_store_mgr"/>
-					<button name="bt_purchase_done" attrs="{'invisible':['|',('state','!=','md'),('po_document_type','!=','service')]}" string="Service Confirm" type='object' class="oe_highlight" groups="green_erp_arulmani_purchase.group_vvti_purchase_admin,green_erp_arulmani_purchase.group_vvti_purchase_store_mgr"/>
+					<button name="bt_purchase_done" attrs="{'invisible':['|',('state','!=','md'),('po_document_type','!=','service')]}" string="Service Confirm" type='object' class="oe_highlight" groups="green_erp_arulmani_purchase.group_vvti_purchase_admin,green_erp_arulmani_purchase.group_vvti_purchase_store_mgr,green_erp_arulmani_accounting.group_vvti_accounting_admin"/>
 				</xpath>  
 				<xpath expr="//form/header/button[@name='view_picking']" position="attributes">
 					<attribute name='string'>View GRN</attribute>

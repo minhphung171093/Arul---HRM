@@ -50,6 +50,85 @@
             <field name="auto_reset">True</field>
             <field name="reset_period">year</field>
             <field name="reset_init_number">1</field>	
-        </record>        
+        </record> 
+
+<!-- Domestic Vendor Class -->
+        <record id="tpt_sequence_domestic_vendor" model="ir.sequence.type">
+            <field name="name">Domestic Vendor Class</field>
+            <field name="code">tpt.domestic.vendor</field>
+        </record>
+        
+        <record id="tpt_sequence_domestic_vendor_item" model="ir.sequence">
+            <field name="name">Domestic Vendor Class</field>
+            <field name="code">tpt.domestic.vendor</field>
+            <field name="prefix">11</field>
+            <field name="padding">8</field>
+            <field name="number_next_actual">00000001</field>
+            <field name="implementation">no_gap</field>
+        </record> 
+        
+<!-- Spares Vendor Class -->
+        <record id="tpt_sequence_spares_vendor" model="ir.sequence.type">
+            <field name="name">Spares Vendor Class</field>
+            <field name="code">tpt.spares.vendor</field>
+        </record>
+        
+        <record id="tpt_sequence_spares_vendor_item" model="ir.sequence">
+            <field name="name">Spares Vendor Class</field>
+            <field name="code">tpt.spares.vendor</field>
+            <field name="prefix">12</field>
+            <field name="padding">8</field>
+            <field name="number_next_actual">00000001</field>
+            <field name="implementation">no_gap</field>
+        </record> 
+        
+<!-- Service Providers Vendor Class -->
+        <record id="tpt_sequence_service_providers_vendor" model="ir.sequence.type">
+            <field name="name">Service Providers Vendor Class</field>
+            <field name="code">tpt.service.providers.vendor</field>
+        </record>
+        
+        <record id="tpt_sequence_service_providers_vendor_item" model="ir.sequence">
+            <field name="name">Service Providers Vendor Class</field>
+            <field name="code">tpt.service.providers.vendor</field>
+            <field name="prefix">13</field>
+            <field name="padding">8</field>
+            <field name="number_next_actual">00000001</field>
+            <field name="implementation">no_gap</field>
+        </record> 
+        
+<!--Transporters and C & F Vendor Class -->
+        <record id="tpt_sequence_transporters_vendor" model="ir.sequence.type">
+            <field name="name">Transporters and C and F Vendor Class</field>
+            <field name="code">tpt.transporters.vendor</field>
+        </record>
+        
+        <record id="tpt_sequence_transporters_vendor_item" model="ir.sequence">
+            <field name="name">Transporters and C and F Vendor Class</field>
+            <field name="code">tpt.transporters.vendor</field>
+            <field name="prefix">14</field>
+            <field name="padding">8</field>
+            <field name="number_next_actual">00000001</field>
+            <field name="implementation">no_gap</field>
+        </record> 
+        
+<!--Foreign Vendor Class -->
+        <record id="tpt_sequence_foreign_vendor" model="ir.sequence.type">
+            <field name="name">Foreign Vendor Class</field>
+            <field name="code">tpt.foreign.vendor</field>
+        </record>
+        
+        <record id="tpt_sequence_foreign_vendor_item" model="ir.sequence">
+            <field name="name">Foreign Vendor Class</field>
+            <field name="code">tpt.foreign.vendor</field>
+            <field name="prefix">15</field>
+            <field name="padding">8</field>
+            <field name="number_next_actual">00000001</field>
+            <field name="implementation">no_gap</field>
+        </record>
+        
+
+        
+              
 	</data>
 </openerp>
