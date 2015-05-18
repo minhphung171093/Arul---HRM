@@ -2096,6 +2096,7 @@ class purchase_order(osv.osv):
         'check_amendement':fields.boolean("Amended",readonly=True),
         'order_line': fields.one2many('purchase.order.line', 'order_id', 'Order Lines', states={'cancel':[('readonly',True)],'confirmed':[('readonly',True)],'head':[('readonly',True)],'gm':[('readonly',True)],'md':[('readonly',True)], 'approved':[('readonly',True)],'done':[('readonly',True)]}),
         'cost_center_id': fields.many2one('tpt.cost.center','Cost center', states={'cancel':[('readonly',True)],'confirmed':[('readonly',True)],'head':[('readonly',True)],'gm':[('readonly',True)],'md':[('readonly',True)], 'approved':[('readonly',True)],'done':[('readonly',True)]}),
+        'flag': fields.boolean('Flag'), 
         #TPT START By BalamuruganPurushothaman ON 01/04/2015 - FOR PO PRINT
         'freight_term':fields.selection([('To Pay','To Pay'),('Paid','Paid')],('Freight Term'),states={'cancel':[('readonly',True)],'confirmed':[('readonly',True)],'head':[('readonly',True)],'gm':[('readonly',True)],'md':[('readonly',True)], 'approved':[('readonly',True)],'done':[('readonly',True)]}),   
         #'quotation_ref':fields.char('Quotation Reference',size = 1024,required=True),
@@ -2105,6 +2106,7 @@ class purchase_order(osv.osv):
     _default = {
         'name':'/',
         'check_amendement':False,
+        'flag': False,
                }
     
     def bt_purchase_done(self, cr, uid, ids, context=None):
@@ -2649,10 +2651,44 @@ class purchase_order(osv.osv):
             po_ids = [row[0] for row in cr.fetchall()]
             args += [('id','in',po_ids)]
             
+#         if context.get('search_po_document'):
+#             purchase_id = context.get('purchase_id')
+#             purchase_master_full_ids = []
+#             sql = '''
+#                 select po_line_id,case when sum(quantity)!=0 then sum(quantity) else 0 end quantity
+#                     from account_invoice_line where invoice_id in (select id from account_invoice where purchase_id in (select id from purchase_order where po_document_type = 'service'))
+#                     group by po_line_id
+#             '''
+#             cr.execute(sql)
+#             purchase_line_ids = []
+#             temp = 0
+#             lines = cr.fetchall()
+#             for purchase_line in lines:
+#                 if purchase_line[0]:
+#                     sql = '''
+#                         select case when sum(product_qty)!=0 then sum(product_qty) else 0 end product_qty
+#                             from purchase_order_line where id = %s
+#                     '''%(purchase_line[0])
+#                     cr.execute(sql)
+#                     product_qty = cr.fetchone()[0]
+#                     if product_qty <= purchase_line[1]:
+#                         temp+=1
+#             if temp==len(lines):
+#                 purchase_line_ids.append(purchase_line[0])
+# # DS nay la nhung purchase order line da du so luong
+#             if purchase_line_ids:
+#                 cr.execute('''
+#                     select order_id from purchase_order_line where id in %s
+#                 ''',(tuple(purchase_line_ids),))
+#                 purchase_master_full_ids = [r[0] for r in cr.fetchall()]
+#             po_master_ids = self.pool.get('purchase.order').search(cr, uid, [('id','not in',purchase_master_full_ids)])
+#             args += [('id','in',po_master_ids)]
+            
         if context.get('search_po_document'):
+             
             sql = '''
                 select id from purchase_order 
-                where state != 'cancel' and po_document_type = 'service' and id not in (select purchase_id from account_invoice where state != 'cancel' and purchase_id is not null)
+                where state != 'cancel' and po_document_type = 'service' and flag = 'f'
             '''
             cr.execute(sql)
             po_ids = [row[0] for row in cr.fetchall()]
@@ -2840,6 +2876,7 @@ class purchase_order_line(osv.osv):
                                        \n* The \'Done\' status is set automatically when purchase order is set as done. \
                                        \n* The \'Cancelled\' status is set automatically when user cancel purchase order.'),
                 'description':fields.char('Description', size = 50, readonly = True),
+                'flag_line': fields.boolean('flag_line'),
                 #TPT
                 #'item_text': fields.char('Item Text'), 
                 }   
@@ -2848,6 +2885,7 @@ class purchase_order_line(osv.osv):
     _defaults = {
                  'date_planned':time.strftime('%Y-%m-%d'),
                  'state': 'draft',
+                 'flag_line': False,
                  }
     
     def create(self, cr, uid, vals, context=None):

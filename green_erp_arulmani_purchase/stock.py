@@ -967,6 +967,8 @@ class account_invoice_line(osv.osv):
         'tds_id': fields.many2one('account.tax', 'TDS %'),
         'aed_id': fields.many2one('account.tax', 'AED'),
         'aed_id_1': fields.float('AED'),
+        'po_line_id': fields.many2one('purchase.order.line', 'purchase order line'),
+#         'line_no': fields.integer('SI.No'),
     }
     _defaults = {
         'name': '/',
