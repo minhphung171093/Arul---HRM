@@ -33,6 +33,7 @@ class tpt_mrp_process(osv.osv):
     
     def bt_run_mrp(self, cr, uid, ids, context=None):
         mrp_process_line = []
+        product_1_ids = []
         for mrp in self.browse(cr, uid, ids):
             sql = '''
                     delete from tpt_mrp_process_line
@@ -40,8 +41,8 @@ class tpt_mrp_process(osv.osv):
                 '''%(mrp.id)
             cr.execute(sql)
             sql = '''
-                    select product_product.id, uom_po_id, max_stock
-                    from product_product, product_template
+                    select id
+                    from product_product
                     where mrp_control = True and  (
                             select case when sum(foo.product_qty)!=0 then sum(foo.product_qty) else 0 end ton_sl from 
                                 (select st.product_qty
@@ -56,19 +57,35 @@ class tpt_mrp_process(osv.osv):
                                         inner join product_uom pu on st.product_uom = pu.id
                                     where st.state='done' and st.product_id=product_product.id and l1.usage = 'internal'
                                 )foo
-                            ) <= re_stock and product_product.product_tmpl_id = product_template.id
-                    and (product_product.id not in (select product_id from tpt_purchase_indent,tpt_purchase_product 
-                            where tpt_purchase_indent.id = tpt_purchase_product.pur_product_id 
-                            and tpt_purchase_indent.state != 'cancel' and tpt_purchase_indent.document_type = 'base')
-                        or product_product.id in (select product_id from tpt_purchase_indent,tpt_purchase_product 
-                            where tpt_purchase_indent.id = tpt_purchase_product.pur_product_id 
-                            and tpt_purchase_indent.state != 'cancel' and tpt_purchase_indent.document_type = 'base'
-                            and tpt_purchase_indent.id in (select line.po_indent_no from purchase_order_line line, purchase_order po
-                            where line.order_id = po.id and po.state in ('approved','except_picking','except_invoice'))))
+                            ) <= re_stock
                 '''
             cr.execute(sql)
             prod_ids = cr.dictfetchall()
             if prod_ids:
+                
+                sql='''
+                    select product_id from tpt_purchase_indent,tpt_purchase_product 
+                    where tpt_purchase_indent.id = tpt_purchase_product.pur_product_id and tpt_purchase_indent.document_type = 'base'
+                        and tpt_purchase_indent.state != 'cancel'
+                '''
+                cr.execute(sql)
+                product_ind_ids = cr.dictfetchall()
+                if product_ind_ids:
+                    cr.execute('''
+                            select id from product_product where id in %s and id not in %s
+                        ''',(tuple(prod_ids),tuple(product_ind_ids)),)
+                    product_1_ids = [r[0] for r in cr.fetchall()]
+                    
+                sql='''
+                    select distinct(ind.id) from tpt_purchase_indent ind,tpt_purchase_product line
+                    where ind.id = line.pur_product_id and ind.document_type = 'base'
+                        and ind.state != 'cancel' and line.product_uom_qty = line.rfq_qty
+                '''
+                cr.execute(sql)
+                product_full_ind_ids = cr.dictfetchall()
+#                 if product_full_ind_ids:
+#                     
+                
                 for prod in prod_ids:
                     quantity = 1.00
                     hand_quantity = 0
