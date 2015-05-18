@@ -413,6 +413,8 @@ class tpt_purchase_product(osv.osv):
                                           ('quotation_cancel','Quotation Cancelled'),
                                           ],'Indent Status', readonly=True),
 #Hung moi them 2 Qty theo yeu casu bala
+        'po_doc_no':fields.char('PO Document Number', size =64),
+        'po_date':fields.date('PO Date'),
         'mrs_qty': fields.float('Reserved Qty',digits=(16,3)),
         'inspection_qty': fields.float('Inspection Quantity' ), 
         'on_hand_qty':fields.function(_get_on_hand_qty,digits=(16,3),type='float',string='On Hand Qty',multi='sum',store=False),
@@ -2451,7 +2453,7 @@ class purchase_order(osv.osv):
                         cr.execute(sql)
                         indent_line_ids = [row[0] for row in cr.fetchall()]
                         if indent_line_ids:
-                                self.pool.get('tpt.purchase.product').write(cr, uid, indent_line_ids,{'state':'po_raised'})
+                                self.pool.get('tpt.purchase.product').write(cr, uid, indent_line_ids,{'state':'po_raised','po_doc_no':new.name,'po_date':new.date_order})
                         sql = '''
                                     select po_indent_no, product_id, sum(product_qty) as po_product_qty from purchase_order_line where order_id = %s group by po_indent_no, product_id
                                 '''%(new.id)
