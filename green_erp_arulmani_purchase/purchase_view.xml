@@ -427,7 +427,9 @@
 						<field name="requisitioner_relate"/>  
 						<field name="store_date"/>  
 						<field name="hod_date"/>  
-						<field name="total_val" />
+						<field name="po_doc_no"/>  
+						<field name="po_date"/>
+						<field name="total_val"/>
 						<field name="state"/>
 				</tree>
 			</field>
