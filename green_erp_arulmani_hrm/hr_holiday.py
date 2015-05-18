@@ -1127,16 +1127,22 @@ class arul_hr_audit_shift_time(osv.osv):
             else:
                 raise osv.except_osv(_('Warning!'),_('User does not have permission to approve for this employee department!'))
             ##TPT START - By BalamuruganPurushothaman - TO RESTRICT DUPLICATE ATTENDANCE ENTRY FOR A DAY
-            sql = '''
-                    SELECT COUNT(*) FROM arul_hr_punch_in_out_time WHERE 
-                    in_time <='%s' AND out_time >= '%s' and employee_id=%s 
-                    AND to_char(work_date,'YYYY-MM-DD')=('%s')       
-                    ''' %(line.in_time,line.out_time,line.employee_id.id,line.work_date)
-            cr.execute(sql)
-            p = cr.fetchone()  
+            emp_attendance_io = self.pool.get('arul.hr.punch.in.out.time')
+            emp_attendance_io_ids = emp_attendance_io.search(cr, uid, [('employee_id','=',line.employee_id.id),('work_date','=',line.work_date)])
+            if emp_attendance_io_ids:
+                
+                sql = '''
+                    SELECT in_time,out_time FROM arul_hr_punch_in_out_time WHERE id=%s
+                    ''' %(emp_attendance_io_ids[0])
+                cr.execute(sql)
+                for k in cr.fetchall():
+                    in_time=k[0]
+                    out_time=k[1]
+                if in_time <= line.in_time <= out_time and in_time <= line.out_time <= out_time: 
+                    raise osv.except_osv(_('Warning!'),_('Attendance Already Entered for this Time Period')) 
             #TPT-COMMENTED TEMP                
-            if p[0]>0:
-                raise osv.except_osv(_('Warning!'),_('Attendance Already Entered for this Time Period')) 
+            #if p[0]>0:
+            #    raise osv.except_osv(_('Warning!'),_('Attendance Already Entered for this Time Period')) 
             #TPT END
         for line in self.browse(cr,uid,ids):
 #             emp = self.pool.get('hr.employee')
