@@ -7295,15 +7295,10 @@ class shift_adjustment(osv.osv):
     _name='shift.adjustment'
     
     def shift_adj(self, cr, uid, ids, context=None):
-        #emp = self.pool.get('hr.employee')
         emp_attendence_obj = self.pool.get('arul.hr.employee.attendence.details')
         punch_obj = self.pool.get('arul.hr.punch.in.out.time')
         
-        for line in self.browse(cr, uid, ids, context=context):
-            sql = '''
-                
-            '''
-            #cr.execute(sql)
+        for line in self.browse(cr, uid, ids, context=context):       
             if not line.work_date:
                 raise osv.except_osv(_('Warning!'),_('Pls Select Work Date'))
             att = self.pool.get('arul.hr.punch.in.out.time').search(cr, uid, [('work_date','=',line.work_date),('employee_id','=',line.employee_id.id)])
@@ -7314,17 +7309,19 @@ class shift_adjustment(osv.osv):
                 #att = str(att[0]).replace('[', '')
                 #att = att.replace(']', '')
                 #raise osv.except_osv(_('Warning!%s'),_(line.reason_for_adj)) 
+                if line.increase_count==0:
+                    raise osv.except_osv(_('Warning!'),_('Adjustable Count not be Zero')) 
                 if line.work_shift=='total_shift':
                     if line.adj_type=='increase' or line.adj_type=='decrease':
                         raise osv.except_osv(_('Warning!'),_('"Total Shift Worked" is Adjustable through overwrite type only'))   
                 if line.adj_type=='increase':
                     if line.work_shift=='a':
                         sql = '''
-                        update arul_hr_punch_in_out_time set a_shift_count1 =a_shift_count1+%s,total_shift_worked1=total_shift_worked1+%s,reason_for_adj = '%s',reason_details='%s' where id=%s 
+                        update arul_hr_punch_in_out_time set a_shift_count1 = a_shift_count1 + %s,total_shift_worked1 = total_shift_worked1 + %s,reason_for_adj = '%s',reason_details='%s' where id=%s 
                         '''%(line.increase_count,line.increase_count,line.reason_for_adj,line.reason_details, att[0])
                         cr.execute(sql)
                         sql = '''
-                        update arul_hr_punch_in_out_time set a_shift_count =a_shift_count+%s,total_shift_worked=total_shift_worked+%s,reason_for_adj = '%s',reason_details='%s' where id=%s 
+                        update arul_hr_punch_in_out_time set a_shift_count = a_shift_count + %s,total_shift_worked = total_shift_worked + %s,reason_for_adj = '%s',reason_details='%s' where id=%s 
                         '''%(line.increase_count,line.increase_count,line.reason_for_adj,line.reason_details, att[0])
                         cr.execute(sql)
                     if line.work_shift=='g1':
@@ -7507,9 +7504,6 @@ class leave_adjustment(osv.osv):
     _name='leave.adjustment'
     
     def leave_adj(self, cr, uid, ids, context=None):
-        #emp = self.pool.get('hr.employee')
-        #leave_details = self.pool.get('employee.leave.detail')
-        #punch_obj = self.pool.get('arul.hr.punch.in.out.time')
         employee_leave_obj = self.pool.get('employee.leave')
         employee_leave_detail_obj = self.pool.get('employee.leave.detail')
         leave_type_obj = self.pool.get('arul.hr.leave.types')
@@ -7517,23 +7511,24 @@ class leave_adjustment(osv.osv):
         for line in self.browse(cr, uid, ids, context=context):
             if not line.work_date:
                 raise osv.except_osv(_('Warning!'),_('Pls Select Work Date'))
-            
+            if line.increase_count==0:
+                raise osv.except_osv(_('Warning!'),_('Adjustable Count not be Zero')) 
             employee_leave_ids = employee_leave_obj.search(cr, uid, [('year','=',line.work_date[:4]),('employee_id','=',line.employee_id.id)])
-            leave_type_ids = leave_type_obj.search(cr, uid, [('code','=','C.Off')])
+            leave_type_ids = leave_type_obj.search(cr, uid, [('id','=',line.leave_type_id.id)])
             if not leave_type_ids:
-                raise osv.except_osv(_('Warning!'),_('Can not find Leave Type C.Off. Please Create Leave Type C.Off before'))
+                raise osv.except_osv(_('Warning!'),_('Can not find this Leave Type. Please Create Leave Type before'))
             if employee_leave_ids:
-                employee_leave_detail_ids = employee_leave_detail_obj.search(cr, uid, [('emp_leave_id','in',employee_leave_ids),('leave_type_id','=',leave_type_ids[0])])
+                employee_leave_detail_ids = employee_leave_detail_obj.search(cr, uid, [('emp_leave_id','in',employee_leave_ids),('leave_type_id','=',line.leave_type_id.id)])
                 if employee_leave_detail_ids:
                     if line.adj_type=='increase':
                         sql = '''
-                                    update employee_leave_detail set total_day = total_day+%s where id = %s
+                                    update employee_leave_detail set total_day = total_day + %s where id = %s
                             '''%(line.increase_count,employee_leave_detail_ids[0])
                         cr.execute(sql)                             
                     if line.adj_type=='decrease':
                         sql = '''
-                                    update employee_leave_detail set total_day = total_day-%s where id = %s
-                            '''%(line.decrease_count,employee_leave_detail_ids[0])
+                                    update employee_leave_detail set total_day = total_day - %s where id = %s
+                            '''%(line.increase_count,employee_leave_detail_ids[0])
                         cr.execute(sql) 
                 
                     
@@ -7542,10 +7537,11 @@ class leave_adjustment(osv.osv):
     _columns={
               'employee_id': fields.many2one('hr.employee','Employee ID',required = True,states={'done': [('readonly', True)], 'cancel': [('readonly', True)]}),
               'work_date': fields.date('Work Date',required = True,states={'done': [('readonly', True)], 'cancel': [('readonly', True)]}),   
-              'available_coff_count': fields.float('Available C.Off',readonly=True),          
+              'leave_type_id' : fields.many2one('arul.hr.leave.types', 'Leave Type', required = True,states={'done': [('readonly', True)], 'cancel': [('readonly', True)]}),
+              'available_leave_count': fields.float('Available Leave Count',readonly=True),          
               'adj_type': fields.selection([('increase', 'Increase'),
                                             ('decrease', 'Decrease')],'Adjustment Type',required = True,states={'done': [('readonly', True)], 'cancel': [('readonly', True)]}),
-              'increase_count': fields.float('Increase Count', states={'done': [('readonly', True)], 'cancel': [('readonly', True)]}),
+              'increase_count': fields.float('Adj. Count', states={'done': [('readonly', True)], 'cancel': [('readonly', True)]}),
               'decrease_count': fields.float('Decrease Count', states={'done': [('readonly', True)], 'cancel': [('readonly', True)]}),
               'reason_for_adj': fields.selection([('sys_err', 'System Error'),
                                             ('clerk_err', 'Clerical Error')],'Reason for Change',states={'done': [('readonly', True)], 'cancel': [('readonly', True)]}),
@@ -7568,15 +7564,29 @@ class leave_adjustment(osv.osv):
             SELECT CASE WHEN SUM(total_day-total_taken)!=0 THEN SUM(total_day-total_taken) ELSE 0 END pl_count FROM employee_leave_detail 
             WHERE emp_leave_id IN 
             (SELECT id FROM employee_leave WHERE employee_id = %s AND year='%s')
-            AND leave_type_id = (SELECT id FROM arul_hr_leave_types WHERE code='C.Off')
-            '''%(vals['employee_id'],current_year)
+            AND leave_type_id = (SELECT id FROM arul_hr_leave_types WHERE id=%s)
+            '''%(vals['employee_id'],current_year, vals['leave_type_id'])
         cr.execute(sql)
         coff = cr.fetchone()
-        coff = str(coff)
-        coff = coff.replace("(","")
-        coff = coff.replace(",)","")
-        vals['available_coff_count'] = coff
+        vals['available_leave_count'] = coff[0]
         
         return super(leave_adjustment, self).create(cr, uid, vals, context)
-        
+    
+    #===========================================================================
+    # def write(self, cr, uid, ids, vals, context=None):
+    #     for leave_adj_obj in self.browse(cr, uid, ids):
+    #         now = datetime.datetime.now()
+    #         current_year = now.year
+    #         sql = '''
+    #             SELECT CASE WHEN SUM(total_day-total_taken)!=0 THEN SUM(total_day-total_taken) ELSE 0 END pl_count FROM employee_leave_detail 
+    #             WHERE emp_leave_id IN 
+    #             (SELECT id FROM employee_leave WHERE employee_id = %s AND year='%s')
+    #             AND leave_type_id = (SELECT id FROM arul_hr_leave_types WHERE id=%s)
+    #             '''%(leave_adj_obj.employee_id.id,current_year, leave_adj_obj.leave_type_id.id)
+    #         cr.execute(sql)
+    #         coff = cr.fetchone()
+    #         vals['available_leave_count'] = coff[0]
+    #     return super(leave_adjustment, self).write(cr, uid,ids, vals, context)
+    #===========================================================================
+      
 leave_adjustment()
