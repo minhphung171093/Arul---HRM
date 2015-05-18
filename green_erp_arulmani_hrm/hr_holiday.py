@@ -1127,16 +1127,19 @@ class arul_hr_audit_shift_time(osv.osv):
             else:
                 raise osv.except_osv(_('Warning!'),_('User does not have permission to approve for this employee department!'))
             ##TPT START - By BalamuruganPurushothaman - TO RESTRICT DUPLICATE ATTENDANCE ENTRY FOR A DAY
-            sql = '''
-                    SELECT COUNT(*) FROM arul_hr_punch_in_out_time WHERE 
-                    in_time <='%s' AND out_time >= '%s' and employee_id=%s 
-                    AND to_char(work_date,'YYYY-MM-DD')=('%s')       
-                    ''' %(line.in_time,line.out_time,line.employee_id.id,line.work_date)
-            cr.execute(sql)
-            p = cr.fetchone()  
-            #TPT-COMMENTED TEMP                
-            #if p[0]>0:
-            #    raise osv.except_osv(_('Warning!'),_('Attendance Already Entered for this Time Period')) 
+            emp_attendance_io = self.pool.get('arul.hr.punch.in.out.time')
+            emp_attendance_io_ids = emp_attendance_io.search(cr, uid, [('employee_id','=',line.employee_id.id),('work_date','=',line.work_date)])
+            if emp_attendance_io_ids:
+                
+                sql = '''
+                    SELECT in_time,out_time FROM arul_hr_punch_in_out_time WHERE id=%s
+                    ''' %(emp_attendance_io_ids[0])
+                cr.execute(sql)
+                for k in cr.fetchall():
+                    in_time=k[0]
+                    out_time=k[1]
+                if in_time <= line.in_time <= out_time and in_time <= line.out_time <= out_time: 
+                    raise osv.except_osv(_('Warning!'),_('Attendance Already Entered for this Time Period'))  
             #TPT END
         for line in self.browse(cr,uid,ids):
 #             emp = self.pool.get('hr.employee')
@@ -1415,7 +1418,7 @@ class arul_hr_audit_shift_time(osv.osv):
                                                                                                        })],
                                                                        })
                     
-                employee_ids = emp_attendence_obj.search(cr, uid, [('employee_id','=',line.employee_id.id)])
+                #employee_ids = emp_attendence_obj.search(cr, uid, [('employee_id','=',line.employee_id.id)])
                 
                 ### TPT START
                 if line.in_time > line.out_time:
@@ -1665,7 +1668,7 @@ class arul_hr_audit_shift_time(osv.osv):
                             a_shift_count = 1 
                         total_shift_worked = 2
                 #############
-
+                employee_ids = emp_attendence_obj.search(cr, uid, [('employee_id','=',line.employee_id.id)])
                 if employee_ids:                        
                     val2={'punch_in_out_id':employee_ids[0], 
                               'employee_id': line.employee_id.id,
@@ -1735,14 +1738,10 @@ class arul_hr_audit_shift_time(osv.osv):
                 detail_obj4 = self.pool.get('arul.hr.punch.in.out.time')
                 emp_attendence_ids = emp_attendence_obj.search(cr, uid, [('employee_id','=',line_id.employee_id.id)])
                 ##PUNCH TIME
-                sql = '''
-                SELECT CASE WHEN SUM(total_hours)!=0 THEN SUM(total_hours) ELSE 0 END total_hours 
-                FROM arul_hr_punch_in_out_time WHERE 
-                TO_CHAR(work_date,'YYYY-MM-DD') = ('%s') and employee_id = %s
-                    '''%(line.work_date,line.employee_id.id)
-                cr.execute(sql)
-                ph =  cr.fetchone()
-                punch_hours = ph[0]
+                
+                #############
+                
+                
                 ###
                 if emp_attendence_ids:
                     if(line_id.non_availability_type_id == 'on_duty'):
@@ -1805,7 +1804,8 @@ class arul_hr_audit_shift_time(osv.osv):
                                                                         'department_id':line_id.employee_id.department_id and line_id.employee_id.department_id.id or False,
                                                                         'designation_id':line_id.employee_id.job_id and line_id.employee_id.job_id.id or False})
             
-                                
+                    
+                    #ELSE On-Duty            
                     val2={'permission_onduty_id':emp_attendence_ids[0], 'approval':1,
                                 }
                     punch_obj.write(cr,uid,[line_id.id],val2) 
@@ -2112,7 +2112,16 @@ class arul_hr_employee_leave_details(osv.osv):
             if payroll_ids :
                 raise osv.except_osv(_('Warning!'),_('Payroll were already exists, not allowed to create again!'))
         #        
-                   
+        ##TPT START: 18/05/2015
+        #employee_leave_detail_obj = self.pool.get('employee.leave.detail')
+        emp_attendance_io = self.pool.get('arul.hr.punch.in.out.time')
+        emp = self.pool.get('hr.employee')
+        emp_id = emp.search(cr, uid, [('employee_id','=',vals['employee_id'])])
+        emp_attendance_io_ids = emp_attendance_io.search(cr, uid, [('employee_id','=',vals['employee_id']),('work_date','=',vals['date_from'])])
+        if emp_attendance_io_ids:
+                raise osv.except_osv(_('Warning!'),_('System Could not Post Leave Entry if Attendance Entry exists for this Day!'))
+                
+        ## TPT END          
         #TPT START-By BalamuruganPurushothaman ON 14/03/2015-If CL/SL/C.OFF is taken a Half Day,
         #then system would not allow the same for next Half a day Except ESI/LOP
         if vals['haft_day_leave']:
@@ -2774,8 +2783,9 @@ class arul_hr_permission_onduty(osv.osv):
                     'actual_work_shift_id': work_shift_ids and work_shift_ids[0] or False,
                     'in_time':permission.start_time,
                     'out_time':permission.end_time,
-                    'type': 'permission',
+                    'type': 'on_duty',
                     'permission_id':line.id,
+                    'create_uid':line.create_uid,
                 })
                 audit_obj.approve_shift_time(cr, SUPERUSER_ID,[audit_id])
                # date_from += datetime.timedelta(days=1)

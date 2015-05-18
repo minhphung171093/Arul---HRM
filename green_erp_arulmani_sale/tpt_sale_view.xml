@@ -231,9 +231,9 @@
 										<field name="amount_basic"/>
 										<field name="amount_ed"/>
 										<field name="sub_total"/> 
-										<!-- 
+										
 										<field name="tpt_name_consignee_id" domain="[('tpt_consignee_header_id','=',parent.customer_id)]"  options="{'create': false, 'create_edit': false}"/>
-										 -->
+										 
 										<field name="name_consignee_id" domain="[('consignee_parent_id','=',parent.customer_id)]" on_change = "onchange_consignee_id(name_consignee_id)" options="{'create': false, 'create_edit': false}"/>
 										<field name="location" />  
 										<field name="freight" />
@@ -588,7 +588,7 @@
             <field name="arch" type="xml">
                 <xpath expr="//page[@string='Contacts']" position="before" >
                 <!-- TPT START -->
-                <!-- 
+                
 					<page string = "Effective Consignee">
 						<field name="tpt_consignee_line" nolabel='1'>
 							<tree editable='top'>		    
@@ -597,7 +597,7 @@
 								</tree>
 							</field>							
 					</page>
-					 -->
+					 
 				<!-- TPT END -->
                 	<page string = "Consignee">               	
 						<field name="consignee_line" mode="kanban">
