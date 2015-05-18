@@ -1139,10 +1139,7 @@ class arul_hr_audit_shift_time(osv.osv):
                     in_time=k[0]
                     out_time=k[1]
                 if in_time <= line.in_time <= out_time and in_time <= line.out_time <= out_time: 
-                    raise osv.except_osv(_('Warning!'),_('Attendance Already Entered for this Time Period')) 
-            #TPT-COMMENTED TEMP                
-            #if p[0]>0:
-            #    raise osv.except_osv(_('Warning!'),_('Attendance Already Entered for this Time Period')) 
+                    raise osv.except_osv(_('Warning!'),_('Attendance Already Entered for this Time Period'))  
             #TPT END
         for line in self.browse(cr,uid,ids):
 #             emp = self.pool.get('hr.employee')
@@ -2115,7 +2112,16 @@ class arul_hr_employee_leave_details(osv.osv):
             if payroll_ids :
                 raise osv.except_osv(_('Warning!'),_('Payroll were already exists, not allowed to create again!'))
         #        
-                   
+        ##TPT START: 18/05/2015
+        #employee_leave_detail_obj = self.pool.get('employee.leave.detail')
+        emp_attendance_io = self.pool.get('arul.hr.punch.in.out.time')
+        emp = self.pool.get('hr.employee')
+        emp_id = emp.search(cr, uid, [('employee_id','=',vals['employee_id'])])
+        emp_attendance_io_ids = emp_attendance_io.search(cr, uid, [('employee_id','=',vals['employee_id']),('work_date','=',vals['date_from'])])
+        if emp_attendance_io_ids:
+                raise osv.except_osv(_('Warning!'),_('System Could not Post Leave Entry if Attendance Entry exists for this Day!'))
+                
+        ## TPT END          
         #TPT START-By BalamuruganPurushothaman ON 14/03/2015-If CL/SL/C.OFF is taken a Half Day,
         #then system would not allow the same for next Half a day Except ESI/LOP
         if vals['haft_day_leave']:
