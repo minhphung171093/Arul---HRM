@@ -1135,8 +1135,8 @@ class arul_hr_audit_shift_time(osv.osv):
             cr.execute(sql)
             p = cr.fetchone()  
             #TPT-COMMENTED TEMP                
-            #if p[0]>0:
-            #    raise osv.except_osv(_('Warning!'),_('Attendance Already Entered for this Time Period')) 
+            if p[0]>0:
+                raise osv.except_osv(_('Warning!'),_('Attendance Already Entered for this Time Period')) 
             #TPT END
         for line in self.browse(cr,uid,ids):
 #             emp = self.pool.get('hr.employee')
