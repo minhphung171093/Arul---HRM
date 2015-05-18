@@ -1180,7 +1180,7 @@ class mrp_production(osv.osv):
             
         if context.get('search_mrp_fsh_batch', False) and context.get('product_id', False):
             sql = '''
-                select id from mrp_production where product_id=%s and flag = 'f' )
+                select id from mrp_production where product_id=%s and flag = 'f'
             '''%(context.get('product_id'))
             cr.execute(sql)
             mrp_ids = [row[0] for row in cr.fetchall()]
