@@ -1017,18 +1017,18 @@ class tpt_blanket_order(osv.osv):
         'blank_order_line': fields.one2many('tpt.blank.order.line', 'blanket_order_id', 'Sale Order', states={'cancel': [('readonly', True)], 'done':[('readonly', True)], 'approve':[('readonly', True)]}),
         'amount_untaxed': fields.function(amount_all_blanket_orderline, multi='sums',string='Untaxed Amount',
                                          store={
-                'tpt.blanket.order': (lambda self, cr, uid, ids, c={}: ids, ['blank_order_line','sale_tax_id'], 10),
-                'tpt.blank.order.line': (_get_order, ['price_unit', 'sub_total', 'product_uom_qty'], 10),}, 
+                'tpt.blanket.order': (lambda self, cr, uid, ids, c={}: ids, ['blank_order_line','sale_tax_id','excise_duty_id'], 10),
+                'tpt.blank.order.line': (_get_order, ['price_unit', 'sub_total', 'product_uom_qty', 'freight'], 10),}, 
             states={'cancel': [('readonly', True)], 'done':[('readonly', True)], 'approve':[('readonly', True)]}),
         'amount_tax': fields.function(amount_all_blanket_orderline, multi='sums',string='Taxes',
                                       store={
-                'tpt.blanket.order': (lambda self, cr, uid, ids, c={}: ids, ['blank_order_line', 'sale_tax_id'], 10),
-                'tpt.blank.order.line': (_get_order, ['price_unit', 'sub_total', 'product_uom_qty'], 10), }, 
+                'tpt.blanket.order': (lambda self, cr, uid, ids, c={}: ids, ['blank_order_line', 'sale_tax_id','excise_duty_id'], 10),
+                'tpt.blank.order.line': (_get_order, ['price_unit', 'sub_total', 'product_uom_qty', 'freight'], 10), }, 
             states={'cancel': [('readonly', True)], 'done':[('readonly', True)], 'approve':[('readonly', True)]}),
         'amount_total': fields.function(amount_all_blanket_orderline, multi='sums',string='Total',
                                         store={
-                'tpt.blanket.order': (lambda self, cr, uid, ids, c={}: ids, ['blank_order_line', 'sale_tax_id'], 10),
-                'tpt.blank.order.line': (_get_order, ['price_unit', 'sub_total', 'product_uom_qty'], 10), },
+                'tpt.blanket.order': (lambda self, cr, uid, ids, c={}: ids, ['blank_order_line', 'sale_tax_id','excise_duty_id'], 10),
+                'tpt.blank.order.line': (_get_order, ['price_unit', 'sub_total', 'product_uom_qty', 'freight'], 10), },
              states={'cancel': [('readonly', True)], 'done':[('readonly', True)], 'approve':[('readonly', True)]}),
         
         'blank_consignee_line': fields.one2many('tpt.consignee', 'blanket_consignee_id', 'Consignee', states={'cancel': [('readonly', True)], 'done':[('readonly', True)], 'approve':[('readonly', True)]}), 
@@ -1207,6 +1207,7 @@ class tpt_blank_order_line(osv.osv):
             ed = (line.product_uom_qty * line.price_unit) * (line.blanket_order_id.excise_duty_id.amount/100)
             res[line.id]['amount_ed'] = ed
         return res
+    
     _columns = {
         'blanket_order_id': fields.many2one('tpt.blanket.order', 'Blank Order', ondelete = 'cascade'),
         'product_id': fields.many2one('product.product', 'Product', required = True),
@@ -1216,7 +1217,7 @@ class tpt_blank_order_line(osv.osv):
         'product_uom_qty': fields.float('Quantity'),
         'uom_po_id': fields.many2one('product.uom', 'UOM', readonly = False),
         'price_unit': fields.float('Unit Price'),
-        'sub_total': fields.function(subtotal_blanket_orderline, store = True, multi='deltas' ,string='SubTotal'),
+        'sub_total': fields.function(subtotal_blanket_orderline, multi='deltas' ,string='SubTotal'),
         'freight': fields.float('Frt/Qty'),
         
         'tpt_name_consignee_id': fields.many2one('tpt.cus.consignee', 'Effective Consignee', required = False),
@@ -1225,8 +1226,8 @@ class tpt_blank_order_line(osv.osv):
         'location': fields.char('Location', size = 1024,readonly = True),
         'expected_date':fields.date('Expected delivery Date'),
         
-        'amount_basic': fields.function(basic_amt_calc, store = True, multi='deltas1' ,string='Basic'),
-        'amount_ed': fields.function(ed_amt_calc, store = True, multi='deltas2' ,string='ED'),
+        'amount_basic': fields.function(basic_amt_calc, multi='deltas1' ,string='Basic'),
+        'amount_ed': fields.function(ed_amt_calc, multi='deltas2' ,string='ED'),
                 
         'is_fsh_tio2': fields.boolean('Is TiO2 or FSH'),
         'dispatch_date':fields.date('Scheduled Dispatch Date'),
