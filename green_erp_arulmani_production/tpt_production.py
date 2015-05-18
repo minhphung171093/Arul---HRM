@@ -1470,8 +1470,8 @@ class stock_production_lot(osv.osv):
         for line in po_line_obj.browse(cr, 1, po_line_ids):
             if line.po_indent_no:
                 sql = '''
-                    update tpt_purchase_product set po_doc_no = '%s',po_date='%s' where pur_product_id = %s and product_id=%s
-                '''%(line.order_id.name,line.order_id.date_order,line.po_indent_no.id,line.product_id.id)
+                    update tpt_purchase_product set po_doc_no = %s,po_date='%s' where pur_product_id = %s and product_id=%s
+                '''%(line.order_id.id,line.order_id.date_order,line.po_indent_no.id,line.product_id.id)
                 cr.execute(sql)
         
         if product_ids:
