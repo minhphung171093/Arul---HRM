@@ -613,6 +613,7 @@ class stock_picking(osv.osv):
         return self.name_get(cr, user, ids, context=context)
         
 stock_picking()
+
 class account_invoice(osv.osv):
     _inherit = "account.invoice"
      
@@ -642,6 +643,7 @@ class account_invoice(osv.osv):
 #                 if not key in tax_key:
 #                     raise osv.except_osv(_('Warning!'), _('Taxes are missing!\nClick on compute button.'))
 
+
     def onchange_purchase_id(self, cr, uid, ids,purchase_id=False, context=None):
         vals = {}
         if purchase_id:
@@ -654,31 +656,155 @@ class account_invoice(osv.osv):
         purchase = self.pool.get('purchase.order').browse(cr, uid, purchase_id)
         for line in purchase.order_line:
             taxes_ids = [t.id for t in line.taxes_id]
-            rs = {
-                  'product_id': line.product_id and line.product_id.id or False,
-                  'name': line.description,
-                  'quantity': line.product_qty or False,
-                  'uos_id': line.product_uom and line.product_uom.id or False,
-                  'price_unit': line.price_unit or False,
-                  'disc': line.discount or False,
-                  'p_f': line.p_f or False,
-                  'p_f_type':line.p_f_type or False,
-                  'ed':line.ed or False,
-                  'ed_type':line.ed_type or False,
-#                   'taxes_id': [(6,0,[line.tax_id and line.tax_id.id])],
-                  'invoice_line_tax_id': [(6,0,taxes_ids)],
-                  'fright':line.fright or False,
-                  'fright_type':line.fright_type or False,
-                  'line_net': line.line_net or False,
-                  'account_id':line.product_id and line.product_id.purchase_acc_id and line.product_id.purchase_acc_id.id or False,
-                  }
-            service_line.append((0,0,rs))
+            if purchase.po_document_type == 'service':
+                sql = '''
+                    select case when sum(quantity)!=0 then sum(quantity) else 0 end quantity from account_invoice_line where invoice_id in (select id from account_invoice where purchase_id = %s and state!='cancel') and po_line_id = %s
+                '''%(purchase_id, line.id)
+                cr.execute(sql)
+                quantity = cr.dictfetchone()['quantity']
+                if line.product_qty > quantity:
+                    rs = {
+                          'product_id': line.product_id and line.product_id.id or False,
+                          'name': line.description,
+                          'quantity': line.product_qty - quantity or False,
+                          'uos_id': line.product_uom and line.product_uom.id or False,
+                          'price_unit': line.price_unit or False,
+                          'disc': line.discount or False,
+                          'p_f': line.p_f or False,
+                          'p_f_type':line.p_f_type or False,
+                          'ed':line.ed or False,
+                          'ed_type':line.ed_type or False,
+        #                   'taxes_id': [(6,0,[line.tax_id and line.tax_id.id])],
+                          'invoice_line_tax_id': [(6,0,taxes_ids)],
+                          'fright':line.fright or False,
+                          'fright_type':line.fright_type or False,
+                          'line_net': line.line_net or False,
+                          'account_id':line.product_id and line.product_id.purchase_acc_id and line.product_id.purchase_acc_id.id or False,
+                          'po_line_id': line.id,
+                      }
+                    service_line.append((0,0,rs))
+            else:
+                rs = {
+                      'product_id': line.product_id and line.product_id.id or False,
+                      'name': line.description,
+                      'quantity': line.product_qty or False,
+                      'uos_id': line.product_uom and line.product_uom.id or False,
+                      'price_unit': line.price_unit or False,
+                      'disc': line.discount or False,
+                      'p_f': line.p_f or False,
+                      'p_f_type':line.p_f_type or False,
+                      'ed':line.ed or False,
+                      'ed_type':line.ed_type or False,
+    #                   'taxes_id': [(6,0,[line.tax_id and line.tax_id.id])],
+                      'invoice_line_tax_id': [(6,0,taxes_ids)],
+                      'fright':line.fright or False,
+                      'fright_type':line.fright_type or False,
+                      'line_net': line.line_net or False,
+                      'account_id':line.product_id and line.product_id.purchase_acc_id and line.product_id.purchase_acc_id.id or False,
+                      }
+                service_line.append((0,0,rs))
         vals = {
                 'partner_id':purchase.partner_id and purchase.partner_id.id or False,
                 'vendor_ref':purchase.partner_ref or False,
                 'invoice_line': service_line,
                 }
         return {'value': vals}
+    
+    
+    def create(self, cr, uid, vals, context=None):
+        new_id = super(account_invoice, self).create(cr, uid, vals, context=context)
+        new = self.browse(cr,uid,new_id)
+        if new.purchase_id.po_document_type == 'service':
+            for purchase_line in new.purchase_id.order_line:
+                sql = '''
+                        select case when sum(quantity)!=0 then sum(quantity) else 0 end quantity from account_invoice_line where invoice_id in (select id from account_invoice where purchase_id = %s and state!='cancel') and po_line_id = %s
+                    '''%(new.purchase_id.id, purchase_line.id)
+                cr.execute(sql)
+                quantity = cr.dictfetchone()['quantity']
+                 
+                sql = '''
+                        select product_qty from purchase_order_line where order_id in (select id from purchase_order where id = %s) and id = %s
+                    '''%(new.purchase_id.id, purchase_line.id)
+                cr.execute(sql)
+                product_qty = cr.dictfetchone()['product_qty']
+                if quantity == product_qty:
+                    sql = '''
+                        update purchase_order_line set flag_line = 't' where id = %s and id = %s
+                    '''%(purchase_line.id, purchase_line.id)
+                    cr.execute(sql)
+                elif quantity<product_qty:
+                    sql = '''
+                        update purchase_order_line set flag_line = 'f' where id = %s and id = %s
+                    '''%(purchase_line.id, purchase_line.id)
+                    cr.execute(sql)
+                else:
+                    raise osv.except_osv(_('Error!'), _('Quantity in Account Invoice is not more than quantity in Purchase Order'))
+            sql = '''
+                select id from purchase_order_line where flag_line = 'f' and order_id = %s
+            '''%(new.purchase_id.id)
+            cr.execute(sql)
+            purchase_orders = [row[0] for row in cr.fetchall()]
+            if purchase_orders: 
+# con so luong doi voi purchase order do
+                sql = '''
+                        update purchase_order set flag = 'f' where id = %s
+                    '''%(new.purchase_id.id)
+                cr.execute(sql)
+            else:
+# khong con so luong doi voi purchase order do
+                sql = '''
+                        update purchase_order set flag = 't' where id = %s
+                    '''%(new.purchase_id.id)
+                cr.execute(sql)
+        return new_id
+     
+    def write(self, cr, uid, ids, vals, context=None):
+        new_write = super(account_invoice, self).write(cr, uid,ids, vals, context)
+        for new in self.browse(cr,uid,ids):
+            if new.purchase_id.po_document_type == 'service':
+                for purchase_line in new.purchase_id.order_line:
+                    sql = '''
+                            select case when sum(quantity)!=0 then sum(quantity) else 0 end quantity from account_invoice_line where invoice_id in (select id from account_invoice where purchase_id = %s and state!='cancel') and po_line_id = %s
+                        '''%(new.purchase_id.id, purchase_line.id)
+                    cr.execute(sql)
+                    quantity = cr.dictfetchone()['quantity']
+                     
+                    sql = '''
+                            select product_qty from purchase_order_line where order_id in (select id from purchase_order where id = %s) and id = %s
+                        '''%(new.purchase_id.id, purchase_line.id)
+                    cr.execute(sql)
+                    product_qty = cr.dictfetchone()['product_qty']
+                    if quantity == product_qty:
+                        sql = '''
+                            update purchase_order_line set flag_line = 't' where id = %s and id = %s
+                        '''%(purchase_line.id, purchase_line.id)
+                        cr.execute(sql)
+                    elif quantity<product_qty:
+                        sql = '''
+                            update purchase_order_line set flag_line = 'f' where id = %s and id = %s
+                        '''%(purchase_line.id, purchase_line.id)
+                        cr.execute(sql)
+                    else:
+                        raise osv.except_osv(_('Error!'), _('Quantity in Account Invoice is not more than quantity in Purchase Order'))
+                sql = '''
+                    select id from purchase_order_line where flag_line = 'f' and order_id = %s
+                '''%(new.purchase_id.id)
+                cr.execute(sql)
+                purchase_orders = [row[0] for row in cr.fetchall()]
+                if purchase_orders: 
+    # con so luong doi voi purchase order do
+                    sql = '''
+                            update purchase_order set flag = 'f' where id = %s
+                        '''%(new.purchase_id.id)
+                    cr.execute(sql)
+                else:
+    # khong con so luong doi voi purchase order do
+                    sql = '''
+                            update purchase_order set flag = 't' where id = %s
+                        '''%(new.purchase_id.id)
+                    cr.execute(sql)
+        return new_write
+    
     def compute_invoice_totals(self, cr, uid, inv, company_currency, ref, invoice_move_lines, context=None):
         if context is None:
             context={}
@@ -806,6 +932,7 @@ class account_invoice(osv.osv):
                 iml += invoice_line_obj.move_line_aed(cr, uid, inv.id)
                 if inv.purchase_id:
                     iml += invoice_line_obj.move_line_amount_untaxed(cr, uid, inv.id) 
+                    iml += invoice_line_obj.move_line_tds_amount_without_po(cr, uid, inv.id) 
                 else:
                     iml += invoice_line_obj.move_line_amount_untaxed_without_po(cr, uid, inv.id) 
                     iml += invoice_line_obj.move_line_tds_amount_without_po(cr, uid, inv.id) 
@@ -3639,6 +3766,21 @@ class res_partner(osv.osv):
         'tds_id': fields.many2one('account.tax', 'TDS %'),
         'vendor_type': fields.selection([('manu', 'Manufacturer'),('trade', 'Traders'),('first_stage', 'First Stage'),('Import', 'import')],'Vendor Type'),
         }
+    _defaults = {
+        'vendor_code':'/',
+    }
+    
+    def _check_vendor_code(self, cr, uid, ids, context=None):
+        for vendor in self.browse(cr, uid, ids, context=context):
+            if vendor.vendor_code:
+                vendor_ids = self.search(cr, uid, [('id','!=',vendor.id),('vendor_code','=',vendor.vendor_code)])
+                if vendor_ids:  
+                    raise osv.except_osv(_('Warning!'),_('The Vendor Code must be unique!'))
+                    return False
+        return True
+    _constraints = [
+        (_check_vendor_code, 'Identical Data', []),
+    ]
     
     def create(self, cr, uid, vals, context=None):
         if 'customer' in vals and vals['customer']:
@@ -3658,6 +3800,54 @@ class res_partner(osv.osv):
                 'parent_id':acc_parent_ids[0],
                                             })
             vals.update({'property_account_receivable':acc_id})
+        if 'supplier' in vals and vals['supplier']:
+            acc_obj = self.pool.get('account.account')
+            acc_parent_ids = []
+            acc_type_ids = self.pool.get('account.account.type').search(cr,uid, [('code','=','payable')])
+            if 'vendor_group_id' in vals and vals['vendor_group_id']:
+                group = self.pool.get('tpt.vendor.group').browse(cr,uid,vals['vendor_group_id'])
+                if 'Domestic' in group.name:
+                    if vals.get('vendor_code','/')=='/':
+                        vals['vendor_code'] = self.pool.get('ir.sequence').get(cr, uid, 'tpt.domestic.vendor') or '/'
+                        acc_parent_ids = self.pool.get('account.account').search(cr,uid, [('code','=','0000215201')])
+                        if not acc_parent_ids:
+                            raise osv.except_osv(_('Warning!'),_('Please create GL Account for code is "0000215201" and name is "SUNDRY CREDITORS – DOMESTIC"!!'))
+                elif 'Spares' in group.name:
+                    if vals.get('vendor_code','/')=='/':
+                        vals['vendor_code'] = self.pool.get('ir.sequence').get(cr, uid, 'tpt.spares.vendor') or '/'
+                        acc_parent_ids = self.pool.get('account.account').search(cr,uid, [('code','=','0000215204')])
+                        if not acc_parent_ids:
+                            raise osv.except_osv(_('Warning!'),_('Please create GL Account for code is "0000215204" and name is "SUNDRY CREDITORS - SPARES SUPPLIERS"!!'))
+                elif 'Service Providers' in group.name:
+                    if vals.get('vendor_code','/')=='/':
+                        vals['vendor_code'] = self.pool.get('ir.sequence').get(cr, uid, 'tpt.service.providers.vendor') or '/'
+                        acc_parent_ids = self.pool.get('account.account').search(cr,uid, [('code','=','0000215203')])
+                        if not acc_parent_ids:
+                            raise osv.except_osv(_('Warning!'),_('Please create GL Account for code is "0000215203" and name is "SUNDRY CREDITORS - SERVICE PROVIDERS"!!'))
+                elif 'Transporters and C & F' in group.name:
+                    if vals.get('vendor_code','/')=='/':
+                        vals['vendor_code'] = self.pool.get('ir.sequence').get(cr, uid, 'tpt.transporters.vendor') or '/'
+                        acc_parent_ids = self.pool.get('account.account').search(cr,uid, [('code','=','0000215200')])
+                        if not acc_parent_ids:
+                            raise osv.except_osv(_('Warning!'),_('Please create GL Account for code is "0000215200" and name is "SUNDRY CREDITORS - TRANSPORTES AND C&F"!!'))
+                elif 'Foreign' in group.name:
+                    if vals.get('vendor_code','/')=='/':
+                        vals['vendor_code'] = self.pool.get('ir.sequence').get(cr, uid, 'tpt.foreign.vendor') or '/'
+                        acc_parent_ids = self.pool.get('account.account').search(cr,uid, [('code','=','0000215202')])
+                        if not acc_parent_ids:
+                            raise osv.except_osv(_('Warning!'),_('Please create GL Account for code is "0000215202" and name is "SUNDRY CREDITORS - FOREIGN"!!'))
+                else:
+                    raise osv.except_osv(_('Warning!'),_('Can not create Vendor Code for this Vendor Class'))
+            if acc_parent_ids:
+                acc_id = acc_obj.create(cr,uid,{
+                    'code':vals['vendor_code'],
+                    'name': vals['name'],
+                    'type':'payable',
+                    'reconcile': True,
+                    'user_type':acc_type_ids[0],
+                    'parent_id':acc_parent_ids[0],
+                                                })
+                vals.update({'property_account_payable':acc_id})
         return super(res_partner, self).create(cr, uid, vals, context)
     
     def search(self, cr, uid, args, offset=0, limit=None, order=None, context=None, count=False):
@@ -3695,6 +3885,31 @@ class res_currency(osv.osv):
 
     def _current_rate_silent(self, cr, uid, ids, name, arg, context=None):
         return self._current_rate_computation(cr, uid, ids, name, arg, False, context=context)
+
+    def _current_rate_computation(self, cr, uid, ids, name, arg, raise_on_no_rate, context=None):
+        if context is None:
+            context = {}
+        res = {}
+        if 'date' in context:
+            date = context['date']
+        else:
+            date = time.strftime('%Y-%m-%d')
+        date = date or time.strftime('%Y-%m-%d')
+        # Convert False values to None ...
+        currency_rate_type = context.get('currency_rate_type_id') or None
+        # ... and use 'is NULL' instead of '= some-id'.
+        operator = '=' if currency_rate_type else 'is'
+        for id in ids:
+            cr.execute("SELECT currency_id, rate FROM res_currency_rate WHERE currency_id = %s AND name <= %s AND currency_rate_type_id " + operator +" %s ORDER BY name desc LIMIT 1" ,(id, date, currency_rate_type))
+            if cr.rowcount:
+                id, rate = cr.fetchall()[0]
+                res[id] = rate
+            elif not raise_on_no_rate:
+                res[id] = 0
+            else:
+                p =self.browse(cr,uid,id)
+                raise osv.except_osv(_('Error!'),_("No currency rate associated for currency %s for the given period" % (p.name)))
+        return res
 
     _columns = {
         'rate': fields.function(_current_rate, string='Current Rate', digits=(12,14),
