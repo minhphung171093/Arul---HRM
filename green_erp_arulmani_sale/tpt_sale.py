@@ -280,7 +280,7 @@ class sale_order(osv.osv):
                   'state': 'draft',
                   'type': 'make_to_stock',
                   'name_consignee_id' : blanket_line.name_consignee_id.id,
-                  #'name_consignee_id' : blanket_line.tpt_name_consignee_id.tpt_consignee_id.id,#TPT
+                  #'name_consignee_id' : blanket_line.tpt_name_consignee_id.tpt_consignee_id.id,#TPT Consignee Part
                   'location':blanket_line.location,
                             }
             vals = {
