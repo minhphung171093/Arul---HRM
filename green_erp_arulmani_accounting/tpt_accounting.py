@@ -3770,17 +3770,17 @@ class res_partner(osv.osv):
         'vendor_code':'/',
     }
     
-    def _check_vendor_code(self, cr, uid, ids, context=None):
-        for vendor in self.browse(cr, uid, ids, context=context):
-            if vendor.vendor_code:
-                vendor_ids = self.search(cr, uid, [('id','!=',vendor.id),('vendor_code','=',vendor.vendor_code)])
-                if vendor_ids:  
-                    raise osv.except_osv(_('Warning!'),_('The Vendor Code must be unique!'))
-                    return False
-        return True
-    _constraints = [
-        (_check_vendor_code, 'Identical Data', []),
-    ]
+#     def _check_vendor_code(self, cr, uid, ids, context=None):
+#         for vendor in self.browse(cr, uid, ids, context=context):
+#             if vendor.vendor_code:
+#                 vendor_ids = self.search(cr, uid, [('id','!=',vendor.id),('vendor_code','=',vendor.vendor_code)])
+#                 if vendor_ids:  
+#                     raise osv.except_osv(_('Warning!'),_('The Vendor Code must be unique!'))
+#                     return False
+#         return True
+#     _constraints = [
+#         (_check_vendor_code, 'Identical Data', []),
+#     ]
     
     def create(self, cr, uid, vals, context=None):
         if 'customer' in vals and vals['customer']:
