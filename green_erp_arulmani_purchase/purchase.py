@@ -2212,6 +2212,7 @@ class purchase_order(osv.osv):
 #                       'date_planned':quotation.date_quotation or False,
                       'name': line.product_id and line.product_id.name or False,
                       'description':line.description or False,
+                      'item_text': line.item_text or '',
                       }
                 po_line.append((0,0,rs))
             vals = {
@@ -2878,7 +2879,7 @@ class purchase_order_line(osv.osv):
                 'description':fields.char('Description', size = 50, readonly = True),
                 'flag_line': fields.boolean('flag_line'),
                 #TPT
-                #'item_text': fields.char('Item Text'), 
+                'item_text': fields.char('Item Text'), 
                 }   
     
 
