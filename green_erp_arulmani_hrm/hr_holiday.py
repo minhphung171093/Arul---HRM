@@ -1088,9 +1088,20 @@ class arul_hr_audit_shift_time(osv.osv):
         if new.work_date: 
             month = new.work_date[5:7]
             year = new.work_date[:4]
+            day = new.work_date[8:10]
             payroll_ids = self.pool.get('arul.hr.payroll.executions').search(cr,uid,[('month','=',month),('year','=',year),('state','=','approve'),('payroll_area_id','=',new.employee_id.payroll_area_id.id)])
             if payroll_ids :
                 raise osv.except_osv(_('Warning!'),_('Payroll were already exists, not allowed to create again!'))
+            sql = '''
+                    select extract(day from date_of_joining) doj from hr_employee where extract(year from date_of_joining)= %s and 
+                      extract(month from date_of_joining)= %s and id=%s
+                    '''%(year,month,new.employee_id.id)
+            cr.execute(sql)
+            k = cr.fetchone()
+            if k:
+                new_emp_day = k[0]     
+                if new_emp_day > float(day):              
+                    raise osv.except_osv(_('Warning!'),_('System Couldnt Allow Attendance Before Employee DOJ!'))
         return new_id 
     def write(self, cr, uid, ids, vals, context=None):#Trong them
         new_write = super(arul_hr_audit_shift_time, self).write(cr, uid, ids, vals, context)
@@ -1098,9 +1109,22 @@ class arul_hr_audit_shift_time(osv.osv):
             if new.work_date: 
                 month = new.work_date[5:7]
                 year = new.work_date[:4]
+                day = new.work_date[8:10]
                 payroll_ids = self.pool.get('arul.hr.payroll.executions').search(cr,uid,[('month','=',month),('year','=',year),('state','=','approve'),('payroll_area_id','=',new.employee_id.payroll_area_id.id)])
                 if payroll_ids :
                     raise osv.except_osv(_('Warning!'),_('Payroll were already exists, not allowed to edit again!'))
+                ##
+                sql = '''
+                    select extract(day from date_of_joining) doj from hr_employee where extract(year from date_of_joining)= %s and 
+                      extract(month from date_of_joining)= %s and id=%s
+                    '''%(year,month,new.employee_id.id)
+                cr.execute(sql)
+                k = cr.fetchone()
+                if k:
+                    new_emp_day = k[0]     
+                    if new_emp_day > float(day):              
+                        raise osv.except_osv(_('Warning!'),_('System Couldnt Allow Attendance Before Employee DOJ!'))
+                
         return new_write    
     def approve_shift_time(self, cr, uid, ids, context=None):
         employee_leave_obj = self.pool.get('employee.leave')

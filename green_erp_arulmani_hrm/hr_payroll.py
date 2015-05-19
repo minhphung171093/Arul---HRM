@@ -1092,7 +1092,12 @@ class arul_hr_payroll_executions(osv.osv):
                 total_no_of_leave = tpt_lop_esi
                 
 
-                #TPT New Joinee
+                #TPT BalamuruganPurushothaman ON 19/05/2015 - TO DEFINE RULES FOR NEWLY JOINED EMPLOYEES IN BETWEEN A PAYROLL MONTH
+                # If Date Of Joining is 15/04/2015 Then this 
+                # Day of Joining = 15, Calendar Days for this Month = 30
+                # The Total No.Of Days Before DOJ = 30 - 15 - 1 = 14 Days
+                # So these 14 Days are Considered as LOP for Internal Process Only, Since there is no Pay for these Days
+                # Then this "Total No.Of Days Before DOJ" count is added with Real LOP/ESI Count (this count is taken from arul_hr_employee_leave_details table)
                 s3_working_days = 26
                 sql = '''
                     select extract(day from date_of_joining) doj from hr_employee where extract(year from date_of_joining)= %s and 
@@ -1102,11 +1107,11 @@ class arul_hr_payroll_executions(osv.osv):
                 k = cr.fetchone()
                 if k:
                     new_emp_day = k[0]               
-                    temp1 = calendar_days - new_emp_day - 1
-                    total_no_of_leave = total_no_of_leave + temp1
+                    before_doj = calendar_days - new_emp_day - 1
+                    total_no_of_leave = total_no_of_leave + before_doj
                     if p.employee_category_id and p.employee_category_id.code == 'S3':
-                        temp1 = s3_working_days - new_emp_day - 1
-                        total_no_of_leave = total_no_of_leave + temp1
+                        before_doj = s3_working_days - new_emp_day - 1
+                        total_no_of_leave = total_no_of_leave + before_doj
                     
                 ##TPT END
                 sql = '''
