@@ -3573,6 +3573,21 @@ class tpt_request_for_quotation(osv.osv):
        ids = self.search(cr, user, args, context=context, limit=limit)
        return self.name_get(cr, user, ids, context=context)
       
+    def bt_load_indent(self, cr, uid, ids, context=None):
+        res = self.pool.get('ir.model.data').get_object_reference(cr, uid, 
+                                        'green_erp_arulmani_purchase', 'load_line_from_indent_form_view')
+        return {
+                    'name': 'Indent',
+                    'view_type': 'form',
+                    'view_mode': 'form',
+                    'view_id': res[1],
+                    'res_model': 'load.line.from.indent',
+                    'domain': [],
+                    'context': {'default_message':'Do you want to copy Service PR Lines?'},
+                    'type': 'ir.actions.act_window',
+                    'target': 'new',
+                }
+      
     def bt_approve(self, cr, uid, ids, context=None):
         for line in self.browse(cr,uid,ids):
             for po_indent in line.rfq_line:
