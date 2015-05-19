@@ -120,4 +120,3 @@ access_vvti_purchase_106,tpt.product.specification,green_erp_arulmani_purchase.m
 access_vvti_purchase_107,tpt.product.specification,green_erp_arulmani_purchase.model_tpt_product_specification,green_erp_arulmani_crm.group_qc_user,True,True,True,False
 access_vvti_purchase_108,tpt.cus.consignee,green_erp_arulmani_sale.model_tpt_cus_consignee,green_erp_arulmani_purchase.group_vvti_purchase_user,True,True,True,True
 
-
