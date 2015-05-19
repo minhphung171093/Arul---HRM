@@ -164,6 +164,7 @@
 				<tree string="Indent Release - By Store" edit = 'false' delete = 'false' create = 'false' >
 						<field name="doc_type_relate"/> 
 						<field name="pur_product_id"/> 
+						<field name="intdent_cate"/>
 						<field name="product_id"/>
 						<field name="description"/>
 						<field name="item_text" />
@@ -201,6 +202,7 @@
 						<field name="doc_type_relate" />
 						<field name="pur_product_id" readonly="1"  options="{'create': false, 'create_edit': false}"/> 
 						<field name="recom_vendor" />
+						<field name="intdent_cate"/>
 						<field name="product_id" readonly = "1" options="{'create': false, 'create_edit': false}" />
 						<field name="description"/>
 						<field name="product_uom_qty" />
@@ -280,6 +282,7 @@
 				<tree string="Indent Release - By HOD" edit = 'false' delete = 'false' create = 'false' >
 						<field name="doc_type_relate"/> 
 						<field name="pur_product_id"/> 
+						<field name="intdent_cate"/>
 						<field name="product_id"/>
 						<field name="description"/>
 						<field name="item_text" />
@@ -316,7 +319,9 @@
 	            	<group col="4" colspan="2"> 
 						<field name="doc_type_relate" readonly="1" />
 						<field name="pur_product_id" readonly="1"  options="{'create': false, 'create_edit': false}"/> 
+					
 						<field name="recom_vendor" readonly="1"/>
+						<field name="intdent_cate"/>
 						<field name="product_id" readonly = "1" options="{'create': false, 'create_edit': false}" />
 						<field name="description" readonly="1" />
 						<field name="product_uom_qty" on_change="onchange_hod_qty(product_uom_qty)" />
@@ -412,6 +417,7 @@
 				<tree string="Pending PR List" delete = 'false' create = 'false' >
 						<field name="doc_type_relate"/> 
 						<field name="pur_product_id"/> 
+						<field name="intdent_cate"/> 
 						<field name="product_id"/>
 						<field name="description"/>
 						<field name="item_text" />
@@ -442,7 +448,9 @@
 	            	<group col="4" colspan="2"> 
 	            		<field name="doc_type_relate" />
 						<field name="pur_product_id" readonly="1"  options="{'create': false, 'create_edit': false}"/> 
+						
 						<field name="recom_vendor" />
+						<field name="intdent_cate"/>
 						<field name="product_id" readonly = "1" options="{'create': false, 'create_edit': false}" />
 						<field name="description"/>
 						<field name="product_uom_qty" />

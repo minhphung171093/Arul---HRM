@@ -85,6 +85,7 @@ class tpt_purchase_indent(osv.osv):
                     self.pool.get('tpt.purchase.product').write(cr, uid,  [indent_line.id],{'state':'+'})
                 else:
                     self.pool.get('tpt.purchase.product').write(cr, uid,  [indent_line.id],{'state':'confirm'})
+                self.pool.get('tpt.purchase.product').write(cr, uid,  [indent_line.id],{'intdent_cate':line.intdent_cate})
         return self.write(cr, uid, ids,{'state':'done'})
     
     def bt_cancel(self, cr, uid, ids, context=None):
@@ -426,6 +427,9 @@ class tpt_purchase_product(osv.osv):
         'price_unit': fields.float('Unit Price',digits=(16,3), states={'++': [('readonly', True)],'xx': [('readonly', True)]} ), 
         'total_val':fields.function(_get_total_val,digits=(16,3),type='float',string='Total Value',multi='avg',store=False),
         'rfq_qty': fields.float('RFQ Qty',digits=(16,3)),   
+        'intdent_cate':fields.selection([
+                                ('emergency','Emergency Indent'),
+                                ('normal','Normal Indent')],'Indent Category'),
         }  
 #     
     _defaults = {
