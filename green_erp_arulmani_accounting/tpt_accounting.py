@@ -2053,6 +2053,7 @@ class account_voucher(osv.osv):
         'tpt_currency_amount':fields.float('Paid Amount'),
         'payee':fields.char('Payee', size=1024),
         'employee_id':fields.many2one('hr.employee','Employee'),
+        'cost_center_id':fields.many2one('tpt.cost.center','Cost Center')
         }
     
     

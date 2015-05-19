@@ -837,6 +837,7 @@
                         <field name="cheque_date"/>
                         <field name="cheque_no"/>
                         <field name="employee_id" options="{'create': false, 'create_edit': false}" />
+                        <field name="cost_center_id" options="{'create': false, 'create_edit': false}" />
                         <field name="payee"/>
                         <field name="payment_rate_currency_id" invisible="1"/>
                         <field name="partner_id" invisible = '1' on_change="onchange_journal_voucher(line_ids, tax_id, amount, partner_id, journal_id, type)"/>
@@ -969,6 +970,7 @@
                         <field name="cheque_date"/>
                         <field name="cheque_no"/>
                         <field name="employee_id" options="{'create': false, 'create_edit': false}" />
+                        <field name="cost_center_id" options="{'create': false, 'create_edit': false}" />
                         <field name="payee"/>
                         <field name="payment_rate_currency_id" invisible="1"/>
                         <field name="partner_id" invisible = '1' on_change="onchange_journal_voucher(line_ids, tax_id, amount, partner_id, journal_id, type)"/>
@@ -1154,6 +1156,7 @@
                     <xpath expr="//form[@string='Accounting Voucher']/sheet[@string='Accounting Voucher']/group/field[@name='name']" position="replace">
                        <field name="memo"  />
                        <field name="employee_id" options="{'create': false, 'create_edit': false}" />
+                       <field name="cost_center_id" options="{'create': false, 'create_edit': false}" />
                     </xpath>
               		<xpath expr="//form[@string='Accounting Voucher']/sheet[@string='Accounting Voucher']/group/field[@name='partner_id']" position="before">
                        <field name="name" readonly = "1" />
