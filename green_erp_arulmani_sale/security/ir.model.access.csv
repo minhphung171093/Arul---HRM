@@ -52,4 +52,6 @@ access_vvti_sale_36,"tpt.blanket.order","green_erp_arulmani_sale.model_tpt_blank
 access_vvti_sale_37,"tpt.blank.order.line","green_erp_arulmani_sale.model_tpt_blank_order_line","green_erp_arulmani_crm.group_sample_user","True","True","True","False"
 access_vvti_sale_38,"tpt.batch.allotment","green_erp_arulmani_sale.model_tpt_batch_allotment","green_erp_arulmani_sale.group_vvti_sale_manager","True","True","True","False"
 access_vvti_sale_39,arul.hr.payroll.executions,green_erp_arulmani_hrm.model_arul_hr_payroll_executions,green_erp_arulmani_sale.group_vvti_sale_manager,True,False,False,False
+access_vvti_sale_40,tpt.cus.consignee,green_erp_arulmani_sale.model_tpt_cus_consignee,green_erp_arulmani_sale.group_vvti_sale_user,True,True,True,True
+
 
