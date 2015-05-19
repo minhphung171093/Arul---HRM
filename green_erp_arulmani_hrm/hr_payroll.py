@@ -1025,6 +1025,12 @@ class arul_hr_payroll_executions(osv.osv):
             contribution_obj = self.pool.get('arul.hr.payroll.contribution.parameters')
             earning_obj = self.pool.get('arul.hr.payroll.earning.parameters')
             deduction_obj = self.pool.get('arul.hr.payroll.deduction.parameters')
+            
+            
+            
+            
+            ##
+            
             sql = '''
                 select employee_id from arul_hr_monthly_shift_schedule where 
                     monthly_work_id in (select id from arul_hr_monthly_work_schedule where "month"='%s' and "year"=%s and state='done')
@@ -1085,9 +1091,31 @@ class arul_hr_payroll_executions(osv.osv):
                 tpt_lop_esi = lop_esi[0]
                 total_no_of_leave = tpt_lop_esi
                 
-                
+
+                #TPT BalamuruganPurushothaman ON 19/05/2015 - TO DEFINE RULES FOR NEWLY JOINED EMPLOYEES IN BETWEEN A PAYROLL MONTH
+                # If Date Of Joining is 15/04/2015 Then this 
+                # Day of Joining = 15, Calendar Days for this Month = 30
+                # The Total No.Of Days Before DOJ = 30 - 15 - 1 = 14 Days
+                # So these 14 Days are Considered as LOP for Internal Process Only, Since there is no Pay for these Days
+                # Then this "Total No.Of Days Before DOJ" count is added with Real LOP/ESI Count (this count is taken from arul_hr_employee_leave_details table)
+                s3_working_days = 26
                 sql = '''
-                SELECT CASE WHEN SUM(total_shift_worked + shift_plus - shift_minus)!=0 THEN SUM(total_shift_worked + shift_plus - shift_minus) ELSE 0 END total_shift_worked FROM arul_hr_punch_in_out_time WHERE EXTRACT(year FROM work_date) = %s 
+                    select extract(day from date_of_joining) doj from hr_employee where extract(year from date_of_joining)= %s and 
+                      extract(month from date_of_joining)= %s and id=%s
+                    '''%(line.year,line.month,p.id)
+                cr.execute(sql)
+                k = cr.fetchone()
+                if k:
+                    new_emp_day = k[0]               
+                    before_doj = calendar_days - new_emp_day - 1
+                    total_no_of_leave = total_no_of_leave + before_doj
+                    if p.employee_category_id and p.employee_category_id.code == 'S3':
+                        before_doj = s3_working_days - new_emp_day - 1
+                        total_no_of_leave = total_no_of_leave + before_doj
+                    
+                ##TPT END
+                sql = '''
+                SELECT CASE WHEN SUM(total_shift_worked)!=0 THEN SUM(total_shift_worked) ELSE 0 END total_shift_worked FROM arul_hr_punch_in_out_time WHERE EXTRACT(year FROM work_date) = %s 
                 AND EXTRACT(month FROM work_date) = %s AND employee_id =%s
                 '''%(line.year,line.month,p.id)
                 cr.execute(sql)
@@ -1323,6 +1351,7 @@ class arul_hr_payroll_executions(osv.osv):
                         emp_pf_con = contribution.emp_pf_con
                     total_days,total_shift_allowance,total_lop,total_esi,total_week_off = self.get_timesheet(cr,uid,p.id,line.month,line.year,context=context)
                     calendar_days = self.length_month(int(line.year),int(line.month))
+
                     sql = '''
                         select case when sum(employee_amt)!=0 then sum(employee_amt) else 0 end total_fd from meals_details where emp_id = %s and meals_id in (select id from meals_deduction where meals_for='employees' and EXTRACT(year FROM meals_date) = %s and EXTRACT(month FROM meals_date) = %s)
                     '''%(p.id,line.year,int(line.month))
@@ -1569,7 +1598,11 @@ class arul_hr_payroll_executions(osv.osv):
 			#total_earning = basic + da + c + hra + c + pc + cre + ea +spa + la + aa + sha + oa + lta + med
 			
             #total_no_of_leave = total_lop + total_esi
-
+            
+            ##TPT-New Joinee
+            
+            
+            
 			net_basic = basic - (basic / calendar_days) * total_no_of_leave
 			net_da = da - (da / calendar_days) * total_no_of_leave 
 			net_c = c - (c / calendar_days) * total_no_of_leave
@@ -1578,6 +1611,8 @@ class arul_hr_payroll_executions(osv.osv):
 			net_aa = aa - (aa / calendar_days) * total_no_of_leave
 			net_la = la - (la / calendar_days) * total_no_of_leave
 			net_oa = oa - (oa / calendar_days) * total_no_of_leave
+            
+            
 
 			total_earning =  net_basic + net_da + net_c + net_hra + net_ea + net_aa + net_la + net_oa + fa + spa + pc + cre + sha + lta + med
 			gross_sal =  net_basic + net_da + net_c + net_hra + net_ea + net_aa + net_la + net_oa + fa + spa + pc + cre + sha + lta + med
@@ -2542,21 +2577,21 @@ class arul_hr_payroll_executions(osv.osv):
                         #
                         #total_no_of_leave = total_lop + total_esi
 			
-                        net_basic = basic - (basic / 26) * total_no_of_leave
-                        net_da = da - (da / 26) * total_no_of_leave 
-                        net_c = c - (c / 26) * total_no_of_leave
-                        net_hra = hra - (hra / 26) * total_no_of_leave
-                        net_ea = ea - (ea / 26) * total_no_of_leave
-                        net_aa = aa - (aa / 26) * total_no_of_leave
-                        net_la = la - (la / 26) * total_no_of_leave
-                        net_oa = oa - (oa / 26) * total_no_of_leave
+                        net_basic = basic - (basic / s3_working_days) * total_no_of_leave
+                        net_da = da - (da / s3_working_days) * total_no_of_leave 
+                        net_c = c - (c / s3_working_days) * total_no_of_leave
+                        net_hra = hra - (hra / s3_working_days) * total_no_of_leave
+                        net_ea = ea - (ea / s3_working_days) * total_no_of_leave
+                        net_aa = aa - (aa / s3_working_days) * total_no_of_leave
+                        net_la = la - (la / s3_working_days) * total_no_of_leave
+                        net_oa = oa - (oa / s3_working_days) * total_no_of_leave
 
                         total_earning =  net_basic + net_da + net_c + net_hra + net_ea + net_aa + net_la + net_oa + fa + spa + pc + cre + sha + lta + med + ma
                         gross_sal =  net_basic + net_da + net_c + net_hra + net_ea + net_aa + net_la + net_oa + fa + spa + pc + cre + sha + lta + med + ma
                         for_esi_base_gross_sal =  basic + da + c + hra + ea + aa + la + oa + fa + for_esi_base_spa + pc + cre + sha + lta + med
                         #S3
                         gross_shd_calc = net_basic + net_da + net_c + net_hra + net_ea + net_aa + net_la + net_oa
-                        shd = (gross_shd_calc / 26) * special_holiday_worked_count
+                        shd = (gross_shd_calc / s3_working_days) * special_holiday_worked_count
                         total_earning = total_earning + shd
                         gross_sal = gross_sal + shd
                         
