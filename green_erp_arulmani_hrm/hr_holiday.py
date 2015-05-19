@@ -2624,14 +2624,30 @@ class arul_hr_permission_onduty(osv.osv):
         
         punch_obj = self.pool.get('arul.hr.punch.in.out')
         
+        
+                
         if permission.non_availability_type_id == 'on_duty' and not permission.date:
             #Trong them
             if permission.from_date: 
                 month = permission.from_date[5:7]
                 year = permission.from_date[:4]
+                day = permission.from_date[8:10]
                 payroll_ids = self.pool.get('arul.hr.payroll.executions').search(cr,uid,[('month','=',month),('year','=',year),('state','=','approve'),('payroll_area_id','=',permission.employee_id.payroll_area_id.id)])
                 if payroll_ids :
                     raise osv.except_osv(_('Warning!'),_('Payroll were already exists, not allowed to create again!'))
+                ###
+                sql = '''
+                    select extract(day from date_of_joining) doj from hr_employee where extract(year from date_of_joining)= %s and 
+                      extract(month from date_of_joining)= %s and id=%s
+                    '''%(year,month,permission.employee_id.id)
+                cr.execute(sql)
+                k = cr.fetchone()
+                if k:
+                    new_emp_day = k[0]     
+                    if new_emp_day > float(day):              
+                        raise osv.except_osv(_('Warning!'),_('System Couldnt Allow OnDuty Before Employee DOJ!'))
+                ###
+                
             #
             date_from = datetime.datetime.strptime(permission.from_date,'%Y-%m-%d')
             date_to = datetime.datetime.strptime(permission.to_date,'%Y-%m-%d')
@@ -2674,9 +2690,22 @@ class arul_hr_permission_onduty(osv.osv):
                 if permission.date: 
                     month = permission.date[5:7]
                     year = permission.date[:4]
+                    day = permission.date[8:10]
                     payroll_ids = self.pool.get('arul.hr.payroll.executions').search(cr,uid,[('month','=',month),('year','=',year),('state','=','approve'),('payroll_area_id','=',permission.employee_id.payroll_area_id.id)])
                     if payroll_ids :
                         raise osv.except_osv(_('Warning!'),_('Payroll were already exists, not allowed to create again!'))
+                    ###
+                    sql = '''
+                        select extract(day from date_of_joining) doj from hr_employee where extract(year from date_of_joining)= %s and 
+                          extract(month from date_of_joining)= %s and id=%s
+                        '''%(year,month,permission.employee_id.id)
+                    cr.execute(sql)
+                    k = cr.fetchone()
+                    if k:
+                        new_emp_day = k[0]     
+                        if new_emp_day > float(day):              
+                            raise osv.except_osv(_('Warning!'),_('System Couldnt Allow Permission Before Employee DOJ!'))
+                    ###
             #
                 sql = '''
                     select count(id) as num_of_permission from arul_hr_permission_onduty where non_availability_type_id='permission' and employee_id=%s
