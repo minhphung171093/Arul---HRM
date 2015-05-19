@@ -685,6 +685,7 @@
 				
 				<xpath expr="//field[@name='currency_id']" position="attributes">
 					<attribute name='invisible'>0</attribute>
+					<attribute name='required'>1</attribute>
 				</xpath> 
 				
 				<xpath expr="//field[@name='amount_total']" position="after">

@@ -277,10 +277,11 @@ class stock_picking(osv.osv):
             'sale_tax_id': picking.sale_id.sale_tax_id and picking.sale_id.sale_tax_id.id or False,
             'invoice_type': picking.sale_id and picking.sale_id.order_type or False,
         })
-        if picking.type!='out':
-            cur_id = self.get_currency_id(cr, uid, picking)
-            if cur_id:
-                invoice_vals['currency_id'] = cur_id
+        if picking.type=='in':
+            invoice_vals.update({ 'currency_id': picking.purchase_id.currency_id and picking.purchase_id.currency_id.id or False, })
+#             cur_id = self.get_currency_id(cr, uid, picking)
+#             if cur_id:
+#                 invoice_vals['currency_id'] = cur_id
         if journal_id:
             invoice_vals['journal_id'] = journal_id
         sql = '''

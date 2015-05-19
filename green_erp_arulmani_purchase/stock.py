@@ -583,6 +583,15 @@ class account_invoice(osv.osv):
                     qty = 0.0
                     aed = 0.0
                     tds_amount = 0.0
+                    voucher_rate = 1
+                    if context is None:
+                        context = {}
+                    ctx = context.copy()
+                    ctx.update({'date': time.strftime('%Y-%m-%d')})
+                    currency = line.currency_id.name or False
+                    currency_id = line.currency_id.id or False
+                    if currency != 'INR':
+                        voucher_rate = self.pool.get('res.currency').read(cr, uid, currency_id, ['rate'], context=ctx)['rate']
                     for po in line.invoice_line:
                         tax = 0
                         p_f = 0
@@ -659,6 +668,7 @@ class account_invoice(osv.osv):
                     res[line.id]['aed'] = round(aed)
                     res[line.id]['amount_total_tds'] = round(tds_amount)
                     res[line.id]['amount_total'] = (round(amount_untaxed) + round(p_f_charge) + round(excise_duty) + round(total_tax) + round(total_fright) + round(aed)) - round(tds_amount)
+                    res[line.id]['amount_total_inr'] = round(((round(amount_untaxed) + round(p_f_charge) + round(excise_duty) + round(total_tax) + round(total_fright) + round(aed)) - round(tds_amount))*voucher_rate)
                 else:
                     amount_untaxed = 0.0
                     p_f_charge=0.0
@@ -668,6 +678,15 @@ class account_invoice(osv.osv):
                     total_fright=0.0
                     qty = 0.0
                     tds_amount = 0.0
+                    voucher_rate = 1
+                    if context is None:
+                        context = {}
+                    ctx = context.copy()
+                    ctx.update({'date': time.strftime('%Y-%m-%d')})
+                    currency = line.currency_id.name or False
+                    currency_id = line.currency_id.id or False
+                    if currency != 'INR':
+                        voucher_rate = self.pool.get('res.currency').read(cr, uid, currency_id, ['rate'], context=ctx)['rate']
                     for po in line.invoice_line:
                         tax = 0
                         p_f = 0
@@ -738,6 +757,7 @@ class account_invoice(osv.osv):
                     res[line.id]['fright'] = round(total_fright)
                     res[line.id]['amount_total_tds'] = round(tds_amount)
                     res[line.id]['amount_total'] = round(amount_untaxed) +round(p_f_charge) + round(excise_duty) + round(total_tax) + round(total_fright) - round(tds_amount)
+                    res[line.id]['amount_total_inr'] = round((round(amount_untaxed) +round(p_f_charge) + round(excise_duty) + round(total_tax) + round(total_fright) - round(tds_amount))*voucher_rate)
         return res
     
     def _get_invoice_line(self, cr, uid, ids, context=None):
