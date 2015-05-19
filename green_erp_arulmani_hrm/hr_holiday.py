@@ -7319,95 +7319,95 @@ class shift_adjustment(osv.osv):
                 if line.adj_type=='increase':
                     if line.work_shift=='a':
                         sql = '''
-                        update arul_hr_punch_in_out_time set a_shift_count1 = a_shift_count1 + %s,total_shift_worked1 = total_shift_worked1 + %s,reason_for_adj = '%s',reason_details='%s' where id=%s 
-                        '''%(line.increase_count,line.increase_count,line.reason_for_adj,line.reason_details, att[0])
+                        update arul_hr_punch_in_out_time set a_shift_count1 = a_shift_count1 + %s,total_shift_worked1 = total_shift_worked1 + %s, shift_plus= %s, reason_for_adj = '%s',reason_details='%s' where id=%s 
+                        '''%(line.increase_count,line.increase_count,line.increase_count,line.reason_for_adj,line.reason_details, att[0])
                         cr.execute(sql)
                         sql = '''
-                        update arul_hr_punch_in_out_time set a_shift_count = a_shift_count + %s,total_shift_worked = total_shift_worked + %s,reason_for_adj = '%s',reason_details='%s' where id=%s 
-                        '''%(line.increase_count,line.increase_count,line.reason_for_adj,line.reason_details, att[0])
+                        update arul_hr_punch_in_out_time set a_shift_count = a_shift_count + %s,total_shift_worked = total_shift_worked + %s, shift_plus= %s, reason_for_adj = '%s',reason_details='%s' where id=%s 
+                        '''%(line.increase_count,line.increase_count,line.increase_count,line.reason_for_adj,line.reason_details, att[0])
                         cr.execute(sql)
                     if line.work_shift=='g1':
                         sql = '''
-                        update arul_hr_punch_in_out_time set g1_shift_count1 = g1_shift_count1 + %s, total_shift_worked1 = total_shift_worked1 + %s, reason_for_adj = '%s',reason_details='%s' where id=%s 
-                        '''%(line.increase_count,line.increase_count,line.reason_for_adj,line.reason_details, att[0])
+                        update arul_hr_punch_in_out_time set g1_shift_count1 = g1_shift_count1 + %s, total_shift_worked1 = total_shift_worked1 + %s, shift_plus= %s, reason_for_adj = '%s',reason_details='%s' where id=%s 
+                        '''%(line.increase_count,line.increase_count,line.increase_count,line.reason_for_adj,line.reason_details, att[0])
                         cr.execute(sql)
                         sql = '''
-                        update arul_hr_punch_in_out_time set g1_shift_count = g1_shift_count + %s, total_shift_worked = total_shift_worked + %s, reason_for_adj = '%s',reason_details='%s' where id=%s 
-                        '''%(line.increase_count,line.increase_count,line.reason_for_adj,line.reason_details, att[0])
+                        update arul_hr_punch_in_out_time set g1_shift_count = g1_shift_count + %s, total_shift_worked = total_shift_worked + %s, shift_plus= %s, reason_for_adj = '%s',reason_details='%s' where id=%s 
+                        '''%(line.increase_count,line.increase_count,line.increase_count,line.reason_for_adj,line.reason_details, att[0])
                         cr.execute(sql)
                     if line.work_shift=='g2':
                         sql = '''
-                        update arul_hr_punch_in_out_time set g2_shift_count1 =g2_shift_count1+%s,total_shift_worked1=total_shift_worked1+%s,reason_for_adj = '%s',reason_details='%s' where id=%s 
-                        '''%(line.increase_count,line.increase_count,line.reason_for_adj,line.reason_details, att[0])
+                        update arul_hr_punch_in_out_time set g2_shift_count1 =g2_shift_count1+%s,total_shift_worked1=total_shift_worked1+%s, shift_plus= %s, reason_for_adj = '%s',reason_details='%s' where id=%s 
+                        '''%(line.increase_count,line.increase_count,line.increase_count,line.reason_for_adj,line.reason_details, att[0])
                         cr.execute(sql)
                         sql = '''
-                        update arul_hr_punch_in_out_time set g2_shift_count =g2_shift_count+%s,total_shift_worked=total_shift_worked+%s,reason_for_adj = '%s',reason_details='%s' where id=%s 
-                        '''%(line.increase_count,line.increase_count,line.reason_for_adj,line.reason_details, att[0])
+                        update arul_hr_punch_in_out_time set g2_shift_count =g2_shift_count+%s,total_shift_worked=total_shift_worked+%s, shift_plus= %s, reason_for_adj = '%s',reason_details='%s' where id=%s 
+                        '''%(line.increase_count,line.increase_count,line.increase_count,line.reason_for_adj,line.reason_details, att[0])
                         cr.execute(sql)
                     if line.work_shift=='b':
                         sql = '''
-                        update arul_hr_punch_in_out_time set b_shift_count1 =b_shift_count1+%s,total_shift_worked1=total_shift_worked1+%s,reason_for_adj = '%s',reason_details='%s' where id=%s 
-                        '''%(line.increase_count,line.increase_count,line.reason_for_adj,line.reason_details, att[0])
+                        update arul_hr_punch_in_out_time set b_shift_count1 =b_shift_count1+%s,total_shift_worked1=total_shift_worked1+%s,shift_plus= %s, reason_for_adj = '%s',reason_details='%s' where id=%s 
+                        '''%(line.increase_count,line.increase_count,line.increase_count,line.reason_for_adj,line.reason_details, att[0])
                         cr.execute(sql)
                         sql = '''
-                        update arul_hr_punch_in_out_time set b_shift_count =b_shift_count+%s,total_shift_worked=total_shift_worked+%s,reason_for_adj = '%s',reason_details='%s' where id=%s 
-                        '''%(line.increase_count,line.increase_count,line.reason_for_adj,line.reason_details, att[0])
+                        update arul_hr_punch_in_out_time set b_shift_count =b_shift_count+%s,total_shift_worked=total_shift_worked+%s,shift_plus= %s, reason_for_adj = '%s',reason_details='%s' where id=%s 
+                        '''%(line.increase_count,line.increase_count,line.increase_count,line.reason_for_adj,line.reason_details, att[0])
                         cr.execute(sql)
                     if line.work_shift=='c':
                         sql = '''
-                        update arul_hr_punch_in_out_time set c_shift_count1 =c_shift_count1+%s,total_shift_worked1=total_shift_worked1+%s,reason_for_adj = '%s',reason_details='%s' where id=%s 
-                        '''%(line.increase_count,line.increase_count,line.reason_for_adj,line.reason_details, att[0])
+                        update arul_hr_punch_in_out_time set c_shift_count1 =c_shift_count1+%s,total_shift_worked1=total_shift_worked1+%s, shift_plus= %s, reason_for_adj = '%s',reason_details='%s' where id=%s 
+                        '''%(line.increase_count,line.increase_count,line.increase_count,line.reason_for_adj,line.reason_details, att[0])
                         cr.execute(sql)
                         sql = '''
-                        update arul_hr_punch_in_out_time set c_shift_count =c_shift_count+%s,total_shift_worked=total_shift_worked+%s,reason_for_adj = '%s',reason_details='%s' where id=%s 
-                        '''%(line.increase_count,line.increase_count,line.reason_for_adj,line.reason_details, att[0])
+                        update arul_hr_punch_in_out_time set c_shift_count =c_shift_count+%s,total_shift_worked=total_shift_worked+%s, shift_plus= %s, reason_for_adj = '%s',reason_details='%s' where id=%s 
+                        '''%(line.increase_count,line.increase_count,line.increase_count,line.reason_for_adj,line.reason_details, att[0])
                         cr.execute(sql)
                     ###
                 if line.adj_type=='decrease':
                     if line.work_shift=='a':
                         sql = '''
-                        update arul_hr_punch_in_out_time set a_shift_count1 = a_shift_count1 - %s,total_shift_worked1 = total_shift_worked1 - %s,reason_for_adj = '%s',reason_details='%s' where id=%s 
-                        '''%(line.increase_count,line.increase_count,line.reason_for_adj,line.reason_details, att[0])
+                        update arul_hr_punch_in_out_time set a_shift_count1 = a_shift_count1 - %s,total_shift_worked1 = total_shift_worked1 - %s, shift_minus= %s, reason_for_adj = '%s',reason_details='%s' where id=%s 
+                        '''%(line.increase_count,line.increase_count,line.increase_count,line.reason_for_adj,line.reason_details, att[0])
                         cr.execute(sql)
                         sql = '''
-                        update arul_hr_punch_in_out_time set a_shift_count = a_shift_count - %s,total_shift_worked = total_shift_worked - %s,reason_for_adj = '%s',reason_details='%s' where id=%s 
-                        '''%(line.increase_count,line.increase_count,line.reason_for_adj,line.reason_details, att[0])
+                        update arul_hr_punch_in_out_time set a_shift_count = a_shift_count - %s,total_shift_worked = total_shift_worked - %s, shift_minus= %s, reason_for_adj = '%s',reason_details='%s' where id=%s 
+                        '''%(line.increase_count,line.increase_count,line.increase_count,line.reason_for_adj,line.reason_details, att[0])
                         cr.execute(sql)
                     if line.work_shift=='g1':
                         sql = '''
-                        update arul_hr_punch_in_out_time set g1_shift_count1 = g1_shift_count1 - %s, total_shift_worked1 = total_shift_worked1 - %s,reason_for_adj = '%s',reason_details='%s' where id=%s 
-                        '''%(line.increase_count,line.increase_count,line.reason_for_adj,line.reason_details, att[0])
+                        update arul_hr_punch_in_out_time set g1_shift_count1 = g1_shift_count1 - %s, total_shift_worked1 = total_shift_worked1 - %s, shift_minus= %s, reason_for_adj = '%s',reason_details='%s' where id=%s 
+                        '''%(line.increase_count,line.increase_count,line.increase_count,line.reason_for_adj,line.reason_details, att[0])
                         cr.execute(sql)
                         sql = '''
-                        update arul_hr_punch_in_out_time set g1_shift_count = g1_shift_count - %s, total_shift_worked = total_shift_worked - %s,reason_for_adj = '%s',reason_details='%s' where id=%s 
-                        '''%(line.increase_count,line.increase_count,line.reason_for_adj,line.reason_details, att[0])
+                        update arul_hr_punch_in_out_time set g1_shift_count = g1_shift_count - %s, total_shift_worked = total_shift_worked - %s, shift_minus= %s, reason_for_adj = '%s',reason_details='%s' where id=%s 
+                        '''%(line.increase_count,line.increase_count,line.increase_count,line.reason_for_adj,line.reason_details, att[0])
                         cr.execute(sql)
                     if line.work_shift=='g2':
                         sql = '''
-                        update arul_hr_punch_in_out_time set g2_shift_count1 = g2_shift_count1 - %s, total_shift_worked1=total_shift_worked1 - %s,reason_for_adj = '%s',reason_details='%s' where id=%s 
-                        '''%(line.increase_count,line.increase_count,line.reason_for_adj,line.reason_details, att[0])
+                        update arul_hr_punch_in_out_time set g2_shift_count1 = g2_shift_count1 - %s, total_shift_worked1=total_shift_worked1 - %s,shift_minus= %s, reason_for_adj = '%s',reason_details='%s' where id=%s 
+                        '''%(line.increase_count,line.increase_count,line.increase_count,line.reason_for_adj,line.reason_details, att[0])
                         cr.execute(sql)
                         sql = '''
-                        update arul_hr_punch_in_out_time set g2_shift_count = g2_shift_count - %s, total_shift_worked = total_shift_worked - %s,reason_for_adj = '%s',reason_details='%s' where id=%s 
-                        '''%(line.increase_count,line.increase_count,line.reason_for_adj,line.reason_details, att[0])
+                        update arul_hr_punch_in_out_time set g2_shift_count = g2_shift_count - %s, total_shift_worked = total_shift_worked - %s,shift_minus= %s, reason_for_adj = '%s',reason_details='%s' where id=%s 
+                        '''%(line.increase_count,line.increase_count,line.increase_count,line.reason_for_adj,line.reason_details, att[0])
                         cr.execute(sql)
                     if line.work_shift=='b':
                         sql = '''
-                        update arul_hr_punch_in_out_time set b_shift_count1 = b_shift_count1 - %s,total_shift_worked1 = total_shift_worked1 - %s,reason_for_adj = '%s',reason_details='%s' where id=%s 
-                        '''%(line.increase_count,line.increase_count,line.reason_for_adj,line.reason_details, att[0])
+                        update arul_hr_punch_in_out_time set b_shift_count1 = b_shift_count1 - %s,total_shift_worked1 = total_shift_worked1 - %s,shift_minus= %s, reason_for_adj = '%s',reason_details='%s' where id=%s 
+                        '''%(line.increase_count,line.increase_count,line.increase_count,line.reason_for_adj,line.reason_details, att[0])
                         cr.execute(sql)
                         sql = '''
-                        update arul_hr_punch_in_out_time set b_shift_count = b_shift_count - %s, total_shift_worked = total_shift_worked - %s,reason_for_adj = '%s',reason_details='%s' where id=%s 
-                        '''%(line.increase_count,line.increase_count,line.reason_for_adj,line.reason_details, att[0])
+                        update arul_hr_punch_in_out_time set b_shift_count = b_shift_count - %s, total_shift_worked = total_shift_worked - %s,shift_minus= %s, reason_for_adj = '%s',reason_details='%s' where id=%s 
+                        '''%(line.increase_count,line.increase_count,line.increase_count,line.reason_for_adj,line.reason_details, att[0])
                         cr.execute(sql)
                     if line.work_shift=='c':
                         sql = '''
-                        update arul_hr_punch_in_out_time set c_shift_count1 = c_shift_count1 - %s, total_shift_worked1 = total_shift_worked1 - %s,reason_for_adj = '%s',reason_details='%s' where id=%s 
-                        '''%(line.increase_count,line.increase_count,line.reason_for_adj,line.reason_details, att[0])
+                        update arul_hr_punch_in_out_time set c_shift_count1 = c_shift_count1 - %s, total_shift_worked1 = total_shift_worked1 - %s,shift_minus= %s, reason_for_adj = '%s',reason_details='%s' where id=%s 
+                        '''%(line.increase_count,line.increase_count,line.increase_count,line.reason_for_adj,line.reason_details, att[0])
                         cr.execute(sql)
                         sql = '''
-                        update arul_hr_punch_in_out_time set c_shift_count = c_shift_count - %s, total_shift_worked = total_shift_worked - %s,reason_for_adj = '%s',reason_details='%s' where id=%s 
-                        '''%(line.increase_count,line.increase_count,line.reason_for_adj,line.reason_details, att[0])
+                        update arul_hr_punch_in_out_time set c_shift_count = c_shift_count - %s, total_shift_worked = total_shift_worked - %s,shift_minus= %s, reason_for_adj = '%s',reason_details='%s' where id=%s 
+                        '''%(line.increase_count,line.increase_count,line.increase_count,line.reason_for_adj,line.reason_details, att[0])
                         cr.execute(sql) 
                 if line.adj_type=='overwrite':
                     if line.work_shift=='a':
@@ -7563,10 +7563,10 @@ class leave_adjustment(osv.osv):
         now = datetime.datetime.now()
         current_year = now.year
         sql = '''
-            SELECT CASE WHEN SUM(total_day-total_taken)!=0 THEN SUM(total_day-total_taken) ELSE 0 END pl_count FROM employee_leave_detail 
+            SELECT CASE WHEN SUM(total_day - total_taken)!=0 THEN SUM(total_day - total_taken) ELSE 0 END pl_count FROM employee_leave_detail 
             WHERE emp_leave_id IN 
-            (SELECT id FROM employee_leave WHERE employee_id = %s AND year='%s')
-            AND leave_type_id = (SELECT id FROM arul_hr_leave_types WHERE id=%s)
+            (SELECT id FROM employee_leave WHERE employee_id = %s AND year = '%s')
+            AND leave_type_id = (SELECT id FROM arul_hr_leave_types WHERE id = %s)
             '''%(vals['employee_id'],current_year, vals['leave_type_id'])
         cr.execute(sql)
         coff = cr.fetchone()
