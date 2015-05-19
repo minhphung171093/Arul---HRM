@@ -414,6 +414,8 @@ class tpt_purchase_product(osv.osv):
                                           ('quotation_cancel','Quotation Cancelled'),
                                           ],'Indent Status', readonly=True),
 #Hung moi them 2 Qty theo yeu casu bala
+        'po_doc_no':fields.many2one('purchase.order','PO Document Number'),
+        'po_date':fields.date('PO Date'),
         'mrs_qty': fields.float('Reserved Qty',digits=(16,3)),
         'inspection_qty': fields.float('Inspection Quantity' ), 
         'on_hand_qty':fields.function(_get_on_hand_qty,digits=(16,3),type='float',string='On Hand Qty',multi='sum',store=False),
@@ -2457,7 +2459,7 @@ class purchase_order(osv.osv):
                         cr.execute(sql)
                         indent_line_ids = [row[0] for row in cr.fetchall()]
                         if indent_line_ids:
-                                self.pool.get('tpt.purchase.product').write(cr, uid, indent_line_ids,{'state':'po_raised'})
+                                self.pool.get('tpt.purchase.product').write(cr, uid, indent_line_ids,{'state':'po_raised','po_doc_no':new.id,'po_date':new.date_order})
                         sql = '''
                                     select po_indent_no, product_id, sum(product_qty) as po_product_qty from purchase_order_line where order_id = %s group by po_indent_no, product_id
                                 '''%(new.id)
@@ -3197,6 +3199,7 @@ class tpt_quanlity_inspection(osv.osv):
         'reason':fields.text('Reason',states={'cancel': [('readonly', True)], 'done':[('readonly', True)]}),
         'specification_line':fields.one2many('tpt.product.specification','specification_id','Product Specification'),
         'qty':fields.float('Qty',digits=(16,3),states={'cancel': [('readonly', True)], 'done':[('readonly', True)]}),
+        'qty_approve':fields.float('Qty Approve',digits=(16,3),states={'cancel': [('readonly', True)], 'done':[('readonly', True)]}),
         'remaining_qty':fields.float('Inspection Quantity',digits=(16,3), readonly= True),
         'state':fields.selection([('draft', 'Draft'),('remaining', 'Remaining'),('done', 'Done')],'Status', readonly=True),
                 }
@@ -3940,7 +3943,7 @@ class tpt_material_request(osv.osv):
         'project_id': fields.many2one('tpt.project','Project', states={'done':[('readonly', True)]}),
         'project_section_id': fields.many2one('tpt.project.section','Project Section',ondelete='restrict',states={'done':[('readonly', True)]}),
         'material_request_line':fields.one2many('tpt.material.request.line','material_request_id','Vendor Group',states={'done':[('readonly', True)]}),
-        'state':fields.selection([('draft', 'Draft'),('done', 'Approve')],'Status', readonly=True),
+        'state':fields.selection([('draft', 'Draft'),('done', 'Approve'),('partially', 'Partially Issued'),('closed', 'Closed')],'Status', readonly=True),
         'cost_center_id': fields.many2one('tpt.cost.center','Cost center',states={'done':[('readonly', True)]}),
         'request_type':fields.selection([('production', 'Production'),('normal', 'Normal'),('main', 'Maintenance')],'Request Type', states={'done':[('readonly', True)]}),
                 }
@@ -4238,7 +4241,9 @@ class tpt_material_request(osv.osv):
             '''
             cr.execute(sql)
             request_line_ids = []
-            for request_line in cr.fetchall():
+            temp = 0
+            lines = cr.fetchall()
+            for request_line in lines:
                 if request_line[0]:
                     sql = '''
                         select case when sum(product_uom_qty)!=0 then sum(product_uom_qty) else 0 end product_uom_qty
@@ -4247,7 +4252,9 @@ class tpt_material_request(osv.osv):
                     cr.execute(sql)
                     product_uom_qty = cr.fetchone()[0]
                     if product_uom_qty <= request_line[1]:
-                        request_line_ids.append(request_line[0])
+                        temp+=1
+            if temp==len(lines):
+                request_line_ids.append(request_line[0])
             if request_line_ids:
                 cr.execute('''
                     select material_request_id from tpt_material_request_line where id in %s
@@ -4625,6 +4632,21 @@ class tpt_material_issue(osv.osv):
             if department_id:
                 vals.update({'department_id':department_id.id})   
         new_write = super(tpt_material_issue, self).write(cr, uid,ids, vals, context)
+        if 'state' in vals and vals['state']=='done':
+            for line in self.browse(cr, uid, ids):
+                temp = 0
+                for request_line in line.name.material_request_line:
+                    sql = '''
+                        select sum(product_isu_qty) from tpt_material_issue_line where request_line_id=%s
+                    '''%(request_line.id)
+                    cr.execute(sql)
+                    product_isu_qty = cr.fetchone()[0]
+                    if request_line.product_uom_qty == product_isu_qty:
+                        temp+=1
+                if temp==len(line.name.material_request_line):
+                    cr.execute('''update tpt_material_request set state='closed' where id=%s ''',(line.name.id,))
+                else:
+                    cr.execute('''update tpt_material_request set state='partially' where id=%s ''',(line.name.id,))
         return new_write
     
 tpt_material_issue()
