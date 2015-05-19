@@ -619,6 +619,7 @@ class account_invoice(osv.osv):
     _columns = {
         'bill_number': fields.char('Bill Number', size=1024),
         'bill_date': fields.date('Bill Date'),
+        'sup_inv_id': fields.many2one('account.invoice', 'Supplier Invoice'),
     }
       
     def check_tax_lines(self, cr, uid, inv, compute_taxes, ait_obj):
