@@ -3409,11 +3409,11 @@ class arul_hr_punch_in_out_time(osv.osv):
          
         'total_shift_worked1': fields.float('Total Shift'),
         
-        'a_shift_count1': fields.float('A-1'),
-        'g1_shift_count1': fields.float('G1-1'),
-        'g2_shift_count1': fields.float('G2-1'),
-        'b_shift_count1': fields.float('B-1'),
-        'c_shift_count1': fields.float('C-1'),
+        'a_shift_count1': fields.float('A'),
+        'g1_shift_count1': fields.float('G1'),
+        'g2_shift_count1': fields.float('G2'),
+        'b_shift_count1': fields.float('B'),
+        'c_shift_count1': fields.float('C'),
         
         'shift_plus': fields.float('S+', states={'done': [('readonly', True)], 'cancel': [('readonly', True)]}),
         'shift_minus': fields.float('S-', states={'done': [('readonly', True)], 'cancel': [('readonly', True)]}),
