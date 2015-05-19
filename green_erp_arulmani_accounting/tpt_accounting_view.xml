@@ -586,8 +586,6 @@
                     <field name="period_id" invisible="1" groups="account.group_account_user"/>
                     <field name="company_id" groups="base.group_multi_company" widget="selection"/>
                     <field name="user_id"/>
-                    <field name="is_tds_applicable"/>
-                    <field name="tds_id" options="{'create': false, 'create_edit': false}"/>
                     <field name="date_due"/>
                     <field name="origin"/>
                     <field name="currency_id" groups="base.group_multi_currency"/>
@@ -605,7 +603,7 @@
             <field name="arch" type="xml">
 	            <form string="Service Invoice" version="7.0">
 	            <header>
-                        <button name="invoice_open" states="draft,proforma2" string="Validate" class="oe_highlight" groups="account.group_account_invoice"/>
+                        <button name="invoice_open" states="draft,proforma2" string="Validate" class="oe_highlight" groups="account.group_account_invoice,green_erp_arulmani_accounting.group_vvti_accounting_admin"/>
                         <button name="%(account.action_account_invoice_refund)d" type='action' string='Ask Refund' states='open,paid' groups="account.group_account_invoice"/>
                         <button name="invoice_cancel" states="draft,proforma2" string="Cancel Invoice" groups="account.group_account_invoice"/>
                         <button name="action_cancel_draft" states="cancel" string="Set to Draft" type="object" groups="account.group_account_invoice"/>
@@ -626,7 +624,7 @@
                     <group>
                         <group>
                         	<field name="name" string="Document No" readonly="1"/>
-                        	<field name="purchase_id" context="{'search_po_document':True}" on_change = 'onchange_purchase_id(purchase_id)' string = 'Service PO' domain="[('po_document_type','=','service'), ('state','=','done')]" required = '1' readonly="0" options="{'create': false, 'create_edit': false}"/>
+                        	<field name="purchase_id" context="{'search_po_document':True, 'purchase_id':purchase_id}" on_change = 'onchange_purchase_id(purchase_id)' string = 'Service PO' domain="[('po_document_type','=','service'), ('state','=','done')]" required = '1' readonly="0" options="{'create': false, 'create_edit': false}"/>
                         	<field string="Vendor" name="partner_id"
                               on_change="onchange_partner_id(type,partner_id,date_invoice,payment_term, partner_bank_id,company_id)"
                               context="{'default_customer': 0, 'search_default_supplier': 1, 'default_supplier': 1}"
@@ -662,9 +660,8 @@
                         <page string="Invoice">
 	                            <field context="{'partner_id': partner_id, 'price_type': context.get('price_type') or False, 'type': type, 'default_p_f_type':'2', 'default_fright_type':'2'}" name="invoice_line">
 	                                <tree string="Invoice lines" editable="bottom">
-	                                    <field name="sequence" widget="handle" invisible = '1'/>
+	                                    <field name="sequence" invisible = '1'/>
 	                            <!--        <field name="gl_code_id" required = '1' on_change="onchange_gl_code_id(gl_code_id)" options="{'create': false, 'create_edit': false}"/> -->
-	                                    <field name="account_id" invisible = '1' string = 'GL Account' options="{'create': false, 'create_edit': false}" groups="account.group_account_user" />
 	                                    <field name="product_id" string = 'Code'
 	                                        on_change="product_id_change(product_id, uos_id, quantity, name, parent.type, parent.partner_id, parent.fiscal_position, price_unit, parent.currency_id, context, parent.company_id)"/>
 	                                    <field name="name" required = '0'/>
@@ -677,6 +674,7 @@
 	                                    <field name="price_unit"/>
 	                                    <field name="disc"/>
 	                                    <field name="discount" invisible = '1' groups="sale.group_discount_per_so_line"/>
+	                                    <field name="tds_id" options="{'create': false, 'create_edit': false}"/>
 	                                    <field name="p_f"/>
 	                                    <field name="p_f_type"/>
 	                                    <field name="ed"/>
@@ -1294,6 +1292,23 @@
   
         <menuitem action="action_cash_transaction" id="menu_action_cash_transaction" parent="account.menu_finance_entries" sequence="15" groups="base.group_no_one,green_erp_arulmani_accounting.group_vvti_accounting_admin"/>  
         
+        <record id="view_tpt_supplier_invoice_with_po_tree" model="ir.ui.view">
+			<field name="name">view.tpt.supplier.invoice.without.po.tree</field>
+			<field name="model">account.invoice</field>
+			<field name="arch" type="xml">
+				<tree string="Supplier Invoice">
+					<field name="name" invisible="0"/>
+                    <field name="partner_id" groups="base.group_user"/>
+                    <field name="date_invoice"/>
+                    <field name="purchase_id"/>
+                	<field name="grn_no"/>
+                    <field name="amount_untaxed" sum="Untaxed Amount"/>
+                    <field name="amount_total" sum="Total Amount"/>
+                    <field name="state" invisible="1"/>
+                </tree>
+			</field>
+		</record>
+        
         <record id="account.action_invoice_tree2" model="ir.actions.act_window">
             <field name="name">Supplier Invoices(with po)</field>
             <field name="res_model">account.invoice</field>
@@ -1313,6 +1328,32 @@
               </p>
             </field>
         </record>
+        <record id="action_invoice_tree21" model="ir.actions.act_window.view">
+            <field eval="5" name="sequence"/>
+            <field name="view_mode">tree</field>
+            <field name="view_id" ref="view_tpt_supplier_invoice_with_po_tree"/>
+            <field name="act_window_id" ref="account.action_invoice_tree2"/>
+        </record>
+        <record id="action_invoice_tree22" model="ir.actions.act_window.view">
+            <field eval="6" name="sequence"/>
+            <field name="view_mode">form</field>
+            <field name="view_id" ref="account.invoice_supplier_form"/>
+            <field name="act_window_id" ref="account.action_invoice_tree2"/>
+        </record>
+
+        <record id="account.action_invoice_tree1_view1" model="ir.actions.act_window.view">
+            <field eval="7" name="sequence"/>
+            <field name="view_mode">tree</field>
+            <field name="view_id" ref="account.invoice_tree"/>
+            <field name="act_window_id" ref="account.action_invoice_tree1"/>
+        </record>
+        <record id="account.action_invoice_tree1_view2" model="ir.actions.act_window.view">
+            <field eval="8" name="sequence"/>
+            <field name="view_mode">form</field>
+            <field name="view_id" ref="account.invoice_form"/>
+            <field name="act_window_id" ref="account.action_invoice_tree1"/>
+        </record>
+        
         <menuitem action="action_invoice_supplier_without_po" id="menu_action_invoice_supplier_without_po" parent="account.menu_finance_payables"
         	groups="green_erp_arulmani_sale.group_vvti_unit_account,account.group_account_manager"/>
         
@@ -1335,6 +1376,7 @@
                 <data>
                     <xpath expr="//form[@string='Accounting Voucher']/sheet[@string='Accounting Voucher']/group/field[@name='name']" position="replace">
                        <field name="memo"  />
+                       <field name="employee_id" options="{'create': false, 'create_edit': false}" />
                     </xpath>
               		<xpath expr="//form[@string='Accounting Voucher']/sheet[@string='Accounting Voucher']/group/field[@name='partner_id']" position="before">
                        <field name="name" readonly = "1" />
