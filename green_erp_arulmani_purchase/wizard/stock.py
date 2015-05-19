@@ -122,14 +122,17 @@ class stock_partial_picking(osv.osv_memory):
                                            'value':para.required_spec,
                                            'uom_id':para.uom_po_id and para.uom_po_id.id or False,
                                            }))
+#                 qty_approve += wizard_line.quantity
                 quanlity_vals.append({
                         'product_id':wizard_line.product_id.id,
                         'qty':wizard_line.quantity,
                         'remaining_qty':wizard_line.quantity,
+#                         'qty_approve':qty_approve,
                         'name':partial.picking_id.id,
                         'supplier_id':partial.picking_id.partner_id.id,
                         'date':partial.picking_id.date,
                         'specification_line':product_line,
+                        'need_inspec_id':move_id,
                         })
                 
 #                 quality_inspec.create(cr, SUPERUSER_ID, vals)
@@ -188,7 +191,35 @@ class stock_partial_picking(osv.osv_memory):
                                  })
         return partial_move
 stock_partial_picking()
+
+class stock_invoice_onshipping(osv.osv_memory):
+    _inherit = "stock.invoice.onshipping"
     
+    def default_get(self, cr, uid, fields, context=None):
+        if context is None:
+            context = {}
+        res = super(stock_invoice_onshipping, self).default_get(cr, uid, fields, context=context)
+        res_ids = context and context.get('active_ids', [])
+        model = context.get('active_model')
+        if not model or 'stock.picking' not in model:
+            return res
+
+        model_pool = self.pool.get(model)
+        browse_picking = model_pool.browse(cr, uid, res_ids, context=context)
+        for pick in browse_picking:
+            if pick.type == 'in':
+                sql = '''
+                    select case when count(id)>0 then 1 else 0 end abc from tpt_quanlity_inspection where state in ('draft','remaining') and name=%s
+                '''%(pick.id)
+                cr.execute(sql)
+                abc = cr.fetchone()[0]
+                if abc:
+                    raise osv.except_osv(_('Warning!'),_('You should check Quality Inspection before the Create Invoice !'))
+                
+        return res
+    
+stock_invoice_onshipping()
+
 class stock_partial_picking_line(osv.osv_memory):
     _inherit = "stock.partial.picking.line"
     _columns = {

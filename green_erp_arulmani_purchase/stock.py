@@ -208,6 +208,7 @@ class stock_picking(osv.osv):
 #         if tax_id:
                 
         if picking.type=='in':
+            qty = move_line.product_uos_qty or move_line.product_qty
             invoice_line_vals.update({
                 'name': name,
                 'origin': origin,
@@ -217,7 +218,7 @@ class stock_picking(osv.osv):
                 'account_id': account_id,
                 'price_unit': self._get_price_unit_invoice(cr, uid, move_line, invoice_vals['type']),
                 'discount': self._get_discount_invoice(cr, uid, move_line),
-                'quantity': move_line.product_uos_qty or move_line.product_qty,
+                'quantity':qty ,
                 
                 'disc': move_line.purchase_line_id and move_line.purchase_line_id.discount or False,
                 'p_f': move_line.purchase_line_id and move_line.purchase_line_id.p_f or False,
@@ -236,6 +237,25 @@ class stock_picking(osv.osv):
     #                 'application_id':move_line.application_id or False,
         #                 'freight':move_line.freight or False,
             })
+            if move_line.action_taken == 'need' :
+                inpec_obj = self.pool.get('tpt.quanlity.inspection')
+                inpec_ids = inpec_obj.search(cr, uid, [('need_inspec_id','=',move_line.id)])
+                if inpec_ids:
+                    qty = inpec_obj.browse(cr, uid, inpec_ids[0]).qty_approve
+                    if qty:
+                        invoice_line_vals.update({'quantity':qty})
+                    else:
+                        invoice_line_vals = {}
+                else:
+                    inpec_ids = inpec_obj.search(cr, uid, [('name','=',move_line.picking_id.id),('product_id','=',move_line.product_id.id),('qty','=',move_line.product_qty)])
+                    if inpec_ids:
+                        qty = inpec_obj.browse(cr, uid, inpec_ids[0]).qty_approve
+                        if qty:
+                            invoice_line_vals.update({'quantity':qty})
+                        else:
+                            invoice_line_vals = {}
+                            
+                    
 #         else:
 #             invoice_line_vals.update({
 #                 'name': name,
@@ -562,6 +582,7 @@ class account_invoice(osv.osv):
                     total_fright=0.0
                     qty = 0.0
                     aed = 0.0
+                    tds_amount = 0.0
                     for po in line.invoice_line:
                         tax = 0
                         p_f = 0
@@ -626,13 +647,18 @@ class account_invoice(osv.osv):
 #                             aed += basic*po.aed_id.amount/100
                         aed += po.aed_id_1
                         
+                        if po.tds_id:    
+                            tds_amount += po.quantity * po.price_unit * po.tds_id.amount/100
+                            tds_amount = round(tds_amount,2)
+                            
                     res[line.id]['amount_untaxed'] = round(amount_untaxed)
                     res[line.id]['p_f_charge'] = round(p_f_charge)
                     res[line.id]['excise_duty'] = round(excise_duty)
                     res[line.id]['amount_tax'] = round(total_tax)
                     res[line.id]['fright'] = round(total_fright)
                     res[line.id]['aed'] = round(aed)
-                    res[line.id]['amount_total'] = round(amount_untaxed) + round(p_f_charge) + round(excise_duty) + round(total_tax) + round(total_fright) + round(aed)
+                    res[line.id]['amount_total_tds'] = round(tds_amount)
+                    res[line.id]['amount_total'] = (round(amount_untaxed) + round(p_f_charge) + round(excise_duty) + round(total_tax) + round(total_fright) + round(aed)) - round(tds_amount)
                 else:
                     amount_untaxed = 0.0
                     p_f_charge=0.0
@@ -941,6 +967,8 @@ class account_invoice_line(osv.osv):
         'tds_id': fields.many2one('account.tax', 'TDS %'),
         'aed_id': fields.many2one('account.tax', 'AED'),
         'aed_id_1': fields.float('AED'),
+        'po_line_id': fields.many2one('purchase.order.line', 'purchase order line'),
+#         'line_no': fields.integer('SI.No'),
     }
     _defaults = {
         'name': '/',
