@@ -47,7 +47,7 @@ class Parser(report_sxw.rml_parse):
             'get_s1_s2':self.get_s1_s2,
             'get_s3_city_zip':self.get_s3_city_zip,
             'get_state_country':self.get_state_country,
-            
+            's_tot':self.s_tot,
         })
     def get_s1_s2(self,partner):
         if partner.street2:
@@ -173,6 +173,9 @@ class Parser(report_sxw.rml_parse):
         kgs_freight =  freight / 1000   
         kgs_freight = format(kgs_freight, '.5f')          
         return kgs_freight
+    def s_tot(self, sub_total):        
+        sub_total = format(sub_total, '.2f')
+        return sub_total
     def frt(self, qty,freight):        
         mt_freight = 0.00
         kgs_freight = 0.00

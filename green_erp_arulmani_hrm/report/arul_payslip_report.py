@@ -65,8 +65,10 @@ class Parser(report_sxw.rml_parse):
             pf_no = ''
             esi_no = ''
             for line in employee.statutory_ids:
-                pf_no = line.name
-                esi_no = line.esi_no
+                if line.name:
+                    pf_no = line.name
+                if line.esi_no:
+                    esi_no = line.esi_no
                 break
             res.update({'pf_no': str(pf_no),'esi_no': str(esi_no)})
         return res
@@ -263,6 +265,12 @@ class Parser(report_sxw.rml_parse):
                 base_amount = basic + da 
                 vpf = base_amount * vpf / 100
                 
+                total_working_days = 0
+                if payroll.employee_id.employee_category_id.code=='S3':
+                    total_working_days = 26
+                else:
+                    total_working_days = calendar_days
+                
                 res.append({
                     'emp_id': emp_id,
                     'emp_name': payroll.employee_id.name + ' ' + (payroll.employee_id.last_name and payroll.employee_id.last_name or ''),
@@ -295,8 +303,8 @@ class Parser(report_sxw.rml_parse):
                     'lwf':lwf,
                     'total_fd':format(total_fd,'.2f'),
                    
-                    'calendar_days':calendar_days, 
-                    'ndw':calendar_days-(tpt_lop_leave+tpt_esi_leave),
+                    'calendar_days':total_working_days, 
+                    'ndw':total_working_days-(tpt_lop_leave+tpt_esi_leave),
                     'special_holiday_worked_count':special_holiday_worked_count,
                     'md1':format(l_vvti_loan + l_lic_hfl + l_hdfc + l_tmb + l_sbt + l_others,'.2f'),
                     'lic':format(i_lic_prem + i_others,'.2f'),
