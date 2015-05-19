@@ -785,7 +785,7 @@ class sale_order_line(osv.osv):
         'price_subtotal': fields.function(_amount_line, string='Subtotal', digits_compute= dp.get_precision('Account')),
         'name_consignee_id': fields.many2one('res.partner', 'Consignee', required = False), #TPT - modified required true to false
         'location': fields.char('Location', size = 1024),   
-        'product_uom_qty': fields.float('Qty', digits=(16,2), required=True, readonly=True, states={'draft': [('readonly', False)]}),
+        'product_uom_qty': fields.float('Qty', digits=(16,3), required=True, readonly=True, states={'draft': [('readonly', False)]}),
         'amount_basic': fields.function(basic_amt_calc, store = True, multi='deltas3' ,string='Basic'),
         'amount_ed': fields.function(ed_amt_calc, store = True, multi='deltas4' ,string='ED'),
         
@@ -1214,7 +1214,7 @@ class tpt_blank_order_line(osv.osv):
         'description': fields.text('Description', required = True),
         'product_type': fields.selection([('rutile', 'Rutile'),('anatase', 'Anatase')],'Product Type'),
         'application_id': fields.many2one('crm.application', 'Application'),
-        'product_uom_qty': fields.float('Quantity'),
+        'product_uom_qty': fields.float('Quantity',digits=(16,3)),
         'uom_po_id': fields.many2one('product.uom', 'UOM', readonly = False),
         'price_unit': fields.float('Unit Price'),
         'sub_total': fields.function(subtotal_blanket_orderline, multi='deltas' ,string='SubTotal'),
