@@ -1260,7 +1260,7 @@ class tpt_purchase_quotation(osv.osv):
             amount_gross = amount_line + amount_p_f + amount_ed + amount_total_tax + amount_fright
             amount_net = amount_net
             amount_unit_net = qty and amount_net/qty or 0
-            amount_total_inr = amount_gross*voucher_rate
+            amount_total_inr = amount_gross/voucher_rate
             res[line.id]['amount_line'] = amount_line
             res[line.id]['amount_basic'] = amount_basic
             res[line.id]['amount_p_f'] = amount_p_f
@@ -1376,11 +1376,17 @@ class tpt_purchase_quotation(osv.osv):
         #TPT END
         'currency_id': fields.many2one('res.currency', 'Currency', readonly=False, required=False,states={'cancel': [('readonly', True)], 'done':[('readonly', True)]}),
     }
+    
+    def _get_currency_id(self, cr, uid, context=None):
+        company = self.pool.get('res.users').browse(cr, uid, uid).company_id
+        return company.currency_id and company.currency_id.id or False
+    
     _defaults = {
         'state': 'draft',
         'name': '/',
         'date_quotation':fields.datetime.now,
         'quotation_cate':'multiple',
+        'currency_id': _get_currency_id,
         }  
     
     
@@ -2046,7 +2052,7 @@ class purchase_order(osv.osv):
             res[line.id]['amount_tax'] = total_tax
             res[line.id]['fright'] = amount_fright
             res[line.id]['amount_total'] = amount_untaxed+p_f_charge+excise_duty+total_tax+amount_fright
-            res[line.id]['amount_total_inr'] = (amount_untaxed+p_f_charge+excise_duty+total_tax+amount_fright)*voucher_rate
+            res[line.id]['amount_total_inr'] = (amount_untaxed+p_f_charge+excise_duty+total_tax+amount_fright)/voucher_rate
         return res
     
     def _get_order(self, cr, uid, ids, context=None):
@@ -2141,11 +2147,14 @@ class purchase_order(osv.osv):
         #'quotation_ref':fields.char('Quotation Reference',size = 1024,required=True),
         #TPT END
         }
-    
+    def _get_currency_id(self, cr, uid, context=None):
+        company = self.pool.get('res.users').browse(cr, uid, uid).company_id
+        return company.currency_id and company.currency_id.id or False
     _default = {
         'name':'/',
         'check_amendement':False,
         'flag': False,
+        'currency_id': _get_currency_id,
                }
     
     def bt_purchase_done(self, cr, uid, ids, context=None):

@@ -1026,7 +1026,7 @@ class account_invoice(osv.osv):
             res[line.id]['amount_untaxed'] = round(val1)
             res[line.id]['amount_tax'] = round(val2)
             res[line.id]['amount_total'] = round(val1+val2+freight)
-            res[line.id]['amount_total_inr'] = round((val1+val2+freight)*voucher_rate)
+            res[line.id]['amount_total_inr'] = round((val1+val2+freight)/voucher_rate)
             for taxline in line.tax_line:
                 sql='''
                     update account_invoice_tax set amount=%s where id=%s

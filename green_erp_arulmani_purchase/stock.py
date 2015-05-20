@@ -156,6 +156,7 @@ class stock_picking(osv.osv):
             invoice_vals.update({
                                  'grn_no':picking.id,
                                  'purchase_id':picking.purchase_id and picking.purchase_id.id or False,
+                                 'currency_id':picking.purchase_id and picking.purchase_id.currency_id and picking.purchase_id.currency_id.id or False,
 #                                  'amount_untaxed': picking.purchase_id and picking.purchase_id.amount_untaxed or False,
 #                                  'p_f_charge': picking.purchase_id and picking.purchase_id.p_f_charge or False,
 #                                  'excise_duty': picking.purchase_id and picking.purchase_id.excise_duty or False,
@@ -566,7 +567,7 @@ class account_invoice(osv.osv):
                 res[line.id]['amount_untaxed'] = round(val1)
                 res[line.id]['amount_tax'] = round(val2)
                 res[line.id]['amount_total'] = round(val1+val2+freight)
-                res[line.id]['amount_total_inr'] = round((val1+val2+freight) * voucher_rate)
+                res[line.id]['amount_total_inr'] = round((val1+val2+freight) / voucher_rate)
                 for taxline in line.tax_line:
                     sql='''
                         update account_invoice_tax set amount=%s where id=%s
@@ -668,7 +669,7 @@ class account_invoice(osv.osv):
                     res[line.id]['aed'] = round(aed)
                     res[line.id]['amount_total_tds'] = round(tds_amount)
                     res[line.id]['amount_total'] = (round(amount_untaxed) + round(p_f_charge) + round(excise_duty) + round(total_tax) + round(total_fright) + round(aed)) - round(tds_amount)
-                    res[line.id]['amount_total_inr'] = round(((round(amount_untaxed) + round(p_f_charge) + round(excise_duty) + round(total_tax) + round(total_fright) + round(aed)) - round(tds_amount))*voucher_rate)
+                    res[line.id]['amount_total_inr'] = round(((round(amount_untaxed) + round(p_f_charge) + round(excise_duty) + round(total_tax) + round(total_fright) + round(aed)) - round(tds_amount))/voucher_rate)
                 else:
                     amount_untaxed = 0.0
                     p_f_charge=0.0
@@ -757,7 +758,7 @@ class account_invoice(osv.osv):
                     res[line.id]['fright'] = round(total_fright)
                     res[line.id]['amount_total_tds'] = round(tds_amount)
                     res[line.id]['amount_total'] = round(amount_untaxed) +round(p_f_charge) + round(excise_duty) + round(total_tax) + round(total_fright) - round(tds_amount)
-                    res[line.id]['amount_total_inr'] = round((round(amount_untaxed) +round(p_f_charge) + round(excise_duty) + round(total_tax) + round(total_fright) - round(tds_amount))*voucher_rate)
+                    res[line.id]['amount_total_inr'] = round((round(amount_untaxed) +round(p_f_charge) + round(excise_duty) + round(total_tax) + round(total_fright) - round(tds_amount))/voucher_rate)
         return res
     
     def _get_invoice_line(self, cr, uid, ids, context=None):
