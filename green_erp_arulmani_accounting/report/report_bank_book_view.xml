@@ -7,10 +7,10 @@
 	        <field name="model">bank.book.report</field>
 	        <field name="report_name">report_bank_book</field>
 	        <field name="report_type">aeroo</field>
-	        <field name="in_format">oo-odt</field>
-	        <field name="out_format" model="report.mimetypes" search="[('code','=','oo-pdf'),('compatible_types','=','oo-odt')]"/>
+	        <field name="in_format">oo-ods</field>
+	        <field name="out_format" model="report.mimetypes" search="[('code','=','oo-pdf'),('compatible_types','=','oo-ods')]"/>
 	        <field name="parser_loc">green_erp_arulmani_accounting/report/report_bank_book.py</field>
-	        <field name="report_rml">green_erp_arulmani_accounting/report/report_bank_book.odt</field>
+	        <field name="report_rml">green_erp_arulmani_accounting/report/report_bank_book.ods</field>
 	        <field name="parser_state">loc</field>
 	        <field name="tml_source">file</field>
 	        <field name="attachment_use" eval="0"/>
@@ -23,6 +23,6 @@
 			model="bank.book.report" 
 			name="report_bank_book"
 	        string="Bank Book Report"
-	        rml="green_erp_arulmani_accounting/report/report_bank_book.odt"/>	
+	        rml="green_erp_arulmani_accounting/report/report_bank_book.ods"/>	
     </data>
 </openerp>
