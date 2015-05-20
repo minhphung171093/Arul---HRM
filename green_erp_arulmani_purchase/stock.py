@@ -562,6 +562,7 @@ class account_invoice(osv.osv):
                     total_fright=0.0
                     qty = 0.0
                     aed = 0.0
+                    tds_amount = 0.0
                     for po in line.invoice_line:
                         tax = 0
                         qty += po.quantity
@@ -609,13 +610,18 @@ class account_invoice(osv.osv):
 #                             aed += basic*po.aed_id.amount/100
                         aed += po.aed_id_1
                         
+                        if po.tds_id:    
+                            tds_amount += po.quantity * po.price_unit * po.tds_id.amount/100
+                            tds_amount = round(tds_amount,2)
+                            
                     res[line.id]['amount_untaxed'] = round(amount_untaxed)
                     res[line.id]['p_f_charge'] = round(p_f_charge)
                     res[line.id]['excise_duty'] = round(excise_duty)
                     res[line.id]['amount_tax'] = round(total_tax)
                     res[line.id]['fright'] = round(total_fright)
                     res[line.id]['aed'] = round(aed)
-                    res[line.id]['amount_total'] = round(amount_untaxed) + round(p_f_charge) + round(excise_duty) + round(total_tax) + round(total_fright) + round(aed)
+                    res[line.id]['amount_total_tds'] = round(tds_amount)
+                    res[line.id]['amount_total'] = (round(amount_untaxed) + round(p_f_charge) + round(excise_duty) + round(total_tax) + round(total_fright) + round(aed)) - round(tds_amount)
                 else:
                     amount_untaxed = 0.0
                     p_f_charge=0.0
