@@ -920,6 +920,21 @@ class mrp_production(osv.osv):
 #                 '''%(sub,line.id)
 #                 cr.execute(sql)
 
+    def init(self, cr):
+        production_ids = self.pool.get('mrp.production').search(cr, 1, [])
+        if production_ids:
+            for line in self.browse(cr,1,production_ids):
+                sql = '''
+                        select case when sum(qty)!=0 then sum(qty) else 0 end qty from tpt_fsh_batch_split_line where fsh_id in (select id from tpt_fsh_batch_split where mrp_id = %s)
+                    '''%(line.id)
+                cr.execute(sql)
+                qty = cr.dictfetchone()['qty']
+                if (qty == line.product_qty):
+                    sql = '''
+                        update mrp_production set flag = 't' where id = %s
+                    '''%(line.id)
+                    cr.execute(sql)
+
 #     def init(self, cr):
 #                 sql = '''
 #                     update mrp_production set sub_date = date_planned
@@ -1444,6 +1459,21 @@ class stock_production_lot(osv.osv):
     
     def init(self, cr):
         product_ids = self.pool.get('product.product').search(cr, 1, ['|',('name','in',['TITANIUM DIOXIDE-ANATASE','TiO2','M0501010001']),('default_code','in',['TITANIUM DIOXIDE-ANATASE','TiO2','M0501010001'])])
+        
+        sql = '''
+                update purchase_order set flag = 'f' where po_document_type = 'service' and flag is NULL;
+        '''
+        cr.execute(sql)
+        
+        po_line_obj = self.pool.get('purchase.order.line')
+        po_line_ids = po_line_obj.search(cr,1,[])
+        for line in po_line_obj.browse(cr, 1, po_line_ids):
+            if line.po_indent_no:
+                sql = '''
+                    update tpt_purchase_product set po_doc_no = %s,po_date='%s' where pur_product_id = %s and product_id=%s
+                '''%(line.order_id.id,line.order_id.date_order,line.po_indent_no.id,line.product_id.id)
+                cr.execute(sql)
+        
         if product_ids:
             sql = '''
                 select id from stock_production_lot where product_id = %s and name='temp_tio2'

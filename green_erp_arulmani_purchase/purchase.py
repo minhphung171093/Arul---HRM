@@ -413,6 +413,8 @@ class tpt_purchase_product(osv.osv):
                                           ('quotation_cancel','Quotation Cancelled'),
                                           ],'Indent Status', readonly=True),
 #Hung moi them 2 Qty theo yeu casu bala
+        'po_doc_no':fields.many2one('purchase.order','PO Document Number'),
+        'po_date':fields.date('PO Date'),
         'mrs_qty': fields.float('Reserved Qty',digits=(16,3)),
         'inspection_qty': fields.float('Inspection Quantity' ), 
         'on_hand_qty':fields.function(_get_on_hand_qty,digits=(16,3),type='float',string='On Hand Qty',multi='sum',store=False),
@@ -2094,6 +2096,7 @@ class purchase_order(osv.osv):
         'check_amendement':fields.boolean("Amended",readonly=True),
         'order_line': fields.one2many('purchase.order.line', 'order_id', 'Order Lines', states={'cancel':[('readonly',True)],'confirmed':[('readonly',True)],'head':[('readonly',True)],'gm':[('readonly',True)],'md':[('readonly',True)], 'approved':[('readonly',True)],'done':[('readonly',True)]}),
         'cost_center_id': fields.many2one('tpt.cost.center','Cost center', states={'cancel':[('readonly',True)],'confirmed':[('readonly',True)],'head':[('readonly',True)],'gm':[('readonly',True)],'md':[('readonly',True)], 'approved':[('readonly',True)],'done':[('readonly',True)]}),
+        'flag': fields.boolean('Flag'), 
         #TPT START By BalamuruganPurushothaman ON 01/04/2015 - FOR PO PRINT
         'freight_term':fields.selection([('To Pay','To Pay'),('Paid','Paid')],('Freight Term'),states={'cancel':[('readonly',True)],'confirmed':[('readonly',True)],'head':[('readonly',True)],'gm':[('readonly',True)],'md':[('readonly',True)], 'approved':[('readonly',True)],'done':[('readonly',True)]}),   
         #'quotation_ref':fields.char('Quotation Reference',size = 1024,required=True),
@@ -2103,6 +2106,7 @@ class purchase_order(osv.osv):
     _default = {
         'name':'/',
         'check_amendement':False,
+        'flag': False,
                }
     
     def bt_purchase_done(self, cr, uid, ids, context=None):
@@ -2451,7 +2455,7 @@ class purchase_order(osv.osv):
                         cr.execute(sql)
                         indent_line_ids = [row[0] for row in cr.fetchall()]
                         if indent_line_ids:
-                                self.pool.get('tpt.purchase.product').write(cr, uid, indent_line_ids,{'state':'po_raised'})
+                                self.pool.get('tpt.purchase.product').write(cr, uid, indent_line_ids,{'state':'po_raised','po_doc_no':new.id,'po_date':new.date_order})
                         sql = '''
                                     select po_indent_no, product_id, sum(product_qty) as po_product_qty from purchase_order_line where order_id = %s group by po_indent_no, product_id
                                 '''%(new.id)
@@ -2647,10 +2651,44 @@ class purchase_order(osv.osv):
             po_ids = [row[0] for row in cr.fetchall()]
             args += [('id','in',po_ids)]
             
+#         if context.get('search_po_document'):
+#             purchase_id = context.get('purchase_id')
+#             purchase_master_full_ids = []
+#             sql = '''
+#                 select po_line_id,case when sum(quantity)!=0 then sum(quantity) else 0 end quantity
+#                     from account_invoice_line where invoice_id in (select id from account_invoice where purchase_id in (select id from purchase_order where po_document_type = 'service'))
+#                     group by po_line_id
+#             '''
+#             cr.execute(sql)
+#             purchase_line_ids = []
+#             temp = 0
+#             lines = cr.fetchall()
+#             for purchase_line in lines:
+#                 if purchase_line[0]:
+#                     sql = '''
+#                         select case when sum(product_qty)!=0 then sum(product_qty) else 0 end product_qty
+#                             from purchase_order_line where id = %s
+#                     '''%(purchase_line[0])
+#                     cr.execute(sql)
+#                     product_qty = cr.fetchone()[0]
+#                     if product_qty <= purchase_line[1]:
+#                         temp+=1
+#             if temp==len(lines):
+#                 purchase_line_ids.append(purchase_line[0])
+# # DS nay la nhung purchase order line da du so luong
+#             if purchase_line_ids:
+#                 cr.execute('''
+#                     select order_id from purchase_order_line where id in %s
+#                 ''',(tuple(purchase_line_ids),))
+#                 purchase_master_full_ids = [r[0] for r in cr.fetchall()]
+#             po_master_ids = self.pool.get('purchase.order').search(cr, uid, [('id','not in',purchase_master_full_ids)])
+#             args += [('id','in',po_master_ids)]
+            
         if context.get('search_po_document'):
+             
             sql = '''
                 select id from purchase_order 
-                where state != 'cancel' and po_document_type = 'service' and id not in (select purchase_id from account_invoice where state != 'cancel' and purchase_id is not null)
+                where state != 'cancel' and po_document_type = 'service' and flag = 'f'
             '''
             cr.execute(sql)
             po_ids = [row[0] for row in cr.fetchall()]
@@ -2838,6 +2876,7 @@ class purchase_order_line(osv.osv):
                                        \n* The \'Done\' status is set automatically when purchase order is set as done. \
                                        \n* The \'Cancelled\' status is set automatically when user cancel purchase order.'),
                 'description':fields.char('Description', size = 50, readonly = True),
+                'flag_line': fields.boolean('flag_line'),
                 #TPT
                 #'item_text': fields.char('Item Text'), 
                 }   
@@ -2846,6 +2885,7 @@ class purchase_order_line(osv.osv):
     _defaults = {
                  'date_planned':time.strftime('%Y-%m-%d'),
                  'state': 'draft',
+                 'flag_line': False,
                  }
     
     def create(self, cr, uid, vals, context=None):
@@ -3155,6 +3195,7 @@ class tpt_quanlity_inspection(osv.osv):
         'reason':fields.text('Reason',states={'cancel': [('readonly', True)], 'done':[('readonly', True)]}),
         'specification_line':fields.one2many('tpt.product.specification','specification_id','Product Specification'),
         'qty':fields.float('Qty',digits=(16,3),states={'cancel': [('readonly', True)], 'done':[('readonly', True)]}),
+        'qty_approve':fields.float('Qty Approve',digits=(16,3),states={'cancel': [('readonly', True)], 'done':[('readonly', True)]}),
         'remaining_qty':fields.float('Inspection Quantity',digits=(16,3), readonly= True),
         'state':fields.selection([('draft', 'Draft'),('remaining', 'Remaining'),('done', 'Done')],'Status', readonly=True),
                 }

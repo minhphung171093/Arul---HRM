@@ -1272,7 +1272,6 @@ class account_invoice_line(osv.osv):
         'amount_basic': fields.function(basic_amt_calc, store = True, multi='deltas3' ,string='Basic'),
         'amount_ed': fields.function(ed_amt_calc, store = True, multi='deltas4' ,string='ED'),
         
-        
        } 
     
 account_invoice_line()
