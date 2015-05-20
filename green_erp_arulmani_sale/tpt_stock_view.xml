@@ -154,6 +154,7 @@
             <field name="arch" type="xml">
             	<tree colors="blue:state == 'draft';black:state in ('proforma','proforma2','open');gray:state == 'cancel'" string="Invoice" position="replace" >
 	                <tree colors="blue:state == 'draft';black:state in ('proforma','proforma2','open');gray:state == 'cancel'" string="Invoice" create='false'><!--TPT: Create disabled by BalamuruganPurushothaman  -->
+	                    <field name="vvt_number"/>
 	                    <field name="partner_id" groups="base.group_user"/>
 	                    <field name="date_invoice"/>
 	                    <field name="number" invisible="1"/>
