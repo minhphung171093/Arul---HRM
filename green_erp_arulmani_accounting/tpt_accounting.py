@@ -707,6 +707,7 @@ class account_invoice(osv.osv):
                 'partner_id':purchase.partner_id and purchase.partner_id.id or False,
                 'vendor_ref':purchase.partner_ref or False,
                 'invoice_line': service_line,
+                'currency_id':purchase.currency_id and purchase.currency_id.id or False,
                 }
         return {'value': vals}
     
