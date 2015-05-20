@@ -143,19 +143,29 @@ class arul_hr_capture_work_shift(osv.osv):
               'code':fields.char('Code',size=1024, required = True),
               'name':fields.char('Name',size=1024, required = True),
               'description':fields.text('Description'),
-              'start_time': fields.float('Shift Start Time'),
-              'end_time': fields.float('Shift End Time'),
+              
               'time_total': fields.function(_time_total, string='Shift Total Hours', multi='sums', help="The total amount."),
               'allowance': fields.float('Shift Allowance'),
               'create_date': fields.datetime('Created Date',readonly = True),
               'create_uid': fields.many2one('res.users','Created By',ondelete='restrict',readonly = True),
-	      #Start:TPT - BalamuruganPurushothaman on 18/02/2015 - To give grace period time for a Shift
-	      'min_start_time': fields.float('Minimum Shift Start Time'),
-	      'max_start_time': fields.float('Maximum Shift Start Time'),
-	      'min_end_time': fields.float('Minimum Shift End Time'),
-	      'max_end_time': fields.float('Maximum Shift End Time'),	
-	      'half_day_shift_hr': fields.float('Half Day Shift Hour'),
-	      #End:TPT	
+    	      #Start:TPT - BalamuruganPurushothaman on 18/02/2015 - To give grace period time for a Shift
+              'start_time': fields.float('Actual Shift Start Time'),
+              'end_time': fields.float('Actual Shift End Time'),
+    	      'min_start_time': fields.float('Minimum Shift Start Time'),
+    	      'max_start_time': fields.float('Maximum Shift Start Time'),
+    	      'min_end_time': fields.float('Minimum Shift End Time'),
+    	      'max_end_time': fields.float('Maximum Shift End Time'),	
+    	      
+              ##Half
+              'min_half_start_time': fields.float('Minimum Half Shift Start Time'),
+              'half_start_time': fields.float('Actual Half Shift Start Time'),
+              'max_half_start_time': fields.float('Maximum Half Shift Start Time'),              
+              'min_half_end_time': fields.float('Minimum Half Shift End Time'),
+              'half_end_time': fields.float('Actual Half Shift End Time'),
+              'max_half_end_time': fields.float('Maximum Half Shift End Time'), 
+              'actual_half_time_total': fields.float('Actual Half Day Shift Hour'),
+              'add_half_time_total': fields.float('Additional Half Day Shift Hour'),   
+    	      #End:TPT	
               }
     
 #     def name_get(self, cr, uid, ids, context=None):
@@ -3448,7 +3458,7 @@ class arul_hr_punch_in_out_time(osv.osv):
         'shift_minus': fields.float('S-', states={'done': [('readonly', True)], 'cancel': [('readonly', True)]}),
         'reason_for_adj': fields.selection([('sys_err', 'System Error'),
                                             ('clerk_err', 'Clerical Error')],'Reason for Change'),
-         'reason_details': fields.text('Reason In Details'),             
+        'reason_details': fields.text('Reason In Details'),             
     }
     
     _defaults = {

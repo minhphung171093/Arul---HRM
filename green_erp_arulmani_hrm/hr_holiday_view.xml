@@ -168,17 +168,30 @@
 							<newline/>
 							<field name ="create_date"/>
                 			<field name ="create_uid"/>
+                			<field name="allowance"/>
 						</group>
-						<group col='4' colspan='2'>
-							<field name="start_time" widget="float_time"/>
-							<field name="end_time" widget="float_time"/>
+						<group col='4' colspan='2' string="Full Shift">
 							<field name="min_start_time" widget="float_time"/>
+							<field name="start_time" widget="float_time"/>
 							<field name="max_start_time" widget="float_time"/>
+							<newline/>
+							
 							<field name="min_end_time" widget="float_time"/>
+							<field name="end_time" widget="float_time"/>
 							<field name="max_end_time" widget="float_time"/>
-							<field name="half_day_shift_hr" widget="float_time"/>
 							<field name="time_total" widget="float_time"/>
-							<field name="allowance"/>
+		                </group>  
+		                <group col='4' colspan='2' string="Half Shift">
+		                	<field name="min_half_start_time" widget="float_time"/>
+							<field name="half_start_time" widget="float_time"/>
+							<field name="max_half_start_time" widget="float_time"/>
+							<newline/>
+							
+							<field name="min_half_end_time" widget="float_time"/>
+							<field name="half_end_time" widget="float_time"/>
+							<field name="max_half_end_time" widget="float_time"/>
+							<field name="actual_half_time_total" widget="float_time"/>
+							<field name="add_half_time_total" widget="float_time"/>
 		                </group>   	
 		         	</sheet>
 		         </form>
