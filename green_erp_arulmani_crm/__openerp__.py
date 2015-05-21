@@ -22,7 +22,7 @@
 {
     'name': 'VVTi_TPT_CRM',
     'version': '1.0',
-    'category': 'VVTi_TPT_CRM',
+    'category': 'GreenERP',
     'sequence': 14,
     'author': 'Tenth Planet',
     'website' : 'http://www. tenthplanet.in',
