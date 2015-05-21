@@ -209,7 +209,7 @@ class Parser(report_sxw.rml_parse):
             return "Range"
     def get_loc(self,invoice):
         if invoice.cons_loca:
-            return "Location"
+            return "Division"
     def get_comm(self,invoice):
         if invoice.cons_loca:
             return "Commissionerate"
