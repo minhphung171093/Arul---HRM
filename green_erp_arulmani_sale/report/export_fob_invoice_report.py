@@ -106,7 +106,7 @@ class Parser(report_sxw.rml_parse):
     def get_total_amount(self, invoice_line, insurance):
         val2 = 0.0
         for line in invoice_line:
-            val2 = val2 + line.price_subtotal + line.freight + insurance*line.quantity
+            val2 = val2 + line.price_subtotal + line.quantity*line.freight + insurance*(line.quantity*1000)
         return round(val2, 0)
     
     def amount_to_text(self, nbr, lang='en', currency=False):

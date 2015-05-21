@@ -94,16 +94,16 @@ class Parser(report_sxw.rml_parse):
         date = datetime.strptime(date, DATETIME_FORMAT)
         return date.strftime('%d/%m/%Y %H:%M')
     
-    def get_total(self, invoice_line, insurance):
+    def get_total(self, invoice_line):
         val1 = 0.0
         for line in invoice_line:
-            val1 = val1 + line.price_unit + line.freight/line.quantity + insurance 
+            val1 = val1 + line.price_unit + line.freight/line.quantity + line.insurance 
         return round(val1, 2)
     
-    def get_total_amount(self, invoice_line, insurance):
+    def get_total_amount(self, invoice_line):
         val2 = 0.0
         for line in invoice_line:
-            val2 = val2 + line.price_subtotal + line.freight + insurance*line.quantity 
+            val2 = val2 + line.price_subtotal + line.quantity*line.freight + line.insurance*(line.quantity) 
         return round(val2, 0)
     
     def amount_to_text(self, nbr, lang='en', currency=False):

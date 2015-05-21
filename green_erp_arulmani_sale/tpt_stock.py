@@ -1009,24 +1009,26 @@ class account_invoice(osv.osv):
             val2 = 0.0
             val3 = 0.0
             freight = 0.0
+            ins = 0.0
             voucher_rate = 1
             if context is None:
                 context = {}
             ctx = context.copy()
             ctx.update({'date': time.strftime('%Y-%m-%d')})
             currency = line.currency_id.name or False
-            currency_id = line.currency_id.id or False
+            currency_id = line.currency_id.id or False           
             if currency != 'INR':
                 voucher_rate = self.pool.get('res.currency').read(cr, uid, currency_id, ['rate'], context=ctx)['rate']
             for invoiceline in line.invoice_line:
                 freight += (invoiceline.quantity * invoiceline.freight)
+                ins += (invoiceline.quantity * invoiceline.insurance)
                 val1 += invoiceline.price_subtotal
                 val2 += invoiceline.price_subtotal * (line.sale_tax_id.amount and line.sale_tax_id.amount / 100 or 0)
 #                 val3 = val1 + val2 + freight
             res[line.id]['amount_untaxed'] = round(val1)
-            res[line.id]['amount_tax'] = round(val2)
-            res[line.id]['amount_total'] = round(val1+val2+freight)
-            res[line.id]['amount_total_inr'] = round((val1+val2+freight)/voucher_rate)
+            res[line.id]['amount_tax'] = round(val2)        
+            res[line.id]['amount_total'] = round(val1+val2+freight+ins)
+            res[line.id]['amount_total_inr'] = round((val1+val2+freight+ins)/voucher_rate)
             for taxline in line.tax_line:
                 sql='''
                     update account_invoice_tax set amount=%s where id=%s
@@ -1268,6 +1270,8 @@ class account_invoice_line(osv.osv):
         'product_type':fields.selection([('rutile','Rutile'),('anatase','Anatase')],'Product Type'),
         'application_id': fields.many2one('crm.application', 'Application'),
         'freight': fields.float('Frt/Qty'),
+        'insurance': fields.float('Ins./Qty'),
+        'others': fields.float('Others./Qty'),
         'price_subtotal': fields.function(_amount_line, string='Subtotal', digits_compute= dp.get_precision('Account')),
         #TPT-ED AMT SPLIT
         'amount_basic': fields.function(basic_amt_calc, store = True, multi='deltas3' ,string='Basic'),

@@ -62,16 +62,13 @@ class Parser(report_sxw.rml_parse):
         return text
     def amount_to_text1(self, nbr, currency):
         lang='en'
-        if lang == 'vn':
-            return  amount_to_text_en.amount_to_text(nbr, lang)
-        else:
-            if currency.name=='USD':
-                return amount_to_text_en.amount_to_text(nbr, lang, 'usd').upper() 
-            if currency.name=='INR':
-                text = Number2Words().convertNumberToWords(nbr).upper()
-                if text and len(text)>3 and text[:3]=='AND':
-                    text = text[3:]
-                return text
+        if currency.name=='USD':
+            return amount_to_text_en.amount_to_text(nbr, lang, 'usd').upper() 
+        if currency.name=='INR':
+            text = Number2Words().convertNumberToWords(nbr).upper()
+            if text and len(text)>3 and text[:3]=='AND':
+                text = text[3:]
+            return text
     def get_edu_cess(self, basic_excise_duty):
         ecess = 0.0
         ecess = (basic_excise_duty)*2/100

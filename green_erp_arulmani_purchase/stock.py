@@ -549,6 +549,8 @@ class account_invoice(osv.osv):
                 val2 = 0.0
                 val3 = 0.0
                 freight = 0.0
+                ins = 0.0
+                others = 0.0
                 voucher_rate = 1
                 if context is None:
                     context = {}
@@ -560,14 +562,16 @@ class account_invoice(osv.osv):
                     voucher_rate = self.pool.get('res.currency').read(cr, uid, currency_id, ['rate'], context=ctx)['rate']
                 for invoiceline in line.invoice_line:
                     freight += invoiceline.quantity * invoiceline.freight #TPT
+                    ins += (invoiceline.quantity * invoiceline.insurance) #TPT
+                    others += (invoiceline.quantity * invoiceline.others) #TPT
                     val1 += invoiceline.price_subtotal
                     val2 += invoiceline.price_subtotal * (line.sale_tax_id.amount and line.sale_tax_id.amount / 100 or 0)
                     val2 = round(val2,2)
     #                 val3 = val1 + val2 + freight
                 res[line.id]['amount_untaxed'] = round(val1)
                 res[line.id]['amount_tax'] = round(val2)
-                res[line.id]['amount_total'] = round(val1+val2+freight)
-                res[line.id]['amount_total_inr'] = round((val1+val2+freight) / voucher_rate)
+                res[line.id]['amount_total'] = round(val1+val2+freight+ins+others)
+                res[line.id]['amount_total_inr'] = round((val1+val2+freight+ins+others) / voucher_rate)
                 for taxline in line.tax_line:
                     sql='''
                         update account_invoice_tax set amount=%s where id=%s
