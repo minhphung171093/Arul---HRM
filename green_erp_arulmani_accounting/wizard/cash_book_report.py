@@ -111,7 +111,7 @@ class cash_book_report(osv.osv_memory):
             sql = '''
                 select sum(aml.credit) as credit, aml.date from account_move_line aml 
                 where aml.credit is not null and aml.credit != 0 and aml.date < '%s' 
-                and move_id in (select move_id from account_voucher where type_trans = 'payment') 
+                and move_id in (select move_id from account_voucher where type_trans = 'payment' and type_cash_bank = 'cash') 
                 group by aml.date
             '''%(date_from)
             cr.execute(sql)
@@ -121,7 +121,7 @@ class cash_book_report(osv.osv_memory):
             sql = '''
                 select sum(aml.debit) as debit, aml.date from account_move_line aml 
                 where aml.debit is not null and aml.debit != 0 and aml.date < '%s' 
-                and move_id in (select move_id from account_voucher where type_trans = 'receipt') 
+                and move_id in (select move_id from account_voucher where type_trans = 'receipt' and type_cash_bank = 'cash') 
                 group by aml.date
             '''%(date_from)
             cr.execute(sql)
