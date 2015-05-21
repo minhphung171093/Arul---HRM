@@ -144,27 +144,27 @@ class arul_hr_capture_work_shift(osv.osv):
               'name':fields.char('Name',size=1024, required = True),
               'description':fields.text('Description'),
               
-              'time_total': fields.function(_time_total, string='Shift Total Hours', multi='sums', help="The total amount."),
+              'time_total': fields.function(_time_total, string='Actual Shift Total Hrs', multi='sums', help="The total amount."),
               'allowance': fields.float('Shift Allowance'),
               'create_date': fields.datetime('Created Date',readonly = True),
               'create_uid': fields.many2one('res.users','Created By',ondelete='restrict',readonly = True),
     	      #Start:TPT - BalamuruganPurushothaman on 18/02/2015 - To give grace period time for a Shift
               'start_time': fields.float('Actual Shift Start Time'),
               'end_time': fields.float('Actual Shift End Time'),
-    	      'min_start_time': fields.float('Minimum Shift Start Time'),
-    	      'max_start_time': fields.float('Maximum Shift Start Time'),
-    	      'min_end_time': fields.float('Minimum Shift End Time'),
-    	      'max_end_time': fields.float('Maximum Shift End Time'),	
+    	      'min_start_time': fields.float('Min. Shift Start Time'),
+    	      'max_start_time': fields.float('Max. Shift Start Time'),
+    	      'min_end_time': fields.float('Min. Shift End Time'),
+    	      'max_end_time': fields.float('Max. Shift End Time'),	
     	      
               ##Half
-              'min_half_start_time': fields.float('Minimum Half Shift Start Time'),
+              'min_half_start_time': fields.float('Min. Half Shift Start Time'),
               'half_start_time': fields.float('Actual Half Shift Start Time'),
-              'max_half_start_time': fields.float('Maximum Half Shift Start Time'),              
-              'min_half_end_time': fields.float('Minimum Half Shift End Time'),
+              'max_half_start_time': fields.float('Max. Half Shift Start Time'),              
+              'min_half_end_time': fields.float('Min. Half Shift End Time'),
               'half_end_time': fields.float('Actual Half Shift End Time'),
-              'max_half_end_time': fields.float('Maximum Half Shift End Time'), 
-              'actual_half_time_total': fields.float('Actual Half Day Shift Hour'),
-              'add_half_time_total': fields.float('Additional Half Day Shift Hour'),   
+              'max_half_end_time': fields.float('Max. Half Shift End Time'), 
+              'actual_half_time_total': fields.float('Actual Half Shift Total Hrs'),
+              'add_half_time_total': fields.float('Additional Half Shift Total Hrs'),   
     	      #End:TPT	
               }
     
