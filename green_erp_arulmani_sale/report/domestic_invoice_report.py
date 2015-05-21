@@ -143,6 +143,7 @@ class Parser(report_sxw.rml_parse):
                 mt_qty = qty*25/1000
             if unit.lower() in ['tonne','tonnes','mt','metricton','metrictons']:
                 mt_qty = qty
+        #return format(mt_qty, '.3f') 
         return round(mt_qty, 3)
     
     def get_ed_example(self,invoice_line,excise_duty_id,sale_tax_id):
@@ -160,7 +161,7 @@ class Parser(report_sxw.rml_parse):
             gross = round(qty_mt * rate,2)
             basic_ed += round((gross*excise_duty_id/100),2)
         return round(basic_ed,0)
-    
+     
     def get_excise_duty_amt(self,qty,unit_price,ed):        
         return round(qty*unit_price*ed/100,0)
     
