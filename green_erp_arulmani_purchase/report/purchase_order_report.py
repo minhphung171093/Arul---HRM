@@ -66,7 +66,7 @@ class Parser(report_sxw.rml_parse):
             return  amount_to_text_en.amount_to_text(nbr, lang)
         else:
             if currency.name=='USD':
-                return amount_to_text_en.amount_to_text(nbr, lang, 'usd') 
+                return amount_to_text_en.amount_to_text(nbr, lang, 'usd').upper() 
             if currency.name=='INR':
                 text = Number2Words().convertNumberToWords(nbr).upper()
                 if text and len(text)>3 and text[:3]=='AND':
