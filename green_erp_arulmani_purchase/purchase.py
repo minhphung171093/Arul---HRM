@@ -425,7 +425,8 @@ class tpt_purchase_product(osv.osv):
         'hod_date':fields.datetime('HOD Approved Date',readonly = True),
         'price_unit': fields.float('Unit Price',digits=(16,3), states={'++': [('readonly', True)],'xx': [('readonly', True)]} ), 
         'total_val':fields.function(_get_total_val,digits=(16,3),type='float',string='Total Value',multi='avg',store=False),
-        'rfq_qty': fields.float('RFQ Qty',digits=(16,3)),   
+        'rfq_qty': fields.float('RFQ Qty',digits=(16,3)),
+        'is_mrp': fields.boolean('Is MRP'),
         }  
 #     
     _defaults = {
@@ -854,9 +855,9 @@ class product_product(osv.osv):
         'inventory_line':fields.function(_inventory, method=True,type='one2many', relation='tpt.product.inventory', string='Inventory'),
         'spec_parameter_line':fields.one2many('tpt.spec.parameters.line', 'product_id', 'Spec Parameters'),
         'tpt_product_type':fields.selection([('rutile','Rutile'),('anatase','Anatase')],'Finished Product Type'),
-        'min_stock': fields.float('Min. Stock Level'),
-        'max_stock': fields.float('Max. Stock Level'),
-        're_stock': fields.float('Reorder Level'),
+        'min_stock': fields.float('Min. Stock Level',digits=(16,3)),
+        'max_stock': fields.float('Max. Stock Level',digits=(16,3)),
+        're_stock': fields.float('Reorder Level',digits=(16,3)),
         'po_text': fields.char('PO Text', size = 1024),
         'mrp_control':fields.boolean('MRP Control Type'),
         'tpt_description':fields.text('Description', size = 256),
