@@ -157,7 +157,8 @@ class Parser(report_sxw.rml_parse):
         kgs_qty = 0
         kgs_qty = qty * 1000
         #raise osv.except_osv(_('Warning! %s'),_(round(kgs_qty,10)))
-        return round(kgs_qty)
+        #return round(kgs_qty)
+        return format(kgs_qty, '.2f') 
     def get_rate_kgs(self, rate):        
         kgs_rate = 0.00
         kgs_rate = rate / 1000   
