@@ -182,7 +182,7 @@ class Parser(report_sxw.rml_parse):
         ins_amt = 0.00      
         ins_amt = format(ins/1000, '.5f')           
         return ins_amt
-    def get_total_kgs(self, invoice_line, insurance):
+    def get_total_kgs(self, invoice_line):
         val1 = 0.0
         for line in invoice_line:
             #mt_freight = freight / qty 
