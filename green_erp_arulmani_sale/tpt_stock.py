@@ -1272,7 +1272,7 @@ class account_invoice_line(osv.osv):
         'freight': fields.float('Frt/Qty'),
         'insurance': fields.float('Ins./Qty'),
         'others': fields.float('Others./Qty'),
-        'price_subtotal': fields.function(_amount_line, string='Subtotal', digits_compute= dp.get_precision('Account')),
+        'price_subtotal': fields.function(_amount_line, string='Subtotal',store = True, digits_compute= dp.get_precision('Account')),
         #TPT-ED AMT SPLIT
         'amount_basic': fields.function(basic_amt_calc, store = True, multi='deltas3' ,string='Basic'),
         'amount_ed': fields.function(ed_amt_calc, store = True, multi='deltas4' ,string='ED'),

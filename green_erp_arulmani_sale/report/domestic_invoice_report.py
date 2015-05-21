@@ -55,8 +55,12 @@ class Parser(report_sxw.rml_parse):
             'get_if_freight_tamt':self.get_if_freight_tamt,
             'get_cst_lb':self.get_cst_lb,
             'get_s3':self.get_s3,
-            
+            'get_sub_ed':self.get_sub_ed,
         })
+    def get_sub_ed(self, line):        
+        amt = 0.0
+        amt = line.amount_ed + line.price_subtotal     
+        return format(amt,'.2f')
     
     def get_date(self, date=False):
         if not date:
