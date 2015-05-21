@@ -187,11 +187,7 @@ class Parser(report_sxw.rml_parse):
         val1 = 0.0
         for line in invoice_line:
             #mt_freight = freight / qty 
-            val2 = format(line.price_unit/1000, '.5f')
-            val3 = format((line.freight/line.quantity)/1000, '.5f')
-            val4 = format((line.insurance/line.quantity)/1000, '.5f')
-            #val1 = val1 + (line.price_unit/1000) + (line.freight/line.quantity)/1000 +  (line.insurance/line.quantity)/1000
-            val1 = val1 + val2 + val3 + val2
+            val1 = val1 + round((line.price_unit/1000),5) + round((line.freight/line.quantity)/1000,5) +  round((line.insurance/line.quantity)/1000,5)
         val1 = format(val1, '.5f')  
         return val1
     def get_buyer(self, obj):
