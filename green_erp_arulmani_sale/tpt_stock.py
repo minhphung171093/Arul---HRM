@@ -277,10 +277,11 @@ class stock_picking(osv.osv):
             'sale_tax_id': picking.sale_id.sale_tax_id and picking.sale_id.sale_tax_id.id or False,
             'invoice_type': picking.sale_id and picking.sale_id.order_type or False,
         })
-        if picking.type!='out':
-            cur_id = self.get_currency_id(cr, uid, picking)
-            if cur_id:
-                invoice_vals['currency_id'] = cur_id
+        if picking.type=='in':
+            invoice_vals.update({ 'currency_id': picking.purchase_id.currency_id and picking.purchase_id.currency_id.id or False, })
+#             cur_id = self.get_currency_id(cr, uid, picking)
+#             if cur_id:
+#                 invoice_vals['currency_id'] = cur_id
         if journal_id:
             invoice_vals['journal_id'] = journal_id
         sql = '''
@@ -1025,7 +1026,7 @@ class account_invoice(osv.osv):
             res[line.id]['amount_untaxed'] = round(val1)
             res[line.id]['amount_tax'] = round(val2)
             res[line.id]['amount_total'] = round(val1+val2+freight)
-            res[line.id]['amount_total_inr'] = round((val1+val2+freight)*voucher_rate)
+            res[line.id]['amount_total_inr'] = round((val1+val2+freight)/voucher_rate)
             for taxline in line.tax_line:
                 sql='''
                     update account_invoice_tax set amount=%s where id=%s
@@ -1055,8 +1056,8 @@ class account_invoice(osv.osv):
         #'port_of_discharge_id': fields.many2one('res.country','Port Of Discharge', readonly=True, states={'draft':[('readonly',False)]}),
         
         'mark_container_no': fields.char('Marks & No Container No.', size = 1024, readonly=True, states={'draft':[('readonly',False)]}),
-        'insurance': fields.float('Insurance in KGS', readonly=True, states={'draft':[('readonly',False)]}),
-        'other_charges': fields.float('Other Charges in KGS', readonly=True, states={'draft':[('readonly',False)]}),
+        'insurance': fields.float('Insurance / KGS', readonly=True, states={'draft':[('readonly',False)]}),
+        'other_charges': fields.float('Other Charges / KGS', readonly=True, states={'draft':[('readonly',False)]}),
         'pre_carriage_by': fields.selection([('sea','Sea')],'Pre Carriage By', readonly=True, states={'draft':[('readonly',False)]}),
         
         #TPT - By BalamuruganPurushothaman on 28/02/2015- The following are used for Domestic Invoice Print

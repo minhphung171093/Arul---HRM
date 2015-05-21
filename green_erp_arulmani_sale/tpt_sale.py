@@ -1214,7 +1214,7 @@ class tpt_blank_order_line(osv.osv):
         'description': fields.text('Description', required = True),
         'product_type': fields.selection([('rutile', 'Rutile'),('anatase', 'Anatase')],'Product Type'),
         'application_id': fields.many2one('crm.application', 'Application'),
-        'product_uom_qty': fields.float('Quantity',digits=(16,3)),
+        'product_uom_qty': fields.float('Quantity', digits=(16,3)),
         'uom_po_id': fields.many2one('product.uom', 'UOM', readonly = False),
         'price_unit': fields.float('Unit Price'),
         'sub_total': fields.function(subtotal_blanket_orderline, multi='deltas' ,string='SubTotal'),
