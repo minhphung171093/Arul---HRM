@@ -996,7 +996,7 @@
             <field name="view_type">form</field>
             <field name="view_mode">tree,form</field>
             <field eval="False" name="view_id" ref="view_tpt_freight_invoice_tree"/>
-            <field name="domain">[('type','=','in_invoice'), ('sup_inv_id','!=','False')]</field>
+            <field name="domain">[('type','=','in_invoice'), ('sup_inv_id','!=',False)]</field>
             <field name="context">{'default_type': 'in_invoice', 'type': 'in_invoice', 'journal_type': 'purchase'}</field>
             <field name="search_view_id" ref="view_account_invoice_filter"/>
         </record>
