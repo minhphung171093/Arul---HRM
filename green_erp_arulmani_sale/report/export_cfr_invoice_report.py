@@ -180,7 +180,7 @@ class Parser(report_sxw.rml_parse):
         return kgs_freight
     def get_ins(self, ins):        
         ins_amt = 0.00      
-        ins_amt = format(ins, '.5f')           
+        ins_amt = format(ins/1000, '.5f')           
         return ins_amt
     def get_total_kgs(self, invoice_line, insurance):
         val1 = 0.0
