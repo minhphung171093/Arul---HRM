@@ -205,7 +205,7 @@ class Parser(report_sxw.rml_parse):
             ed = round((gross*excise_duty_id/100),2)           
             total = gross + ed
             cst = round(total * sale_tax_id / 100,2)
-            freight = line.freight or 0
+            freight = qty_mt * line.freight or 0
             total_amount += round(total + cst + freight, 2)
         return round(total_amount,0)
     def get_range_label(self,invoice):
