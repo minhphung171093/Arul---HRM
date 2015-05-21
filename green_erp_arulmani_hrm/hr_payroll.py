@@ -781,7 +781,9 @@ class arul_hr_payroll_executions(osv.osv):
         if kq:
             leave_detail_obj = self.pool.get('arul.hr.employee.leave.details')
             sql = '''
-                select id from arul_hr_employee_leave_details where EXTRACT(year FROM date_from) = %s and EXTRACT(month FROM date_from) = %s and employee_id = %s and leave_type_id in (select id from arul_hr_leave_types where code = 'LOP')
+                select id from arul_hr_employee_leave_details where EXTRACT(year FROM date_from) = %s and EXTRACT(month FROM date_from) = %s and employee_id = %s and 
+                leave_type_id in (select id from arul_hr_leave_types where code = 'LOP')
+                and state='done'
             '''%(year,int(month),emp)
             cr.execute(sql)
             leave_detail_ids = [row[0] for row in cr.fetchall()]
@@ -795,7 +797,10 @@ class arul_hr_payroll_executions(osv.osv):
 
 	    #Start:TPT To calculate Total no of ESI Leaves
             sql = '''
-                select id from arul_hr_employee_leave_details where EXTRACT(year FROM date_from) = %s and EXTRACT(month FROM date_from) = %s and employee_id = %s and leave_type_id in (select id from arul_hr_leave_types where code = 'ESI')
+                select id from arul_hr_employee_leave_details where EXTRACT(year FROM date_from) = %s and 
+                EXTRACT(month FROM date_from) = %s and employee_id = %s and 
+                leave_type_id in (select id from arul_hr_leave_types where code = 'ESI')
+                and state='done'
             '''%(year,int(month),emp)
             cr.execute(sql)
             leave_detail_ids = [row[0] for row in cr.fetchall()]
@@ -1085,6 +1090,7 @@ class arul_hr_payroll_executions(osv.osv):
                 arul_hr_employee_leave_details WHERE EXTRACT(year FROM date_from) = %s 
                 AND EXTRACT(month FROM date_from) = %s AND employee_id =%s AND
                 leave_type_id in (select id from arul_hr_leave_types where code in ('LOP','ESI'))
+                and state='done'
                 '''%(line.year,line.month,p.id)
                 cr.execute(sql)
                 lop_esi =  cr.fetchone()
@@ -1093,7 +1099,7 @@ class arul_hr_payroll_executions(osv.osv):
                 
 
                 #TPT BalamuruganPurushothaman ON 19/05/2015 - TO DEFINE RULES FOR NEWLY JOINED EMPLOYEES IN BETWEEN A PAYROLL MONTH
-                # If Date Of Joining is 15/04/2015 Then this 
+                # If Date Of Joining is 15/04/2015 Then  
                 # Day of Joining = 15, Calendar Days for this Month = 30
                 # The Total No.Of Days Before DOJ = 30 - 15 - 1 = 14 Days
                 # So these 14 Days are Considered as LOP for Internal Process Only, Since there is no Pay for these Days

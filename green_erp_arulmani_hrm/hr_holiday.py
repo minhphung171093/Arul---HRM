@@ -550,7 +550,8 @@ class arul_hr_audit_shift_time(osv.osv):
                 cr.execute(sql)                
                 same_work_date=cr.fetchone()
 		
-		if same_work_date and line.total_hours >= 4:
+        
+		if same_work_date and line.total_hours >= 3.7:
 		    flag = 1
                     shift_hours = 0
 		    
@@ -1356,8 +1357,29 @@ class arul_hr_audit_shift_time(osv.osv):
     		
                 sql=''' SELECT work_date FROM arul_hr_punch_in_out_time WHERE TO_CHAR(work_date,'YYYY-MM-DD') = ('%s') and employee_id=%s '''%(line.work_date,line.employee_id.id)
                 cr.execute(sql)                
-                    #same_work_date=cr.fetchone()
-    
+                same_work_date=cr.fetchone()
+                if same_work_date and line.total_hours >= 3.7:
+                    flag = 1
+                    shift_hours = 0
+                if same_work_date and line.total_hours < 3.7:
+                    permission_ids = self.pool.get('arul.hr.permission.onduty').search(cr, uid, [('non_availability_type_id','=','permission'),('date','=',line.work_date),('employee_id','=',line.employee_id.id)])
+                    on_duty_ids = self.pool.get('arul.hr.permission.onduty').search(cr, uid, [('non_availability_type_id','=','on_duty'),('from_date','<=',line.work_date),('to_date','>=',line.work_date),('employee_id','=',line.employee_id.id)])
+                    leave_detail_ids = self.pool.get('arul.hr.employee.leave.details').search(cr, uid, [('date_from','<=',line.work_date),('date_to','>=',line.work_date),('employee_id','=',line.employee_id.id),('state','=','done')])                    
+                    if not permission_ids and not on_duty_ids and not leave_detail_ids:
+                        res = self.pool.get('ir.model.data').get_object_reference(cr, uid, 
+                                            'green_erp_arulmani_hrm', 'alert_permission_form_view')
+                        return {
+                                    'name': 'Alert Permission',
+                                    'view_type': 'form',
+                                    'view_mode': 'form',
+                                    'view_id': res[1],
+                                    'res_model': 'alert.form',
+                                    'domain': [],
+                                    'context': {'default_message':'No Permission / On Duty Entry is made for Pending Hours. Do you want to reduce it from Leave Credits (CL/SL/C.Off/PL/LOP) ?','audit_id':line.id},
+                                    'type': 'ir.actions.act_window',
+                                    'target': 'new',
+                                }
+                    
     
                 if line.total_hours<shift_hours and line.planned_work_shift_id.code!='W':
                     permission_ids = self.pool.get('arul.hr.permission.onduty').search(cr, uid, [('non_availability_type_id','=','permission'),('date','=',line.work_date),('employee_id','=',line.employee_id.id)])
