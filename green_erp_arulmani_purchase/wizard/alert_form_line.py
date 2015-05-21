@@ -99,6 +99,7 @@ class approve_reject_quanlity_inspection(osv.osv_memory):
         parent_dest_ids = locat_obj.search(cr, uid, [('name','=','Store'),('usage','=','view')])
         if not parent_dest_ids:
             raise osv.except_osv(_('Warning!'),_('System does not have Store warehouse, please check it!'))
+        
         for line in inspection_obj.browse(cr,uid,inspection_ids):
             
             if line.product_id.categ_id.cate_name=='raw':
@@ -122,10 +123,14 @@ class approve_reject_quanlity_inspection(osv.osv_memory):
             move_id = move_obj.create(cr,uid,rs)
             move_obj.action_done(cr, uid, [move_id])
 #             move_obj.action_done(cr, uid, [line.need_inspec_id.id])
+            
+            
             if line.remaining_qty==wizard.quantity or wizard.inspection_quantity==wizard.quantity:
-                inspection_obj.write(cr, uid, [line.id], {'state':'done'})
+                inspection_obj.write(cr, uid, [line.id], {'state':'done','qty_approve':wizard.quantity})
             else:
-                inspection_obj.write(cr, uid, [line.id], {'state':'remaining','remaining_qty': line.remaining_qty-wizard.quantity})
+                qty_approve = line.qty_approve
+                qty_approve += wizard.quantity
+                inspection_obj.write(cr, uid, [line.id], {'state':'remaining','remaining_qty': line.remaining_qty-wizard.quantity,'qty_approve':qty_approve})
                 
         return {'type': 'ir.actions.act_window_close'}
     
