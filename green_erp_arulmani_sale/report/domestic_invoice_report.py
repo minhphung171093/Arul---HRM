@@ -285,4 +285,4 @@ class Parser(report_sxw.rml_parse):
             if a:
                 #raise osv.except_osv(_('Warning!%s'),_(a))
                 if a==obj.id:                                                               
-                    return  '    Opati' + u"\u2122" +' R001'
+                    return  '       Opati' + u"\u2122" +' R001'
