@@ -666,7 +666,7 @@ class account_invoice(osv.osv):
         if sup_inv_id:
             for invoice_id in self.browse(cr, uid, ids):
                 sql = '''
-                    delete from invoice_line where invoice_id = %s
+                    delete from account_invoice_line where invoice_id = %s
                 '''%(invoice_id.id)
                 cr.execute(sql)
             freight_line = []
@@ -701,7 +701,7 @@ class account_invoice(osv.osv):
         if purchase_id:
             for line in self.browse(cr, uid, ids):
                 sql = '''
-                    delete from invoice_line where invoice_id = %s
+                    delete from account_invoice_line where invoice_id = %s
                 '''%(line.id)
                 cr.execute(sql)
         service_line = []
