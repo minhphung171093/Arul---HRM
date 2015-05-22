@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="utf-8"?>
+<openerp>
+    <data>
+    	<record id="general_ledger_statement_report_pdf" model="ir.actions.report.xml">
+	        <field name="name">general_ledger_statement_report_pdf</field>
+	        <field name="type">ir.actions.report.xml</field>
+	        <field name="model">general.ledger.statement</field>
+	        <field name="report_name">general_ledger_statement_report_pdf</field>
+	        <field name="report_type">aeroo</field>
+	        <field name="in_format">oo-ods</field>
+	        <field name="out_format" model="report.mimetypes" search="[('code','=','oo-pdf'),('compatible_types','=','oo-ods')]"/>
+	        <field name="parser_loc">green_erp_arulmani_accounting/report/general_ledger_statement_report.py</field>
+	        <field name="report_rml">green_erp_arulmani_accounting/report/general_ledger_statement_report.ods</field>
+	        <field name="parser_state">loc</field>
+	        <field name="tml_source">file</field>
+	        <field name="attachment_use" eval="0"/>
+    	</record>		    
+		
+		<report 
+			auto="True" 
+			menu="False"
+			id="general_ledger_statement_report_pdf" 
+			model="general.ledger.statement" 
+			name="general_ledger_statement_report_pdf"
+	        string="General Ledger Statement Report"
+	        rml="green_erp_arulmani_accounting/report/general_ledger_statement_report.ods"/>	
+	        
+	        
+	       
+    	<record id="general_ledger_statement_report_xls" model="ir.actions.report.xml">
+	        <field name="name">general_ledger_statement_report_xls</field>
+	        <field name="type">ir.actions.report.xml</field>
+	        <field name="model">general.ledger.statement</field>
+	        <field name="report_name">general_ledger_statement_report_xls</field>
+	        <field name="report_type">aeroo</field>
+	        <field name="in_format">oo-ods</field>
+	        <field name="out_format" model="report.mimetypes" search="[('code','=','oo-xls'),('compatible_types','=','oo-ods')]"/>
+	        <field name="parser_loc">green_erp_arulmani_accounting/report/general_ledger_statement_report.py</field>
+	        <field name="report_rml">green_erp_arulmani_accounting/report/general_ledger_statement_report.ods</field>
+	        <field name="parser_state">loc</field>
+	        <field name="tml_source">file</field>
+	        <field name="attachment_use" eval="0"/>
+    	</record>		    
+		
+		<report 
+			auto="True" 
+			menu="False"
+			id="general_ledger_statement_report_xls" 
+			model="general.ledger.statement" 
+			name="general_ledger_statement_report_xls"
+	        string="General Ledger Statement Report"
+	        rml="green_erp_arulmani_accounting/report/general_ledger_statement_report.ods"/>	    
+    </data>
+</openerp>
