@@ -1427,7 +1427,12 @@
                     	<attribute name='options'>{'create': false, 'create_edit': false}</attribute>
                     	<attribute name='domain'>[('customer','=',True),('is_company','=',True),('customer_account_group_id','=','VVTI Sold to Party')]</attribute>
                     </xpath>
-                    
+                   <!-- <xpath expr="//field[@name='journal_id']" position="replace">
+                    	<field name="journal_id"
+                                domain="[('type','in',['bank', 'cash'])]"
+                                widget="selection"
+                                string="Payment Method"/>
+                    </xpath>-->
                     <xpath expr="//field[@name='journal_id']" position="after">
                     	<field name="account_id" string="GL Account" options="{'create': false, 'create_edit': false}"/>
                     	<field name="bank_name" attrs="{'invisible': [('tpt_journal','&lt;&gt;','bank')]}"/>
@@ -1450,7 +1455,9 @@
                     <xpath expr="//field[@name='account_id']" position="attributes">
                     	<attribute name='domain'>[('user_type.name','in',('Bank', 'Cash'))]</attribute>
                     </xpath>
-                    
+                    <xpath expr="//page[@string='Payment Information']" position="attributes">
+						<attribute name='invisible'>0</attribute>
+					</xpath> 
                     <xpath expr="//page[@string='Payment Information']/field/tree/field[@name='account_id']" position="attributes">
 						<attribute name='invisible'>1</attribute>
 					</xpath> 
@@ -2253,7 +2260,7 @@
             <field name="res_model">account.voucher</field>
             <field name="view_type">form</field>
             <field name="domain">[('journal_id.type', 'in', ['bank', 'cash']), ('type','=','receipt'), ('tpt_cus_reconcile','=',False)]</field>
-            <field name="context">{'type':'receipt'}</field>
+            <field name="context">{'type':'receipt','tpt_remove_dr_cr':1}</field>
             <field name="search_view_id" ref="account_voucher.view_voucher_filter_customer_pay"/>
             <field name="view_id" eval="False"/>
             <field name="target">current</field>
@@ -2274,7 +2281,7 @@
             <field name="res_model">account.voucher</field>
             <field name="view_type">form</field>
             <field name="domain">[('journal_id.type', 'in', ['bank', 'cash']), ('type','=','payment'), ('tpt_sup_reconcile','=',False)]</field>
-            <field name="context">{'type':'payment'}</field>
+            <field name="context">{'type':'payment','tpt_remove_dr_cr':1}</field>
             <field name="view_id" eval="False"/>
             <field name="search_view_id" ref="account_voucher.view_voucher_filter_vendor_pay"/>
             <field name="target">current</field>
