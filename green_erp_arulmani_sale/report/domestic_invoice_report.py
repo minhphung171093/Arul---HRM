@@ -242,7 +242,7 @@ class Parser(report_sxw.rml_parse):
         #return round(total_amount,0)
         #return "{:,}".format(total_amount)
         locale.setlocale(locale.LC_NUMERIC, "en_IN")
-        inr_comma_format = locale.format("%.2f", total_amount, grouping=True)
+        inr_comma_format = locale.format("%.2f", round(total_amount), grouping=True)
         return inr_comma_format
     def get_range_label(self,invoice):
         if invoice.cons_loca:
@@ -303,7 +303,7 @@ class Parser(report_sxw.rml_parse):
            # frt_amt = format(frt_amt, '.2f')  
             #return round(frt_amt) 
             locale.setlocale(locale.LC_NUMERIC, "en_IN")
-            inr_comma_format = locale.format("%.2f", frt_amt, grouping=True)
+            inr_comma_format = locale.format("%.2f", round(frt_amt), grouping=True)
             return inr_comma_format
             #return "{:,}".format(frt_amt,'.2f')  
         
