@@ -86,6 +86,10 @@
           <field name="name">Other Loans</field>
           <field name="code">LOAN_OTHERS</field>
       </record>
+      <record id="deduction_parameters_20" model="arul.hr.payroll.deduction.parameters">
+          <field name="name">IT Deduction</field>
+          <field name="code">IT</field>
+      </record>
       <!-- TPT End -->
       <record id="deduction_parameters_10" model="arul.hr.payroll.deduction.parameters">
           <field name="name">Total Deduction</field>

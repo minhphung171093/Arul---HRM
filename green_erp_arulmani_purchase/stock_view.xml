@@ -148,6 +148,7 @@
 				</xpath>
             	<xpath expr="//field[@name='partner_id']"  position="before">
             		<field name="grn_no" options="{'create': false, 'create_edit': false}"/>
+            		<field name="currency_id" options="{'create': false, 'create_edit': false}"/>
             	</xpath>
             	<xpath expr="//field[@name='account_id']"  position="after">
             		<field name="sale_tax_id" invisible = '1' domain="[('type_tax_use','=','purchase')]" options="{'create': false, 'create_edit': false}"/>
@@ -200,6 +201,10 @@
                         </tree>
                     </field>
 				</xpath> 
+				
+				<xpath expr="//field[@name='amount_total']" position="after">
+					<field name="amount_total_inr" readonly="1" class="oe_subtotal_footer_separator" widget="monetary" attrs="{'invisible': [('amount_total','=','amount_total_inr')]}"/>
+				</xpath>
             </field>
         </record>
         
