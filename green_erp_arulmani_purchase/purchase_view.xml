@@ -602,6 +602,7 @@
 					<!-- <field name="quotation_ref"/>  -->
 					<field name="reason" attrs="{'required':[('state','=','amendement')]}" />
 					<field name="check_amendement" />
+					<field name="tpt_currency_id" invisible='1'/>
 				</xpath>
 				<xpath expr="//page[@string='Incoming Shipments &amp; Invoices']/group/group/field[@name='payment_term_id']" position="replace">
 				</xpath> 
@@ -687,6 +688,20 @@
 				<xpath expr="//button[@name='purchase_confirm']" position="attributes">
 					<attribute name='groups'>green_erp_arulmani_purchase.group_vvti_purchase_mgr</attribute>
 				</xpath>
+				<xpath expr="//page[@string='PO Line']/field/tree/field[@name='taxes_id']" position="attributes">
+					<attribute name='invisible'>0</attribute>
+				</xpath> 
+				
+				<xpath expr="//field[@name='currency_id']" position="attributes">
+					<attribute name='invisible'>0</attribute>
+					<attribute name='required'>1</attribute>
+					<attribute name='on_change'>onchange_currency(currency_id)</attribute>
+				</xpath> 
+				
+				<xpath expr="//field[@name='amount_total']" position="after">
+					<field name="amount_total_inr" readonly="1" class="oe_subtotal_footer_separator" widget="monetary" attrs="{'invisible': [('amount_total','=','amount_total_inr')]}"/>
+				</xpath>
+				
 			</field>
 		</record>
 		
@@ -973,6 +988,7 @@
 						<field name="supplier_location_id" />
 						<field name="quotation_cate" />
 						<field name="quotation_ref" />
+						<field name="currency_id"/>
 						<field name="state" />
 				</tree>
 			</field>
@@ -1002,6 +1018,7 @@
 						<field name="supplier_location_id" options="{'create': false, 'create_edit': false}"  />
 						<field name="quotation_cate" readonly = "1" />
 						<field name="quotation_ref" />
+						<field name="currency_id" options="{'create': false, 'create_edit': false}"/>
                     </group >
 						<notebook>
 							<page string = "Quotation Lines">
@@ -1045,6 +1062,7 @@
 							<field name="amount_total_tax" />
 							<field name="amount_fright" />
 							<field name="amount_gross" />
+							<field name="amount_total_inr" attrs="{'invisible': [('amount_gross','=','amount_total_inr')]}"/>
 							<field name="amount_net" />
 							<field name="amount_unit_net" />
                     </group >

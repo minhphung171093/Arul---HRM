@@ -277,10 +277,11 @@ class stock_picking(osv.osv):
             'sale_tax_id': picking.sale_id.sale_tax_id and picking.sale_id.sale_tax_id.id or False,
             'invoice_type': picking.sale_id and picking.sale_id.order_type or False,
         })
-        if picking.type!='out':
-            cur_id = self.get_currency_id(cr, uid, picking)
-            if cur_id:
-                invoice_vals['currency_id'] = cur_id
+        if picking.type=='in':
+            invoice_vals.update({ 'currency_id': picking.purchase_id.currency_id and picking.purchase_id.currency_id.id or False, })
+#             cur_id = self.get_currency_id(cr, uid, picking)
+#             if cur_id:
+#                 invoice_vals['currency_id'] = cur_id
         if journal_id:
             invoice_vals['journal_id'] = journal_id
         sql = '''
@@ -1008,24 +1009,26 @@ class account_invoice(osv.osv):
             val2 = 0.0
             val3 = 0.0
             freight = 0.0
+            ins = 0.0
             voucher_rate = 1
             if context is None:
                 context = {}
             ctx = context.copy()
             ctx.update({'date': time.strftime('%Y-%m-%d')})
             currency = line.currency_id.name or False
-            currency_id = line.currency_id.id or False
+            currency_id = line.currency_id.id or False           
             if currency != 'INR':
                 voucher_rate = self.pool.get('res.currency').read(cr, uid, currency_id, ['rate'], context=ctx)['rate']
             for invoiceline in line.invoice_line:
                 freight += (invoiceline.quantity * invoiceline.freight)
+                ins += (invoiceline.quantity * invoiceline.insurance)
                 val1 += invoiceline.price_subtotal
                 val2 += invoiceline.price_subtotal * (line.sale_tax_id.amount and line.sale_tax_id.amount / 100 or 0)
 #                 val3 = val1 + val2 + freight
             res[line.id]['amount_untaxed'] = round(val1)
-            res[line.id]['amount_tax'] = round(val2)
-            res[line.id]['amount_total'] = round(val1+val2+freight)
-            res[line.id]['amount_total_inr'] = round((val1+val2+freight)*voucher_rate)
+            res[line.id]['amount_tax'] = round(val2)        
+            res[line.id]['amount_total'] = round(val1+val2+freight+ins)
+            res[line.id]['amount_total_inr'] = round((val1+val2+freight+ins)/voucher_rate)
             for taxline in line.tax_line:
                 sql='''
                     update account_invoice_tax set amount=%s where id=%s
@@ -1055,8 +1058,8 @@ class account_invoice(osv.osv):
         #'port_of_discharge_id': fields.many2one('res.country','Port Of Discharge', readonly=True, states={'draft':[('readonly',False)]}),
         
         'mark_container_no': fields.char('Marks & No Container No.', size = 1024, readonly=True, states={'draft':[('readonly',False)]}),
-        'insurance': fields.float('Insurance in KGS', readonly=True, states={'draft':[('readonly',False)]}),
-        'other_charges': fields.float('Other Charges in KGS', readonly=True, states={'draft':[('readonly',False)]}),
+        'insurance': fields.float('Insurance / KGS', readonly=True, states={'draft':[('readonly',False)]}),
+        'other_charges': fields.float('Other Charges / KGS', readonly=True, states={'draft':[('readonly',False)]}),
         'pre_carriage_by': fields.selection([('sea','Sea')],'Pre Carriage By', readonly=True, states={'draft':[('readonly',False)]}),
         
         #TPT - By BalamuruganPurushothaman on 28/02/2015- The following are used for Domestic Invoice Print
@@ -1267,7 +1270,9 @@ class account_invoice_line(osv.osv):
         'product_type':fields.selection([('rutile','Rutile'),('anatase','Anatase')],'Product Type'),
         'application_id': fields.many2one('crm.application', 'Application'),
         'freight': fields.float('Frt/Qty'),
-        'price_subtotal': fields.function(_amount_line, string='Subtotal', digits_compute= dp.get_precision('Account')),
+        'insurance': fields.float('Ins./Qty'),
+        'others': fields.float('Others./Qty'),
+        'price_subtotal': fields.function(_amount_line, string='Subtotal',store = True, digits_compute= dp.get_precision('Account')),
         #TPT-ED AMT SPLIT
         'amount_basic': fields.function(basic_amt_calc, store = True, multi='deltas3' ,string='Basic'),
         'amount_ed': fields.function(ed_amt_calc, store = True, multi='deltas4' ,string='ED'),

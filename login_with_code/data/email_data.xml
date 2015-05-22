@@ -1,0 +1,26 @@
+<?xml version="1.0" ?>
+<openerp>
+    <data noupdate="0">
+
+        <!--Email template -->
+        <record id="email_template_edi_security_code" model="email.template">
+            <field name="name">Security Code - Send by Email</field>
+            <field name="email_from">${(object.company_id.email or '')|safe}</field>
+            <field name="subject">${object.company_id.name|safe}: Login Security Code</field>
+            <field name="email_to">${object.email|safe}</field>
+            <field name="model_id" ref="base.model_res_users"/>
+            <field name="auto_delete" eval="False"/>
+            <field name="lang">${object.user_id.lang}</field>
+            <field name="body_html"><![CDATA[
+<div style="font-family: 'Lucica Grande', Ubuntu, Arial, Verdana, sans-serif; font-size: 12px; color: rgb(34, 34, 34); background-color: #FFF; ">
+    <p>Hello ${(object.name or '')|safe},</p>
+    <p>Here is your Security Code : <b>${(object.security_code)}</b> </p>
+    <br />
+    <p>Thank you</p>
+    <p>${object.company_id.name}</p>
+</div>
+            ]]></field>
+        </record>
+
+    </data>
+</openerp>

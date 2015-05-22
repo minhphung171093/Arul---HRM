@@ -433,7 +433,7 @@
                                 name="account_id" required = "0" groups="account.group_account_user" invisible = '1'/>
                             <field name="journal_id" groups="account.group_account_user"
                                 on_change="onchange_journal_id(journal_id, context)" widget="selection" invisible = '1'/>
-                            <field name="currency_id" groups="base.group_multi_currency" invisible = '1'/>
+                            <field name="currency_id" options="{'create': false, 'create_edit': false}"/>
                             <field name="check_total" groups="account.group_supplier_inv_check_total" invisible = '1'/>
                         </group>
                     </group>
@@ -485,6 +485,7 @@
                                 <field name="fright" widget="monetary"/>
                                 <field name="amount_total_tds" widget="monetary"/>
                                 <field name="amount_total" class="oe_subtotal_footer_separator" widget="monetary" options="{'currency_field': 'currency_id'}"/>
+                                <field name="amount_total_inr" class="oe_subtotal_footer_separator" widget="monetary" attrs="{'invisible': [('amount_total','=','amount_total_inr')]}"/>
 								<field name="residual" widget="monetary" options="{'currency_field': 'currency_id'}" invisible = '1'/>
                                 <field name="reconciled" invisible="1"/>
                             </group>
@@ -652,7 +653,7 @@
                                 name="account_id" required = "0" groups="account.group_account_user" invisible = '1'/>
                             <field name="journal_id" groups="account.group_account_user"
                                 on_change="onchange_journal_id(journal_id, context)" widget="selection" invisible = '1'/>
-                            <field name="currency_id" groups="base.group_multi_currency" invisible = '1'/>
+                            <field name="currency_id" options="{'create': false, 'create_edit': false}"/>
                             <field name="check_total" groups="account.group_supplier_inv_check_total" invisible = '1'/>
                         </group>
                     </group>
@@ -703,6 +704,7 @@
                                 <field name="fright" widget="monetary"/>
                                 <field name="amount_total_tds" widget="monetary"/>
                                 <field name="amount_total" class="oe_subtotal_footer_separator" widget="monetary" options="{'currency_field': 'currency_id'}"/>
+                                <field name="amount_total_inr" class="oe_subtotal_footer_separator" widget="monetary" attrs="{'invisible': [('amount_total','=','amount_total_inr')]}"/>
 								<field name="residual" widget="monetary" options="{'currency_field': 'currency_id'}" invisible = '1'/>
                                 <field name="reconciled" invisible="1"/>
                             </group>
@@ -996,7 +998,7 @@
             <field name="view_type">form</field>
             <field name="view_mode">tree,form</field>
             <field eval="False" name="view_id" ref="view_tpt_freight_invoice_tree"/>
-            <field name="domain">[('type','=','in_invoice'), ('sup_inv_id','!=','False')]</field>
+            <field name="domain">[('type','=','in_invoice'), ('sup_inv_id','!=',False)]</field>
             <field name="context">{'default_type': 'in_invoice', 'type': 'in_invoice', 'journal_type': 'purchase'}</field>
             <field name="search_view_id" ref="view_account_invoice_filter"/>
         </record>
@@ -1425,7 +1427,12 @@
                     	<attribute name='options'>{'create': false, 'create_edit': false}</attribute>
                     	<attribute name='domain'>[('customer','=',True),('is_company','=',True),('customer_account_group_id','=','VVTI Sold to Party')]</attribute>
                     </xpath>
-                    
+                   <!-- <xpath expr="//field[@name='journal_id']" position="replace">
+                    	<field name="journal_id"
+                                domain="[('type','in',['bank', 'cash'])]"
+                                widget="selection"
+                                string="Payment Method"/>
+                    </xpath>-->
                     <xpath expr="//field[@name='journal_id']" position="after">
                     	<field name="account_id" string="GL Account" options="{'create': false, 'create_edit': false}"/>
                     	<field name="bank_name" attrs="{'invisible': [('tpt_journal','&lt;&gt;','bank')]}"/>
@@ -1448,7 +1455,9 @@
                     <xpath expr="//field[@name='account_id']" position="attributes">
                     	<attribute name='domain'>[('user_type.name','in',('Bank', 'Cash'))]</attribute>
                     </xpath>
-                    
+                    <xpath expr="//page[@string='Payment Information']" position="attributes">
+						<attribute name='invisible'>0</attribute>
+					</xpath> 
                     <xpath expr="//page[@string='Payment Information']/field/tree/field[@name='account_id']" position="attributes">
 						<attribute name='invisible'>1</attribute>
 					</xpath> 
@@ -2251,7 +2260,7 @@
             <field name="res_model">account.voucher</field>
             <field name="view_type">form</field>
             <field name="domain">[('journal_id.type', 'in', ['bank', 'cash']), ('type','=','receipt'), ('tpt_cus_reconcile','=',False)]</field>
-            <field name="context">{'type':'receipt'}</field>
+            <field name="context">{'type':'receipt','tpt_remove_dr_cr':1}</field>
             <field name="search_view_id" ref="account_voucher.view_voucher_filter_customer_pay"/>
             <field name="view_id" eval="False"/>
             <field name="target">current</field>
@@ -2272,7 +2281,7 @@
             <field name="res_model">account.voucher</field>
             <field name="view_type">form</field>
             <field name="domain">[('journal_id.type', 'in', ['bank', 'cash']), ('type','=','payment'), ('tpt_sup_reconcile','=',False)]</field>
-            <field name="context">{'type':'payment'}</field>
+            <field name="context">{'type':'payment','tpt_remove_dr_cr':1}</field>
             <field name="view_id" eval="False"/>
             <field name="search_view_id" ref="account_voucher.view_voucher_filter_vendor_pay"/>
             <field name="target">current</field>

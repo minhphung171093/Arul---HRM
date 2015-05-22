@@ -61,6 +61,7 @@ class tick_purchase_chart(osv.osv_memory):
 
                                        'taxes_id':[(6,0,[line.tax_id and line.tax_id.id])],
                                         'name':'/',
+                                        'item_text': line.item_text or False,
                                        })]
         line_vals = purchase_order_obj.onchange_quotation_no(cr, uid, [],chart.id)['value']['order_line']
         vals = purchase_order_obj.onchange_partner_id(cr, uid, [],chart.supplier_id.id)['value']
@@ -78,11 +79,13 @@ class tick_purchase_chart(osv.osv_memory):
                     #'quotation_ref': chart.quotation_ref or '',
                     'for_basis': chart.for_basis or False,
                     'deli_sche': chart.schedule or False,
-                    'payment_term_id':chart.payment_term_id and chart.payment_term_id.id or False,
+                    'payment_term_id':chart.payment_term_id and chart.payment_term_id.id or False,  
                      #TPT END
                     
 #                         'po_indent_no':line.po_indent_id.id,
                     'order_line': line_vals,
+                    'currency_id':chart.currency_id and chart.currency_id.id or False,
+                    'tpt_currency_id':chart.currency_id and chart.currency_id.id or False,
                     'location_id':location.lot_stock_id.id,
                     })
         new_po_id = purchase_order_obj.create(cr, uid, vals)
