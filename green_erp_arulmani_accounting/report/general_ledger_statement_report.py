@@ -39,17 +39,26 @@ class Parser(report_sxw.rml_parse):
         self.localcontext.update({
             'get_date_from':self.get_date_from,
             'get_date_to':self.get_date_to,
-            'get_cus': self.get_cus,
+            'get_voucher': self.get_voucher,
             'convert_date_cash': self.convert_date_cash,
             'get_invoice':self.get_invoice,
             'get_doc_type':self.get_doc_type,
         })
         
-    def get_cus(self):
+    def get_voucher(self,move_id):
         wizard_data = self.localcontext['data']['form']
-        cus = (wizard_data['customer_id'])
-        cus_obj = self.pool.get('res.partner')
-        return cus_obj.browse(self.cr,self.uid,cus[0])
+        gl_account = wizard_data['account_id']
+        acc_obj = self.pool.get('account.account')
+        acc = acc_obj.browse(self.cr,self.uid,gl_account[0])
+        sql = '''
+            select cost_center_id from account_voucher where move_id =%s
+        '''%(move_id)
+        self.cr.execute(sql)
+        p = self.cr.fetchone()
+        cost_center = ''
+        if p and p[0]:
+            cost_center = self.pool.get('tpt.cost.center').browse(self.cr, self.uid, p[0]).name
+        return cost_center
     
     def get_date_from(self):
         wizard_data = self.localcontext['data']['form']
@@ -207,14 +216,6 @@ class Parser(report_sxw.rml_parse):
             '''%(date_from, date_to,acc.id)
             self.cr.execute(sql)
             cus_ids = [r[0] for r in self.cr.fetchall()]
-#             sql = '''
-#                 select id from account_move_line 
-#                 where move_id in (
-#                                     select id from account_move 
-#                                     where date between '%s' and '%s' and doc_type in ('cus_pay') and partner_id = %s and state='posted' ) and credit is not null and credit !=0   
-#                 '''%(date_from, date_to,cus[0])
-#             self.cr.execute(sql)
-#             cus_ids += [r[0] for r in self.cr.fetchall()]
         return acount_move_line_obj.browse(self.cr,self.uid,cus_ids)
     
         
