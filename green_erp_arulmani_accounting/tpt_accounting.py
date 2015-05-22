@@ -940,6 +940,7 @@ class account_invoice(osv.osv):
                     iml += invoice_line_obj.move_line_tds_amount_without_po(cr, uid, inv.id) 
             if (inv.type == 'out_invoice'):
                 iml = invoice_line_obj.move_line_customer_fright(cr, uid, inv.id) 
+                iml += invoice_line_obj.move_line_customer_insurance(cr, uid, inv.id) 
                 iml += invoice_line_obj.move_line_customer_amount_tax(cr, uid, inv.id) 
                 iml += invoice_line_obj.move_line_customer_excise_duty(cr, uid, inv.id) 
                 iml += invoice_line_obj.move_line_customer_product_price(cr, uid, inv.id)
@@ -1725,11 +1726,48 @@ class account_invoice_line(osv.osv):
                         'name':t['name'],
                         'price_unit': t['price_unit'],
                         'quantity': 1,
-                        'price': round(t['freight'] / voucher_rate),
+                        'price': round(t['freight'] * t['quantity']/ voucher_rate),
                         'account_id': cus_inv_fright_id and cus_inv_fright_id['cus_inv_fright_id'] or False,
                         'account_analytic_id': t['account_analytic_id'],
                     })
         return res 
+    
+    def move_line_customer_insurance(self, cr, uid, invoice_id, context = None):
+        res = []
+        voucher_rate = 1
+        if context is None:
+            context = {}
+        ctx = context.copy()
+        ctx.update({'date': time.strftime('%Y-%m-%d')})
+        inv_id = self.pool.get('account.invoice').browse(cr, uid, invoice_id)
+        if inv_id:
+            currency = inv_id.currency_id.name or False
+            currency_id = inv_id.currency_id.id or False
+        if currency != 'INR':
+            voucher_rate = self.pool.get('res.currency').read(cr, uid, currency_id, ['rate'], context=ctx)['rate']
+        cr.execute('SELECT * FROM account_invoice_line WHERE invoice_id=%s', (invoice_id,))
+        for t in cr.dictfetchall():
+            sql = '''
+                    SELECT cus_inv_insurance_id FROM tpt_posting_configuration WHERE name = 'cus_inv' and cus_inv_insurance_id is not null
+                '''
+            cr.execute(sql)
+            cus_inv_insurance_id = cr.dictfetchone()
+            if not cus_inv_insurance_id:
+                raise osv.except_osv(_('Warning!'),_('Account is not null, please configure it in GL Posting Configrution !'))
+            if t['insurance']:
+                if round(t['insurance']):
+                    res.append({
+                        'type':'tax',
+                        'name':t['name'],
+                        'price_unit': t['price_unit'],
+                        'quantity': 1,
+                        'price': round(t['insurance'] * t['quantity']/ voucher_rate),
+                        'account_id': cus_inv_insurance_id and cus_inv_insurance_id['cus_inv_insurance_id'] or False,
+                        'account_analytic_id': t['account_analytic_id'],
+                    })
+        return res
+    
+    
     def move_line_excise_duty(self, cr, uid, invoice_id):
         res = []
         cr.execute('SELECT * FROM account_invoice_line WHERE invoice_id=%s', (invoice_id,))
