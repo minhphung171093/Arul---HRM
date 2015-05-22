@@ -594,6 +594,7 @@
 					<!-- <field name="quotation_ref"/>  -->
 					<field name="reason" attrs="{'required':[('state','=','amendement')]}" />
 					<field name="check_amendement" />
+					<field name="tpt_currency_id" invisible='1'/>
 				</xpath>
 				<xpath expr="//page[@string='Incoming Shipments &amp; Invoices']/group/group/field[@name='payment_term_id']" position="replace">
 				</xpath> 
@@ -686,6 +687,7 @@
 				<xpath expr="//field[@name='currency_id']" position="attributes">
 					<attribute name='invisible'>0</attribute>
 					<attribute name='required'>1</attribute>
+					<attribute name='on_change'>onchange_currency(currency_id)</attribute>
 				</xpath> 
 				
 				<xpath expr="//field[@name='amount_total']" position="after">

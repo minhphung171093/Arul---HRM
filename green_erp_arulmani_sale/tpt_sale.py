@@ -78,11 +78,11 @@ class sale_order(osv.osv):
     
     _order = "blanket_id"
     
-    def init(self, cr):
-        sql = '''
-            update sale_order set currency_id=tpt_currency_id
-        '''
-        cr.execute(sql)
+#     def init(self, cr):
+#         sql = '''
+#             update sale_order set currency_id=tpt_currency_id
+#         '''
+#         cr.execute(sql)
     
     def _amount_all(self, cr, uid, ids, field_name, arg, context=None):
         res = {}

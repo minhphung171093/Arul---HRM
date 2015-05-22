@@ -1978,6 +1978,12 @@ tpt_spec_parameters_line()
 class purchase_order(osv.osv):
     _inherit = "purchase.order"
     
+    def init(self, cr):
+        sql = '''
+            update purchase_order set tpt_currency_id=currency_id
+        '''
+        cr.execute(sql) 
+    
     def amount_all_po_line(self, cr, uid, ids, field_name, args, context=None):
         res = {}
         for line in self.browse(cr,uid,ids,context=context):
@@ -2146,6 +2152,7 @@ class purchase_order(osv.osv):
         'freight_term':fields.selection([('To Pay','To Pay'),('Paid','Paid')],('Freight Term'),states={'cancel':[('readonly',True)],'confirmed':[('readonly',True)],'head':[('readonly',True)],'gm':[('readonly',True)],'md':[('readonly',True)], 'approved':[('readonly',True)],'done':[('readonly',True)]}),   
         #'quotation_ref':fields.char('Quotation Reference',size = 1024,required=True),
         #TPT END
+        'tpt_currency_id': fields.many2one('res.currency', 'Currency'),
         }
     def _get_currency_id(self, cr, uid, context=None):
         company = self.pool.get('res.users').browse(cr, uid, uid).company_id
@@ -2155,6 +2162,7 @@ class purchase_order(osv.osv):
         'check_amendement':False,
         'flag': False,
         'currency_id': _get_currency_id,
+        'tpt_currency_id': _get_currency_id,
                }
     
     def bt_purchase_done(self, cr, uid, ids, context=None):
@@ -2178,6 +2186,9 @@ class purchase_order(osv.osv):
     
     def action_md(self, cr, uid, ids, context=None):
         return self.write(cr, uid, ids,{'state':'md','md_approve_date':time.strftime('%Y-%m-%d')})
+    
+    def onchange_currency(self, cr, uid, ids, currency_id=False, context=None):
+        return {'value':{'tpt_currency_id':currency_id}}
     
     #TPT-PO PRINT ON 4/4/2015
     def print_quotation(self, cr, uid, ids, context=None):
@@ -2286,6 +2297,7 @@ class purchase_order(osv.osv):
                         'deli_sche': quotation.schedule or '',
                         'payment_term_id':quotation.payment_term_id and quotation.payment_term_id.id or '',
                         'currency_id':quotation.currency_id.id,
+                        'tpt_currency_id':quotation.currency_id.id,
     #                     'po_indent_no': False,
                         'order_line': po_line,
                         }
