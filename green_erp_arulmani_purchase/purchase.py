@@ -85,6 +85,7 @@ class tpt_purchase_indent(osv.osv):
                     self.pool.get('tpt.purchase.product').write(cr, uid,  [indent_line.id],{'state':'+'})
                 else:
                     self.pool.get('tpt.purchase.product').write(cr, uid,  [indent_line.id],{'state':'confirm'})
+                self.pool.get('tpt.purchase.product').write(cr, uid,  [indent_line.id],{'intdent_cate':line.intdent_cate})
         return self.write(cr, uid, ids,{'state':'done'})
     
     def bt_cancel(self, cr, uid, ids, context=None):
@@ -427,7 +428,11 @@ class tpt_purchase_product(osv.osv):
         'hod_date':fields.datetime('HOD Approved Date',readonly = True),
         'price_unit': fields.float('Unit Price',digits=(16,3), states={'++': [('readonly', True)],'xx': [('readonly', True)]} ), 
         'total_val':fields.function(_get_total_val,digits=(16,3),type='float',string='Total Value',multi='avg',store=False),
-        'rfq_qty': fields.float('RFQ Qty',digits=(16,3)),   
+        'rfq_qty': fields.float('RFQ Qty',digits=(16,3)),
+        'is_mrp': fields.boolean('Is MRP'),
+        'intdent_cate':fields.selection([
+                                ('emergency','Emergency Indent'),
+                                ('normal','Normal Indent')],'Indent Category'),
         }  
 #     
     _defaults = {
@@ -856,9 +861,9 @@ class product_product(osv.osv):
         'inventory_line':fields.function(_inventory, method=True,type='one2many', relation='tpt.product.inventory', string='Inventory'),
         'spec_parameter_line':fields.one2many('tpt.spec.parameters.line', 'product_id', 'Spec Parameters'),
         'tpt_product_type':fields.selection([('rutile','Rutile'),('anatase','Anatase')],'Finished Product Type'),
-        'min_stock': fields.float('Min. Stock Level'),
-        'max_stock': fields.float('Max. Stock Level'),
-        're_stock': fields.float('Reorder Level'),
+        'min_stock': fields.float('Min. Stock Level',digits=(16,3)),
+        'max_stock': fields.float('Max. Stock Level',digits=(16,3)),
+        're_stock': fields.float('Reorder Level',digits=(16,3)),
         'po_text': fields.char('PO Text', size = 1024),
         'mrp_control':fields.boolean('MRP Control Type'),
         'tpt_description':fields.text('Description', size = 256),
@@ -3637,6 +3642,21 @@ class tpt_request_for_quotation(osv.osv):
     def name_search(self, cr, user, name, args=None, operator='ilike', context=None, limit=100):
        ids = self.search(cr, user, args, context=context, limit=limit)
        return self.name_get(cr, user, ids, context=context)
+      
+    def bt_load_indent(self, cr, uid, ids, context=None):
+        res = self.pool.get('ir.model.data').get_object_reference(cr, uid, 
+                                        'green_erp_arulmani_purchase', 'load_line_from_indent_form_view')
+        return {
+                    'name': 'Indent',
+                    'view_type': 'form',
+                    'view_mode': 'form',
+                    'view_id': res[1],
+                    'res_model': 'load.line.from.indent',
+                    'domain': [],
+                    'context': {'default_message':'Do you want to copy Service PR Lines?'},
+                    'type': 'ir.actions.act_window',
+                    'target': 'new',
+                }
       
     def bt_approve(self, cr, uid, ids, context=None):
         for line in self.browse(cr,uid,ids):
