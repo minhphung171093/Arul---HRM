@@ -1188,7 +1188,8 @@ class tpt_purchase_quotation(osv.osv):
                 'amount_fright': 0.0,
                 'amount_gross': 0.0,
                 'amount_net': 0.0,
-                'amount_unit_net': 0.0,
+                'amount_unit_net': 0.0, 
+                'amount_total_inr': 0.0,
             }
             amount_line = 0.0
             amount_basic = 0.0
@@ -1200,6 +1201,16 @@ class tpt_purchase_quotation(osv.osv):
             amount_net=0.0
             amount_unit_net=0.0
             qty = 0.0
+            amount_total_inr = 0.0
+            voucher_rate = 1
+            if context is None:
+                context = {}
+            ctx = context.copy()
+            ctx.update({'date': time.strftime('%Y-%m-%d')})
+            currency = line.currency_id.name or False
+            currency_id = line.currency_id.id or False
+            if currency and currency != 'INR':
+                voucher_rate = self.pool.get('res.currency').read(cr, uid, currency_id, ['rate'], context=ctx)['rate']
             for quotation in line.purchase_quotation_line:
                 qty += quotation.product_uom_qty
                 basic = (quotation.product_uom_qty * quotation.price_unit) - ( (quotation.product_uom_qty * quotation.price_unit)*quotation.disc/100)
@@ -1249,6 +1260,7 @@ class tpt_purchase_quotation(osv.osv):
             amount_gross = amount_line + amount_p_f + amount_ed + amount_total_tax + amount_fright
             amount_net = amount_net
             amount_unit_net = qty and amount_net/qty or 0
+            amount_total_inr = amount_gross/voucher_rate
             res[line.id]['amount_line'] = amount_line
             res[line.id]['amount_basic'] = amount_basic
             res[line.id]['amount_p_f'] = amount_p_f
@@ -1258,6 +1270,7 @@ class tpt_purchase_quotation(osv.osv):
             res[line.id]['amount_gross'] = amount_gross
             res[line.id]['amount_net'] = amount_net
             res[line.id]['amount_unit_net'] = amount_unit_net
+            res[line.id]['amount_total_inr'] = amount_total_inr
         return res
     
     def _get_supplier_name(self, cr, uid, ids, field_name, args, context=None):
@@ -1338,6 +1351,12 @@ class tpt_purchase_quotation(osv.osv):
                 'tpt.purchase.quotation.line': (_get_order, ['product_uom_qty', 'uom_id', 'price_unit','disc','p_f','p_f_type',   
                                                                 'e_d', 'e_d_type','tax_id','fright','fright_type'], 10), },
              states={'cancel': [('readonly', True)], 'done':[('readonly', True)]}),
+        'amount_total_inr': fields.function(amount_all_quotation_line, multi='sums',string='Gross Landed Cost (INR)',digits=(16,3),
+                                        store={
+                'tpt.purchase.quotation': (lambda self, cr, uid, ids, c={}: ids, ['purchase_quotation_line'], 10),
+                'tpt.purchase.quotation.line': (_get_order, ['product_uom_qty', 'uom_id', 'price_unit','disc','p_f','p_f_type',   
+                                                                'e_d', 'e_d_type','tax_id','fright','fright_type'], 10), },
+             states={'cancel': [('readonly', True)], 'done':[('readonly', True)]}),
         
         
         'state':fields.selection([('draft', 'Draft'),('cancel', 'Cancel'),('done', 'Approve')],'Status', readonly=True),
@@ -1355,12 +1374,19 @@ class tpt_purchase_quotation(osv.osv):
 
         'mode_dis': fields.char('Mode Of Dispatch', size = 1024), 
         #TPT END
+        'currency_id': fields.many2one('res.currency', 'Currency', readonly=False, required=False,states={'cancel': [('readonly', True)], 'done':[('readonly', True)]}),
     }
+    
+    def _get_currency_id(self, cr, uid, context=None):
+        company = self.pool.get('res.users').browse(cr, uid, uid).company_id
+        return company.currency_id and company.currency_id.id or False
+    
     _defaults = {
         'state': 'draft',
         'name': '/',
         'date_quotation':fields.datetime.now,
         'quotation_cate':'multiple',
+        'currency_id': _get_currency_id,
         }  
     
     
@@ -1961,6 +1987,7 @@ class purchase_order(osv.osv):
                 'excise_duty': 0.0,
                 'amount_tax': 0.0,
                 'fright': 0.0,
+                'amount_total_inr': 0.0,
             }
             amount_untaxed = 0.0
             p_f_charge=0.0
@@ -1969,6 +1996,15 @@ class purchase_order(osv.osv):
             total_tax = 0.0
             amount_fright=0.0
             qty = 0.0
+            voucher_rate = 1
+            if context is None:
+                context = {}
+            ctx = context.copy()
+            ctx.update({'date': time.strftime('%Y-%m-%d')})
+            currency = line.currency_id.name or False
+            currency_id = line.currency_id.id or False
+            if currency and currency != 'INR':
+                voucher_rate = self.pool.get('res.currency').read(cr, uid, currency_id, ['rate'], context=ctx)['rate']
             for po in line.order_line:
                 tax = 0
                 qty += po.product_qty
@@ -2016,6 +2052,7 @@ class purchase_order(osv.osv):
             res[line.id]['amount_tax'] = total_tax
             res[line.id]['fright'] = amount_fright
             res[line.id]['amount_total'] = amount_untaxed+p_f_charge+excise_duty+total_tax+amount_fright
+            res[line.id]['amount_total_inr'] = (amount_untaxed+p_f_charge+excise_duty+total_tax+amount_fright)/voucher_rate
         return res
     
     def _get_order(self, cr, uid, ids, context=None):
@@ -2078,6 +2115,12 @@ class purchase_order(osv.osv):
             'purchase.order.line': (_get_order, ['product_qty', 'product_uom', 'price_unit','discount','p_f','p_f_type',   
                                                                 'ed', 'ed_type','taxes_id','fright','fright_type'], 10) 
             }, multi="sums",help="The total amount"),
+        'amount_total_inr': fields.function(amount_all_po_line, string='Total (INR)',
+            store={
+               'purchase.order': (lambda self, cr, uid, ids, c={}: ids, ['order_line'], 10),   
+            'purchase.order.line': (_get_order, ['product_qty', 'product_uom', 'price_unit','discount','p_f','p_f_type',   
+                                                                'ed', 'ed_type','taxes_id','fright','fright_type'], 10) 
+            }, multi="sums",help="The total amount"),
         'state': fields.selection([
                                    ('draft', 'Draft PO'),
                                     ('sent', 'RFQ Sent'),
@@ -2097,16 +2140,21 @@ class purchase_order(osv.osv):
         'order_line': fields.one2many('purchase.order.line', 'order_id', 'Order Lines', states={'cancel':[('readonly',True)],'confirmed':[('readonly',True)],'head':[('readonly',True)],'gm':[('readonly',True)],'md':[('readonly',True)], 'approved':[('readonly',True)],'done':[('readonly',True)]}),
         'cost_center_id': fields.many2one('tpt.cost.center','Cost center', states={'cancel':[('readonly',True)],'confirmed':[('readonly',True)],'head':[('readonly',True)],'gm':[('readonly',True)],'md':[('readonly',True)], 'approved':[('readonly',True)],'done':[('readonly',True)]}),
         'flag': fields.boolean('Flag'), 
+        'currency_id': fields.many2one('res.currency', 'Currency', required=True, states={'cancel':[('readonly',True)],'confirmed':[('readonly',True)],'head':[('readonly',True)],'gm':[('readonly',True)],'md':[('readonly',True)], 'approved':[('readonly',True)],'done':[('readonly',True)]}),
+#         'currency_id': fields.related('pricelist_id', 'currency_id', type="many2one", relation="res.currency", string="Currency",readonly=False, required=False),
         #TPT START By BalamuruganPurushothaman ON 01/04/2015 - FOR PO PRINT
         'freight_term':fields.selection([('To Pay','To Pay'),('Paid','Paid')],('Freight Term'),states={'cancel':[('readonly',True)],'confirmed':[('readonly',True)],'head':[('readonly',True)],'gm':[('readonly',True)],'md':[('readonly',True)], 'approved':[('readonly',True)],'done':[('readonly',True)]}),   
         #'quotation_ref':fields.char('Quotation Reference',size = 1024,required=True),
         #TPT END
         }
-    
+    def _get_currency_id(self, cr, uid, context=None):
+        company = self.pool.get('res.users').browse(cr, uid, uid).company_id
+        return company.currency_id and company.currency_id.id or False
     _default = {
         'name':'/',
         'check_amendement':False,
         'flag': False,
+        'currency_id': _get_currency_id,
                }
     
     def bt_purchase_done(self, cr, uid, ids, context=None):
@@ -2183,6 +2231,7 @@ class purchase_order(osv.osv):
    
     def onchange_quotation_no(self, cr, uid, ids,quotation_no=False, context=None):
         vals = {}
+        warning = {}
         if quotation_no:
             for line in self.browse(cr, uid, ids):
                 sql = '''
@@ -2192,48 +2241,55 @@ class purchase_order(osv.osv):
         po_line = []
         if quotation_no:
             quotation = self.pool.get('tpt.purchase.quotation').browse(cr, uid, quotation_no)
-            for line in quotation.purchase_quotation_line:
-                rs = {
-                      'po_indent_no': line.po_indent_id and line.po_indent_id.id or False,
-                      'product_id': line.product_id and line.product_id.id or False,
-                      'product_qty': line.product_uom_qty or False,
-                      'product_uom': line.uom_id and line.uom_id.id or False,
-                      'price_unit': line.price_unit or False,
-                      'discount': line.disc or False,
-                      'p_f': line.p_f or False,
-                      'p_f_type':line.p_f_type or False,
-                      'ed':line.e_d or False,
-                      'ed_type':line.e_d_type or False,
-                      'taxes_id': [(6,0,[line.tax_id and line.tax_id.id])],
-                      'fright':line.fright or False,
-                      'fright_type':line.fright_type or False,
-                
-#                       'price_subtotal': line.sub_total or False,
-#                       'date_planned':quotation.date_quotation or False,
-                      'name': line.product_id and line.product_id.name or False,
-                      'description':line.description or False,
-                      'item_text': line.item_text or '',
-                      }
-                po_line.append((0,0,rs))
-            vals = {
-                    'po_document_type': quotation.rfq_no_id and quotation.rfq_no_id.po_document_type or '',
-                    'partner_id':quotation.supplier_id and quotation.supplier_id.id or '',
-                    'for_basis':quotation.for_basis or '',
-                    'state_id':quotation.supplier_location_id and quotation.supplier_location_id.id or '',
-                    'deli_sche': quotation.schedule or '',
-                    #TPT
+            if not quotation.currency_id:
+                vals = {'quotation_no': False}
+                warning = {
+                    'title': _('Warning!'),
+                    'message': _('Quotation does not have currency! Please select again!')
+                }
+            else:
+                for line in quotation.purchase_quotation_line:
+                    rs = {
+                          'po_indent_no': line.po_indent_id and line.po_indent_id.id or False,
+                          'product_id': line.product_id and line.product_id.id or False,
+                          'product_qty': line.product_uom_qty or False,
+                          'product_uom': line.uom_id and line.uom_id.id or False,
+                          'price_unit': line.price_unit or False,
+                          'discount': line.disc or False,
+                          'p_f': line.p_f or False,
+                          'p_f_type':line.p_f_type or False,
+                          'ed':line.e_d or False,
+                          'ed_type':line.e_d_type or False,
+                          'taxes_id': [(6,0,[line.tax_id and line.tax_id.id])],
+                          'fright':line.fright or False,
+                          'fright_type':line.fright_type or False,
                     
-                    'mode_dis': quotation.mode_dis or '',
-                    'freight_term': quotation.freight_term or '',
-                    #'quotation_ref': quotation.quotation_ref or '',
-                    
-                    'for_basis': quotation.for_basis or '',
-                    'deli_sche': quotation.schedule or '',
-                    'payment_term_id':quotation.payment_term_id and quotation.payment_term_id.id or '',
-#                     'po_indent_no': False,
-                    'order_line': po_line,
-                    }
-        return {'value': vals}
+    #                       'price_subtotal': line.sub_total or False,
+    #                       'date_planned':quotation.date_quotation or False,
+                          'name': line.product_id and line.product_id.name or False,
+                          'description':line.description or False,
+                          }
+                    po_line.append((0,0,rs))
+                vals = {
+                        'po_document_type': quotation.rfq_no_id and quotation.rfq_no_id.po_document_type or '',
+                        'partner_id':quotation.supplier_id and quotation.supplier_id.id or '',
+                        'for_basis':quotation.for_basis or '',
+                        'state_id':quotation.supplier_location_id and quotation.supplier_location_id.id or '',
+                        'deli_sche': quotation.schedule or '',
+                        #TPT
+                        
+                        'mode_dis': quotation.mode_dis or '',
+                        'freight_term': quotation.freight_term or '',
+                        #'quotation_ref': quotation.quotation_ref or '',
+                        
+                        'for_basis': quotation.for_basis or '',
+                        'deli_sche': quotation.schedule or '',
+                        'payment_term_id':quotation.payment_term_id and quotation.payment_term_id.id or '',
+                        'currency_id':quotation.currency_id.id,
+    #                     'po_indent_no': False,
+                        'order_line': po_line,
+                        }
+        return {'value': vals, 'warning': warning}
     
     def onchange_po_indent_no(self, cr, uid, ids,quotation_no=False, po_indent_no=False, context=None):
         vals = {}

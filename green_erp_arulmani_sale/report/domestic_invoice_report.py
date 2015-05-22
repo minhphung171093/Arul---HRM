@@ -55,8 +55,12 @@ class Parser(report_sxw.rml_parse):
             'get_if_freight_tamt':self.get_if_freight_tamt,
             'get_cst_lb':self.get_cst_lb,
             'get_s3':self.get_s3,
-            
+            'get_sub_ed':self.get_sub_ed,
         })
+    def get_sub_ed(self, line):        
+        amt = 0.0
+        amt = line.amount_ed + line.price_subtotal     
+        return format(amt,'.2f')
     
     def get_date(self, date=False):
         if not date:
@@ -139,6 +143,7 @@ class Parser(report_sxw.rml_parse):
                 mt_qty = qty*25/1000
             if unit.lower() in ['tonne','tonnes','mt','metricton','metrictons']:
                 mt_qty = qty
+        #return format(mt_qty, '.3f') 
         return round(mt_qty, 3)
     
     def get_ed_example(self,invoice_line,excise_duty_id,sale_tax_id):
@@ -156,7 +161,7 @@ class Parser(report_sxw.rml_parse):
             gross = round(qty_mt * rate,2)
             basic_ed += round((gross*excise_duty_id/100),2)
         return round(basic_ed,0)
-    
+     
     def get_excise_duty_amt(self,qty,unit_price,ed):        
         return round(qty*unit_price*ed/100,0)
     
@@ -183,7 +188,7 @@ class Parser(report_sxw.rml_parse):
             #total = round(gross + basic_ed + edu_cess + sec_edu_cess, 2)
             total = round(gross + basic_ed, 2)
             cst = round(total * sale_tax_id / 100,2)
-            freight = line.freight or 0
+            freight = qty_mt * line.freight or 0
             total_amount += round(total + cst + freight, 2)
         return round(total_amount,0)
     def get_subtotal(self,invoice_line,excise_duty_id,sale_tax_id):
@@ -201,7 +206,7 @@ class Parser(report_sxw.rml_parse):
             ed = round((gross*excise_duty_id/100),2)           
             total = gross + ed
             cst = round(total * sale_tax_id / 100,2)
-            freight = line.freight or 0
+            freight = qty_mt * line.freight or 0
             total_amount += round(total + cst + freight, 2)
         return round(total_amount,0)
     def get_range_label(self,invoice):
@@ -209,7 +214,7 @@ class Parser(report_sxw.rml_parse):
             return "Range"
     def get_loc(self,invoice):
         if invoice.cons_loca:
-            return "Location"
+            return "Division"
     def get_comm(self,invoice):
         if invoice.cons_loca:
             return "Commissionerate"
@@ -285,4 +290,4 @@ class Parser(report_sxw.rml_parse):
             if a:
                 #raise osv.except_osv(_('Warning!%s'),_(a))
                 if a==obj.id:                                                               
-                    return  'Opati' + u"\u2122" +' R001'
+                    return  '       Opati' + u"\u2122" +' R001'
