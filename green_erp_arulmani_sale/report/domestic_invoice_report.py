@@ -32,6 +32,8 @@ class Parser(report_sxw.rml_parse):
             'amount_to_text': self.amount_to_text,
             'get_qty_mt': self.get_qty_mt,
             'get_qty_mt1': self.get_qty_mt1,
+            'get_qty_mt2': self.get_qty_mt2,
+            'get_amt': self.get_amt,
             'get_qty_bags': self.get_qty_bags,
 #             'get_qty_bags_gross': self.get_qty_bags_gross,
             'get_total': self.get_total,
@@ -160,6 +162,13 @@ class Parser(report_sxw.rml_parse):
                 mt_qty = qty      
         return round(mt_qty, 3)
     
+    def get_qty_mt2(self, qty, price_unit):
+        mt_qty = 0.0
+        Net_Amt = qty * price_unit       
+        return "{:,}".format(Net_Amt,'.2f')
+    def get_amt(self, amt):       
+        return "{:,}".format(amt,'.2f')
+    
     def get_ed_example(self,invoice_line,excise_duty_id,sale_tax_id):
         rate = 0.0
         gross = 0.0
@@ -222,7 +231,8 @@ class Parser(report_sxw.rml_parse):
             cst = round(total * sale_tax_id / 100,2)
             freight = qty_mt * line.freight or 0
             total_amount += round(total + cst + freight, 2)
-        return round(total_amount,0)
+        #return round(total_amount,0)
+        return "{:,}".format(total_amount)
     def get_range_label(self,invoice):
         if invoice.cons_loca:
             return "Range"
@@ -280,7 +290,8 @@ class Parser(report_sxw.rml_parse):
         if freight>0:
             frt_amt = qty * freight
            # frt_amt = format(frt_amt, '.2f')  
-            return round(frt_amt) 
+            #return round(frt_amt) 
+            return "{:,}".format(frt_amt,'.2f') 
         
     
     def get_cst_lb(self,tax_code):
