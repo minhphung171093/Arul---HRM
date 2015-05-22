@@ -2902,7 +2902,69 @@ class account_voucher(osv.osv):
             res = self.onchange_partner_id(cr, uid, ids, partner_id, journal_id, amount, currency_id, ttype, date, context)
             for key in res.keys():
                 vals[key].update(res[key])
+                
+        if context.get('tpt_remove_dr_cr',False):
+            vals['value']['line_dr_ids']=False
+            vals['value']['line_cr_ids']=False
         return vals
+    
+    def onchange_amount(self, cr, uid, ids, amount, rate, partner_id, journal_id, currency_id, ttype, date, payment_rate_currency_id, company_id, context=None):
+        if context is None:
+            context = {}
+        ctx = context.copy()
+        ctx.update({'date': date})
+        #read the voucher rate with the right date in the context
+        currency_id = currency_id or self.pool.get('res.company').browse(cr, uid, company_id, context=ctx).currency_id.id
+        voucher_rate = self.pool.get('res.currency').read(cr, uid, currency_id, ['rate'], context=ctx)['rate']
+        ctx.update({
+            'voucher_special_currency': payment_rate_currency_id,
+            'voucher_special_currency_rate': rate * voucher_rate})
+        res = self.recompute_voucher_lines(cr, uid, ids, partner_id, journal_id, amount, currency_id, ttype, date, context=ctx)
+        vals = self.onchange_rate(cr, uid, ids, rate, amount, currency_id, payment_rate_currency_id, company_id, context=ctx)
+        for key in vals.keys():
+            res[key].update(vals[key])
+        if context.get('tpt_remove_dr_cr',False):
+            res['value']['line_dr_ids']=False
+            res['value']['line_cr_ids']=False
+        return res
+    
+    def onchange_partner_id(self, cr, uid, ids, partner_id, journal_id, amount, currency_id, ttype, date, context=None):
+        if not journal_id:
+            return {}
+        if context is None:
+            context = {}
+        #TODO: comment me and use me directly in the sales/purchases views
+        res = self.basic_onchange_partner(cr, uid, ids, partner_id, journal_id, ttype, context=context)
+        if ttype in ['sale', 'purchase']:
+            return res
+        ctx = context.copy()
+        # not passing the payment_rate currency and the payment_rate in the context but it's ok because they are reset in recompute_payment_rate
+        ctx.update({'date': date})
+        vals = self.recompute_voucher_lines(cr, uid, ids, partner_id, journal_id, amount, currency_id, ttype, date, context=ctx)
+        vals2 = self.recompute_payment_rate(cr, uid, ids, vals, currency_id, date, ttype, journal_id, amount, context=context)
+        for key in vals.keys():
+            res[key].update(vals[key])
+        for key in vals2.keys():
+            res[key].update(vals2[key])
+        #TODO: can probably be removed now
+        #TODO: onchange_partner_id() should not returns [pre_line, line_dr_ids, payment_rate...] for type sale, and not 
+        # [pre_line, line_cr_ids, payment_rate...] for type purchase.
+        # We should definitively split account.voucher object in two and make distinct on_change functions. In the 
+        # meanwhile, bellow lines must be there because the fields aren't present in the view, what crashes if the 
+        # onchange returns a value for them
+        if ttype == 'sale':
+            del(res['value']['line_dr_ids'])
+            del(res['value']['pre_line'])
+            del(res['value']['payment_rate'])
+        elif ttype == 'purchase':
+            del(res['value']['line_cr_ids'])
+            del(res['value']['pre_line'])
+            del(res['value']['payment_rate'])
+        if context.get('tpt_remove_dr_cr',False):
+            res['value']['line_dr_ids']=False
+            res['value']['line_cr_ids']=False
+        return res
+    
 #          
 account_voucher()
 
