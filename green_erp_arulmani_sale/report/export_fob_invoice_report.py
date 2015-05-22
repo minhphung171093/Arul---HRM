@@ -106,7 +106,7 @@ class Parser(report_sxw.rml_parse):
     def get_total_amount(self, invoice_line, insurance):
         val2 = 0.0
         for line in invoice_line:
-            val2 = val2 + line.price_subtotal + line.freight + insurance*line.quantity
+            val2 = val2 + line.price_subtotal + line.quantity*line.freight + insurance*(line.quantity*1000)
         return round(val2, 0)
     
     def amount_to_text(self, nbr, lang='en', currency=False):
@@ -160,7 +160,8 @@ class Parser(report_sxw.rml_parse):
         kgs_qty = 0
         kgs_qty = qty * 1000
         #raise osv.except_osv(_('Warning! %s'),_(round(kgs_qty,10)))
-        return round(kgs_qty)
+        #return round(kgs_qty)
+        return format(kgs_qty, '.2f') 
     def get_rate_kgs(self, rate):        
         kgs_rate = 0.00
         kgs_rate = rate / 1000   

@@ -85,7 +85,7 @@ def amount_to_text(number, currency):
     cents_number = int(list[1])
     cents_name = (cents_number > 1) and 'Cents' or 'Cent'
     if currency=='usd':
-        final_result =units_name +' '+ start_word.title() +' and ' + str.lower(end_word)
+        final_result =units_name +' '+ start_word.title() +' and ' + str.lower(end_word) +' '+ str.lower(cents_name)
     else:
         final_result = start_word.title() +' '+units_name+' and ' + str.lower(end_word) +' PAISA ONLY'
     return final_result

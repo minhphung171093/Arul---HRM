@@ -1,0 +1,21 @@
+<?xml version="1.0"?>
+<openerp>
+    <data>
+
+        <!-- Update Preferences form !-->
+        <record id="view_users_form_restriction" model="ir.ui.view">
+            <field name="name">res.users.restriction</field>
+            <field name="model">res.users</field>
+            <field name="inherit_id" ref="base.view_users_form"/>
+            <field name="arch" type="xml">
+            <data>
+                <field name="tz" position="after">
+            		<field name="security_code" invisible="1"/>
+            		<field name="two_way_req"/>
+                </field>
+            </data>
+            </field>
+        </record>
+
+    </data>
+</openerp>
