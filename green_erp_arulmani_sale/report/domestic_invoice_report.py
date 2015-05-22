@@ -10,9 +10,11 @@ from openerp import pooler
 from openerp.osv import osv
 from openerp.tools.translate import _
 import random
+import locale
 from green_erp_arulmani_sale.report import amount_to_text_en
 from green_erp_arulmani_sale.report import amount_to_text_indian
 from amount_to_text_indian import Number2Words
+#locale.setlocale(locale.LC_NUMERIC, "en_IN")
 DATETIME_FORMAT = "%Y-%m-%d %H:%M:%S"
 DATE_FORMAT = "%Y-%m-%d"
 
@@ -165,9 +167,15 @@ class Parser(report_sxw.rml_parse):
     def get_qty_mt2(self, qty, price_unit):
         mt_qty = 0.0
         Net_Amt = qty * price_unit       
-        return "{:,}".format(Net_Amt,'.2f')
+        #return "{:,}".format(Net_Amt,'.2f')
+        locale.setlocale(locale.LC_NUMERIC, "en_IN")
+        inr_comma_format = locale.format("%.2f", Net_Amt, grouping=True)
+        return inr_comma_format
     def get_amt(self, amt):       
-        return "{:,}".format(amt,'.2f')
+        #return "{:,}".format(amt,'.2f')
+        locale.setlocale(locale.LC_NUMERIC, "en_IN")
+        inr_comma_format = locale.format("%.2f", amt, grouping=True)
+        return inr_comma_format
     
     def get_ed_example(self,invoice_line,excise_duty_id,sale_tax_id):
         rate = 0.0
@@ -232,7 +240,10 @@ class Parser(report_sxw.rml_parse):
             freight = qty_mt * line.freight or 0
             total_amount += round(total + cst + freight, 2)
         #return round(total_amount,0)
-        return "{:,}".format(total_amount)
+        #return "{:,}".format(total_amount)
+        locale.setlocale(locale.LC_NUMERIC, "en_IN")
+        inr_comma_format = locale.format("%.2f", total_amount, grouping=True)
+        return inr_comma_format
     def get_range_label(self,invoice):
         if invoice.cons_loca:
             return "Range"
@@ -291,7 +302,10 @@ class Parser(report_sxw.rml_parse):
             frt_amt = qty * freight
            # frt_amt = format(frt_amt, '.2f')  
             #return round(frt_amt) 
-            return "{:,}".format(frt_amt,'.2f') 
+            locale.setlocale(locale.LC_NUMERIC, "en_IN")
+            inr_comma_format = locale.format("%.2f", frt_amt, grouping=True)
+            return inr_comma_format
+            #return "{:,}".format(frt_amt,'.2f')  
         
     
     def get_cst_lb(self,tax_code):
