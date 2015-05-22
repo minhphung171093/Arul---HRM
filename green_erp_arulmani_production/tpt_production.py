@@ -1465,6 +1465,15 @@ class stock_production_lot(osv.osv):
         '''
         cr.execute(sql)
         
+        indent_obj = self.pool.get('tpt.purchase.indent')
+        indent_ids = indent_obj.search(cr,1,[])
+        for indent in indent_obj.browse(cr, 1, indent_ids):
+            if indent.intdent_cate:
+                sql = '''
+                    update tpt_purchase_product set intdent_cate = '%s' where pur_product_id = %s 
+                '''%(indent.intdent_cate,indent.id)
+                cr.execute(sql)
+        
         po_line_obj = self.pool.get('purchase.order.line')
         po_line_ids = po_line_obj.search(cr,1,[])
         for line in po_line_obj.browse(cr, 1, po_line_ids):

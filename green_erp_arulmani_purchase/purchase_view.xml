@@ -164,6 +164,7 @@
 				<tree string="Indent Release - By Store" edit = 'false' delete = 'false' create = 'false' >
 						<field name="doc_type_relate"/> 
 						<field name="pur_product_id"/> 
+						<field name="intdent_cate"/>
 						<field name="product_id"/>
 						<field name="description"/>
 						<field name="item_text" />
@@ -201,6 +202,7 @@
 						<field name="doc_type_relate" />
 						<field name="pur_product_id" readonly="1"  options="{'create': false, 'create_edit': false}"/> 
 						<field name="recom_vendor" />
+						<field name="intdent_cate"/>
 						<field name="product_id" readonly = "1" options="{'create': false, 'create_edit': false}" />
 						<field name="description"/>
 						<field name="product_uom_qty" />
@@ -280,6 +282,7 @@
 				<tree string="Indent Release - By HOD" edit = 'false' delete = 'false' create = 'false' >
 						<field name="doc_type_relate"/> 
 						<field name="pur_product_id"/> 
+						<field name="intdent_cate"/>
 						<field name="product_id"/>
 						<field name="description"/>
 						<field name="item_text" />
@@ -316,7 +319,9 @@
 	            	<group col="4" colspan="2"> 
 						<field name="doc_type_relate" readonly="1" />
 						<field name="pur_product_id" readonly="1"  options="{'create': false, 'create_edit': false}"/> 
+					
 						<field name="recom_vendor" readonly="1"/>
+						<field name="intdent_cate"/>
 						<field name="product_id" readonly = "1" options="{'create': false, 'create_edit': false}" />
 						<field name="description" readonly="1" />
 						<field name="product_uom_qty" on_change="onchange_hod_qty(product_uom_qty)" />
@@ -412,6 +417,7 @@
 				<tree string="Pending PR List" delete = 'false' create = 'false' >
 						<field name="doc_type_relate"/> 
 						<field name="pur_product_id"/> 
+						<field name="intdent_cate"/> 
 						<field name="product_id"/>
 						<field name="description"/>
 						<field name="item_text" />
@@ -444,7 +450,9 @@
 	            	<group col="4" colspan="2"> 
 	            		<field name="doc_type_relate" />
 						<field name="pur_product_id" readonly="1"  options="{'create': false, 'create_edit': false}"/> 
+						
 						<field name="recom_vendor" />
+						<field name="intdent_cate"/>
 						<field name="product_id" readonly = "1" options="{'create': false, 'create_edit': false}" />
 						<field name="description"/>
 						<field name="product_uom_qty" />
@@ -594,6 +602,7 @@
 					<!-- <field name="quotation_ref"/>  -->
 					<field name="reason" attrs="{'required':[('state','=','amendement')]}" />
 					<field name="check_amendement" />
+					<field name="tpt_currency_id" invisible='1'/>
 				</xpath>
 				<xpath expr="//page[@string='Incoming Shipments &amp; Invoices']/group/group/field[@name='payment_term_id']" position="replace">
 				</xpath> 
@@ -686,6 +695,7 @@
 				<xpath expr="//field[@name='currency_id']" position="attributes">
 					<attribute name='invisible'>0</attribute>
 					<attribute name='required'>1</attribute>
+					<attribute name='on_change'>onchange_currency(currency_id)</attribute>
 				</xpath> 
 				
 				<xpath expr="//field[@name='amount_total']" position="after">
@@ -1697,6 +1707,7 @@
 	            <form string="Request For Quotation" version="7.0"> 
 	            <header>
 	            		<button name="bt_approve" states='draft' string="Confirm" type="object" class="oe_highlight" groups="green_erp_arulmani_purchase.group_vvti_purchase_user"/>
+	                    <button name="bt_load_indent" attrs="{'invisible': ['|',('po_document_type', '!=', 'service'), ('state', '=', 'done')]}" string="Copy Service PR Lines" type="object" class="oe_highlight" groups="green_erp_arulmani_purchase.group_vvti_purchase_user" />
 	                    <button name="bt_cancel" states='draft,done' string="Cancel" type="object" class="oe_highlight" groups="green_erp_arulmani_purchase.group_vvti_purchase_user"/>
 	                    <button name="bt_set_to_draft" states='cancel' string="Set to Draft" type="object" class="oe_highlight" groups="green_erp_arulmani_purchase.group_vvti_purchase_user"/>
 	                    <field name="state" widget="statusbar" statusbar_visible="draft,cancel,done,close" statusbar_colors='{"draft":"blue","cancel":"blue"}'/>
