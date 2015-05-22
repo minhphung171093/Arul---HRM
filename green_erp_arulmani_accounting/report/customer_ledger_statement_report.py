@@ -45,7 +45,12 @@ class Parser(report_sxw.rml_parse):
             'get_invoice':self.get_invoice,
             'get_doc_type':self.get_doc_type,
             'get_balance':self.get_balance,
-            'get_cheque': self.get_cheque,
+            'get_cheque_no': self.get_cheque_no,
+            'get_bill_no': self.get_bill_no,
+            'get_bill_date': self.get_bill_date,
+            'get_cheque_date': self.get_cheque_date,
+            'get_so_no': self.get_so_no,
+            'get_so_date': self.get_so_date,
         })
         
     def get_cus(self):
@@ -116,6 +121,37 @@ class Parser(report_sxw.rml_parse):
         cus_ids += [r[0] for r in self.cr.fetchall()]
         return acount_move_line_obj.browse(self.cr,self.uid,cus_ids)
     
+    def get_bill_no(self, move_id, doc_type):
+        if doc_type == 'cus_inv':
+            self.cr.execute('''select vvt_number from account_invoice where move_id =%s''', (move_id,))
+        else:
+            self.cr.execute('''select number from account_voucher where move_id =%s''', (move_id,))
+        number = self.cr.fetchone()
+        return number and number[0] or ''
+    
+    def get_so_no(self, move_id, doc_type):
+        number = ''
+        if doc_type == 'cus_inv':
+            self.cr.execute('''select name from sale_order where id in (select sale_id from account_invoice where move_id =%s)''', (move_id,))
+        number = self.cr.fetchone()
+        return number and number[0] or ''
+    
+    def get_so_date(self, move_id, doc_type):
+        date = ''
+        if doc_type == 'cus_inv':
+            self.cr.execute('''select date_order from sale_order where id in (select sale_id from account_invoice where move_id =%s)''', (move_id,))
+        date = self.cr.fetchone()
+        return date and date[0] or ''
+    
+    
+    def get_bill_date(self, move_id, doc_type):
+        if doc_type == 'cus_inv':
+            self.cr.execute('''select bill_date from account_invoice where move_id =%s''', (move_id,))
+        else:
+            self.cr.execute('''select date from account_voucher where move_id =%s''', (move_id,))
+        date = self.cr.fetchone()
+        return date and date[0] or ''
+    
     def get_total(self, cash,type):
         sum = 0.0
         for line in cash:
@@ -134,13 +170,21 @@ class Parser(report_sxw.rml_parse):
         balance = float(balance)
         return balance
     
-    def get_cheque(self, cheque):
+    def get_cheque_no(self, move_id):
         sql = '''
-            select cheque_number from account_voucher where number = '%s'
-        '''%(cheque)
+            select cheque_number from account_voucher where move_id = %s
+        '''%(move_id)
         self.cr.execute(sql)
         p = self.cr.dictfetchone()
         return p and p['cheque_number'] or ''
+    
+    def get_cheque_date(self, move_id):
+        sql = '''
+            select cheque_date from account_voucher where move_id = %s
+        '''%(move_id)
+        self.cr.execute(sql)
+        p = self.cr.dictfetchone()
+        return p and p['cheque_date'] or ''
         
         
 # vim:expandtab:smartindent:tabstop=4:softtabstop=4:shiftwidth=4:

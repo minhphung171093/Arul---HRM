@@ -4,7 +4,7 @@
     	<record id="customer_ledger_statement_report" model="ir.actions.report.xml">
 	        <field name="name">customer_ledger_statement_report</field>
 	        <field name="type">ir.actions.report.xml</field>
-	        <field name="model">customer.ledger.statement</field>
+	        <field name="model">tpt.customer.ledger</field>
 	        <field name="report_name">customer_ledger_statement_report</field>
 	        <field name="report_type">aeroo</field>
 	        <field name="in_format">oo-ods</field>
@@ -20,9 +20,81 @@
 			auto="True" 
 			menu="False"
 			id="customer_ledger_statement_report" 
-			model="customer.ledger.statement" 
+			model="tpt.customer.ledger" 
 			name="customer_ledger_statement_report"
 	        string="Customer Ledger Statement Report"
 	        rml="green_erp_arulmani_accounting/report/customer_ledger_statement_report.ods"/>	
+	        
+	    <record id="customer_ledger_statement_report_pdf" model="ir.actions.report.xml">
+	        <field name="name">customer_ledger_statement_report_pdf</field>
+	        <field name="type">ir.actions.report.xml</field>
+	        <field name="model">tpt.customer.ledger</field>
+	        <field name="report_name">customer_ledger_statement_report</field>
+	        <field name="report_type">aeroo</field>
+	        <field name="in_format">oo-ods</field>
+	        <field name="out_format" model="report.mimetypes" search="[('code','=','oo-pdf')]"/>
+	        <field name="parser_loc">green_erp_arulmani_accounting/report/customer_ledger_statement_report.py</field>
+	        <field name="report_rml">green_erp_arulmani_accounting/report/customer_ledger_statement_report.ods</field>
+	        <field name="parser_state">loc</field>
+	        <field name="tml_source">file</field>
+	        <field name="attachment_use" eval="0"/>
+    	</record>		    
+		
+		<report 
+			auto="True" 
+			menu="False"
+			id="customer_ledger_statement_report_pdf" 
+			model="tpt.customer.ledger" 
+			name="customer_ledger_statement_report_pdf"
+	        string="Customer Ledger Statement Report"
+	        rml="green_erp_arulmani_accounting/report/customer_ledger_statement_report.ods"/>	
+	        
+	    <record id="view_tpt_customer_ledger_form" model="ir.ui.view">
+	        <field name="name">view.tpt.customer.ledger.form</field>
+	        <field name="model">tpt.customer.ledger</field>
+	        <field name="arch" type="xml">
+	            <form version='7.0' string="Customer Ledger Statement Report" create="false" edit="false" delete="false">
+	            	<header>
+	            		<button name="print_xls" string="Print (.xls)" type="object" class="oe_highlight" />
+	            		<button name="print_pdf" string="Print (.pdf)" type="object" class="oe_highlight" />
+	            	</header>
+	            	<sheet>
+            			<div class="oe_bold oe_text_left">
+            				<field name="date_from_title" nolabel = '1' class="oe_inline"/> 
+            				<field name="date_from" class="oe_inline"/> 
+            			</div>
+            			<div class="oe_bold oe_text_left">
+            				<field name="date_to_title" nolabel = '1' class="oe_inline"/> 
+            				<field name="date_to" class = "oe_text_center oe_inline"/>
+            			</div>
+            			<div class="oe_bold oe_text_left">
+            				<field name="cus_code_title" nolabel = '1' class="oe_inline"/> 
+            				<field name="cus_code" class = "oe_text_center oe_inline"/>
+            			</div>
+            			<div class="oe_bold oe_text_left">
+            				<field name="cus_name_title" nolabel = '1' class="oe_inline"/> 
+            				<field name="cus_name" class = "oe_inline"/>
+            			</div>
+	                	<group>
+		                	<field name="cus_ledger_line" nolabel='1'>
+		                		<tree create="false" edit="false" delete="false">
+		                			<field name="date"/>
+		                			<field name="document_no"/>
+		                			<field name="narration"/>
+		                			<field name="sale_order_no"/>
+		                			<field name="bill_no"/>
+		                			<field name="bill_date"/>
+		                			<field name="cheque_no"/>
+		                			<field name="cheque_date"/>
+		                			<field name="debit"/>
+		                			<field name="credit"/>
+		                		</tree>
+		                	</field>
+	                	</group>
+	               	</sheet>
+	           </form>
+	        </field>
+	    </record>
+	    
     </data>
 </openerp>
