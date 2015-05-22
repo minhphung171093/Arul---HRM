@@ -1725,7 +1725,7 @@ class account_invoice_line(osv.osv):
                         'name':t['name'],
                         'price_unit': t['price_unit'],
                         'quantity': 1,
-                        'price': round(t['freight'] / voucher_rate),
+                        'price': round(t['freight'] * t['quantity']/ voucher_rate),
                         'account_id': cus_inv_fright_id and cus_inv_fright_id['cus_inv_fright_id'] or False,
                         'account_analytic_id': t['account_analytic_id'],
                     })

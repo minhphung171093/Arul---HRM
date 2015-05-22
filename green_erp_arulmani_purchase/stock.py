@@ -561,12 +561,30 @@ class account_invoice(osv.osv):
                 if currency != 'INR':
                     voucher_rate = self.pool.get('res.currency').read(cr, uid, currency_id, ['rate'], context=ctx)['rate']
                 for invoiceline in line.invoice_line:
-                    freight += invoiceline.quantity * invoiceline.freight #TPT
-                    ins += (invoiceline.quantity * invoiceline.insurance) #TPT
-                    others += (invoiceline.quantity * invoiceline.others) #TPT
-                    val1 += invoiceline.price_subtotal
-                    val2 += invoiceline.price_subtotal * (line.sale_tax_id.amount and line.sale_tax_id.amount / 100 or 0)
-                    val2 = round(val2,2)
+                    freight_line = invoiceline.quantity * invoiceline.freight #TPT
+                    freight_line = round(freight_line)
+                    freight += freight_line
+                    freight = round(freight)
+                    
+                    ins_line = (invoiceline.quantity * invoiceline.insurance) #TPT
+                    ins_line = round(ins_line)
+                    ins += ins_line
+                    ins = round(ins)
+                    
+                    others_line = (invoiceline.quantity * invoiceline.others) #TPT
+                    others_line = round(others_line)
+                    others += others_line
+                    others = round(others)
+                    
+                    val1_line = invoiceline.price_subtotal
+                    val1_line = round(val1_line)
+                    val1 += val1_line
+                    val1 = round(val1)
+                    
+                    val2_line = invoiceline.price_subtotal * (line.sale_tax_id.amount and line.sale_tax_id.amount / 100 or 0)
+                    val2_line = round(val2_line)
+                    val2 += val2_line
+                    val2 = round(val2)
     #                 val3 = val1 + val2 + freight
                 res[line.id]['amount_untaxed'] = round(val1)
                 res[line.id]['amount_tax'] = round(val2)
