@@ -73,6 +73,7 @@ class Parser(report_sxw.rml_parse):
             'get_sub_l_tmb': self.get_sub_l_tmb, 
             'get_sub_l_sbt': self.get_sub_l_sbt, 
             'get_sub_l_others': self.get_sub_l_others, 
+            'get_sub_it_deduction': self.get_sub_it_deduction,
                                            
         })
         
@@ -269,6 +270,12 @@ class Parser(report_sxw.rml_parse):
         for line in self.get_payslip():
             subtotal_i_lic_prem += line['l_others']          
         return round(subtotal_i_lic_prem,2)
+    
+    def get_sub_it_deduction(self):
+        subtotal_it = 0
+        for line in self.get_payslip():
+            subtotal_it += line['it_deduction']          
+        return round(subtotal_it,2)
      #TPT END       
     def get_month(self):
         return self.ids
@@ -313,6 +320,7 @@ class Parser(report_sxw.rml_parse):
             l_tmb = 0 
             l_sbt = 0 
             l_others = 0 
+            it_deduction = 0
             
 
             for earning in line.earning_structure_line:
@@ -378,7 +386,9 @@ class Parser(report_sxw.rml_parse):
                 if deduction.deduction_parameters_id.code == 'LOAN_SBT':
                     l_sbt += deduction.float
                 if deduction.deduction_parameters_id.code == 'LOAN_OTHERS':
-                    l_others += deduction.float
+                    l_others += deduction.float 
+                if deduction.deduction_parameters_id.code == 'IT':
+                    it_deduction += deduction.float
             res.append({
                 'payslip': line,
                 'basic': basic,
@@ -412,6 +422,7 @@ class Parser(report_sxw.rml_parse):
                 'l_tmb' : l_tmb, 
                 'l_sbt' : l_sbt, 
                 'l_others' : l_others, 
+                'it_deduction' : it_deduction,
             })
         return res
 # vim:expandtab:smartindent:tabstop=4:softtabstop=4:shiftwidth=4:

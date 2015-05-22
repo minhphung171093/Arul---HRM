@@ -1383,6 +1383,7 @@ class arul_hr_payroll_executions(osv.osv):
                         l_tmb = 0 
                         l_sbt = 0 
                         l_others = 0
+                        it_deduction = 0
                         #total_f = 0
 			#total_f = 0
                         for other_deductions_id in payroll_emp_struc_obj.browse(cr,uid,emp_struc_ids[0]).payroll_other_deductions_line:
@@ -1418,6 +1419,8 @@ class arul_hr_payroll_executions(osv.osv):
                                 l_sbt = other_deductions_id.float
                             if other_deductions_id.deduction_parameters_id.code == 'LOAN_OTHERS':
                                 l_others = other_deductions_id.float
+                            if other_deductions_id.deduction_parameters_id.code == 'IT':
+                                it_deduction = other_deductions_id.float
 #                             if other_deductions_id.deduction_parameters_id.code == 'LWF':
 #                                 lwf = other_deductions_id.float
 
@@ -1425,7 +1428,7 @@ class arul_hr_payroll_executions(osv.osv):
 			#TPT
                         #total_deduction = pfd + pd + vpfd + esid + fd + ld + ind +  pt + lwf 
                         #total_deduction = pd  + esid + fd + ld + ind +  pt + lwf
-                        total_deduction = pd  + esid + fd + ld + ind +  pt + lwf + i_lic_prem + i_others + l_vvti_loan + l_lic_hfl + l_hdfc + l_tmb + l_sbt + l_others
+                        total_deduction = pd  + esid + fd + ld + ind +  pt + lwf + i_lic_prem + i_others + l_vvti_loan + l_lic_hfl + l_hdfc + l_tmb + l_sbt + l_others + it_deduction
                         
                         for _other_deductions_id in payroll_emp_struc_obj.browse(cr,uid,emp_struc_ids[0]).payroll_other_deductions_line:
 #                             if _other_deductions_id.deduction_parameters_id.code == 'PF.D':
@@ -1763,7 +1766,7 @@ class arul_hr_payroll_executions(osv.osv):
                                       'float': net_sala,
                                 }))
                         deduction_ids = deduction_obj.search(cr, uid, [('code','in',['TOTAL_DEDUCTION','PF.D','ESI.D','LWF','F.D','LOP',
-                                    'INS_LIC_PREM','INS_OTHERS','LOAN_VVTI','LOAN_LIC_HFL','LOAN_HDFC','LOAN_TMB', 'LOAN_SBT','LOAN_OTHERS'               
+                                    'INS_LIC_PREM','INS_OTHERS','LOAN_VVTI','LOAN_LIC_HFL','LOAN_HDFC','LOAN_TMB', 'LOAN_SBT','LOAN_OTHERS','IT'               
                                                                                      ])])
                         for deduction in deduction_obj.browse(cr, uid, deduction_ids):
                             if deduction.code == 'TOTAL_DEDUCTION':
@@ -1831,6 +1834,11 @@ class arul_hr_payroll_executions(osv.osv):
                                           'deduction_parameters_id':deduction.id,
                                           'float': l_others,
                                     }))
+                            if deduction.code == 'IT':
+                                vals_other_deductions.append((0,0, {
+                                          'deduction_parameters_id':deduction.id,
+                                          'float': it_deduction,
+                                    }))
                             #if deduction.code == 'LOP': TPT COMMENTED
                             #    vals_other_deductions.append((0,0, {
                             #              'deduction_parameters_id':deduction.id,
@@ -1857,6 +1865,7 @@ class arul_hr_payroll_executions(osv.osv):
                         l_tmb = 0 
                         l_sbt = 0 
                         l_others = 0
+                        it_deduction = 0
                         
                         for other_deductions_id in payroll_emp_struc_obj.browse(cr,uid,emp_struc_ids[0]).payroll_other_deductions_line:
 #                             if other_deductions_id.deduction_parameters_id.code == 'PF.D':
@@ -1891,13 +1900,15 @@ class arul_hr_payroll_executions(osv.osv):
                                 l_sbt = other_deductions_id.float
                             if other_deductions_id.deduction_parameters_id.code == 'LOAN_OTHERS':
                                 l_others = other_deductions_id.float
+                            if other_deductions_id.deduction_parameters_id.code == 'IT':
+                                it_deduction = other_deductions_id.float
 #                             if other_deductions_id.deduction_parameters_id.code == 'LWF':
 #                                 lwf = other_deductions_id.float
                                 
                         fd += total_fd                       
                         #total_deduction = pfd + pd + vpfd + esid + fd + ld + ind +  pt + lwf 
                         #total_deduction = pfd + pd  + esid + fd + ld + ind +  pt + lwf # PREV
-                        total_deduction = pfd + pd  + esid + fd + ld + ind +  pt + lwf + i_lic_prem + i_others + l_vvti_loan + l_lic_hfl + l_hdfc + l_tmb + l_sbt + l_others
+                        total_deduction = pfd + pd  + esid + fd + ld + ind +  pt + lwf + i_lic_prem + i_others + l_vvti_loan + l_lic_hfl + l_hdfc + l_tmb + l_sbt + l_others + it_deduction
 
                         for _other_deductions_id in payroll_emp_struc_obj.browse(cr,uid,emp_struc_ids[0]).payroll_other_deductions_line:
 #                             if _other_deductions_id.deduction_parameters_id.code == 'PF.D':
@@ -2247,7 +2258,7 @@ class arul_hr_payroll_executions(osv.osv):
                                       'float': net_sala,
                                 }))
                         deduction_ids = deduction_obj.search(cr, uid, [('code','in',['TOTAL_DEDUCTION','PF.D','ESI.D','LWF','F.D','LOP',
-                                        'INS_LIC_PREM','INS_OTHERS','LOAN_VVTI','LOAN_LIC_HFL','LOAN_HDFC','LOAN_TMB', 'LOAN_SBT','LOAN_OTHERS'                                               
+                                        'INS_LIC_PREM','INS_OTHERS','LOAN_VVTI','LOAN_LIC_HFL','LOAN_HDFC','LOAN_TMB', 'LOAN_SBT','LOAN_OTHERS','IT'                                               
                                                                                      ])])
                         for deduction in deduction_obj.browse(cr, uid, deduction_ids):
                             if deduction.code == 'TOTAL_DEDUCTION':
@@ -2315,6 +2326,11 @@ class arul_hr_payroll_executions(osv.osv):
                                           'deduction_parameters_id':deduction.id,
                                           'float': l_others,
                                     }))
+                            if deduction.code == 'IT':
+                                vals_other_deductions.append((0,0, {
+                                          'deduction_parameters_id':deduction.id,
+                                          'float': it_deduction,
+                                    }))
                                 
                             #if deduction.code == 'LOP': #TPT
                             #    vals_other_deductions.append((0,0, {
@@ -2343,6 +2359,7 @@ class arul_hr_payroll_executions(osv.osv):
                         l_tmb = 0 
                         l_sbt = 0 
                         l_others = 0
+                        it_deduction = 0
                         
                         for other_deductions_id in payroll_emp_struc_obj.browse(cr,uid,emp_struc_ids[0]).payroll_other_deductions_line:
 #                             if other_deductions_id.deduction_parameters_id.code == 'PF.D':
@@ -2377,6 +2394,8 @@ class arul_hr_payroll_executions(osv.osv):
                                 l_sbt = other_deductions_id.float
                             if other_deductions_id.deduction_parameters_id.code == 'LOAN_OTHERS':
                                 l_others = other_deductions_id.float
+                            if other_deductions_id.deduction_parameters_id.code == 'IT':
+                                it_deduction = other_deductions_id.float
 #                             if other_deductions_id.deduction_parameters_id.code == 'LWF':
 #                                 lwf = other_deductions_id.float
                         
@@ -2384,7 +2403,7 @@ class arul_hr_payroll_executions(osv.osv):
                         
                         #total_deduction = pfd + pd + vpfd + esid + fd + ld + ind +  pt + lwf
                         #total_deduction = pfd + pd + esid + fd + ld + ind +  pt + lwf
-                        total_deduction = pfd + pd + esid + fd + ld + ind +  pt + lwf + i_lic_prem + i_others + l_vvti_loan + l_lic_hfl + l_hdfc + l_tmb + l_sbt + l_others
+                        total_deduction = pfd + pd + esid + fd + ld + ind +  pt + lwf + i_lic_prem + i_others + l_vvti_loan + l_lic_hfl + l_hdfc + l_tmb + l_sbt + l_others + it_deduction
                         for _other_deductions_id in payroll_emp_struc_obj.browse(cr,uid,emp_struc_ids[0]).payroll_other_deductions_line:
 #                             if _other_deductions_id.deduction_parameters_id.code == 'PF.D':
 #                                 vals_other_deductions.append((0,0, {
@@ -2751,7 +2770,7 @@ class arul_hr_payroll_executions(osv.osv):
                                       'float': net_sala,
                                 }))
                         deduction_ids = deduction_obj.search(cr, uid, [('code','in',['TOTAL_DEDUCTION','PF.D','ESI.D','LWF','F.D','LOP',
-                                    'INS_LIC_PREM','INS_OTHERS','LOAN_VVTI','LOAN_LIC_HFL','LOAN_HDFC','LOAN_TMB', 'LOAN_SBT','LOAN_OTHERS'                                                   
+                                    'INS_LIC_PREM','INS_OTHERS','LOAN_VVTI','LOAN_LIC_HFL','LOAN_HDFC','LOAN_TMB', 'LOAN_SBT','LOAN_OTHERS','IT'                                                   
                                                                                      ])])
                         for deduction in deduction_obj.browse(cr, uid, deduction_ids):
                             if deduction.code == 'TOTAL_DEDUCTION':
@@ -2818,6 +2837,11 @@ class arul_hr_payroll_executions(osv.osv):
                                 vals_other_deductions.append((0,0, {
                                           'deduction_parameters_id':deduction.id,
                                           'float': l_others,
+                                    }))
+                            if deduction.code == 'IT':
+                                vals_other_deductions.append((0,0, {
+                                          'deduction_parameters_id':deduction.id,
+                                          'float': it_deduction,
                                     }))
                             #if deduction.code == 'LOP': # TPT COMMENTS
                             #    vals_other_deductions.append((0,0, {
