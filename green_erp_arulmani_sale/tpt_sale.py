@@ -78,6 +78,12 @@ class sale_order(osv.osv):
     
     _order = "blanket_id"
     
+#     def init(self, cr):
+#         sql = '''
+#             update sale_order set currency_id=tpt_currency_id
+#         '''
+#         cr.execute(sql)
+    
     def _amount_all(self, cr, uid, ids, field_name, arg, context=None):
         res = {}
         for line in self.browse(cr,uid,ids,context=context):
@@ -163,6 +169,7 @@ class sale_order(osv.osv):
         'flag_p':fields.boolean('Flag',readonly =True,states={'progress':[('readonly',True)],'done':[('readonly',True)]} ),
         'blanket_line_id':fields.many2one('tpt.blank.order.line','Blanket Order Line',states={'progress':[('readonly',True)],'done':[('readonly',True)]}),
         'currency_id': fields.many2one('res.currency', 'Currency', states={'cancel': [('readonly', True)], 'done':[('readonly', True)], 'approve':[('readonly', True)]}),#TPT
+        'tpt_currency_id': fields.many2one('res.currency', 'Currency'),#TPT
               
     }
     _defaults = {
@@ -174,6 +181,9 @@ class sale_order(osv.osv):
         'flag_t':False,
         'flag_p':False,
     }
+    
+    def onchange_currency(self, cr, uid, ids, currency_id=False, context=None):
+        return {'value':{'tpt_currency_id':currency_id}}
     
     def onchange_po_date(self, cr, uid, ids, po_date=False, context=None):
         vals = {}
@@ -502,6 +512,7 @@ class sale_order(osv.osv):
                     'po_number':blanket.po_number or False,
                     'payment_term_id':blanket.payment_term_id and blanket.payment_term_id.id or False,
                     'currency_id':blanket.currency_id and blanket.currency_id.id or False,
+                    'tpt_currency_id':blanket.currency_id and blanket.currency_id.id or False,
                     'quotaion_no':blanket.quotaion_no or False,
                     'incoterms_id':blanket.incoterm_id and blanket.incoterm_id.id or False,
                     'distribution_channel':blanket.channel and blanket.channel.id or False,

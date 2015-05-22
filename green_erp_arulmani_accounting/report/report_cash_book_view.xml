@@ -4,13 +4,13 @@
     	<record id="report_cash_book" model="ir.actions.report.xml">
 	        <field name="name">report_cash_book</field>
 	        <field name="type">ir.actions.report.xml</field>
-	        <field name="model">cash.book.report</field>
+	        <field name="model">tpt.cash.book</field>
 	        <field name="report_name">report_cash_book</field>
 	        <field name="report_type">aeroo</field>
-	        <field name="in_format">oo-odt</field>
-	        <field name="out_format" model="report.mimetypes" search="[('code','=','oo-pdf'),('compatible_types','=','oo-odt')]"/>
+	        <field name="in_format">oo-ods</field>
+	        <field name="out_format" model="report.mimetypes" search="[('code','=','oo-pdf'),('compatible_types','=','oo-ods')]"/>
 	        <field name="parser_loc">green_erp_arulmani_accounting/report/report_cash_book.py</field>
-	        <field name="report_rml">green_erp_arulmani_accounting/report/report_cash_book.odt</field>
+	        <field name="report_rml">green_erp_arulmani_accounting/report/report_cash_book.ods</field>
 	        <field name="parser_state">loc</field>
 	        <field name="tml_source">file</field>
 	        <field name="attachment_use" eval="0"/>
@@ -20,9 +20,80 @@
 			auto="True" 
 			menu="False"
 			id="report_cash_book" 
-			model="cash.book.report" 
+			model="tpt.cash.book" 
 			name="report_cash_book"
 	        string="Cash Book Report"
-	        rml="green_erp_arulmani_accounting/report/report_cash_book.odt"/>	
+	        rml="green_erp_arulmani_accounting/report/report_cash_book.ods"/>
+	    
+	    <record id="report_cash_book_xls" model="ir.actions.report.xml">
+	        <field name="name">report_cash_book_xls</field>
+	        <field name="type">ir.actions.report.xml</field>
+	        <field name="model">tpt.cash.book</field>
+	        <field name="report_name">report_cash_book_xls</field>
+	        <field name="report_type">aeroo</field>
+	        <field name="in_format">oo-ods</field>
+	        <field name="out_format" model="report.mimetypes" search="[('code','=','oo-xls'),('compatible_types','=','oo-ods')]"/>
+	        <field name="parser_loc">green_erp_arulmani_accounting/report/report_cash_book.py</field>
+	        <field name="report_rml">green_erp_arulmani_accounting/report/report_cash_book.ods</field>
+	        <field name="parser_state">loc</field>
+	        <field name="tml_source">file</field>
+	        <field name="attachment_use" eval="0"/>
+    	</record>		    
+		
+		<report 
+			auto="True" 
+			menu="False"
+			id="report_cash_book_xls" 
+			model="tpt.cash.book" 
+			name="report_cash_book_xls"
+	        string="Cash Book Report"
+	        rml="green_erp_arulmani_accounting/report/report_cash_book.ods"/>
+	    
+	    <record id="view_tpt_cash_book_form" model="ir.ui.view">
+	        <field name="name">tpt.cash.book.form</field>
+	        <field name="model">tpt.cash.book</field>
+	        <field name="arch" type="xml">
+	            <form version='7.0' string="Cash Book" create="false" edit="false" delete="false">
+	            	<header>
+	            		<button name="print_xls" string="Print (.xls)" type="object" class="oe_highlight" />
+	            		<button name="print_pdf" string="Print (.pdf)" type="object" class="oe_highlight" />
+	            	</header>
+	            	<sheet>
+	            		<div class="oe_text_center">
+            				<b>V.V. Titanium Pigments Pvt Ltd,</b>
+            			</div>
+            			<div class="oe_text_center">
+            				A-81, SIPCOT Industrial Complex
+            			</div>
+            			<div class="oe_text_center">
+            				THOOTHUKKUDI
+            			</div>
+            			<div class="oe_text_center oe_bold">
+            				<field name="name" nolabel="1" class="oe_text_center oe_inline"/>
+            				<field name="date_from" nolabel="1" class = "oe_inline"/> - <field name="date_to" nolabel="1" class = "oe_inline"/>
+            			</div>
+            			<div class="oe_text_center oe_bold">
+            				<field name="cash_acc_no" nolabel="1" class="oe_text_center"/>
+            			</div>
+	                	<group>
+		                	<field name="cb_line" nolabel='1'>
+		                		<tree create="false" edit="false" delete="false">
+		                			<field name="voucher_id"/>
+		                			<field name="date"/>
+		                			<field name="gl_code"/>
+		                			<field name="desc"/>
+		                			<field name="ref"/>
+		                			<field name="opening_balance"/>
+		                			<field name="debit"/>
+		                			<field name="crebit"/>
+		                			<field name="balance"/>
+		                		</tree>
+		                	</field>
+	                	</group>
+	               	</sheet>
+	           </form>
+	        </field>
+	    </record>
+	    
     </data>
 </openerp>

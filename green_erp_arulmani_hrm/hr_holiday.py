@@ -143,19 +143,29 @@ class arul_hr_capture_work_shift(osv.osv):
               'code':fields.char('Code',size=1024, required = True),
               'name':fields.char('Name',size=1024, required = True),
               'description':fields.text('Description'),
-              'start_time': fields.float('Shift Start Time'),
-              'end_time': fields.float('Shift End Time'),
-              'time_total': fields.function(_time_total, string='Shift Total Hours', multi='sums', help="The total amount."),
+              
+              'time_total': fields.function(_time_total, string='Actual Shift Total Hrs', multi='sums', help="The total amount."),
               'allowance': fields.float('Shift Allowance'),
               'create_date': fields.datetime('Created Date',readonly = True),
               'create_uid': fields.many2one('res.users','Created By',ondelete='restrict',readonly = True),
-	      #Start:TPT - BalamuruganPurushothaman on 18/02/2015 - To give grace period time for a Shift
-	      'min_start_time': fields.float('Minimum Shift Start Time'),
-	      'max_start_time': fields.float('Maximum Shift Start Time'),
-	      'min_end_time': fields.float('Minimum Shift End Time'),
-	      'max_end_time': fields.float('Maximum Shift End Time'),	
-	      'half_day_shift_hr': fields.float('Half Day Shift Hour'),
-	      #End:TPT	
+    	      #Start:TPT - BalamuruganPurushothaman on 18/02/2015 - To give grace period time for a Shift
+              'start_time': fields.float('Actual Shift Start Time'),
+              'end_time': fields.float('Actual Shift End Time'),
+    	      'min_start_time': fields.float('Min. Shift Start Time'),
+    	      'max_start_time': fields.float('Max. Shift Start Time'),
+    	      'min_end_time': fields.float('Min. Shift End Time'),
+    	      'max_end_time': fields.float('Max. Shift End Time'),	
+    	      
+              ##Half
+              'min_half_start_time': fields.float('Min. Half Shift Start Time'),
+              'half_start_time': fields.float('Actual Half Shift Start Time'),
+              'max_half_start_time': fields.float('Max. Half Shift Start Time'),              
+              'min_half_end_time': fields.float('Min. Half Shift End Time'),
+              'half_end_time': fields.float('Actual Half Shift End Time'),
+              'max_half_end_time': fields.float('Max. Half Shift End Time'), 
+              'actual_half_time_total': fields.float('Actual Half Shift Total Hrs'),
+              'add_half_time_total': fields.float('Additional Half Shift Total Hrs'),   
+    	      #End:TPT	
               }
     
 #     def name_get(self, cr, uid, ids, context=None):
@@ -540,7 +550,8 @@ class arul_hr_audit_shift_time(osv.osv):
                 cr.execute(sql)                
                 same_work_date=cr.fetchone()
 		
-		if same_work_date and line.total_hours >= 4:
+        
+		if same_work_date and line.total_hours >= 3.7:
 		    flag = 1
                     shift_hours = 0
 		    
@@ -1346,8 +1357,29 @@ class arul_hr_audit_shift_time(osv.osv):
     		
                 sql=''' SELECT work_date FROM arul_hr_punch_in_out_time WHERE TO_CHAR(work_date,'YYYY-MM-DD') = ('%s') and employee_id=%s '''%(line.work_date,line.employee_id.id)
                 cr.execute(sql)                
-                    #same_work_date=cr.fetchone()
-    
+                same_work_date=cr.fetchone()
+                if same_work_date and line.total_hours >= 3.7:
+                    flag = 1
+                    shift_hours = 0
+                if same_work_date and line.total_hours < 3.7:
+                    permission_ids = self.pool.get('arul.hr.permission.onduty').search(cr, uid, [('non_availability_type_id','=','permission'),('date','=',line.work_date),('employee_id','=',line.employee_id.id)])
+                    on_duty_ids = self.pool.get('arul.hr.permission.onduty').search(cr, uid, [('non_availability_type_id','=','on_duty'),('from_date','<=',line.work_date),('to_date','>=',line.work_date),('employee_id','=',line.employee_id.id)])
+                    leave_detail_ids = self.pool.get('arul.hr.employee.leave.details').search(cr, uid, [('date_from','<=',line.work_date),('date_to','>=',line.work_date),('employee_id','=',line.employee_id.id),('state','=','done')])                    
+                    if not permission_ids and not on_duty_ids and not leave_detail_ids:
+                        res = self.pool.get('ir.model.data').get_object_reference(cr, uid, 
+                                            'green_erp_arulmani_hrm', 'alert_permission_form_view')
+                        return {
+                                    'name': 'Alert Permission',
+                                    'view_type': 'form',
+                                    'view_mode': 'form',
+                                    'view_id': res[1],
+                                    'res_model': 'alert.form',
+                                    'domain': [],
+                                    'context': {'default_message':'No Permission / On Duty Entry is made for Pending Hours. Do you want to reduce it from Leave Credits (CL/SL/C.Off/PL/LOP) ?','audit_id':line.id},
+                                    'type': 'ir.actions.act_window',
+                                    'target': 'new',
+                                }
+                    
     
                 if line.total_hours<shift_hours and line.planned_work_shift_id.code!='W':
                     permission_ids = self.pool.get('arul.hr.permission.onduty').search(cr, uid, [('non_availability_type_id','=','permission'),('date','=',line.work_date),('employee_id','=',line.employee_id.id)])
@@ -3448,7 +3480,7 @@ class arul_hr_punch_in_out_time(osv.osv):
         'shift_minus': fields.float('S-', states={'done': [('readonly', True)], 'cancel': [('readonly', True)]}),
         'reason_for_adj': fields.selection([('sys_err', 'System Error'),
                                             ('clerk_err', 'Clerical Error')],'Reason for Change'),
-         'reason_details': fields.text('Reason In Details'),             
+        'reason_details': fields.text('Reason In Details'),             
     }
     
     _defaults = {
