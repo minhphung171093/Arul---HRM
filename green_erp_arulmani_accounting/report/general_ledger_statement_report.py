@@ -43,6 +43,7 @@ class Parser(report_sxw.rml_parse):
             'convert_date_cash': self.convert_date_cash,
             'get_invoice':self.get_invoice,
             'get_doc_type':self.get_doc_type,
+            'get_total':self.get_total,
         })
         
     def get_voucher(self,move_id):
@@ -128,7 +129,18 @@ class Parser(report_sxw.rml_parse):
             return "Service Invoice"
         if doc_type == 'product':
             return "Production"
+        if doc_type == '':
+            return "Journal Voucher"
         
+    
+    def get_total(self, cash,type):
+        sum = 0.0
+        for line in cash:
+            if type == 'credit':
+                sum += line.credit
+            if type == 'debit':
+                sum += line.debit
+        return sum
         
     def get_invoice(self):
         res = {}
@@ -149,7 +161,7 @@ class Parser(report_sxw.rml_parse):
                 select id from account_move_line 
                 where move_id in (
                                     select id from account_move 
-                                    where date between '%s' and '%s' and name ~'%s' and state='posted' ) and account_id = %s   
+                                    where date between '%s' and '%s' and name ~'%s' ) and account_id = %s   
             '''%(date_from, date_to,doc_no,acc.id)
             self.cr.execute(sql)
             cus_ids = [r[0] for r in self.cr.fetchall()]
@@ -158,7 +170,7 @@ class Parser(report_sxw.rml_parse):
                 select id from account_move_line 
                 where move_id in (
                                     select id from account_move 
-                                    where date between '%s' and '%s' and state='posted' ) and account_id = %s and ref ~'%s'
+                                    where date between '%s' and '%s'  ) and account_id = %s and ref ~'%s'
             '''%(date_from, date_to,acc.id,narration)
             self.cr.execute(sql)
             cus_ids = [r[0] for r in self.cr.fetchall()]
@@ -167,7 +179,7 @@ class Parser(report_sxw.rml_parse):
                 select id from account_move_line 
                 where move_id in (
                                     select id from account_move 
-                                    where date between '%s' and '%s' and name ~'%s' and state='posted' ) and account_id = %s and ref ~'%s'
+                                    where date between '%s' and '%s' and name ~'%s'  ) and account_id = %s and ref ~'%s'
             '''%(date_from, date_to,doc_no,acc.id,narration)
             self.cr.execute(sql)
             cus_ids = [r[0] for r in self.cr.fetchall()]
@@ -176,7 +188,7 @@ class Parser(report_sxw.rml_parse):
                 select id from account_move_line 
                 where move_id in (
                                     select id from account_move 
-                                    where date between '%s' and '%s' and doc_type in('%s') and state='posted' ) and account_id = %s   
+                                    where date between '%s' and '%s' and doc_type in('%s') ) and account_id = %s   
             '''%(date_from, date_to,doc_type,acc.id)
             self.cr.execute(sql)
             cus_ids = [r[0] for r in self.cr.fetchall()]
@@ -185,7 +197,7 @@ class Parser(report_sxw.rml_parse):
                 select id from account_move_line 
                 where move_id in (
                                     select id from account_move 
-                                    where date between '%s' and '%s' and doc_type in('%s') and state='posted' ) and account_id = %s and ref ~'%s'
+                                    where date between '%s' and '%s' and doc_type in('%s') ) and account_id = %s and ref ~'%s'
             '''%(date_from, date_to,doc_type,acc.id,doc_no)
             self.cr.execute(sql)
             cus_ids = [r[0] for r in self.cr.fetchall()]
@@ -194,7 +206,7 @@ class Parser(report_sxw.rml_parse):
                 select id from account_move_line 
                 where move_id in (
                                     select id from account_move 
-                                    where date between '%s' and '%s' and doc_type in('%s') and name ~'%s' and state='posted' ) and account_id = %s 
+                                    where date between '%s' and '%s' and doc_type in('%s') and name ~'%s' ) and account_id = %s 
             '''%(date_from, date_to,doc_type,doc_no,acc.id)
             self.cr.execute(sql)
             cus_ids = [r[0] for r in self.cr.fetchall()]
@@ -203,7 +215,7 @@ class Parser(report_sxw.rml_parse):
                 select id from account_move_line 
                 where move_id in (
                                     select id from account_move 
-                                    where date between '%s' and '%s' and doc_type in('%s') and name ~'%s' and state='posted' ) and account_id = %s and ref ~'%s'
+                                    where date between '%s' and '%s' and doc_type in('%s') and name ~'%s' ) and account_id = %s and ref ~'%s'
             '''%(date_from, date_to,doc_type,doc_no,acc.id)
             self.cr.execute(sql)
             cus_ids = [r[0] for r in self.cr.fetchall()]
@@ -212,7 +224,7 @@ class Parser(report_sxw.rml_parse):
                 select id from account_move_line 
                 where move_id in (
                                     select id from account_move 
-                                    where date between '%s' and '%s' and state='posted' ) and account_id = %s
+                                    where date between '%s' and '%s') and account_id = %s
             '''%(date_from, date_to,acc.id)
             self.cr.execute(sql)
             cus_ids = [r[0] for r in self.cr.fetchall()]
