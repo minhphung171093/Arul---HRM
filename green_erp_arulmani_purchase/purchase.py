@@ -1985,7 +1985,7 @@ class purchase_order(osv.osv):
     
     def init(self, cr):
         sql = '''
-            update purchase_order set tpt_currency_id=currency_id
+            update purchase_order set currency_id=tpt_currency_id
         '''
         cr.execute(sql) 
     
