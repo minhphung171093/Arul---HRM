@@ -1,16 +1,16 @@
 <?xml version="1.0" encoding="utf-8"?>
 <openerp>
     <data>
-    	<record id="customer_ledger_statement_report" model="ir.actions.report.xml">
-	        <field name="name">customer_ledger_statement_report</field>
+    	<record id="supplier_ledger_statement_report" model="ir.actions.report.xml">
+	        <field name="name">supplier_ledger_statement_report</field>
 	        <field name="type">ir.actions.report.xml</field>
-	        <field name="model">tpt.customer.ledger</field>
-	        <field name="report_name">customer_ledger_statement_report</field>
+	        <field name="model">tpt.supplier.ledger</field>
+	        <field name="report_name">supplier_ledger_statement_report</field>
 	        <field name="report_type">aeroo</field>
 	        <field name="in_format">oo-ods</field>
 	        <field name="out_format" model="report.mimetypes" search="[('code','=','oo-xls')]"/>
-	        <field name="parser_loc">green_erp_arulmani_accounting/report/customer_ledger_statement_report.py</field>
-	        <field name="report_rml">green_erp_arulmani_accounting/report/customer_ledger_statement_report.ods</field>
+	        <field name="parser_loc">green_erp_arulmani_accounting/report/supplier_ledger_statement_report.py</field>
+	        <field name="report_rml">green_erp_arulmani_accounting/report/supplier_ledger_statement_report.ods</field>
 	        <field name="parser_state">loc</field>
 	        <field name="tml_source">file</field>
 	        <field name="attachment_use" eval="0"/>
@@ -19,22 +19,22 @@
 		<report 
 			auto="True" 
 			menu="False"
-			id="customer_ledger_statement_report" 
-			model="tpt.customer.ledger" 
-			name="customer_ledger_statement_report"
-	        string="Customer Ledger Statement Report"
-	        rml="green_erp_arulmani_accounting/report/customer_ledger_statement_report.ods"/>	
+			id="supplier_ledger_statement_report" 
+			model="tpt.supplier.ledger" 
+			name="supplier_ledger_statement_report"
+	        string="Supplier Ledger Statement Report"
+	        rml="green_erp_arulmani_accounting/report/supplier_ledger_statement_report.ods"/>	
 	        
-	    <record id="customer_ledger_statement_report_pdf" model="ir.actions.report.xml">
-	        <field name="name">customer_ledger_statement_report_pdf</field>
+	    <record id="supplier_ledger_statement_report_pdf" model="ir.actions.report.xml">
+	        <field name="name">supplier_ledger_statement_report_pdf</field>
 	        <field name="type">ir.actions.report.xml</field>
-	        <field name="model">tpt.customer.ledger</field>
-	        <field name="report_name">customer_ledger_statement_report</field>
+	        <field name="model">tpt.supplier.ledger</field>
+	        <field name="report_name">supplier_ledger_statement_report</field>
 	        <field name="report_type">aeroo</field>
 	        <field name="in_format">oo-ods</field>
 	        <field name="out_format" model="report.mimetypes" search="[('code','=','oo-pdf')]"/>
-	        <field name="parser_loc">green_erp_arulmani_accounting/report/customer_ledger_statement_report.py</field>
-	        <field name="report_rml">green_erp_arulmani_accounting/report/customer_ledger_statement_report.ods</field>
+	        <field name="parser_loc">green_erp_arulmani_accounting/report/supplier_ledger_statement_report.py</field>
+	        <field name="report_rml">green_erp_arulmani_accounting/report/supplier_ledger_statement_report.ods</field>
 	        <field name="parser_state">loc</field>
 	        <field name="tml_source">file</field>
 	        <field name="attachment_use" eval="0"/>
@@ -43,17 +43,17 @@
 		<report 
 			auto="True" 
 			menu="False"
-			id="customer_ledger_statement_report_pdf" 
-			model="tpt.customer.ledger" 
-			name="customer_ledger_statement_report_pdf"
-	        string="Customer Ledger Statement Report"
-	        rml="green_erp_arulmani_accounting/report/customer_ledger_statement_report.ods"/>	
+			id="supplier_ledger_statement_report_pdf" 
+			model="tpt.supplier.ledger" 
+			name="supplier_ledger_statement_report_pdf"
+	        string="Supplier Ledger Statement Report"
+	        rml="green_erp_arulmani_accounting/report/supplier_ledger_statement_report.ods"/>	
 	        
-	    <record id="view_tpt_customer_ledger_form" model="ir.ui.view">
-	        <field name="name">view.tpt.customer.ledger.form</field>
-	        <field name="model">tpt.customer.ledger</field>
+	    <record id="view_tpt_supplier_ledger_form" model="ir.ui.view">
+	        <field name="name">view.tpt.supplier.ledger.form</field>
+	        <field name="model">tpt.supplier.ledger</field>
 	        <field name="arch" type="xml">
-	            <form version='7.0' string="Customer Ledger Statement Report" create="false" edit="false" delete="false">
+	            <form version='7.0' string="Supplier Ledger Statement Report" create="false" edit="false" delete="false">
 	            	<header>
 	            		<button name="print_xls" string="Print (.xls)" type="object" class="oe_highlight" />
 	            		<button name="print_pdf" string="Print (.pdf)" type="object" class="oe_highlight" />
@@ -62,17 +62,17 @@
             			<div class="oe_bold oe_text_left">
             				<field name="date_from_title" nolabel = '1' class="oe_text_left oe_inline"/> 
             				<field name="date_from" class="oe_text_left oe_inline"/> 
-            				<field name="cus_code" class = "oe_right oe_inline"/>
-            				<field name="cus_code_title" nolabel = '1' class="oe_right oe_inline"/> 
+            				<field name="sup_code" class = "oe_right oe_inline"/>
+            				<field name="sup_code_title" nolabel = '1' class="oe_right oe_inline"/> 
             			</div>
             			<div class="oe_bold oe_text_left">
             				<field name="date_to_title" nolabel = '1' class=" oe_text_left oe_inline"/> 
             				<field name="date_to" class = "oe_text_left oe_inline"/>
-            				<field name="cus_name" class = "oe_right oe_inline"/>
-            				<field name="cus_name_title" nolabel = '1' class="oe_right oe_inline"/> 
+            				<field name="sup_name" class = "oe_right oe_inline"/>
+            				<field name="sup_name_title" nolabel = '1' class="oe_right oe_inline"/> 
             			</div>
 	                	<group>
-		                	<field name="cus_ledger_line" nolabel='1'>
+		                	<field name="sup_ledger_line" nolabel='1'>
 		                		<tree create="false" edit="false" delete="false">
 		                			<field name="date"/>
 		                			<field name="document_no"/>
