@@ -146,8 +146,6 @@
             	<xpath expr="//field[@name='partner_id']" position="attributes">
 					<attribute name="readonly">1</attribute>
 				</xpath>
-				<xpath expr="//field[@name='currency_id']"  position="replace">
-            	</xpath>
             	<xpath expr="//field[@name='partner_id']"  position="before">
             		<field name="grn_no" options="{'create': false, 'create_edit': false}"/>
             		<field name="currency_id" options="{'create': false, 'create_edit': false}"/>

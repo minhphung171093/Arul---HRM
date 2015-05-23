@@ -620,7 +620,25 @@ class account_invoice(osv.osv):
     _columns = {
         'bill_number': fields.char('Bill Number', size=1024),
         'bill_date': fields.date('Bill Date'),
+        'sup_inv_id': fields.many2one('account.invoice', 'Supplier Invoice', required = True),
     }
+    def search(self, cr, uid, args, offset=0, limit=None, order=None, context=None, count=False):
+        if context is None:
+            context = {}
+        if context.get('search_sup_inv_id'):
+            sql = '''
+                select id from account_invoice where type = 'in_invoice' and grn_no is not null and state != 'draft'
+            '''
+            cr.execute(sql)
+            invoice_ids = [row[0] for row in cr.fetchall()]
+            args += [('id','in',invoice_ids)]
+        return super(account_invoice, self).search(cr, uid, args, offset=offset, limit=limit, order=order, context=context, count=count)
+    
+    def name_search(self, cr, user, name, args=None, operator='ilike', context=None, limit=100):
+        if context is None:
+            context = {}
+        ids = self.search(cr, user, args, context=context, limit=limit)
+        return self.name_get(cr, user, ids, context=context)
       
     def check_tax_lines(self, cr, uid, inv, compute_taxes, ait_obj):
         company_currency = self.pool['res.company'].browse(cr, uid, inv.company_id.id).currency_id
@@ -643,13 +661,47 @@ class account_invoice(osv.osv):
 #                 if not key in tax_key:
 #                     raise osv.except_osv(_('Warning!'), _('Taxes are missing!\nClick on compute button.'))
 
+    def onchange_sup_inv_id(self, cr, uid, ids,sup_inv_id=False, context=None):
+        vals = {}
+        if sup_inv_id:
+            for invoice_id in self.browse(cr, uid, ids):
+                sql = '''
+                    delete from account_invoice_line where invoice_id = %s
+                '''%(invoice_id.id)
+                cr.execute(sql)
+            freight_line = []
+            invoice = self.pool.get('account.invoice').browse(cr, uid, sup_inv_id)
+            for line in invoice.invoice_line:
+                invoice_line_tax_ids = [t.id for t in line.invoice_line_tax_id]
+                rs = {
+                      'product_id': line.product_id and line.product_id.id or False,
+                      'name': line.name,
+                      'quantity': line.quantity,
+                      'uos_id': line.uos_id and line.uos_id.id or False,
+                      'price_unit': line.price_unit or False,
+                      'disc': line.disc or False,
+                      'p_f': line.p_f or False,
+                      'p_f_type':line.p_f_type or False,
+    #                   'taxes_id': [(6,0,[line.tax_id and line.tax_id.id])],
+                      'invoice_line_tax_id': [(6,0,invoice_line_tax_ids)],
+                      'line_net': line.line_net or False,
+                      'account_id':line.product_id and line.product_id.purchase_acc_id and line.product_id.purchase_acc_id.id or False,
+                  }
+                freight_line.append((0,0,rs))
+            vals = {
+                'amount_untaxed':invoice.amount_untaxed or False,
+                'p_f_charge':invoice.p_f_charge or False,
+                'amount_tax': invoice.amount_tax or False,
+                'invoice_line': freight_line,
+                }
+        return {'value': vals}
 
     def onchange_purchase_id(self, cr, uid, ids,purchase_id=False, context=None):
         vals = {}
         if purchase_id:
             for line in self.browse(cr, uid, ids):
                 sql = '''
-                    delete from invoice_line where invoice_id = %s
+                    delete from account_invoice_line where invoice_id = %s
                 '''%(line.id)
                 cr.execute(sql)
         service_line = []
@@ -2850,7 +2902,69 @@ class account_voucher(osv.osv):
             res = self.onchange_partner_id(cr, uid, ids, partner_id, journal_id, amount, currency_id, ttype, date, context)
             for key in res.keys():
                 vals[key].update(res[key])
+                
+        if context.get('tpt_remove_dr_cr',False):
+            vals['value']['line_dr_ids']=False
+            vals['value']['line_cr_ids']=False
         return vals
+    
+    def onchange_amount(self, cr, uid, ids, amount, rate, partner_id, journal_id, currency_id, ttype, date, payment_rate_currency_id, company_id, context=None):
+        if context is None:
+            context = {}
+        ctx = context.copy()
+        ctx.update({'date': date})
+        #read the voucher rate with the right date in the context
+        currency_id = currency_id or self.pool.get('res.company').browse(cr, uid, company_id, context=ctx).currency_id.id
+        voucher_rate = self.pool.get('res.currency').read(cr, uid, currency_id, ['rate'], context=ctx)['rate']
+        ctx.update({
+            'voucher_special_currency': payment_rate_currency_id,
+            'voucher_special_currency_rate': rate * voucher_rate})
+        res = self.recompute_voucher_lines(cr, uid, ids, partner_id, journal_id, amount, currency_id, ttype, date, context=ctx)
+        vals = self.onchange_rate(cr, uid, ids, rate, amount, currency_id, payment_rate_currency_id, company_id, context=ctx)
+        for key in vals.keys():
+            res[key].update(vals[key])
+        if context.get('tpt_remove_dr_cr',False):
+            res['value']['line_dr_ids']=False
+            res['value']['line_cr_ids']=False
+        return res
+    
+    def onchange_partner_id(self, cr, uid, ids, partner_id, journal_id, amount, currency_id, ttype, date, context=None):
+        if not journal_id:
+            return {}
+        if context is None:
+            context = {}
+        #TODO: comment me and use me directly in the sales/purchases views
+        res = self.basic_onchange_partner(cr, uid, ids, partner_id, journal_id, ttype, context=context)
+        if ttype in ['sale', 'purchase']:
+            return res
+        ctx = context.copy()
+        # not passing the payment_rate currency and the payment_rate in the context but it's ok because they are reset in recompute_payment_rate
+        ctx.update({'date': date})
+        vals = self.recompute_voucher_lines(cr, uid, ids, partner_id, journal_id, amount, currency_id, ttype, date, context=ctx)
+        vals2 = self.recompute_payment_rate(cr, uid, ids, vals, currency_id, date, ttype, journal_id, amount, context=context)
+        for key in vals.keys():
+            res[key].update(vals[key])
+        for key in vals2.keys():
+            res[key].update(vals2[key])
+        #TODO: can probably be removed now
+        #TODO: onchange_partner_id() should not returns [pre_line, line_dr_ids, payment_rate...] for type sale, and not 
+        # [pre_line, line_cr_ids, payment_rate...] for type purchase.
+        # We should definitively split account.voucher object in two and make distinct on_change functions. In the 
+        # meanwhile, bellow lines must be there because the fields aren't present in the view, what crashes if the 
+        # onchange returns a value for them
+        if ttype == 'sale':
+            del(res['value']['line_dr_ids'])
+            del(res['value']['pre_line'])
+            del(res['value']['payment_rate'])
+        elif ttype == 'purchase':
+            del(res['value']['line_cr_ids'])
+            del(res['value']['pre_line'])
+            del(res['value']['payment_rate'])
+        if context.get('tpt_remove_dr_cr',False):
+            res['value']['line_dr_ids']=False
+            res['value']['line_cr_ids']=False
+        return res
+    
 #          
 account_voucher()
 
