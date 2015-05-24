@@ -168,9 +168,9 @@ class stock_on_hand_report(osv.osv_memory):
                 categ_ids += [r[0] for r in cr.fetchall()]
                 return self.pool.get('product.product').browse(cr,uid,categ_ids)
             
-        def get_ton_sl(line):
-            loc = o.location_id
-            location = self.pool.get('stock.location').browse(cr,uid,loc[0])
+        def get_ton_sl(o,line):
+            loc = o.location_id.id
+            location = self.pool.get('stock.location').browse(cr,uid,loc)
             sql = '''
                             select case when sum(foo.product_qty)>0 then sum(foo.product_qty) else 0 end ton_sl from 
                                 (select st.product_qty
@@ -186,9 +186,9 @@ class stock_on_hand_report(osv.osv_memory):
             ton_sl = cr.dictfetchone()
             return ton_sl and ton_sl['ton_sl'] or 0
         
-        def get_ins_qty(line):
-            loc = o.location_id
-            location = self.pool.get('stock.location').browse(cr,uid,loc[0])
+        def get_ins_qty(o,line):
+#             loc = o.location_id
+#             location = self.pool.get('stock.location').browse(cr,uid,loc[0])
             parent_ids = self.pool.get('stock.location').search(cr, uid, [('name','=','Quality Inspection'),('usage','=','view')])
             locat_ids = self.pool.get('stock.location').search(cr, uid, [('name','in',['Inspection']),('location_id','=',parent_ids[0])])
             sql = '''
@@ -205,9 +205,9 @@ class stock_on_hand_report(osv.osv_memory):
             cr.execute(sql)
             ton = cr.dictfetchone()
             return ton and ton['ton'] or 0
-        def get_blo_qty(line):
-            loc = o.location_id
-            location = self.pool.get('stock.location').browse(cr,uid,loc[0])
+        def get_blo_qty(o,line):
+#             loc = o.location_id
+#             location = self.pool.get('stock.location').browse(cr,uid,loc[0])
             parent_ids = self.pool.get('stock.location').search(cr, uid, [('name','in',['Block List','Block','Blocked List','Blocked']),('usage','=','view')])
             locat_ids = self.pool.get('stock.location').search(cr, uid, [('name','in',['Block List','Block','Blocked List','Blocked']),('location_id','=',parent_ids[0])])
             sql = '''
@@ -235,9 +235,9 @@ class stock_on_hand_report(osv.osv_memory):
                 'description': line.name or False,
                 'uom': line.uom_id and line.uom_id.name or False,
                 'bin_loc': line.bin_location or False,
-                'onhand_qty': get_ton_sl(line),
-                'ins_qty': get_ins_qty(line),
-                'bl_qty': get_blo_qty(line),
+                'onhand_qty': get_ton_sl(stock,line),
+                'ins_qty': get_ins_qty(stock,line),
+                'bl_qty': get_blo_qty(stock,line),
                 
             }))
         vals = {
