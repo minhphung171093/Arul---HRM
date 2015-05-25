@@ -19,14 +19,14 @@ class tpt_stock_on_hand(osv.osv_memory):
         'as_date': fields.date('As on Date'),
     }
     
-#     def print_xls(self, cr, uid, ids, context=None):
-#         if context is None:
-#             context = {}
-#         datas = {'ids': context.get('active_ids', [])}
-#         datas['model'] = 'tpt.bank.book'
-#         datas['form'] = self.read(cr, uid, ids)[0]
-#         datas['form'].update({'active_id':context.get('active_ids',False)})
-#         return {'type': 'ir.actions.report.xml', 'report_name': 'report_bank_book_xls', 'datas': datas}
+    def print_xls(self, cr, uid, ids, context=None):
+        if context is None:
+            context = {}
+        datas = {'ids': context.get('active_ids', [])}
+        datas['model'] = 'tpt.stock.on.hand'
+        datas['form'] = self.read(cr, uid, ids)[0]
+        datas['form'].update({'active_id':context.get('active_ids',False)})
+        return {'type': 'ir.actions.report.xml', 'report_name': 'report_stock_on_hand_xls', 'datas': datas}
 #     
     def print_pdf(self, cr, uid, ids, context=None):
         if context is None:

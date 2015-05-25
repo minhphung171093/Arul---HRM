@@ -18,12 +18,36 @@
 		
 		<report 
 			auto="True" 
-			menu="True"
+			menu="False"
 			id="report_stock_on_hand" 
 			model="tpt.stock.on.hand" 
 			name="report_stock_on_hand"
 	        string="Stock On Hand Report"
 	        rml="green_erp_arulmani_purchase/report/report_stock_on_hand.odt"/>	
+	        
+	    <record id="report_stock_on_hand" model="ir.actions.report.xml">
+	        <field name="name">report_stock_on_hand_xls</field>
+	        <field name="type">ir.actions.report.xml</field>
+	        <field name="model">stock.on.hand.report</field>
+	        <field name="report_name">report_stock_on_hand_xls</field>
+	        <field name="report_type">aeroo</field>
+	        <field name="in_format">oo-ods</field>
+	        <field name="out_format" model="report.mimetypes" search="[('code','=','oo-xls'),('compatible_types','=','oo-ods')]"/>
+	        <field name="parser_loc">green_erp_arulmani_purchase/report/report_stock_on_hand.py</field>
+	        <field name="report_rml">green_erp_arulmani_purchase/report/report_stock_on_hand_xls.ods</field>
+	        <field name="parser_state">loc</field>
+	        <field name="tml_source">file</field>
+	        <field name="attachment_use" eval="0"/>
+    	</record>		    
+		
+		<report 
+			auto="True" 
+			menu="False"
+			id="report_stock_on_hand_xls" 
+			model="tpt.stock.on.hand" 
+			name="report_stock_on_hand_xls"
+	        string="Stock On Hand Report"
+	        rml="green_erp_arulmani_purchase/report/report_stock_on_hand_xls.ods"/>	
 	        
 	        
 	    <record id="view_tpt_stock_on_hand_form" model="ir.ui.view">
@@ -32,7 +56,7 @@
 	        <field name="arch" type="xml">
 	            <form version='7.0' string="STOCK ON HAND REPORT" create="false" edit="false" delete="false">
 	            	<header>
-	            		<!--<button name="print_xls" string="Print (.xls)" type="object" class="oe_highlight" />-->
+	            		<button name="print_xls" string="Print (.xls)" type="object" class="oe_highlight" />
 	            		<button name="print_pdf" string="Print (.pdf)" type="object" class="oe_highlight" />
 	            	</header>
 	            	<sheet>
