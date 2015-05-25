@@ -1318,7 +1318,7 @@
 						<field name="reason"/>
 						<field name="qty" invisible = "1" />
 						<field name="remaining_qty"/>
-						<field name="qty_approve" invisible = "1" />
+						<field name="qty_approve" groups="base.user_root" />
 					</group>
 						<notebook>
 							<page string = "Products Specification">
@@ -1385,7 +1385,7 @@
 						<field name="reason"/>
 						<field name="qty" invisible = "1" />
 						<field name="remaining_qty"/>
-						<field name="qty_approve" invisible = "1" />
+						<field name="qty_approve" groups="base.user_root" />
 					</group>
 						<notebook>
 							<page string = "Products Specification">

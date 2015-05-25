@@ -649,10 +649,10 @@ class stock_picking(osv.osv):
         and invoice_state ='invoiced'
         '''%(ids[0])
         cr.execute(sql)
-        if cr.dictfetchone()['id']:
-            raise osv.except_osv(
-                _('Warning'),
-                _('You must first cancel all Invoice order(s) attached to this sales order.'))
+#         if cr.dictfetchone()['id']:
+#             raise osv.except_osv(
+#                 _('Warning'),
+#                 _('You must first cancel all Invoice order(s) attached to this sales order.'))
                 
         for picking in self.browse(cr, uid, ids, context):
             for line in picking.move_lines:
