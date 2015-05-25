@@ -159,11 +159,7 @@ class Parser(report_sxw.rml_parse):
         #raise osv.except_osv(_('Warning! %s'),_(round(kgs_qty,10)))
         #return round(kgs_qty)
         return format(kgs_qty, '.2f') 
-    def get_rate_kgs(self, rate):        
-        kgs_rate = 0.00
-        kgs_rate = rate / 1000   
-        kgs_rate = format(kgs_rate, '.5f')     
-        return kgs_rate
+    
     def get_freight(self, freight,qty):        
         mt_freight = 0.00
         kgs_freight = 0.00
@@ -183,11 +179,17 @@ class Parser(report_sxw.rml_parse):
         ins_amt = 0.00      
         ins_amt = format(ins/1000, '.5f')           
         return ins_amt
+    def get_rate_kgs(self, rate):        
+        kgs_rate = 0.00
+        kgs_rate = rate / 1000   
+        kgs_rate = format(kgs_rate, '.5f')     
+        return kgs_rate
     def get_total_kgs(self, invoice_line):
         val1 = 0.0
         for line in invoice_line:
             #mt_freight = freight / qty 
-            val1 = val1 + round((line.price_unit/1000),5) + round((line.freight/line.quantity)/1000,5) +  round((line.insurance/line.quantity)/1000,5)
+            #raise osv.except_osv(_('Warning!'),_((line.freight)/1000) )
+            val1 = val1 + round((line.price_unit/1000),5) + round(line.freight/1000,5) +  round(line.insurance/1000,5)
         val1 = format(val1, '.5f')  
         return val1
     def get_buyer(self, obj):
