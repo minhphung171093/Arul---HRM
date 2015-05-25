@@ -43,14 +43,18 @@ class Parser(report_sxw.rml_parse):
         vals = self.cr.dictfetchone()
         port_of_loading_id = vals['port_of_loading_id']
         port_of_discharge_id = vals['port_of_discharge_id']
-        if port_of_loading_id:
-            self.cr.execute(''' select name from res_country where id = %s '''%(port_of_loading_id))
-            res1 = self.cr.fetchone()
-            port_of_loading_name = res1[0]
-        if port_of_discharge_id:
-            self.cr.execute(''' select name from res_country where id = %s '''%(port_of_discharge_id))
-            res2 = self.cr.fetchone()
-            port_of_discharge_name = res2[0]
+        port_of_loading_name = port_of_loading_id
+        port_of_discharge_name = port_of_discharge_id
+        #=======================================================================
+        # if port_of_loading_id:
+        #     self.cr.execute(''' select name from res_country where id = %s '''%(port_of_loading_id))
+        #     res1 = self.cr.fetchone()
+        #     port_of_loading_name = res1[0]
+        # if port_of_discharge_id:
+        #     self.cr.execute(''' select name from res_country where id = %s '''%(port_of_discharge_id))
+        #     res2 = self.cr.fetchone()
+        #     port_of_discharge_name = res2[0]
+        #=======================================================================
         vals.update({
                      'port_of_loading_id':port_of_loading_name,
                      'port_of_discharge_id':port_of_discharge_name,
