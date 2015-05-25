@@ -1643,7 +1643,7 @@ class tpt_product_information(osv.osv):
         'product_id': fields.many2one('product.product', 'Product',required = True),     
         'product_type':fields.selection([('rutile','Rutile'),('anatase','Anatase')],'Product Type'),   
         'application_id': fields.many2one('crm.application', 'Application'),    
-        'product_uom_qty': fields.float('Quantity'),   
+        'product_uom_qty': fields.float('Quantity', digits=(16,3)),   
         'uom_po_id': fields.many2one('product.uom', 'UOM'),     
                 }
        
@@ -1687,6 +1687,7 @@ class tpt_batch_allotment(osv.osv):
         'description':fields.text('Description'),
         'state': fields.selection([('to_approve', 'To Approved'), ('refuse', 'Refused'),('confirm', 'Approve'), ('cancel', 'Cancelled')],'Status'),
         'batch_allotment_line': fields.one2many('tpt.batch.allotment.line', 'batch_allotment_id', 'Product Information'), 
+        'product_uom_qty': fields.float('Quantity', digits=(16,3)),   
                 }
     _defaults = {
               'state': 'to_approve',
@@ -2156,7 +2157,7 @@ class tpt_batch_allotment_line(osv.osv):
         'product_id': fields.many2one('product.product','Product'),     
         'product_type':fields.selection([('rutile','Rutile'),('anatase','Anatase')],'Product Type'),   
         'application_id': fields.many2one('crm.application','Application'),    
-        'product_uom_qty': fields.float('Quantity'),   
+        'product_uom_qty': fields.float('Quantity', digits=(16,3)),   
         'uom_po_id': fields.many2one('product.uom','UOM'),   
         'sys_batch':fields.many2one('stock.production.lot','System Batch Number',required=True), 
 #         'phy_batch':fields.char('Physical Batch No.', size = 1024)
