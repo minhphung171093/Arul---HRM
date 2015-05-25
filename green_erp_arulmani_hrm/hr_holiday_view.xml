@@ -606,7 +606,16 @@
 										<field name="start_time" widget="float_time"/>
 										<field name="end_time" widget="float_time"/>
 										<field name="time_total" widget="float_time"/>
+										<!--  
+										<field name="a_shift_count1" />
+										<field name="g1_shift_count1" />
+										<field name="g2_shift_count1" />
+										<field name="b_shift_count1" />
+										<field name="c_shift_count1" /> 
+										<field name="total_shift_worked1"/> 
+										-->
 										<field name="total_shift_worked"/>  
+										
 										<field name="reason"/>
 										<!-- <field name="approval"/>  -->
 										<field name="state" invisible='1'/>

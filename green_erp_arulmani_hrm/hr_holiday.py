@@ -1864,7 +1864,7 @@ class arul_hr_audit_shift_time(osv.osv):
                 ##PUNCH TIME
                 
                 #############
-                
+                  
                 
                 ###
                 if emp_attendence_ids:
@@ -1996,7 +1996,233 @@ class arul_hr_audit_shift_time(osv.osv):
                                                                         'sub_category_id':line_id.employee_id.employee_sub_category_id and line_id.employee_id.employee_sub_category_id.id or False,
                                                                         'department_id':line_id.employee_id.department_id and line_id.employee_id.department_id.id or False,
                                                                         'designation_id':line_id.employee_id.job_id and line_id.employee_id.job_id.id or False})
-                    punch_obj.write(cr,uid,[line_id.id],{'permission_onduty_id':emp_attendence_id,'approval':1}) 
+                    punch_obj.write(cr,uid,[line_id.id],{'permission_onduty_id':emp_attendence_id,'approval':1})
+                    ##TPT
+                    
+                    #Work Shift Taking from Master
+                    sql = '''
+                        SELECT min_start_time,start_time,max_start_time,min_end_time,end_time,max_end_time FROM arul_hr_capture_work_shift WHERE code='A'
+                        '''
+                    cr.execute(sql)
+                    for k in cr.fetchall():
+                        a_min_start_time=k[0]
+                        a_start_time=k[1]
+                        a_max_start_time=k[2]
+                        a_min_end_time=k[3]
+                        a_end_time=k[4]
+                        a_max_end_time=k[5]
+                        
+                    sql = '''
+                        SELECT min_start_time,start_time,max_start_time,min_end_time,end_time,max_end_time FROM arul_hr_capture_work_shift WHERE code='C'
+                        '''
+                    cr.execute(sql)
+                    for k in cr.fetchall():
+                        c_min_start_time=k[0]
+                        c_start_time=k[1]
+                        c_max_start_time=k[2]
+                        c_min_end_time=k[3]
+                        c_end_time=k[4]
+                        c_max_end_time=k[5]
+                        
+                    sql = '''
+                        SELECT min_start_time,start_time,max_start_time,min_end_time,end_time,max_end_time FROM arul_hr_capture_work_shift WHERE code='B'
+                        '''
+                    cr.execute(sql)
+                    for k in cr.fetchall():
+                        b_min_start_time=k[0]
+                        b_start_time=k[1]
+                        b_max_start_time=k[2]
+                        b_min_end_time=k[3]
+                        b_end_time=k[4]
+                        b_max_end_time=k[5]
+                    sql = '''
+                        SELECT min_start_time,start_time,max_start_time,min_end_time,end_time,max_end_time FROM arul_hr_capture_work_shift WHERE code='G1'
+                        '''
+                    cr.execute(sql)
+                    for k in cr.fetchall():
+                        g1_min_start_time=k[0]
+                        g1_start_time=k[1]
+                        g1_max_start_time=k[2]
+                        g1_min_end_time=k[3]
+                        g1_end_time=k[4]
+                        g1_max_end_time=k[5]
+                    sql = '''
+                        SELECT min_start_time,start_time,max_start_time,min_end_time,end_time,max_end_time FROM arul_hr_capture_work_shift WHERE code='G2'
+                        '''
+                    cr.execute(sql)
+                    for k in cr.fetchall():
+                        g2_min_start_time=k[0]
+                        g2_start_time=k[1]
+                        g2_max_start_time=k[2]
+                        g2_min_end_time=k[3]
+                        g2_end_time=k[4]
+                        g2_max_end_time=k[5]
+                    #raise osv.except_osv(_('Warning!'),_(a_min_start_time))    
+                    #raise osv.except_osv(_('Warning!'),_(a_start_time))    
+                    sql = '''
+                            SELECT min_start_time FROM arul_hr_capture_work_shift WHERE code='G1'
+                            '''
+                    cr.execute(sql)
+                    k = cr.fetchone()
+                    g1_min_start_time=k[0]
+                    
+                    ##
+                    sql = '''
+                    SELECT CASE WHEN SUM(total_hours)!=0 THEN SUM(total_hours) ELSE 0 END total_hours 
+                    FROM arul_hr_punch_in_out_time WHERE 
+                    TO_CHAR(work_date,'YYYY-MM-DD') = ('%s') and employee_id = %s
+                        '''%(line.work_date,line.employee_id.id)
+                    cr.execute(sql)
+                    ph =  cr.fetchone()
+                    punch_hours = ph[0]
+                    
+                    
+                    total_hrs = line_id.time_total + punch_hours
+                    raise osv.except_osv(_('Warning!%s'),_(total_hrs))  
+                    ##
+                    punch_obj_duty = punch_obj.search(cr,uid,[('work_date','=',line.work_date)])
+                    ##
+                    if line.actual_work_shift_id.code=='A':
+                        #raise osv.except_osv(_('Warning!'),_(line.actual_work_shift_id.min_start_time)) 
+                        half_shift_hrs = line.actual_work_shift_id.time_total / 2   
+                        full_shift_hrs = line.actual_work_shift_id.time_total
+                        full_half_shift_hrs =  full_shift_hrs  + half_shift_hrs   
+                        full_full_shift_hrs = line.actual_work_shift_id.time_total + line.actual_work_shift_id.time_total
+                        full_full_half_shift_hrs = full_full_shift_hrs + half_shift_hrs
+                              
+                        if half_shift_hrs <= total_hrs < full_shift_hrs:
+                            a_shift_count = 0.5  
+                            total_shift_worked = 0.5 
+                        if full_shift_hrs <= total_hrs < full_half_shift_hrs:  
+                            a_shift_count = 1  
+                            total_shift_worked = 1
+                        if full_half_shift_hrs <= total_hrs < full_full_shift_hrs:  
+                            a_shift_count = 1  
+                            b_shift_count = 0.5 
+                            total_shift_worked = 1.5
+                        if full_full_shift_hrs <= total_hrs < full_full_half_shift_hrs:  
+                            a_shift_count = 1  
+                            b_shift_count = 1 
+                            total_shift_worked = 2
+    
+                    if line.actual_work_shift_id.code=='G1':
+                        half_shift_hrs = line.actual_work_shift_id.time_total / 2   
+                        full_shift_hrs = line.actual_work_shift_id.time_total
+                        full_half_shift_hrs =  full_shift_hrs  + half_shift_hrs   
+                        full_full_shift_hrs = line.actual_work_shift_id.time_total + line.actual_work_shift_id.time_total
+                        full_full_half_shift_hrs = full_full_shift_hrs + half_shift_hrs
+                              
+                        if half_shift_hrs <= total_hrs < full_shift_hrs:
+                            g1_shift_count = 0.5  
+                            total_shift_worked = 0.5 
+                        if g1_min_end_time  <= line.out_time <  g1_max_end_time: 
+                            if full_shift_hrs <= total_hrs:
+                                g1_shift_count = 1  
+                                total_shift_worked = 1
+                        if g1_max_end_time  <= line.out_time:   
+                            if full_half_shift_hrs <= total_hrs:  
+                                if g1_max_end_time  <= line.out_time and c_min_start_time >= line.out_time:
+                                    #raise osv.except_osv(_('Warning!%s'),_(g1_max_end_time)) 
+                                    g1_shift_count = 1  
+                                    c_shift_count = 0.5 
+                                    total_shift_worked = 1.5
+                        if c_min_end_time  <= line.out_time: 
+                            if full_full_shift_hrs <= total_hrs:
+                                if g1_max_end_time  < line.out_time:
+                                    g1_shift_count = 1  
+                                    c_shift_count = 1 
+                                    total_shift_worked = 2
+            
+                    if line.actual_work_shift_id.code=='G2':
+                        half_shift_hrs = line.actual_work_shift_id.time_total / 2   
+                        full_shift_hrs = line.actual_work_shift_id.time_total
+                        full_half_shift_hrs =  full_shift_hrs  + half_shift_hrs   
+                        full_full_shift_hrs = line.actual_work_shift_id.time_total + line.actual_work_shift_id.time_total
+                        full_full_half_shift_hrs = full_full_shift_hrs + half_shift_hrs
+                              
+                        if half_shift_hrs <= total_hrs < full_shift_hrs:
+                            g2_shift_count = 0.5  
+                            total_shift_worked = 0.5 
+                        if g2_min_end_time  <= line.out_time <  g2_max_end_time: 
+                            if full_shift_hrs <= total_hrs:
+                                g2_shift_count = 1  
+                                total_shift_worked = 1
+                        if g2_max_end_time  <= line.out_time: 
+                            if full_half_shift_hrs <= total_hrs:
+                                if g2_max_end_time  <= line.out_time and c_min_start_time >= line.out_time:
+                                    g2_shift_count = 1  
+                                    c_shift_count = 0.5 
+                                    total_shift_worked = 1.5
+                        if c_min_end_time  <= line.out_time: 
+                            if full_half_shift_hrs <= total_hrs:
+                                if g2_max_end_time  < line.out_time:
+                                    g2_shift_count = 1  
+                                    c_shift_count = 1 
+                                    total_shift_worked = 2
+                            
+                    if line.actual_work_shift_id.code=='B':
+                        half_shift_hrs = line.actual_work_shift_id.time_total / 2   
+                        full_shift_hrs = line.actual_work_shift_id.time_total
+                        full_half_shift_hrs =  full_shift_hrs  + half_shift_hrs   
+                        full_full_shift_hrs = line.actual_work_shift_id.time_total + line.actual_work_shift_id.time_total
+                        full_full_half_shift_hrs = full_full_shift_hrs + half_shift_hrs
+                              
+                        if half_shift_hrs <= total_hrs < full_shift_hrs:
+                            b_shift_count = 0.5  
+                            total_shift_worked = 0.5 
+                        if full_shift_hrs <= total_hrs < full_half_shift_hrs:  
+                            b_shift_count = 1  
+                            total_shift_worked = 1
+                        if full_half_shift_hrs <= total_hrs < full_full_shift_hrs:  
+                            if line.in_time<=a_min_start_time:
+                                b_shift_count = 1  
+                                a_shift_count = 0.5 
+                            else:
+                                b_shift_count = 1  
+                                c_shift_count = 0.5 
+                            total_shift_worked = 1.5
+                                
+                        if full_full_shift_hrs <= total_hrs < full_full_half_shift_hrs:  
+                            if line.in_time<=a_min_start_time:
+                                b_shift_count = 1  
+                                a_shift_count = 1 
+                            else:
+                                b_shift_count = 1  
+                                c_shift_count = 1 
+                            total_shift_worked = 2
+                            
+                            
+                    if line.actual_work_shift_id.code=='C':
+                        half_shift_hrs = line.actual_work_shift_id.time_total / 2   
+                        full_shift_hrs = line.actual_work_shift_id.time_total
+                        full_half_shift_hrs =  full_shift_hrs  + half_shift_hrs   
+                        full_full_shift_hrs = line.actual_work_shift_id.time_total + line.actual_work_shift_id.time_total
+                        full_full_half_shift_hrs = full_full_shift_hrs + half_shift_hrs
+                              
+                        if half_shift_hrs <= total_hrs < full_shift_hrs:
+                            c_shift_count = 0.5  
+                            total_shift_worked = 0.5 
+                        if full_shift_hrs <= total_hrs < full_half_shift_hrs:  
+                            c_shift_count = 1  
+                            total_shift_worked = 1
+                        if full_half_shift_hrs <= total_hrs < full_full_shift_hrs:  
+                            if line.in_time<=b_min_start_time:
+                                c_shift_count = 1  
+                                b_shift_count = 0.5 
+                            else:
+                                c_shift_count = 1  
+                                a_shift_count = 0.5 
+                            total_shift_worked = 1.5
+                                
+                        if full_full_shift_hrs <= total_hrs < full_full_half_shift_hrs:  
+                            if line.in_time<=b_min_start_time:
+                                c_shift_count = 1  
+                                b_shift_count = 1 
+                            else:
+                                c_shift_count = 1  
+                                a_shift_count = 1 
+                            total_shift_worked = 2
+                    ## 
             self.write(cr, uid, [line.id],{'approval': True, 'state':'done', 'time_evaluate_id':False})
         return True
     
@@ -2868,7 +3094,16 @@ class arul_hr_permission_onduty(osv.osv):
 #         'detail_id':fields.many2one('arul.hr.employee.attendence.details','Detail'),
         #TPT-Permission On Duty
         'shift_type':fields.char('Shift Type', size = 1024),
+        
+        'a_shift_count1': fields.float('A'),
+        'g1_shift_count1': fields.float('G1'),
+        'g2_shift_count1': fields.float('G2'),
+        'b_shift_count1': fields.float('B'),
+        'c_shift_count1': fields.float('C'),
+        'total_shift_worked1': fields.float('Total Shift'),
+        
         'total_shift_worked': fields.function(_shift_total,store=True, type='float', string='No.Of Shift Worked', multi='shift_total', help="The total amount."),
+        
         'state':fields.selection([('draft', 'Draft'),('cancel', 'Reject'),('done', 'Approve')],'Status', readonly=True),
               }
     _defaults = {
@@ -2936,6 +3171,13 @@ class arul_hr_permission_onduty(osv.osv):
                     'actual_work_shift_id': work_shift_ids and work_shift_ids[0] or False,
                     'in_time':permission.start_time,
                     'out_time':permission.end_time,
+                    
+                    'a_shift_count1':1,
+                    'g1_shift_count1':1,
+                    'g2_shift_count1':1,
+                    'b_shift_count1':1,
+                    'c_shift_count1':1,
+                    
                     'type': 'on_duty',
                     'permission_id':line.id,
                     'create_uid':line.create_uid,
