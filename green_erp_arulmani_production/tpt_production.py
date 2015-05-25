@@ -1688,7 +1688,23 @@ class tpt_quality_verification(osv.osv):
         return self.write(cr, uid, ids,{'state':'done'})
     
     def action_cancel_draft(self, cr, uid, ids, context=None):
-        self.write(cr, uid, ids, {'state':'draft'})
+        for line in self.browse(cr,uid,ids):
+            sql = '''
+                select case when sum(foo.product_qty)>0 then sum(foo.product_qty) else 0 end ton_sl from 
+                    (select st.product_qty
+                        from stock_move st 
+                        where st.state='done' and st.product_id=%s and st.location_dest_id = %s and prodlot_id = %s
+                    union all
+                    select st.product_qty*-1
+                        from stock_move st 
+                        where st.state='done' and st.product_id=%s and st.location_id = %s and prodlot_id = %s
+                    )foo
+                '''%(line.product_id.id,line.warehouse_id.id,line.prod_batch_id.id,line.product_id.id,line.warehouse_id.id,line.prod_batch_id.id)
+            cr.execute(sql)
+            ton_sl = cr.dictfetchone()['ton_sl']
+            if ton_sl <= 0:
+                raise osv.except_osv(_('Warning!'),_('Stock Already sold out for this Batch. You cannot modify this Batch further!')) 
+            self.write(cr, uid, ids, {'state':'draft'})
         return True
     
     def onchange_prod_batch_id(self, cr, uid, ids,prod_batch_id=False,context=None):
