@@ -1620,13 +1620,48 @@ class arul_hr_audit_shift_time(osv.osv):
                 k = cr.fetchone()
                 g1_min_start_time=k[0]
                 
-                ##
+                ## B Shift
+                work_shift_obj = self.pool.get('arul.hr.capture.work.shift') 
+                work_shift = work_shift_obj.search(cr, uid, [('code','=','B')])
+                work_shift1 = work_shift_obj.browse(cr,uid,work_shift[0])
+                b_shift_total_time = work_shift1.time_total   
+                b_shift_half_total_time = work_shift1.time_total/2 
+                
+                b_min_start_time = datetime.timedelta(hours=b_min_start_time)
+                b_max_start_time = datetime.timedelta(hours=b_max_start_time) 
+                b_min_end_time = datetime.timedelta(hours=b_min_end_time) 
+                
+                ## C Shift                
+                c_work_shift = work_shift_obj.search(cr, uid, [('code','=','C')])
+                c_work_shift1 = work_shift_obj.browse(cr,uid,work_shift[0])
+                c_shift_total_time = c_work_shift1.time_total   
+                c_shift_half_total_time = work_shift1.time_total/2 
+                
+                c_min_start_time = datetime.timedelta(hours=c_min_start_time)
+                c_max_start_time = datetime.timedelta(hours=c_max_start_time) 
+                c_min_end_time = datetime.timedelta(hours=c_min_end_time) 
+                
+                ## A Shift                
+                a_work_shift = work_shift_obj.search(cr, uid, [('code','=','A')])
+                a_work_shift1 = work_shift_obj.browse(cr,uid,work_shift[0])
+                a_shift_total_time = c_work_shift1.time_total   
+                a_shift_half_total_time = work_shift1.time_total/2 
+                
+                a_min_start_time = datetime.timedelta(hours=a_min_start_time)
+                a_max_start_time = datetime.timedelta(hours=a_max_start_time) 
+                a_min_end_time = datetime.timedelta(hours=a_min_end_time) 
+                
+                actual_out = datetime.timedelta(hours=line.out_time) 
+                actual_in = datetime.timedelta(hours=line.in_time)
+                    
                 if line.actual_work_shift_id.code=='A':
                     #raise osv.except_osv(_('Warning!'),_(line.actual_work_shift_id.min_start_time)) 
                     half_shift_hrs = line.actual_work_shift_id.time_total / 2   
                     full_shift_hrs = line.actual_work_shift_id.time_total
-                    full_half_shift_hrs =  full_shift_hrs  + half_shift_hrs   
-                    full_full_shift_hrs = line.actual_work_shift_id.time_total + line.actual_work_shift_id.time_total
+                    #full_half_shift_hrs =  full_shift_hrs  + half_shift_hrs   
+                    #full_full_shift_hrs = line.actual_work_shift_id.time_total + line.actual_work_shift_id.time_total
+                    full_half_shift_hrs =  full_shift_hrs  + b_shift_half_total_time   # A shift + B Shift 0.5 shift
+                    full_full_shift_hrs = line.actual_work_shift_id.time_total + b_shift_total_time # A shift + B Shift 1 shift
                     full_full_half_shift_hrs = full_full_shift_hrs + half_shift_hrs
                     
                     half_shift_hrs = datetime.timedelta(hours=half_shift_hrs)
@@ -1653,8 +1688,10 @@ class arul_hr_audit_shift_time(osv.osv):
                 if line.actual_work_shift_id.code=='G1':
                     half_shift_hrs = line.actual_work_shift_id.time_total / 2   
                     full_shift_hrs = line.actual_work_shift_id.time_total
-                    full_half_shift_hrs =  full_shift_hrs  + half_shift_hrs   
-                    full_full_shift_hrs = line.actual_work_shift_id.time_total + line.actual_work_shift_id.time_total
+                    #full_half_shift_hrs =  full_shift_hrs  + half_shift_hrs  
+                                 
+                    full_half_shift_hrs =  full_shift_hrs  + b_shift_half_total_time   # G1 shift + B Shift 0.5 shift
+                    full_full_shift_hrs = line.actual_work_shift_id.time_total + b_shift_total_time # G1 shift + B Shift 1 shift
                     full_full_half_shift_hrs = full_full_shift_hrs + half_shift_hrs
                     
                     half_shift_hrs = datetime.timedelta(hours=half_shift_hrs)
@@ -1662,33 +1699,45 @@ class arul_hr_audit_shift_time(osv.osv):
                     full_half_shift_hrs = datetime.timedelta(hours=full_half_shift_hrs)
                     full_full_shift_hrs = datetime.timedelta(hours=full_full_shift_hrs)
                     full_full_half_shift_hrs = datetime.timedelta(hours=full_full_half_shift_hrs)
-                          
+                    
+                    g1_min_end_time = datetime.timedelta(hours=g1_min_end_time)
+                    g1_max_end_time = datetime.timedelta(hours=g1_max_end_time)
+                    
+   
                     if half_shift_hrs <= total_hrs < full_shift_hrs:
                         g1_shift_count = 0.5  
                         total_shift_worked = 0.5 
-                    if g1_min_end_time  <= line.out_time <  g1_max_end_time: 
+                    if g1_min_end_time  <= actual_out <  g1_max_end_time: 
                         if full_shift_hrs <= total_hrs:
                             g1_shift_count = 1  
                             total_shift_worked = 1
-                    if g1_max_end_time  <= line.out_time:   
+                    if g1_max_end_time  <= actual_out:   
                         if full_half_shift_hrs <= total_hrs:  
-                            if g1_max_end_time  <= line.out_time and c_min_start_time >= line.out_time:
+                            if g1_max_end_time  <= actual_out and b_max_start_time <= actual_out:
                                 #raise osv.except_osv(_('Warning!%s'),_(g1_max_end_time)) 
                                 g1_shift_count = 1  
-                                c_shift_count = 0.5 
+                                b_shift_count = 0.5 
                                 total_shift_worked = 1.5
-                    if c_min_end_time  <= line.out_time: 
+                    if b_min_end_time  <= actual_out: 
                         if full_full_shift_hrs <= total_hrs:
-                            if g1_max_end_time  < line.out_time:
+                            if g1_max_end_time  < actual_out:
                                 g1_shift_count = 1  
-                                c_shift_count = 1 
+                                b_shift_count = 1 
                                 total_shift_worked = 2
                                 
                 if line.actual_work_shift_id.code=='G2':
                     half_shift_hrs = line.actual_work_shift_id.time_total / 2   
                     full_shift_hrs = line.actual_work_shift_id.time_total
-                    full_half_shift_hrs =  full_shift_hrs  + half_shift_hrs   
-                    full_full_shift_hrs = line.actual_work_shift_id.time_total + line.actual_work_shift_id.time_total
+                    
+                    #full_half_shift_hrs =  full_shift_hrs  + half_shift_hrs  
+                    work_shift_obj = self.pool.get('arul.hr.capture.work.shift') 
+                    work_shift = work_shift_obj.search(cr, uid, [('code','=','B')])
+                    work_shift1 = work_shift_obj.browse(cr,uid,work_shift[0])
+                    b_shift_total_time = work_shift1.time_total   
+                    b_shift_half_total_time = work_shift1.time_total/2            
+                    full_half_shift_hrs =  full_shift_hrs  + b_shift_half_total_time  
+                      
+                    full_full_shift_hrs = line.actual_work_shift_id.time_total + b_shift_total_time
                     full_full_half_shift_hrs = full_full_shift_hrs + half_shift_hrs
                     
                     half_shift_hrs = datetime.timedelta(hours=half_shift_hrs)
@@ -1696,32 +1745,35 @@ class arul_hr_audit_shift_time(osv.osv):
                     full_half_shift_hrs = datetime.timedelta(hours=full_half_shift_hrs)
                     full_full_shift_hrs = datetime.timedelta(hours=full_full_shift_hrs)
                     full_full_half_shift_hrs = datetime.timedelta(hours=full_full_half_shift_hrs)
-                          
+                    
+                    g2_min_end_time = datetime.timedelta(hours=g2_min_end_time)
+                    g2_max_end_time = datetime.timedelta(hours=g2_max_end_time)
+       
                     if half_shift_hrs <= total_hrs < full_shift_hrs:
                         g2_shift_count = 0.5  
                         total_shift_worked = 0.5 
-                    if g2_min_end_time  <= line.out_time <  g2_max_end_time: 
+                    if g2_min_end_time  <= actual_out <  g2_max_end_time: 
                         if full_shift_hrs <= total_hrs:
                             g2_shift_count = 1  
                             total_shift_worked = 1
-                    if g2_max_end_time  <= line.out_time: 
+                    if g2_max_end_time  <= actual_out: 
                         if full_half_shift_hrs <= total_hrs:
-                            if g2_max_end_time  <= line.out_time and c_min_start_time >= line.out_time:
+                            if g2_max_end_time  <= actual_out and b_min_start_time <= actual_out:
                                 g2_shift_count = 1  
-                                c_shift_count = 0.5 
+                                b_shift_count = 0.5 
                                 total_shift_worked = 1.5
-                    if c_min_end_time  <= line.out_time: 
+                    if b_min_end_time  <= actual_out: 
                         if full_half_shift_hrs <= total_hrs:
-                            if g2_max_end_time  < line.out_time:
+                            if g2_max_end_time  < actual_out:
                                 g2_shift_count = 1  
-                                c_shift_count = 1 
+                                b_shift_count = 1 
                                 total_shift_worked = 2
                         
                 if line.actual_work_shift_id.code=='B':
                     half_shift_hrs = line.actual_work_shift_id.time_total / 2   
                     full_shift_hrs = line.actual_work_shift_id.time_total
-                    full_half_shift_hrs =  full_shift_hrs  + half_shift_hrs   
-                    full_full_shift_hrs = line.actual_work_shift_id.time_total + line.actual_work_shift_id.time_total
+                    full_half_shift_hrs =  full_shift_hrs  + c_shift_half_total_time   
+                    full_full_shift_hrs = line.actual_work_shift_id.time_total + c_shift_total_time
                     full_full_half_shift_hrs = full_full_shift_hrs + half_shift_hrs
                     
                     half_shift_hrs = datetime.timedelta(hours=half_shift_hrs)
@@ -1737,7 +1789,7 @@ class arul_hr_audit_shift_time(osv.osv):
                         b_shift_count = 1  
                         total_shift_worked = 1
                     if full_half_shift_hrs <= total_hrs < full_full_shift_hrs:  
-                        if line.in_time<=a_min_start_time:
+                        if actual_in<=a_min_start_time:
                             b_shift_count = 1  
                             a_shift_count = 0.5 
                         else:
@@ -1746,7 +1798,7 @@ class arul_hr_audit_shift_time(osv.osv):
                         total_shift_worked = 1.5
                             
                     if full_full_shift_hrs <= total_hrs < full_full_half_shift_hrs:  
-                        if line.in_time<=a_min_start_time:
+                        if actual_in<=a_min_start_time:
                             b_shift_count = 1  
                             a_shift_count = 1 
                         else:
@@ -1758,8 +1810,8 @@ class arul_hr_audit_shift_time(osv.osv):
                 if line.actual_work_shift_id.code=='C':
                     half_shift_hrs = line.actual_work_shift_id.time_total / 2   
                     full_shift_hrs = line.actual_work_shift_id.time_total
-                    full_half_shift_hrs =  full_shift_hrs  + half_shift_hrs   
-                    full_full_shift_hrs = line.actual_work_shift_id.time_total + line.actual_work_shift_id.time_total
+                    full_half_shift_hrs =  full_shift_hrs  + a_shift_half_total_time   
+                    full_full_shift_hrs = line.actual_work_shift_id.time_total + a_shift_total_time
                     full_full_half_shift_hrs = full_full_shift_hrs + half_shift_hrs
                     
                     half_shift_hrs = datetime.timedelta(hours=half_shift_hrs)
@@ -1775,7 +1827,7 @@ class arul_hr_audit_shift_time(osv.osv):
                         c_shift_count = 1  
                         total_shift_worked = 1
                     if full_half_shift_hrs <= total_hrs < full_full_shift_hrs:  
-                        if line.in_time<=b_min_start_time:
+                        if actual_in<=b_min_start_time:
                             c_shift_count = 1  
                             b_shift_count = 0.5 
                         else:
@@ -1784,7 +1836,7 @@ class arul_hr_audit_shift_time(osv.osv):
                         total_shift_worked = 1.5
                             
                     if full_full_shift_hrs <= total_hrs < full_full_half_shift_hrs:  
-                        if line.in_time<=b_min_start_time:
+                        if actual_in<=b_min_start_time:
                             c_shift_count = 1  
                             b_shift_count = 1 
                         else:
