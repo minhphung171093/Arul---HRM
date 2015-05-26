@@ -20,9 +20,80 @@
 			auto="True" 
 			menu="False"
 			id="report_stock_on_hand" 
-			model="stock.on.hand.report" 
+			model="tpt.stock.on.hand" 
 			name="report_stock_on_hand"
 	        string="Stock On Hand Report"
 	        rml="green_erp_arulmani_purchase/report/report_stock_on_hand.odt"/>	
+	        
+	    <record id="report_stock_on_hand" model="ir.actions.report.xml">
+	        <field name="name">report_stock_on_hand_xls</field>
+	        <field name="type">ir.actions.report.xml</field>
+	        <field name="model">stock.on.hand.report</field>
+	        <field name="report_name">report_stock_on_hand_xls</field>
+	        <field name="report_type">aeroo</field>
+	        <field name="in_format">oo-ods</field>
+	        <field name="out_format" model="report.mimetypes" search="[('code','=','oo-xls'),('compatible_types','=','oo-ods')]"/>
+	        <field name="parser_loc">green_erp_arulmani_purchase/report/report_stock_on_hand.py</field>
+	        <field name="report_rml">green_erp_arulmani_purchase/report/report_stock_on_hand_xls.ods</field>
+	        <field name="parser_state">loc</field>
+	        <field name="tml_source">file</field>
+	        <field name="attachment_use" eval="0"/>
+    	</record>		    
+		
+		<report 
+			auto="True" 
+			menu="False"
+			id="report_stock_on_hand_xls" 
+			model="tpt.stock.on.hand" 
+			name="report_stock_on_hand_xls"
+	        string="Stock On Hand Report"
+	        rml="green_erp_arulmani_purchase/report/report_stock_on_hand_xls.ods"/>	
+	        
+	        
+	    <record id="view_tpt_stock_on_hand_form" model="ir.ui.view">
+	        <field name="name">tpt.stock.on.hand.form</field>
+	        <field name="model">tpt.stock.on.hand</field>
+	        <field name="arch" type="xml">
+	            <form version='7.0' string="STOCK ON HAND REPORT" create="false" edit="false" delete="false">
+	            	<header>
+	            		<button name="print_xls" string="Print (.xls)" type="object" class="oe_highlight" />
+	            		<button name="print_pdf" string="Print (.pdf)" type="object" class="oe_highlight" />
+	            	</header>
+	            	<sheet>
+	            		<div class="oe_text_center">
+            				<b>V.V. Titanium Pigments Pvt Ltd</b>
+            			</div>
+            			<div class="oe_text_center">
+            				TUTICORIN
+            			</div>
+            			<div class="oe_text_center">
+            				THOOTHUKKUDI
+            			</div>
+            			<div class="oe_text_center">
+            				<field name="name" nolabel="1"/>
+            			</div>
+            			<group>
+            				<field name="categ_id"/>
+                			<field name="product_id"/>
+                			<field name="location_id"/>
+                			<field name="as_date"/>
+            			</group>
+	                	<group>
+		                	<field name="stock_line" nolabel='1'>
+		                		<tree create="false" edit="false" delete="false">
+		                			<field name="code"/>
+		                			<field name="description"/>
+		                			<field name="uom"/>
+		                			<field name="bin_loc"/>
+		                			<field name="onhand_qty"/>
+		                			<field name="ins_qty"/>
+		                			<field name="bl_qty"/>
+		                		</tree>
+		                	</field>
+	                	</group>
+	               	</sheet>
+	           </form>
+	        </field>
+	    </record>
     </data>
 </openerp>
