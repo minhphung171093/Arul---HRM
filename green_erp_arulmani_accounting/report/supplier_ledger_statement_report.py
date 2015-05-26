@@ -55,9 +55,9 @@ class Parser(report_sxw.rml_parse):
         
     def get_cus(self):
         wizard_data = self.localcontext['data']['form']
-        cus = (wizard_data['customer_id'])
-        cus_obj = self.pool.get('res.partner')
-        return cus_obj.browse(self.cr,self.uid,cus[0])
+        sup = (wizard_data['supplier_id'])
+        sup_obj = self.pool.get('res.partner')
+        return sup_obj.browse(self.cr,self.uid,sup[0])
     
     def get_date_from(self):
         wizard_data = self.localcontext['data']['form']
@@ -89,41 +89,44 @@ class Parser(report_sxw.rml_parse):
         return res
     
     def get_doc_type(self, doc_type):
-        if doc_type == 'cus_inv':
-            return "CUSTOMER INVOICE"
-        if doc_type == 'cus_pay':
-            return "CUSTOMER PAYMENT"
+        if doc_type == 'sup_inv':
+            return "SUPPLIER INVOICE (without po)"
+        if doc_type == 'sup_inv_po':
+            return "SUPPLIER INVOICE"
+        if doc_type == 'sup_pay':
+            return "SUPPLIER PAYMENT"
         
     def get_invoice(self):
         res = {}
         wizard_data = self.localcontext['data']['form']
         date_from = wizard_data['date_from']
         date_to = wizard_data['date_to']
-        cus = wizard_data['customer_id']
+        sup = wizard_data['supplier_id']
         acount_move_line_obj = self.pool.get('account.move.line')
         acount_move_obj = self.pool.get('account.move')
-        cus_ids = []
+        sup_ids = []
         sql = '''
+        
             select aml.id from account_move_line aml inner join account_move am on aml.move_id = am.id
-                where am.date between '%s' and '%s' and am.doc_type in ('cus_inv') and am.partner_id = %s and am.state='posted' and aml.debit is not null and aml.debit !=0
-                or (am.date between '%s' and '%s' and am.doc_type in ('cus_pay') and am.partner_id = %s and am.state='posted' and aml.credit is not null and aml.credit !=0)
+                where am.date between '%s' and '%s' and am.doc_type in ('sup_inv_po','sup_inv','sup_pay') and am.partner_id = %s and am.state='posted' and aml.credit is not null and aml.credit !=0
                     order by am.date
-            '''%(date_from, date_to,cus[0],date_from, date_to,cus[0])
+        
+            '''%(date_from, date_to,sup[0])
         self.cr.execute(sql)
-        cus_ids = [r[0] for r in self.cr.fetchall()]
+        sup_ids = [r[0] for r in self.cr.fetchall()]
 #         sql = '''
 #             select id from account_move_line 
 #             where move_id in (
 #                                 select id from account_move 
-#                                 where date between '%s' and '%s' and doc_type in ('cus_pay') and partner_id = %s and state='posted' ) and credit is not null and credit !=0   
-#             '''%(date_from, date_to,cus[0])
+#                                 where date between '%s' and '%s' and doc_type in ('sup_pay') and partner_id = %s and state='posted' ) and credit is not null and credit !=0   
+#             '''%(date_from, date_to,sup[0])
 #         self.cr.execute(sql)
-#         cus_ids += [r[0] for r in self.cr.fetchall()]
-        return acount_move_line_obj.browse(self.cr,self.uid,cus_ids)
+#         sup_ids += [r[0] for r in self.cr.fetchall()]
+        return acount_move_line_obj.browse(self.cr,self.uid,sup_ids)
     
     def get_bill_no(self, move_id, doc_type):
-        if doc_type == 'cus_inv':
-            self.cr.execute('''select vvt_number from account_invoice where move_id =%s''', (move_id,))
+        if doc_type == 'sup_inv_po' or doc_type == 'sup_inv':
+            self.cr.execute('''select name from account_invoice where move_id =%s''', (move_id,))
         else:
             self.cr.execute('''select number from account_voucher where move_id =%s''', (move_id,))
         number = self.cr.fetchone()
@@ -131,21 +134,20 @@ class Parser(report_sxw.rml_parse):
     
     def get_so_no(self, move_id, doc_type):
         number = ''
-        if doc_type == 'cus_inv':
-            self.cr.execute('''select name from sale_order where id in (select sale_id from account_invoice where move_id =%s)''', (move_id,))
+        if doc_type == 'sup_inv_po':
+            self.cr.execute('''select name from purchase_order where id in (select purchase_id from account_invoice where move_id =%s)''', (move_id,))
         number = self.cr.fetchone()
         return number and number[0] or ''
     
     def get_so_date(self, move_id, doc_type):
         date = ''
-        if doc_type == 'cus_inv':
-            self.cr.execute('''select date_order from sale_order where id in (select sale_id from account_invoice where move_id =%s)''', (move_id,))
+        if doc_type == 'sup_inv_po':
+            self.cr.execute('''select date_order from purchase_order where id in (select purchase_id from account_invoice where move_id =%s)''', (move_id,))
         date = self.cr.fetchone()
         return date and date[0] or ''
     
-    
     def get_bill_date(self, move_id, doc_type):
-        if doc_type == 'cus_inv':
+        if doc_type == 'sup_inv_po' or doc_type == 'sup_inv':
             self.cr.execute('''select bill_date from account_invoice where move_id =%s''', (move_id,))
         else:
             self.cr.execute('''select date from account_voucher where move_id =%s''', (move_id,))

@@ -24,39 +24,89 @@ class Parser(report_sxw.rml_parse):
         pool = pooler.get_pool(self.cr.dbname)
         self.localcontext.update({
             'get_invoice_info':self.get_invoice_info,
+            'get_invoice_line_info':self.get_invoice_line_info,
             'get_date': self.get_date,
             'get_qty_bags': self.get_qty_bags,
             'get_qty_mt': self.get_qty_mt,
             'get_qty_kg':self.get_qty_kg,
             'get_buyer': self.get_buyer,
             'get_consignee': self.get_consignee,
+            'get_stock_line': self.get_stock_line,
         })
     
+    def get_stock_line(self, lines):
+        prod_qty=0
+        qty=0
+        for line in lines:           
+            qty=line.product_qty
+            qty = qty + qty
+        #raise osv.except_osv(_('Warning!'),_(i))    
+        
+        return qty
     def get_invoice_info(self, do_id):
         port_of_loading_name = ''
         port_of_discharge_name = ''
+        disc_goods = ''
         sql = '''
             select vvt_number, to_char(date_invoice,'yyyy.mm.dd'), vessel_flight_no, port_of_loading_id, 
-            port_of_discharge_id, mark_container_no, invoice_type from account_invoice where delivery_order_id = %s
+            port_of_discharge_id, mark_container_no, invoice_type,disc_goods from account_invoice where delivery_order_id = %s
             '''%(do_id)
         self.cr.execute(sql)
         vals = self.cr.dictfetchone()
+        #raise osv.except_osv(_('Warning!'),_(sql))    
         port_of_loading_id = vals['port_of_loading_id']
         port_of_discharge_id = vals['port_of_discharge_id']
-        if port_of_loading_id:
-            self.cr.execute(''' select name from res_country where id = %s '''%(port_of_loading_id))
-            res1 = self.cr.fetchone()
-            port_of_loading_name = res1[0]
-        if port_of_discharge_id:
-            self.cr.execute(''' select name from res_country where id = %s '''%(port_of_discharge_id))
-            res2 = self.cr.fetchone()
-            port_of_discharge_name = res2[0]
+        disc_goods = vals['disc_goods']
+        #inv_id = vals[0]
+        port_of_loading_name = port_of_loading_id
+        port_of_discharge_name = port_of_discharge_id
+        
+        #=======================================================================
+        # sql = '''
+        # select quantity from account_invoice_line where invoice_id = %s
+        # '''%1
+        # self.cr.execute(sql)
+        # vals = self.cr.dictfetchone()
+        # qty = vals['quantity']
+        #=======================================================================
+        
+        #=======================================================================
+        # if port_of_loading_id:
+        #     self.cr.execute(''' select name from res_country where id = %s '''%(port_of_loading_id))
+        #     res1 = self.cr.fetchone()
+        #     port_of_loading_name = res1[0]
+        # if port_of_discharge_id:
+        #     self.cr.execute(''' select name from res_country where id = %s '''%(port_of_discharge_id))
+        #     res2 = self.cr.fetchone()
+        #     port_of_discharge_name = res2[0]
+        #=======================================================================
         vals.update({
                      'port_of_loading_id':port_of_loading_name,
                      'port_of_discharge_id':port_of_discharge_name,
+                     'disc_goods':disc_goods,
+                     #'qty':qty,
                      }) 
         return vals
-    
+    def get_invoice_line_info(self, do_id):
+        qty = 0
+        sql = '''
+            select id from account_invoice where delivery_order_id = %s
+            '''%(do_id)
+        self.cr.execute(sql)
+        vals = self.cr.dictfetchone()
+         
+        
+        inv_id = vals['id']
+        
+        #raise osv.except_osv(_('Warning!'),_(inv_id))   
+        sql = '''
+        select quantity from account_invoice_line where invoice_id = %s
+        '''%inv_id
+        self.cr.execute(sql)
+        vals = self.cr.dictfetchone()
+        qty = vals['quantity']
+
+        return qty
     def get_date(self, date=False):
         if not date:
             date = time.strftime(DATETIME_FORMAT)
