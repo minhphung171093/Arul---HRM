@@ -3111,9 +3111,9 @@ sale_order()
 class tpt_material_issue(osv.osv):
     _inherit = "tpt.material.issue"
     _columns = {
-                'gl_account_id': fields.many2one('account.account', 'GL Account'),
-                'warehouse':fields.many2one('stock.location','Source Location'),
-                'dest_warehouse_id': fields.many2one('stock.location','Destination Location'),
+                'gl_account_id': fields.many2one('account.account', 'GL Account',states={'done':[('readonly', True)]}),
+                'warehouse':fields.many2one('stock.location','Source Location',states={'done':[('readonly', True)]}),
+                'dest_warehouse_id': fields.many2one('stock.location','Destination Location',states={'done':[('readonly', True)]}),
                 }
     def bt_approve(self, cr, uid, ids, context=None):
         price = 0.0
