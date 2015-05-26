@@ -40,7 +40,6 @@
         'wizard/batch_wise_stock_view.xml',
         'wizard/input_register_form_view.xml',
         'tpt_accounting_sequence.xml',
-        'tpt_accounting_view.xml',
         'report/daily_sale_report_view.xml',
         'report/report_cash_book_view.xml',
         'report/report_bank_book_view.xml',
@@ -53,13 +52,17 @@
         'report/input_register_report_view.xml',
         'import_view.xml',
         'accounting_data.xml',
+        'tpt_accounting_view.xml',
         'menu_inherit_view.xml',
     ],
     'css' : [
+        "static/src/css/base.css",
     ],
     'js' : [
+        "static/src/js/view_form.js",
     ],
     'qweb': [
+        "static/src/xml/base.xml",
      ],
     'installable': True,
     'auto_install': False,

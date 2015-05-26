@@ -71,7 +71,8 @@
             				<field name="sup_name" class = "oe_right oe_inline"/>
             				<field name="sup_name_title" nolabel = '1' class="oe_right oe_inline"/> 
             			</div>
-	                	<group>
+            			
+	                	<div class='oe_green_erp_scroll'>
 		                	<field name="sup_ledger_line" nolabel='1'>
 		                		<tree create="false" edit="false" delete="false">
 		                			<field name="date"/>
@@ -86,7 +87,8 @@
 		                			<field name="credit"/>
 		                		</tree>
 		                	</field>
-	                	</group>
+		                </div>
+		                	
 	               	</sheet>
 	           </form>
 	        </field>
