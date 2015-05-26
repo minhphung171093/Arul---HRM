@@ -104,21 +104,21 @@ class Parser(report_sxw.rml_parse):
         acount_move_obj = self.pool.get('account.move')
         cus_ids = []
         sql = '''
-            select id from account_move_line 
-            where move_id in (
-                                select id from account_move 
-                                where date between '%s' and '%s' and doc_type in ('cus_inv') and partner_id = %s and state='posted' ) and debit is not null and debit !=0   
-            '''%(date_from, date_to,cus[0])
+            select aml.id from account_move_line aml inner join account_move am on aml.move_id = am.id
+                where am.date between '%s' and '%s' and am.doc_type in ('cus_inv') and am.partner_id = %s and am.state='posted' and aml.debit is not null and aml.debit !=0
+                or (am.date between '%s' and '%s' and am.doc_type in ('cus_pay') and am.partner_id = %s and am.state='posted' and aml.credit is not null and aml.credit !=0)
+                    order by am.date
+            '''%(date_from, date_to,cus[0],date_from, date_to,cus[0])
         self.cr.execute(sql)
         cus_ids = [r[0] for r in self.cr.fetchall()]
-        sql = '''
-            select id from account_move_line 
-            where move_id in (
-                                select id from account_move 
-                                where date between '%s' and '%s' and doc_type in ('cus_pay') and partner_id = %s and state='posted' ) and credit is not null and credit !=0   
-            '''%(date_from, date_to,cus[0])
-        self.cr.execute(sql)
-        cus_ids += [r[0] for r in self.cr.fetchall()]
+#         sql = '''
+#             select id from account_move_line 
+#             where move_id in (
+#                                 select id from account_move 
+#                                 where date between '%s' and '%s' and doc_type in ('cus_pay') and partner_id = %s and state='posted' ) and credit is not null and credit !=0   
+#             '''%(date_from, date_to,cus[0])
+#         self.cr.execute(sql)
+#         cus_ids += [r[0] for r in self.cr.fetchall()]
         return acount_move_line_obj.browse(self.cr,self.uid,cus_ids)
     
     def get_bill_no(self, move_id, doc_type):

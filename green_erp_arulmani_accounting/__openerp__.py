@@ -56,10 +56,13 @@
         'menu_inherit_view.xml',
     ],
     'css' : [
+        "static/src/css/base.css",
     ],
     'js' : [
+        "static/src/js/view_form.js",
     ],
     'qweb': [
+        "static/src/xml/base.xml",
      ],
     'installable': True,
     'auto_install': False,
