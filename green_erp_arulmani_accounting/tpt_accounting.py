@@ -392,6 +392,7 @@ class account_move_line(osv.osv):
                                   ('ser_inv', 'Service Invoice'),
                                   ('product', 'Production'),
                                   ('staff_payroll', 'Staff Payroll'),
+                                  ('freight', 'Freight Invoice'),
                                   ('worker_payroll', 'Workers Payroll')], string="Document Type", readonly=True, select=True),
     }
 account_move_line()
@@ -1167,6 +1168,9 @@ class account_invoice(osv.osv):
                         move['ref'] = inv.grn_no.name
                 else:
                     move['doc_type'] = 'sup_inv'
+                    
+                if inv.sup_inv_id:
+                    move['doc_type'] = 'freight'
   
             ctx.update(invoice=inv)
             move_id = move_obj.create(cr, uid, move, context=ctx)
@@ -4023,6 +4027,7 @@ class account_move(osv.osv):
                                   ('ser_inv', 'Service Invoice'),
                                   ('product', 'Production'),
                                   ('staff_payroll', 'Staff Payroll'),
+                                  ('freight', 'Freight Invoice'),
                                   ('worker_payroll', 'Workers Payroll')],'Document Type'),     
                                   
                 }

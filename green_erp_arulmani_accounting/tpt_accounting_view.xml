@@ -1617,6 +1617,7 @@
                     	<filter icon="terp-gtk-jump-to-ltr" string="Cash Receipt" domain="[('doc_type','=','cash_rec')]"/>
                     	<filter icon="terp-gtk-jump-to-ltr" string="Bank Payment" domain="[('doc_type','=','bank_pay')]"/>
                     	<filter icon="terp-gtk-jump-to-ltr" string="Bank Receipt" domain="[('doc_type','=','bank_rec')]"/>
+                    	<filter icon="terp-gtk-jump-to-ltr" string="Freight Invoice" domain="[('doc_type','=','freight')]"/>
                     	<filter icon="terp-gtk-jump-to-ltr" string="Production" domain="[('doc_type','=','product')]"/>
                     </xpath>
                     <xpath expr="//filter[@string='Date']" position="after">
@@ -1865,6 +1866,7 @@
                     	<filter icon="terp-gtk-jump-to-ltr" string="Cash Receipt" domain="[('doc_type','=','cash_rec')]"/>
                     	<filter icon="terp-gtk-jump-to-ltr" string="Bank Payment" domain="[('doc_type','=','bank_pay')]"/>
                     	<filter icon="terp-gtk-jump-to-ltr" string="Bank Receipt" domain="[('doc_type','=','bank_rec')]"/>
+                    	<filter icon="terp-gtk-jump-to-ltr" string="Freight Invoice" domain="[('doc_type','=','freight')]"/>
                     	<filter icon="terp-gtk-jump-to-ltr" string="Production" domain="[('doc_type','=','product')]"/>
                     </xpath>
                     <xpath expr="//filter[@string='Period']" position="after">
