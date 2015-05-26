@@ -1687,7 +1687,7 @@ class tpt_batch_allotment(osv.osv):
         'description':fields.text('Description'),
         'state': fields.selection([('to_approve', 'To Approved'), ('refuse', 'Refused'),('confirm', 'Approve'), ('cancel', 'Cancelled')],'Status'),
         'batch_allotment_line': fields.one2many('tpt.batch.allotment.line', 'batch_allotment_id', 'Product Information'), 
-        'product_uom_qty': fields.float('Quantity', digits=(16,3)),   
+        'requested_qty': fields.float('Requested Quantity', digits=(16,3),readonly = True),   
                 }
     _defaults = {
               'state': 'to_approve',
@@ -1706,10 +1706,20 @@ class tpt_batch_allotment(osv.osv):
     def create(self, cr, uid, vals, context=None):
         new_id = super(tpt_batch_allotment, self).create(cr, uid, vals, context)
         batch = self.browse(cr, uid, new_id)
+        requested_qty = 0
+        for line in batch.batch_allotment_line:
+            requested_qty += line.product_uom_qty
+        if requested_qty:
+            sql = '''
+                    update tpt_batch_allotment set requested_qty = %s where id = %s
+                '''%(requested_qty,new_id)
+            cr.execute(sql)
+            
         sql = '''
                     select product_id, sum(product_uom_qty) as allot_product_qty from tpt_batch_allotment_line where batch_allotment_id = %s group by product_id
                 '''%(batch.id)
         cr.execute(sql)
+        
         for allot_line in cr.dictfetchall():
             sql = '''
                     select product_id, sum(product_uom_qty) as request_product_qty from tpt_product_information where product_information_id = %s group by product_id
@@ -1723,7 +1733,15 @@ class tpt_batch_allotment(osv.osv):
     
     def write(self, cr, uid, ids, vals, context=None):
         new_write = super(tpt_batch_allotment, self).write(cr, uid, ids, vals, context)
+        requested_qty = 0
         for batch in self.browse(cr, uid, ids):
+            for line in batch.batch_allotment_line:
+                requested_qty += line.product_uom_qty
+            if requested_qty:
+                sql = '''
+                        update tpt_batch_allotment set requested_qty = %s where id = %s
+                    '''%(requested_qty,batch.id)
+                cr.execute(sql)
             sql = '''
                     select product_id, sum(product_uom_qty) as allot_product_qty from tpt_batch_allotment_line where batch_allotment_id = %s group by product_id
                 '''%(batch.id)
@@ -1843,8 +1861,10 @@ class tpt_batch_allotment(osv.osv):
                         'customer_id':False,
                         'description':False,
                         'batch_allotment_line':[],
+                        'requested_qty':False
                       }
                }
+        requested_qty = 0
         if batch_request_id:
             batch = self.pool.get('tpt.batch.request').browse(cr, uid, batch_request_id)
             batch_allotment_line = []
@@ -1856,12 +1876,14 @@ class tpt_batch_allotment(osv.osv):
                           'uom_po_id': line.uom_po_id.id,
                           'application_id':line.application_id.id,
                     })
+                requested_qty += line.product_uom_qty
         res['value'].update({
                     'name':batch.request_date or False,
                     'sale_order_id':batch.sale_order_id and batch.sale_order_id.id or False,
                     'customer_id':batch.customer_id and batch.customer_id.id or False,
                     'description':batch.description or False,
                     'batch_allotment_line': batch_allotment_line,
+                    'requested_qty': requested_qty,
         })
         return res
 tpt_batch_allotment()
@@ -2157,7 +2179,7 @@ class tpt_batch_allotment_line(osv.osv):
         'product_id': fields.many2one('product.product','Product'),     
         'product_type':fields.selection([('rutile','Rutile'),('anatase','Anatase')],'Product Type'),   
         'application_id': fields.many2one('crm.application','Application'),    
-        'product_uom_qty': fields.float('Quantity', digits=(16,3)),   
+        'product_uom_qty': fields.float('Allotted Qty', digits=(16,3)),   
         'uom_po_id': fields.many2one('product.uom','UOM'),   
         'sys_batch':fields.many2one('stock.production.lot','System Batch Number',required=True), 
 #         'phy_batch':fields.char('Physical Batch No.', size = 1024)
@@ -2168,12 +2190,20 @@ class tpt_batch_allotment_line(osv.osv):
         if 'product_uom_qty' in vals:
             if (vals['product_uom_qty'] < 0):
                 raise osv.except_osv(_('Warning!'),_('Quantity is not allowed as negative values'))
+        if 'product_uom_qty' in vals or 'sys_batch' in vals:
+            batch = self.pool.get('stock.production.lot').browse(cr, uid, vals['sys_batch'])
+            if batch.stock_available < vals['product_uom_qty']:
+                raise osv.except_osv(_('Warning!'),_('Allotted Quantity must be less than available stock Quantity!'))
         return super(tpt_batch_allotment_line, self).create(cr, uid, vals, context)
     
     def write(self, cr, uid, ids, vals, context=None):
         if 'product_uom_qty' in vals:
             if (vals['product_uom_qty'] < 0):
                 raise osv.except_osv(_('Warning!'),_('Quantity is not allowed as negative values'))
+        if 'product_uom_qty' in vals or 'sys_batch' in vals:
+            batch = self.pool.get('stock.production.lot').browse(cr, uid, vals['sys_batch'])
+            if batch.stock_available < vals['product_uom_qty']:
+                raise osv.except_osv(_('Warning!'),_('Allotted quantity should not be greater than Available Quantity!'))
         return super(tpt_batch_allotment_line, self).write(cr, uid,ids, vals, context)
     
     def onchange_sys_batch(self, cr, uid, ids,sys_batch=False,qty=False,batch_allotment_line=False,context=None):
@@ -2205,6 +2235,7 @@ class tpt_batch_allotment_line(osv.osv):
             else:
                 vals['sys_batch']= sys_batch
                 vals['phy_batch']= batch.phy_batch_no
+                vals['product_uom_qty']= batch.stock_available
         return {'value': vals}
     
     def onchange_product_id(self, cr, uid, ids,product_id=False,request_id=False,context=None):
