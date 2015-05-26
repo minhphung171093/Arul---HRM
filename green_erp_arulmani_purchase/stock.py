@@ -558,40 +558,59 @@ class account_invoice(osv.osv):
                 ctx.update({'date': time.strftime('%Y-%m-%d')})
                 currency = line.currency_id.name or False
                 currency_id = line.currency_id.id or False
+                #line.invoice_type=='export'
                 if currency != 'INR':
                     voucher_rate = self.pool.get('res.currency').read(cr, uid, currency_id, ['rate'], context=ctx)['rate']
-                for invoiceline in line.invoice_line:
+                for invoiceline in line.invoice_line:           
+                    #raise osv.except_osv(_('Warning! Q'),_(invoiceline.freight))             
                     freight_line = invoiceline.quantity * invoiceline.freight #TPT
-                    freight_line = round(freight_line)
+                    freight_line =freight_line
                     freight += freight_line
-                    freight = round(freight)
+                    #freight = round(freight)
                     
                     ins_line = (invoiceline.quantity * invoiceline.insurance) #TPT
-                    ins_line = round(ins_line)
+                    ins_line = ins_line
                     ins += ins_line
-                    ins = round(ins)
+                    #ins = round(ins)
                     
                     others_line = (invoiceline.quantity * invoiceline.others) #TPT
-                    others_line = round(others_line)
+                    others_line = others_line
                     others += others_line
-                    others = round(others)
+                    #others = round(others)
                     
                     val1_line = invoiceline.price_subtotal
-                    val1_line = round(val1_line)
+                    val1_line = val1_line
                     val1 += val1_line
-                    val1 = round(val1)
+                    #val1 = round(val1)
                     
                     val2_line = invoiceline.price_subtotal * (line.sale_tax_id.amount and line.sale_tax_id.amount / 100 or 0)
-                    val2_line = round(val2_line)
+                    val2_line = val2_line
                     val2 += val2_line
-                    val2 = round(val2)
-    #                 val3 = val1 + val2 + freight
-                res[line.id]['amount_untaxed'] = round(val1)
-                res[line.id]['amount_tax'] = round(val2)
-#                 res[line.id]['amount_total'] = round(val1+val2+freight+ins+others)
-#                 res[line.id]['amount_total_inr'] = round((val1+val2+freight+ins+others) / voucher_rate)
-                res[line.id]['amount_total'] = round(val1+val2+freight+ins)
-                res[line.id]['amount_total_inr'] = round((val1+val2+freight+ins) / voucher_rate)
+                    #val2 = round(val2)
+   
+                ##FOR END
+                if line.invoice_type=='export':
+                   freight = round(freight,2)
+                   ins = round(ins,2)
+                   others = round(others,2)
+                   
+                   
+                   res[line.id]['amount_untaxed'] = round(val1,2)
+                   res[line.id]['amount_tax'] = round(val2,2)
+                   res[line.id]['amount_total'] = round(val1+val2+freight+ins+others,2)
+                   res[line.id]['amount_total_inr'] = round((val1+val2+freight+ins+others) / voucher_rate,2)
+                    
+                else:
+                   freight = round(freight)
+                   ins = round(ins)                 
+                   val1 = round(val1)
+                   val2 = round(val2)
+                    
+                   res[line.id]['amount_untaxed'] = round(val1)
+                   res[line.id]['amount_tax'] = round(val2)
+                   res[line.id]['amount_total'] = round(val1+val2+freight+ins)
+                   res[line.id]['amount_total_inr'] = round((val1+val2+freight+ins) / voucher_rate)
+                
                 for taxline in line.tax_line:
                     sql='''
                         update account_invoice_tax set amount=%s where id=%s
