@@ -89,7 +89,18 @@ class tpt_tio2_batch_split(osv.osv):
         move_split_obj = self.pool.get('stock.move.split')
         move_obj = self.pool.get('stock.move')
         for line in self.browse(cr, uid, ids):
-            move_ids = move_obj.search(cr, uid, [('scrapped','=',False),('production_id','=',line.mrp_id.id),('product_id','=',line.product_id.id)])
+            
+            if line.product_id.default_code in ['TITANIUM DIOXIDE-ANATASE','TiO2','M0501010001'] or line.product_id.name in ['TITANIUM DIOXIDE-ANATASE','TiO2','M0501010001']:
+                sql = '''
+                        select id from stock_production_lot where name='temp_tio2'
+                    '''
+                cr.execute(sql)
+                prodlot_ids = cr.fetchone()
+                if prodlot_ids and self.pool.get('stock.production.lot').browse(cr, uid, prodlot_ids[0]).stock_available<line.available:
+                    raise osv.except_osv(_('Warning!'),_('Batchable Quantity is not more than Available Stock Quantity !'))
+            move_ids = move_obj.search(cr, uid, [('scrapped','=',False),('production_id','=',line.mrp_id.id),('product_id','=',line.product_id.id),('prodlot_id','in',prodlot_ids)], order='product_qty desc')
+            
+#             move_ids = move_obj.search(cr, uid, [('scrapped','=',False),('production_id','=',line.mrp_id.id),('product_id','=',line.product_id.id)])
             if move_ids:
                 cr.execute('update stock_move set location_dest_id=%s where id in %s',(line.location_id.id,tuple(move_ids),))
 #             move_obj.write(cr, uid, move_ids,{'location_dest_id':line.location_id.id})
