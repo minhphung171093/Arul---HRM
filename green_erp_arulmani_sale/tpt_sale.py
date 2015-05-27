@@ -1679,6 +1679,18 @@ tpt_batch_number()
 class tpt_batch_allotment(osv.osv):
     _name = "tpt.batch.allotment"
      
+     
+#     def init(self, cr):
+#         batch_ids = self.pool.get('tpt.batch.allotment').search(cr, 1, [])
+#         if batch_ids:
+#             for batch in self.browse(cr,1,batch_ids):
+#                 sale_id = batch.sale_order_id
+#                 sql = '''
+#                     select id from stock_picking where sale_id = %s and state = 'done'
+#                 '''%(sale_id)
+#                 cr.execute(sql)
+                
+        
     _columns = {
         'batch_request_id':fields.many2one('tpt.batch.request','Batch Request No.',required = True), 
         'name':fields.date('Date Requested',required = True), 
@@ -1708,7 +1720,20 @@ class tpt_batch_allotment(osv.osv):
         batch = self.browse(cr, uid, new_id)
         requested_qty = 0
         for line in batch.batch_allotment_line:
+            allot_qty = 0
             requested_qty += line.product_uom_qty
+            sql = '''
+                    select id from tpt_batch_allotment_line where sys_batch = %s and is_deliver is not True
+            '''%(line.sys_batch.id)
+            cr.execute(sql)
+            for ba_line in cr.dictfetchall():
+                line_id = self.pool.get('tpt.batch.allotment.line').browse(cr, uid, ba_line['id']) 
+                qty = line_id.product_uom_qty or 0
+                used =line_id.used_qty or 0
+                allot_qty += qty - used
+            lot_id = self.pool.get('stock.production.lot').browse(cr, uid, line.sys_batch.id) 
+            if allot_qty > lot_id.stock_available:
+                raise osv.except_osv(_('Warning!'),_('Batch number %s: Allotted quantity should not be greater than Available Quantity!'%line.sys_batch.name))
         if requested_qty:
             sql = '''
                     update tpt_batch_allotment set requested_qty = %s where id = %s
@@ -1736,7 +1761,21 @@ class tpt_batch_allotment(osv.osv):
         requested_qty = 0
         for batch in self.browse(cr, uid, ids):
             for line in batch.batch_allotment_line:
+                allot_qty = 0
                 requested_qty += line.product_uom_qty
+                sql = '''
+                    select id from tpt_batch_allotment_line where sys_batch = %s and is_deliver is not True
+                '''%(line.sys_batch.id)
+                cr.execute(sql)
+                for ba_line in cr.dictfetchall():
+                    line_id = self.pool.get('tpt.batch.allotment.line').browse(cr, uid, ba_line['id']) 
+                    qty = line_id.product_uom_qty or 0
+                    used =line_id.used_qty or 0
+                    allot_qty += qty - used
+                lot_id = self.pool.get('stock.production.lot').browse(cr, uid, line.sys_batch.id) 
+                if allot_qty > lot_id.stock_available:
+                    raise osv.except_osv(_('Warning!'),_('Batch number %s: Allotted quantity should not be greater than Available Quantity!'%line.sys_batch.name))
+                    
             if requested_qty:
                 sql = '''
                         update tpt_batch_allotment set requested_qty = %s where id = %s
@@ -1755,6 +1794,8 @@ class tpt_batch_allotment(osv.osv):
                     if (allot_line['product_id']==request_line['product_id']):
                         if (allot_line['allot_product_qty'] != request_line['request_product_qty']):
                             raise osv.except_osv(_('Warning!'),_('The product quantity in batch allotment must be as same as the product quantity in batch request!'))
+                        
+                
         return new_write
     def confirm(self, cr, uid, ids, context=None):
         new_write =  self.write(cr, uid, ids, {'state': 'confirm'})
@@ -2184,6 +2225,8 @@ class tpt_batch_allotment_line(osv.osv):
         'sys_batch':fields.many2one('stock.production.lot','System Batch Number',required=True), 
 #         'phy_batch':fields.char('Physical Batch No.', size = 1024)
         'phy_batch':fields.function(get_phy_batch,type='char', size = 1024,string='Physical Batch Number',multi='sum',store=True),
+        'used_qty': fields.float('Used Qty', digits=(16,3)), 
+        'is_deliver': fields.boolean('Is deliver'),
                 }
     
     def create(self, cr, uid, vals, context=None):
