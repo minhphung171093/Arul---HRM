@@ -98,6 +98,16 @@ class tpt_tio2_batch_split(osv.osv):
                 prodlot_ids = cr.fetchone()
                 if prodlot_ids and self.pool.get('stock.production.lot').browse(cr, uid, prodlot_ids[0]).stock_available<line.available:
                     raise osv.except_osv(_('Warning!'),_('Batchable Quantity is not more than Available Stock Quantity !'))
+            
+            if line.product_id.default_code in ['TITANIUM DIOXIDE-RUTILE','M0501010008'] or line.product_id.name in ['TITANIUM DIOXIDE-RUTILE','M0501010008']:
+                sql = '''
+                        select id from stock_production_lot where name='temp_tio2_rutile'
+                    '''
+                cr.execute(sql)
+                prodlot_ids = cr.fetchone()
+                if prodlot_ids and self.pool.get('stock.production.lot').browse(cr, uid, prodlot_ids[0]).stock_available<line.available:
+                    raise osv.except_osv(_('Warning!'),_('Batchable Quantity is not more than Available Stock Quantity !'))
+            
             move_ids = move_obj.search(cr, uid, [('scrapped','=',False),('production_id','=',line.mrp_id.id),('product_id','=',line.product_id.id),('prodlot_id','in',prodlot_ids)], order='product_qty desc')
             
 #             move_ids = move_obj.search(cr, uid, [('scrapped','=',False),('production_id','=',line.mrp_id.id),('product_id','=',line.product_id.id)])
