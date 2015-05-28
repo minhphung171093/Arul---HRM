@@ -32,6 +32,7 @@ class Parser(report_sxw.rml_parse):
             'get_date_time': self.get_date,
             'get_total_amount': self.get_total_amount,
             'amount_to_text': self.amount_to_text,
+            'tpt_amount_to_text': self.tpt_amount_to_text,
             'get_qty_mt': self.get_qty_mt,
             'get_qty_mt1': self.get_qty_mt1,
             'get_qty_mt2': self.get_qty_mt2,
@@ -94,7 +95,14 @@ class Parser(report_sxw.rml_parse):
         if text and len(text)>3 and text[:3]=='AND':
             text = text[3:]
         return text
-         
+    def tpt_amount_to_text(self, number,invoice_type):
+        text = Number2Words().convertNumberToWords(number).upper()
+        if text and len(text)>3 and text[:3]=='AND':
+            text = text[3:]
+        if invoice_type.name=='VVTI Indirect Export':
+             if number==0:
+                text = 'NIL'
+        return text     
     def get_total(self, quantity, price_unit, freight, excise_duty_id, sale_tax_id):
         val = ((quantity*price_unit)+(quantity*price_unit)*(excise_duty_id.amount/100))+(((quantity*price_unit)+(quantity*price_unit)*(excise_duty_id.amount/100))*sale_tax_id.amount/100)+freight
         return round(val)
