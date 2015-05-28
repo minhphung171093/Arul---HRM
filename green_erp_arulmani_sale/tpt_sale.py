@@ -1680,17 +1680,31 @@ class tpt_batch_allotment(osv.osv):
     _name = "tpt.batch.allotment"
      
      
-#     def init(self, cr):
-#         batch_ids = self.pool.get('tpt.batch.allotment').search(cr, 1, [])
-#         if batch_ids:
-#             for batch in self.browse(cr,1,batch_ids):
-#                 sale_id = batch.sale_order_id
-#                 sql = '''
-#                     select id from stock_picking where sale_id = %s and state = 'done'
-#                 '''%(sale_id)
-#                 cr.execute(sql)
-                
-        
+    def init(self, cr):
+        batch_line_obj = self.pool.get('tpt.batch.allotment.line')
+        batch_line_ids = batch_line_obj.search(cr, 1, [])
+        if batch_line_ids:
+            for line in batch_line_obj.browse(cr,1,batch_line_ids):
+                sale_id = line.batch_allotment_id and line.batch_allotment_id.sale_order_id and line.batch_allotment_id.sale_order_id.id or False
+                lot_id = line.sys_batch.id or False
+                if sale_id and lot_id:
+                    sql = '''
+                        select case when sum(product_qty)!=0 then sum(product_qty) else 0 end qty from stock_move where state = 'done' and prodlot_id = %s 
+                            and sale_line_id in (select id from sale_order_line where order_id = %s)
+                    '''%(lot_id,sale_id)
+                    cr.execute(sql)
+                    qty = cr.dictfetchone()['qty']
+                    
+                    sql ='''
+                        update tpt_batch_allotment_line set used_qty = %s where id = %s
+                    '''%(qty,line.id)
+                    cr.execute(sql)
+                    if line.used_qty and line.used_qty==line.product_uom_qty:
+                        sql ='''
+                            update tpt_batch_allotment_line set is_deliver = 't' where id = %s
+                        '''%(line.id)
+                        cr.execute(sql)
+                    
     _columns = {
         'batch_request_id':fields.many2one('tpt.batch.request','Batch Request No.',required = True), 
         'name':fields.date('Date Requested',required = True), 
@@ -2233,7 +2247,7 @@ class tpt_batch_allotment_line(osv.osv):
         if 'product_uom_qty' in vals:
             if (vals['product_uom_qty'] < 0):
                 raise osv.except_osv(_('Warning!'),_('Quantity is not allowed as negative values'))
-        if 'product_uom_qty' in vals or 'sys_batch' in vals:
+        if 'product_uom_qty' in vals and 'sys_batch' in vals:
             batch = self.pool.get('stock.production.lot').browse(cr, uid, vals['sys_batch'])
             if batch.stock_available < vals['product_uom_qty']:
                 raise osv.except_osv(_('Warning!'),_('Allotted Quantity must be less than available stock Quantity!'))
@@ -2243,7 +2257,7 @@ class tpt_batch_allotment_line(osv.osv):
         if 'product_uom_qty' in vals:
             if (vals['product_uom_qty'] < 0):
                 raise osv.except_osv(_('Warning!'),_('Quantity is not allowed as negative values'))
-        if 'product_uom_qty' in vals or 'sys_batch' in vals:
+        if 'product_uom_qty' in vals and 'sys_batch' in vals:
             batch = self.pool.get('stock.production.lot').browse(cr, uid, vals['sys_batch'])
             if batch.stock_available < vals['product_uom_qty']:
                 raise osv.except_osv(_('Warning!'),_('Allotted quantity should not be greater than Available Quantity!'))
@@ -2277,8 +2291,12 @@ class tpt_batch_allotment_line(osv.osv):
                 return {'value': vals,'warning':warning}
             else:
                 vals['sys_batch']= sys_batch
-                vals['phy_batch']= batch.phy_batch_no
+                vals['phy_batch']= batch.phy_batch_no or 0
                 vals['product_uom_qty']= batch.stock_available
+        if sys_batch and not qty:
+            batch = self.pool.get('stock.production.lot').browse(cr, uid, sys_batch)
+            vals['phy_batch']= batch.phy_batch_no
+            vals['product_uom_qty']= batch.stock_available or 0
         return {'value': vals}
     
     def onchange_product_id(self, cr, uid, ids,product_id=False,request_id=False,context=None):
