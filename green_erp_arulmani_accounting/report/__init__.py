@@ -8,3 +8,4 @@ import customer_ledger_statement_report
 import batch_wise_stock_report
 import purchase_order_list
 import input_register_report
+import trial_balance_report

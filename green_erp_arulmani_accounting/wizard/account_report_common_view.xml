@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<openerp>
+    <data>
+		<record id="tpt_account_report_balance_view" model="ir.ui.view">
+            <field name="name">Trial Balance</field>
+            <field name="model">account.balance.report</field>
+            <field name="inherit_id" ref="account.account_report_balance_view"/>
+            <field name="arch" type="xml">
+            	<xpath expr="//button[@name='check_report']" position="after">
+            		<button name="print_aeroo_report" string="Aeroo Print" type="object" default_focus="1" class="oe_highlight"/>
+            	</xpath>
+            </field>
+        </record>
+    </data>
+</openerp>
+
