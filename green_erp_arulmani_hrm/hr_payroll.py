@@ -1351,8 +1351,26 @@ class arul_hr_payroll_executions(osv.osv):
                     if contribution_ids:
                         contribution = contribution_obj.browse(cr, uid, contribution_ids[0])
                         emp_esi_limit = contribution.emp_esi_limit
+                        ##TPT
+                        sql = '''
+                        select extract(day from date_of_joining) doj from hr_employee where extract(year from date_of_joining)= %s and 
+                          extract(month from date_of_joining)= %s and id=%s
+                        '''%(line.year,line.month,p.id)
+                        cr.execute(sql)
+                        k = cr.fetchone()
+                        if k:
+                            new_emp_day = k[0]  
+                            emp_lwf_amt = contribution.emp_lwf_amt 
+                        ##TPT
                         if line.month=='12':
-                            emp_lwf_amt = contribution.emp_lwf_amt
+                            sql = '''
+                            select extract(day from date_of_joining) doj from hr_employee where extract(year from date_of_joining)= %s and id=%s
+                            '''%(line.year,p.id)
+                            cr.execute(sql)
+                            k = cr.fetchone()
+                            if not k:
+                                emp_lwf_amt = contribution.emp_lwf_amt
+                                
                         emp_esi_con = contribution.emp_esi_con
                         emp_pf_con = contribution.emp_pf_con
                     total_days,total_shift_allowance,total_lop,total_esi,total_week_off = self.get_timesheet(cr,uid,p.id,line.month,line.year,context=context)
