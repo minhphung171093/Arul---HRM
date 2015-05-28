@@ -536,6 +536,8 @@ class account_invoice(osv.osv):
                 'amount_total': 0.0,
                 'amount_total_inr': 0.0,
                 'amount_total_tds': 0.0,
+                'amount_tax_debit': 0.0,
+                'amount_tax_credit': 0.0,
                 'aed': 0.0,
             }
             if line.type == 'out_invoice':
@@ -558,40 +560,59 @@ class account_invoice(osv.osv):
                 ctx.update({'date': time.strftime('%Y-%m-%d')})
                 currency = line.currency_id.name or False
                 currency_id = line.currency_id.id or False
+                #line.invoice_type=='export'
                 if currency != 'INR':
                     voucher_rate = self.pool.get('res.currency').read(cr, uid, currency_id, ['rate'], context=ctx)['rate']
-                for invoiceline in line.invoice_line:
+                for invoiceline in line.invoice_line:           
+                    #raise osv.except_osv(_('Warning! Q'),_(invoiceline.freight))             
                     freight_line = invoiceline.quantity * invoiceline.freight #TPT
-                    freight_line = round(freight_line)
+                    freight_line =freight_line
                     freight += freight_line
-                    freight = round(freight)
+                    #freight = round(freight)
                     
                     ins_line = (invoiceline.quantity * invoiceline.insurance) #TPT
-                    ins_line = round(ins_line)
+                    ins_line = ins_line
                     ins += ins_line
-                    ins = round(ins)
+                    #ins = round(ins)
                     
                     others_line = (invoiceline.quantity * invoiceline.others) #TPT
-                    others_line = round(others_line)
+                    others_line = others_line
                     others += others_line
-                    others = round(others)
+                    #others = round(others)
                     
                     val1_line = invoiceline.price_subtotal
-                    val1_line = round(val1_line)
+                    val1_line = val1_line
                     val1 += val1_line
-                    val1 = round(val1)
+                    #val1 = round(val1)
                     
                     val2_line = invoiceline.price_subtotal * (line.sale_tax_id.amount and line.sale_tax_id.amount / 100 or 0)
-                    val2_line = round(val2_line)
+                    val2_line = val2_line
                     val2 += val2_line
-                    val2 = round(val2)
-    #                 val3 = val1 + val2 + freight
-                res[line.id]['amount_untaxed'] = round(val1)
-                res[line.id]['amount_tax'] = round(val2)
-#                 res[line.id]['amount_total'] = round(val1+val2+freight+ins+others)
-#                 res[line.id]['amount_total_inr'] = round((val1+val2+freight+ins+others) / voucher_rate)
-                res[line.id]['amount_total'] = round(val1+val2+freight+ins)
-                res[line.id]['amount_total_inr'] = round((val1+val2+freight+ins) / voucher_rate)
+                    #val2 = round(val2)
+   
+                ##FOR END
+                if line.invoice_type=='export':
+                   freight = round(freight,2)
+                   ins = round(ins,2)
+                   others = round(others,2)
+                   
+                   
+                   res[line.id]['amount_untaxed'] = round(val1,2)
+                   res[line.id]['amount_tax'] = round(val2,2)
+                   res[line.id]['amount_total'] = round(val1+val2+freight+ins+others,2)
+                   res[line.id]['amount_total_inr'] = round((val1+val2+freight+ins+others) / voucher_rate,2)
+                    
+                else:
+                   freight = round(freight)
+                   ins = round(ins)                 
+                   val1 = round(val1)
+                   val2 = round(val2)
+                    
+                   res[line.id]['amount_untaxed'] = round(val1)
+                   res[line.id]['amount_tax'] = round(val2)
+                   res[line.id]['amount_total'] = round(val1+val2+freight+ins)
+                   res[line.id]['amount_total_inr'] = round((val1+val2+freight+ins) / voucher_rate)
+                
                 for taxline in line.tax_line:
                     sql='''
                         update account_invoice_tax set amount=%s where id=%s
@@ -783,6 +804,27 @@ class account_invoice(osv.osv):
                     res[line.id]['amount_total_tds'] = round(tds_amount)
                     res[line.id]['amount_total'] = round(amount_untaxed) +round(p_f_charge) + round(excise_duty) + round(total_tax) + round(total_fright) - round(tds_amount)
                     res[line.id]['amount_total_inr'] = round((round(amount_untaxed) +round(p_f_charge) + round(excise_duty) + round(total_tax) + round(total_fright) - round(tds_amount))/voucher_rate)
+            if line.sup_inv_id and line.type=='in_invoice':
+                base = 0
+                tax_debit_amount = 0
+                tax_credit_amount = 0
+                for inv_line in line.invoice_line:
+                    if inv_line.fright_fi_type == '2':
+                        base_amount = round(inv_line.fright)
+                        base+=base_amount
+                        tax_debit_amount += round(base_amount*(inv_line.tax_id and inv_line.tax_id.amount/100 or 0))
+                        tax_credit_amount += round(base_amount*(inv_line.tax_credit and inv_line.tax_credit.amount/100 or 0))
+                    else:
+                        base_amount = round(inv_line.fright*inv_line.quantity)
+                        base += base_amount
+                        tax_debit_amount += round(base_amount*(inv_line.tax_id and inv_line.tax_id.amount/100 or 0))
+                        tax_credit_amount += round(base_amount*(inv_line.tax_credit and inv_line.tax_credit.amount/100 or 0))
+                res[line.id]['amount_untaxed'] = round(base)
+                res[line.id]['amount_tax_debit'] = round(tax_debit_amount)
+                res[line.id]['amount_tax_credit'] = round(tax_credit_amount)
+                res[line.id]['amount_total'] = res[line.id]['amount_untaxed'] + res[line.id]['amount_tax_debit'] - res[line.id]['amount_tax_credit']
+                
+                
         return res
     
     def _get_invoice_line(self, cr, uid, ids, context=None):
@@ -800,6 +842,7 @@ class account_invoice(osv.osv):
         'is_tds_applicable': fields.boolean('IsTDSApplicable'),
         'tds_id': fields.many2one('account.tax', 'TDS %'),
         'tax_id': fields.many2one('account.tax', 'Taxes'),
+        'sup_inv_id': fields.many2one('account.invoice', 'Supplier Invoice', required = True, readonly=True, states={'draft':[('readonly',False)]}),
         'amount_untaxed': fields.function(amount_all_supplier_invoice_line, multi='sums', string='Untaxed Amount',
             store={
                 'account.invoice': (lambda self, cr, uid, ids, c={}: ids, ['invoice_line'], 10),   
@@ -843,6 +886,16 @@ class account_invoice(osv.osv):
                 'account.invoice.line': (_get_invoice_line, ['quantity', 'uos_id', 'price_unit','discount','p_f','p_f_type',   
                                                                 'ed', 'ed_type','invoice_line_tax_id','fright','fright_type', 'tds_id','aed_id_1'], 10)}),
         'amount_total_tds': fields.function(amount_all_supplier_invoice_line, multi='sums', string='Total TDS',
+             store={
+                'account.invoice': (lambda self, cr, uid, ids, c={}: ids, ['invoice_line'], 10),   
+                'account.invoice.line': (_get_invoice_line, ['quantity', 'uos_id', 'price_unit','discount','p_f','p_f_type',   
+                                                                'ed', 'ed_type','invoice_line_tax_id','fright','fright_type', 'tds_id','aed_id_1'], 10)}),
+        'amount_tax_debit': fields.function(amount_all_supplier_invoice_line, multi='sums', string='Tax (Debit)',
+             store={
+                'account.invoice': (lambda self, cr, uid, ids, c={}: ids, ['invoice_line'], 10),   
+                'account.invoice.line': (_get_invoice_line, ['quantity', 'uos_id', 'price_unit','discount','p_f','p_f_type',   
+                                                                'ed', 'ed_type','invoice_line_tax_id','fright','fright_type', 'tds_id','aed_id_1'], 10)}),
+        'amount_tax_credit': fields.function(amount_all_supplier_invoice_line, multi='sums', string='Tax (Credit)',
              store={
                 'account.invoice': (lambda self, cr, uid, ids, c={}: ids, ['invoice_line'], 10),   
                 'account.invoice.line': (_get_invoice_line, ['quantity', 'uos_id', 'price_unit','discount','p_f','p_f_type',   
@@ -922,12 +975,12 @@ class account_invoice(osv.osv):
         return result
     
     def create(self, cr, uid, vals, context=None):
-        if vals.get('type','')=='in_invoice':
-            vals['name'] = self.pool.get('ir.sequence').get(cr, uid, 'tpt.supplier.invoice.sequence') or '/'
-        elif 'purchase_id' not in vals:
-            vals['name'] = self.pool.get('ir.sequence').get(cr, uid, 'tpt.supplier.invoice.sequence') or '/'
-        else:
-            vals['name'] = self.pool.get('ir.sequence').get(cr, uid, 'tpt.supplier.invoice.sequence') or '/'
+#         if vals.get('type','')=='in_invoice' and 'purchase_id' in vals:
+#             vals['name'] = self.pool.get('ir.sequence').get(cr, uid, 'tpt.supplier.invoice.sequence') or '/'
+#         elif vals.get('type','')=='in_invoice' and 'purchase_id' not in vals:
+#             vals['name'] = self.pool.get('ir.sequence').get(cr, uid, 'tpt.supplier.invoice.sequence') or '/'
+#         elif 'purchase_id' in vals:
+#             vals['name'] = self.pool.get('ir.sequence').get(cr, uid, 'tpt.supplier.invoice.sequence') or '/'
         new_id = super(account_invoice, self).create(cr, uid, vals, context)
         return new_id
     
@@ -994,6 +1047,17 @@ class account_invoice_line(osv.osv):
             for tax in tax_amounts:
                 amount_total_tax += tax/100
             res[line.id]['line_net'] = amount_total_tax+amount_fright+amount_ed+amount_p_f+amount_basic
+            
+            if line.invoice_id.sup_inv_id and line.invoice_id.type=='in_invoice':
+                if line.fright_fi_type == '2':
+                    base = line.fright
+                    tax_debit_amount = base*(line.tax_id and line.tax_id.amount/100 or 0)
+                    tax_credit_amount = base*(line.tax_credit and line.tax_credit.amount/100 or 0)
+                else:
+                    base = line.fright*line.quantity
+                    tax_debit_amount = base*(line.tax_id and line.tax_id.amount/100 or 0)
+                    tax_credit_amount = base*(line.tax_credit and line.tax_credit.amount/100 or 0)
+                res[line.id]['line_net'] = base+tax_debit_amount-tax_credit_amount
         return res
      
     _columns = {
@@ -1006,8 +1070,10 @@ class account_invoice_line(osv.osv):
         'ed_type':fields.selection([('1','%'),('2','Rs'),('3','Per Qty')],('ED Type')),
         'fright': fields.float('Freight'),
         'fright_type':fields.selection([('1','%'),('2','Rs'),('3','Per Qty')],('Freight Type')),
+        'fright_fi_type':fields.selection([('2','Rs'),('3','Qty')],('Freight Type')),
         'line_net': fields.function(line_net_line_supplier_invo, store = True, multi='deltas' ,string='Line Net'),
         'tax_id': fields.many2one('account.tax', 'Taxes'),
+        'tax_credit': fields.many2one('account.tax', 'Tax (Credit)'),
         'tds_id': fields.many2one('account.tax', 'TDS %'),
         'aed_id': fields.many2one('account.tax', 'AED'),
         'aed_id_1': fields.float('AED'),
@@ -1017,6 +1083,25 @@ class account_invoice_line(osv.osv):
     _defaults = {
         'name': '/',
                  }
+    
+    def onchange_tax_credit(self, cr, uid, ids, tax_id,tax_credit, context=None):
+        vals = {}
+        warning = {}
+        if tax_id and tax_credit:
+            tax_obj = self.pool.get('account.tax')
+            temp = 0
+            tax_cr = tax_obj.browse(cr, uid, tax_credit)
+#             for line in tax_obj.browse(cr, uid, invoice_line_tax_id[0][2]):
+#                 if line.amount == tax_cr.amount:
+#                     temp+=1
+            tax = tax_obj.browse(cr, uid, tax_id)
+            if tax.amount!=tax_cr.amount:
+                warning = {  
+                    'title': _('Warning!'),  
+                    'message': _('% defined in Tax (Debit) and Tax (Credit) field should be the same.'),  
+                }
+                vals={'tax_credit':False}
+        return {'value': vals, 'warning':warning}
     
     def onchange_tax_id(self, cr, uid, ids, tax_id=False, context=None):
         vals = {}

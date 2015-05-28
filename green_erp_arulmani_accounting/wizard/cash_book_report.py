@@ -111,7 +111,7 @@ class cash_book_report(osv.osv_memory):
             sql = '''
                 select sum(aml.credit) as credit, aml.date from account_move_line aml 
                 where aml.credit is not null and aml.credit != 0 and aml.date < '%s' 
-                and move_id in (select move_id from account_voucher where type_trans = 'payment' and type_cash_bank = 'cash') 
+                and move_id in (select move_id from account_voucher where type = 'payment' and state = 'posted' and journal_id in (select id from account_journal where type = 'cash')) 
                 group by aml.date
             '''%(date_from)
             cr.execute(sql)
@@ -121,7 +121,7 @@ class cash_book_report(osv.osv_memory):
             sql = '''
                 select sum(aml.debit) as debit, aml.date from account_move_line aml 
                 where aml.debit is not null and aml.debit != 0 and aml.date < '%s' 
-                and move_id in (select move_id from account_voucher where type_trans = 'receipt' and type_cash_bank = 'cash') 
+                and move_id in (select move_id from account_voucher where type = 'receipt' and state = 'posted' and journal_id in (select id from account_journal where type = 'cash')) 
                 group by aml.date
             '''%(date_from)
             cr.execute(sql)
@@ -138,36 +138,51 @@ class cash_book_report(osv.osv_memory):
             date_to = o.date_to
             type = o.type_trans
             if type == 'payment':
-                account_ids = account_voucher_obj.search(cr,uid,[('date', '>=', date_from),('date', '<=', date_to), ('type_cash_bank', '=', 'cash'), ('type_trans', '=', 'payment')])
+                sql = '''
+                        select id from account_voucher where date between '%s' and '%s' and type = 'payment' and journal_id in (select id from account_journal where type = 'cash') and state = 'posted'
+                    '''%(date_from, date_to)
+                cr.execute(sql)
+                account_ids = [row[0] for row in cr.fetchall()]
+#                 account_ids = account_voucher_obj.search(cr,uid,[('date', '>=', date_from),('date', '<=', date_to), ('type', '=', 'payment')])
                 if account_ids:
                     cr.execute('''
                         select aa.name as acc_name, aml.account_id, sum(aml.debit) as debit, sum(aml.credit) as credit,av.name as voucher_name,av.date as voucher_date, aml.ref as ref from account_account aa, account_move_line aml,account_voucher av where av.move_id = aml.move_id and
-                        aml.move_id in (select move_id from account_voucher where id in %s and type_trans = 'payment') and debit is not null and debit !=0 and aa.id = aml.account_id group by av.name,aa.name, aml.account_id,av.date, aml.ref order by av.date
+                        aml.move_id in (select move_id from account_voucher where id in %s and type = 'payment' and state = 'posted') and debit is not null and debit !=0 and aa.id = aml.account_id group by av.name,aa.name, aml.account_id,av.date, aml.ref order by av.date
                     ''',(tuple(account_ids),))
                     return cr.dictfetchall()
                 else:
                     return []
             elif type == 'receipt':
-                account_ids = account_voucher_obj.search(cr,uid,[('date', '>=', date_from),('date', '<=', date_to), ('type_cash_bank', '=', 'cash'), ('type_trans', '=', 'receipt')])
+                sql = '''
+                        select id from account_voucher where date between '%s' and '%s' and type = 'receipt' and journal_id in (select id from account_journal where type = 'cash') and state = 'posted'
+                    '''%(date_from, date_to)
+                cr.execute(sql)
+                account_ids = [row[0] for row in cr.fetchall()]
+#                 account_ids = account_voucher_obj.search(cr,uid,[('date', '>=', date_from),('date', '<=', date_to), ('type', '=', 'receipt')])
                 if account_ids:
                     cr.execute('''
                         select aa.name as acc_name, aml.account_id, sum(aml.debit) as debit, sum(aml.credit) as credit,av.name as voucher_name,av.date as voucher_date, aml.ref as ref from account_account aa, account_move_line aml,account_voucher av where av.move_id = aml.move_id and
-                        aml.move_id in (select move_id from account_voucher where id in %s and type_trans = 'receipt') and credit is not null and credit !=0 and aa.id = aml.account_id group by av.name,aa.name, aml.account_id,av.date, aml.ref order by av.date
+                        aml.move_id in (select move_id from account_voucher where id in %s and type = 'receipt' and state = 'posted') and credit is not null and credit !=0 and aa.id = aml.account_id group by av.name,aa.name, aml.account_id,av.date, aml.ref order by av.date
                     
                     ''',(tuple(account_ids),))
                     return cr.dictfetchall()
                 else:
                     return []
             else:
-                account_ids = account_voucher_obj.search(cr,uid,[('date', '>=', date_from),('date', '<=', date_to), ('type_cash_bank', '=', 'cash')])
+                sql = '''
+                        select id from account_voucher where date between '%s' and '%s' and journal_id in (select id from account_journal where type = 'cash') and state = 'posted'
+                    '''%(date_from, date_to)
+                cr.execute(sql)
+                account_ids = [row[0] for row in cr.fetchall()]
+#                 account_ids = account_voucher_obj.search(cr,uid,[('date', '>=', date_from),('date', '<=', date_to)])
                 if account_ids:
                     cr.execute('''
                         select foo.acc_name, foo.account_id, sum(foo.debit) as debit, sum(foo.credit) as credit,foo.voucher_name,foo.voucher_date, foo.ref from
                         (select aa.name as acc_name, aml.account_id, aml.debit as debit, aml.credit as credit,av.name as voucher_name,av.date as voucher_date , aml.ref as ref from account_account aa, account_move_line aml,account_voucher av where av.move_id = aml.move_id and
-                        aml.move_id in (select move_id from account_voucher where id in %s and type_trans = 'payment') and aml.debit is not null and aml.debit !=0 and aa.id = aml.account_id
+                        aml.move_id in (select move_id from account_voucher where id in %s and type = 'payment' and state = 'posted') and aml.debit is not null and aml.debit !=0 and aa.id = aml.account_id
                         union all
                         select aa.name as acc_name, aml.account_id, aml.debit as debit, aml.credit as credit,av.name as voucher_name,av.date as voucher_date, aml.ref as ref from account_account aa, account_move_line aml,account_voucher av where av.move_id = aml.move_id and
-                        aml.move_id in (select move_id from account_voucher where id in %s and type_trans = 'receipt') and aml.credit is not null and aml.credit !=0 and aa.id = aml.account_id
+                        aml.move_id in (select move_id from account_voucher where id in %s and type = 'receipt' and state = 'posted') and aml.credit is not null and aml.credit !=0 and aa.id = aml.account_id
                         )foo
                         group by foo.acc_name, foo.account_id, foo.voucher_name,foo.voucher_date, foo.ref order by foo.voucher_date
                     ''',(tuple(account_ids),tuple(account_ids),))
