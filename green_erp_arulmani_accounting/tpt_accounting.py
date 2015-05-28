@@ -2425,10 +2425,13 @@ class account_voucher(osv.osv):
     def create(self, cr, uid, vals, context=None):
         if vals.get('name','/')=='/':
             vals['name'] = self.pool.get('ir.sequence').get(cr, uid, 'tpt.journal.voucher.sequence') or '/'
+        
         new_id = super(account_voucher, self).create(cr, uid, vals, context)
+            
         if context is None:
             context = {}
-        new = self.browse(cr, uid, new_id)
+        
+        new = self.browse(cr, uid, new_id)  
         if new.type_trans:
             total = 0
             sql = '''
@@ -2451,6 +2454,14 @@ class account_voucher(osv.osv):
             cr.execute(sql)
             total_debit = 0
             total_credit = 0
+            sql = '''
+                update account_voucher set type_trans = 'payment', sum_amount = %s where type = 'payment' and id = %s
+            '''%(new.amount, new.id)
+            cr.execute(sql)
+            sql = '''
+                update account_voucher set type_trans = 'receipt', sum_amount = %s where type = 'receipt' and id = %s
+            '''%(new.amount, new.id)
+            cr.execute(sql)
             for line in new.line_ids:
                 if line.type=='dr':
                     total_debit += line.amount
@@ -2459,6 +2470,17 @@ class account_voucher(osv.osv):
             if total_debit != total_credit:
                 raise osv.except_osv(_('Warning!'),
                     _('Total Debit must be equal Total Credit!'))
+#         elif context.get('tpt_remove_dr_cr',False):
+#             if not new.type_trans:
+#                 sql = '''
+#                     update account_voucher set type_trans = 'payment' where type = 'payment' 
+#                 '''
+#                 cr.execute(sql)
+#                 sql = '''
+#                     update account_voucher set type_trans = 'receipt' where type = 'receipt' 
+#                 '''
+#                 cr.execute(sql)
+        
         return new_id
     
     def write(self, cr, uid, ids, vals, context=None):
@@ -2488,6 +2510,15 @@ class account_voucher(osv.osv):
                 if total_debit != total_credit:
                     raise osv.except_osv(_('Warning!'),
                         _('Total Debit must be equal Total Credit!'))
+#             else:
+#                 sql = '''
+#                     update account_voucher set type_trans = 'payment' where type = 'payment'
+#                 '''
+#                 cr.execute(sql)
+#                 sql = '''
+#                     update account_voucher set type_trans = 'receipt' where type = 'receipt'
+#                 '''
+#                 cr.execute(sql)
         return new_write
     
     def first_move_line_get(self, cr, uid, voucher_id, move_id, company_currency, current_currency, context=None):
@@ -2512,9 +2543,17 @@ class account_voucher(osv.osv):
             if voucher.type_trans in ('payment'):
                 credit = voucher.sum_amount
                 account_id = voucher.account_id.id
+                sql = '''
+                    update account_voucher set type = 'payment' where id = %s
+                '''%(voucher.id)
+                cr.execute(sql)
             elif voucher.type_trans in ('receipt'):
                 debit = voucher.sum_amount
                 account_id = voucher.account_id.id
+                sql = '''
+                    update account_voucher set type = 'receipt' where id = %s
+                '''%(voucher.id)
+                cr.execute(sql)
 #/phuoc
         else:
             if voucher.type in ('purchase', 'payment'):
@@ -2815,6 +2854,14 @@ class account_voucher(osv.osv):
                     ml_writeoff = self.writeoff_move_line_get(cr, uid, voucher.id, line_total, move_id, name, company_currency, current_currency, local_context)
                     if ml_writeoff:
                         move_line_pool.create(cr, uid, ml_writeoff, local_context)
+#                         sql = '''
+#                             update account_voucher set type_trans = 'payment', sum_amount = %s where type = 'payment' and id = %s
+#                         '''%(voucher.id, voucher.amount)
+#                         cr.execute(sql)
+#                         sql = '''
+#                             update account_voucher set type_trans = 'receipt', sum_amount = %s where type = 'receipt' and id = %s
+#                         '''%(voucher.id, voucher.amount)
+#                         cr.execute(sql)
         
             
             # We post the voucher.
@@ -2882,8 +2929,16 @@ class account_voucher(osv.osv):
             if (voucher.journal_id.type == 'bank' or voucher.journal_id.type == 'cash'):
                 if voucher.type == 'receipt':
                     move['doc_type'] = 'cus_pay'
+#                     sql = '''
+#                         update account_voucher set type_trans = 'receipt', sum_amount = %s where id = %s
+#                     '''%(voucher_id, voucher.amount)
+#                     cr.execute(sql)
                 if voucher.type == 'payment':
                     move['doc_type'] = 'sup_pay'
+#                     sql = '''
+#                         update account_voucher set type_trans = 'payment', sum_amount = %s where id = %s
+#                     '''%(voucher_id, voucher.amount)
+#                     cr.execute(sql)
         return move
     def writeoff_move_line_get(self, cr, uid, voucher_id, line_total, move_id, name, company_currency, current_currency, context=None):
         '''
