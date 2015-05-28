@@ -1552,6 +1552,7 @@ class arul_hr_payroll_executions(osv.osv):
                         vpfd_amount = 0.0
                         ma = 0.0
                         spa = 0.0
+                        esi_check = 0.0
 
                         for earning_struc_id in payroll_emp_struc_obj.browse(cr,uid,emp_struc_ids[0]).payroll_earning_structure_line:
                             if earning_struc_id.earning_parameters_id.code == 'BASIC':
@@ -1586,6 +1587,8 @@ class arul_hr_payroll_executions(osv.osv):
                                 lta = earning_struc_id.float
                             if earning_struc_id.earning_parameters_id.code == 'MED':
                                 med = earning_struc_id.float
+                            if earning_struc_id.earning_parameters_id.code == 'ESI_CHECK':
+                                esi_check = earning_struc_id.float
                                                 
                         #gross_before = basic + c + hra  +spa + ea + oa			
                         #if total_lop:
@@ -1634,7 +1637,7 @@ class arul_hr_payroll_executions(osv.osv):
                         #    gross_sal = gross_before
                         #    lop = 0
 
-			if gross_sal >= emp_esi_limit:
+			if gross_sal + esi_check >= emp_esi_limit:
                             emp_esi_con_amount = 0
                         else:
                             emp_esi_con_amount = math.ceil(total_earning*emp_esi_con/100)
@@ -1733,6 +1736,7 @@ class arul_hr_payroll_executions(osv.osv):
                                           'earning_parameters_id':_earning_struc_id.earning_parameters_id.id,
                                           'float': ma,
                                     }))
+                            
 #                             if _earning_struc_id.earning_parameters_id.code == 'TOTAL_EARNING':
 #                                 vals_earning_struc.append((0,0, {
 #                                           'earning_parameters_id':_earning_struc_id.earning_parameters_id.id,
@@ -2033,6 +2037,7 @@ class arul_hr_payroll_executions(osv.osv):
                         vpfd_amount = 0.0
                         ma = 0.0
                         shd = 0.0
+                        esi_check = 0.0
 
                         for earning_struc_id in payroll_emp_struc_obj.browse(cr,uid,emp_struc_ids[0]).payroll_earning_structure_line:
                             if earning_struc_id.earning_parameters_id.code == 'BASIC':
@@ -2068,7 +2073,9 @@ class arul_hr_payroll_executions(osv.osv):
                             if earning_struc_id.earning_parameters_id.code == 'MED':
                                 med = earning_struc_id.float
                             if earning_struc_id.earning_parameters_id.code == 'SHD':
-                                shd = earning_struc_id.float			
+                                shd = earning_struc_id.float	
+                            if earning_struc_id.earning_parameters_id.code == 'ESI_CHECK':
+                                esi_check = earning_struc_id.float		
                         
                         #gross_before = basic + c + hra  +spa + ea + oa + da + la + aa
                         #if total_lop:
@@ -2121,7 +2128,7 @@ class arul_hr_payroll_executions(osv.osv):
                         #    lop = 0
                         #lop = gross_before - gross_sal
 
-                        if for_esi_base_gross_sal >= emp_esi_limit:#S2
+                        if for_esi_base_gross_sal + esi_check >= emp_esi_limit:#S2
                             emp_esi_con_amount = 0
                         else:
                             emp_esi_con_amount = math.ceil(total_earning*emp_esi_con/100)
@@ -2220,6 +2227,7 @@ class arul_hr_payroll_executions(osv.osv):
                                           'earning_parameters_id':_earning_struc_id.earning_parameters_id.id,
                                           'float': shd,
                                     }))
+                            
                             #if _earning_struc_id.earning_parameters_id.code == 'MA':
                             #    vals_earning_struc.append((0,0, {
                             #              'earning_parameters_id':_earning_struc_id.earning_parameters_id.id,
@@ -2517,6 +2525,7 @@ class arul_hr_payroll_executions(osv.osv):
                         wa = 0.0
                         ma = 0.0
                         shd = 0.0
+                        esi_check = 0.0
 
                         #Start:TPT - Variable Declarations
                         net_basic = 0.0
@@ -2565,6 +2574,8 @@ class arul_hr_payroll_executions(osv.osv):
                                 lta = earning_struc_id.float
                             if earning_struc_id.earning_parameters_id.code == 'MED':
                                 med = earning_struc_id.float
+                            if earning_struc_id.earning_parameters_id.code == 'ESI_CHECK':
+                                esi_check = earning_struc_id.float
                         #spa = spa/(26 - 4)*total_days 
                         #oa = total_shift_allowance + total_days*4 + la  # this calculation shifted to ma. oa is treated as same that of entered in paystructure
                         for_esi_base_spa = spa
@@ -2629,7 +2640,7 @@ class arul_hr_payroll_executions(osv.osv):
                         #    lop = 0
                         #lop = gross_before - gross_sal
 
-                        if for_esi_base_gross_sal >= emp_esi_limit:
+                        if for_esi_base_gross_sal + esi_check >= emp_esi_limit:
                             emp_esi_con_amount = 0
                         else:
                             emp_esi_con_amount = math.ceil(total_earning*emp_esi_con/100)
