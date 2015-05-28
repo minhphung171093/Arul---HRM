@@ -183,6 +183,8 @@ class alert_form(osv.osv_memory):
         c_shift_count = 0
                 
         total_shift_worked = 0
+        third_perm_adj_hr = 1 # 1 Hr is added with total shift worked hours. since we could not deduct shift count, since Leave Count has been also deducted.
+        
         sql = '''
                 SELECT CASE WHEN SUM(time_total)!=0 THEN SUM(time_total) ELSE 0 END time_total FROM arul_hr_permission_onduty WHERE 
                 non_availability_type_id='permission' 
@@ -202,7 +204,7 @@ class alert_form(osv.osv_memory):
         onduty_count = c[0]
                 
         perm_onduty_count =   permission_count + onduty_count
-        total_hrs = time_total + perm_onduty_count
+        total_hrs = time_total + perm_onduty_count + third_perm_adj_hr
                 
         total_hrs = timedelta(hours=total_hrs)
                 #Work Shift Taking from Master
