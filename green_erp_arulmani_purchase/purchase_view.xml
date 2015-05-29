@@ -1974,6 +1974,7 @@
 	            <form string="Material Issue" version="7.0">   
 	             <header>
 	            		<button name="bt_approve" states='draft' string="Issue Goods" type="object" class="oe_highlight" groups="green_erp_arulmani_purchase.group_vvti_purchase_admin,green_erp_arulmani_purchase.group_vvti_purchase_store_user"/>
+	            		<button name="bt_create_posting" string="Create Posting" type="object" class="oe_highlight" groups="base.user_root" confirm="Are you sure you want to posting this record?"/>
 	                    <field name="state" widget="statusbar" statusbar_visible="draft,done" statusbar_colors='{"draft":"blue"}'/>
 	            </header>    
 	            	<sheet>
