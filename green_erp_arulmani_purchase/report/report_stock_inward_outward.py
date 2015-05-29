@@ -59,7 +59,7 @@ class Parser(report_sxw.rml_parse):
         product_id = wizard_data['product_id']
         sql = '''
             select sum(product_qty) as product_qty from stock_move  
-            where product_id = %s and picking_id in (select id from stock_picking where date < '%s' and state = 'done')
+            where product_id = %s and picking_id in (select id from stock_picking where date < '%s' and state = 'done' and type = 'in')
         '''%(product_id[0], date_from)
         self.cr.execute(sql)
         product_qty = self.cr.dictfetchone()['product_qty']
