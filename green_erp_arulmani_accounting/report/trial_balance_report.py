@@ -88,17 +88,35 @@ class Parser(report_sxw.rml_parse):
     
     def lines(self,ids):
         done = {}
-        def _process_child(accounts, disp_acc, parent):
+        def _process_child(accounts, disp_acc, parent, date, context=None):
                 account_rec = [acct for acct in accounts if acct['id']==parent][0]
                 currency_obj = self.pool.get('res.currency')
                 acc_id = self.pool.get('account.account').browse(self.cr, self.uid, account_rec['id'])
                 currency = acc_id.currency_id and acc_id.currency_id or acc_id.company_id.currency_id
+                
+#                 account_obj = self.pool.get('account.account')
+                child_ids = self.pool.get('account.account')._get_children_and_consol(self.cr, self.uid, [account_rec['id']], context=context)
+                strdate =  date[:4] + '-' + date[5:7] + '-' + date[8:10]
+                self.cr.execute('''
+                    select case when sum(debit)!=0 then sum(debit) else 0 end sumdebit 
+                    from account_move_line where account_id in %s and date < '%s'
+                        ''',(tuple(child_ids),strdate),)
+                sumdebit = self.cr.fetchone()['sumdebit']
+                
+                self.cr.execute('''
+                    select case when sum(credit)!=0 then sum(debit) else 0 end sumcredit 
+                    from account_move_line where account_id in %s and date < '%s'
+                        ''',(tuple(child_ids),strdate),)
+                sumcredit = self.cr.fetchone()['sumcredit']
+                
                 res = {
                     'id': account_rec['id'],
                     'type': account_rec['type'],
                     'code': account_rec['code'],
                     'name': account_rec['name'],
                     'level': account_rec['level'],
+                    'open_debit': sumdebit,
+                    'open_credit': sumcredit,
                     'debit': account_rec['debit'],
                     'credit': account_rec['credit'],
                     'balance': account_rec['balance'],
@@ -148,7 +166,7 @@ class Parser(report_sxw.rml_parse):
                 if parent in done:
                     continue
                 done[parent] = 1
-                _process_child(accounts,form['display_account'],parent)
+                _process_child(accounts,form['display_account'],parent,ctx['date_from'], ctx)
         return self.result_acc
     
     
