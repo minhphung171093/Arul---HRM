@@ -36,7 +36,7 @@ class stock_picking(osv.osv):
                 '''%(line.warehouse.id,line.id)
                 cr.execute(sql)
             for move in line.move_lines:
-                if 'state' in vals and vals['state']=='cancel':
+                if 'state' in vals and vals['state']=='cancel' and line.type=='in':
                     sql = '''
                         update tpt_purchase_product set state='po_raised' where pur_product_id=%s and product_id=%s
                     '''%(move.po_indent_id.id,move.product_id.id)
