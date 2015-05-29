@@ -4518,8 +4518,10 @@ class tpt_material_issue(osv.osv):
         'state':fields.selection([('draft', 'Draft'),('done', 'Approve')],'Status', readonly=True),
         'doc_no': fields.char('Document Number', size = 1024,readonly = True),
         'cost_center_id': fields.many2one('tpt.cost.center','Cost center',states={'done':[('readonly', True)]}),
+        'flag': fields.boolean('Flag'),
                 }
     _defaults = {
+        'flag': False,
         'state':'draft',    
         'doc_no': '/',  
         'date_expec': time.strftime('%Y-%m-%d'),

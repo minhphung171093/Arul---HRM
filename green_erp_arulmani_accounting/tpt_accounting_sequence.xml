@@ -127,6 +127,52 @@
             <field name="implementation">no_gap</field>
         </record>
         
+<!--VVTI Sold to Party Customer Group -->
+        <record id="tpt_sequence_sold_cus_group" model="ir.sequence.type">
+            <field name="name">VVTI Sold to Party Customer Group</field>
+            <field name="code">tpt.sold.group.customer</field>
+        </record>
+        
+        <record id="tpt_sequence_sold_cus_group_item" model="ir.sequence">
+            <field name="name">VVTI Sold to Party Customer Group</field>
+            <field name="code">tpt.sold.group.customer</field>
+            <field name="prefix">3</field>
+            <field name="padding">5</field>
+            <field name="number_next_actual">00000</field>
+            <field name="implementation">no_gap</field>
+        </record>
+        
+<!--VVTI Ship to Party Customer Group -->
+        <record id="tpt_sequence_ship_cus_group" model="ir.sequence.type">
+            <field name="name">VVTI Ship to Party Customer Group</field>
+            <field name="code">tpt.ship.group.customer</field>
+        </record>
+        
+        <record id="tpt_sequence_ship_cus_group_item" model="ir.sequence">
+            <field name="name">VVTI Ship to Party Customer Group</field>
+            <field name="code">tpt.ship.group.customer</field>
+            <field name="prefix">9</field>
+            <field name="padding">5</field>
+            <field name="number_next_actual">00000</field>
+            <field name="implementation">no_gap</field>
+        </record>
+        
+<!--VVTI Indent Comm. Customer Group -->
+        <record id="tpt_sequence_indent_cus_group" model="ir.sequence.type">
+            <field name="name">VVTI Indent Comm. Customer Group</field>
+            <field name="code">tpt.indent.group.customer</field>
+        </record>
+        
+        <record id="tpt_sequence_indent_cus_group_item" model="ir.sequence">
+            <field name="name">VVTI Indent Comm. Customer Group</field>
+            <field name="code">tpt.indent.group.customer</field>
+            <field name="prefix">4</field>
+            <field name="padding">5</field>
+            <field name="number_next_actual">00000</field>
+            <field name="implementation">no_gap</field>
+        </record>
+        
+
 		<!-- Supplier Invoice -->
         <record id="tpt_sequence_supplier_invoice_freight" model="ir.sequence.type">
             <field name="name">Supplier Invoice Freight</field>

@@ -1318,8 +1318,8 @@
 						<field name="reason"/>
 						<field name="qty" invisible = "1" />
 						<field name="remaining_qty"/>
-						<field name="qty_approve" invisible="1" />
-						<!--<field name="qty_approve" groups="base.user_root" />-->
+						<!--<field name="qty_approve" invisible="1" />-->
+						<field name="qty_approve" groups="base.user_root" />
 					</group>
 						<notebook>
 							<page string = "Products Specification">
@@ -1386,7 +1386,7 @@
 						<field name="reason"/>
 						<field name="qty" invisible = "1" />
 						<field name="remaining_qty"/>
-						<field name="qty_approve" invisible = "1" groups="base.user_root" />
+						<field name="qty_approve" invisible = "0" groups="base.user_root" />
 					</group>
 						<notebook>
 							<page string = "Products Specification">
@@ -1974,6 +1974,7 @@
 	            <form string="Material Issue" version="7.0">   
 	             <header>
 	            		<button name="bt_approve" states='draft' string="Issue Goods" type="object" class="oe_highlight" groups="green_erp_arulmani_purchase.group_vvti_purchase_admin,green_erp_arulmani_purchase.group_vvti_purchase_store_user"/>
+	            		<button name="bt_create_posting" attrs="{'invisible': ['|',('flag', '=', True), ('state', '!=', 'done')]}" string="Create Posting" type="object" class="oe_highlight" groups="base.user_root" confirm="Are you sure you want to posting this record?"/>
 	                    <field name="state" widget="statusbar" statusbar_visible="draft,done" statusbar_colors='{"draft":"blue"}'/>
 	            </header>    
 	            	<sheet>
@@ -1984,6 +1985,7 @@
 							<field name="date_expec"/>
 							<field name="request_type" />
 							<field name="department_id" options="{'create': false, 'create_edit': false}" />
+							<field name="flag" invisible = '1'/>
 						</group>
 						<notebook>
 							<page string = "Materials">
