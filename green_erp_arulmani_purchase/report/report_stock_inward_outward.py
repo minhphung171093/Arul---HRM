@@ -40,6 +40,8 @@ class Parser(report_sxw.rml_parse):
             'get_date_from':self.get_date_from,
             'get_date_to':self.get_date_to,
             'get_opening_stock': self.get_opening_stock,
+            'get_detail_lines': self.get_detail_lines,
+            'get_posting_date': self.get_posting_date,
         })
         
     def get_date_from(self):
@@ -79,32 +81,35 @@ class Parser(report_sxw.rml_parse):
         date_to = wizard_data['date_to']
         product_id = wizard_data['product_id']
         sql = '''
-            select id from account_move where doc_type in ('freight', 'good', 'grn') and state = 'posted' and date between '%s' and '%s'
+            select * from account_move where doc_type in ('freight', 'good', 'grn') and state = 'posted' and date between '%s' and '%s'
         '''%(date_from, date_to)
         self.cr.execute(sql)
         return self.cr.dictfetchall()
     
-    def get_posting_date(self, move_id, type):
+    def get_posting_date(self, move_id, type, issue_id):
         wizard_data = self.localcontext['data']['form']
         date_from = wizard_data['date_from']
         date_to = wizard_data['date_to']
         product_id = wizard_data['product_id']
+        date = []
         if type == 'freight':
             sql = '''
-                select ail.product_id as product_id, ai.date_invoice as date_invoice from account_invoice ai, account_invoice_line ail where ail.invoice_id = ai.id and ai.move_id = %s and ai.state = 'done')
+                select ail.product_id as product_id, ai.date_invoice as date_invoice from account_invoice ai, account_invoice_line ail where ail.invoice_id = ai.id and ai.move_id = %s and ai.state != 'draft'
             '''%(move_id)
             self.cr.execute(sql)
             for data in self.cr.dictfetchall():
-                if product_id == data['product_id']:
-                    date = date_invoice
+                if product_id[0] == data['product_id']:
+                    date = data['date_invoice']
         if type == 'good':
-            sql = '''
-                select ail.product_id as product_id, ai.date_invoice as date_invoice from account_invoice ai, account_invoice_line ail where ail.invoice_id = ai.id and ai.move_id = %s and ai.state = 'done')
-            '''%(move_id)
-            self.cr.execute(sql)
-            for data in self.cr.dictfetchall():
-                if product_id == data['product_id']:
-                    date = date_invoice
+            if issue_id:
+                sql = '''
+                    select mil.product_id as product_id, mi.date_expec as date_expec from tpt_material_issue mi, tpt_material_issue_line mil where mil.material_issue_id=mi.id and mi.id = %s and mi.state = 'done'
+                '''%(issue_id)
+                self.cr.execute(sql)
+                for data in self.cr.dictfetchall():
+                    if product_id[0] == data['product_id']:
+                        date = data['date_expec']
+        return date
                     
         
             
