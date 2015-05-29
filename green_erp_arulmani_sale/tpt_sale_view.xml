@@ -38,6 +38,7 @@
                 	 <field name="reason" />
                 	 <field name="flag_t" invisible="1" />
                 	 <field name="flag_p" invisible="1" />
+                	 <field name="tpt_currency_id" invisible="1" />
 				</xpath>
 				<xpath expr="//field[@name='client_order_ref']"  position="replace">
 					<field name="client_order_ref" invisible="1" />
@@ -58,7 +59,7 @@
 					<field name="order_type" />
 				</xpath>
 				<xpath expr="//field[@name='currency_id']"  position="replace">
-					<field name="currency_id" invisible="0" readonly = "0" 
+					<field name="currency_id" invisible="0" readonly = "0" on_change="onchange_currency(currency_id)"
 					attrs="{'readonly': [('state','in',('done','progress'))]}"
 					required = "0" options="{'create': false, 'create_edit': false}" />
 				</xpath>

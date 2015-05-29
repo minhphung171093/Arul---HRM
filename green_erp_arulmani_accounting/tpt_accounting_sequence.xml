@@ -127,7 +127,20 @@
             <field name="implementation">no_gap</field>
         </record>
         
-
+		<!-- Supplier Invoice -->
+        <record id="tpt_sequence_supplier_invoice_freight" model="ir.sequence.type">
+            <field name="name">Supplier Invoice Freight</field>
+            <field name="code">tpt.si.freight.sequence</field>
+        </record>
+        
+        <record id="tpt_sequence_supplier_invoice_freight_item" model="ir.sequence">
+            <field name="name">Supplier Invoice Freight</field>
+            <field name="code">tpt.si.freight.sequence</field>
+            <field name="prefix">VVTI/FI/</field>
+            <field name="padding">5</field>
+            <field name="number_next_actual">1</field>
+            <field name="implementation">no_gap</field>
+        </record>
         
               
 	</data>

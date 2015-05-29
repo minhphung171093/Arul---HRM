@@ -33,5 +33,8 @@ account_voucher.access_account_voucher_invoice,account.voucher invoice,account_v
 access_vvti_accounting_23,tpt.product.specification,green_erp_arulmani_purchase.model_tpt_product_specification,green_erp_arulmani_accounting.group_vvti_accounting_admin,True,True,True,False
 access_vvti_accounting_24,tpt.quanlity.inspection,green_erp_arulmani_purchase.model_tpt_quanlity_inspection,green_erp_arulmani_accounting.group_vvti_accounting_admin,True,True,True,False
 
+access_vvti_accounting_25,tpt.cost.center,green_erp_arulmani_hrm.model_tpt_cost_center,green_erp_arulmani_accounting.group_vvti_accounting_admin,True,False,False,False
+
+
 
 

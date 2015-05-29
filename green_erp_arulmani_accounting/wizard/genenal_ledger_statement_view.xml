@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="utf-8"?>
+<openerp>
+    <data>
+		<record id="general_ledger_statement_view" model="ir.ui.view">
+	        <field name="name">general.ledger.statement.view</field>
+	        <field name="model">general.ledger.statement</field>
+	        <field name="arch" type="xml">
+	            <form string="General Ledger Statement" version="7.0">
+	            	<group>
+	            		<group col="4" colspan="2">
+	            			<field name="account_id" options="{'create': false, 'create_edit': false}" />
+	            			<newline/>
+	            			<field name="doc_type" />
+	            			<newline/>
+	            			<field name="doc_no" options="{'create': false, 'create_edit': false}" />
+	            			<newline/>
+	            		    <field name="narration" />
+	            		    <newline/>	
+			                <field name="date_from" />
+			                <field name="date_to" />
+	                	</group>
+	                </group>
+	                <footer>
+	                    <button name="print_report" type='object' string="OK" class="oe_highlight"/>
+	                    or
+	                    <button string="Cancel" class="oe_highlight" special="cancel" />
+	                </footer>
+	            </form>
+	        </field>
+    	</record>
+
+	    <record model="ir.actions.act_window" id="action_general_ledger_statement_view">
+	        <field name="name">General Ledger Statement</field>
+	        <field name="res_model">general.ledger.statement</field>
+	        <field name="view_type">form</field>
+	        <field name="view_mode">form</field>
+	        <field name="view_id" ref="general_ledger_statement_view" />
+	        <field name="target">new</field>
+	    </record>
+	    
+	    
+        <menuitem action="action_general_ledger_statement_view"
+            id="menu_action_general_ledger_statement_view"
+            parent="menu_tpt_accounting" sequence="203"/>
+	 
+	    
+    </data>
+</openerp>
+
