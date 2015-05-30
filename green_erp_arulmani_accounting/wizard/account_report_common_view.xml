@@ -23,7 +23,7 @@
 	            	</header>
 	            	<sheet>
 	            		<div class="oe_text_center oe_bold">
-            				Trial Balance
+            				<h1>Trial Balance</h1>
             			</div>
             			
             			<group>
