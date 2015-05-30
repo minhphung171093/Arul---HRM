@@ -67,6 +67,10 @@
           <field name="name">Washing Allowance</field>
           <field name="code">WA</field>
       </record>
+      <record id="earning_parameters_22" model="arul.hr.payroll.earning.parameters">
+          <field name="name">Misc. Allowance (Only for ESI)</field>
+          <field name="code">ESI_CHECK</field>
+      </record>
       <record id="earning_parameters_14" model="arul.hr.payroll.earning.parameters">
           <field name="name">LTA</field>
           <field name="code">LTA</field>

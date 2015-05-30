@@ -109,7 +109,7 @@ class Parser(report_sxw.rml_parse):
         month = wizard_data['month']
         year = wizard_data['year']
         sql = '''
-            SELECT CASE WHEN SUM(a_shift_count)!=0 THEN SUM(a_shift_count) ELSE 0 END a_shift FROM arul_hr_punch_in_out_time WHERE EXTRACT(year FROM work_date) = %s 
+            SELECT CASE WHEN SUM(a_shift_count1)!=0 THEN SUM(a_shift_count1) ELSE 0 END a_shift FROM arul_hr_punch_in_out_time WHERE EXTRACT(year FROM work_date) = %s 
             AND EXTRACT(month FROM work_date) = %s AND employee_id =%s
             '''%(int(year), int(month),employee.id)
         self.cr.execute(sql)
@@ -117,7 +117,7 @@ class Parser(report_sxw.rml_parse):
         tpt_a = t_a[0]
         
         sql = '''
-            SELECT CASE WHEN SUM(b_shift_count)!=0 THEN SUM(b_shift_count) ELSE 0 END b_shift FROM arul_hr_punch_in_out_time WHERE EXTRACT(year FROM work_date) = %s 
+            SELECT CASE WHEN SUM(b_shift_count1)!=0 THEN SUM(b_shift_count1) ELSE 0 END b_shift FROM arul_hr_punch_in_out_time WHERE EXTRACT(year FROM work_date) = %s 
             AND EXTRACT(month FROM work_date) = %s AND employee_id =%s
             '''%(int(year), int(month),employee.id)
         self.cr.execute(sql)
@@ -125,7 +125,7 @@ class Parser(report_sxw.rml_parse):
         tpt_b = t_b[0]
         
         sql = '''
-            SELECT CASE WHEN SUM(c_shift_count)!=0 THEN SUM(c_shift_count) ELSE 0 END c_shift FROM arul_hr_punch_in_out_time WHERE EXTRACT(year FROM work_date) = %s 
+            SELECT CASE WHEN SUM(c_shift_count1)!=0 THEN SUM(c_shift_count1) ELSE 0 END c_shift FROM arul_hr_punch_in_out_time WHERE EXTRACT(year FROM work_date) = %s 
             AND EXTRACT(month FROM work_date) = %s AND employee_id =%s
             '''%(int(year), int(month),employee.id)
         self.cr.execute(sql)
@@ -133,7 +133,7 @@ class Parser(report_sxw.rml_parse):
         tpt_c = t_c[0]
         
         sql = '''
-            SELECT CASE WHEN SUM(g1_shift_count)!=0 THEN SUM(g1_shift_count) ELSE 0 END g1_shift FROM arul_hr_punch_in_out_time WHERE EXTRACT(year FROM work_date) = %s 
+            SELECT CASE WHEN SUM(g1_shift_count1)!=0 THEN SUM(g1_shift_count1) ELSE 0 END g1_shift FROM arul_hr_punch_in_out_time WHERE EXTRACT(year FROM work_date) = %s 
             AND EXTRACT(month FROM work_date) = %s AND employee_id =%s
             '''%(int(year), int(month),employee.id)
         self.cr.execute(sql)
@@ -141,7 +141,7 @@ class Parser(report_sxw.rml_parse):
         tpt_g1 = t_g1[0]
         
         sql = '''
-            SELECT CASE WHEN SUM(g2_shift_count)!=0 THEN SUM(g2_shift_count) ELSE 0 END g2_shift FROM arul_hr_punch_in_out_time WHERE EXTRACT(year FROM work_date) = %s 
+            SELECT CASE WHEN SUM(g2_shift_count1)!=0 THEN SUM(g2_shift_count1) ELSE 0 END g2_shift FROM arul_hr_punch_in_out_time WHERE EXTRACT(year FROM work_date) = %s 
             AND EXTRACT(month FROM work_date) = %s AND employee_id =%s
             '''%(int(year), int(month),employee.id)
         self.cr.execute(sql)
@@ -151,7 +151,7 @@ class Parser(report_sxw.rml_parse):
         total_shift_worked = 0.0  
         #Shift Count
         sql = '''
-                SELECT CASE WHEN SUM(total_shift_worked + shift_plus - shift_minus)!=0 THEN SUM(total_shift_worked + shift_plus - shift_minus) ELSE 0 END total_shift_worked FROM arul_hr_punch_in_out_time WHERE EXTRACT(year FROM work_date) = %s 
+                SELECT CASE WHEN SUM(total_shift_worked1)!=0 THEN SUM(total_shift_worked1) ELSE 0 END total_shift_worked FROM arul_hr_punch_in_out_time WHERE EXTRACT(year FROM work_date) = %s 
                 AND EXTRACT(month FROM work_date) = %s AND employee_id =%s
                 '''%(int(year), int(month),employee.id)
         self.cr.execute(sql)
