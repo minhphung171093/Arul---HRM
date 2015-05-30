@@ -325,16 +325,6 @@ class Parser(report_sxw.rml_parse):
                total_cost = float(inventory['total_cost'])
                avg_cost = hand_quantity and total_cost/hand_quantity or 0 
            return avg_cost
-        
-    
-    
-    
-                    
-        
-            
-        
-
-        
     
 # vim:expandtab:smartindent:tabstop=4:softtabstop=4:shiftwidth=4:
 

@@ -60,37 +60,33 @@
 	            		<button name="print_pdf" string="Print (.pdf)" type="object" class="oe_highlight" />
 	            	</header>
 	            	<sheet>
-	            		<div class="oe_bold oe_text_left">
-            				<field name="date_from" class="oe_text_left oe_inline"/> 
+	            		<div class="oe_bold oe_text_center">
+            				<h1>Stock Inward and Outward Details</h1>
             			</div>
-            			<div class="oe_bold oe_text_left">
-            				<field name="date_to" class="oe_text_left oe_inline"/> 
-            			</div>
-            			<div class="oe_bold oe_text_left">
-            				<field name="product_code" class="oe_text_left oe_inline"/> 
-            			</div>
-            			<div class="oe_bold oe_text_left">
-            				<field name="product_name" class="oe_text_left oe_inline"/> 
-            			</div>
-  <!--          			<group>
-            				<field name="categ_id"/>
+            			<group col='4' colspan='2'>
+            				<field name="date_from"/>
+                			<field name="date_to"/>
                 			<field name="product_id"/>
-                			<field name="location_id"/>
-                			<field name="as_date"/>
+                			<field name="product_uom"/>
+                			<field name="opening_stock"/>
+                			<field name="opening_value"/>
+                			<field name="closing_stock"/>
+                			<field name="closing_value"/>
             			</group>
 	                	<group>
-		                	<field name="stock_line" nolabel='1'>
+		                	<field name="stock_in_out_line" nolabel='1'>
 		                		<tree create="false" edit="false" delete="false">
-		                			<field name="code"/>
-		                			<field name="description"/>
-		                			<field name="uom"/>
-		                			<field name="bin_loc"/>
-		                			<field name="onhand_qty"/>
-		                			<field name="ins_qty"/>
-		                			<field name="bl_qty"/>
+		                			<field name="posting_date"/>
+		                			<field name="creation_date"/>
+		                			<field name="document_no"/>
+		                			<field name="gl_document_no"/>
+		                			<field name="document_type"/>
+		                			<field name="transaction_quantity"/>
+		                			<field name="stock_value"/>
+		                			<field name="current_material_value"/>
 		                		</tree>
 		                	</field>
-	                	</group> -->
+	                	</group>
 	               	</sheet>
 	           </form>
 	        </field>
