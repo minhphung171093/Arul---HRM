@@ -617,7 +617,7 @@ class account_invoice(osv.osv):
                     sql='''
                         update account_invoice_tax set amount=%s where id=%s
                     '''%(round(val2+freight),taxline.id)
-                    cr.execute(sql)
+                    cr.execute(sql)#                         amount_total_tax = round(amount_total_tax)
             else:
                 if line.purchase_id:
                     amount_untaxed = 0.0
@@ -680,9 +680,9 @@ class account_invoice(osv.osv):
                         for tax_amount in tax_amounts:
                             tax += tax_amount/100
                         amount_total_tax = (basic + p_f + ed)*(tax)
-                        amount_total_tax = round(amount_total_tax)
+#                         amount_total_tax = round(amount_total_tax)
                         total_tax += amount_total_tax
-                        total_tax = round(total_tax)
+#                         total_tax = round(total_tax)
                         if po.fright_type == '1' :
                             fright = (basic + p_f + ed + amount_total_tax) * po.fright/100
                             fright = round(fright)
@@ -775,9 +775,9 @@ class account_invoice(osv.osv):
                         for tax_amount in tax_amounts:
                             tax += tax_amount/100
                         amount_total_tax = (basic + p_f + ed)*(tax)
-                        amount_total_tax = round(amount_total_tax)
+#                         amount_total_tax = round(amount_total_tax)
                         total_tax += amount_total_tax
-                        total_tax = round(total_tax)
+#                         total_tax = round(total_tax)
                         if po.fright_type == '1' :
                             fright = (basic + p_f + ed + amount_total_tax) * po.fright/100
                             fright = round(fright)
