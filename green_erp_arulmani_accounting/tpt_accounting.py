@@ -2164,6 +2164,27 @@ class product_product(osv.osv):
 #                 'property_account_expense':category.property_account_expense_categ and category.property_account_expense_categ.id or False,
 #             })
     
+    def init(self, cr):
+        account_obj = self.pool.get('account.account')
+        purchase_gl_account_ids = account_obj.search(cr, 1, [('code','=','0000119503')])
+        if not purchase_gl_account_ids:
+            raise osv.except_osv(_('Warning!'),_('Please config GL account 0000119503 – GRIR Clearing Account-Spares'))
+        expense_gl_account_ids = account_obj.search(cr, 1, [('code','=','0000404010')])
+        if not purchase_gl_account_ids:
+            raise osv.except_osv(_('Warning!'),_('Please config GL account 0000404010 STORES & SPARES AND CONSUMABLES'))
+        product_asset_account_ids = account_obj.search(cr, 1, [('code','=','0000119501')])
+        if not purchase_gl_account_ids:
+            raise osv.except_osv(_('Warning!'),_('Please config GL account 0000119501 SP-General Stores and Spares'))
+        category_obj = self.pool.get('product.category')
+        category_ids = category_obj.search(cr, 1, [('cate_name','=','spares')])
+        for category in category_obj.browse(cr, 1, category_ids):
+            produc_ids = self.search(cr, 1, [('categ_id','=',category.id)])
+            self.write(cr, 1, produc_ids, {
+                'purchase_acc_id':purchase_gl_account_ids[0],
+                'property_account_expense':expense_gl_account_ids[0],
+                'product_asset_acc_id':product_asset_account_ids[0],
+            })
+        
     def _avg_cost(self, cr, uid, ids, field_names=None, arg=None, context=None):
         result = {}
         if not ids: return result
