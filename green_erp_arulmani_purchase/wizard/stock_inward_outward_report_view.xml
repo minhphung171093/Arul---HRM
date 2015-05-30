@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="utf-8"?>
+<openerp>
+    <data>
+		<record id="stock_inward_outward_report_view" model="ir.ui.view">
+	        <field name="name">stock.inward.outward.report.view</field>
+	        <field name="model">stock.inward.outward.report</field>
+	        <field name="arch" type="xml">
+	            <form string="Stock Inward and Outward Details" version="7.0">
+	            	<group>
+	                <field name="product_id" options="{'create': false, 'create_edit': false}" context="{'search_product_inward_outward':True}"/>
+	                <field name="date_from"/>
+	                <field name="date_to" />
+	                </group>
+	                <footer>
+	                    <button name="print_report" type='object' string="OK" class="oe_highlight"/>
+	                    or
+	                    <button string="Cancel" class="oe_highlight" special="cancel" />
+	                </footer>
+	            </form>
+	        </field>
+    	</record>
+
+	    <record model="ir.actions.act_window" id="action_stock_inward_outward_report_view">
+	        <field name="name">Stock Inward and Outward Details</field>
+	        <field name="res_model">stock.inward.outward.report</field>
+	        <field name="view_type">form</field>
+	        <field name="view_mode">form</field>
+	        <field name="view_id" ref="stock_inward_outward_report_view" />
+	        <field name="target">new</field>
+	    </record>
+	    
+	    
+       <menuitem action="action_stock_inward_outward_report_view" id="menu_action_stock_inward_outward_report_view" parent="stock.menu_stock_warehouse_mgmt" sequence="15"/>
+
+	 
+	    
+    </data>
+</openerp>
+
