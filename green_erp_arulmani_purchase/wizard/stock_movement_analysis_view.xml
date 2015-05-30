@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="utf-8"?>
+<openerp>
+    <data>
+		<record id="stock_movement_analysis_view" model="ir.ui.view">
+	        <field name="name">stock.movement.analysis.view</field>
+	        <field name="model">stock.movement.analysis</field>
+	        <field name="arch" type="xml">
+	            <form string="Stock Movement Analysis Report" version="7.0">
+	            	<group>
+	                <field name="categ_id" options="{'create': false, 'create_edit': false}" domain="[('cate_name','in',['raw','spares'])]" on_change = "onchange_categ_id(categ_id)"/>
+	                <field name="product_id" options="{'create': false, 'create_edit': false}"  context="{'search_product_id':True, 'categ_id':categ_id}"/>
+	               	</group>
+	               	<group col="4" colspan="2">
+	               	<field name="date_from" />
+	               	<field name="date_to" />
+	                </group>
+	                <footer>
+	                    <button name="print_report" type='object' string="OK" class="oe_highlight"/>
+	                    or
+	                    <button string="Cancel" class="oe_highlight" special="cancel" />
+	                </footer>
+	            </form>
+	        </field>
+    	</record>
+
+	    <record model="ir.actions.act_window" id="action_stock_movement_analysis_view">
+	        <field name="name">Stock Movement Analysis Report</field>
+	        <field name="res_model">stock.movement.analysis</field>
+	        <field name="view_type">form</field>
+	        <field name="view_mode">form</field>
+	        <field name="view_id" ref="stock_movement_analysis_view" />
+	        <field name="target">new</field>
+	    </record>
+	    
+	    
+       <menuitem action="action_stock_movement_analysis_view" id="menu_action_stock_movement_analysis_view" parent="stock.menu_stock_warehouse_mgmt" sequence="51"/>
+
+	 
+	    
+    </data>
+</openerp>
+

@@ -84,6 +84,8 @@ class tick_purchase_chart(osv.osv_memory):
                     
 #                         'po_indent_no':line.po_indent_id.id,
                     'order_line': line_vals,
+                    'currency_id':chart.currency_id and chart.currency_id.id or False,
+                    'tpt_currency_id':chart.currency_id and chart.currency_id.id or False,
                     'location_id':location.lot_stock_id.id,
                     })
         new_po_id = purchase_order_obj.create(cr, uid, vals)
