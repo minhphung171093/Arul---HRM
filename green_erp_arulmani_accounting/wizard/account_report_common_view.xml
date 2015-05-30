@@ -11,6 +11,48 @@
             	</xpath>
             </field>
         </record>
+        
+        <record id="tpt_account_report_balance_form_view" model="ir.ui.view">
+	        <field name="name">tpt.account.balance.report.form</field>
+	        <field name="model">tpt.account.balance.report</field>
+	        <field name="arch" type="xml">
+	            <form string="Trial Balance" version="7.0" create='false' edit='false' delete='false'>
+	            	<header>
+	            		<button name="print_xls" string="Print (.xls)" type="object" class="oe_highlight" />
+	            		<button name="print_pdf" string="Print (.pdf)" type="object" class="oe_highlight" />
+	            	</header>
+	            	<sheet>
+	            		<div class="oe_text_center oe_bold">
+            				Trial Balance
+            			</div>
+            			
+            			<group>
+            				<field name="chart_account_id"/>
+            				<field name="fiscalyear_id"/>
+            				<field name="display_account"/>
+            				<field name="target_move"/>
+            				<field name="date_from"/>
+            				<field name="date_to"/>
+            			</group>
+            			
+		            	<group>
+		                	<field name="balance_report_line" nolabel='1'>
+		                		<tree create="false" edit="false" delete="false">
+		                			<field name="code"/>
+		                			<field name="account"/>
+		                			<field name="open_debit"/>
+		                			<field name="open_credit"/>
+		                			<field name="debit"/>
+		                			<field name="credit"/>
+		                			<field name="close_bal"/>
+		                		</tree>
+		                	</field>
+	                	</group>
+		            </sheet>
+	            </form>
+	        </field>
+    	</record>
+        
     </data>
 </openerp>
 
