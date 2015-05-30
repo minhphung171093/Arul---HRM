@@ -551,6 +551,34 @@ class stock_picking(osv.osv):
                 for period_id in period_obj.browse(cr,uid,period_ids):
                 #sinh but toan
                     for p in line.move_lines:
+                        
+                        if p.prodlot_id:
+                            sale_id = p.sale_line_id and p.sale_line_id.order_id.id or False 
+                            used_qty = p.product_qty or 0
+                            if sale_id:
+                                sql = '''
+                                    select id from tpt_batch_allotment where sale_order_id = %s
+                                '''%(sale_id)
+                                cr.execute(sql)
+                                allot_id = cr.dictfetchone()['id']
+                                if allot_ids:
+                                    sql = '''
+                                    select id from tpt_batch_allotment_line where sys_batch = %s and batch_allotment_id = %s
+                                    '''%(p.prodlot_id.id,allot_id)
+                                    cr.execute(sql)
+                                    allot_line_id = cr.dictfetchone()['id']
+                                    line_id = self.pool.get('tpt.batch.allotment.line').browse(cr, uid, allot_line_id)
+                                    used_qty += line_id.used_qty
+                                    sql = '''
+                                        update tpt_batch_allotment_line set product_uom_qty = %s where id = %s
+                                    '''%(used_qty,allot_line_id)
+                                    cr.execute(sql)
+                                    if line_id.product_uom_qty == line_id.used_qty:
+                                        sql = '''
+                                            update tpt_batch_allotment_line set is_deliver = 't' where id = %s
+                                        '''%(allot_line_id)
+                                        cr.execute(sql)
+                        
                         debit += p.sale_line_id and p.sale_line_id.price_unit * p.product_qty or 0
                         product_name = p.product_id.name
                         account = self.get_pro_account_id(cr,uid,product_name,dis_channel)
@@ -3169,7 +3197,9 @@ class tpt_material_issue(osv.osv):
                 'gl_account_id': fields.many2one('account.account', 'GL Account',states={'done':[('readonly', True)]}),
                 'warehouse':fields.many2one('stock.location','Source Location',states={'done':[('readonly', True)]}),
                 'dest_warehouse_id': fields.many2one('stock.location','Destination Location',states={'done':[('readonly', True)]}),
+                
                 }
+    
     def bt_approve(self, cr, uid, ids, context=None):
         price = 0.0
         account_move_obj = self.pool.get('account.move')
@@ -3280,23 +3310,23 @@ class tpt_material_issue(osv.osv):
             '''%(date_period)
             cr.execute(sql)
             period_ids = [r[0] for r in cr.fetchall()]
-            
+             
             if not period_ids:
                 raise osv.except_osv(_('Warning!'),_('Period is not null, please configure it in Period master !'))
             for period_id in period_obj.browse(cr,uid,period_ids):
                 if not line.warehouse.gl_pos_verification_id:
                     raise osv.except_osv(_('Warning!'),_('Account Warehouse is not null, please configure it in Warehouse Location master !'))
                 journal_line = [(0,0,{
-                                        'name':line.date_expec, 
+                                        'name':line.doc_no, 
                                         'account_id': line.warehouse.gl_pos_verification_id and line.warehouse.gl_pos_verification_id.id,
 #                                         'partner_id': line.partner_id and line.partner_id.id,
                                         'debit':0,
                                         'credit':price,
-                                        
+                                         
                                        })]
                 if line.gl_account_id:
                     journal_line.append((0,0,{
-                                'name':line.date_expec, 
+                                'name':line.doc_no, 
                                 'account_id': line.gl_account_id and line.gl_account_id.id,
 #                                 'partner_id': line.partner_id and line.partner_id.id,
                                 'credit':0,
@@ -3307,13 +3337,87 @@ class tpt_material_issue(osv.osv):
                 value={
                     'journal_id':journal_ids[0],
                     'period_id':period_id.id ,
+                    'ref': line.doc_no,
                     'date': date_period,
+                    'material_issue_id': line.id,
                     'line_id': journal_line,
                     'doc_type':'good'
                     }
                 new_jour_id = account_move_obj.create(cr,uid,value)
             self.write(cr, uid, ids,{'state':'done'})
-        return True   
+        return True  
+    
+    def bt_create_posting(self, cr, uid, ids, context=None):
+        
+        price = 0.0
+        account_move_obj = self.pool.get('account.move')
+        period_obj = self.pool.get('account.period')
+        journal_obj = self.pool.get('account.journal')
+        avg_cost_obj = self.pool.get('tpt.product.avg.cost')
+        journal_line = []
+        dest_id = False
+        move_obj = self.pool.get('stock.move')
+        
+        for line in self.browse(cr, uid, ids):
+            if line.state=='done':
+                if not line.warehouse.gl_pos_verification_id:
+                    raise osv.except_osv(_('Warning!'),_('Account Warehouse is not null, please configure it in Warehouse Location master !'))
+                for mater in line.material_issue_line:
+    #                 price += mater.product_id.standard_price * mater.product_isu_qty
+                    avg_cost_ids = avg_cost_obj.search(cr, uid, [('product_id','=',mater.product_id.id),('warehouse_id','=',line.warehouse.id)])
+                    if avg_cost_ids:
+                        avg_cost_id = avg_cost_obj.browse(cr, uid, avg_cost_ids[0])
+                        unit = avg_cost_id.avg_cost or 0
+                        price += unit * mater.product_isu_qty
+                date_period = line.date_expec,
+                sql = '''
+                    select id from account_journal
+                '''
+                cr.execute(sql)
+                journal_ids = [r[0] for r in cr.fetchall()]
+                sql = '''
+                    select id from account_period where '%s' between date_start and date_stop
+                '''%(date_period)
+                cr.execute(sql)
+                period_ids = [r[0] for r in cr.fetchall()]
+                
+                if not period_ids:
+                    raise osv.except_osv(_('Warning!'),_('Period is not null, please configure it in Period master !'))
+                for period_id in period_obj.browse(cr,uid,period_ids):
+                    if not line.warehouse.gl_pos_verification_id:
+                        raise osv.except_osv(_('Warning!'),_('Account Warehouse is not null, please configure it in Warehouse Location master !'))
+                    journal_line = [(0,0,{
+                                            'name':line.doc_no, 
+                                            'account_id': line.warehouse.gl_pos_verification_id and line.warehouse.gl_pos_verification_id.id,
+    #                                         'partner_id': line.partner_id and line.partner_id.id,
+                                            'debit':0,
+                                            'credit':price,
+                                            
+                                           })]
+                    if line.gl_account_id:
+                        journal_line.append((0,0,{
+                                    'name':line.doc_no, 
+                                    'account_id': line.gl_account_id and line.gl_account_id.id,
+    #                                 'partner_id': line.partner_id and line.partner_id.id,
+                                    'credit':0,
+                                    'debit':price,
+                                }))
+                    else: 
+                        raise osv.except_osv(_('Warning!'),_('GL Account is not configured! Please configured it!'))
+                    value={
+                        'journal_id':journal_ids[0],
+                        'ref': line.doc_no,
+                        'period_id':period_id.id ,
+                        'date': date_period,
+                        'line_id': journal_line,
+                        'material_issue_id': line.id,
+                        'doc_type':'good'
+                        }
+                    sql = '''
+                        update tpt_material_issue set flag = 't' where id = %s
+                    '''%(line.id)
+                    cr.execute(sql)
+                    new_jour_id = account_move_obj.create(cr,uid,value) 
 tpt_material_issue()    
 
 class tpt_hr_payroll_approve_reject(osv.osv):
@@ -4083,7 +4187,8 @@ class account_move(osv.osv):
                                   ('product', 'Production'),
                                   ('staff_payroll', 'Staff Payroll'),
                                   ('freight', 'Freight Invoice'),
-                                  ('worker_payroll', 'Workers Payroll')],'Document Type'),     
+                                  ('worker_payroll', 'Workers Payroll')],'Document Type'),  
+        'material_issue_id': fields.many2one('tpt.material.issue','Material Issue'), 
                                   
                 }
 account_move()
