@@ -3444,10 +3444,10 @@ class arul_hr_permission_onduty(osv.osv):
             if 3.7 <= total_hrs <= 4.15:  
                 res[time.id]['total_shift_worked'] = 0.5 
                     
-            if 4.15 <= total_hrs <= 7.45:  
+            if 4.15 <= total_hrs < 8:  
                 res[time.id]['total_shift_worked'] = 0.5
                 #        
-            if 7.45 <= total_hrs <= 8.30:  
+            if 8 <= total_hrs <= 8.30:  
                 res[time.id]['total_shift_worked'] = 1
                 
             if 8.30 <= total_hrs <= 11.175:  
