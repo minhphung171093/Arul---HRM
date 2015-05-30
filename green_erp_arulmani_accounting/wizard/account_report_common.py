@@ -11,6 +11,10 @@ from openerp.tools import DEFAULT_SERVER_DATE_FORMAT, DEFAULT_SERVER_DATETIME_FO
 class account_balance_report(osv.osv_memory):
     _inherit = "account.balance.report"
     
+    _columns = {
+        'filter': fields.selection([('filter_date', 'Date')], "Filter by", required=True),
+    }
+    
     def print_aeroo_report(self, cr, uid, ids, context=None):
         if context is None:
             context = {}
