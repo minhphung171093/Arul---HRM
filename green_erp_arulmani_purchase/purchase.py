@@ -3261,11 +3261,11 @@ tpt_product_detail_line()
 class tpt_quanlity_inspection(osv.osv):
     _name = "tpt.quanlity.inspection"
     
-#     def init(self, cr):
-#         sql = '''
-#             update tpt_quanlity_inspection t set need_inspec_id=(select id from stock_move where picking_id=t.name and product_qty=t.qty and product_id=t.product_id)
-#         '''
-#         cr.execute(sql)
+    def init(self, cr):
+        sql = '''
+            update tpt_quanlity_inspection t set need_inspec_id=(select id from stock_move where picking_id=t.name and product_qty=t.qty and product_id=t.product_id)
+        '''
+        cr.execute(sql)
     
     _columns = {
         'name' : fields.many2one('stock.picking.in','GRN No',required = True,readonly = True,states={'cancel': [('readonly', True)], 'done':[('readonly', True)]}),

@@ -112,7 +112,7 @@ class product_product(osv.osv):
        return self.name_get(cr, user, ids, context=context)
 product_product()
 
-class tpt_form_movement_analysis(osv.osv_memory):
+class tpt_form_movement_analysis(osv.osv):
     _name = "tpt.form.movement.analysis"
     _columns = {    
                 'categ_id': fields.many2one('product.category', 'Product Category'),

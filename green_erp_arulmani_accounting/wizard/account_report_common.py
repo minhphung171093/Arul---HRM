@@ -8,7 +8,7 @@ import openerp.tools
 from openerp.tools import DEFAULT_SERVER_DATE_FORMAT, DEFAULT_SERVER_DATETIME_FORMAT, float_compare
 
 
-class tpt_account_balance_report(osv.osv_memory):
+class tpt_account_balance_report(osv.osv):
     _name = "tpt.account.balance.report"
     
     _columns = {    
@@ -47,7 +47,7 @@ class tpt_account_balance_report(osv.osv_memory):
     
 tpt_account_balance_report()
 
-class tpt_account_balance_report_line(osv.osv_memory):
+class tpt_account_balance_report_line(osv.osv):
     _name = "tpt.account.balance.report.line"
     
     _columns = {    

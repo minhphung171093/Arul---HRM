@@ -8,7 +8,7 @@ import openerp.tools
 from openerp.tools import DEFAULT_SERVER_DATE_FORMAT, DEFAULT_SERVER_DATETIME_FORMAT, float_compare
 
 
-class tpt_stock_on_hand(osv.osv_memory):
+class tpt_stock_on_hand(osv.osv):
     _name = "tpt.stock.on.hand"
     _columns = {
         'name': fields.char('', readonly=True),
@@ -39,7 +39,7 @@ class tpt_stock_on_hand(osv.osv_memory):
     
 tpt_stock_on_hand()
 
-class tpt_stock_on_hand_line(osv.osv_memory):
+class tpt_stock_on_hand_line(osv.osv):
     _name = "tpt.stock.on.hand.line"
     _columns = {
         'stock_id': fields.many2one('tpt.stock.on.hand', 'Line'),

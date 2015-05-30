@@ -10,7 +10,7 @@ DATETIME_FORMAT = "%Y-%m-%d %H:%M:%S"
 DATE_FORMAT = "%Y-%m-%d"
 
 
-class tpt_general_ledger_from(osv.osv_memory):
+class tpt_general_ledger_from(osv.osv):
     _name = "tpt.general.ledger.from"
     _columns = {
         'name': fields.char('', readonly=True),
@@ -58,7 +58,7 @@ class tpt_general_ledger_from(osv.osv_memory):
     
 tpt_general_ledger_from()
 
-class tpt_general_ledger_line(osv.osv_memory):
+class tpt_general_ledger_line(osv.osv):
     _name = "tpt.general.ledger.line"
     _columns = {
         'ledger_id': fields.many2one('tpt.general.ledger.from','General Ledger', ondelete='cascade'),
