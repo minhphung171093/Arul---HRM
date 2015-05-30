@@ -4511,7 +4511,7 @@ class tpt_material_issue(osv.osv):
     _columns = {
         'name': fields.many2one('tpt.material.request','Material Request No',required = True,states={'done':[('readonly', True)]}),
         'date_request':fields.date('Material Request Date',states={'done':[('readonly', True)]}),
-        'date_expec':fields.date('Material Issue Date',states={'done':[('readonly', True)]}),
+        'date_expec':fields.date('Material Issue Date',),
         'department_id':fields.many2one('hr.department','Department',readonly=True),
         'request_type':fields.selection([('production', 'Production'),('normal', 'Normal'),('main', 'Maintenance')],'Request Type', states={'done':[('readonly', True)]}),
         'material_issue_line':fields.one2many('tpt.material.issue.line','material_issue_id','Vendor Group',states={'done':[('readonly', True)]}),
