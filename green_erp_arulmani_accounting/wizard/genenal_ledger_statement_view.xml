@@ -41,7 +41,7 @@
 	    
         <menuitem action="action_general_ledger_statement_view"
             id="menu_action_general_ledger_statement_view"
-            parent="menu_tpt_accounting" sequence="203"/>
+            parent="account.menu_finance_reporting" sequence="203"/>
 	 
 	    
     </data>

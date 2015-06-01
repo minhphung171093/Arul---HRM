@@ -32,7 +32,7 @@
 	    
         <menuitem action="action_bank_book_report_view"
             id="menu_action_bank_book_report_view"
-            parent="menu_tpt_accounting" sequence="101"/>
+            parent="account.menu_finance_reporting" sequence="101"/>
 	 
 	    
     </data>
