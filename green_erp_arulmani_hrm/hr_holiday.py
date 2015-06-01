@@ -898,8 +898,8 @@ class arul_hr_audit_shift_time(osv.osv):
                     if half_shift_hrs <= total_hrs < full_shift_hrs:
                         g1_shift_count = 0.5  
                         total_shift_worked = 0.5 
-                    if g1_min_end_time  <= actual_out <  g1_max_end_time: 
-                        if full_shift_hrs <= total_hrs:
+                    #if g1_min_end_time  <= actual_out <  g1_max_end_time: 
+                    if full_shift_hrs <= total_hrs:
                             g1_shift_count = 1  
                             total_shift_worked = 1
                     if g1_max_end_time  <= actual_out:   
@@ -2021,8 +2021,8 @@ class arul_hr_audit_shift_time(osv.osv):
                     if half_shift_hrs <= total_hrs < full_shift_hrs:
                         g1_shift_count = 0.5  
                         total_shift_worked = 0.5 
-                    if g1_min_end_time  <= actual_out <  g1_max_end_time: 
-                        if full_shift_hrs <= total_hrs:
+                    #if g1_min_end_time  <= actual_out <  g1_max_end_time: 
+                    if full_shift_hrs <= total_hrs:
                             g1_shift_count = 1  
                             total_shift_worked = 1
                     if g1_max_end_time  <= actual_out:   
