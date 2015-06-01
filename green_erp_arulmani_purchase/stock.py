@@ -373,6 +373,7 @@ class stock_move(osv.osv):
         'bin_location':fields.text('Bin Location'),
         'si_no':fields.integer('SI.No',readonly = True),
         'description':fields.char('Description', size = 50, readonly = True),
+        'item_text':fields.text('Item Text'),
                 }
     def onchange_product_id(self, cr, uid, ids, prod_id=False, loc_id=False,
                             loc_dest_id=False, partner_id=False, action=False):
