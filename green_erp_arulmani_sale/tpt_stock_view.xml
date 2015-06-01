@@ -356,7 +356,7 @@
 		                groups="green_erp_arulmani_sale.group_vvti_sale_gm"/>
 	                <button name="action_revert_done" string="Reopen" states="done,cancel" type="object" icon="gtk-cancel" 
 	                	confirm="Do you want to reopen this Delivery Order?"
-	                /> <!-- -->
+	                />
 	                
 	            </button>
             	<xpath expr="//field[@name='stock_journal_id']"  position="replace">
