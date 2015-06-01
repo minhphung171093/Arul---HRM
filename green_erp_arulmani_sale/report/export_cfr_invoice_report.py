@@ -72,11 +72,11 @@ class Parser(report_sxw.rml_parse):
         
         
     def get_state_country(self,partner):
-        
-        if (partner.state_id.name).replace(" ", ""):
-            return partner.state_id.name+", "+partner.country_id.name
-        else:
-            return partner.country_id.name
+        if partner.state_id.name:
+            if (partner.state_id.name).replace(" ", ""):
+                return partner.state_id.name+", "+partner.country_id.name
+            else:
+                return partner.country_id.name
     def get_s3(self,partner):
         #raise osv.except_osv(_('Warning!%s'),s3)
         if partner.street3:
@@ -104,7 +104,7 @@ class Parser(report_sxw.rml_parse):
         val2 = 0.0
         for line in invoice_line:
             val2 = val2 + line.price_subtotal + line.quantity*line.freight + line.insurance*(line.quantity) 
-        return round(val2, 0)
+        return round(val2, 2)
     
     def amount_to_text(self, nbr, lang='en', currency=False):
         if lang == 'vn':
@@ -187,7 +187,7 @@ class Parser(report_sxw.rml_parse):
         val1 = 0.0
         for line in invoice_line:
             #mt_freight = freight / qty 
-            val1 = val1 + (line.price_unit/1000) + (line.freight/line.quantity)/1000 + (line.insurance/line.quantity)/1000
+            val1 = val1 + round((line.price_unit/1000),5) + round(line.freight/1000,5) +  round(line.insurance/1000,5)
         val1 = format(val1, '.5f')   
         return val1
     def get_buyer(self, obj):

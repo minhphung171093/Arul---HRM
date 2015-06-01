@@ -42,26 +42,25 @@ class supplier_ledger_statement(osv.osv_memory):
             acount_move_obj = self.pool.get('account.move')
             sup_ids = []
             sql = '''
-                select id from account_move_line 
-                where move_id in (
-                                    select id from account_move 
-                                    where date between '%s' and '%s' and doc_type in ('sup_inv_po','sup_inv') and partner_id = %s and state='posted' ) and debit is not null and debit !=0   
+                select aml.id from account_move_line aml inner join account_move am on aml.move_id = am.id
+                where am.date between '%s' and '%s' and am.doc_type in ('sup_inv_po','sup_inv','sup_pay') and am.partner_id = %s and am.state='posted' and aml.credit is not null and aml.credit !=0
+                    order by am.date
                 '''%(date_from, date_to,sup)
             cr.execute(sql)
             sup_ids = [r[0] for r in cr.fetchall()]
-            sql = '''
-                select id from account_move_line 
-                where move_id in (
-                                    select id from account_move 
-                                    where date between '%s' and '%s' and doc_type in ('sup_pay') and partner_id = %s and state='posted' ) and credit is not null and credit !=0   
-                '''%(date_from, date_to,sup)
-            cr.execute(sql)
-            sup_ids += [r[0] for r in cr.fetchall()]
+#             sql = '''
+#                 select id from account_move_line 
+#                 where move_id in (
+#                                     select id from account_move 
+#                                     where date between '%s' and '%s' and doc_type in ('sup_pay') and partner_id = %s and state='posted') and credit is not null and credit !=0
+#                 '''%(date_from, date_to,sup)
+#             cr.execute(sql)
+#             sup_ids += [r[0] for r in cr.fetchall()]
             return acount_move_line_obj.browse(cr,uid,sup_ids)
          
         def get_bill_no(move_id, doc_type):
             if doc_type == 'sup_inv_po' or doc_type == 'sup_inv':
-                cr.execute('''select number from account_invoice where move_id =%s''', (move_id,))
+                cr.execute('''select name from account_invoice where move_id =%s''', (move_id,))
             else:
                 cr.execute('''select number from account_voucher where move_id =%s''', (move_id,))
             number = cr.fetchone()

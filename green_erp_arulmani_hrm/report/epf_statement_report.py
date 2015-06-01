@@ -94,10 +94,13 @@ class Parser(report_sxw.rml_parse):
         
     def get_epf_contribution_due(self, deduction):
         epf_contribution_due = 0.0
+        vpf_contribution_due = 0.0
         for line in deduction:
             if line.deduction_parameters_id.code == 'PF.D':
                 epf_contribution_due += line.float
-        return epf_contribution_due
+            if line.deduction_parameters_id.code == 'VPF.D':
+                epf_contribution_due += line.float
+        return epf_contribution_due + vpf_contribution_due
         
     def get_eps_contribution_due(self, employee):
         if employee.employee_category_id and employee.employee_sub_category_id:

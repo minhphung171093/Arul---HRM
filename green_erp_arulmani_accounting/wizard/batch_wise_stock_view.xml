@@ -34,6 +34,36 @@
             id="menu_action_batch_wise_stock_view"
             parent="stock.menu_stock_warehouse_mgmt" sequence="105"/>
 	 
+	 	<record id="view_tpt_batch_wise_stock_form" model="ir.ui.view">
+	        <field name="name">tpt.batch.wise.stock.form</field>
+	        <field name="model">tpt.batch.wise.stock</field>
+	        <field name="arch" type="xml">
+	            <form string="Batch Wise Stock" version="7.0" create='false' edit='false' delete='false'>
+	            	<header>
+	            		<button name="print_xls" string="Print (.xls)" type="object" class="oe_highlight" />
+	            		<button name="print_pdf" string="Print (.pdf)" type="object" class="oe_highlight" />
+	            	</header>
+	            	<sheet>
+	            		<div class="oe_text_center oe_bold">
+            				Finished Goods Bath Wise List As Of <field name="date" nolabel="1" class = "oe_inline"/>
+            			</div>
+            			<div class="oe_text_center oe_bold">
+            				Ware House Location: <field name="location_id" nolabel="1" class = "oe_inline"/>
+            			</div>
+		            	<group>
+		                	<field name="batch_wise_line" nolabel='1'>
+		                		<tree create="false" edit="false" delete="false">
+		                			<field name="col_1"/>
+		                			<field name="col_2"/>
+		                			<field name="col_3"/>
+		                			<field name="col_4"/>
+		                		</tree>
+		                	</field>
+	                	</group>
+		            </sheet>
+	            </form>
+	        </field>
+    	</record>
 	    
     </data>
 </openerp>

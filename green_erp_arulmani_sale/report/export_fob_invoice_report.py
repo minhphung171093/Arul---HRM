@@ -70,11 +70,11 @@ class Parser(report_sxw.rml_parse):
         elif not partner.street3 and not partner.city and partner.zip:
             return partner.zip
     def get_state_country(self,partner):
-        
-        if (partner.state_id.name).replace(" ", ""):
-            return partner.state_id.name+", "+partner.country_id.name
-        else:
-            return partner.country_id.name
+        if partner.state_id.name:
+            if (partner.state_id.name).replace(" ", ""):
+                return partner.state_id.name+", "+partner.country_id.name
+            else:
+                return partner.country_id.name
     def get_s3(self,partner):
         if partner.street3:
             return partner.street3+", "+partner.city
@@ -107,7 +107,7 @@ class Parser(report_sxw.rml_parse):
         val2 = 0.0
         for line in invoice_line:
             val2 = val2 + line.price_subtotal + line.quantity*line.freight + insurance*(line.quantity*1000)
-        return round(val2, 0)
+        return round(val2, 2)
     
     def amount_to_text(self, nbr, lang='en', currency=False):
         if lang == 'vn':
