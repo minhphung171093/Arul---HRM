@@ -2440,7 +2440,7 @@ class account_voucher(osv.osv):
                     }
         return {'value': vals}
     
-    def onchange_tpt_currency_amount(self, cr, uid, ids, tpt_currency_id, tpt_currency_amount, type, context=None):
+    def onchange_tpt_currency_amount(self, cr, uid, ids, tpt_currency_id, tpt_currency_amount, type, date, context=None):
         if context is None:
             context = {}
         vals = {}
@@ -2449,8 +2449,9 @@ class account_voucher(osv.osv):
                 'amount': 0,
                 'tpt_amount': 0,
             }
-            if tpt_currency_id and tpt_currency_amount:
-                context.update({'date': time.strftime('%Y-%m-%d')})
+            if tpt_currency_id and tpt_currency_amount and date:
+                context.update({'date': date})
+#                 context.update({'date': time.strftime('%Y-%m-%d')})
                 voucher_rate = self.pool.get('res.currency').read(cr, uid, tpt_currency_id, ['rate'], context=context)['rate']
                 vals = {
                     'amount': tpt_currency_amount/voucher_rate,

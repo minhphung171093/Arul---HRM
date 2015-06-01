@@ -557,7 +557,8 @@ class account_invoice(osv.osv):
                 if context is None:
                     context = {}
                 ctx = context.copy()
-                ctx.update({'date': time.strftime('%Y-%m-%d')})
+                ctx.update({'date': line.date_invoice})
+#                 ctx.update({'date': time.strftime('%Y-%m-%d')})
                 currency = line.currency_id.name or False
                 currency_id = line.currency_id.id or False
                 #line.invoice_type=='export'
@@ -633,7 +634,8 @@ class account_invoice(osv.osv):
                     if context is None:
                         context = {}
                     ctx = context.copy()
-                    ctx.update({'date': time.strftime('%Y-%m-%d')})
+                    ctx.update({'date': line.date_invoice})
+#                     ctx.update({'date': time.strftime('%Y-%m-%d')})
                     currency = line.currency_id.name or False
                     currency_id = line.currency_id.id or False
                     if currency != 'INR':
@@ -728,7 +730,8 @@ class account_invoice(osv.osv):
                     if context is None:
                         context = {}
                     ctx = context.copy()
-                    ctx.update({'date': time.strftime('%Y-%m-%d')})
+                    ctx.update({'date': line.date_invoice})
+#                     ctx.update({'date': time.strftime('%Y-%m-%d')})
                     currency = line.currency_id.name or False
                     currency_id = line.currency_id.id or False
                     if currency != 'INR':
