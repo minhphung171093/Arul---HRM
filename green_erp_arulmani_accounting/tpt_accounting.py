@@ -552,33 +552,33 @@ class stock_picking(osv.osv):
                 #sinh but toan
                     for p in line.move_lines:
                         
-                        if p.prodlot_id:
-                            sale_id = p.sale_line_id and p.sale_line_id.order_id.id or False 
-                            used_qty = p.product_qty or 0
-                            if sale_id:
-                                sql = '''
-                                    select id from tpt_batch_allotment where sale_order_id = %s
-                                '''%(sale_id)
-                                cr.execute(sql)
-                                allot_ids = cr.dictfetchone()
-                                if allot_ids:
-                                    allot_id = allot_ids['id']
-                                    sql = '''
-                                    select id from tpt_batch_allotment_line where sys_batch = %s and batch_allotment_id = %s
-                                    '''%(p.prodlot_id.id,allot_id)
-                                    cr.execute(sql)
-                                    allot_line_id = cr.dictfetchone()['id']
-                                    line_id = self.pool.get('tpt.batch.allotment.line').browse(cr, uid, allot_line_id)
-                                    used_qty += line_id.used_qty
-                                    sql = '''
-                                        update tpt_batch_allotment_line set product_uom_qty = %s where id = %s
-                                    '''%(used_qty,allot_line_id)
-                                    cr.execute(sql)
-                                    if line_id.product_uom_qty == line_id.used_qty:
-                                        sql = '''
-                                            update tpt_batch_allotment_line set is_deliver = 't' where id = %s
-                                        '''%(allot_line_id)
-                                        cr.execute(sql)
+#                         if p.prodlot_id:
+#                             sale_id = p.sale_line_id and p.sale_line_id.order_id.id or False 
+#                             used_qty = p.product_qty or 0
+#                             if sale_id:
+#                                 sql = '''
+#                                     select id from tpt_batch_allotment where sale_order_id = %s
+#                                 '''%(sale_id)
+#                                 cr.execute(sql)
+#                                 allot_ids = cr.dictfetchone()
+#                                 if allot_ids:
+#                                     allot_id = allot_ids['id']
+#                                     sql = '''
+#                                     select id from tpt_batch_allotment_line where sys_batch = %s and batch_allotment_id = %s
+#                                     '''%(p.prodlot_id.id,allot_id)
+#                                     cr.execute(sql)
+#                                     allot_line_id = cr.dictfetchone()['id']
+#                                     line_id = self.pool.get('tpt.batch.allotment.line').browse(cr, uid, allot_line_id)
+#                                     used_qty += line_id.used_qty
+#                                     sql = '''
+#                                         update tpt_batch_allotment_line set product_uom_qty = %s where id = %s
+#                                     '''%(used_qty,allot_line_id)
+#                                     cr.execute(sql)
+#                                     if line_id.product_uom_qty == line_id.used_qty:
+#                                         sql = '''
+#                                             update tpt_batch_allotment_line set is_deliver = 't' where id = %s
+#                                         '''%(allot_line_id)
+#                                         cr.execute(sql)
                         
                         debit += p.sale_line_id and p.sale_line_id.price_unit * p.product_qty or 0
                         product_name = p.product_id.name
