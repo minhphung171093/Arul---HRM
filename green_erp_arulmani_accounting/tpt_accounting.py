@@ -1518,34 +1518,42 @@ class account_invoice_line(osv.osv):
                 for tax_amount in tax_amounts:
                     tax_value += tax_amount/100
                     basic = (line.quantity * line.price_unit) - ( (line.quantity * line.price_unit)*line.disc/100)
+                    basic = round(basic)
                     if line.p_f_type == '1' :
                         p_f = basic * line.p_f/100
+                        p_f = round(p_f)
                     elif line.p_f_type == '2' :
                         p_f = line.p_f
+                        p_f = round(p_f)
                     elif line.p_f_type == '3' :
                         p_f = line.p_f * line.quantity
+                        p_f = round(p_f)
                     else:
                         p_f = line.p_f
+                        p_f = round(p_f)
                     if line.ed_type == '1' :
                         ed = (basic + p_f) * line.ed/100
+                        ed = round(ed)
                     elif line.ed_type == '2' :
                         ed = line.ed
+                        ed = round(ed)
                     elif line.ed_type == '3' :
                         ed = line.ed * line.quantity
+                        ed = round(ed)
                     else:
                         ed = line.ed
+                        ed = round(ed)
                     tax = (basic + p_f + ed)*(tax_value) * voucher_rate
                     if tax:    
-                        if round(tax):
-                            res.append({
-                                'type':'tax',
-                                'name':line.name,
-                                'price_unit': line.price_unit,
-                                'quantity': 1,
-                                'price': round(tax),
-                                'account_id': account,
-                                'account_analytic_id': line.account_analytic_id.id,
-                                })
+                        res.append({
+                            'type':'tax',
+                            'name':line.name,
+                            'price_unit': line.price_unit,
+                            'quantity': 1,
+                            'price': round(tax),
+                            'account_id': account,
+                            'account_analytic_id': line.account_analytic_id.id,
+                            })
                     
 #                     if 'CST' in tax_name:
 #                         tax_amounts = [r.amount for r in line.invoice_line_tax_id]
