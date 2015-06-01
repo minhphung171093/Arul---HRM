@@ -494,20 +494,31 @@ class stock_picking(osv.osv):
                     cr.execute(sql_journal)
                     journal_ids = [r[0] for r in cr.fetchall()]
                     journal = self.pool.get('account.journal').browse(cr,uid,journal_ids[0])
-                    if not line.warehouse.gl_pos_verification_id:
-                        raise osv.except_osv(_('Warning!'),_('Account Warehouse is not null, please configure it in Warehouse Location master !'))
+#                     if not line.warehouse.gl_pos_verification_id:
+#                         raise osv.except_osv(_('Warning!'),_('Account Warehouse is not null, please configure it in Warehouse Location master !'))
                 #sinh but toan
-                    journal_line = [(0,0,{
-                                        'name':line.name, 
-                                        'account_id': line.warehouse.gl_pos_verification_id and line.warehouse.gl_pos_verification_id.id,
-                                        'partner_id': line.partner_id and line.partner_id.id,
-                                        'debit':debit,
-                                        'credit':0,
-                                         
-                                       })]
+#                     journal_line = [(0,0,{
+#                                         'name':line.name, 
+#                                         'account_id': line.warehouse.gl_pos_verification_id and line.warehouse.gl_pos_verification_id.id,
+#                                         'partner_id': line.partner_id and line.partner_id.id,
+#                                         'debit':debit,
+#                                         'credit':0,
+#                                          
+#                                        })]
                     for p in line.move_lines:
                         amount_cer = p.purchase_line_id.price_unit * p.product_qty
                         credit = amount_cer - (amount_cer*p.purchase_line_id.discount)/100
+                        debit = amount_cer - (amount_cer*p.purchase_line_id.discount)/100
+                        if not p.product_id.purchase_asset_acc_id:
+                            raise osv.except_osv(_('Warning!'),_('You need to define Purchase Asset GL Account for this product'))
+                        journal_line.append((0,0,{
+                            'name':line.name, 
+                            'account_id': p.product_id.purchase_asset_acc_id and p.product_id.purchase_asset_acc_id.id,
+                            'partner_id': line.partner_id and line.partner_id.id or False,
+                            'credit':0,
+                            'debit':debit,
+                        }))
+                        
                         if not p.product_id.purchase_acc_id:
                             raise osv.except_osv(_('Warning!'),_('You need to define Purchase GL Account for this product'))
                         journal_line.append((0,0,{
@@ -2002,14 +2013,14 @@ class account_invoice_line(osv.osv):
             product_id = self.pool.get('product.product').browse(cr, uid, t['product_id'])
             name = product_id.name or False
             sql = '''
-            SELECT purchase_acc_id FROM product_product WHERE id=%s and purchase_acc_id is not null
+            SELECT product_asset_acc_id FROM product_product WHERE id=%s and product_asset_acc_id is not null
             '''%(t['product_id'])
             cr.execute(sql)
-            purchase_acc_id = cr.dictfetchone()
-            if not purchase_acc_id:
-                raise osv.except_osv(_('Warning!'),_('Account is not null, please configure it in Material master !'))
+            product_asset_acc_id = cr.dictfetchone()
+            if not product_asset_acc_id:
+                raise osv.except_osv(_('Warning!'),_('Account is not null, please configure Product Asset Account in Material master !'))
             else:
-                account = purchase_acc_id['purchase_acc_id']
+                account = product_asset_acc_id['product_asset_acc_id']
             if currency != 'INR':
                 voucher_rate = self.pool.get('res.currency').read(cr, uid, currency_id, ['rate'], context=ctx)['rate']
             
