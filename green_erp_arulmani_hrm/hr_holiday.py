@@ -423,8 +423,11 @@ class arul_hr_audit_shift_time(osv.osv):
                 for k in cr.fetchall():
                     in_time=k[0]
                     out_time=k[1]
-                if in_time <= line.in_time <= out_time or in_time <= line.out_time <= out_time: 
-                    raise osv.except_osv(_('Warning!'),_('Attendance Already Entered for this Time Period'))  
+                if line.in_time > line.out_time:
+                    continue
+                else:
+                    if in_time <= line.in_time <= out_time or in_time <= line.out_time <= out_time: 
+                        raise osv.except_osv(_('Warning!'),_('Attendance Already Entered for this Time Period'))  
             #TPT END
         for line in self.browse(cr,uid,ids):
 #             emp = self.pool.get('hr.employee')
@@ -1514,8 +1517,11 @@ class arul_hr_audit_shift_time(osv.osv):
                 for k in cr.fetchall():
                     in_time=k[0]
                     out_time=k[1]
-                if in_time <= line.in_time <= out_time or in_time <= line.out_time <= out_time: 
-                    raise osv.except_osv(_('Warning!'),_('Attendance Already Entered for this Time Period'))  
+                if line.in_time > line.out_time:
+                    continue
+                else:    
+                    if in_time <= line.in_time <= out_time or in_time <= line.out_time <= out_time: 
+                        raise osv.except_osv(_('Warning!'),_('Attendance Already Entered for this Time Period'))  
             #TPT END
         for line in self.browse(cr,uid,ids):
 #             emp = self.pool.get('hr.employee')
