@@ -2329,6 +2329,16 @@ product_product()
 class account_voucher(osv.osv):
     _inherit = "account.voucher"
     
+# Hàm update Report Cash/Bank, update field từ type_trans thành type    (phuoc)
+
+    def init(self, cr):
+        sql = '''
+             update account_voucher set type=type_trans where type_trans is not null;
+        '''
+        cr.execute(sql)
+        
+# end
+    
     def _get_tpt_currency_amount(self, cr, uid, ids, name, args, context=None):
         res = {}
         if context is None:
