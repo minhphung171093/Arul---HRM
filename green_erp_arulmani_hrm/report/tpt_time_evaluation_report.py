@@ -455,7 +455,7 @@ class Parser(report_sxw.rml_parse):
                 'c_off_day': c_off_day,
                 #'date_holiday_count':date_holiday_count or '', #TPT COMMENTED
                 'date_holiday_count':special_holiday_worked_count or '',
-                'perm_onduty_count':perm_onduty_count,
+                'perm_onduty_count':onduty_g2_shift_count, # perm_onduty_count,
                 #'total_shift_worked':total_shift_worked,
                 'total_shift_worked':tpt_a+tpt_b+tpt_c+tpt_g1+tpt_g2 # +perm_onduty_count,
             })
