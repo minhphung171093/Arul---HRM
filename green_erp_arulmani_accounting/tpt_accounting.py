@@ -473,6 +473,7 @@ class stock_picking(osv.osv):
             if 'state' in vals and line.type == 'in' and line.state=='done':
                 debit = 0.0
                 credit = 0.0
+                journal_line = []
                 for move in line.move_lines:
                     amount = move.purchase_line_id.price_unit * move.product_qty
                     debit += amount - (amount*move.purchase_line_id.discount)/100
@@ -512,7 +513,7 @@ class stock_picking(osv.osv):
                         if not p.product_id.product_asset_acc_id:
                             raise osv.except_osv(_('Warning!'),_('You need to define Product Asset GL Account for this product'))
                         journal_line.append((0,0,{
-                            'name':line.name, 
+                            'name':line.name + ' - ' + p.product_id.name, 
                             'account_id': p.product_id.product_asset_acc_id and p.product_id.product_asset_acc_id.id,
                             'partner_id': line.partner_id and line.partner_id.id or False,
                             'credit':0,
@@ -522,7 +523,7 @@ class stock_picking(osv.osv):
                         if not p.product_id.purchase_acc_id:
                             raise osv.except_osv(_('Warning!'),_('You need to define Purchase GL Account for this product'))
                         journal_line.append((0,0,{
-                            'name':line.name, 
+                            'name':line.name + ' - ' + p.product_id.name, 
                             'account_id': p.product_id.purchase_acc_id and p.product_id.purchase_acc_id.id,
                             'partner_id': line.partner_id and line.partner_id.id or False,
                             'credit':credit,
@@ -3384,7 +3385,7 @@ class tpt_material_issue(osv.osv):
                 if not line.warehouse.gl_pos_verification_id:
                     raise osv.except_osv(_('Warning!'),_('Account Warehouse is not null, please configure it in Warehouse Location master !'))
                 journal_line = [(0,0,{
-                                        'name':line.doc_no, 
+                                        'name':line.doc_no + ' - ' + p.product_id.name, 
                                         'account_id': line.warehouse.gl_pos_verification_id and line.warehouse.gl_pos_verification_id.id,
 #                                         'partner_id': line.partner_id and line.partner_id.id,
                                         'debit':0,
@@ -3393,7 +3394,7 @@ class tpt_material_issue(osv.osv):
                                        })]
                 if line.gl_account_id:
                     journal_line.append((0,0,{
-                                'name':line.doc_no, 
+                                'name':line.doc_no + ' - ' + p.product_id.name, 
                                 'account_id': line.gl_account_id and line.gl_account_id.id,
 #                                 'partner_id': line.partner_id and line.partner_id.id,
                                 'credit':0,
@@ -3454,7 +3455,7 @@ class tpt_material_issue(osv.osv):
                     if not line.warehouse.gl_pos_verification_id:
                         raise osv.except_osv(_('Warning!'),_('Account Warehouse is not null, please configure it in Warehouse Location master !'))
                     journal_line = [(0,0,{
-                                            'name':line.doc_no, 
+                                            'name':line.doc_no + ' - ' + p.product_id.name, 
                                             'account_id': line.warehouse.gl_pos_verification_id and line.warehouse.gl_pos_verification_id.id,
     #                                         'partner_id': line.partner_id and line.partner_id.id,
                                             'debit':0,
@@ -3463,7 +3464,7 @@ class tpt_material_issue(osv.osv):
                                            })]
                     if line.gl_account_id:
                         journal_line.append((0,0,{
-                                    'name':line.doc_no, 
+                                    'name':line.doc_no + ' - ' + p.product_id.name, 
                                     'account_id': line.gl_account_id and line.gl_account_id.id,
     #                                 'partner_id': line.partner_id and line.partner_id.id,
                                     'credit':0,
