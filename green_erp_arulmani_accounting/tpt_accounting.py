@@ -1544,7 +1544,10 @@ class account_invoice_line(osv.osv):
                     else:
                         ed = line.ed
                         ed = round(ed)
-                    tax = (basic + p_f + ed)*(tax_value) * voucher_rate
+                    if line.aed_id_1:
+                        tax = (basic + p_f + ed + line.aed_id_1)*(tax_value) * voucher_rate
+                    else:
+                        tax = (basic + p_f + ed)*(tax_value) * voucher_rate
                     if tax:    
                         res.append({
                             'type':'tax',
@@ -3234,6 +3237,19 @@ sale_order()
 
 class tpt_material_issue(osv.osv):
     _inherit = "tpt.material.issue"
+    
+    def init(self, cr):
+        sql = '''
+             update purchase_order_line set item_text=(select item_text from tpt_purchase_quotation_line
+                 where po_indent_id = purchase_order_line.po_indent_no and product_id = purchase_order_line.product_id
+                     and product_uom_qty=purchase_order_line.product_qty limit 1)
+        '''
+        cr.execute(sql)
+        sql ='''
+            update stock_move set item_text=(select item_text from purchase_order_line where id=stock_move.purchase_line_id limit 1)
+        '''
+        cr.execute(sql)
+        
     _columns = {
                 'gl_account_id': fields.many2one('account.account', 'GL Account',states={'done':[('readonly', True)]}),
                 'warehouse':fields.many2one('stock.location','Source Location',states={'done':[('readonly', True)]}),
