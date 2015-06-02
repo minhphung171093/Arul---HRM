@@ -679,7 +679,7 @@ class account_invoice(osv.osv):
                         tax_amounts = [r.amount for r in po.invoice_line_tax_id]
                         for tax_amount in tax_amounts:
                             tax += tax_amount/100
-                        amount_total_tax = (basic + p_f + ed)*(tax)
+                        amount_total_tax = (basic + p_f + ed + po.aed_id_1)*(tax)
 #                         amount_total_tax = round(amount_total_tax)
                         total_tax += amount_total_tax
 #                         total_tax = round(total_tax)

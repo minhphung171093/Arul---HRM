@@ -1544,7 +1544,10 @@ class account_invoice_line(osv.osv):
                     else:
                         ed = line.ed
                         ed = round(ed)
-                    tax = (basic + p_f + ed)*(tax_value) * voucher_rate
+                    if line.aed_id_1:
+                        tax = (basic + p_f + ed + line.aed_id_1)*(tax_value) * voucher_rate
+                    else:
+                        tax = (basic + p_f + ed)*(tax_value) * voucher_rate
                     if tax:    
                         res.append({
                             'type':'tax',
