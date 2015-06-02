@@ -560,8 +560,9 @@ class stock_picking(osv.osv):
                                     select id from tpt_batch_allotment where sale_order_id = %s
                                 '''%(sale_id)
                                 cr.execute(sql)
-                                allot_id = cr.dictfetchone()['id']
+                                allot_ids = cr.dictfetchone()
                                 if allot_ids:
+                                    allot_id = allot_ids['id']
                                     sql = '''
                                     select id from tpt_batch_allotment_line where sys_batch = %s and batch_allotment_id = %s
                                     '''%(p.prodlot_id.id,allot_id)
