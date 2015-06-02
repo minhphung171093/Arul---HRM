@@ -4326,26 +4326,40 @@ class res_partner(osv.osv):
                 group = self.pool.get('customer.account.group').browse(cr,uid,vals['customer_account_group_id'])
                 if 'VVTI Sold to Party' in group.name:
                     vals['customer_code'] = self.pool.get('ir.sequence').get(cr, uid, 'tpt.sold.group.customer') or '/'
+                    if 'arulmani_type' in vals and vals['arulmani_type']=='export':
+                        acc_parent_ids = self.pool.get('account.account').search(cr,uid, [('code','=','0000119002')])
+                    if 'arulmani_type' in vals and vals['arulmani_type']=='domestic':
+                        acc_parent_ids = self.pool.get('account.account').search(cr,uid, [('code','=','0000119001')])
+                    if 'arulmani_type' in vals and vals['arulmani_type']=='indirect_export':
+                        acc_parent_ids = self.pool.get('account.account').search(cr,uid, [('code','=','0000119003')])
+                    acc_id = acc_obj.create(cr,uid,{
+                        'code':'0000' + vals['customer_code'],
+                        'name': vals['name'],
+                        'type':'receivable',
+                        'user_type':acc_type_ids[0],
+                        'parent_id':acc_parent_ids[0],
+                                                    })
+                    vals.update({'property_account_receivable':acc_id})
                 elif 'VVTI Ship to Party' in group.name:
                     vals['customer_code'] = self.pool.get('ir.sequence').get(cr, uid, 'tpt.ship.group.customer') or '/'
                 elif 'VVTI Indent Comm.' in group.name:
                     vals['customer_code'] = self.pool.get('ir.sequence').get(cr, uid, 'tpt.indent.group.customer') or '/'
                 else:
                     raise osv.except_osv(_('Warning!'),_('You only create Customer Code for (VVTI Sold to Party, VVTI Ship to Party, VVTI Indent Comm.) in Customer Account Group'))
-            if 'arulmani_type' in vals and vals['arulmani_type']=='export':
-                acc_parent_ids = self.pool.get('account.account').search(cr,uid, [('code','=','0000119002')])
-            if 'arulmani_type' in vals and vals['arulmani_type']=='domestic':
-                acc_parent_ids = self.pool.get('account.account').search(cr,uid, [('code','=','0000119001')])
-            if 'arulmani_type' in vals and vals['arulmani_type']=='indirect_export':
-                acc_parent_ids = self.pool.get('account.account').search(cr,uid, [('code','=','0000119003')])
-            acc_id = acc_obj.create(cr,uid,{
-                'code':'0000' + vals['customer_code'],
-                'name': vals['name'],
-                'type':'receivable',
-                'user_type':acc_type_ids[0],
-                'parent_id':acc_parent_ids[0],
-                                            })
-            vals.update({'property_account_receivable':acc_id})
+#             if 'arulmani_type' in vals and vals['arulmani_type']=='export':
+#                 acc_parent_ids = self.pool.get('account.account').search(cr,uid, [('code','=','0000119002')])
+#             if 'arulmani_type' in vals and vals['arulmani_type']=='domestic':
+#                 acc_parent_ids = self.pool.get('account.account').search(cr,uid, [('code','=','0000119001')])
+#             if 'arulmani_type' in vals and vals['arulmani_type']=='indirect_export':
+#                 acc_parent_ids = self.pool.get('account.account').search(cr,uid, [('code','=','0000119003')])
+#             acc_id = acc_obj.create(cr,uid,{
+#                 'code':'0000' + vals['customer_code'],
+#                 'name': vals['name'],
+#                 'type':'receivable',
+#                 'user_type':acc_type_ids[0],
+#                 'parent_id':acc_parent_ids[0],
+#                                             })
+#             vals.update({'property_account_receivable':acc_id})
         if 'supplier' in vals and vals['supplier']:
             acc_obj = self.pool.get('account.account')
             acc_parent_ids = []
