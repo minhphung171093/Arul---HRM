@@ -1987,12 +1987,12 @@ class purchase_order(osv.osv):
         sql = '''
             update purchase_order set currency_id=tpt_currency_id
         '''
-#         cr.execute(sql) 
-# #         quotation_obj=self.pool.get('tpt.purchase.quotation.line')
-# #         quotation_ids=self.pool.get('tpt.purchase.quotation.line').search(cr,1,[])
-# # #         quotation = quotation_obj.browse(cr,1,quotation_ids)
-# # #         for line in self.browse(cr,1,ids):
-# #         for quotation in quotation_obj.browse(cr,1,quotation_ids):
+        cr.execute(sql) 
+#         quotation_obj=self.pool.get('tpt.purchase.quotation.line')
+#         quotation_ids=self.pool.get('tpt.purchase.quotation.line').search(cr,1,[])
+# #         quotation = quotation_obj.browse(cr,1,quotation_ids)
+# #         for line in self.browse(cr,1,ids):
+#         for quotation in quotation_obj.browse(cr,1,quotation_ids):
 #         sql = '''
 #              update purchase_order_line set item_text=(select item_text from tpt_purchase_quotation_line
 #                  where po_indent_id = purchase_order_line.po_indent_no and product_id = purchase_order_line.product_id
@@ -2003,7 +2003,7 @@ class purchase_order(osv.osv):
 #             update stock_move set item_text=(select item_text from purchase_order_line where id=stock_move.purchase_line_id limit 1)
 #         '''
 #         cr.execute(sql)
-# #         %(quotation.item_text,quotation.po_indent_id.id,quotation.product_id.id)
+#         %(quotation.item_text,quotation.po_indent_id.id,quotation.product_id.id)
     
     def amount_all_po_line(self, cr, uid, ids, field_name, args, context=None):
         res = {}
