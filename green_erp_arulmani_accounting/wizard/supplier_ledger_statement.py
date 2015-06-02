@@ -177,7 +177,7 @@ class supplier_ledger_statement(osv.osv_memory):
 supplier_ledger_statement()
    
    
-class tpt_supplier_ledger(osv.osv_memory): 
+class tpt_supplier_ledger(osv.osv): 
     _name = "tpt.supplier.ledger"
     _columns = {
                 'name': fields.char('Supplier Ledger Statement', size = 1024), 
@@ -213,7 +213,7 @@ class tpt_supplier_ledger(osv.osv_memory):
     
 tpt_supplier_ledger()  
 
-class tpt_supplier_ledger_line(osv.osv_memory):
+class tpt_supplier_ledger_line(osv.osv):
     _name = "tpt.supplier.ledger.line"
     _columns = {
         'ledger_id': fields.many2one('tpt.supplier.ledger', 'Supplier Ledger', ondelete='cascade'),

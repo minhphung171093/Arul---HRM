@@ -36,7 +36,7 @@ class stock_picking(osv.osv):
                 '''%(line.warehouse.id,line.id)
                 cr.execute(sql)
             for move in line.move_lines:
-                if 'state' in vals and vals['state']=='cancel':
+                if 'state' in vals and vals['state']=='cancel' and line.type=='in':
                     sql = '''
                         update tpt_purchase_product set state='po_raised' where pur_product_id=%s and product_id=%s
                     '''%(move.po_indent_id.id,move.product_id.id)
@@ -373,6 +373,7 @@ class stock_move(osv.osv):
         'bin_location':fields.text('Bin Location'),
         'si_no':fields.integer('SI.No',readonly = True),
         'description':fields.char('Description', size = 50, readonly = True),
+        'item_text':fields.text('Item Text'),
                 }
     def onchange_product_id(self, cr, uid, ids, prod_id=False, loc_id=False,
                             loc_dest_id=False, partner_id=False, action=False):
@@ -557,7 +558,8 @@ class account_invoice(osv.osv):
                 if context is None:
                     context = {}
                 ctx = context.copy()
-                ctx.update({'date': time.strftime('%Y-%m-%d')})
+                ctx.update({'date': line.date_invoice})
+#                 ctx.update({'date': time.strftime('%Y-%m-%d')})
                 currency = line.currency_id.name or False
                 currency_id = line.currency_id.id or False
                 #line.invoice_type=='export'
@@ -617,7 +619,7 @@ class account_invoice(osv.osv):
                     sql='''
                         update account_invoice_tax set amount=%s where id=%s
                     '''%(round(val2+freight),taxline.id)
-                    cr.execute(sql)
+                    cr.execute(sql)#                         amount_total_tax = round(amount_total_tax)
             else:
                 if line.purchase_id:
                     amount_untaxed = 0.0
@@ -633,7 +635,8 @@ class account_invoice(osv.osv):
                     if context is None:
                         context = {}
                     ctx = context.copy()
-                    ctx.update({'date': time.strftime('%Y-%m-%d')})
+                    ctx.update({'date': line.date_invoice})
+#                     ctx.update({'date': time.strftime('%Y-%m-%d')})
                     currency = line.currency_id.name or False
                     currency_id = line.currency_id.id or False
                     if currency != 'INR':
@@ -679,10 +682,10 @@ class account_invoice(osv.osv):
                         tax_amounts = [r.amount for r in po.invoice_line_tax_id]
                         for tax_amount in tax_amounts:
                             tax += tax_amount/100
-                        amount_total_tax = (basic + p_f + ed)*(tax)
-                        amount_total_tax = round(amount_total_tax)
+                        amount_total_tax = (basic + p_f + ed + po.aed_id_1)*(tax)
+#                         amount_total_tax = round(amount_total_tax)
                         total_tax += amount_total_tax
-                        total_tax = round(total_tax)
+#                         total_tax = round(total_tax)
                         if po.fright_type == '1' :
                             fright = (basic + p_f + ed + amount_total_tax) * po.fright/100
                             fright = round(fright)
@@ -728,7 +731,8 @@ class account_invoice(osv.osv):
                     if context is None:
                         context = {}
                     ctx = context.copy()
-                    ctx.update({'date': time.strftime('%Y-%m-%d')})
+                    ctx.update({'date': line.date_invoice})
+#                     ctx.update({'date': time.strftime('%Y-%m-%d')})
                     currency = line.currency_id.name or False
                     currency_id = line.currency_id.id or False
                     if currency != 'INR':
@@ -775,9 +779,9 @@ class account_invoice(osv.osv):
                         for tax_amount in tax_amounts:
                             tax += tax_amount/100
                         amount_total_tax = (basic + p_f + ed)*(tax)
-                        amount_total_tax = round(amount_total_tax)
+#                         amount_total_tax = round(amount_total_tax)
                         total_tax += amount_total_tax
-                        total_tax = round(total_tax)
+#                         total_tax = round(total_tax)
                         if po.fright_type == '1' :
                             fright = (basic + p_f + ed + amount_total_tax) * po.fright/100
                             fright = round(fright)
@@ -882,7 +886,7 @@ class account_invoice(osv.osv):
                                                                 'ed', 'ed_type','invoice_line_tax_id','fright','fright_type', 'tds_id','aed_id_1'], 10)}),
         'amount_total_inr': fields.function(amount_all_supplier_invoice_line, multi='sums', string='Total (INR)',
              store={
-                'account.invoice': (lambda self, cr, uid, ids, c={}: ids, ['invoice_line'], 10),   
+                'account.invoice': (lambda self, cr, uid, ids, c={}: ids, ['invoice_line','date_invoice'], 10),   
                 'account.invoice.line': (_get_invoice_line, ['quantity', 'uos_id', 'price_unit','discount','p_f','p_f_type',   
                                                                 'ed', 'ed_type','invoice_line_tax_id','fright','fright_type', 'tds_id','aed_id_1'], 10)}),
         'amount_total_tds': fields.function(amount_all_supplier_invoice_line, multi='sums', string='Total TDS',

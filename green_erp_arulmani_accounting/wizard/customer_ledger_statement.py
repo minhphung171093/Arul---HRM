@@ -179,7 +179,7 @@ class customer_ledger_statement(osv.osv_memory):
 customer_ledger_statement()
    
    
-class tpt_customer_ledger(osv.osv_memory): 
+class tpt_customer_ledger(osv.osv): 
     _name = "tpt.customer.ledger"
     _columns = {
                 'name': fields.char('Customer Ledger Statement', size = 1024),  
@@ -215,7 +215,7 @@ class tpt_customer_ledger(osv.osv_memory):
     
 tpt_customer_ledger()  
 
-class tpt_customer_ledger_line(osv.osv_memory):
+class tpt_customer_ledger_line(osv.osv):
     _name = "tpt.customer.ledger.line"
     _columns = {
         'ledger_id': fields.many2one('tpt.customer.ledger', 'Customer Ledger', ondelete='cascade'),

@@ -8,7 +8,7 @@ import openerp.tools
 from openerp.tools import DEFAULT_SERVER_DATE_FORMAT, DEFAULT_SERVER_DATETIME_FORMAT, float_compare
 
 
-class tpt_stock_on_hand(osv.osv_memory):
+class tpt_stock_on_hand(osv.osv):
     _name = "tpt.stock.on.hand"
     _columns = {
         'name': fields.char('', readonly=True),
@@ -39,7 +39,7 @@ class tpt_stock_on_hand(osv.osv_memory):
     
 tpt_stock_on_hand()
 
-class tpt_stock_on_hand_line(osv.osv_memory):
+class tpt_stock_on_hand_line(osv.osv):
     _name = "tpt.stock.on.hand.line"
     _columns = {
         'stock_id': fields.many2one('tpt.stock.on.hand', 'Line'),
@@ -102,28 +102,28 @@ class stock_on_hand_report(osv.osv_memory):
 #             return date.strftime('%d/%m/%Y')
         
         def get_warehouse(o):
-            loc = o.location_id
-            loc_obj = self.pool.get('stock.location').browse(cr,uid,loc[0])
+            loc = o.location_id.id
+            loc_obj = self.pool.get('stock.location').browse(cr,uid,loc)
             return loc_obj   
         
         def get_category(o):
-            cat = o.categ_id
+            cat = o.categ_id and o.categ_id.id or False
             if cat:
-                cat_obj = self.pool.get('product.category').browse(cr,uid,cat[0])
+                cat_obj = self.pool.get('product.category').browse(cr,uid,cat)
                 return cat_obj
             return False
         
         def get_product(o):
-            pro = o.product_id
+            pro = o.product_id and o.product_id.id or False
             if pro:
-                pro_obj = self.pool.get('product.product').browse(cr,uid,pro[0])
+                pro_obj = self.pool.get('product.product').browse(cr,uid,pro)
                 return pro_obj
             return False
     
         def get_categ(o):
-            loc = o.location_id
-            categ = o.categ_id
-            product = o.product_id
+            loc = o.location_id.id
+            categ = o.categ_id and o.categ_id.id or False
+            product = o.product_id and o.product_id.id or False
             pro_obj = self.pool.get('product.product')
             categ_ids = []
     
@@ -133,7 +133,7 @@ class stock_on_hand_report(osv.osv_memory):
                             from product_product,product_template 
                             where product_template.categ_id in(select product_category.id from product_category where product_category.id = %s) 
                             and product_product.product_tmpl_id = product_template.id and product_product.id = %s ;
-                '''%(categ[0],product[0])
+                '''%(categ,product)
                 cr.execute(sql)
                 categ_ids += [r[0] for r in cr.fetchall()]
                 return self.pool.get('product.product').browse(cr,uid,categ_ids)
@@ -143,7 +143,7 @@ class stock_on_hand_report(osv.osv_memory):
                             from product_product,product_template 
                             where product_template.categ_id in(select product_category.id from product_category where product_category.id = %s) 
                             and product_product.product_tmpl_id = product_template.id;
-                '''%(categ[0])
+                '''%(categ)
                 cr.execute(sql)
                 categ_ids += [r[0] for r in cr.fetchall()]
                 return pro_obj.browse(cr,uid,categ_ids)
@@ -153,7 +153,7 @@ class stock_on_hand_report(osv.osv_memory):
                             from product_product,product_template 
                             where product_template.categ_id in(select product_category.id from product_category) 
                             and product_product.product_tmpl_id = product_template.id and product_product.id = %s ;
-                '''%(product[0])
+                '''%(product)
                 cr.execute(sql)
                 categ_ids += [r[0] for r in cr.fetchall()]
                 return self.pool.get('product.product').browse(cr,uid,categ_ids)
@@ -286,6 +286,7 @@ class product_product(osv.osv):
     def name_search(self, cr, user, name, args=None, operator='ilike', context=None, limit=100):
        ids = self.search(cr, user, args, context=context, limit=limit)
        return self.name_get(cr, user, ids, context=context)
+product_product()
 
 class stock_location(osv.osv):
     _inherit = "stock.location"

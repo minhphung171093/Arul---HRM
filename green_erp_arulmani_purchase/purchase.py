@@ -1988,6 +1988,22 @@ class purchase_order(osv.osv):
             update purchase_order set currency_id=tpt_currency_id
         '''
         cr.execute(sql) 
+#         quotation_obj=self.pool.get('tpt.purchase.quotation.line')
+#         quotation_ids=self.pool.get('tpt.purchase.quotation.line').search(cr,1,[])
+# #         quotation = quotation_obj.browse(cr,1,quotation_ids)
+# #         for line in self.browse(cr,1,ids):
+#         for quotation in quotation_obj.browse(cr,1,quotation_ids):
+#         sql = '''
+#              update purchase_order_line set item_text=(select item_text from tpt_purchase_quotation_line
+#                  where po_indent_id = purchase_order_line.po_indent_no and product_id = purchase_order_line.product_id
+#                      and product_uom_qty=purchase_order_line.product_qty limit 1)
+#         '''
+#         cr.execute(sql)
+#         sql ='''
+#             update stock_move set item_text=(select item_text from purchase_order_line where id=stock_move.purchase_line_id limit 1)
+#         '''
+#         cr.execute(sql)
+#         %(quotation.item_text,quotation.po_indent_id.id,quotation.product_id.id)
     
     def amount_all_po_line(self, cr, uid, ids, field_name, args, context=None):
         res = {}
@@ -2284,6 +2300,7 @@ class purchase_order(osv.osv):
     #                       'date_planned':quotation.date_quotation or False,
                           'name': line.product_id and line.product_id.name or False,
                           'description':line.description or False,
+                          'item_text':line.item_text or False,
                           }
                     po_line.append((0,0,rs))
                 vals = {
@@ -2836,6 +2853,7 @@ class purchase_order(osv.osv):
             'po_indent_id': order_line.po_indent_no and order_line.po_indent_no.id or False,
             'action_taken': act_taken,
             'description':order_line.description or False,
+            'item_text':order_line.item_text or False,
         }
 purchase_order()
 
@@ -3260,6 +3278,13 @@ tpt_product_detail_line()
 
 class tpt_quanlity_inspection(osv.osv):
     _name = "tpt.quanlity.inspection"
+    
+    def init(self, cr):
+        sql = '''
+            update tpt_quanlity_inspection t set need_inspec_id=(select id from stock_move where picking_id=t.name and product_qty=t.qty and product_id=t.product_id limit 1)
+        '''
+        cr.execute(sql)
+    
     _columns = {
         'name' : fields.many2one('stock.picking.in','GRN No',required = True,readonly = True,states={'cancel': [('readonly', True)], 'done':[('readonly', True)]}),
         'need_inspec_id':fields.many2one('stock.move','Need Inspec',states={'cancel': [('readonly', True)], 'done':[('readonly', True)]}),
@@ -3269,7 +3294,7 @@ class tpt_quanlity_inspection(osv.osv):
         'reason':fields.text('Reason',states={'cancel': [('readonly', True)], 'done':[('readonly', True)]}),
         'specification_line':fields.one2many('tpt.product.specification','specification_id','Product Specification'),
         'qty':fields.float('Qty',digits=(16,3),states={'cancel': [('readonly', True)], 'done':[('readonly', True)]}),
-        'qty_approve':fields.float('Qty Approve',digits=(16,3)),
+        'qty_approve':fields.float('Qty Approve',digits=(16,3),states={'cancel': [('readonly', True)], 'done':[('readonly', True)]}),
         'remaining_qty':fields.float('Inspection Quantity',digits=(16,3), readonly= True),
         'state':fields.selection([('draft', 'Draft'),('remaining', 'Remaining'),('done', 'Done')],'Status', readonly=True),
                 }
@@ -4511,7 +4536,7 @@ class tpt_material_issue(osv.osv):
     _columns = {
         'name': fields.many2one('tpt.material.request','Material Request No',required = True,states={'done':[('readonly', True)]}),
         'date_request':fields.date('Material Request Date',states={'done':[('readonly', True)]}),
-        'date_expec':fields.date('Material Issue Date',states={'done':[('readonly', True)]}),
+        'date_expec':fields.date('Material Issue Date',),
         'department_id':fields.many2one('hr.department','Department',readonly=True),
         'request_type':fields.selection([('production', 'Production'),('normal', 'Normal'),('main', 'Maintenance')],'Request Type', states={'done':[('readonly', True)]}),
         'material_issue_line':fields.one2many('tpt.material.issue.line','material_issue_id','Vendor Group',states={'done':[('readonly', True)]}),

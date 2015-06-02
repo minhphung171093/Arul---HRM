@@ -650,9 +650,25 @@ class stock_picking(osv.osv):
         '''%(ids[0])
         cr.execute(sql)
         if cr.dictfetchone()['id']:
-            raise osv.except_osv(
-                _('Warning'),
-                _('You must first cancel all Invoice order(s) attached to this sales order.'))
+            sql ='''
+            select id from account_invoice where delivery_order_id = %s and state != 'cancel'
+            '''%(ids[0])
+            cr.execute(sql)
+            if cr.dictfetchone():
+                raise osv.except_osv(
+                    _('Warning'),
+                    _('You must first cancel all Invoice order(s) attached to this sales order.'))
+            else:
+                cr.execute(''' update stock_picking set invoice_state ='2binvoiced' where id = %s''',(ids[0],))
+                do = self.browse(cr, uid, ids[0], context=context)
+                if do:
+                    line_obj = self.pool.get('account.move.line')
+                    line_ids = line_obj.search(cr, uid, [('name','=',do.name)])
+                    if line_ids:
+                        line_id = line_obj.browse(cr, uid, line_ids[0])
+                        move_id = line_id.move_id.id 
+                        if move_id:
+                            cr.execute(''' delete from account_move where id = %s''',(move_id,))
                 
         for picking in self.browse(cr, uid, ids, context):
             for line in picking.move_lines:
@@ -766,24 +782,48 @@ class stock_picking(osv.osv):
         for picking in self.browse(cr, uid, ids, context=context):
             if picking.warehouse:
                 for line in picking.move_lines:
-                    sql = '''
-                        select case when sum(foo.product_qty)!=0 then sum(foo.product_qty) else 0 end onhand_qty from 
-                            (select st.product_qty as product_qty
-                                from stock_move st 
-                                where st.state='done' and st.product_id=%s and st.location_dest_id=%s and st.location_dest_id != st.location_id
-                             union all
-                             select st.product_qty*-1 as product_qty
-                                from stock_move st 
-                                where st.state='done'
-                                and st.product_id=%s
-                                and location_id=%s
-                                and location_dest_id != location_id
-                            )foo
-                    '''%(line.product_id.id,picking.warehouse.id,line.product_id.id,picking.warehouse.id)
-                    cr.execute(sql)
-                    onhand_qty = cr.dictfetchone()['onhand_qty']
-                    if onhand_qty < line.product_qty:
-                        raise osv.except_osv(_('Warning!'),_('Do not have enough quantity for this product on stock!'))
+                    if not line.product_id.batch_appli_ok:
+                        sql = '''
+                            select case when sum(foo.product_qty)!=0 then sum(foo.product_qty) else 0 end onhand_qty from 
+                                (select st.product_qty as product_qty
+                                    from stock_move st 
+                                    where st.state='done' and st.product_id=%s and st.location_dest_id=%s and st.location_dest_id != st.location_id
+                                 union all
+                                 select st.product_qty*-1 as product_qty
+                                    from stock_move st 
+                                    where st.state='done'
+                                    and st.product_id=%s
+                                    and location_id=%s
+                                    and location_dest_id != location_id
+                                )foo
+                        '''%(line.product_id.id,picking.warehouse.id,line.product_id.id,picking.warehouse.id)
+                        cr.execute(sql)
+                        onhand_qty = cr.dictfetchone()['onhand_qty']
+                        if onhand_qty < line.product_qty:
+                            raise osv.except_osv(_('Warning!'),_('Do not have enough quantity for this product on stock!'))
+                    else:
+                        if not line.prodlot_id:
+                            raise osv.except_osv(_('Warning!'),_('Need to select batch number for batch applicable product!'))
+                        else:
+                            sql = '''
+                                select case when sum(foo.product_qty)!=0 then sum(foo.product_qty) else 0 end onhand_qty from 
+                                    (select st.product_qty as product_qty
+                                        from stock_move st 
+                                        where st.state='done' and st.product_id=%s and st.location_dest_id=%s and st.location_dest_id != st.location_id and prodlot_id = %s
+                                     union all
+                                     select st.product_qty*-1 as product_qty
+                                        from stock_move st 
+                                        where st.state='done'
+                                        and st.product_id=%s
+                                        and location_id=%s
+                                        and location_dest_id != location_id
+                                        and prodlot_id = %s
+                                    )foo
+                            '''%(line.product_id.id,picking.warehouse.id,line.prodlot_id.id,line.product_id.id,picking.warehouse.id,line.prodlot_id.id)
+                            cr.execute(sql)
+                            onhand_qty = cr.dictfetchone()['onhand_qty']
+                            if onhand_qty < line.product_qty:
+                                raise osv.except_osv(_('Warning!'),_('Do not have enough quantity for this product on stock!'))
                 picking.force_assign(cr, uid, [picking.id])
         return True
     
