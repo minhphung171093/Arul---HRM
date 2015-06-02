@@ -237,6 +237,50 @@ class stock_invoice_onshipping(osv.osv_memory):
                     raise osv.except_osv(_('Warning!'),_('You should check Quality Inspection before the Create Invoice !'))
                 
         return res
+    def open_invoice(self, cr, uid, ids, context=None):
+        if context is None:
+            context = {}
+        invoice_ids = []
+        data_pool = self.pool.get('ir.model.data')
+        
+        picking_id = context and context.get('active_id', False)
+        currency_id = False
+        for wiz in self.browse(cr, uid, ids, context=context):
+            if picking_id:
+                pick_id = self.pool.get('stock.picking').browse(cr, uid, picking_id)
+                if pick_id.type == 'in':
+                    currency_id = pick_id.purchase_id and pick_id.purchase_id.currency_id and pick_id.purchase_id.currency_id.id or False
+                if pick_id.type == 'out': 
+                    currency_id = pick_id.sale_id and pick_id.sale_id.currency_id and pick_id.sale_id.currency_id.id or False
+                if currency_id:
+                    if not wiz.invoice_date:
+                        raise osv.except_osv(_('Warning!'),_('Please choose date of invoice!')) 
+                    cur_rate_obj =self.pool.get('res.currency.rate')
+                    cur_rate_ids = cur_rate_obj.search(cr, uid, [('currency_id','=',currency_id),('name','=',wiz.invoice_date)])
+                    if not cur_rate_ids:
+                        raise osv.except_osv(_('Warning!'),_('Rate of currency is not defined on %s!'%wiz.invoice_date)) 
+                else:
+                    raise osv.except_osv(_('Warning!'),_('Do not have currency rate for this Picking order!')) 
+        res = self.create_invoice(cr, uid, ids, context=context)
+        invoice_ids += res.values()
+        inv_type = context.get('inv_type', False)
+        action_model = False
+        action = {}
+        if not invoice_ids:
+            raise osv.except_osv(_('Error!'), _('Please create Invoices.'))
+        if inv_type == "out_invoice":
+            action_model,action_id = data_pool.get_object_reference(cr, uid, 'account', "action_invoice_tree1")
+        elif inv_type == "in_invoice":
+            action_model,action_id = data_pool.get_object_reference(cr, uid, 'account', "action_invoice_tree2")
+        elif inv_type == "out_refund":
+            action_model,action_id = data_pool.get_object_reference(cr, uid, 'account', "action_invoice_tree3")
+        elif inv_type == "in_refund":
+            action_model,action_id = data_pool.get_object_reference(cr, uid, 'account', "action_invoice_tree4")
+        if action_model:
+            action_pool = self.pool.get(action_model)
+            action = action_pool.read(cr, uid, action_id, context=context)
+            action['domain'] = "[('id','in', ["+','.join(map(str,invoice_ids))+"])]"
+        return action
     
 stock_invoice_onshipping()
 
