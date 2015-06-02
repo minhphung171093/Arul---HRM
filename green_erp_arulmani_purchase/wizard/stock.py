@@ -260,7 +260,7 @@ class stock_invoice_onshipping(osv.osv_memory):
                     if not cur_rate_ids:
                         raise osv.except_osv(_('Warning!'),_('Rate of currency is not defined on %s!'%wiz.invoice_date)) 
                 else:
-                    raise osv.except_osv(_('Warning!'),_('Do not have currency for this Picking order!')) 
+                    raise osv.except_osv(_('Warning!'),_('Do not have currency rate for this Picking order!')) 
         res = self.create_invoice(cr, uid, ids, context=context)
         invoice_ids += res.values()
         inv_type = context.get('inv_type', False)

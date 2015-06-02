@@ -2745,7 +2745,7 @@ class account_voucher(osv.osv):
 
         date = self.read(cr, uid, voucher_id, ['date'], context=context)['date']
         ctx = context.copy()
-        ctx.update({'date': date})
+        ctx.update({'date': date or time.strftime('%Y-%m-%d')})
         voucher = self.pool.get('account.voucher').browse(cr, uid, voucher_id, context=ctx)
         voucher_currency = voucher.journal_id.currency or voucher.company_id.currency_id
         ctx.update({
@@ -2886,7 +2886,7 @@ class account_voucher(osv.osv):
             context = self._sel_context(cr, uid, voucher.id, context)
             # But for the operations made by _convert_amount, we always need to give the date in the context
             ctx = context.copy()
-            ctx.update({'date': voucher.date})
+            ctx.update({'date': voucher.date or time.strftime('%Y-%m-%d')})
             # Create the account move record.
             move_id = move_pool.create(cr, uid, self.account_move_get(cr, uid, voucher.id, context=context), context=context)
             # Get the name of the account_move just created
