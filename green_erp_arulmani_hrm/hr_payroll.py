@@ -1112,12 +1112,18 @@ class arul_hr_payroll_executions(osv.osv):
                 cr.execute(sql)
                 k = cr.fetchone()
                 if k:
-                    new_emp_day = k[0]               
-                    #before_doj = calendar_days - new_emp_day - 1
-                    before_doj =  new_emp_day - 1
-                    total_no_of_leave = total_no_of_leave + before_doj
+                    new_emp_day = k[0]    
+                    if p.employee_category_id and p.employee_category_id.code == 'S1':           
+                        #before_doj = calendar_days - new_emp_day - 1
+                        before_doj =  new_emp_day - 1
+                        total_no_of_leave = total_no_of_leave + before_doj
+                    if p.employee_category_id and p.employee_category_id.code == 'S2':           
+                        #before_doj = calendar_days - new_emp_day - 1
+                        before_doj =  new_emp_day - 1
+                        total_no_of_leave = total_no_of_leave + before_doj
                     if p.employee_category_id and p.employee_category_id.code == 'S3':
-                        before_doj = new_emp_day - 1
+                        #before_doj = s3_working_days - new_emp_day - 1
+                        before_doj =  new_emp_day - 1
                         total_no_of_leave = total_no_of_leave + before_doj
                     
                 ##TPT END
@@ -1609,7 +1615,9 @@ class arul_hr_payroll_executions(osv.osv):
                                 med = earning_struc_id.float
                             if earning_struc_id.earning_parameters_id.code == 'ESI_CHECK':
                                 esi_check = earning_struc_id.float
-                                                
+                        
+                        #
+                        spa = spa / (calendar_days - 4 - special_holidays) * total_shift_worked                        
                         #gross_before = basic + c + hra  +spa + ea + oa			
                         #if total_lop:
                         #    gross_sal = gross_before/calendar_days*(total_days-total_lop)
