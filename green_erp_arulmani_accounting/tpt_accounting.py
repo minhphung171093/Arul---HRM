@@ -552,33 +552,33 @@ class stock_picking(osv.osv):
                 #sinh but toan
                     for p in line.move_lines:
                         
-                        if p.prodlot_id:
-                            sale_id = p.sale_line_id and p.sale_line_id.order_id.id or False 
-                            used_qty = p.product_qty or 0
-                            if sale_id:
-                                sql = '''
-                                    select id from tpt_batch_allotment where sale_order_id = %s
-                                '''%(sale_id)
-                                cr.execute(sql)
-                                allot_ids = cr.dictfetchone()
-                                if allot_ids:
-                                    allot_id = allot_ids['id']
-                                    sql = '''
-                                    select id from tpt_batch_allotment_line where sys_batch = %s and batch_allotment_id = %s
-                                    '''%(p.prodlot_id.id,allot_id)
-                                    cr.execute(sql)
-                                    allot_line_id = cr.dictfetchone()['id']
-                                    line_id = self.pool.get('tpt.batch.allotment.line').browse(cr, uid, allot_line_id)
-                                    used_qty += line_id.used_qty
-                                    sql = '''
-                                        update tpt_batch_allotment_line set product_uom_qty = %s where id = %s
-                                    '''%(used_qty,allot_line_id)
-                                    cr.execute(sql)
-                                    if line_id.product_uom_qty == line_id.used_qty:
-                                        sql = '''
-                                            update tpt_batch_allotment_line set is_deliver = 't' where id = %s
-                                        '''%(allot_line_id)
-                                        cr.execute(sql)
+#                         if p.prodlot_id:
+#                             sale_id = p.sale_line_id and p.sale_line_id.order_id.id or False 
+#                             used_qty = p.product_qty or 0
+#                             if sale_id:
+#                                 sql = '''
+#                                     select id from tpt_batch_allotment where sale_order_id = %s
+#                                 '''%(sale_id)
+#                                 cr.execute(sql)
+#                                 allot_ids = cr.dictfetchone()
+#                                 if allot_ids:
+#                                     allot_id = allot_ids['id']
+#                                     sql = '''
+#                                     select id from tpt_batch_allotment_line where sys_batch = %s and batch_allotment_id = %s
+#                                     '''%(p.prodlot_id.id,allot_id)
+#                                     cr.execute(sql)
+#                                     allot_line_id = cr.dictfetchone()['id']
+#                                     line_id = self.pool.get('tpt.batch.allotment.line').browse(cr, uid, allot_line_id)
+#                                     used_qty += line_id.used_qty
+#                                     sql = '''
+#                                         update tpt_batch_allotment_line set product_uom_qty = %s where id = %s
+#                                     '''%(used_qty,allot_line_id)
+#                                     cr.execute(sql)
+#                                     if line_id.product_uom_qty == line_id.used_qty:
+#                                         sql = '''
+#                                             update tpt_batch_allotment_line set is_deliver = 't' where id = %s
+#                                         '''%(allot_line_id)
+#                                         cr.execute(sql)
                         
                         debit += p.sale_line_id and p.sale_line_id.price_unit * p.product_qty or 0
                         product_name = p.product_id.name
@@ -1544,7 +1544,10 @@ class account_invoice_line(osv.osv):
                     else:
                         ed = line.ed
                         ed = round(ed)
-                    tax = (basic + p_f + ed)*(tax_value) * voucher_rate
+                    if line.aed_id_1:
+                        tax = (basic + p_f + ed + line.aed_id_1)*(tax_value) * voucher_rate
+                    else:
+                        tax = (basic + p_f + ed)*(tax_value) * voucher_rate
                     if tax:    
                         res.append({
                             'type':'tax',
@@ -2173,6 +2176,27 @@ class product_product(osv.osv):
 #                 'property_account_expense':category.property_account_expense_categ and category.property_account_expense_categ.id or False,
 #             })
     
+    def init(self, cr):
+        account_obj = self.pool.get('account.account')
+        purchase_gl_account_ids = account_obj.search(cr, 1, [('code','=','0000119503')])
+        if not purchase_gl_account_ids:
+            raise osv.except_osv(_('Warning!'),_('Please config GL account 0000119503 – GRIR Clearing Account-Spares'))
+        expense_gl_account_ids = account_obj.search(cr, 1, [('code','=','0000404010')])
+        if not purchase_gl_account_ids:
+            raise osv.except_osv(_('Warning!'),_('Please config GL account 0000404010 STORES & SPARES AND CONSUMABLES'))
+        product_asset_account_ids = account_obj.search(cr, 1, [('code','=','0000119501')])
+        if not purchase_gl_account_ids:
+            raise osv.except_osv(_('Warning!'),_('Please config GL account 0000119501 SP-General Stores and Spares'))
+        category_obj = self.pool.get('product.category')
+        category_ids = category_obj.search(cr, 1, [('cate_name','=','spares')])
+        for category in category_obj.browse(cr, 1, category_ids):
+            produc_ids = self.search(cr, 1, [('categ_id','=',category.id)])
+            self.write(cr, 1, produc_ids, {
+                'purchase_acc_id':purchase_gl_account_ids[0],
+                'property_account_expense':expense_gl_account_ids[0],
+                'product_asset_acc_id':product_asset_account_ids[0],
+            })
+        
     def _avg_cost(self, cr, uid, ids, field_names=None, arg=None, context=None):
         result = {}
         if not ids: return result
@@ -2304,6 +2328,16 @@ product_product()
 
 class account_voucher(osv.osv):
     _inherit = "account.voucher"
+    
+# Hàm update Report Cash/Bank, update field từ type_trans thành type    (phuoc)
+
+    def init(self, cr):
+        sql = '''
+             update account_voucher set type=type_trans where type_trans is not null;
+        '''
+        cr.execute(sql)
+        
+# end
     
     def _get_tpt_currency_amount(self, cr, uid, ids, name, args, context=None):
         res = {}
@@ -3203,6 +3237,19 @@ sale_order()
 
 class tpt_material_issue(osv.osv):
     _inherit = "tpt.material.issue"
+    
+    def init(self, cr):
+        sql = '''
+             update purchase_order_line set item_text=(select item_text from tpt_purchase_quotation_line
+                 where po_indent_id = purchase_order_line.po_indent_no and product_id = purchase_order_line.product_id
+                     and product_uom_qty=purchase_order_line.product_qty limit 1)
+        '''
+        cr.execute(sql)
+        sql ='''
+            update stock_move set item_text=(select item_text from purchase_order_line where id=stock_move.purchase_line_id limit 1)
+        '''
+        cr.execute(sql)
+        
     _columns = {
                 'gl_account_id': fields.many2one('account.account', 'GL Account',states={'done':[('readonly', True)]}),
                 'warehouse':fields.many2one('stock.location','Source Location',states={'done':[('readonly', True)]}),
@@ -4290,26 +4337,40 @@ class res_partner(osv.osv):
                 group = self.pool.get('customer.account.group').browse(cr,uid,vals['customer_account_group_id'])
                 if 'VVTI Sold to Party' in group.name:
                     vals['customer_code'] = self.pool.get('ir.sequence').get(cr, uid, 'tpt.sold.group.customer') or '/'
+                    if 'arulmani_type' in vals and vals['arulmani_type']=='export':
+                        acc_parent_ids = self.pool.get('account.account').search(cr,uid, [('code','=','0000119002')])
+                    if 'arulmani_type' in vals and vals['arulmani_type']=='domestic':
+                        acc_parent_ids = self.pool.get('account.account').search(cr,uid, [('code','=','0000119001')])
+                    if 'arulmani_type' in vals and vals['arulmani_type']=='indirect_export':
+                        acc_parent_ids = self.pool.get('account.account').search(cr,uid, [('code','=','0000119003')])
+                    acc_id = acc_obj.create(cr,uid,{
+                        'code':'0000' + vals['customer_code'],
+                        'name': vals['name'],
+                        'type':'receivable',
+                        'user_type':acc_type_ids[0],
+                        'parent_id':acc_parent_ids[0],
+                                                    })
+                    vals.update({'property_account_receivable':acc_id})
                 elif 'VVTI Ship to Party' in group.name:
                     vals['customer_code'] = self.pool.get('ir.sequence').get(cr, uid, 'tpt.ship.group.customer') or '/'
                 elif 'VVTI Indent Comm.' in group.name:
                     vals['customer_code'] = self.pool.get('ir.sequence').get(cr, uid, 'tpt.indent.group.customer') or '/'
                 else:
                     raise osv.except_osv(_('Warning!'),_('You only create Customer Code for (VVTI Sold to Party, VVTI Ship to Party, VVTI Indent Comm.) in Customer Account Group'))
-            if 'arulmani_type' in vals and vals['arulmani_type']=='export':
-                acc_parent_ids = self.pool.get('account.account').search(cr,uid, [('code','=','0000119002')])
-            if 'arulmani_type' in vals and vals['arulmani_type']=='domestic':
-                acc_parent_ids = self.pool.get('account.account').search(cr,uid, [('code','=','0000119001')])
-            if 'arulmani_type' in vals and vals['arulmani_type']=='indirect_export':
-                acc_parent_ids = self.pool.get('account.account').search(cr,uid, [('code','=','0000119003')])
-            acc_id = acc_obj.create(cr,uid,{
-                'code':'0000' + vals['customer_code'],
-                'name': vals['name'],
-                'type':'receivable',
-                'user_type':acc_type_ids[0],
-                'parent_id':acc_parent_ids[0],
-                                            })
-            vals.update({'property_account_receivable':acc_id})
+#             if 'arulmani_type' in vals and vals['arulmani_type']=='export':
+#                 acc_parent_ids = self.pool.get('account.account').search(cr,uid, [('code','=','0000119002')])
+#             if 'arulmani_type' in vals and vals['arulmani_type']=='domestic':
+#                 acc_parent_ids = self.pool.get('account.account').search(cr,uid, [('code','=','0000119001')])
+#             if 'arulmani_type' in vals and vals['arulmani_type']=='indirect_export':
+#                 acc_parent_ids = self.pool.get('account.account').search(cr,uid, [('code','=','0000119003')])
+#             acc_id = acc_obj.create(cr,uid,{
+#                 'code':'0000' + vals['customer_code'],
+#                 'name': vals['name'],
+#                 'type':'receivable',
+#                 'user_type':acc_type_ids[0],
+#                 'parent_id':acc_parent_ids[0],
+#                                             })
+#             vals.update({'property_account_receivable':acc_id})
         if 'supplier' in vals and vals['supplier']:
             acc_obj = self.pool.get('account.account')
             acc_parent_ids = []

@@ -104,7 +104,7 @@
                     </xpath>
                     <xpath expr="//field[@name='phone']" position="before">
                     <!-- <field name="customer_code" required='1' attrs="{'invisible': [('customer', '=',False)]}" />-->
-                    	<field name="customer_code" attrs="{'invisible': [('customer', '=',False)],'required': [('customer', '=',True)]}" />
+                    	<field name="customer_code" attrs="{'invisible': [('customer', '=',False)]}" />
                     </xpath>
                     
                     <xpath expr="//field[@name='website']" position="after">                       
@@ -182,7 +182,7 @@
 			        </xpath>
 			        --> 
 			        <xpath expr="//field[@name='category_id']" position="replace">
-			        	<field name="customer_account_group_id" required = '1' attrs="{'invisible': [('customer', '=',False)]}" placeholder="Customer Account Group" options="{'create': false, 'create_edit': false}" />
+			        	<field name="customer_account_group_id"  attrs="{'invisible': [('customer', '=',False)],'required': [('customer', '=',True)]}" placeholder="Customer Account Group" options="{'create': false, 'create_edit': false}" />
 			        </xpath>
 			        <!--<xpath expr="//page[@string='Sales &amp; Purchases']" position="replace">
 			            attribute name="string">Sales Team</attribute>
