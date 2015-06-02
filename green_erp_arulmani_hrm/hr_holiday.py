@@ -423,8 +423,11 @@ class arul_hr_audit_shift_time(osv.osv):
                 for k in cr.fetchall():
                     in_time=k[0]
                     out_time=k[1]
-                if in_time <= line.in_time <= out_time or in_time <= line.out_time <= out_time: 
-                    raise osv.except_osv(_('Warning!'),_('Attendance Already Entered for this Time Period'))  
+                if line.in_time > line.out_time:
+                    continue
+                else:
+                    if in_time <= line.in_time <= out_time or in_time <= line.out_time <= out_time: 
+                        raise osv.except_osv(_('Warning!'),_('Attendance Already Entered for this Time Period'))  
             #TPT END
         for line in self.browse(cr,uid,ids):
 #             emp = self.pool.get('hr.employee')
@@ -895,8 +898,8 @@ class arul_hr_audit_shift_time(osv.osv):
                     if half_shift_hrs <= total_hrs < full_shift_hrs:
                         g1_shift_count = 0.5  
                         total_shift_worked = 0.5 
-                    if g1_min_end_time  <= actual_out <  g1_max_end_time: 
-                        if full_shift_hrs <= total_hrs:
+                    #if g1_min_end_time  <= actual_out <  g1_max_end_time: 
+                    if full_shift_hrs <= total_hrs:
                             g1_shift_count = 1  
                             total_shift_worked = 1
                     if g1_max_end_time  <= actual_out:   
@@ -940,10 +943,10 @@ class arul_hr_audit_shift_time(osv.osv):
                     if half_shift_hrs <= total_hrs < full_shift_hrs:
                         g2_shift_count = 0.5  
                         total_shift_worked = 0.5 
-                    if g2_min_end_time  <= actual_out <  g2_max_end_time: 
-                        if full_shift_hrs <= total_hrs:
-                            g2_shift_count = 1  
-                            total_shift_worked = 1
+                    #if g2_min_end_time  <= actual_out <  g2_max_end_time: 
+                    if full_shift_hrs <= total_hrs:
+                        g2_shift_count = 1  
+                        total_shift_worked = 1
                     if g2_max_end_time  <= actual_out: 
                         if full_half_shift_hrs <= total_hrs:
                             if g2_max_end_time  <= actual_out and b_min_start_time <= actual_out:
@@ -1514,8 +1517,11 @@ class arul_hr_audit_shift_time(osv.osv):
                 for k in cr.fetchall():
                     in_time=k[0]
                     out_time=k[1]
-                if in_time <= line.in_time <= out_time or in_time <= line.out_time <= out_time: 
-                    raise osv.except_osv(_('Warning!'),_('Attendance Already Entered for this Time Period'))  
+                if line.in_time > line.out_time:
+                    continue
+                else:    
+                    if in_time <= line.in_time <= out_time or in_time <= line.out_time <= out_time: 
+                        raise osv.except_osv(_('Warning!'),_('Attendance Already Entered for this Time Period'))  
             #TPT END
         for line in self.browse(cr,uid,ids):
 #             emp = self.pool.get('hr.employee')
@@ -2015,8 +2021,8 @@ class arul_hr_audit_shift_time(osv.osv):
                     if half_shift_hrs <= total_hrs < full_shift_hrs:
                         g1_shift_count = 0.5  
                         total_shift_worked = 0.5 
-                    if g1_min_end_time  <= actual_out <  g1_max_end_time: 
-                        if full_shift_hrs <= total_hrs:
+                    #if g1_min_end_time  <= actual_out <  g1_max_end_time: 
+                    if full_shift_hrs <= total_hrs:
                             g1_shift_count = 1  
                             total_shift_worked = 1
                     if g1_max_end_time  <= actual_out:   
@@ -2060,8 +2066,8 @@ class arul_hr_audit_shift_time(osv.osv):
                     if half_shift_hrs <= total_hrs < full_shift_hrs:
                         g2_shift_count = 0.5  
                         total_shift_worked = 0.5 
-                    if g2_min_end_time  <= actual_out <  g2_max_end_time: 
-                        if full_shift_hrs <= total_hrs:
+                    #if g2_min_end_time  <= actual_out <  g2_max_end_time: 
+                    if full_shift_hrs <= total_hrs:
                             g2_shift_count = 1  
                             total_shift_worked = 1
                     if g2_max_end_time  <= actual_out: 
@@ -3444,10 +3450,10 @@ class arul_hr_permission_onduty(osv.osv):
             if 3.7 <= total_hrs <= 4.15:  
                 res[time.id]['total_shift_worked'] = 0.5 
                     
-            if 4.15 <= total_hrs <= 7.45:  
+            if 4.15 <= total_hrs < 8:  
                 res[time.id]['total_shift_worked'] = 0.5
                 #        
-            if 7.45 <= total_hrs <= 8.30:  
+            if 8 <= total_hrs <= 8.30:  
                 res[time.id]['total_shift_worked'] = 1
                 
             if 8.30 <= total_hrs <= 11.175:  

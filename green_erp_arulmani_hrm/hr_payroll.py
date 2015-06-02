@@ -1113,10 +1113,11 @@ class arul_hr_payroll_executions(osv.osv):
                 k = cr.fetchone()
                 if k:
                     new_emp_day = k[0]               
-                    before_doj = calendar_days - new_emp_day - 1
+                    #before_doj = calendar_days - new_emp_day - 1
+                    before_doj =  new_emp_day - 1
                     total_no_of_leave = total_no_of_leave + before_doj
                     if p.employee_category_id and p.employee_category_id.code == 'S3':
-                        before_doj = s3_working_days - new_emp_day - 1
+                        before_doj = new_emp_day - 1
                         total_no_of_leave = total_no_of_leave + before_doj
                     
                 ##TPT END
