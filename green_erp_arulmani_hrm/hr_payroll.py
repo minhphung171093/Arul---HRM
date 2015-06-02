@@ -1627,9 +1627,9 @@ class arul_hr_payroll_executions(osv.osv):
                             new_emp_day = k[0] 
                             total_working_days_s1 = 0    
                             if p.employee_category_id and p.employee_category_id.code == 'S1':           
-                                total_working_days_s1 = calendar_days - new_emp_day + 1 
-                                #raise osv.except_osv(_('Warning!%s'),_(calendar_days - new_emp_day - 1 ))    
-                                spa = spa / (calendar_days - 4 - special_holidays) * total_working_days_s1                        
+                                total_working_days_s1 = calendar_days - new_emp_day + 1    
+                                #spa = spa / (calendar_days - 4 - special_holidays) * total_working_days_s1 
+                                spa = spa / calendar_days  * total_working_days_s1                        
                         #gross_before = basic + c + hra  +spa + ea + oa			
                         #if total_lop:
                         #    gross_sal = gross_before/calendar_days*(total_days-total_lop)
