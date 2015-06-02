@@ -49,8 +49,8 @@ class tpt_posting_configuration(osv.osv):
         'staff_advance_id': fields.many2one('account.account', 'Staff Advance', states={ 'done':[('readonly', True)]}),
         'salari_payable_id': fields.many2one('account.account', 'Salaries And Allowance Payable', states={ 'done':[('readonly', True)]}),
         
-        
-        
+        'shd_id': fields.many2one('account.account', 'SHD Allowance', states={ 'done':[('readonly', True)]}),
+        'it_id': fields.many2one('account.account', 'IT Deduction', states={ 'done':[('readonly', True)]}),
         'wages_id': fields.many2one('account.account', 'Wages and Allowances', states={ 'done':[('readonly', True)]}),
         'wages_payable_id': fields.many2one('account.account', ' Wages and Allowances Payable', states={ 'done':[('readonly', True)]}),
         'other_insu': fields.many2one('account.account', 'Other Insurances', states={ 'done':[('readonly', True)]}),
@@ -3504,19 +3504,40 @@ class tpt_hr_payroll_approve_reject(osv.osv):
             cr.execute(sql_oa)
             oa = cr.dictfetchone()['allowance'] or 0.0
             
+            sql_other = '''
+                select sum(float) as tax from arul_hr_payroll_other_deductions where deduction_parameters_id in (select id from arul_hr_payroll_deduction_parameters where code='IT')
+                and executions_details_id in (select id from arul_hr_payroll_executions_details where payroll_executions_id = %s)
+            '''%(payroll_ids)
+            cr.execute(sql_other)
+            it = cr.dictfetchone()['tax'] or 0.0
+            
+#             sql_ma = '''
+#                 select sum(float) as allowance from arul_hr_payroll_earning_structure where earning_parameters_id in (select id from arul_hr_payroll_earning_parameters where code='MA')
+#                 and executions_details_id in (select id from arul_hr_payroll_executions_details where payroll_executions_id = %s)
+#             '''%(payroll_ids)
+#             cr.execute(sql_ma)
+#             ma = cr.dictfetchone()['allowance'] or 0.0
+#             welfare = oa + ma
+            sql_welfare = '''
+                select sum(float) as tax from arul_hr_payroll_other_deductions where deduction_parameters_id in (select id from arul_hr_payroll_deduction_parameters where code='F.D')
+                and executions_details_id in (select id from arul_hr_payroll_executions_details where payroll_executions_id = %s)
+            '''%(payroll_ids)
+            cr.execute(sql_welfare)
+            welfare = cr.dictfetchone()['tax'] or 0.0
+            
             sql_ma = '''
-                select sum(float) as allowance from arul_hr_payroll_earning_structure where earning_parameters_id in (select id from arul_hr_payroll_earning_parameters where code='MA')
+                select sum(float) as allowance from arul_hr_payroll_earning_structure where earning_parameters_id in (select id from arul_hr_payroll_earning_parameters where code='SHD')
                 and executions_details_id in (select id from arul_hr_payroll_executions_details where payroll_executions_id = %s)
             '''%(payroll_ids)
             cr.execute(sql_ma)
-            ma = cr.dictfetchone()['allowance'] or 0.0
-            welfare = oa + ma
+            shd = cr.dictfetchone()['allowance'] or 0.0
             
             ### END Excutive & Staff - Worker
             
             sum_credit = (provident + vpf + tax + lwf + welfare + lic_premium +
                            + ins_oth + vvt_loan + vvt_hdfc + hfl + tmb + sbt + other)
             diff = gross - sum_credit
+            gross = gross - shd
             
             res = {'gross':gross,
                    'provident':provident,
@@ -3533,6 +3554,8 @@ class tpt_hr_payroll_approve_reject(osv.osv):
                    'other':other,
                    'tmb':tmb,
                    'diff':diff,
+                   'it':it,
+                   'shd':shd,
                    }
         return res
     
@@ -3591,13 +3614,15 @@ class tpt_hr_payroll_approve_reject(osv.osv):
                 tmb_acc = configuration.tmb_id and configuration.tmb_id.id or False
                 sbt_acc = configuration.sbt_id and configuration.sbt_id.id or False
                 other_loan_acc = configuration.other_loan_id and configuration.other_loan_id.id or False
-               
+                it_acc = configuration.it_id and configuration.it_id.id or False
+                shd_acc = configuration.shd_id and configuration.shd_id.id or False
+                
                 salari_acc = configuration.salari_payable_id and configuration.salari_payable_id.id or False
                 wages_acc = configuration.wages_id and configuration.wages_id.id or False
                 wages_payable_acc = configuration.wages_payable_id and configuration.wages_payable_id.id or False
                 if not gross_acc or not provident_acc or not vpf_acc or not welfare_acc or not lic_premium_acc \
                 or not pro_tax_acc or not lwf_acc or not other_insu_acc or not vvti_acc or not lic_hfl_acc or not hdfc_acc \
-                or not tmb_acc or not sbt_acc or not other_loan_acc or not salari_acc or not wages_acc or not wages_payable_acc:
+                or not tmb_acc or not sbt_acc or not other_loan_acc or not salari_acc or not wages_acc or not wages_payable_acc or not it_acc or not shd_acc:
                     raise osv.except_osv(_('Warning!'),_('GL Posting Configuration is missed. Please configure it in GL Posting Configuration master!'))
                 
             if payroll_excutive_id:
@@ -3692,6 +3717,16 @@ class tpt_hr_payroll_approve_reject(osv.osv):
                                     'account_id': salari_acc,
                                     'debit':0,
                                     'credit':res1['diff'],
+                                   }),(0,0,{
+                                    'name':line.year, 
+                                    'account_id': it_acc,
+                                    'debit':0,
+                                    'credit':res1['it'],
+                                   }),(0,0,{
+                                    'name':line.year, 
+                                    'account_id': shd_acc,
+                                    'debit':res1['shd'],
+                                    'credit':0,
                                    }),]
                 value_s1={
                     'journal_id':journal.id,
@@ -3792,6 +3827,16 @@ class tpt_hr_payroll_approve_reject(osv.osv):
                                     'account_id': salari_acc,
                                     'debit':0,
                                     'credit':res2['diff'],
+                                   }),(0,0,{
+                                    'name':line.year, 
+                                    'account_id': it_acc,
+                                    'debit':0,
+                                    'credit':res2['it'],
+                                   }),(0,0,{
+                                    'name':line.year, 
+                                    'account_id': shd_acc,
+                                    'debit':res2['shd'],
+                                    'credit':0,
                                    }),]
                 value_s2={
                     'journal_id':journal.id,
@@ -3893,6 +3938,11 @@ class tpt_hr_payroll_approve_reject(osv.osv):
                                     'account_id': wages_payable_acc,
                                     'debit':0,
                                     'credit':res3['diff'],
+                                   }),(0,0,{
+                                    'name':line.year, 
+                                    'account_id': shd_acc,
+                                    'debit':res3['shd'],
+                                    'credit':0,
                                    }),]
                 value_s3={
                     'journal_id':journal.id,
