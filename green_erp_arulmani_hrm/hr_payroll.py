@@ -1616,8 +1616,19 @@ class arul_hr_payroll_executions(osv.osv):
                             if earning_struc_id.earning_parameters_id.code == 'ESI_CHECK':
                                 esi_check = earning_struc_id.float
                         
-                        #
-                        spa = spa / (calendar_days - 4 - special_holidays) * total_shift_worked                        
+                        # 
+                        sql = '''
+                        select extract(day from date_of_joining) doj from hr_employee where extract(year from date_of_joining)= %s and 
+                          extract(month from date_of_joining)= %s and id=%s
+                        '''%(line.year,line.month,p.id)
+                        cr.execute(sql)
+                        k = cr.fetchone()
+                        if k:
+                            new_emp_day = k[0] 
+                            total_working_days_s1 = 0   
+                            if p.employee_category_id and p.employee_category_id.code == 'S1':           
+                                total_working_days_s1 = calendar_days - new_emp_day - 1   
+                                spa = spa / (calendar_days - 4 - special_holidays) * total_working_days_s1                        
                         #gross_before = basic + c + hra  +spa + ea + oa			
                         #if total_lop:
                         #    gross_sal = gross_before/calendar_days*(total_days-total_lop)
