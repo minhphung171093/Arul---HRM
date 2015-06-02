@@ -509,11 +509,11 @@ class stock_picking(osv.osv):
                         amount_cer = p.purchase_line_id.price_unit * p.product_qty
                         credit = amount_cer - (amount_cer*p.purchase_line_id.discount)/100
                         debit = amount_cer - (amount_cer*p.purchase_line_id.discount)/100
-                        if not p.product_id.purchase_asset_acc_id:
-                            raise osv.except_osv(_('Warning!'),_('You need to define Purchase Asset GL Account for this product'))
+                        if not p.product_id.product_asset_acc_id:
+                            raise osv.except_osv(_('Warning!'),_('You need to define Product Asset GL Account for this product'))
                         journal_line.append((0,0,{
                             'name':line.name, 
-                            'account_id': p.product_id.purchase_asset_acc_id and p.product_id.purchase_asset_acc_id.id,
+                            'account_id': p.product_id.product_asset_acc_id and p.product_id.product_asset_acc_id.id,
                             'partner_id': line.partner_id and line.partner_id.id or False,
                             'credit':0,
                             'debit':debit,
