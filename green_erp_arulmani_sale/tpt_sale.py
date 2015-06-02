@@ -1737,7 +1737,8 @@ class tpt_batch_allotment(osv.osv):
             allot_qty = 0
             requested_qty += line.product_uom_qty
             sql = '''
-                    select id from tpt_batch_allotment_line where sys_batch = %s and is_deliver is not True
+                    select id from tpt_batch_allotment_line where sys_batch = %s and is_deliver is not True 
+                    and batch_allotment_id not in (select id from tpt_batch_allotment where state in ('cancel','refuse'))
             '''%(line.sys_batch.id)
             cr.execute(sql)
             for ba_line in cr.dictfetchall():
@@ -1779,6 +1780,7 @@ class tpt_batch_allotment(osv.osv):
                 requested_qty += line.product_uom_qty
                 sql = '''
                     select id from tpt_batch_allotment_line where sys_batch = %s and is_deliver is not True
+                    and batch_allotment_id not in (select id from tpt_batch_allotment where state in ('cancel','refuse'))
                 '''%(line.sys_batch.id)
                 cr.execute(sql)
                 for ba_line in cr.dictfetchall():
@@ -1788,7 +1790,7 @@ class tpt_batch_allotment(osv.osv):
                     allot_qty += qty - used
                 lot_id = self.pool.get('stock.production.lot').browse(cr, uid, line.sys_batch.id) 
                 if allot_qty > lot_id.stock_available:
-                    raise osv.except_osv(_('Warning!'),_('Batch number %s: Allotted quantity should not be greater than Available Quantity!'%line.sys_batch.name))
+                    raise osv.except_osv(_('Warning!'),_('Allotted quantity should not be greater than available stock Quantity in Batch no %s!'%line.sys_batch.name))
                     
             if requested_qty:
                 sql = '''
