@@ -473,6 +473,7 @@ class stock_picking(osv.osv):
             if 'state' in vals and line.type == 'in' and line.state=='done':
                 debit = 0.0
                 credit = 0.0
+                journal_line = []
                 for move in line.move_lines:
                     amount = move.purchase_line_id.price_unit * move.product_qty
                     debit += amount - (amount*move.purchase_line_id.discount)/100
@@ -494,24 +495,35 @@ class stock_picking(osv.osv):
                     cr.execute(sql_journal)
                     journal_ids = [r[0] for r in cr.fetchall()]
                     journal = self.pool.get('account.journal').browse(cr,uid,journal_ids[0])
-                    if not line.warehouse.gl_pos_verification_id:
-                        raise osv.except_osv(_('Warning!'),_('Account Warehouse is not null, please configure it in Warehouse Location master !'))
+#                     if not line.warehouse.gl_pos_verification_id:
+#                         raise osv.except_osv(_('Warning!'),_('Account Warehouse is not null, please configure it in Warehouse Location master !'))
                 #sinh but toan
-                    journal_line = [(0,0,{
-                                        'name':line.name, 
-                                        'account_id': line.warehouse.gl_pos_verification_id and line.warehouse.gl_pos_verification_id.id,
-                                        'partner_id': line.partner_id and line.partner_id.id,
-                                        'debit':debit,
-                                        'credit':0,
-                                         
-                                       })]
+#                     journal_line = [(0,0,{
+#                                         'name':line.name, 
+#                                         'account_id': line.warehouse.gl_pos_verification_id and line.warehouse.gl_pos_verification_id.id,
+#                                         'partner_id': line.partner_id and line.partner_id.id,
+#                                         'debit':debit,
+#                                         'credit':0,
+#                                          
+#                                        })]
                     for p in line.move_lines:
                         amount_cer = p.purchase_line_id.price_unit * p.product_qty
                         credit = amount_cer - (amount_cer*p.purchase_line_id.discount)/100
+                        debit = amount_cer - (amount_cer*p.purchase_line_id.discount)/100
+                        if not p.product_id.product_asset_acc_id:
+                            raise osv.except_osv(_('Warning!'),_('You need to define Product Asset GL Account for this product'))
+                        journal_line.append((0,0,{
+                            'name':line.name + ' - ' + p.product_id.name, 
+                            'account_id': p.product_id.product_asset_acc_id and p.product_id.product_asset_acc_id.id,
+                            'partner_id': line.partner_id and line.partner_id.id or False,
+                            'credit':0,
+                            'debit':debit,
+                        }))
+                        
                         if not p.product_id.purchase_acc_id:
                             raise osv.except_osv(_('Warning!'),_('You need to define Purchase GL Account for this product'))
                         journal_line.append((0,0,{
-                            'name':line.name, 
+                            'name':line.name + ' - ' + p.product_id.name, 
                             'account_id': p.product_id.purchase_acc_id and p.product_id.purchase_acc_id.id,
                             'partner_id': line.partner_id and line.partner_id.id or False,
                             'credit':credit,
@@ -2042,14 +2054,14 @@ class account_invoice_line(osv.osv):
             product_id = self.pool.get('product.product').browse(cr, uid, t['product_id'])
             name = product_id.name or False
             sql = '''
-            SELECT purchase_acc_id FROM product_product WHERE id=%s and purchase_acc_id is not null
+            SELECT product_asset_acc_id FROM product_product WHERE id=%s and product_asset_acc_id is not null
             '''%(t['product_id'])
             cr.execute(sql)
-            purchase_acc_id = cr.dictfetchone()
-            if not purchase_acc_id:
-                raise osv.except_osv(_('Warning!'),_('Account is not null, please configure it in Material master !'))
+            product_asset_acc_id = cr.dictfetchone()
+            if not product_asset_acc_id:
+                raise osv.except_osv(_('Warning!'),_('Account is not null, please configure Product Asset Account in Material master !'))
             else:
-                account = purchase_acc_id['purchase_acc_id']
+                account = product_asset_acc_id['product_asset_acc_id']
             if currency != 'INR':
                 voucher_rate = self.pool.get('res.currency').read(cr, uid, currency_id, ['rate'], context=ctx)['rate']
             
@@ -2177,36 +2189,25 @@ class product_product(osv.osv):
 #             })
     
 #     def init(self, cr):
-#         num = 0
 #         account_obj = self.pool.get('account.account')
 #         purchase_gl_account_ids = account_obj.search(cr, 1, [('code','=','0000119503')])
 #         if not purchase_gl_account_ids:
-#             num = 0
-# #             raise osv.except_osv(_('Warning!'),_('Please config GL account 0000119503 – GRIR Clearing Account-Spares'))
-#         else:
-#             num = 1
+#             raise osv.except_osv(_('Warning!'),_('Please config GL account 0000119503 – GRIR Clearing Account-Spares'))
 #         expense_gl_account_ids = account_obj.search(cr, 1, [('code','=','0000404010')])
 #         if not purchase_gl_account_ids:
-#             num = 0
-#         else: 
-#             num = 1
-# #             raise osv.except_osv(_('Warning!'),_('Please config GL account 0000404010 STORES & SPARES AND CONSUMABLES'))
+#             raise osv.except_osv(_('Warning!'),_('Please config GL account 0000404010 STORES & SPARES AND CONSUMABLES'))
 #         product_asset_account_ids = account_obj.search(cr, 1, [('code','=','0000119501')])
 #         if not purchase_gl_account_ids:
-#             num = 0
-#         else: 
-#             num = 1
-# #             raise osv.except_osv(_('Warning!'),_('Please config GL account 0000119501 SP-General Stores and Spares'))
+#             raise osv.except_osv(_('Warning!'),_('Please config GL account 0000119501 SP-General Stores and Spares'))
 #         category_obj = self.pool.get('product.category')
 #         category_ids = category_obj.search(cr, 1, [('cate_name','=','spares')])
-#         if num == 1:
-#             for category in category_obj.browse(cr, 1, category_ids):
-#                 produc_ids = self.search(cr, 1, [('categ_id','=',category.id)])
-#                 self.write(cr, 1, produc_ids, {
-#                     'purchase_acc_id':purchase_gl_account_ids[0],
-#                     'property_account_expense':expense_gl_account_ids[0],
-#                     'product_asset_acc_id':product_asset_account_ids[0],
-#                 })
+#         for category in category_obj.browse(cr, 1, category_ids):
+#             produc_ids = self.search(cr, 1, [('categ_id','=',category.id)])
+#             self.write(cr, 1, produc_ids, {
+#                 'purchase_acc_id':purchase_gl_account_ids[0],
+#                 'property_account_expense':expense_gl_account_ids[0],
+#                 'product_asset_acc_id':product_asset_account_ids[0],
+#             })
         
     def _avg_cost(self, cr, uid, ids, field_names=None, arg=None, context=None):
         result = {}
@@ -3385,7 +3386,7 @@ class tpt_material_issue(osv.osv):
                 if not line.warehouse.gl_pos_verification_id:
                     raise osv.except_osv(_('Warning!'),_('Account Warehouse is not null, please configure it in Warehouse Location master !'))
                 journal_line = [(0,0,{
-                                        'name':line.doc_no, 
+                                        'name':line.doc_no + ' - ' + p.product_id.name, 
                                         'account_id': line.warehouse.gl_pos_verification_id and line.warehouse.gl_pos_verification_id.id,
 #                                         'partner_id': line.partner_id and line.partner_id.id,
                                         'debit':0,
@@ -3394,7 +3395,7 @@ class tpt_material_issue(osv.osv):
                                        })]
                 if line.gl_account_id:
                     journal_line.append((0,0,{
-                                'name':line.doc_no, 
+                                'name':line.doc_no + ' - ' + p.product_id.name, 
                                 'account_id': line.gl_account_id and line.gl_account_id.id,
 #                                 'partner_id': line.partner_id and line.partner_id.id,
                                 'credit':0,
@@ -3455,7 +3456,7 @@ class tpt_material_issue(osv.osv):
                     if not line.warehouse.gl_pos_verification_id:
                         raise osv.except_osv(_('Warning!'),_('Account Warehouse is not null, please configure it in Warehouse Location master !'))
                     journal_line = [(0,0,{
-                                            'name':line.doc_no, 
+                                            'name':line.doc_no + ' - ' + p.product_id.name, 
                                             'account_id': line.warehouse.gl_pos_verification_id and line.warehouse.gl_pos_verification_id.id,
     #                                         'partner_id': line.partner_id and line.partner_id.id,
                                             'debit':0,
@@ -3464,7 +3465,7 @@ class tpt_material_issue(osv.osv):
                                            })]
                     if line.gl_account_id:
                         journal_line.append((0,0,{
-                                    'name':line.doc_no, 
+                                    'name':line.doc_no + ' - ' + p.product_id.name, 
                                     'account_id': line.gl_account_id and line.gl_account_id.id,
     #                                 'partner_id': line.partner_id and line.partner_id.id,
                                     'credit':0,
