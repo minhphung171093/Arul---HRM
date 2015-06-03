@@ -253,14 +253,15 @@ class stock_invoice_onshipping(osv.osv_memory):
                 if pick_id.type == 'out': 
                     currency_id = pick_id.sale_id and pick_id.sale_id.currency_id and pick_id.sale_id.currency_id.id or False
                 if currency_id:
-                    if not wiz.invoice_date:
-                        raise osv.except_osv(_('Warning!'),_('Please choose date of invoice!')) 
-                    cur_rate_obj =self.pool.get('res.currency.rate')
-                    cur_rate_ids = cur_rate_obj.search(cr, uid, [('currency_id','=',currency_id),('name','=',wiz.invoice_date)])
-                    if not cur_rate_ids:
-                        raise osv.except_osv(_('Warning!'),_('Rate of currency is not defined on %s!'%wiz.invoice_date)) 
+                    if currency_id.name != 'INR':
+                        if not wiz.invoice_date:
+                            raise osv.except_osv(_('Warning!'),_('Please choose date of invoice!')) 
+                        cur_rate_obj =self.pool.get('res.currency.rate')
+                        cur_rate_ids = cur_rate_obj.search(cr, uid, [('currency_id','=',currency_id),('name','=',wiz.invoice_date)])
+                        if not cur_rate_ids:
+                            raise osv.except_osv(_('Warning!'),_('Rate of currency is not defined on %s!'%wiz.invoice_date)) 
                 else:
-                    raise osv.except_osv(_('Warning!'),_('Do not have currency rate for this Picking order!')) 
+                    raise osv.except_osv(_('Warning!'),_('Please check again! Do not have currency for this Picking order!')) 
         res = self.create_invoice(cr, uid, ids, context=context)
         invoice_ids += res.values()
         inv_type = context.get('inv_type', False)
