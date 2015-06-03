@@ -655,6 +655,7 @@
 				</xpath>
 				<xpath expr="//page[@string='PO Line']/field/tree/field[@name='product_qty']" position="replace">
 					<field name="description" />
+					<field name="item_text" invisible = '1' />
 					<field name="product_qty" />
 				</xpath>
 				<xpath expr="//page[@string='PO Line']/field/tree/field[@name='product_qty']" position="after">
