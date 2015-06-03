@@ -166,7 +166,7 @@ class stock_inward_outward_report(osv.osv_memory):
             sql = '''
                 select * from account_move where doc_type in ('freight', 'good', 'grn') and state = 'posted' and date between '%(date_from)s' and '%(date_to)s'
                     and ( id in (select move_id from account_move_line where (move_id in (select move_id from account_invoice where id in (select invoice_id from account_invoice_line where product_id=%(product_id)s)))
-                        or (name in (select name from stock_picking where id in (select picking_id from stock_move where product_id=%(product_id)s)))
+                        or (LEFT(name,17) in (select name from stock_picking where id in (select picking_id from stock_move where product_id=%(product_id)s)))
                     ) or material_issue_id in (select id from tpt_material_issue where id in (select material_issue_id from tpt_material_issue_line where product_id=%(product_id)s)) 
                         ) order by date
             '''%{'date_from':date_from,
@@ -200,7 +200,7 @@ class stock_inward_outward_report(osv.osv_memory):
             if move_type == 'grn':
                 sql = '''
                     select case when sum(product_qty)!=0 then sum(product_qty) else 0 end product_qty, product_id from stock_move
-                    where picking_id in (select id from stock_picking where name in (select name from account_move_line where move_id = %s) and product_id = %s)
+                    where picking_id in (select id from stock_picking where name in (select LEFT(name,17) from account_move_line where move_id = %s) and product_id = %s)
                     group by product_id 
                 '''%(move_id, product_id.id)
                 cr.execute(sql)
@@ -246,7 +246,7 @@ class stock_inward_outward_report(osv.osv_memory):
            
            if move_type == 'grn':
                sql = '''
-                   select warehouse from stock_picking where name in (select name from account_move_line where move_id = %s) and warehouse is not null
+                   select warehouse from stock_picking where name in (select LEFT(name,17) from account_move_line where move_id = %s) and warehouse is not null
                '''%(move_id)
                cr.execute(sql)
                location = cr.dictfetchone()['warehouse'] 
