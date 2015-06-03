@@ -373,6 +373,7 @@ class stock_move(osv.osv):
         'bin_location':fields.text('Bin Location'),
         'si_no':fields.integer('SI.No',readonly = True),
         'description':fields.char('Description', size = 50, readonly = True),
+        'item_text':fields.text('Item Text'),
                 }
     def onchange_product_id(self, cr, uid, ids, prod_id=False, loc_id=False,
                             loc_dest_id=False, partner_id=False, action=False):
@@ -617,7 +618,7 @@ class account_invoice(osv.osv):
                     sql='''
                         update account_invoice_tax set amount=%s where id=%s
                     '''%(round(val2+freight),taxline.id)
-                    cr.execute(sql)
+                    cr.execute(sql)#                         amount_total_tax = round(amount_total_tax)
             else:
                 if line.purchase_id:
                     amount_untaxed = 0.0
@@ -679,10 +680,10 @@ class account_invoice(osv.osv):
                         tax_amounts = [r.amount for r in po.invoice_line_tax_id]
                         for tax_amount in tax_amounts:
                             tax += tax_amount/100
-                        amount_total_tax = (basic + p_f + ed)*(tax)
-                        amount_total_tax = round(amount_total_tax)
+                        amount_total_tax = (basic + p_f + ed + po.aed_id_1)*(tax)
+#                         amount_total_tax = round(amount_total_tax)
                         total_tax += amount_total_tax
-                        total_tax = round(total_tax)
+#                         total_tax = round(total_tax)
                         if po.fright_type == '1' :
                             fright = (basic + p_f + ed + amount_total_tax) * po.fright/100
                             fright = round(fright)
@@ -775,9 +776,9 @@ class account_invoice(osv.osv):
                         for tax_amount in tax_amounts:
                             tax += tax_amount/100
                         amount_total_tax = (basic + p_f + ed)*(tax)
-                        amount_total_tax = round(amount_total_tax)
+#                         amount_total_tax = round(amount_total_tax)
                         total_tax += amount_total_tax
-                        total_tax = round(total_tax)
+#                         total_tax = round(total_tax)
                         if po.fright_type == '1' :
                             fright = (basic + p_f + ed + amount_total_tax) * po.fright/100
                             fright = round(fright)
