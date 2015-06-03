@@ -3619,6 +3619,13 @@ class tpt_hr_payroll_approve_reject(osv.osv):
             cr.execute(sql_welfare)
             welfare = cr.dictfetchone()['tax'] or 0.0
             
+            sql_esi = '''
+                select sum(float) as tax from arul_hr_payroll_other_deductions where deduction_parameters_id in (select id from arul_hr_payroll_deduction_parameters where code='ESI.D')
+                and executions_details_id in (select id from arul_hr_payroll_executions_details where payroll_executions_id = %s)
+            '''%(payroll_ids)
+            cr.execute(sql_esi)
+            esi = cr.dictfetchone()['tax'] or 0.0
+            
             sql_ma = '''
                 select sum(float) as allowance from arul_hr_payroll_earning_structure where earning_parameters_id in (select id from arul_hr_payroll_earning_parameters where code='SHD')
                 and executions_details_id in (select id from arul_hr_payroll_executions_details where payroll_executions_id = %s)
@@ -3629,7 +3636,7 @@ class tpt_hr_payroll_approve_reject(osv.osv):
             ### END Excutive & Staff - Worker
             
             sum_credit = (provident + vpf + tax + lwf + welfare + lic_premium +
-                           + ins_oth + vvt_loan + vvt_hdfc + hfl + tmb + sbt + other)
+                           + ins_oth + vvt_loan + vvt_hdfc + hfl + tmb + sbt + other + esi)
             diff = gross - sum_credit
             gross = gross - shd
             
@@ -3650,6 +3657,7 @@ class tpt_hr_payroll_approve_reject(osv.osv):
                    'diff':diff,
                    'it':it,
                    'shd':shd,
+                   'esi':esi,
                    }
         return res
     
@@ -3710,13 +3718,14 @@ class tpt_hr_payroll_approve_reject(osv.osv):
                 other_loan_acc = configuration.other_loan_id and configuration.other_loan_id.id or False
                 it_acc = configuration.it_id and configuration.it_id.id or False
                 shd_acc = configuration.shd_id and configuration.shd_id.id or False
+                esi_acc = configuration.esi_id and configuration.esi_id.id or False
                 
                 salari_acc = configuration.salari_payable_id and configuration.salari_payable_id.id or False
                 wages_acc = configuration.wages_id and configuration.wages_id.id or False
                 wages_payable_acc = configuration.wages_payable_id and configuration.wages_payable_id.id or False
                 if not gross_acc or not provident_acc or not vpf_acc or not welfare_acc or not lic_premium_acc \
                 or not pro_tax_acc or not lwf_acc or not other_insu_acc or not vvti_acc or not lic_hfl_acc or not hdfc_acc \
-                or not tmb_acc or not sbt_acc or not other_loan_acc or not salari_acc or not wages_acc or not wages_payable_acc or not it_acc or not shd_acc:
+                or not tmb_acc or not sbt_acc or not other_loan_acc or not salari_acc or not wages_acc or not wages_payable_acc or not it_acc or not shd_acc or not esi_acc:
                     raise osv.except_osv(_('Warning!'),_('GL Posting Configuration is missed. Please configure it in GL Posting Configuration master!'))
                 
             if payroll_excutive_id:
@@ -3732,96 +3741,135 @@ class tpt_hr_payroll_approve_reject(osv.osv):
                 
                 for period_id in period_obj.browse(cr,uid,period_ids):
                     res1 = {}
-                    
+                    journal_s1_line = []
                     res1 = self.get_account_amount(cr,uid,payroll_excutive_id)
-                    
-                    
-                    journal_s1_line = [(0,0,{
+                    if res1['gross'] > 0:
+                        journal_s1_line.append((0,0,{
                                     'name':line.year, 
                                     'account_id': gross_acc,
                                     'debit':res1['gross'],
                                     'credit':0,
-                                   }),(0,0,{
-                                    'name':line.year, 
-                                    'account_id': provident_acc,
-                                    'debit':0,
-                                    'credit':res1['provident'],
-                                   }),(0,0,{
-                                    'name':line.year, 
-                                    'account_id': vpf_acc,
-                                    'debit':0,
-                                    'credit':res1['vpf'],
-                                   }),(0,0,{
-                                    'name':line.year, 
-                                    'account_id': welfare_acc,
-                                    'debit':0,
-                                    'credit':res1['welfare'],
-                                   }),(0,0,{
-                                    'name':line.year, 
-                                    'account_id': lic_premium_acc,
-                                    'debit':0,
-                                    'credit':res1['lic_premium'],
-                                   }),(0,0,{
-                                    'name':line.year, 
-                                    'account_id': pro_tax_acc,
-                                    'debit':0,
-                                    'credit':res1['tax'],
-                                   }),(0,0,{
-                                    'name':line.year, 
-                                    'account_id': lwf_acc,
-                                    'debit':0,
-                                    'credit':res1['lwf'],
-                                   }),(0,0,{
-                                    'name':line.year, 
-                                    'account_id': other_insu_acc,
-                                    'debit':0,
-                                    'credit':res1['ins_oth'],
-                                   }),(0,0,{
-                                    'name':line.year, 
-                                    'account_id': vvti_acc, 
-                                    'debit':0,
-                                    'credit':res1['vvt_loan'],
-                                   }),(0,0,{
-                                    'name':line.year, 
-                                    'account_id': hdfc_acc,
-                                    'debit':0,
-                                    'credit':res1['vvt_hdfc'],
-                                   }),(0,0,{
-                                    'name':line.year, 
-                                    'account_id': lic_hfl_acc,
-                                    'debit':0,
-                                    'credit':res1['hfl'],
-                                   }),(0,0,{
-                                    'name':line.year, 
-                                    'account_id': sbt_acc,
-                                    'debit':0,
-                                    'credit':res1['sbt'],
-                                   }),(0,0,{
-                                    'name':line.year, 
-                                    'account_id': other_loan_acc,
-                                    'debit':0,
-                                    'credit':res1['other'],
-                                   }),(0,0,{
-                                    'name':line.year, 
-                                    'account_id': tmb_acc,
-                                    'debit':0,
-                                    'credit':res1['tmb'],
-                                   }),(0,0,{
-                                    'name':line.year, 
-                                    'account_id': salari_acc,
-                                    'debit':0,
-                                    'credit':res1['diff'],
-                                   }),(0,0,{
-                                    'name':line.year, 
-                                    'account_id': it_acc,
-                                    'debit':0,
-                                    'credit':res1['it'],
-                                   }),(0,0,{
+                                   }))
+                    if res1['shd'] > 0:
+                        journal_s1_line.append((0,0,{
                                     'name':line.year, 
                                     'account_id': shd_acc,
                                     'debit':res1['shd'],
                                     'credit':0,
-                                   }),]
+                                   }))
+                    if res1['provident'] > 0:
+                        journal_s1_line.append((0,0,{
+                                    'name':line.year, 
+                                    'account_id': provident_acc,
+                                    'debit':0,
+                                    'credit':res1['provident'],
+                                   }))
+                    if res1['vpf'] > 0:
+                        journal_s1_line.append((0,0,{
+                                    'name':line.year, 
+                                    'account_id': vpf_acc,
+                                    'debit':0,
+                                    'credit':res1['vpf'],
+                                   }))
+                    if res1['esi'] > 0:
+                        journal_s1_line.append((0,0,{
+                                    'name':line.year, 
+                                    'account_id': esi_acc,
+                                    'debit':0,
+                                    'credit':res1['esi'],
+                                   }))
+                    if res1['welfare'] > 0:
+                        journal_s1_line.append((0,0,{
+                                    'name':line.year, 
+                                    'account_id': welfare_acc,
+                                    'debit':0,
+                                    'credit':res1['welfare'],
+                                   }))
+                    if res1['lic_premium'] > 0:
+                        journal_s1_line.append((0,0,{
+                                    'name':line.year, 
+                                    'account_id': lic_premium_acc,
+                                    'debit':0,
+                                    'credit':res1['lic_premium'],
+                                   }))
+                    if res1['tax'] > 0:
+                        journal_s1_line.append((0,0,{
+                                    'name':line.year, 
+                                    'account_id': pro_tax_acc,
+                                    'debit':0,
+                                    'credit':res1['tax'],
+                                   }))
+                    if res1['lwf'] > 0:
+                        journal_s1_line.append((0,0,{
+                                    'name':line.year, 
+                                    'account_id': lwf_acc,
+                                    'debit':0,
+                                    'credit':res1['lwf'],
+                                   }))
+                    if res1['ins_oth'] > 0:
+                        journal_s1_line.append((0,0,{
+                                    'name':line.year, 
+                                    'account_id': other_insu_acc,
+                                    'debit':0,
+                                    'credit':res1['ins_oth'],
+                                   }))
+                    if res1['vvt_loan'] > 0:
+                        journal_s1_line.append((0,0,{
+                                    'name':line.year, 
+                                    'account_id': vvti_acc, 
+                                    'debit':0,
+                                    'credit':res1['vvt_loan'],
+                                   }))
+                    if res1['vvt_hdfc'] > 0:
+                        journal_s1_line.append((0,0,{
+                                    'name':line.year, 
+                                    'account_id': hdfc_acc,
+                                    'debit':0,
+                                    'credit':res1['vvt_hdfc'],
+                                   }))
+                    if res1['hfl'] > 0:
+                        journal_s1_line.append((0,0,{
+                                    'name':line.year, 
+                                    'account_id': lic_hfl_acc,
+                                    'debit':0,
+                                    'credit':res1['hfl'],
+                                   }))
+                    if res1['sbt'] > 0:
+                        journal_s1_line.append((0,0,{
+                                    'name':line.year, 
+                                    'account_id': sbt_acc,
+                                    'debit':0,
+                                    'credit':res1['sbt'],
+                                   }))
+                    if res1['other'] > 0:
+                        journal_s1_line.append((0,0,{
+                                    'name':line.year, 
+                                    'account_id': other_loan_acc,
+                                    'debit':0,
+                                    'credit':res1['other'],
+                                   }))
+                    if res1['tmb'] > 0:
+                        journal_s1_line.append((0,0,{
+                                    'name':line.year, 
+                                    'account_id': tmb_acc,
+                                    'debit':0,
+                                    'credit':res1['tmb'],
+                                   }))
+                    if res1['it'] > 0:
+                        journal_s1_line.append((0,0,{
+                                    'name':line.year, 
+                                    'account_id': it_acc,
+                                    'debit':0,
+                                    'credit':res1['it'],
+                                   }))
+                    if res1['diff'] > 0:
+                        journal_s1_line.append((0,0,{
+                                    'name':line.year, 
+                                    'account_id': salari_acc,
+                                    'debit':0,
+                                    'credit':res1['diff'],
+                                   }))
+                    
                 value_s1={
                     'journal_id':journal.id,
                     'period_id':period_id.id ,
@@ -3843,95 +3891,135 @@ class tpt_hr_payroll_approve_reject(osv.osv):
                     raise osv.except_osv(_('Warning!'),_('Period is not null, please configure it in Period master !'))
                 for period_id in period_obj.browse(cr,uid,period_ids):
                     res2 = {}
-                        
+                    journal_s2_line = []   
                     res2 = self.get_account_amount(cr,uid,payroll_staff_id)
-                    
-                    journal_s2_line = [(0,0,{
+                    if res2['gross'] > 0:
+                        journal_s2_line.append((0,0,{
                                     'name':line.year, 
                                     'account_id': gross_acc,
                                     'debit':res2['gross'],
                                     'credit':0,
-                                   }),(0,0,{
-                                    'name':line.year, 
-                                    'account_id': provident_acc,
-                                    'debit':0,
-                                    'credit':res2['provident'],
-                                   }),(0,0,{
-                                    'name':line.year, 
-                                    'account_id': vpf_acc,
-                                    'debit':0,
-                                    'credit':res2['vpf'],
-                                   }),(0,0,{
-                                    'name':line.year, 
-                                    'account_id': welfare_acc,
-                                    'debit':0,
-                                    'credit':res2['welfare'],
-                                   }),(0,0,{
-                                    'name':line.year, 
-                                    'account_id': lic_premium_acc,
-                                    'debit':0,
-                                    'credit':res2['lic_premium'],
-                                   }),(0,0,{
-                                    'name':line.year, 
-                                    'account_id': pro_tax_acc,
-                                    'debit':0,
-                                    'credit':res2['tax'],
-                                   }),(0,0,{
-                                    'name':line.year, 
-                                    'account_id': lwf_acc,
-                                    'debit':0,
-                                    'credit':res2['lwf'],
-                                   }),(0,0,{
-                                    'name':line.year, 
-                                    'account_id': other_insu_acc,
-                                    'debit':0,
-                                    'credit':res2['ins_oth'],
-                                   }),(0,0,{
-                                    'name':line.year, 
-                                    'account_id': vvti_acc, 
-                                    'debit':0,
-                                    'credit':res2['vvt_loan'],
-                                   }),(0,0,{
-                                    'name':line.year, 
-                                    'account_id': hdfc_acc,
-                                    'debit':0,
-                                    'credit':res2['vvt_hdfc'],
-                                   }),(0,0,{
-                                    'name':line.year, 
-                                    'account_id': lic_hfl_acc,
-                                    'debit':0,
-                                    'credit':res2['hfl'],
-                                   }),(0,0,{
-                                    'name':line.year, 
-                                    'account_id': sbt_acc,
-                                    'debit':0,
-                                    'credit':res2['sbt'],
-                                   }),(0,0,{
-                                    'name':line.year, 
-                                    'account_id': other_loan_acc,
-                                    'debit':0,
-                                    'credit':res2['other'],
-                                   }),(0,0,{
-                                    'name':line.year, 
-                                    'account_id': tmb_acc,
-                                    'debit':0,
-                                    'credit':res2['tmb'],
-                                   }),(0,0,{
-                                    'name':line.year, 
-                                    'account_id': salari_acc,
-                                    'debit':0,
-                                    'credit':res2['diff'],
-                                   }),(0,0,{
-                                    'name':line.year, 
-                                    'account_id': it_acc,
-                                    'debit':0,
-                                    'credit':res2['it'],
-                                   }),(0,0,{
+                                   }))
+                    if res2['shd'] > 0:
+                        journal_s2_line.append((0,0,{
                                     'name':line.year, 
                                     'account_id': shd_acc,
                                     'debit':res2['shd'],
                                     'credit':0,
-                                   }),]
+                                   }))
+                    if res2['provident'] > 0:
+                        journal_s2_line.append((0,0,{
+                                    'name':line.year, 
+                                    'account_id': provident_acc,
+                                    'debit':0,
+                                    'credit':res2['provident'],
+                                   }))
+                    if res2['vpf'] > 0:
+                        journal_s2_line.append((0,0,{
+                                    'name':line.year, 
+                                    'account_id': vpf_acc,
+                                    'debit':0,
+                                    'credit':res2['vpf'],
+                                   }))
+                    if res2['esi'] > 0:
+                        journal_s2_line.append((0,0,{
+                                    'name':line.year, 
+                                    'account_id': esi_acc,
+                                    'debit':0,
+                                    'credit':res2['esi'],
+                                   }))
+                    if res2['welfare'] > 0:
+                        journal_s2_line.append((0,0,{
+                                    'name':line.year, 
+                                    'account_id': welfare_acc,
+                                    'debit':0,
+                                    'credit':res2['welfare'],
+                                   }))
+                    if res2['lic_premium'] > 0:
+                        journal_s2_line.append((0,0,{
+                                    'name':line.year, 
+                                    'account_id': lic_premium_acc,
+                                    'debit':0,
+                                    'credit':res2['lic_premium'],
+                                   }))
+                    if res2['tax'] > 0:
+                        journal_s2_line.append((0,0,{
+                                    'name':line.year, 
+                                    'account_id': pro_tax_acc,
+                                    'debit':0,
+                                    'credit':res2['tax'],
+                                   }))
+                    if res2['lwf'] > 0:
+                        journal_s2_line.append((0,0,{
+                                    'name':line.year, 
+                                    'account_id': lwf_acc,
+                                    'debit':0,
+                                    'credit':res2['lwf'],
+                                   }))
+                    if res2['ins_oth'] > 0:
+                        journal_s2_line.append((0,0,{
+                                    'name':line.year, 
+                                    'account_id': other_insu_acc,
+                                    'debit':0,
+                                    'credit':res2['ins_oth'],
+                                   }))
+                    if res2['vvt_loan'] > 0:
+                        journal_s2_line.append((0,0,{
+                                    'name':line.year, 
+                                    'account_id': vvti_acc, 
+                                    'debit':0,
+                                    'credit':res2['vvt_loan'],
+                                   }))
+                    if res2['vvt_hdfc'] > 0:
+                        journal_s2_line.append((0,0,{
+                                    'name':line.year, 
+                                    'account_id': hdfc_acc,
+                                    'debit':0,
+                                    'credit':res2['vvt_hdfc'],
+                                   }))
+                    if res2['hfl'] > 0:
+                        journal_s2_line.append((0,0,{
+                                    'name':line.year, 
+                                    'account_id': lic_hfl_acc,
+                                    'debit':0,
+                                    'credit':res2['hfl'],
+                                   }))
+                    if res2['sbt'] > 0:
+                        journal_s2_line.append((0,0,{
+                                    'name':line.year, 
+                                    'account_id': sbt_acc,
+                                    'debit':0,
+                                    'credit':res2['sbt'],
+                                   }))
+                    if res2['other'] > 0:
+                        journal_s2_line.append((0,0,{
+                                    'name':line.year, 
+                                    'account_id': other_loan_acc,
+                                    'debit':0,
+                                    'credit':res2['other'],
+                                   }))
+                    if res2['tmb'] > 0:
+                        journal_s2_line.append((0,0,{
+                                    'name':line.year, 
+                                    'account_id': tmb_acc,
+                                    'debit':0,
+                                    'credit':res2['tmb'],
+                                   }))
+                    if res2['it'] > 0:
+                        journal_s2_line.append((0,0,{
+                                    'name':line.year, 
+                                    'account_id': it_acc,
+                                    'debit':0,
+                                    'credit':res2['it'],
+                                   }))
+                    if res2['diff'] > 0:
+                        journal_s2_line.append((0,0,{
+                                    'name':line.year, 
+                                    'account_id': salari_acc,
+                                    'debit':0,
+                                    'credit':res2['diff'],
+                                   }))
+                    
                 value_s2={
                     'journal_id':journal.id,
                     'period_id':period_id.id ,
@@ -3954,90 +4042,135 @@ class tpt_hr_payroll_approve_reject(osv.osv):
                 
                 for period_id in period_obj.browse(cr,uid,period_ids):
                     res3 = {}
-                        
+                    journal_s3_line = []
                     res3 = self.get_account_amount(cr,uid,payroll_workers_id)
-                    
-                    journal_s3_line = [(0,0,{
+                    if res3['gross'] > 0:
+                        journal_s3_line.append((0,0,{
                                     'name':line.year, 
                                     'account_id': wages_acc,
                                     'debit':res3['gross'],
                                     'credit':0,
-                                   }),(0,0,{
-                                    'name':line.year, 
-                                    'account_id': provident_acc,
-                                    'debit':0,
-                                    'credit':res3['provident'],
-                                   }),(0,0,{
-                                    'name':line.year, 
-                                    'account_id': vpf_acc,
-                                    'debit':0,
-                                    'credit':res3['vpf'],
-                                   }),(0,0,{
-                                    'name':line.year, 
-                                    'account_id': welfare_acc,
-                                    'debit':0,
-                                    'credit':res3['welfare'],
-                                   }),(0,0,{
-                                    'name':line.year, 
-                                    'account_id': lic_premium_acc,
-                                    'debit':0,
-                                    'credit':res3['lic_premium'],
-                                   }),(0,0,{
-                                    'name':line.year, 
-                                    'account_id': pro_tax_acc,
-                                    'debit':0,
-                                    'credit':res3['tax'],
-                                   }),(0,0,{
-                                    'name':line.year, 
-                                    'account_id': lwf_acc,
-                                    'debit':0,
-                                    'credit':res3['lwf'],
-                                   }),(0,0,{
-                                    'name':line.year, 
-                                    'account_id': other_insu_acc,
-                                    'debit':0,
-                                    'credit':res3['ins_oth'],
-                                   }),(0,0,{
-                                    'name':line.year, 
-                                    'account_id': vvti_acc, 
-                                    'debit':0,
-                                    'credit':res3['vvt_loan'],
-                                   }),(0,0,{
-                                    'name':line.year, 
-                                    'account_id': hdfc_acc,
-                                    'debit':0,
-                                    'credit':res3['vvt_hdfc'],
-                                   }),(0,0,{
-                                    'name':line.year, 
-                                    'account_id': lic_hfl_acc,
-                                    'debit':0,
-                                    'credit':res3['hfl'],
-                                   }),(0,0,{
-                                    'name':line.year, 
-                                    'account_id': sbt_acc,
-                                    'debit':0,
-                                    'credit':res3['sbt'],
-                                   }),(0,0,{
-                                    'name':line.year, 
-                                    'account_id': other_loan_acc,
-                                    'debit':0,
-                                    'credit':res3['other'],
-                                   }),(0,0,{
-                                    'name':line.year, 
-                                    'account_id': tmb_acc,
-                                    'debit':0,
-                                    'credit':res3['tmb'],
-                                   }),(0,0,{
-                                    'name':line.year, 
-                                    'account_id': wages_payable_acc,
-                                    'debit':0,
-                                    'credit':res3['diff'],
-                                   }),(0,0,{
+                                   }))
+                    if res3['shd'] > 0:
+                        journal_s3_line.append((0,0,{
                                     'name':line.year, 
                                     'account_id': shd_acc,
                                     'debit':res3['shd'],
                                     'credit':0,
-                                   }),]
+                                   }))
+                    if res3['provident'] > 0:
+                        journal_s3_line.append((0,0,{
+                                    'name':line.year, 
+                                    'account_id': provident_acc,
+                                    'debit':0,
+                                    'credit':res3['provident'],
+                                   }))
+                    if res3['vpf'] > 0:
+                        journal_s3_line.append((0,0,{
+                                    'name':line.year, 
+                                    'account_id': vpf_acc,
+                                    'debit':0,
+                                    'credit':res3['vpf'],
+                                   }))
+                    if res3['esi'] > 0:
+                        journal_s3_line.append((0,0,{
+                                    'name':line.year, 
+                                    'account_id': esi_acc,
+                                    'debit':0,
+                                    'credit':res3['esi'],
+                                   }))
+                    if res3['welfare'] > 0:
+                        journal_s3_line.append((0,0,{
+                                    'name':line.year, 
+                                    'account_id': welfare_acc,
+                                    'debit':0,
+                                    'credit':res3['welfare'],
+                                   }))
+                    if res3['lic_premium'] > 0:
+                        journal_s3_line.append((0,0,{
+                                    'name':line.year, 
+                                    'account_id': lic_premium_acc,
+                                    'debit':0,
+                                    'credit':res3['lic_premium'],
+                                   }))
+                    if res3['tax'] > 0:
+                        journal_s3_line.append((0,0,{
+                                    'name':line.year, 
+                                    'account_id': pro_tax_acc,
+                                    'debit':0,
+                                    'credit':res3['tax'],
+                                   }))
+                    if res3['lwf'] > 0:
+                        journal_s3_line.append((0,0,{
+                                    'name':line.year, 
+                                    'account_id': lwf_acc,
+                                    'debit':0,
+                                    'credit':res3['lwf'],
+                                   }))
+                    if res3['ins_oth'] > 0:
+                        journal_s3_line.append((0,0,{
+                                    'name':line.year, 
+                                    'account_id': other_insu_acc,
+                                    'debit':0,
+                                    'credit':res3['ins_oth'],
+                                   }))
+                    if res3['vvt_loan'] > 0:
+                        journal_s3_line.append((0,0,{
+                                    'name':line.year, 
+                                    'account_id': vvti_acc, 
+                                    'debit':0,
+                                    'credit':res3['vvt_loan'],
+                                   }))
+                    if res3['vvt_hdfc'] > 0:
+                        journal_s3_line.append((0,0,{
+                                    'name':line.year, 
+                                    'account_id': hdfc_acc,
+                                    'debit':0,
+                                    'credit':res3['vvt_hdfc'],
+                                   }))
+                    if res3['hfl'] > 0:
+                        journal_s3_line.append((0,0,{
+                                    'name':line.year, 
+                                    'account_id': lic_hfl_acc,
+                                    'debit':0,
+                                    'credit':res3['hfl'],
+                                   }))
+                    if res3['sbt'] > 0:
+                        journal_s3_line.append((0,0,{
+                                    'name':line.year, 
+                                    'account_id': sbt_acc,
+                                    'debit':0,
+                                    'credit':res3['sbt'],
+                                   }))
+                    if res3['other'] > 0:
+                        journal_s3_line.append((0,0,{
+                                    'name':line.year, 
+                                    'account_id': other_loan_acc,
+                                    'debit':0,
+                                    'credit':res3['other'],
+                                   }))
+                    if res3['tmb'] > 0:
+                        journal_s3_line.append((0,0,{
+                                    'name':line.year, 
+                                    'account_id': tmb_acc,
+                                    'debit':0,
+                                    'credit':res3['tmb'],
+                                   }))
+                    if res3['it'] > 0:
+                        journal_s3_line.append((0,0,{
+                                    'name':line.year, 
+                                    'account_id': it_acc,
+                                    'debit':0,
+                                    'credit':res3['it'],
+                                   }))
+                    if res3['diff'] > 0:
+                        journal_s3_line.append((0,0,{
+                                    'name':line.year, 
+                                    'account_id': wages_payable_acc,
+                                    'debit':0,
+                                    'credit':res3['diff'],
+                                   }))
+                
                 value_s3={
                     'journal_id':journal.id,
                     'period_id':period_id.id ,
