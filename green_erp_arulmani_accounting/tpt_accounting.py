@@ -2525,14 +2525,14 @@ class account_voucher(osv.osv):
             cr.execute(sql)
             total_debit = 0
             total_credit = 0
-            sql = '''
-                update account_voucher set type_trans = 'payment', sum_amount = %s where type = 'payment' and id = %s
-            '''%(new.amount, new.id)
-            cr.execute(sql)
-            sql = '''
-                update account_voucher set type_trans = 'receipt', sum_amount = %s where type = 'receipt' and id = %s
-            '''%(new.amount, new.id)
-            cr.execute(sql)
+#             sql = '''
+#                 update account_voucher set type_trans = 'payment', sum_amount = %s where type = 'payment' and id = %s
+#             '''%(new.amount, new.id)
+#             cr.execute(sql)
+#             sql = '''
+#                 update account_voucher set type_trans = 'receipt', sum_amount = %s where type = 'receipt' and id = %s
+#             '''%(new.amount, new.id)
+#             cr.execute(sql)
             for line in new.line_ids:
                 if line.type=='dr':
                     total_debit += line.amount
