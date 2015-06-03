@@ -2162,7 +2162,10 @@ class arul_hr_payroll_executions(osv.osv):
                         for_esi_base_gross_sal =  basic + da + c + hra + ea + aa + la + oa + fa + for_esi_base_spa + pc + cre + sha + lta + med
                         
                         gross_shd_calc = net_basic + net_da + net_c + net_hra + net_ea + net_aa + net_la + net_oa
-                        shd = (gross_shd_calc / calendar_days) * special_holiday_worked_count
+                        if p.employee_sub_category_id.code=='T1':
+                            shd = 0
+                        else:
+                            shd = (gross_shd_calc / calendar_days) * special_holiday_worked_count
                         total_earning = total_earning + shd
                         gross_sal = gross_sal + shd
                         #gross_before = basic + c + hra  +spa + ea + oa + da + la + aa
@@ -2632,6 +2635,7 @@ class arul_hr_payroll_executions(osv.osv):
                         #oa = total_shift_allowance + total_days*4 + la  # this calculation shifted to ma. oa is treated as same that of entered in paystructure
                         for_esi_base_spa = spa
                         spa = spa/(calendar_days - 4 - special_holidays) * total_shift_worked #TPT total_days <->total_shift_worked 
+                        
                         #ma = total_shift_allowance + total_days * 4 + la + wa 
                         
                         #ma = total_all_shift_allowance + total_days * 4 + la + wa #based on individual shift
@@ -2664,7 +2668,7 @@ class arul_hr_payroll_executions(osv.osv):
                         #net_sala = gross_before - total_deduction
                         #
                         #total_no_of_leave = total_lop + total_esi
-			
+			            
                         net_basic = basic - (basic / s3_working_days) * total_no_of_leave
                         net_da = da - (da / s3_working_days) * total_no_of_leave 
                         net_c = c - (c / s3_working_days) * total_no_of_leave
@@ -2679,7 +2683,11 @@ class arul_hr_payroll_executions(osv.osv):
                         for_esi_base_gross_sal =  basic + da + c + hra + ea + aa + la + oa + fa + for_esi_base_spa + pc + cre + sha + lta + med
                         #S3
                         gross_shd_calc = net_basic + net_da + net_c + net_hra + net_ea + net_aa + net_la + net_oa
-                        shd = (gross_shd_calc / s3_working_days) * special_holiday_worked_count
+                        # SYSTEM COULD NOT CALCULATE SHD ALLOWANCE FOR ALL TRAINEES - 03/06/2015
+                        if p.employee_sub_category_id.code=='T2':
+                            shd = 0
+                        else:
+                            shd = (gross_shd_calc / s3_working_days) * special_holiday_worked_count
                         total_earning = total_earning + shd
                         gross_sal = gross_sal + shd
                         
