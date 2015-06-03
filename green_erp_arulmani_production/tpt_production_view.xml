@@ -345,6 +345,10 @@
                 		 <label string="Applied Quantity"/>
                     </xpath>
                     
+                    <xpath expr="//label[@for='prodlot_id']" position="attributes">
+                		<attribute name='string'>Batch Number</attribute>
+                    </xpath>
+                    
                 </data>
             </field>
         </record>
