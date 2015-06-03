@@ -7,7 +7,7 @@ from openerp.tools.translate import _
 import openerp.tools
 from openerp.tools import DEFAULT_SERVER_DATE_FORMAT, DEFAULT_SERVER_DATETIME_FORMAT, float_compare
 
-class tpt_form_movement_analysis(osv.osv_memory):
+class tpt_form_movement_analysis(osv.osv):
     _name = "tpt.form.movement.analysis"
     _columns = {    
                 'categ_id': fields.many2one('product.category', 'Product Category'),
@@ -54,7 +54,7 @@ class tpt_form_movement_analysis(osv.osv_memory):
 tpt_form_movement_analysis()
 
 
-class tpt_movement_analysis_line(osv.osv_memory):
+class tpt_movement_analysis_line(osv.osv):
     _name = "tpt.movement.analysis.line"
     _columns = {    
         'movement_id': fields.many2one('tpt.form.movement.analysis', 'Stock Movement', ondelete='cascade'),
