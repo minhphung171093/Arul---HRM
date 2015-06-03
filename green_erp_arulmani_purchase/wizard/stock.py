@@ -246,15 +246,18 @@ class stock_invoice_onshipping(osv.osv_memory):
         
         picking_id = context and context.get('active_id', False)
         currency_id = False
+        currency_name = False
         for wiz in self.browse(cr, uid, ids, context=context):
             if picking_id:
                 pick_id = self.pool.get('stock.picking').browse(cr, uid, picking_id)
                 if pick_id.type == 'in':
                     currency_id = pick_id.purchase_id and pick_id.purchase_id.currency_id and pick_id.purchase_id.currency_id.id or False
+                    currency_name = pick_id.purchase_id and pick_id.purchase_id.currency_id and pick_id.purchase_id.currency_id.name or False
                 if pick_id.type == 'out': 
                     currency_id = pick_id.sale_id and pick_id.sale_id.currency_id and pick_id.sale_id.currency_id.id or False
+                    currency_name = pick_id.sale_id and pick_id.sale_id.currency_id and pick_id.sale_id.currency_id.name or False
                 if currency_id:
-                    if currency_id.name != 'INR':
+                    if currency_name != 'INR':
                         if not wiz.invoice_date:
                             raise osv.except_osv(_('Warning!'),_('Please choose date of invoice!')) 
                         cur_rate_obj =self.pool.get('res.currency.rate')
