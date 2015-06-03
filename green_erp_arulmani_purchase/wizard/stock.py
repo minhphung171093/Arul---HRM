@@ -141,7 +141,8 @@ class stock_partial_picking(osv.osv_memory):
         if new_picking_id:
             
             for move in stock_picking.browse(cr, SUPERUSER_ID,new_picking_id).move_lines:
-                if move.picking_id.action_taken=='need':
+#                 if move.picking_id.action_taken=='need':
+                if move.action_taken=='need':
                     product_line = []
                     if move.product_id.categ_id.cate_name=='raw':
                         for para in move.product_id.spec_parameter_line: 

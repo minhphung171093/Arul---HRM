@@ -3271,6 +3271,7 @@ class tpt_material_issue(osv.osv):
     
     def bt_approve(self, cr, uid, ids, context=None):
         price = 0.0
+        product_price = 0.0
         account_move_obj = self.pool.get('account.move')
         period_obj = self.pool.get('account.period')
         journal_obj = self.pool.get('account.journal')
@@ -3359,16 +3360,10 @@ class tpt_material_issue(osv.osv):
                 move_id = move_obj.create(cr,uid,rs)
                 move_obj.action_done(cr, uid, [move_id])
             
-            if not line.warehouse.gl_pos_verification_id:
-                    raise osv.except_osv(_('Warning!'),_('Account Warehouse is not null, please configure it in Warehouse Location master !'))
-            for mater in line.material_issue_line:
-#                 price += mater.product_id.standard_price * mater.product_isu_qty
-                avg_cost_ids = avg_cost_obj.search(cr, uid, [('product_id','=',mater.product_id.id),('warehouse_id','=',line.warehouse.id)])
-                if avg_cost_ids:
-                    avg_cost_id = avg_cost_obj.browse(cr, uid, avg_cost_ids[0])
-                    unit = avg_cost_id.avg_cost or 0
-                    price += unit * mater.product_isu_qty
-            date_period = line.date_expec,
+#             if not line.warehouse.gl_pos_verification_id:
+#                     raise osv.except_osv(_('Warning!'),_('Account Warehouse is not null, please configure it in Warehouse Location master !'))
+                
+            date_period = line.date_expec
             sql = '''
                 select id from account_journal
             '''
@@ -3383,26 +3378,33 @@ class tpt_material_issue(osv.osv):
             if not period_ids:
                 raise osv.except_osv(_('Warning!'),_('Period is not null, please configure it in Period master !'))
             for period_id in period_obj.browse(cr,uid,period_ids):
-                if not line.warehouse.gl_pos_verification_id:
-                    raise osv.except_osv(_('Warning!'),_('Account Warehouse is not null, please configure it in Warehouse Location master !'))
-                journal_line = [(0,0,{
-                                        'name':line.doc_no + ' - ' + p.product_id.name, 
-                                        'account_id': line.warehouse.gl_pos_verification_id and line.warehouse.gl_pos_verification_id.id,
-#                                         'partner_id': line.partner_id and line.partner_id.id,
-                                        'debit':0,
-                                        'credit':price,
-                                         
-                                       })]
-                if line.gl_account_id:
+                
+                for mater in line.material_issue_line:
+    #                 price += mater.product_id.standard_price * mater.product_isu_qty
+                    acc_expense = mater.product_id and mater.product_id.property_account_expense and mater.product_id.property_account_expense.id or False
+                    acc_asset = mater.product_id and mater.product_id.product_asset_acc_id and mater.product_id.product_asset_acc_id.id or False
+                    if acc_expense or acc_asset:
+                        raise osv.except_osv(_('Warning!'),_('Please configure Expense Account and Product Asset Account for all materials!'))
+                    avg_cost_ids = avg_cost_obj.search(cr, uid, [('product_id','=',mater.product_id.id),('warehouse_id','=',line.warehouse.id)])
+                    if avg_cost_ids:
+                        avg_cost_id = avg_cost_obj.browse(cr, uid, avg_cost_ids[0])
+                        unit = avg_cost_id.avg_cost or 0
+                        price += unit * mater.product_isu_qty
+                        product_price = unit * mater.product_isu_qty
+                
                     journal_line.append((0,0,{
-                                'name':line.doc_no + ' - ' + p.product_id.name, 
-                                'account_id': line.gl_account_id and line.gl_account_id.id,
-#                                 'partner_id': line.partner_id and line.partner_id.id,
+                                            'name':line.doc_no + ' - ' + mater.product_id.name, 
+                                            'account_id': acc_asset,
+                                            'debit':0,
+                                            'credit':product_price,
+                                             
+                                           }))
+                    journal_line.append((0,0,{
+                                'name':line.doc_no + ' - ' + mater.product_id.name, 
+                                'account_id': acc_expense,
                                 'credit':0,
-                                'debit':price,
+                                'debit':product_price,
                             }))
-                else: 
-                    raise osv.except_osv(_('Warning!'),_('GL Account is not configured! Please configured it!'))
                 value={
                     'journal_id':journal_ids[0],
                     'period_id':period_id.id ,
@@ -3419,6 +3421,7 @@ class tpt_material_issue(osv.osv):
     def bt_create_posting(self, cr, uid, ids, context=None):
         
         price = 0.0
+        product_price = 0.0
         account_move_obj = self.pool.get('account.move')
         period_obj = self.pool.get('account.period')
         journal_obj = self.pool.get('account.journal')
@@ -3429,16 +3432,7 @@ class tpt_material_issue(osv.osv):
         
         for line in self.browse(cr, uid, ids):
             if line.state=='done':
-                if not line.warehouse.gl_pos_verification_id:
-                    raise osv.except_osv(_('Warning!'),_('Account Warehouse is not null, please configure it in Warehouse Location master !'))
-                for mater in line.material_issue_line:
-    #                 price += mater.product_id.standard_price * mater.product_isu_qty
-                    avg_cost_ids = avg_cost_obj.search(cr, uid, [('product_id','=',mater.product_id.id),('warehouse_id','=',line.warehouse.id)])
-                    if avg_cost_ids:
-                        avg_cost_id = avg_cost_obj.browse(cr, uid, avg_cost_ids[0])
-                        unit = avg_cost_id.avg_cost or 0
-                        price += unit * mater.product_isu_qty
-                date_period = line.date_expec,
+                date_period = line.date_expec
                 sql = '''
                     select id from account_journal
                 '''
@@ -3449,44 +3443,47 @@ class tpt_material_issue(osv.osv):
                 '''%(date_period)
                 cr.execute(sql)
                 period_ids = [r[0] for r in cr.fetchall()]
-                
+                 
                 if not period_ids:
                     raise osv.except_osv(_('Warning!'),_('Period is not null, please configure it in Period master !'))
                 for period_id in period_obj.browse(cr,uid,period_ids):
-                    if not line.warehouse.gl_pos_verification_id:
-                        raise osv.except_osv(_('Warning!'),_('Account Warehouse is not null, please configure it in Warehouse Location master !'))
-                    journal_line = [(0,0,{
-                                            'name':line.doc_no + ' - ' + p.product_id.name, 
-                                            'account_id': line.warehouse.gl_pos_verification_id and line.warehouse.gl_pos_verification_id.id,
-    #                                         'partner_id': line.partner_id and line.partner_id.id,
-                                            'debit':0,
-                                            'credit':price,
-                                            
-                                           })]
-                    if line.gl_account_id:
+                    
+                    for mater in line.material_issue_line:
+        #                 price += mater.product_id.standard_price * mater.product_isu_qty
+                        acc_expense = mater.product_id and mater.product_id.property_account_expense and mater.product_id.property_account_expense.id or False
+                        acc_asset = mater.product_id and mater.product_id.product_asset_acc_id and mater.product_id.product_asset_acc_id.id or False
+                        if acc_expense or acc_asset:
+                            raise osv.except_osv(_('Warning!'),_('Please configure Expense Account and Product Asset Account for all materials!'))
+                        avg_cost_ids = avg_cost_obj.search(cr, uid, [('product_id','=',mater.product_id.id),('warehouse_id','=',line.warehouse.id)])
+                        if avg_cost_ids:
+                            avg_cost_id = avg_cost_obj.browse(cr, uid, avg_cost_ids[0])
+                            unit = avg_cost_id.avg_cost or 0
+                            price += unit * mater.product_isu_qty
+                            product_price = unit * mater.product_isu_qty
+                    
                         journal_line.append((0,0,{
-                                    'name':line.doc_no + ' - ' + p.product_id.name, 
-                                    'account_id': line.gl_account_id and line.gl_account_id.id,
-    #                                 'partner_id': line.partner_id and line.partner_id.id,
+                                                'name':line.doc_no + ' - ' + mater.product_id.name, 
+                                                'account_id': acc_asset,
+                                                'debit':0,
+                                                'credit':product_price,
+                                                 
+                                               }))
+                        journal_line.append((0,0,{
+                                    'name':line.doc_no + ' - ' + mater.product_id.name, 
+                                    'account_id': acc_expense,
                                     'credit':0,
-                                    'debit':price,
+                                    'debit':product_price,
                                 }))
-                    else: 
-                        raise osv.except_osv(_('Warning!'),_('GL Account is not configured! Please configured it!'))
                     value={
                         'journal_id':journal_ids[0],
-                        'ref': line.doc_no,
                         'period_id':period_id.id ,
+                        'ref': line.doc_no,
                         'date': date_period,
-                        'line_id': journal_line,
                         'material_issue_id': line.id,
+                        'line_id': journal_line,
                         'doc_type':'good'
                         }
-                    sql = '''
-                        update tpt_material_issue set flag = 't' where id = %s
-                    '''%(line.id)
-                    cr.execute(sql)
-                    new_jour_id = account_move_obj.create(cr,uid,value) 
+                    new_jour_id = account_move_obj.create(cr,uid,value)
 tpt_material_issue()    
 
 class tpt_hr_payroll_approve_reject(osv.osv):
