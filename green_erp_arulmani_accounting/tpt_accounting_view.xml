@@ -1540,7 +1540,7 @@
 	            
                     <xpath expr="//field[@name='department_id']" position="after">
                     	<field name="warehouse" required='1' domain="[('usage','=','internal'),('chained_location_type','&lt;&gt;','customer')]" options="{'create': false, 'create_edit': false}"/>
-                    	<field name="gl_account_id" options="{'create': false, 'create_edit': false}"/>   
+                    	<!--<field name="gl_account_id" options="{'create': false, 'create_edit': false}"/>   -->
                     	<field name="cost_center_id" options="{'create': false, 'create_edit': false}" />
                     	<field name="dest_warehouse_id" domain="[('usage','=','internal'),('chained_location_type','&lt;&gt;','customer')]" options="{'create': false, 'create_edit': false}" attrs="{'invisible':[('request_type','!=','production')], 'required':[('request_type','=','norm')]}"/>
                     </xpath>
