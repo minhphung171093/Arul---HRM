@@ -8,7 +8,7 @@ import openerp.tools
 from openerp.tools import DEFAULT_SERVER_DATE_FORMAT, DEFAULT_SERVER_DATETIME_FORMAT, float_compare
 
 
-class tpt_stock_inward_outward(osv.osv_memory):
+class tpt_stock_inward_outward(osv.osv):
     _name = "tpt.stock.inward.outward"
     _columns = {
         'name': fields.char('', readonly=True),
@@ -45,7 +45,7 @@ class tpt_stock_inward_outward(osv.osv_memory):
     
 tpt_stock_inward_outward()
 
-class tpt_stock_inward_outward_line(osv.osv_memory):
+class tpt_stock_inward_outward_line(osv.osv):
     _name = "tpt.stock.inward.outward.line"
     _columns = {
         'creation_date': fields.date('Creation Date'),
