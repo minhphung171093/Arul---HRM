@@ -1178,12 +1178,12 @@ class mrp_production(osv.osv):
             source_location_id = production.location_src_id.id
             
         prodlot_ids = []
-        if production_line.product_id.default_code in ['FERROUS SULPHATE','FSH','M0501010002'] or production_line.product_id.name in ['FERROUS SULPHATE','FSH','M0501010002']:
-            sql = '''
-                    select id from stock_production_lot where name='temp_fsh'
-                '''
-            cr.execute(sql)
-            prodlot_ids = cr.fetchone()
+#         if production_line.product_id.default_code in ['FERROUS SULPHATE','FSH','M0501010002'] or production_line.product_id.name in ['FERROUS SULPHATE','FSH','M0501010002']:
+#             sql = '''
+#                     select id from stock_production_lot where name='temp_fsh'
+#                 '''
+#             cr.execute(sql)
+#             prodlot_ids = cr.fetchone()
 #             if prodlot_ids and self.pool.get('stock.production.lot').browse(cr, uid, prodlot_ids[0]).stock_available<production_line.product_qty:
 #                 raise osv.except_osv(_('Warning!'),'Available stock is not enough for the selected raw material!')
             
@@ -1444,13 +1444,30 @@ class mrp_production(osv.osv):
                             
                 prodlot_ids = []
                 if line.product_id.default_code in ['FERROUS SULPHATE','FSH','M0501010002'] or line.product_id.name in ['FERROUS SULPHATE','FSH','M0501010002']:
-                    sql = '''
-                            select id from stock_production_lot where name='temp_fsh'
-                        '''
-                    cr.execute(sql)
-                    prodlot_ids = cr.fetchone()
-                    if prodlot_ids and self.pool.get('stock.production.lot').browse(cr, uid, prodlot_ids[0]).stock_available<line.product_qty:
-                        raise osv.except_osv(_('Warning!'),'Available stock is not enough for the selected raw material!')
+                    if not line.prodlot_id:
+                        raise osv.except_osv(_('Warning!'),'Please select Batch Number for FERROUS SULPHATE!')
+                    else:
+#                         sql = '''
+#                                 select id from stock_production_lot where name='temp_fsh'
+#                             '''
+#                         cr.execute(sql)
+#                         prodlot_ids = cr.fetchone()
+#                         if prodlot_ids and self.pool.get('stock.production.lot').browse(cr, uid, prodlot_ids[0]).stock_available<line.product_qty:
+                        sql = '''
+                            select case when sum(foo.product_qty)>0 then sum(foo.product_qty) else 0 end ton_sl from 
+                                (select st.product_qty
+                                    from stock_move st 
+                                    where st.state='done' and st.product_id=%s and st.location_dest_id = %s and prodlot_id = %s
+                                union all
+                                select st.product_qty*-1
+                                    from stock_move st 
+                                    where st.state='done' and st.product_id=%s and st.location_id = %s and prodlot_id = %s
+                                )foo
+                        '''%(line.product_id.id,production.location_src_id.id,line.prodlot_id.id,line.product_id.id,production.location_src_id.id,line.prodlot_id.id)
+                        cr.execute(sql)
+                        ton_sl = cr.dictfetchone()['ton_sl']
+                        if ton_sl<line.product_qty:
+                            raise osv.except_osv(_('Warning!'),'Available stock is not enough for FERROUS SULPHATE!')
                 
                 sql = '''
                                 select case when sum(foo.product_qty)>0 then sum(foo.product_qty) else 0 end ton_sl from 
