@@ -113,35 +113,56 @@ class stock_partial_picking(osv.osv_memory):
                 partial_data['move%s' % (wizard_line.move_id.id)].update(product_price=wizard_line.cost,
                                                                   product_currency=wizard_line.currency.id)
             
-            if wizard_line.action_taken=='need':
-                product_line = []
-                if wizard_line.product_id.categ_id.cate_name=='raw':
-                    for para in wizard_line.product_id.spec_parameter_line: 
-                        product_line.append((0,0,{
-                                            'name':para.name and para.name.id or False,
-                                           'value':para.required_spec,
-                                           'uom_id':para.uom_po_id and para.uom_po_id.id or False,
-                                           }))
+#             if wizard_line.action_taken=='need':
+#                 product_line = []
+#                 if wizard_line.product_id.categ_id.cate_name=='raw':
+#                     for para in wizard_line.product_id.spec_parameter_line: 
+#                         product_line.append((0,0,{
+#                                             'name':para.name and para.name.id or False,
+#                                            'value':para.required_spec,
+#                                            'uom_id':para.uom_po_id and para.uom_po_id.id or False,
+#                                            }))
 #                 qty_approve += wizard_line.quantity
-                quanlity_vals.append({
-                        'product_id':wizard_line.product_id.id,
-                        'qty':wizard_line.quantity,
-                        'remaining_qty':wizard_line.quantity,
-#                         'qty_approve':qty_approve,
-                        'name':partial.picking_id.id,
-                        'supplier_id':partial.picking_id.partner_id.id,
-                        'date':partial.picking_id.date,
-                        'specification_line':product_line,
-                        'need_inspec_id':move_id,
-                        })
+#                 quanlity_vals.append({
+#                         'product_id':wizard_line.product_id.id,
+#                         'qty':wizard_line.quantity,
+#                         'remaining_qty':wizard_line.quantity,
+# #                         'qty_approve':qty_approve,
+#                         'name':partial.picking_id.id,
+#                         'supplier_id':partial.picking_id.partner_id.id,
+#                         'date':partial.picking_id.date,
+#                         'specification_line':product_line,
+#                         'need_inspec_id':move_id,
+#                         })
                 
 #                 quality_inspec.create(cr, SUPERUSER_ID, vals)
         res = stock_picking.do_partial(cr, uid, [partial.picking_id.id], partial_data, context=context)
         new_picking_id = res[partial.picking_id.id]['delivered_picking']
         if new_picking_id:
-            for vals in quanlity_vals:
-                vals['name'] = new_picking_id
-                quality_inspec.create(cr, SUPERUSER_ID, vals)
+            
+            for move in stock_picking.browse(cr, SUPERUSER_ID,new_picking_id).move_lines:
+#                 if move.picking_id.action_taken=='need':
+                if move.action_taken=='need':
+                    product_line = []
+                    if move.product_id.categ_id.cate_name=='raw':
+                        for para in move.product_id.spec_parameter_line: 
+                            product_line.append((0,0,{
+                                                'name':para.name and para.name.id or False,
+                                               'value':para.required_spec,
+                                               'uom_id':para.uom_po_id and para.uom_po_id.id or False,
+                                               }))
+                    vals={
+                            'product_id':move.product_id.id,
+                            'qty':move.product_qty,
+                            'remaining_qty':move.product_qty,
+    #                         'qty_approve':qty_approve,
+                            'name':new_picking_id,
+                            'supplier_id':move.picking_id.partner_id.id,
+                            'date':move.picking_id.date,
+                            'specification_line':product_line,
+                            'need_inspec_id':move.id,
+                            }
+                    quality_inspec.create(cr, SUPERUSER_ID, vals)
 #         a_ids = stock_move.search(cr, uid,[('picking_id','=',[partial.picking_id.id]),('action_taken','=','need'),('state','not in',['done','cancel']),('inspec','=',False)])
 #         for line in stock_move.browse(cr,uid,a_ids):
 #             product_line = []
