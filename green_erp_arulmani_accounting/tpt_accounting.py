@@ -563,7 +563,6 @@ class stock_picking(osv.osv):
                 for period_id in period_obj.browse(cr,uid,period_ids):
                 #sinh but toan
                     for p in line.move_lines:
-                        
                         if p.prodlot_id:
                             sale_id = p.sale_line_id and p.sale_line_id.order_id.id or False 
                             used_qty = p.product_qty or 0
