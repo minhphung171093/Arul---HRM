@@ -50,11 +50,12 @@ class Parser(report_sxw.rml_parse):
             'get_account_move_line': self.get_account_move_line,
             'get_transaction_qty': self.get_transaction_qty,
             'get_opening_stock_value': self.get_opening_stock_value,
-            'get_closing_stock': self.get_closing_stock,
+#             'get_closing_stock': self.get_closing_stock,
             'get_line_stock_value': self.get_line_stock_value,
             'closing_value': self.closing_value,
             'stock_value':self.stock_value,
             'get_line_current_material':self.get_line_current_material,
+            'sum_trans_qty': self.sum_trans_qty,
         })
     def convert_date(self, date):
         if date:
@@ -91,27 +92,9 @@ class Parser(report_sxw.rml_parse):
         product_isu_qty = self.cr.dictfetchone()['product_isu_qty']
         opening_stock = product_qty-product_isu_qty
         return round(opening_stock,2)
-    
-    def get_closing_stock(self):
-        wizard_data = self.localcontext['data']['form']
-        date_from = wizard_data['date_from']
-        date_to = wizard_data['date_to']
-        product_id = wizard_data['product_id']
-        sql = '''
-            select case when sum(product_qty)!=0 then sum(product_qty) else 0 end product_qty from stock_move  
-            where product_id = %s and picking_id in (select id from stock_picking where date <= '%s' and state = 'done' and type = 'in')
-        '''%(product_id[0], date_to)
-        self.cr.execute(sql)
-        product_qty = self.cr.dictfetchone()['product_qty']
-         
-        sql = '''
-            select case when sum(product_isu_qty)!=0 then sum(product_isu_qty) else 0 end product_isu_qty from tpt_material_issue_line  
-            where product_id = %s and material_issue_id in (select id from tpt_material_issue where date_expec <= '%s' and state = 'done')
-        '''%(product_id[0], date_to)
-        self.cr.execute(sql)
-        product_isu_qty = self.cr.dictfetchone()['product_isu_qty']
-        closing_stock = product_qty-product_isu_qty
-        return closing_stock
+#     
+#     def get_closing_stock(self):
+#         return self.get_opening_stock() + self.sum_trans_qty()
     
     def get_detail_lines(self):
         wizard_data = self.localcontext['data']['form']
@@ -161,6 +144,13 @@ class Parser(report_sxw.rml_parse):
             closing += qty * value
 #         closing += self.transaction_qty
         return closing
+    
+    def sum_trans_qty(self, get_detail_lines):
+        sum = 0
+        for line in get_detail_lines:
+            qty = self.get_transaction_qty(line['id'], line['material_issue_id'], line['doc_type'])
+            sum += qty
+        return sum
         
     
     def stock_value(self, value):
@@ -304,6 +294,9 @@ class Parser(report_sxw.rml_parse):
        date_to = wizard_data['date_to']
        product_id = wizard_data['product_id']
        opening_stock_value = 0
+       hand_quantity = 0
+       total_cost = 0
+       avg_cost = 0
        if move_type == 'freight':
            sql = '''
                select warehouse from stock_picking where id in (select grn_no from account_invoice where id in (select sup_inv_id from account_invoice where move_id = %s)) and warehouse is not null
@@ -363,7 +356,22 @@ class Parser(report_sxw.rml_parse):
            if inventory:
                hand_quantity = float(inventory['ton_sl'])
                total_cost = float(inventory['total_cost'])
-               avg_cost = hand_quantity and total_cost/hand_quantity or 0 
+#                avg_cost = hand_quantity and total_cost/hand_quantity or 0 
+           sql = '''
+               select * from stock_move where picking_id in (select id from stock_picking where name in (select LEFT(name,17) from account_move_line where move_id = %s))
+           '''%(move_id) 
+           self.cr.execute(sql)
+           for line in self.cr.dictfetchall():
+               if line['action_taken'] == 'need':
+                   sql = '''
+                       select qty_approve from tpt_quanlity_inspection where need_inspec_id = %s and state = 'done'
+                   '''%(line['id'])
+                   self.cr.execute(sql)
+                   inspec = self.cr.dictfetchone()
+                   if inspec:
+                       hand_quantity += float(inspec['qty_approve'])
+                       total_cost += line['price_unit'] * float(inspec['qty_approve'])
+           avg_cost = hand_quantity and total_cost/hand_quantity or 0 
            return avg_cost
        
        if move_type == 'good':

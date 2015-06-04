@@ -264,6 +264,13 @@ class stock_inward_outward_report(osv.osv_memory):
             self.current_transaction_qty = quantity
             return quantity
         
+        def sum_trans_qty(o, get_detail_lines):
+            sum = 0
+            for line in get_detail_lines:
+                qty = get_transaction_qty(o, line['id'], line['material_issue_id'], line['doc_type'])
+                sum += qty
+            return sum
+        
         def get_line_stock_value(o, move_id, material_issue_id, move_type):
            date_from = o.date_from
            date_to = o.date_to
@@ -328,7 +335,22 @@ class stock_inward_outward_report(osv.osv_memory):
                if inventory:
                    hand_quantity = float(inventory['ton_sl'])
                    total_cost = float(inventory['total_cost'])
-                   avg_cost = hand_quantity and total_cost/hand_quantity or 0 
+#                    avg_cost = hand_quantity and total_cost/hand_quantity or 0 
+               sql = '''
+                   select * from stock_move where picking_id in (select id from stock_picking where name in (select LEFT(name,17) from account_move_line where move_id = %s))
+               '''%(move_id) 
+               cr.execute(sql)
+               for line in cr.dictfetchall():
+                   if line['action_taken'] == 'need':
+                       sql = '''
+                           select qty_approve from tpt_quanlity_inspection where need_inspec_id = %s and state = 'done'
+                       '''%(line['id'])
+                       cr.execute(sql)
+                       inspec = cr.dictfetchone()
+                       if inspec:
+                           hand_quantity += float(inspec['qty_approve'])
+                           total_cost += line['price_unit'] * float(inspec['qty_approve'])
+               avg_cost = hand_quantity and total_cost/hand_quantity or 0 
                return avg_cost
            
            if move_type == 'good':
@@ -410,7 +432,7 @@ class stock_inward_outward_report(osv.osv_memory):
             'date_to':stock.date_to,
             'stock_in_out_line': stock_in_out_line,
             'opening_stock': get_opening_stock(stock),
-            'closing_stock': get_closing_stock(stock),
+            'closing_stock': sum_trans_qty(stock, get_detail_lines(stock)) + get_opening_stock(stock),
             'opening_value': get_opening_stock_value(stock),
             'closing_value': closing_value(stock, get_detail_lines(stock))+get_opening_stock_value(stock),
         }
