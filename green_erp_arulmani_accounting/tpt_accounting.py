@@ -49,8 +49,8 @@ class tpt_posting_configuration(osv.osv):
         'staff_advance_id': fields.many2one('account.account', 'Staff Advance', states={ 'done':[('readonly', True)]}),
         'salari_payable_id': fields.many2one('account.account', 'Salaries And Allowance Payable', states={ 'done':[('readonly', True)]}),
         
-        
-        
+        'shd_id': fields.many2one('account.account', 'SHD Allowance', states={ 'done':[('readonly', True)]}),
+        'it_id': fields.many2one('account.account', 'IT Deduction', states={ 'done':[('readonly', True)]}),
         'wages_id': fields.many2one('account.account', 'Wages and Allowances', states={ 'done':[('readonly', True)]}),
         'wages_payable_id': fields.many2one('account.account', ' Wages and Allowances Payable', states={ 'done':[('readonly', True)]}),
         'other_insu': fields.many2one('account.account', 'Other Insurances', states={ 'done':[('readonly', True)]}),
@@ -473,6 +473,7 @@ class stock_picking(osv.osv):
             if 'state' in vals and line.type == 'in' and line.state=='done':
                 debit = 0.0
                 credit = 0.0
+                journal_line = []
                 for move in line.move_lines:
                     amount = move.purchase_line_id.price_unit * move.product_qty
                     debit += amount - (amount*move.purchase_line_id.discount)/100
@@ -494,24 +495,35 @@ class stock_picking(osv.osv):
                     cr.execute(sql_journal)
                     journal_ids = [r[0] for r in cr.fetchall()]
                     journal = self.pool.get('account.journal').browse(cr,uid,journal_ids[0])
-                    if not line.warehouse.gl_pos_verification_id:
-                        raise osv.except_osv(_('Warning!'),_('Account Warehouse is not null, please configure it in Warehouse Location master !'))
+#                     if not line.warehouse.gl_pos_verification_id:
+#                         raise osv.except_osv(_('Warning!'),_('Account Warehouse is not null, please configure it in Warehouse Location master !'))
                 #sinh but toan
-                    journal_line = [(0,0,{
-                                        'name':line.name, 
-                                        'account_id': line.warehouse.gl_pos_verification_id and line.warehouse.gl_pos_verification_id.id,
-                                        'partner_id': line.partner_id and line.partner_id.id,
-                                        'debit':debit,
-                                        'credit':0,
-                                         
-                                       })]
+#                     journal_line = [(0,0,{
+#                                         'name':line.name, 
+#                                         'account_id': line.warehouse.gl_pos_verification_id and line.warehouse.gl_pos_verification_id.id,
+#                                         'partner_id': line.partner_id and line.partner_id.id,
+#                                         'debit':debit,
+#                                         'credit':0,
+#                                          
+#                                        })]
                     for p in line.move_lines:
                         amount_cer = p.purchase_line_id.price_unit * p.product_qty
                         credit = amount_cer - (amount_cer*p.purchase_line_id.discount)/100
+                        debit = amount_cer - (amount_cer*p.purchase_line_id.discount)/100
+                        if not p.product_id.product_asset_acc_id:
+                            raise osv.except_osv(_('Warning!'),_('You need to define Product Asset GL Account for this product'))
+                        journal_line.append((0,0,{
+                            'name':line.name + ' - ' + p.product_id.name, 
+                            'account_id': p.product_id.product_asset_acc_id and p.product_id.product_asset_acc_id.id,
+                            'partner_id': line.partner_id and line.partner_id.id or False,
+                            'credit':0,
+                            'debit':debit,
+                        }))
+                        
                         if not p.product_id.purchase_acc_id:
                             raise osv.except_osv(_('Warning!'),_('You need to define Purchase GL Account for this product'))
                         journal_line.append((0,0,{
-                            'name':line.name, 
+                            'name':line.name + ' - ' + p.product_id.name, 
                             'account_id': p.product_id.purchase_acc_id and p.product_id.purchase_acc_id.id,
                             'partner_id': line.partner_id and line.partner_id.id or False,
                             'credit':credit,
@@ -551,34 +563,33 @@ class stock_picking(osv.osv):
                 for period_id in period_obj.browse(cr,uid,period_ids):
                 #sinh but toan
                     for p in line.move_lines:
-                        
-#                         if p.prodlot_id:
-#                             sale_id = p.sale_line_id and p.sale_line_id.order_id.id or False 
-#                             used_qty = p.product_qty or 0
-#                             if sale_id:
-#                                 sql = '''
-#                                     select id from tpt_batch_allotment where sale_order_id = %s
-#                                 '''%(sale_id)
-#                                 cr.execute(sql)
-#                                 allot_ids = cr.dictfetchone()
-#                                 if allot_ids:
-#                                     allot_id = allot_ids['id']
-#                                     sql = '''
-#                                     select id from tpt_batch_allotment_line where sys_batch = %s and batch_allotment_id = %s
-#                                     '''%(p.prodlot_id.id,allot_id)
-#                                     cr.execute(sql)
-#                                     allot_line_id = cr.dictfetchone()['id']
-#                                     line_id = self.pool.get('tpt.batch.allotment.line').browse(cr, uid, allot_line_id)
-#                                     used_qty += line_id.used_qty
-#                                     sql = '''
-#                                         update tpt_batch_allotment_line set product_uom_qty = %s where id = %s
-#                                     '''%(used_qty,allot_line_id)
-#                                     cr.execute(sql)
-#                                     if line_id.product_uom_qty == line_id.used_qty:
-#                                         sql = '''
-#                                             update tpt_batch_allotment_line set is_deliver = 't' where id = %s
-#                                         '''%(allot_line_id)
-#                                         cr.execute(sql)
+                        if p.prodlot_id:
+                            sale_id = p.sale_line_id and p.sale_line_id.order_id.id or False 
+                            used_qty = p.product_qty or 0
+                            if sale_id:
+                                sql = '''
+                                    select id from tpt_batch_allotment where sale_order_id = %s
+                                '''%(sale_id)
+                                cr.execute(sql)
+                                allot_ids = cr.dictfetchone()
+                                if allot_ids:
+                                    allot_id = allot_ids['id']
+                                    sql = '''
+                                    select id from tpt_batch_allotment_line where sys_batch = %s and batch_allotment_id = %s
+                                    '''%(p.prodlot_id.id,allot_id)
+                                    cr.execute(sql)
+                                    allot_line_id = cr.dictfetchone()['id']
+                                    line_id = self.pool.get('tpt.batch.allotment.line').browse(cr, uid, allot_line_id)
+                                    used_qty += line_id.used_qty
+                                    sql = '''
+                                        update tpt_batch_allotment_line set product_uom_qty = %s where id = %s
+                                    '''%(used_qty,allot_line_id)
+                                    cr.execute(sql)
+                                    if line_id.product_uom_qty == line_id.used_qty:
+                                        sql = '''
+                                            update tpt_batch_allotment_line set is_deliver = 't' where id = %s
+                                        '''%(allot_line_id)
+                                        cr.execute(sql)
                         
                         debit += p.sale_line_id and p.sale_line_id.price_unit * p.product_qty or 0
                         product_name = p.product_id.name
@@ -2042,14 +2053,14 @@ class account_invoice_line(osv.osv):
             product_id = self.pool.get('product.product').browse(cr, uid, t['product_id'])
             name = product_id.name or False
             sql = '''
-            SELECT purchase_acc_id FROM product_product WHERE id=%s and purchase_acc_id is not null
+            SELECT product_asset_acc_id FROM product_product WHERE id=%s and product_asset_acc_id is not null
             '''%(t['product_id'])
             cr.execute(sql)
-            purchase_acc_id = cr.dictfetchone()
-            if not purchase_acc_id:
-                raise osv.except_osv(_('Warning!'),_('Account is not null, please configure it in Material master !'))
+            product_asset_acc_id = cr.dictfetchone()
+            if not product_asset_acc_id:
+                raise osv.except_osv(_('Warning!'),_('Account is not null, please configure Product Asset Account in Material master !'))
             else:
-                account = purchase_acc_id['purchase_acc_id']
+                account = product_asset_acc_id['product_asset_acc_id']
             if currency != 'INR':
                 voucher_rate = self.pool.get('res.currency').read(cr, uid, currency_id, ['rate'], context=ctx)['rate']
             
@@ -2475,7 +2486,7 @@ class account_voucher(osv.osv):
                     }
         return {'value': vals}
     
-    def onchange_tpt_currency_amount(self, cr, uid, ids, tpt_currency_id, tpt_currency_amount, type, context=None):
+    def onchange_tpt_currency_amount(self, cr, uid, ids, tpt_currency_id, tpt_currency_amount, type, date, context=None):
         if context is None:
             context = {}
         vals = {}
@@ -2484,8 +2495,9 @@ class account_voucher(osv.osv):
                 'amount': 0,
                 'tpt_amount': 0,
             }
-            if tpt_currency_id and tpt_currency_amount:
-                context.update({'date': time.strftime('%Y-%m-%d')})
+            if tpt_currency_id and tpt_currency_amount and date:
+                context.update({'date': date})
+#                 context.update({'date': time.strftime('%Y-%m-%d')})
                 voucher_rate = self.pool.get('res.currency').read(cr, uid, tpt_currency_id, ['rate'], context=context)['rate']
                 vals = {
                     'amount': tpt_currency_amount/voucher_rate,
@@ -2744,7 +2756,7 @@ class account_voucher(osv.osv):
 
         date = self.read(cr, uid, voucher_id, ['date'], context=context)['date']
         ctx = context.copy()
-        ctx.update({'date': date})
+        ctx.update({'date': date or time.strftime('%Y-%m-%d')})
         voucher = self.pool.get('account.voucher').browse(cr, uid, voucher_id, context=ctx)
         voucher_currency = voucher.journal_id.currency or voucher.company_id.currency_id
         ctx.update({
@@ -2885,7 +2897,7 @@ class account_voucher(osv.osv):
             context = self._sel_context(cr, uid, voucher.id, context)
             # But for the operations made by _convert_amount, we always need to give the date in the context
             ctx = context.copy()
-            ctx.update({'date': voucher.date})
+            ctx.update({'date': voucher.date or time.strftime('%Y-%m-%d')})
             # Create the account move record.
             move_id = move_pool.create(cr, uid, self.account_move_get(cr, uid, voucher.id, context=context), context=context)
             # Get the name of the account_move just created
@@ -3258,6 +3270,7 @@ class tpt_material_issue(osv.osv):
     
     def bt_approve(self, cr, uid, ids, context=None):
         price = 0.0
+        product_price = 0.0
         account_move_obj = self.pool.get('account.move')
         period_obj = self.pool.get('account.period')
         journal_obj = self.pool.get('account.journal')
@@ -3346,16 +3359,10 @@ class tpt_material_issue(osv.osv):
                 move_id = move_obj.create(cr,uid,rs)
                 move_obj.action_done(cr, uid, [move_id])
             
-            if not line.warehouse.gl_pos_verification_id:
-                    raise osv.except_osv(_('Warning!'),_('Account Warehouse is not null, please configure it in Warehouse Location master !'))
-            for mater in line.material_issue_line:
-#                 price += mater.product_id.standard_price * mater.product_isu_qty
-                avg_cost_ids = avg_cost_obj.search(cr, uid, [('product_id','=',mater.product_id.id),('warehouse_id','=',line.warehouse.id)])
-                if avg_cost_ids:
-                    avg_cost_id = avg_cost_obj.browse(cr, uid, avg_cost_ids[0])
-                    unit = avg_cost_id.avg_cost or 0
-                    price += unit * mater.product_isu_qty
-            date_period = line.date_expec,
+#             if not line.warehouse.gl_pos_verification_id:
+#                     raise osv.except_osv(_('Warning!'),_('Account Warehouse is not null, please configure it in Warehouse Location master !'))
+                
+            date_period = line.date_expec
             sql = '''
                 select id from account_journal
             '''
@@ -3370,26 +3377,33 @@ class tpt_material_issue(osv.osv):
             if not period_ids:
                 raise osv.except_osv(_('Warning!'),_('Period is not null, please configure it in Period master !'))
             for period_id in period_obj.browse(cr,uid,period_ids):
-                if not line.warehouse.gl_pos_verification_id:
-                    raise osv.except_osv(_('Warning!'),_('Account Warehouse is not null, please configure it in Warehouse Location master !'))
-                journal_line = [(0,0,{
-                                        'name':line.doc_no, 
-                                        'account_id': line.warehouse.gl_pos_verification_id and line.warehouse.gl_pos_verification_id.id,
-#                                         'partner_id': line.partner_id and line.partner_id.id,
-                                        'debit':0,
-                                        'credit':price,
-                                         
-                                       })]
-                if line.gl_account_id:
+                
+                for mater in line.material_issue_line:
+    #                 price += mater.product_id.standard_price * mater.product_isu_qty
+                    acc_expense = mater.product_id and mater.product_id.property_account_expense and mater.product_id.property_account_expense.id or False
+                    acc_asset = mater.product_id and mater.product_id.product_asset_acc_id and mater.product_id.product_asset_acc_id.id or False
+                    if not acc_expense or not acc_asset:
+                        raise osv.except_osv(_('Warning!'),_('Please configure Expense Account and Product Asset Account for all materials!'))
+                    avg_cost_ids = avg_cost_obj.search(cr, uid, [('product_id','=',mater.product_id.id),('warehouse_id','=',line.warehouse.id)])
+                    if avg_cost_ids:
+                        avg_cost_id = avg_cost_obj.browse(cr, uid, avg_cost_ids[0])
+                        unit = avg_cost_id.avg_cost or 0
+                        price += unit * mater.product_isu_qty
+                        product_price = unit * mater.product_isu_qty
+                
                     journal_line.append((0,0,{
-                                'name':line.doc_no, 
-                                'account_id': line.gl_account_id and line.gl_account_id.id,
-#                                 'partner_id': line.partner_id and line.partner_id.id,
+                                            'name':line.doc_no + ' - ' + mater.product_id.name, 
+                                            'account_id': acc_asset,
+                                            'debit':0,
+                                            'credit':product_price,
+                                             
+                                           }))
+                    journal_line.append((0,0,{
+                                'name':line.doc_no + ' - ' + mater.product_id.name, 
+                                'account_id': acc_expense,
                                 'credit':0,
-                                'debit':price,
+                                'debit':product_price,
                             }))
-                else: 
-                    raise osv.except_osv(_('Warning!'),_('GL Account is not configured! Please configured it!'))
                 value={
                     'journal_id':journal_ids[0],
                     'period_id':period_id.id ,
@@ -3406,6 +3420,7 @@ class tpt_material_issue(osv.osv):
     def bt_create_posting(self, cr, uid, ids, context=None):
         
         price = 0.0
+        product_price = 0.0
         account_move_obj = self.pool.get('account.move')
         period_obj = self.pool.get('account.period')
         journal_obj = self.pool.get('account.journal')
@@ -3416,16 +3431,7 @@ class tpt_material_issue(osv.osv):
         
         for line in self.browse(cr, uid, ids):
             if line.state=='done':
-                if not line.warehouse.gl_pos_verification_id:
-                    raise osv.except_osv(_('Warning!'),_('Account Warehouse is not null, please configure it in Warehouse Location master !'))
-                for mater in line.material_issue_line:
-    #                 price += mater.product_id.standard_price * mater.product_isu_qty
-                    avg_cost_ids = avg_cost_obj.search(cr, uid, [('product_id','=',mater.product_id.id),('warehouse_id','=',line.warehouse.id)])
-                    if avg_cost_ids:
-                        avg_cost_id = avg_cost_obj.browse(cr, uid, avg_cost_ids[0])
-                        unit = avg_cost_id.avg_cost or 0
-                        price += unit * mater.product_isu_qty
-                date_period = line.date_expec,
+                date_period = line.date_expec
                 sql = '''
                     select id from account_journal
                 '''
@@ -3436,44 +3442,47 @@ class tpt_material_issue(osv.osv):
                 '''%(date_period)
                 cr.execute(sql)
                 period_ids = [r[0] for r in cr.fetchall()]
-                
+                 
                 if not period_ids:
                     raise osv.except_osv(_('Warning!'),_('Period is not null, please configure it in Period master !'))
                 for period_id in period_obj.browse(cr,uid,period_ids):
-                    if not line.warehouse.gl_pos_verification_id:
-                        raise osv.except_osv(_('Warning!'),_('Account Warehouse is not null, please configure it in Warehouse Location master !'))
-                    journal_line = [(0,0,{
-                                            'name':line.doc_no, 
-                                            'account_id': line.warehouse.gl_pos_verification_id and line.warehouse.gl_pos_verification_id.id,
-    #                                         'partner_id': line.partner_id and line.partner_id.id,
-                                            'debit':0,
-                                            'credit':price,
-                                            
-                                           })]
-                    if line.gl_account_id:
+                    
+                    for mater in line.material_issue_line:
+        #                 price += mater.product_id.standard_price * mater.product_isu_qty
+                        acc_expense = mater.product_id and mater.product_id.property_account_expense and mater.product_id.property_account_expense.id or False
+                        acc_asset = mater.product_id and mater.product_id.product_asset_acc_id and mater.product_id.product_asset_acc_id.id or False
+                        if acc_expense or acc_asset:
+                            raise osv.except_osv(_('Warning!'),_('Please configure Expense Account and Product Asset Account for all materials!'))
+                        avg_cost_ids = avg_cost_obj.search(cr, uid, [('product_id','=',mater.product_id.id),('warehouse_id','=',line.warehouse.id)])
+                        if avg_cost_ids:
+                            avg_cost_id = avg_cost_obj.browse(cr, uid, avg_cost_ids[0])
+                            unit = avg_cost_id.avg_cost or 0
+                            price += unit * mater.product_isu_qty
+                            product_price = unit * mater.product_isu_qty
+                    
                         journal_line.append((0,0,{
-                                    'name':line.doc_no, 
-                                    'account_id': line.gl_account_id and line.gl_account_id.id,
-    #                                 'partner_id': line.partner_id and line.partner_id.id,
+                                                'name':line.doc_no + ' - ' + mater.product_id.name, 
+                                                'account_id': acc_asset,
+                                                'debit':0,
+                                                'credit':product_price,
+                                                 
+                                               }))
+                        journal_line.append((0,0,{
+                                    'name':line.doc_no + ' - ' + mater.product_id.name, 
+                                    'account_id': acc_expense,
                                     'credit':0,
-                                    'debit':price,
+                                    'debit':product_price,
                                 }))
-                    else: 
-                        raise osv.except_osv(_('Warning!'),_('GL Account is not configured! Please configured it!'))
                     value={
                         'journal_id':journal_ids[0],
-                        'ref': line.doc_no,
                         'period_id':period_id.id ,
+                        'ref': line.doc_no,
                         'date': date_period,
-                        'line_id': journal_line,
                         'material_issue_id': line.id,
+                        'line_id': journal_line,
                         'doc_type':'good'
                         }
-                    sql = '''
-                        update tpt_material_issue set flag = 't' where id = %s
-                    '''%(line.id)
-                    cr.execute(sql)
-                    new_jour_id = account_move_obj.create(cr,uid,value) 
+                    new_jour_id = account_move_obj.create(cr,uid,value)
 tpt_material_issue()    
 
 class tpt_hr_payroll_approve_reject(osv.osv):
@@ -3588,19 +3597,47 @@ class tpt_hr_payroll_approve_reject(osv.osv):
             cr.execute(sql_oa)
             oa = cr.dictfetchone()['allowance'] or 0.0
             
+            sql_other = '''
+                select sum(float) as tax from arul_hr_payroll_other_deductions where deduction_parameters_id in (select id from arul_hr_payroll_deduction_parameters where code='IT')
+                and executions_details_id in (select id from arul_hr_payroll_executions_details where payroll_executions_id = %s)
+            '''%(payroll_ids)
+            cr.execute(sql_other)
+            it = cr.dictfetchone()['tax'] or 0.0
+            
+#             sql_ma = '''
+#                 select sum(float) as allowance from arul_hr_payroll_earning_structure where earning_parameters_id in (select id from arul_hr_payroll_earning_parameters where code='MA')
+#                 and executions_details_id in (select id from arul_hr_payroll_executions_details where payroll_executions_id = %s)
+#             '''%(payroll_ids)
+#             cr.execute(sql_ma)
+#             ma = cr.dictfetchone()['allowance'] or 0.0
+#             welfare = oa + ma
+            sql_welfare = '''
+                select sum(float) as tax from arul_hr_payroll_other_deductions where deduction_parameters_id in (select id from arul_hr_payroll_deduction_parameters where code='F.D')
+                and executions_details_id in (select id from arul_hr_payroll_executions_details where payroll_executions_id = %s)
+            '''%(payroll_ids)
+            cr.execute(sql_welfare)
+            welfare = cr.dictfetchone()['tax'] or 0.0
+            
+            sql_esi = '''
+                select sum(float) as tax from arul_hr_payroll_other_deductions where deduction_parameters_id in (select id from arul_hr_payroll_deduction_parameters where code='ESI.D')
+                and executions_details_id in (select id from arul_hr_payroll_executions_details where payroll_executions_id = %s)
+            '''%(payroll_ids)
+            cr.execute(sql_esi)
+            esi = cr.dictfetchone()['tax'] or 0.0
+            
             sql_ma = '''
-                select sum(float) as allowance from arul_hr_payroll_earning_structure where earning_parameters_id in (select id from arul_hr_payroll_earning_parameters where code='MA')
+                select sum(float) as allowance from arul_hr_payroll_earning_structure where earning_parameters_id in (select id from arul_hr_payroll_earning_parameters where code='SHD')
                 and executions_details_id in (select id from arul_hr_payroll_executions_details where payroll_executions_id = %s)
             '''%(payroll_ids)
             cr.execute(sql_ma)
-            ma = cr.dictfetchone()['allowance'] or 0.0
-            welfare = oa + ma
+            shd = cr.dictfetchone()['allowance'] or 0.0
             
             ### END Excutive & Staff - Worker
             
             sum_credit = (provident + vpf + tax + lwf + welfare + lic_premium +
-                           + ins_oth + vvt_loan + vvt_hdfc + hfl + tmb + sbt + other)
+                           + ins_oth + vvt_loan + vvt_hdfc + hfl + tmb + sbt + other + esi)
             diff = gross - sum_credit
+            gross = gross - shd
             
             res = {'gross':gross,
                    'provident':provident,
@@ -3617,6 +3654,9 @@ class tpt_hr_payroll_approve_reject(osv.osv):
                    'other':other,
                    'tmb':tmb,
                    'diff':diff,
+                   'it':it,
+                   'shd':shd,
+                   'esi':esi,
                    }
         return res
     
@@ -3675,13 +3715,16 @@ class tpt_hr_payroll_approve_reject(osv.osv):
                 tmb_acc = configuration.tmb_id and configuration.tmb_id.id or False
                 sbt_acc = configuration.sbt_id and configuration.sbt_id.id or False
                 other_loan_acc = configuration.other_loan_id and configuration.other_loan_id.id or False
-               
+                it_acc = configuration.it_id and configuration.it_id.id or False
+                shd_acc = configuration.shd_id and configuration.shd_id.id or False
+                esi_acc = configuration.esi_id and configuration.esi_id.id or False
+                
                 salari_acc = configuration.salari_payable_id and configuration.salari_payable_id.id or False
                 wages_acc = configuration.wages_id and configuration.wages_id.id or False
                 wages_payable_acc = configuration.wages_payable_id and configuration.wages_payable_id.id or False
                 if not gross_acc or not provident_acc or not vpf_acc or not welfare_acc or not lic_premium_acc \
                 or not pro_tax_acc or not lwf_acc or not other_insu_acc or not vvti_acc or not lic_hfl_acc or not hdfc_acc \
-                or not tmb_acc or not sbt_acc or not other_loan_acc or not salari_acc or not wages_acc or not wages_payable_acc:
+                or not tmb_acc or not sbt_acc or not other_loan_acc or not salari_acc or not wages_acc or not wages_payable_acc or not it_acc or not shd_acc or not esi_acc:
                     raise osv.except_osv(_('Warning!'),_('GL Posting Configuration is missed. Please configure it in GL Posting Configuration master!'))
                 
             if payroll_excutive_id:
@@ -3697,86 +3740,135 @@ class tpt_hr_payroll_approve_reject(osv.osv):
                 
                 for period_id in period_obj.browse(cr,uid,period_ids):
                     res1 = {}
-                    
+                    journal_s1_line = []
                     res1 = self.get_account_amount(cr,uid,payroll_excutive_id)
-                    
-                    
-                    journal_s1_line = [(0,0,{
+                    if res1['gross'] > 0:
+                        journal_s1_line.append((0,0,{
                                     'name':line.year, 
                                     'account_id': gross_acc,
                                     'debit':res1['gross'],
                                     'credit':0,
-                                   }),(0,0,{
+                                   }))
+                    if res1['shd'] > 0:
+                        journal_s1_line.append((0,0,{
+                                    'name':line.year, 
+                                    'account_id': shd_acc,
+                                    'debit':res1['shd'],
+                                    'credit':0,
+                                   }))
+                    if res1['provident'] > 0:
+                        journal_s1_line.append((0,0,{
                                     'name':line.year, 
                                     'account_id': provident_acc,
                                     'debit':0,
                                     'credit':res1['provident'],
-                                   }),(0,0,{
+                                   }))
+                    if res1['vpf'] > 0:
+                        journal_s1_line.append((0,0,{
                                     'name':line.year, 
                                     'account_id': vpf_acc,
                                     'debit':0,
                                     'credit':res1['vpf'],
-                                   }),(0,0,{
+                                   }))
+                    if res1['esi'] > 0:
+                        journal_s1_line.append((0,0,{
+                                    'name':line.year, 
+                                    'account_id': esi_acc,
+                                    'debit':0,
+                                    'credit':res1['esi'],
+                                   }))
+                    if res1['welfare'] > 0:
+                        journal_s1_line.append((0,0,{
                                     'name':line.year, 
                                     'account_id': welfare_acc,
                                     'debit':0,
                                     'credit':res1['welfare'],
-                                   }),(0,0,{
+                                   }))
+                    if res1['lic_premium'] > 0:
+                        journal_s1_line.append((0,0,{
                                     'name':line.year, 
                                     'account_id': lic_premium_acc,
                                     'debit':0,
                                     'credit':res1['lic_premium'],
-                                   }),(0,0,{
+                                   }))
+                    if res1['tax'] > 0:
+                        journal_s1_line.append((0,0,{
                                     'name':line.year, 
                                     'account_id': pro_tax_acc,
                                     'debit':0,
                                     'credit':res1['tax'],
-                                   }),(0,0,{
+                                   }))
+                    if res1['lwf'] > 0:
+                        journal_s1_line.append((0,0,{
                                     'name':line.year, 
                                     'account_id': lwf_acc,
                                     'debit':0,
                                     'credit':res1['lwf'],
-                                   }),(0,0,{
+                                   }))
+                    if res1['ins_oth'] > 0:
+                        journal_s1_line.append((0,0,{
                                     'name':line.year, 
                                     'account_id': other_insu_acc,
                                     'debit':0,
                                     'credit':res1['ins_oth'],
-                                   }),(0,0,{
+                                   }))
+                    if res1['vvt_loan'] > 0:
+                        journal_s1_line.append((0,0,{
                                     'name':line.year, 
                                     'account_id': vvti_acc, 
                                     'debit':0,
                                     'credit':res1['vvt_loan'],
-                                   }),(0,0,{
+                                   }))
+                    if res1['vvt_hdfc'] > 0:
+                        journal_s1_line.append((0,0,{
                                     'name':line.year, 
                                     'account_id': hdfc_acc,
                                     'debit':0,
                                     'credit':res1['vvt_hdfc'],
-                                   }),(0,0,{
+                                   }))
+                    if res1['hfl'] > 0:
+                        journal_s1_line.append((0,0,{
                                     'name':line.year, 
                                     'account_id': lic_hfl_acc,
                                     'debit':0,
                                     'credit':res1['hfl'],
-                                   }),(0,0,{
+                                   }))
+                    if res1['sbt'] > 0:
+                        journal_s1_line.append((0,0,{
                                     'name':line.year, 
                                     'account_id': sbt_acc,
                                     'debit':0,
                                     'credit':res1['sbt'],
-                                   }),(0,0,{
+                                   }))
+                    if res1['other'] > 0:
+                        journal_s1_line.append((0,0,{
                                     'name':line.year, 
                                     'account_id': other_loan_acc,
                                     'debit':0,
                                     'credit':res1['other'],
-                                   }),(0,0,{
+                                   }))
+                    if res1['tmb'] > 0:
+                        journal_s1_line.append((0,0,{
                                     'name':line.year, 
                                     'account_id': tmb_acc,
                                     'debit':0,
                                     'credit':res1['tmb'],
-                                   }),(0,0,{
+                                   }))
+                    if res1['it'] > 0:
+                        journal_s1_line.append((0,0,{
+                                    'name':line.year, 
+                                    'account_id': it_acc,
+                                    'debit':0,
+                                    'credit':res1['it'],
+                                   }))
+                    if res1['diff'] > 0:
+                        journal_s1_line.append((0,0,{
                                     'name':line.year, 
                                     'account_id': salari_acc,
                                     'debit':0,
                                     'credit':res1['diff'],
-                                   }),]
+                                   }))
+                    
                 value_s1={
                     'journal_id':journal.id,
                     'period_id':period_id.id ,
@@ -3798,85 +3890,135 @@ class tpt_hr_payroll_approve_reject(osv.osv):
                     raise osv.except_osv(_('Warning!'),_('Period is not null, please configure it in Period master !'))
                 for period_id in period_obj.browse(cr,uid,period_ids):
                     res2 = {}
-                        
+                    journal_s2_line = []   
                     res2 = self.get_account_amount(cr,uid,payroll_staff_id)
-                    
-                    journal_s2_line = [(0,0,{
+                    if res2['gross'] > 0:
+                        journal_s2_line.append((0,0,{
                                     'name':line.year, 
                                     'account_id': gross_acc,
                                     'debit':res2['gross'],
                                     'credit':0,
-                                   }),(0,0,{
+                                   }))
+                    if res2['shd'] > 0:
+                        journal_s2_line.append((0,0,{
+                                    'name':line.year, 
+                                    'account_id': shd_acc,
+                                    'debit':res2['shd'],
+                                    'credit':0,
+                                   }))
+                    if res2['provident'] > 0:
+                        journal_s2_line.append((0,0,{
                                     'name':line.year, 
                                     'account_id': provident_acc,
                                     'debit':0,
                                     'credit':res2['provident'],
-                                   }),(0,0,{
+                                   }))
+                    if res2['vpf'] > 0:
+                        journal_s2_line.append((0,0,{
                                     'name':line.year, 
                                     'account_id': vpf_acc,
                                     'debit':0,
                                     'credit':res2['vpf'],
-                                   }),(0,0,{
+                                   }))
+                    if res2['esi'] > 0:
+                        journal_s2_line.append((0,0,{
+                                    'name':line.year, 
+                                    'account_id': esi_acc,
+                                    'debit':0,
+                                    'credit':res2['esi'],
+                                   }))
+                    if res2['welfare'] > 0:
+                        journal_s2_line.append((0,0,{
                                     'name':line.year, 
                                     'account_id': welfare_acc,
                                     'debit':0,
                                     'credit':res2['welfare'],
-                                   }),(0,0,{
+                                   }))
+                    if res2['lic_premium'] > 0:
+                        journal_s2_line.append((0,0,{
                                     'name':line.year, 
                                     'account_id': lic_premium_acc,
                                     'debit':0,
                                     'credit':res2['lic_premium'],
-                                   }),(0,0,{
+                                   }))
+                    if res2['tax'] > 0:
+                        journal_s2_line.append((0,0,{
                                     'name':line.year, 
                                     'account_id': pro_tax_acc,
                                     'debit':0,
                                     'credit':res2['tax'],
-                                   }),(0,0,{
+                                   }))
+                    if res2['lwf'] > 0:
+                        journal_s2_line.append((0,0,{
                                     'name':line.year, 
                                     'account_id': lwf_acc,
                                     'debit':0,
                                     'credit':res2['lwf'],
-                                   }),(0,0,{
+                                   }))
+                    if res2['ins_oth'] > 0:
+                        journal_s2_line.append((0,0,{
                                     'name':line.year, 
                                     'account_id': other_insu_acc,
                                     'debit':0,
                                     'credit':res2['ins_oth'],
-                                   }),(0,0,{
+                                   }))
+                    if res2['vvt_loan'] > 0:
+                        journal_s2_line.append((0,0,{
                                     'name':line.year, 
                                     'account_id': vvti_acc, 
                                     'debit':0,
                                     'credit':res2['vvt_loan'],
-                                   }),(0,0,{
+                                   }))
+                    if res2['vvt_hdfc'] > 0:
+                        journal_s2_line.append((0,0,{
                                     'name':line.year, 
                                     'account_id': hdfc_acc,
                                     'debit':0,
                                     'credit':res2['vvt_hdfc'],
-                                   }),(0,0,{
+                                   }))
+                    if res2['hfl'] > 0:
+                        journal_s2_line.append((0,0,{
                                     'name':line.year, 
                                     'account_id': lic_hfl_acc,
                                     'debit':0,
                                     'credit':res2['hfl'],
-                                   }),(0,0,{
+                                   }))
+                    if res2['sbt'] > 0:
+                        journal_s2_line.append((0,0,{
                                     'name':line.year, 
                                     'account_id': sbt_acc,
                                     'debit':0,
                                     'credit':res2['sbt'],
-                                   }),(0,0,{
+                                   }))
+                    if res2['other'] > 0:
+                        journal_s2_line.append((0,0,{
                                     'name':line.year, 
                                     'account_id': other_loan_acc,
                                     'debit':0,
                                     'credit':res2['other'],
-                                   }),(0,0,{
+                                   }))
+                    if res2['tmb'] > 0:
+                        journal_s2_line.append((0,0,{
                                     'name':line.year, 
                                     'account_id': tmb_acc,
                                     'debit':0,
                                     'credit':res2['tmb'],
-                                   }),(0,0,{
+                                   }))
+                    if res2['it'] > 0:
+                        journal_s2_line.append((0,0,{
+                                    'name':line.year, 
+                                    'account_id': it_acc,
+                                    'debit':0,
+                                    'credit':res2['it'],
+                                   }))
+                    if res2['diff'] > 0:
+                        journal_s2_line.append((0,0,{
                                     'name':line.year, 
                                     'account_id': salari_acc,
                                     'debit':0,
                                     'credit':res2['diff'],
-                                   }),]
+                                   }))
+                    
                 value_s2={
                     'journal_id':journal.id,
                     'period_id':period_id.id ,
@@ -3899,85 +4041,135 @@ class tpt_hr_payroll_approve_reject(osv.osv):
                 
                 for period_id in period_obj.browse(cr,uid,period_ids):
                     res3 = {}
-                        
+                    journal_s3_line = []
                     res3 = self.get_account_amount(cr,uid,payroll_workers_id)
-                    
-                    journal_s3_line = [(0,0,{
+                    if res3['gross'] > 0:
+                        journal_s3_line.append((0,0,{
                                     'name':line.year, 
                                     'account_id': wages_acc,
                                     'debit':res3['gross'],
                                     'credit':0,
-                                   }),(0,0,{
+                                   }))
+                    if res3['shd'] > 0:
+                        journal_s3_line.append((0,0,{
+                                    'name':line.year, 
+                                    'account_id': shd_acc,
+                                    'debit':res3['shd'],
+                                    'credit':0,
+                                   }))
+                    if res3['provident'] > 0:
+                        journal_s3_line.append((0,0,{
                                     'name':line.year, 
                                     'account_id': provident_acc,
                                     'debit':0,
                                     'credit':res3['provident'],
-                                   }),(0,0,{
+                                   }))
+                    if res3['vpf'] > 0:
+                        journal_s3_line.append((0,0,{
                                     'name':line.year, 
                                     'account_id': vpf_acc,
                                     'debit':0,
                                     'credit':res3['vpf'],
-                                   }),(0,0,{
+                                   }))
+                    if res3['esi'] > 0:
+                        journal_s3_line.append((0,0,{
+                                    'name':line.year, 
+                                    'account_id': esi_acc,
+                                    'debit':0,
+                                    'credit':res3['esi'],
+                                   }))
+                    if res3['welfare'] > 0:
+                        journal_s3_line.append((0,0,{
                                     'name':line.year, 
                                     'account_id': welfare_acc,
                                     'debit':0,
                                     'credit':res3['welfare'],
-                                   }),(0,0,{
+                                   }))
+                    if res3['lic_premium'] > 0:
+                        journal_s3_line.append((0,0,{
                                     'name':line.year, 
                                     'account_id': lic_premium_acc,
                                     'debit':0,
                                     'credit':res3['lic_premium'],
-                                   }),(0,0,{
+                                   }))
+                    if res3['tax'] > 0:
+                        journal_s3_line.append((0,0,{
                                     'name':line.year, 
                                     'account_id': pro_tax_acc,
                                     'debit':0,
                                     'credit':res3['tax'],
-                                   }),(0,0,{
+                                   }))
+                    if res3['lwf'] > 0:
+                        journal_s3_line.append((0,0,{
                                     'name':line.year, 
                                     'account_id': lwf_acc,
                                     'debit':0,
                                     'credit':res3['lwf'],
-                                   }),(0,0,{
+                                   }))
+                    if res3['ins_oth'] > 0:
+                        journal_s3_line.append((0,0,{
                                     'name':line.year, 
                                     'account_id': other_insu_acc,
                                     'debit':0,
                                     'credit':res3['ins_oth'],
-                                   }),(0,0,{
+                                   }))
+                    if res3['vvt_loan'] > 0:
+                        journal_s3_line.append((0,0,{
                                     'name':line.year, 
                                     'account_id': vvti_acc, 
                                     'debit':0,
                                     'credit':res3['vvt_loan'],
-                                   }),(0,0,{
+                                   }))
+                    if res3['vvt_hdfc'] > 0:
+                        journal_s3_line.append((0,0,{
                                     'name':line.year, 
                                     'account_id': hdfc_acc,
                                     'debit':0,
                                     'credit':res3['vvt_hdfc'],
-                                   }),(0,0,{
+                                   }))
+                    if res3['hfl'] > 0:
+                        journal_s3_line.append((0,0,{
                                     'name':line.year, 
                                     'account_id': lic_hfl_acc,
                                     'debit':0,
                                     'credit':res3['hfl'],
-                                   }),(0,0,{
+                                   }))
+                    if res3['sbt'] > 0:
+                        journal_s3_line.append((0,0,{
                                     'name':line.year, 
                                     'account_id': sbt_acc,
                                     'debit':0,
                                     'credit':res3['sbt'],
-                                   }),(0,0,{
+                                   }))
+                    if res3['other'] > 0:
+                        journal_s3_line.append((0,0,{
                                     'name':line.year, 
                                     'account_id': other_loan_acc,
                                     'debit':0,
                                     'credit':res3['other'],
-                                   }),(0,0,{
+                                   }))
+                    if res3['tmb'] > 0:
+                        journal_s3_line.append((0,0,{
                                     'name':line.year, 
                                     'account_id': tmb_acc,
                                     'debit':0,
                                     'credit':res3['tmb'],
-                                   }),(0,0,{
+                                   }))
+                    if res3['it'] > 0:
+                        journal_s3_line.append((0,0,{
+                                    'name':line.year, 
+                                    'account_id': it_acc,
+                                    'debit':0,
+                                    'credit':res3['it'],
+                                   }))
+                    if res3['diff'] > 0:
+                        journal_s3_line.append((0,0,{
                                     'name':line.year, 
                                     'account_id': wages_payable_acc,
                                     'debit':0,
                                     'credit':res3['diff'],
-                                   }),]
+                                   }))
+                
                 value_s3={
                     'journal_id':journal.id,
                     'period_id':period_id.id ,

@@ -80,6 +80,8 @@
 										<field name="tmb_id" options="{'create': false, 'create_edit': false}"/>
 										<field name="sbt_id" options="{'create': false, 'create_edit': false}"/>
 										<field name="other_loan_id" options="{'create': false, 'create_edit': false}"/>
+										<field name="it_id" options="{'create': false, 'create_edit': false}"/>
+										<field name="shd_id" options="{'create': false, 'create_edit': false}"/>
 								</group>
 							</page>
 						</notebook>
@@ -1469,10 +1471,14 @@
                     	<field name="tpt_currency_id" required="1" on_change="onchange_tpt_currency(tpt_currency_id,currency_id,type)"/>
                     	<field name="is_tpt_currency" invisible='1'/>
                     	<field name="amount" attrs="{'invisible':[('is_tpt_currency','=',False)]}" class="oe_inline" string="Paid Amount" widget="monetary" options="{'currency_field': 'currency_id'}" on_change="onchange_amount(amount, payment_rate, partner_id, journal_id, currency_id, type, date, payment_rate_currency_id, company_id, context)"/>
-                    	<field name="tpt_currency_amount" widget="monetary" options="{'currency_field': 'tpt_currency_id'}" on_change="onchange_tpt_currency_amount(tpt_currency_id,tpt_currency_amount,type)" attrs="{'invisible':[('is_tpt_currency','=',True)],'required':[('is_tpt_currency','=',False)]}"/>
+                    	<field name="tpt_currency_amount" widget="monetary" options="{'currency_field': 'tpt_currency_id'}" on_change="onchange_tpt_currency_amount(tpt_currency_id,tpt_currency_amount,type,date,context)" attrs="{'invisible':[('is_tpt_currency','=',True)],'required':[('is_tpt_currency','=',False)]}"/>
                     	<field name="tpt_amount" attrs="{'invisible':[('is_tpt_currency','=',True)]}" widget="monetary" options="{'currency_field': 'currency_id'}"/>
                     </xpath>
 					
+					<xpath expr="//field[@name='date']" position="attributes">
+                    	<attribute name='on_change'>onchange_tpt_currency_amount(tpt_currency_id,tpt_currency_amount,type,date,context)</attribute>
+                    </xpath>
+                    
                 </data>
             </field>
         </record>
@@ -1523,10 +1529,14 @@
                     	<field name="tpt_currency_id" required="1" on_change="onchange_tpt_currency(tpt_currency_id,currency_id,type)"/>
                     	<field name="is_tpt_currency" invisible='1'/>
                     	<field name="amount" attrs="{'invisible':[('is_tpt_currency','=',False)]}" class="oe_inline" string="Paid Amount" widget="monetary" options="{'currency_field': 'currency_id'}" on_change="onchange_amount(amount, payment_rate, partner_id, journal_id, currency_id, type, date, payment_rate_currency_id, company_id, context)"/>
-                    	<field name="tpt_currency_amount" widget="monetary" options="{'currency_field': 'tpt_currency_id'}" on_change="onchange_tpt_currency_amount(tpt_currency_id,tpt_currency_amount,type)" attrs="{'invisible':[('is_tpt_currency','=',True)],'required':[('is_tpt_currency','=',False)]}"/>
+                    	<field name="tpt_currency_amount" widget="monetary" options="{'currency_field': 'tpt_currency_id'}" on_change="onchange_tpt_currency_amount(tpt_currency_id,tpt_currency_amount,type,date,context)" attrs="{'invisible':[('is_tpt_currency','=',True)],'required':[('is_tpt_currency','=',False)]}"/>
                     	<field name="tpt_amount" attrs="{'invisible':[('is_tpt_currency','=',True)]}" widget="monetary" options="{'currency_field': 'currency_id'}"/>
                     </xpath>
 					
+					<xpath expr="//field[@name='date']" position="attributes">
+                    	<attribute name='on_change'>onchange_tpt_currency_amount(tpt_currency_id,tpt_currency_amount,type,date,context)</attribute>
+                    </xpath>
+                    
                 </data>
             </field>
         </record>
@@ -1540,7 +1550,7 @@
 	            
                     <xpath expr="//field[@name='department_id']" position="after">
                     	<field name="warehouse" required='1' domain="[('usage','=','internal'),('chained_location_type','&lt;&gt;','customer')]" options="{'create': false, 'create_edit': false}"/>
-                    	<field name="gl_account_id" options="{'create': false, 'create_edit': false}"/>   
+                    	<!--<field name="gl_account_id" options="{'create': false, 'create_edit': false}"/>   -->
                     	<field name="cost_center_id" options="{'create': false, 'create_edit': false}" />
                     	<field name="dest_warehouse_id" domain="[('usage','=','internal'),('chained_location_type','&lt;&gt;','customer')]" options="{'create': false, 'create_edit': false}" attrs="{'invisible':[('request_type','!=','production')], 'required':[('request_type','=','norm')]}"/>
                     </xpath>
