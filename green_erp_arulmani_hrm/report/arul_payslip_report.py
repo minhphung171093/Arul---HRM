@@ -263,7 +263,7 @@ class Parser(report_sxw.rml_parse):
                         title='Miss'
                         
                 base_amount = basic + da 
-                vpf = base_amount * vpf / 100
+                #vpf = base_amount * vpf / 100
                 
                 total_working_days = 0
                 if payroll.employee_id.employee_category_id.code=='S3':
