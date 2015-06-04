@@ -90,7 +90,7 @@ class Parser(report_sxw.rml_parse):
         self.cr.execute(sql)
         product_isu_qty = self.cr.dictfetchone()['product_isu_qty']
         opening_stock = product_qty-product_isu_qty
-        return opening_stock
+        return round(opening_stock,2)
     
     def get_closing_stock(self):
         wizard_data = self.localcontext['data']['form']
@@ -161,6 +161,7 @@ class Parser(report_sxw.rml_parse):
 #             closing += qty * value
         closing += self.transaction_qty
         return closing
+        
     
     def stock_value(self, value):
         return self.current_transaction_qty*value
@@ -216,16 +217,6 @@ class Parser(report_sxw.rml_parse):
             for qty in self.cr.dictfetchall():
                 quantity = qty['product_isu_qty']
         if move_type == 'grn':
-#             sql = '''
-#                 select product_qty from stock_move
-#                 where picking_id in (select id from stock_picking where name in (select LEFT(name,17) from account_move_line where move_id = %s)) 
-#                 and product_id = %s
-#                 and action_taken = 'need'
-#                 and id in (select need_inspec_id from tpt_quanlity_inspection where state = 'done')
-#             '''%(move_id, product_id[0])
-#             self.cr.execute(sql)
-#             for qty in self.cr.dictfetchall():
-#                 quantity = qty['product_qty']
             sql = '''
                 select * from stock_move
                 where picking_id in (select id from stock_picking where name in (select LEFT(name,17) from account_move_line where move_id = %s)) 
