@@ -3279,11 +3279,11 @@ tpt_product_detail_line()
 class tpt_quanlity_inspection(osv.osv):
     _name = "tpt.quanlity.inspection"
     
-    def init(self, cr):
-        sql = '''
-            update tpt_quanlity_inspection t set need_inspec_id=(select id from stock_move where picking_id=t.name and product_qty=t.qty and product_id=t.product_id limit 1)
-        '''
-        cr.execute(sql)
+#     def init(self, cr):
+#         sql = '''
+#             update tpt_quanlity_inspection t set need_inspec_id=(select id from stock_move where picking_id=t.name and product_qty=t.qty and product_id=t.product_id limit 1)
+#         '''
+#         cr.execute(sql)
     
     _columns = {
         'name' : fields.many2one('stock.picking.in','GRN No',required = True,readonly = True,states={'cancel': [('readonly', True)], 'done':[('readonly', True)]}),
@@ -4614,7 +4614,6 @@ class tpt_material_issue(osv.osv):
                           }
                     product_information_line.append((0,0,rs))
             vals = {'date_request': request.date_request or False,
-                    'date_expec':request.date_expec or False,
                     'department_id':request.department_id and request.department_id.id or False,
                     'material_issue_line':product_information_line,
                     'request_type': request.request_type,
@@ -4698,14 +4697,15 @@ class tpt_material_issue(osv.osv):
         return self.write(cr, uid, ids,{'state':'done'})
 
     def onchange_date_expect(self, cr, uid, ids,date_request=False, context=None):
-        vals = {}
-        if date_request :
-            sql='''
-            select date(date('%s')+INTERVAL '1 month 1days') as date_request
-            '''%(date_request)
-            cr.execute(sql)
-            dates = cr.dictfetchone()['date_request']
-        return {'value': {'date_expec':dates}}    
+#         vals = {}
+#         if date_request :
+#             sql='''
+#             select date(date('%s')+INTERVAL '1 month 1days') as date_request
+#             '''%(date_request)
+#             cr.execute(sql)
+#             dates = cr.dictfetchone()['date_request']
+#         return {'value': {'date_expec':dates}}    
+        return True
     
     def create(self, cr, uid, vals, context=None):
         if vals.get('doc_no','/')=='/':
