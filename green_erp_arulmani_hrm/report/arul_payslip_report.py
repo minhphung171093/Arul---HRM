@@ -186,7 +186,7 @@ class Parser(report_sxw.rml_parse):
                 for deduction in payroll.other_deduction_line:
                     if deduction.deduction_parameters_id.code=='VPF.D':
                         vpf += deduction.float
-                    if deduction.deduction_parameters_id.code=='PT':
+                    if deduction.deduction_parameters_id.code=='IT': #PT
                         pt += deduction.float
                     if deduction.deduction_parameters_id.code=='L.D':
                         loan += deduction.float
