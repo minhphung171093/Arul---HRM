@@ -218,7 +218,7 @@
 						<field name="date_indent_relate" />  
 						<field name="store_date" invisible = '1' />  
 						<field name="hod_date" invisible = '1' />  
-						<field name="state" required='1' />
+						<!--<field name="state" required='1' />-->
 						<field name="item_text" />
 				</group>
 				</sheet>  
@@ -337,7 +337,7 @@
 						<field name="date_indent_relate" readonly="1" />  
 						<field name="store_date" readonly="1" />  
 						<field name="hod_date" invisible = '1' />  
-						<field name="state" required='1' />
+						<!--<field name="state" required='1' />-->
 						<field name="item_text" readonly="1" />
 				</group>
 				</sheet>  
