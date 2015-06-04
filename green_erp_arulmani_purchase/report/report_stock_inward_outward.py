@@ -155,11 +155,11 @@ class Parser(report_sxw.rml_parse):
     def closing_value(self, get_detail_lines):
         closing = 0
         for line in get_detail_lines:
-#             qty = self.get_transaction_qty(line['id'], line['material_issue_id'], line['doc_type'])
+            qty = self.get_transaction_qty(line['id'], line['material_issue_id'], line['doc_type'])
             value = self.get_line_stock_value(line['id'], line['material_issue_id'], line['doc_type'])
-            closing+=value
-#             closing += qty * value
-        closing += self.transaction_qty
+#             closing+=value
+            closing += qty * value
+#         closing += self.transaction_qty
         return closing
         
     

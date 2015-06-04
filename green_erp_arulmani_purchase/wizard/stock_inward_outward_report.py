@@ -365,11 +365,11 @@ class stock_inward_outward_report(osv.osv_memory):
         def closing_value(o,get_detail_lines):
             closing = 0
             for line in get_detail_lines:
-    #             qty = self.get_transaction_qty(line['id'], line['material_issue_id'], line['doc_type'])
+                qty = get_transaction_qty(o,line['id'], line['material_issue_id'], line['doc_type'])
                 value = get_line_stock_value(o,line['id'], line['material_issue_id'], line['doc_type'])
-                closing+=value
-    #             closing += qty * value
-            closing += self.transaction_qty
+#                 closing+=value
+                closing += qty * value
+#             closing += self.transaction_qty
             return closing
         
         def get_doc_type(doc_type):
@@ -412,7 +412,7 @@ class stock_inward_outward_report(osv.osv_memory):
             'opening_stock': get_opening_stock(stock),
             'closing_stock': get_closing_stock(stock),
             'opening_value': get_opening_stock_value(stock),
-            'closing_value': closing_value(stock, get_detail_lines(stock)),
+            'closing_value': closing_value(stock, get_detail_lines(stock))+get_opening_stock_value(stock),
         }
         stock_id = stock_obj.create(cr, uid, vals)
         res = self.pool.get('ir.model.data').get_object_reference(cr, uid, 
