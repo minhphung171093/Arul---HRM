@@ -259,7 +259,8 @@
 					<field name="payment_term" options="{'create': false, 'create_edit': false}"/>
 					<field name="sale_tax_id" domain="[('type_tax_use','=','sale')]" options="{'create': false, 'create_edit': false}"/>
 					<field name="invoice_type" required ='1'/>
-					<field name="material_info" />
+					<field name="header_text" />
+					<field name="material_info" readonly="1"/>
 					<field name="other_info" />
 					<field name="vessel_flight_no" />	
 					<field name="lc_no" />									
