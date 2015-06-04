@@ -2486,7 +2486,7 @@ class account_voucher(osv.osv):
                     }
         return {'value': vals}
     
-    def onchange_tpt_currency_amount(self, cr, uid, ids, tpt_currency_id, tpt_currency_amount, type, context=None):
+    def onchange_tpt_currency_amount(self, cr, uid, ids, tpt_currency_id, tpt_currency_amount, type, date, context=None):
         if context is None:
             context = {}
         vals = {}
@@ -2495,8 +2495,9 @@ class account_voucher(osv.osv):
                 'amount': 0,
                 'tpt_amount': 0,
             }
-            if tpt_currency_id and tpt_currency_amount:
-                context.update({'date': time.strftime('%Y-%m-%d')})
+            if tpt_currency_id and tpt_currency_amount and date:
+                context.update({'date': date})
+#                 context.update({'date': time.strftime('%Y-%m-%d')})
                 voucher_rate = self.pool.get('res.currency').read(cr, uid, tpt_currency_id, ['rate'], context=context)['rate']
                 vals = {
                     'amount': tpt_currency_amount/voucher_rate,
@@ -2755,7 +2756,7 @@ class account_voucher(osv.osv):
 
         date = self.read(cr, uid, voucher_id, ['date'], context=context)['date']
         ctx = context.copy()
-        ctx.update({'date': date})
+        ctx.update({'date': date or time.strftime('%Y-%m-%d')})
         voucher = self.pool.get('account.voucher').browse(cr, uid, voucher_id, context=ctx)
         voucher_currency = voucher.journal_id.currency or voucher.company_id.currency_id
         ctx.update({
@@ -2896,7 +2897,7 @@ class account_voucher(osv.osv):
             context = self._sel_context(cr, uid, voucher.id, context)
             # But for the operations made by _convert_amount, we always need to give the date in the context
             ctx = context.copy()
-            ctx.update({'date': voucher.date})
+            ctx.update({'date': voucher.date or time.strftime('%Y-%m-%d')})
             # Create the account move record.
             move_id = move_pool.create(cr, uid, self.account_move_get(cr, uid, voucher.id, context=context), context=context)
             # Get the name of the account_move just created
