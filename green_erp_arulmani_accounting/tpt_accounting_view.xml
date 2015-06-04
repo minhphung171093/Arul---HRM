@@ -80,6 +80,8 @@
 										<field name="tmb_id" options="{'create': false, 'create_edit': false}"/>
 										<field name="sbt_id" options="{'create': false, 'create_edit': false}"/>
 										<field name="other_loan_id" options="{'create': false, 'create_edit': false}"/>
+										<field name="it_id" options="{'create': false, 'create_edit': false}"/>
+										<field name="shd_id" options="{'create': false, 'create_edit': false}"/>
 								</group>
 							</page>
 						</notebook>
