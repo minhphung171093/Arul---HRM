@@ -293,10 +293,24 @@ class stock_picking(osv.osv):
         batch_no=''
         for p in cr.fetchall(): 
             batch_no = batch_no +',  '+ p[0]  
+        sql = '''
+        select product_id from sale_order_line where order_id=%s
+        '''%picking.sale_id.id
+        cr.execute(sql)
+        prod_id = cr.fetchone()
+        
+        prd_obj = self.pool.get('product.product').browse(cr,uid, prod_id)
+        is_batch = prd_obj.batch_appli_ok
+        batch_nos = ''
+        if is_batch=='t':
+            batch_nos =  batch_no 
         batch_no =  batch_no[1:]   
-        if len(batch_no) < 399:
-            space_count = 399-len(batch_no)
-            batch_no = batch_no.ljust(space_count)                     
+        batch_no =  batch_nos[1:]   
+        #=======================================================================
+        # if len(batch_no) < 399:
+        #     space_count = 399-len(batch_no)
+        #     batch_no = batch_no.ljust(space_count)                     
+        #=======================================================================
         invoice_vals['material_info'] = batch_no
         
         invoice_vals['amount_untaxed'] = picking.sale_id and picking.sale_id.amount_untaxed or False
