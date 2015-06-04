@@ -83,6 +83,10 @@ class stock_inward_outward_report(osv.osv_memory):
         stock_obj = self.pool.get('tpt.stock.inward.outward')
         cr.execute('delete from tpt_stock_inward_outward')
         stock = self.browse(cr, uid, ids[0])
+        self.current = 0
+        self.num_call_grn = {'grn_name':'','num':-1}
+        self.transaction_qty = 0
+        self.current_transaction_qty = 0
         stock_in_out_line = []
         def get_opening_stock(o):
             date_from = o.date_from
@@ -173,7 +177,33 @@ class stock_inward_outward_report(osv.osv_memory):
                  'date_to':date_to,
                  'product_id':product_id.id}
             cr.execute(sql)
-            return cr.dictfetchall()
+            move_line = []
+            for line in cr.dictfetchall():
+                if line['doc_type'] != 'grn':
+                    move_line.append(line)
+                else:
+                    sql = '''
+                        select * from stock_move
+                        where picking_id in (select id from stock_picking where name in (select LEFT(name,17) from account_move_line where move_id = %s) and product_id = %s)
+                    '''%(line['id'], product_id.id)
+                    cr.execute(sql)
+                    for move in cr.dictfetchall():
+                        if move['action_taken'] == 'direct':
+                            move_line.append(line)
+                        if move['action_taken'] == 'need':
+                            sql = '''
+                                select remaining_qty from tpt_quanlity_inspection where need_inspec_id = %s and state = 'done'
+                            '''%(move['id'])
+                            cr.execute(sql)
+                            move_sql = cr.fetchone()
+                            if move_sql:
+                                move_line.append(line)
+            return move_line    
+        
+        def get_account_move_line(move_id):
+            move = self.pool.get('account.move').browse(cr,uid,move_id)
+            move_line = move.line_id[0]
+            return move_line and move_line.name or ''
         
         def get_transaction_qty(o, move_id, material_issue_id, move_type):
             date_from = o.date_from
@@ -199,13 +229,39 @@ class stock_inward_outward_report(osv.osv_memory):
                     quantity = qty['product_isu_qty']
             if move_type == 'grn':
                 sql = '''
-                    select case when sum(product_qty)!=0 then sum(product_qty) else 0 end product_qty, product_id from stock_move
-                    where picking_id in (select id from stock_picking where name in (select LEFT(name,17) from account_move_line where move_id = %s) and product_id = %s)
-                    group by product_id 
+                    select * from stock_move
+                    where picking_id in (select id from stock_picking where name in (select LEFT(name,17) from account_move_line where move_id = %s)) 
+                    and product_id = %s and ((id in (select need_inspec_id from tpt_quanlity_inspection where state = 'done') and action_taken='need') or action_taken='direct') order by si_no
                 '''%(move_id, product_id.id)
                 cr.execute(sql)
-                for qty in cr.dictfetchall():
-                    quantity = qty['product_qty']
+                moves = cr.dictfetchall()
+                grn_name = get_account_move_line(move_id)
+                if self.num_call_grn['grn_name']==grn_name:
+                    self.num_call_grn['num'] += 1
+                else:
+                    self.num_call_grn['grn_name']=grn_name
+                    self.num_call_grn['num'] = 0
+                if len(moves)>self.num_call_grn['num']:
+                    move = moves[self.num_call_grn['num']]
+                    if move['action_taken'] == 'direct':
+    #                     sql = '''
+    #                         select product_qty from stock_move
+    #                         where picking_id in (select id from stock_picking where name in (select LEFT(name,17) from account_move_line where move_id = %s)) 
+    #                         and product_id = %s
+    #                     '''%(move_id, product_id[0])
+    #                     self.cr.execute(sql)
+    #                     for qty in self.cr.dictfetchall():
+                        quantity = move['product_qty']
+                    if move['action_taken'] == 'need':
+                        sql = '''
+                            select need_inspec_id from tpt_quanlity_inspection where state = 'done' and need_inspec_id=%s
+                        '''%(move['id'])
+                        cr.execute(sql)
+                        need = cr.fetchall()
+                        if need:
+                            quantity = move['product_qty']
+            self.transaction_qty += quantity
+            self.current_transaction_qty = quantity
             return quantity
         
         def get_line_stock_value(o, move_id, material_issue_id, move_type):
@@ -311,13 +367,10 @@ class stock_inward_outward_report(osv.osv_memory):
             for line in get_detail_lines:
                 qty = get_transaction_qty(o,line['id'], line['material_issue_id'], line['doc_type'])
                 value = get_line_stock_value(o,line['id'], line['material_issue_id'], line['doc_type'])
+#                 closing+=value
                 closing += qty * value
+#             closing += self.transaction_qty
             return closing
-        
-        def get_account_move_line(move_id):
-            move = self.pool.get('account.move').browse(cr,uid,move_id)
-            move_line = move.line_id[0]
-            return move_line and move_line.name or ''
         
         def get_doc_type(doc_type):
             if doc_type == 'freight':
@@ -327,10 +380,9 @@ class stock_inward_outward_report(osv.osv_memory):
             if doc_type == 'grn':
                 return 'GRN'
         
-        def stock_value(qty, value):
-            return qty*value
+        def stock_value(value):
+            return self.current_transaction_qty*value
         
-        self.current = 0
         def get_line_current_material(o,stock_value):  
             cur = get_opening_stock_value(o)+stock_value+self.current
             self.current = cur
@@ -344,8 +396,8 @@ class stock_inward_outward_report(osv.osv_memory):
                 'gl_document_no': line['name'],
                 'document_type': get_doc_type(line['doc_type']),
                 'transaction_quantity': get_transaction_qty(stock,line['id'], line['material_issue_id'], line['doc_type']),
-                'stock_value': stock_value(get_transaction_qty(stock,line['id'], line['material_issue_id'], line['doc_type']),get_line_stock_value(stock,line['id'], line['material_issue_id'], line['doc_type'])),
-                'current_material_value':get_line_current_material(stock,stock_value(get_transaction_qty(stock,line['id'], line['material_issue_id'], line['doc_type']),get_line_stock_value(stock,line['id'], line['material_issue_id'], line['doc_type']))),
+                'stock_value': stock_value(get_line_stock_value(stock,line['id'], line['material_issue_id'], line['doc_type'])),
+                'current_material_value':get_line_current_material(stock,stock_value(get_line_stock_value(stock,line['id'], line['material_issue_id'], line['doc_type']))),
             }))
             
         vals = {
@@ -360,7 +412,7 @@ class stock_inward_outward_report(osv.osv_memory):
             'opening_stock': get_opening_stock(stock),
             'closing_stock': get_closing_stock(stock),
             'opening_value': get_opening_stock_value(stock),
-            'closing_value': closing_value(stock,get_detail_lines(stock)),
+            'closing_value': closing_value(stock, get_detail_lines(stock))+get_opening_stock_value(stock),
         }
         stock_id = stock_obj.create(cr, uid, vals)
         res = self.pool.get('ir.model.data').get_object_reference(cr, uid, 
