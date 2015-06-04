@@ -37,6 +37,9 @@ class Parser(report_sxw.rml_parse):
         super(Parser, self).__init__(cr, uid, name, context=context)
         pool = pooler.get_pool(self.cr.dbname)
         self.current = 0
+        self.num_call_grn = {'grn_name':'','num':-1}
+        self.transaction_qty = 0
+        self.current_transaction_qty = 0
         self.localcontext.update({
             'convert_date': self.convert_date,
             'get_date_from':self.get_date_from,
@@ -125,18 +128,42 @@ class Parser(report_sxw.rml_parse):
              'date_to':date_to,
              'product_id':product_id[0]}
         self.cr.execute(sql)
-        return self.cr.dictfetchall()
+        move_line = []
+        for line in self.cr.dictfetchall():
+            if line['doc_type'] != 'grn':
+                move_line.append(line)
+            else:
+                sql = '''
+                    select * from stock_move
+                    where picking_id in (select id from stock_picking where name in (select LEFT(name,17) from account_move_line where move_id = %s) and product_id = %s)
+                '''%(line['id'], product_id[0])
+                self.cr.execute(sql)
+                for move in self.cr.dictfetchall():
+                    if move['action_taken'] == 'direct':
+                        move_line.append(line)
+                    if move['action_taken'] == 'need':
+                        sql = '''
+                            select remaining_qty from tpt_quanlity_inspection where need_inspec_id = %s and state = 'done'
+                        '''%(move['id'])
+                        self.cr.execute(sql)
+                        move_sql = self.cr.fetchone()
+                        if move_sql:
+                            move_line.append(line)
+        return move_line    
+            
     
     def closing_value(self, get_detail_lines):
         closing = 0
         for line in get_detail_lines:
-            qty = self.get_transaction_qty(line['id'], line['material_issue_id'], line['doc_type'])
+#             qty = self.get_transaction_qty(line['id'], line['material_issue_id'], line['doc_type'])
             value = self.get_line_stock_value(line['id'], line['material_issue_id'], line['doc_type'])
-            closing += qty * value
+            closing+=value
+#             closing += qty * value
+        closing += self.transaction_qty
         return closing
     
-    def stock_value(self, qty, value):
-        return qty*value
+    def stock_value(self, value):
+        return self.current_transaction_qty*value
     
     def get_line_current_material(self,stock_value):  
         cur = self.get_opening_stock_value()+stock_value+self.current
@@ -148,6 +175,21 @@ class Parser(report_sxw.rml_parse):
         move = self.pool.get('account.move').browse(self.cr,self.uid,move_id)
         move_line = move.line_id[0]
         return move_line and move_line.name or ''
+    
+    def get_line_grn(self, move_id, move_type):
+        wizard_data = self.localcontext['data']['form']
+        date_from = wizard_data['date_from']
+        date_to = wizard_data['date_to']
+        product_id = wizard_data['product_id']
+        quantity = 0
+        if move_type == 'grn':
+            sql = '''
+                select * from stock_move
+                where picking_id in (select id from stock_picking where name in (select LEFT(name,17) from account_move_line where move_id = %s) and product_id = %s)
+                group by product_id 
+            '''%(move_id, product_id[0])
+            self.cr.execute(sql)
+            return self.cr.dictfetchall()
     
     def get_transaction_qty(self, move_id, material_issue_id, move_type):
         wizard_data = self.localcontext['data']['form']
@@ -174,15 +216,52 @@ class Parser(report_sxw.rml_parse):
             for qty in self.cr.dictfetchall():
                 quantity = qty['product_isu_qty']
         if move_type == 'grn':
+#             sql = '''
+#                 select product_qty from stock_move
+#                 where picking_id in (select id from stock_picking where name in (select LEFT(name,17) from account_move_line where move_id = %s)) 
+#                 and product_id = %s
+#                 and action_taken = 'need'
+#                 and id in (select need_inspec_id from tpt_quanlity_inspection where state = 'done')
+#             '''%(move_id, product_id[0])
+#             self.cr.execute(sql)
+#             for qty in self.cr.dictfetchall():
+#                 quantity = qty['product_qty']
             sql = '''
-                select case when sum(product_qty)!=0 then sum(product_qty) else 0 end product_qty, product_id from stock_move
-                where picking_id in (select id from stock_picking where name in (select LEFT(name,17) from account_move_line where move_id = %s) and product_id = %s)
-                group by product_id 
+                select * from stock_move
+                where picking_id in (select id from stock_picking where name in (select LEFT(name,17) from account_move_line where move_id = %s)) 
+                and product_id = %s and ((id in (select need_inspec_id from tpt_quanlity_inspection where state = 'done') and action_taken='need') or action_taken='direct') order by si_no
             '''%(move_id, product_id[0])
             self.cr.execute(sql)
-            for qty in self.cr.dictfetchall():
-                quantity = qty['product_qty']
+            moves = self.cr.dictfetchall()
+            grn_name = self.get_account_move_line(move_id)
+            if self.num_call_grn['grn_name']==grn_name:
+                self.num_call_grn['num'] += 1
+            else:
+                self.num_call_grn['grn_name']=grn_name
+                self.num_call_grn['num'] = 0
+            if len(moves)>self.num_call_grn['num']:
+                move = moves[self.num_call_grn['num']]
+                if move['action_taken'] == 'direct':
+#                     sql = '''
+#                         select product_qty from stock_move
+#                         where picking_id in (select id from stock_picking where name in (select LEFT(name,17) from account_move_line where move_id = %s)) 
+#                         and product_id = %s
+#                     '''%(move_id, product_id[0])
+#                     self.cr.execute(sql)
+#                     for qty in self.cr.dictfetchall():
+                    quantity = move['product_qty']
+                if move['action_taken'] == 'need':
+                    sql = '''
+                        select need_inspec_id from tpt_quanlity_inspection where state = 'done' and need_inspec_id=%s
+                    '''%(move['id'])
+                    self.cr.execute(sql)
+                    need = self.cr.fetchall()
+                    if need:
+                        quantity = move['product_qty']
+        self.transaction_qty += quantity
+        self.current_transaction_qty = quantity
         return quantity
+        
     
     def get_doc_type(self, doc_type):
         if doc_type == 'freight':
