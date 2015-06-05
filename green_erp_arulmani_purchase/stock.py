@@ -374,6 +374,8 @@ class stock_move(osv.osv):
         'si_no':fields.integer('SI.No',readonly = True),
         'description':fields.char('Description', size = 50, readonly = True),
         'item_text':fields.text('Item Text'),
+        'inspec_id': fields.many2one('tpt.quanlity.inspection','Quanlity Inspection'),
+        'issue_id': fields.many2one('tpt.material.issue','Material Issue'),
                 }
     def onchange_product_id(self, cr, uid, ids, prod_id=False, loc_id=False,
                             loc_dest_id=False, partner_id=False, action=False):
