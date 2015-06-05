@@ -217,7 +217,22 @@ class Parser(report_sxw.rml_parse):
                                 )foo
                         '''%(line,locat_ids[0],date_from,date_to)
             self.cr.execute(sql)
-            ton = self.cr.dictfetchone()
+            ton = self.cr.fetchone()[0]
+            if ton:
+                    sql = '''
+                           select * from stock_move where product_id = %s and picking_id in (select id from stock_picking where move_date between '%s' and '%s' and state = 'done')
+                       '''%(line,date_from,date_to) 
+                    self.cr.execute(sql)
+                    for line in self.cr.dictfetchall():
+                       if line['action_taken'] == 'need':
+                           sql = '''
+                               select qty_approve from tpt_quanlity_inspection where need_inspec_id = %s and state = 'done'
+                           '''%(line['id'])
+                           self.cr.execute(sql)
+                           inspec = self.cr.fetchone()
+                           if inspec:
+                               ton = ton+inspec[0]
+            return ton
         if categ[1] =='Spares':
             parent_ids = self.pool.get('stock.location').search(self.cr, self.uid, [('name','=','Store'),('usage','=','view')])
             locat_ids = self.pool.get('stock.location').search(self.cr, self.uid, [('name','in',['Spares','Spare','spares']),('location_id','=',parent_ids[0])])
@@ -231,8 +246,22 @@ class Parser(report_sxw.rml_parse):
                                 )foo
                         '''%(line,locat_ids[0],date_from,date_to)
             self.cr.execute(sql)
-            ton = self.cr.dictfetchone()
-        return ton and ton['ton'] or 0
+            ton = self.cr.fetchone()[0]
+            if ton:
+                    sql = '''
+                           select * from stock_move where product_id = %s and picking_id in (select id from stock_picking where move_date between '%s' and '%s' and state = 'done')
+                       '''%(line,date_from,date_to) 
+                    self.cr.execute(sql)
+                    for line in self.cr.dictfetchall():
+                       if line['action_taken'] == 'need':
+                           sql = '''
+                               select qty_approve from tpt_quanlity_inspection where need_inspec_id = %s and state = 'done'
+                           '''%(line['id'])
+                           self.cr.execute(sql)
+                           inspec = self.cr.fetchone()
+                           if inspec:
+                               ton = ton+inspec[0]
+            return ton
     
     def get_qty_out(self, line):
         wizard_data = self.localcontext['data']['form']
@@ -313,6 +342,21 @@ class Parser(report_sxw.rml_parse):
         if inventory:
             hand_quantity = float(inventory['ton_sl'])
             total_cost = float(inventory['total_cost'])
+        sql = '''
+                   select * from stock_move where product_id = %s and picking_id in (select id from stock_picking where move_date between '%s' and '%s' and state = 'done')
+               '''%(product_id,date_from,date_to) 
+        self.cr.execute(sql)
+        for line in self.cr.dictfetchall():
+            if line['action_taken'] == 'need':
+                sql = '''
+                       select qty_approve from tpt_quanlity_inspection where need_inspec_id = %s and state = 'done'
+                   '''%(line['id'])
+                self.cr.execute(sql)
+                inspec = self.cr.dictfetchone()
+                if inspec:
+                       hand_quantity += float(inspec['qty_approve'])
+                       total_cost += line['price_unit'] * float(inspec['qty_approve'])
+        return total_cost  
 #             avg_cost = hand_quantity and total_cost/hand_quantity or 0
 #             sql = '''
 #                 select case when sum(product_isu_qty)!=0 then sum(product_isu_qty) else 0 end product_isu_qty
