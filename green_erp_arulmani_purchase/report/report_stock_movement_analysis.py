@@ -178,23 +178,49 @@ class Parser(report_sxw.rml_parse):
 #         return opening_stock
         wizard_data = self.localcontext['data']['form']
         date_from = wizard_data['date_from']
-        sql = '''
-            select case when sum(foo.product_qty)!=0 then sum(foo.product_qty) else 0 end ton_sl,case when sum(foo.price_unit)!=0 then sum(foo.price_unit) else 0 end total_cost from 
-                (select st.product_qty,st.price_unit*st.product_qty as price_unit
-                    from stock_move st
-                        join stock_location loc1 on st.location_id=loc1.id
-                        join stock_location loc2 on st.location_dest_id=loc2.id
-                    where st.state='done' and st.product_id=%s and loc1.usage != 'internal' and loc2.usage = 'internal' and picking_id in (select id from stock_picking where date < '%s' and state = 'done')
-                union all
-                    select -1*st.product_qty,st.price_unit*st.product_qty as price_unit
-                    from stock_move st
-                        join stock_location loc1 on st.location_id=loc1.id
-                        join stock_location loc2 on st.location_dest_id=loc2.id
-                    where st.state='done' and st.product_id=%s and loc1.usage = 'internal' and loc2.usage != 'internal' and picking_id in (select id from stock_picking where date < '%s' and state = 'done')
-                )foo
-        '''%(product_id,date_from,product_id,date_from)
-        self.cr.execute(sql)
-        inventory = self.cr.fetchone()
+        categ = wizard_data['categ_id']
+        if categ[1]=='Raw Materials':
+            parent_ids = self.pool.get('stock.location').search(self.cr, self.uid, [('name','=','Store'),('usage','=','view')])
+            locat_ids = self.pool.get('stock.location').search(self.cr, self.uid, [('name','in',['Raw Material','Raw Materials','Raw material']),('location_id','=',parent_ids[0])])
+            sql = '''
+                    select case when sum(foo.product_qty)!=0 then sum(foo.product_qty) else 0 end ton_sl,case when sum(foo.price_unit)!=0 then sum(foo.price_unit) else 0 end total_cost from 
+                        (select st.product_qty,st.price_unit*st.product_qty as price_unit
+                            from stock_move st
+                                join stock_location loc1 on st.location_id=loc1.id
+                                join stock_location loc2 on st.location_dest_id=loc2.id
+                            where st.state='done' and st.location_dest_id = %s  and st.product_id=%s and loc1.usage != 'internal' and loc2.usage = 'internal' and picking_id in (select id from stock_picking where date < '%s' and state = 'done')
+                        union all
+                            select -1*st.product_qty,st.price_unit*st.product_qty as price_unit
+                            from stock_move st
+                                join stock_location loc1 on st.location_id=loc1.id
+                                join stock_location loc2 on st.location_dest_id=loc2.id
+                            where st.state='done' and st.location_id=%s and st.product_id=%s and loc1.usage = 'internal' and loc2.usage != 'internal' and picking_id in (select id from stock_picking where date < '%s' and state = 'done')
+                        )foo
+
+            '''%(locat_ids[0],product_id,date_from,locat_ids[0],product_id,date_from)
+            self.cr.execute(sql)
+            inventory = self.cr.fetchone()
+        if categ[1] =='Spares':
+            parent_ids = self.pool.get('stock.location').search(self.cr, self.uid, [('name','=','Store'),('usage','=','view')])
+            locat_ids = self.pool.get('stock.location').search(self.cr, self.uid, [('name','in',['Spares','Spare','spares']),('location_id','=',parent_ids[0])])
+            sql = '''
+                    select case when sum(foo.product_qty)!=0 then sum(foo.product_qty) else 0 end ton_sl,case when sum(foo.price_unit)!=0 then sum(foo.price_unit) else 0 end total_cost from 
+                        (select st.product_qty,st.price_unit*st.product_qty as price_unit
+                            from stock_move st
+                                join stock_location loc1 on st.location_id=loc1.id
+                                join stock_location loc2 on st.location_dest_id=loc2.id
+                            where st.state='done' and st.location_dest_id = %s  and st.product_id=%s and loc1.usage != 'internal' and loc2.usage = 'internal' and picking_id in (select id from stock_picking where date < '%s' and state = 'done')
+                        union all
+                            select -1*st.product_qty,st.price_unit*st.product_qty as price_unit
+                            from stock_move st
+                                join stock_location loc1 on st.location_id=loc1.id
+                                join stock_location loc2 on st.location_dest_id=loc2.id
+                            where st.state='done' and st.location_id=%s and st.product_id=%s and loc1.usage = 'internal' and loc2.usage != 'internal' and picking_id in (select id from stock_picking where date < '%s' and state = 'done')
+                        )foo
+
+            '''%(locat_ids[0],product_id,date_from,locat_ids[0],product_id,date_from)
+            self.cr.execute(sql)
+            inventory = self.cr.fetchone()
         return inventory and inventory[0] or 0
         
     
@@ -216,21 +242,23 @@ class Parser(report_sxw.rml_parse):
                                 )foo
                         '''%(line,locat_ids[0],date_from,date_to)
             self.cr.execute(sql)
-            ton = self.cr.fetchone()[0]
+            ton = self.cr.fetchone()
             if ton:
-                    sql = '''
-                           select * from stock_move where product_id = %s and picking_id in (select id from stock_picking where date between '%s' and '%s' and state = 'done')
-                       '''%(line,date_from,date_to) 
-                    self.cr.execute(sql)
-                    for line in self.cr.dictfetchall():
-                       if line['action_taken'] == 'need':
-                           sql = '''
-                               select qty_approve from tpt_quanlity_inspection where need_inspec_id = %s and state = 'done'
-                           '''%(line['id'])
-                           self.cr.execute(sql)
-                           inspec = self.cr.fetchone()
-                           if inspec:
-                               ton = ton+inspec[0]
+                ton = ton[0]
+            else:
+                ton = 0
+            sql = '''
+                   select * from stock_move where product_id = %s and picking_id in (select id from stock_picking where date between '%s' and '%s' and state = 'done')
+               '''%(line,date_from,date_to) 
+            self.cr.execute(sql)
+            for line in self.cr.dictfetchall():
+               if line['action_taken'] == 'need':
+                   sql = '''
+                       select qty_approve from tpt_quanlity_inspection where need_inspec_id = %s and state = 'done'
+                   '''%(line['id'])
+                   self.cr.execute(sql)
+                   inspec = self.cr.fetchone()
+                   ton = (ton and ton[0] or 0)  + (inspec and inspec[0] or 0)
             return ton
         if categ[1] =='Spares':
             parent_ids = self.pool.get('stock.location').search(self.cr, self.uid, [('name','=','Store'),('usage','=','view')])
@@ -245,21 +273,23 @@ class Parser(report_sxw.rml_parse):
                                 )foo
                         '''%(line,locat_ids[0],date_from,date_to)
             self.cr.execute(sql)
-            ton = self.cr.fetchone()[0]
+            ton = self.cr.fetchone()
             if ton:
-                    sql = '''
-                           select * from stock_move where product_id = %s and picking_id in (select id from stock_picking where date between '%s' and '%s' and state = 'done')
-                       '''%(line,date_from,date_to) 
-                    self.cr.execute(sql)
-                    for line in self.cr.dictfetchall():
-                       if line['action_taken'] == 'need':
-                           sql = '''
-                               select qty_approve from tpt_quanlity_inspection where need_inspec_id = %s and state = 'done'
-                           '''%(line['id'])
-                           self.cr.execute(sql)
-                           inspec = self.cr.fetchone()
-                           if inspec:
-                               ton = ton+inspec[0]
+                ton = ton[0]
+            else:
+                ton = 0
+            sql = '''
+                   select * from stock_move where product_id = %s and picking_id in (select id from stock_picking where date between '%s' and '%s' and state = 'done')
+               '''%(line,date_from,date_to) 
+            self.cr.execute(sql)
+            for line in self.cr.dictfetchall():
+               if line['action_taken'] == 'need':
+                   sql = '''
+                       select qty_approve from tpt_quanlity_inspection where need_inspec_id = %s and state = 'done'
+                   '''%(line['id'])
+                   self.cr.execute(sql)
+                   inspec = self.cr.fetchone()
+                   ton = (ton and ton[0] or 0)  + (inspec and inspec[0] or 0)
             return ton
     
     def get_qty_out(self, line):
@@ -292,26 +322,52 @@ class Parser(report_sxw.rml_parse):
         wizard_data = self.localcontext['data']['form']
         date_from = wizard_data['date_from']
         opening_stock_value = 0
-        sql = '''
-            select case when sum(foo.product_qty)!=0 then sum(foo.product_qty) else 0 end ton_sl,case when sum(foo.price_unit)!=0 then sum(foo.price_unit) else 0 end total_cost from 
-                (select st.product_qty,st.price_unit*st.product_qty as price_unit
-                    from stock_move st
-                        join stock_location loc1 on st.location_id=loc1.id
-                        join stock_location loc2 on st.location_dest_id=loc2.id
-                    where st.state='done' and st.product_id=%s and loc1.usage != 'internal' and loc2.usage = 'internal' and date<'%s'
-                union all
-                    select -1*st.product_qty,st.price_unit*st.product_qty as price_unit
-                    from stock_move st
-                        join stock_location loc1 on st.location_id=loc1.id
-                        join stock_location loc2 on st.location_dest_id=loc2.id
-                    where st.state='done' and st.product_id=%s and loc1.usage = 'internal' and loc2.usage != 'internal' and date<'%s'
-                )foo
-        '''%(product_id,date_from,product_id,date_from)
-        self.cr.execute(sql)
-        inventory = self.cr.dictfetchone()
+        categ = wizard_data['categ_id']
+        if categ[1]=='Raw Materials':
+            parent_ids = self.pool.get('stock.location').search(self.cr, self.uid, [('name','=','Store'),('usage','=','view')])
+            locat_ids = self.pool.get('stock.location').search(self.cr, self.uid, [('name','in',['Raw Material','Raw Materials','Raw material']),('location_id','=',parent_ids[0])])
+            sql = '''
+                    select case when sum(foo.product_qty)!=0 then sum(foo.product_qty) else 0 end ton_sl,case when sum(foo.price_unit)!=0 then sum(foo.price_unit) else 0 end total_cost from 
+                        (select st.product_qty,st.price_unit*st.product_qty as price_unit
+                            from stock_move st
+                                join stock_location loc1 on st.location_id=loc1.id
+                                join stock_location loc2 on st.location_dest_id=loc2.id
+                            where st.state='done' and st.location_dest_id = %s  and st.product_id=%s and loc1.usage != 'internal' and loc2.usage = 'internal' and picking_id in (select id from stock_picking where date < '%s' and state = 'done')
+                        union all
+                            select -1*st.product_qty,st.price_unit*st.product_qty as price_unit
+                            from stock_move st
+                                join stock_location loc1 on st.location_id=loc1.id
+                                join stock_location loc2 on st.location_dest_id=loc2.id
+                            where st.state='done' and st.location_id=%s and st.product_id=%s and loc1.usage = 'internal' and loc2.usage != 'internal' and picking_id in (select id from stock_picking where date < '%s' and state = 'done')
+                        )foo
+
+            '''%(locat_ids[0],product_id,date_from,locat_ids[0],product_id,date_from)
+            self.cr.execute(sql)
+            inventory = self.cr.dictfetchone()
+        if categ[1] =='Spares':
+            parent_ids = self.pool.get('stock.location').search(self.cr, self.uid, [('name','=','Store'),('usage','=','view')])
+            locat_ids = self.pool.get('stock.location').search(self.cr, self.uid, [('name','in',['Spares','Spare','spares']),('location_id','=',parent_ids[0])])
+            sql = '''
+                    select case when sum(foo.product_qty)!=0 then sum(foo.product_qty) else 0 end ton_sl,case when sum(foo.price_unit)!=0 then sum(foo.price_unit) else 0 end total_cost from 
+                        (select st.product_qty,st.price_unit*st.product_qty as price_unit
+                            from stock_move st
+                                join stock_location loc1 on st.location_id=loc1.id
+                                join stock_location loc2 on st.location_dest_id=loc2.id
+                            where st.state='done' and st.location_dest_id = %s  and st.product_id=%s and loc1.usage != 'internal' and loc2.usage = 'internal' and picking_id in (select id from stock_picking where date < '%s' and state = 'done')
+                        union all
+                            select -1*st.product_qty,st.price_unit*st.product_qty as price_unit
+                            from stock_move st
+                                join stock_location loc1 on st.location_id=loc1.id
+                                join stock_location loc2 on st.location_dest_id=loc2.id
+                            where st.state='done' and st.location_id=%s and st.product_id=%s and loc1.usage = 'internal' and loc2.usage != 'internal' and picking_id in (select id from stock_picking where date < '%s' and state = 'done')
+                        )foo
+
+            '''%(locat_ids[0],product_id,date_from,locat_ids[0],product_id,date_from)
+            self.cr.execute(sql)
+            inventory = self.cr.dictfetchone()
         if inventory:
-            hand_quantity = float(inventory['ton_sl'])
-            total_cost = float(inventory['total_cost'])
+            hand_quantity = inventory['ton_sl']
+            total_cost = inventory['total_cost']
             avg_cost = hand_quantity and total_cost/hand_quantity or 0
             sql = '''
                 select case when sum(product_isu_qty)!=0 then sum(product_isu_qty) else 0 end product_isu_qty
