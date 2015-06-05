@@ -279,7 +279,11 @@ class stock_movement_analysis(osv.osv_memory):
                        '''%(line['id'])
                        cr.execute(sql)
                        inspec = cr.fetchone()
-                       ton = (ton and ton[0] or 0)  + (inspec and inspec[0] or 0)
+                       if inspec:
+                           inspec = inspec[0]
+                       else:
+                           inspec = 0
+                       ton = ton  + inspec
                 return ton
                            
             if categ =='spares':
@@ -310,8 +314,11 @@ class stock_movement_analysis(osv.osv_memory):
                            select qty_approve from tpt_quanlity_inspection where need_inspec_id = %s and state = 'done'
                        '''%(line['id'])
                        cr.execute(sql)
-                       inspec = cr.fetchone()
-                       ton = (ton and ton[0] or 0)  + (inspec and inspec[0] or 0)
+                       if inspec:
+                           inspec = inspec[0]
+                       else:
+                           inspec = 0
+                       ton = ton  + inspec
                 return ton
             
         def get_receipt_value(o, product_id):

@@ -258,7 +258,11 @@ class Parser(report_sxw.rml_parse):
                    '''%(line['id'])
                    self.cr.execute(sql)
                    inspec = self.cr.fetchone()
-                   ton = (ton and ton[0] or 0)  + (inspec and inspec[0] or 0)
+                   if inspec:
+                       inspec = inspec[0]
+                   else:
+                       inspec = 0
+                   ton = ton  + inspec
             return ton
         if categ[1] =='Spares':
             parent_ids = self.pool.get('stock.location').search(self.cr, self.uid, [('name','=','Store'),('usage','=','view')])
@@ -289,7 +293,11 @@ class Parser(report_sxw.rml_parse):
                    '''%(line['id'])
                    self.cr.execute(sql)
                    inspec = self.cr.fetchone()
-                   ton = (ton and ton[0] or 0)  + (inspec and inspec[0] or 0)
+                   if inspec:
+                       inspec = inspec[0]
+                   else:
+                       inspec = 0
+                   ton = ton  + inspec
             return ton
     
     def get_qty_out(self, line):
