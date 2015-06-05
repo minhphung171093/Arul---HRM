@@ -229,6 +229,7 @@ class Parser(report_sxw.rml_parse):
         date_from = wizard_data['date_from']
         date_to = wizard_data['date_to']
         categ = wizard_data['categ_id']
+        ton = 0
 #         categ_ids = self.pool.get('product.category').search(self.cr, self.uid, [('id','=',categ[0])])
         if categ[1]=='Raw Materials':
             parent_ids = self.pool.get('stock.location').search(self.cr, self.uid, [('name','=','Store'),('usage','=','view')])
@@ -242,9 +243,9 @@ class Parser(report_sxw.rml_parse):
                                 )foo
                         '''%(line,locat_ids[0],date_from,date_to)
             self.cr.execute(sql)
-            ton = self.cr.fetchone()
-            if ton:
-                ton = ton[0]
+            ton_arr = self.cr.fetchone()
+            if ton_arr:
+                ton = ton_arr[0]
             else:
                 ton = 0
             sql = '''
@@ -257,9 +258,9 @@ class Parser(report_sxw.rml_parse):
                        select qty_approve from tpt_quanlity_inspection where need_inspec_id = %s and state = 'done'
                    '''%(line['id'])
                    self.cr.execute(sql)
-                   inspec = self.cr.fetchone()
-                   if inspec:
-                       inspec = inspec[0]
+                   inspec_arr = self.cr.fetchone()
+                   if inspec_arr:
+                       inspec = inspec_arr[0]
                    else:
                        inspec = 0
                    ton = ton  + inspec
@@ -277,9 +278,9 @@ class Parser(report_sxw.rml_parse):
                                 )foo
                         '''%(line,locat_ids[0],date_from,date_to)
             self.cr.execute(sql)
-            ton = self.cr.fetchone()
-            if ton:
-                ton = ton[0]
+            ton_arr = self.cr.fetchone()
+            if ton_arr:
+                ton = ton_arr[0]
             else:
                 ton = 0
             sql = '''
@@ -292,9 +293,9 @@ class Parser(report_sxw.rml_parse):
                        select qty_approve from tpt_quanlity_inspection where need_inspec_id = %s and state = 'done'
                    '''%(line['id'])
                    self.cr.execute(sql)
-                   inspec = self.cr.fetchone()
-                   if inspec:
-                       inspec = inspec[0]
+                   inspec_arr = self.cr.fetchone()
+                   if inspec_arr:
+                       inspec = inspec_arr[0]
                    else:
                        inspec = 0
                    ton = ton  + inspec
