@@ -1425,13 +1425,14 @@ class account_invoice_line(osv.osv):
         if context is None:
             context = {}
         ctx = context.copy()
-        ctx.update({'date': time.strftime('%Y-%m-%d')})
+        
         voucher_rate = 1
         inv_id = self.pool.get('account.invoice').browse(cr, uid, invoice_id)
         if inv_id:
             channel = inv_id.delivery_order_id and inv_id.delivery_order_id.sale_id and inv_id.delivery_order_id.sale_id.distribution_channel and inv_id.delivery_order_id.sale_id.distribution_channel.name or False
             currency = inv_id.currency_id.name
             currency_id = inv_id.currency_id.id
+            ctx.update({'date': inv_id.date_invoice or time.strftime('%Y-%m-%d')})
         cr.execute('SELECT * FROM account_invoice_line WHERE invoice_id=%s', (invoice_id,))
         for t in cr.dictfetchall():
             product_id = self.pool.get('product.product').browse(cr, uid, t['product_id'])
@@ -1469,11 +1470,11 @@ class account_invoice_line(osv.osv):
         if context is None:
             context = {}
         ctx = context.copy()
-        ctx.update({'date': time.strftime('%Y-%m-%d')})
         inv_id = self.pool.get('account.invoice').browse(cr, uid, invoice_id)
         if inv_id:
             currency = inv_id.currency_id.name or False
             currency_id = inv_id.currency_id.id or False
+            ctx.update({'date': inv_id.date_invoice or time.strftime('%Y-%m-%d')})
         if currency != 'INR':
             voucher_rate = self.pool.get('res.currency').read(cr, uid, currency_id, ['rate'], context=ctx)['rate']
         cr.execute('SELECT * FROM account_invoice_line WHERE invoice_id=%s', (invoice_id,))
@@ -1507,11 +1508,11 @@ class account_invoice_line(osv.osv):
         if context is None:
             context = {}
         ctx = context.copy()
-        ctx.update({'date': time.strftime('%Y-%m-%d')})
         inv_id = self.pool.get('account.invoice').browse(cr, uid, invoice_id)
         if inv_id:
             currency = inv_id.currency_id.name or False
             currency_id = inv_id.currency_id.id or False
+            ctx.update({'date': inv_id.date_invoice or time.strftime('%Y-%m-%d')})
         if currency != 'INR':
             voucher_rate = self.pool.get('res.currency').read(cr, uid, currency_id, ['rate'], context=ctx)['rate']
         for line in inv_id.invoice_line:
@@ -1716,11 +1717,12 @@ class account_invoice_line(osv.osv):
         if context is None:
             context = {}
         ctx = context.copy()
-        ctx.update({'date': time.strftime('%Y-%m-%d')})
+#         ctx.update({'date': time.strftime('%Y-%m-%d')})
         inv_id = self.pool.get('account.invoice').browse(cr, uid, invoice_id)
         if inv_id:
             currency = inv_id.currency_id.name or False
             currency_id = inv_id.currency_id.id or False
+            ctx.update({'date': inv_id.date_invoice or time.strftime('%Y-%m-%d')})
         if currency != 'INR':
             voucher_rate = self.pool.get('res.currency').read(cr, uid, currency_id, ['rate'], context=ctx)['rate']
         cr.execute('SELECT * FROM account_invoice_line WHERE invoice_id=%s', (invoice_id,))
@@ -1840,11 +1842,11 @@ class account_invoice_line(osv.osv):
         if context is None:
             context = {}
         ctx = context.copy()
-        ctx.update({'date': time.strftime('%Y-%m-%d')})
         inv_id = self.pool.get('account.invoice').browse(cr, uid, invoice_id)
         if inv_id:
             currency = inv_id.currency_id.name or False
             currency_id = inv_id.currency_id.id or False
+            ctx.update({'date': inv_id.date_invoice or time.strftime('%Y-%m-%d')})
         if currency != 'INR':
             voucher_rate = self.pool.get('res.currency').read(cr, uid, currency_id, ['rate'], context=ctx)['rate']
         cr.execute('SELECT * FROM account_invoice_line WHERE invoice_id=%s', (invoice_id,))
@@ -1875,11 +1877,11 @@ class account_invoice_line(osv.osv):
         if context is None:
             context = {}
         ctx = context.copy()
-        ctx.update({'date': time.strftime('%Y-%m-%d')})
         inv_id = self.pool.get('account.invoice').browse(cr, uid, invoice_id)
         if inv_id:
             currency = inv_id.currency_id.name or False
             currency_id = inv_id.currency_id.id or False
+            ctx.update({'date': inv_id.date_invoice or time.strftime('%Y-%m-%d')})
         if currency != 'INR':
             voucher_rate = self.pool.get('res.currency').read(cr, uid, currency_id, ['rate'], context=ctx)['rate']
         cr.execute('SELECT * FROM account_invoice_line WHERE invoice_id=%s', (invoice_id,))
@@ -2042,12 +2044,13 @@ class account_invoice_line(osv.osv):
         if context is None:
             context = {}
         ctx = context.copy()
-        ctx.update({'date': time.strftime('%Y-%m-%d')})
+#         ctx.update({'date': time.strftime('%Y-%m-%d')})
         voucher_rate = 1
         inv_id = self.pool.get('account.invoice').browse(cr, uid, invoice_id)
         if inv_id:
             currency = inv_id.currency_id.name
             currency_id = inv_id.currency_id.id
+            ctx.update({'date': inv_id.date_invoice or time.strftime('%Y-%m-%d')})
         cr.execute('SELECT * FROM account_invoice_line WHERE invoice_id=%s', (invoice_id,))
         for t in cr.dictfetchall():
             product_id = self.pool.get('product.product').browse(cr, uid, t['product_id'])
@@ -2357,7 +2360,7 @@ class account_voucher(osv.osv):
         for voucher in self.browse(cr, uid, ids, context=context):
             amount = 0
             if voucher.tpt_currency_id and voucher.tpt_currency_amount:
-                context.update({'date': time.strftime('%Y-%m-%d')})
+                context.update({'date': voucher.date or time.strftime('%Y-%m-%d')})
                 voucher_rate = self.pool.get('res.currency').read(cr, uid, voucher.tpt_currency_id.id, ['rate'], context=context)['rate']
                 amount = voucher.tpt_currency_amount/voucher_rate
             res[voucher.id] = amount
@@ -3354,7 +3357,8 @@ class tpt_material_issue(osv.osv):
                       'product_uom':p.uom_po_id and p.uom_po_id.id or False,
                       'location_id':line.warehouse and line.warehouse.id or False,
                       'location_dest_id':dest_id,
-                      
+                      'issue_id':line.id,
+                      'date':line.date_expec or False,
                       }
                 move_id = move_obj.create(cr,uid,rs)
                 move_obj.action_done(cr, uid, [move_id])
