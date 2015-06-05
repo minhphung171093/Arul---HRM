@@ -90,7 +90,7 @@ class Parser(report_sxw.rml_parse):
                 epf_wages += line.float
             elif line.earning_parameters_id.code == 'DA':
                 epf_wages += line.float
-        return epf_wages
+        return round(epf_wages)
         
     def get_epf_contribution_due(self, deduction):
         epf_contribution_due = 0.0

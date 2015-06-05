@@ -186,7 +186,7 @@ class Parser(report_sxw.rml_parse):
                 for deduction in payroll.other_deduction_line:
                     if deduction.deduction_parameters_id.code=='VPF.D':
                         vpf += deduction.float
-                    if deduction.deduction_parameters_id.code=='PT':
+                    if deduction.deduction_parameters_id.code=='IT': #PT
                         pt += deduction.float
                     if deduction.deduction_parameters_id.code=='L.D':
                         loan += deduction.float
@@ -263,14 +263,42 @@ class Parser(report_sxw.rml_parse):
                         title='Miss'
                         
                 base_amount = basic + da 
-                vpf = base_amount * vpf / 100
+                #vpf = base_amount * vpf / 100
                 
                 total_working_days = 0
+                tdw = 0
+                ndw = 0
                 if payroll.employee_id.employee_category_id.code=='S3':
-                    total_working_days = 26
+                    tdw = 26 
+                    ndw = tdw - (tpt_lop_leave + tpt_esi_leave)
                 else:
-                    total_working_days = calendar_days
+                    tdw = calendar_days
+                    ndw = tdw - (tpt_lop_leave + tpt_esi_leave)
                 
+                sql = '''
+                    select extract(day from date_of_joining) doj from hr_employee where extract(year from date_of_joining)= %s and 
+                      extract(month from date_of_joining)= %s and id=%s
+                    '''%(year,month,emp_id)
+                self.cr.execute(sql)
+                k = self.cr.fetchone()
+                if k:
+                    new_emp_day = k[0]    
+                    if payroll.employee_id.employee_category_id.code=='S1':
+                        tdw = calendar_days          
+                        temp = calendar_days - new_emp_day + 1
+                        ndw = temp - (tpt_lop_leave + tpt_esi_leave)
+                        
+                    if payroll.employee_id.employee_category_id.code=='S2':  
+                        tdw = calendar_days         
+                        temp = calendar_days - new_emp_day + 1
+                        ndw = temp - (tpt_lop_leave + tpt_esi_leave)
+                        
+                    if payroll.employee_id.employee_category_id.code=='S3': 
+                        tdw = 26           
+                        temp = 26 - new_emp_day - 4 + 1 # 4 is weekly off
+                        ndw = temp - (tpt_lop_leave + tpt_esi_leave)
+                        
+                        
                 res.append({
                     'emp_id': emp_id,
                     'emp_name': payroll.employee_id.name + ' ' + (payroll.employee_id.last_name and payroll.employee_id.last_name or ''),
@@ -303,8 +331,8 @@ class Parser(report_sxw.rml_parse):
                     'lwf':lwf,
                     'total_fd':format(total_fd,'.2f'),
                    
-                    'calendar_days':total_working_days, 
-                    'ndw':total_working_days-(tpt_lop_leave+tpt_esi_leave),
+                    'calendar_days':tdw, 
+                    'ndw':ndw,
                     'special_holiday_worked_count':special_holiday_worked_count,
                     'md1':format(l_vvti_loan + l_lic_hfl + l_hdfc + l_tmb + l_sbt + l_others,'.2f'),
                     'lic':format(i_lic_prem + i_others,'.2f'),
