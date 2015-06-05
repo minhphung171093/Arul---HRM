@@ -249,6 +249,7 @@ class stock_movement_analysis(osv.osv_memory):
             date_from = o.date_from
             date_to = o.date_to
             categ = o.categ_id.cate_name
+            ton = 0
     #         categ_ids = self.pool.get('product.category').search(self.cr, self.uid, [('id','=',categ[0])])
             if categ=='raw':
                 parent_ids = self.pool.get('stock.location').search(cr, uid, [('name','=','Store'),('usage','=','view')])
@@ -263,9 +264,9 @@ class stock_movement_analysis(osv.osv_memory):
                                     )foo
                             '''%(line,locat_ids[0],date_from,date_to)
                 cr.execute(sql)
-                ton = cr.fetchone()
+                ton_arr = cr.fetchone()
                 if ton:
-                    ton = ton[0]
+                    ton = ton_arr[0]
                 else:
                     ton = 0
                 sql = '''
@@ -278,12 +279,12 @@ class stock_movement_analysis(osv.osv_memory):
                            select qty_approve from tpt_quanlity_inspection where need_inspec_id = %s and state = 'done'
                        '''%(line['id'])
                        cr.execute(sql)
-                       inspec = cr.fetchone()
-                       if inspec:
-                           inspec = inspec[0]
+                       inspec_arr = cr.fetchone()
+                       if inspec_arr:
+                           inspec = inspec_arr[0]
                        else:
                            inspec = 0
-                       ton = ton  + inspec
+                       ton = ton + inspec
                 return ton
                            
             if categ =='spares':
@@ -299,9 +300,9 @@ class stock_movement_analysis(osv.osv_memory):
                                     )foo
                             '''%(line,locat_ids[0],date_from,date_to)
                 cr.execute(sql)
-                ton = cr.fetchone()
-                if ton:
-                    ton = ton[0]
+                ton_arr = cr.fetchone()
+                if ton_arr:
+                    ton = ton_arr[0]
                 else:
                     ton = 0
                 sql = '''
@@ -314,8 +315,9 @@ class stock_movement_analysis(osv.osv_memory):
                            select qty_approve from tpt_quanlity_inspection where need_inspec_id = %s and state = 'done'
                        '''%(line['id'])
                        cr.execute(sql)
-                       if inspec:
-                           inspec = inspec[0]
+                       inspec_arr = cr.fetchone()
+                       if inspec_arr:
+                           inspec = inspec_arr[0]
                        else:
                            inspec = 0
                        ton = ton  + inspec
