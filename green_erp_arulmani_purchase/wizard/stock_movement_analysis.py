@@ -216,7 +216,23 @@ class stock_movement_analysis(osv.osv_memory):
                                     )foo
                             '''%(line,locat_ids[0],date_from,date_to)
                 cr.execute(sql)
-                ton = cr.dictfetchone()
+                ton = cr.fetchone()[0]
+                if ton:
+                    sql = '''
+                           select * from stock_move where product_id = %s and picking_id in (select id from stock_picking where move_date between '%s' and '%s' and state = 'done')
+                       '''%(line,date_from,date_to) 
+                    cr.execute(sql)
+                    for line in cr.dictfetchall():
+                       if line['action_taken'] == 'need':
+                           sql = '''
+                               select qty_approve from tpt_quanlity_inspection where need_inspec_id = %s and state = 'done'
+                           '''%(line['id'])
+                           cr.execute(sql)
+                           inspec = cr.fetchone()
+                           if inspec:
+                               ton = ton+inspec[0]
+                return ton
+                           
             if categ =='spares':
                 parent_ids = self.pool.get('stock.location').search(cr, uid, [('name','=','Store'),('usage','=','view')])
                 locat_ids = self.pool.get('stock.location').search(cr, uid, [('name','in',['Spares','Spare','spares']),('location_id','=',parent_ids[0])])
@@ -230,8 +246,22 @@ class stock_movement_analysis(osv.osv_memory):
                                     )foo
                             '''%(line,locat_ids[0],date_from,date_to)
                 cr.execute(sql)
-                ton = cr.dictfetchone()
-            return ton and ton['ton'] or 0
+                ton = cr.fetchone()[0]
+                if ton:
+                    sql = '''
+                           select * from stock_move where product_id = %s and picking_id in (select id from stock_picking where move_date between '%s' and '%s' and state = 'done')
+                       '''%(line,date_from,date_to) 
+                    cr.execute(sql)
+                    for line in cr.dictfetchall():
+                       if line['action_taken'] == 'need':
+                           sql = '''
+                               select qty_approve from tpt_quanlity_inspection where need_inspec_id = %s and state = 'done'
+                           '''%(line['id'])
+                           cr.execute(sql)
+                           inspec = cr.fetchone()
+                           if inspec:
+                               ton = ton+inspec[0]
+                return ton
             
         def get_receipt_value(o, product_id):
             date_from = o.date_from
@@ -250,6 +280,20 @@ class stock_movement_analysis(osv.osv_memory):
             if inventory:
                 hand_quantity = float(inventory['ton_sl'])
                 total_cost = float(inventory['total_cost'])
+            sql = '''
+                   select * from stock_move where product_id = %s and picking_id in (select id from stock_picking where move_date between '%s' and '%s' and state = 'done')
+               '''%(product_id,date_from,date_to) 
+            cr.execute(sql)
+            for line in cr.dictfetchall():
+               if line['action_taken'] == 'need':
+                   sql = '''
+                       select qty_approve from tpt_quanlity_inspection where need_inspec_id = %s and state = 'done'
+                   '''%(line['id'])
+                   cr.execute(sql)
+                   inspec = cr.dictfetchone()
+                   if inspec:
+                       hand_quantity += float(inspec['qty_approve'])
+                       total_cost += line['price_unit'] * float(inspec['qty_approve'])
             return total_cost  
             
         def get_qty_out(o, line):
