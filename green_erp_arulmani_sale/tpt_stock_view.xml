@@ -263,6 +263,8 @@
 					<field name="material_info" readonly="1"/>
 					<field name="other_info" />
 					<field name="vessel_flight_no" />	
+					<field name="country_dest" />
+					<field name="tod_place" />
 					<field name="lc_no" />									
 					<field name="port_of_discharge_id" options="{'create': false, 'create_edit': false}"/>	
 					<field name="final_desti" />				
