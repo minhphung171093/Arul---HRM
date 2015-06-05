@@ -50,7 +50,7 @@ class Parser(report_sxw.rml_parse):
             'get_account_move_line': self.get_account_move_line,
             'get_transaction_qty': self.get_transaction_qty,
             'get_opening_stock_value': self.get_opening_stock_value,
-#             'get_closing_stock': self.get_closing_stock,
+            'get_closing_stock': self.get_closing_stock,
             'get_line_stock_value': self.get_line_stock_value,
             'closing_value': self.closing_value,
             'stock_value':self.stock_value,
@@ -92,9 +92,19 @@ class Parser(report_sxw.rml_parse):
         product_isu_qty = self.cr.dictfetchone()['product_isu_qty']
         opening_stock = product_qty-product_isu_qty
         return round(opening_stock,2)
-#     
-#     def get_closing_stock(self):
-#         return self.get_opening_stock() + self.sum_trans_qty()
+     
+    def get_closing_stock(self, get_detail_lines):
+        closing = 0
+        qty_grn = 0
+        qty_good = 0
+        for line in get_detail_lines:
+            if line['doc_type']=='grn':
+                qty_grn += self.get_transaction_qty(line['id'], line['material_issue_id'], line['doc_type'])
+            if line['doc_type']=='good':
+                qty_good += self.get_transaction_qty(line['id'], line['material_issue_id'], line['doc_type'])
+        closing = qty_grn - qty_good
+        return closing
+        
     
     def get_detail_lines(self):
         wizard_data = self.localcontext['data']['form']
@@ -264,13 +274,13 @@ class Parser(report_sxw.rml_parse):
                    from stock_move st
                        join stock_location loc1 on st.location_id=loc1.id
                        join stock_location loc2 on st.location_dest_id=loc2.id
-                   where st.state='done' and st.product_id=%s and loc1.usage != 'internal' and loc2.usage = 'internal' and date<'%s'
+                   where st.state='done' and st.product_id=%s and loc1.usage != 'internal' and loc2.usage = 'internal' and to_date(to_char(date, 'YYYY-MM-DD'), 'YYYY-MM-DD')<'%s'
                union all
                    select -1*st.product_qty,st.price_unit*st.product_qty as price_unit
                    from stock_move st
                        join stock_location loc1 on st.location_id=loc1.id
                        join stock_location loc2 on st.location_dest_id=loc2.id
-                   where st.state='done' and st.product_id=%s and loc1.usage = 'internal' and loc2.usage != 'internal' and date<'%s'
+                   where st.state='done' and st.product_id=%s and loc1.usage = 'internal' and loc2.usage != 'internal' and to_date(to_char(date, 'YYYY-MM-DD'), 'YYYY-MM-DD')<'%s'
                )foo
        '''%(product_id[0],date_from,product_id[0],date_from)
        self.cr.execute(sql)
@@ -310,14 +320,14 @@ class Parser(report_sxw.rml_parse):
                            join stock_location loc1 on st.location_id=loc1.id
                            join stock_location loc2 on st.location_dest_id=loc2.id
                        where st.state='done' and st.product_id=%s and loc1.usage != 'internal' and loc2.usage = 'internal' and st.location_id!=st.location_dest_id
-                       and st.location_dest_id = %s and date between '%s' and '%s'
+                       and st.location_dest_id = %s and to_date(to_char(date, 'YYYY-MM-DD'), 'YYYY-MM-DD') between '%s' and '%s'
                    union all
                        select -1*st.product_qty,st.price_unit*st.product_qty as price_unit
                        from stock_move st
                            join stock_location loc1 on st.location_id=loc1.id
                            join stock_location loc2 on st.location_dest_id=loc2.id
                        where st.state='done' and st.product_id=%s and loc1.usage = 'internal' and loc2.usage != 'internal' and st.location_id!=st.location_dest_id
-                       and st.location_id = %s and date between '%s' and '%s'
+                       and st.location_id = %s and to_date(to_char(date, 'YYYY-MM-DD'), 'YYYY-MM-DD') between '%s' and '%s'
                    )foo
            '''%(product_id[0], location, date_from, date_to ,product_id[0], location, date_from, date_to)
            self.cr.execute(sql)
@@ -335,22 +345,22 @@ class Parser(report_sxw.rml_parse):
            self.cr.execute(sql)
            location = self.cr.dictfetchone()['warehouse'] 
            sql = '''
-               select case when sum(foo.product_qty)!=0 then sum(foo.product_qty) else 0 end ton_sl,case when sum(foo.price_unit)!=0 then sum(foo.price_unit) else 0 end total_cost from 
-                   (select st.product_qty,st.price_unit*st.product_qty as price_unit
-                       from stock_move st
-                           join stock_location loc1 on st.location_id=loc1.id
-                           join stock_location loc2 on st.location_dest_id=loc2.id
-                       where st.state='done' and st.product_id=%s and loc1.usage != 'internal' and loc2.usage = 'internal' and st.location_id!=st.location_dest_id
-                       and st.location_dest_id = %s and date between '%s' and '%s'
-                   union all
-                       select -1*st.product_qty,st.price_unit*st.product_qty as price_unit
-                       from stock_move st
-                           join stock_location loc1 on st.location_id=loc1.id
-                           join stock_location loc2 on st.location_dest_id=loc2.id
-                       where st.state='done' and st.product_id=%s and loc1.usage = 'internal' and loc2.usage != 'internal' and st.location_id!=st.location_dest_id
-                       and st.location_id = %s and date between '%s' and '%s'
-                   )foo
-           '''%(product_id[0], location, date_from, date_to ,product_id[0], location, date_from, date_to)
+                select case when sum(foo.product_qty)!=0 then sum(foo.product_qty) else 0 end ton_sl,case when sum(foo.price_unit)!=0 then sum(foo.price_unit) else 0 end total_cost from 
+                    (select st.product_qty,st.price_unit*st.product_qty as price_unit
+                        from stock_move st
+                            join stock_location loc1 on st.location_id=loc1.id
+                            join stock_location loc2 on st.location_dest_id=loc2.id
+                        where st.state='done' and st.product_id=%s and loc1.usage != 'internal' and loc2.usage = 'internal' and st.location_id!=st.location_dest_id
+                        and st.location_dest_id = %s and to_date(to_char(date, 'YYYY-MM-DD'), 'YYYY-MM-DD') between '%s' and '%s'
+                    union all
+                        select -1*st.product_qty,st.price_unit*st.product_qty as price_unit
+                        from stock_move st
+                            join stock_location loc1 on st.location_id=loc1.id
+                            join stock_location loc2 on st.location_dest_id=loc2.id
+                        where st.state='done' and st.product_id=%s and loc1.usage = 'internal' and loc2.usage != 'internal' and st.location_id!=st.location_dest_id
+                        and st.location_id = %s and to_date(to_char(date, 'YYYY-MM-DD'), 'YYYY-MM-DD') between '%s' and '%s'
+                    )foo
+            '''%(product_id[0], location, date_from, date_to ,product_id[0], location, date_from, date_to)
            self.cr.execute(sql)
            inventory = self.cr.dictfetchone()
            if inventory:
@@ -387,14 +397,14 @@ class Parser(report_sxw.rml_parse):
                            join stock_location loc1 on st.location_id=loc1.id
                            join stock_location loc2 on st.location_dest_id=loc2.id
                        where st.state='done' and st.product_id=%s and loc1.usage != 'internal' and loc2.usage = 'internal' and st.location_id!=st.location_dest_id
-                       and st.location_dest_id = %s and date between '%s' and '%s'
+                       and st.location_dest_id = %s and to_date(to_char(date, 'YYYY-MM-DD'), 'YYYY-MM-DD') between '%s' and '%s'
                    union all
                        select -1*st.product_qty,st.price_unit*st.product_qty as price_unit
                        from stock_move st
                            join stock_location loc1 on st.location_id=loc1.id
                            join stock_location loc2 on st.location_dest_id=loc2.id
                        where st.state='done' and st.product_id=%s and loc1.usage = 'internal' and loc2.usage != 'internal' and st.location_id!=st.location_dest_id
-                       and st.location_id = %s and date between '%s' and '%s'
+                       and st.location_id = %s and to_date(to_char(date, 'YYYY-MM-DD'), 'YYYY-MM-DD') between '%s' and '%s'
                    )foo
            '''%(product_id[0], location, date_from, date_to ,product_id[0], location, date_from, date_to)
            self.cr.execute(sql)
