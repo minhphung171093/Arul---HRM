@@ -410,6 +410,18 @@ class stock_inward_outward_report(osv.osv_memory):
             self.current = cur
             return cur
         
+        def get_closing_stock(o,get_detail_lines):
+            closing = 0
+            qty_grn = 0
+            qty_good = 0
+            for line in get_detail_lines:
+                if line['doc_type']=='grn':
+                    qty_grn += get_transaction_qty(o,line['id'], line['material_issue_id'], line['doc_type'])
+                if line['doc_type']=='good':
+                    qty_good += get_transaction_qty(o,line['id'], line['material_issue_id'], line['doc_type'])
+            closing = qty_grn - qty_good
+            return closing
+        
         for line in get_detail_lines(stock):
             stock_in_out_line.append((0,0,{
                 'creation_date': line['date'],
@@ -432,7 +444,7 @@ class stock_inward_outward_report(osv.osv_memory):
             'date_to':stock.date_to,
             'stock_in_out_line': stock_in_out_line,
             'opening_stock': get_opening_stock(stock),
-            'closing_stock': sum_trans_qty(stock, get_detail_lines(stock)) + get_opening_stock(stock),
+            'closing_stock': get_closing_stock(stock, get_detail_lines(stock)),
             'opening_value': get_opening_stock_value(stock),
             'closing_value': closing_value(stock, get_detail_lines(stock))+get_opening_stock_value(stock),
         }
