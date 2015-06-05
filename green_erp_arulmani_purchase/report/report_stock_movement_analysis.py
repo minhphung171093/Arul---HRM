@@ -184,13 +184,13 @@ class Parser(report_sxw.rml_parse):
                     from stock_move st
                         join stock_location loc1 on st.location_id=loc1.id
                         join stock_location loc2 on st.location_dest_id=loc2.id
-                    where st.state='done' and st.product_id=%s and loc1.usage != 'internal' and loc2.usage = 'internal' and picking_id in (select id from stock_picking where move_date < '%s' and state = 'done')
+                    where st.state='done' and st.product_id=%s and loc1.usage != 'internal' and loc2.usage = 'internal' and picking_id in (select id from stock_picking where date < '%s' and state = 'done')
                 union all
                     select -1*st.product_qty,st.price_unit*st.product_qty as price_unit
                     from stock_move st
                         join stock_location loc1 on st.location_id=loc1.id
                         join stock_location loc2 on st.location_dest_id=loc2.id
-                    where st.state='done' and st.product_id=%s and loc1.usage = 'internal' and loc2.usage != 'internal' and picking_id in (select id from stock_picking where move_date < '%s' and state = 'done')
+                    where st.state='done' and st.product_id=%s and loc1.usage = 'internal' and loc2.usage != 'internal' and picking_id in (select id from stock_picking where date < '%s' and state = 'done')
                 )foo
         '''%(product_id,date_from,product_id,date_from)
         self.cr.execute(sql)
@@ -212,14 +212,14 @@ class Parser(report_sxw.rml_parse):
                                 (select st.product_qty
                                     from stock_move st 
                                     where st.state='done' and st.product_id = %s and st.location_dest_id = %s 
-                                    and picking_id in (select id from stock_picking where move_date between '%s' and '%s' and state = 'done')
+                                    and picking_id in (select id from stock_picking where date between '%s' and '%s' and state = 'done')
                                 )foo
                         '''%(line,locat_ids[0],date_from,date_to)
             self.cr.execute(sql)
             ton = self.cr.fetchone()[0]
             if ton:
                     sql = '''
-                           select * from stock_move where product_id = %s and picking_id in (select id from stock_picking where move_date between '%s' and '%s' and state = 'done')
+                           select * from stock_move where product_id = %s and picking_id in (select id from stock_picking where date between '%s' and '%s' and state = 'done')
                        '''%(line,date_from,date_to) 
                     self.cr.execute(sql)
                     for line in self.cr.dictfetchall():
@@ -241,14 +241,14 @@ class Parser(report_sxw.rml_parse):
                                     from stock_move st 
                                     where st.state='done' and st.product_id = %s and st.location_dest_id = %s 
                                     
-                                    and picking_id in (select id from stock_picking where move_date between '%s' and '%s' and state = 'done')
+                                    and picking_id in (select id from stock_picking where date between '%s' and '%s' and state = 'done')
                                 )foo
                         '''%(line,locat_ids[0],date_from,date_to)
             self.cr.execute(sql)
             ton = self.cr.fetchone()[0]
             if ton:
                     sql = '''
-                           select * from stock_move where product_id = %s and picking_id in (select id from stock_picking where move_date between '%s' and '%s' and state = 'done')
+                           select * from stock_move where product_id = %s and picking_id in (select id from stock_picking where date between '%s' and '%s' and state = 'done')
                        '''%(line,date_from,date_to) 
                     self.cr.execute(sql)
                     for line in self.cr.dictfetchall():
@@ -342,7 +342,7 @@ class Parser(report_sxw.rml_parse):
             hand_quantity = float(inventory['ton_sl'])
             total_cost = float(inventory['total_cost'])
         sql = '''
-                   select * from stock_move where product_id = %s and picking_id in (select id from stock_picking where move_date between '%s' and '%s' and state = 'done')
+                   select * from stock_move where product_id = %s and picking_id in (select id from stock_picking where date between '%s' and '%s' and state = 'done')
                '''%(product_id,date_from,date_to) 
         self.cr.execute(sql)
         for line in self.cr.dictfetchall():
@@ -402,13 +402,13 @@ class Parser(report_sxw.rml_parse):
                     from stock_move st
                         join stock_location loc1 on st.location_id=loc1.id
                         join stock_location loc2 on st.location_dest_id=loc2.id
-                    where st.state='done' and st.product_id=%s and loc1.usage != 'internal' and loc2.usage = 'internal' and picking_id in (select id from stock_picking where move_date < '%s' and state = 'done')
+                    where st.state='done' and st.product_id=%s and loc1.usage != 'internal' and loc2.usage = 'internal' and picking_id in (select id from stock_picking where date < '%s' and state = 'done')
                 union all
                     select -1*st.product_qty,st.price_unit*st.product_qty as price_unit
                     from stock_move st
                         join stock_location loc1 on st.location_id=loc1.id
                         join stock_location loc2 on st.location_dest_id=loc2.id
-                    where st.state='done' and st.product_id=%s and loc1.usage = 'internal' and loc2.usage != 'internal' and picking_id in (select id from stock_picking where move_date < '%s' and state = 'done')
+                    where st.state='done' and st.product_id=%s and loc1.usage = 'internal' and loc2.usage != 'internal' and picking_id in (select id from stock_picking where date < '%s' and state = 'done')
                 )foo
         '''%(product_id,date_from,product_id,date_from)
         self.cr.execute(sql)
