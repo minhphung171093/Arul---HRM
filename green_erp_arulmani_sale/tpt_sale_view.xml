@@ -768,6 +768,7 @@
             <field name="arch" type="xml">
                 <tree string="Batch Allotment">
                     <field name="batch_request_id"/>
+                    <field name="sale_order_id"/>
                     <field name="name"/>
                     <field name="state"/>
                 </tree>
