@@ -742,6 +742,7 @@
                     		<field name="sale_order_id" domain="[('state','=','progress')]" options="{'create': false, 'create_edit': false}" attrs="{'readonly':[('state','in',('cancel','confirm'))]}"/>
                     		<field name="customer_id" domain="[('customer','=',1),('is_company','=',1)]" options="{'create': false, 'create_edit': false}" attrs="{'readonly':[('state','in',('cancel','confirm'))]}"/>
                     		<field name="description" attrs="{'readonly':[('state','in',('cancel','confirm'))]}"/>
+                    		<field name="requested_qty"/>
 	                    </group>
 	                    <notebook>
 		                    <page string="Product Information" autofocus="autofocus">
@@ -750,9 +751,9 @@
 	                            		<field name="product_id" on_change="onchange_product_id(product_id,parent.batch_request_id)" domain="[('track_production','=','True'),('track_incoming','=','True'),('track_outgoing','=','True')]" context="{'search_batch_request':True,'batch_request_id':parent.batch_request_id}" options="{'create': false, 'create_edit': false}"/>
 										<field name="product_type" />
 										<field name="application_id" options="{'create': false, 'create_edit': false}"/>
-										<field name="product_uom_qty" on_change="onchange_sys_batch(sys_batch,product_uom_qty)"/>
+										<field name="product_uom_qty"/>
 										<field name="uom_po_id" edit='false' options="{'create': false, 'create_edit': false}"/>
-										<field name="sys_batch" domain="[('product_id','=',product_id),('application_id','=',application_id),('stock_available','!=',0.0)]" options="{'create': false, 'create_edit': false}" on_change="onchange_sys_batch(sys_batch,product_uom_qty,parent.batch_allotment_line)"/>
+										<field name="sys_batch" domain="[('product_id','=',product_id),('application_id','=',application_id),('stock_available','>',0.0)]" options="{'create': false, 'create_edit': false}" on_change="onchange_sys_batch(sys_batch,product_uom_qty,parent.batch_allotment_line)"/>
 										<field name="phy_batch"/>
 	                                </tree>
 	                            </field>

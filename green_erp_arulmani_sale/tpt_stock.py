@@ -293,10 +293,25 @@ class stock_picking(osv.osv):
         batch_no=''
         for p in cr.fetchall(): 
             batch_no = batch_no +',  '+ p[0]  
-        batch_no =  batch_no[1:]   
-        if len(batch_no) < 399:
-            space_count = 399-len(batch_no)
-            batch_no = batch_no.ljust(space_count)                     
+        if picking.sale_id:
+            sql = '''
+            select product_id from sale_order_line where order_id=%s
+            '''%picking.sale_id.id
+            cr.execute(sql)
+            prod_id = cr.fetchone()
+            
+            prd_obj = self.pool.get('product.product').browse(cr,uid, prod_id)
+            is_batch = prd_obj.batch_appli_ok
+            batch_nos = ''
+            if is_batch=='t':
+                batch_nos =  batch_no 
+            batch_no =  batch_no[1:]   
+            batch_no =  batch_nos[1:]   
+        #=======================================================================
+        # if len(batch_no) < 399:
+        #     space_count = 399-len(batch_no)
+        #     batch_no = batch_no.ljust(space_count)                     
+        #=======================================================================
         invoice_vals['material_info'] = batch_no
         
         invoice_vals['amount_untaxed'] = picking.sale_id and picking.sale_id.amount_untaxed or False
@@ -782,24 +797,48 @@ class stock_picking(osv.osv):
         for picking in self.browse(cr, uid, ids, context=context):
             if picking.warehouse:
                 for line in picking.move_lines:
-                    sql = '''
-                        select case when sum(foo.product_qty)!=0 then sum(foo.product_qty) else 0 end onhand_qty from 
-                            (select st.product_qty as product_qty
-                                from stock_move st 
-                                where st.state='done' and st.product_id=%s and st.location_dest_id=%s and st.location_dest_id != st.location_id
-                             union all
-                             select st.product_qty*-1 as product_qty
-                                from stock_move st 
-                                where st.state='done'
-                                and st.product_id=%s
-                                and location_id=%s
-                                and location_dest_id != location_id
-                            )foo
-                    '''%(line.product_id.id,picking.warehouse.id,line.product_id.id,picking.warehouse.id)
-                    cr.execute(sql)
-                    onhand_qty = cr.dictfetchone()['onhand_qty']
-                    if onhand_qty < line.product_qty:
-                        raise osv.except_osv(_('Warning!'),_('Do not have enough quantity for this product on stock!'))
+                    if not line.product_id.batch_appli_ok:
+                        sql = '''
+                            select case when sum(foo.product_qty)!=0 then sum(foo.product_qty) else 0 end onhand_qty from 
+                                (select st.product_qty as product_qty
+                                    from stock_move st 
+                                    where st.state='done' and st.product_id=%s and st.location_dest_id=%s and st.location_dest_id != st.location_id
+                                 union all
+                                 select st.product_qty*-1 as product_qty
+                                    from stock_move st 
+                                    where st.state='done'
+                                    and st.product_id=%s
+                                    and location_id=%s
+                                    and location_dest_id != location_id
+                                )foo
+                        '''%(line.product_id.id,picking.warehouse.id,line.product_id.id,picking.warehouse.id)
+                        cr.execute(sql)
+                        onhand_qty = cr.dictfetchone()['onhand_qty']
+                        if onhand_qty < line.product_qty:
+                            raise osv.except_osv(_('Warning!'),_('Do not have enough quantity for this product on stock!'))
+                    else:
+                        if not line.prodlot_id:
+                            raise osv.except_osv(_('Warning!'),_('Need to select batch number for batch applicable product!'))
+                        else:
+                            sql = '''
+                                select case when sum(foo.product_qty)!=0 then sum(foo.product_qty) else 0 end onhand_qty from 
+                                    (select st.product_qty as product_qty
+                                        from stock_move st 
+                                        where st.state='done' and st.product_id=%s and st.location_dest_id=%s and st.location_dest_id != st.location_id and prodlot_id = %s
+                                     union all
+                                     select st.product_qty*-1 as product_qty
+                                        from stock_move st 
+                                        where st.state='done'
+                                        and st.product_id=%s
+                                        and location_id=%s
+                                        and location_dest_id != location_id
+                                        and prodlot_id = %s
+                                    )foo
+                            '''%(line.product_id.id,picking.warehouse.id,line.prodlot_id.id,line.product_id.id,picking.warehouse.id,line.prodlot_id.id)
+                            cr.execute(sql)
+                            onhand_qty = cr.dictfetchone()['onhand_qty']
+                            if onhand_qty < line.product_qty:
+                                raise osv.except_osv(_('Warning!'),_('Do not have enough quantity for this product on stock!'))
                 picking.force_assign(cr, uid, [picking.id])
         return True
     
@@ -1084,9 +1123,12 @@ class account_invoice(osv.osv):
         'rem_date':fields.datetime('Date & Time of Rem.Of Goods', readonly=True, states={'draft':[('readonly',False)]}),
         'inv_date_as_char':fields.char('Date & Time of Invoice',readonly=True, states={'draft':[('readonly',False)]}),
         'rem_date_as_char':fields.char('Date & Time of Rem.Of Goods',readonly=True, states={'draft':[('readonly',False)]}),
+        'header_text': fields.char('Header Text', readonly=True, states={'draft':[('readonly',False)]}),
         'material_info': fields.text('Material Additional Info',readonly=True, states={'draft':[('readonly',False)]}),
         'other_info': fields.text('Other Info', readonly=True, states={'draft':[('readonly',False)]}),
         'lc_no': fields.char('L.C Number.', size = 1024, readonly=True, states={'draft':[('readonly',False)]}),
+        'tod_place': fields.char('Terms Of Delivery Place', size = 1024, readonly=True, states={'draft':[('readonly',False)]}),
+        'country_dest': fields.char('Country of Final Destination', size = 1024, readonly=True, states={'draft':[('readonly',False)]}),
         'port_of_loading_id': fields.char('Port Of Loading', size = 1024, readonly=True, states={'draft':[('readonly',False)]}),
         'port_of_discharge_id': fields.char('Port Of Discharge', size = 1024, readonly=True, states={'draft':[('readonly',False)]}),
         'disc_goods': fields.text('Discription Of Goods', size = 1024, readonly=True, states={'draft':[('readonly',False)]}),
