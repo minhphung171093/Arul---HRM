@@ -296,7 +296,6 @@ class Parser(report_sxw.rml_parse):
                    if inspec:
                        inspec = inspec[0]
                    else:
-                       
                        inspec = 0
                    ton = ton  + inspec
             return ton
