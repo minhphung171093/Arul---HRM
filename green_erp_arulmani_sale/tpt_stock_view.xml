@@ -259,7 +259,8 @@
 					<field name="payment_term" options="{'create': false, 'create_edit': false}"/>
 					<field name="sale_tax_id" domain="[('type_tax_use','=','sale')]" options="{'create': false, 'create_edit': false}"/>
 					<field name="invoice_type" required ='1'/>
-					<field name="material_info" />
+					<field name="header_text" />
+					<field name="material_info" readonly="1"/>
 					<field name="other_info" />
 					<field name="vessel_flight_no" />	
 					<field name="lc_no" />									
@@ -354,11 +355,11 @@
             		<button name="management_confirm" string="Management Confirm" attrs="{'invisible': ['|',('doc_status','!=','waiting'),('flag_confirm','=',True)]}" type="object" icon="gtk-apply" 
 		                confirm="This Delivery Order is reached the credit limit. Do you want to confirm this Delivery Order?"
 		                groups="green_erp_arulmani_sale.group_vvti_sale_gm"/>
-		                <!-- TPT ON 04/04/2015 - TO HIDE THIS REOPEN BUTTON
-	                <button name="action_revert_done" string="Reopen" states="done,cancel" type="object" icon="gtk-cancel" 
+		               
+	                <!--<button name="action_revert_done" string="Reopen" states="done,cancel" type="object" icon="gtk-cancel" 
 	                	confirm="Do you want to reopen this Delivery Order?"
-	                />
-	                -->
+	                />-->
+	                
 	            </button>
             	<xpath expr="//field[@name='stock_journal_id']"  position="replace">
             		<field name="stock_journal_id" invisible="1"/>

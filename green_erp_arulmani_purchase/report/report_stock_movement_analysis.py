@@ -212,7 +212,6 @@ class Parser(report_sxw.rml_parse):
                                 (select st.product_qty
                                     from stock_move st 
                                     where st.state='done' and st.product_id = %s and st.location_dest_id = %s 
-                                    
                                     and picking_id in (select id from stock_picking where move_date between '%s' and '%s' and state = 'done')
                                 )foo
                         '''%(line,locat_ids[0],date_from,date_to)
