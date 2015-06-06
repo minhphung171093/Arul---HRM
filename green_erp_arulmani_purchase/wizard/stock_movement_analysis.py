@@ -265,7 +265,7 @@ class stock_movement_analysis(osv.osv_memory):
                             '''%(line,locat_ids[0],date_from,date_to)
                 cr.execute(sql)
                 ton_arr = cr.fetchone()
-                if ton:
+                if ton_arr:
                     ton = ton_arr[0]
                 else:
                     ton = 0
