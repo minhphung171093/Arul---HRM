@@ -518,6 +518,7 @@ class stock_picking(osv.osv):
                             'partner_id': line.partner_id and line.partner_id.id or False,
                             'credit':0,
                             'debit':debit,
+                            'product_id':p.product_id.id,
                         }))
                         
                         if not p.product_id.purchase_acc_id:
