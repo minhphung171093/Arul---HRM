@@ -3476,6 +3476,7 @@ class tpt_material_issue(osv.osv):
                                                 'account_id': acc_asset,
                                                 'debit':0,
                                                 'credit':product_price,
+                                                'product_id':mater.product_id.id,
                                                  
                                                }))
                         journal_line.append((0,0,{
@@ -3483,6 +3484,7 @@ class tpt_material_issue(osv.osv):
                                     'account_id': acc_expense,
                                     'credit':0,
                                     'debit':product_price,
+                                    'product_id':mater.product_id.id,
                                 }))
                     value={
                         'journal_id':journal_ids[0],
