@@ -250,6 +250,7 @@ class stock_movement_analysis(osv.osv_memory):
             date_to = o.date_to
             categ = o.categ_id.cate_name
             ton = 0
+            inspec = 0
     #         categ_ids = self.pool.get('product.category').search(self.cr, self.uid, [('id','=',categ[0])])
             if categ=='raw':
                 parent_ids = self.pool.get('stock.location').search(cr, uid, [('name','=','Store'),('usage','=','view')])
