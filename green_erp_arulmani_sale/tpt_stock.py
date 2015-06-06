@@ -302,10 +302,15 @@ class stock_picking(osv.osv):
             
             prd_obj = self.pool.get('product.product').browse(cr,uid, prod_id)
             is_batch = prd_obj.batch_appli_ok
+            sql = ''' select batch_appli_ok from product_product where id=%s
+            '''%prod_id
+            cr.execute(sql)
+            temp = cr.fetchone()
+            is_batch = temp[0]
             batch_nos = ''
-            if is_batch=='t':
+            if is_batch==True:
                 batch_nos =  batch_no 
-            batch_no =  batch_no[1:]   
+            #batch_no =  batch_no[1:]   
             batch_no =  batch_nos[1:]   
         #=======================================================================
         # if len(batch_no) < 399:
