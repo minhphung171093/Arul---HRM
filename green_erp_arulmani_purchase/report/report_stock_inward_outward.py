@@ -286,8 +286,8 @@ class Parser(report_sxw.rml_parse):
        self.cr.execute(sql)
        inventory = self.cr.dictfetchone()
        if inventory:
-           hand_quantity = float(inventory['ton_sl'])
-           total_cost = float(inventory['total_cost'])
+           hand_quantity = inventory['ton_sl'] or 0
+           total_cost = inventory['total_cost'] or 0
            avg_cost = hand_quantity and total_cost/hand_quantity or 0
            sql = '''
                select case when sum(product_isu_qty)!=0 then sum(product_isu_qty) else 0 end product_isu_qty
@@ -333,8 +333,8 @@ class Parser(report_sxw.rml_parse):
            self.cr.execute(sql)
            inventory = self.cr.dictfetchone()
            if inventory:
-               hand_quantity = float(inventory['ton_sl'])
-               total_cost = float(inventory['total_cost'])
+               hand_quantity = inventory['ton_sl'] or 0
+               total_cost = inventory['total_cost'] or 0
                avg_cost = hand_quantity and total_cost/hand_quantity or 0 
            return avg_cost
        
@@ -364,8 +364,8 @@ class Parser(report_sxw.rml_parse):
            self.cr.execute(sql)
            inventory = self.cr.dictfetchone()
            if inventory:
-               hand_quantity = float(inventory['ton_sl'])
-               total_cost = float(inventory['total_cost'])
+               hand_quantity = inventory['ton_sl'] or 0
+               total_cost = inventory['total_cost'] or 0
 #                avg_cost = hand_quantity and total_cost/hand_quantity or 0 
            sql = '''
                select * from stock_move where picking_id in (select id from stock_picking where name in (select LEFT(name,17) from account_move_line where move_id = %s))
@@ -379,8 +379,8 @@ class Parser(report_sxw.rml_parse):
                    self.cr.execute(sql)
                    inspec = self.cr.dictfetchone()
                    if inspec:
-                       hand_quantity += float(inspec['qty_approve'])
-                       total_cost += line['price_unit'] * float(inspec['qty_approve'])
+                       hand_quantity += inspec['qty_approve'] or 0
+                       total_cost += line['price_unit'] * (inspec['qty_approve'] or 0)
            avg_cost = hand_quantity and total_cost/hand_quantity or 0 
            return avg_cost
        
@@ -410,8 +410,8 @@ class Parser(report_sxw.rml_parse):
            self.cr.execute(sql)
            inventory = self.cr.dictfetchone()
            if inventory:
-               hand_quantity = float(inventory['ton_sl'])
-               total_cost = float(inventory['total_cost'])
+               hand_quantity = inventory['ton_sl'] or 0
+               total_cost = inventory['total_cost'] or 0
                avg_cost = hand_quantity and total_cost/hand_quantity or 0 
            return avg_cost
     
