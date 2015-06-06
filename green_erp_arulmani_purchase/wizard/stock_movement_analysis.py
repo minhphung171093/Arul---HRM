@@ -274,11 +274,11 @@ class stock_movement_analysis(osv.osv_memory):
                        select * from stock_move where product_id = %s and picking_id in (select id from stock_picking where date between '%s' and '%s' and state = 'done')
                    '''%(line,date_from,date_to) 
                 cr.execute(sql)
-                for line in cr.dictfetchall():
-                   if line['action_taken'] == 'need':
+                for move in cr.dictfetchall():
+                   if move['action_taken'] == 'need':
                        sql = '''
                            select qty_approve from tpt_quanlity_inspection where need_inspec_id = %s and state = 'done'
-                       '''%(line['id'])
+                       '''%(move['id'])
                        cr.execute(sql)
                        inspec_arr = cr.fetchone()
                        if inspec_arr:
@@ -310,11 +310,11 @@ class stock_movement_analysis(osv.osv_memory):
                        select * from stock_move where product_id = %s and picking_id in (select id from stock_picking where date between '%s' and '%s' and state = 'done')
                    '''%(line,date_from,date_to) 
                 cr.execute(sql)
-                for line in cr.dictfetchall():
-                   if line['action_taken'] == 'need':
+                for move in cr.dictfetchall():
+                   if move['action_taken'] == 'need':
                        sql = '''
                            select qty_approve from tpt_quanlity_inspection where need_inspec_id = %s and state = 'done'
-                       '''%(line['id'])
+                       '''%(move['id'])
                        cr.execute(sql)
                        inspec_arr = cr.fetchone()
                        if inspec_arr:
