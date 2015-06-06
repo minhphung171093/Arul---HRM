@@ -528,6 +528,7 @@ class stock_picking(osv.osv):
                             'partner_id': line.partner_id and line.partner_id.id or False,
                             'credit':credit,
                             'debit':0,
+                            'product_id':p.product_id.id,
                         }))
                          
                     value={
@@ -593,6 +594,7 @@ class stock_picking(osv.osv):
                         
                         debit += p.sale_line_id and p.sale_line_id.price_unit * p.product_qty or 0
                         product_name = p.product_id.name
+                        product_id = p.product_id.id
                         account = self.get_pro_account_id(cr,uid,product_name,dis_channel)
                         if not account:
 #                             raise osv.except_osv(_('Warning!'),_('Account is not created for this Distribution Channel! Please check it!'))
@@ -611,6 +613,7 @@ class stock_picking(osv.osv):
                                 'partner_id': line.partner_id and line.partner_id.id,
                                 'credit':0,
                                 'debit':debit,
+                                'product_id':product_id,
                             }))
                      
                     journal_line.append((0,0,{
@@ -619,6 +622,7 @@ class stock_picking(osv.osv):
                         'partner_id': line.partner_id and line.partner_id.id,
                         'credit':debit,
                         'debit':0,
+                        'product_id':product_id,
                     }))
                           
                     value={
@@ -3400,6 +3404,7 @@ class tpt_material_issue(osv.osv):
                                             'account_id': acc_asset,
                                             'debit':0,
                                             'credit':product_price,
+                                            'product_id':mater.product_id.id,
                                              
                                            }))
                     journal_line.append((0,0,{
@@ -3407,6 +3412,7 @@ class tpt_material_issue(osv.osv):
                                 'account_id': acc_expense,
                                 'credit':0,
                                 'debit':product_price,
+                                'product_id':mater.product_id.id,
                             }))
                 value={
                     'journal_id':journal_ids[0],
