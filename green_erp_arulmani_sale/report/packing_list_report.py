@@ -149,7 +149,7 @@ class Parser(report_sxw.rml_parse):
                      'tod_place':tod_place,
                      'lc_no':lc_no,
                      'payment_term':payment_term,
-                     'gross_weight':gross_weight,
+                     'gross_weight':"{:,}".format(int(gross_weight)),# int(gross_weight),
                      #'qty':qty,
                      }) 
         return vals
@@ -171,8 +171,9 @@ class Parser(report_sxw.rml_parse):
         self.cr.execute(sql)
         vals = self.cr.dictfetchone()
         qty = vals['quantity']
+        qty = qty * 1000
         vals.update({
-                     'qty':int(qty * 1000)
+                     'qty':"{:,}".format(int(qty)),
                      })
         return vals
     def get_date(self, date=False):
