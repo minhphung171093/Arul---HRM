@@ -230,6 +230,7 @@ class Parser(report_sxw.rml_parse):
         date_to = wizard_data['date_to']
         categ = wizard_data['categ_id']
         ton = 0
+        inspec = 0
 #         categ_ids = self.pool.get('product.category').search(self.cr, self.uid, [('id','=',categ[0])])
         if categ[1]=='Raw Materials':
             parent_ids = self.pool.get('stock.location').search(self.cr, self.uid, [('name','=','Store'),('usage','=','view')])
