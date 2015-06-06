@@ -232,8 +232,8 @@ class stock_movement_analysis(osv.osv_memory):
                 cr.execute(sql)
                 inventory = cr.dictfetchone()
             if inventory:
-                hand_quantity = float(inventory['ton_sl'])
-                total_cost = float(inventory['total_cost'])
+                hand_quantity = inventory['ton_sl'] or 0
+                total_cost = inventory['total_cost'] or 0
                 avg_cost = hand_quantity and total_cost/hand_quantity or 0
                 sql = '''
                     select case when sum(product_isu_qty)!=0 then sum(product_isu_qty) else 0 end product_isu_qty
@@ -267,7 +267,7 @@ class stock_movement_analysis(osv.osv_memory):
                 cr.execute(sql)
                 ton_arr = cr.fetchone()
                 if ton_arr:
-                    ton = ton_arr[0]
+                    ton = ton_arr[0] or 0
                 else:
                     ton = 0
                 sql = '''
@@ -282,7 +282,7 @@ class stock_movement_analysis(osv.osv_memory):
                        cr.execute(sql)
                        inspec_arr = cr.fetchone()
                        if inspec_arr:
-                           inspec = inspec_arr[0]
+                           inspec = inspec_arr and inspec_arr[0] or 0
                        else:
                            inspec = 0
                        ton = ton + inspec
@@ -303,7 +303,7 @@ class stock_movement_analysis(osv.osv_memory):
                 cr.execute(sql)
                 ton_arr = cr.fetchone()
                 if ton_arr:
-                    ton = ton_arr[0]
+                    ton = ton_arr[0] or 0
                 else:
                     ton = 0
                 sql = '''
@@ -318,7 +318,7 @@ class stock_movement_analysis(osv.osv_memory):
                        cr.execute(sql)
                        inspec_arr = cr.fetchone()
                        if inspec_arr:
-                           inspec = inspec_arr[0]
+                           inspec = inspec_arr[0] or 0
                        else:
                            inspec = 0
                        ton = ton  + inspec
@@ -327,6 +327,7 @@ class stock_movement_analysis(osv.osv_memory):
         def get_receipt_value(o, product_id):
             date_from = o.date_from
             date_to = o.date_to
+            hand_quantity = 0
             sql = '''
                 select case when sum(foo.product_qty)!=0 then sum(foo.product_qty) else 0 end ton_sl,case when sum(foo.price_unit)!=0 then sum(foo.price_unit) else 0 end total_cost from 
                     (select st.product_qty as product_qty,st.price_unit*st.product_qty as price_unit
@@ -339,8 +340,8 @@ class stock_movement_analysis(osv.osv_memory):
             cr.execute(sql)
             inventory = cr.dictfetchone()
             if inventory:
-                hand_quantity = float(inventory['ton_sl'])
-                total_cost = float(inventory['total_cost'])
+                hand_quantity = inventory['ton_sl'] or 0
+                total_cost = inventory['total_cost'] or 0
             sql = '''
                    select * from stock_move where product_id = %s and picking_id in (select id from stock_picking where date between '%s' and '%s' and state = 'done')
                '''%(product_id,date_from,date_to) 
@@ -353,8 +354,8 @@ class stock_movement_analysis(osv.osv_memory):
                    cr.execute(sql)
                    inspec = cr.dictfetchone()
                    if inspec:
-                       hand_quantity += float(inspec['qty_approve'])
-                       total_cost += line['price_unit'] * float(inspec['qty_approve'])
+                       hand_quantity += inspec['qty_approve'] or 0
+                       total_cost += line['price_unit'] * (inspec['qty_approve'] or 0)
             return total_cost  
             
         def get_qty_out(o, line):
@@ -430,8 +431,8 @@ class stock_movement_analysis(osv.osv_memory):
             cr.execute(sql)
             inventory = cr.dictfetchone()
             if inventory:
-                hand_quantity = float(inventory['ton_sl'])
-                total_cost = float(inventory['total_cost'])
+                hand_quantity = inventory['ton_sl'] or 0
+                total_cost = inventory['total_cost'] or 0
                 avg_cost = hand_quantity and total_cost/hand_quantity or 0
                 if categ=='raw':
                     parent_ids = self.pool.get('stock.location').search(cr, uid, [('name','=','Store'),('usage','=','view')])

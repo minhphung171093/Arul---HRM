@@ -246,7 +246,7 @@ class Parser(report_sxw.rml_parse):
             self.cr.execute(sql)
             ton_arr = self.cr.fetchone()
             if ton_arr:
-                ton = ton_arr[0]
+                ton = ton_arr[0] or 0
             else:
                 ton = 0
             sql = '''
@@ -261,7 +261,7 @@ class Parser(report_sxw.rml_parse):
                    self.cr.execute(sql)
                    inspec_arr = self.cr.fetchone()
                    if inspec_arr:
-                       inspec = inspec_arr[0]
+                       inspec = inspec_arr[0] or 0
                    else:
                        inspec = 0
                    ton = ton  + inspec
@@ -281,7 +281,7 @@ class Parser(report_sxw.rml_parse):
             self.cr.execute(sql)
             ton_arr = self.cr.fetchone()
             if ton_arr:
-                ton = ton_arr[0]
+                ton = ton_arr[0] or 0
             else:
                 ton = 0
             sql = '''
@@ -296,7 +296,7 @@ class Parser(report_sxw.rml_parse):
                    self.cr.execute(sql)
                    inspec_arr = self.cr.fetchone()
                    if inspec_arr:
-                       inspec = inspec_arr[0]
+                       inspec = inspec_arr[0] or 0
                    else:
                        inspec = 0
                    ton = ton  + inspec
@@ -393,6 +393,7 @@ class Parser(report_sxw.rml_parse):
         date_from = wizard_data['date_from']
         date_to = wizard_data['date_to']
         opening_stock_value = 0
+        hand_quantity = 0
         sql = '''
             select case when sum(foo.product_qty)!=0 then sum(foo.product_qty) else 0 end ton_sl,case when sum(foo.price_unit)!=0 then sum(foo.price_unit) else 0 end total_cost from 
                 (select st.product_qty as product_qty,st.price_unit*st.product_qty as price_unit
@@ -405,8 +406,8 @@ class Parser(report_sxw.rml_parse):
         self.cr.execute(sql)
         inventory = self.cr.dictfetchone()
         if inventory:
-            hand_quantity = float(inventory['ton_sl'])
-            total_cost = float(inventory['total_cost'])
+            hand_quantity = inventory['ton_sl'] or 0
+            total_cost = inventory['total_cost'] or 0
         sql = '''
                    select * from stock_move where product_id = %s and picking_id in (select id from stock_picking where date between '%s' and '%s' and state = 'done')
                '''%(product_id,date_from,date_to) 
@@ -419,8 +420,8 @@ class Parser(report_sxw.rml_parse):
                 self.cr.execute(sql)
                 inspec = self.cr.dictfetchone()
                 if inspec:
-                       hand_quantity += float(inspec['qty_approve'])
-                       total_cost += line['price_unit'] * float(inspec['qty_approve'])
+                       hand_quantity += inspec['qty_approve'] or 0
+                       total_cost += line['price_unit'] * (inspec['qty_approve'] or 0)
         return total_cost  
 #             avg_cost = hand_quantity and total_cost/hand_quantity or 0
 #             sql = '''
@@ -430,7 +431,6 @@ class Parser(report_sxw.rml_parse):
 #             self.cr.execute(sql)
 #             product_isu_qty = self.cr.fetchone()[0]
 #             opening_stock_value = total_cost-(product_isu_qty*avg_cost)
-        return total_cost  
             
     def get_consumption_value(self, product_id):
         wizard_data = self.localcontext['data']['form']
@@ -480,8 +480,8 @@ class Parser(report_sxw.rml_parse):
         self.cr.execute(sql)
         inventory = self.cr.dictfetchone()
         if inventory:
-            hand_quantity = float(inventory['ton_sl'])
-            total_cost = float(inventory['total_cost'])
+            hand_quantity = inventory['ton_sl'] or 0
+            total_cost = inventory['total_cost'] or 0
             avg_cost = hand_quantity and total_cost/hand_quantity or 0
             if categ[1]=='Raw Materials':
                 parent_ids = self.pool.get('stock.location').search(self.cr, self.uid, [('name','=','Store'),('usage','=','view')])
