@@ -302,10 +302,15 @@ class stock_picking(osv.osv):
             
             prd_obj = self.pool.get('product.product').browse(cr,uid, prod_id)
             is_batch = prd_obj.batch_appli_ok
+            sql = ''' select batch_appli_ok from product_product where id=%s
+            '''%prod_id
+            cr.execute(sql)
+            temp = cr.fetchone()
+            is_batch = temp[0]
             batch_nos = ''
-            if is_batch=='t':
+            if is_batch==True:
                 batch_nos =  batch_no 
-            batch_no =  batch_no[1:]   
+            #batch_no =  batch_no[1:]   
             batch_no =  batch_nos[1:]   
         #=======================================================================
         # if len(batch_no) < 399:
@@ -1129,6 +1134,7 @@ class account_invoice(osv.osv):
         'lc_no': fields.char('L.C Number.', size = 1024, readonly=True, states={'draft':[('readonly',False)]}),
         'tod_place': fields.char('Terms Of Delivery Place', size = 1024, readonly=True, states={'draft':[('readonly',False)]}),
         'country_dest': fields.char('Country of Final Destination', size = 1024, readonly=True, states={'draft':[('readonly',False)]}),
+        'gross_weight': fields.float('Gross Weight in KGS (For Packing List)', readonly=True, states={'draft':[('readonly',False)]}),
         'port_of_loading_id': fields.char('Port Of Loading', size = 1024, readonly=True, states={'draft':[('readonly',False)]}),
         'port_of_discharge_id': fields.char('Port Of Discharge', size = 1024, readonly=True, states={'draft':[('readonly',False)]}),
         'disc_goods': fields.text('Discription Of Goods', size = 1024, readonly=True, states={'draft':[('readonly',False)]}),
