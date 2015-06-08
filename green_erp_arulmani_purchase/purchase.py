@@ -3411,7 +3411,7 @@ class tpt_product_specification(osv.osv):
         'value' : fields.float('Value',digits=(16,3),required = True),
         'exp_value' : fields.char('Experimental Value',size = 1024),
         'uom_id': fields.many2one('product.uom', 'UOM'),
-        'specification_id':fields.many2one('res.partner','Supplier'),
+        'specification_id':fields.many2one('tpt.quanlity.inspection','Quanlity Inspection',ondelete='cascade'),
  
                 }
 tpt_product_specification()
