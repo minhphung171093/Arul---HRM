@@ -286,6 +286,7 @@ class product_product(osv.osv):
     def name_search(self, cr, user, name, args=None, operator='ilike', context=None, limit=100):
        ids = self.search(cr, user, args, context=context, limit=limit)
        return self.name_get(cr, user, ids, context=context)
+product_product()
 
 class stock_location(osv.osv):
     _inherit = "stock.location"
