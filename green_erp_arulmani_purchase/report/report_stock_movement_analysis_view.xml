@@ -1,0 +1,104 @@
+<?xml version="1.0" encoding="utf-8"?>
+<openerp>
+    <data>
+    	<record id="report_stock_movement_analysis_xls" model="ir.actions.report.xml">
+	        <field name="name">report_stock_movement_analysis_xls</field>
+	        <field name="type">ir.actions.report.xml</field>
+	        <field name="model">tpt.form.movement.analysis</field>
+	        <field name="report_name">report_stock_movement_analysis_xls</field>
+	        <field name="report_type">aeroo</field>
+	        <field name="in_format">oo-ods</field>
+	        <field name="out_format" model="report.mimetypes" search="[('code','=','oo-xls'),('compatible_types','=','oo-ods')]"/>
+	        <field name="parser_loc">green_erp_arulmani_purchase/report/report_stock_movement_analysis.py</field>
+	        <field name="report_rml">green_erp_arulmani_purchase/report/report_stock_movement_analysis.ods</field>
+	        <field name="parser_state">loc</field>
+	        <field name="tml_source">file</field>
+	        <field name="attachment_use" eval="0"/>
+    	</record>		    
+		
+		<report 
+			auto="True" 
+			menu="False"
+			id="report_stock_movement_analysis_xls" 
+			model="tpt.form.movement.analysis" 
+			name="report_stock_movement_analysis_xls"
+	        string="Stock Movement Analysis Report"
+	        rml="green_erp_arulmani_purchase/report/report_stock_movement_analysis.ods"/>	
+	        
+	      
+    	<record id="report_stock_movement_analysis_pdf" model="ir.actions.report.xml">
+	        <field name="name">report_stock_movement_analysis_pdf</field>
+	        <field name="type">ir.actions.report.xml</field>
+	        <field name="model">tpt.form.movement.analysis</field>
+	        <field name="report_name">report_stock_movement_analysis_pdf</field>
+	        <field name="report_type">aeroo</field>
+	        <field name="in_format">oo-ods</field>
+	        <field name="out_format" model="report.mimetypes" search="[('code','=','oo-pdf'),('compatible_types','=','oo-ods')]"/>
+	        <field name="parser_loc">green_erp_arulmani_purchase/report/report_stock_movement_analysis.py</field>
+	        <field name="report_rml">green_erp_arulmani_purchase/report/report_stock_movement_analysis.ods</field>
+	        <field name="parser_state">loc</field>
+	        <field name="tml_source">file</field>
+	        <field name="attachment_use" eval="0"/>
+    	</record>		    
+		
+		<report 
+			auto="True" 
+			menu="False"
+			id="report_stock_movement_analysis_pdf" 
+			model="tpt.form.movement.analysis" 
+			name="report_stock_movement_analysis_pdf"
+	        string="Stock Movement Analysis Report"
+	        rml="green_erp_arulmani_purchase/report/report_stock_movement_analysis.ods"/>	
+	        
+	        
+	    <record id="view_tpt_form_movement_analysis" model="ir.ui.view">
+	        <field name="name">view.tpt.form.movement.analysis</field>
+	        <field name="model">tpt.form.movement.analysis</field>
+	        <field name="arch" type="xml">
+	            <form version='7.0' string="Stock Movement Analysis" create="false" edit="false" delete="false">
+	            	<header>
+	            		<button name="print_xls" string="Print (.xls)" type="object" class="oe_highlight" />
+	            		<button name="print_pdf" string="Print (.pdf)" type="object" class="oe_highlight" />
+	            	</header>
+	            	<sheet>
+	            		<div class="oe_text_center">
+            				<b>Stock Movement Analysis</b>
+            			</div>
+            			<div class="oe_bold oe_text_left">
+            				<field name="date_from_title" nolabel = '1' class="oe_text_left oe_inline"/> 
+            				<field name="date_from" class="oe_text_left oe_inline"/> 
+            				<field name="categ_name" class="oe_right oe_inline"/> 
+            				<field name="categ_name_title" nolabel = '1' class="oe_right oe_inline"/> 
+
+            			</div>
+            			<div class="oe_bold oe_text_left">
+            				<field name="date_to_title" nolabel = '1' class=" oe_text_left oe_inline"/> 
+            				<field name="date_to" class = "oe_text_left oe_inline"/>
+            				<field name="product_name" class="oe_right oe_inline"/> 
+            			    <field name="product_name_title" nolabel = '1' class="oe_right oe_inline"/> 
+
+            			</div>
+	                	<group>
+		                	<field name="movement_line" nolabel='1'>
+		                		<tree create="false" edit="false" delete="false">          
+		                			<field name="item_code"/>
+		                			<field name="item_name"/>
+		                			<field name="uom"/>
+		                			<field name="open_stock"/>
+		                			<field name="open_value"/>
+		                			<field name="receipt_qty"/>
+		                			<field name="receipt_value"/>
+		                			<field name="consum_qty"/>
+		                			<field name="consum_value"/>
+		                			<field name="close_stock"/>
+		                			<field name="close_value"/>
+		                		</tree>
+		                	</field>
+	                	</group> 
+	               	</sheet>
+	           </form>
+	        </field>
+	    </record>
+	        
+    </data>
+</openerp>

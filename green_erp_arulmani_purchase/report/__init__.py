@@ -6,3 +6,4 @@ import purchase_order_report
 import report_stock_on_hand
 import report_stock_inward_outward
 import grn_report
+import report_stock_movement_analysis
