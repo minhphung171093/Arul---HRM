@@ -77,17 +77,20 @@ def amount_to_text(number, currency):
     number = '%.2f' % number
     if currency=='inr':
         units_name = 'RUPEES'
-    else:
+    elif currency=='usd':
         units_name = 'USD'
+    else:
+        units_name = 'GBP'
     list = str(number).split('.')
     start_word = english_number(int(list[0]))
     end_word = english_number(int(list[1]))
     cents_number = int(list[1])
     cents_name = (cents_number > 1) and 'Cents' or 'Cent'
-    if currency=='usd':
-        final_result =units_name +' '+ start_word.title() +' and ' + str.lower(end_word) +' '+ str.lower(cents_name)
+    if currency=='usd' or currency=='gbp':
+#         final_result =units_name +' '+ start_word.title() +' and ' + str.lower(end_word) +' '+ str.lower(cents_name)
+        final_result =units_name +' '+ start_word.title() +' and ' + str.lower(end_word) +' ONLY'
     else:
-        final_result = start_word.title() +' '+units_name+' and ' + str.lower(end_word) +' PAISA ONLY'
+        final_result = start_word.title() +'LAKH '+units_name+' and ' + str.lower(end_word) +' ONLY'
     return final_result
 
 
