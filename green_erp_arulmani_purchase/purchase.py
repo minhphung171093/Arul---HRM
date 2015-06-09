@@ -3292,7 +3292,7 @@ class tpt_quanlity_inspection(osv.osv):
         'supplier_id':fields.many2one('res.partner','Supplier',required = True,readonly = True,states={'cancel': [('readonly', True)], 'done':[('readonly', True)]}),
         'product_id': fields.many2one('product.product', 'Product',required = True,readonly = True,states={'cancel': [('readonly', True)], 'done':[('readonly', True)]}),
         'reason':fields.text('Reason',states={'cancel': [('readonly', True)], 'done':[('readonly', True)]}),
-        'specification_line':fields.one2many('tpt.product.specification','specification_id','Product Specification'),
+        'specification_line':fields.one2many('tpt.product.specification','specifi_id','Product Specification'),
         'qty':fields.float('Qty',digits=(16,3),states={'cancel': [('readonly', True)], 'done':[('readonly', True)]}),
         'qty_approve':fields.float('Qty Approve',digits=(16,3),states={'cancel': [('readonly', True)], 'done':[('readonly', True)]}),
         'remaining_qty':fields.float('Inspection Quantity',digits=(16,3), readonly= True),
@@ -3411,7 +3411,7 @@ class tpt_product_specification(osv.osv):
         'value' : fields.float('Value',digits=(16,3),required = True),
         'exp_value' : fields.char('Experimental Value',size = 1024),
         'uom_id': fields.many2one('product.uom', 'UOM'),
-        'specification_id':fields.many2one('tpt.quanlity.inspection','Quanlity Inspection',ondelete='cascade'),
+        'specifi_id':fields.many2one('tpt.quanlity.inspection','Quanlity Inspection',ondelete='cascade'),
  
                 }
 tpt_product_specification()
