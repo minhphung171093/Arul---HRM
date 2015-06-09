@@ -55,7 +55,7 @@
 			
 			<menuitem action="action_arul_employee_category_form"
 	            id="menu_action_arul_employee_category_form"
-	            parent="menu_vvti_hr_master" sequence="5" groups='group_vvti_hrm_admin'/>
+	            parent="menu_vvti_hr_master" sequence="5" groups="group_vvti_hrm_admin"/>
 	            
 	        <menuitem action="action_arul_hr_payroll_deduction_parameters_form"
 	            id="menu_action_arul_hr_payroll_deduction_parameters_form"
@@ -71,7 +71,7 @@
 	            
             <menuitem action="action_arul_hr_holiday_special_form"
 	            id="menu_action_arul_hr_holiday_special_form"
-	            parent="menu_vvti_hr_master" sequence="25" 
+	            parent="menu_vvti_hr_master" sequence="25"
 	            groups="group_vvti_hrm_plant_hr_user,group_vvti_hrm_hr_key_user,group_vvti_hrm_time_user,group_vvti_hrm_hr_manager,group_vvti_hrm_payroll_controller"/>
 	            
             <menuitem action="action_arul_hr_leave_master_form"
@@ -135,8 +135,7 @@
             	
         	<menuitem action="action_view_arul_hr_section_form"
         		id="menu_action_view_arul_hr_section_form"
-        		parent="menu_vvti_hr_master" sequence="90"
-        		groups='group_vvti_hrm_admin'/>
+        		parent="menu_vvti_hr_master" sequence="90" groups="group_vvti_hrm_admin"/>
         		
 		<menuitem id="menu_vvti_hr_global_master"
 			name="Global Master"
