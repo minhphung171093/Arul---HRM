@@ -4150,7 +4150,7 @@ class tpt_material_request(osv.osv):
                     cr.execute(sql)
                     onhand_qty = cr.dictfetchone()['onhand_qty']
                     if (order_line['product_qty'] > onhand_qty):
-                        raise osv.except_osv(_('Warning!'),_('You are confirm %s but only %s available for this product in stock.' %(order_line['product_qty'], onhand_qty)))
+                        raise osv.except_osv(_('Warning!'),_("You are confirm %s but only %s available for this product '%s' " %(order_line['product_qty'], onhand_qty,product_id.default_code)))
             if cate_name == 'raw':
                 parent_ids = self.pool.get('stock.location').search(cr, uid, [('name','=','Store'),('usage','=','view')])
                 if parent_ids:
@@ -4199,7 +4199,7 @@ class tpt_material_request(osv.osv):
                 cr.execute(sql)
                 onhand_qty = cr.dictfetchone()['onhand_qty']
                 if (order_line['product_qty'] > onhand_qty):
-                    raise osv.except_osv(_('Warning!'),_('You are confirm %s but only %s available for this product in stock.' %(order_line['product_qty'], onhand_qty)))
+                    raise osv.except_osv(_('Warning!'),_("You are confirm %s but only %s available for this product '%s' " %(order_line['product_qty'], onhand_qty,product_id.default_code)))
         return new_id
 
     def onchange_create_uid(self, cr, uid, ids,create_uid=False, context=None):
@@ -4279,7 +4279,7 @@ class tpt_material_request(osv.osv):
                         cr.execute(sql)
                         onhand_qty = cr.dictfetchone()['onhand_qty']
                         if (order_line['product_qty'] > onhand_qty):
-                            raise osv.except_osv(_('Warning!'),_('You are confirm %s but only %s available for this product in stock.' %(order_line['product_qty'], onhand_qty)))
+                            raise osv.except_osv(_('Warning!'),_("You are confirm %s but only %s available for this product '%s'." %(order_line['product_qty'], onhand_qty,product_id.default_code)))
                 if cate_name == 'raw':
                     parent_ids = self.pool.get('stock.location').search(cr, uid, [('name','=','Store'),('usage','=','view')])
                     if parent_ids:
@@ -4310,7 +4310,7 @@ class tpt_material_request(osv.osv):
                     cr.execute(sql)
                     onhand_qty = cr.dictfetchone()['onhand_qty']
                     if (order_line['product_qty'] > onhand_qty):
-                        raise osv.except_osv(_('Warning!'),_('You are confirm %s but only %s available for this product in stock.' %(order_line['product_qty'], onhand_qty)))
+                        raise osv.except_osv(_('Warning!'),_("You are confirm %s but only %s available for this product '%s'." %(order_line['product_qty'], onhand_qty,product_id.default_code)))
         return new_write
 
     def bt_approve(self, cr, uid, ids, context=None):
