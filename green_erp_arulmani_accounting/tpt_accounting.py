@@ -4547,14 +4547,17 @@ class res_partner(osv.osv):
                         acc_parent_ids = self.pool.get('account.account').search(cr,uid, [('code','=','0000119001')])
                     if 'arulmani_type' in vals and vals['arulmani_type']=='indirect_export':
                         acc_parent_ids = self.pool.get('account.account').search(cr,uid, [('code','=','0000119003')])
-                    acc_id = acc_obj.create(cr,uid,{
-                        'code':'0000' + vals['customer_code'],
-                        'name': vals['name'],
-                        'type':'receivable',
-                        'user_type':acc_type_ids[0],
-                        'parent_id':acc_parent_ids[0],
-                                                    })
-                    vals.update({'property_account_receivable':acc_id})
+                    if acc_parent_ids:
+                        acc_id = acc_obj.create(cr,uid,{
+                            'code':'0000' + vals['customer_code'],
+                            'name': vals['name'],
+                            'type':'receivable',
+                            'user_type':acc_type_ids[0],
+                            'parent_id':acc_parent_ids[0],
+                                                        })
+                        vals.update({'property_account_receivable':acc_id})
+                    else:
+                        raise osv.except_osv(_('Warning!'),_('GL account 0000119002, 0000119001 or 0000119003 does not exist in the system. Please check it!'))
                 elif 'VVTI Ship to Party' in group.name:
                     vals['customer_code'] = self.pool.get('ir.sequence').get(cr, uid, 'tpt.ship.group.customer') or '/'
                 elif 'VVTI Indent Comm.' in group.name:

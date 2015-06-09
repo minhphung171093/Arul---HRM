@@ -90,7 +90,7 @@ class tpt_purchase_indent(osv.osv):
     
     def bt_cancel(self, cr, uid, ids, context=None):
         for line in self.browse(cr, uid, ids):
-            rfq_ids = self.pool.get('tpt.rfq.line').searchtpt_purchase_product(cr,uid,[('po_indent_id','=',line.id), ('state','=','done')])
+            rfq_ids = self.pool.get('tpt.rfq.line').search(cr,uid,[('po_indent_id','=',line.id), ('state','=','done')])
             po_ids = self.pool.get('purchase.order').search(cr,uid,[('po_indent_no','=',line.id),('state','=','approved')])
             if po_ids:
                 raise osv.except_osv(_('Warning!'),_('Purchase Indent was existed at the Purchase Order.!'))

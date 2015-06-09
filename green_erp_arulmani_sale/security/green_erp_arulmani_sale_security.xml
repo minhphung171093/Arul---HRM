@@ -47,5 +47,26 @@
 	        <field name="implied_ids" eval="[(4, ref('group_vvti_sale_gm')),(4, ref('group_vvti_sale_store_key_user'))]"/>
 	    </record>
 	    
+	    <record id="group_vvti_marketing_user" model="res.groups">
+	        <field name="name">Marketing User</field>
+	        <field name="category_id" ref="module_category_vvti_sale"/>
+	        <field name="users" eval="[(4, ref('base.user_root'))]"/>
+	        <field name="implied_ids" eval="[(4, ref('base.group_user'))]"/>
+	    </record>
+	    
+	    <record id="group_vvti_marketing_mgr" model="res.groups">
+	        <field name="name">Marketing Mgr</field>
+	        <field name="category_id" ref="module_category_vvti_sale"/>
+	        <field name="users" eval="[(4, ref('base.user_root'))]"/>
+	        <field name="implied_ids" eval="[(4, ref('group_vvti_marketing_user'))]"/>
+	    </record>
+	    
+	    <record id="group_vvti_marketing_gm" model="res.groups">
+	        <field name="name">Marketing GM</field>
+	        <field name="category_id" ref="module_category_vvti_sale"/>
+	        <field name="users" eval="[(4, ref('base.user_root'))]"/>
+	        <field name="implied_ids" eval="[(4, ref('group_vvti_marketing_mgr'))]"/>
+	    </record>
+	    
 	</data>
 </openerp>

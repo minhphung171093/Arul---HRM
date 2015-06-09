@@ -35,13 +35,13 @@ from openerp.osv import fields, osv
 class sale_order(osv.osv):
     _inherit = 'sale.order'  
     def print_quotation(self, cr, uid, ids, context=None):
-        datas = {
-             'ids': ids,
-             'model': 'sale.order',
-             'form': self.read(cr, uid, ids[0], context=context)
-        }
+#         datas = {
+#              'ids': ids,
+#              'model': 'sale.order',
+#              'form': self.read(cr, uid, ids[0], context=context)
+#         }
         quotation_ids = self.browse(cr, uid, ids[0])
-        if quotation_ids.quotation_type == 'domestic':
+        if quotation_ids.order_type == 'domestic':
             return {
                 'type': 'ir.actions.report.xml',
                 'report_name': 'quotation_domestic_report',
