@@ -27,7 +27,7 @@ class tpt_purchase_indent(osv.osv):
                                 ('service','VV Service PR'),
                                 ('normal','VV Normal PR'),
                                 ('raw','VV Raw Material PR'),
-                                ],'Document Type',required = True, states={'cancel': [('readonly', True)] }),
+                                ],'Document Type',required = True, states={'cancel': [('readonly', True)], 'done':[('readonly', True)] }),
         'intdent_cate':fields.selection([
                                 ('emergency','Emergency Indent'),
                                 ('normal','Normal Indent')],'Indent Category',required = True, states={'cancel': [('readonly', True)] }),
@@ -42,7 +42,7 @@ class tpt_purchase_indent(osv.osv):
         'reason':fields.text('Reason', states={'cancel': [('readonly', True)] }),
         'header_text':fields.text('Header Text',states={'cancel': [('readonly', True)] }), #TPT
         'requisitioner':fields.many2one('hr.employee','Requisitioner',states={'cancel': [('readonly', True)] }),
-        'purchase_product_line':fields.one2many('tpt.purchase.product','pur_product_id','Materials',states={'cancel': [('readonly', True)] }),
+        'purchase_product_line':fields.one2many('tpt.purchase.product','pur_product_id','Materials',states={'cancel': [('readonly', True)], 'done':[('readonly', True)] }),
         'state':fields.selection([('draft', 'Draft'),('cancel', 'Closed'),
                                   ('done', 'Approve'),('rfq_raised','RFQ Raised'),
                                   ('quotation_raised','Quotation Raised'),
@@ -577,8 +577,8 @@ class tpt_purchase_product(osv.osv):
                              })
         new_id = super(tpt_purchase_product, self).create(cr, uid, vals, context)
         if 'product_uom_qty' in vals:
-            if (vals['product_uom_qty'] < 0):
-                raise osv.except_osv(_('Warning!'),_('Quantity is not allowed as negative values'))
+            if (vals['product_uom_qty'] <= 0):
+                raise osv.except_osv(_('Warning!'),_('Quantity is not allowed as 0 or negative values'))
         if 'pending_qty' in vals:
             if (vals['pending_qty'] < 0):
                 raise osv.except_osv(_('Warning!'),_('Pending Quantity is not allowed as negative values'))
@@ -604,8 +604,8 @@ class tpt_purchase_product(osv.osv):
                              })
         new_write = super(tpt_purchase_product, self).write(cr, uid,ids, vals, context)
         for line in self.browse(cr,uid,ids):
-            if line.product_uom_qty < 0:
-                raise osv.except_osv(_('Warning!'),_('Quantity is not allowed as negative values'))
+            if line.product_uom_qty <= 0:
+                raise osv.except_osv(_('Warning!'),_('Quantity is not allowed as 0 or negative values'))
             if line.pending_qty < 0:
                 raise osv.except_osv(_('Warning!'),_('Pending Quantity is not allowed as negative values'))
         return new_write
