@@ -62,6 +62,8 @@ class Parser(report_sxw.rml_parse):
         return text
     def amount_to_text1(self, nbr, currency):
         lang='en'
+        if currency.name=='GBP':
+            return amount_to_text_en.amount_to_text(nbr, lang, 'gbp').upper() 
         if currency.name=='USD':
             return amount_to_text_en.amount_to_text(nbr, lang, 'usd').upper() 
         if currency.name=='INR':
