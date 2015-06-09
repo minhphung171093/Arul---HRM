@@ -289,8 +289,8 @@ class sale_order(osv.osv):
                   'freight': blanket_line.freight or False,
                   'state': 'draft',
                   'type': 'make_to_stock',
-                  'name_consignee_id' : blanket_line.name_consignee_id.id,
-                  #'name_consignee_id' : blanket_line.tpt_name_consignee_id.tpt_consignee_id.id,#TPT Consignee Part
+                  #'name_consignee_id' : blanket_line.name_consignee_id.id,
+                  'name_consignee_id' : blanket_line.tpt_name_consignee_id.tpt_consignee_id.id,#TPT Consignee Part
                   'location':blanket_line.location,
                             }
             vals = {
@@ -1230,10 +1230,10 @@ class tpt_blank_order_line(osv.osv):
         'price_unit': fields.float('Unit Price'),
         'sub_total': fields.function(subtotal_blanket_orderline, multi='deltas' ,string='SubTotal'),
         'freight': fields.float('Frt/Qty'),
+        #Effective Consignee
+        'tpt_name_consignee_id': fields.many2one('tpt.cus.consignee', 'Consignee', required = False),
         
-        'tpt_name_consignee_id': fields.many2one('tpt.cus.consignee', 'Effective Consignee', required = False),
-        
-        'name_consignee_id': fields.many2one('res.partner', 'Consignee', required = False),
+        'name_consignee_id': fields.many2one('res.partner', 'Consignee', required = False), #this is invisible now
         'location': fields.char('Location', size = 1024,readonly = True),
         'expected_date':fields.date('Expected delivery Date'),
         
@@ -2191,7 +2191,7 @@ class tpt_cus_consignee(osv.osv):
         'tpt_consignee_id': fields.many2one('res.partner', 'Consignee Name'),
         'tpt_consignee_code': fields.char('Consignee Code'),
     }
-    
+     
     def onchange_tpt_consignee_id(self, cr, uid, ids, name_consignee_id = False, context=None):
         vals = {}
         if name_consignee_id :
