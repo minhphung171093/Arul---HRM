@@ -1478,7 +1478,9 @@
 					<xpath expr="//field[@name='date']" position="attributes">
                     	<attribute name='on_change'>onchange_tpt_currency_amount(tpt_currency_id,tpt_currency_amount,type,date,context)</attribute>
                     </xpath>
-                    
+                    <xpath expr="//field[@name='account_id']" position="after">
+                    	<field name="cost_center_id" options="{'create': false, 'create_edit': false}"/>
+                    </xpath>
                 </data>
             </field>
         </record>
@@ -1536,7 +1538,9 @@
 					<xpath expr="//field[@name='date']" position="attributes">
                     	<attribute name='on_change'>onchange_tpt_currency_amount(tpt_currency_id,tpt_currency_amount,type,date,context)</attribute>
                     </xpath>
-                    
+                    <xpath expr="//field[@name='account_id']" position="after">
+                    	<field name="cost_center_id" options="{'create': false, 'create_edit': false}"/>
+                    </xpath>
                 </data>
             </field>
         </record>

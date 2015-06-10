@@ -53,7 +53,7 @@ def _convert_nnn(val):
     if rem > 0:
         word = to_19[rem] + ' Hundred'
         if mod > 0:
-            word = word + ' and '
+            word = word + ' '
     if mod > 0:
         word = word + _convert_nn(mod)
     return word
@@ -75,19 +75,21 @@ def english_number(val):
 
 def amount_to_text(number, currency):
     number = '%.2f' % number
-    if currency=='inr':
-        units_name = 'RUPEES'
-    else:
-        units_name = 'USD'
+#     if currency=='inr':
+#         units_name = 'RUPEES'
+    if currency !='INR':
+        units_name = currency
+
     list = str(number).split('.')
     start_word = english_number(int(list[0]))
     end_word = english_number(int(list[1]))
     cents_number = int(list[1])
     cents_name = (cents_number > 1) and 'Cents' or 'Cent'
-    if currency=='usd':
-        final_result =units_name +' '+ start_word.title() +' and ' + str.lower(end_word) +' '+ str.lower(cents_name)
-    else:
-        final_result = start_word.title() +' '+units_name+' and ' + str.lower(end_word) +' PAISA ONLY'
+    if currency !='INR':
+#         final_result =units_name +' '+ start_word.title() +' and ' + str.lower(end_word) +' '+ str.lower(cents_name)
+        final_result =units_name +' '+ start_word.title() +' and ' + str.lower(end_word) +' ONLY'
+#     else:
+#         final_result = start_word.title() +'LAKH '+units_name+' and ' + str.lower(end_word) +' ONLY'
     return final_result
 
 
