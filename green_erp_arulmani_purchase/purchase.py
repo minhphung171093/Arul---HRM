@@ -1988,6 +1988,10 @@ class purchase_order(osv.osv):
             update purchase_order set currency_id=tpt_currency_id
         '''
         cr.execute(sql) 
+        sql ='''
+            update stock_move set cost_center_id=(select cost_center_id from tpt_purchase_indent where id=stock_move.po_indent_id limit 1)
+        '''
+        cr.execute(sql)
 #         quotation_obj=self.pool.get('tpt.purchase.quotation.line')
 #         quotation_ids=self.pool.get('tpt.purchase.quotation.line').search(cr,1,[])
 # #         quotation = quotation_obj.browse(cr,1,quotation_ids)
@@ -2854,6 +2858,7 @@ class purchase_order(osv.osv):
             'action_taken': act_taken,
             'description':order_line.description or False,
             'item_text':order_line.item_text or False,
+            'cost_center_id': order_line.po_indent_no.cost_center_id and order_line.po_indent_no.cost_center_id.id or False,
         }
 purchase_order()
 
