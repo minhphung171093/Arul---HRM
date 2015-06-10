@@ -1536,31 +1536,31 @@ class account_invoice_line(osv.osv):
                 for tax_amount in tax_amounts:
                     tax_value += tax_amount/100
                     basic = (line.quantity * line.price_unit) - ( (line.quantity * line.price_unit)*line.disc/100)
-                    basic = round(basic)
+#                     basic = round(basic)
                     if line.p_f_type == '1' :
                         p_f = basic * line.p_f/100
-                        p_f = round(p_f)
+#                         p_f = round(p_f)
                     elif line.p_f_type == '2' :
                         p_f = line.p_f
-                        p_f = round(p_f)
+#                         p_f = round(p_f)
                     elif line.p_f_type == '3' :
                         p_f = line.p_f * line.quantity
-                        p_f = round(p_f)
+#                         p_f = round(p_f)
                     else:
                         p_f = line.p_f
-                        p_f = round(p_f)
+#                         p_f = round(p_f)
                     if line.ed_type == '1' :
                         ed = (basic + p_f) * line.ed/100
-                        ed = round(ed)
+#                         ed = round(ed)
                     elif line.ed_type == '2' :
                         ed = line.ed
-                        ed = round(ed)
+#                         ed = round(ed)
                     elif line.ed_type == '3' :
                         ed = line.ed * line.quantity
-                        ed = round(ed)
+#                         ed = round(ed)
                     else:
                         ed = line.ed
-                        ed = round(ed)
+#                         ed = round(ed)
                     if line.aed_id_1:
                         tax = (basic + p_f + ed + line.aed_id_1)*(tax_value) * voucher_rate
                     else:
@@ -1748,16 +1748,16 @@ class account_invoice_line(osv.osv):
                             raise osv.except_osv(_('Warning!'),_('Account is not null, please configure CST Payable in GL Posting Configrution !'))
                         if tax:
                             if round(tax):
-                                    res.append({
-                                        'type':'tax',
-                                        'name':t['name'],
-                                        'price_unit': t['price_unit'],
-                                        'quantity': 1,
-                                        'price': round(tax),
-                                        'account_id': account,
-                                        'account_analytic_id': t['account_analytic_id'],
-                                    })
-                                    break
+                                res.append({
+                                    'type':'tax',
+                                    'name':t['name'],
+                                    'price_unit': t['price_unit'],
+                                    'quantity': 1,
+                                    'price': round(tax),
+                                    'account_id': account,
+                                    'account_analytic_id': t['account_analytic_id'],
+                                })
+                                break
                     elif 'VAT' in inv_id.sale_tax_id.name:
                         sql = '''
                             SELECT cus_inv_vat_id FROM tpt_posting_configuration WHERE name = 'cus_inv' and cus_inv_vat_id is not null
@@ -1770,16 +1770,16 @@ class account_invoice_line(osv.osv):
                             raise osv.except_osv(_('Warning!'),_('Account is not null, please configure VAT Payable in GL Posting Configrution !'))
                         if tax:    
                             if round(tax):
-                                    res.append({
-                                        'type':'tax',
-                                        'name':t['name'],
-                                        'price_unit': t['price_unit'],
-                                        'quantity': 1,
-                                        'price': round(tax),
-                                        'account_id': account,
-                                        'account_analytic_id': t['account_analytic_id'],
-                                    })
-                                    break
+                                res.append({
+                                    'type':'tax',
+                                    'name':t['name'],
+                                    'price_unit': t['price_unit'],
+                                    'quantity': 1,
+                                    'price': round(tax),
+                                    'account_id': account,
+                                    'account_analytic_id': t['account_analytic_id'],
+                                })
+                                break
                     else:
                         sql = '''
                             SELECT cus_inv_vat_id FROM tpt_posting_configuration WHERE name = 'cus_inv' and cus_inv_vat_id is not null
