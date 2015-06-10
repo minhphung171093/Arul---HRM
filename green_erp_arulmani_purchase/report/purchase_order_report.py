@@ -9,7 +9,7 @@ from openerp.report import report_sxw
 from openerp import pooler
 from openerp.osv import osv
 from openerp.tools.translate import _
-from amount_to_text_indian import Number2Words
+from green_erp_arulmani_purchase.report.amount_to_text_indian import Number2Words
 import random
 DATETIME_FORMAT = "%Y-%m-%d %H:%M:%S"
 DATE_FORMAT = "%Y-%m-%d"
@@ -62,13 +62,15 @@ class Parser(report_sxw.rml_parse):
         return text
     def amount_to_text1(self, nbr, currency):
         lang='en'
-        if currency.name=='GBP':
-            return amount_to_text_en.amount_to_text(nbr, lang, 'gbp').upper() 
-        if currency.name=='USD':
-            return amount_to_text_en.amount_to_text(nbr, lang, 'usd').upper() 
+#         if currency.name=='GBP':
+#             return amount_to_text_en.amount_to_text(nbr, lang, 'gbp').upper() 
+#         if currency.name=='USD':
+#             return amount_to_text_en.amount_to_text(nbr, lang, 'usd').upper() 
+        if currency.name!='INR':
+            return amount_to_text_en.amount_to_text(nbr, lang, currency.name).upper() 
         if currency.name=='INR':
             text = Number2Words().convertNumberToWords(nbr).upper()
-            if text and len(text)>3 and text[:3]=='AND':
+            if text and len(text)>3 and text[:3]==' ':
                 text = text[3:]
             return text
     def get_edu_cess(self, basic_excise_duty):
