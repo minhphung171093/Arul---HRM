@@ -2472,4 +2472,8 @@ class tpt_schedule_dispatch_update(osv.osv):
     
 tpt_schedule_dispatch_update()
 
+class ir_property(osv.osv):
+    _inherit = "ir.property"
+ir_property()
+
 # vim:expandtab:smartindent:tabstop=4:softtabstop=4:shiftwidth=4:

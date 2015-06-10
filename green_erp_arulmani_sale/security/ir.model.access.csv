@@ -112,6 +112,6 @@ access_vvti_sale_94,employee.leave,green_erp_arulmani_hrm.model_employee_leave,g
 access_vvti_sale_95,employee.leave.detail,green_erp_arulmani_hrm.model_employee_leave_detail,green_erp_arulmani_sale.group_vvti_marketing_user,True,True,True,False
 access_vvti_sale_96,arul.hr.payroll.executions,green_erp_arulmani_hrm.model_arul_hr_payroll_executions,green_erp_arulmani_sale.group_vvti_marketing_user,True,False,False,False
 
-
+"base.access_ir_property_group_user","ir_property group_user","model_ir_property",,1,1,1,0
 
 
