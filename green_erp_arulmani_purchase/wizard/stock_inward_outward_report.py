@@ -209,6 +209,7 @@ class stock_inward_outward_report(osv.osv_memory):
             date_from = o.date_from
             date_to = o.date_to
             product_id = o.product_id
+            quantity = 0
             if move_type == 'freight':
                 sql = '''
                     select case when sum(quantity)!=0 then sum(quantity) else 0 end quantity, product_id from account_invoice_line

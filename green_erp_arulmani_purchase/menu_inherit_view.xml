@@ -14,17 +14,17 @@
 		</record>-->
         <menuitem name="Accounting"
             id="account.menu_finance"
-            groups="green_erp_arulmani_purchase.group_vvti_purchase_user,green_erp_arulmani_purchase.group_vvti_purchase_store_user"/>
+            groups="green_erp_arulmani_purchase.group_vvti_purchase_user,green_erp_arulmani_purchase.group_vvti_purchase_store_user,green_erp_arulmani_sale.group_vvti_marketing_user"/>
             
         <menuitem name="Purchases"
             id="base.menu_purchase_root"
-            groups="green_erp_arulmani_purchase.group_vvti_purchase_store_user,green_erp_arulmani_purchase.group_vvti_hrm_plant_mm_user,green_erp_arulmani_crm.group_qc_user"
+            groups="green_erp_arulmani_purchase.group_vvti_purchase_store_user,green_erp_arulmani_purchase.group_vvti_hrm_plant_mm_user,green_erp_arulmani_crm.group_qc_user,green_erp_arulmani_sale.group_vvti_marketing_user"
             sequence="60"/>
             
         <menuitem action="purchase.purchase_form_action"
         	id="purchase.menu_purchase_form_action"
         	parent="purchase.menu_procurement_management" sequence="6"
-        	groups="green_erp_arulmani_purchase.group_vvti_purchase_user,green_erp_arulmani_purchase.group_vvti_purchase_gm"/>
+        	groups="green_erp_arulmani_purchase.group_vvti_purchase_user,green_erp_arulmani_purchase.group_vvti_purchase_gm,green_erp_arulmani_sale.group_vvti_marketing_user"/>
         	
         <record model="ir.ui.menu" id="stock.menu_action_picking_tree6">
 	    	<field name="groups_id" eval="[(6, 0,[ref('green_erp_arulmani_purchase.group_vvti_purchase_key_user'),ref('green_erp_arulmani_purchase.group_vvti_purchase_store_user'),ref('green_erp_arulmani_sale.group_vvti_sale_manager')])]"/>
