@@ -3647,29 +3647,29 @@ class tpt_hr_payroll_approve_reject(osv.osv):
             
             ### END Excutive & Staff - Worker
             
-            sum_credit = (provident + vpf + tax + lwf + welfare + lic_premium +
-                           + ins_oth + vvt_loan + vvt_hdfc + hfl + tmb + sbt + other + esi)
-            diff = gross - sum_credit
-            gross = gross - shd
+            sum_credit = (round(provident) + round(vpf) + round(tax) + round(lwf) + round(welfare) + round(lic_premium) +
+                           + round(ins_oth) + round(vvt_loan) + round(vvt_hdfc) + round(hfl) + round(tmb) + round(sbt) + round(other) + round(esi) + round(it))
+            diff = round(gross) - sum_credit
+            gross = round(gross) - round(shd)
             
-            res = {'gross':gross,
-                   'provident':provident,
-                   'vpf':vpf,
-                   'tax':tax,
-                   'lwf':lwf,
-                   'lic_premium':lic_premium,
-                   'welfare':welfare,
-                   'ins_oth':ins_oth,
-                   'vvt_loan':vvt_loan,
-                   'vvt_hdfc':vvt_hdfc,
-                   'hfl':hfl,
-                   'sbt':sbt,
-                   'other':other,
-                   'tmb':tmb,
-                   'diff':diff,
-                   'it':it,
-                   'shd':shd,
-                   'esi':esi,
+            res = {'gross':round(gross),
+                   'provident':round(provident),
+                   'vpf':round(vpf),
+                   'tax':round(tax),
+                   'lwf':round(lwf),
+                   'lic_premium':round(lic_premium),
+                   'welfare':round(welfare),
+                   'ins_oth':round(ins_oth),
+                   'vvt_loan':round(vvt_loan),
+                   'vvt_hdfc':round(vvt_hdfc),
+                   'hfl':round(hfl),
+                   'sbt':round(sbt),
+                   'other':round(other),
+                   'tmb':round(tmb),
+                   'diff':round(diff),
+                   'it':round(it),
+                   'shd':round(shd),
+                   'esi':round(esi),
                    }
         return res
     
