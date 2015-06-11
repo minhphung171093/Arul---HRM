@@ -376,6 +376,16 @@ class stock_move(osv.osv):
         'item_text':fields.text('Item Text'),
         'inspec_id': fields.many2one('tpt.quanlity.inspection','Quanlity Inspection'),
         'issue_id': fields.many2one('tpt.material.issue','Material Issue'),
+        'grn_no': fields.related('picking_id', 'name', type='char', string='GRN No'),
+        'grn_date': fields.related('picking_id', 'date', type='datetime', string='GRN Date'),
+        'supplier_id': fields.related('picking_id', 'partner_id',relation='res.partner', type='many2one', string='Supplier'),
+        'po_no': fields.related('picking_id', 'purchase_id',relation='purchase.order', type='many2one', string='PO Number'),
+        'doc_type': fields.related('picking_id', 'document_type', type='selection',selection=[
+            ('raw','VV Raw material PO'),('asset','VV Asset PO'),('standard','VV Standard PO'),('local','VV Local PO'),('return','VV Return PO'),('service','VV Service PO'),('out','VV Out Service PO')], string='PO Document Type'),
+        'invoice_state': fields.related('picking_id', 'invoice_state', type='selection',selection=[
+            ("invoiced", "Invoiced"),("2binvoiced", "To Be Invoiced"),("none", "Not Applicable")], string='Inovice State'),
+        'tpt_pick_type': fields.related('picking_id', 'type', type='selection',selection=[
+            ('out', 'Sending Goods'), ('in', 'Getting Goods'), ('internal', 'Internal')], string='Picking Type'),
                 }
     def onchange_product_id(self, cr, uid, ids, prod_id=False, loc_id=False,
                             loc_dest_id=False, partner_id=False, action=False):
