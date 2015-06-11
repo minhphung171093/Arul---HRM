@@ -218,10 +218,10 @@ class Parser(report_sxw.rml_parse):
                 quantity = qty['product_isu_qty']
         if move_type == 'grn':
             sql = '''
-                select * from stock_move
-                where picking_id in (select id from stock_picking where name in (select LEFT(name,17) from account_move_line where move_id = %s)) 
-                and product_id = %s and ((id in (select need_inspec_id from tpt_quanlity_inspection where state = 'done') and action_taken='need') or action_taken='direct') order by si_no
-            '''%(move_id, product_id[0])
+                select sum(sm.product_qty) from  stock_move sm
+                Inner Join stock_picking sp on (sp.id=sm.picking_id) 
+                and to_date(to_char(sp.move_date, 'YYYY-MM-DD'), 'YYYY-MM-DD')<='%s' and sm.product_id=%s
+            '''%(date_to, product_id[0])
             self.cr.execute(sql)
             moves = self.cr.dictfetchall()
             grn_name = self.get_account_move_line(move_id)

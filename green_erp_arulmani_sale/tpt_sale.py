@@ -1231,9 +1231,9 @@ class tpt_blank_order_line(osv.osv):
         'sub_total': fields.function(subtotal_blanket_orderline, multi='deltas' ,string='SubTotal'),
         'freight': fields.float('Frt/Qty'),
         #Effective Consignee
-        'tpt_name_consignee_id': fields.many2one('tpt.cus.consignee', 'Consignee', required = False),
+        'tpt_name_consignee_id': fields.many2one('tpt.cus.consignee', 'Effective Consignee', required = False),
         
-        'name_consignee_id': fields.many2one('res.partner', 'Consignee', required = False), #this is invisible now
+        'name_consignee_id': fields.many2one('res.partner', 'Consignee', required = False),
         'location': fields.char('Location', size = 1024,readonly = True),
         'expected_date':fields.date('Expected delivery Date'),
         
@@ -2471,9 +2471,5 @@ class tpt_schedule_dispatch_update(osv.osv):
         return self.write(cr, uid, ids,{'state':'done'})
     
 tpt_schedule_dispatch_update()
-
-class ir_property(osv.osv):
-    _inherit = "ir.property"
-ir_property()
 
 # vim:expandtab:smartindent:tabstop=4:softtabstop=4:shiftwidth=4:
