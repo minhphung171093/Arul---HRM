@@ -81,9 +81,9 @@
 		    <field name="groups_id" eval="[(4, ref('group_vvti_marketing_user'))]" />
 		</record>
 		
-		<record model="ir.ui.menu" id="green_erp_arulmani_hrm.menu_action_arul_hr_permission_onduty_form">
+		<!--<record model="ir.ui.menu" id="green_erp_arulmani_hrm.menu_action_arul_hr_permission_onduty_form">
 		    <field name="groups_id" eval="[(4, ref('group_vvti_marketing_user'))]" />
-		</record>
+		</record>-->
 		
 		<record model="ir.ui.menu" id="green_erp_arulmani_hrm.menu_action_arul_employee_action_type_form">
 		    <field name="groups_id" eval="[(4, ref('group_vvti_marketing_user'))]" />
@@ -132,5 +132,13 @@
 		<record model="ir.ui.menu" id="sale.menu_sale_order">
 		    <field name="groups_id" eval="[(4, ref('group_vvti_marketing_user'))]" />
 		</record>
+		
+		<record model="ir.ui.menu" id="green_erp_arulmani_hrm.menu_action_arul_hr_capture_work_shift_form">
+		    <field name="groups_id" eval="[(4, ref('group_vvti_marketing_user'))]" />
+		</record>
+		
+		<!--<record model="ir.ui.menu" id="base.menu_sales">
+		    <field name="groups_id" eval="[(4, ref('group_vvti_marketing_user'))]" />
+		</record> -->
     </data>
 </openerp>
