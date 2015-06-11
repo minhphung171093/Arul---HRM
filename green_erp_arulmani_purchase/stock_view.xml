@@ -235,6 +235,20 @@
             </field>
         </record>
         
+        <record id="view_grn_line_details_filter" model="ir.ui.view">
+            <field name="name">grn.line.details.select</field>
+            <field name="model">stock.move</field>
+            <field name="arch" type="xml">
+                <search string="GRN – Line Details">
+                	<field name="picking_id" string = 'GRN No'/>
+                	<field name="supplier_id"/> 
+                    <field name="po_no"/>
+                    <field name="doc_type"/>
+                	<field name="product_id"/>
+               </search>
+            </field>
+        </record>
+        
         <record id="tpt_grn_line_details_tree" model="ir.ui.view">
             <field name="name">tpt.stock.move.tree</field>
             <field name="model">stock.move</field>
@@ -319,18 +333,6 @@
             <field name="act_window_id" ref="action_grn_line_details"/>
         </record>
         
-        <record id="view_grn_line_details_filter" model="ir.ui.view">
-            <field name="name">grn.line.details.select</field>
-            <field name="model">stock.move</field>
-            <field name="arch" type="xml">
-                <search string="GRN – Line Details">
-                	<field name="picking_id" string = 'GRN No'/>
-                	<field name="supplier_id"/> 
-                    <field name="po_no"/>
-                    <field name="doc_type"/>
-                	<field name="product_id"/>
-               </search>
-            </field>
-        </record>
+        
     </data>
 </openerp>
