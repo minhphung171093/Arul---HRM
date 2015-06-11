@@ -437,7 +437,7 @@ stock_picking_in()
 
 class stock_picking(osv.osv):
     _inherit = "stock.picking"
-        
+    
     def get_pro_account_id(self,cr,uid,name,channel):
         account = False
         account_obj = self.pool.get('account.account')
