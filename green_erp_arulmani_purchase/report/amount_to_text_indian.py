@@ -36,7 +36,7 @@ class Number2Words(object):
             inRupees = self._convertNumberToWords(formString)
 
             if inPaisa:
-                return '%s rupees and %s paisa only' % (inRupees.title(), inPaisa.title())
+                return '%s rupees and %s only' % (inRupees.title(), inPaisa.title())
             else:
                 return '%s rupees only' % inRupees.title()
 
@@ -91,7 +91,7 @@ class Number2Words(object):
             teens = int(teens)
             tensUnitsInWords = self._formulateDoubleDigitWords(teens)
             if tensUnitsInWords:
-                wordList.insert(0, 'and '+tensUnitsInWords)
+                wordList.insert(0, ' '+tensUnitsInWords)
 
         #---------------------------------------------------------------------#
         if hundredthPlace:

@@ -100,7 +100,7 @@ class Number2Words(object):
                 # Might be zero. Ignore.
                 pass
             else:
-                hundredsInWords = '%s hundred' % self.wordsDict[hundredthPlace]
+                hundredsInWords = '%s lakh' % self.wordsDict[hundredthPlace]
                 wordList.insert(0, hundredsInWords)
 
         #---------------------------------------------------------------------#
