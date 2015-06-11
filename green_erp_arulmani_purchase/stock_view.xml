@@ -302,7 +302,7 @@
             <field name="context">{}</field>
             <field name="domain">[('invoice_state','!=','invoiced'),('state','=','done'),('tpt_pick_type','=','in')]</field>
             <field name="view_id" ref="tpt_grn_line_details_tree"/>
-            <field name="search_view_id" ref="tpt_grn_line_details_filter"/>
+            <field name="search_view_id" ref="view_grn_line_details_filter"/>
         </record>
         
         <record id="action_grn_line_details1" model="ir.actions.act_window.view">
@@ -319,32 +319,18 @@
             <field name="act_window_id" ref="action_grn_line_details"/>
         </record>
         
-        <!-- <record id="view_grn_line_details_filter" model="ir.ui.view">
+        <record id="view_grn_line_details_filter" model="ir.ui.view">
             <field name="name">grn.line.details.select</field>
             <field name="model">stock.move</field>
             <field name="arch" type="xml">
                 <search string="GRN – Line Details">
                 	<field name="picking_id" string = 'GRN No'/>
-                	<field name="partner_id"/>
-                	<field name="purchase_id"/>
-                	<field name="grn_no"/>
-                    <filter name="draft" string="Draft" domain="[('state','=','draft')]" help="Draft Invoices"/>
-                    <filter name="proforma" string="Proforma" domain="[('state','=','proforma2')]" help="Proforma Invoices" groups="account.group_proforma_invoices"/>
-                    <filter name="invoices" string="Invoices" domain="[('state','not in',['draft','cancel'])]" help="Proforma/Open/Paid Invoices"/>
-                    <filter name="unpaid" string="Unpaid" domain="[('state','=','open')]" help="Unpaid Invoices"/>
-                    <separator/>
-                    <filter domain="[('user_id','=',uid)]" help="My Invoices" icon="terp-personal"/>
-                    <group expand="0" string="Group By...">
-                        <filter string="Partner" icon="terp-partner" domain="[]" context="{'group_by':'partner_id'}"/>
-                        <filter string="Responsible" icon="terp-personal" domain="[]"  context="{'group_by':'user_id'}"/>
-                        <filter string="Journal" icon="terp-folder-orange" domain="[]" context="{'group_by':'journal_id'}"/>
-                        <filter string="Status" icon="terp-stock_effects-object-colorize" domain="[]"  context="{'group_by':'state'}"/>
-                        <filter string="Period" icon="terp-go-month" domain="[]" context="{'group_by':'period_id'}"/>
-                        <filter string="Invoice Date" icon="terp-go-month" domain="[]"  context="{'group_by':'date_invoice'}"/>
-                        <filter string="Due Date" icon="terp-go-month" domain="[]"  context="{'group_by':'date_due'}"/>
-                    </group>
+                	<field name="supplier_id"/> 
+                    <field name="po_no"/>
+                    <field name="doc_type"/>
+                	<field name="product_id"/>
                </search>
             </field>
-        </record> -->
+        </record>
     </data>
 </openerp>
