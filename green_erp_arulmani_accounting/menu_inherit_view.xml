@@ -328,9 +328,9 @@
 	    	<field name="groups_id" eval="[(4, ref('group_vvti_accounting_user'))]"/>
 		</record>
 		
-		<record model="ir.ui.menu" id="green_erp_arulmani_hrm.menu_action_arul_hr_permission_onduty_form">
+		<!--<record model="ir.ui.menu" id="green_erp_arulmani_hrm.menu_action_arul_hr_permission_onduty_form">
 	    	<field name="groups_id" eval="[(4, ref('group_vvti_accounting_user'))]"/>
-		</record>
+		</record>-->
 		
 		<record model="ir.ui.menu" id="green_erp_arulmani_hrm.menu_action_food_subsidy_form">
 	    	<field name="groups_id" eval="[(4, ref('group_vvti_accounting_gm'))]"/>
