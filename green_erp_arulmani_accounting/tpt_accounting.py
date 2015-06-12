@@ -1218,6 +1218,8 @@ class account_invoice(osv.osv):
                     move['doc_type'] = 'freight'
   
             ctx.update(invoice=inv)
+            if context.get('tpt_review_posting',False):
+                return move
             move_id = move_obj.create(cr, uid, move, context=ctx)
             new_move_name = move_obj.browse(cr, uid, move_id, context=ctx).name
             # make the invoice point to that move
