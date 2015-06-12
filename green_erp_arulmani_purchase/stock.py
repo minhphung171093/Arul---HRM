@@ -411,6 +411,7 @@ class stock_move(osv.osv):
             ("invoiced", "Invoiced"),("2binvoiced", "To Be Invoiced"),("none", "Not Applicable")], string='Inovice State'),
         'tpt_pick_type': fields.related('picking_id', 'type', type='selection',selection=[
             ('out', 'Sending Goods'), ('in', 'Getting Goods'), ('internal', 'Internal')], string='Picking Type'),
+        'cost_center_id': fields.many2one('tpt.cost.center','Cost center'),
                 }
     def onchange_product_id(self, cr, uid, ids, prod_id=False, loc_id=False,
                             loc_dest_id=False, partner_id=False, action=False):
