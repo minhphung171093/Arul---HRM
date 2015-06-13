@@ -153,6 +153,9 @@
             	<xpath expr="//field[@name='partner_id']" position="before">
 					<field name="name" string = "Document No" readonly = '1'/>
 				</xpath>
+				<!--<xpath expr="//button[@name='invoice_open']" position="after">-->
+					 <!--<button name="%(action_review_posting_view)d" type="action" string="Review Posting" states="draft" context="{'tpt_invoice':True}"/>-->
+				<!--</xpath>-->
 				<xpath expr="//field[@name='date_invoice']" position="attributes">
 					<attribute name='string'>Posting Date</attribute>
 				</xpath>
@@ -289,6 +292,9 @@
             <field name="model">account.invoice</field>
             <field name="inherit_id" ref="account.invoice_form"/>
             <field name="arch" type="xml">
+            	<!--<xpath expr="//button[@name='invoice_open']" position="after">-->
+            		<!--<button name="%(action_review_posting_view)d" type="action" string="Review Posting" states="draft" context="{'tpt_invoice':True}"/>-->
+            	<!--</xpath>-->
             	<xpath expr="//button[@name='%(account.action_account_invoice_refund)d']" position="attributes">
 					<attribute name='invisible'>1</attribute>
 				</xpath>
@@ -388,6 +394,7 @@
 	            <form string="Supplier Invoice" version="7.0">
 	            <header>
                         <button name="invoice_open" states="draft,proforma2" string="Validate" class="oe_highlight" groups="account.group_account_invoice"/>
+                        <!--<button name="%(action_review_posting_view)d" type="action" string="Review Posting" states="draft" context="{'tpt_invoice':True}"/>-->
                         <button name="%(account.action_account_invoice_refund)d" type='action' string='Ask Refund' states='open,paid' groups="account.group_account_invoice"/>
                         <button name="invoice_cancel" states="draft,proforma2" string="Cancel Invoice" groups="account.group_account_invoice"/>
                         <button name="action_cancel_draft" states="cancel" string="Set to Draft" type="object" groups="account.group_account_invoice"/>
@@ -607,6 +614,7 @@
 	            <form string="Service Invoice" version="7.0">
 	            <header>
                         <button name="invoice_open" states="draft,proforma2" string="Validate" class="oe_highlight" groups="account.group_account_invoice,green_erp_arulmani_accounting.group_vvti_accounting_admin"/>
+                        <!--<button name="%(action_review_posting_view)d" type="action" string="Review Posting" states="draft" context="{'tpt_invoice':True}"/>-->
                         <button name="%(account.action_account_invoice_refund)d" type='action' string='Ask Refund' states='open,paid' groups="account.group_account_invoice"/>
                         <button name="invoice_cancel" states="draft,proforma2" string="Cancel Invoice" groups="account.group_account_invoice"/>
                         <button name="action_cancel_draft" states="cancel" string="Set to Draft" type="object" groups="account.group_account_invoice"/>
@@ -831,6 +839,7 @@
 	            <form string="Freight Invoice" version="7.0">
 	            <header>
                         <button name="invoice_open" states="draft,proforma2" string="Validate" class="oe_highlight" groups="account.group_account_invoice"/>
+                        <!--<button name="%(action_review_posting_view)d" type="action" string="Review Posting" states="draft" context="{'tpt_invoice':True}"/>-->
                         <button name="%(account.action_account_invoice_refund)d" type='action' string='Ask Refund' states='open,paid' groups="account.group_account_invoice"/>
                         <button name="invoice_cancel" states="draft,proforma2" string="Cancel Invoice" groups="account.group_account_invoice"/>
                         <button name="action_cancel_draft" states="cancel" string="Set to Draft" type="object" groups="account.group_account_invoice"/>
