@@ -432,19 +432,21 @@ class stock_movement_analysis(osv.osv_memory):
                             from stock_move st
                                 join stock_location loc1 on st.location_id=loc1.id
                                 join stock_location loc2 on st.location_dest_id=loc2.id
-                            where st.state='done' and st.location_dest_id = %s  and st.product_id=%s and loc1.usage != 'internal' and loc2.usage = 'internal' 
-                                    and ((picking_id in (select id from stock_picking where date < '%s' and state = 'done')) 
-                                            or (inspec_id in (select id from tpt_quanlity_inspection where date < '%s' and state in ('done','remaining') )))
+                            where st.state='done' and st.location_dest_id = %s  and st.product_id=%s
+                                and ( (picking_id in (select id from stock_picking where date < '%s' and state = 'done')) 
+                                or  (inspec_id in (select id from tpt_quanlity_inspection where date < '%s' and state in ('done','remaining')))
+                                    )
                         union all
                             select -1*st.product_qty,st.price_unit*st.product_qty as price_unit
                             from stock_move st
                                 join stock_location loc1 on st.location_id=loc1.id
                                 join stock_location loc2 on st.location_dest_id=loc2.id
-                            where st.state='done' and st.location_id=%s and st.product_id=%s and loc1.usage = 'internal' and loc2.usage != 'internal' 
-                                    and ((picking_id in (select id from stock_picking where date < '%s' and state = 'done')) 
-                                            or (inspec_id in (select id from tpt_quanlity_inspection where date < '%s' and state in ('done','remaining') )))
+                            where st.state='done' and st.location_id=%s and st.product_id=%s
+                                and ( (picking_id in (select id from stock_picking where date < '%s' and state = 'done')) 
+                                or  (inspec_id in (select id from tpt_quanlity_inspection where date < '%s' and state in ('done','remaining')))
+                                    )
                         )foo
-                '''%(locat_ids[0],product_id,date_from,locat_ids[0],product_id,date_from)
+                    '''%(locat_ids[0],product_id,date_from,date_from,locat_ids[0],product_id,date_from,date_from)
                 cr.execute(sql)
                 inventory = cr.fetchone()
             if categ =='spares':
@@ -456,19 +458,21 @@ class stock_movement_analysis(osv.osv_memory):
                             from stock_move st
                                 join stock_location loc1 on st.location_id=loc1.id
                                 join stock_location loc2 on st.location_dest_id=loc2.id
-                            where st.state='done' and st.location_dest_id = %s  and st.product_id=%s and loc1.usage != 'internal' and loc2.usage = 'internal' 
-                                    and ((picking_id in (select id from stock_picking where date < '%s' and state = 'done')) 
-                                            or (inspec_id in (select id from tpt_quanlity_inspection where date < '%s' and state in ('done','remaining') )))
+                            where st.state='done' and st.location_dest_id = %s  and st.product_id=%s
+                                and ( (picking_id in (select id from stock_picking where date < '%s' and state = 'done')) 
+                                or  (inspec_id in (select id from tpt_quanlity_inspection where date < '%s' and state in ('done','remaining')))
+                                    )
                         union all
                             select -1*st.product_qty,st.price_unit*st.product_qty as price_unit
                             from stock_move st
                                 join stock_location loc1 on st.location_id=loc1.id
                                 join stock_location loc2 on st.location_dest_id=loc2.id
-                            where st.state='done' and st.location_id=%s and st.product_id=%s and loc1.usage = 'internal' and loc2.usage != 'internal' 
-                                   and ((picking_id in (select id from stock_picking where date < '%s' and state = 'done')) 
-                                            or (inspec_id in (select id from tpt_quanlity_inspection where date < '%s' and state in ('done','remaining') )))
+                            where st.state='done' and st.location_id=%s and st.product_id=%s
+                                and ( (picking_id in (select id from stock_picking where date < '%s' and state = 'done')) 
+                                or  (inspec_id in (select id from tpt_quanlity_inspection where date < '%s' and state in ('done','remaining')))
+                                    )
                         )foo
-                '''%(locat_ids[0],product_id,date_from,locat_ids[0],product_id,date_from)
+                '''%(locat_ids[0],product_id,date_from,date_from,locat_ids[0],product_id,date_from,date_from)
                 cr.execute(sql)
                 inventory = cr.fetchone()
             return inventory and inventory[0] or 0       
@@ -486,15 +490,21 @@ class stock_movement_analysis(osv.osv_memory):
                             from stock_move st
                                 join stock_location loc1 on st.location_id=loc1.id
                                 join stock_location loc2 on st.location_dest_id=loc2.id
-                            where st.state='done' and st.location_dest_id = %s and st.product_id=%s and loc1.usage != 'internal' and loc2.usage = 'internal' and picking_id in (select id from stock_picking where date < '%s' and state = 'done')
+                            where st.state='done' and st.location_dest_id = %s  and st.product_id=%s
+                                and ( (picking_id in (select id from stock_picking where date < '%s' and state = 'done')) 
+                                or  (inspec_id in (select id from tpt_quanlity_inspection where date < '%s' and state in ('done','remaining')))
+                                    )
                         union all
                             select -1*st.product_qty,st.price_unit*st.product_qty as price_unit
                             from stock_move st
                                 join stock_location loc1 on st.location_id=loc1.id
                                 join stock_location loc2 on st.location_dest_id=loc2.id
-                            where st.state='done' and st.location_id=%s and st.product_id=%s and loc1.usage = 'internal' and loc2.usage != 'internal' and picking_id in (select id from stock_picking where date < '%s' and state = 'done')
+                            where st.state='done' and st.location_id=%s and st.product_id=%s
+                                and ( (picking_id in (select id from stock_picking where date < '%s' and state = 'done')) 
+                                or  (inspec_id in (select id from tpt_quanlity_inspection where date < '%s' and state in ('done','remaining')))
+                                    )
                         )foo
-                '''%(locat_ids[0],product_id,date_from,locat_ids[0],product_id,date_from)
+                    '''%(locat_ids[0],product_id,date_from,date_from,locat_ids[0],product_id,date_from,date_from)
                 cr.execute(sql)
                 inventory = cr.dictfetchone()
             if categ =='spares':
@@ -506,15 +516,21 @@ class stock_movement_analysis(osv.osv_memory):
                             from stock_move st
                                 join stock_location loc1 on st.location_id=loc1.id
                                 join stock_location loc2 on st.location_dest_id=loc2.id
-                            where st.state='done' and st.location_dest_id = %s and st.product_id=%s and loc1.usage != 'internal' and loc2.usage = 'internal' and picking_id in (select id from stock_picking where date < '%s' and state = 'done')
+                            where st.state='done' and st.location_dest_id = %s  and st.product_id=%s
+                                and ( (picking_id in (select id from stock_picking where date < '%s' and state = 'done')) 
+                                or  (inspec_id in (select id from tpt_quanlity_inspection where date < '%s' and state in ('done','remaining')))
+                                    )
                         union all
                             select -1*st.product_qty,st.price_unit*st.product_qty as price_unit
                             from stock_move st
                                 join stock_location loc1 on st.location_id=loc1.id
                                 join stock_location loc2 on st.location_dest_id=loc2.id
-                            where st.state='done' and st.location_id=%s and st.product_id=%s and loc1.usage = 'internal' and loc2.usage != 'internal' and picking_id in (select id from stock_picking where date < '%s' and state = 'done')
+                            where st.state='done' and st.location_id=%s and st.product_id=%s
+                                and ( (picking_id in (select id from stock_picking where date < '%s' and state = 'done')) 
+                                or  (inspec_id in (select id from tpt_quanlity_inspection where date < '%s' and state in ('done','remaining')))
+                                    )
                         )foo
-                '''%(locat_ids[0],product_id,date_from,locat_ids[0],product_id,date_from)
+                    '''%(locat_ids[0],product_id,date_from,date_from,locat_ids[0],product_id,date_from,date_from)
                 cr.execute(sql)
                 inventory = cr.dictfetchone()
             if inventory:
