@@ -89,7 +89,7 @@ class tpt_update_stock_move_report(osv.osv):
             cr.execute(sql)
             move_ids = cr.fetchall()
             if move_ids:
-                cr.execute("UPDATE stock_move SET inspec_id= %s WHERE id in %s",inspec.id,(tuple(move_ids),))
+                cr.execute("UPDATE stock_move SET inspec_id= %s WHERE id in %s",(inspec.id,tuple(move_ids),))
                 print 'TPT update INSPEC for report', tuple(move_ids)
                         
     _columns = {
