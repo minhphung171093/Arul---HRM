@@ -2343,7 +2343,7 @@
             </field>
         </record>
         
-        <record id="inher_tpt_view_res_partner_form" model="ir.ui.view">
+        <!--<record id="inher_tpt_view_res_partner_form" model="ir.ui.view">
             <field name="name">tpt.partner.view.form.inherit.2</field>
             <field name="model">res.partner</field>
             <field name="inherit_id" ref="green_erp_arulmani_sale.tpt_view_res_partner_form"/>
@@ -2354,7 +2354,7 @@
 					</xpath>
                 </data>
             </field>
-        </record>
+        </record>-->
         
         <record id="tpt_view_account_fiscalyear_form" model="ir.ui.view">
             <field name="name">tpt.account.fiscalyear.form</field>
@@ -2388,7 +2388,7 @@
             </field>
         </record>
         
-        <record id="tpt_view_hr_department_customize" model="ir.ui.view">
+        <!-- <record id="tpt_view_hr_department_customize" model="ir.ui.view">
             <field name="name">tpt.hr.department.customize</field>
             <field name="model">hr.department</field>
             <field name="inherit_id" ref="green_erp_arulmani_hrm.view_hr_department_customize"/>
@@ -2397,7 +2397,7 @@
 					<attribute name='groups'>green_erp_arulmani_accounting.group_vvti_accounting_gm</attribute>
 				</xpath>
             </field>
-        </record>
+        </record> -->
         
         <record id="inh_view_tpt_hr_payroll_approve_reject_form_vew" model="ir.ui.view">
             <field name="name">inh.tpt.hr.payroll.approve.reject.form</field>
