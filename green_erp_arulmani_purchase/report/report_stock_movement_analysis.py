@@ -256,7 +256,7 @@ class Parser(report_sxw.rml_parse):
             for move in self.cr.dictfetchall():
                if move['action_taken'] == 'need':
                    sql = '''
-                       select qty_approve from tpt_quanlity_inspection where need_inspec_id = %s and state = 'done'
+                       select qty_approve from tpt_quanlity_inspection where need_inspec_id = %s and state in ('done','remaining')
                    '''%(move['id'])
                    self.cr.execute(sql)
                    inspec_arr = self.cr.fetchone()
@@ -291,7 +291,7 @@ class Parser(report_sxw.rml_parse):
             for move in self.cr.dictfetchall():
                if move['action_taken'] == 'need':
                    sql = '''
-                       select qty_approve from tpt_quanlity_inspection where need_inspec_id = %s and state = 'done'
+                       select qty_approve from tpt_quanlity_inspection where need_inspec_id = %s and state in ('done','remaining')
                    '''%(move['id'])
                    self.cr.execute(sql)
                    inspec_arr = self.cr.fetchone()
@@ -433,7 +433,7 @@ class Parser(report_sxw.rml_parse):
         for line in self.cr.dictfetchall():
             if line['action_taken'] == 'need':
                 sql = '''
-                       select qty_approve from tpt_quanlity_inspection where need_inspec_id = %s and state = 'done'
+                       select qty_approve from tpt_quanlity_inspection where need_inspec_id = %s and state in ('done','remaining')
                    '''%(line['id'])
                 self.cr.execute(sql)
                 inspec = self.cr.dictfetchone()

@@ -277,7 +277,7 @@ class stock_movement_analysis(osv.osv_memory):
                 for move in cr.dictfetchall():
                    if move['action_taken'] == 'need':
                        sql = '''
-                           select qty_approve from tpt_quanlity_inspection where need_inspec_id = %s and state = 'done'
+                           select qty_approve from tpt_quanlity_inspection where need_inspec_id = %s and state in ('done','remaining')
                        '''%(move['id'])
                        cr.execute(sql)
                        inspec_arr = cr.fetchone()
@@ -313,7 +313,7 @@ class stock_movement_analysis(osv.osv_memory):
                 for move in cr.dictfetchall():
                    if move['action_taken'] == 'need':
                        sql = '''
-                           select qty_approve from tpt_quanlity_inspection where need_inspec_id = %s and state = 'done'
+                           select qty_approve from tpt_quanlity_inspection where need_inspec_id = %s and state in ('done','remaining')
                        '''%(move['id'])
                        cr.execute(sql)
                        inspec_arr = cr.fetchone()
@@ -367,7 +367,7 @@ class stock_movement_analysis(osv.osv_memory):
             for line in cr.dictfetchall():
                if line['action_taken'] == 'need':
                    sql = '''
-                       select qty_approve from tpt_quanlity_inspection where need_inspec_id = %s and state = 'done'
+                       select qty_approve from tpt_quanlity_inspection where need_inspec_id = %s and state in ('done','remaining')
                    '''%(line['id'])
                    cr.execute(sql)
                    inspec = cr.dictfetchone()
