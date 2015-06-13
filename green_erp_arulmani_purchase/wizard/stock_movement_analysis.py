@@ -142,107 +142,7 @@ class stock_movement_analysis(osv.osv_memory):
                 categ_ids += [r[0] for r in cr.fetchall()]
                 return pro_obj.browse(cr,uid,categ_ids)
 
-        def get_opening_stock(o,product_id):
-            categ = o.categ_id.cate_name
-            date_from = o.date_from
-            if categ=='raw':
-                parent_ids = self.pool.get('stock.location').search(cr, uid, [('name','=','Store'),('usage','=','view')])
-                locat_ids = self.pool.get('stock.location').search(cr, uid, [('name','in',['Raw Material','Raw Materials','Raw material']),('location_id','=',parent_ids[0])])
-                sql = '''
-                    select case when sum(foo.product_qty)!=0 then sum(foo.product_qty) else 0 end ton_sl,case when sum(foo.price_unit)!=0 then sum(foo.price_unit) else 0 end total_cost from 
-                        (select st.product_qty,st.price_unit*st.product_qty as price_unit
-                            from stock_move st
-                                join stock_location loc1 on st.location_id=loc1.id
-                                join stock_location loc2 on st.location_dest_id=loc2.id
-                            where st.state='done' and st.location_dest_id = %s  and st.product_id=%s and loc1.usage != 'internal' and loc2.usage = 'internal' and picking_id in (select id from stock_picking where date < '%s' and state = 'done')
-                        union all
-                            select -1*st.product_qty,st.price_unit*st.product_qty as price_unit
-                            from stock_move st
-                                join stock_location loc1 on st.location_id=loc1.id
-                                join stock_location loc2 on st.location_dest_id=loc2.id
-                            where st.state='done' and st.location_id=%s and st.product_id=%s and loc1.usage = 'internal' and loc2.usage != 'internal' and picking_id in (select id from stock_picking where date < '%s' and state = 'done')
-                        )foo
-                '''%(locat_ids[0],product_id,date_from,locat_ids[0],product_id,date_from)
-                cr.execute(sql)
-                inventory = cr.fetchone()
-            if categ =='spares':
-                parent_ids = self.pool.get('stock.location').search(cr, uid, [('name','=','Store'),('usage','=','view')])
-                locat_ids = self.pool.get('stock.location').search(cr, uid, [('name','in',['Spares','Spare','spares']),('location_id','=',parent_ids[0])])            
-                sql = '''
-                    select case when sum(foo.product_qty)!=0 then sum(foo.product_qty) else 0 end ton_sl,case when sum(foo.price_unit)!=0 then sum(foo.price_unit) else 0 end total_cost from 
-                        (select st.product_qty,st.price_unit*st.product_qty as price_unit
-                            from stock_move st
-                                join stock_location loc1 on st.location_id=loc1.id
-                                join stock_location loc2 on st.location_dest_id=loc2.id
-                            where st.state='done' and st.location_dest_id = %s  and st.product_id=%s and loc1.usage != 'internal' and loc2.usage = 'internal' and picking_id in (select id from stock_picking where date < '%s' and state = 'done')
-                        union all
-                            select -1*st.product_qty,st.price_unit*st.product_qty as price_unit
-                            from stock_move st
-                                join stock_location loc1 on st.location_id=loc1.id
-                                join stock_location loc2 on st.location_dest_id=loc2.id
-                            where st.state='done' and st.location_id=%s and st.product_id=%s and loc1.usage = 'internal' and loc2.usage != 'internal' and picking_id in (select id from stock_picking where date < '%s' and state = 'done')
-                        )foo
-                '''%(locat_ids[0],product_id,date_from,locat_ids[0],product_id,date_from)
-                cr.execute(sql)
-                inventory = cr.fetchone()
-            return inventory and inventory[0] or 0       
-        
-        def get_opening_stock_value(o, product_id):
-            date_from = o.date_from
-            categ = o.categ_id.cate_name
-            opening_stock_value = 0
-            if categ=='raw':
-                parent_ids = self.pool.get('stock.location').search(cr, uid, [('name','=','Store'),('usage','=','view')])
-                locat_ids = self.pool.get('stock.location').search(cr, uid, [('name','in',['Raw Material','Raw Materials','Raw material']),('location_id','=',parent_ids[0])])
-                sql = '''
-                    select case when sum(foo.product_qty)!=0 then sum(foo.product_qty) else 0 end ton_sl,case when sum(foo.price_unit)!=0 then sum(foo.price_unit) else 0 end total_cost from 
-                        (select st.product_qty,st.price_unit*st.product_qty as price_unit
-                            from stock_move st
-                                join stock_location loc1 on st.location_id=loc1.id
-                                join stock_location loc2 on st.location_dest_id=loc2.id
-                            where st.state='done' and st.location_dest_id = %s and st.product_id=%s and loc1.usage != 'internal' and loc2.usage = 'internal' and picking_id in (select id from stock_picking where date < '%s' and state = 'done')
-                        union all
-                            select -1*st.product_qty,st.price_unit*st.product_qty as price_unit
-                            from stock_move st
-                                join stock_location loc1 on st.location_id=loc1.id
-                                join stock_location loc2 on st.location_dest_id=loc2.id
-                            where st.state='done' and st.location_id=%s and st.product_id=%s and loc1.usage = 'internal' and loc2.usage != 'internal' and picking_id in (select id from stock_picking where date < '%s' and state = 'done')
-                        )foo
-                '''%(locat_ids[0],product_id,date_from,locat_ids[0],product_id,date_from)
-                cr.execute(sql)
-                inventory = cr.dictfetchone()
-            if categ =='spares':
-                parent_ids = self.pool.get('stock.location').search(cr, uid, [('name','=','Store'),('usage','=','view')])
-                locat_ids = self.pool.get('stock.location').search(cr, uid, [('name','in',['Spares','Spare','spares']),('location_id','=',parent_ids[0])])            
-                sql = '''
-                    select case when sum(foo.product_qty)!=0 then sum(foo.product_qty) else 0 end ton_sl,case when sum(foo.price_unit)!=0 then sum(foo.price_unit) else 0 end total_cost from 
-                        (select st.product_qty,st.price_unit*st.product_qty as price_unit
-                            from stock_move st
-                                join stock_location loc1 on st.location_id=loc1.id
-                                join stock_location loc2 on st.location_dest_id=loc2.id
-                            where st.state='done' and st.location_dest_id = %s and st.product_id=%s and loc1.usage != 'internal' and loc2.usage = 'internal' and picking_id in (select id from stock_picking where date < '%s' and state = 'done')
-                        union all
-                            select -1*st.product_qty,st.price_unit*st.product_qty as price_unit
-                            from stock_move st
-                                join stock_location loc1 on st.location_id=loc1.id
-                                join stock_location loc2 on st.location_dest_id=loc2.id
-                            where st.state='done' and st.location_id=%s and st.product_id=%s and loc1.usage = 'internal' and loc2.usage != 'internal' and picking_id in (select id from stock_picking where date < '%s' and state = 'done')
-                        )foo
-                '''%(locat_ids[0],product_id,date_from,locat_ids[0],product_id,date_from)
-                cr.execute(sql)
-                inventory = cr.dictfetchone()
-            if inventory:
-                hand_quantity = inventory['ton_sl'] or 0
-                total_cost = inventory['total_cost'] or 0
-                avg_cost = hand_quantity and total_cost/hand_quantity or 0
-                sql = '''
-                    select case when sum(product_isu_qty)!=0 then sum(product_isu_qty) else 0 end product_isu_qty
-                        from tpt_material_issue_line where material_issue_id in (select id from tpt_material_issue where date_expec<'%s' and state='done') and product_id=%s
-                '''%(date_from,product_id)
-                cr.execute(sql)
-                product_isu_qty = cr.fetchone()[0]
-                opening_stock_value = total_cost-(product_isu_qty*avg_cost)
-            return opening_stock_value    
+
         
         
         def get_qty(o, line):
@@ -277,7 +177,7 @@ class stock_movement_analysis(osv.osv_memory):
                 for move in cr.dictfetchall():
                    if move['action_taken'] == 'need':
                        sql = '''
-                           select qty_approve from tpt_quanlity_inspection where need_inspec_id = %s and state = 'done'
+                           select qty_approve from tpt_quanlity_inspection where need_inspec_id = %s and state in ('done','remaining')
                        '''%(move['id'])
                        cr.execute(sql)
                        inspec_arr = cr.fetchone()
@@ -313,7 +213,7 @@ class stock_movement_analysis(osv.osv_memory):
                 for move in cr.dictfetchall():
                    if move['action_taken'] == 'need':
                        sql = '''
-                           select qty_approve from tpt_quanlity_inspection where need_inspec_id = %s and state = 'done'
+                           select qty_approve from tpt_quanlity_inspection where need_inspec_id = %s and state in ('done','remaining')
                        '''%(move['id'])
                        cr.execute(sql)
                        inspec_arr = cr.fetchone()
@@ -327,18 +227,36 @@ class stock_movement_analysis(osv.osv_memory):
         def get_receipt_value(o, product_id):
             date_from = o.date_from
             date_to = o.date_to
+            categ = o.categ_id.cate_name
             hand_quantity = 0
-            sql = '''
-                select case when sum(foo.product_qty)!=0 then sum(foo.product_qty) else 0 end ton_sl,case when sum(foo.price_unit)!=0 then sum(foo.price_unit) else 0 end total_cost from 
-                    (select st.product_qty as product_qty,st.price_unit*st.product_qty as price_unit
-                        from stock_move st
-                            join stock_location loc1 on st.location_id=loc1.id
-                            join stock_location loc2 on st.location_dest_id=loc2.id
-                        where st.state='done' and st.product_id=%s and loc1.usage != 'internal' and loc2.usage = 'internal' and picking_id in (select id from stock_picking where date between '%s' and '%s' and state = 'done')
-                    )foo
-            '''%(product_id,date_from,date_to)
-            cr.execute(sql)
-            inventory = cr.dictfetchone()
+            if categ=='raw':
+                parent_ids = self.pool.get('stock.location').search(cr, uid, [('name','=','Store'),('usage','=','view')])
+                locat_ids = self.pool.get('stock.location').search(cr, uid, [('name','in',['Raw Material','Raw Materials','Raw material']),('location_id','=',parent_ids[0])])
+                sql = '''
+                    select case when sum(foo.product_qty)!=0 then sum(foo.product_qty) else 0 end ton_sl,case when sum(foo.price_unit)!=0 then sum(foo.price_unit) else 0 end total_cost from 
+                        (select st.product_qty as product_qty,st.price_unit*st.product_qty as price_unit
+                            from stock_move st
+                                join stock_location loc1 on st.location_id=loc1.id
+                                join stock_location loc2 on st.location_dest_id=loc2.id
+                            where st.state='done' and st.location_dest_id = %s and st.product_id=%s and loc1.usage != 'internal' and loc2.usage = 'internal' and picking_id in (select id from stock_picking where date between '%s' and '%s' and state = 'done')
+                        )foo
+                '''%(locat_ids[0],product_id,date_from,date_to)
+                cr.execute(sql)
+                inventory = cr.dictfetchone()
+            if categ and categ =='spares':
+                parent_ids = self.pool.get('stock.location').search(cr, uid, [('name','=','Store'),('usage','=','view')])
+                locat_ids = self.pool.get('stock.location').search(cr, uid, [('name','in',['Spares','Spare','spares']),('location_id','=',parent_ids[0])])            
+                sql = '''
+                    select case when sum(foo.product_qty)!=0 then sum(foo.product_qty) else 0 end ton_sl,case when sum(foo.price_unit)!=0 then sum(foo.price_unit) else 0 end total_cost from 
+                        (select st.product_qty as product_qty,st.price_unit*st.product_qty as price_unit
+                            from stock_move st
+                                join stock_location loc1 on st.location_id=loc1.id
+                                join stock_location loc2 on st.location_dest_id=loc2.id
+                            where st.state='done' and st.location_dest_id = %s and st.product_id=%s and loc1.usage != 'internal' and loc2.usage = 'internal' and picking_id in (select id from stock_picking where date between '%s' and '%s' and state = 'done')
+                        )foo
+                '''%(locat_ids[0],product_id,date_from,date_to)
+                cr.execute(sql)
+                inventory = cr.dictfetchone()
             if inventory:
                 hand_quantity = inventory['ton_sl'] or 0
                 total_cost = inventory['total_cost'] or 0
@@ -349,7 +267,7 @@ class stock_movement_analysis(osv.osv_memory):
             for line in cr.dictfetchall():
                if line['action_taken'] == 'need':
                    sql = '''
-                       select qty_approve from tpt_quanlity_inspection where need_inspec_id = %s and state = 'done'
+                       select qty_approve from tpt_quanlity_inspection where need_inspec_id = %s and state in ('done','remaining')
                    '''%(line['id'])
                    cr.execute(sql)
                    inspec = cr.dictfetchone()
@@ -413,23 +331,63 @@ class stock_movement_analysis(osv.osv_memory):
             date_to = o.date_to
             categ = o.categ_id.cate_name
             consum_value = 0
-            sql = '''
-                select case when sum(foo.product_qty)!=0 then sum(foo.product_qty) else 0 end ton_sl,case when sum(foo.price_unit)!=0 then sum(foo.price_unit) else 0 end total_cost from 
-                    (select st.product_qty,st.price_unit*st.product_qty as price_unit
-                        from stock_move st
-                            join stock_location loc1 on st.location_id=loc1.id
-                            join stock_location loc2 on st.location_dest_id=loc2.id
-                        where st.state='done' and st.product_id=%s and loc1.usage != 'internal' and loc2.usage = 'internal' and picking_id in (select id from stock_picking where date < '%s' and state = 'done')
-                    union all
-                        select -1*st.product_qty,st.price_unit*st.product_qty as price_unit
-                        from stock_move st
-                            join stock_location loc1 on st.location_id=loc1.id
-                            join stock_location loc2 on st.location_dest_id=loc2.id
-                        where st.state='done' and st.product_id=%s and loc1.usage = 'internal' and loc2.usage != 'internal' and picking_id in (select id from stock_picking where date < '%s' and state = 'done')
-                    )foo
-            '''%(product_id,date_from,product_id,date_from)
-            cr.execute(sql)
-            inventory = cr.dictfetchone()
+            if categ=='raw':
+                parent_ids = self.pool.get('stock.location').search(cr, uid, [('name','=','Store'),('usage','=','view')])
+                locat_ids = self.pool.get('stock.location').search(cr, uid, [('name','in',['Raw Material','Raw Materials','Raw material']),('location_id','=',parent_ids[0])])
+                sql = '''
+                    select case when sum(foo.product_qty)!=0 then sum(foo.product_qty) else 0 end ton_sl,case when sum(foo.price_unit)!=0 then sum(foo.price_unit) else 0 end total_cost from 
+                        (select st.product_qty,st.price_unit*st.product_qty as price_unit
+                            from stock_move st
+                                join stock_location loc1 on st.location_id=loc1.id
+                                join stock_location loc2 on st.location_dest_id=loc2.id
+                            where st.state='done' and st.location_dest_id = %s and st.product_id=%s and loc1.usage != 'internal' and loc2.usage = 'internal' and picking_id in (select id from stock_picking where date between '%s' and '%s' and state = 'done')
+                        union all
+                            select -1*st.product_qty,st.price_unit*st.product_qty as price_unit
+                            from stock_move st
+                                join stock_location loc1 on st.location_id=loc1.id
+                                join stock_location loc2 on st.location_dest_id=loc2.id
+                            where st.state='done' and st.location_id=%s and st.product_id=%s and loc1.usage = 'internal' and loc2.usage != 'internal' and picking_id in (select id from stock_picking where date between '%s' and '%s' and state = 'done')
+                        )foo
+                '''%(locat_ids[0],product_id,date_from,date_to,locat_ids[0],product_id,date_from,date_to)
+                cr.execute(sql)
+                inventory = cr.dictfetchone()
+            if categ and categ =='spares':
+                parent_ids = self.pool.get('stock.location').search(cr, uid, [('name','=','Store'),('usage','=','view')])
+                locat_ids = self.pool.get('stock.location').search(cr, uid, [('name','in',['Spares','Spare','spares']),('location_id','=',parent_ids[0])])            
+                sql = '''
+                    select case when sum(foo.product_qty)!=0 then sum(foo.product_qty) else 0 end ton_sl,case when sum(foo.price_unit)!=0 then sum(foo.price_unit) else 0 end total_cost from 
+                        (select st.product_qty,st.price_unit*st.product_qty as price_unit
+                            from stock_move st
+                                join stock_location loc1 on st.location_id=loc1.id
+                                join stock_location loc2 on st.location_dest_id=loc2.id
+                            where st.state='done' and st.location_dest_id = %s and st.product_id=%s and loc1.usage != 'internal' and loc2.usage = 'internal' and picking_id in (select id from stock_picking where date between '%s' and '%s' and state = 'done')
+                        union all
+                            select -1*st.product_qty,st.price_unit*st.product_qty as price_unit
+                            from stock_move st
+                                join stock_location loc1 on st.location_id=loc1.id
+                                join stock_location loc2 on st.location_dest_id=loc2.id
+                            where st.state='done' and st.location_id=%s and st.product_id=%s and loc1.usage = 'internal' and loc2.usage != 'internal' and picking_id in (select id from stock_picking where date between '%s' and '%s' and state = 'done')
+                        )foo
+                '''%(locat_ids[0],product_id,date_from,date_to,locat_ids[0],product_id,date_from,date_to)
+                cr.execute(sql)
+                inventory = cr.dictfetchone()
+#             sql = '''
+#                 select case when sum(foo.product_qty)!=0 then sum(foo.product_qty) else 0 end ton_sl,case when sum(foo.price_unit)!=0 then sum(foo.price_unit) else 0 end total_cost from 
+#                     (select st.product_qty,st.price_unit*st.product_qty as price_unit
+#                         from stock_move st
+#                             join stock_location loc1 on st.location_id=loc1.id
+#                             join stock_location loc2 on st.location_dest_id=loc2.id
+#                         where st.state='done' and st.product_id=%s and loc1.usage != 'internal' and loc2.usage = 'internal' and picking_id in (select id from stock_picking where date between '%s' and '%s' and state = 'done')
+#                     union all
+#                         select -1*st.product_qty,st.price_unit*st.product_qty as price_unit
+#                         from stock_move st
+#                             join stock_location loc1 on st.location_id=loc1.id
+#                             join stock_location loc2 on st.location_dest_id=loc2.id
+#                         where st.state='done' and st.product_id=%s and loc1.usage = 'internal' and loc2.usage != 'internal' and picking_id in (select id from stock_picking where date between '%s' and '%s' and state = 'done')
+#                     )foo
+#             '''%(product_id,date_from,date_to,product_id,date_from,date_to)
+#             cr.execute(sql)
+#             inventory = cr.dictfetchone()
             if inventory:
                 hand_quantity = inventory['ton_sl'] or 0
                 total_cost = inventory['total_cost'] or 0
@@ -461,6 +419,176 @@ class stock_movement_analysis(osv.osv_memory):
 #                     product_isu_qty = cr.fetchone()[0]
             consum_value = product_isu_qty*avg_cost
             return consum_value        
+        
+        def get_opening_stock(o,product_id):
+            categ = o.categ_id.cate_name
+            date_from = o.date_from
+            if categ=='raw':
+                parent_ids = self.pool.get('stock.location').search(cr, uid, [('name','=','Store'),('usage','=','view')])
+                locat_ids = self.pool.get('stock.location').search(cr, uid, [('name','in',['Raw Material','Raw Materials','Raw material']),('location_id','=',parent_ids[0])])
+                sql = '''
+                    select case when sum(foo.product_qty)!=0 then sum(foo.product_qty) else 0 end ton_sl,case when sum(foo.price_unit)!=0 then sum(foo.price_unit) else 0 end total_cost from 
+                        (select st.product_qty,st.price_unit*st.product_qty as price_unit
+                            from stock_move st
+                                join stock_location loc1 on st.location_id=loc1.id
+                                join stock_location loc2 on st.location_dest_id=loc2.id
+                            where st.state='done' and st.location_dest_id = %s  and st.product_id=%s
+                                and ( (picking_id in (select id from stock_picking where date < '%s' and state = 'done')) 
+                                or  (inspec_id in (select id from tpt_quanlity_inspection where date < '%s' and state in ('done','remaining')))
+                                    )
+                        union all
+                            select -1*st.product_qty,st.price_unit*st.product_qty as price_unit
+                            from stock_move st
+                                join stock_location loc1 on st.location_id=loc1.id
+                                join stock_location loc2 on st.location_dest_id=loc2.id
+                            where st.state='done' and st.location_id=%s and st.product_id=%s
+                                and ( (picking_id in (select id from stock_picking where date < '%s' and state = 'done')) 
+                                or  (inspec_id in (select id from tpt_quanlity_inspection where date < '%s' and state in ('done','remaining')))
+                                    )
+                        )foo
+                    '''%(locat_ids[0],product_id,date_from,date_from,locat_ids[0],product_id,date_from,date_from)
+                cr.execute(sql)
+                inventory = cr.dictfetchone()
+                sql = '''
+                        select case when sum(product_isu_qty)!=0 then sum(product_isu_qty) else 0 end product_isu_qty from tpt_material_issue_line  
+                        where product_id = %s and material_issue_id in (select id from tpt_material_issue where date_expec < '%s' and warehouse = %s and state = 'done')
+                    '''%(product_id, date_from,locat_ids[0])
+                cr.execute(sql)
+                product_isu_qty = cr.fetchone()[0]
+                open_qty = (inventory and inventory['ton_sl'] or 0) - product_isu_qty
+            if categ =='spares':
+                parent_ids = self.pool.get('stock.location').search(cr, uid, [('name','=','Store'),('usage','=','view')])
+                locat_ids = self.pool.get('stock.location').search(cr, uid, [('name','in',['Spares','Spare','spares']),('location_id','=',parent_ids[0])])            
+                sql = '''
+                    select case when sum(foo.product_qty)!=0 then sum(foo.product_qty) else 0 end ton_sl,case when sum(foo.price_unit)!=0 then sum(foo.price_unit) else 0 end total_cost from 
+                        (select st.product_qty,st.price_unit*st.product_qty as price_unit
+                            from stock_move st
+                                join stock_location loc1 on st.location_id=loc1.id
+                                join stock_location loc2 on st.location_dest_id=loc2.id
+                            where st.state='done' and st.location_dest_id = %s  and st.product_id=%s
+                                and ( (picking_id in (select id from stock_picking where date < '%s' and state = 'done')) 
+                                or  (inspec_id in (select id from tpt_quanlity_inspection where date < '%s' and state in ('done','remaining')))
+                                    )
+                        union all
+                            select -1*st.product_qty,st.price_unit*st.product_qty as price_unit
+                            from stock_move st
+                                join stock_location loc1 on st.location_id=loc1.id
+                                join stock_location loc2 on st.location_dest_id=loc2.id
+                            where st.state='done' and st.location_id=%s and st.product_id=%s
+                                and ( (picking_id in (select id from stock_picking where date < '%s' and state = 'done')) 
+                                or  (inspec_id in (select id from tpt_quanlity_inspection where date < '%s' and state in ('done','remaining')))
+                                    )
+                        )foo
+                '''%(locat_ids[0],product_id,date_from,date_from,locat_ids[0],product_id,date_from,date_from)
+                cr.execute(sql)
+                inventory = cr.dictfetchone()
+                sql = '''
+                        select case when sum(product_isu_qty)!=0 then sum(product_isu_qty) else 0 end product_isu_qty from tpt_material_issue_line  
+                        where product_id = %s and material_issue_id in (select id from tpt_material_issue where date_expec < '%s' and warehouse = %s and state = 'done')
+                    '''%(product_id, date_from,locat_ids[0])
+                cr.execute(sql)
+                product_isu_qty = cr.fetchone()[0]
+                open_qty = (inventory and inventory['ton_sl'] or 0) - product_isu_qty
+            return open_qty 
+        
+        def get_opening_stock_value(o, product_id):
+            date_from = o.date_from
+            categ = o.categ_id.cate_name
+            opening_stock_value = 0
+            if categ=='raw':
+                parent_ids = self.pool.get('stock.location').search(cr, uid, [('name','=','Store'),('usage','=','view')])
+                locat_ids = self.pool.get('stock.location').search(cr, uid, [('name','in',['Raw Material','Raw Materials','Raw material']),('location_id','=',parent_ids[0])])
+#                 sql = '''
+#                     select case when sum(foo.product_qty)!=0 then sum(foo.product_qty) else 0 end ton_sl,case when sum(foo.price_unit)!=0 then sum(foo.price_unit) else 0 end total_cost from 
+#                         (select st.product_qty,st.price_unit*st.product_qty as price_unit
+#                             from stock_move st
+#                                 join stock_location loc1 on st.location_id=loc1.id
+#                                 join stock_location loc2 on st.location_dest_id=loc2.id
+#                             where st.state='done' and st.location_dest_id = %s  and st.product_id=%s
+#                                 and ( (picking_id in (select id from stock_picking where date < '%s' and state = 'done')) 
+#                                 or  (inspec_id in (select id from tpt_quanlity_inspection where date < '%s' and state in ('done','remaining')))
+#                                 or  (issue_id in (select id from tpt_material_issue where date_expec < '%s' and state in ('done')))
+#                                     )
+#                         union all
+#                             select -1*st.product_qty,st.price_unit*st.product_qty as price_unit
+#                             from stock_move st
+#                                 join stock_location loc1 on st.location_id=loc1.id
+#                                 join stock_location loc2 on st.location_dest_id=loc2.id
+#                             where st.state='done' and st.location_id=%s and st.product_id=%s
+#                                 and ( (picking_id in (select id from stock_picking where date < '%s' and state = 'done')) 
+#                                 or  (inspec_id in (select id from tpt_quanlity_inspection where date < '%s' and state in ('done','remaining')))
+#                                 or  (issue_id in (select id from tpt_material_issue where date_expec < '%s' and state in ('done')))
+#                                     )
+#                         )foo
+#                     '''%(locat_ids[0],product_id,date_from,date_from,date_from,locat_ids[0],product_id,date_from,date_from,date_from)
+#                 cr.execute(sql)
+#                 inventory = cr.dictfetchone()
+#phuoc
+#                 sql = '''
+#                     select case when sum(foo.product_qty)!=0 then sum(foo.product_qty) else 0 end ton_sl,case when sum(foo.price_unit)!=0 then sum(foo.price_unit) else 0 end total_cost from 
+#                           (select st.product_qty,st.price_unit*st.product_qty as price_unit
+#                             from stock_move st
+#                                 join stock_location loc1 on st.location_id=loc1.id
+#                                 join stock_location loc2 on st.location_dest_id=loc2.id
+#                             where st.state='done' and st.location_dest_id=%s and st.product_id=%s
+#                                 and ( (picking_id in (select id from stock_picking where date < '%s' and state = 'done')) 
+#                                 or  (inspec_id in (select id from tpt_quanlity_inspection where date < '%s' and state in ('done','remaining')))
+#                                 or  (issue_id in (select id from tpt_material_issue where date_expec < '%s' and state in ('done')))
+#                                     )
+#                         )foo
+#                     '''%(locat_ids[0],product_id,date_from,date_from,date_from)
+#phuoc
+                sql = '''
+                          select case when sum(st.product_qty)!=0 then sum(st.product_qty) else 0 end ton_sl,case when sum(st.price_unit*st.product_qty)!=0 then sum(st.price_unit*st.product_qty) else 0 end total_cost
+                            from stock_move st
+                                join stock_location loc1 on st.location_id=loc1.id
+                                join stock_location loc2 on st.location_dest_id=loc2.id
+                            where st.state='done' and st.location_dest_id=%s and st.product_id=%s
+                                and ( (picking_id in (select id from stock_picking where date < '%s' and state = 'done')) 
+                                or  (inspec_id in (select id from tpt_quanlity_inspection where date < '%s' and state in ('done','remaining')))
+                                    )
+                    '''%(locat_ids[0],product_id,date_from,date_from)
+                cr.execute(sql)
+                inventory = cr.dictfetchone()
+                if inventory:
+                    hand_quantity = inventory['ton_sl'] or 0
+                    total_cost = inventory['total_cost'] or 0
+                    avg_cost = hand_quantity and total_cost/hand_quantity or 0
+                    sql = '''
+                        select case when sum(product_isu_qty)!=0 then sum(product_isu_qty) else 0 end product_isu_qty
+                            from tpt_material_issue_line where material_issue_id in (select id from tpt_material_issue where date_expec<'%s' and warehouse = %s and state='done') and product_id=%s
+                    '''%(date_from,locat_ids[0],product_id)
+                    cr.execute(sql)
+                    product_isu_qty = cr.fetchone()[0]
+                    opening_stock_value = total_cost-(product_isu_qty*avg_cost)
+            if categ =='spares':
+                parent_ids = self.pool.get('stock.location').search(cr, uid, [('name','=','Store'),('usage','=','view')])
+                locat_ids = self.pool.get('stock.location').search(cr, uid, [('name','in',['Spares','Spare','spares']),('location_id','=',parent_ids[0])])            
+                sql = '''
+                          select case when sum(st.product_qty)!=0 then sum(st.product_qty) else 0 end ton_sl,case when sum(st.price_unit*st.product_qty)!=0 then sum(st.price_unit*st.product_qty) else 0 end total_cost
+                            from stock_move st
+                                join stock_location loc1 on st.location_id=loc1.id
+                                join stock_location loc2 on st.location_dest_id=loc2.id
+                            where st.state='done' and st.location_dest_id=%s and st.product_id=%s
+                                and ( (picking_id in (select id from stock_picking where date < '%s' and state = 'done')) 
+                                or  (inspec_id in (select id from tpt_quanlity_inspection where date < '%s' and state in ('done','remaining')))
+                                    )
+                    '''%(locat_ids[0],product_id,date_from,date_from)
+                cr.execute(sql)
+                inventory = cr.dictfetchone()
+                if inventory:
+                    hand_quantity = inventory['ton_sl'] or 0
+                    total_cost = inventory['total_cost'] or 0
+                    avg_cost = hand_quantity and total_cost/hand_quantity or 0
+                    sql = '''
+                        select case when sum(product_isu_qty)!=0 then sum(product_isu_qty) else 0 end product_isu_qty
+                            from tpt_material_issue_line where material_issue_id in (select id from tpt_material_issue where date_expec<'%s' and warehouse = %s and state='done') and product_id=%s
+                    '''%(date_from,locat_ids[0],product_id)
+                    cr.execute(sql)
+                    product_isu_qty = cr.fetchone()[0]
+                    opening_stock_value = total_cost-(product_isu_qty*avg_cost)
+            return opening_stock_value    
+        
         def get_closing_stock(o, receipt,consum,opening):
             total_cost = 0
             total_cost = receipt - consum + opening
@@ -539,4 +667,3 @@ class product_product(osv.osv):
        ids = self.search(cr, user, args, context=context, limit=limit)
        return self.name_get(cr, user, ids, context=context)
 product_product()
-

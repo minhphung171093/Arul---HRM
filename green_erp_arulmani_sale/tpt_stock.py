@@ -670,9 +670,25 @@ class stock_picking(osv.osv):
         '''%(ids[0])
         cr.execute(sql)
         if cr.dictfetchone()['id']:
-            raise osv.except_osv(
-                _('Warning'),
-                _('You must first cancel all Invoice order(s) attached to this sales order.'))
+            sql ='''
+            select id from account_invoice where delivery_order_id = %s and state != 'cancel'
+            '''%(ids[0])
+            cr.execute(sql)
+            if cr.dictfetchone():
+                raise osv.except_osv(
+                    _('Warning'),
+                    _('You must first cancel all Invoice order(s) attached to this sales order.'))
+            else:
+                cr.execute(''' update stock_picking set invoice_state ='2binvoiced' where id = %s''',(ids[0],))
+                do = self.browse(cr, uid, ids[0], context=context)
+                if do:
+                    line_obj = self.pool.get('account.move.line')
+                    line_ids = line_obj.search(cr, uid, [('name','=',do.name)])
+                    if line_ids:
+                        line_id = line_obj.browse(cr, uid, line_ids[0])
+                        move_id = line_id.move_id.id 
+                        if move_id:
+                            cr.execute(''' delete from account_move where id = %s''',(move_id,))
                 
         for picking in self.browse(cr, uid, ids, context):
             for line in picking.move_lines:

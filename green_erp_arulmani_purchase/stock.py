@@ -25,8 +25,9 @@ class stock_picking(osv.osv):
         'action_taken': fields.related('move_lines', 'action_taken', type='selection',selection=[
             ('direct','Direct Stock Update'),('move','Move to Consumption'),('need','Need Inspection')
             ], string='Action to be Taken'),
+        'tpt_create_grn': fields.boolean('Create GRN'),
                 }
-
+    
     def write(self, cr, uid, ids, vals, context=None):
         new_write = super(stock_picking, self).write(cr, uid,ids, vals, context)
         for line in self.browse(cr,uid,ids):
@@ -36,7 +37,7 @@ class stock_picking(osv.osv):
                 '''%(line.warehouse.id,line.id)
                 cr.execute(sql)
             for move in line.move_lines:
-                if 'state' in vals and vals['state']=='cancel':
+                if 'state' in vals and vals['state']=='cancel' and line.type=='in':
                     sql = '''
                         update tpt_purchase_product set state='po_raised' where pur_product_id=%s and product_id=%s
                     '''%(move.po_indent_id.id,move.product_id.id)
@@ -292,32 +293,56 @@ class stock_picking_in(osv.osv):
         'action_taken': fields.related('move_lines', 'action_taken', type='selection',selection=[
             ('direct','Direct Stock Update'),('move','Move to Consumption'),('need','Need Inspection')
             ], string='Action to be Taken'),
+        'tpt_create_grn': fields.boolean('Create GRN'),
                 }
-
-
+    
+    def create(self, cr, uid, vals, context=None):
+        if vals.get('tpt_create_grn',False) and vals.get('purchase_id',False):
+            wf_service = netsvc.LocalService("workflow")
+            purchase_id = vals['purchase_id']
+            res = wf_service.trg_validate(uid, 'purchase.order', purchase_id, 'purchase_md_confirmed', cr)
+            picking_ids = self.search(cr, uid, [('purchase_id','=',purchase_id)])
+            if picking_ids:
+                value = {}
+                if vals.get('warehouse',False):
+                    value['warehouse'] = vals['warehouse']
+                if vals.get('gate_in_pass_no',False):
+                    value['gate_in_pass_no'] = vals['gate_in_pass_no']
+                if vals.get('truck',False):
+                    value['truck'] = vals['truck']
+                if vals.get('invoice_no',False):
+                    value['invoice_no'] = vals['invoice_no']
+                if vals.get('header_text',False):
+                    value['header_text'] = vals['header_text']
+                self.write(cr, uid, [picking_ids[0]],value)
+                picking = self.browse(cr, uid, picking_ids[0])
+                if vals.get('move_lines',False):
+                    for seq,line in enumerate(picking.move_lines):
+                        move_value = {}
+                        if vals['move_lines'][seq][2].get('item_text',False):
+                            move_value['item_text']=vals['move_lines'][seq][2]['item_text']
+                        if vals['move_lines'][seq][2].get('action_taken',False):
+                            move_value['action_taken']=vals['move_lines'][seq][2]['action_taken']
+                        if vals['move_lines'][seq][2].get('bin_location',False):
+                            move_value['bin_location']=vals['move_lines'][seq][2]['bin_location']
+                        if move_value:
+                            self.pool.get('stock.move').write(cr, uid, [line.id], move_value)
+                return picking_ids[0]
+        return super(stock_picking_in,self).create(cr, uid, vals, context)
     
     def onchange_purchase_id(self, cr, uid, ids,purchase_id=False, context=None):
         vals = {}
         product_line = []
-        for picking in self.browse(cr, uid, ids):
-            sql = '''
-                delete from stock_move where picking_id = %s
-            '''%(picking.id)
-            cr.execute(sql)
         if purchase_id:
             purchase = self.pool.get('purchase.order').browse(cr, uid, purchase_id)
             for line in purchase.order_line:
-                rs = {
-                      'po_indent_id': line.po_indent_no and line.po_indent_no.id or False,
-                      'product_id': line.product_id and line.product_id.id or False,
-                      'product_qty': line.product_qty or False,
-                      'product_uom': line.product_uom and line.product_uom.id or False,
-                      }
+                rs = self.pool.get('purchase.order')._prepare_order_line_move(cr, uid,purchase,line,False)
                 product_line.append((0,0,rs))
             
             vals = {
                     'partner_id': purchase.partner_id and purchase.partner_id.id or False,
                     'move_lines':product_line,
+                    'tpt_create_grn': True,
                     }
         return {'value': vals}
     
@@ -376,6 +401,17 @@ class stock_move(osv.osv):
         'item_text':fields.text('Item Text'),
         'inspec_id': fields.many2one('tpt.quanlity.inspection','Quanlity Inspection'),
         'issue_id': fields.many2one('tpt.material.issue','Material Issue'),
+        'grn_no': fields.related('picking_id', 'name', type='char', string='GRN No'),
+        'grn_date': fields.related('picking_id', 'date', type='datetime', string='GRN Date'),
+        'supplier_id': fields.related('picking_id', 'partner_id',relation='res.partner', type='many2one', string='Supplier'),
+        'po_no': fields.related('picking_id', 'purchase_id',relation='purchase.order', type='many2one', string='PO Number'),
+        'doc_type': fields.related('picking_id', 'document_type', type='selection',selection=[
+            ('raw','VV Raw material PO'),('asset','VV Asset PO'),('standard','VV Standard PO'),('local','VV Local PO'),('return','VV Return PO'),('service','VV Service PO'),('out','VV Out Service PO')], string='PO Document Type'),
+        'invoice_state': fields.related('picking_id', 'invoice_state', type='selection',selection=[
+            ("invoiced", "Invoiced"),("2binvoiced", "To Be Invoiced"),("none", "Not Applicable")], string='Inovice State'),
+        'tpt_pick_type': fields.related('picking_id', 'type', type='selection',selection=[
+            ('out', 'Sending Goods'), ('in', 'Getting Goods'), ('internal', 'Internal')], string='Picking Type'),
+        'cost_center_id': fields.many2one('tpt.cost.center','Cost center'),
                 }
     def onchange_product_id(self, cr, uid, ids, prod_id=False, loc_id=False,
                             loc_dest_id=False, partner_id=False, action=False):

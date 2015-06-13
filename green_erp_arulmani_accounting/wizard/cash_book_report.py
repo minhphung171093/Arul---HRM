@@ -7,7 +7,7 @@ from openerp.tools.translate import _
 import openerp.tools
 from openerp.tools import DEFAULT_SERVER_DATE_FORMAT, DEFAULT_SERVER_DATETIME_FORMAT, float_compare
 
-class tpt_cash_book(osv.osv_memory):
+class tpt_cash_book(osv.osv):
     _name = "tpt.cash.book"
     _columns = {
         'name': fields.char('SI.No', readonly=True),
@@ -38,7 +38,7 @@ class tpt_cash_book(osv.osv_memory):
     
 tpt_cash_book()
 
-class tpt_cash_book_line(osv.osv_memory):
+class tpt_cash_book_line(osv.osv):
     _name = "tpt.cash.book.line"
     _columns = {
         'cb_id': fields.many2one('tpt.cash.book', 'Cash Book', ondelete='cascade'),

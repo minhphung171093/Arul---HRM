@@ -128,7 +128,9 @@ class approve_reject_quanlity_inspection(osv.osv_memory):
             
             
             if line.remaining_qty==wizard.quantity or wizard.inspection_quantity==wizard.quantity:
-                inspection_obj.write(cr, uid, [line.id], {'state':'done','remaining_qty':0,'qty_approve':wizard.quantity})
+                qty_approve = line.qty_approve
+                qty_approve += wizard.quantity
+                inspection_obj.write(cr, uid, [line.id], {'state':'done','remaining_qty':0,'qty_approve':qty_approve})
             else:
                 qty_approve = line.qty_approve
                 qty_approve += wizard.quantity
