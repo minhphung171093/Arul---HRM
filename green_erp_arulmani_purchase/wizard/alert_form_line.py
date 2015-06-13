@@ -120,6 +120,7 @@ class approve_reject_quanlity_inspection(osv.osv_memory):
                   'location_dest_id':location_dest_id,
                   'inspec_id':line.id,
                   'date':line.date,
+                  'price_unit':line.price_unit or 0,
                   }
             move_id = move_obj.create(cr,uid,rs)
             move_obj.action_done(cr, uid, [move_id])
@@ -172,6 +173,7 @@ class approve_reject_quanlity_inspection(osv.osv_memory):
                   'location_dest_id':location_dest_id,
                   'inspec_id':line.id,
                   'date':line.date,
+                  'price_unit':line.price_unit or 0,
                   }
             move_id = move_obj.create(cr,uid,rs)
             move_obj.action_done(cr, uid, [move_id])
