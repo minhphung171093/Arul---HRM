@@ -3281,6 +3281,7 @@ class tpt_material_issue(osv.osv):
     def bt_approve(self, cr, uid, ids, context=None):
         price = 0.0
         product_price = 0.0
+        tpt_cost = 0
         account_move_obj = self.pool.get('account.move')
         period_obj = self.pool.get('account.period')
         journal_obj = self.pool.get('account.journal')
@@ -3357,6 +3358,11 @@ class tpt_material_issue(osv.osv):
                     onhand_qty = cr.dictfetchone()['onhand_qty']
                 if (p.product_isu_qty > onhand_qty):
                     raise osv.except_osv(_('Warning!'),_('Issue quantity are %s but only %s available for this product in stock.' %(p.product_isu_qty, onhand_qty)))
+                if line.warehouse and line.warehouse.id and p.product_id and p.product_id.id:
+                    price_ids = self.pool.get('tpt.product.avg.cost').search(cr, uid, [('warehouse_id','=',line.warehouse.id),('product_id','=',p.product_id.id)])
+                if price_ids:
+                    price_avg = self.pool.get('tpt.product.avg.cost').browse(cr,uid,price_ids[0])
+                    tpt_cost = price_avg.avg_cost
                 rs = {
                       'name': '/',
                       'product_id':p.product_id and p.product_id.id or False,
@@ -3366,6 +3372,7 @@ class tpt_material_issue(osv.osv):
                       'location_dest_id':dest_id,
                       'issue_id':line.id,
                       'date':line.date_expec or False,
+                      'price_unit': tpt_cost or 0,
                       }
                 move_id = move_obj.create(cr,uid,rs)
                 move_obj.action_done(cr, uid, [move_id])

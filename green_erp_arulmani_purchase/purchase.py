@@ -3302,6 +3302,7 @@ class tpt_quanlity_inspection(osv.osv):
         'qty_approve':fields.float('Qty Approve',digits=(16,3),states={'cancel': [('readonly', True)], 'done':[('readonly', True)]}),
         'remaining_qty':fields.float('Inspection Quantity',digits=(16,3), readonly= True),
         'state':fields.selection([('draft', 'Draft'),('remaining', 'Remaining'),('done', 'Done')],'Status', readonly=True),
+        'price_unit':fields.float('Unit Price',digits=(16,2),states={'cancel': [('readonly', True)], 'done':[('readonly', True)]}),
                 }
     _defaults = {
         'state':'draft',
