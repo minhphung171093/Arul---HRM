@@ -267,12 +267,12 @@ class stock_inward_outward_report(osv.osv_memory):
                         quantity = move['product_qty']
                     if move['action_taken'] == 'need':
                         sql1 = '''
-                            select need_inspec_id from tpt_quanlity_inspection where state in ('done', 'remaining') and need_inspec_id=%s
+                            select qty_approve from tpt_quanlity_inspection where state in ('done', 'remaining') and need_inspec_id=%s
                         '''%(move['id'])
                         cr.execute(sql1)
-                        need = cr.fetchall()
+                        need = cr.dictfetchone()
                         if need:
-                            quantity = move['product_qty']
+                            quantity = need['qty_approve']
             self.transaction_qty += quantity
             self.current_transaction_qty = quantity
             return quantity
