@@ -82,11 +82,18 @@ class Parser(report_sxw.rml_parse):
         date_to = wizard_data['date_to']
         product_id = wizard_data['product_id']
         sql = '''
-            select case when sum(product_qty)!=0 then sum(product_qty) else 0 end product_qty from stock_move  
-            where product_id = %s and picking_id in (select id from stock_picking where date < '%s' and state = 'done' and type = 'in')
-        '''%(product_id[0], date_from)
+                select case when sum(product_qty)!=0 then sum(product_qty) else 0 end product_qty from stock_move  
+                where product_id = %s and action_taken = 'direct' and (picking_id in (select id from stock_picking where date < '%s' and state = 'done')
+                                )
+            '''%(product_id[0], date_from)
         self.cr.execute(sql)
         product_qty = self.cr.dictfetchone()['product_qty']
+        
+        sql = '''
+            select sum(qty_approve) as qty_approve from tpt_quanlity_inspection where date < '%s' and state in ('done','remaining') and product_id = %s
+        ''' %(date_from, product_id[0])
+        self.cr.execute(sql)
+        qty_approve = self.cr.dictfetchone()['qty_approve'] or 0
          
         sql = '''
             select case when sum(product_isu_qty)!=0 then sum(product_isu_qty) else 0 end product_isu_qty from tpt_material_issue_line  
@@ -94,7 +101,7 @@ class Parser(report_sxw.rml_parse):
         '''%(product_id[0], date_from)
         self.cr.execute(sql)
         product_isu_qty = self.cr.dictfetchone()['product_isu_qty']
-        opening_stock = product_qty-product_isu_qty
+        opening_stock = product_qty-product_isu_qty+qty_approve
         return round(opening_stock,2)
      
     def get_closing_stock(self, get_detail_lines):
@@ -126,7 +133,7 @@ class Parser(report_sxw.rml_parse):
                 and ( id in (select move_id from account_move_line where (move_id in (select move_id from account_invoice where id in (select invoice_id from account_invoice_line where product_id=%(product_id)s)))
                     or (LEFT(name,17) in (select name from stock_picking where id in (select picking_id from stock_move where product_id=%(product_id)s)))
                 ) or material_issue_id in (select id from tpt_material_issue where id in (select material_issue_id from tpt_material_issue_line where product_id=%(product_id)s)) 
-                    ) order by date
+                    ) order by date, id
         '''%{'date_from':date_from,
              'date_to':date_to,
              'product_id':product_id[0]}
@@ -256,12 +263,12 @@ class Parser(report_sxw.rml_parse):
                     quantity = move['product_qty']
                 if move['action_taken'] == 'need':
                     sql1 = '''
-                        select need_inspec_id from tpt_quanlity_inspection where state in ('done', 'remaining') and need_inspec_id=%s
+                        select qty_approve from tpt_quanlity_inspection where state in ('done', 'remaining') and need_inspec_id=%s
                     '''%(move['id'])
                     self.cr.execute(sql1)
-                    need = self.cr.fetchall()
+                    need = self.cr.dictfetchone()
                     if need:
-                        quantity = move['product_qty']
+                        quantity = need['qty_approve'] or 0
         self.transaction_qty += quantity
         self.current_transaction_qty = quantity
         return quantity
@@ -299,10 +306,12 @@ class Parser(report_sxw.rml_parse):
 #        '''%(product_id[0],date_from,product_id[0],date_from)
        sql = '''
                select case when sum(st.product_qty)!=0 then sum(st.product_qty) else 0 end ton_sl,case when sum(st.price_unit*st.product_qty)!=0 then sum(st.price_unit*st.product_qty) else 0 end total_cost
-               from stock_move st
-                   join stock_location loc1 on st.location_id=loc1.id
-                   join stock_location loc2 on st.location_dest_id=loc2.id
-               where st.state='done' and st.product_id=%s and loc1.usage != 'internal' and loc2.usage = 'internal' and date<'%s'
+                       from stock_move st
+                           join stock_location loc1 on st.location_id=loc1.id
+                           join stock_location loc2 on st.location_dest_id=loc2.id
+                       where st.state='done' and st.product_id=%s and loc1.usage != 'internal' and loc2.usage = 'internal'
+                       and( picking_id in (select id from stock_picking where date < '%s' and state = 'done' and type = 'in')
+                       )
                
            '''%(product_id[0], date_from)
        self.cr.execute(sql)
@@ -325,7 +334,12 @@ class Parser(report_sxw.rml_parse):
            self.cr.execute(sql)
            for inventory in self.cr.dictfetchall():
                freight_cost = inventory['line_net'] or 0
-           opening_stock_value = total_cost-(product_isu_qty*avg_cost) + freight_cost
+           sql = '''
+                select sum(remaining_qty) as remaining_qty from tpt_quanlity_inspection where date < '%s' and state in ('draft','remaining') and product_id = %s
+            ''' %(date_from, product_id[0])
+           self.cr.execute(sql)
+           remaining_qty = self.cr.dictfetchone()['remaining_qty'] or 0
+           opening_stock_value = total_cost-(product_isu_qty*avg_cost) + freight_cost - (remaining_qty*avg_cost)
        return opening_stock_value
     
     def get_line_stock_value(self, move_id, material_issue_id, move_type):
