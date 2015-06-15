@@ -19,6 +19,49 @@ class review_posting(osv.osv_memory):
         if context.get('tpt_invoice',False):
             vals = self.pool.get('account.invoice').action_move_create(cr, uid, context['active_ids'], context)
             res.update(vals)
+        if context.get('tpt_voucher',False):
+            voucher_obj = self.pool.get('account.voucher')
+            voucher_id = context['active_id']
+            voucher = voucher_obj.browse(cr, uid, voucher_id)
+            vals = voucher_obj.account_move_get(cr, uid, voucher_id, context)
+            move_line = []
+            line_total = 0
+            if voucher.type_trans:
+                if voucher.type_trans == 'payment':
+                    rs = voucher_obj.first_move_line_get(cr,uid,voucher_id, False, False, False, context)
+                    move_line.append((0,0,rs))
+                    line_total = rs['debit'] - rs['credit']
+                rec_list_ids = []
+                line_total, rec_list_ids,tpt_move_line = voucher_obj.voucher_move_line_create(cr, uid, voucher_id, line_total, False, False, False, context)
+                move_line += tpt_move_line
+                if voucher.type_trans == 'receipt':
+                    ml_writeoff = voucher_obj.writeoff_move_line_get(cr, uid, voucher.id, line_total, False, False, False, False, context)
+                    if ml_writeoff:
+                        move_line.append((0,0,ml_writeoff))
+#phuoc
+            else:
+                if not voucher.line_cr_ids or not voucher.line_dr_ids or voucher.writeoff_amount!=0:
+                    if voucher.type_cash_bank != 'journal':
+                        rs = voucher_obj.first_move_line_get(cr,uid,voucher_id, False, False, False, context)
+                        move_line.append((0,0,rs))
+                        line_total = rs['debit'] - rs['credit']
+                rec_list_ids = []
+                if voucher.type == 'sale':
+                    line_total = line_total - voucher_obj._convert_amount(cr, uid, voucher.tax_amount, voucher.id, context)
+                elif voucher.type == 'purchase':
+                    line_total = line_total + voucher_obj._convert_amount(cr, uid, voucher.tax_amount, voucher.id, context)
+    #             Create one move line per voucher line where amount is not 0.0
+                
+                line_total, rec_list_ids,tpt_move_line = voucher_obj.voucher_move_line_create(cr, uid, voucher_id, line_total, False, False, False, context)
+                move_line += tpt_move_line
+                # Create the writeoff line if needed
+                if voucher.type_cash_bank != 'journal':
+                    ml_writeoff = voucher_obj.writeoff_move_line_get(cr, uid, voucher.id, line_total, False, False, False, False, context)
+                    if ml_writeoff:
+                        move_line.append((0,0,ml_writeoff))
+            
+            vals['line_id'] = move_line
+            res.update(vals)    
         return res
 
     _columns = {
