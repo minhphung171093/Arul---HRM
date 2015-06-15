@@ -26,6 +26,8 @@ class stock_picking(osv.osv):
             ('direct','Direct Stock Update'),('move','Move to Consumption'),('need','Need Inspection')
             ], string='Action to be Taken'),
                 }
+    
+                
 
     def write(self, cr, uid, ids, vals, context=None):
         new_write = super(stock_picking, self).write(cr, uid,ids, vals, context)
@@ -294,7 +296,14 @@ class stock_picking_in(osv.osv):
             ], string='Action to be Taken'),
                 }
 
-
+    def onchange_picking_date(self, cr, uid, ids, date=False, context=None):
+        for picking in self.browse(cr, uid, ids, context=context):
+            if date:
+                sql = '''
+                    update stock_move set date = '%s' where picking_id = %s
+                '''%(date, picking.id)
+                cr.execute(sql)
+        return True
     
     def onchange_purchase_id(self, cr, uid, ids,purchase_id=False, context=None):
         vals = {}

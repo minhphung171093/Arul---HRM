@@ -6,6 +6,12 @@ from openerp.osv import fields, osv
 from openerp.tools.translate import _
 import openerp.tools
 from openerp.tools import DEFAULT_SERVER_DATE_FORMAT, DEFAULT_SERVER_DATETIME_FORMAT, float_compare
+from datetime import date
+from dateutil.rrule import rrule, DAILY
+from dateutil.relativedelta import relativedelta
+DATETIME_FORMAT = "%Y-%m-%d %H:%M:%S"
+DATE_FORMAT = "%Y-%m-%d"
+
 
 
 class tpt_stock_inward_outward(osv.osv):
@@ -96,6 +102,8 @@ class stock_inward_outward_report(osv.osv_memory):
         self.id = 0
         self.id2 = 0
         self.sum_stock = 0
+        self.timecall = 0
+        self.st_sum_value = 0
         stock_in_out_line = []
         
         def get_opening_stock(o):
@@ -302,7 +310,20 @@ class stock_inward_outward_report(osv.osv_memory):
                 sum += qty
             return sum
         
-        def get_line_stock_value(o, move_id, material_issue_id, move_type):
+        def get_date(date):
+            res = {}
+            date_sec = datetime.strptime(date, DATE_FORMAT)
+            day = date_sec.day
+            month = date_sec.month
+            year = date_sec.year
+            res = {
+                   'day': day,
+                   'month': month,
+                   'year': year,
+                   }
+            return res
+        
+        def get_line_stock_value(o, move_id, material_issue_id, move_type, date):
            date_from = o.date_from
            date_to = o.date_to
            product_id = o.product_id
@@ -331,23 +352,6 @@ class stock_inward_outward_report(osv.osv_memory):
                '''%(move_id)
                cr.execute(sql)
                location = cr.dictfetchone()['warehouse'] 
-#                sql = '''
-#                     select case when sum(foo.product_qty)!=0 then sum(foo.product_qty) else 0 end ton_sl,case when sum(foo.price_unit)!=0 then sum(foo.price_unit) else 0 end total_cost from 
-#                         (select st.product_qty,st.price_unit*st.product_qty as price_unit
-#                             from stock_move st
-#                                 join stock_location loc1 on st.location_id=loc1.id
-#                                 join stock_location loc2 on st.location_dest_id=loc2.id
-#                             where st.state='done' and st.product_id=%s and loc1.usage != 'internal' and loc2.usage = 'internal' and st.location_id!=st.location_dest_id
-#                             and st.location_dest_id = %s and to_date(to_char(date, 'YYYY-MM-DD'), 'YYYY-MM-DD') between '%s' and '%s'
-#                         union all
-#                             select -1*st.product_qty,st.price_unit*st.product_qty as price_unit
-#                             from stock_move st
-#                                 join stock_location loc1 on st.location_id=loc1.id
-#                                 join stock_location loc2 on st.location_dest_id=loc2.id
-#                             where st.state='done' and st.product_id=%s and loc1.usage = 'internal' and loc2.usage != 'internal' and st.location_id!=st.location_dest_id
-#                             and st.location_id = %s and to_date(to_char(date, 'YYYY-MM-DD'), 'YYYY-MM-DD') between '%s' and '%s'
-#                         )foo
-#                 '''%(product_id.id, location, date_from, date_to ,product_id.id, location, date_from, date_to)
 
                sql = '''
                         select case when sum(st.product_qty)!=0 then sum(st.product_qty) else 0 end ton_sl,case when sum(st.price_unit*st.product_qty)!=0 then sum(st.price_unit*st.product_qty) else 0 end total_cost
@@ -355,9 +359,9 @@ class stock_inward_outward_report(osv.osv_memory):
                             join stock_location loc1 on st.location_id=loc1.id
                             join stock_location loc2 on st.location_dest_id=loc2.id
                         where st.state='done' and st.product_id=%s and loc1.usage != 'internal' and loc2.usage = 'internal' and st.location_id!=st.location_dest_id
-                        and st.location_dest_id = %s and to_date(to_char(date, 'YYYY-MM-DD'), 'YYYY-MM-DD') between '%s' and '%s'
+                        and st.location_dest_id = %s and picking_id in (select id from stock_picking where to_date(to_char(date, 'YYYY-MM-DD'), 'YYYY-MM-DD') = '%s')
                         
-                '''%(product_id.id, location, date_from, date_to)
+                '''%(product_id.id, location, date)
                cr.execute(sql)
                inventory = cr.dictfetchone()
                if inventory:
@@ -404,15 +408,18 @@ class stock_inward_outward_report(osv.osv_memory):
 #                             and st.location_id = %s and to_date(to_char(date, 'YYYY-MM-DD'), 'YYYY-MM-DD') between '%s' and '%s'
 #                         )foo
 #                 '''%(product_id.id, location, date_from, date_to ,product_id.id, location, date_from, date_to)
+
+
+
                sql = '''
                      select case when sum(st.product_qty)!=0 then sum(st.product_qty) else 0 end ton_sl,case when sum(st.price_unit*st.product_qty)!=0 then sum(st.price_unit*st.product_qty) else 0 end total_cost
                      from stock_move st
                          join stock_location loc1 on st.location_id=loc1.id
                          join stock_location loc2 on st.location_dest_id=loc2.id
                      where st.state='done' and st.product_id=%s and loc1.usage = 'internal' and loc2.usage != 'internal' and st.location_id!=st.location_dest_id
-                     and st.location_id = %s and to_date(to_char(date, 'YYYY-MM-DD'), 'YYYY-MM-DD') between '%s' and '%s'
+                     and st.location_id = %s and to_date(to_char(date, 'YYYY-MM-DD'), 'YYYY-MM-DD') = '%s'
                         
-                '''%(product_id.id, location, date_from, date_to)
+                '''%(product_id.id, location, date)
                cr.execute(sql)
                inventory = cr.dictfetchone()
                if inventory:
@@ -420,6 +427,9 @@ class stock_inward_outward_report(osv.osv_memory):
                    total_cost = inventory['total_cost'] or 0
                    avg_cost = hand_quantity and total_cost/hand_quantity or 0 
                return avg_cost
+           
+           
+           
         
         def closing_value(o,get_detail_lines):
             closing = 0
@@ -431,7 +441,7 @@ class stock_inward_outward_report(osv.osv_memory):
                 qty = get_transaction_qty(o,line['id'], line['material_issue_id'], line['doc_type'])
                 if line['doc_type']=='freight':
                     qty=1
-                value = get_line_stock_value(o,line['id'], line['material_issue_id'], line['doc_type'])
+                value = get_line_stock_value(o,line['id'], line['material_issue_id'], line['doc_type'], line['date'])
                 closing += qty * value
             return closing
         
@@ -457,15 +467,27 @@ class stock_inward_outward_report(osv.osv_memory):
             return cur
         
         for line in get_detail_lines(stock):
+            trans_qty = get_transaction_qty(stock,line['id'], line['material_issue_id'], line['doc_type'])
+            if line['doc_type']=='good':
+                qty = 0
+                value = 0
+                for l in stock_in_out_line:
+                    qty += l[2]['transaction_quantity']
+                    value += l[2]['stock_value']
+                st = qty and value/qty or 0
+                st_value = st*trans_qty
+            else:
+                st_value = stock_value(get_line_stock_value(stock,line['id'], line['material_issue_id'], line['doc_type'], line['date']), line)
+            self.st_sum_value += st_value
             stock_in_out_line.append((0,0,{
                 'creation_date': line['date'],
                 'posting_date': line['date'],
                 'document_no': get_account_move_line(line['id']),
                 'gl_document_no': line['name'],
                 'document_type': get_doc_type(line['doc_type']),
-                'transaction_quantity': get_transaction_qty(stock,line['id'], line['material_issue_id'], line['doc_type']),
-                'stock_value': stock_value(get_line_stock_value(stock,line['id'], line['material_issue_id'], line['doc_type']), line),
-                'current_material_value':get_line_current_material(stock,stock_value(get_line_stock_value(stock,line['id'], line['material_issue_id'], line['doc_type']), line)),
+                'transaction_quantity': trans_qty,
+                'stock_value': st_value,
+                'current_material_value':get_line_current_material(stock,stock_value(get_line_stock_value(stock,line['id'], line['material_issue_id'], line['doc_type'], line['date']), line)),
             }))
             
         vals = {
@@ -478,9 +500,9 @@ class stock_inward_outward_report(osv.osv_memory):
             'date_to':stock.date_to,
             'stock_in_out_line': stock_in_out_line,
             'opening_stock': get_opening_stock(stock),
-            'closing_stock': get_closing_stock(stock, get_detail_lines(stock)),
+            'closing_stock': get_closing_stock(stock, get_detail_lines(stock)) + get_opening_stock(stock),
             'opening_value': get_opening_stock_value(stock),
-            'closing_value': closing_value(stock, get_detail_lines(stock))+get_opening_stock_value(stock),
+            'closing_value': self.st_sum_value + get_opening_stock_value(stock),
         }
         stock_id = stock_obj.create(cr, uid, vals)
         res = self.pool.get('ir.model.data').get_object_reference(cr, uid, 
