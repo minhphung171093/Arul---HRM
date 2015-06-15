@@ -73,8 +73,8 @@
             	<xpath expr="//field[@name='min_date']"  position="replace">
             		<field name="min_date" invisible="1"/>
             	</xpath>
-            	<xpath expr="//field[@name='date']" position="attributes">
-					<attribute name='string'>GRN Date</attribute>
+            	<xpath expr="//field[@name='date']" position="replace">
+					<field name="date" on_change = "onchange_picking_date(date)" string = "GRN Date"/>
 				</xpath>
 				<xpath expr="//field[@name='date']" position="after">
 				<field name="header_text"/>
