@@ -329,7 +329,6 @@ class stock_picking_in(osv.osv):
                             self.pool.get('stock.move').write(cr, uid, [line.id], move_value)
                 return picking_ids[0]
         return super(stock_picking_in,self).create(cr, uid, vals, context)
-=======
 
     def onchange_picking_date(self, cr, uid, ids, date=False, context=None):
         for picking in self.browse(cr, uid, ids, context=context):
@@ -339,7 +338,6 @@ class stock_picking_in(osv.osv):
                 '''%(date, picking.id)
                 cr.execute(sql)
         return True
->>>>>>> dcd11e283e4cbc75718e63d165727adc93a6c47e
     
     def onchange_purchase_id(self, cr, uid, ids,purchase_id=False, context=None):
         vals = {}
