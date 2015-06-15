@@ -91,6 +91,13 @@ class tpt_update_stock_move_report(osv.osv):
             if move_ids:
                 cr.execute("UPDATE stock_move SET inspec_id= %s WHERE id in %s",(inspec.id,tuple(move_ids),))
                 print 'TPT update INSPEC for report', tuple(move_ids)
+                
+#     def init(self, cr):
+#         sql = '''
+#             select id from tpt_material_issue where state = 'done' and id not in (select issue_id from stock_move where issue_id is not null )
+#         '''
+#         cr.execute(sql)
+        
                         
     _columns = {
         'name': fields.char('Document No.', size=1024, readonly=True ),
