@@ -3376,7 +3376,7 @@ class tpt_material_issue(osv.osv):
                       }
                 move_id = move_obj.create(cr,uid,rs)
                 move_obj.action_done(cr, uid, [move_id])
-            
+                cr.execute(''' update stock_move set date=%s,date_expected=%s where id=%s ''',(line.date_expec,line.date_expec,move_id,))
 #             if not line.warehouse.gl_pos_verification_id:
 #                     raise osv.except_osv(_('Warning!'),_('Account Warehouse is not null, please configure it in Warehouse Location master !'))
                 

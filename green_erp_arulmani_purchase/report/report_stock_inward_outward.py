@@ -24,6 +24,9 @@ from openerp import pooler
 from openerp.osv import osv
 from openerp.tools.translate import _
 import random
+from datetime import date
+from dateutil.rrule import rrule, DAILY
+
 DATETIME_FORMAT = "%Y-%m-%d %H:%M:%S"
 DATE_FORMAT = "%Y-%m-%d"
 
@@ -43,6 +46,7 @@ class Parser(report_sxw.rml_parse):
         self.id = 0
         self.id2 = 0
         self.id3 = 0
+        self.st_sum_value = 0
         self.localcontext.update({
             'convert_date': self.convert_date,
             'get_date_from':self.get_date_from,
@@ -60,6 +64,7 @@ class Parser(report_sxw.rml_parse):
             'get_line_current_material':self.get_line_current_material,
             'sum_trans_qty': self.sum_trans_qty,
             'get_true_trans_qty': self.get_true_trans_qty,
+            'get_lines': self.get_lines,
         })
     def convert_date(self, date):
         if date:
@@ -119,7 +124,7 @@ class Parser(report_sxw.rml_parse):
                     self.num_call_grn = {'grn_name':'','num':-1}
                     self.id2 = line['id']
                 qty_good += self.get_transaction_qty(line['id'], line['material_issue_id'], line['doc_type'])
-        closing = qty_grn - qty_good
+        closing = qty_grn + qty_good
         return closing
         
     
@@ -161,20 +166,52 @@ class Parser(report_sxw.rml_parse):
                             move_line.append(line)
         return move_line    
             
+    def get_lines(self):
+        stock_in_out_line = []
+        for line in self.get_detail_lines():
+            trans_qty = self.get_transaction_qty(line['id'], line['material_issue_id'], line['doc_type'])
+            if line['doc_type']=='good':
+                qty = 0
+                value = 0
+                for l in stock_in_out_line:
+                    qty += l['transaction_quantity']
+                    value += l['stock_value']
+                st = qty and value/qty or 0
+                st_value = st*trans_qty
+            else:
+                st_value = self.stock_value(self.get_line_stock_value(line['id'], line['material_issue_id'], line['doc_type'], line['date']), line)
+            self.st_sum_value += st_value
+            stock_in_out_line.append({
+                'creation_date': line['date'],
+                'date': line['date'],
+                'id': line['id'],
+                'name': line['name'],
+                'doc_type': line['doc_type'],
+                'posting_date': line['date'],
+                'document_no': self.get_account_move_line(line['id']),
+                'gl_document_no': line['name'],
+                'document_type': self.get_doc_type(line['doc_type']),
+                'transaction_quantity': trans_qty,
+                'stock_value': st_value,
+                'material_issue_id': line['material_issue_id'],
+                'current_material_value':self.get_line_current_material(self.stock_value(self.get_line_stock_value(line['id'], line['material_issue_id'], line['doc_type'], line['date']), line)),
+            })
+        return stock_in_out_line
     
-    def closing_value(self, get_detail_lines):
-        closing = 0
-        for line in get_detail_lines:
-#             if len(get_detail_lines) <= 1:
-            if self.id3 != line['id']:
-                self.num_call_grn = {'grn_name':'','num':-1}
-                self.id3 = line['id']
-            qty = self.get_transaction_qty(line['id'], line['material_issue_id'], line['doc_type'])
-            if line['doc_type']=='freight':
-                qty=1
-            value = self.get_line_stock_value(line['id'], line['material_issue_id'], line['doc_type'])
-            closing += qty * value
-        return closing
+    def closing_value(self):
+#         closing = 0
+#         for line in get_detail_lines:
+# #             if len(get_detail_lines) <= 1:
+#             if self.id3 != line['id']:
+#                 self.num_call_grn = {'grn_name':'','num':-1}
+#                 self.id3 = line['id']
+#             qty = self.get_transaction_qty(line['id'], line['material_issue_id'], line['doc_type'])
+#             if line['doc_type']=='freight':
+#                 qty=1
+#             value = self.get_line_stock_value(line['id'], line['material_issue_id'], line['doc_type'], line['date'])
+#             closing += qty * value
+        self.get_lines()
+        return self.st_sum_value+ self.get_opening_stock_value()
     
     def sum_trans_qty(self, get_detail_lines):
         sum = 0
@@ -236,7 +273,7 @@ class Parser(report_sxw.rml_parse):
             quantity = 0
         if move_type == 'good':
             sql = '''
-                select case when sum(product_isu_qty)!=0 then sum(product_isu_qty) else 0 end product_isu_qty, product_id from tpt_material_issue_line
+                select case when sum(-1*product_isu_qty)!=0 then sum(-1*product_isu_qty) else 0 end product_isu_qty, product_id from tpt_material_issue_line
                 where material_issue_id in (select id from tpt_material_issue where id = %s) and product_id = %s
                 group by product_id 
             '''%(material_issue_id, product_id[0])
@@ -342,7 +379,7 @@ class Parser(report_sxw.rml_parse):
            opening_stock_value = total_cost-(product_isu_qty*avg_cost) + freight_cost - (remaining_qty*avg_cost)
        return opening_stock_value
     
-    def get_line_stock_value(self, move_id, material_issue_id, move_type):
+    def get_line_stock_value(self, move_id, material_issue_id, move_type, date):
        wizard_data = self.localcontext['data']['form']
        date_from = wizard_data['date_from']
        date_to = wizard_data['date_to']
@@ -396,9 +433,9 @@ class Parser(report_sxw.rml_parse):
                            join stock_location loc1 on st.location_id=loc1.id
                            join stock_location loc2 on st.location_dest_id=loc2.id
                        where st.state='done' and st.product_id=%s and loc1.usage != 'internal' and loc2.usage = 'internal' and st.location_id!=st.location_dest_id
-                       and st.location_dest_id = %s and to_date(to_char(date, 'YYYY-MM-DD'), 'YYYY-MM-DD') between '%s' and '%s'
+                       and st.location_dest_id = %s and picking_id in (select id from stock_picking where to_date(to_char(date, 'YYYY-MM-DD'), 'YYYY-MM-DD') = '%s')
                        
-               '''%(product_id[0], location, date_from, date_to)
+               '''%(product_id[0], location, date)
            self.cr.execute(sql)
            inventory = self.cr.dictfetchone()
            if inventory:
@@ -451,9 +488,9 @@ class Parser(report_sxw.rml_parse):
                         join stock_location loc1 on st.location_id=loc1.id
                         join stock_location loc2 on st.location_dest_id=loc2.id
                     where st.state='done' and st.product_id=%s and loc1.usage = 'internal' and loc2.usage != 'internal' and st.location_id!=st.location_dest_id
-                    and st.location_id = %s and to_date(to_char(date, 'YYYY-MM-DD'), 'YYYY-MM-DD') between '%s' and '%s'
+                    and st.location_id = %s and to_date(to_char(date, 'YYYY-MM-DD'), 'YYYY-MM-DD') = '%s'
                        
-               '''%(product_id[0], location, date_from, date_to)
+               '''%(product_id[0], location, date)
            self.cr.execute(sql)
            inventory = self.cr.dictfetchone()
            if inventory:
