@@ -120,6 +120,7 @@ class approve_reject_quanlity_inspection(osv.osv_memory):
                   'location_dest_id':location_dest_id,
                   'inspec_id':line.id,
                   'date':line.date,
+                  'price_unit':line.price_unit or 0,
                   }
             move_id = move_obj.create(cr,uid,rs)
             move_obj.action_done(cr, uid, [move_id])
@@ -127,7 +128,9 @@ class approve_reject_quanlity_inspection(osv.osv_memory):
             
             
             if line.remaining_qty==wizard.quantity or wizard.inspection_quantity==wizard.quantity:
-                inspection_obj.write(cr, uid, [line.id], {'state':'done','remaining_qty':0,'qty_approve':wizard.quantity})
+                qty_approve = line.qty_approve
+                qty_approve += wizard.quantity
+                inspection_obj.write(cr, uid, [line.id], {'state':'done','remaining_qty':0,'qty_approve':qty_approve})
             else:
                 qty_approve = line.qty_approve
                 qty_approve += wizard.quantity
@@ -172,6 +175,7 @@ class approve_reject_quanlity_inspection(osv.osv_memory):
                   'location_dest_id':location_dest_id,
                   'inspec_id':line.id,
                   'date':line.date,
+                  'price_unit':line.price_unit or 0,
                   }
             move_id = move_obj.create(cr,uid,rs)
             move_obj.action_done(cr, uid, [move_id])
