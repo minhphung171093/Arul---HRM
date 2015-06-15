@@ -92,12 +92,33 @@ class tpt_update_stock_move_report(osv.osv):
                 cr.execute("UPDATE stock_move SET inspec_id= %s WHERE id in %s",(inspec.id,tuple(move_ids),))
                 print 'TPT update INSPEC for report', tuple(move_ids)
                 
-#     def init(self, cr):
-#         sql = '''
-#             select id from tpt_material_issue where state = 'done' and id not in (select issue_id from stock_move where issue_id is not null )
-#         '''
-#         cr.execute(sql)
-        
+    def init(self, cr):
+        sql = '''
+            select id from stock_move where issue_id is not null and state = 'done' and price_unit is null and picking_id is null and inspec_id is null
+        '''
+        cr.execute(sql)
+        for line in cr.fetchall():
+            move = self.pool.get('stock.move').browse(cr, 1, line[0])
+            move.location_id.id
+            move.product_id.id
+            move.issue_id.date_expec
+            sql = '''
+                    select case when sum(foo.product_qty)!=0 then sum(foo.product_qty) else 0 end ton_sl,case when sum(foo.price_unit)!=0 then sum(foo.price_unit) else 0 end total_cost from 
+                        (select st.product_qty,st.price_unit*st.product_qty as price_unit
+                            from stock_move st
+                                join stock_location loc1 on st.location_id=loc1.id
+                                join stock_location loc2 on st.location_dest_id=loc2.id
+                            where st.state='done' and st.location_dest_id = %s  and st.product_id=%s and date < '%s' 
+                        union all
+                            select -1*st.product_qty,st.price_unit*st.product_qty as price_unit
+                            from stock_move st
+                                join stock_location loc1 on st.location_id=loc1.id
+                                join stock_location loc2 on st.location_dest_id=loc2.id
+                            where st.state='done' and st.location_id=%s and st.product_id=%s date < '%s' 
+                        )foo
+                '''%(move.location_id.id,move.product_id.id,move.issue_id.date_expec,move.location_id.id,move.product_id.id,move.issue_id.date_expec)
+            cr.execute(sql)
+            inventory = cr.dictfetchone()
                         
     _columns = {
         'name': fields.char('Document No.', size=1024, readonly=True ),
