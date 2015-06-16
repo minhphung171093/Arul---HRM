@@ -190,8 +190,9 @@ class Parser(report_sxw.rml_parse):
                             where st.state='done' and st.location_dest_id=%s and st.product_id=%s
                                 and ( (picking_id in (select id from stock_picking where date < '%s' and state = 'done')) 
                                 or  (inspec_id in (select id from tpt_quanlity_inspection where date < '%s' and state in ('done','remaining')))
+                                or (st.id in (select move_id from stock_inventory_move_rel where inventory_id in (select id from stock_inventory where date <'%s' and state = 'done')))
                                     )
-                    '''%(locat_ids[0],product_id,date_from,date_from)
+                    '''%(locat_ids[0],product_id,date_from,date_from,date_from)
             self.cr.execute(sql)
             inventory = self.cr.dictfetchone()
             if inventory:
@@ -213,8 +214,9 @@ class Parser(report_sxw.rml_parse):
                             where st.state='done' and st.location_dest_id=%s and st.product_id=%s
                                 and ( (picking_id in (select id from stock_picking where date < '%s' and state = 'done')) 
                                 or  (inspec_id in (select id from tpt_quanlity_inspection where date < '%s' and state in ('done','remaining')))
+                                or (st.id in (select move_id from stock_inventory_move_rel where inventory_id in (select id from stock_inventory where date <'%s' and state = 'done')))
                                     )
-                    '''%(locat_ids[0],product_id,date_from,date_from)
+                    '''%(locat_ids[0],product_id,date_from,date_from,date_from)
             self.cr.execute(sql)
             inventory = self.cr.dictfetchone()
             if inventory:
@@ -244,9 +246,11 @@ class Parser(report_sxw.rml_parse):
                                 (select st.product_qty
                                     from stock_move st 
                                     where st.state='done' and st.product_id = %s and st.location_dest_id = %s 
-                                    and picking_id in (select id from stock_picking where date between '%s' and '%s' and state = 'done')
-                                )foo
-                        '''%(line,locat_ids[0],date_from,date_to)
+                                        and (picking_id in (select id from stock_picking where date between '%s' and '%s' and state = 'done')
+                                             or (id in (select move_id from stock_inventory_move_rel where inventory_id in 
+                                              (select id from stock_inventory where date between '%s' and '%s' and state = 'done'))))
+                                    )foo
+                            '''%(line,locat_ids[0],date_from,date_to,date_from,date_to)
             self.cr.execute(sql)
             ton_arr = self.cr.fetchone()
             if ton_arr:
@@ -279,9 +283,11 @@ class Parser(report_sxw.rml_parse):
                                     from stock_move st 
                                     where st.state='done' and st.product_id = %s and st.location_dest_id = %s 
                                     
-                                    and picking_id in (select id from stock_picking where date between '%s' and '%s' and state = 'done')
-                                )foo
-                        '''%(line,locat_ids[0],date_from,date_to)
+                                        and (picking_id in (select id from stock_picking where date between '%s' and '%s' and state = 'done')
+                                             or (id in (select move_id from stock_inventory_move_rel where inventory_id in 
+                                              (select id from stock_inventory where date between '%s' and '%s' and state = 'done'))))
+                                    )foo
+                            '''%(line,locat_ids[0],date_from,date_to,date_from,date_to)
             self.cr.execute(sql)
             ton_arr = self.cr.fetchone()
             if ton_arr:
@@ -367,12 +373,24 @@ class Parser(report_sxw.rml_parse):
                             join stock_location loc1 on st.location_id=loc1.id
                             join stock_location loc2 on st.location_dest_id=loc2.id
                         where st.state='done' and st.location_dest_id=%s and st.product_id=%s
-                            and ( (picking_id in (select id from stock_picking where date < '%s' and state = 'done')) 
-                            or  (inspec_id in (select id from tpt_quanlity_inspection where date < '%s' and state in ('done','remaining')))
-                                )
-                '''%(locat_ids[0],product_id,date_from,date_from)
+                                and ( (picking_id in (select id from stock_picking where date < '%s' and state = 'done')) 
+                                or  (inspec_id in (select id from tpt_quanlity_inspection where date < '%s' and state in ('done','remaining')))
+                                or (st.id in (select move_id from stock_inventory_move_rel where inventory_id in (select id from stock_inventory where date <'%s' and state = 'done')))
+                                    )
+                    '''%(locat_ids[0],product_id,date_from,date_from,date_from)
             self.cr.execute(sql)
             inventory = self.cr.dictfetchone()
+            if inventory:
+                    hand_quantity = inventory['ton_sl'] or 0
+                    total_cost = inventory['total_cost'] or 0
+                    avg_cost = hand_quantity and total_cost/hand_quantity or 0
+                    sql = '''
+                        select case when sum(product_isu_qty)!=0 then sum(product_isu_qty) else 0 end product_isu_qty
+                            from tpt_material_issue_line where material_issue_id in (select id from tpt_material_issue where date_expec<'%s' and warehouse = %s and state='done') and product_id=%s
+                    '''%(date_from,locat_ids[0],product_id)
+                    self.cr.execute(sql)
+                    product_isu_qty = self.cr.fetchone()[0]
+                    opening_stock_value = total_cost-(product_isu_qty*avg_cost)
         if categ[1] =='Spares':
             parent_ids = self.pool.get('stock.location').search(self.cr, self.uid, [('name','=','Store'),('usage','=','view')])
             locat_ids = self.pool.get('stock.location').search(self.cr, self.uid, [('name','in',['Spares','Spare','spares']),('location_id','=',parent_ids[0])])
@@ -403,23 +421,24 @@ class Parser(report_sxw.rml_parse):
                         join stock_location loc1 on st.location_id=loc1.id
                         join stock_location loc2 on st.location_dest_id=loc2.id
                     where st.state='done' and st.location_dest_id=%s and st.product_id=%s
-                        and ( (picking_id in (select id from stock_picking where date < '%s' and state = 'done')) 
-                        or  (inspec_id in (select id from tpt_quanlity_inspection where date < '%s' and state in ('done','remaining')))
-                            )
-            '''%(locat_ids[0],product_id,date_from,date_from)
+                                and ( (picking_id in (select id from stock_picking where date < '%s' and state = 'done')) 
+                                or  (inspec_id in (select id from tpt_quanlity_inspection where date < '%s' and state in ('done','remaining')))
+                                or (st.id in (select move_id from stock_inventory_move_rel where inventory_id in (select id from stock_inventory where date <'%s' and state = 'done')))
+                                    )
+                    '''%(locat_ids[0],product_id,date_from,date_from,date_from)
             self.cr.execute(sql)
             inventory = self.cr.dictfetchone()
-        if inventory:
-            hand_quantity = inventory['ton_sl']
-            total_cost = inventory['total_cost']
-            avg_cost = hand_quantity and total_cost/hand_quantity or 0
-            sql = '''
-                select case when sum(product_isu_qty)!=0 then sum(product_isu_qty) else 0 end product_isu_qty
-                    from tpt_material_issue_line where material_issue_id in (select id from tpt_material_issue where date_expec<'%s' and state='done') and product_id=%s
-            '''%(date_from,product_id)
-            self.cr.execute(sql)
-            product_isu_qty = self.cr.fetchone()[0]
-            opening_stock_value = total_cost-(product_isu_qty*avg_cost)
+            if inventory:
+                    hand_quantity = inventory['ton_sl'] or 0
+                    total_cost = inventory['total_cost'] or 0
+                    avg_cost = hand_quantity and total_cost/hand_quantity or 0
+                    sql = '''
+                        select case when sum(product_isu_qty)!=0 then sum(product_isu_qty) else 0 end product_isu_qty
+                            from tpt_material_issue_line where material_issue_id in (select id from tpt_material_issue where date_expec<'%s' and warehouse = %s and state='done') and product_id=%s
+                    '''%(date_from,locat_ids[0],product_id)
+                    self.cr.execute(sql)
+                    product_isu_qty = self.cr.fetchone()[0]
+                    opening_stock_value = total_cost-(product_isu_qty*avg_cost)
         return opening_stock_value
         
     def get_receipt_value(self, product_id):
@@ -438,9 +457,12 @@ class Parser(report_sxw.rml_parse):
                         from stock_move st
                             join stock_location loc1 on st.location_id=loc1.id
                             join stock_location loc2 on st.location_dest_id=loc2.id
-                        where st.state='done' and st.location_dest_id = %s and st.product_id=%s and loc1.usage != 'internal' and loc2.usage = 'internal' and date between '%s' and '%s'
-                    )foo
-            '''%(locat_ids[0],product_id,date_from,date_to)
+                            where st.state='done' and st.location_dest_id = %s and st.product_id=%s and loc1.usage != 'internal' and loc2.usage = 'internal' 
+                                    and (picking_id in (select id from stock_picking where date between '%s' and '%s' and state = 'done')
+                                        or (st.id in (select move_id from stock_inventory_move_rel where inventory_id in 
+                                              (select id from stock_inventory where date between '%s' and '%s' and state = 'done'))))
+                                    )foo
+                            '''%(locat_ids[0],product_id,date_from,date_to,date_from,date_to)
             self.cr.execute(sql)
             inventory = self.cr.dictfetchone()
         if categ[1] =='Spares':
@@ -452,9 +474,12 @@ class Parser(report_sxw.rml_parse):
                         from stock_move st
                             join stock_location loc1 on st.location_id=loc1.id
                             join stock_location loc2 on st.location_dest_id=loc2.id
-                        where st.state='done' and st.location_dest_id = %s and st.product_id=%s and loc1.usage != 'internal' and loc2.usage = 'internal' and date between '%s' and '%s'
-                    )foo
-            '''%(locat_ids[0],product_id,date_from,date_to)
+                            where st.state='done' and st.location_dest_id = %s and st.product_id=%s and loc1.usage != 'internal' and loc2.usage = 'internal' 
+                                    and (picking_id in (select id from stock_picking where date between '%s' and '%s' and state = 'done')
+                                        or (st.id in (select move_id from stock_inventory_move_rel where inventory_id in 
+                                              (select id from stock_inventory where date between '%s' and '%s' and state = 'done'))))
+                                    )foo
+                            '''%(locat_ids[0],product_id,date_from,date_to,date_from,date_to)
             self.cr.execute(sql)
             inventory = self.cr.dictfetchone()
         if inventory:
