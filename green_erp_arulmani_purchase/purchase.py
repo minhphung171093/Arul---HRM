@@ -423,6 +423,7 @@ class tpt_purchase_product(osv.osv):
         'section_id_relate': fields.related('pur_product_id', 'section_id',type = 'many2one', relation='arul.hr.section', string='Section',store=True),
         'requisitioner_relate':fields.related('pur_product_id', 'requisitioner',type = 'many2one', relation='hr.employee', string='Requisitioner',store=True),
         'date_indent_relate':fields.related('pur_product_id', 'date_indent',type = 'date', string='Indent Date',store=True),
+        'create_uid_relate':fields.related('pur_product_id', 'create_uid',type = 'many2one', relation='res.users', string='Raised By',store=True),
         'flag': fields.boolean('Flag'),
         'store_date':fields.datetime('Store Approved Date',readonly = True),
         'hod_date':fields.datetime('HOD Approved Date',readonly = True),
