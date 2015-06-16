@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <openerp>
     <data>
-		<!--<record id="review_posting_view" model="ir.ui.view">
+		<record id="review_posting_view" model="ir.ui.view">
 	        <field name="name">review.posting.view</field>
 	        <field name="model">review.posting</field>
 	        <field name="arch" type="xml">
@@ -54,7 +54,7 @@
 	        <field name="view_mode">form</field>
 	        <field name="view_id" ref="review_posting_view" />
 	        <field name="target">new</field>
-	    </record>-->
+	    </record>
 	    
     </data>
 </openerp>
