@@ -227,7 +227,7 @@ class tpt_update_stock_move_report(osv.osv):
                             where pp.product_tmpl_id = pt.id and pt.categ_id = cat.id and cat.cate_name = '%s') and product_qty <= %s
                 '''%(location_id,dest_1_id,dest_2_id,inspec.product_id.id,cate,inspec.qty)
             cr.execute(sql)
-            move_ids = cr.fetchall()
+            move_ids = [r[0] for r in cr.fetchall()]
             sum_move_qty = 0
             for move in move_obj.browse(cr, uid, move_ids):
                 sum_move_qty += move.product_qty
