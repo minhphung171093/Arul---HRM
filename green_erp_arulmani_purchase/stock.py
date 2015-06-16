@@ -410,6 +410,7 @@ class stock_move(osv.osv):
         'item_text':fields.text('Item Text'),
         'inspec_id': fields.many2one('tpt.quanlity.inspection','Quanlity Inspection'),
         'issue_id': fields.many2one('tpt.material.issue','Material Issue'),
+        'cost_center_id': fields.many2one('tpt.cost.center','Cost center'),
         'grn_no': fields.related('picking_id', 'name', type='char', string='GRN No'),
         'grn_date': fields.related('picking_id', 'date', type='datetime', string='GRN Date'),
         'supplier_id': fields.related('picking_id', 'partner_id',relation='res.partner', type='many2one', string='Supplier'),
@@ -420,7 +421,6 @@ class stock_move(osv.osv):
             ("invoiced", "Invoiced"),("2binvoiced", "To Be Invoiced"),("none", "Not Applicable")], string='Inovice State'),
         'tpt_pick_type': fields.related('picking_id', 'type', type='selection',selection=[
             ('out', 'Sending Goods'), ('in', 'Getting Goods'), ('internal', 'Internal')], string='Picking Type'),
-        'cost_center_id': fields.many2one('tpt.cost.center','Cost center'),
                 }
     def onchange_product_id(self, cr, uid, ids, prod_id=False, loc_id=False,
                             loc_dest_id=False, partner_id=False, action=False):

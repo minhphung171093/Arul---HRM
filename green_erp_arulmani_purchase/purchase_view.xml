@@ -397,6 +397,7 @@
          <menuitem action="action_view_tpt_purchase_indent_line_form"
             id="menu_action_view_tpt_purchase_indent_line_form"
             parent="purchase.menu_procurement_management" sequence="12"/>
+            
         <menuitem action="action_view_tpt_purchase_indent_line_form_hod"
             id="menu_action_view_tpt_purchase_indent_line_form_hod"
             parent="purchase.menu_procurement_management" sequence="13"/>
@@ -661,6 +662,9 @@
 				<xpath expr="//page[@string='PO Line']/field/tree/field[@name='product_qty']" position="after">
 					<field name="state" invisible = '1' required = '0'/>
 				</xpath>
+				<xpath expr="//page[@string='PO Line']/field[@name='order_line']" position="attributes">
+					<attribute name="context">{'default_po_document_type_relate':po_document_type}</attribute>
+				</xpath>
 				<xpath expr="//page[@string='PO Line']/group/field[@name='amount_untaxed']" position="after">
 					<field name="p_f_charge" widget="monetary"/>
 					<field name="excise_duty" widget="monetary"/>
@@ -669,6 +673,7 @@
 					<field name="fright" widget="monetary"/>
 				</xpath>
 				<xpath expr="//page[@string='PO Line']/field/tree/field[@name='price_unit']" position="after">
+					<field name="po_document_type_relate" invisible = '1'/>
 					<field name="discount"/>
 					<field name="p_f"/>
 					<field name="p_f_type"/>
@@ -691,7 +696,7 @@
 				</xpath>
 				<xpath expr="//page[@string='PO Line']/field/tree/field[@name='taxes_id']" position="attributes">
 					<attribute name='invisible'>0</attribute>
-				</xpath> 
+				</xpath>
 				
 				<xpath expr="//field[@name='currency_id']" position="attributes">
 					<attribute name='invisible'>0</attribute>
@@ -2067,6 +2072,113 @@
                 </tree>
             </field>
         </record>
+        
+        <record id="view_tpt_purchase_order_line_tree" model="ir.ui.view">
+			<field name="name">tpt.purchase.order.line.tree</field>
+			<field name="model">purchase.order.line</field>
+			<field name="arch" type="xml">
+				<tree string="Purchase Order Pending Details" edit = 'false' delete = 'false' create = 'false' >
+						<field name="order_id" string="Purchase Order Number"/>
+						<field name="po_document_type_relate"/> 
+						<field name="po_document_name_relate" invisible="1"/> 
+						<field name="date_order_relate"/> 
+						<field name="supplier_relate"/>
+						<field name="line_no"/> 
+						<field name="po_indent_no"/> 
+						<field name="product_id"/>
+						<field name="description"/>
+						<field name="product_qty" />
+						<field name="product_uom" />
+						<field name="price_unit" />
+						<field name="discount" />
+						<field name="p_f" />
+						<field name="p_f_type" />
+						<field name="ed"/>
+						<field name="ed_type"/> 
+						<field name="taxes_id"/> 
+						<field name="fright"/> 
+						<field name="fright_type"/>  
+						<field name="line_net"/>  
+						<field name="state"/>
+				</tree>
+			</field>
+		</record>       
+        
+        <record id="view_tpt_purchase_order_line_form" model="ir.ui.view">
+            <field name="name">tpt.purchase.order.line.form</field>
+            <field name="model">purchase.order.line</field>
+            <field name="arch" type="xml">
+	            <form string="Purchase Order - Pending Details" version="7.0" edit = 'false' delete = 'false' create = 'false' >   
+	            <sheet> 
+	            	<group col="4" colspan="2"> 
+	            		<field name="order_id" string="Purchase Order Number"/>
+	            		<field name="po_document_name_relate" invisible="1"/> 
+	            		<field name="po_document_type_relate"/> 
+						<field name="date_order_relate"/> 
+						<field name="supplier_relate"/>
+						<field name="line_no"/> 
+						<field name="po_indent_no"/> 
+						<field name="product_id"/>
+						<field name="description"/>
+						<field name="product_qty" />
+						<field name="product_uom" />
+						<field name="price_unit" />
+						<field name="discount" />
+						<field name="p_f" />
+						<field name="p_f_type" />
+						<field name="ed"/>
+						<field name="ed_type"/> 
+						<field name="fright"/> 
+						<field name="fright_type"/>  
+						<field name="line_net"/>  
+						<field name="state"/>
+						<field name="taxes_id" widget = 'many2many_tags'/> 
+					</group>
+				</sheet>  
+		       </form>
+			</field>
+		</record>
+		
+		<record id="view_tpt_purchase_order_search_vew" model="ir.ui.view">
+			<field name="name">tpt.purchase.indent.release.store.search</field>
+			<field name="model">purchase.order.line</field>
+			<field name="arch" type="xml">
+				<search string="Purchase Indent">
+					<field name="po_document_name_relate"/>	
+					<field name="po_document_type_relate"/>
+					<field name="supplier_relate"/>
+					<field name="product_id"/>
+				</search>
+			</field>
+		</record>
+		
+		<record id="action_view_tpt_purchase_order_line_form" model="ir.actions.act_window">
+            <field name="name">Purchase Order - Pending Details</field>
+            <field name="type">ir.actions.act_window</field>
+            <field name="res_model">purchase.order.line</field>
+            <field name="view_type">form</field>
+            <field name="view_mode">tree,form</field>
+            <field name="context">{'search_po_line_detail':1}</field>
+            <field name="domain">[]</field>
+            <field name="search_view_id" ref="view_tpt_purchase_order_search_vew"/>
+            <field name="view_id" ref="view_tpt_purchase_order_line_tree"/>
+        </record>
+       <record id="action_view_tpt_purchase_order_line_form1" model="ir.actions.act_window.view">
+            <field eval="0" name="sequence"/>
+            <field name="view_mode">tree</field>
+            <field name="view_id" ref="view_tpt_purchase_order_line_tree"/>
+            <field name="act_window_id" ref="action_view_tpt_purchase_order_line_form"/>
+        </record>
+        <record id="action_view_tpt_purchase_order_line_form2" model="ir.actions.act_window.view">
+            <field eval="1" name="sequence"/>
+            <field name="view_mode">form</field>
+            <field name="view_id" ref="view_tpt_purchase_order_line_form"/>
+            <field name="act_window_id" ref="action_view_tpt_purchase_order_line_form"/>
+        </record>
+        
+        <menuitem action="action_view_tpt_purchase_order_line_form"
+            id="menu_action_view_tpt_purchase_order_line_form"
+            parent="purchase.menu_procurement_management" sequence="11"/>
         
     </data>
 </openerp>

@@ -2976,6 +2976,11 @@ class purchase_order_line(osv.osv):
                 'flag_line': fields.boolean('flag_line'),
                 #TPT
                 'item_text': fields.char('Item Text'), 
+                'po_document_name_relate':fields.related('order_id', 'name',type = 'char', string='PO Document No'),
+                'date_order_relate':fields.related('order_id', 'date_order',type = 'date', string='Order Date'),
+#                 'po_document_type_relate':fields.related('order_id', 'po_document_type',type = 'selection', string='PO Document Type', store = True),
+                'supplier_relate':fields.related('order_id', 'partner_id',type = 'many2one', relation='res.partner', string='Supplier'),
+                'po_document_type_relate':fields.selection([('raw','VV Raw material PO'),('asset','VV Capital PO'),('standard','VV Standard PO'),('local','VV Local PO'),('return','VV Return PO'),('service','VV Service PO'),('out','VV Out Service PO')],'PO Document Type'),
                 }   
     
 
@@ -3159,6 +3164,34 @@ class purchase_order_line(osv.osv):
                             })
  
         return res
+    
+    def search(self, cr, uid, args, offset=0, limit=None, order=None, context=None, count=False):
+        if context is None:
+            context = {}
+        if context.get('search_po_line_detail'):
+            po_line_ids = []
+            sql = '''
+                select purchase_line_id,case when sum(product_qty)!=0 then sum(product_qty) else 0 end product_qty from stock_move
+                            where purchase_line_id is not null and picking_id in (select id from stock_picking where state='done' and type='in') group by purchase_line_id
+            '''
+            cr.execute(sql)
+            po_ids = cr.fetchall()
+            for line in po_ids:
+                if line[0]:
+                    sql = '''
+                        select case when sum(product_qty)!=0 then sum(product_qty) else 0 end product_qty from purchase_order_line
+                        where id = %s 
+                    '''%(line[0])
+                    cr.execute(sql)
+                    product_qty = cr.fetchone()[0]
+                    if product_qty > line[1]:
+                        po_line_ids.append(line[0])
+            args += [('id','in',po_line_ids)]
+        return super(purchase_order_line, self).search(cr, uid, args, offset=offset, limit=limit, order=order, context=context, count=count)    
+
+    def name_search(self, cr, user, name, args=None, operator='ilike', context=None, limit=100):
+       ids = self.search(cr, user, args, context=context, limit=limit)
+       return self.name_get(cr, user, ids, context=context)
  
       
 #     def onchange_product_id(self, cr, uid, ids, product_id=False, po_indent_no=False, context=None):
