@@ -1471,7 +1471,7 @@ class tpt_update_stock_move_report(osv.osv):
             rs = {
                   'name': 'TPT create from inspection',
                   'product_id':line.product_id and line.product_id.id or False,
-                  'product_qty':wizard.quantity,
+                  'product_qty':line.qty,
                   'product_uom':line.product_id.uom_po_id and line.product_id.uom_po_id.id or False,
                   'location_id':location_id,
                   'location_dest_id':location_dest_id,
