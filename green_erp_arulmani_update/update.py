@@ -389,6 +389,1101 @@ class tpt_update_stock_move_report(osv.osv):
         result += str(result_move_ids)
         return self.write(cr, uid, ids, {'result':result})
     
+    def create_issue(self, cr, uid, ids, context=None):
+        result = 'Done create issue \n'
+        issue_obj = self.pool.get('tpt.material.issue')
+        move_obj = self.pool.get('stock.move')
+        product_obj = self.pool.get('product.product')
+        #create for issue 53
+        line = issue_obj.browse(cr, uid, 53)
+        if line.request_type == 'production':
+            dest_id = line.dest_warehouse_id and line.dest_warehouse_id.id or False
+        else:
+            location_ids=self.pool.get('stock.location').search(cr, uid,[('name','=','Scrapped')])
+            if location_ids:
+                dest_id = location_ids[0]
+        product = product_obj.browse(cr, uid, 8015)
+        cate_name = product.categ_id and product.categ_id.cate_name or False
+        if cate_name == 'finish':
+            parent_ids = self.pool.get('stock.location').search(cr, uid, [('name','=','Store'),('usage','=','view')])
+            if parent_ids:
+                locat_ids = self.pool.get('stock.location').search(cr, uid, [('name','=','FSH'),('location_id','=',parent_ids[0])])
+            if locat_ids:
+                location_id = locat_ids[0]
+        if cate_name == 'raw':
+            parent_ids = self.pool.get('stock.location').search(cr, uid, [('name','=','Store'),('usage','=','view')])
+            if parent_ids:
+                locat_ids = self.pool.get('stock.location').search(cr, uid, [('name','in',['Raw material','Raw Material']),('location_id','=',parent_ids[0])])
+            if locat_ids:
+                location_id = locat_ids[0]
+        if cate_name == 'spares':
+            parent_ids = self.pool.get('stock.location').search(cr, uid, [('name','=','Store'),('usage','=','view')])
+            if parent_ids:
+                locat_ids = self.pool.get('stock.location').search(cr, uid, [('name','in',['Spare','Spares']),('location_id','=',parent_ids[0])])
+            if locat_ids:
+                location_id = locat_ids[0]
+        rs = {
+              'name': '/',
+              'product_id':product.id,
+              'product_qty': 6,
+              'product_uom':product.uom_po_id and product.uom_po_id.id or False,
+              'location_id':line.warehouse and line.warehouse.id or False,
+              'location_dest_id':dest_id,
+              'issue_id':line.id,
+              'date':line.date_expec or False,
+              'price_unit': tpt_cost or 0,
+              }
+        move_id = move_obj.create(cr,uid,rs)
+        move_obj.action_done(cr, uid, [move_id])
+        cr.execute('update stock_move set date=%s and date_expected=%s where id=%s',(line.date,line.date,move_id,))
+        
+        #create for issue 57
+        line = issue_obj.browse(cr, uid, 57)
+        if line.request_type == 'production':
+            dest_id = line.dest_warehouse_id and line.dest_warehouse_id.id or False
+        else:
+            location_ids=self.pool.get('stock.location').search(cr, uid,[('name','=','Scrapped')])
+            if location_ids:
+                dest_id = location_ids[0]
+        product = product_obj.browse(cr, uid, 8015)
+        cate_name = product.categ_id and product.categ_id.cate_name or False
+        if cate_name == 'finish':
+            parent_ids = self.pool.get('stock.location').search(cr, uid, [('name','=','Store'),('usage','=','view')])
+            if parent_ids:
+                locat_ids = self.pool.get('stock.location').search(cr, uid, [('name','=','FSH'),('location_id','=',parent_ids[0])])
+            if locat_ids:
+                location_id = locat_ids[0]
+        if cate_name == 'raw':
+            parent_ids = self.pool.get('stock.location').search(cr, uid, [('name','=','Store'),('usage','=','view')])
+            if parent_ids:
+                locat_ids = self.pool.get('stock.location').search(cr, uid, [('name','in',['Raw material','Raw Material']),('location_id','=',parent_ids[0])])
+            if locat_ids:
+                location_id = locat_ids[0]
+        if cate_name == 'spares':
+            parent_ids = self.pool.get('stock.location').search(cr, uid, [('name','=','Store'),('usage','=','view')])
+            if parent_ids:
+                locat_ids = self.pool.get('stock.location').search(cr, uid, [('name','in',['Spare','Spares']),('location_id','=',parent_ids[0])])
+            if locat_ids:
+                location_id = locat_ids[0]
+        rs = {
+              'name': '/',
+              'product_id':product.id,
+              'product_qty': 6,
+              'product_uom':product.uom_po_id and product.uom_po_id.id or False,
+              'location_id':line.warehouse and line.warehouse.id or False,
+              'location_dest_id':dest_id,
+              'issue_id':line.id,
+              'date':line.date_expec or False,
+              'price_unit': tpt_cost or 0,
+              }
+        move_id = move_obj.create(cr,uid,rs)
+        move_obj.action_done(cr, uid, [move_id])
+        cr.execute('update stock_move set date=%s and date_expected=%s where id=%s',(line.date,line.date,move_id,))
+        
+        #create for issue 235
+        line = issue_obj.browse(cr, uid, 235)
+        if line.request_type == 'production':
+            dest_id = line.dest_warehouse_id and line.dest_warehouse_id.id or False
+        else:
+            location_ids=self.pool.get('stock.location').search(cr, uid,[('name','=','Scrapped')])
+            if location_ids:
+                dest_id = location_ids[0]
+        product = product_obj.browse(cr, uid, 2676)
+        cate_name = product.categ_id and product.categ_id.cate_name or False
+        if cate_name == 'finish':
+            parent_ids = self.pool.get('stock.location').search(cr, uid, [('name','=','Store'),('usage','=','view')])
+            if parent_ids:
+                locat_ids = self.pool.get('stock.location').search(cr, uid, [('name','=','FSH'),('location_id','=',parent_ids[0])])
+            if locat_ids:
+                location_id = locat_ids[0]
+        if cate_name == 'raw':
+            parent_ids = self.pool.get('stock.location').search(cr, uid, [('name','=','Store'),('usage','=','view')])
+            if parent_ids:
+                locat_ids = self.pool.get('stock.location').search(cr, uid, [('name','in',['Raw material','Raw Material']),('location_id','=',parent_ids[0])])
+            if locat_ids:
+                location_id = locat_ids[0]
+        if cate_name == 'spares':
+            parent_ids = self.pool.get('stock.location').search(cr, uid, [('name','=','Store'),('usage','=','view')])
+            if parent_ids:
+                locat_ids = self.pool.get('stock.location').search(cr, uid, [('name','in',['Spare','Spares']),('location_id','=',parent_ids[0])])
+            if locat_ids:
+                location_id = locat_ids[0]
+        rs = {
+              'name': '/',
+              'product_id':product.id,
+              'product_qty': 6,
+              'product_uom':product.uom_po_id and product.uom_po_id.id or False,
+              'location_id':line.warehouse and line.warehouse.id or False,
+              'location_dest_id':dest_id,
+              'issue_id':line.id,
+              'date':line.date_expec or False,
+              'price_unit': tpt_cost or 0,
+              }
+        move_id = move_obj.create(cr,uid,rs)
+        move_obj.action_done(cr, uid, [move_id])
+        cr.execute('update stock_move set date=%s and date_expected=%s where id=%s',(line.date,line.date,move_id,))
+        
+        #create for issue 256
+        line = issue_obj.browse(cr, uid, 256)
+        if line.request_type == 'production':
+            dest_id = line.dest_warehouse_id and line.dest_warehouse_id.id or False
+        else:
+            location_ids=self.pool.get('stock.location').search(cr, uid,[('name','=','Scrapped')])
+            if location_ids:
+                dest_id = location_ids[0]
+        product = product_obj.browse(cr, uid, 8061)
+        cate_name = product.categ_id and product.categ_id.cate_name or False
+        if cate_name == 'finish':
+            parent_ids = self.pool.get('stock.location').search(cr, uid, [('name','=','Store'),('usage','=','view')])
+            if parent_ids:
+                locat_ids = self.pool.get('stock.location').search(cr, uid, [('name','=','FSH'),('location_id','=',parent_ids[0])])
+            if locat_ids:
+                location_id = locat_ids[0]
+        if cate_name == 'raw':
+            parent_ids = self.pool.get('stock.location').search(cr, uid, [('name','=','Store'),('usage','=','view')])
+            if parent_ids:
+                locat_ids = self.pool.get('stock.location').search(cr, uid, [('name','in',['Raw material','Raw Material']),('location_id','=',parent_ids[0])])
+            if locat_ids:
+                location_id = locat_ids[0]
+        if cate_name == 'spares':
+            parent_ids = self.pool.get('stock.location').search(cr, uid, [('name','=','Store'),('usage','=','view')])
+            if parent_ids:
+                locat_ids = self.pool.get('stock.location').search(cr, uid, [('name','in',['Spare','Spares']),('location_id','=',parent_ids[0])])
+            if locat_ids:
+                location_id = locat_ids[0]
+        rs = {
+              'name': '/',
+              'product_id':product.id,
+              'product_qty': 5,
+              'product_uom':product.uom_po_id and product.uom_po_id.id or False,
+              'location_id':line.warehouse and line.warehouse.id or False,
+              'location_dest_id':dest_id,
+              'issue_id':line.id,
+              'date':line.date_expec or False,
+              'price_unit': tpt_cost or 0,
+              }
+        move_id = move_obj.create(cr,uid,rs)
+        move_obj.action_done(cr, uid, [move_id])
+        cr.execute('update stock_move set date=%s and date_expected=%s where id=%s',(line.date,line.date,move_id,))
+        
+        #create for issue 571
+        line = issue_obj.browse(cr, uid, 571)
+        if line.request_type == 'production':
+            dest_id = line.dest_warehouse_id and line.dest_warehouse_id.id or False
+        else:
+            location_ids=self.pool.get('stock.location').search(cr, uid,[('name','=','Scrapped')])
+            if location_ids:
+                dest_id = location_ids[0]
+        product = product_obj.browse(cr, uid, 11732)
+        cate_name = product.categ_id and product.categ_id.cate_name or False
+        if cate_name == 'finish':
+            parent_ids = self.pool.get('stock.location').search(cr, uid, [('name','=','Store'),('usage','=','view')])
+            if parent_ids:
+                locat_ids = self.pool.get('stock.location').search(cr, uid, [('name','=','FSH'),('location_id','=',parent_ids[0])])
+            if locat_ids:
+                location_id = locat_ids[0]
+        if cate_name == 'raw':
+            parent_ids = self.pool.get('stock.location').search(cr, uid, [('name','=','Store'),('usage','=','view')])
+            if parent_ids:
+                locat_ids = self.pool.get('stock.location').search(cr, uid, [('name','in',['Raw material','Raw Material']),('location_id','=',parent_ids[0])])
+            if locat_ids:
+                location_id = locat_ids[0]
+        if cate_name == 'spares':
+            parent_ids = self.pool.get('stock.location').search(cr, uid, [('name','=','Store'),('usage','=','view')])
+            if parent_ids:
+                locat_ids = self.pool.get('stock.location').search(cr, uid, [('name','in',['Spare','Spares']),('location_id','=',parent_ids[0])])
+            if locat_ids:
+                location_id = locat_ids[0]
+        rs = {
+              'name': '/',
+              'product_id':product.id,
+              'product_qty': 1,
+              'product_uom':product.uom_po_id and product.uom_po_id.id or False,
+              'location_id':line.warehouse and line.warehouse.id or False,
+              'location_dest_id':dest_id,
+              'issue_id':line.id,
+              'date':line.date_expec or False,
+              'price_unit': tpt_cost or 0,
+              }
+        move_id = move_obj.create(cr,uid,rs)
+        move_obj.action_done(cr, uid, [move_id])
+        cr.execute('update stock_move set date=%s and date_expected=%s where id=%s',(line.date,line.date,move_id,))
+        
+        #create for issue 680
+        line = issue_obj.browse(cr, uid, 680)
+        if line.request_type == 'production':
+            dest_id = line.dest_warehouse_id and line.dest_warehouse_id.id or False
+        else:
+            location_ids=self.pool.get('stock.location').search(cr, uid,[('name','=','Scrapped')])
+            if location_ids:
+                dest_id = location_ids[0]
+        product = product_obj.browse(cr, uid, 11732)
+        cate_name = product.categ_id and product.categ_id.cate_name or False
+        if cate_name == 'finish':
+            parent_ids = self.pool.get('stock.location').search(cr, uid, [('name','=','Store'),('usage','=','view')])
+            if parent_ids:
+                locat_ids = self.pool.get('stock.location').search(cr, uid, [('name','=','FSH'),('location_id','=',parent_ids[0])])
+            if locat_ids:
+                location_id = locat_ids[0]
+        if cate_name == 'raw':
+            parent_ids = self.pool.get('stock.location').search(cr, uid, [('name','=','Store'),('usage','=','view')])
+            if parent_ids:
+                locat_ids = self.pool.get('stock.location').search(cr, uid, [('name','in',['Raw material','Raw Material']),('location_id','=',parent_ids[0])])
+            if locat_ids:
+                location_id = locat_ids[0]
+        if cate_name == 'spares':
+            parent_ids = self.pool.get('stock.location').search(cr, uid, [('name','=','Store'),('usage','=','view')])
+            if parent_ids:
+                locat_ids = self.pool.get('stock.location').search(cr, uid, [('name','in',['Spare','Spares']),('location_id','=',parent_ids[0])])
+            if locat_ids:
+                location_id = locat_ids[0]
+        rs = {
+              'name': '/',
+              'product_id':product.id,
+              'product_qty': 10,
+              'product_uom':product.uom_po_id and product.uom_po_id.id or False,
+              'location_id':line.warehouse and line.warehouse.id or False,
+              'location_dest_id':dest_id,
+              'issue_id':line.id,
+              'date':line.date_expec or False,
+              'price_unit': tpt_cost or 0,
+              }
+        move_id = move_obj.create(cr,uid,rs)
+        move_obj.action_done(cr, uid, [move_id])
+        cr.execute('update stock_move set date=%s and date_expected=%s where id=%s',(line.date,line.date,move_id,))
+        
+        #create for issue 797
+        line = issue_obj.browse(cr, uid, 797)
+        if line.request_type == 'production':
+            dest_id = line.dest_warehouse_id and line.dest_warehouse_id.id or False
+        else:
+            location_ids=self.pool.get('stock.location').search(cr, uid,[('name','=','Scrapped')])
+            if location_ids:
+                dest_id = location_ids[0]
+        product = product_obj.browse(cr, uid, 10718)
+        cate_name = product.categ_id and product.categ_id.cate_name or False
+        if cate_name == 'finish':
+            parent_ids = self.pool.get('stock.location').search(cr, uid, [('name','=','Store'),('usage','=','view')])
+            if parent_ids:
+                locat_ids = self.pool.get('stock.location').search(cr, uid, [('name','=','FSH'),('location_id','=',parent_ids[0])])
+            if locat_ids:
+                location_id = locat_ids[0]
+        if cate_name == 'raw':
+            parent_ids = self.pool.get('stock.location').search(cr, uid, [('name','=','Store'),('usage','=','view')])
+            if parent_ids:
+                locat_ids = self.pool.get('stock.location').search(cr, uid, [('name','in',['Raw material','Raw Material']),('location_id','=',parent_ids[0])])
+            if locat_ids:
+                location_id = locat_ids[0]
+        if cate_name == 'spares':
+            parent_ids = self.pool.get('stock.location').search(cr, uid, [('name','=','Store'),('usage','=','view')])
+            if parent_ids:
+                locat_ids = self.pool.get('stock.location').search(cr, uid, [('name','in',['Spare','Spares']),('location_id','=',parent_ids[0])])
+            if locat_ids:
+                location_id = locat_ids[0]
+        rs = {
+              'name': '/',
+              'product_id':product.id,
+              'product_qty': 72,
+              'product_uom':product.uom_po_id and product.uom_po_id.id or False,
+              'location_id':line.warehouse and line.warehouse.id or False,
+              'location_dest_id':dest_id,
+              'issue_id':line.id,
+              'date':line.date_expec or False,
+              'price_unit': tpt_cost or 0,
+              }
+        move_id = move_obj.create(cr,uid,rs)
+        move_obj.action_done(cr, uid, [move_id])
+        cr.execute('update stock_move set date=%s and date_expected=%s where id=%s',(line.date,line.date,move_id,))
+        #
+        product = product_obj.browse(cr, uid, 10721)
+        cate_name = product.categ_id and product.categ_id.cate_name or False
+        if cate_name == 'finish':
+            parent_ids = self.pool.get('stock.location').search(cr, uid, [('name','=','Store'),('usage','=','view')])
+            if parent_ids:
+                locat_ids = self.pool.get('stock.location').search(cr, uid, [('name','=','FSH'),('location_id','=',parent_ids[0])])
+            if locat_ids:
+                location_id = locat_ids[0]
+        if cate_name == 'raw':
+            parent_ids = self.pool.get('stock.location').search(cr, uid, [('name','=','Store'),('usage','=','view')])
+            if parent_ids:
+                locat_ids = self.pool.get('stock.location').search(cr, uid, [('name','in',['Raw material','Raw Material']),('location_id','=',parent_ids[0])])
+            if locat_ids:
+                location_id = locat_ids[0]
+        if cate_name == 'spares':
+            parent_ids = self.pool.get('stock.location').search(cr, uid, [('name','=','Store'),('usage','=','view')])
+            if parent_ids:
+                locat_ids = self.pool.get('stock.location').search(cr, uid, [('name','in',['Spare','Spares']),('location_id','=',parent_ids[0])])
+            if locat_ids:
+                location_id = locat_ids[0]
+        rs = {
+              'name': '/',
+              'product_id':product.id,
+              'product_qty': 7.65,
+              'product_uom':product.uom_po_id and product.uom_po_id.id or False,
+              'location_id':line.warehouse and line.warehouse.id or False,
+              'location_dest_id':dest_id,
+              'issue_id':line.id,
+              'date':line.date_expec or False,
+              'price_unit': tpt_cost or 0,
+              }
+        move_id = move_obj.create(cr,uid,rs)
+        move_obj.action_done(cr, uid, [move_id])
+        cr.execute('update stock_move set date=%s and date_expected=%s where id=%s',(line.date,line.date,move_id,))
+        #
+        product = product_obj.browse(cr, uid, 10722)
+        cate_name = product.categ_id and product.categ_id.cate_name or False
+        if cate_name == 'finish':
+            parent_ids = self.pool.get('stock.location').search(cr, uid, [('name','=','Store'),('usage','=','view')])
+            if parent_ids:
+                locat_ids = self.pool.get('stock.location').search(cr, uid, [('name','=','FSH'),('location_id','=',parent_ids[0])])
+            if locat_ids:
+                location_id = locat_ids[0]
+        if cate_name == 'raw':
+            parent_ids = self.pool.get('stock.location').search(cr, uid, [('name','=','Store'),('usage','=','view')])
+            if parent_ids:
+                locat_ids = self.pool.get('stock.location').search(cr, uid, [('name','in',['Raw material','Raw Material']),('location_id','=',parent_ids[0])])
+            if locat_ids:
+                location_id = locat_ids[0]
+        if cate_name == 'spares':
+            parent_ids = self.pool.get('stock.location').search(cr, uid, [('name','=','Store'),('usage','=','view')])
+            if parent_ids:
+                locat_ids = self.pool.get('stock.location').search(cr, uid, [('name','in',['Spare','Spares']),('location_id','=',parent_ids[0])])
+            if locat_ids:
+                location_id = locat_ids[0]
+        rs = {
+              'name': '/',
+              'product_id':product.id,
+              'product_qty': 104,
+              'product_uom':product.uom_po_id and product.uom_po_id.id or False,
+              'location_id':line.warehouse and line.warehouse.id or False,
+              'location_dest_id':dest_id,
+              'issue_id':line.id,
+              'date':line.date_expec or False,
+              'price_unit': tpt_cost or 0,
+              }
+        move_id = move_obj.create(cr,uid,rs)
+        move_obj.action_done(cr, uid, [move_id])
+        cr.execute('update stock_move set date=%s and date_expected=%s where id=%s',(line.date,line.date,move_id,))
+        #
+        product = product_obj.browse(cr, uid, 10724)
+        cate_name = product.categ_id and product.categ_id.cate_name or False
+        if cate_name == 'finish':
+            parent_ids = self.pool.get('stock.location').search(cr, uid, [('name','=','Store'),('usage','=','view')])
+            if parent_ids:
+                locat_ids = self.pool.get('stock.location').search(cr, uid, [('name','=','FSH'),('location_id','=',parent_ids[0])])
+            if locat_ids:
+                location_id = locat_ids[0]
+        if cate_name == 'raw':
+            parent_ids = self.pool.get('stock.location').search(cr, uid, [('name','=','Store'),('usage','=','view')])
+            if parent_ids:
+                locat_ids = self.pool.get('stock.location').search(cr, uid, [('name','in',['Raw material','Raw Material']),('location_id','=',parent_ids[0])])
+            if locat_ids:
+                location_id = locat_ids[0]
+        if cate_name == 'spares':
+            parent_ids = self.pool.get('stock.location').search(cr, uid, [('name','=','Store'),('usage','=','view')])
+            if parent_ids:
+                locat_ids = self.pool.get('stock.location').search(cr, uid, [('name','in',['Spare','Spares']),('location_id','=',parent_ids[0])])
+            if locat_ids:
+                location_id = locat_ids[0]
+        rs = {
+              'name': '/',
+              'product_id':product.id,
+              'product_qty': 50,
+              'product_uom':product.uom_po_id and product.uom_po_id.id or False,
+              'location_id':line.warehouse and line.warehouse.id or False,
+              'location_dest_id':dest_id,
+              'issue_id':line.id,
+              'date':line.date_expec or False,
+              'price_unit': tpt_cost or 0,
+              }
+        move_id = move_obj.create(cr,uid,rs)
+        move_obj.action_done(cr, uid, [move_id])
+        cr.execute('update stock_move set date=%s and date_expected=%s where id=%s',(line.date,line.date,move_id,))
+        #
+        product = product_obj.browse(cr, uid, 10726)
+        cate_name = product.categ_id and product.categ_id.cate_name or False
+        if cate_name == 'finish':
+            parent_ids = self.pool.get('stock.location').search(cr, uid, [('name','=','Store'),('usage','=','view')])
+            if parent_ids:
+                locat_ids = self.pool.get('stock.location').search(cr, uid, [('name','=','FSH'),('location_id','=',parent_ids[0])])
+            if locat_ids:
+                location_id = locat_ids[0]
+        if cate_name == 'raw':
+            parent_ids = self.pool.get('stock.location').search(cr, uid, [('name','=','Store'),('usage','=','view')])
+            if parent_ids:
+                locat_ids = self.pool.get('stock.location').search(cr, uid, [('name','in',['Raw material','Raw Material']),('location_id','=',parent_ids[0])])
+            if locat_ids:
+                location_id = locat_ids[0]
+        if cate_name == 'spares':
+            parent_ids = self.pool.get('stock.location').search(cr, uid, [('name','=','Store'),('usage','=','view')])
+            if parent_ids:
+                locat_ids = self.pool.get('stock.location').search(cr, uid, [('name','in',['Spare','Spares']),('location_id','=',parent_ids[0])])
+            if locat_ids:
+                location_id = locat_ids[0]
+        rs = {
+              'name': '/',
+              'product_id':product.id,
+              'product_qty': 9.75,
+              'product_uom':product.uom_po_id and product.uom_po_id.id or False,
+              'location_id':line.warehouse and line.warehouse.id or False,
+              'location_dest_id':dest_id,
+              'issue_id':line.id,
+              'date':line.date_expec or False,
+              'price_unit': tpt_cost or 0,
+              }
+        move_id = move_obj.create(cr,uid,rs)
+        move_obj.action_done(cr, uid, [move_id])
+        cr.execute('update stock_move set date=%s and date_expected=%s where id=%s',(line.date,line.date,move_id,))
+        #
+        product = product_obj.browse(cr, uid, 10730)
+        cate_name = product.categ_id and product.categ_id.cate_name or False
+        if cate_name == 'finish':
+            parent_ids = self.pool.get('stock.location').search(cr, uid, [('name','=','Store'),('usage','=','view')])
+            if parent_ids:
+                locat_ids = self.pool.get('stock.location').search(cr, uid, [('name','=','FSH'),('location_id','=',parent_ids[0])])
+            if locat_ids:
+                location_id = locat_ids[0]
+        if cate_name == 'raw':
+            parent_ids = self.pool.get('stock.location').search(cr, uid, [('name','=','Store'),('usage','=','view')])
+            if parent_ids:
+                locat_ids = self.pool.get('stock.location').search(cr, uid, [('name','in',['Raw material','Raw Material']),('location_id','=',parent_ids[0])])
+            if locat_ids:
+                location_id = locat_ids[0]
+        if cate_name == 'spares':
+            parent_ids = self.pool.get('stock.location').search(cr, uid, [('name','=','Store'),('usage','=','view')])
+            if parent_ids:
+                locat_ids = self.pool.get('stock.location').search(cr, uid, [('name','in',['Spare','Spares']),('location_id','=',parent_ids[0])])
+            if locat_ids:
+                location_id = locat_ids[0]
+        rs = {
+              'name': '/',
+              'product_id':product.id,
+              'product_qty': 2.5,
+              'product_uom':product.uom_po_id and product.uom_po_id.id or False,
+              'location_id':line.warehouse and line.warehouse.id or False,
+              'location_dest_id':dest_id,
+              'issue_id':line.id,
+              'date':line.date_expec or False,
+              'price_unit': tpt_cost or 0,
+              }
+        move_id = move_obj.create(cr,uid,rs)
+        move_obj.action_done(cr, uid, [move_id])
+        cr.execute('update stock_move set date=%s and date_expected=%s where id=%s',(line.date,line.date,move_id,))
+        #
+        product = product_obj.browse(cr, uid, 10733)
+        cate_name = product.categ_id and product.categ_id.cate_name or False
+        if cate_name == 'finish':
+            parent_ids = self.pool.get('stock.location').search(cr, uid, [('name','=','Store'),('usage','=','view')])
+            if parent_ids:
+                locat_ids = self.pool.get('stock.location').search(cr, uid, [('name','=','FSH'),('location_id','=',parent_ids[0])])
+            if locat_ids:
+                location_id = locat_ids[0]
+        if cate_name == 'raw':
+            parent_ids = self.pool.get('stock.location').search(cr, uid, [('name','=','Store'),('usage','=','view')])
+            if parent_ids:
+                locat_ids = self.pool.get('stock.location').search(cr, uid, [('name','in',['Raw material','Raw Material']),('location_id','=',parent_ids[0])])
+            if locat_ids:
+                location_id = locat_ids[0]
+        if cate_name == 'spares':
+            parent_ids = self.pool.get('stock.location').search(cr, uid, [('name','=','Store'),('usage','=','view')])
+            if parent_ids:
+                locat_ids = self.pool.get('stock.location').search(cr, uid, [('name','in',['Spare','Spares']),('location_id','=',parent_ids[0])])
+            if locat_ids:
+                location_id = locat_ids[0]
+        rs = {
+              'name': '/',
+              'product_id':product.id,
+              'product_qty': 80,
+              'product_uom':product.uom_po_id and product.uom_po_id.id or False,
+              'location_id':line.warehouse and line.warehouse.id or False,
+              'location_dest_id':dest_id,
+              'issue_id':line.id,
+              'date':line.date_expec or False,
+              'price_unit': tpt_cost or 0,
+              }
+        move_id = move_obj.create(cr,uid,rs)
+        move_obj.action_done(cr, uid, [move_id])
+        cr.execute('update stock_move set date=%s and date_expected=%s where id=%s',(line.date,line.date,move_id,))
+        #
+        product = product_obj.browse(cr, uid, 10749)
+        cate_name = product.categ_id and product.categ_id.cate_name or False
+        if cate_name == 'finish':
+            parent_ids = self.pool.get('stock.location').search(cr, uid, [('name','=','Store'),('usage','=','view')])
+            if parent_ids:
+                locat_ids = self.pool.get('stock.location').search(cr, uid, [('name','=','FSH'),('location_id','=',parent_ids[0])])
+            if locat_ids:
+                location_id = locat_ids[0]
+        if cate_name == 'raw':
+            parent_ids = self.pool.get('stock.location').search(cr, uid, [('name','=','Store'),('usage','=','view')])
+            if parent_ids:
+                locat_ids = self.pool.get('stock.location').search(cr, uid, [('name','in',['Raw material','Raw Material']),('location_id','=',parent_ids[0])])
+            if locat_ids:
+                location_id = locat_ids[0]
+        if cate_name == 'spares':
+            parent_ids = self.pool.get('stock.location').search(cr, uid, [('name','=','Store'),('usage','=','view')])
+            if parent_ids:
+                locat_ids = self.pool.get('stock.location').search(cr, uid, [('name','in',['Spare','Spares']),('location_id','=',parent_ids[0])])
+            if locat_ids:
+                location_id = locat_ids[0]
+        rs = {
+              'name': '/',
+              'product_id':product.id,
+              'product_qty': 121,
+              'product_uom':product.uom_po_id and product.uom_po_id.id or False,
+              'location_id':line.warehouse and line.warehouse.id or False,
+              'location_dest_id':dest_id,
+              'issue_id':line.id,
+              'date':line.date_expec or False,
+              'price_unit': tpt_cost or 0,
+              }
+        move_id = move_obj.create(cr,uid,rs)
+        move_obj.action_done(cr, uid, [move_id])
+        cr.execute('update stock_move set date=%s and date_expected=%s where id=%s',(line.date,line.date,move_id,))
+        #
+        product = product_obj.browse(cr, uid, 10754)
+        cate_name = product.categ_id and product.categ_id.cate_name or False
+        if cate_name == 'finish':
+            parent_ids = self.pool.get('stock.location').search(cr, uid, [('name','=','Store'),('usage','=','view')])
+            if parent_ids:
+                locat_ids = self.pool.get('stock.location').search(cr, uid, [('name','=','FSH'),('location_id','=',parent_ids[0])])
+            if locat_ids:
+                location_id = locat_ids[0]
+        if cate_name == 'raw':
+            parent_ids = self.pool.get('stock.location').search(cr, uid, [('name','=','Store'),('usage','=','view')])
+            if parent_ids:
+                locat_ids = self.pool.get('stock.location').search(cr, uid, [('name','in',['Raw material','Raw Material']),('location_id','=',parent_ids[0])])
+            if locat_ids:
+                location_id = locat_ids[0]
+        if cate_name == 'spares':
+            parent_ids = self.pool.get('stock.location').search(cr, uid, [('name','=','Store'),('usage','=','view')])
+            if parent_ids:
+                locat_ids = self.pool.get('stock.location').search(cr, uid, [('name','in',['Spare','Spares']),('location_id','=',parent_ids[0])])
+            if locat_ids:
+                location_id = locat_ids[0]
+        rs = {
+              'name': '/',
+              'product_id':product.id,
+              'product_qty': 11.058,
+              'product_uom':product.uom_po_id and product.uom_po_id.id or False,
+              'location_id':line.warehouse and line.warehouse.id or False,
+              'location_dest_id':dest_id,
+              'issue_id':line.id,
+              'date':line.date_expec or False,
+              'price_unit': tpt_cost or 0,
+              }
+        move_id = move_obj.create(cr,uid,rs)
+        move_obj.action_done(cr, uid, [move_id])
+        cr.execute('update stock_move set date=%s and date_expected=%s where id=%s',(line.date,line.date,move_id,))
+        #
+        product = product_obj.browse(cr, uid, 10756)
+        cate_name = product.categ_id and product.categ_id.cate_name or False
+        if cate_name == 'finish':
+            parent_ids = self.pool.get('stock.location').search(cr, uid, [('name','=','Store'),('usage','=','view')])
+            if parent_ids:
+                locat_ids = self.pool.get('stock.location').search(cr, uid, [('name','=','FSH'),('location_id','=',parent_ids[0])])
+            if locat_ids:
+                location_id = locat_ids[0]
+        if cate_name == 'raw':
+            parent_ids = self.pool.get('stock.location').search(cr, uid, [('name','=','Store'),('usage','=','view')])
+            if parent_ids:
+                locat_ids = self.pool.get('stock.location').search(cr, uid, [('name','in',['Raw material','Raw Material']),('location_id','=',parent_ids[0])])
+            if locat_ids:
+                location_id = locat_ids[0]
+        if cate_name == 'spares':
+            parent_ids = self.pool.get('stock.location').search(cr, uid, [('name','=','Store'),('usage','=','view')])
+            if parent_ids:
+                locat_ids = self.pool.get('stock.location').search(cr, uid, [('name','in',['Spare','Spares']),('location_id','=',parent_ids[0])])
+            if locat_ids:
+                location_id = locat_ids[0]
+        rs = {
+              'name': '/',
+              'product_id':product.id,
+              'product_qty': 80,
+              'product_uom':product.uom_po_id and product.uom_po_id.id or False,
+              'location_id':line.warehouse and line.warehouse.id or False,
+              'location_dest_id':dest_id,
+              'issue_id':line.id,
+              'date':line.date_expec or False,
+              'price_unit': tpt_cost or 0,
+              }
+        move_id = move_obj.create(cr,uid,rs)
+        move_obj.action_done(cr, uid, [move_id])
+        cr.execute('update stock_move set date=%s and date_expected=%s where id=%s',(line.date,line.date,move_id,))
+        #
+        product = product_obj.browse(cr, uid, 10760)
+        cate_name = product.categ_id and product.categ_id.cate_name or False
+        if cate_name == 'finish':
+            parent_ids = self.pool.get('stock.location').search(cr, uid, [('name','=','Store'),('usage','=','view')])
+            if parent_ids:
+                locat_ids = self.pool.get('stock.location').search(cr, uid, [('name','=','FSH'),('location_id','=',parent_ids[0])])
+            if locat_ids:
+                location_id = locat_ids[0]
+        if cate_name == 'raw':
+            parent_ids = self.pool.get('stock.location').search(cr, uid, [('name','=','Store'),('usage','=','view')])
+            if parent_ids:
+                locat_ids = self.pool.get('stock.location').search(cr, uid, [('name','in',['Raw material','Raw Material']),('location_id','=',parent_ids[0])])
+            if locat_ids:
+                location_id = locat_ids[0]
+        if cate_name == 'spares':
+            parent_ids = self.pool.get('stock.location').search(cr, uid, [('name','=','Store'),('usage','=','view')])
+            if parent_ids:
+                locat_ids = self.pool.get('stock.location').search(cr, uid, [('name','in',['Spare','Spares']),('location_id','=',parent_ids[0])])
+            if locat_ids:
+                location_id = locat_ids[0]
+        rs = {
+              'name': '/',
+              'product_id':product.id,
+              'product_qty': 1300,
+              'product_uom':product.uom_po_id and product.uom_po_id.id or False,
+              'location_id':line.warehouse and line.warehouse.id or False,
+              'location_dest_id':dest_id,
+              'issue_id':line.id,
+              'date':line.date_expec or False,
+              'price_unit': tpt_cost or 0,
+              }
+        move_id = move_obj.create(cr,uid,rs)
+        move_obj.action_done(cr, uid, [move_id])
+        cr.execute('update stock_move set date=%s and date_expected=%s where id=%s',(line.date,line.date,move_id,))
+        #
+        product = product_obj.browse(cr, uid, 10791)
+        cate_name = product.categ_id and product.categ_id.cate_name or False
+        if cate_name == 'finish':
+            parent_ids = self.pool.get('stock.location').search(cr, uid, [('name','=','Store'),('usage','=','view')])
+            if parent_ids:
+                locat_ids = self.pool.get('stock.location').search(cr, uid, [('name','=','FSH'),('location_id','=',parent_ids[0])])
+            if locat_ids:
+                location_id = locat_ids[0]
+        if cate_name == 'raw':
+            parent_ids = self.pool.get('stock.location').search(cr, uid, [('name','=','Store'),('usage','=','view')])
+            if parent_ids:
+                locat_ids = self.pool.get('stock.location').search(cr, uid, [('name','in',['Raw material','Raw Material']),('location_id','=',parent_ids[0])])
+            if locat_ids:
+                location_id = locat_ids[0]
+        if cate_name == 'spares':
+            parent_ids = self.pool.get('stock.location').search(cr, uid, [('name','=','Store'),('usage','=','view')])
+            if parent_ids:
+                locat_ids = self.pool.get('stock.location').search(cr, uid, [('name','in',['Spare','Spares']),('location_id','=',parent_ids[0])])
+            if locat_ids:
+                location_id = locat_ids[0]
+        rs = {
+              'name': '/',
+              'product_id':product.id,
+              'product_qty': 1200,
+              'product_uom':product.uom_po_id and product.uom_po_id.id or False,
+              'location_id':line.warehouse and line.warehouse.id or False,
+              'location_dest_id':dest_id,
+              'issue_id':line.id,
+              'date':line.date_expec or False,
+              'price_unit': tpt_cost or 0,
+              }
+        move_id = move_obj.create(cr,uid,rs)
+        move_obj.action_done(cr, uid, [move_id])
+        cr.execute('update stock_move set date=%s and date_expected=%s where id=%s',(line.date,line.date,move_id,))
+        #
+        product = product_obj.browse(cr, uid, 10734)
+        cate_name = product.categ_id and product.categ_id.cate_name or False
+        if cate_name == 'finish':
+            parent_ids = self.pool.get('stock.location').search(cr, uid, [('name','=','Store'),('usage','=','view')])
+            if parent_ids:
+                locat_ids = self.pool.get('stock.location').search(cr, uid, [('name','=','FSH'),('location_id','=',parent_ids[0])])
+            if locat_ids:
+                location_id = locat_ids[0]
+        if cate_name == 'raw':
+            parent_ids = self.pool.get('stock.location').search(cr, uid, [('name','=','Store'),('usage','=','view')])
+            if parent_ids:
+                locat_ids = self.pool.get('stock.location').search(cr, uid, [('name','in',['Raw material','Raw Material']),('location_id','=',parent_ids[0])])
+            if locat_ids:
+                location_id = locat_ids[0]
+        if cate_name == 'spares':
+            parent_ids = self.pool.get('stock.location').search(cr, uid, [('name','=','Store'),('usage','=','view')])
+            if parent_ids:
+                locat_ids = self.pool.get('stock.location').search(cr, uid, [('name','in',['Spare','Spares']),('location_id','=',parent_ids[0])])
+            if locat_ids:
+                location_id = locat_ids[0]
+        rs = {
+              'name': '/',
+              'product_id':product.id,
+              'product_qty': 425,
+              'product_uom':product.uom_po_id and product.uom_po_id.id or False,
+              'location_id':line.warehouse and line.warehouse.id or False,
+              'location_dest_id':dest_id,
+              'issue_id':line.id,
+              'date':line.date_expec or False,
+              'price_unit': tpt_cost or 0,
+              }
+        move_id = move_obj.create(cr,uid,rs)
+        move_obj.action_done(cr, uid, [move_id])
+        cr.execute('update stock_move set date=%s and date_expected=%s where id=%s',(line.date,line.date,move_id,))
+        #
+        product = product_obj.browse(cr, uid, 10750)
+        cate_name = product.categ_id and product.categ_id.cate_name or False
+        if cate_name == 'finish':
+            parent_ids = self.pool.get('stock.location').search(cr, uid, [('name','=','Store'),('usage','=','view')])
+            if parent_ids:
+                locat_ids = self.pool.get('stock.location').search(cr, uid, [('name','=','FSH'),('location_id','=',parent_ids[0])])
+            if locat_ids:
+                location_id = locat_ids[0]
+        if cate_name == 'raw':
+            parent_ids = self.pool.get('stock.location').search(cr, uid, [('name','=','Store'),('usage','=','view')])
+            if parent_ids:
+                locat_ids = self.pool.get('stock.location').search(cr, uid, [('name','in',['Raw material','Raw Material']),('location_id','=',parent_ids[0])])
+            if locat_ids:
+                location_id = locat_ids[0]
+        if cate_name == 'spares':
+            parent_ids = self.pool.get('stock.location').search(cr, uid, [('name','=','Store'),('usage','=','view')])
+            if parent_ids:
+                locat_ids = self.pool.get('stock.location').search(cr, uid, [('name','in',['Spare','Spares']),('location_id','=',parent_ids[0])])
+            if locat_ids:
+                location_id = locat_ids[0]
+        rs = {
+              'name': '/',
+              'product_id':product.id,
+              'product_qty': 2550,
+              'product_uom':product.uom_po_id and product.uom_po_id.id or False,
+              'location_id':line.warehouse and line.warehouse.id or False,
+              'location_dest_id':dest_id,
+              'issue_id':line.id,
+              'date':line.date_expec or False,
+              'price_unit': tpt_cost or 0,
+              }
+        move_id = move_obj.create(cr,uid,rs)
+        move_obj.action_done(cr, uid, [move_id])
+        cr.execute('update stock_move set date=%s and date_expected=%s where id=%s',(line.date,line.date,move_id,))
+        #
+        product = product_obj.browse(cr, uid, 12966)
+        cate_name = product.categ_id and product.categ_id.cate_name or False
+        if cate_name == 'finish':
+            parent_ids = self.pool.get('stock.location').search(cr, uid, [('name','=','Store'),('usage','=','view')])
+            if parent_ids:
+                locat_ids = self.pool.get('stock.location').search(cr, uid, [('name','=','FSH'),('location_id','=',parent_ids[0])])
+            if locat_ids:
+                location_id = locat_ids[0]
+        if cate_name == 'raw':
+            parent_ids = self.pool.get('stock.location').search(cr, uid, [('name','=','Store'),('usage','=','view')])
+            if parent_ids:
+                locat_ids = self.pool.get('stock.location').search(cr, uid, [('name','in',['Raw material','Raw Material']),('location_id','=',parent_ids[0])])
+            if locat_ids:
+                location_id = locat_ids[0]
+        if cate_name == 'spares':
+            parent_ids = self.pool.get('stock.location').search(cr, uid, [('name','=','Store'),('usage','=','view')])
+            if parent_ids:
+                locat_ids = self.pool.get('stock.location').search(cr, uid, [('name','in',['Spare','Spares']),('location_id','=',parent_ids[0])])
+            if locat_ids:
+                location_id = locat_ids[0]
+        rs = {
+              'name': '/',
+              'product_id':product.id,
+              'product_qty': 300,
+              'product_uom':product.uom_po_id and product.uom_po_id.id or False,
+              'location_id':line.warehouse and line.warehouse.id or False,
+              'location_dest_id':dest_id,
+              'issue_id':line.id,
+              'date':line.date_expec or False,
+              'price_unit': tpt_cost or 0,
+              }
+        move_id = move_obj.create(cr,uid,rs)
+        move_obj.action_done(cr, uid, [move_id])
+        cr.execute('update stock_move set date=%s and date_expected=%s where id=%s',(line.date,line.date,move_id,))
+        #
+        product = product_obj.browse(cr, uid, 10746)
+        cate_name = product.categ_id and product.categ_id.cate_name or False
+        if cate_name == 'finish':
+            parent_ids = self.pool.get('stock.location').search(cr, uid, [('name','=','Store'),('usage','=','view')])
+            if parent_ids:
+                locat_ids = self.pool.get('stock.location').search(cr, uid, [('name','=','FSH'),('location_id','=',parent_ids[0])])
+            if locat_ids:
+                location_id = locat_ids[0]
+        if cate_name == 'raw':
+            parent_ids = self.pool.get('stock.location').search(cr, uid, [('name','=','Store'),('usage','=','view')])
+            if parent_ids:
+                locat_ids = self.pool.get('stock.location').search(cr, uid, [('name','in',['Raw material','Raw Material']),('location_id','=',parent_ids[0])])
+            if locat_ids:
+                location_id = locat_ids[0]
+        if cate_name == 'spares':
+            parent_ids = self.pool.get('stock.location').search(cr, uid, [('name','=','Store'),('usage','=','view')])
+            if parent_ids:
+                locat_ids = self.pool.get('stock.location').search(cr, uid, [('name','in',['Spare','Spares']),('location_id','=',parent_ids[0])])
+            if locat_ids:
+                location_id = locat_ids[0]
+        rs = {
+              'name': '/',
+              'product_id':product.id,
+              'product_qty': 40,
+              'product_uom':product.uom_po_id and product.uom_po_id.id or False,
+              'location_id':line.warehouse and line.warehouse.id or False,
+              'location_dest_id':dest_id,
+              'issue_id':line.id,
+              'date':line.date_expec or False,
+              'price_unit': tpt_cost or 0,
+              }
+        move_id = move_obj.create(cr,uid,rs)
+        move_obj.action_done(cr, uid, [move_id])
+        cr.execute('update stock_move set date=%s and date_expected=%s where id=%s',(line.date,line.date,move_id,))
+        #
+        product = product_obj.browse(cr, uid, 10759)
+        cate_name = product.categ_id and product.categ_id.cate_name or False
+        if cate_name == 'finish':
+            parent_ids = self.pool.get('stock.location').search(cr, uid, [('name','=','Store'),('usage','=','view')])
+            if parent_ids:
+                locat_ids = self.pool.get('stock.location').search(cr, uid, [('name','=','FSH'),('location_id','=',parent_ids[0])])
+            if locat_ids:
+                location_id = locat_ids[0]
+        if cate_name == 'raw':
+            parent_ids = self.pool.get('stock.location').search(cr, uid, [('name','=','Store'),('usage','=','view')])
+            if parent_ids:
+                locat_ids = self.pool.get('stock.location').search(cr, uid, [('name','in',['Raw material','Raw Material']),('location_id','=',parent_ids[0])])
+            if locat_ids:
+                location_id = locat_ids[0]
+        if cate_name == 'spares':
+            parent_ids = self.pool.get('stock.location').search(cr, uid, [('name','=','Store'),('usage','=','view')])
+            if parent_ids:
+                locat_ids = self.pool.get('stock.location').search(cr, uid, [('name','in',['Spare','Spares']),('location_id','=',parent_ids[0])])
+            if locat_ids:
+                location_id = locat_ids[0]
+        rs = {
+              'name': '/',
+              'product_id':product.id,
+              'product_qty': 3.7,
+              'product_uom':product.uom_po_id and product.uom_po_id.id or False,
+              'location_id':line.warehouse and line.warehouse.id or False,
+              'location_dest_id':dest_id,
+              'issue_id':line.id,
+              'date':line.date_expec or False,
+              'price_unit': tpt_cost or 0,
+              }
+        move_id = move_obj.create(cr,uid,rs)
+        move_obj.action_done(cr, uid, [move_id])
+        cr.execute('update stock_move set date=%s and date_expected=%s where id=%s',(line.date,line.date,move_id,))
+        #
+        product = product_obj.browse(cr, uid, 10799)
+        cate_name = product.categ_id and product.categ_id.cate_name or False
+        if cate_name == 'finish':
+            parent_ids = self.pool.get('stock.location').search(cr, uid, [('name','=','Store'),('usage','=','view')])
+            if parent_ids:
+                locat_ids = self.pool.get('stock.location').search(cr, uid, [('name','=','FSH'),('location_id','=',parent_ids[0])])
+            if locat_ids:
+                location_id = locat_ids[0]
+        if cate_name == 'raw':
+            parent_ids = self.pool.get('stock.location').search(cr, uid, [('name','=','Store'),('usage','=','view')])
+            if parent_ids:
+                locat_ids = self.pool.get('stock.location').search(cr, uid, [('name','in',['Raw material','Raw Material']),('location_id','=',parent_ids[0])])
+            if locat_ids:
+                location_id = locat_ids[0]
+        if cate_name == 'spares':
+            parent_ids = self.pool.get('stock.location').search(cr, uid, [('name','=','Store'),('usage','=','view')])
+            if parent_ids:
+                locat_ids = self.pool.get('stock.location').search(cr, uid, [('name','in',['Spare','Spares']),('location_id','=',parent_ids[0])])
+            if locat_ids:
+                location_id = locat_ids[0]
+        rs = {
+              'name': '/',
+              'product_id':product.id,
+              'product_qty': 1220,
+              'product_uom':product.uom_po_id and product.uom_po_id.id or False,
+              'location_id':line.warehouse and line.warehouse.id or False,
+              'location_dest_id':dest_id,
+              'issue_id':line.id,
+              'date':line.date_expec or False,
+              'price_unit': tpt_cost or 0,
+              }
+        move_id = move_obj.create(cr,uid,rs)
+        move_obj.action_done(cr, uid, [move_id])
+        cr.execute('update stock_move set date=%s and date_expected=%s where id=%s',(line.date,line.date,move_id,))
+        #
+        product = product_obj.browse(cr, uid, 10753)
+        cate_name = product.categ_id and product.categ_id.cate_name or False
+        if cate_name == 'finish':
+            parent_ids = self.pool.get('stock.location').search(cr, uid, [('name','=','Store'),('usage','=','view')])
+            if parent_ids:
+                locat_ids = self.pool.get('stock.location').search(cr, uid, [('name','=','FSH'),('location_id','=',parent_ids[0])])
+            if locat_ids:
+                location_id = locat_ids[0]
+        if cate_name == 'raw':
+            parent_ids = self.pool.get('stock.location').search(cr, uid, [('name','=','Store'),('usage','=','view')])
+            if parent_ids:
+                locat_ids = self.pool.get('stock.location').search(cr, uid, [('name','in',['Raw material','Raw Material']),('location_id','=',parent_ids[0])])
+            if locat_ids:
+                location_id = locat_ids[0]
+        if cate_name == 'spares':
+            parent_ids = self.pool.get('stock.location').search(cr, uid, [('name','=','Store'),('usage','=','view')])
+            if parent_ids:
+                locat_ids = self.pool.get('stock.location').search(cr, uid, [('name','in',['Spare','Spares']),('location_id','=',parent_ids[0])])
+            if locat_ids:
+                location_id = locat_ids[0]
+        rs = {
+              'name': '/',
+              'product_id':product.id,
+              'product_qty': 2.6,
+              'product_uom':product.uom_po_id and product.uom_po_id.id or False,
+              'location_id':line.warehouse and line.warehouse.id or False,
+              'location_dest_id':dest_id,
+              'issue_id':line.id,
+              'date':line.date_expec or False,
+              'price_unit': tpt_cost or 0,
+              }
+        move_id = move_obj.create(cr,uid,rs)
+        move_obj.action_done(cr, uid, [move_id])
+        cr.execute('update stock_move set date=%s and date_expected=%s where id=%s',(line.date,line.date,move_id,))
+        
+        #create for issue 1124
+        line = issue_obj.browse(cr, uid, 1124)
+        if line.request_type == 'production':
+            dest_id = line.dest_warehouse_id and line.dest_warehouse_id.id or False
+        else:
+            location_ids=self.pool.get('stock.location').search(cr, uid,[('name','=','Scrapped')])
+            if location_ids:
+                dest_id = location_ids[0]
+        product = product_obj.browse(cr, uid, 10725)
+        cate_name = product.categ_id and product.categ_id.cate_name or False
+        if cate_name == 'finish':
+            parent_ids = self.pool.get('stock.location').search(cr, uid, [('name','=','Store'),('usage','=','view')])
+            if parent_ids:
+                locat_ids = self.pool.get('stock.location').search(cr, uid, [('name','=','FSH'),('location_id','=',parent_ids[0])])
+            if locat_ids:
+                location_id = locat_ids[0]
+        if cate_name == 'raw':
+            parent_ids = self.pool.get('stock.location').search(cr, uid, [('name','=','Store'),('usage','=','view')])
+            if parent_ids:
+                locat_ids = self.pool.get('stock.location').search(cr, uid, [('name','in',['Raw material','Raw Material']),('location_id','=',parent_ids[0])])
+            if locat_ids:
+                location_id = locat_ids[0]
+        if cate_name == 'spares':
+            parent_ids = self.pool.get('stock.location').search(cr, uid, [('name','=','Store'),('usage','=','view')])
+            if parent_ids:
+                locat_ids = self.pool.get('stock.location').search(cr, uid, [('name','in',['Spare','Spares']),('location_id','=',parent_ids[0])])
+            if locat_ids:
+                location_id = locat_ids[0]
+        rs = {
+              'name': '/',
+              'product_id':product.id,
+              'product_qty': 3,
+              'product_uom':product.uom_po_id and product.uom_po_id.id or False,
+              'location_id':line.warehouse and line.warehouse.id or False,
+              'location_dest_id':dest_id,
+              'issue_id':line.id,
+              'date':line.date_expec or False,
+              'price_unit': tpt_cost or 0,
+              }
+        move_id = move_obj.create(cr,uid,rs)
+        move_obj.action_done(cr, uid, [move_id])
+        cr.execute('update stock_move set date=%s and date_expected=%s where id=%s',(line.date,line.date,move_id,))
+        #
+        product = product_obj.browse(cr, uid, 10727)
+        cate_name = product.categ_id and product.categ_id.cate_name or False
+        if cate_name == 'finish':
+            parent_ids = self.pool.get('stock.location').search(cr, uid, [('name','=','Store'),('usage','=','view')])
+            if parent_ids:
+                locat_ids = self.pool.get('stock.location').search(cr, uid, [('name','=','FSH'),('location_id','=',parent_ids[0])])
+            if locat_ids:
+                location_id = locat_ids[0]
+        if cate_name == 'raw':
+            parent_ids = self.pool.get('stock.location').search(cr, uid, [('name','=','Store'),('usage','=','view')])
+            if parent_ids:
+                locat_ids = self.pool.get('stock.location').search(cr, uid, [('name','in',['Raw material','Raw Material']),('location_id','=',parent_ids[0])])
+            if locat_ids:
+                location_id = locat_ids[0]
+        if cate_name == 'spares':
+            parent_ids = self.pool.get('stock.location').search(cr, uid, [('name','=','Store'),('usage','=','view')])
+            if parent_ids:
+                locat_ids = self.pool.get('stock.location').search(cr, uid, [('name','in',['Spare','Spares']),('location_id','=',parent_ids[0])])
+            if locat_ids:
+                location_id = locat_ids[0]
+        rs = {
+              'name': '/',
+              'product_id':product.id,
+              'product_qty': 6,
+              'product_uom':product.uom_po_id and product.uom_po_id.id or False,
+              'location_id':line.warehouse and line.warehouse.id or False,
+              'location_dest_id':dest_id,
+              'issue_id':line.id,
+              'date':line.date_expec or False,
+              'price_unit': tpt_cost or 0,
+              }
+        move_id = move_obj.create(cr,uid,rs)
+        move_obj.action_done(cr, uid, [move_id])
+        cr.execute('update stock_move set date=%s and date_expected=%s where id=%s',(line.date,line.date,move_id,))
+        #
+        product = product_obj.browse(cr, uid, 10796)
+        cate_name = product.categ_id and product.categ_id.cate_name or False
+        if cate_name == 'finish':
+            parent_ids = self.pool.get('stock.location').search(cr, uid, [('name','=','Store'),('usage','=','view')])
+            if parent_ids:
+                locat_ids = self.pool.get('stock.location').search(cr, uid, [('name','=','FSH'),('location_id','=',parent_ids[0])])
+            if locat_ids:
+                location_id = locat_ids[0]
+        if cate_name == 'raw':
+            parent_ids = self.pool.get('stock.location').search(cr, uid, [('name','=','Store'),('usage','=','view')])
+            if parent_ids:
+                locat_ids = self.pool.get('stock.location').search(cr, uid, [('name','in',['Raw material','Raw Material']),('location_id','=',parent_ids[0])])
+            if locat_ids:
+                location_id = locat_ids[0]
+        if cate_name == 'spares':
+            parent_ids = self.pool.get('stock.location').search(cr, uid, [('name','=','Store'),('usage','=','view')])
+            if parent_ids:
+                locat_ids = self.pool.get('stock.location').search(cr, uid, [('name','in',['Spare','Spares']),('location_id','=',parent_ids[0])])
+            if locat_ids:
+                location_id = locat_ids[0]
+        rs = {
+              'name': '/',
+              'product_id':product.id,
+              'product_qty': 600,
+              'product_uom':product.uom_po_id and product.uom_po_id.id or False,
+              'location_id':line.warehouse and line.warehouse.id or False,
+              'location_dest_id':dest_id,
+              'issue_id':line.id,
+              'date':line.date_expec or False,
+              'price_unit': tpt_cost or 0,
+              }
+        move_id = move_obj.create(cr,uid,rs)
+        move_obj.action_done(cr, uid, [move_id])
+        cr.execute('update stock_move set date=%s and date_expected=%s where id=%s',(line.date,line.date,move_id,))
+        
+        return self.write(cr, uid, ids, {'result':result})
+    
+    def create_inspec(self, cr, uid, ids, context=None):
+        inspec_obj = self.pool.get('tpt.quanlity.inspection')
+        move_obj = self.pool.get('stock.move')
+        result = 'Done create inspection \n'
+        locat_obj = self.pool.get('stock.location')
+        location_id = False
+        location_dest_id = False
+        parent_ids = locat_obj.search(cr, uid, [('name','=','Quality Inspection'),('usage','=','view')])
+        if not parent_ids:
+            raise osv.except_osv(_('Warning!'),_('System does not have Quality Inspection warehouse, please check it!'))
+        locat_ids = locat_obj.search(cr, uid, [('name','in',['Quality Inspection','Inspection']),('location_id','=',parent_ids[0])])
+        if not locat_ids:
+            raise osv.except_osv(_('Warning!'),_('System does not have Quality Inspection  location in Quality Inspection  warehouse, please check it!'))
+        else:
+            location_id = locat_ids[0]
+        parent_dest_ids = locat_obj.search(cr, uid, [('name','=','Store'),('usage','=','view')])
+        if not parent_dest_ids:
+            raise osv.except_osv(_('Warning!'),_('System does not have Store warehouse, please check it!'))
+        
+        for inspec in inspec_obj.browse(cr, uid, [1, 2, 3, 516]):
+            if line.product_id.categ_id.cate_name=='raw':
+                location_dest_ids = locat_obj.search(cr, uid, [('name','in',['Raw material','Raw Material']),('location_id','=',parent_dest_ids[0])])
+            if line.product_id.categ_id.cate_name=='spares':
+                location_dest_ids = locat_obj.search(cr, uid, [('name','in',['Spares','Spare','spares','spare']),('location_id','=',parent_dest_ids[0])])
+            if not location_dest_ids:
+                raise osv.except_osv(_('Warning!'),_('System does not have Raw Material location in Store warehouse, please check it!'))
+            else:
+                location_dest_id = location_dest_ids[0]
+            rs = {
+                  'name': 'TPT create from inspection',
+                  'product_id':line.product_id and line.product_id.id or False,
+                  'product_qty':wizard.quantity,
+                  'product_uom':line.product_id.uom_po_id and line.product_id.uom_po_id.id or False,
+                  'location_id':location_id,
+                  'location_dest_id':location_dest_id,
+                  'inspec_id':line.id,
+                  'date':line.date,
+                  'price_unit':line.price_unit or 0,
+                  }
+            move_id = move_obj.create(cr,uid,rs)
+            move_obj.action_done(cr, uid, [move_id])
+            cr.execute('update stock_move set date=%s and date_expected=%s where id=%s',(line.date,line.date,move_id,))
+        return self.write(cr, uid, ids, {'result':result})
+    
 tpt_update_stock_move_report()
 
 class tpt_update_inspection_line(osv.osv):
