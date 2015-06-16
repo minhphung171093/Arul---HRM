@@ -21,6 +21,7 @@
             		<button name="map_inspec" string="Map Inspection" type="object" class="oe_highlight"/>
             		<button name="update_unit_price" string="Update Unit Price" type="object" class="oe_highlight"/>
             		<button name="check_issue" string="Check Issue" type="object" class="oe_highlight"/>
+            		<button name="check_inspec_without" string="Check Inspection Without" type="object" class="oe_highlight"/>
             		<button name="check_inspec" string="Check Inspection" type="object" class="oe_highlight"/>
 	            </header>    
             	<group>

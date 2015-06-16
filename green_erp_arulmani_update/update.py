@@ -297,6 +297,23 @@ class tpt_update_stock_move_report(osv.osv):
                 result += str(issue.id)+', '
         return self.write(cr, uid, ids, {'result':result})
     
+    def check_inspec_without(self, cr, uid, ids, context=None):
+        inspec_obj = self.pool.get('tpt.quanlity.inspection')
+        move_obj = self.pool.get('stock.move')
+        inspec_ids = inspec_obj.search(cr, uid, [('state','=','done')])
+        result = 'Result for check inspection mapping \n'
+        result_move_ids = []
+        for inspec in inspec_obj.browse(cr, uid, inspec_ids):
+            sql = '''
+                select case when sum(product_qty)!=%s then 0 else 1 end check_map_inspec from stock_move where inspec_id=%s 
+            '''%(inspec.qty,inspec.id)
+            cr.execute(sql)
+            rs = cr.fetchone()[0]
+            if not rs:
+                result_move_ids.append(inspec.id)
+        result += str(result_move_ids)
+        return self.write(cr, uid, ids, {'result':result})
+    
     def check_inspec(self, cr, uid, ids, context=None):
         inspec_obj = self.pool.get('tpt.quanlity.inspection')
         move_obj = self.pool.get('stock.move')
