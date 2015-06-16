@@ -94,6 +94,83 @@ class alert_form(osv.osv_memory):
         self.pool.get('shift.change').reject(cr, uid, shift_change_ids)
         return {'type': 'ir.actions.act_window_close'}
     
+    def third_permission_ok(self, cr, uid, ids, context=None):
+        emp_attendence_obj = self.pool.get('arul.hr.employee.attendence.details')
+        punch_obj = self.pool.get('arul.hr.punch.in.out.time')
+        employee_leave_obj = self.pool.get('employee.leave')
+        leave_detail_obj = self.pool.get('arul.hr.employee.leave.details')
+        audit_id = context.get('audit_id')
+        audit = self.pool.get('arul.hr.audit.shift.time').browse(cr, uid, audit_id)
+        
+        #raise osv.except_osv(_('Warning!'),_(test)) 
+        audit_id = context.get('audit_id')
+        perm_obj = self.pool.get('arul.hr.permission.onduty').browse(cr, uid, audit_id)
+        
+        year = perm_obj.date[:4]
+        employee_leave_ids = employee_leave_obj.search(cr, uid, [('employee_id','=',perm_obj.employee_id.id),('year','=',year)])
+        if employee_leave_ids:
+            for detail in employee_leave_obj.browse(cr, uid, employee_leave_ids[0]).emp_leave_details_ids:
+                if detail.leave_type_id.code == 'CL' and (detail.total_day-detail.total_taken>=0.5):
+                    leave_detail_id = leave_detail_obj.create(cr, uid, {
+                                        'employee_id': perm_obj.employee_id.id,
+                                        'leave_type_id': detail.leave_type_id.id,
+                                        'date_from': perm_obj.date,
+                                        'date_to': perm_obj.date,
+                                        'haft_day_leave': True,
+                                        'state': 'draft',
+                                    })
+                    leave_detail_obj.process_leave_request(cr, uid, [leave_detail_id])
+                    break
+                if detail.leave_type_id.code == 'SL' and (detail.total_day-detail.total_taken>=0.5):
+                    leave_detail_id = leave_detail_obj.create(cr, uid, {
+                                        'employee_id': perm_obj.employee_id.id,
+                                        'leave_type_id': detail.leave_type_id.id,
+                                        'date_from': perm_obj.date,
+                                        'date_to': perm_obj.date,
+                                        'haft_day_leave': True,
+                                        'state': 'draft',
+                                    })
+                    leave_detail_obj.process_leave_request(cr, uid, [leave_detail_id])
+                    break
+                #TPT START BalamuruganPurushothaman - TO REDUCE LEAVE COUNT FROM C.OFF ALSO
+                if detail.leave_type_id.code == 'C.Off' and (detail.total_day-detail.total_taken>=0.5):
+                    leave_detail_id = leave_detail_obj.create(cr, uid, {
+                                        'employee_id': perm_obj.employee_id.id,
+                                        'leave_type_id': detail.leave_type_id.id,
+                                        'date_from': perm_obj.date,
+                                        'date_to': perm_obj.date,
+                                        'haft_day_leave': True,
+                                        'state': 'draft',
+                                    })
+                    leave_detail_obj.process_leave_request(cr, uid, [leave_detail_id])
+                    break
+                #TPT END
+                if detail.leave_type_id.code == 'PL' and (detail.total_day-detail.total_taken>=1):
+                    leave_detail_id = leave_detail_obj.create(cr, uid, {
+                                        'employee_id': perm_obj.employee_id.id,
+                                        'leave_type_id': detail.leave_type_id.id,
+                                        'date_from': perm_obj.date,
+                                        'date_to': perm_obj.date,
+                                        'haft_day_leave': False,
+                                        'state': 'draft',
+                                    })
+                    leave_detail_obj.process_leave_request(cr, uid, [leave_detail_id])
+                    break
+                if detail.leave_type_id.code == 'LOP':
+                    leave_detail_id = leave_detail_obj.create(cr, uid, {
+                                        'employee_id': perm_obj.employee_id.id,
+                                        'leave_type_id': detail.leave_type_id.id,
+                                        'date_from': perm_obj.date,
+                                        'date_to': perm_obj.date,
+                                        'haft_day_leave': True,
+                                        'state': 'draft',
+                                    })
+                    leave_detail_obj.process_leave_request(cr, uid, [leave_detail_id])
+                    break
+        
+        self.pool.get('arul.hr.permission.onduty').write(cr, uid, [audit_id],{'approval': True, 'state':'done'})
+        return {'type': 'ir.actions.act_window_close'}
+        
     def permission_ok(self, cr, uid, ids, context=None):
         emp_attendence_obj = self.pool.get('arul.hr.employee.attendence.details')
         punch_obj = self.pool.get('arul.hr.punch.in.out.time')

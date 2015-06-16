@@ -3358,8 +3358,8 @@ class arul_hr_permission_onduty(osv.osv):
                 '''%(permission.employee_id.id,permission.id,year,month)
                 cr.execute(sql)
                 p = cr.dictfetchone()		
-                if p and p['num_of_permission']==2:
-                    raise osv.except_osv(_('Warning!'),_('Employee %s have 2 permission for this month!')%(permission.employee_id.name+' '+(permission.employee_id.last_name or '')))
+                #if p and p['num_of_permission']==2:
+                    #raise osv.except_osv(_('Warning!'),_('Employee %s have 2 permission for this month!')%(permission.employee_id.name+' '+(permission.employee_id.last_name or '')))
                 #TPT SATRT
                 sql = '''
                     select count(id) as num_of_permission from arul_hr_permission_onduty where non_availability_type_id='permission' and employee_id=%s
@@ -3516,7 +3516,8 @@ class arul_hr_permission_onduty(osv.osv):
         '''%(permission.start_time,permission.end_time)
         cr.execute(sql)
         work_shift_ids = [row[0] for row in cr.fetchall()]
-         
+        
+        
         punch_obj = self.pool.get('arul.hr.punch.in.out')
         audit_obj = self.pool.get('arul.hr.audit.shift.time')
         if permission.non_availability_type_id == 'on_duty' and not permission.date:
@@ -3592,9 +3593,22 @@ class arul_hr_permission_onduty(osv.osv):
                 '''%(permission.employee_id.id,permission.id,year,month)
                 cr.execute(sql)
                 p = cr.dictfetchone()        
-                if p and p['num_of_permission']==2:
-                    raise osv.except_osv(_('Warning!'),_('Employee %s have 2 permission for this month!')%(permission.employee_id.name+' '+(permission.employee_id.last_name or '')))
-                #TPT SATRT
+                if p and p['num_of_permission']>=2:
+                    #raise osv.except_osv(_('Warning!'),_('Employee %s have 2 permission for this month!')%(permission.employee_id.name+' '+(permission.employee_id.last_name or '')))
+                    res = self.pool.get('ir.model.data').get_object_reference(cr, uid, 
+                                            'green_erp_arulmani_hrm', 'alert_third_permission_form_view')
+                    return {
+                                    'name': 'Alert Permission',
+                                    'view_type': 'form',
+                                    'view_mode': 'form',
+                                    'view_id': res[1],
+                                    'res_model': 'alert.form',
+                                    'domain': [],
+                                    'context': {'default_message':'Permission exceeds the Limit (Only 2 Permissions for a Month). Do you want to reduce it from Leave Credits (CL/SL/C.Off/PL/LOP) ?','audit_id':permission.id},
+                                    'type': 'ir.actions.act_window',
+                                    'target': 'new',
+                                }
+                #TPT START
                 sql = '''
                     select count(id) as num_of_permission from arul_hr_permission_onduty where non_availability_type_id='permission' and employee_id=%s
                         and id!=%s and EXTRACT(year from date)='%s'
