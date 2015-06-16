@@ -5,5 +5,84 @@
 	    	<field name="groups_id" eval="[(4, ref('green_erp_arulmani_crm.group_qc_user'))]"/>
 		</record>
         
+        <record model="ir.ui.menu" id="base.menu_action_res_company_form">
+	    	<field name="groups_id" eval="[(4, ref('group_vvti_production_user'))]"/>
+		</record>
+		
+		<record model="ir.ui.menu" id="hr.menu_hr_department_tree">
+	    	<field name="groups_id" eval="[(4, ref('group_vvti_production_user'))]"/>
+		</record>
+		
+		<record model="ir.ui.menu" id="green_erp_arulmani_hrm.menu_action_arul_hr_payroll_area_form">
+	    	<field name="groups_id" eval="[(4, ref('group_vvti_production_user'))]"/>
+		</record>
+		
+		<record model="ir.ui.menu" id="green_erp_arulmani_hrm.menu_action_arul_hr_payroll_sub_area_form">
+	    	<field name="groups_id" eval="[(4, ref('group_vvti_production_user'))]"/>
+		</record> 
+		
+		<record model="ir.ui.menu" id="green_erp_arulmani_hrm.menu_action_arul_employee_category_form">
+	    	<field name="groups_id" eval="[(4, ref('group_vvti_production_user'))]"/>
+		</record>
+		
+		<record model="ir.ui.menu" id="green_erp_arulmani_hrm.menu_action_arul_employee_actions_form">
+	    	<field name="groups_id" eval="[(4, ref('group_vvti_production_user'))]"/>
+		</record>
+		
+		<record model="ir.ui.menu" id="green_erp_arulmani_hrm.menu_action_arul_employee_action_type_form">
+	    	<field name="groups_id" eval="[(4, ref('group_vvti_production_user'))]"/>
+		</record>
+		
+		<record model="ir.ui.menu" id="green_erp_arulmani_hrm.menu_action_arul_hr_holiday_special_form">
+	    	<field name="groups_id" eval="[(4, ref('group_vvti_production_user'))]"/>
+		</record>
+		
+		<record model="ir.ui.menu" id="green_erp_arulmani_hrm.menu_action_arul_hr_leave_types_form">
+	    	<field name="groups_id" eval="[(4, ref('group_vvti_production_user'))]"/>
+		</record>
+		
+		<record model="ir.ui.menu" id="green_erp_arulmani_hrm.menu_action_arul_hr_leave_master_form">
+	    	<field name="groups_id" eval="[(4, ref('group_vvti_production_user'))]"/>
+		</record>
+		
+		<!--<record model="ir.ui.menu" id="green_erp_arulmani_hrm.menu_action_arul_hr_permission_onduty_form">
+	    	<field name="groups_id" eval="[(4, ref('group_vvti_production_user'))]"/>
+		</record>-->
+		
+		<record model="ir.ui.menu" id="stock.menu_stock_root">
+	    	<field name="groups_id" eval="[(4, ref('group_vvti_production_user'))]"/>
+		</record>
+		
+		<record model="ir.ui.menu" id="green_erp_arulmani_crm.vsis_menu_crm_application">
+	    	<field name="groups_id" eval="[(4, ref('group_vvti_production_user'))]"/>
+		</record>
+		
+		<record model="ir.ui.menu" id="base.menu_base_config">
+	    	<field name="groups_id" eval="[(4, ref('group_vvti_production_user'))]"/>
+		</record>
+		
+		<record model="ir.ui.menu" id="product.menu_product_uom_form_action">
+	    	<field name="groups_id" eval="[(4, ref('group_vvti_production_user'))]"/>
+		</record>
+		
+		<record model="ir.ui.menu" id="base.menu_purchase_root">
+	    	<field name="groups_id" eval="[(4, ref('group_vvti_production_user'))]"/>
+		</record> 
+		
+		<record model="ir.ui.menu" id="purchase.menu_purchase_config_purchase">
+	    	<field name="groups_id" eval="[(4, ref('group_vvti_production_user'))]"/>
+		</record> 
+		
+		<record model="ir.ui.menu" id="purchase.menu_product_in_config_purchase">
+	    	<field name="groups_id" eval="[(4, ref('group_vvti_production_user'))]"/>
+		</record> 
+		
+		<record model="ir.ui.menu" id="green_erp_arulmani_purchase.menu_action_view_tpt_purchase_indent_form">
+	    	<field name="groups_id" eval="[(4, ref('group_vvti_production_user'))]"/>
+		</record>
+		
+		<record model="ir.ui.menu" id="purchase.menu_purchase_form_action">
+	    	<field name="groups_id" eval="[(4, ref('group_vvti_production_user'))]"/>
+		</record>
     </data>
 </openerp>

@@ -79,7 +79,7 @@ access_vvti_hrm_78,hr.employee.grade,green_erp_arulmani_crm.model_hr_employee_gr
 access_vvti_hrm_79,hr.religion,green_erp_arulmani_crm.model_hr_religion,green_erp_arulmani_hrm.group_vvti_hrm_time_user,True,False,False,False
 access_vvti_hrm_80,arul.hr.monthly.shift.schedule,green_erp_arulmani_hrm.model_arul_hr_monthly_shift_schedule,green_erp_arulmani_hrm.group_vvti_hrm_time_user,True,True,True,False
 access_vvti_hrm_81,arul.hr.employee.attendence.details,green_erp_arulmani_hrm.model_arul_hr_employee_attendence_details,green_erp_arulmani_hrm.group_vvti_hrm_time_user,True,True,True,False
-access_vvti_hrm_82,arul.hr.audit.shift.time,green_erp_arulmani_hrm.model_arul_hr_audit_shift_time,green_erp_arulmani_hrm.group_vvti_hrm_time_user,True,False,False,False
+access_vvti_hrm_82,arul.hr.audit.shift.time,green_erp_arulmani_hrm.model_arul_hr_audit_shift_time,green_erp_arulmani_hrm.group_vvti_hrm_time_user,True,True,True,False
 access_vvti_hrm_83,arul.hr.permission.onduty,green_erp_arulmani_hrm.model_arul_hr_permission_onduty,green_erp_arulmani_hrm.group_vvti_hrm_time_user,True,True,True,True
 access_vvti_hrm_84,arul.hr.punch.in.out.time,green_erp_arulmani_hrm.model_arul_hr_punch_in_out_time,green_erp_arulmani_hrm.group_vvti_hrm_time_user,True,True,True,False
 access_vvti_hrm_85,food.subsidy,green_erp_arulmani_hrm.model_food_subsidy,green_erp_arulmani_hrm.group_vvti_hrm_time_user,True,True,True,False
@@ -304,7 +304,12 @@ access_vvti_hrm_308,arul.hr.payroll.executions,green_erp_arulmani_hrm.model_arul
 access_vvti_hrm_309,arul.hr.payroll.loan.deduction.parameters,green_erp_arulmani_hrm.model_arul_hr_payroll_loan_deduction_parameters,green_erp_arulmani_hrm.group_vvti_hrm_hr_manager,True,False,False,False
 access_vvti_hrm_310,arul.hr.payroll.insurance.deduction.parameters,green_erp_arulmani_hrm.model_arul_hr_payroll_insurance_deduction_parameters,green_erp_arulmani_hrm.group_vvti_hrm_hr_manager,True,False,False,False
 access_vvti_hrm_311,shift.change,green_erp_arulmani_hrm.model_shift_change,green_erp_arulmani_hrm.group_vvti_hrm_plant_hr_user,True,True,True,False
-access_vvti_hrm_286,arul.hr.payroll.executions,green_erp_arulmani_hrm.model_arul_hr_payroll_executions,green_erp_arulmani_hrm.group_vvti_hrm_plant_hr_user,True,False,False,False
+access_vvti_hrm_312,arul.hr.payroll.executions,green_erp_arulmani_hrm.model_arul_hr_payroll_executions,green_erp_arulmani_hrm.group_vvti_hrm_plant_hr_user,True,False,False,False
+
+access_vvti_hrm_313,arul.hr.payroll.executions,green_erp_arulmani_hrm.model_arul_hr_payroll_executions,green_erp_arulmani_hrm.group_vvti_hrm_hr_user,True,True,True,False
+access_vvti_hrm_314,arul.hr.payroll.executions,green_erp_arulmani_hrm.model_arul_hr_payroll_executions,green_erp_arulmani_hrm.group_vvti_hrm_time_user,True,True,True,False
+
+
 
 access_vvti_hrm_unit_user_001,"arul.hr.employee.action.history","green_erp_arulmani_hrm.model_arul_hr_employee_action_history","green_erp_arulmani_hrm.group_vvti_unit_user","True","False","False","False"
 access_vvti_hrm_unit_user_002,"hr.employee","green_erp_arulmani_crm.model_hr_employee","green_erp_arulmani_hrm.group_vvti_unit_user","True","True","True","False"
@@ -354,4 +359,6 @@ access_vvti_hrm_unit_user_045,"hr.job","hr.model_hr_job","green_erp_arulmani_hrm
 access_vvti_hrm_unit_user_046,"arul.hr.designation","green_erp_arulmani_hrm.model_arul_hr_designation","green_erp_arulmani_hrm.group_vvti_unit_user","True","True","True","False"
 access_vvti_hrm_unit_user_047,"shift.group","green_erp_arulmani_hrm.model_shift_group","green_erp_arulmani_hrm.group_vvti_unit_user","True","False","False","False"
 access_vvti_hrm_unit_user_048,"shift.change","green_erp_arulmani_hrm.model_shift_change","green_erp_arulmani_hrm.group_vvti_unit_user","True","True","True","False"
+
+
 

@@ -437,6 +437,7 @@ stock_picking_in()
 
 class stock_picking(osv.osv):
     _inherit = "stock.picking"
+    
         
     def get_pro_account_id(self,cr,uid,name,channel):
         account = False
@@ -1536,31 +1537,31 @@ class account_invoice_line(osv.osv):
                 for tax_amount in tax_amounts:
                     tax_value += tax_amount/100
                     basic = (line.quantity * line.price_unit) - ( (line.quantity * line.price_unit)*line.disc/100)
-                    basic = round(basic)
+#                     basic = round(basic)
                     if line.p_f_type == '1' :
                         p_f = basic * line.p_f/100
-                        p_f = round(p_f)
+#                         p_f = round(p_f)
                     elif line.p_f_type == '2' :
                         p_f = line.p_f
-                        p_f = round(p_f)
+#                         p_f = round(p_f)
                     elif line.p_f_type == '3' :
                         p_f = line.p_f * line.quantity
-                        p_f = round(p_f)
+#                         p_f = round(p_f)
                     else:
                         p_f = line.p_f
-                        p_f = round(p_f)
+#                         p_f = round(p_f)
                     if line.ed_type == '1' :
                         ed = (basic + p_f) * line.ed/100
-                        ed = round(ed)
+#                         ed = round(ed)
                     elif line.ed_type == '2' :
                         ed = line.ed
-                        ed = round(ed)
+#                         ed = round(ed)
                     elif line.ed_type == '3' :
                         ed = line.ed * line.quantity
-                        ed = round(ed)
+#                         ed = round(ed)
                     else:
                         ed = line.ed
-                        ed = round(ed)
+#                         ed = round(ed)
                     if line.aed_id_1:
                         tax = (basic + p_f + ed + line.aed_id_1)*(tax_value) * voucher_rate
                     else:
@@ -1748,16 +1749,16 @@ class account_invoice_line(osv.osv):
                             raise osv.except_osv(_('Warning!'),_('Account is not null, please configure CST Payable in GL Posting Configrution !'))
                         if tax:
                             if round(tax):
-                                    res.append({
-                                        'type':'tax',
-                                        'name':t['name'],
-                                        'price_unit': t['price_unit'],
-                                        'quantity': 1,
-                                        'price': round(tax),
-                                        'account_id': account,
-                                        'account_analytic_id': t['account_analytic_id'],
-                                    })
-                                    break
+                                res.append({
+                                    'type':'tax',
+                                    'name':t['name'],
+                                    'price_unit': t['price_unit'],
+                                    'quantity': 1,
+                                    'price': round(tax),
+                                    'account_id': account,
+                                    'account_analytic_id': t['account_analytic_id'],
+                                })
+                                break
                     elif 'VAT' in inv_id.sale_tax_id.name:
                         sql = '''
                             SELECT cus_inv_vat_id FROM tpt_posting_configuration WHERE name = 'cus_inv' and cus_inv_vat_id is not null
@@ -1770,16 +1771,16 @@ class account_invoice_line(osv.osv):
                             raise osv.except_osv(_('Warning!'),_('Account is not null, please configure VAT Payable in GL Posting Configrution !'))
                         if tax:    
                             if round(tax):
-                                    res.append({
-                                        'type':'tax',
-                                        'name':t['name'],
-                                        'price_unit': t['price_unit'],
-                                        'quantity': 1,
-                                        'price': round(tax),
-                                        'account_id': account,
-                                        'account_analytic_id': t['account_analytic_id'],
-                                    })
-                                    break
+                                res.append({
+                                    'type':'tax',
+                                    'name':t['name'],
+                                    'price_unit': t['price_unit'],
+                                    'quantity': 1,
+                                    'price': round(tax),
+                                    'account_id': account,
+                                    'account_analytic_id': t['account_analytic_id'],
+                                })
+                                break
                     else:
                         sql = '''
                             SELECT cus_inv_vat_id FROM tpt_posting_configuration WHERE name = 'cus_inv' and cus_inv_vat_id is not null
@@ -3279,6 +3280,7 @@ class tpt_material_issue(osv.osv):
     def bt_approve(self, cr, uid, ids, context=None):
         price = 0.0
         product_price = 0.0
+        tpt_cost = 0
         account_move_obj = self.pool.get('account.move')
         period_obj = self.pool.get('account.period')
         journal_obj = self.pool.get('account.journal')
@@ -3355,6 +3357,11 @@ class tpt_material_issue(osv.osv):
                     onhand_qty = cr.dictfetchone()['onhand_qty']
                 if (p.product_isu_qty > onhand_qty):
                     raise osv.except_osv(_('Warning!'),_('Issue quantity are %s but only %s available for this product in stock.' %(p.product_isu_qty, onhand_qty)))
+                if line.warehouse and line.warehouse.id and p.product_id and p.product_id.id:
+                    price_ids = self.pool.get('tpt.product.avg.cost').search(cr, uid, [('warehouse_id','=',line.warehouse.id),('product_id','=',p.product_id.id)])
+                if price_ids:
+                    price_avg = self.pool.get('tpt.product.avg.cost').browse(cr,uid,price_ids[0])
+                    tpt_cost = price_avg.avg_cost
                 rs = {
                       'name': '/',
                       'product_id':p.product_id and p.product_id.id or False,
@@ -3364,10 +3371,11 @@ class tpt_material_issue(osv.osv):
                       'location_dest_id':dest_id,
                       'issue_id':line.id,
                       'date':line.date_expec or False,
+                      'price_unit': tpt_cost or 0,
                       }
                 move_id = move_obj.create(cr,uid,rs)
                 move_obj.action_done(cr, uid, [move_id])
-            
+                cr.execute(''' update stock_move set date=%s,date_expected=%s where id=%s ''',(line.date_expec,line.date_expec,move_id,))
 #             if not line.warehouse.gl_pos_verification_id:
 #                     raise osv.except_osv(_('Warning!'),_('Account Warehouse is not null, please configure it in Warehouse Location master !'))
                 
@@ -3647,29 +3655,29 @@ class tpt_hr_payroll_approve_reject(osv.osv):
             
             ### END Excutive & Staff - Worker
             
-            sum_credit = (provident + vpf + tax + lwf + welfare + lic_premium +
-                           + ins_oth + vvt_loan + vvt_hdfc + hfl + tmb + sbt + other + esi)
-            diff = gross - sum_credit
-            gross = gross - shd
+            sum_credit = (round(provident) + round(vpf) + round(tax) + round(lwf) + round(welfare) + round(lic_premium) +
+                           + round(ins_oth) + round(vvt_loan) + round(vvt_hdfc) + round(hfl) + round(tmb) + round(sbt) + round(other) + round(esi) + round(it))
+            diff = round(gross) - sum_credit
+            gross = round(gross) - round(shd)
             
-            res = {'gross':gross,
-                   'provident':provident,
-                   'vpf':vpf,
-                   'tax':tax,
-                   'lwf':lwf,
-                   'lic_premium':lic_premium,
-                   'welfare':welfare,
-                   'ins_oth':ins_oth,
-                   'vvt_loan':vvt_loan,
-                   'vvt_hdfc':vvt_hdfc,
-                   'hfl':hfl,
-                   'sbt':sbt,
-                   'other':other,
-                   'tmb':tmb,
-                   'diff':diff,
-                   'it':it,
-                   'shd':shd,
-                   'esi':esi,
+            res = {'gross':round(gross),
+                   'provident':round(provident),
+                   'vpf':round(vpf),
+                   'tax':round(tax),
+                   'lwf':round(lwf),
+                   'lic_premium':round(lic_premium),
+                   'welfare':round(welfare),
+                   'ins_oth':round(ins_oth),
+                   'vvt_loan':round(vvt_loan),
+                   'vvt_hdfc':round(vvt_hdfc),
+                   'hfl':round(hfl),
+                   'sbt':round(sbt),
+                   'other':round(other),
+                   'tmb':round(tmb),
+                   'diff':round(diff),
+                   'it':round(it),
+                   'shd':round(shd),
+                   'esi':round(esi),
                    }
         return res
     
@@ -4547,14 +4555,17 @@ class res_partner(osv.osv):
                         acc_parent_ids = self.pool.get('account.account').search(cr,uid, [('code','=','0000119001')])
                     if 'arulmani_type' in vals and vals['arulmani_type']=='indirect_export':
                         acc_parent_ids = self.pool.get('account.account').search(cr,uid, [('code','=','0000119003')])
-                    acc_id = acc_obj.create(cr,uid,{
-                        'code':'0000' + vals['customer_code'],
-                        'name': vals['name'],
-                        'type':'receivable',
-                        'user_type':acc_type_ids[0],
-                        'parent_id':acc_parent_ids[0],
-                                                    })
-                    vals.update({'property_account_receivable':acc_id})
+                    if acc_parent_ids:
+                        acc_id = acc_obj.create(cr,uid,{
+                            'code':'0000' + vals['customer_code'],
+                            'name': vals['name'],
+                            'type':'receivable',
+                            'user_type':acc_type_ids[0],
+                            'parent_id':acc_parent_ids[0],
+                                                        })
+                        vals.update({'property_account_receivable':acc_id})
+                    else:
+                        raise osv.except_osv(_('Warning!'),_('GL account 0000119002, 0000119001 or 0000119003 does not exist in the system. Please check it!'))
                 elif 'VVTI Ship to Party' in group.name:
                     vals['customer_code'] = self.pool.get('ir.sequence').get(cr, uid, 'tpt.ship.group.customer') or '/'
                 elif 'VVTI Indent Comm.' in group.name:

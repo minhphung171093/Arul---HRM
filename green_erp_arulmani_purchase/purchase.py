@@ -27,7 +27,7 @@ class tpt_purchase_indent(osv.osv):
                                 ('service','VV Service PR'),
                                 ('normal','VV Normal PR'),
                                 ('raw','VV Raw Material PR'),
-                                ],'Document Type',required = True, states={'cancel': [('readonly', True)] }),
+                                ],'Document Type',required = True, states={'cancel': [('readonly', True)], 'done':[('readonly', True)] }),
         'intdent_cate':fields.selection([
                                 ('emergency','Emergency Indent'),
                                 ('normal','Normal Indent')],'Indent Category',required = True, states={'cancel': [('readonly', True)] }),
@@ -42,7 +42,7 @@ class tpt_purchase_indent(osv.osv):
         'reason':fields.text('Reason', states={'cancel': [('readonly', True)] }),
         'header_text':fields.text('Header Text',states={'cancel': [('readonly', True)] }), #TPT
         'requisitioner':fields.many2one('hr.employee','Requisitioner',states={'cancel': [('readonly', True)] }),
-        'purchase_product_line':fields.one2many('tpt.purchase.product','pur_product_id','Materials',states={'cancel': [('readonly', True)] }),
+        'purchase_product_line':fields.one2many('tpt.purchase.product','pur_product_id','Materials',states={'cancel': [('readonly', True)], 'done':[('readonly', True)] }),
         'state':fields.selection([('draft', 'Draft'),('cancel', 'Closed'),
                                   ('done', 'Approve'),('rfq_raised','RFQ Raised'),
                                   ('quotation_raised','Quotation Raised'),
@@ -90,7 +90,7 @@ class tpt_purchase_indent(osv.osv):
     
     def bt_cancel(self, cr, uid, ids, context=None):
         for line in self.browse(cr, uid, ids):
-            rfq_ids = self.pool.get('tpt.rfq.line').searchtpt_purchase_product(cr,uid,[('po_indent_id','=',line.id), ('state','=','done')])
+            rfq_ids = self.pool.get('tpt.rfq.line').search(cr,uid,[('po_indent_id','=',line.id), ('state','=','done')])
             po_ids = self.pool.get('purchase.order').search(cr,uid,[('po_indent_no','=',line.id),('state','=','approved')])
             if po_ids:
                 raise osv.except_osv(_('Warning!'),_('Purchase Indent was existed at the Purchase Order.!'))
@@ -577,8 +577,8 @@ class tpt_purchase_product(osv.osv):
                              })
         new_id = super(tpt_purchase_product, self).create(cr, uid, vals, context)
         if 'product_uom_qty' in vals:
-            if (vals['product_uom_qty'] < 0):
-                raise osv.except_osv(_('Warning!'),_('Quantity is not allowed as negative values'))
+            if (vals['product_uom_qty'] <= 0):
+                raise osv.except_osv(_('Warning!'),_('Quantity is not allowed as 0 or negative values'))
         if 'pending_qty' in vals:
             if (vals['pending_qty'] < 0):
                 raise osv.except_osv(_('Warning!'),_('Pending Quantity is not allowed as negative values'))
@@ -604,8 +604,8 @@ class tpt_purchase_product(osv.osv):
                              })
         new_write = super(tpt_purchase_product, self).write(cr, uid,ids, vals, context)
         for line in self.browse(cr,uid,ids):
-            if line.product_uom_qty < 0:
-                raise osv.except_osv(_('Warning!'),_('Quantity is not allowed as negative values'))
+            if line.product_uom_qty <= 0:
+                raise osv.except_osv(_('Warning!'),_('Quantity is not allowed as 0 or negative values'))
             if line.pending_qty < 0:
                 raise osv.except_osv(_('Warning!'),_('Pending Quantity is not allowed as negative values'))
         return new_write
@@ -1988,6 +1988,10 @@ class purchase_order(osv.osv):
             update purchase_order set currency_id=tpt_currency_id
         '''
         cr.execute(sql) 
+        sql ='''
+            update stock_move set cost_center_id=(select cost_center_id from tpt_purchase_indent where id=stock_move.po_indent_id limit 1)
+        '''
+        cr.execute(sql)
 #         quotation_obj=self.pool.get('tpt.purchase.quotation.line')
 #         quotation_ids=self.pool.get('tpt.purchase.quotation.line').search(cr,1,[])
 # #         quotation = quotation_obj.browse(cr,1,quotation_ids)
@@ -2854,6 +2858,7 @@ class purchase_order(osv.osv):
             'action_taken': act_taken,
             'description':order_line.description or False,
             'item_text':order_line.item_text or False,
+            'cost_center_id': order_line.po_indent_no.cost_center_id and order_line.po_indent_no.cost_center_id.id or False,
         }
 purchase_order()
 
@@ -3297,11 +3302,12 @@ class tpt_quanlity_inspection(osv.osv):
         'supplier_id':fields.many2one('res.partner','Supplier',required = True,readonly = True,states={'cancel': [('readonly', True)], 'done':[('readonly', True)]}),
         'product_id': fields.many2one('product.product', 'Product',required = True,readonly = True,states={'cancel': [('readonly', True)], 'done':[('readonly', True)]}),
         'reason':fields.text('Reason',states={'cancel': [('readonly', True)], 'done':[('readonly', True)]}),
-        'specification_line':fields.one2many('tpt.product.specification','specification_id','Product Specification'),
+        'specification_line':fields.one2many('tpt.product.specification','specifi_id','Product Specification'),
         'qty':fields.float('Qty',digits=(16,3),states={'cancel': [('readonly', True)], 'done':[('readonly', True)]}),
         'qty_approve':fields.float('Qty Approve',digits=(16,3),states={'cancel': [('readonly', True)], 'done':[('readonly', True)]}),
         'remaining_qty':fields.float('Inspection Quantity',digits=(16,3), readonly= True),
         'state':fields.selection([('draft', 'Draft'),('remaining', 'Remaining'),('done', 'Done')],'Status', readonly=True),
+        'price_unit':fields.float('Unit Price',digits=(16,2),states={'cancel': [('readonly', True)], 'done':[('readonly', True)]}),
                 }
     _defaults = {
         'state':'draft',
@@ -3416,7 +3422,7 @@ class tpt_product_specification(osv.osv):
         'value' : fields.float('Value',digits=(16,3),required = True),
         'exp_value' : fields.char('Experimental Value',size = 1024),
         'uom_id': fields.many2one('product.uom', 'UOM'),
-        'specification_id':fields.many2one('tpt.quanlity.inspection','Quanlity Inspection',ondelete='cascade'),
+        'specifi_id':fields.many2one('tpt.quanlity.inspection','Quanlity Inspection',ondelete='cascade'),
  
                 }
 tpt_product_specification()
@@ -4155,7 +4161,7 @@ class tpt_material_request(osv.osv):
                     cr.execute(sql)
                     onhand_qty = cr.dictfetchone()['onhand_qty']
                     if (order_line['product_qty'] > onhand_qty):
-                        raise osv.except_osv(_('Warning!'),_('You are confirm %s but only %s available for this product in stock.' %(order_line['product_qty'], onhand_qty)))
+                        raise osv.except_osv(_('Warning!'),_("You are confirm %s but only %s available for this product '%s' " %(order_line['product_qty'], onhand_qty,product_id.default_code)))
             if cate_name == 'raw':
                 parent_ids = self.pool.get('stock.location').search(cr, uid, [('name','=','Store'),('usage','=','view')])
                 if parent_ids:
@@ -4204,7 +4210,7 @@ class tpt_material_request(osv.osv):
                 cr.execute(sql)
                 onhand_qty = cr.dictfetchone()['onhand_qty']
                 if (order_line['product_qty'] > onhand_qty):
-                    raise osv.except_osv(_('Warning!'),_('You are confirm %s but only %s available for this product in stock.' %(order_line['product_qty'], onhand_qty)))
+                    raise osv.except_osv(_('Warning!'),_("You are confirm %s but only %s available for this product '%s' " %(order_line['product_qty'], onhand_qty,product_id.default_code)))
         return new_id
 
     def onchange_create_uid(self, cr, uid, ids,create_uid=False, context=None):
@@ -4284,7 +4290,7 @@ class tpt_material_request(osv.osv):
                         cr.execute(sql)
                         onhand_qty = cr.dictfetchone()['onhand_qty']
                         if (order_line['product_qty'] > onhand_qty):
-                            raise osv.except_osv(_('Warning!'),_('You are confirm %s but only %s available for this product in stock.' %(order_line['product_qty'], onhand_qty)))
+                            raise osv.except_osv(_('Warning!'),_("You are confirm %s but only %s available for this product '%s'." %(order_line['product_qty'], onhand_qty,product_id.default_code)))
                 if cate_name == 'raw':
                     parent_ids = self.pool.get('stock.location').search(cr, uid, [('name','=','Store'),('usage','=','view')])
                     if parent_ids:
@@ -4315,7 +4321,7 @@ class tpt_material_request(osv.osv):
                     cr.execute(sql)
                     onhand_qty = cr.dictfetchone()['onhand_qty']
                     if (order_line['product_qty'] > onhand_qty):
-                        raise osv.except_osv(_('Warning!'),_('You are confirm %s but only %s available for this product in stock.' %(order_line['product_qty'], onhand_qty)))
+                        raise osv.except_osv(_('Warning!'),_("You are confirm %s but only %s available for this product '%s'." %(order_line['product_qty'], onhand_qty,product_id.default_code)))
         return new_write
 
     def bt_approve(self, cr, uid, ids, context=None):

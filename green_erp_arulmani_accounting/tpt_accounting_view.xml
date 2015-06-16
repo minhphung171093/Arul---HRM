@@ -100,7 +100,7 @@
         </record>
         
         
-        <menuitem id="menu_tpt_accounting" name="Accounting" parent="account.menu_finance" sequence="0" groups="green_erp_arulmani_sale.group_vvti_unit_account"/>
+        <menuitem id="menu_tpt_accounting" name="Accounting" parent="account.menu_finance" sequence="0" groups="green_erp_arulmani_sale.group_vvti_unit_account,green_erp_arulmani_sale.group_vvti_marketing_user"/>
         <menuitem action="action_tpt_posting_configuration_form_view"
             id="menu_action_tpt_posting_configuration_form_view"
             parent="menu_tpt_accounting" sequence="13"/>
@@ -1478,7 +1478,9 @@
 					<xpath expr="//field[@name='date']" position="attributes">
                     	<attribute name='on_change'>onchange_tpt_currency_amount(tpt_currency_id,tpt_currency_amount,type,date,context)</attribute>
                     </xpath>
-                    
+                    <xpath expr="//field[@name='account_id']" position="after">
+                    	<field name="cost_center_id" options="{'create': false, 'create_edit': false}"/>
+                    </xpath>
                 </data>
             </field>
         </record>
@@ -1536,7 +1538,9 @@
 					<xpath expr="//field[@name='date']" position="attributes">
                     	<attribute name='on_change'>onchange_tpt_currency_amount(tpt_currency_id,tpt_currency_amount,type,date,context)</attribute>
                     </xpath>
-                    
+                    <xpath expr="//field[@name='account_id']" position="after">
+                    	<field name="cost_center_id" options="{'create': false, 'create_edit': false}"/>
+                    </xpath>
                 </data>
             </field>
         </record>
@@ -1662,8 +1666,8 @@
             <field name="arch" type="xml">
                 <form string="Account Entry" version="7.0" edit="false">
                 <header>
-                    <button name="button_validate" states="draft" string="Post" type="object" class="oe_highlight" groups="account.group_account_invoice"/>
-                    <button name="button_cancel" states="posted" string="Cancel Entry" type="object" groups="account.group_account_invoice"/>
+                    <button name="button_validate" states="draft" string="Post" type="object" class="oe_highlight" groups="account.group_account_invoice,green_erp_arulmani_accounting.group_vvti_accounting_user"/>
+                    <button name="button_cancel" states="posted" string="Cancel Entry" type="object" groups="account.group_account_invoice,green_erp_arulmani_accounting.group_vvti_accounting_user"/>
                     <field name="state" widget="statusbar"/>
                 </header>
                 <sheet string="Journal Entries" >
@@ -2339,5 +2343,74 @@
             </field>
         </record>
         
+        <!--<record id="inher_tpt_view_res_partner_form" model="ir.ui.view">
+            <field name="name">tpt.partner.view.form.inherit.2</field>
+            <field name="model">res.partner</field>
+            <field name="inherit_id" ref="green_erp_arulmani_sale.tpt_view_res_partner_form"/>
+            <field name="arch" type="xml">
+                <data>
+                	<xpath expr="//page[@string='Consignee']" position="attributes">
+						<attribute name='groups'>green_erp_arulmani_accounting.group_vvti_accounting_user</attribute>
+					</xpath>
+                </data>
+            </field>
+        </record>-->
+        
+        <record id="tpt_view_account_fiscalyear_form" model="ir.ui.view">
+            <field name="name">tpt.account.fiscalyear.form</field>
+            <field name="model">account.fiscalyear</field>
+            <field name="inherit_id" ref="account.view_account_fiscalyear_form"/>
+            <field name="arch" type="xml">
+            	<data>
+                	<xpath expr="//button[@name='create_period']" position="attributes">
+						<attribute name='groups'>green_erp_arulmani_accounting.group_vvti_accounting_mgr</attribute>
+					</xpath>
+					
+					<xpath expr="//button[@name='create_period3']" position="attributes">
+						<attribute name='groups'>green_erp_arulmani_accounting.group_vvti_accounting_mgr</attribute>
+					</xpath>
+                </data>
+            </field>
+        </record>
+        
+        <record id="tpt_view_account_period_form" model="ir.ui.view">
+            <field name="name">tpt.account.period.form</field>
+            <field name="model">account.period</field>
+            <field name="inherit_id" ref="account.view_account_period_form"/>
+            <field name="arch" type="xml">
+            	<xpath expr="//button[@name='%(account.action_account_period_close)d']" position="attributes">
+					<attribute name='groups'>green_erp_arulmani_accounting.group_vvti_accounting_mgr</attribute>
+				</xpath>
+				
+				<xpath expr="//button[@name='action_draft']" position="attributes">
+					<attribute name='groups'>green_erp_arulmani_accounting.group_vvti_accounting_mgr</attribute>
+				</xpath>
+            </field>
+        </record>
+        
+        <!-- <record id="tpt_view_hr_department_customize" model="ir.ui.view">
+            <field name="name">tpt.hr.department.customize</field>
+            <field name="model">hr.department</field>
+            <field name="inherit_id" ref="green_erp_arulmani_hrm.view_hr_department_customize"/>
+            <field name="arch" type="xml">
+            	<xpath expr="//page[@string='Designation and Resource Budgets']" position="attributes">
+					<attribute name='groups'>green_erp_arulmani_accounting.group_vvti_accounting_gm</attribute>
+				</xpath>
+            </field>
+        </record> -->
+        
+        <record id="inh_view_tpt_hr_payroll_approve_reject_form_vew" model="ir.ui.view">
+            <field name="name">inh.tpt.hr.payroll.approve.reject.form</field>
+            <field name="model">tpt.hr.payroll.approve.reject</field>
+            <field name="inherit_id" ref="green_erp_arulmani_hrm.view_tpt_hr_payroll_approve_reject_form_vew"/>
+            <field name="arch" type="xml">
+            	<xpath expr="//button[@name='reject_payroll']" position="attributes">
+					<attribute name='groups'>green_erp_arulmani_accounting.group_vvti_accounting_gm</attribute>
+				</xpath>
+				<xpath expr="//button[@name='approve_payroll']" position="attributes">
+					<attribute name='groups'>green_erp_arulmani_accounting.group_vvti_accounting_gm</attribute>
+				</xpath>
+		     </field>   
+       </record>
     </data>
 </openerp>
