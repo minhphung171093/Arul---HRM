@@ -181,6 +181,7 @@ class tpt_update_stock_move_report(osv.osv):
             select id from tpt_quanlity_inspection where state in ('done','remaining') and id not in (select inspec_id from stock_move where inspec_id is not null )
         '''
         cr.execute(sql)
+        move_obj = self.pool.get('stock.move')
         for master in cr.fetchall():
             inspec = self.pool.get('tpt.quanlity.inspection').browse(cr, 1, master[0])
             location_id = False
@@ -211,17 +212,29 @@ class tpt_update_stock_move_report(osv.osv):
                     location_dest_2_ids = locat_obj.search(cr, 1, [('name','in',['Spares','Spare','spares','spare']),('location_id','=',parent_dest_2_ids[0])])
                 if location_dest_2_ids:
                     dest_2_id = location_dest_2_ids[0]
-            sql = '''
-                select id from stock_move where name = '/' and state = 'done' and location_id = %s and location_dest_id in (%s,%s) 
-                    and issue_id is NULL and inspec_id is NULL and picking_id is NULL and product_id = %s 
-                    and product_id in (select pp.id from product_product pp,product_template pt,product_category cat 
-                        where pp.product_tmpl_id = pt.id and pt.categ_id = cat.id and cat.cate_name = '%s') and product_qty <= %s
-            '''%(location_id,dest_1_id,dest_2_id,inspec.product_id.id,cate,inspec.qty)
+            if inspec.remaining_qty and inspec.remaining_qty==inspec.qty:
+                sql = '''
+                    select id from stock_move where name = '/' and state = 'done' and location_id = %s and location_dest_id in (%s,%s) 
+                        and issue_id is NULL and inspec_id is NULL and picking_id is NULL and product_id = %s 
+                        and product_id in (select pp.id from product_product pp,product_template pt,product_category cat 
+                            where pp.product_tmpl_id = pt.id and pt.categ_id = cat.id and cat.cate_name = '%s') and product_qty = %s
+                '''%(location_id,dest_1_id,dest_2_id,inspec.product_id.id,cate,inspec.qty)
+            else:
+                sql = '''
+                    select id from stock_move where name = '/' and state = 'done' and location_id = %s and location_dest_id in (%s,%s) 
+                        and issue_id is NULL and inspec_id is NULL and picking_id is NULL and product_id = %s 
+                        and product_id in (select pp.id from product_product pp,product_template pt,product_category cat 
+                            where pp.product_tmpl_id = pt.id and pt.categ_id = cat.id and cat.cate_name = '%s') and product_qty <= %s
+                '''%(location_id,dest_1_id,dest_2_id,inspec.product_id.id,cate,inspec.qty)
             cr.execute(sql)
             move_ids = cr.fetchall()
-            if move_ids:
-                cr.execute("UPDATE stock_move SET inspec_id= %s WHERE id in %s",(inspec.id,tuple(move_ids),))
-                print 'TPT update INSPEC for report', tuple(move_ids)
+            sum_move_qty = 0
+            for move in move_obj.browse(cr, uid, move_ids):
+                sum_move_qty += move.product_qty
+                if sum_move_qty==inspec.qty:
+                    break
+                cr.execute("UPDATE stock_move SET inspec_id= %s WHERE id = %s",(inspec.id,move.id,))
+                print 'TPT update INSPEC for report', move.id
         return self.write(cr, uid, ids, {'result':'TPT update INSPEC for report Done'})
     
     def update_unit_price(self, cr, uid, ids, context=None):
