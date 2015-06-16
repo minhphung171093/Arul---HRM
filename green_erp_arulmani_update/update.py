@@ -323,7 +323,17 @@ class tpt_update_stock_move_report(osv.osv):
                     for move_id in move_ids:
                         update_line.append((0,0,{'inspec_id':inspec.id,'move_id':move_id,'inspection_id':inspec.id,'stock_move_id':move_id}))
         result += str(result_move_ids)
-        return self.write(cr, uid, ids, {'result':result,'update_line':update_line})
+        self.write(cr, uid, ids, {'result':result,'update_line':update_line})
+        return result_move_ids
+    
+    def update_inspec(self, cr, uid, ids, context=None):
+        result = 'Done update inspection \n'
+        map_ins = self.map_inspec(cr, uid, ids)
+        check_ins = self.check_inspec_without(cr, uid, ids)
+        while (check_ins):
+            map_ins = self.map_inspec(cr, uid, ids)
+            check_ins = self.check_inspec_without(cr, uid, ids)
+        return self.write(cr, uid, ids, {'result':result})
     
     def check_inspec_without_greater(self, cr, uid, ids, context=None):
         inspec_obj = self.pool.get('tpt.quanlity.inspection')
