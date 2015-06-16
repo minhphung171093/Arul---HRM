@@ -270,7 +270,8 @@
                     <field name="product_uom" string="UOM"/>
                     <field name="action_taken"/>
                     <field name="bin_location"/>
-                    <field name="state"/>
+                    <field name="tpt_line_state"/>
+                    <field name="state" invisible='1'/>
                     <field name="invoice_state" invisible='1'/>
                     <field name="tpt_pick_type" invisible='1'/>
                 </tree>
@@ -299,7 +300,8 @@
 		                    <field name="product_uom" string="UOM"/>
 		                    <field name="action_taken"/>
 		                    <field name="bin_location"/>
-		                    <field name="state"/>
+		                    <field name="tpt_line_state"/>
+		                    <field name="state" invisible='1'/>
 		                    <field name="invoice_state" invisible='1'/>
                     		<field name="tpt_pick_type" invisible='1'/>
 		                </group>
