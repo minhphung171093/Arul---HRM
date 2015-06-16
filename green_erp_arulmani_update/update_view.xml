@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="utf-8"?>
+<openerp>
+    <data>
+    	<record id="view_tpt_update_stock_move_report_tree_view" model="ir.ui.view">
+			<field name="name">tpt.update.stock.move.report.tree</field>
+			<field name="model">tpt.update.stock.move.report</field>
+			<field name="arch" type="xml">
+				<tree string="Mapping Old Data">
+					<field name="result" />
+				</tree>
+			</field>
+		</record>
+		
+		<record id="view_tpt_update_stock_move_report_form_view" model="ir.ui.view">
+            <field name="name">tpt.update.stock.move.report.form</field>
+            <field name="model">tpt.update.stock.move.report</field>
+            <field name="arch" type="xml">
+	            <form string="Mapping Old Data" version="7.0">
+	            <header>
+            		<button name="map_issue" string="Map Issue" type="object" class="oe_highlight"/>
+            		<button name="map_inspec" string="Map Inspection" type="object" class="oe_highlight"/>
+            		<button name="update_unit_price" string="Update Unit Price" type="object" class="oe_highlight"/>
+            		<button name="check_issue" string="Check Issue" type="object" class="oe_highlight"/>
+            		<button name="check_inspec" string="Check Inspection" type="object" class="oe_highlight"/>
+	            </header>    
+            	<group>
+                    <field name="result"/>
+                </group>
+		         </form>
+			</field>
+		</record>
+          
+		<record id="action_tpt_update_stock_move_report_form" model="ir.actions.act_window">
+            <field name="name">Mapping Old Data</field>
+            <field name="type">ir.actions.act_window</field>
+            <field name="res_model">tpt.update.stock.move.report</field>
+            <field name="view_type">form</field>
+            <field name="view_mode">form,tree</field>
+            <field name="view_id" ref="view_tpt_update_stock_move_report_tree_view"/>
+        </record>
+        
+        <menuitem action="action_tpt_update_stock_move_report_form"
+        	id="menu_action_tpt_update_stock_move_report_form"
+            parent="purchase.menu_procurement_management" sequence="560" />
+        
+    </data>
+</openerp>

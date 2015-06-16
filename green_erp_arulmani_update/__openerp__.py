@@ -15,6 +15,7 @@
     "description": """
     """,
     'update_xml': [
+        'update_view.xml',
     ],
     'test': [
     ],
