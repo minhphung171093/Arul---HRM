@@ -2976,11 +2976,11 @@ class purchase_order_line(osv.osv):
                 'flag_line': fields.boolean('flag_line'),
                 #TPT
                 'item_text': fields.char('Item Text'), 
-                'po_document_name_relate':fields.related('order_id', 'name',type = 'char', string='PO Document No',store=True),
-                'date_order_relate':fields.related('order_id', 'date_order',type = 'date', string='Order Date',store=True),
-                'po_document_type_relate':fields.related('order_id', 'po_document_type',type = 'selection', string='PO Document Type',store=True),
-                'supplier_relate':fields.related('order_id', 'partner_id',type = 'many2one', relation='res.partner', string='Supplier',store=True),
-                
+                'po_document_name_relate':fields.related('order_id', 'name',type = 'char', string='PO Document No'),
+                'date_order_relate':fields.related('order_id', 'date_order',type = 'date', string='Order Date'),
+#                 'po_document_type_relate':fields.related('order_id', 'po_document_type',type = 'selection', string='PO Document Type', store = True),
+                'supplier_relate':fields.related('order_id', 'partner_id',type = 'many2one', relation='res.partner', string='Supplier'),
+                'po_document_type_relate':fields.selection([('raw','VV Raw material PO'),('asset','VV Capital PO'),('standard','VV Standard PO'),('local','VV Local PO'),('return','VV Return PO'),('service','VV Service PO'),('out','VV Out Service PO')],'PO Document Type'),
                 }   
     
 
