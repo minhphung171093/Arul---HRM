@@ -663,7 +663,7 @@
 					<field name="state" invisible = '1' required = '0'/>
 				</xpath>
 				<xpath expr="//page[@string='PO Line']/field[@name='order_line']" position="attributes">
-					<attribute name="context">{'default_po_document_type_relate':po_document_type_relate}</attribute>
+					<attribute name="context">{'default_po_document_type_relate':po_document_type}</attribute>
 				</xpath>
 				<xpath expr="//page[@string='PO Line']/group/field[@name='amount_untaxed']" position="after">
 					<field name="p_f_charge" widget="monetary"/>
@@ -2126,11 +2126,11 @@
 						<field name="p_f_type" />
 						<field name="ed"/>
 						<field name="ed_type"/> 
-						<field name="taxes_id"/> 
 						<field name="fright"/> 
 						<field name="fright_type"/>  
 						<field name="line_net"/>  
 						<field name="state"/>
+						<field name="taxes_id" widget = 'many2many_tags'/> 
 					</group>
 				</sheet>  
 		       </form>
