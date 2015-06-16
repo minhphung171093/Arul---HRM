@@ -385,6 +385,7 @@ class stock_move(osv.osv):
         'item_text':fields.text('Item Text'),
         'inspec_id': fields.many2one('tpt.quanlity.inspection','Quanlity Inspection'),
         'issue_id': fields.many2one('tpt.material.issue','Material Issue'),
+        'cost_center_id': fields.many2one('tpt.cost.center','Cost center'),
                 }
     def onchange_product_id(self, cr, uid, ids, prod_id=False, loc_id=False,
                             loc_dest_id=False, partner_id=False, action=False):
