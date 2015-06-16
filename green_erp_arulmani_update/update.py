@@ -1459,7 +1459,7 @@ class tpt_update_stock_move_report(osv.osv):
         if not parent_dest_ids:
             raise osv.except_osv(_('Warning!'),_('System does not have Store warehouse, please check it!'))
         
-        for inspec in inspec_obj.browse(cr, uid, [1, 2, 3, 516]):
+        for line in inspec_obj.browse(cr, uid, [1, 2, 3, 516]):
             if line.product_id.categ_id.cate_name=='raw':
                 location_dest_ids = locat_obj.search(cr, uid, [('name','in',['Raw material','Raw Material']),('location_id','=',parent_dest_ids[0])])
             if line.product_id.categ_id.cate_name=='spares':
