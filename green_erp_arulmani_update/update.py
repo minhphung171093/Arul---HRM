@@ -753,7 +753,7 @@ class tpt_update_stock_move_report(osv.osv):
         rs = {
               'name': '/',
               'product_id':product.id,
-              'product_qty': 104,
+              'product_qty': 104.5,
               'product_uom':product.uom_po_id and product.uom_po_id.id or False,
               'location_id':line.warehouse and line.warehouse.id or False,
               'location_dest_id':dest_id,
