@@ -2139,7 +2139,7 @@
 		
 		<record id="view_tpt_purchase_order_search_vew" model="ir.ui.view">
 			<field name="name">tpt.purchase.indent.release.store.search</field>
-			<field name="model">tpt.purchase.product</field>
+			<field name="model">purchase.order.line</field>
 			<field name="arch" type="xml">
 				<search string="Purchase Indent">
 					<field name="po_document_name_relate"/>	
