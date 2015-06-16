@@ -431,7 +431,7 @@ class tpt_update_stock_move_report(osv.osv):
               'location_dest_id':dest_id,
               'issue_id':line.id,
               'date':line.date_expec or False,
-              'price_unit': tpt_cost or 0,
+              'price_unit': 0,
               }
         move_id = move_obj.create(cr,uid,rs)
         move_obj.action_done(cr, uid, [move_id])
@@ -474,7 +474,7 @@ class tpt_update_stock_move_report(osv.osv):
               'location_dest_id':dest_id,
               'issue_id':line.id,
               'date':line.date_expec or False,
-              'price_unit': tpt_cost or 0,
+              'price_unit': 0,
               }
         move_id = move_obj.create(cr,uid,rs)
         move_obj.action_done(cr, uid, [move_id])
@@ -517,7 +517,7 @@ class tpt_update_stock_move_report(osv.osv):
               'location_dest_id':dest_id,
               'issue_id':line.id,
               'date':line.date_expec or False,
-              'price_unit': tpt_cost or 0,
+              'price_unit': 0,
               }
         move_id = move_obj.create(cr,uid,rs)
         move_obj.action_done(cr, uid, [move_id])
@@ -560,7 +560,7 @@ class tpt_update_stock_move_report(osv.osv):
               'location_dest_id':dest_id,
               'issue_id':line.id,
               'date':line.date_expec or False,
-              'price_unit': tpt_cost or 0,
+              'price_unit': 0,
               }
         move_id = move_obj.create(cr,uid,rs)
         move_obj.action_done(cr, uid, [move_id])
@@ -603,7 +603,7 @@ class tpt_update_stock_move_report(osv.osv):
               'location_dest_id':dest_id,
               'issue_id':line.id,
               'date':line.date_expec or False,
-              'price_unit': tpt_cost or 0,
+              'price_unit': 0,
               }
         move_id = move_obj.create(cr,uid,rs)
         move_obj.action_done(cr, uid, [move_id])
@@ -646,7 +646,7 @@ class tpt_update_stock_move_report(osv.osv):
               'location_dest_id':dest_id,
               'issue_id':line.id,
               'date':line.date_expec or False,
-              'price_unit': tpt_cost or 0,
+              'price_unit': 0,
               }
         move_id = move_obj.create(cr,uid,rs)
         move_obj.action_done(cr, uid, [move_id])
@@ -689,7 +689,7 @@ class tpt_update_stock_move_report(osv.osv):
               'location_dest_id':dest_id,
               'issue_id':line.id,
               'date':line.date_expec or False,
-              'price_unit': tpt_cost or 0,
+              'price_unit': 0,
               }
         move_id = move_obj.create(cr,uid,rs)
         move_obj.action_done(cr, uid, [move_id])
@@ -724,7 +724,7 @@ class tpt_update_stock_move_report(osv.osv):
               'location_dest_id':dest_id,
               'issue_id':line.id,
               'date':line.date_expec or False,
-              'price_unit': tpt_cost or 0,
+              'price_unit': 0,
               }
         move_id = move_obj.create(cr,uid,rs)
         move_obj.action_done(cr, uid, [move_id])
@@ -759,7 +759,7 @@ class tpt_update_stock_move_report(osv.osv):
               'location_dest_id':dest_id,
               'issue_id':line.id,
               'date':line.date_expec or False,
-              'price_unit': tpt_cost or 0,
+              'price_unit': 0,
               }
         move_id = move_obj.create(cr,uid,rs)
         move_obj.action_done(cr, uid, [move_id])
@@ -794,7 +794,7 @@ class tpt_update_stock_move_report(osv.osv):
               'location_dest_id':dest_id,
               'issue_id':line.id,
               'date':line.date_expec or False,
-              'price_unit': tpt_cost or 0,
+              'price_unit': 0,
               }
         move_id = move_obj.create(cr,uid,rs)
         move_obj.action_done(cr, uid, [move_id])
@@ -829,7 +829,7 @@ class tpt_update_stock_move_report(osv.osv):
               'location_dest_id':dest_id,
               'issue_id':line.id,
               'date':line.date_expec or False,
-              'price_unit': tpt_cost or 0,
+              'price_unit': 0,
               }
         move_id = move_obj.create(cr,uid,rs)
         move_obj.action_done(cr, uid, [move_id])
@@ -864,7 +864,7 @@ class tpt_update_stock_move_report(osv.osv):
               'location_dest_id':dest_id,
               'issue_id':line.id,
               'date':line.date_expec or False,
-              'price_unit': tpt_cost or 0,
+              'price_unit': 0,
               }
         move_id = move_obj.create(cr,uid,rs)
         move_obj.action_done(cr, uid, [move_id])
@@ -899,7 +899,7 @@ class tpt_update_stock_move_report(osv.osv):
               'location_dest_id':dest_id,
               'issue_id':line.id,
               'date':line.date_expec or False,
-              'price_unit': tpt_cost or 0,
+              'price_unit': 0,
               }
         move_id = move_obj.create(cr,uid,rs)
         move_obj.action_done(cr, uid, [move_id])
@@ -934,7 +934,7 @@ class tpt_update_stock_move_report(osv.osv):
               'location_dest_id':dest_id,
               'issue_id':line.id,
               'date':line.date_expec or False,
-              'price_unit': tpt_cost or 0,
+              'price_unit': 0,
               }
         move_id = move_obj.create(cr,uid,rs)
         move_obj.action_done(cr, uid, [move_id])
@@ -969,7 +969,7 @@ class tpt_update_stock_move_report(osv.osv):
               'location_dest_id':dest_id,
               'issue_id':line.id,
               'date':line.date_expec or False,
-              'price_unit': tpt_cost or 0,
+              'price_unit': 0,
               }
         move_id = move_obj.create(cr,uid,rs)
         move_obj.action_done(cr, uid, [move_id])
@@ -1004,7 +1004,7 @@ class tpt_update_stock_move_report(osv.osv):
               'location_dest_id':dest_id,
               'issue_id':line.id,
               'date':line.date_expec or False,
-              'price_unit': tpt_cost or 0,
+              'price_unit': 0,
               }
         move_id = move_obj.create(cr,uid,rs)
         move_obj.action_done(cr, uid, [move_id])
@@ -1039,7 +1039,7 @@ class tpt_update_stock_move_report(osv.osv):
               'location_dest_id':dest_id,
               'issue_id':line.id,
               'date':line.date_expec or False,
-              'price_unit': tpt_cost or 0,
+              'price_unit': 0,
               }
         move_id = move_obj.create(cr,uid,rs)
         move_obj.action_done(cr, uid, [move_id])
@@ -1074,7 +1074,7 @@ class tpt_update_stock_move_report(osv.osv):
               'location_dest_id':dest_id,
               'issue_id':line.id,
               'date':line.date_expec or False,
-              'price_unit': tpt_cost or 0,
+              'price_unit': 0,
               }
         move_id = move_obj.create(cr,uid,rs)
         move_obj.action_done(cr, uid, [move_id])
@@ -1109,7 +1109,7 @@ class tpt_update_stock_move_report(osv.osv):
               'location_dest_id':dest_id,
               'issue_id':line.id,
               'date':line.date_expec or False,
-              'price_unit': tpt_cost or 0,
+              'price_unit': 0,
               }
         move_id = move_obj.create(cr,uid,rs)
         move_obj.action_done(cr, uid, [move_id])
@@ -1144,7 +1144,7 @@ class tpt_update_stock_move_report(osv.osv):
               'location_dest_id':dest_id,
               'issue_id':line.id,
               'date':line.date_expec or False,
-              'price_unit': tpt_cost or 0,
+              'price_unit': 0,
               }
         move_id = move_obj.create(cr,uid,rs)
         move_obj.action_done(cr, uid, [move_id])
@@ -1179,7 +1179,7 @@ class tpt_update_stock_move_report(osv.osv):
               'location_dest_id':dest_id,
               'issue_id':line.id,
               'date':line.date_expec or False,
-              'price_unit': tpt_cost or 0,
+              'price_unit': 0,
               }
         move_id = move_obj.create(cr,uid,rs)
         move_obj.action_done(cr, uid, [move_id])
@@ -1214,7 +1214,7 @@ class tpt_update_stock_move_report(osv.osv):
               'location_dest_id':dest_id,
               'issue_id':line.id,
               'date':line.date_expec or False,
-              'price_unit': tpt_cost or 0,
+              'price_unit': 0,
               }
         move_id = move_obj.create(cr,uid,rs)
         move_obj.action_done(cr, uid, [move_id])
@@ -1249,7 +1249,7 @@ class tpt_update_stock_move_report(osv.osv):
               'location_dest_id':dest_id,
               'issue_id':line.id,
               'date':line.date_expec or False,
-              'price_unit': tpt_cost or 0,
+              'price_unit': 0,
               }
         move_id = move_obj.create(cr,uid,rs)
         move_obj.action_done(cr, uid, [move_id])
@@ -1284,7 +1284,7 @@ class tpt_update_stock_move_report(osv.osv):
               'location_dest_id':dest_id,
               'issue_id':line.id,
               'date':line.date_expec or False,
-              'price_unit': tpt_cost or 0,
+              'price_unit': 0,
               }
         move_id = move_obj.create(cr,uid,rs)
         move_obj.action_done(cr, uid, [move_id])
@@ -1319,7 +1319,7 @@ class tpt_update_stock_move_report(osv.osv):
               'location_dest_id':dest_id,
               'issue_id':line.id,
               'date':line.date_expec or False,
-              'price_unit': tpt_cost or 0,
+              'price_unit': 0,
               }
         move_id = move_obj.create(cr,uid,rs)
         move_obj.action_done(cr, uid, [move_id])
@@ -1362,7 +1362,7 @@ class tpt_update_stock_move_report(osv.osv):
               'location_dest_id':dest_id,
               'issue_id':line.id,
               'date':line.date_expec or False,
-              'price_unit': tpt_cost or 0,
+              'price_unit': 0,
               }
         move_id = move_obj.create(cr,uid,rs)
         move_obj.action_done(cr, uid, [move_id])
@@ -1397,7 +1397,7 @@ class tpt_update_stock_move_report(osv.osv):
               'location_dest_id':dest_id,
               'issue_id':line.id,
               'date':line.date_expec or False,
-              'price_unit': tpt_cost or 0,
+              'price_unit': 0,
               }
         move_id = move_obj.create(cr,uid,rs)
         move_obj.action_done(cr, uid, [move_id])
@@ -1432,7 +1432,7 @@ class tpt_update_stock_move_report(osv.osv):
               'location_dest_id':dest_id,
               'issue_id':line.id,
               'date':line.date_expec or False,
-              'price_unit': tpt_cost or 0,
+              'price_unit': 0,
               }
         move_id = move_obj.create(cr,uid,rs)
         move_obj.action_done(cr, uid, [move_id])
