@@ -9,7 +9,7 @@
     "version" : "6.1",
     "author" : "Tien",
     'category': 'GreenERP',
-    "depends" : ['green_erp_arulmani_accounting'],
+    "depends" : ['green_erp_arulmani_accounting','green_erp_arulmani_purchase'],
     "init_xml" : [],
     "demo_xml" : [],
     "description": """
