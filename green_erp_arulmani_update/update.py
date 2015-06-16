@@ -181,7 +181,6 @@ class tpt_update_stock_move_report(osv.osv):
             select id from tpt_quanlity_inspection where state in ('done','remaining') and id not in (select inspec_id from stock_move where inspec_id is not null )
         '''
         cr.execute(sql)
-        move_obj = self.pool.get('stock.move')
         for master in cr.fetchall():
             inspec = self.pool.get('tpt.quanlity.inspection').browse(cr, 1, master[0])
             location_id = False
@@ -227,14 +226,10 @@ class tpt_update_stock_move_report(osv.osv):
                             where pp.product_tmpl_id = pt.id and pt.categ_id = cat.id and cat.cate_name = '%s') and product_qty <= %s
                 '''%(location_id,dest_1_id,dest_2_id,inspec.product_id.id,cate,inspec.qty)
             cr.execute(sql)
-            move_ids = [r[0] for r in cr.fetchall()]
-            sum_move_qty = 0
-            for move in move_obj.browse(cr, uid, move_ids):
-                sum_move_qty += move.product_qty
-                if sum_move_qty==inspec.qty:
-                    break
-                cr.execute("UPDATE stock_move SET inspec_id= %s WHERE id = %s",(inspec.id,move.id,))
-                print 'TPT update INSPEC for report', move.id
+            move_ids = cr.fetchall()
+            if move_ids:
+                cr.execute("UPDATE stock_move SET inspec_id= %s WHERE id in %s",(inspec.id,tuple(move_ids),))
+                print 'TPT update INSPEC for report', tuple(move_ids)
         return self.write(cr, uid, ids, {'result':'TPT update INSPEC for report Done'})
     
     def update_unit_price(self, cr, uid, ids, context=None):
@@ -304,8 +299,10 @@ class tpt_update_stock_move_report(osv.osv):
     
     def check_inspec(self, cr, uid, ids, context=None):
         inspec_obj = self.pool.get('tpt.quanlity.inspection')
+        move_obj = self.pool.get('stock.move')
         inspec_ids = inspec_obj.search(cr, uid, [('state','=','done')])
         result = 'Result for check inspection mapping \n'
+        result_move_ids = []
         for inspec in inspec_obj.browse(cr, uid, inspec_ids):
             sql = '''
                 select case when sum(product_qty)!=%s then 0 else 1 end check_map_inspec from stock_move where inspec_id=%s 
@@ -313,7 +310,11 @@ class tpt_update_stock_move_report(osv.osv):
             cr.execute(sql)
             rs = cr.fetchone()[0]
             if not rs:
-                result += str(inspec.id)+', '
+                result_move_ids.append(inspec.id)
+            move_ids = move_obj.search(cr, uid, [('inspec_id','=',inspec.id)])
+            if not move_ids and inspec.id not in result_move_ids:
+                result_move_ids.append(inspec.id)
+        result += str(result_move_ids)
         return self.write(cr, uid, ids, {'result':result})
     
 tpt_update_stock_move_report()
