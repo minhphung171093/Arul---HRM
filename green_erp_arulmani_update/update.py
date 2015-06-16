@@ -314,9 +314,14 @@ class tpt_update_stock_move_report(osv.osv):
             rs = cr.fetchone()[0]
             if not rs:
                 result_move_ids.append(inspec.id)
+                move_ids = move_obj.search(cr, uid, [('inspec_id','=',inspec.id),('product_qty','=',inspec.qty)])
+                for seq,move_id in enumerate(move_ids):
+                    if seq!=0:
+                        cr.execute('update stock_move set inspec_id=null where id=%s',(move_id,))
                 move_ids = move_obj.search(cr, uid, [('inspec_id','=',inspec.id)])
-                for move_id in move_ids:
-                    update_line.append((0,0,{'inspec_id':inspec.id,'move_id':move_id,'inspection_id':inspec.id,'stock_move_id':move_id}))
+                if len(move_ids)>1:
+                    for move_id in move_ids:
+                        update_line.append((0,0,{'inspec_id':inspec.id,'move_id':move_id,'inspection_id':inspec.id,'stock_move_id':move_id}))
         result += str(result_move_ids)
         return self.write(cr, uid, ids, {'result':result,'update_line':update_line})
     
