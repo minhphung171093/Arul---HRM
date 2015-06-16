@@ -141,6 +141,7 @@ class tpt_update_stock_move_report(osv.osv):
     
     _columns = {
         'result': fields.text('Result', readonly=True ),
+        'update_line': fields.one2many('tpt.update.inspection.line','update_id','Line'),
     }
     
     def map_issue(self, cr, uid, ids, context=None):
@@ -297,6 +298,28 @@ class tpt_update_stock_move_report(osv.osv):
                 result += str(issue.id)+', '
         return self.write(cr, uid, ids, {'result':result})
     
+    def check_inspec_without(self, cr, uid, ids, context=None):
+        cr.execute(''' delete from tpt_update_inspection_line where update_id=%s ''',(ids[0],))
+        inspec_obj = self.pool.get('tpt.quanlity.inspection')
+        move_obj = self.pool.get('stock.move')
+        inspec_ids = inspec_obj.search(cr, uid, [('state','=','done')])
+        result = 'Result for check inspection mapping \n'
+        result_move_ids = []
+        update_line = []
+        for inspec in inspec_obj.browse(cr, uid, inspec_ids):
+            sql = '''
+                select case when sum(product_qty)!=%s then 0 else 1 end check_map_inspec from stock_move where inspec_id=%s 
+            '''%(inspec.qty,inspec.id)
+            cr.execute(sql)
+            rs = cr.fetchone()[0]
+            if not rs:
+                result_move_ids.append(inspec.id)
+                move_ids = move_obj.search(cr, uid, [('inspec_id','=',inspec.id)])
+                for move_id in move_ids:
+                    update_line.append((0,0,{'inspec_id':inspec.id,'move_id':move_id,'inspection_id':inspec.id,'stock_move_id':move_id}))
+        result += str(result_move_ids)
+        return self.write(cr, uid, ids, {'result':result,'update_line':update_line})
+    
     def check_inspec_without_greater(self, cr, uid, ids, context=None):
         inspec_obj = self.pool.get('tpt.quanlity.inspection')
         move_obj = self.pool.get('stock.move')
@@ -353,5 +376,24 @@ class tpt_update_stock_move_report(osv.osv):
     
 tpt_update_stock_move_report()
 
+class tpt_update_inspection_line(osv.osv):
+    _name = "tpt.update.inspection.line"
+    
+    _columns = {
+        'inspec_id': fields.many2one('tpt.quanlity.inspection', 'Quanlity Inspection'),
+        'inspection_id': fields.integer('Quanlity Inspection'),
+        'inspec_qty': fields.related('inspec_id','qty', string='Inspection Qty', digits=(16,3)),
+        'move_id': fields.many2one('stock.move', 'Stock Move'),
+        'stock_move_id': fields.integer('Stock Move'),
+        'move_qty': fields.related('move_id','product_qty', string='Move Qty', digits=(16,3)),
+        'remove': fields.boolean('Remove'),
+        'update_id': fields.many2one('tpt.update.stock.move.report', 'Update', ondelete='cascade'),
+    }
+    
+    def bt_remove(self, cr, uid, ids, context=None):
+        for line in self.browse(cr, uid, ids):
+            cr.execute(''' update stock_move set inspec_id = null where id=%s ''',(line.move_id.id,))
+        return self.write(cr, uid, ids, {'remove':True})
 
+tpt_update_inspection_line()
 # vim:expandtab:smartindent:tabstop=4:softtabstop=4:shiftwidth=4:
