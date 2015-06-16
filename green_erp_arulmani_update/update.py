@@ -435,7 +435,7 @@ class tpt_update_stock_move_report(osv.osv):
               }
         move_id = move_obj.create(cr,uid,rs)
         move_obj.action_done(cr, uid, [move_id])
-        cr.execute('update stock_move set date=%s and date_expected=%s where id=%s',(line.date_expec,line.date_expec,move_id,))
+        cr.execute('update stock_move set date=%s,date_expected=%s where id=%s',(line.date_expec,line.date_expec,move_id,))
         
         #create for issue 57
         line = issue_obj.browse(cr, uid, 57)
@@ -478,7 +478,7 @@ class tpt_update_stock_move_report(osv.osv):
               }
         move_id = move_obj.create(cr,uid,rs)
         move_obj.action_done(cr, uid, [move_id])
-        cr.execute('update stock_move set date=%s and date_expected=%s where id=%s',(line.date_expec,line.date_expec,move_id,))
+        cr.execute('update stock_move set date=%s,date_expected=%s where id=%s',(line.date_expec,line.date_expec,move_id,))
         
         #create for issue 235
         line = issue_obj.browse(cr, uid, 235)
@@ -521,7 +521,7 @@ class tpt_update_stock_move_report(osv.osv):
               }
         move_id = move_obj.create(cr,uid,rs)
         move_obj.action_done(cr, uid, [move_id])
-        cr.execute('update stock_move set date=%s and date_expected=%s where id=%s',(line.date_expec,line.date_expec,move_id,))
+        cr.execute('update stock_move set date=%s,date_expected=%s where id=%s',(line.date_expec,line.date_expec,move_id,))
         
         #create for issue 256
         line = issue_obj.browse(cr, uid, 256)
@@ -564,7 +564,7 @@ class tpt_update_stock_move_report(osv.osv):
               }
         move_id = move_obj.create(cr,uid,rs)
         move_obj.action_done(cr, uid, [move_id])
-        cr.execute('update stock_move set date=%s and date_expected=%s where id=%s',(line.date_expec,line.date_expec,move_id,))
+        cr.execute('update stock_move set date=%s,date_expected=%s where id=%s',(line.date_expec,line.date_expec,move_id,))
         
         #create for issue 571
         line = issue_obj.browse(cr, uid, 571)
@@ -607,7 +607,7 @@ class tpt_update_stock_move_report(osv.osv):
               }
         move_id = move_obj.create(cr,uid,rs)
         move_obj.action_done(cr, uid, [move_id])
-        cr.execute('update stock_move set date=%s and date_expected=%s where id=%s',(line.date_expec,line.date_expec,move_id,))
+        cr.execute('update stock_move set date=%s,date_expected=%s where id=%s',(line.date_expec,line.date_expec,move_id,))
         
         #create for issue 680
         line = issue_obj.browse(cr, uid, 680)
@@ -650,7 +650,7 @@ class tpt_update_stock_move_report(osv.osv):
               }
         move_id = move_obj.create(cr,uid,rs)
         move_obj.action_done(cr, uid, [move_id])
-        cr.execute('update stock_move set date=%s and date_expected=%s where id=%s',(line.date_expec,line.date_expec,move_id,))
+        cr.execute('update stock_move set date=%s,date_expected=%s where id=%s',(line.date_expec,line.date_expec,move_id,))
         
         #create for issue 797
         line = issue_obj.browse(cr, uid, 797)
@@ -693,7 +693,7 @@ class tpt_update_stock_move_report(osv.osv):
               }
         move_id = move_obj.create(cr,uid,rs)
         move_obj.action_done(cr, uid, [move_id])
-        cr.execute('update stock_move set date=%s and date_expected=%s where id=%s',(line.date_expec,line.date_expec,move_id,))
+        cr.execute('update stock_move set date=%s,date_expected=%s where id=%s',(line.date_expec,line.date_expec,move_id,))
         #
         product = product_obj.browse(cr, uid, 10721)
         cate_name = product.categ_id and product.categ_id.cate_name or False
@@ -728,7 +728,7 @@ class tpt_update_stock_move_report(osv.osv):
               }
         move_id = move_obj.create(cr,uid,rs)
         move_obj.action_done(cr, uid, [move_id])
-        cr.execute('update stock_move set date=%s and date_expected=%s where id=%s',(line.date_expec,line.date_expec,move_id,))
+        cr.execute('update stock_move set date=%s,date_expected=%s where id=%s',(line.date_expec,line.date_expec,move_id,))
         #
         product = product_obj.browse(cr, uid, 10722)
         cate_name = product.categ_id and product.categ_id.cate_name or False
@@ -763,7 +763,7 @@ class tpt_update_stock_move_report(osv.osv):
               }
         move_id = move_obj.create(cr,uid,rs)
         move_obj.action_done(cr, uid, [move_id])
-        cr.execute('update stock_move set date=%s and date_expected=%s where id=%s',(line.date_expec,line.date_expec,move_id,))
+        cr.execute('update stock_move set date=%s,date_expected=%s where id=%s',(line.date_expec,line.date_expec,move_id,))
         #
         product = product_obj.browse(cr, uid, 10724)
         cate_name = product.categ_id and product.categ_id.cate_name or False
@@ -798,7 +798,7 @@ class tpt_update_stock_move_report(osv.osv):
               }
         move_id = move_obj.create(cr,uid,rs)
         move_obj.action_done(cr, uid, [move_id])
-        cr.execute('update stock_move set date=%s and date_expected=%s where id=%s',(line.date_expec,line.date_expec,move_id,))
+        cr.execute('update stock_move set date=%s,date_expected=%s where id=%s',(line.date_expec,line.date_expec,move_id,))
         #
         product = product_obj.browse(cr, uid, 10726)
         cate_name = product.categ_id and product.categ_id.cate_name or False
@@ -833,7 +833,7 @@ class tpt_update_stock_move_report(osv.osv):
               }
         move_id = move_obj.create(cr,uid,rs)
         move_obj.action_done(cr, uid, [move_id])
-        cr.execute('update stock_move set date=%s and date_expected=%s where id=%s',(line.date_expec,line.date_expec,move_id,))
+        cr.execute('update stock_move set date=%s,date_expected=%s where id=%s',(line.date_expec,line.date_expec,move_id,))
         #
         product = product_obj.browse(cr, uid, 10730)
         cate_name = product.categ_id and product.categ_id.cate_name or False
@@ -868,7 +868,7 @@ class tpt_update_stock_move_report(osv.osv):
               }
         move_id = move_obj.create(cr,uid,rs)
         move_obj.action_done(cr, uid, [move_id])
-        cr.execute('update stock_move set date=%s and date_expected=%s where id=%s',(line.date_expec,line.date_expec,move_id,))
+        cr.execute('update stock_move set date=%s,date_expected=%s where id=%s',(line.date_expec,line.date_expec,move_id,))
         #
         product = product_obj.browse(cr, uid, 10733)
         cate_name = product.categ_id and product.categ_id.cate_name or False
@@ -903,7 +903,7 @@ class tpt_update_stock_move_report(osv.osv):
               }
         move_id = move_obj.create(cr,uid,rs)
         move_obj.action_done(cr, uid, [move_id])
-        cr.execute('update stock_move set date=%s and date_expected=%s where id=%s',(line.date_expec,line.date_expec,move_id,))
+        cr.execute('update stock_move set date=%s,date_expected=%s where id=%s',(line.date_expec,line.date_expec,move_id,))
         #
         product = product_obj.browse(cr, uid, 10749)
         cate_name = product.categ_id and product.categ_id.cate_name or False
@@ -938,7 +938,7 @@ class tpt_update_stock_move_report(osv.osv):
               }
         move_id = move_obj.create(cr,uid,rs)
         move_obj.action_done(cr, uid, [move_id])
-        cr.execute('update stock_move set date=%s and date_expected=%s where id=%s',(line.date_expec,line.date_expec,move_id,))
+        cr.execute('update stock_move set date=%s,date_expected=%s where id=%s',(line.date_expec,line.date_expec,move_id,))
         #
         product = product_obj.browse(cr, uid, 10754)
         cate_name = product.categ_id and product.categ_id.cate_name or False
@@ -973,7 +973,7 @@ class tpt_update_stock_move_report(osv.osv):
               }
         move_id = move_obj.create(cr,uid,rs)
         move_obj.action_done(cr, uid, [move_id])
-        cr.execute('update stock_move set date=%s and date_expected=%s where id=%s',(line.date_expec,line.date_expec,move_id,))
+        cr.execute('update stock_move set date=%s,date_expected=%s where id=%s',(line.date_expec,line.date_expec,move_id,))
         #
         product = product_obj.browse(cr, uid, 10756)
         cate_name = product.categ_id and product.categ_id.cate_name or False
@@ -1008,7 +1008,7 @@ class tpt_update_stock_move_report(osv.osv):
               }
         move_id = move_obj.create(cr,uid,rs)
         move_obj.action_done(cr, uid, [move_id])
-        cr.execute('update stock_move set date=%s and date_expected=%s where id=%s',(line.date_expec,line.date_expec,move_id,))
+        cr.execute('update stock_move set date=%s,date_expected=%s where id=%s',(line.date_expec,line.date_expec,move_id,))
         #
         product = product_obj.browse(cr, uid, 10760)
         cate_name = product.categ_id and product.categ_id.cate_name or False
@@ -1043,7 +1043,7 @@ class tpt_update_stock_move_report(osv.osv):
               }
         move_id = move_obj.create(cr,uid,rs)
         move_obj.action_done(cr, uid, [move_id])
-        cr.execute('update stock_move set date=%s and date_expected=%s where id=%s',(line.date_expec,line.date_expec,move_id,))
+        cr.execute('update stock_move set date=%s,date_expected=%s where id=%s',(line.date_expec,line.date_expec,move_id,))
         #
         product = product_obj.browse(cr, uid, 10791)
         cate_name = product.categ_id and product.categ_id.cate_name or False
@@ -1078,7 +1078,7 @@ class tpt_update_stock_move_report(osv.osv):
               }
         move_id = move_obj.create(cr,uid,rs)
         move_obj.action_done(cr, uid, [move_id])
-        cr.execute('update stock_move set date=%s and date_expected=%s where id=%s',(line.date_expec,line.date_expec,move_id,))
+        cr.execute('update stock_move set date=%s,date_expected=%s where id=%s',(line.date_expec,line.date_expec,move_id,))
         #
         product = product_obj.browse(cr, uid, 10734)
         cate_name = product.categ_id and product.categ_id.cate_name or False
@@ -1113,7 +1113,7 @@ class tpt_update_stock_move_report(osv.osv):
               }
         move_id = move_obj.create(cr,uid,rs)
         move_obj.action_done(cr, uid, [move_id])
-        cr.execute('update stock_move set date=%s and date_expected=%s where id=%s',(line.date_expec,line.date_expec,move_id,))
+        cr.execute('update stock_move set date=%s,date_expected=%s where id=%s',(line.date_expec,line.date_expec,move_id,))
         #
         product = product_obj.browse(cr, uid, 10750)
         cate_name = product.categ_id and product.categ_id.cate_name or False
@@ -1148,7 +1148,7 @@ class tpt_update_stock_move_report(osv.osv):
               }
         move_id = move_obj.create(cr,uid,rs)
         move_obj.action_done(cr, uid, [move_id])
-        cr.execute('update stock_move set date=%s and date_expected=%s where id=%s',(line.date_expec,line.date_expec,move_id,))
+        cr.execute('update stock_move set date=%s,date_expected=%s where id=%s',(line.date_expec,line.date_expec,move_id,))
         #
         product = product_obj.browse(cr, uid, 12966)
         cate_name = product.categ_id and product.categ_id.cate_name or False
@@ -1183,7 +1183,7 @@ class tpt_update_stock_move_report(osv.osv):
               }
         move_id = move_obj.create(cr,uid,rs)
         move_obj.action_done(cr, uid, [move_id])
-        cr.execute('update stock_move set date=%s and date_expected=%s where id=%s',(line.date_expec,line.date_expec,move_id,))
+        cr.execute('update stock_move set date=%s,date_expected=%s where id=%s',(line.date_expec,line.date_expec,move_id,))
         #
         product = product_obj.browse(cr, uid, 10746)
         cate_name = product.categ_id and product.categ_id.cate_name or False
@@ -1218,7 +1218,7 @@ class tpt_update_stock_move_report(osv.osv):
               }
         move_id = move_obj.create(cr,uid,rs)
         move_obj.action_done(cr, uid, [move_id])
-        cr.execute('update stock_move set date=%s and date_expected=%s where id=%s',(line.date_expec,line.date_expec,move_id,))
+        cr.execute('update stock_move set date=%s,date_expected=%s where id=%s',(line.date_expec,line.date_expec,move_id,))
         #
         product = product_obj.browse(cr, uid, 10759)
         cate_name = product.categ_id and product.categ_id.cate_name or False
@@ -1253,7 +1253,7 @@ class tpt_update_stock_move_report(osv.osv):
               }
         move_id = move_obj.create(cr,uid,rs)
         move_obj.action_done(cr, uid, [move_id])
-        cr.execute('update stock_move set date=%s and date_expected=%s where id=%s',(line.date_expec,line.date_expec,move_id,))
+        cr.execute('update stock_move set date=%s,date_expected=%s where id=%s',(line.date_expec,line.date_expec,move_id,))
         #
         product = product_obj.browse(cr, uid, 10799)
         cate_name = product.categ_id and product.categ_id.cate_name or False
@@ -1288,7 +1288,7 @@ class tpt_update_stock_move_report(osv.osv):
               }
         move_id = move_obj.create(cr,uid,rs)
         move_obj.action_done(cr, uid, [move_id])
-        cr.execute('update stock_move set date=%s and date_expected=%s where id=%s',(line.date_expec,line.date_expec,move_id,))
+        cr.execute('update stock_move set date=%s,date_expected=%s where id=%s',(line.date_expec,line.date_expec,move_id,))
         #
         product = product_obj.browse(cr, uid, 10753)
         cate_name = product.categ_id and product.categ_id.cate_name or False
@@ -1323,7 +1323,7 @@ class tpt_update_stock_move_report(osv.osv):
               }
         move_id = move_obj.create(cr,uid,rs)
         move_obj.action_done(cr, uid, [move_id])
-        cr.execute('update stock_move set date=%s and date_expected=%s where id=%s',(line.date_expec,line.date_expec,move_id,))
+        cr.execute('update stock_move set date=%s,date_expected=%s where id=%s',(line.date_expec,line.date_expec,move_id,))
         
         #create for issue 1124
         line = issue_obj.browse(cr, uid, 1124)
@@ -1366,7 +1366,7 @@ class tpt_update_stock_move_report(osv.osv):
               }
         move_id = move_obj.create(cr,uid,rs)
         move_obj.action_done(cr, uid, [move_id])
-        cr.execute('update stock_move set date=%s and date_expected=%s where id=%s',(line.date_expec,line.date_expec,move_id,))
+        cr.execute('update stock_move set date=%s,date_expected=%s where id=%s',(line.date_expec,line.date_expec,move_id,))
         #
         product = product_obj.browse(cr, uid, 10727)
         cate_name = product.categ_id and product.categ_id.cate_name or False
@@ -1401,7 +1401,7 @@ class tpt_update_stock_move_report(osv.osv):
               }
         move_id = move_obj.create(cr,uid,rs)
         move_obj.action_done(cr, uid, [move_id])
-        cr.execute('update stock_move set date=%s and date_expected=%s where id=%s',(line.date_expec,line.date_expec,move_id,))
+        cr.execute('update stock_move set date=%s,date_expected=%s where id=%s',(line.date_expec,line.date_expec,move_id,))
         #
         product = product_obj.browse(cr, uid, 10796)
         cate_name = product.categ_id and product.categ_id.cate_name or False
@@ -1436,7 +1436,7 @@ class tpt_update_stock_move_report(osv.osv):
               }
         move_id = move_obj.create(cr,uid,rs)
         move_obj.action_done(cr, uid, [move_id])
-        cr.execute('update stock_move set date=%s and date_expected=%s where id=%s',(line.date_expec,line.date_expec,move_id,))
+        cr.execute('update stock_move set date=%s,date_expected=%s where id=%s',(line.date_expec,line.date_expec,move_id,))
         
         return self.write(cr, uid, ids, {'result':result})
     
@@ -1481,7 +1481,7 @@ class tpt_update_stock_move_report(osv.osv):
                   }
             move_id = move_obj.create(cr,uid,rs)
             move_obj.action_done(cr, uid, [move_id])
-            cr.execute('update stock_move set date=%s and date_expected=%s where id=%s',(line.date,line.date,move_id,))
+            cr.execute('update stock_move set date=%s,date_expected=%s where id=%s',(line.date,line.date,move_id,))
         return self.write(cr, uid, ids, {'result':result})
     
 tpt_update_stock_move_report()
