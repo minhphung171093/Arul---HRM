@@ -22,9 +22,12 @@
 	            		<button name="update_unit_price" string="Update Unit Price" type="object" class="oe_highlight"/>
 	            		<button name="check_issue" string="Check Issue" type="object" class="oe_highlight"/>
 	            		<button name="check_inspec_without" string="Check Inspection Without" type="object" class="oe_highlight"/>
-	            		<button name="check_inspec_without_greater" string="Check Inspection Without Greater" type="object" class="oe_highlight"/>
-	            		<button name="check_inspec_without_less" string="Check Inspection Without Less" type="object" class="oe_highlight"/>
+	            		<button name="check_inspec_without_greater" invisible='1' string="Check Inspection Without Greater" type="object" class="oe_highlight"/>
+	            		<button name="check_inspec_without_less" invisible='1' string="Check Inspection Without Less" type="object" class="oe_highlight"/>
 	            		<button name="check_inspec" string="Check Inspection" type="object" class="oe_highlight"/>
+	            		<button name="update_inspec" string="Update Inspection" type="object" class="oe_highlight"/>
+	            		<button name="create_issue" string="Create Issue" type="object" class="oe_highlight"/>
+	            		<button name="create_inspec" string="Create Inspection" type="object" class="oe_highlight"/>
 		            </header>    
 	            	<group>
 	                    <field name="result"/>
