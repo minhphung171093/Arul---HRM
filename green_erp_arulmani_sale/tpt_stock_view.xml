@@ -364,6 +364,9 @@
 	                />-->
 	                
 	            </button>
+	            
+	           
+	            
             	<xpath expr="//field[@name='stock_journal_id']"  position="replace">
             		<field name="stock_journal_id" invisible="1"/>
             		<field name="flag_confirm" invisible="1"/>
@@ -448,6 +451,7 @@
             	<xpath expr="/form/header//button[@name='%(stock.report_picking_list_out)d']" position="replace">
             		 <button name="print_dispatch_slip" string="Print Dispatch Slip" type="object" states="done" class="oe_highlight"/>
             		 <button name="print_packing_list" string="Print Packing List" attrs="{'invisible':[('order_type', '=', 'domestic')]}" type="object" class="oe_highlight"/>
+
             	</xpath>
             	
             	<xpath expr="//page[@string='Products']" position="after">

@@ -84,7 +84,167 @@ class review_posting(osv.osv_memory):
                         'line_id': journal_line,
                         'doc_type':'good'
                         }
-            res.update(vals)    
+            res.update(vals)   
+        if context.get('tpt_preview_grn',False): 
+            account_move_obj = self.pool.get('account.move')
+            period_obj = self.pool.get('account.period')
+            for line in self.pool.get('stock.picking').browse(cr,uid,context['active_ids']):
+                if line.type == 'in' and line.state=='done':
+                    debit = 0.0
+                    credit = 0.0
+                    journal_line = []
+                    for move in line.move_lines:
+                        amount = move.purchase_line_id.price_unit * move.product_qty
+                        debit += amount - (amount*move.purchase_line_id.discount)/100
+                    date_period = line.date,
+                    sql = '''
+                        select id from account_period where special = False and '%s' between date_start and date_stop
+                     
+                    '''%(date_period)
+                    cr.execute(sql)
+                    period_ids = [r[0] for r in cr.fetchall()]
+                    if not period_ids:
+                        raise osv.except_osv(_('Warning!'),_('Period is not null, please configure it in Period master !'))
+                     
+                    for period_id in period_obj.browse(cr,uid,period_ids):
+                        sql_journal = '''
+                        select id from account_journal
+                        '''
+                        cr.execute(sql_journal)
+                        journal_ids = [r[0] for r in cr.fetchall()]
+                        journal = self.pool.get('account.journal').browse(cr,uid,journal_ids[0])
+                        for p in line.move_lines:
+                            amount_cer = p.purchase_line_id.price_unit * p.product_qty
+                            credit = amount_cer - (amount_cer*p.purchase_line_id.discount)/100
+                            debit = amount_cer - (amount_cer*p.purchase_line_id.discount)/100
+                            if not p.product_id.product_asset_acc_id:
+                                raise osv.except_osv(_('Warning!'),_('You need to define Product Asset GL Account for this product'))
+                            journal_line.append((0,0,{
+                                'name':line.name + ' - ' + p.product_id.name, 
+                                'account_id': p.product_id.product_asset_acc_id and p.product_id.product_asset_acc_id.id,
+                                'partner_id': line.partner_id and line.partner_id.id or False,
+                                'credit':0,
+                                'debit':debit,
+                                'product_id':p.product_id.id,
+                            }))
+                            
+                            if not p.product_id.purchase_acc_id:
+                                raise osv.except_osv(_('Warning!'),_('You need to define Purchase GL Account for this product'))
+                            journal_line.append((0,0,{
+                                'name':line.name + ' - ' + p.product_id.name, 
+                                'account_id': p.product_id.purchase_acc_id and p.product_id.purchase_acc_id.id,
+                                'partner_id': line.partner_id and line.partner_id.id or False,
+                                'credit':credit,
+                                'debit':0,
+                                'product_id':p.product_id.id,
+                            }))
+                             
+                        vals={
+                            'journal_id':journal.id,
+                            'period_id':period_id.id ,
+                            'date': date_period,
+                            'line_id': journal_line,
+                            'doc_type':'grn'
+                            }
+                        res.update(vals)            
+        if context.get('tpt_delivery',False): 
+            account_move_obj = self.pool.get('account.move')
+            period_obj = self.pool.get('account.period')
+            for line in self.pool.get('stock.picking').browse(cr,uid,context['active_ids']):
+           
+                if line.type == 'out' and line.state=='done':
+                    debit = 0.0
+                    dis_channel = line.sale_id and line.sale_id.distribution_channel and line.sale_id.distribution_channel.name or False
+                    date_period = line.date
+                    account = False
+                    asset_id = False
+                    sql_journal = '''
+                        select id from account_journal
+                        '''
+                    cr.execute(sql_journal)
+                    journal_ids = [r[0] for r in cr.fetchall()]
+                    journal = self.pool.get('account.journal').browse(cr,uid,journal_ids[0])
+                    sql = '''
+                        select id from account_period where special = False and '%s' between date_start and date_stop
+                      
+                    '''%(date_period)
+                    cr.execute(sql)
+                    period_ids = [r[0] for r in cr.fetchall()]
+                    journal_line = []
+                    if not period_ids:
+                        raise osv.except_osv(_('Warning!'),_('Period is not null, please configure it in Period master !'))
+                    for period_id in period_obj.browse(cr,uid,period_ids):
+                #sinh but toan
+                        for p in line.move_lines:
+                            if p.prodlot_id:
+                                sale_id = p.sale_line_id and p.sale_line_id.order_id.id or False 
+                                used_qty = p.product_qty or 0
+                                if sale_id:
+                                    sql = '''
+                                        select id from tpt_batch_allotment where sale_order_id = %s
+                                    '''%(sale_id)
+                                    cr.execute(sql)
+                                    allot_ids = cr.dictfetchone()
+                                    if allot_ids:
+                                        allot_id = allot_ids['id']
+                                        sql = '''
+                                        select id from tpt_batch_allotment_line where sys_batch = %s and batch_allotment_id = %s
+                                        '''%(p.prodlot_id.id,allot_id)
+                                        cr.execute(sql)
+                                        allot_line_id = cr.dictfetchone()['id']
+                                        line_id = self.pool.get('tpt.batch.allotment.line').browse(cr, uid, allot_line_id)
+                                        used_qty += line_id.used_qty
+                                        sql = '''
+                                            update tpt_batch_allotment_line set product_uom_qty = %s where id = %s
+                                        '''%(used_qty,allot_line_id)
+                                        cr.execute(sql)
+                                        if line_id.product_uom_qty == line_id.used_qty:
+                                            sql = '''
+                                                update tpt_batch_allotment_line set is_deliver = 't' where id = %s
+                                            '''%(allot_line_id)
+                                            cr.execute(sql)
+                        
+                        debit += p.sale_line_id and p.sale_line_id.price_unit * p.product_qty or 0
+                        product_name = p.product_id.name
+                        product_id = p.product_id.id
+                        account = self.pool.get('stock.picking').get_pro_account_id(cr,uid,product_name,dis_channel)
+                        if not account:
+#                             raise osv.except_osv(_('Warning!'),_('Account is not created for this Distribution Channel! Please check it!'))
+                            if p.product_id.product_cose_acc_id:
+                                account = p.product_id.product_cose_acc_id.id
+                            else: 
+                                raise osv.except_osv(_('Warning!'),_('Product Cost of Goods Sold Account is not configured! Please configured it!'))
+                         
+                        if p.product_id.product_asset_acc_id:
+                            asset_id = p.product_id.product_asset_acc_id.id
+                        else:
+                            raise osv.except_osv(_('Warning!'),_('Product Asset Account is not configured! Please configured it!'))
+                    journal_line.append((0,0,{
+                                'name':line.name, 
+                                'account_id': account,
+                                'partner_id': line.partner_id and line.partner_id.id,
+                                'credit':0,
+                                'debit':debit,
+                                'product_id':product_id,
+                            }))
+                     
+                    journal_line.append((0,0,{
+                        'name':line.name, 
+                        'account_id': asset_id,
+                        'partner_id': line.partner_id and line.partner_id.id,
+                        'credit':debit,
+                        'debit':0,
+                        'product_id':product_id,
+                    }))
+                          
+                    vals={
+                        'journal_id':journal.id,
+                        'period_id':period_id.id ,
+                        'date': date_period,
+                        'line_id': journal_line,
+                        'doc_type':'do'
+                        }
+                    res.update(vals)
         if context.get('tpt_voucher',False):
             voucher_obj = self.pool.get('account.voucher')
             voucher_id = context['active_id']

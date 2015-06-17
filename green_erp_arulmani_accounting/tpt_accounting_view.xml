@@ -2445,5 +2445,27 @@
 				</xpath>
 		     </field>   
        </record>
+       <record id="tpt_stock_picking_out_form_preview" model="ir.ui.view">
+            <field name="name">tpt.stock.picking.out.form.preview</field>
+            <field name="model">stock.picking.out</field>
+            <field name="inherit_id" ref="green_erp_arulmani_sale.tpt_stock_picking_out_form"/>
+            <field name="arch" type="xml">
+            
+            	<xpath expr="//button[@name='tpt_check_stock']" position="after">
+					<button name="%(action_review_posting_view)d" type="action" string="Review Posting"  context="{'tpt_delivery':True}"/>
+				</xpath> 
+            </field>
+       </record>
+        
+       <record id="tpt_stock_picking_in_form_preview" model="ir.ui.view">
+            <field name="name">stock.picking.in.form.preview</field>
+            <field name="model">stock.picking.in</field>
+            <field name="inherit_id" ref="green_erp_arulmani_purchase.tpt_stock_picking_in_form"/>
+            <field name="arch" type="xml">
+            	<xpath expr="//button[@name='action_revert_done']" position="after">
+            		<button name="%(action_review_posting_view)d" type="action" string="Review Posting"  context="{'tpt_preview_grn':True}"/>
+            	</xpath>
+            </field>
+       </record>
     </data>
 </openerp>
