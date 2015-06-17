@@ -164,6 +164,7 @@ class Parser(report_sxw.rml_parse):
             lic = 0
             
             if payroll_ids:
+                #payroll = payroll_obj.browse(self.cr, self.uid, payroll_ids[0])
                 payroll = payroll_obj.browse(self.cr, self.uid, payroll_ids)
                 epf = payroll.emp_pf_con
                 esi_limit = payroll.emp_esi_limit
