@@ -662,9 +662,6 @@
 				<xpath expr="//page[@string='PO Line']/field/tree/field[@name='product_qty']" position="after">
 					<field name="state" invisible = '1' required = '0'/>
 				</xpath>
-				<xpath expr="//page[@string='PO Line']/field[@name='order_line']" position="attributes">
-					<attribute name="context">{'default_po_document_type_relate':po_document_type}</attribute>
-				</xpath>
 				<xpath expr="//page[@string='PO Line']/group/field[@name='amount_untaxed']" position="after">
 					<field name="p_f_charge" widget="monetary"/>
 					<field name="excise_duty" widget="monetary"/>
@@ -2083,7 +2080,6 @@
 						<field name="po_document_name_relate" invisible="1"/> 
 						<field name="date_order_relate"/> 
 						<field name="supplier_relate"/>
-						<field name="line_no"/> 
 						<field name="po_indent_no"/> 
 						<field name="product_id"/>
 						<field name="description"/>
@@ -2116,7 +2112,6 @@
 	            		<field name="po_document_type_relate"/> 
 						<field name="date_order_relate"/> 
 						<field name="supplier_relate"/>
-						<field name="line_no"/> 
 						<field name="po_indent_no"/> 
 						<field name="product_id"/>
 						<field name="description"/>
