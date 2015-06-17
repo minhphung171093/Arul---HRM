@@ -4551,6 +4551,14 @@ class tpt_material_request_line(osv.osv):
         'request_type':fields.selection([('production', 'Production'),('normal', 'Normal'),('main', 'Maintenance')],'Request Type'),
         'prodlot_id': fields.many2one('stock.production.lot', 'Batch No'),
         'bin': fields.related('product_id','bin_location',type='char',string='Bin Location',readonly=True),
+        'date_request_relate': fields.related('material_request_id','date_request',type='date',string='Material Request Date'),
+        'date_expect_relate': fields.related('material_request_id','date_expec',type='date',string='Expected Date'),
+        'department_relate': fields.related('material_request_id','department_id',type='many2one', relation='hr.department',string='Department'),
+        'section_relate': fields.related('material_request_id','section_id',type='many2one', relation='arul.hr.section',string='Section'),
+        'requisitioner_relate': fields.related('material_request_id','requisitioner',type='many2one', relation='hr.employee',string='Requisitioner'),
+        'raise_relate': fields.related('material_request_id','create_uid',type='many2one', relation='res.users',string='Request Raised By'),
+        'state_relate':fields.related('material_request_id', 'state' ,type = 'selection',selection=[('draft', 'Draft'),('done', 'Approve'),('partially', 'Partially Issued'),('closed', 'Closed')], string='State'),
+        'pending_qty': fields.float('Pending Qty'),       
                 }
     def onchange_product_id(self, cr, uid, ids,product_id=False, context=None):
         res = {'value':{
@@ -4843,6 +4851,12 @@ class tpt_material_issue_line(osv.osv):
             if 'request_line_id' in vals and (vals['product_uom_qty']-kq) < vals['product_isu_qty']:
                 raise osv.except_osv(_('Warning!'),_('Quantity must be less than Material Request quantity!'))
         new_id = super(tpt_material_issue_line, self).create(cr, uid, vals, context)
+        issue_line = self.browse(cr,uid, new_id)
+        kq2 = issue_line.product_uom_qty - (kq + issue_line.product_isu_qty)
+        sql = '''
+            update tpt_material_request_line set pending_qty = %s where id = %s
+        '''%(kq2, issue_line.request_line_id.id)
+        cr.execute(sql)
         if 'product_isu_qty' in vals:
             if (vals['product_isu_qty'] < 0):
                 raise osv.except_osv(_('Warning!'),_('Issue Quantity is not allowed as negative values'))
@@ -4864,6 +4878,11 @@ class tpt_material_issue_line(osv.osv):
             kq = cr.fetchone()[0]
             if (line.product_uom_qty-kq) < line.product_isu_qty:
                 raise osv.except_osv(_('Warning!'),_('Quantity must be less than Material Request quantity!'))
+            kq2 = line.product_uom_qty - (kq + line.product_isu_qty)
+            sql = '''
+                update tpt_material_request_line set pending_qty = %s where id = %s
+            '''%(kq2, issue_line.request_line_id.id)
+            cr.execute(sql)
         return new_write
 tpt_material_issue_line()
 
