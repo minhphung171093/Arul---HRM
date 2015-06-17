@@ -1574,6 +1574,33 @@
             </field>
         </record>
         
+        <record model="ir.ui.view" id="view_tpt_cus_pay_tree">
+            <field name="name">account.voucher.tpt.cus.pay</field>
+            <field name="model">account.voucher</field>
+            <field name="arch" type="xml">
+                <tree colors="blue:state == 'draft';gray:state == 'cancel';red:audit" string="Voucher Entries">
+                    <field name="partner_id"/>
+                    <field name="period_id" invisible="context.get('visible', True)"/>
+                    <field name="type" invisible="context.get('visible', True)"/>
+                    <field name="audit" invisible="1"/>
+                    <field name="state"/>
+                </tree>
+            </field>
+        </record>
+        
+        <record id="account_voucher.action_vendor_payment_tree" model="ir.actions.act_window.view">
+            <field eval="1" name="sequence"/>
+            <field name="view_mode">tree</field>
+            <field name="view_id" ref="view_tpt_cus_pay_tree"/>
+            <field name="act_window_id" ref="account_voucher.action_vendor_payment"/>
+        </record>
+        <record id="account_voucher.action_vendor_payment_form" model="ir.actions.act_window.view">
+            <field eval="2" name="sequence"/>
+            <field name="view_mode">form</field>
+            <field name="view_id" ref="view_vendor_payment_form_inherit"/>
+            <field name="act_window_id" ref="account_voucher.action_vendor_payment"/>
+        </record>
+        
         <record id="view_tpt_material_issue_form_inherit" model="ir.ui.view">
             <field name="name">tpt.material.issue.form.inherit</field>
             <field name="model">tpt.material.issue</field>
