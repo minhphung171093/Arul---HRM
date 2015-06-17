@@ -103,7 +103,29 @@ class Parser(report_sxw.rml_parse):
         res = []
         #raise osv.except_osv(_('Warning!'),_('tst'))
         for emp_id in emp_ids :
-            payroll_ids = payroll_obj.search(self.cr, self.uid,[('month','=',month),('year','=',year),('employee_id','=',emp_id),('payroll_executions_id.state','in',['confirm','approve'])])
+            #payroll_ids = payroll_obj.search(self.cr, self.uid,[('month','=',month),('year','=',year),('employee_id','=',emp_id),('payroll_executions_id.state','in',['confirm','approve'])])
+            
+            payroll_ids = payroll_obj.search(self.cr, self.uid,[('employee_id','=',emp_id)])
+            
+            sql = '''
+            select payroll_area_id from hr_employee where id=%s
+            '''%emp_id
+            self.cr.execute(sql)
+            #temp_area = self.cr.dictfetchone()   
+            temp_area = self.cr.dictfetchone()['payroll_area_id']  
+            payroll_area_ids = temp_area
+            
+            sql = '''
+            select id from arul_hr_payroll_executions_details where month='%s' and year='%s' and employee_id=%s
+            and payroll_executions_id=(select id from arul_hr_payroll_executions where state in ('confirm','approve') 
+            and month='%s' and year='%s' and payroll_area_id=%s
+            )
+            '''%(month,year,emp_id,month,year,payroll_area_ids)
+            self.cr.execute(sql)
+            k = self.cr.dictfetchone()['id']  
+            payroll_ids = k
+            
+            
             basic = 0
             da = 0
             hra = 0
@@ -142,7 +164,7 @@ class Parser(report_sxw.rml_parse):
             lic = 0
             
             if payroll_ids:
-                payroll = payroll_obj.browse(self.cr, self.uid, payroll_ids[0])
+                payroll = payroll_obj.browse(self.cr, self.uid, payroll_ids)
                 epf = payroll.emp_pf_con
                 esi_limit = payroll.emp_esi_limit
                 esi_con = payroll.emp_esi_con
