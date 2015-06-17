@@ -2981,6 +2981,20 @@ class purchase_order_line(osv.osv):
                 'po_document_type_relate':fields.related('order_id', 'po_document_type',type = 'selection',selection=[
             ('raw','VV Raw material PO'),('asset','VV Capital PO'),('standard','VV Standard PO'),('local','VV Local PO'),('return','VV Return PO'),('service','VV Service PO'),('out','VV Out Service PO')], string='PO Document Type'),
                 'supplier_relate':fields.related('order_id', 'partner_id',type = 'many2one', relation='res.partner', string='Supplier'),
+                'state_relate':fields.related('order_id', 'state' ,type = 'selection',selection=[
+                                   ('draft', 'Draft PO'),
+                                    ('sent', 'RFQ Sent'),
+                                    ('amendement', 'Amendement'),
+                                    ('head', 'Purchase Head Approved'),
+                                    ('gm', 'GM Approval'),
+                                    ('md', 'Ready For GRN'),
+                                    ('confirmed', 'Waiting Approval'),
+                                    ('approved', 'Purchase Order'),
+                                    ('except_picking', 'Shipping Exception'),
+                                    ('except_invoice', 'Invoice Exception'),
+                                    ('done', 'Done'),
+                                    ('cancel', 'Cancelled'),
+                                   ], string='State'),
 #                 'po_document_type_relate':fields.selection([('raw','VV Raw material PO'),('asset','VV Capital PO'),('standard','VV Standard PO'),('local','VV Local PO'),('return','VV Return PO'),('service','VV Service PO'),('out','VV Out Service PO')],'PO Document Type'),
                 }   
     

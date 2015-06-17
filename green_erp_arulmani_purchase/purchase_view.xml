@@ -2095,7 +2095,8 @@
 						<field name="fright"/> 
 						<field name="fright_type"/>  
 						<field name="line_net"/>  
-						<field name="state"/>
+						<field name="state" invisible = '1'/>
+						<field name="state_relate"/>
 				</tree>
 			</field>
 		</record>       
@@ -2126,7 +2127,8 @@
 						<field name="fright"/> 
 						<field name="fright_type"/>  
 						<field name="line_net"/>  
-						<field name="state"/>
+						<field name="state" invisible = '1'/>
+						<field name="state_relate"/>
 						<field name="taxes_id" widget = 'many2many_tags'/> 
 					</group>
 				</sheet>  
@@ -2173,7 +2175,8 @@
         
         <menuitem action="action_view_tpt_purchase_order_line_form"
             id="menu_action_view_tpt_purchase_order_line_form"
-            parent="purchase.menu_procurement_management" sequence="11"/>
+            parent="purchase.menu_procurement_management" sequence="11" 
+            groups="green_erp_arulmani_hrm.group_vvti_hrm_hr_user,green_erp_arulmani_sale.group_vvti_sale_user"/>
         
     </data>
 </openerp>
