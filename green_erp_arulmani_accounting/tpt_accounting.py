@@ -1219,6 +1219,8 @@ class account_invoice(osv.osv):
                     move['doc_type'] = 'freight'
   
             ctx.update(invoice=inv)
+            if context.get('tpt_review_posting',False):
+                return move
             move_id = move_obj.create(cr, uid, move, context=ctx)
             new_move_name = move_obj.browse(cr, uid, move_id, context=ctx).name
             # make the invoice point to that move
@@ -2638,14 +2640,16 @@ class account_voucher(osv.osv):
                 sql = '''
                     update account_voucher set type = 'payment' where id = %s
                 '''%(voucher.id)
-                cr.execute(sql)
+                if not context.get('tpt_voucher', False):
+                    cr.execute(sql)
             elif voucher.type_trans in ('receipt'):
                 debit = voucher.sum_amount
                 account_id = voucher.account_id.id
                 sql = '''
                     update account_voucher set type = 'receipt' where id = %s
                 '''%(voucher.id)
-                cr.execute(sql)
+                if not context.get('tpt_voucher', False):
+                    cr.execute(sql)
 #/phuoc
         else:
             if voucher.type in ('purchase', 'payment'):
@@ -2762,7 +2766,7 @@ class account_voucher(osv.osv):
         tax_obj = self.pool.get('account.tax')
         tot_line = line_total
         rec_lst_ids = []
-
+        tpt_move_line = []
         date = self.read(cr, uid, voucher_id, ['date'], context=context)['date']
         ctx = context.copy()
         ctx.update({'date': date or time.strftime('%Y-%m-%d')})
@@ -2856,15 +2860,22 @@ class account_voucher(osv.osv):
                     foreign_currency_diff = sign * line.move_line_id.amount_residual_currency + amount_currency
 
             move_line['amount_currency'] = amount_currency
-            voucher_line = move_line_obj.create(cr, uid, move_line)
-            rec_ids = [voucher_line, line.move_line_id.id]
+            rec_ids = []
+            if context.get('tpt_voucher',False):
+                tpt_move_line.append((0,0,move_line))
+            else:
+                voucher_line = move_line_obj.create(cr, uid, move_line)
+                rec_ids = [voucher_line, line.move_line_id.id]
 
             if not currency_obj.is_zero(cr, uid, voucher.company_id.currency_id, currency_rate_difference):
                 # Change difference entry in company currency
                 exch_lines = self._get_exchange_lines(cr, uid, line, move_id, currency_rate_difference, company_currency, current_currency, context=context)
-                new_id = move_line_obj.create(cr, uid, exch_lines[0],context)
-                move_line_obj.create(cr, uid, exch_lines[1], context)
-                rec_ids.append(new_id)
+                if context.get('tpt_voucher',False):
+                    tpt_move_line.append((0,0,exch_lines[0]),(0,0,exch_lines[1]))
+                else:
+                    new_id = move_line_obj.create(cr, uid, exch_lines[0],context)
+                    move_line_obj.create(cr, uid, exch_lines[1], context)
+                    rec_ids.append(new_id)
 
             if line.move_line_id and line.move_line_id.currency_id and not currency_obj.is_zero(cr, uid, line.move_line_id.currency_id, foreign_currency_diff):
                 # Change difference entry in voucher currency
@@ -2882,11 +2893,14 @@ class account_voucher(osv.osv):
                     'debit': 0.0,
                     'date': line.voucher_id.date,
                 }
-                new_id = move_line_obj.create(cr, uid, move_line_foreign_currency, context=context)
-                rec_ids.append(new_id)
+                if context.get('tpt_voucher',False):
+                    tpt_move_line.append((0,0,move_line_foreign_currency))
+                else:
+                    new_id = move_line_obj.create(cr, uid, move_line_foreign_currency, context=context)
+                    rec_ids.append(new_id)
             if line.move_line_id.id:
                 rec_lst_ids.append(rec_ids)
-        return (tot_line, rec_lst_ids)
+        return (tot_line, rec_lst_ids, tpt_move_line)
     
     def action_move_line_create(self, cr, uid, ids, context=None):
         '''
@@ -2920,7 +2934,7 @@ class account_voucher(osv.osv):
                     move_line_brw = move_line_pool.browse(cr, uid, move_line_id, context=context)
                     line_total = move_line_brw.debit - move_line_brw.credit
                 rec_list_ids = []
-                line_total, rec_list_ids = self.voucher_move_line_create(cr, uid, voucher.id, line_total, move_id, company_currency, current_currency, context)
+                line_total, rec_list_ids,tpt_move_line = self.voucher_move_line_create(cr, uid, voucher.id, line_total, move_id, company_currency, current_currency, context)
                 if voucher.type_trans == 'receipt':
                     ml_writeoff = self.writeoff_move_line_get(cr, uid, voucher.id, line_total, move_id, name, company_currency, current_currency, local_context)
                     if ml_writeoff:
@@ -2939,7 +2953,7 @@ class account_voucher(osv.osv):
                     line_total = line_total + self._convert_amount(cr, uid, voucher.tax_amount, voucher.id, context=ctx)
     #             Create one move line per voucher line where amount is not 0.0
                 
-                line_total, rec_list_ids = self.voucher_move_line_create(cr, uid, voucher.id, line_total, move_id, company_currency, current_currency, context)
+                line_total, rec_list_ids,tpt_move_line = self.voucher_move_line_create(cr, uid, voucher.id, line_total, move_id, company_currency, current_currency, context)
     
                 # Create the writeoff line if needed
                 if voucher.type_cash_bank != 'journal':
@@ -3358,10 +3372,33 @@ class tpt_material_issue(osv.osv):
                 if (p.product_isu_qty > onhand_qty):
                     raise osv.except_osv(_('Warning!'),_('Issue quantity are %s but only %s available for this product in stock.' %(p.product_isu_qty, onhand_qty)))
                 if line.warehouse and line.warehouse.id and p.product_id and p.product_id.id:
-                    price_ids = self.pool.get('tpt.product.avg.cost').search(cr, uid, [('warehouse_id','=',line.warehouse.id),('product_id','=',p.product_id.id)])
-                if price_ids:
-                    price_avg = self.pool.get('tpt.product.avg.cost').browse(cr,uid,price_ids[0])
-                    tpt_cost = price_avg.avg_cost
+#                     price_ids = self.pool.get('tpt.product.avg.cost').search(cr, uid, [('warehouse_id','=',line.warehouse.id),('product_id','=',p.product_id.id)])
+#                 if price_ids:
+#                     price_avg = self.pool.get('tpt.product.avg.cost').browse(cr,uid,price_ids[0])
+#                     tpt_cost = price_avg.avg_cost
+                    
+                    sql = '''
+                            select case when sum(foo.product_qty)!=0 then sum(foo.product_qty) else 0 end ton_sl,case when sum(foo.price_unit)!=0 then sum(foo.price_unit) else 0 end total_cost from 
+                                (select st.product_qty,st.price_unit*st.product_qty as price_unit
+                                    from stock_move st
+                                        join stock_location loc1 on st.location_id=loc1.id
+                                        join stock_location loc2 on st.location_dest_id=loc2.id
+                                    where st.state='done' and st.location_dest_id = %s  and st.product_id=%s and date < '%s' 
+                                union all
+                                    select -1*st.product_qty,st.price_unit*st.product_qty as price_unit
+                                    from stock_move st
+                                        join stock_location loc1 on st.location_id=loc1.id
+                                        join stock_location loc2 on st.location_dest_id=loc2.id
+                                    where st.state='done' and st.location_id=%s and st.product_id=%s and date < '%s' 
+                                )foo
+                        '''%(line.warehouse.id,p.product_id.id,line.date_expec,line.warehouse.id,p.product_id.id,line.date_expec)
+                    cr.execute(sql)
+                    inventory = cr.dictfetchone()
+                    if inventory:
+                        hand_quantity = float(inventory['ton_sl'])
+                        total_cost = float(inventory['total_cost'])
+                        tpt_cost = hand_quantity and total_cost/hand_quantity or 0
+                    
                 rs = {
                       'name': '/',
                       'product_id':p.product_id and p.product_id.id or False,

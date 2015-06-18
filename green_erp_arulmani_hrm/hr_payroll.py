@@ -1684,9 +1684,11 @@ class arul_hr_payroll_executions(osv.osv):
 
                         base_amount = net_basic + net_da 
                         emp_pf_con_amount = round(base_amount*emp_pf_con/100)
+                        #raise osv.except_osv(_('Warning !'), _(round(21.5)))
                         vpfd_amount = round(base_amount * vpfd / 100) 	
-			total_deduction += (emp_pf_con_amount + emp_esi_con_amount + emp_lwf_amt + vpfd_amount)
+			total_deduction += (emp_pf_con_amount + emp_esi_con_amount + emp_lwf_amt + vpfd_amount)            
 			net_sala = gross_sal - total_deduction
+            
 
 
 #                         for _other_deductions_id in payroll_emp_struc_obj.browse(cr,uid,emp_struc_ids[0]).payroll_other_deductions_line:

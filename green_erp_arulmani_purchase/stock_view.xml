@@ -241,7 +241,7 @@
             <field name="model">stock.move</field>
             <field name="arch" type="xml">
                 <search string="GRN – Line Details">
-                	<field name="picking_id" string = 'GRN No'/>
+                	<field name="grn_no"/>
                 	<field name="supplier_id"/> 
                     <field name="po_no"/>
                     <field name="doc_type"/>
@@ -257,12 +257,13 @@
             	<tree string="GRN – Line Details" create='false' edit='false' delete='false'>
                     <field name="name" invisible='1'/>
                     <field name="picking_id" string="GRN No"/>
-		            <field name="grn_no" invisible='1'/>
+                    <field name="grn_no" invisible='1'/>
+		            <!--<field name="grn_no_1"/>-->
                     <field name="grn_date"/>
                     <field name="supplier_id"/> 
                     <field name="po_no"/>
                     <field name="doc_type"/>
-                    <field name="po_indent_id" string="Purchse Indent"/>
+                    <field name="po_indent_id" string="Purchase Indent"/>
                     <field name="product_id"/>
                     <field name="description"/>
                     <field name="item_text"/>
@@ -288,6 +289,7 @@
 		                    <field name="name" invisible='1'/>
 		                    <field name="picking_id" string="GRN No"/>
 		                    <field name="grn_no" invisible='1'/>
+		                    <!--<field name="grn_no_1"/>-->
 		                    <field name="grn_date"/>
 		                    <field name="supplier_id"/> 
 		                    <field name="po_no"/>

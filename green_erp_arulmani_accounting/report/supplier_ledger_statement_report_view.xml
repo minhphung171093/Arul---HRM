@@ -79,6 +79,7 @@
 		                			<field name="document_no"/>
 		                			<field name="narration"/>
 		                			<field name="sale_order_no"/>
+		                			<field name="reference"/>
 		                			<field name="bill_no"/>
 		                			<field name="bill_date"/>
 		                			<field name="cheque_no"/>

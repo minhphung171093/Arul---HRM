@@ -152,5 +152,7 @@
             id="menu_action_view_tpt_project_section_form"
             parent="purchase.menu_procurement_management" sequence="26"/>
             
+
+            
     </data>
 </openerp>
