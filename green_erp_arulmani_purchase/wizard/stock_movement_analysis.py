@@ -247,7 +247,7 @@ class stock_movement_analysis(osv.osv_memory):
                                         or (st.id in (select move_id from stock_inventory_move_rel where inventory_id in 
                                               (select id from stock_inventory where date between '%s' and '%s' and state = 'done'))))
                                     )foo
-                            '''%(product_id,locat_ids[0],date_from,date_to,date_from,date_to)
+                            '''%(locat_ids[0],product_id,date_from,date_to,date_from,date_to)
                 cr.execute(sql)
                 inventory = cr.dictfetchone()
             if categ and categ =='spares':
@@ -264,7 +264,7 @@ class stock_movement_analysis(osv.osv_memory):
                                              or (st.id in (select move_id from stock_inventory_move_rel where inventory_id in 
                                               (select id from stock_inventory where date between '%s' and '%s' and state = 'done'))))
                                     )foo
-                            '''%(product_id,locat_ids[0],date_from,date_to,date_from,date_to)
+                            '''%(locat_ids[0],product_id,date_from,date_to,date_from,date_to)
                 cr.execute(sql)
                 inventory = cr.dictfetchone()
             if inventory:
