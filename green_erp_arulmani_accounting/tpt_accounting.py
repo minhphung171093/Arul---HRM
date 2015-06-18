@@ -3933,9 +3933,14 @@ class tpt_hr_payroll_approve_reject(osv.osv):
                     'line_id': journal_s1_line,
                     'doc_type':'payroll'
                     }
-                new_s1_jour_id = account_move_obj.create(cr,uid,value_s1)
-                payroll_obj.write(cr, uid, excutive.id, {'state':'approve'})
+                context.update({'get_tpt_payroll': 'excutive'})
+                if context.get('tpt_review_posting',False) and context.get('tpt_approve_payroll',False) and context.get('tpt_approve_payroll',False) == 'excutive':
+                    return value_s1
+                if context.get('tpt_approve_payroll',False) and context.get('tpt_approve_payroll',False) == 'posting':
+                    new_s1_jour_id = account_move_obj.create(cr,uid,value_s1)
+                    payroll_obj.write(cr, uid, excutive.id, {'state':'approve'})
             if payroll_staff_id:
+                context.update({'get_tpt_payroll': 'excutive'})
                 staff = payroll_obj.browse(cr,uid,payroll_staff_id)
                 sql = '''
                     select id
@@ -4083,8 +4088,12 @@ class tpt_hr_payroll_approve_reject(osv.osv):
                     'line_id': journal_s2_line,
                     'doc_type':'staff_payroll'
                     }
-                new_s2_jour_id = account_move_obj.create(cr,uid,value_s2)
-                payroll_obj.write(cr, uid, staff.id, {'state':'approve'})
+                context.update({'get_tpt_payroll': 'staff'})
+                if context.get('tpt_review_posting',False) and context.get('tpt_approve_payroll',False) and context.get('tpt_approve_payroll',False) == 'staff':
+                    return value_s2
+                if context.get('tpt_approve_payroll',False) and context.get('tpt_approve_payroll',False) == 'posting':
+                    new_s2_jour_id = account_move_obj.create(cr,uid,value_s2)
+                    payroll_obj.write(cr, uid, staff.id, {'state':'approve'})
             if payroll_workers_id:
                 workers = payroll_obj.browse(cr,uid,payroll_workers_id)
                 sql = '''
@@ -4234,8 +4243,12 @@ class tpt_hr_payroll_approve_reject(osv.osv):
                     'line_id': journal_s3_line,
                     'doc_type':'worker_payroll'
                     }
-                new_s3_jour_id = account_move_obj.create(cr,uid,value_s3)
-                payroll_obj.write(cr, uid, workers.id, {'state':'approve'})
+                context.update({'get_tpt_payroll': 'worker'})
+                if context.get('tpt_review_posting',False) and context.get('tpt_approve_payroll',False) and context.get('tpt_approve_payroll',False) == 'worker':
+                    return value_s3
+                if context.get('tpt_approve_payroll',False) and context.get('tpt_approve_payroll',False) == 'posting':
+                    new_s3_jour_id = account_move_obj.create(cr,uid,value_s3)
+                    payroll_obj.write(cr, uid, workers.id, {'state':'approve'})
         return self.write(cr, uid, line.id, {'state':'done'})
     
 #     def approve_payroll(self, cr, uid, ids, context=None):
