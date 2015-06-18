@@ -55,9 +55,9 @@
             <field name="view_id" ref="view_tpt_update_stock_move_report_tree_view"/>
         </record>
         
-        <!--<menuitem action="action_tpt_update_stock_move_report_form"
+        <menuitem action="action_tpt_update_stock_move_report_form"
         	id="menu_action_tpt_update_stock_move_report_form"
-            parent="purchase.menu_procurement_management" sequence="560" />-->
+            parent="purchase.menu_procurement_management" sequence="560" />
         
     </data>
 </openerp>
