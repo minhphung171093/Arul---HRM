@@ -3476,12 +3476,14 @@ class tpt_gate_out_pass(osv.osv):
       
     _columns = {
         'name': fields.char('Gate Out Pass No', size = 1024, readonly=True),
-        'po_id': fields.many2one('purchase.order', 'PO Number', required = True),
-        'supplier_id': fields.many2one('res.partner', 'Supplier', required = True),
-        'grn_id': fields.many2one('stock.picking.in','GRN No', required = True), 
-        'gate_date_time': fields.datetime('Gate Out Pass Date & Time'),
-        'gate_out_pass_line': fields.one2many('tpt.gate.out.pass.line', 'gate_out_pass_id', 'Product Details'),
-        'state':fields.selection([('draft', 'Draft'),('cancel', 'Cancel'),('done', 'Approve')],'Status', readonly=True, states={'cancel': [('readonly', True)], 'done':[('readonly', True)]}),
+        'po_id': fields.many2one('purchase.order', 'PO Number', readonly = True),
+        'supplier_id': fields.many2one('res.partner', 'Supplier', readonly = True),
+        'grn_id': fields.many2one('stock.picking.in','Old GRN No', required = True), 
+        'good_id': fields.many2one('tpt.good.return.request','Goods Return Request No', required = True), 
+        'header_text':fields.text('Header Text',readonly=True),
+        'gate_date_time': fields.datetime('Gate Out Pass Date & Time', readonly = True),
+        'gate_out_pass_line': fields.one2many('tpt.gate.out.pass.line', 'gate_out_pass_id', 'Product Details', readonly = True),
+        'state':fields.selection([('draft', 'Draft'),('cancel', 'Cancel'),('confirm', 'Confirm'),('done', 'Done')],'Status', readonly=True, states={'cancel': [('readonly', True)], 'done':[('readonly', True)]}),
                 }
     _defaults={
                'name':'/',
@@ -3495,6 +3497,9 @@ class tpt_gate_out_pass(osv.osv):
         return super(tpt_gate_out_pass, self).create(cr, uid, vals, context=context)
     
     def bt_approve(self, cr, uid, ids, context=None):
+        return self.write(cr, uid, ids,{'state':'confirm'})
+    
+    def bt_create_grn(self, cr, uid, ids, context=None):
         return self.write(cr, uid, ids,{'state':'done'})
     
     def bt_cancel(self, cr, uid, ids, context=None):
