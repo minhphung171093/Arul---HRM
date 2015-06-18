@@ -188,5 +188,52 @@
         <menuitem action="action_tpt_import_inventory_spare_form_view"
             id="menu_action_tpt_import_inventory_spare_form_view"
             parent="purchase.menu_procurement_management" sequence="556"/>
+        
+        <record id="tpt_map_price_material_tree_view" model="ir.ui.view">
+			<field name="name">tpt.map.price.material.tree</field>
+			<field name="model">tpt.map.price.material</field>
+			<field name="arch" type="xml">
+				<tree string="Map Price Material">
+					<field name ="name"/>
+					<field name="state"/>
+				</tree>
+			</field>
+		</record>
+
+		<record id="tpt_map_price_material_form_view" model="ir.ui.view">
+            <field name="name">tpt.map.price.material.form</field>
+            <field name="model">tpt.map.price.material</field>
+            <field name="arch" type="xml">
+                <form string="Map Price Material" version="7.0">
+                    <header>
+	                    <button name="map_price_material" states='draft' string="Map" type="object" class="oe_highlight" />
+	                    <field name="state" widget="statusbar" statusbar_visible="draft,done" statusbar_colors='{"draft":"blue","done":"blue"}'/>
+	                </header>                
+                	<sheet>  
+                		<group>
+                		<field name ="name"/>
+						<label for="datas" string="Data Upload Field"/>
+							<div>
+								<field name="datas" filename="datas_fname"/>
+	                        	<field name="datas_fname" invisible="1" class="oe_inline oe_right"/>
+	                        </div>
+                		</group>
+                	</sheet>
+				</form>
+			</field>
+		</record>
+
+        <record id="action_tpt_map_price_material_form_view" model="ir.actions.act_window">
+            <field name="name">Map Price Material</field>
+			<field name="type">ir.actions.act_window</field>
+            <field name="res_model">tpt.map.price.material</field>
+            <field name="view_type">form</field>
+            <field name="view_mode">tree,form</field>
+            <field name="view_id" ref="tpt_map_price_material_tree_view"/>
+        </record>
+        
+        <menuitem action="action_tpt_map_price_material_form_view"
+            id="menu_action_tpt_map_price_material_form_view"
+            parent="purchase.menu_procurement_management" sequence="566"/>
     </data>
 </openerp>
