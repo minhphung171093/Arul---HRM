@@ -1574,6 +1574,42 @@ class tpt_update_stock_move_report(osv.osv):
                                                    'total_cost':total_cost})
         return self.write(cr, uid, ids, {'result':result})
     
+    def update_issue_unit_price(self, cr, uid, ids, context=None):
+        sql = '''
+            select id from stock_move where issue_id is not null and state = 'done' and picking_id is null and inspec_id is null
+        '''
+        cr.execute(sql)
+        for line in cr.fetchall():
+            move = self.pool.get('stock.move').browse(cr, 1, line[0])
+            sql = '''
+                    select case when sum(foo.product_qty)!=0 then sum(foo.product_qty) else 0 end ton_sl,case when sum(foo.price_unit)!=0 then sum(foo.price_unit) else 0 end total_cost from 
+                        (select st.product_qty,st.price_unit*st.product_qty as price_unit
+                            from stock_move st
+                                join stock_location loc1 on st.location_id=loc1.id
+                                join stock_location loc2 on st.location_dest_id=loc2.id
+                            where st.state='done' and st.location_dest_id = %s  and st.product_id=%s and date < '%s' 
+                        union all
+                            select -1*st.product_qty,st.price_unit*st.product_qty as price_unit
+                            from stock_move st
+                                join stock_location loc1 on st.location_id=loc1.id
+                                join stock_location loc2 on st.location_dest_id=loc2.id
+                            where st.state='done' and st.location_id=%s and st.product_id=%s and date < '%s' 
+                        )foo
+                '''%(move.location_id.id,move.product_id.id,move.issue_id.date_expec,move.location_id.id,move.product_id.id,move.issue_id.date_expec)
+            cr.execute(sql)
+            inventory = cr.dictfetchone()
+            if inventory:
+                hand_quantity = float(inventory['ton_sl'])
+                total_cost = float(inventory['total_cost'])
+                avg_cost = hand_quantity and total_cost/hand_quantity or 0
+                sql = '''
+                    update stock_move set price_unit = %s where id = %s
+                '''%(avg_cost,move.id)
+                cr.execute(sql)
+                print 'TPT update ISSUE unit price for report', move.id
+         
+        return self.write(cr, uid, ids, {'result':'TPT update UNIT PRICE for report Done'})
+    
 tpt_update_stock_move_report()
 
 class tpt_update_inspection_line(osv.osv):
