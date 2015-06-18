@@ -412,6 +412,7 @@ class stock_move(osv.osv):
         'issue_id': fields.many2one('tpt.material.issue','Material Issue'),
         'cost_center_id': fields.many2one('tpt.cost.center','Cost center'),
         'grn_no': fields.related('picking_id', 'name', type='char', string='GRN No'),
+#         'grn_no_1': fields.related('picking_id', 'id',relation='stock.picking.in', type='many2one', string='GRN No'),
         'grn_date': fields.related('picking_id', 'date', type='datetime', string='GRN Date'),
         'supplier_id': fields.related('picking_id', 'partner_id',relation='res.partner', type='many2one', string='Supplier'),
         'po_no': fields.related('picking_id', 'purchase_id',relation='purchase.order', type='many2one', string='PO Number'),

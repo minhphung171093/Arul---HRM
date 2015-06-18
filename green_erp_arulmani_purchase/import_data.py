@@ -202,7 +202,7 @@ class tpt_import_material(osv.osv):
             uom_cate_obj = self.pool.get('product.uom.categ')
             try:
                 dem = 1
-                for row in range(2,sh.nrows):
+                for row in range(1,sh.nrows):
                     code = sh.cell(row, 0).value or False
                     if code:
                         cla = sh.cell(row, 2).value or False
@@ -651,3 +651,92 @@ class tpt_import_inventory_spare(osv.osv):
         return self.write(cr, uid, ids, {'state':'done'})
     
 tpt_import_inventory_spare()
+
+class tpt_map_price_material(osv.osv):
+    _name = 'tpt.map.price.material'
+    def _data_get(self, cr, uid, ids, name, arg, context=None):
+        if context is None:
+            context = {}
+        result = {}
+        location = self.pool.get('ir.config_parameter').get_param(cr, uid, 'hr_identities_attachment.location')
+        bin_size = context.get('bin_size')
+        for attach in self.browse(cr, uid, ids, context=context):
+            if location and attach.store_fname:
+                result[attach.id] = self._file_read(cr, uid, location, attach.store_fname, bin_size)
+            else:
+                result[attach.id] = attach.db_datas
+        return result
+
+    def _data_set(self, cr, uid, id, name, value, arg, context=None):
+        # We dont handle setting data to null
+        if not value:
+            return True
+        if context is None:
+            context = {}
+        location = self.pool.get('ir.config_parameter').get_param(cr, uid, 'hr_identities_attachment.location')
+        file_size = len(value.decode('base64'))
+        if location:
+            attach = self.browse(cr, uid, id, context=context)
+            if attach.store_fname:
+                self._file_delete(cr, uid, location, attach.store_fname)
+            fname = self._file_write(cr, uid, location, value)
+            # SUPERUSER_ID as probably don't have write access, trigger during create
+            super(tpt_map_price_material, self).write(cr, SUPERUSER_ID, [id], {'store_fname': fname, 'file_size': file_size}, context=context)
+        else:
+            super(tpt_map_price_material, self).write(cr, SUPERUSER_ID, [id], {'db_datas': value, 'file_size': file_size}, context=context)
+        return True
+
+    _columns = {
+        'name': fields.date('Date Import', required=True,states={'done': [('readonly', True)]}),
+        'datas_fname': fields.char('File Name',size=256),
+        'datas': fields.function(_data_get, fnct_inv=_data_set, string='Material Data', type="binary", nodrop=True,states={'done': [('readonly', True)]}),
+        'store_fname': fields.char('Stored Filename', size=256),
+        'db_datas': fields.binary('Database Data'),
+        'file_size': fields.integer('File Size'),
+        'state':fields.selection([('draft', 'Draft'),('done', 'Done')],'Status', readonly=True)
+    }
+    
+    _defaults = {
+        'state':'draft',
+        'name': time.strftime('%Y-%m-%d'),
+        
+    }
+    
+    def map_price_material(self, cr, uid, ids, context=None):
+        this = self.browse(cr, uid, ids[0])
+        try:
+            recordlist = base64.decodestring(this.datas)
+            excel = xlrd.open_workbook(file_contents = recordlist)
+            sh = excel.sheet_by_index(0)
+        except Exception, e:
+            raise osv.except_osv(_('Warning!'), str(e))
+        if sh:
+            pro_pro_obj = self.pool.get('product.product')
+            inve_obj = self.pool.get('stock.inventory')
+            move_obj = self.pool.get('stock.move')
+            inventory_line_id = []
+            try:
+                for row in range(1,sh.nrows):
+                    qty = sh.cell(row, 3).value or 0
+                    if qty:
+                        mate = sh.cell(row, 0).value.strip() or False
+                        price = sh.cell(row, 5).value or 0.0
+                        if mate:
+                            product_ids = pro_pro_obj.search(cr, uid, [('default_code','=',mate)])
+                            if len(product_ids)==1:
+                                sql = '''
+                                    select id from stock_move where product_id=%s and product_qty=%s
+                                        and id in (select move_id from stock_inventory_move_rel where inventory_id in (select id from stock_inventory where name='Update Spare')) 
+                                '''%(product_ids[0],qty)
+                                cr.execute(sql)
+                                move_ids = [r[0] for r in cr.fetchall()]
+                                if len(move_ids)==1:
+                                    move_obj.write(cr, uid, move_ids, {'price_unit':price})
+                    dem += 1
+#                         
+            except Exception, e:
+                raise osv.except_osv(_('Warning!'), str(e)+ ' Line: '+str(dem+1))
+        return self.write(cr, uid, ids, {'state':'done'})
+    
+tpt_map_price_material()
+

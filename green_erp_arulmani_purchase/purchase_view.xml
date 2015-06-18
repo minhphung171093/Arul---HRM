@@ -286,7 +286,7 @@
 						<field name="doc_type_relate"/> 
 						<field name="department_id_relate"/> 
 						<field name="section_id_relate"/> 
-						<field name="create_uid_relate"/> 
+						<!-- <field name="create_uid_relate"/>   -->
 						<field name="requisitioner_relate"/>  
 						<field name="product_id" />
 						<field name="description"/>
@@ -313,7 +313,7 @@
 						<field name="doc_type_relate"/> 
 						<field name="department_id_relate"/> 
 						<field name="section_id_relate"/> 
-						<field name="create_uid_relate"/> 
+						<!-- <field name="create_uid_relate"/>   -->
 						<field name="requisitioner_relate"/>  
 						<field name="product_id" />
 						<field name="description"/>
@@ -335,7 +335,7 @@
 			<field name="model">tpt.purchase.product</field>
 			<field name="arch" type="xml">
 				<search string="Purchase Indent">
-					<field name="create_uid_relate"/>
+					<!-- <field name="create_uid_relate"/>  -->
 					<field name="pur_product_id"/>	
 					<field name="product_id"/>
 					<field name="doc_type_relate"/> 
@@ -770,9 +770,6 @@
 				</xpath>
 				<xpath expr="//page[@string='PO Line']/field/tree/field[@name='product_qty']" position="after">
 					<field name="state" invisible = '1' required = '0'/>
-				</xpath>
-				<xpath expr="//page[@string='PO Line']/field[@name='order_line']" position="attributes">
-					<attribute name="context">{'default_po_document_type_relate':po_document_type}</attribute>
 				</xpath>
 				<xpath expr="//page[@string='PO Line']/group/field[@name='amount_untaxed']" position="after">
 					<field name="p_f_charge" widget="monetary"/>
@@ -2192,7 +2189,6 @@
 						<field name="po_document_name_relate" invisible="1"/> 
 						<field name="date_order_relate"/> 
 						<field name="supplier_relate"/>
-						<field name="line_no"/> 
 						<field name="po_indent_no"/> 
 						<field name="product_id"/>
 						<field name="description"/>
@@ -2208,7 +2204,8 @@
 						<field name="fright"/> 
 						<field name="fright_type"/>  
 						<field name="line_net"/>  
-						<field name="state"/>
+						<field name="state" invisible = '1'/>
+						<field name="state_relate"/>
 				</tree>
 			</field>
 		</record>       
@@ -2225,7 +2222,6 @@
 	            		<field name="po_document_type_relate"/> 
 						<field name="date_order_relate"/> 
 						<field name="supplier_relate"/>
-						<field name="line_no"/> 
 						<field name="po_indent_no"/> 
 						<field name="product_id"/>
 						<field name="description"/>
@@ -2240,7 +2236,8 @@
 						<field name="fright"/> 
 						<field name="fright_type"/>  
 						<field name="line_net"/>  
-						<field name="state"/>
+						<field name="state" invisible = '1'/>
+						<field name="state_relate"/>
 						<field name="taxes_id" widget = 'many2many_tags'/> 
 					</group>
 				</sheet>  
@@ -2287,7 +2284,8 @@
         
         <menuitem action="action_view_tpt_purchase_order_line_form"
             id="menu_action_view_tpt_purchase_order_line_form"
-            parent="purchase.menu_procurement_management" sequence="11"/>
+            parent="purchase.menu_procurement_management" sequence="11" 
+            groups="green_erp_arulmani_hrm.group_vvti_hrm_hr_user,green_erp_arulmani_sale.group_vvti_sale_user"/>
         
     </data>
 </openerp>

@@ -42,8 +42,12 @@ class supplier_ledger_statement(osv.osv_memory):
             acount_move_obj = self.pool.get('account.move')
             sup_ids = []
             sql = '''
-                select aml.id from account_move_line aml inner join account_move am on aml.move_id = am.id
-                where am.date between '%s' and '%s' and am.doc_type in ('sup_inv_po','sup_inv','sup_pay') and am.partner_id = %s and am.state='posted' and aml.credit is not null and aml.credit !=0
+                select aml.id from account_move_line aml 
+                inner join account_move am on (aml.move_id = am.id)
+                inner join res_partner p on (p.id=am.partner_id)
+                inner join account_account aa on (aa.id=aml.account_id)
+                where am.date between '%s' and '%s' and am.doc_type in ('sup_inv_po','sup_inv','sup_pay','ser_inv') 
+                and am.partner_id = %s and am.state='posted' and p.vendor_code=aa.code
                     order by am.date
                 '''%(date_from, date_to,sup)
             cr.execute(sql)
@@ -59,7 +63,7 @@ class supplier_ledger_statement(osv.osv_memory):
             return acount_move_line_obj.browse(cr,uid,sup_ids)
          
         def get_bill_no(move_id, doc_type):
-            if doc_type == 'sup_inv_po' or doc_type == 'sup_inv':
+            if doc_type == 'sup_inv_po' or doc_type == 'sup_inv' or doc_type=='ser_inv':
                 cr.execute('''select name from account_invoice where move_id =%s''', (move_id,))
             else:
                 cr.execute('''select number from account_voucher where move_id =%s''', (move_id,))
@@ -67,7 +71,7 @@ class supplier_ledger_statement(osv.osv_memory):
             return number and number[0] or ''
          
         def get_bill_date(move_id, doc_type):
-            if doc_type == 'sup_inv_po' or doc_type == 'sup_inv':
+            if doc_type == 'sup_inv_po' or doc_type == 'sup_inv' or doc_type=='ser_inv':
                 cr.execute('''select bill_date from account_invoice where move_id =%s''', (move_id,))
             else:
                 cr.execute('''select date from account_voucher where move_id =%s''', (move_id,))
@@ -129,8 +133,9 @@ class supplier_ledger_statement(osv.osv_memory):
             sls_line.append((0,0,{
                 'date': line.move_id and line.move_id.date or '',
                 'document_no': line.move_id and line.move_id.name or '',
-                'narration': line.move_id and line.move_id.ref or '',
+                'narration': line.move_id and line.move_id.narration or '',
                 'sale_order_no': get_so_no(line.move_id.id, line.move_id.doc_type) + ' - ' + get_so_date(line.move_id.id, line.move_id.doc_type),
+                'reference': line.move_id and line.move_id.ref or '',
                 'bill_no': get_bill_no(line.move_id.id, line.move_id.doc_type),
                 'bill_date': get_bill_date(line.move_id.id, line.move_id.doc_type),
                 'cheque_no': get_cheque_no(line.move_id.id),
@@ -221,6 +226,7 @@ class tpt_supplier_ledger_line(osv.osv):
         'document_no': fields.char('Document No.', size = 1024),
         'narration': fields.char('Narration', size = 1024),
         'sale_order_no': fields.char('Purchase Order No. & Date', size = 1024),
+        'reference': fields.char('Reference', size = 1024),
         'bill_no': fields.char('Bill No', size = 1024),
         'bill_date': fields.date('Bill Date'),
         'cheque_no':fields.char('Cheque No', size = 1024),

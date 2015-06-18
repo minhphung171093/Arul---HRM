@@ -97,7 +97,7 @@ class Parser(report_sxw.rml_parse):
         sql = '''
             select vvt_number, to_char(date_invoice,'yyyy.mm.dd'), vessel_flight_no, port_of_loading_id, 
             port_of_discharge_id, mark_container_no, invoice_type,disc_goods,final_desti,country_dest,
-            tod_place,lc_no,payment_term,gross_weight from account_invoice where delivery_order_id = %s
+            tod_place,lc_no,payment_term,case when gross_weight>0 then gross_weight else 0 end gross_weight  from account_invoice where delivery_order_id = %s
             '''%(do_id)
         self.cr.execute(sql)
         vals = self.cr.dictfetchone()
