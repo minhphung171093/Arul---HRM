@@ -1501,6 +1501,19 @@
             </field>
         </record>
         
+        <record id="account_voucher.action_vendor_receipt_tree" model="ir.actions.act_window.view">
+            <field eval="1" name="sequence"/>
+            <field name="view_mode">tree</field>
+            <field name="view_id" ref="account_voucher.view_voucher_tree"/>
+            <field name="act_window_id" ref="account_voucher.action_vendor_receipt"/>
+        </record>
+        <record id="account_voucher.action_vendor_receipt_form" model="ir.actions.act_window.view">
+            <field eval="2" name="sequence"/>
+            <field name="view_mode">form</field>
+            <field name="view_id" ref="view_vendor_receipt_form_inherit"/>
+            <field name="act_window_id" ref="account_voucher.action_vendor_receipt"/>
+        </record>
+        
         <record id="view_vendor_payment_form_inherit" model="ir.ui.view">
             <field name="name">view.voucher.form.inherit</field>
             <field name="model">account.voucher</field>
@@ -1562,6 +1575,19 @@
                     </xpath>
                 </data>
             </field>
+        </record>
+        
+        <record id="account_voucher.action_vendor_payment_tree" model="ir.actions.act_window.view">
+            <field eval="1" name="sequence"/>
+            <field name="view_mode">tree</field>
+            <field name="view_id" ref="account_voucher.view_voucher_tree"/>
+            <field name="act_window_id" ref="account_voucher.action_vendor_payment"/>
+        </record>
+        <record id="account_voucher.action_vendor_payment_form" model="ir.actions.act_window.view">
+            <field eval="2" name="sequence"/>
+            <field name="view_mode">form</field>
+            <field name="view_id" ref="view_vendor_payment_form_inherit"/>
+            <field name="act_window_id" ref="account_voucher.action_vendor_payment"/>
         </record>
         
         <record id="view_tpt_material_issue_form_inherit" model="ir.ui.view">
@@ -2334,6 +2360,7 @@
             </field>
         </record>
         
+        <!-- Journal Vouchers -->
         <record id="account_voucher.action_voucher_list" model="ir.actions.act_window">
             <field name="name">Journal Vouchers</field>
             <field name="res_model">account.voucher</field>
@@ -2342,6 +2369,19 @@
             <field name="context">{'journal_entry_create':1}</field>
             <field name="view_id" ref="account_voucher.view_voucher_tree"/>
             <field name="search_view_id" ref="account_voucher.view_voucher_filter"/>
+        </record>
+        
+        <record id="account_voucher.action_journal_voucher_tree" model="ir.actions.act_window.view">
+            <field eval="1" name="sequence"/>
+            <field name="view_mode">tree</field>
+            <field name="view_id" ref="account_voucher.view_voucher_tree"/>
+            <field name="act_window_id" ref="account_voucher.action_voucher_list"/>
+        </record>
+        <record id="account_voucher.action_journal_voucher_form" model="ir.actions.act_window.view">
+            <field eval="2" name="sequence"/>
+            <field name="view_mode">form</field>
+            <field name="view_id" ref="view_voucher_form_inherit"/>
+            <field name="act_window_id" ref="account_voucher.action_voucher_list"/>
         </record>
         
         <record model="ir.ui.menu" id="account.periodical_processing_reconciliation">
