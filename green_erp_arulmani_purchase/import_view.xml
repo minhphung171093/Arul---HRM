@@ -207,6 +207,7 @@
                 <form string="Map Price Material" version="7.0">
                     <header>
 	                    <button name="map_price_material" states='draft' string="Map" type="object" class="oe_highlight" />
+	                    <button name="check_price_material" states='draft' string="Check" type="object" class="oe_highlight" />
 	                    <field name="state" widget="statusbar" statusbar_visible="draft,done" statusbar_colors='{"draft":"blue","done":"blue"}'/>
 	                </header>                
                 	<sheet>  
