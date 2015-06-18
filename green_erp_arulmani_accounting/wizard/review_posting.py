@@ -288,6 +288,83 @@ class review_posting(osv.osv_memory):
             
             vals['line_id'] = move_line
             res.update(vals)    
+        if context.get('tpt_preview_mrp',False):
+            account_move_obj = self.pool.get('account.move')
+            period_obj = self.pool.get('account.period')
+            journal_obj = self.pool.get('account.journal')
+            avg_cost_obj = self.pool.get('tpt.product.avg.cost')
+            mrp_obj = self.pool.get('mrp.production')
+            journal_line = []
+            credit = 0
+            price = 0
+            for line in mrp_obj.browse(cr,uid,context['active_ids']):
+                sql = '''
+                        select id from account_journal
+                '''
+                cr.execute(sql)
+                journal_ids = [r[0] for r in cr.fetchall()]
+                date_period = line.date_planned,
+                sql = '''
+                    select id from account_period where '%s' between date_start and date_stop
+                '''%(date_period)
+                cr.execute(sql)
+                period_ids = [r[0] for r in cr.fetchall()]
+                
+                if not period_ids:
+                    raise osv.except_osv(_('Warning!'),_('Period is not null, please configure it in Period master !'))
+                for period_id in period_obj.browse(cr,uid,period_ids):
+            
+                    for mat in line.move_lines:
+                        avg_cost_ids = avg_cost_obj.search(cr, uid, [('product_id','=',mat.product_id.id),('warehouse_id','=',line.location_src_id.id)])
+                        if avg_cost_ids:
+                            avg_cost_id = avg_cost_obj.browse(cr, uid, avg_cost_ids[0])
+                            unit = avg_cost_id.avg_cost
+                            cost = unit * mat.product_qty
+                            price += cost
+                            if cost:
+                                if mat.product_id.purchase_acc_id:
+                                    journal_line.append((0,0,{
+                                                    'name':mat.product_id.code, 
+                                                    'account_id': mat.product_id.purchase_acc_id and mat.product_id.purchase_acc_id.id,
+                                                    'debit':cost,
+                                                    'credit':0,
+                                                   }))
+                                else:
+                                    raise osv.except_osv(_('Warning!'),_("Purchase GL Account is not configured for Product '%s'! Please configured it!")%(mat.product_id.code))
+                    for act in line.bom_id.activities_line:
+                        if act.activities_id.act_acc_id:
+                            credit += act.product_cost
+                            journal_line.append((0,0,{
+                                                    'name':act.activities_id.code, 
+                                                    'account_id': act.activities_id.act_acc_id and act.activities_id.act_acc_id.id,
+                                                    'debit':act.product_cost or 0,
+                                                    'credit':0,
+                                                   }))
+                        else:
+                            raise osv.except_osv(_('Warning!'),_("Activity Account is not configured for Activity '%s'! Please configured it!")%(act.activities_id.code))
+                    credit += price
+                    if credit:
+                        if line.product_id.product_asset_acc_id:
+                            journal_line.append((0,0,{
+                                                    'name':line.product_id.code, 
+                                                    'account_id': line.product_id.product_asset_acc_id and line.product_id.product_asset_acc_id.id,
+                                                    'debit': 0,
+                                                    'credit':credit ,
+                                                   }))
+                        else:
+                            raise osv.except_osv(_('Warning!'),_("Product Asset Account is not configured for Product '%s'! Please configured it!")%(line.product_id.code))
+                    vals={
+                                'journal_id':journal_ids[0],
+                                'period_id':period_id.id ,
+                                'doc_type':'product',
+                                'date': time.strftime('%Y-%m-%d'),
+                                'line_id': journal_line,
+                            }
+                    res.update(vals)
+                    sql = '''
+                        update mrp_production set produce_cost = %s where id=%s 
+                    '''%(credit,line.id)
+                    cr.execute(sql)
         return res
 
     _columns = {
