@@ -2441,8 +2441,14 @@
 					<attribute name='groups'>green_erp_arulmani_accounting.group_vvti_accounting_gm</attribute>
 				</xpath>
 				<xpath expr="//button[@name='approve_payroll']" position="attributes">
+					<attribute name='context'>{'tpt_approve_payroll':'posting'}</attribute>
 					<attribute name='groups'>green_erp_arulmani_accounting.group_vvti_accounting_gm</attribute>
 				</xpath>
+				<xpath expr="//button[@name='approve_payroll']" position="before" >
+            		<button name="%(action_review_posting_view)d" type="action" string="Review Excutive Posting" states="draft" context="{'tpt_approve_payroll':'excutive'}"/>
+            		<button name="%(action_review_posting_view)d" type="action" string="Review Staff Posting" states="draft" context="{'tpt_approve_payroll':'staff'}"/>
+            		<button name="%(action_review_posting_view)d" type="action" string="Review Worker Posting" states="draft" context="{'tpt_approve_payroll':'worker'}"/>
+                </xpath>
 		     </field>   
        </record>
        <record id="tpt_stock_picking_out_form_preview" model="ir.ui.view">

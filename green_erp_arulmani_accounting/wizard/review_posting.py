@@ -19,6 +19,15 @@ class review_posting(osv.osv_memory):
         if context.get('tpt_invoice',False):
             vals = self.pool.get('account.invoice').action_move_create(cr, uid, context['active_ids'], context)
             res.update(vals)
+        if context.get('tpt_approve_payroll',False) and context.get('tpt_approve_payroll',False) == 'worker' and context.get('get_tpt_payroll',False) and context.get('get_tpt_payroll',False) == 'worker':
+            vals = self.pool.get('tpt.hr.payroll.approve.reject').approve_payroll(cr, uid, context['active_ids'], context)
+            res.update(vals)
+        if context.get('tpt_approve_payroll',False) and context.get('tpt_approve_payroll',False) == 'excutive' and context.get('get_tpt_payroll',False) and context.get('get_tpt_payroll',False) == 'excutive':
+            vals = self.pool.get('tpt.hr.payroll.approve.reject').approve_payroll(cr, uid, context['active_ids'], context)
+            res.update(vals)
+        if context.get('tpt_approve_payroll',False) and context.get('tpt_approve_payroll',False) == 'staff' and context.get('get_tpt_payroll',False) and context.get('get_tpt_payroll',False) == 'staff':
+            vals = self.pool.get('tpt.hr.payroll.approve.reject').approve_payroll(cr, uid, context['active_ids'], context)
+            res.update(vals)
         if context.get('tpt_issue',False):
             price = 0.0
             product_price = 0.0
