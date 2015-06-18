@@ -28,6 +28,7 @@
 	            		<button name="update_inspec" string="Update Inspection" type="object" class="oe_highlight"/>
 	            		<button name="create_issue" string="Create Issue" type="object" class="oe_highlight"/>
 	            		<button name="create_inspec" string="Create Inspection" type="object" class="oe_highlight"/>
+	            		<button name="sum_avg_cost" string="Sum Avg Cost" type="object" class="oe_highlight"/>
 		            </header>    
 	            	<group>
 	                    <field name="result"/>

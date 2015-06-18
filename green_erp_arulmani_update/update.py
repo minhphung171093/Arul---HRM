@@ -1484,6 +1484,96 @@ class tpt_update_stock_move_report(osv.osv):
             cr.execute('update stock_move set date=%s,date_expected=%s where id=%s',(line.date,line.date,move_id,))
         return self.write(cr, uid, ids, {'result':result})
     
+    def sum_avg_cost(self, cr, uid, ids, context=None):
+        result = 'Done create inspection \n'
+        inventory_obj = self.pool.get('tpt.product.avg.cost')
+        for id in [10724]:
+            sql = 'delete from tpt_product_avg_cost where product_id=%s'%(id)
+            cr.execute(sql)
+            sql = '''
+                select foo.loc as loc
+                    from
+                    (select st.location_id as loc from stock_move st
+                        inner join stock_location l on st.location_id= l.id
+                            where l.usage = 'internal'
+                    union all
+                    select st.location_dest_id as loc from stock_move st
+                        inner join stock_location l on st.location_dest_id= l.id
+                        where l.usage = 'internal'
+                        )foo
+                   group by foo.loc
+            '''
+            cr.execute(sql)
+            for loc in cr.dictfetchall():
+                sql = '''
+                    select case when sum(foo.product_qty)!=0 then sum(foo.product_qty) else 0 end ton_sl,case when sum(foo.price_unit)!=0 then sum(foo.price_unit) else 0 end total_cost from 
+                        (select st.product_qty,st.price_unit*st.product_qty as price_unit
+                            from stock_move st 
+                            where st.state='done' and st.product_id=%s and st.location_dest_id=%s and st.location_dest_id != st.location_id and production_id is null
+                        )foo
+                '''%(id,loc['loc'])
+                cr.execute(sql)
+                inventory = cr.dictfetchone()
+                if inventory:
+                    hand_quantity = float(inventory['ton_sl'])
+                    total_cost = float(inventory['total_cost'])
+                    avg_cost = hand_quantity and total_cost/hand_quantity or 0
+                    sql = '''
+                        select case when sum(foo.product_qty)!=0 then sum(foo.product_qty) else 0 end ton_sl 
+                            from 
+                                (
+                                select st.product_qty*-1 as product_qty
+                                    from stock_move st 
+                                    where st.state='done'
+                                        and st.product_id=%s
+                                        and location_id=%s
+                                        and location_dest_id != location_id
+                                        and production_id is null
+                                )foo
+                    '''%(id,loc['loc'])
+                    cr.execute(sql)
+                    out = cr.dictfetchone()
+                    if out:
+                        hand_quantity = hand_quantity+float(out['ton_sl'])
+                        total_cost = avg_cost*hand_quantity
+                    
+                    sql = '''
+                        select case when sum(foo.product_qty)!=0 then sum(foo.product_qty) else 0 end ton_sl from 
+                            (select st.product_qty as product_qty
+                                from stock_move st 
+                                where st.state='done' and st.product_id=%s and st.location_dest_id=%s and st.
+                                 location_dest_id != st.location_id
+                                 and production_id is not null
+                             union all
+                             select st.product_qty*-1 as product_qty
+                                from stock_move st 
+                                where st.state='done'
+                                        and st.product_id=%s
+                                            and location_id=%s
+                                            and location_dest_id != location_id
+                                             and production_id is not null
+                            )foo
+                    '''%(id,loc['loc'],id,loc['loc'])
+                    cr.execute(sql)
+                    hand_quantity += cr.fetchone()[0]
+                    sql = '''
+                        select case when sum(produce_cost)!=0 then sum(produce_cost) else 0 end produce_cost,
+                            case when sum(product_qty)!=0 then sum(product_qty) else 0 end product_qty
+                            from mrp_production where location_dest_id=%s and product_id=%s and state='done'
+                    '''%(loc['loc'],id)
+                    cr.execute(sql)
+                    produce = cr.dictfetchone()
+                    if produce:
+#                         hand_quantity += float(produce['product_qty'])
+                        total_cost += float(produce['produce_cost'])
+                        avg_cost = hand_quantity and total_cost/hand_quantity or 0
+                    inventory_obj.create(cr, uid, {'product_id':id,
+                                                   'warehouse_id':loc['loc'],
+                                                   'hand_quantity':hand_quantity,
+                                                   'avg_cost':avg_cost,
+                                                   'total_cost':total_cost})
+        return self.write(cr, uid, ids, {'result':result})
+    
 tpt_update_stock_move_report()
 
 class tpt_update_inspection_line(osv.osv):
