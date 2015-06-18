@@ -716,7 +716,7 @@ class tpt_map_price_material(osv.osv):
             move_obj = self.pool.get('stock.move')
             inventory_line_id = []
             dem = 0
-            mun = 0
+            num = 0
             try:
                 for row in range(1,sh.nrows):
                     qty = sh.cell(row, 3).value or 0
@@ -734,7 +734,7 @@ class tpt_map_price_material(osv.osv):
                                 move_ids = [r[0] for r in cr.fetchall()]
                                 if len(move_ids)==1:
                                     move_obj.write(cr, uid, move_ids, {'price_unit':price})
-                                    mun+=1
+                                    num+=1
                                     print 'Update: ',num
                     dem += 1
 #                         
