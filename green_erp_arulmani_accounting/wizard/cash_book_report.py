@@ -113,7 +113,7 @@ class cash_book_report(osv.osv_memory):
             sql = '''
                 select sum(aml.credit) as credit, aml.date from account_move_line aml 
                 where aml.credit is not null and aml.credit != 0 and aml.date < '%s' 
-                and move_id in (select move_id from account_voucher where type = 'payment' and state = 'posted' and journal_id in (select id from account_journal where type = 'cash')) 
+                and move_id in (select move_id from account_voucher where type = 'payment' and state = 'posted' and journal_id in (select id from account_journal where type in ('cash','general')) )
                 group by aml.date
             '''%(date_from)
             cr.execute(sql)
@@ -123,7 +123,7 @@ class cash_book_report(osv.osv_memory):
             sql = '''
                 select sum(aml.debit) as debit, aml.date from account_move_line aml 
                 where aml.debit is not null and aml.debit != 0 and aml.date < '%s' 
-                and move_id in (select move_id from account_voucher where type = 'receipt' and state = 'posted' and journal_id in (select id from account_journal where type = 'cash')) 
+                and move_id in (select move_id from account_voucher where type = 'receipt' and state = 'posted' and journal_id in (select id from account_journal where type in ('cash','general')) )
                 group by aml.date
             '''%(date_from)
             cr.execute(sql)
@@ -141,7 +141,7 @@ class cash_book_report(osv.osv_memory):
             type = o.type_trans
             if type == 'payment':
                 sql = '''
-                        select id from account_voucher where date between '%s' and '%s' and type = 'payment' and journal_id in (select id from account_journal where type = 'cash') and state = 'posted'
+                        select id from account_voucher where date between '%s' and '%s' and type = 'payment' and journal_id in (select id from account_journal where type in ('cash','general')) and state = 'posted'
                     '''%(date_from, date_to)
                 cr.execute(sql)
                 account_ids = [row[0] for row in cr.fetchall()]
@@ -159,7 +159,7 @@ class cash_book_report(osv.osv_memory):
                     return []
             elif type == 'receipt':
                 sql = '''
-                        select id from account_voucher where date between '%s' and '%s' and type = 'receipt' and journal_id in (select id from account_journal where type = 'cash') and state = 'posted'
+                        select id from account_voucher where date between '%s' and '%s' and type = 'receipt' and journal_id in (select id from account_journal where type in ('cash','general')) and state = 'posted'
                     '''%(date_from, date_to)
                 cr.execute(sql)
                 account_ids = [row[0] for row in cr.fetchall()]
@@ -178,7 +178,7 @@ class cash_book_report(osv.osv_memory):
                     return []
             else:
                 sql = '''
-                        select id from account_voucher where date between '%s' and '%s' and journal_id in (select id from account_journal where type = 'cash') and state = 'posted'
+                        select id from account_voucher where date between '%s' and '%s' and journal_id in (select id from account_journal where type in ('cash','general')) and state = 'posted'
                     '''%(date_from, date_to)
                 cr.execute(sql)
                 account_ids = [row[0] for row in cr.fetchall()]

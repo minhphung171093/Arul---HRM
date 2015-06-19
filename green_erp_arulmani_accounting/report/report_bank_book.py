@@ -342,7 +342,7 @@ class Parser(report_sxw.rml_parse):
                          from account_account aa, account_move_line aml,account_voucher av where av.move_id = aml.move_id and
                             aml.move_id in (select move_id from account_voucher where id in %s and type = 'receipt' and state = 'posted') 
                             and credit is not null and credit !=0 and aa.id = aml.account_id group by av.name,aa.name, 
-                            aml.account_id,av.date, aml.ref, av.payee, av.cheque_date, av.cheque_no aml.name order by av.date
+                            aml.account_id,av.date, aml.ref, av.payee, av.cheque_date, av.cheque_no, aml.name order by av.date
                     
                     ''',(tuple(account_ids),))
                     return self.cr.dictfetchall()
@@ -356,8 +356,8 @@ class Parser(report_sxw.rml_parse):
                 account_ids = [row[0] for row in self.cr.fetchall()]
                 if account_ids:    
                     self.cr.execute('''
-                        select foo.acc_name, foo.account_id, sum(foo.debit) as debit, sum(foo.credit) as credit,foo.voucher_name,foo.voucher_date, foo.ref,foo.payee,foo.voucher_desc 
-                        foo.cheque_no, foo.cheque_date  from
+                        select foo.acc_name, foo.account_id, sum(foo.debit) as debit, sum(foo.credit) as credit,foo.voucher_name,foo.voucher_date, foo.ref,foo.payee, 
+                        foo.cheque_no, foo.cheque_date, foo.voucher_desc  from
                             (select aa.name as acc_name, aml.account_id, aml.debit as debit, aml.credit as credit,av.name as voucher_name,
                             av.date as voucher_date , 
                             aml.ref as ref, av.payee payee, av.cheque_no cheque_no, av.cheque_date cheque_date,  aml.name voucher_desc

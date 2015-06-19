@@ -231,7 +231,7 @@ class Parser(report_sxw.rml_parse):
         date_to = wizard_data['date_to']
         if type == 'payment':
             sql = '''
-                    select id from account_voucher where date between '%s' and '%s' and type = 'payment' and journal_id in (select id from account_journal where type = 'cash') and state = 'posted'
+                    select id from account_voucher where date between '%s' and '%s' and type = 'payment' and journal_id in (select id from account_journal where type in ('cash','general')) and state = 'posted'
                 '''%(date_from, date_to)
             self.cr.execute(sql)
             account_ids = [row[0] for row in self.cr.fetchall()]
@@ -248,7 +248,7 @@ class Parser(report_sxw.rml_parse):
                 return []
         elif type == 'receipt':
             sql = '''
-                    select id from account_voucher where date between '%s' and '%s' and type = 'receipt' and journal_id in (select id from account_journal where type = 'cash') and state = 'posted'
+                    select id from account_voucher where date between '%s' and '%s' and type = 'receipt' and journal_id in (select id from account_journal where type in ('cash','general')) and state = 'posted'
                 '''%(date_from, date_to)
             self.cr.execute(sql)
             account_ids = [row[0] for row in self.cr.fetchall()]
@@ -268,7 +268,7 @@ class Parser(report_sxw.rml_parse):
                 return []
         else:
             sql = '''
-                    select id from account_voucher where date between '%s' and '%s' and journal_id in (select id from account_journal where type = 'cash') and state = 'posted'
+                    select id from account_voucher where date between '%s' and '%s' and journal_id in (select id from account_journal where type in ('cash','general')) and state = 'posted'
                 '''%(date_from, date_to)
             self.cr.execute(sql)
             account_ids = [row[0] for row in self.cr.fetchall()]
