@@ -594,7 +594,7 @@
 						<field name="tpt_consignee_line" nolabel='1'>
 							<tree editable='top'>		    
 								<field name="tpt_consignee_id" on_change = "onchange_tpt_consignee_id(tpt_consignee_id)" domain="[('customer_account_group_id','=','VVTI Ship to Party')]" options="{'create': false, 'create_edit': false}"/>
-								<field name="tpt_consignee_code" invisible='1' readonly='1'/>			
+								<field name="tpt_consignee_code" invisible='0' readonly='1'/>			
 								</tree>
 							</field>							
 					</page>
