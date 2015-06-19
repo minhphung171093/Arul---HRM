@@ -2479,7 +2479,7 @@
             <field name="model">mrp.production</field>
             <field name="inherit_id" ref="mrp.mrp_production_form_view"/>
             <field name="arch" type="xml">
-            	<xpath expr="//button[@name='767']" position="after">
+            	<xpath expr="//button[@name='%(mrp.act_mrp_product_produce)d']" position="after">
             		<button name="%(action_review_posting_view)d" type="action" string="Review Posting" states="ready,in_production" context="{'tpt_preview_mrp':True}"/>
             	</xpath>
             </field>
