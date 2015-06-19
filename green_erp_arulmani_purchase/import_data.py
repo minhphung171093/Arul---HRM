@@ -806,7 +806,7 @@ class tpt_map_price_material(osv.osv):
                             product_ids = pro_pro_obj.search(cr, uid, [('default_code','=',mate)])
                             if len(product_ids)==1:
                                 sql = '''
-                                    select id from stock_move where product_id=%s and product_qty=%s and (price_unit is null or price_unit=0)
+                                    select id from stock_move where product_id=%s and product_qty=%s
                                         and id in (select move_id from stock_inventory_move_rel where inventory_id in (select id from stock_inventory)) 
                                 '''%(product_ids[0],qty)
                                 cr.execute(sql)
