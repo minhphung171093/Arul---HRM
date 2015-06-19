@@ -3570,21 +3570,46 @@ class tpt_gate_out_pass(osv.osv):
     
     def create(self, cr, uid, vals, context=None):
         if 'good_id' in vals:
-            good = self.pool.get('tpt.good.return.request').browse(cr, uid, vals['product_id'])
-            if product.categ_id.cate_name not in ['consum','service']:
+            gate_out_pass_line = []
+            good_req_id = self.pool.get('tpt.good.return.request').browse(cr,uid,vals['good_id'])
+            for line in good_req_id.product_detail_line:
+                gate_out_pass_line.append((0,0,{
+                          'product_id': line.product_id and line.product_id.id or False,
+                          'product_qty':line.product_qty or False,
+                          'uom_po_id': line.uom_po_id and line.uom_po_id.id or False,
+                          'reason': line.reason or False,
+                    }))
                 vals.update({
-                             'uom_po_id':product.uom_id.id,
-                             'description':product.name,
-                             'mrs_qty':float(product_mrs_qty),
-                             })
-            else:
-                vals.update({
-                             'mrs_qty':float(product_mrs_qty),
-                             })
-        new_id = super(tpt_gate_out_pass, self).create(cr, uid, vals, context=context)
+                    'grn_id':good_req_id.grn_no_id.id or False,
+                    'supplier_id': good_req_id.grn_no_id and good_req_id.grn_no_id.partner_id and good_req_id.grn_no_id.partner_id.id or False,
+                    'po_id': good_req_id.grn_no_id and good_req_id.grn_no_id.purchase_id and good_req_id.grn_no_id.purchase_id.id or False,
+                    'gate_out_pass_line': gate_out_pass_line,
+                    })
         if vals.get('name','/')=='/':
             vals['name'] = self.pool.get('ir.sequence').get(cr, uid, 'tpt.gate.out.pass.import') or '/'
+        new_id = super(tpt_gate_out_pass, self).create(cr, uid, vals, context=context)
+
         return new_id
+
+    def write(self, cr, uid, ids, vals, context=None):
+        if 'good_id' in vals:
+            gate_out_pass_line = []
+            good_req_id = self.pool.get('tpt.good.return.request').browse(cr,uid,vals['good_id'])
+            for line in good_req_id.product_detail_line:
+                gate_out_pass_line.append((0,0,{
+                          'product_id': line.product_id and line.product_id.id or False,
+                          'product_qty':line.product_qty or False,
+                          'uom_po_id': line.uom_po_id and line.uom_po_id.id or False,
+                          'reason': line.reason or False,
+                    }))
+                vals.update({
+                    'grn_id':good_req_id.grn_no_id.id or False,
+                    'supplier_id': good_req_id.grn_no_id and good_req_id.grn_no_id.partner_id and good_req_id.grn_no_id.partner_id.id or False,
+                    'po_id': good_req_id.grn_no_id and good_req_id.grn_no_id.purchase_id and good_req_id.grn_no_id.purchase_id.id or False,
+                    'gate_out_pass_line': gate_out_pass_line,
+                    })
+        new_write = super(tpt_gate_out_pass, self).write(cr, uid,ids, vals, context)
+        return new_write
     
     def bt_approve(self, cr, uid, ids, context=None):
         return self.write(cr, uid, ids,{'state':'confirm'})
@@ -3602,23 +3627,29 @@ class tpt_gate_out_pass(osv.osv):
                         'gate_out_pass_line':[],
                       }
                }
-        if good_id:
-            gate_out_pass_line = []
-#             good_req_ids = self.pool.get('tpt.good.return.request').search(cr, uid,[('grn_no_id','=',good_id)])
-            good_req_id = self.pool.get('tpt.good.return.request').browse(cr,uid,good_id)
-            for line in good_req_id.product_detail_line:
-                gate_out_pass_line.append((0,0,{
-                          'product_id': line.product_id and line.product_id.id or False,
-                          'product_qty':line.product_qty or False,
-                          'uom_po_id': line.uom_po_id and line.uom_po_id.id or False,
-                          'reason': line.reason or False,
-                    }))
-        res['value'].update({
-                    'grn_id':good_req_id.grn_no_id.id or False,
-                    'supplier_id': good_req_id.grn_no_id and good_req_id.grn_no_id.partner_id and good_req_id.grn_no_id.partner_id.id or False,
-                    'po_id': good_req_id.grn_no_id and good_req_id.grn_no_id.purchase_id and good_req_id.grn_no_id.purchase_id.id or False,
-                    'gate_out_pass_line': gate_out_pass_line,
-        })
+        for good in self.browse(cr,uid,ids):
+            sql='''
+                delete from tpt_gate_out_pass_line where gate_out_pass_id = %s
+            '''%(good.id)
+            cr.execute(sql)
+            if good_id:
+    
+                gate_out_pass_line = []
+    #             good_req_ids = self.pool.get('tpt.good.return.request').search(cr, uid,[('grn_no_id','=',good_id)])
+                good_req_id = self.pool.get('tpt.good.return.request').browse(cr,uid,good_id)
+                for line in good_req_id.product_detail_line:
+                    gate_out_pass_line.append((0,0,{
+                              'product_id': line.product_id and line.product_id.id or False,
+                              'product_qty':line.product_qty or False,
+                              'uom_po_id': line.uom_po_id and line.uom_po_id.id or False,
+                              'reason': line.reason or False,
+                        }))
+            res['value'].update({
+                        'grn_id':good_req_id.grn_no_id.id or False,
+                        'supplier_id': good_req_id.grn_no_id and good_req_id.grn_no_id.partner_id and good_req_id.grn_no_id.partner_id.id or False,
+                        'po_id': good_req_id.grn_no_id and good_req_id.grn_no_id.purchase_id and good_req_id.grn_no_id.purchase_id.id or False,
+                        'gate_out_pass_line': gate_out_pass_line,
+            })
         return res
      
 tpt_gate_out_pass()
