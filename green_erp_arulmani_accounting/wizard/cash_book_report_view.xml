@@ -10,6 +10,7 @@
 	                <field name="date_from" />
 	                <field name="date_to" />
 	                <field name="type_trans" />
+	                <field name="is_posted" />
 	                </group>
 	                <footer>
 	                    <button name="print_report" type='object' string="OK" class="oe_highlight"/>
