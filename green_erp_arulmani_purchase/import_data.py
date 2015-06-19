@@ -817,6 +817,7 @@ class tpt_map_price_material(osv.osv):
                                     sql = '''
                                         update stock_inventory set date = '2015-03-31 00:00:00' where id in (select inventory_id from stock_inventory_move_rel where move_id = %s)
                                     '''%(move_ids[0])
+                                    cr.execute(sql)
                                     print 'Update: ',num
                     dem += 1
 #                         
