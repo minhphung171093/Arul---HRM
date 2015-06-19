@@ -28,6 +28,7 @@ This module is used to enter security code sent by mail.
     'website': "http://www. tenthplanet.in",
     'depends': ['base', 'web', 'mail', 'email_template'],
     'data': [
+        'security/ir.model.access.csv',
         'data/email_data.xml',
         'user_view.xml',
     ],
