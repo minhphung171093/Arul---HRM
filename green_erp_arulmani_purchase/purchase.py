@@ -3296,19 +3296,23 @@ class tpt_good_return_request(osv.osv):
             parent_dest_ids = locat_obj.search(cr, uid, [('name','in',['Block List','Block','Blocked List','Blocked']),('usage','=','view')])
             location_dest_ids = locat_obj.search(cr, uid, [('name','in',['Block List','Block','Blocked List','Blocked']),('location_id','=',parent_dest_ids[0])])
             location_dest_id = location_dest_ids[0]
-            sql = '''
-                select sum(product_qty) as product_qty from tpt_product_detail_line where request_id in (select id from tpt_good_return_request where grn_no_id = %s and state != 'cancel')
-            '''%(good.grn_no_id.id)
-            cr.execute(sql)
-            sum_qty = cr.dictfetchone()['product_qty'] or 0
             for line in picking.move_lines:
+                sql = '''
+                    select sum(product_qty) as product_qty from tpt_product_detail_line where st_move_id = %s and request_id in (select id from tpt_good_return_request where grn_no_id = %s and state != 'cancel')
+                '''%(line.id, good.grn_no_id.id)
+                cr.execute(sql)
+                sum_qty_sql = cr.dictfetchone()
+                if sum_qty_sql:
+                    sum_qty = sum_qty_sql['product_qty'] or 0
                 quality_ids = self.pool.get('tpt.quanlity.inspection').search(cr,uid,[('need_inspec_id','=',line.id)])
                 for quality in self.pool.get('tpt.quanlity.inspection').browse(cr,uid,quality_ids):
                     sql = '''
                         select product_qty from stock_move where inspec_id = %s and location_id = %s and location_dest_id = %s
                     '''%(quality.id, location_id, location_dest_id)
                     cr.execute(sql)
-                    product_qty = cr.dictfetchone()['product_qty'] or 0
+                    product_qty_sql = cr.dictfetchone()
+                    if product_qty_sql:
+                        product_qty = product_qty_sql['product_qty'] or 0
                     if product_qty-sum_qty < 0:
                         raise osv.except_osv(_('Warning!'),_('The Quantity for this product must less than or equal Quantity is rejected'))
                         return False
@@ -3346,19 +3350,23 @@ class tpt_good_return_request(osv.osv):
             parent_dest_ids = locat_obj.search(cr, uid, [('name','in',['Block List','Block','Blocked List','Blocked']),('usage','=','view')])
             location_dest_ids = locat_obj.search(cr, uid, [('name','in',['Block List','Block','Blocked List','Blocked']),('location_id','=',parent_dest_ids[0])])
             location_dest_id = location_dest_ids[0]
-            sql = '''
-                select sum(product_qty) as product_qty from tpt_product_detail_line where request_id in (select id from tpt_good_return_request where grn_no_id = %s and state != 'cancel')
-            '''%(grn_no_id)
-            cr.execute(sql)
-            sum_qty = cr.dictfetchone()['product_qty'] or 0
             for line in picking.move_lines:
+                sql = '''
+                    select sum(product_qty) as product_qty from tpt_product_detail_line where st_move_id = %s and request_id in (select id from tpt_good_return_request where grn_no_id = %s and state != 'cancel')
+                '''%(line.id, grn_no_id)
+                cr.execute(sql)
+                sum_qty_sql = cr.dictfetchone()
+                if sum_qty_sql:
+                    sum_qty = sum_qty_sql['product_qty'] or 0
                 quality_ids = self.pool.get('tpt.quanlity.inspection').search(cr,uid,[('need_inspec_id','=',line.id)])
                 for quality in self.pool.get('tpt.quanlity.inspection').browse(cr,uid,quality_ids):
                     sql = '''
                         select product_qty from stock_move where inspec_id = %s and location_id = %s and location_dest_id = %s
                     '''%(quality.id, location_id, location_dest_id)
                     cr.execute(sql)
-                    product_qty = cr.dictfetchone()['product_qty'] or 0
+                    product_qty_sql = cr.dictfetchone()
+                    if product_qty_sql:
+                        product_qty = product_qty_sql['product_qty'] or 0
                     if product_qty-sum_qty > 0:
                         rs = {
                               'product_id':line.product_id and line.product_id.id or False,
@@ -3366,6 +3374,7 @@ class tpt_good_return_request(osv.osv):
                               'uom_po_id': line.product_uom and line.product_uom.id or False,
                               'state': 'reject',
                               'reason': quality.reason,
+                              'st_move_id': line.id
                               }
                         details.append((0,0,rs))
         return {'value': {'product_detail_line': details}}
@@ -3391,6 +3400,7 @@ class tpt_product_detail_line(osv.osv):
         'uom_po_id': fields.many2one('product.uom', 'UOM'),
         'state':fields.selection([('reject', 'Reject')],'Status', readonly=True),
         'reason': fields.text('Reason'),
+        'st_move_id': fields.many2one('stock.move', 'Stock move'),
         }
     _defaults = {
         'state': 'reject',
