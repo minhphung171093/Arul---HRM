@@ -581,7 +581,17 @@
             id="menu_action_view_tpt_form_403_form"
             parent="menu_hr_sale_management" sequence="13"/>
 
-            
+        <record id="view_tpt_consignee_tree_vew" model="ir.ui.view">
+			<field name="name">tpt.cus.consignee.tree</field>
+			<field name="model">tpt.cus.consignee</field>
+			<field name="arch" type="xml">
+				<tree string="Consignee">
+						<field name="tpt_consignee_id" />
+						<field name="tpt_consignee_code" />
+						
+				</tree>
+			</field>
+		</record>    
         <record id="tpt_view_res_partner_form" model="ir.ui.view">
             <field name="name">tpt.res.partner.form</field>
             <field name="model">res.partner</field>
