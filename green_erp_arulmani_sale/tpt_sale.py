@@ -2199,7 +2199,7 @@ class tpt_cus_consignee(osv.osv):
             vals = {
                     'tpt_consignee_code': line.customer_code,    
                     }
-        return {'value': vals}
+        return {'value': vals} 
     
     def name_get(self, cr, uid, ids, context=None):
         res = []
@@ -2217,6 +2217,25 @@ class tpt_cus_consignee(osv.osv):
             
             res.append((record['id'], name))
         return res
+    ###
+    def create(self, cr, uid, vals, context=None):
+        if 'tpt_consignee_id' in vals:
+            partner = self.pool.get('res.partner').browse(cr, uid, vals['tpt_consignee_id'])
+            vals.update({'tpt_consignee_code':partner.customer_code,
+                         
+                         })
+        
+        return super(tpt_cus_consignee, self).create(cr, uid, vals, context)
+    
+    def write(self, cr, uid, ids, vals, context=None):
+        if 'tpt_consignee_id' in vals:
+            partner = self.pool.get('res.partner').browse(cr, uid, vals['tpt_consignee_id'])
+            vals.update({'tpt_consignee_code':partner.customer_code,
+                         
+                         })
+        new_write = super(tpt_cus_consignee, self).write(cr, uid,ids, vals, context)
+
+        return new_write
 tpt_cus_consignee()   
 
 class tpt_batch_allotment_line(osv.osv):

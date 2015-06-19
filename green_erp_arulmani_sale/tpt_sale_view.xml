@@ -581,7 +581,17 @@
             id="menu_action_view_tpt_form_403_form"
             parent="menu_hr_sale_management" sequence="13"/>
 
-            
+        <record id="view_tpt_consignee_tree_vew" model="ir.ui.view">
+			<field name="name">tpt.cus.consignee.tree</field>
+			<field name="model">tpt.cus.consignee</field>
+			<field name="arch" type="xml">
+				<tree string="Consignee">
+						<field name="tpt_consignee_id" />
+						<field name="tpt_consignee_code" />
+						
+				</tree>
+			</field>
+		</record>    
         <record id="tpt_view_res_partner_form" model="ir.ui.view">
             <field name="name">tpt.res.partner.form</field>
             <field name="model">res.partner</field>
@@ -594,7 +604,7 @@
 						<field name="tpt_consignee_line" nolabel='1'>
 							<tree editable='top'>		    
 								<field name="tpt_consignee_id" on_change = "onchange_tpt_consignee_id(tpt_consignee_id)" domain="[('customer_account_group_id','=','VVTI Ship to Party')]" options="{'create': false, 'create_edit': false}"/>
-								<field name="tpt_consignee_code" invisible='1' readonly='1'/>			
+								<field name="tpt_consignee_code" invisible='0' readonly='1'/>			
 								</tree>
 							</field>							
 					</page>
