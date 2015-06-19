@@ -533,6 +533,7 @@ class Parser(report_sxw.rml_parse):
                avg_cost = hand_quantity and total_cost/hand_quantity or 0 
            
            if move_type == 'good':
+               good = self.pool.get('tpt.material.issue').browse(cr,uid,material_issue_id)
                sql = '''
                         select case when sum(-1*st.product_qty)!=0 then sum(-1*st.product_qty) else 0 end ton_sl,case when sum(st.price_unit*st.product_qty)!=0 then sum(st.price_unit*st.product_qty) else 0 end total_cost
                         from stock_move st
@@ -541,7 +542,7 @@ class Parser(report_sxw.rml_parse):
                         where st.state='done' and st.product_id=%s and loc1.usage = 'internal' and loc2.usage != 'internal' and st.location_id!=st.location_dest_id
                         and st.location_id = %s and to_date(to_char(date, 'YYYY-MM-DD'), 'YYYY-MM-DD') = '%s'
                            
-                   '''%(product_id[0], locat_ids[0], date)
+                   '''%(product_id[0], locat_ids[0], good.date_expec)
                self.cr.execute(sql)
                inventory = self.cr.dictfetchone()
                if inventory:
