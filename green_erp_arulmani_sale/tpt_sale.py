@@ -1231,7 +1231,7 @@ class tpt_blank_order_line(osv.osv):
         'sub_total': fields.function(subtotal_blanket_orderline, multi='deltas' ,string='SubTotal'),
         'freight': fields.float('Frt/Qty'),
         #Effective Consignee
-        'tpt_name_consignee_id': fields.many2one('tpt.cus.consignee', 'Effective Consignee', required = False),
+        'tpt_name_consignee_id': fields.many2one('tpt.cus.consignee', 'Consignee', required = False),
         
         'name_consignee_id': fields.many2one('res.partner', 'Consignee', required = False),
         'location': fields.char('Location', size = 1024,readonly = True),
