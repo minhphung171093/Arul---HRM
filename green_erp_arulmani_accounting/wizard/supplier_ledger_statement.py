@@ -64,6 +64,14 @@ class supplier_ledger_statement(osv.osv_memory):
          
         def get_bill_no(move_id, doc_type):
             if doc_type == 'sup_inv_po' or doc_type == 'sup_inv' or doc_type=='ser_inv':
+                cr.execute('''select bill_number from account_invoice where move_id =%s''', (move_id,))
+            else:
+                cr.execute('''select number from account_voucher where move_id =%s''', (move_id,))
+            number = cr.fetchone()
+            return number and number[0] or ''
+        
+        def get_inv_no(move_id, doc_type):
+            if doc_type == 'sup_inv_po' or doc_type == 'sup_inv' or doc_type=='ser_inv':
                 cr.execute('''select name from account_invoice where move_id =%s''', (move_id,))
             else:
                 cr.execute('''select number from account_voucher where move_id =%s''', (move_id,))
@@ -136,6 +144,7 @@ class supplier_ledger_statement(osv.osv_memory):
                 'narration': line.move_id and line.move_id.narration or '',
                 'sale_order_no': get_so_no(line.move_id.id, line.move_id.doc_type) + ' - ' + get_so_date(line.move_id.id, line.move_id.doc_type),
                 'reference': line.move_id and line.move_id.ref or '',
+                'invoice_no': get_inv_no(line.move_id.id, line.move_id.doc_type),
                 'bill_no': get_bill_no(line.move_id.id, line.move_id.doc_type),
                 'bill_date': get_bill_date(line.move_id.id, line.move_id.doc_type),
                 'cheque_no': get_cheque_no(line.move_id.id),
@@ -222,11 +231,12 @@ class tpt_supplier_ledger_line(osv.osv):
     _name = "tpt.supplier.ledger.line"
     _columns = {
         'ledger_id': fields.many2one('tpt.supplier.ledger', 'Supplier Ledger', ondelete='cascade'),
-        'date': fields.date('Date'),
-        'document_no': fields.char('Document No.', size = 1024),
+        'date': fields.date('Posting Date'),
+        'document_no': fields.char('Posting Doc.No.', size = 1024),
+        'reference': fields.char('Reference', size = 1024),
         'narration': fields.char('Narration', size = 1024),
         'sale_order_no': fields.char('Purchase Order No. & Date', size = 1024),
-        'reference': fields.char('Reference', size = 1024),
+        'invoice_no': fields.char('Invoice No', size = 1024),
         'bill_no': fields.char('Bill No', size = 1024),
         'bill_date': fields.date('Bill Date'),
         'cheque_no':fields.char('Cheque No', size = 1024),
