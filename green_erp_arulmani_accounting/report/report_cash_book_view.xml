@@ -85,6 +85,7 @@
 		                			<field name="desc"/>
 		                			<field name="payee"/>
 		                			<field name="ref"/>
+		                			<field name="voucher_desc"/>
 		                			<field name="opening_balance"/>
 		                			<field name="debit"/>
 		                			<field name="crebit"/>

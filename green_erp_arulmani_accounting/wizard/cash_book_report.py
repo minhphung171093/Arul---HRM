@@ -48,10 +48,11 @@ class tpt_cash_book_line(osv.osv_memory):
         'crebit': fields.float('Credit (Rs.)'),
         'balance': fields.float('Balance (Rs.)'),
         'date': fields.date('Date'),
-        'desc': fields.char('Description', size = 1024),
+        'desc': fields.char('GL Name', size = 1024),
         'gl_code': fields.char('GL Code', size = 1024),
         'ref': fields.char('Reference', size = 1024),
         'payee': fields.char('Payee', size = 1024),
+        'voucher_desc': fields.char('Description', size = 1024),
     }
 
 tpt_cash_book_line()
@@ -148,10 +149,10 @@ class cash_book_report(osv.osv_memory):
                 if account_ids:
                     cr.execute('''
                         select aa.name as acc_name, aml.account_id, sum(aml.debit) as debit, 
-                        sum(aml.credit) as credit,av.name as voucher_name,av.date as voucher_date, aml.ref as ref, av.payee 
+                        sum(aml.credit) as credit,av.name as voucher_name,av.date as voucher_date, aml.ref as ref, av.payee, aml.name 
                         from account_account aa, account_move_line aml,account_voucher av where av.move_id = aml.move_id and
                         aml.move_id in (select move_id from account_voucher where id in %s and type = 'payment' and state = 'posted') and debit is not null and debit !=0 and aa.id = aml.account_id 
-                        group by av.name,aa.name, aml.account_id,av.date, aml.ref, av.payee order by av.date
+                        group by av.name,aa.name, aml.account_id,av.date, aml.ref, av.payee, aml.name order by av.date
                     ''',(tuple(account_ids),))
                     return cr.dictfetchall()
                 else:
@@ -166,9 +167,10 @@ class cash_book_report(osv.osv_memory):
                 if account_ids:
                     cr.execute('''
                         select aa.name as acc_name, aml.account_id, sum(aml.debit) as debit, sum(aml.credit) as credit,av.name as voucher_name,
-                        av.date as voucher_date, aml.ref as ref, av.payee payee 
+                        av.date as voucher_date, aml.ref as ref, av.payee payee, aml.name voucher_desc
                         from account_account aa, account_move_line aml,account_voucher av where av.move_id = aml.move_id and
-                        aml.move_id in (select move_id from account_voucher where id in %s and type = 'receipt' and state = 'posted') and credit is not null and credit !=0 and aa.id = aml.account_id group by av.name,aa.name, aml.account_id,av.date, aml.ref, av.payee order by av.date
+                        aml.move_id in (select move_id from account_voucher where id in %s and type = 'receipt' and state = 'posted') and credit is not null and credit !=0 and aa.id = aml.account_id 
+                        group by av.name,aa.name, aml.account_id,av.date, aml.ref, av.payee, aml.name order by av.date
                     
                     ''',(tuple(account_ids),))
                     return cr.dictfetchall()
@@ -183,15 +185,18 @@ class cash_book_report(osv.osv_memory):
 #                 account_ids = account_voucher_obj.search(cr,uid,[('date', '>=', date_from),('date', '<=', date_to)])
                 if account_ids:
                     cr.execute('''
-                        select foo.acc_name, foo.account_id, sum(foo.debit) as debit, sum(foo.credit) as credit,foo.voucher_name,foo.voucher_date, foo.ref, foo.payee from
-                        (select aa.name as acc_name, aml.account_id, aml.debit as debit, aml.credit as credit,av.name as voucher_name,av.date as voucher_date , aml.ref as ref, av.payee 
+                        select foo.acc_name, foo.account_id, sum(foo.debit) as debit, sum(foo.credit) as credit,foo.voucher_name,foo.voucher_date, foo.ref, foo.payee, foo.voucher_desc from
+                        (select aa.name as acc_name, aml.account_id, aml.debit as debit, aml.credit as credit,av.name as voucher_name,av.date as voucher_date , aml.ref as ref, av.payee, 
+                        aml.name voucher_desc
                         from account_account aa, account_move_line aml,account_voucher av where av.move_id = aml.move_id and
                         aml.move_id in (select move_id from account_voucher where id in %s and type = 'payment' and state = 'posted') and aml.debit is not null and aml.debit !=0 and aa.id = aml.account_id
                         union all
-                        select aa.name as acc_name, aml.account_id, aml.debit as debit, aml.credit as credit,av.name as voucher_name,av.date as voucher_date, aml.ref as ref, av.payee from account_account aa, account_move_line aml,account_voucher av where av.move_id = aml.move_id and
+                        select aa.name as acc_name, aml.account_id, aml.debit as debit, aml.credit as credit,av.name as voucher_name,av.date as voucher_date, aml.ref as ref, av.payee, 
+                        aml.name voucher_desc
+                        from account_account aa, account_move_line aml,account_voucher av where av.move_id = aml.move_id and
                         aml.move_id in (select move_id from account_voucher where id in %s and type = 'receipt' and state = 'posted') and aml.credit is not null and aml.credit !=0 and aa.id = aml.account_id
                         )foo
-                        group by foo.acc_name, foo.account_id, foo.voucher_name,foo.voucher_date, foo.ref, foo.payee order by foo.voucher_date
+                        group by foo.acc_name, foo.account_id, foo.voucher_name,foo.voucher_date, foo.ref, foo.payee, foo.voucher_desc order by foo.voucher_date
                     ''',(tuple(account_ids),tuple(account_ids),))
                     return cr.dictfetchall()
                 else:
@@ -254,6 +259,7 @@ class cash_book_report(osv.osv_memory):
                 'gl_code': get_code_account(line['account_id']),
                 'ref': line['ref'],
                 'payee': line['payee'],
+                'voucher_desc': line['voucher_desc'],
                 
             }))
         cb_line.append((0,0,{
