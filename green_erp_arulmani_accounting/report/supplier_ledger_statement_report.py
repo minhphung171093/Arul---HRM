@@ -46,6 +46,7 @@ class Parser(report_sxw.rml_parse):
             'get_doc_type':self.get_doc_type,
             'get_balance':self.get_balance,
             'get_cheque_no': self.get_cheque_no,
+            'get_inv_no': self.get_inv_no,
             'get_bill_no': self.get_bill_no,
             'get_bill_date': self.get_bill_date,
             'get_cheque_date': self.get_cheque_date,
@@ -129,8 +130,16 @@ class Parser(report_sxw.rml_parse):
         return acount_move_line_obj.browse(self.cr,self.uid,sup_ids)
     
     def get_bill_no(self, move_id, doc_type):
-        if doc_type == 'sup_inv_po' or doc_type == 'sup_inv':
-            self.cr.execute('''select name from account_invoice where move_id =%s''', (move_id,))
+        if doc_type == 'sup_inv_po' or doc_type == 'sup_inv' or doc_type == 'ser_inv' :
+            self.cr.execute('''select bill_number from account_invoice where move_id =%s''', (move_id,))
+        else:
+            self.cr.execute('''select number from account_voucher where move_id =%s''', (move_id,))
+        number = self.cr.fetchone()
+        return number and number[0] or ''
+    
+    def get_inv_no(self, move_id, doc_type):
+        if doc_type == 'sup_inv_po' or doc_type == 'sup_inv' or doc_type == 'ser_inv':
+            self.cr.execute('''select Name from account_invoice where move_id =%s''', (move_id,))
         else:
             self.cr.execute('''select number from account_voucher where move_id =%s''', (move_id,))
         number = self.cr.fetchone()
@@ -151,7 +160,7 @@ class Parser(report_sxw.rml_parse):
         return date and date[0] or ''
     
     def get_bill_date(self, move_id, doc_type):
-        if doc_type == 'sup_inv_po' or doc_type == 'sup_inv':
+        if doc_type == 'sup_inv_po' or doc_type == 'sup_inv' or doc_type == 'ser_inv':
             self.cr.execute('''select bill_date from account_invoice where move_id =%s''', (move_id,))
         else:
             self.cr.execute('''select date from account_voucher where move_id =%s''', (move_id,))

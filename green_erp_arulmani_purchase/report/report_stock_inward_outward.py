@@ -97,9 +97,9 @@ class Parser(report_sxw.rml_parse):
                             join stock_location loc1 on st.location_id=loc1.id
                             join stock_location loc2 on st.location_dest_id=loc2.id
                         where st.state='done' and st.location_dest_id=%s and st.product_id=%s
-                            and ( (picking_id in (select id from stock_picking where date < '%s' and state = 'done')) 
+                            and ( (picking_id in (select id from stock_picking where to_date(to_char(date, 'YYYY-MM-DD'), 'YYYY-MM-DD') < '%s' and state = 'done')) 
                             or  (inspec_id in (select id from tpt_quanlity_inspection where date < '%s' and state in ('done','remaining')))
-                            or (st.id in (select move_id from stock_inventory_move_rel where inventory_id in (select id from stock_inventory where date <'%s' and state = 'done')))
+                            or (st.id in (select move_id from stock_inventory_move_rel where inventory_id in (select id from stock_inventory where to_date(to_char(date, 'YYYY-MM-DD'), 'YYYY-MM-DD') <'%s' and state = 'done')))
                                 )
                 '''%(locat_ids[0], product_id[0],date_from,date_from,date_from)
             self.cr.execute(sql)
@@ -122,9 +122,9 @@ class Parser(report_sxw.rml_parse):
                             join stock_location loc1 on st.location_id=loc1.id
                             join stock_location loc2 on st.location_dest_id=loc2.id
                         where st.state='done' and st.location_dest_id=%s and st.product_id=%s
-                            and ( (picking_id in (select id from stock_picking where date < '%s' and state = 'done')) 
+                            and ( (picking_id in (select id from stock_picking where to_date(to_char(date, 'YYYY-MM-DD'), 'YYYY-MM-DD') < '%s' and state = 'done')) 
                             or  (inspec_id in (select id from tpt_quanlity_inspection where date < '%s' and state in ('done','remaining')))
-                            or (st.id in (select move_id from stock_inventory_move_rel where inventory_id in (select id from stock_inventory where date <'%s' and state = 'done')))
+                            or (st.id in (select move_id from stock_inventory_move_rel where inventory_id in (select id from stock_inventory where to_date(to_char(date, 'YYYY-MM-DD'), 'YYYY-MM-DD') <'%s' and state = 'done')))
                                 )
                 '''%(locat_ids[0], product_id[0],date_from,date_from,date_from)
             self.cr.execute(sql)
@@ -416,7 +416,7 @@ class Parser(report_sxw.rml_parse):
                             join stock_location loc1 on st.location_id=loc1.id
                             join stock_location loc2 on st.location_dest_id=loc2.id
                         where st.state='done' and st.location_dest_id=%s and st.product_id=%s
-                            and ( (picking_id in (select id from stock_picking where date < '%s' and state = 'done')) 
+                            and ( (picking_id in (select id from stock_picking where to_date(to_char(date, 'YYYY-MM-DD'), 'YYYY-MM-DD') < '%s' and state = 'done')) 
                             or  (inspec_id in (select id from tpt_quanlity_inspection where date < '%s' and state in ('done','remaining')))
                                 )
            '''%(locat_ids[0], product_id[0], date_from, date_from, date_from)
@@ -450,7 +450,7 @@ class Parser(report_sxw.rml_parse):
                             join stock_location loc1 on st.location_id=loc1.id
                             join stock_location loc2 on st.location_dest_id=loc2.id
                         where st.state='done' and st.location_dest_id=%s and st.product_id=%s
-                            and ( (picking_id in (select id from stock_picking where date < '%s' and state = 'done')) 
+                            and ( (picking_id in (select id from stock_picking where to_date(to_char(date, 'YYYY-MM-DD'), 'YYYY-MM-DD') < '%s' and state = 'done')) 
                             or  (inspec_id in (select id from tpt_quanlity_inspection where date < '%s' and state in ('done','remaining')))
                                 )
            '''%(locat_ids[0], product_id[0], date_from, date_from, date_from)
@@ -533,6 +533,7 @@ class Parser(report_sxw.rml_parse):
                avg_cost = hand_quantity and total_cost/hand_quantity or 0 
            
            if move_type == 'good':
+               good = self.pool.get('tpt.material.issue').browse(cr,uid,material_issue_id)
                sql = '''
                         select case when sum(-1*st.product_qty)!=0 then sum(-1*st.product_qty) else 0 end ton_sl,case when sum(st.price_unit*st.product_qty)!=0 then sum(st.price_unit*st.product_qty) else 0 end total_cost
                         from stock_move st
@@ -541,7 +542,7 @@ class Parser(report_sxw.rml_parse):
                         where st.state='done' and st.product_id=%s and loc1.usage = 'internal' and loc2.usage != 'internal' and st.location_id!=st.location_dest_id
                         and st.location_id = %s and to_date(to_char(date, 'YYYY-MM-DD'), 'YYYY-MM-DD') = '%s'
                            
-                   '''%(product_id[0], locat_ids[0], date)
+                   '''%(product_id[0], locat_ids[0], good.date_expec)
                self.cr.execute(sql)
                inventory = self.cr.dictfetchone()
                if inventory:

@@ -781,5 +781,49 @@ class tpt_map_price_material(osv.osv):
                 raise osv.except_osv(_('Warning!'), str(e)+ ' Line: '+str(dem+1))
         return self.write(cr, uid, ids, {'state':'done'})
     
+    def map_date_material(self, cr, uid, ids, context=None):
+        this = self.browse(cr, uid, ids[0])
+        try:
+            recordlist = base64.decodestring(this.datas)
+            excel = xlrd.open_workbook(file_contents = recordlist)
+            sh = excel.sheet_by_index(0)
+        except Exception, e:
+            raise osv.except_osv(_('Warning!'), str(e))
+        if sh:
+            pro_pro_obj = self.pool.get('product.product')
+            inve_obj = self.pool.get('stock.inventory')
+            move_obj = self.pool.get('stock.move')
+            inventory_line_id = []
+            dem = 0
+            num = 0
+            try:
+                for row in range(1,sh.nrows):
+                    qty = sh.cell(row, 3).value or 0
+                    if qty:
+                        mate = sh.cell(row, 0).value.strip() or False
+                        price = sh.cell(row, 5).value or 0.0
+                        if mate:
+                            product_ids = pro_pro_obj.search(cr, uid, [('default_code','=',mate)])
+                            if len(product_ids)==1:
+                                sql = '''
+                                    select id from stock_move where product_id=%s and product_qty=%s
+                                        and id in (select move_id from stock_inventory_move_rel where inventory_id in (select id from stock_inventory)) 
+                                '''%(product_ids[0],qty)
+                                cr.execute(sql)
+                                move_ids = [r[0] for r in cr.fetchall()]
+                                if len(move_ids)==1:
+                                    move_obj.write(cr, uid, move_ids, {'date':'2015-03-31 00:00:00'})
+                                    num+=1
+                                    sql = '''
+                                        update stock_inventory set date = '2015-03-31 00:00:00' where id in (select inventory_id from stock_inventory_move_rel where move_id = %s)
+                                    '''%(move_ids[0])
+                                    cr.execute(sql)
+                                    print 'Update: ',num
+                    dem += 1
+#                         
+            except Exception, e:
+                raise osv.except_osv(_('Warning!'), str(e)+ ' Line: '+str(dem+1))
+        return self.write(cr, uid, ids, {'state':'done'})
+    
 tpt_map_price_material()
 

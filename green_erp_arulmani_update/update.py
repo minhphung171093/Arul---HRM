@@ -1487,7 +1487,7 @@ class tpt_update_stock_move_report(osv.osv):
     def sum_avg_cost(self, cr, uid, ids, context=None):
         result = 'Done create inspection \n'
         inventory_obj = self.pool.get('tpt.product.avg.cost')
-        for id in [10724]:
+        for id in [10718]:
             sql = 'delete from tpt_product_avg_cost where product_id=%s'%(id)
             cr.execute(sql)
             sql = '''
