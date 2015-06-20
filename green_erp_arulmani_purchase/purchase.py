@@ -1055,9 +1055,9 @@ class product_product(osv.osv):
             for id in ids:
                 cr.execute('update product_product set min_stock=null,max_stock=null,re_stock=null where id=%s',(id,))
             res['value'].update({
-                        'min_stock':False,
-                        'max_stock':False,
-                        're_stock':False,
+                        'min_stock':0,
+                        'max_stock':0,
+                        're_stock':0,
                       })
         return res 
     
