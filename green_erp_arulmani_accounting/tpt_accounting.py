@@ -409,13 +409,21 @@ class stock_picking_in(osv.osv):
     def search(self, cr, uid, args, offset=0, limit=None, order=None, context=None, count=False):
         if context is None:
             context = {}
-        if context.get('search_grn_no_id'):
-            sql = '''
-                select picking_id from stock_move where state = 'cancel' group by picking_id
-            '''
-            cr.execute(sql)
-            picking_ids = [row[0] for row in cr.fetchall()]
-            args += [('id','in',picking_ids)]
+#         if context.get('search_grn_no_id'):
+#             locat_obj = self.pool.get('stock.location')
+#             parent_ids = locat_obj.search(cr, uid, [('name','=','Quality Inspection'),('usage','=','view')])
+#             locat_ids = locat_obj.search(cr, uid, [('name','in',['Quality Inspection','Inspection']),('location_id','=',parent_ids[0])])
+#             location_id = locat_ids[0]
+#                 
+#             parent_dest_ids = locat_obj.search(cr, uid, [('name','in',['Block List','Block','Blocked List','Blocked']),('usage','=','view')])
+#             location_dest_ids = locat_obj.search(cr, uid, [('name','in',['Block List','Block','Blocked List','Blocked']),('location_id','=',parent_dest_ids[0])])
+#             location_dest_id = location_dest_ids[0]
+#             sql = '''
+#                 select name from tpt_quanlity_inspection where state = 'done' and id in (select inspec_id from stock_move where location_id = %s and location_dest_id = %s)
+#             '''%(location_id, location_dest_id)
+#             cr.execute(sql)
+#             picking_ids = [row[0] for row in cr.fetchall()]
+#             args += [('id','in',picking_ids)]
             
         if context.get('search_grn_with_name', False):
             name = context.get('name')
