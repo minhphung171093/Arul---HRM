@@ -618,7 +618,8 @@ class stock_picking(osv.osv):
                                         cr.execute(sql)
                         
                         debit += p.sale_line_id and p.sale_line_id.price_unit * p.product_qty or 0
-                        product_name = p.product_id.name
+                        #product_name = p.product_id.name    # TPT - COMMENTED By BalamuruganPurushothaman ON 20/06/2015 
+                        product_name = p.product_id.default_code # TPT - Added By BalamuruganPurushothaman ON 20/06/2015 fto get GL code with respect to Product Code
                         product_id = p.product_id.id
                         account = self.get_pro_account_id(cr,uid,product_name,dis_channel)
                         if not account:
@@ -1467,7 +1468,8 @@ class account_invoice_line(osv.osv):
         cr.execute('SELECT * FROM account_invoice_line WHERE invoice_id=%s', (invoice_id,))
         for t in cr.dictfetchall():
             product_id = self.pool.get('product.product').browse(cr, uid, t['product_id'])
-            name = product_id.name or False
+            #name = product_id.name or False # TPT - COMMENTED By BalamuruganPurushothaman ON 20/06/2015
+            name = product_id.default_code or False # TPT - Added By BalamuruganPurushothaman ON 20/06/2015 fto get GL code with respect to Product Code
             account = self.get_pro_account_id(cr,uid,name,channel)
             if not account:
                 sql = '''
@@ -1925,7 +1927,7 @@ class account_invoice_line(osv.osv):
             if not cus_inv_insurance_id:
                 raise osv.except_osv(_('Warning!'),_('Account is not null, please configure it in GL Posting Configrution !'))
             if t['insurance']:
-                if round(t['insurance']):
+                if (t['insurance']): # By BalamuruganPurushothaman ON 20/06/2015 Removed roundoff to get the insurance value for all the decimals.
                     res.append({
                         'type':'tax',
                         'name':t['name'],
