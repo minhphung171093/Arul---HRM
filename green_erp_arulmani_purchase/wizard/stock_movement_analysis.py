@@ -159,73 +159,89 @@ class stock_movement_analysis(osv.osv_memory):
                                 select case when sum(foo.product_qty)>0 then sum(foo.product_qty) else 0 end ton from 
                                     (select st.product_qty
                                         from stock_move st 
-                                        where st.state='done' and st.product_id = %s and st.location_dest_id = %s 
-                                        
-                                        and (picking_id in (select id from stock_picking where to_date(to_char(date, 'YYYY-MM-DD'), 'YYYY-MM-DD') between '%s' and '%s' and state = 'done')
-                                             or (id in (select move_id from stock_inventory_move_rel where inventory_id in 
-                                              (select id from stock_inventory where date between '%s' and '%s' and state = 'done'))))
+                                        where st.state='done' and st.product_id = %s and st.location_dest_id = %s and to_char(date, 'YYYY-MM-DD') between '%s' and '%s'
+                                        and (picking_id is not null
+                                             or inspec_id is not null
+                                             or (id in (select move_id from stock_inventory_move_rel)))
+                                        and st.location_id != st.location_dest_id
                                     )foo
-                            '''%(line,locat_ids[0],date_from,date_to,date_from,date_to)
+                            '''%(line,locat_ids[0],date_from,date_to)
+                            
+#                 sql = '''
+#                                 select case when sum(foo.product_qty)>0 then sum(foo.product_qty) else 0 end ton from 
+#                                     (select st.product_qty
+#                                         from stock_move st 
+#                                         where st.state='done' and st.product_id = %s and st.location_dest_id = %s and to_date(to_char(date, 'YYYY-MM-DD'), 'YYYY-MM-DD') between '%s' and '%s'
+#                                     )foo
+#                             '''%(line,locat_ids[0],date_from,date_to)
                 cr.execute(sql)
                 ton_arr = cr.fetchone()
                 if ton_arr:
                     ton = ton_arr[0] or 0
                 else:
                     ton = 0
-                sql = '''
-                       select * from stock_move where product_id = %s and picking_id in (select id from stock_picking where to_date(to_char(date, 'YYYY-MM-DD'), 'YYYY-MM-DD') between '%s' and '%s' and state = 'done')
-                   '''%(line,date_from,date_to) 
-                cr.execute(sql)
-                for move in cr.dictfetchall():
-                   if move['action_taken'] == 'need':
-                       sql = '''
-                           select qty_approve from tpt_quanlity_inspection where need_inspec_id = %s and state in ('done','remaining')
-                       '''%(move['id'])
-                       cr.execute(sql)
-                       inspec_arr = cr.fetchone()
-                       if inspec_arr:
-                           inspec = inspec_arr and inspec_arr[0] or 0
-                       else:
-                           inspec = 0
-                       ton = ton + inspec
+#                 sql = '''
+#                        select * from stock_move where product_id = %s and picking_id in (select id from stock_picking where to_date(to_char(date, 'YYYY-MM-DD'), 'YYYY-MM-DD') between '%s' and '%s' and state = 'done')
+#                    '''%(line,date_from,date_to) 
+#                 cr.execute(sql)
+#                 for move in cr.dictfetchall():
+#                    if move['action_taken'] == 'need':
+#                        sql = '''
+#                            select qty_approve from tpt_quanlity_inspection where need_inspec_id = %s and state in ('done','remaining')
+#                        '''%(move['id'])
+#                        cr.execute(sql)
+#                        inspec_arr = cr.fetchone()
+#                        if inspec_arr:
+#                            inspec = inspec_arr and inspec_arr[0] or 0
+#                        else:
+#                            inspec = 0
+#                        ton = ton + inspec
                 return ton
                            
             if categ =='spares':
                 parent_ids = self.pool.get('stock.location').search(cr, uid, [('name','=','Store'),('usage','=','view')])
                 locat_ids = self.pool.get('stock.location').search(cr, uid, [('name','in',['Spares','Spare','spares']),('location_id','=',parent_ids[0])])
                 sql = '''
-                                select case when sum(foo.product_qty)>0 then sum(foo.product_qty) else 0 end ton from 
+                    select case when sum(foo.product_qty)>0 then sum(foo.product_qty) else 0 end ton from 
                                     (select st.product_qty
                                         from stock_move st 
-                                        where st.state='done' and st.product_id = %s and st.location_dest_id = %s 
-                                        
-                                        and (picking_id in (select id from stock_picking where to_date(to_char(date, 'YYYY-MM-DD'), 'YYYY-MM-DD') between '%s' and '%s' and state = 'done')
-                                             or (id in (select move_id from stock_inventory_move_rel where inventory_id in 
-                                              (select id from stock_inventory where date between '%s' and '%s' and state = 'done'))))
+                                        where st.state='done' and st.product_id = %s and st.location_dest_id = %s and to_char(date, 'YYYY-MM-DD') between '%s' and '%s'
+                                        and (picking_id is not null
+                                             or inspec_id is not null
+                                             or (id in (select move_id from stock_inventory_move_rel)))
+                                        and st.location_id != st.location_dest_id
                                     )foo
-                            '''%(line,locat_ids[0],date_from,date_to,date_from,date_to)
+                            '''%(line,locat_ids[0],date_from,date_to)
+                
+#                 sql = '''
+#                                 select case when sum(foo.product_qty)>0 then sum(foo.product_qty) else 0 end ton from 
+#                                     (select st.product_qty
+#                                         from stock_move st 
+#                                         where st.state='done' and st.product_id = %s and st.location_dest_id = %s and to_date(to_char(date, 'YYYY-MM-DD'), 'YYYY-MM-DD') between '%s' and '%s'
+#                                     )foo
+#                             '''%(line,locat_ids[0],date_from,date_to)
                 cr.execute(sql)
                 ton_arr = cr.fetchone()
                 if ton_arr:
                     ton = ton_arr[0] or 0
                 else:
                     ton = 0
-                sql = '''
-                       select * from stock_move where product_id = %s and picking_id in (select id from stock_picking where to_date(to_char(date, 'YYYY-MM-DD'), 'YYYY-MM-DD') between '%s' and '%s' and state = 'done')
-                   '''%(line,date_from,date_to) 
-                cr.execute(sql)
-                for move in cr.dictfetchall():
-                   if move['action_taken'] == 'need':
-                       sql = '''
-                           select qty_approve from tpt_quanlity_inspection where need_inspec_id = %s and state in ('done','remaining')
-                       '''%(move['id'])
-                       cr.execute(sql)
-                       inspec_arr = cr.fetchone()
-                       if inspec_arr:
-                           inspec = inspec_arr[0] or 0
-                       else:
-                           inspec = 0
-                       ton = ton  + inspec
+#                 sql = '''
+#                        select * from stock_move where product_id = %s and picking_id in (select id from stock_picking where to_date(to_char(date, 'YYYY-MM-DD'), 'YYYY-MM-DD') between '%s' and '%s' and state = 'done')
+#                    '''%(line,date_from,date_to) 
+#                 cr.execute(sql)
+#                 for move in cr.dictfetchall():
+#                    if move['action_taken'] == 'need':
+#                        sql = '''
+#                            select qty_approve from tpt_quanlity_inspection where need_inspec_id = %s and state in ('done','remaining')
+#                        '''%(move['id'])
+#                        cr.execute(sql)
+#                        inspec_arr = cr.fetchone()
+#                        if inspec_arr:
+#                            inspec = inspec_arr[0] or 0
+#                        else:
+#                            inspec = 0
+#                        ton = ton  + inspec
                 return ton
             
         def get_receipt_value(o, product_id):

@@ -50,11 +50,17 @@ class Parser(report_sxw.rml_parse):
                 'get_receipt_value':self.get_receipt_value,
                 'get_consumption_value':self.get_consumption_value,
                 'get_closing_stock':self.get_closing_stock,
+                'convert_date': self.convert_date,
 #               'get_categ_product':self.get_categ_product
               
               
               
         })
+        
+    def convert_date(self, date):
+        if date:
+            date = datetime.strptime(date, DATE_FORMAT)
+            return date.strftime('%d/%m/%Y')
     def get_date_from(self):
         wizard_data = self.localcontext['data']['form']
         date = datetime.strptime(wizard_data['date_from'], DATE_FORMAT)
