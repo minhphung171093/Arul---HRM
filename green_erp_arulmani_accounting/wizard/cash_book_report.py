@@ -140,7 +140,7 @@ class cash_book_report(osv.osv_memory):
                 sql = '''
                     select sum(aml.credit) as credit, aml.date from account_move_line aml 
                     where aml.credit is not null and aml.credit != 0 and aml.date < '%s' 
-                    and move_id in (select move_id from account_voucher where type = 'payment' and state = 'draft' and journal_id in (select id from account_journal where type in ('cash','general')) )
+                    and move_id in (select move_id from account_voucher where type = 'payment' and state in ('draft','posted') and journal_id in (select id from account_journal where type in ('cash','general')) )
                     group by aml.date
                 '''%(date_from)
                 cr.execute(sql)
@@ -150,7 +150,7 @@ class cash_book_report(osv.osv_memory):
                 sql = '''
                     select sum(aml.debit) as debit, aml.date from account_move_line aml 
                     where aml.debit is not null and aml.debit != 0 and aml.date < '%s' 
-                    and move_id in (select move_id from account_voucher where type = 'receipt' and state = 'draft' and journal_id in (select id from account_journal where type in ('cash','general')) )
+                    and move_id in (select move_id from account_voucher where type = 'receipt' and state in ('draft','posted') and journal_id in (select id from account_journal where type in ('cash','general')) )
                     group by aml.date
                 '''%(date_from)
                 cr.execute(sql)
@@ -234,7 +234,7 @@ class cash_book_report(osv.osv_memory):
             else: # POSTED ELSE PART
                 if type == 'payment':
                     sql = '''
-                            select id from account_voucher where date between '%s' and '%s' and type = 'payment' and journal_id in (select id from account_journal where type in ('cash','general')) and state = 'draft'
+                            select id from account_voucher where date between '%s' and '%s' and type = 'payment' and journal_id in (select id from account_journal where type in ('cash','general')) and state in ('draft','posted')
                         '''%(date_from, date_to)
                     cr.execute(sql)
                     account_ids = [row[0] for row in cr.fetchall()]
@@ -242,9 +242,9 @@ class cash_book_report(osv.osv_memory):
                     if account_ids:
                         cr.execute('''
                             select aa.name as acc_name, aml.account_id, sum(aml.debit) as debit, 
-                            sum(aml.credit) as credit,av.name as voucher_name,av.date as voucher_date, aml.ref as ref, av.payee, aml.name 
+                            sum(aml.credit) as credit,av.name as voucher_name,av.date as voucher_date, aml.ref as ref, av.payee, aml.name , aml.name voucher_desc
                             from account_account aa, account_move_line aml,account_voucher av where av.move_id = aml.move_id and
-                            aml.move_id in (select move_id from account_voucher where id in %s and type = 'payment' and state = 'draft') and debit is not null and debit !=0 and aa.id = aml.account_id 
+                            aml.move_id in (select move_id from account_voucher where id in %s and type = 'payment' and state in ('draft','posted')) and debit is not null and debit !=0 and aa.id = aml.account_id 
                             group by av.name,aa.name, aml.account_id,av.date, aml.ref, av.payee, aml.name order by av.date
                         ''',(tuple(account_ids),))
                         return cr.dictfetchall()
@@ -252,7 +252,7 @@ class cash_book_report(osv.osv_memory):
                         return []
                 elif type == 'receipt':
                     sql = '''
-                            select id from account_voucher where date between '%s' and '%s' and type = 'receipt' and journal_id in (select id from account_journal where type in ('cash','general')) and state = 'draft'
+                            select id from account_voucher where date between '%s' and '%s' and type = 'receipt' and journal_id in (select id from account_journal where type in ('cash','general')) and state in ('draft','posted')
                         '''%(date_from, date_to)
                     cr.execute(sql)
                     account_ids = [row[0] for row in cr.fetchall()]
@@ -262,7 +262,7 @@ class cash_book_report(osv.osv_memory):
                             select aa.name as acc_name, aml.account_id, sum(aml.debit) as debit, sum(aml.credit) as credit,av.name as voucher_name,
                             av.date as voucher_date, aml.ref as ref, av.payee payee, aml.name voucher_desc
                             from account_account aa, account_move_line aml,account_voucher av where av.move_id = aml.move_id and
-                            aml.move_id in (select move_id from account_voucher where id in %s and type = 'receipt' and state = 'draft') and credit is not null and credit !=0 and aa.id = aml.account_id 
+                            aml.move_id in (select move_id from account_voucher where id in %s and type = 'receipt' and state in ('draft','posted')) and credit is not null and credit !=0 and aa.id = aml.account_id 
                             group by av.name,aa.name, aml.account_id,av.date, aml.ref, av.payee, aml.name order by av.date
                         
                         ''',(tuple(account_ids),))
@@ -271,7 +271,7 @@ class cash_book_report(osv.osv_memory):
                         return []
                 else:
                     sql = '''
-                            select id from account_voucher where date between '%s' and '%s' and journal_id in (select id from account_journal where type in ('cash','general')) and state = 'draft'
+                            select id from account_voucher where date between '%s' and '%s' and journal_id in (select id from account_journal where type in ('cash','general')) and state in ('draft','posted')
                         '''%(date_from, date_to)
                     cr.execute(sql)
                     account_ids = [row[0] for row in cr.fetchall()]
@@ -282,12 +282,12 @@ class cash_book_report(osv.osv_memory):
                             (select aa.name as acc_name, aml.account_id, aml.debit as debit, aml.credit as credit,av.name as voucher_name,av.date as voucher_date , aml.ref as ref, av.payee, 
                             aml.name voucher_desc
                             from account_account aa, account_move_line aml,account_voucher av where av.move_id = aml.move_id and
-                            aml.move_id in (select move_id from account_voucher where id in %s and type = 'payment' and state = 'draft') and aml.debit is not null and aml.debit !=0 and aa.id = aml.account_id
+                            aml.move_id in (select move_id from account_voucher where id in %s and type = 'payment' and state in ('draft','posted')) and aml.debit is not null and aml.debit !=0 and aa.id = aml.account_id
                             union all
                             select aa.name as acc_name, aml.account_id, aml.debit as debit, aml.credit as credit,av.name as voucher_name,av.date as voucher_date, aml.ref as ref, av.payee, 
                             aml.name voucher_desc
                             from account_account aa, account_move_line aml,account_voucher av where av.move_id = aml.move_id and
-                            aml.move_id in (select move_id from account_voucher where id in %s and type = 'receipt' and state = 'draft') and aml.credit is not null and aml.credit !=0 and aa.id = aml.account_id
+                            aml.move_id in (select move_id from account_voucher where id in %s and type = 'receipt' and state in ('draft','posted')) and aml.credit is not null and aml.credit !=0 and aa.id = aml.account_id
                             )foo
                             group by foo.acc_name, foo.account_id, foo.voucher_name,foo.voucher_date, foo.ref, foo.payee, foo.voucher_desc order by foo.voucher_date
                         ''',(tuple(account_ids),tuple(account_ids),))
