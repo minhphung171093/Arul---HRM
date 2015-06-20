@@ -277,11 +277,11 @@ class stock_inward_outward_report(osv.osv_memory):
                     locat_ids_spares = self.pool.get('stock.location').search(cr, uid, [('name','in',['Spares','Spare','spares']),('location_id','=',parent_ids_spares[0])])
                     sql = '''
                         select * from stock_move
-                        where picking_id in (select id from stock_picking where (warehouse = %s or warehouse = %s) and name in (select LEFT(name,17) from account_move_line where move_id = %s) and product_id = %s)
-                    '''%(locat_ids_raw[0], locat_ids_spares[0], line['id'], product_id.id)
+                        where  picking_id in (select id from stock_picking where name in (select LEFT(name,17) from account_move_line where move_id = %s) and product_id = %s)
+                    '''%(line['id'], product_id.id)
                     cr.execute(sql)
                     for move in cr.dictfetchall():
-                        if move['action_taken'] == 'direct':
+                        if move['action_taken'] == 'direct' and move['location_dest_id'] in [locat_ids_raw[0],locat_ids_spares[0]]:
                             move_line.append(line)
                         if move['action_taken'] == 'need':
                             sql = '''
@@ -323,9 +323,9 @@ class stock_inward_outward_report(osv.osv_memory):
                 if move_type == 'grn':
                     sql = '''
                         select * from stock_move
-                        where picking_id in (select id from stock_picking where warehouse = %s and name in (select LEFT(name,17) from account_move_line where move_id = %s)) 
+                        where picking_id in (select id from stock_picking where name in (select LEFT(name,17) from account_move_line where move_id = %s)) 
                         and product_id = %s and ((id in (select need_inspec_id from tpt_quanlity_inspection where state in ('done', 'remaining')) and action_taken='need') or action_taken='direct') order by si_no
-                    '''%(locat_ids[0], move_id, product_id.id)
+                    '''%(move_id, product_id.id)
                     cr.execute(sql)
                     moves = cr.dictfetchall()
                     grn_name = get_account_move_line(move_id)
@@ -336,7 +336,7 @@ class stock_inward_outward_report(osv.osv_memory):
                         self.num_call_grn['num'] = 0
                     if len(moves)>self.num_call_grn['num']:
                         move = moves[self.num_call_grn['num']]
-                        if move['action_taken'] == 'direct':
+                        if move['action_taken'] == 'direct' and move['location_dest_id']==locat_ids[0]:
                             quantity = move['product_qty']
                         if move['action_taken'] == 'need':
                             sql1 = '''
@@ -363,9 +363,9 @@ class stock_inward_outward_report(osv.osv_memory):
                 if move_type == 'grn':
                     sql = '''
                         select * from stock_move
-                        where picking_id in (select id from stock_picking where warehouse = %s and name in (select LEFT(name,17) from account_move_line where move_id = %s)) 
+                        where picking_id in (select id from stock_picking where name in (select LEFT(name,17) from account_move_line where move_id = %s)) 
                         and product_id = %s and ((id in (select need_inspec_id from tpt_quanlity_inspection where state in ('done', 'remaining')) and action_taken='need') or action_taken='direct') order by si_no
-                    '''%(locat_ids[0], move_id, product_id.id)
+                    '''%(move_id, product_id.id)
                     cr.execute(sql)
                     moves = cr.dictfetchall()
                     grn_name = get_account_move_line(move_id)
@@ -376,7 +376,7 @@ class stock_inward_outward_report(osv.osv_memory):
                         self.num_call_grn['num'] = 0
                     if len(moves)>self.num_call_grn['num']:
                         move = moves[self.num_call_grn['num']]
-                        if move['action_taken'] == 'direct':
+                        if move['action_taken'] == 'direct' and move['location_dest_id']==locat_ids[0]:
                             quantity = move['product_qty']
                         if move['action_taken'] == 'need':
                             sql1 = '''
