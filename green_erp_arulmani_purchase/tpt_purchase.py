@@ -46,8 +46,8 @@ class tpt_mrp_process(osv.osv):
             sql = '''
                     select id
                     from product_product
-                    where mrp_control = True and  (
-                            select case when sum(foo.product_qty)!=0 then sum(foo.product_qty) else 0 end ton_sl from 
+                    where mrp_control = True and 
+                            ((re_stock is not null and (select case when sum(foo.product_qty)!=0 then sum(foo.product_qty) else 0 end ton_sl from 
                                 (select st.product_qty
                                     from stock_move st 
                                         inner join stock_location l2 on st.location_dest_id= l2.id
@@ -60,7 +60,23 @@ class tpt_mrp_process(osv.osv):
                                         inner join product_uom pu on st.product_uom = pu.id
                                     where st.state='done' and st.product_id=product_product.id and l1.usage = 'internal'
                                 )foo
-                            ) <= re_stock
+                            ) <= re_stock)
+                            or
+                            (re_stock is null and (select case when sum(foo.product_qty)!=0 then sum(foo.product_qty) else 0 end ton_sl from 
+                                (select st.product_qty
+                                    from stock_move st 
+                                        inner join stock_location l2 on st.location_dest_id= l2.id
+                                        inner join product_uom pu on st.product_uom = pu.id
+                                    where st.state='done' and st.product_id=product_product.id and l2.usage = 'internal'
+                                union all
+                                select st.product_qty*-1
+                                    from stock_move st 
+                                        inner join stock_location l1 on st.location_id= l1.id
+                                        inner join product_uom pu on st.product_uom = pu.id
+                                    where st.state='done' and st.product_id=product_product.id and l1.usage = 'internal'
+                                )foo
+                            ) <= 0)
+                            )
                 '''
             cr.execute(sql)
             prod_ids = cr.fetchall()
