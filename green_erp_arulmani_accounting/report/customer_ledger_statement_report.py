@@ -117,8 +117,8 @@ class Parser(report_sxw.rml_parse):
         else:
             sql = '''
                 select aml.id from account_move_line aml inner join account_move am on aml.move_id = am.id
-                    where am.date between '%s' and '%s' and am.doc_type in ('cus_inv') and am.partner_id = %s and am.state='draft' and aml.debit is not null and aml.debit !=0
-                    or (am.date between '%s' and '%s' and am.doc_type in ('cus_pay') and am.partner_id = %s and am.state='draft' and aml.credit is not null and aml.credit !=0)
+                    where am.date between '%s' and '%s' and am.doc_type in ('cus_inv') and am.partner_id = %s and am.state in ('draft','posted') and aml.debit is not null and aml.debit !=0
+                    or (am.date between '%s' and '%s' and am.doc_type in ('cus_pay') and am.partner_id = %s and am.state in ('draft','posted') and aml.credit is not null and aml.credit !=0)
                         order by am.date
                 '''%(date_from, date_to,cus[0],date_from, date_to,cus[0])
             self.cr.execute(sql)

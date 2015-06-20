@@ -62,7 +62,7 @@ class supplier_ledger_statement(osv.osv_memory):
                     inner join res_partner p on (p.id=am.partner_id)
                     inner join account_account aa on (aa.id=aml.account_id)
                     where am.date between '%s' and '%s' and am.doc_type in ('sup_inv_po','sup_inv','sup_pay','ser_inv') 
-                    and am.partner_id = %s and am.state='draft' and p.vendor_code=aa.code
+                    and am.partner_id = %s and am.state in ('draft','posted') and p.vendor_code=aa.code
                         order by am.date
                     '''%(date_from, date_to,sup)
                 cr.execute(sql)
