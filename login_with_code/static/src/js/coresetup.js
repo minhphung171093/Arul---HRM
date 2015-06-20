@@ -44,6 +44,7 @@ openerp.login_with_code = function (instance) {
                         }
                     });
                 }
+                return $.Deferred().reject();
             });
         }
     });

@@ -1554,6 +1554,7 @@
 			<field name="arch" type="xml">
 				<tree string="Gate Out Pass">
 					<field name="name"/>
+					<field name="good_id"/>
                 	<field name="grn_id"/>
                 	<field name="gate_date_time"/>
 	                <field name="po_id"/>
@@ -1569,13 +1570,15 @@
 	            <form string="Gate Out Pass" version="7.0">   
 	            	<header>
 			            	<button name="bt_approve" states='draft' string="Approve" type="object" class="oe_highlight" groups="green_erp_arulmani_purchase.group_vvti_purchase_user,green_erp_arulmani_purchase.group_vvti_purchase_gm"/>
-		                    <button name="bt_cancel" string="Cancel" type="object" class="oe_highlight" />
-		                    <field name="state" widget="statusbar" statusbar_visible="draft,cancel,done" statusbar_colors='{"draft":"blue","cancel":"blue"}'/>
+		                    <button name="bt_create_grn" states='confirm' string="Create GRN" type="object" class="oe_highlight" groups="green_erp_arulmani_purchase.group_vvti_purchase_user,green_erp_arulmani_purchase.group_vvti_purchase_gm"/>
+		                    <button name="bt_cancel" states='draft,confirm' string="Cancel" type="object" class="oe_highlight" />
+		                    <field name="state" widget="statusbar" statusbar_visible="draft,cancel,confirm,done" statusbar_colors='{"draft":"blue","cancel":"blue"}'/>
 		            </header>
 	            	<sheet>
 		                <group > 
 		                	<field name="name"/>
-		                	<field name="grn_id" context="{'search_default_grn_by_return_req':1}" on_change="onchange_grn_id(grn_id)" options="{'create': false, 'create_edit': false}"/>
+		                	<field name="good_id" domain="[('state','=','done')]"  on_change = "onchange_good_id(good_id)" options="{'create': false, 'create_edit': false}"  />
+		                	<field name="grn_id"  options="{'create': false, 'create_edit': false}"/>
 		                	<field name="gate_date_time"/>
 			                <field name="po_id" options="{'create': false, 'create_edit': false}"/>
 			                <field name="supplier_id" domain="[('supplier','=',1)]" options="{'create': false, 'create_edit': false}"/>

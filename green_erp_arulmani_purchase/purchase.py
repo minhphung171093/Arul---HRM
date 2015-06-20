@@ -3330,16 +3330,16 @@ class tpt_good_return_request(osv.osv):
         (_check_quantity, 'Identical Data', []),
     ]
         
-    def name_get(self, cr, uid, ids, context=None):
-        res = []
-        if not ids:
-            return res
-        reads = self.read(cr, uid, ids, ['grn_no_id'], context)
-  
-        for record in reads:
-            name = record['grn_no_id']
-            res.append((record['id'], name))
-        return res 
+#     def name_get(self, cr, uid, ids, context=None):
+#         res = []
+#         if not ids:
+#             return res
+#         reads = self.read(cr, uid, ids, ['grn_no_id'], context)
+#   
+#         for record in reads:
+#             name = record['grn_no_id']
+#             res.append((record['id'], name))
+#         return res 
     
     def bt_set_to_draft(self, cr, uid, ids, context=None):
         self.write(cr, uid, ids,{'state':'draft'})
@@ -3561,12 +3561,14 @@ class tpt_gate_out_pass(osv.osv):
       
     _columns = {
         'name': fields.char('Gate Out Pass No', size = 1024, readonly=True),
-        'po_id': fields.many2one('purchase.order', 'PO Number', required = True),
-        'supplier_id': fields.many2one('res.partner', 'Supplier', required = True),
-        'grn_id': fields.many2one('stock.picking.in','GRN No', required = True), 
-        'gate_date_time': fields.datetime('Gate Out Pass Date & Time'),
-        'gate_out_pass_line': fields.one2many('tpt.gate.out.pass.line', 'gate_out_pass_id', 'Product Details'),
-        'state':fields.selection([('draft', 'Draft'),('cancel', 'Cancel'),('done', 'Approve')],'Status', readonly=True, states={'cancel': [('readonly', True)], 'done':[('readonly', True)]}),
+        'po_id': fields.many2one('purchase.order', 'PO Number', readonly = True),
+        'supplier_id': fields.many2one('res.partner', 'Supplier', readonly = True),
+        'grn_id': fields.many2one('stock.picking.in','Old GRN No', readonly = True), 
+        'good_id': fields.many2one('tpt.good.return.request','Goods Return Request No', required = True), 
+        'header_text':fields.text('Header Text',readonly=True),
+        'gate_date_time': fields.datetime('Gate Out Pass Date & Time', readonly = True),
+        'gate_out_pass_line': fields.one2many('tpt.gate.out.pass.line', 'gate_out_pass_id', 'Product Details', readonly = True),
+        'state':fields.selection([('draft', 'Draft'),('cancel', 'Cancel'),('confirm', 'Confirm'),('done', 'Done')],'Status', readonly=True, states={'cancel': [('readonly', True)], 'done':[('readonly', True)]}),
                 }
     _defaults={
                'name':'/',
@@ -3575,40 +3577,150 @@ class tpt_gate_out_pass(osv.osv):
     }
     
     def create(self, cr, uid, vals, context=None):
-        if vals.get('name','/')=='/':
-            vals['name'] = self.pool.get('ir.sequence').get(cr, uid, 'tpt.gate.out.pass.import') or '/'
-        return super(tpt_gate_out_pass, self).create(cr, uid, vals, context=context)
-    
-    def bt_approve(self, cr, uid, ids, context=None):
-        return self.write(cr, uid, ids,{'state':'done'})
-    
-    def bt_cancel(self, cr, uid, ids, context=None):
-        return self.write(cr, uid, ids,{'state':'cancel'})
-    def onchange_grn_id(self, cr, uid, ids,grn_id=False):
-        res = {'value':{
-                        'supplier_id':False,
-                        'po_id':False,
-                        'gate_out_pass_line':[],
-                      }
-               }
-        if grn_id:
+        if 'good_id' in vals:
             gate_out_pass_line = []
-            good_req_ids = self.pool.get('tpt.good.return.request').search(cr, uid,[('grn_no_id','=',grn_id)])
-            good_req_id = self.pool.get('tpt.good.return.request').browse(cr,uid,good_req_ids[0])
+            good_req_id = self.pool.get('tpt.good.return.request').browse(cr,uid,vals['good_id'])
             for line in good_req_id.product_detail_line:
-                gate_out_pass_line.append({
+                gate_out_pass_line.append((0,0,{
                           'product_id': line.product_id and line.product_id.id or False,
                           'product_qty':line.product_qty or False,
                           'uom_po_id': line.uom_po_id and line.uom_po_id.id or False,
                           'reason': line.reason or False,
-                    })
-        res['value'].update({
+                    }))
+                vals.update({
+                    'grn_id':good_req_id.grn_no_id.id or False,
                     'supplier_id': good_req_id.grn_no_id and good_req_id.grn_no_id.partner_id and good_req_id.grn_no_id.partner_id.id or False,
                     'po_id': good_req_id.grn_no_id and good_req_id.grn_no_id.purchase_id and good_req_id.grn_no_id.purchase_id.id or False,
                     'gate_out_pass_line': gate_out_pass_line,
-        })
-        return res
+                    })
+        if vals.get('name','/')=='/':
+            vals['name'] = self.pool.get('ir.sequence').get(cr, uid, 'tpt.gate.out.pass.import') or '/'
+        new_id = super(tpt_gate_out_pass, self).create(cr, uid, vals, context=context)
+
+        return new_id
+
+    def write(self, cr, uid, ids, vals, context=None):
+        if 'good_id' in vals:
+            gate_out_pass_line = []
+            good_req_id = self.pool.get('tpt.good.return.request').browse(cr,uid,vals['good_id'])
+            for line in good_req_id.product_detail_line:
+                gate_out_pass_line.append((0,0,{
+                          'product_id': line.product_id and line.product_id.id or False,
+                          'product_qty':line.product_qty or False,
+                          'uom_po_id': line.uom_po_id and line.uom_po_id.id or False,
+                          'reason': line.reason or False,
+                    }))
+                vals.update({
+                    'grn_id':good_req_id.grn_no_id.id or False,
+                    'supplier_id': good_req_id.grn_no_id and good_req_id.grn_no_id.partner_id and good_req_id.grn_no_id.partner_id.id or False,
+                    'po_id': good_req_id.grn_no_id and good_req_id.grn_no_id.purchase_id and good_req_id.grn_no_id.purchase_id.id or False,
+                    'gate_out_pass_line': gate_out_pass_line,
+                    })
+        new_write = super(tpt_gate_out_pass, self).write(cr, uid,ids, vals, context)
+        return new_write
     
+    def bt_approve(self, cr, uid, ids, context=None):
+        return self.write(cr, uid, ids,{'state':'confirm'})
+    
+    def bt_create_grn(self, cr, uid, ids, context=None):
+        stock_picking_obj=self.pool.get('stock.picking')
+        stock_move_obj=self.pool.get('stock_move')
+        move_lines=[]
+        new_picking_ids=[]
+        for good in self.browse(cr, uid, ids, context=context):
+            for grn_old_line in good.grn_id.move_lines:
+                for good_line in good.gate_out_pass_line:
+                    move_lines.append((0,0,{
+                    'name': grn_old_line.name or '',
+                    'product_id': grn_old_line.product_id.id,
+                    'bin_location': grn_old_line.bin_location or False,
+                    'product_qty': good_line.product_qty,
+                    'product_uos_qty': good_line.product_qty,
+                    'product_uom': grn_old_line.product_uom.id or False,
+                    'product_uos': grn_old_line.product_uom.id or False,
+                    'date': good.gate_date_time,
+                    'date_expected': good.gate_date_time,
+                    'location_id': grn_old_line.location_id.id or False,
+                    'location_dest_id':  grn_old_line.location_dest_id.id or False,
+                    'picking_id': grn_old_line.picking_id.id or False,
+                    'partner_id': grn_old_line.partner_id.id,
+                    'move_dest_id': grn_old_line.move_dest_id.id,
+                    'state': 'draft',
+                    'type':'in',
+                    'purchase_line_id': grn_old_line.purchase_line_id.id or False,
+                    'company_id': grn_old_line.company_id.id or False,
+                    'price_unit': grn_old_line.price_unit,
+                    'po_indent_id': grn_old_line.po_indent_id.id or False,
+                    'action_taken': False,
+                    'description':grn_old_line.description or False,
+                    'item_text':grn_old_line.item_text or False,
+                    'cost_center_id': grn_old_line.cost_center_id.id or False,
+                                            
+                                            
+                                            }))
+            value={
+            'name': self.pool.get('ir.sequence').get(cr, uid, 'stock.picking.in'),
+            'origin': good.grn_id.origin,
+            'date': good.gate_date_time,
+            'partner_id': good.grn_id.partner_id.id,
+            'invoice_state': good.grn_id.invoice_state,
+            'type': 'in',
+            'purchase_id': good.grn_id.purchase_id.id,
+            'company_id': good.grn_id.company_id.id,
+            'move_lines' : move_lines,
+            'document_type': good.grn_id.document_type or False,
+            'po_date': good.grn_id.po_date or False,
+                   }
+            new_picking_id = stock_picking_obj.create(cr,uid,value)
+            new_picking_ids.append(new_picking_id)
+            self.write(cr, uid, ids,{'state':'done'})
+        return {
+                    'name': 'GRN',
+                    'view_type': 'form',
+                    'view_mode': 'tree,form',
+                    'res_model': 'stock.picking.in',
+                    'domain': [],
+                    'type': 'ir.actions.act_window',
+                    'target': 'current',
+                    'res_id': new_picking_ids,
+                    'domain': [('id', 'in', new_picking_ids)],
+                }
+    
+    def bt_cancel(self, cr, uid, ids, context=None):
+        return self.write(cr, uid, ids,{'state':'cancel'})
+    def onchange_good_id(self, cr, uid, ids,good_id=False):
+        res = {'value':{
+                        'supplier_id':False,
+                        'po_id':False,
+                        'grn_id':False,
+                        'gate_out_pass_line':[],
+                      }
+               }
+        for good in self.browse(cr,uid,ids):
+            sql='''
+                delete from tpt_gate_out_pass_line where gate_out_pass_id = %s
+            '''%(good.id)
+            cr.execute(sql)
+            if good_id:
+    
+                gate_out_pass_line = []
+    #             good_req_ids = self.pool.get('tpt.good.return.request').search(cr, uid,[('grn_no_id','=',good_id)])
+                good_req_id = self.pool.get('tpt.good.return.request').browse(cr,uid,good_id)
+                for line in good_req_id.product_detail_line:
+                    gate_out_pass_line.append((0,0,{
+                              'product_id': line.product_id and line.product_id.id or False,
+                              'product_qty':line.product_qty or False,
+                              'uom_po_id': line.uom_po_id and line.uom_po_id.id or False,
+                              'reason': line.reason or False,
+                        }))
+            res['value'].update({
+                        'grn_id':good_req_id.grn_no_id.id or False,
+                        'supplier_id': good_req_id.grn_no_id and good_req_id.grn_no_id.partner_id and good_req_id.grn_no_id.partner_id.id or False,
+                        'po_id': good_req_id.grn_no_id and good_req_id.grn_no_id.purchase_id and good_req_id.grn_no_id.purchase_id.id or False,
+                        'gate_out_pass_line': gate_out_pass_line,
+            })
+        return res
+     
 tpt_gate_out_pass()
 
 class tpt_gate_out_pass_line(osv.osv):
@@ -3619,6 +3731,7 @@ class tpt_gate_out_pass_line(osv.osv):
         'product_qty': fields.float('Quantity'),
         'uom_po_id': fields.many2one('product.uom', 'UOM'),
         'reason': fields.char('Reason for Rejection', size = 1024),
+        'good_line_return_id':fields.many2one('tpt.product.specification','Good line return')
                 }
     _defaults={
                'product_qty': 1,
