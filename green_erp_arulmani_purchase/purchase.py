@@ -3315,7 +3315,7 @@ class tpt_good_return_request(osv.osv):
                 quality_ids = self.pool.get('tpt.quanlity.inspection').search(cr,uid,[('need_inspec_id','=',line.id)])
                 for quality in self.pool.get('tpt.quanlity.inspection').browse(cr,uid,quality_ids):
                     sql = '''
-                        select product_qty from stock_move where inspec_id = %s and location_id = %s and location_dest_id = %s
+                        select sum(product_qty) as product_qty from stock_move where inspec_id = %s and location_id = %s and location_dest_id = %s
                     '''%(quality.id, location_id, location_dest_id)
                     cr.execute(sql)
                     product_qty_sql = cr.dictfetchone()
@@ -3369,7 +3369,7 @@ class tpt_good_return_request(osv.osv):
                 quality_ids = self.pool.get('tpt.quanlity.inspection').search(cr,uid,[('need_inspec_id','=',line.id)])
                 for quality in self.pool.get('tpt.quanlity.inspection').browse(cr,uid,quality_ids):
                     sql = '''
-                        select product_qty from stock_move where inspec_id = %s and location_id = %s and location_dest_id = %s
+                        select sum(product_qty) as product_qty from stock_move where inspec_id = %s and location_id = %s and location_dest_id = %s
                     '''%(quality.id, location_id, location_dest_id)
                     cr.execute(sql)
                     product_qty_sql = cr.dictfetchone()
