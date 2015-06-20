@@ -3615,6 +3615,7 @@ class tpt_gate_out_pass(osv.osv):
         return self.write(cr, uid, ids,{'state':'confirm'})
     
     def bt_create_grn(self, cr, uid, ids, context=None):
+        
         return self.write(cr, uid, ids,{'state':'done'})
     
     def bt_cancel(self, cr, uid, ids, context=None):
@@ -3662,6 +3663,7 @@ class tpt_gate_out_pass_line(osv.osv):
         'product_qty': fields.float('Quantity'),
         'uom_po_id': fields.many2one('product.uom', 'UOM'),
         'reason': fields.char('Reason for Rejection', size = 1024),
+        'good_line_return_id':fields.many2one('tpt.product.specification','Good line return')
                 }
     _defaults={
                'product_qty': 1,
