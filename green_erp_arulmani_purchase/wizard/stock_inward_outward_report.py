@@ -117,14 +117,12 @@ class stock_inward_outward_report(osv.osv_memory):
                 sql = '''
                     select case when sum(st.product_qty)!=0 then sum(st.product_qty) else 0 end product_qty
                             from stock_move st
-                                join stock_location loc1 on st.location_id=loc1.id
-                                join stock_location loc2 on st.location_dest_id=loc2.id
-                            where st.state='done' and st.location_dest_id=%s and st.product_id=%s
-                                and ( (picking_id in (select id from stock_picking where to_date(to_char(date, 'YYYY-MM-DD'), 'YYYY-MM-DD') < '%s' and state = 'done')) 
-                                or  (inspec_id in (select id from tpt_quanlity_inspection where date < '%s' and state in ('done','remaining')))
-                                or (st.id in (select move_id from stock_inventory_move_rel where inventory_id in (select id from stock_inventory where to_date(to_char(date, 'YYYY-MM-DD'), 'YYYY-MM-DD') <'%s' and state = 'done')))
-                                    )
-                    '''%(locat_ids[0], product_id.id,date_from,date_from,date_from)
+                            where st.state='done' and st.location_dest_id=%s and st.product_id=%s and to_char(date, 'YYYY-MM-DD') < '%s'
+                                and ( picking_id is not null
+                                or  inspec_id is not null
+                                or (st.id in (select move_id from stock_inventory_move_rel ))
+                            )
+                    '''%(locat_ids[0], product_id.id,date_from)
                 cr.execute(sql)
                 product_qty = cr.dictfetchone()['product_qty']
                 
@@ -142,14 +140,12 @@ class stock_inward_outward_report(osv.osv_memory):
                 sql = '''
                     select case when sum(st.product_qty)!=0 then sum(st.product_qty) else 0 end product_qty
                             from stock_move st
-                                join stock_location loc1 on st.location_id=loc1.id
-                                join stock_location loc2 on st.location_dest_id=loc2.id
-                            where st.state='done' and st.location_dest_id=%s and st.product_id=%s
-                                and ( (picking_id in (select id from stock_picking where to_date(to_char(date, 'YYYY-MM-DD'), 'YYYY-MM-DD') < '%s' and state = 'done')) 
-                                or  (inspec_id in (select id from tpt_quanlity_inspection where date < '%s' and state in ('done','remaining')))
-                                or (st.id in (select move_id from stock_inventory_move_rel where inventory_id in (select id from stock_inventory where to_date(to_char(date, 'YYYY-MM-DD'), 'YYYY-MM-DD') <'%s' and state = 'done')))
-                                    )
-                    '''%(locat_ids[0], product_id.id,date_from,date_from,date_from)
+                            where st.state='done' and st.location_dest_id=%s and st.product_id=%s and to_char(date, 'YYYY-MM-DD') < '%s'
+                                and ( picking_id is not null
+                                or  inspec_id is not null
+                                or (st.id in (select move_id from stock_inventory_move_rel ))
+                            )
+                    '''%(locat_ids[0], product_id.id,date_from)
                 cr.execute(sql)
                 product_qty = cr.dictfetchone()['product_qty']
                 
@@ -194,14 +190,12 @@ class stock_inward_outward_report(osv.osv_memory):
                sql = '''
                        select case when sum(st.product_qty)!=0 then sum(st.product_qty) else 0 end ton_sl,case when sum(st.price_unit*st.product_qty)!=0 then sum(st.price_unit*st.product_qty) else 0 end total_cost
                         from stock_move st
-                            join stock_location loc1 on st.location_id=loc1.id
-                            join stock_location loc2 on st.location_dest_id=loc2.id
-                        where st.state='done' and st.location_dest_id=%s and st.product_id=%s
-                            and ( (picking_id in (select id from stock_picking where to_date(to_char(date, 'YYYY-MM-DD'), 'YYYY-MM-DD') < '%s' and state = 'done')) 
-                            or  (inspec_id in (select id from tpt_quanlity_inspection where date < '%s' and state in ('done','remaining')))
-                            or (st.id in (select move_id from stock_inventory_move_rel where inventory_id in (select id from stock_inventory where to_date(to_char(date, 'YYYY-MM-DD'), 'YYYY-MM-DD') <'%s' and state = 'done')))
-                                )
-               '''%(locat_ids[0],product_id.id, date_from, date_from, date_from)
+                        where st.state='done' and st.location_dest_id=%s and st.product_id=%s and to_char(date, 'YYYY-MM-DD')<'%s'
+                            and ( picking_id is not null 
+                            or inspec_id is not null 
+                            or (st.id in (select move_id from stock_inventory_move_rel))
+                        )
+               '''%(locat_ids[0],product_id.id, date_from)
                cr.execute(sql)
                inventory = cr.dictfetchone()
                if inventory:
@@ -229,14 +223,12 @@ class stock_inward_outward_report(osv.osv_memory):
                sql = '''
                        select case when sum(st.product_qty)!=0 then sum(st.product_qty) else 0 end ton_sl,case when sum(st.price_unit*st.product_qty)!=0 then sum(st.price_unit*st.product_qty) else 0 end total_cost
                         from stock_move st
-                            join stock_location loc1 on st.location_id=loc1.id
-                            join stock_location loc2 on st.location_dest_id=loc2.id
-                        where st.state='done' and st.location_dest_id=%s and st.product_id=%s
-                            and ( (picking_id in (select id from stock_picking where to_date(to_char(date, 'YYYY-MM-DD'), 'YYYY-MM-DD') < '%s' and state = 'done')) 
-                            or  (inspec_id in (select id from tpt_quanlity_inspection where date < '%s' and state in ('done','remaining')))
-                            or (st.id in (select move_id from stock_inventory_move_rel where inventory_id in (select id from stock_inventory where to_date(to_char(date, 'YYYY-MM-DD'), 'YYYY-MM-DD') <'%s' and state = 'done')))
-                                )
-               '''%(locat_ids[0],product_id.id, date_from, date_from,date_from)
+                        where st.state='done' and st.location_dest_id=%s and st.product_id=%s and to_char(date, 'YYYY-MM-DD')<'%s'
+                            and ( picking_id is not null 
+                            or inspec_id is not null 
+                            or (st.id in (select move_id from stock_inventory_move_rel))
+                        )
+               '''%(locat_ids[0],product_id.id, date_from)
                cr.execute(sql)
                inventory = cr.dictfetchone()
                if inventory:
@@ -373,7 +365,7 @@ class stock_inward_outward_report(osv.osv_memory):
                         select * from stock_move
                         where picking_id in (select id from stock_picking where warehouse = %s and name in (select LEFT(name,17) from account_move_line where move_id = %s)) 
                         and product_id = %s and ((id in (select need_inspec_id from tpt_quanlity_inspection where state in ('done', 'remaining')) and action_taken='need') or action_taken='direct') order by si_no
-                    '''%(move_id, product_id.id, locat_ids[0])
+                    '''%(locat_ids[0], move_id, product_id.id)
                     cr.execute(sql)
                     moves = cr.dictfetchall()
                     grn_name = get_account_move_line(move_id)
