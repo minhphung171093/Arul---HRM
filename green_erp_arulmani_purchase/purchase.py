@@ -3269,6 +3269,7 @@ class tpt_good_return_request(osv.osv):
     _name = "tpt.good.return.request"
     
     _columns = {
+        'name': fields.char('Return Request Number', size = 1024, readonly = True),
         'grn_no_id' : fields.many2one('stock.picking.in', 'GRN No', required = True, states={'cancel': [('readonly', True)],'done':[('readonly', True)]}), 
         'request_date': fields.datetime('Request Date', states={'cancel': [('readonly', True)],'done':[('readonly', True)]}), 
         'product_detail_line': fields.one2many('tpt.product.detail.line', 'request_id', 'Material Details', states={'cancel': [('readonly', True)],'done':[('readonly', True)]}), 
@@ -3277,7 +3278,14 @@ class tpt_good_return_request(osv.osv):
     _defaults = {
         'request_date': time.strftime('%Y-%m-%d %H:%M:%S'),
         'state': 'draft',
+        'name': '/',
     }
+    
+    def create(self, cr, uid, vals, context=None):
+        if vals.get('name','/')=='/':
+            vals['name'] = self.pool.get('ir.sequence').get(cr, uid, 'tpt.good.return.request.import') or '/'
+        return super(tpt_good_return_request, self).create(cr, uid, vals, context=context)
+    
     
     def _check_request_date(self, cr, uid, ids, context=None):
         for date in self.browse(cr, uid, ids, context=context):

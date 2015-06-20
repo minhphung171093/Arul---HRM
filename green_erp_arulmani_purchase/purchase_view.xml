@@ -1202,6 +1202,7 @@
 			<field name="model">tpt.good.return.request</field>
 			<field name="arch" type="xml">
 				<tree string="Goods Return Request">
+					<field name="name"/>
 					<field name="grn_no_id"/>
 					<field name="request_date"/>
 					<field name="state" widget="statusbar" statusbar_visible="draft,done" statusbar_colors='{"draft":"blue"}'/>
@@ -1222,6 +1223,7 @@
 	            </header>
 	            	<sheet>
 		                <group > 
+		                	<field name="name"/>
 			                <field name="grn_no_id" on_change = "onchange_grn_no_id(grn_no_id)" context="{'search_grn_no_id':True}" options="{'create': false, 'create_edit': false}"/>
 							<field name="request_date"/>
 						</group>
