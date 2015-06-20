@@ -167,11 +167,11 @@ class alert_form(osv.osv_memory):
                                     })
                     leave_detail_obj.process_leave_request(cr, uid, [leave_detail_id])
                     break
-        
+       
         self.pool.get('arul.hr.permission.onduty').write(cr, uid, [audit_id],{'approval': True, 'state':'done'})
         return {'type': 'ir.actions.act_window_close'}
         
-    def permission_ok(self, cr, uid, ids, context=None):
+    def permission_ok(self, cr, uid, ids, context=None): 
         emp_attendence_obj = self.pool.get('arul.hr.employee.attendence.details')
         punch_obj = self.pool.get('arul.hr.punch.in.out.time')
         employee_leave_obj = self.pool.get('employee.leave')
