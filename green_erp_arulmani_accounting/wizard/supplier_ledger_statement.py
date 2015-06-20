@@ -14,6 +14,7 @@ class supplier_ledger_statement(osv.osv_memory):
                 'date_from': fields.date('Date From', required=True),
                 'date_to': fields.date('Date To', required=True),
                 'supplier_id':fields.many2one('res.partner','Supplier',required=True),
+                'is_posted': fields.boolean('Is Posted'),
                 }
     
     def _check_date(self, cr, uid, ids, context=None):
@@ -38,20 +39,34 @@ class supplier_ledger_statement(osv.osv_memory):
             date_from = sls.date_from
             date_to = sls.date_to
             sup = sls.supplier_id.id
+            is_posted = sls.is_posted
             acount_move_line_obj = self.pool.get('account.move.line')
             acount_move_obj = self.pool.get('account.move')
             sup_ids = []
-            sql = '''
-                select aml.id from account_move_line aml 
-                inner join account_move am on (aml.move_id = am.id)
-                inner join res_partner p on (p.id=am.partner_id)
-                inner join account_account aa on (aa.id=aml.account_id)
-                where am.date between '%s' and '%s' and am.doc_type in ('sup_inv_po','sup_inv','sup_pay','ser_inv') 
-                and am.partner_id = %s and am.state='posted' and p.vendor_code=aa.code
-                    order by am.date
-                '''%(date_from, date_to,sup)
-            cr.execute(sql)
-            sup_ids = [r[0] for r in cr.fetchall()]
+            if is_posted is True:
+                sql = '''
+                    select aml.id from account_move_line aml 
+                    inner join account_move am on (aml.move_id = am.id)
+                    inner join res_partner p on (p.id=am.partner_id)
+                    inner join account_account aa on (aa.id=aml.account_id)
+                    where am.date between '%s' and '%s' and am.doc_type in ('sup_inv_po','sup_inv','sup_pay','ser_inv') 
+                    and am.partner_id = %s and am.state='posted' and p.vendor_code=aa.code
+                        order by am.date
+                    '''%(date_from, date_to,sup)
+                cr.execute(sql)
+                sup_ids = [r[0] for r in cr.fetchall()]
+            else:
+                sql = '''
+                    select aml.id from account_move_line aml 
+                    inner join account_move am on (aml.move_id = am.id)
+                    inner join res_partner p on (p.id=am.partner_id)
+                    inner join account_account aa on (aa.id=aml.account_id)
+                    where am.date between '%s' and '%s' and am.doc_type in ('sup_inv_po','sup_inv','sup_pay','ser_inv') 
+                    and am.partner_id = %s and am.state='draft' and p.vendor_code=aa.code
+                        order by am.date
+                    '''%(date_from, date_to,sup)
+                cr.execute(sql)
+                sup_ids = [r[0] for r in cr.fetchall()]
 #             sql = '''
 #                 select id from account_move_line 
 #                 where move_id in (
@@ -63,6 +78,14 @@ class supplier_ledger_statement(osv.osv_memory):
             return acount_move_line_obj.browse(cr,uid,sup_ids)
          
         def get_bill_no(move_id, doc_type):
+            if doc_type == 'sup_inv_po' or doc_type == 'sup_inv' or doc_type=='ser_inv':
+                cr.execute('''select bill_number from account_invoice where move_id =%s''', (move_id,))
+            else:
+                cr.execute('''select number from account_voucher where move_id =%s''', (move_id,))
+            number = cr.fetchone()
+            return number and number[0] or ''
+        
+        def get_inv_no(move_id, doc_type):
             if doc_type == 'sup_inv_po' or doc_type == 'sup_inv' or doc_type=='ser_inv':
                 cr.execute('''select name from account_invoice where move_id =%s''', (move_id,))
             else:
@@ -136,6 +159,7 @@ class supplier_ledger_statement(osv.osv_memory):
                 'narration': line.move_id and line.move_id.narration or '',
                 'sale_order_no': get_so_no(line.move_id.id, line.move_id.doc_type) + ' - ' + get_so_date(line.move_id.id, line.move_id.doc_type),
                 'reference': line.move_id and line.move_id.ref or '',
+                'invoice_no': get_inv_no(line.move_id.id, line.move_id.doc_type),
                 'bill_no': get_bill_no(line.move_id.id, line.move_id.doc_type),
                 'bill_date': get_bill_date(line.move_id.id, line.move_id.doc_type),
                 'cheque_no': get_cheque_no(line.move_id.id),
@@ -163,6 +187,7 @@ class supplier_ledger_statement(osv.osv_memory):
                 'sup_code': sls.supplier_id and sls.supplier_id.vendor_code or '',
                 'sup_name': sls.supplier_id.name,
                 'supplier_id': sls.supplier_id.id,
+                'is_posted': sls.is_posted,
                 'sup_ledger_line': sls_line,
                 }
         sls_id = sls_obj.create(cr,uid,vals)
@@ -195,6 +220,7 @@ class tpt_supplier_ledger(osv.osv_memory):
                 'sup_code': fields.char('Supplier Code: ', size = 1024),
                 'sup_name': fields.char('Supplier Name: ', size = 1024),
                 'supplier_id':fields.many2one('res.partner','Supplier'),
+                'is_posted': fields.boolean('Is Posted'),
                 'sup_ledger_line': fields.one2many('tpt.supplier.ledger.line', 'ledger_id', 'Supplier Ledger Statement Line'),
                 }
     
@@ -222,11 +248,12 @@ class tpt_supplier_ledger_line(osv.osv_memory):
     _name = "tpt.supplier.ledger.line"
     _columns = {
         'ledger_id': fields.many2one('tpt.supplier.ledger', 'Supplier Ledger', ondelete='cascade'),
-        'date': fields.date('Date'),
-        'document_no': fields.char('Document No.', size = 1024),
+        'date': fields.date('Posting Date'),
+        'document_no': fields.char('Posting Doc.No.', size = 1024),
+        'reference': fields.char('Reference', size = 1024),
         'narration': fields.char('Narration', size = 1024),
         'sale_order_no': fields.char('Purchase Order No. & Date', size = 1024),
-        'reference': fields.char('Reference', size = 1024),
+        'invoice_no': fields.char('Invoice No', size = 1024),
         'bill_no': fields.char('Bill No', size = 1024),
         'bill_date': fields.date('Bill Date'),
         'cheque_no':fields.char('Cheque No', size = 1024),
