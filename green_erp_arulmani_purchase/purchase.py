@@ -3623,8 +3623,68 @@ class tpt_gate_out_pass(osv.osv):
         return self.write(cr, uid, ids,{'state':'confirm'})
     
     def bt_create_grn(self, cr, uid, ids, context=None):
-        
-        return self.write(cr, uid, ids,{'state':'done'})
+        stock_picking_obj=self.pool.get('stock.picking')
+        stock_move_obj=self.pool.get('stock_move')
+        move_lines=[]
+        new_picking_ids=[]
+        for good in self.browse(cr, uid, ids, context=context):
+            for grn_old_line in good.grn_id.move_lines:
+                for good_line in good.gate_out_pass_line:
+                    move_lines.append((0,0,{
+                    'name': grn_old_line.name or '',
+                    'product_id': grn_old_line.product_id.id,
+                    'bin_location': grn_old_line.bin_location or False,
+                    'product_qty': good_line.product_qty,
+                    'product_uos_qty': good_line.product_qty,
+                    'product_uom': grn_old_line.product_uom.id or False,
+                    'product_uos': grn_old_line.product_uom.id or False,
+                    'date': good.gate_date_time,
+                    'date_expected': good.gate_date_time,
+                    'location_id': grn_old_line.location_id.id or False,
+                    'location_dest_id':  grn_old_line.location_dest_id.id or False,
+                    'picking_id': grn_old_line.picking_id.id or False,
+                    'partner_id': grn_old_line.partner_id.id,
+                    'move_dest_id': grn_old_line.move_dest_id.id,
+                    'state': 'draft',
+                    'type':'in',
+                    'purchase_line_id': grn_old_line.purchase_line_id.id or False,
+                    'company_id': grn_old_line.company_id.id or False,
+                    'price_unit': grn_old_line.price_unit,
+                    'po_indent_id': grn_old_line.po_indent_id.id or False,
+                    'action_taken': False,
+                    'description':grn_old_line.description or False,
+                    'item_text':grn_old_line.item_text or False,
+                    'cost_center_id': grn_old_line.cost_center_id.id or False,
+                                            
+                                            
+                                            }))
+            value={
+            'name': self.pool.get('ir.sequence').get(cr, uid, 'stock.picking.in'),
+            'origin': good.grn_id.origin,
+            'date': good.gate_date_time,
+            'partner_id': good.grn_id.partner_id.id,
+            'invoice_state': good.grn_id.invoice_state,
+            'type': 'in',
+            'purchase_id': good.grn_id.purchase_id.id,
+            'company_id': good.grn_id.company_id.id,
+            'move_lines' : move_lines,
+            'document_type': good.grn_id.document_type or False,
+            'po_date': good.grn_id.po_date or False,
+                   }
+            new_picking_id = stock_picking_obj.create(cr,uid,value)
+            new_picking_ids.append(new_picking_id)
+            self.write(cr, uid, ids,{'state':'done'})
+        return {
+                    'name': 'GRN',
+                    'view_type': 'form',
+                    'view_mode': 'tree,form',
+                    'res_model': 'stock.picking.in',
+                    'domain': [],
+                    'type': 'ir.actions.act_window',
+                    'target': 'current',
+                    'res_id': new_picking_ids,
+                    'domain': [('id', 'in', new_picking_ids)],
+                }
     
     def bt_cancel(self, cr, uid, ids, context=None):
         return self.write(cr, uid, ids,{'state':'cancel'})

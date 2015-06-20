@@ -1571,7 +1571,7 @@
 	            	<header>
 			            	<button name="bt_approve" states='draft' string="Approve" type="object" class="oe_highlight" groups="green_erp_arulmani_purchase.group_vvti_purchase_user,green_erp_arulmani_purchase.group_vvti_purchase_gm"/>
 		                    <button name="bt_create_grn" states='confirm' string="Create GRN" type="object" class="oe_highlight" groups="green_erp_arulmani_purchase.group_vvti_purchase_user,green_erp_arulmani_purchase.group_vvti_purchase_gm"/>
-		                    <button name="bt_cancel" string="Cancel" type="object" class="oe_highlight" />
+		                    <button name="bt_cancel" states='draft,confirm' string="Cancel" type="object" class="oe_highlight" />
 		                    <field name="state" widget="statusbar" statusbar_visible="draft,cancel,confirm,done" statusbar_colors='{"draft":"blue","cancel":"blue"}'/>
 		            </header>
 	            	<sheet>
