@@ -1642,7 +1642,10 @@ class tpt_update_stock_move_report(osv.osv):
                    and (select count(id) from tpt_quanlity_inspection where name=%s)>1
             '''%(line.product_id.id,line.qty,line.name.id)
             cr.execute(sql)
-            picking_ids = [r[0] for r in cr.fetchall()]
+            picking_ids = []
+            for r in cr.fetchall():
+                if r[0] != line.name.id:
+                    picking_ids.append(r[0])
             if picking_ids:
                 inspection_obj.write(cr, uid, [line.id], {'name':picking_ids[0]})
         cr.execute(''' update tpt_quanlity_inspection t set need_inspec_id=(select id from stock_move where picking_id=t.name and product_qty=t.qty and product_id=t.product_id limit 1) where id in %s ''',(tuple(inspection_ids),))
