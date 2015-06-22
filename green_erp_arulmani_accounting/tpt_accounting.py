@@ -435,21 +435,21 @@ class stock_picking_in(osv.osv):
     
 stock_picking_in() 
 
-# class stock_move(osv.osv):
-#     _inherit = "stock.move"
-#     
-#     def init(self, cr):
-#         sql = '''
-#             select id from stock_move where picking_id is null and inspec_id is null and issue_id is null and production_id is null and id not in (select move_id from mrp_production_move_ids)
-#                 and id not in (select child_id from stock_move_history_ids) and id not in (select move_id from stock_inventory_move_rel) and move_dest_id is null and purchase_line_id is null 
-#                 and sale_line_id is null and tracking_id is null and prodlot_id is null
-#         '''
-#         cr.execute(sql)
-#         move_ids = [r[0] for r in cr.fetchall()]
-#         self.pool.get('stock.move').unlink(cr, 1, move_ids)
-#         
-#         
-# stock_move()
+class stock_move(osv.osv):
+    _inherit = "stock.move"
+     
+    def init(self, cr):
+        sql = '''
+            select id from stock_move where picking_id is null and inspec_id is null and issue_id is null and production_id is null and id not in (select move_id from mrp_production_move_ids)
+                and id not in (select child_id from stock_move_history_ids) and id not in (select move_id from stock_inventory_move_rel) and move_dest_id is null and purchase_line_id is null 
+                and sale_line_id is null and tracking_id is null and prodlot_id is null
+        '''
+        cr.execute(sql)
+        move_ids = [r[0] for r in cr.fetchall()]
+        self.pool.get('stock.move').unlink(cr, 1, move_ids)
+         
+         
+stock_move()
 
 class stock_picking(osv.osv):
     _inherit = "stock.picking"
@@ -3462,7 +3462,7 @@ class tpt_material_issue(osv.osv):
                         unit = avg_cost_id.avg_cost or 0
                         price += unit * mater.product_isu_qty
                         product_price = unit * mater.product_isu_qty
-                
+                    
                     journal_line.append((0,0,{
                                             'name':line.doc_no + ' - ' + mater.product_id.name, 
                                             'account_id': acc_asset,
@@ -3526,11 +3526,20 @@ class tpt_material_issue(osv.osv):
                         acc_expense = mater.product_id and mater.product_id.property_account_expense and mater.product_id.property_account_expense.id or False
                         acc_asset = mater.product_id and mater.product_id.product_asset_acc_id and mater.product_id.product_asset_acc_id.id or False
                         if not acc_expense or not acc_asset:
-                            raise osv.except_osv(_('Warning!'),_('Please configure Expense Account and Product Asset Account for all materials!'))
+                            raise osv.except_osv(_('Warning!'),_('Please configure Expense Account and Product Asset Account for materials %s!'%(mater.product_id.default_code)))
                         avg_cost_ids = avg_cost_obj.search(cr, uid, [('product_id','=',mater.product_id.id),('warehouse_id','=',line.warehouse.id)])
                         if avg_cost_ids:
                             avg_cost_id = avg_cost_obj.browse(cr, uid, avg_cost_ids[0])
                             unit = avg_cost_id.avg_cost or 0
+                            sql = '''
+                                select price_unit from stock_move where product_id=%s and product_qty=%s and issue_id=%s
+                            '''%(mater.product_id.id,mater.product_isu_qty,mater.material_issue_id.id)
+                            cr.execute(sql)
+                            move_price = cr.fetchone()
+                            if move_price and move_price[0] and move_price[0]>0:
+                                unit=move_price[0]
+                            if not unit or unit<0:
+                                unit=1
                             price += unit * mater.product_isu_qty
                             product_price = unit * mater.product_isu_qty
                     
@@ -3559,6 +3568,9 @@ class tpt_material_issue(osv.osv):
                         'doc_type':'good'
                         }
                     new_jour_id = account_move_obj.create(cr,uid,value)
+                    print 'TPT Create Done', line.id,line.doc_no
+        return True
+    
 tpt_material_issue()    
 
 class tpt_hr_payroll_approve_reject(osv.osv):
