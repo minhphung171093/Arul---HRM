@@ -285,10 +285,10 @@ class stock_inward_outward_report(osv.osv_memory):
                             move_line.append(line)
                         if move['action_taken'] == 'need':
                             sql = '''
-                                select remaining_qty from tpt_quanlity_inspection where need_inspec_id = %s and state in ('done', 'remaining')
+                                select id from tpt_quanlity_inspection where need_inspec_id = %s and state in ('done', 'remaining')
                             '''%(move['id'])
                             cr.execute(sql)
-                            move_sql = cr.fetchone()
+                            move_sql = cr.fetchall()
                             if move_sql:
                                 move_line.append(line)
                 else:
