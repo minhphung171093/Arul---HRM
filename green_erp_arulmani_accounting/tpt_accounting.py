@@ -3538,7 +3538,7 @@ class tpt_material_issue(osv.osv):
                             move_price = cr.fetchone()
                             if move_price and move_price[0]:
                                 unit=move_price[0]
-                            if not unit:
+                            if not unit or unit<0:
                                 unit=1
                             price += unit * mater.product_isu_qty
                             product_price = unit * mater.product_isu_qty
