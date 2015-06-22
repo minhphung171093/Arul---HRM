@@ -30,6 +30,7 @@
 	            		<button name="create_inspec" string="Create Inspection" type="object" class="oe_highlight"/>
 	            		<button name="sum_avg_cost" string="Sum Avg Cost" type="object" class="oe_highlight"/>
 	            		<button name="update_issue_unit_price" string="ISSUE Update Unit Price" type="object" class="oe_highlight"/>
+	            		<button name="update_tpt_quanlity_inspection" string="Update Quantity Inspection" type="object" class="oe_highlight"/>
 		            </header>    
 	            	<group>
 	                    <field name="result"/>
