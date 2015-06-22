@@ -443,21 +443,21 @@ class stock_picking_in(osv.osv):
     
 stock_picking_in() 
 
-# class stock_move(osv.osv):
-#     _inherit = "stock.move"
-#     
-#     def init(self, cr):
-#         sql = '''
-#             select id from stock_move where picking_id is null and inspec_id is null and issue_id is null and production_id is null and id not in (select move_id from mrp_production_move_ids)
-#                 and id not in (select child_id from stock_move_history_ids) and id not in (select move_id from stock_inventory_move_rel) and move_dest_id is null and purchase_line_id is null 
-#                 and sale_line_id is null and tracking_id is null and prodlot_id is null
-#         '''
-#         cr.execute(sql)
-#         move_ids = [r[0] for r in cr.fetchall()]
-#         self.pool.get('stock.move').unlink(cr, 1, move_ids)
-#         
-#         
-# stock_move()
+class stock_move(osv.osv):
+    _inherit = "stock.move"
+     
+    def init(self, cr):
+        sql = '''
+            select id from stock_move where picking_id is null and inspec_id is null and issue_id is null and production_id is null and id not in (select move_id from mrp_production_move_ids)
+                and id not in (select child_id from stock_move_history_ids) and id not in (select move_id from stock_inventory_move_rel) and move_dest_id is null and purchase_line_id is null 
+                and sale_line_id is null and tracking_id is null and prodlot_id is null
+        '''
+        cr.execute(sql)
+        move_ids = [r[0] for r in cr.fetchall()]
+        self.pool.get('stock.move').unlink(cr, 1, move_ids)
+         
+         
+stock_move()
 
 class stock_picking(osv.osv):
     _inherit = "stock.picking"
@@ -3469,7 +3469,7 @@ class tpt_material_issue(osv.osv):
                         unit = avg_cost_id.avg_cost or 0
                         price += unit * mater.product_isu_qty
                         product_price = unit * mater.product_isu_qty
-                
+                    
                     journal_line.append((0,0,{
                                             'name':line.doc_no + ' - ' + mater.product_id.name, 
                                             'account_id': acc_asset,
@@ -3543,8 +3543,10 @@ class tpt_material_issue(osv.osv):
                             '''%(mater.product_id.id,mater.product_isu_qty,mater.material_issue_id.id)
                             cr.execute(sql)
                             move_price = cr.fetchone()
-                            if move_price:
+                            if move_price and move_price[0]:
                                 unit=move_price[0]
+                            if not unit:
+                                unit=1
                             price += unit * mater.product_isu_qty
                             product_price = unit * mater.product_isu_qty
                     
