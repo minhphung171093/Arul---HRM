@@ -37,7 +37,7 @@
  
 	         <menuitem action="action_arul_hr_employee_hiring_action_form"
 	            id="menu_action_arul_hr_employee_hiring_action_form"
-	            parent="menu_employee_actions" sequence="30" groups="group_vvti_hrm_hr_key_user,group_vvti_hrm_hr_manager"/>
+	            parent="menu_employee_actions" sequence="30" groups="group_vvti_hrm_hr_key_user,group_vvti_hrm_hr_manager,group_vvti_hrm_hr_user"/>
 
 			<menuitem action="action_arul_hr_employee_leaving_action_form"
 	            id="menu_action_arul_hr_employee_leaving_action_form"
@@ -55,7 +55,7 @@
 			
 			<menuitem action="action_arul_employee_category_form"
 	            id="menu_action_arul_employee_category_form"
-	            parent="menu_vvti_hr_master" sequence="5" groups="group_vvti_hrm_admin"/>
+	            parent="menu_vvti_hr_master" sequence="5" groups="group_vvti_hrm_admin,group_vvti_hrm_hr_user"/>
 	            
 	        <menuitem action="action_arul_hr_payroll_deduction_parameters_form"
 	            id="menu_action_arul_hr_payroll_deduction_parameters_form"
@@ -72,22 +72,22 @@
             <menuitem action="action_arul_hr_holiday_special_form"
 	            id="menu_action_arul_hr_holiday_special_form"
 	            parent="menu_vvti_hr_master" sequence="25"
-	            groups="group_vvti_hrm_plant_hr_user,group_vvti_hrm_hr_key_user,group_vvti_hrm_time_user,group_vvti_hrm_hr_manager,group_vvti_hrm_payroll_controller"/>
+	            groups="group_vvti_hrm_plant_hr_user,group_vvti_hrm_hr_key_user,group_vvti_hrm_time_user,group_vvti_hrm_hr_manager,group_vvti_hrm_payroll_controller,group_vvti_hrm_hr_user"/>
 	            
             <menuitem action="action_arul_hr_leave_master_form"
 	            id="menu_action_arul_hr_leave_master_form"
 	            parent="menu_vvti_hr_master" sequence="30"
-	            groups="group_vvti_hrm_plant_hr_user,group_vvti_hrm_hr_key_user,group_vvti_hrm_time_user,group_vvti_hrm_hr_manager,group_vvti_hrm_payroll_controller"/>
+	            groups="group_vvti_hrm_plant_hr_user,group_vvti_hrm_hr_key_user,group_vvti_hrm_time_user,group_vvti_hrm_hr_manager,group_vvti_hrm_payroll_controller,group_vvti_hrm_hr_user"/>
             
             <menuitem action="action_arul_hr_leave_types_form"
 	            id="menu_action_arul_hr_leave_types_form"
 	            parent="menu_vvti_hr_master" sequence="35"
-	            groups="group_vvti_hrm_plant_hr_user,group_vvti_hrm_hr_key_user,group_vvti_hrm_time_user,group_vvti_hrm_hr_manager,group_vvti_hrm_payroll_controller"/>
+	            groups="group_vvti_hrm_plant_hr_user,group_vvti_hrm_hr_key_user,group_vvti_hrm_time_user,group_vvti_hrm_hr_manager,group_vvti_hrm_payroll_controller,group_vvti_hrm_hr_user"/>
 	            
             <menuitem action="action_arul_hr_capture_work_shift_form"
 	            id="menu_action_arul_hr_capture_work_shift_form"
 	            parent="menu_vvti_hr_master" sequence="40"
-	            groups="group_vvti_hrm_plant_hr_user,group_vvti_hrm_hr_key_user,group_vvti_hrm_time_user,group_vvti_hrm_hr_manager,group_vvti_hrm_payroll_controller"/>
+	            groups="group_vvti_hrm_plant_hr_user,group_vvti_hrm_hr_key_user,group_vvti_hrm_time_user,group_vvti_hrm_hr_manager,group_vvti_hrm_payroll_controller,group_vvti_hrm_hr_user"/>
 	        
 	        <menuitem id="menu_action_shift_group"
 	        	action="action_shift_group"
@@ -105,19 +105,19 @@
             	
         	<menuitem action="action_arul_hr_payroll_area_form"
 	            id="menu_action_arul_hr_payroll_area_form"
-	            parent="menu_vvti_hr_master" sequence="55" groups='group_vvti_hrm_admin'/>
+	            parent="menu_vvti_hr_master" sequence="55" groups='group_vvti_hrm_admin,group_vvti_hrm_hr_user'/>
 	            
             <menuitem action="action_arul_hr_payroll_sub_area_form"
 	            id="menu_action_arul_hr_payroll_sub_area_form"
-	            parent="menu_vvti_hr_master" sequence="60" groups='group_vvti_hrm_admin'/>
+	            parent="menu_vvti_hr_master" sequence="60" groups='group_vvti_hrm_admin,group_vvti_hrm_hr_user'/>
 	            
             <menuitem action="action_arul_employee_actions_form"
 	            id="menu_action_arul_employee_actions_form"
-	            parent="menu_vvti_hr_master" sequence="65" groups='group_vvti_hrm_admin'/>
+	            parent="menu_vvti_hr_master" sequence="65" groups='group_vvti_hrm_admin,group_vvti_hrm_hr_user'/>
 	            
             <menuitem action="action_arul_employee_action_type_form"
 	            id="menu_action_arul_employee_action_type_form"
-	            parent="menu_vvti_hr_master" sequence="70" groups='group_vvti_hrm_admin'/>
+	            parent="menu_vvti_hr_master" sequence="70" groups='group_vvti_hrm_admin,group_vvti_hrm_hr_user'/>
 	            
             <menuitem action="action_food_subsidy_form"
 	            id="menu_action_food_subsidy_form"
@@ -126,7 +126,7 @@
             <menuitem action="hr.open_module_tree_department"
             	id="hr.menu_hr_department_tree"
             	parent="menu_vvti_hr_master" sequence="80"
-            	groups="group_vvti_hrm_admin"/>
+            	groups="group_vvti_hrm_admin,group_vvti_hrm_hr_user"/>
             	
             <menuitem parent="menu_vvti_hr_master"
             	id="hr.menu_hr_job" action="hr.action_hr_job"
