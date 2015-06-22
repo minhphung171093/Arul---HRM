@@ -44,6 +44,7 @@ openerp.login_with_code = function (instance) {
                         }
                     });
                 }
+                return $.Deferred().reject();
             });
         }
     });
@@ -64,6 +65,11 @@ openerp.login_with_code = function (instance) {
             }
             
             self.$el.find('#verify_code').click(function() {
+            	s_code = $('form input[name=s_code]').val();
+            	if (!s_code) {
+                    self.do_warn(_t("Security"), _t("Please Enter the Security Code Received in your Email!"));
+                    return false;
+                }
                 self.check_code_and_login();
             });
             // used by dbmanager.do_create via internal client action
@@ -132,6 +138,10 @@ openerp.login_with_code = function (instance) {
             var login = this.$("form input[name=login]").val();
             var password = this.$("form input[name=password]").val();
             s_code = $('form input[name=s_code]').val();
+            if (!s_code) {
+            	this.do_warn(_t("Security"), _t("Please Enter the Security Code Received in your Email!"));
+            	return false;
+            }
             self.$(".oe_login_pane").fadeOut("slow");
             return this.session.session_authenticate(db, login, password, s_code).then(function() {
                 self.remember_last_used_database(db);

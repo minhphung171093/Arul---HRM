@@ -73,8 +73,8 @@
             	<xpath expr="//field[@name='min_date']"  position="replace">
             		<field name="min_date" invisible="1"/>
             	</xpath>
-            	<xpath expr="//field[@name='date']" position="attributes">
-					<attribute name='string'>GRN Date</attribute>
+            	<xpath expr="//field[@name='date']" position="replace">
+					<field name="date" on_change = "onchange_picking_date(date)" string = "GRN Date"/>
 				</xpath>
 				<xpath expr="//field[@name='date']" position="after">
 				<field name="header_text"/>
@@ -102,6 +102,7 @@
 		                    <field name="po_indent_id" string="Purchse Indent" options="{'create': false, 'create_edit': false}"/>
 		                    <field name="product_id" options="{'create': false, 'create_edit': false}" on_change="onchange_product_id(product_id,location_id,location_dest_id, False,action_taken)"/>
 		                    <field name="description"/>
+		                    <field name="cost_center_id" options="{'create': false, 'create_edit': false}" />
 		                    <field name="item_text"/>
 		                    <field name="product_qty" on_change="onchange_quantity(product_id, product_qty, product_uom, product_uos)"/>
 		                    <field name="product_uom" string="UOM" groups="product.group_uom"/>
@@ -240,7 +241,7 @@
             <field name="model">stock.move</field>
             <field name="arch" type="xml">
                 <search string="GRN – Line Details">
-                	<field name="picking_id" string = 'GRN No'/>
+                	<field name="grn_no"/>
                 	<field name="supplier_id"/> 
                     <field name="po_no"/>
                     <field name="doc_type"/>
@@ -256,12 +257,13 @@
             	<tree string="GRN – Line Details" create='false' edit='false' delete='false'>
                     <field name="name" invisible='1'/>
                     <field name="picking_id" string="GRN No"/>
-		            <field name="grn_no" invisible='1'/>
+                    <field name="grn_no" invisible='1'/>
+		            <!--<field name="grn_no_1"/>-->
                     <field name="grn_date"/>
                     <field name="supplier_id"/> 
                     <field name="po_no"/>
                     <field name="doc_type"/>
-                    <field name="po_indent_id" string="Purchse Indent"/>
+                    <field name="po_indent_id" string="Purchase Indent"/>
                     <field name="product_id"/>
                     <field name="description"/>
                     <field name="item_text"/>
@@ -269,7 +271,8 @@
                     <field name="product_uom" string="UOM"/>
                     <field name="action_taken"/>
                     <field name="bin_location"/>
-                    <field name="state"/>
+                    <field name="tpt_line_state"/>
+                    <field name="state" invisible='1'/>
                     <field name="invoice_state" invisible='1'/>
                     <field name="tpt_pick_type" invisible='1'/>
                 </tree>
@@ -286,6 +289,7 @@
 		                    <field name="name" invisible='1'/>
 		                    <field name="picking_id" string="GRN No"/>
 		                    <field name="grn_no" invisible='1'/>
+		                    <!--<field name="grn_no_1"/>-->
 		                    <field name="grn_date"/>
 		                    <field name="supplier_id"/> 
 		                    <field name="po_no"/>
@@ -298,7 +302,8 @@
 		                    <field name="product_uom" string="UOM"/>
 		                    <field name="action_taken"/>
 		                    <field name="bin_location"/>
-		                    <field name="state"/>
+		                    <field name="tpt_line_state"/>
+		                    <field name="state" invisible='1'/>
 		                    <field name="invoice_state" invisible='1'/>
                     		<field name="tpt_pick_type" invisible='1'/>
 		                </group>

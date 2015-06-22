@@ -114,4 +114,10 @@ access_vvti_sale_96,arul.hr.payroll.executions,green_erp_arulmani_hrm.model_arul
 
 "base.access_ir_property_group_user","ir_property group_user","model_ir_property",,1,1,1,0
 
+access_vvti_sale_97,arul.hr.punch.in.out.time,green_erp_arulmani_hrm.model_arul_hr_punch_in_out_time,green_erp_arulmani_sale.group_vvti_marketing_user,True,True,True,True
+
+access_vvti_sale_98,tpt.month,green_erp_arulmani_hrm.model_tpt_month,green_erp_arulmani_sale.group_vvti_marketing_user,True,False,False,False
+access_vvti_sale_99,shift.group,green_erp_arulmani_hrm.model_shift_group,green_erp_arulmani_sale.group_vvti_marketing_user,True,False,False,False
+
+
 

@@ -26,6 +26,8 @@ class stock_picking(osv.osv):
             ('direct','Direct Stock Update'),('move','Move to Consumption'),('need','Need Inspection')
             ], string='Action to be Taken'),
                 }
+    
+                
 
     def write(self, cr, uid, ids, vals, context=None):
         new_write = super(stock_picking, self).write(cr, uid,ids, vals, context)
@@ -294,7 +296,14 @@ class stock_picking_in(osv.osv):
             ], string='Action to be Taken'),
                 }
 
-
+    def onchange_picking_date(self, cr, uid, ids, date=False, context=None):
+        for picking in self.browse(cr, uid, ids, context=context):
+            if date:
+                sql = '''
+                    update stock_move set date = '%s' where picking_id = %s
+                '''%(date, picking.id)
+                cr.execute(sql)
+        return True
     
     def onchange_purchase_id(self, cr, uid, ids,purchase_id=False, context=None):
         vals = {}
@@ -376,7 +385,9 @@ class stock_move(osv.osv):
         'item_text':fields.text('Item Text'),
         'inspec_id': fields.many2one('tpt.quanlity.inspection','Quanlity Inspection'),
         'issue_id': fields.many2one('tpt.material.issue','Material Issue'),
+        'cost_center_id': fields.many2one('tpt.cost.center','Cost center'),
         'grn_no': fields.related('picking_id', 'name', type='char', string='GRN No'),
+#         'grn_no_1': fields.related('picking_id', 'id',relation='stock.picking.in', type='many2one', string='GRN No'),
         'grn_date': fields.related('picking_id', 'date', type='datetime', string='GRN Date'),
         'supplier_id': fields.related('picking_id', 'partner_id',relation='res.partner', type='many2one', string='Supplier'),
         'po_no': fields.related('picking_id', 'purchase_id',relation='purchase.order', type='many2one', string='PO Number'),
@@ -386,7 +397,10 @@ class stock_move(osv.osv):
             ("invoiced", "Invoiced"),("2binvoiced", "To Be Invoiced"),("none", "Not Applicable")], string='Inovice State'),
         'tpt_pick_type': fields.related('picking_id', 'type', type='selection',selection=[
             ('out', 'Sending Goods'), ('in', 'Getting Goods'), ('internal', 'Internal')], string='Picking Type'),
+        'tpt_line_state': fields.related('picking_id', 'state', type='selection',selection=[
+            ('draft', 'Draft'),('cancel', 'Cancelled'),('auto', 'Waiting Another Operation'),('confirmed', 'Waiting Availability'),('assigned', 'Ready to Receive'),('done', 'Received')], string='State'),
                 }
+    
     def onchange_product_id(self, cr, uid, ids, prod_id=False, loc_id=False,
                             loc_dest_id=False, partner_id=False, action=False):
         """ On change of product id, if finds UoM, UoS, quantity and UoS quantity.

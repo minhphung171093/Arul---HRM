@@ -423,6 +423,7 @@ class tpt_purchase_product(osv.osv):
         'section_id_relate': fields.related('pur_product_id', 'section_id',type = 'many2one', relation='arul.hr.section', string='Section',store=True),
         'requisitioner_relate':fields.related('pur_product_id', 'requisitioner',type = 'many2one', relation='hr.employee', string='Requisitioner',store=True),
         'date_indent_relate':fields.related('pur_product_id', 'date_indent',type = 'date', string='Indent Date',store=True),
+        'create_uid_relate':fields.related('pur_product_id', 'create_uid',type = 'many2one', relation='res.users', string='Raised By',store=True),
         'flag': fields.boolean('Flag'),
         'store_date':fields.datetime('Store Approved Date',readonly = True),
         'hod_date':fields.datetime('HOD Approved Date',readonly = True),
@@ -1988,6 +1989,10 @@ class purchase_order(osv.osv):
             update purchase_order set currency_id=tpt_currency_id
         '''
         cr.execute(sql) 
+#         sql ='''
+#             update stock_move set cost_center_id=(select cost_center_id from tpt_purchase_indent where id=stock_move.po_indent_id limit 1)
+#         '''
+#         cr.execute(sql)
 #         quotation_obj=self.pool.get('tpt.purchase.quotation.line')
 #         quotation_ids=self.pool.get('tpt.purchase.quotation.line').search(cr,1,[])
 # #         quotation = quotation_obj.browse(cr,1,quotation_ids)
@@ -2854,6 +2859,7 @@ class purchase_order(osv.osv):
             'action_taken': act_taken,
             'description':order_line.description or False,
             'item_text':order_line.item_text or False,
+            'cost_center_id': order_line.po_indent_no.cost_center_id and order_line.po_indent_no.cost_center_id.id or False,
         }
 purchase_order()
 
@@ -2971,6 +2977,26 @@ class purchase_order_line(osv.osv):
                 'flag_line': fields.boolean('flag_line'),
                 #TPT
                 'item_text': fields.char('Item Text'), 
+                'po_document_name_relate':fields.related('order_id', 'name',type = 'char', string='PO Document No'),
+                'date_order_relate':fields.related('order_id', 'date_order',type = 'date', string='Order Date'),
+                'po_document_type_relate':fields.related('order_id', 'po_document_type',type = 'selection',selection=[
+            ('raw','VV Raw material PO'),('asset','VV Capital PO'),('standard','VV Standard PO'),('local','VV Local PO'),('return','VV Return PO'),('service','VV Service PO'),('out','VV Out Service PO')], string='PO Document Type'),
+                'supplier_relate':fields.related('order_id', 'partner_id',type = 'many2one', relation='res.partner', string='Supplier'),
+                'state_relate':fields.related('order_id', 'state' ,type = 'selection',selection=[
+                                   ('draft', 'Draft PO'),
+                                    ('sent', 'RFQ Sent'),
+                                    ('amendement', 'Amendement'),
+                                    ('head', 'Purchase Head Approved'),
+                                    ('gm', 'GM Approval'),
+                                    ('md', 'Ready For GRN'),
+                                    ('confirmed', 'Waiting Approval'),
+                                    ('approved', 'Purchase Order'),
+                                    ('except_picking', 'Shipping Exception'),
+                                    ('except_invoice', 'Invoice Exception'),
+                                    ('done', 'Done'),
+                                    ('cancel', 'Cancelled'),
+                                   ], string='State'),
+#                 'po_document_type_relate':fields.selection([('raw','VV Raw material PO'),('asset','VV Capital PO'),('standard','VV Standard PO'),('local','VV Local PO'),('return','VV Return PO'),('service','VV Service PO'),('out','VV Out Service PO')],'PO Document Type'),
                 }   
     
 
@@ -3154,6 +3180,34 @@ class purchase_order_line(osv.osv):
                             })
  
         return res
+    
+    def search(self, cr, uid, args, offset=0, limit=None, order=None, context=None, count=False):
+        if context is None:
+            context = {}
+        if context.get('search_po_line_detail'):
+            po_line_ids = []
+            sql = '''
+                select purchase_line_id,case when sum(product_qty)!=0 then sum(product_qty) else 0 end product_qty from stock_move
+                            where purchase_line_id is not null and picking_id in (select id from stock_picking where state='done' and type='in') group by purchase_line_id
+            '''
+            cr.execute(sql)
+            po_ids = cr.fetchall()
+            for line in po_ids:
+                if line[0]:
+                    sql = '''
+                        select case when sum(product_qty)!=0 then sum(product_qty) else 0 end product_qty from purchase_order_line
+                        where id = %s 
+                    '''%(line[0])
+                    cr.execute(sql)
+                    product_qty = cr.fetchone()[0]
+                    if product_qty > line[1]:
+                        po_line_ids.append(line[0])
+            args += [('id','in',po_line_ids)]
+        return super(purchase_order_line, self).search(cr, uid, args, offset=offset, limit=limit, order=order, context=context, count=count)    
+
+    def name_search(self, cr, user, name, args=None, operator='ilike', context=None, limit=100):
+       ids = self.search(cr, user, args, context=context, limit=limit)
+       return self.name_get(cr, user, ids, context=context)
  
       
 #     def onchange_product_id(self, cr, uid, ids, product_id=False, po_indent_no=False, context=None):
@@ -3297,6 +3351,7 @@ class tpt_quanlity_inspection(osv.osv):
         'qty_approve':fields.float('Qty Approve',digits=(16,3),states={'cancel': [('readonly', True)], 'done':[('readonly', True)]}),
         'remaining_qty':fields.float('Inspection Quantity',digits=(16,3), readonly= True),
         'state':fields.selection([('draft', 'Draft'),('remaining', 'Remaining'),('done', 'Done')],'Status', readonly=True),
+        'price_unit':fields.float('Unit Price',digits=(16,2),states={'cancel': [('readonly', True)], 'done':[('readonly', True)]}),
                 }
     _defaults = {
         'state':'draft',

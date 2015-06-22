@@ -75,21 +75,25 @@
             			<div class="oe_text_center oe_bold">
             				<field name="cash_acc_no" nolabel="1" class="oe_text_center"/>
             			</div>
-	                	<group>
+	                	
+	                	<div col='4' colspan='4' class='oe_green_erp_scroll'>
 		                	<field name="cb_line" nolabel='1'>
 		                		<tree create="false" edit="false" delete="false">
 		                			<field name="voucher_id"/>
 		                			<field name="date"/>
 		                			<field name="gl_code"/>
 		                			<field name="desc"/>
+		                			<field name="payee"/>
 		                			<field name="ref"/>
+		                			<field name="voucher_desc"/>
 		                			<field name="opening_balance"/>
 		                			<field name="debit"/>
 		                			<field name="crebit"/>
 		                			<field name="balance"/>
 		                		</tree>
 		                	</field>
-	                	</group>
+		                	</div>
+	                	
 	               	</sheet>
 	           </form>
 	        </field>
