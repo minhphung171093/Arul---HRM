@@ -256,25 +256,27 @@ class stock_inward_outward_report(osv.osv_memory):
             date_from = o.date_from
             date_to = o.date_to
             product_id = o.product_id
+            parent_ids_raw = self.pool.get('stock.location').search(cr, uid, [('name','=','Store'),('usage','=','view')])
+            locat_ids_raw = self.pool.get('stock.location').search(cr, uid, [('name','in',['Raw Material','Raw Materials','Raw material']),('location_id','=',parent_ids_raw[0])])
+            parent_ids_spares = self.pool.get('stock.location').search(cr, uid, [('name','=','Store'),('usage','=','view')])
+            locat_ids_spares = self.pool.get('stock.location').search(cr, uid, [('name','in',['Spares','Spare','spares']),('location_id','=',parent_ids_spares[0])])
             sql = '''
                 select * from account_move where doc_type in ('freight', 'good', 'grn') and date between '%(date_from)s' and '%(date_to)s'
                     and ( id in (select move_id from account_move_line where (move_id in (select move_id from account_invoice where id in (select invoice_id from account_invoice_line where product_id=%(product_id)s)))
                         or (LEFT(name,17) in (select name from stock_picking where id in (select picking_id from stock_move where product_id=%(product_id)s)))
-                    ) or material_issue_id in (select id from tpt_material_issue where id in (select material_issue_id from tpt_material_issue_line where product_id=%(product_id)s)) 
+                    ) or material_issue_id in (select id from tpt_material_issue where warehouse in (%(location_row_id)s,%(location_spare_id)s) and id in (select material_issue_id from tpt_material_issue_line where product_id=%(product_id)s)) 
                         ) order by date, id
             '''%{'date_from':date_from,
                  'date_to':date_to,
-                 'product_id':product_id.id}
+                 'product_id':product_id.id,
+                 'location_row_id':locat_ids_raw[0],
+                 'location_spare_id':locat_ids_spares[0]}
             cr.execute(sql)
             move_line = []
             for line in cr.dictfetchall():
 #                 if line['doc_type'] != 'grn':
 #                     move_line.append(line)
                 if line['doc_type'] == 'grn':
-                    parent_ids_raw = self.pool.get('stock.location').search(cr, uid, [('name','=','Store'),('usage','=','view')])
-                    locat_ids_raw = self.pool.get('stock.location').search(cr, uid, [('name','in',['Raw Material','Raw Materials','Raw material']),('location_id','=',parent_ids_raw[0])])
-                    parent_ids_spares = self.pool.get('stock.location').search(cr, uid, [('name','=','Store'),('usage','=','view')])
-                    locat_ids_spares = self.pool.get('stock.location').search(cr, uid, [('name','in',['Spares','Spare','spares']),('location_id','=',parent_ids_spares[0])])
                     sql = '''
                         select * from stock_move
                         where  picking_id in (select id from stock_picking where name in (select LEFT(name,17) from account_move_line where move_id = %s) and product_id = %s)
