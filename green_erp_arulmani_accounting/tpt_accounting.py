@@ -3543,9 +3543,9 @@ class tpt_material_issue(osv.osv):
                             '''%(mater.product_id.id,mater.product_isu_qty,mater.material_issue_id.id)
                             cr.execute(sql)
                             move_price = cr.fetchone()
-                            if move_price and move_price[0]:
+                            if move_price and move_price[0] and move_price[0]>0:
                                 unit=move_price[0]
-                            if not unit:
+                            if not unit or unit<0:
                                 unit=1
                             price += unit * mater.product_isu_qty
                             product_price = unit * mater.product_isu_qty
