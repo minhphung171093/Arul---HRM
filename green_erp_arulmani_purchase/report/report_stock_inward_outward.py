@@ -164,10 +164,10 @@ class Parser(report_sxw.rml_parse):
         date_to = wizard_data['date_to']
         product_id = wizard_data['product_id']
         sql = '''
-            select * from account_move where doc_type in ('freight', 'good', 'grn') 
-                and ( id in (select move_id from account_move_line where (move_id in (select move_id from account_invoice where and date_invoice between '%(date_from)s' and '%(date_to)s' and id in (select invoice_id from account_invoice_line where product_id=%(product_id)s)))
-                    or (LEFT(name,17) in (select name from stock_picking where id in (select picking_id from stock_move where date between '%(date_from)s' and '%(date_to)s' and product_id=%(product_id)s)))
-                ) or material_issue_id in (select id from tpt_material_issue where date_expec between '%(date_from)s' and '%(date_to)s' and id in (select material_issue_id from tpt_material_issue_line where product_id=%(product_id)s)) 
+            select * from account_move where doc_type in ('freight', 'good', 'grn') and date between '%(date_from)s' and '%(date_to)s'
+                and ( id in (select move_id from account_move_line where (move_id in (select move_id from account_invoice where id in (select invoice_id from account_invoice_line where product_id=%(product_id)s)))
+                    or (LEFT(name,17) in (select name from stock_picking where id in (select picking_id from stock_move where product_id=%(product_id)s)))
+                ) or material_issue_id in (select id from tpt_material_issue where id in (select material_issue_id from tpt_material_issue_line where product_id=%(product_id)s)) 
                     ) order by date, id
         '''%{'date_from':date_from,
              'date_to':date_to,

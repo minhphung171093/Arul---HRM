@@ -155,17 +155,32 @@ class stock_movement_analysis(osv.osv_memory):
             if categ=='raw':
                 parent_ids = self.pool.get('stock.location').search(cr, uid, [('name','=','Store'),('usage','=','view')])
                 locat_ids = self.pool.get('stock.location').search(cr, uid, [('name','in',['Raw Material','Raw Materials','Raw material']),('location_id','=',parent_ids[0])])
+#                 sql = '''
+#                                 select case when sum(foo.product_qty)>0 then sum(foo.product_qty) else 0 end ton from 
+#                                     (select st.product_qty
+#                                         from stock_move st 
+#                                         where st.state='done' and st.product_id = %s and st.location_dest_id = %s and to_char(date, 'YYYY-MM-DD') between '%s' and '%s'
+#                                         and (picking_id is not null
+#                                              or inspec_id is not null
+#                                              or (id in (select move_id from stock_inventory_move_rel)))
+#                                         and st.location_id != st.location_dest_id
+#                                     )foo
+#                             '''%(line,locat_ids[0],date_from,date_to)
+
+#phuoc sua lay date cua stock picking
                 sql = '''
-                                select case when sum(foo.product_qty)>0 then sum(foo.product_qty) else 0 end ton from 
-                                    (select st.product_qty
-                                        from stock_move st 
-                                        where st.state='done' and st.product_id = %s and st.location_dest_id = %s and to_char(date, 'YYYY-MM-DD') between '%s' and '%s'
-                                        and (picking_id is not null
-                                             or inspec_id is not null
-                                             or (id in (select move_id from stock_inventory_move_rel)))
-                                        and st.location_id != st.location_dest_id
-                                    )foo
-                            '''%(line,locat_ids[0],date_from,date_to)
+                select case when sum(foo.product_qty)>0 then sum(foo.product_qty) else 0 end ton from 
+                    (select st.product_qty
+                        from stock_move st 
+                        where st.state='done' and st.product_id = %s and st.location_dest_id = %s 
+                        and (picking_id is not null and picking_id in (select id from stock_picking where to_char(date, 'YYYY-MM-DD') between '%s' and '%s')
+                             or inspec_id is not null
+                             or (id in (select move_id from stock_inventory_move_rel)))
+                        and st.location_id != st.location_dest_id
+                    )foo
+                '''%(line,locat_ids[0],date_from,date_to)
+                
+#end phuoc
                             
 #                 sql = '''
 #                                 select case when sum(foo.product_qty)>0 then sum(foo.product_qty) else 0 end ton from 
@@ -206,7 +221,7 @@ class stock_movement_analysis(osv.osv_memory):
                                     (select st.product_qty
                                         from stock_move st 
                                         where st.state='done' and st.product_id = %s and st.location_dest_id = %s and to_char(date, 'YYYY-MM-DD') between '%s' and '%s'
-                                        and (picking_id is not null
+                                        and (picking_id is not null and picking_id in (select id from stock_picking where to_char(date, 'YYYY-MM-DD') between '%s' and '%s')
                                              or inspec_id is not null
                                              or (id in (select move_id from stock_inventory_move_rel)))
                                         and st.location_id != st.location_dest_id
