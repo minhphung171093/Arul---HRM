@@ -16,6 +16,8 @@ class leave_balance(osv.osv_memory):
             'employee': fields.many2one('hr.employee', 'Employee',ondelete='restrict'),
             'employee_category': fields.many2one('vsis.hr.employee.category', 'Employee Category'),            
             'department': fields.many2one('hr.department', 'Department',ondelete='restrict'),
+            'is_active': fields.boolean('Is Active'),
+            
     }
     
     _defaults = {
