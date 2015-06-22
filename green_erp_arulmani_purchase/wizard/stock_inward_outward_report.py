@@ -120,7 +120,7 @@ class stock_inward_outward_report(osv.osv_memory):
                             where st.state='done' and st.location_dest_id=%s and st.product_id=%s and to_char(date, 'YYYY-MM-DD') < '%s'
                                 and ( picking_id is not null
                                 or  inspec_id is not null
-                                or (st.id in (select move_id from stock_inventory_move_rel ))
+                                or (st.id in (select move_id from stock_inventory_move_rel where inventory_id in (select id from stock_inventory where date <'%s' and state = 'done')))
                             )
                     '''%(locat_ids[0], product_id.id,date_from)
                 cr.execute(sql)
@@ -143,7 +143,7 @@ class stock_inward_outward_report(osv.osv_memory):
                             where st.state='done' and st.location_dest_id=%s and st.product_id=%s and to_char(date, 'YYYY-MM-DD') < '%s'
                                 and ( picking_id is not null
                                 or  inspec_id is not null
-                                or (st.id in (select move_id from stock_inventory_move_rel ))
+                                or (st.id in (select move_id from stock_inventory_move_rel where inventory_id in (select id from stock_inventory where date <'%s' and state = 'done')))
                             )
                     '''%(locat_ids[0], product_id.id,date_from)
                 cr.execute(sql)
