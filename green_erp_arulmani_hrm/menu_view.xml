@@ -121,7 +121,7 @@
 	            
             <menuitem action="action_food_subsidy_form"
 	            id="menu_action_food_subsidy_form"
-	            parent="menu_vvti_hr_master" sequence="75" groups="group_vvti_hrm_time_user"/>
+	            parent="menu_vvti_hr_master" sequence="75" groups="group_vvti_hrm_time_user,group_vvti_hrm_hr_user"/>
 	            
             <menuitem action="hr.open_module_tree_department"
             	id="hr.menu_hr_department_tree"
