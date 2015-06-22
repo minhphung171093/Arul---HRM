@@ -117,8 +117,8 @@ class stock_inward_outward_report(osv.osv_memory):
                 sql = '''
                     select case when sum(st.product_qty)!=0 then sum(st.product_qty) else 0 end product_qty
                             from stock_move st
-                            where st.state='done' and st.location_dest_id=%s and st.product_id=%s and to_char(date, 'YYYY-MM-DD') < '%s'
-                                and ( picking_id is not null
+                            where st.state='done' and st.location_dest_id=%s and st.product_id=%s 
+                                and ( picking_id is not null and picking_id in (select id from stock_picking where to_char(date, 'YYYY-MM-DD') < '%s')
                                 or  inspec_id is not null
                                 or (st.id in (select move_id from stock_inventory_move_rel where inventory_id in (select id from stock_inventory where date <'%s' and state = 'done')))
                             )
@@ -140,8 +140,8 @@ class stock_inward_outward_report(osv.osv_memory):
                 sql = '''
                     select case when sum(st.product_qty)!=0 then sum(st.product_qty) else 0 end product_qty
                             from stock_move st
-                            where st.state='done' and st.location_dest_id=%s and st.product_id=%s and to_char(date, 'YYYY-MM-DD') < '%s'
-                                and ( picking_id is not null
+                            where st.state='done' and st.location_dest_id=%s and st.product_id=%s 
+                                and ( picking_id is not null and picking_id in (select id from stock_picking where to_char(date, 'YYYY-MM-DD') < '%s')
                                 or  inspec_id is not null
                                 or (st.id in (select move_id from stock_inventory_move_rel where inventory_id in (select id from stock_inventory where date <'%s' and state = 'done')))
                             )
