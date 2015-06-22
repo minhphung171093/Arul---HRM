@@ -200,7 +200,7 @@ class Parser(report_sxw.rml_parse):
             sql = '''
                 select sum(aml.credit) as credit, aml.date from account_move_line aml 
                 where aml.credit is not null and aml.credit != 0 and aml.date < '%s' 
-                and move_id in (select move_id from account_voucher where type = 'payment' and state = 'posted' and journal_id in (select id from account_journal where type = 'cash')) 
+                and move_id in (select move_id from account_voucher where type = 'payment' and state = 'posted' and journal_id in (select id from account_journal where type in ('cash','general'))) 
                 group by aml.date
             '''%(date_from)
             self.cr.execute(sql)
@@ -210,7 +210,7 @@ class Parser(report_sxw.rml_parse):
             sql = '''
                 select sum(aml.debit) as debit, aml.date from account_move_line aml 
                 where aml.debit is not null and aml.debit != 0 and aml.date < '%s' 
-                and move_id in (select move_id from account_voucher where type = 'receipt' and state = 'posted' and journal_id in (select id from account_journal where type = 'cash')) 
+                and move_id in (select move_id from account_voucher where type = 'receipt' and state = 'posted' and journal_id in (select id from account_journal where type in ('cash','general'))) 
                 group by aml.date
             '''%(date_from)
             self.cr.execute(sql)
