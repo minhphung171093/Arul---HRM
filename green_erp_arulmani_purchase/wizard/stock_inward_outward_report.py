@@ -122,7 +122,7 @@ class stock_inward_outward_report(osv.osv_memory):
                                 or  inspec_id is not null
                                 or (st.id in (select move_id from stock_inventory_move_rel where inventory_id in (select id from stock_inventory where date <'%s' and state = 'done')))
                             )
-                    '''%(locat_ids[0], product_id.id,date_from)
+                    '''%(locat_ids[0], product_id.id,date_from, date_from)
                 cr.execute(sql)
                 product_qty = cr.dictfetchone()['product_qty']
                 
@@ -145,7 +145,7 @@ class stock_inward_outward_report(osv.osv_memory):
                                 or  inspec_id is not null
                                 or (st.id in (select move_id from stock_inventory_move_rel where inventory_id in (select id from stock_inventory where date <'%s' and state = 'done')))
                             )
-                    '''%(locat_ids[0], product_id.id,date_from)
+                    '''%(locat_ids[0], product_id.id,date_from, date_from)
                 cr.execute(sql)
                 product_qty = cr.dictfetchone()['product_qty']
                 
