@@ -1647,7 +1647,9 @@ class tpt_update_stock_move_report(osv.osv):
                 if r[0] != line.name.id:
                     picking_ids.append(r[0])
             if picking_ids:
-                inspection_obj.write(cr, uid, [line.id], {'name':picking_ids[0]})
+                inspec_ids = inspection_obj.search(cr, uid, [('name','=',line.name.id),('id','!=',line.id)])
+                inspection_obj.write(cr, uid, inspec_ids, {'name':picking_ids[0]})
+                self.update_tpt_quanlity_inspection_v2(cr, uid, ids)
         cr.execute(''' update tpt_quanlity_inspection t set need_inspec_id=(select id from stock_move where picking_id=t.name and product_qty=t.qty and product_id=t.product_id limit 1) where id in %s ''',(tuple(inspection_ids),))
         return self.write(cr, uid, ids, {'result':'TPT tpt_quanlity_inspection v2 Done'})
     
