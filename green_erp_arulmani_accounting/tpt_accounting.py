@@ -3533,7 +3533,7 @@ class tpt_material_issue(osv.osv):
                             unit = avg_cost_id.avg_cost or 0
                             sql = '''
                                 select price_unit from stock_move where product_id=%s and product_qty=%s and issue_id=%s
-                            '''%(mater.product_id.id,master.product_isu_qty,master.material_issue_id.id)
+                            '''%(mater.product_id.id,mater.product_isu_qty,mater.material_issue_id.id)
                             cr.execute(sql)
                             move_price = cr.fetchone()
                             if move_price:
