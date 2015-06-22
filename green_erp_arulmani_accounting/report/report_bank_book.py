@@ -273,7 +273,7 @@ class Parser(report_sxw.rml_parse):
                     sql = '''
                             select id from account_voucher 
                             where date between '%s' and '%s' and type = 'payment' and 
-                            journal_id in (select id from account_journal where type = 'bank') and state = 'posted'
+                            journal_id in (select id from account_journal where type in  ('bank','general')) and state = 'posted'
                             and account_id=%s
                         '''%(date_from, date_to, account_id.id)
                     self.cr.execute(sql)
@@ -315,7 +315,7 @@ class Parser(report_sxw.rml_parse):
                 else:
                     sql = '''
                             select id from account_voucher where date between '%s' and '%s' and journal_id in 
-                            (select id from account_journal where type = 'bank') and state = 'posted'
+                            (select id from account_journal where type in  ('bank','general')) and state = 'posted'
                             and account_id=%s
                         '''%(date_from, date_to, account_id.id)
                     self.cr.execute(sql)
@@ -361,7 +361,7 @@ class Parser(report_sxw.rml_parse):
                         return []
                 elif type == 'receipt':
                     sql = '''
-                            select id from account_voucher where date between '%s' and '%s' and type = 'receipt' and journal_id in (select id from account_journal where type = 'bank') and state = 'posted'
+                            select id from account_voucher where date between '%s' and '%s' and type = 'receipt' and journal_id in (select id from account_journal where type in  ('bank','general')) and state = 'posted'
                         '''%(date_from, date_to)
                     self.cr.execute(sql)
                     account_ids = [row[0] for row in self.cr.fetchall()]
@@ -380,7 +380,7 @@ class Parser(report_sxw.rml_parse):
                         return []
                 else:
                     sql = '''
-                            select id from account_voucher where date between '%s' and '%s' and journal_id in (select id from account_journal where type = 'bank') and state = 'posted'
+                            select id from account_voucher where date between '%s' and '%s' and journal_id in (select id from account_journal where type in  ('bank','general')) and state = 'posted'
                         '''%(date_from, date_to)
                     self.cr.execute(sql)
                     account_ids = [row[0] for row in self.cr.fetchall()]
@@ -411,7 +411,7 @@ class Parser(report_sxw.rml_parse):
                     sql = '''
                             select id from account_voucher 
                             where date between '%s' and '%s' and type = 'payment' and 
-                            journal_id in (select id from account_journal where type = 'bank') and state in ('draft','posted')
+                            journal_id in (select id from account_journal where type in  ('bank','general')) and state in ('draft','posted')
                             and account_id=%s
                         '''%(date_from, date_to, account_id.id)
                     self.cr.execute(sql)
@@ -419,7 +419,7 @@ class Parser(report_sxw.rml_parse):
                     if account_ids:
                         self.cr.execute('''
                             select aa.name as acc_name, aml.account_id, sum(aml.debit) as debit, sum(aml.credit) as credit,av.name as voucher_name,
-                            av.date as voucher_date, aml.ref as ref, av.payee payee, av.cheque_no cheque_no ,av.cheque_no cheque_no, av.cheque_date cheque_date, aml.name voucher_desc 
+                            av.date as voucher_date, aml.ref as ref, av.payee payee, av.cheque_no cheque_no, av.cheque_date cheque_date, aml.name voucher_desc 
                             from account_account aa, account_move_line aml,account_voucher av where av.move_id = aml.move_id and
                                 aml.move_id in (select move_id from account_voucher 
                                 where id in %s and type = 'payment' and state in ('draft','posted')) and debit is not null and debit !=0 and aa.id = aml.account_id 
@@ -431,7 +431,7 @@ class Parser(report_sxw.rml_parse):
                 elif type == 'receipt':
                     sql = '''
                             select id from account_voucher where date between '%s' and '%s' and type = 'receipt' and 
-                            journal_id in (select id from account_journal where type = 'bank') and state in ('draft','posted')
+                            journal_id in (select id from account_journal where type in  ('bank','general')) and state in ('draft','posted')
                             and account_id=%s
                         '''%(date_from, date_to, account_id.id)
                     self.cr.execute(sql)
@@ -453,7 +453,7 @@ class Parser(report_sxw.rml_parse):
                 else:
                     sql = '''
                             select id from account_voucher where date between '%s' and '%s' and journal_id in 
-                            (select id from account_journal where type = 'bank') and state in ('draft','posted')
+                            (select id from account_journal where type in  ('bank','general')) and state in ('draft','posted')
                             and account_id=%s
                         '''%(date_from, date_to, account_id.id)
                     self.cr.execute(sql)
@@ -482,7 +482,7 @@ class Parser(report_sxw.rml_parse):
             else:
                 if type == 'payment':
                     sql = '''
-                            select id from account_voucher where date between '%s' and '%s' and type = 'payment' and journal_id in (select id from account_journal where type = 'bank') and state = 'draft'
+                            select id from account_voucher where date between '%s' and '%s' and type = 'payment' and journal_id in (select id from account_journal where type in  ('bank','general')) and state = 'draft'
                         '''%(date_from, date_to)
                     self.cr.execute(sql)
                     account_ids = [row[0] for row in self.cr.fetchall()]
