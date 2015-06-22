@@ -1629,6 +1629,25 @@ class tpt_update_stock_move_report(osv.osv):
         cr.execute(''' update tpt_quanlity_inspection t set need_inspec_id=(select id from stock_move where picking_id=t.name and product_qty=t.qty and product_id=t.product_id limit 1) where need_inspec_id is null ''')
         return self.write(cr, uid, ids, {'result':'TPT tpt_quanlity_inspection Done'})
     
+    def update_tpt_quanlity_inspection_v2(self, cr, uid, ids, context=None):
+        sql = '''
+            select id from tpt_quanlity_inspection where name in (select name from tpt_quanlity_inspection group by name having count(name)>1)
+        '''
+        cr.execute(sql)
+        inspection_obj = self.pool.get('tpt.quanlity.inspection')
+        inspection_ids = [r[0] for r in cr.fetchall()]
+        for line in inspection_obj.browse(cr, uid, inspection_ids):
+            sql = '''
+                select picking_id from stock_move where product_id=%s and product_qty=%s and picking_id is not null and action_taken='need'
+                   and (select count(id) from tpt_quanlity_inspection where name=%s)>1
+            '''%(line.product_id.id,line.qty,line.name.id)
+            cr.execute(sql)
+            picking_ids = [r[0] for r in cr.fetchall()]
+            if picking_ids:
+                inspection_obj.write(cr, uid, [line.id], {'name':picking_ids[0]})
+        cr.execute(''' update tpt_quanlity_inspection t set need_inspec_id=(select id from stock_move where picking_id=t.name and product_qty=t.qty and product_id=t.product_id limit 1) where id in %s ''',(tuple(inspection_ids),))
+        return self.write(cr, uid, ids, {'result':'TPT tpt_quanlity_inspection v2 Done'})
+    
 tpt_update_stock_move_report()
 
 class tpt_update_inspection_line(osv.osv):
