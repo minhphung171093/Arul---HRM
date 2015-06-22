@@ -1673,11 +1673,14 @@ class tpt_update_stock_move_report(osv.osv):
         cr.execute(sql)
         sql = '''
             select id from tpt_material_issue where (select count(id) from account_move where doc_type in ( 'good') and material_issue_id=tpt_material_issue.id)=0  and state='done'
+                limit 50
         '''
         cr.execute(sql)
         issue_ids = [r[0] for r in cr.fetchall()]
+        if not issue_ids:
+            return self.write(cr, uid, ids, {'result':'TPT update_issue_with_posting Done'})
         issue_obj.bt_create_posting(cr, uid, issue_ids)
-        return self.write(cr, uid, ids, {'result':'TPT update_issue_with_posting Done'})
+        return self.write(cr, uid, ids, {'result':'TPT update_issue_with_posting Remaining'})
     
 tpt_update_stock_move_report()
 

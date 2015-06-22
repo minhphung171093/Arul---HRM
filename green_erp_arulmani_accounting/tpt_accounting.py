@@ -3568,6 +3568,9 @@ class tpt_material_issue(osv.osv):
                         'doc_type':'good'
                         }
                     new_jour_id = account_move_obj.create(cr,uid,value)
+                    print 'TPT Create Done', line.id,line.doc_no
+        return True
+    
 tpt_material_issue()    
 
 class tpt_hr_payroll_approve_reject(osv.osv):
