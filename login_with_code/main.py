@@ -53,11 +53,11 @@ class Session1(webmain.Session):
     def two_way_check(self, req):
         two_way_req = req.session.model('res.users').read(req.session._uid, ['two_way_req'])
         wsgienv = req.httprequest.environ
-        whitelist_ids = req.session.model('tpt.whitelist').search([])
-        whitelists = req.session.model('tpt.whitelist').read(whitelist_ids, ['name'])
-        ips = [r['name'] for r in whitelists]
+#         whitelist_ids = req.session.model('tpt.whitelist').search([])
+#         whitelists = req.session.model('tpt.whitelist').read(whitelist_ids, ['name'])
+#         ips = [r['name'] for r in whitelists]
         print "======== check..", two_way_req
-        if two_way_req.get('two_way_req') and wsgienv['REMOTE_ADDR'] not in ips:
+        if two_way_req.get('two_way_req'):
             return {'two_way_req': True}
         else:
             return {'two_way_req': False}
