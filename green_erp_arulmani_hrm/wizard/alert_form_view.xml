@@ -119,7 +119,7 @@
 	            <form string="Alert" version="7.0">
 	                <field name="message"  nolabel="1" />
 	                <footer>
-	                    <button name="permission_ok" type='object' string="OK" class="oe_highlight"/>
+	                    <button name="permission_alert" type='object' string="OK" class="oe_highlight"/>
 	                    or
 	                    <button string="Cancel" class="oe_highlight" special="cancel" />
 	                </footer>
