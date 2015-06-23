@@ -263,13 +263,35 @@ class Parser(report_sxw.rml_parse):
                 self.cr.execute(sql)
                 account_ids = [row[0] for row in self.cr.fetchall()]
                 if account_ids:
-                    self.cr.execute('''
-                        select aa.name as acc_name, aml.account_id, sum(aml.debit) as debit, sum(aml.credit) as credit,av.name as voucher_name,
-                        av.date as voucher_date, aml.ref as ref,av.payee payee,av.reference reference, aml.name voucher_desc
-                        from account_account aa, account_move_line aml,account_voucher av where av.move_id = aml.move_id and
-                            aml.move_id in (select move_id from account_voucher where id in %s and type = 'payment' and state = 'posted') and debit is not null and debit !=0 and aa.id = aml.account_id 
-                            group by av.name,aa.name, aml.account_id,av.date, aml.ref,av.payee,av.reference, aml.name order by av.date
-                    ''',(tuple(account_ids),))
+                    #===========================================================
+                    # self.cr.execute('''
+                    #     select aa.name as acc_name, aml.account_id, sum(aml.debit) as debit, sum(aml.credit) as credit,av.name as voucher_name,
+                    #     av.date as voucher_date, aml.ref as ref,av.payee payee,av.reference reference, aml.name voucher_desc
+                    #     from account_account aa, account_move_line aml,account_voucher av where av.move_id = aml.move_id and
+                    #         aml.move_id in (select move_id from account_voucher where id in %s and type = 'payment' and state = 'posted') and debit is not null and debit !=0 and aa.id = aml.account_id 
+                    #         group by av.name,aa.name, aml.account_id,av.date, aml.ref,av.payee, av.reference, aml.name order by av.date
+                    # ''',(tuple(account_ids),))
+                    #===========================================================
+                    self.cr.execute(''' 
+                            select aa.name as acc_name, aml.account_id, sum(aml.debit) as debit, 
+                            sum(aml.credit) as credit,av.name as voucher_name,
+                            av.date as voucher_date, aml.ref as ref, av.payee payee, aml.name voucher_desc, av.reference reference
+                            from account_move_line aml 
+                            inner join account_voucher av on av.move_id = aml.move_id 
+                            inner join account_account aa on aa.id=aml.account_id
+                            where 
+                            aml.journal_id in (
+                                          select aml.journal_id from account_move_line aml
+                                          inner join account_voucher av on av.move_id = aml.move_id 
+                                          where av.id in %s and 
+                                          aml.account_id in 
+                                          (select id from account_account where code='0000110001')
+                                ) 
+                            and av.id in %s
+                            and av.type = 'payment' 
+                            and av.state in ('posted')
+                            group by av.name,aa.name, aml.account_id,av.date, aml.ref, av.payee, aml.name, av.reference order by av.date
+                        ''', (tuple(account_ids),tuple(account_ids),) )
                     return self.cr.dictfetchall()
                 else:
                     return []
@@ -280,16 +302,38 @@ class Parser(report_sxw.rml_parse):
                 self.cr.execute(sql)
                 account_ids = [row[0] for row in self.cr.fetchall()]
                 if account_ids:
-                    self.cr.execute('''
-                        select aa.name as acc_name, aml.account_id, sum(aml.debit) as debit, 
-                        sum(aml.credit) as credit,av.name as voucher_name,av.date as voucher_date, 
-                        aml.ref as ref,av.payee payee,av.reference reference, aml.name as voucher_desc
-                        from account_account aa, account_move_line aml,
-                        account_voucher av where av.move_id = aml.move_id and
-                            aml.move_id in (select move_id from account_voucher where id in %s and type = 'receipt' and state = 'posted') and credit is not null and credit !=0 and aa.id = aml.account_id 
-                            group by av.name,aa.name, aml.account_id,av.date, aml.ref,av.payee,av.reference, aml.name order by av.date
-                    
-                    ''',(tuple(account_ids),))
+                    #===========================================================
+                    # self.cr.execute('''
+                    #     select aa.name as acc_name, aml.account_id, sum(aml.debit) as debit, 
+                    #     sum(aml.credit) as credit,av.name as voucher_name,av.date as voucher_date, 
+                    #     aml.ref as ref,av.payee payee,av.reference reference, aml.name as voucher_desc
+                    #     from account_account aa, account_move_line aml,
+                    #     account_voucher av where av.move_id = aml.move_id and
+                    #         aml.move_id in (select move_id from account_voucher where id in %s and type = 'receipt' and state = 'posted') and credit is not null and credit !=0 and aa.id = aml.account_id 
+                    #         group by av.name,aa.name, aml.account_id,av.date, aml.ref,av.payee,av.reference, aml.name order by av.date
+                    # 
+                    # ''',(tuple(account_ids),))
+                    #===========================================================
+                    self.cr.execute(''' 
+                            select aa.name as acc_name, aml.account_id, sum(aml.debit) as debit, 
+                            sum(aml.credit) as credit,av.name as voucher_name,
+                            av.date as voucher_date, aml.ref as ref, av.payee payee, aml.name voucher_desc, av.reference reference
+                            from account_move_line aml 
+                            inner join account_voucher av on av.move_id = aml.move_id 
+                            inner join account_account aa on aa.id=aml.account_id
+                            where 
+                            aml.journal_id in (
+                                          select aml.journal_id from account_move_line aml
+                                          inner join account_voucher av on av.move_id = aml.move_id 
+                                          where av.id in %s and 
+                                          aml.account_id in 
+                                          (select id from account_account where code='0000110001')
+                                ) 
+                            and av.id in %s
+                            and av.type = 'receipt' 
+                            and av.state in ('posted')
+                            group by av.name,aa.name, aml.account_id,av.date, aml.ref, av.payee, aml.name, av.reference order by av.date
+                        ''', (tuple(account_ids),tuple(account_ids),) )
                     return self.cr.dictfetchall()
                 else:
                     return []
@@ -300,21 +344,67 @@ class Parser(report_sxw.rml_parse):
                 self.cr.execute(sql)
                 account_ids = [row[0] for row in self.cr.fetchall()]
                 if account_ids:
+                    #===========================================================
+                    # self.cr.execute('''
+                    #     select foo.acc_name, foo.account_id, sum(foo.debit) as debit, sum(foo.credit) as credit,foo.voucher_name,foo.voucher_date, foo.ref,foo.payee, foo.reference, foo.voucher_desc 
+                    #     from
+                    #         (select aa.name as acc_name, aml.account_id, aml.debit as debit, aml.credit as credit,av.name as voucher_name,av.date as voucher_date , aml.ref as ref, av.reference reference, av.payee payee, 
+                    #         aml.name voucher_desc
+                    #         from account_account aa, account_move_line aml,account_voucher av where av.move_id = aml.move_id and
+                    #         aml.move_id in (select move_id from account_voucher where id in %s and type = 'payment' and state = 'posted') and aml.debit is not null and aml.debit !=0 and aa.id = aml.account_id
+                    #         union all
+                    #         select aa.name as acc_name, aml.account_id, aml.debit as debit, aml.credit as credit,av.name as voucher_name,av.date as voucher_date, aml.ref as ref,av.reference reference, av.payee, 
+                    #         aml.name voucher_desc
+                    #         from account_account aa, account_move_line aml,account_voucher av where av.move_id = aml.move_id and
+                    #         aml.move_id in (select move_id from account_voucher where id in %s and type = 'receipt' and state = 'posted') and aml.credit is not null and aml.credit !=0 and aa.id = aml.account_id
+                    #         )foo
+                    #         group by foo.acc_name, foo.account_id, foo.voucher_name,foo.voucher_date, foo.ref, foo.reference, foo.payee, foo.voucher_desc order by foo.voucher_date
+                    # ''',(tuple(account_ids),tuple(account_ids),))
+                    #===========================================================
                     self.cr.execute('''
-                        select foo.acc_name, foo.account_id, sum(foo.debit) as debit, sum(foo.credit) as credit,foo.voucher_name,foo.voucher_date, foo.ref,foo.payee, foo.reference, foo.voucher_desc 
-                        from
-                            (select aa.name as acc_name, aml.account_id, aml.debit as debit, aml.credit as credit,av.name as voucher_name,av.date as voucher_date , aml.ref as ref, av.reference reference, av.payee payee, 
-                            aml.name voucher_desc
-                            from account_account aa, account_move_line aml,account_voucher av where av.move_id = aml.move_id and
-                            aml.move_id in (select move_id from account_voucher where id in %s and type = 'payment' and state = 'posted') and aml.debit is not null and aml.debit !=0 and aa.id = aml.account_id
-                            union all
-                            select aa.name as acc_name, aml.account_id, aml.debit as debit, aml.credit as credit,av.name as voucher_name,av.date as voucher_date, aml.ref as ref,av.reference reference, av.payee, 
-                            aml.name voucher_desc
-                            from account_account aa, account_move_line aml,account_voucher av where av.move_id = aml.move_id and
-                            aml.move_id in (select move_id from account_voucher where id in %s and type = 'receipt' and state = 'posted') and aml.credit is not null and aml.credit !=0 and aa.id = aml.account_id
-                            )foo
-                            group by foo.acc_name, foo.account_id, foo.voucher_name,foo.voucher_date, foo.ref, foo.reference, foo.payee, foo.voucher_desc order by foo.voucher_date
-                    ''',(tuple(account_ids),tuple(account_ids),))
+                            select foo.acc_name, foo.account_id, sum(foo.debit) as debit, 
+                        sum(foo.credit) as credit,foo.voucher_name,foo.voucher_date, 
+                        foo.ref, foo.payee, foo.voucher_desc, foo.reference from
+                        (
+                        select aa.name as acc_name, aml.account_id, aml.debit as debit, 
+                        aml.credit as credit,av.name as voucher_name,av.date as voucher_date , 
+                        aml.ref as ref, av.payee, aml.name voucher_desc, av.reference reference
+                        from account_move_line aml 
+                        inner join account_voucher av on av.move_id = aml.move_id 
+                        inner join account_account aa on aa.id=aml.account_id
+                        where 
+                        aml.journal_id in (
+                                      select aml.journal_id from account_move_line aml
+                                      inner join account_voucher av on av.move_id = aml.move_id 
+                                      where av.id in %s and aml.account_id in 
+                                      (select id from account_account where code='0000110001')
+                            ) 
+                        and av.id in %s
+                        and av.type = 'payment' 
+                        and av.state in ('posted')
+                
+                        UNION ALL 
+                
+                        select aa.name as acc_name, aml.account_id, aml.debit as debit, 
+                        aml.credit as credit,av.name as voucher_name,av.date as voucher_date , 
+                        aml.ref as ref, av.payee, aml.name voucher_desc, av.reference reference 
+                        from account_move_line aml 
+                        inner join account_voucher av on av.move_id = aml.move_id 
+                        inner join account_account aa on aa.id=aml.account_id
+                        where 
+                        aml.journal_id in (
+                                      select aml.journal_id from account_move_line aml
+                                      inner join account_voucher av on av.move_id = aml.move_id 
+                                      where av.id in %s and aml.account_id in 
+                                      (select id from account_account where code='0000110001')
+                            ) 
+                        and av.id in %s
+                        and av.type = 'receipt' 
+                        and av.state in ('posted')
+                        )foo 
+                        group by foo.acc_name, foo.account_id, foo.voucher_name,foo.voucher_date, 
+                        foo.ref, foo.payee, foo.voucher_desc, foo.reference order by foo.voucher_date
+                        ''',(tuple(account_ids),tuple(account_ids),tuple(account_ids),tuple(account_ids),))
                     return self.cr.dictfetchall()
                 else:
                     return []
@@ -326,13 +416,35 @@ class Parser(report_sxw.rml_parse):
                 self.cr.execute(sql)
                 account_ids = [row[0] for row in self.cr.fetchall()]
                 if account_ids:
-                    self.cr.execute('''
-                        select aa.name as acc_name, aml.account_id, sum(aml.debit) as debit, sum(aml.credit) as credit,av.name as voucher_name,
-                        av.date as voucher_date, aml.ref as ref,av.payee payee,av.reference reference, aml.name voucher_desc
-                        from account_account aa, account_move_line aml,account_voucher av where av.move_id = aml.move_id and
-                            aml.move_id in (select move_id from account_voucher where id in %s and type = 'payment' and state in ('draft','posted')) and debit is not null and debit !=0 and aa.id = aml.account_id 
-                            group by av.name,aa.name, aml.account_id,av.date, aml.ref,av.payee, av.reference, aml.name order by av.date
-                    ''',(tuple(account_ids),))
+                    #===========================================================
+                    # self.cr.execute('''
+                    #     select aa.name as acc_name, aml.account_id, sum(aml.debit) as debit, sum(aml.credit) as credit,av.name as voucher_name,
+                    #     av.date as voucher_date, aml.ref as ref,av.payee payee,av.reference reference, aml.name voucher_desc
+                    #     from account_account aa, account_move_line aml,account_voucher av where av.move_id = aml.move_id and
+                    #         aml.move_id in (select move_id from account_voucher where id in %s and type = 'payment' and state in ('draft','posted')) and debit is not null and debit !=0 and aa.id = aml.account_id 
+                    #         group by av.name,aa.name, aml.account_id,av.date, aml.ref,av.payee, av.reference, aml.name order by av.date
+                    # ''',(tuple(account_ids),))
+                    #===========================================================
+                    self.cr.execute(''' 
+                            select aa.name as acc_name, aml.account_id, sum(aml.debit) as debit, 
+                            sum(aml.credit) as credit,av.name as voucher_name,
+                            av.date as voucher_date, aml.ref as ref, av.payee payee, aml.name voucher_desc, av.reference reference
+                            from account_move_line aml 
+                            inner join account_voucher av on av.move_id = aml.move_id 
+                            inner join account_account aa on aa.id=aml.account_id
+                            where 
+                            aml.journal_id in (
+                                          select aml.journal_id from account_move_line aml
+                                          inner join account_voucher av on av.move_id = aml.move_id 
+                                          where av.id in %s and 
+                                          aml.account_id in 
+                                          (select id from account_account where code='0000110001')
+                                ) 
+                            and av.id in %s
+                            and av.type = 'payment' 
+                            and av.state in ('draft','posted')
+                            group by av.name,aa.name, aml.account_id,av.date, aml.ref, av.payee, aml.name, av.reference order by av.date
+                        ''', (tuple(account_ids),tuple(account_ids),) )
                     return self.cr.dictfetchall()
                 else:
                     return []
@@ -343,16 +455,38 @@ class Parser(report_sxw.rml_parse):
                 self.cr.execute(sql)
                 account_ids = [row[0] for row in self.cr.fetchall()]
                 if account_ids:
-                    self.cr.execute('''
-                        select aa.name as acc_name, aml.account_id, sum(aml.debit) as debit, 
-                        sum(aml.credit) as credit,av.name as voucher_name,av.date as voucher_date, 
-                        aml.ref as ref,av.payee payee,av.reference reference, aml.name as voucher_desc
-                        from account_account aa, account_move_line aml,
-                        account_voucher av where av.move_id = aml.move_id and
-                            aml.move_id in (select move_id from account_voucher where id in %s and type = 'receipt' and state in ('draft','posted')) and credit is not null and credit !=0 and aa.id = aml.account_id 
-                            group by av.name,aa.name, aml.account_id,av.date, aml.ref,av.payee, av.reference, aml.name order by av.date
-                    
-                    ''',(tuple(account_ids),))
+                    #===========================================================
+                    # self.cr.execute('''
+                    #     select aa.name as acc_name, aml.account_id, sum(aml.debit) as debit, 
+                    #     sum(aml.credit) as credit,av.name as voucher_name,av.date as voucher_date, 
+                    #     aml.ref as ref,av.payee payee,av.reference reference, aml.name as voucher_desc
+                    #     from account_account aa, account_move_line aml,
+                    #     account_voucher av where av.move_id = aml.move_id and
+                    #         aml.move_id in (select move_id from account_voucher where id in %s and type = 'receipt' and state in ('draft','posted')) and credit is not null and credit !=0 and aa.id = aml.account_id 
+                    #         group by av.name,aa.name, aml.account_id,av.date, aml.ref,av.payee, av.reference, aml.name order by av.date
+                    # 
+                    # ''',(tuple(account_ids),))
+                    #===========================================================
+                    self.cr.execute(''' 
+                            select aa.name as acc_name, aml.account_id, sum(aml.debit) as debit, 
+                            sum(aml.credit) as credit,av.name as voucher_name,
+                            av.date as voucher_date, aml.ref as ref, av.payee payee, aml.name voucher_desc, av.reference reference
+                            from account_move_line aml 
+                            inner join account_voucher av on av.move_id = aml.move_id 
+                            inner join account_account aa on aa.id=aml.account_id
+                            where 
+                            aml.journal_id in (
+                                          select aml.journal_id from account_move_line aml
+                                          inner join account_voucher av on av.move_id = aml.move_id 
+                                          where av.id in %s and 
+                                          aml.account_id in 
+                                          (select id from account_account where code='0000110001')
+                                ) 
+                            and av.id in %s
+                            and av.type = 'receipt' 
+                            and av.state in ('draft','posted')
+                            group by av.name,aa.name, aml.account_id,av.date, aml.ref, av.payee, aml.name, av.reference order by av.date
+                        ''', (tuple(account_ids),tuple(account_ids),) )
                     return self.cr.dictfetchall()
                 else:
                     return []
@@ -363,21 +497,67 @@ class Parser(report_sxw.rml_parse):
                 self.cr.execute(sql)
                 account_ids = [row[0] for row in self.cr.fetchall()]
                 if account_ids:
+                    #===========================================================
+                    # self.cr.execute('''
+                    #     select foo.acc_name, foo.account_id, sum(foo.debit) as debit, sum(foo.credit) as credit,foo.voucher_name,foo.voucher_date, foo.ref,foo.payee, foo.reference, foo.voucher_desc 
+                    #     from
+                    #         (select aa.name as acc_name, aml.account_id, aml.debit as debit, aml.credit as credit,av.name as voucher_name,av.date as voucher_date , aml.ref as ref, av.reference reference, av.payee payee, 
+                    #         aml.name voucher_desc
+                    #         from account_account aa, account_move_line aml,account_voucher av where av.move_id = aml.move_id and
+                    #         aml.move_id in (select move_id from account_voucher where id in %s and type = 'payment' and state in ('draft','posted')) and aml.debit is not null and aml.debit !=0 and aa.id = aml.account_id
+                    #         union all
+                    #         select aa.name as acc_name, aml.account_id, aml.debit as debit, aml.credit as credit,av.name as voucher_name,av.date as voucher_date, aml.ref as ref,av.reference reference, av.payee, 
+                    #         aml.name voucher_desc
+                    #         from account_account aa, account_move_line aml,account_voucher av where av.move_id = aml.move_id and
+                    #         aml.move_id in (select move_id from account_voucher where id in %s and type = 'receipt' and state in ('draft','posted')) and aml.credit is not null and aml.credit !=0 and aa.id = aml.account_id
+                    #         )foo
+                    #         group by foo.acc_name, foo.account_id, foo.voucher_name,foo.voucher_date, foo.ref, foo.reference, foo.payee, foo.voucher_desc order by foo.voucher_date
+                    # ''',(tuple(account_ids),tuple(account_ids),))
+                    #===========================================================
                     self.cr.execute('''
-                        select foo.acc_name, foo.account_id, sum(foo.debit) as debit, sum(foo.credit) as credit,foo.voucher_name,foo.voucher_date, foo.ref,foo.payee, foo.reference, foo.voucher_desc 
-                        from
-                            (select aa.name as acc_name, aml.account_id, aml.debit as debit, aml.credit as credit,av.name as voucher_name,av.date as voucher_date , aml.ref as ref, av.reference reference, av.payee payee, 
-                            aml.name voucher_desc
-                            from account_account aa, account_move_line aml,account_voucher av where av.move_id = aml.move_id and
-                            aml.move_id in (select move_id from account_voucher where id in %s and type = 'payment' and state in ('draft','posted')) and aml.debit is not null and aml.debit !=0 and aa.id = aml.account_id
-                            union all
-                            select aa.name as acc_name, aml.account_id, aml.debit as debit, aml.credit as credit,av.name as voucher_name,av.date as voucher_date, aml.ref as ref,av.reference reference, av.payee, 
-                            aml.name voucher_desc
-                            from account_account aa, account_move_line aml,account_voucher av where av.move_id = aml.move_id and
-                            aml.move_id in (select move_id from account_voucher where id in %s and type = 'receipt' and state in ('draft','posted')) and aml.credit is not null and aml.credit !=0 and aa.id = aml.account_id
-                            )foo
-                            group by foo.acc_name, foo.account_id, foo.voucher_name,foo.voucher_date, foo.ref, foo.reference, foo.payee, foo.voucher_desc order by foo.voucher_date
-                    ''',(tuple(account_ids),tuple(account_ids),))
+                            select foo.acc_name, foo.account_id, sum(foo.debit) as debit, 
+                        sum(foo.credit) as credit,foo.voucher_name,foo.voucher_date, 
+                        foo.ref, foo.payee, foo.voucher_desc, foo.reference from
+                        (
+                        select aa.name as acc_name, aml.account_id, aml.debit as debit, 
+                        aml.credit as credit,av.name as voucher_name,av.date as voucher_date , 
+                        aml.ref as ref, av.payee, aml.name voucher_desc, av.reference reference 
+                        from account_move_line aml 
+                        inner join account_voucher av on av.move_id = aml.move_id 
+                        inner join account_account aa on aa.id=aml.account_id
+                        where 
+                        aml.journal_id in (
+                                      select aml.journal_id from account_move_line aml
+                                      inner join account_voucher av on av.move_id = aml.move_id 
+                                      where av.id in %s and aml.account_id in 
+                                      (select id from account_account where code='0000110001')
+                            ) 
+                        and av.id in %s
+                        and av.type = 'payment' 
+                        and av.state in ('draft','posted')
+                
+                        UNION ALL 
+                
+                        select aa.name as acc_name, aml.account_id, aml.debit as debit, 
+                        aml.credit as credit,av.name as voucher_name,av.date as voucher_date , 
+                        aml.ref as ref, av.payee, aml.name voucher_desc, av.reference reference 
+                        from account_move_line aml 
+                        inner join account_voucher av on av.move_id = aml.move_id 
+                        inner join account_account aa on aa.id=aml.account_id
+                        where 
+                        aml.journal_id in (
+                                      select aml.journal_id from account_move_line aml
+                                      inner join account_voucher av on av.move_id = aml.move_id 
+                                      where av.id in %s and aml.account_id in 
+                                      (select id from account_account where code='0000110001')
+                            ) 
+                        and av.id in %s
+                        and av.type = 'receipt' 
+                        and av.state in ('draft','posted')
+                        )foo 
+                        group by foo.acc_name, foo.account_id, foo.voucher_name,foo.voucher_date, 
+                        foo.ref, foo.payee, foo.voucher_desc, foo.reference order by foo.voucher_date
+                        ''',(tuple(account_ids),tuple(account_ids),tuple(account_ids),tuple(account_ids),))
                     return self.cr.dictfetchall()
                 else:
                     return []
