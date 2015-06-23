@@ -49,7 +49,7 @@ class Parser(report_sxw.rml_parse):
 #                 'get_opening_stock_value': self.get_opening_stock_value,
 #                 'get_receipt_value':self.get_receipt_value,
 #                 'get_consumption_value':self.get_consumption_value,
-#                 'get_closing_stock':self.get_closing_stock,
+                'get_closing_stock':self.get_closing_stock,
                 'convert_date': self.convert_date,
 #               'get_categ_product':self.get_categ_product
               
@@ -66,30 +66,6 @@ class Parser(report_sxw.rml_parse):
         date = datetime.strptime(wizard_data['date_from'], DATE_FORMAT)
         return date.strftime('%d/%m/%Y')
     
-#     def get_date_to(self):
-#         wizard_data = self.localcontext['data']['form']
-#         date = datetime.strptime(wizard_data['date_to'], DATE_FORMAT)
-#         return date.strftime('%d/%m/%Y')    
-#     
-#     def get_category(self):
-#         wizard_data = self.localcontext['data']['form']
-#         cate = (wizard_data['categ_id'])
-#         cate_obj = self.pool.get('product.category')
-#         return cate_obj.browse(self.cr,self.uid,cus[0])    
-#     
-#     def get_product(self):
-#         wizard_data = self.localcontext['data']['form']
-#         pro = (wizard_data['product_id'])
-#         pro_obj = self.pool.get('product.product')
-#         return pro_obj.browse(self.cr,self.uid,cus[0])  
-#     
-#     def get_name_product(self, product):
-#         if product == 'raw':
-#             return "Raw Materials"
-#         if product == 'spares':
-#             return "Spares"
-#     
-#     
 #     def get_date(self):
 #         date = time.strftime('%Y-%m-%d'),
 #         date = datetime.strptime(date[0], DATE_FORMAT)
@@ -577,10 +553,10 @@ class Parser(report_sxw.rml_parse):
 #                 consum_value = (product_isu_qty*avg_cost)
 #         return consum_value     
 #     
-#     def get_closing_stock(self, receipt,consum,opening):
-#         total_cost = 0
-#         total_cost = receipt - consum + opening
-#         return total_cost           
+    def get_closing_stock(self, receipt,consum,opening):
+        total_cost = 0
+        total_cost = receipt - consum + opening
+        return total_cost           
             
 # vim:expandtab:smartindent:tabstop=4:softtabstop=4:shiftwidth=4:
 
