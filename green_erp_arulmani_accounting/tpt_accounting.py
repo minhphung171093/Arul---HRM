@@ -435,21 +435,21 @@ class stock_picking_in(osv.osv):
     
 stock_picking_in() 
 
-class stock_move(osv.osv):
-    _inherit = "stock.move"
-     
-    def init(self, cr):
-        sql = '''
-            select id from stock_move where picking_id is null and inspec_id is null and issue_id is null and production_id is null and id not in (select move_id from mrp_production_move_ids)
-                and id not in (select child_id from stock_move_history_ids) and id not in (select move_id from stock_inventory_move_rel) and move_dest_id is null and purchase_line_id is null 
-                and sale_line_id is null and tracking_id is null and prodlot_id is null
-        '''
-        cr.execute(sql)
-        move_ids = [r[0] for r in cr.fetchall()]
-        self.pool.get('stock.move').unlink(cr, 1, move_ids)
-         
-         
-stock_move()
+# class stock_move(osv.osv):
+#     _inherit = "stock.move"
+#      
+#     def init(self, cr):
+#         sql = '''
+#             select id from stock_move where picking_id is null and inspec_id is null and issue_id is null and production_id is null and id not in (select move_id from mrp_production_move_ids)
+#                 and id not in (select child_id from stock_move_history_ids) and id not in (select move_id from stock_inventory_move_rel) and move_dest_id is null and purchase_line_id is null 
+#                 and sale_line_id is null and tracking_id is null and prodlot_id is null
+#         '''
+#         cr.execute(sql)
+#         move_ids = [r[0] for r in cr.fetchall()]
+#         self.pool.get('stock.move').unlink(cr, 1, move_ids)
+#          
+#          
+# stock_move()
 
 class stock_picking(osv.osv):
     _inherit = "stock.picking"
