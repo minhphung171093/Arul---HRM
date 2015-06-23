@@ -517,7 +517,7 @@ class Parser(report_sxw.rml_parse):
                     self.cr.execute('''
                             select foo.acc_name, foo.account_id, sum(foo.debit) as debit, 
                         sum(foo.credit) as credit,foo.voucher_name,foo.voucher_date, 
-                        foo.ref, foo.payee, foo.voucher_desc from
+                        foo.ref, foo.payee, foo.voucher_desc, foo.reference from
                         (
                         select aa.name as acc_name, aml.account_id, aml.debit as debit, 
                         aml.credit as credit,av.name as voucher_name,av.date as voucher_date , 
@@ -556,7 +556,7 @@ class Parser(report_sxw.rml_parse):
                         and av.state in ('draft','posted')
                         )foo 
                         group by foo.acc_name, foo.account_id, foo.voucher_name,foo.voucher_date, 
-                        foo.ref, foo.payee, foo.voucher_desc, av.reference order by foo.voucher_date
+                        foo.ref, foo.payee, foo.voucher_desc, foo.reference order by foo.voucher_date
                         ''',(tuple(account_ids),tuple(account_ids),tuple(account_ids),tuple(account_ids),))
                     return self.cr.dictfetchall()
                 else:
