@@ -117,12 +117,12 @@ class stock_inward_outward_report(osv.osv_memory):
                 sql = '''
                     select case when sum(st.product_qty)!=0 then sum(st.product_qty) else 0 end product_qty
                             from stock_move st
-                            where st.state='done' and st.location_dest_id=%s and st.product_id=%s and to_char(date, 'YYYY-MM-DD') < '%s'
-                                and ( picking_id is not null
+                            where st.state='done' and st.location_dest_id=%s and st.product_id=%s 
+                                and ( (picking_id is not null and picking_id in (select id from stock_picking where to_char(date, 'YYYY-MM-DD') < '%s'))
                                 or  inspec_id is not null
-                                or (st.id in (select move_id from stock_inventory_move_rel ))
+                                or (st.id in (select move_id from stock_inventory_move_rel where inventory_id in (select id from stock_inventory where date <'%s' and state = 'done')))
                             )
-                    '''%(locat_ids[0], product_id.id,date_from)
+                    '''%(locat_ids[0], product_id.id,date_from, date_from)
                 cr.execute(sql)
                 product_qty = cr.dictfetchone()['product_qty']
                 
@@ -140,12 +140,12 @@ class stock_inward_outward_report(osv.osv_memory):
                 sql = '''
                     select case when sum(st.product_qty)!=0 then sum(st.product_qty) else 0 end product_qty
                             from stock_move st
-                            where st.state='done' and st.location_dest_id=%s and st.product_id=%s and to_char(date, 'YYYY-MM-DD') < '%s'
-                                and ( picking_id is not null
+                            where st.state='done' and st.location_dest_id=%s and st.product_id=%s 
+                                and ( (picking_id is not null and picking_id in (select id from stock_picking where to_char(date, 'YYYY-MM-DD') < '%s'))
                                 or  inspec_id is not null
-                                or (st.id in (select move_id from stock_inventory_move_rel ))
+                                or (st.id in (select move_id from stock_inventory_move_rel where inventory_id in (select id from stock_inventory where date <'%s' and state = 'done')))
                             )
-                    '''%(locat_ids[0], product_id.id,date_from)
+                    '''%(locat_ids[0], product_id.id,date_from, date_from)
                 cr.execute(sql)
                 product_qty = cr.dictfetchone()['product_qty']
                 
@@ -261,10 +261,10 @@ class stock_inward_outward_report(osv.osv_memory):
             parent_ids_spares = self.pool.get('stock.location').search(cr, uid, [('name','=','Store'),('usage','=','view')])
             locat_ids_spares = self.pool.get('stock.location').search(cr, uid, [('name','in',['Spares','Spare','spares']),('location_id','=',parent_ids_spares[0])])
             sql = '''
-                select * from account_move where doc_type in ('freight', 'good', 'grn') and date between '%(date_from)s' and '%(date_to)s'
-                    and ( id in (select move_id from account_move_line where (move_id in (select move_id from account_invoice where id in (select invoice_id from account_invoice_line where product_id=%(product_id)s)))
-                        or (LEFT(name,17) in (select name from stock_picking where id in (select picking_id from stock_move where product_id=%(product_id)s)))
-                    ) or material_issue_id in (select id from tpt_material_issue where warehouse in (%(location_row_id)s,%(location_spare_id)s) and id in (select material_issue_id from tpt_material_issue_line where product_id=%(product_id)s)) 
+                select * from account_move where doc_type in ('freight', 'good', 'grn') 
+                    and ( id in (select move_id from account_move_line where (move_id in (select move_id from account_invoice where to_char(date_invoice, 'YYYY-MM-DD') between '%(date_from)s' and '%(date_to)s' and id in (select invoice_id from account_invoice_line where product_id=%(product_id)s)))
+                        or (LEFT(name,17) in (select name from stock_picking where id in (select picking_id from stock_move where to_char(date, 'YYYY-MM-DD') between '%(date_from)s' and '%(date_to)s' and product_id=%(product_id)s)))
+                    ) or material_issue_id in (select id from tpt_material_issue where to_char(date_expec, 'YYYY-MM-DD') between '%(date_from)s' and '%(date_to)s' and warehouse in (%(location_row_id)s,%(location_spare_id)s) and id in (select material_issue_id from tpt_material_issue_line where product_id=%(product_id)s)) 
                         ) order by date, id
             '''%{'date_from':date_from,
                  'date_to':date_to,
@@ -584,8 +584,10 @@ class stock_inward_outward_report(osv.osv_memory):
             self.current = cur
             return cur
         
+        closing_stock = 0
         for line in get_detail_lines(stock):
             trans_qty = get_transaction_qty(stock,line['id'], line['material_issue_id'], line['doc_type'])
+            closing_stock += trans_qty
             if line['doc_type']=='good':
                 qty = 0
                 value = 0
@@ -618,7 +620,7 @@ class stock_inward_outward_report(osv.osv_memory):
             'date_to':stock.date_to,
             'stock_in_out_line': stock_in_out_line,
             'opening_stock': get_opening_stock(stock),
-            'closing_stock': get_closing_stock(stock, get_detail_lines(stock)) + get_opening_stock(stock),
+            'closing_stock': closing_stock + get_opening_stock(stock),
             'opening_value': get_opening_stock_value(stock),
             'closing_value': self.st_sum_value + get_opening_stock_value(stock),
         }

@@ -42,30 +42,15 @@ class Parser(report_sxw.rml_parse):
             'get_leave_balance':self.get_leave_balance,
             
         })
-    #def get_pf_no(self, employee):
-    #    esi_no = ''
-    #     if employee and employee.statutory_ids:
-    #        esi_no = employee.statutory_ids[0].name
-    #    return esi_no     
+         
     def get_month(self):
         wizard_data = self.localcontext['data']['form']
         return self.get_month_name(wizard_data['month'])
     
     def get_year(self):
         wizard_data = self.localcontext['data']['form']
-        return wizard_data['year']
-    
-#     def get_payroll(self):
-#         wizard_data = self.localcontext['data']['form']
-#         month=wizard_data['month']
-#         year=wizard_data['year']
-#         payroll_oj = self.pool.get('arul.hr.payroll.executions.details')
-#         sql = '''
-#             select id from arul_hr_payroll_executions_details where month = '%s' and year = '%s'
-#             '''%(str(month), str(year))
-#         self.cr.execute(sql)
-#         payroll_ids = [r[0] for r in self.cr.fetchall()]
-#         return payroll_oj.browse(self.cr,self.uid,payroll_ids)
+        return wizard_data['year']    
+
     
     def get_leave_balance(self):
         wizard_data = self.localcontext['data']['form']
@@ -74,23 +59,97 @@ class Parser(report_sxw.rml_parse):
         employee=wizard_data['employee']
         employee_category=wizard_data['employee_category']
         department=wizard_data['department']
+        is_active=wizard_data['is_active']#
         employee_obj = self.pool.get('hr.employee')
+        resource_obj = self.pool.get('resource.resource')     
+        
+
         
         res = []
-        
-        if department:
-            employee_ids = employee_obj.search(self.cr, self.uid,[('department_id', '=', department)])
-        elif department and employee_category:
-            employee_ids = employee_obj.search(self.cr, self.uid,[('department_id', '=', department),('employee_category_id', '=', employee_category)])
-        elif department and employee_category and employee:
-            employee_ids = employee_obj.search(self.cr, self.uid,[('department_id', '=', department),
-                                                                  ('employee_category_id', '=', employee_category),
-                                                                  ('employee_id', '=', employee[0]),
-                                                                  ])
-        elif employee:
-            employee_ids = employee_obj.search(self.cr, self.uid,[('id', '=', employee[0])])
-        elif employee_category:
-            employee_ids = employee_obj.search(self.cr, self.uid,[('employee_category_id', '=', employee_category[0])])
+        if is_active is True:
+            if department:          
+                
+                sql = ''' select id from hr_employee where department_id=%s and 
+                resource_id in (select id from resource_resource where active='t')
+                '''%(department[0]) 
+                self.cr.execute(sql)
+                employee_ids = [r[0] for r in self.cr.fetchall()]
+                            
+            elif department and employee_category:
+                
+                sql = ''' select id from hr_employee where department_id=%s and employee_category_id = %s and
+                resource_id in (select id from resource_resource where active='t')
+                '''%(department[0],employee_category[0]) 
+                self.cr.execute(sql)
+                employee_ids = [r[0] for r in self.cr.fetchall()]
+            elif department and employee_category and employee:
+                
+                sql = ''' select id from hr_employee where department_id=%s and employee_category_id = %s and employee_id = %s and
+                resource_id in (select id from resource_resource where active='t')
+                '''%(department[0],employee_category[0],employee[0])
+                self.cr.execute(sql)
+                employee_ids = [r[0] for r in self.cr.fetchall()]
+            elif employee:
+                
+                sql = ''' select id from hr_employee where id = %s and resource_id in (select id from resource_resource where active='t')
+                '''%(employee[0])
+                self.cr.execute(sql)
+                employee_ids = [r[0] for r in self.cr.fetchall()]
+            elif employee_category:                
+                               
+                sql = ''' select id from hr_employee where employee_category_id = %s and resource_id in 
+                (select id from resource_resource where active='t')
+                '''%(employee_category[0])
+                self.cr.execute(sql)
+                employee_ids = [r[0] for r in self.cr.fetchall()]
+            else:
+                
+                sql = ''' select id from hr_employee where resource_id in (select id from resource_resource where active='t')
+                '''
+                self.cr.execute(sql)
+                employee_ids = [r[0] for r in self.cr.fetchall()]
+        else:
+            if department:            
+                
+                sql = ''' select id from hr_employee where department_id=%s and 
+                resource_id in (select id from resource_resource where active='f')
+                '''%(department[0]) 
+                self.cr.execute(sql)
+                employee_ids = [r[0] for r in self.cr.fetchall()]
+                            
+            elif department and employee_category:
+                
+                sql = ''' select id from hr_employee where department_id=%s and employee_category_id = %s and
+                resource_id in (select id from resource_resource where active='f')
+                '''%(department[0],employee_category[0]) 
+                self.cr.execute(sql)
+                employee_ids = [r[0] for r in self.cr.fetchall()]
+            elif department and employee_category and employee:
+                
+                sql = ''' select id from hr_employee where department_id=%s and employee_category_id = %s and employee_id = %s and
+                resource_id in (select id from resource_resource where active='f')
+                '''%(department[0],employee_category[0],employee[0])
+                self.cr.execute(sql)
+                employee_ids = [r[0] for r in self.cr.fetchall()]
+            elif employee:
+                
+                sql = ''' select id from hr_employee where id = %s and resource_id in (select id from resource_resource where active='f')
+                '''%(employee[0])
+                self.cr.execute(sql)
+                employee_ids = [r[0] for r in self.cr.fetchall()]
+            elif employee_category:
+                
+                sql = ''' select id from hr_employee where employee_category_id = %s and resource_id in 
+                (select id from resource_resource where active='f')
+                '''%(employee_category[0])
+                self.cr.execute(sql)
+                employee_ids = [r[0] for r in self.cr.fetchall()]
+            else:
+                
+                sql = ''' select id from hr_employee where resource_id in (select id from resource_resource where active='f')
+                '''
+                self.cr.execute(sql)
+                employee_ids = [r[0] for r in self.cr.fetchall()]
 
         for employee in employee_obj.browse(self.cr, self.uid, employee_ids):
             
@@ -110,7 +169,7 @@ class Parser(report_sxw.rml_parse):
             '''%(year,month,employee.id)
             self.cr.execute(sql)
             temp_cl = self.cr.fetchone()
-            cl_count_pm = temp_cl[0] 
+            cl_count_pm = temp_cl[0]
             
             sql = '''
                 select  
@@ -260,6 +319,9 @@ class Parser(report_sxw.rml_parse):
                         'pl_count_total_days':pl_count_total_days,
                         'pl_count_cb':pl_count_cb,
                         'pl_count_ob':pl_open_bal,
+                        'department_id':employee.department_id,
+                        'employee_category_id':employee.employee_category_id,
+                        
                                                 
                         })
              

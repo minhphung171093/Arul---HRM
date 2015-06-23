@@ -170,7 +170,9 @@ class alert_form(osv.osv_memory):
        
         self.pool.get('arul.hr.permission.onduty').write(cr, uid, [audit_id],{'approval': True, 'state':'done'})
         return {'type': 'ir.actions.act_window_close'}
-        
+    
+    def permission_alert(self, cr, uid, ids, context=None): 
+        return {'type': 'ir.actions.act_window_close'}    
     def permission_ok(self, cr, uid, ids, context=None): 
         emp_attendence_obj = self.pool.get('arul.hr.employee.attendence.details')
         punch_obj = self.pool.get('arul.hr.punch.in.out.time')
