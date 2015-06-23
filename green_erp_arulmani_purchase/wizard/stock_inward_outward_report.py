@@ -579,6 +579,17 @@ class stock_inward_outward_report(osv.osv_memory):
                 self.current_transaction_qty = 1
             return self.current_transaction_qty*value
         
+        def qty_physical_inve(o):
+            date_from = o.date_from
+            date_to = o.date_to
+            product_id = o.product_id
+            sql = '''
+                select case when sum(product_qty)!=0 then sum(product_qty) else 0 end product_qty from stock_move where id in (select move_id from stock_inventory_move_rel) and to_char(date, 'YYYY-MM-DD') between '%s' and '%s' and product_id = %s
+            '''%(date_from, date_to, product_id.id)
+            cr.execute(sql)
+            product_qty = cr.fetchone()[0]
+            return product_qty
+        
         def get_line_current_material(o,stock_value):  
             cur = get_opening_stock_value(o)+stock_value+self.current
             self.current = cur
@@ -620,7 +631,7 @@ class stock_inward_outward_report(osv.osv_memory):
             'date_to':stock.date_to,
             'stock_in_out_line': stock_in_out_line,
             'opening_stock': get_opening_stock(stock),
-            'closing_stock': closing_stock + get_opening_stock(stock),
+            'closing_stock': closing_stock + get_opening_stock(stock) + qty_physical_inve(stock),
             'opening_value': get_opening_stock_value(stock),
             'closing_value': self.st_sum_value + get_opening_stock_value(stock),
         }
