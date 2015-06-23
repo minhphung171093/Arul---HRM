@@ -40,7 +40,7 @@ class tpt_update_stock_move(osv.osv):
             select id,company_id,name,product_uos,product_uom,product_uos_qty,location_id,location_dest_id,product_id,product_qty,date,price_unit,date_expected
                  from stock_move where picking_id is null and inspec_id is null and issue_id is null and production_id is null and id not in (select move_id from mrp_production_move_ids)
                     and id not in (select child_id from stock_move_history_ids) and id not in (select move_id from stock_inventory_move_rel) and move_dest_id is null and purchase_line_id is null 
-                    and sale_line_id is null and tracking_id is null and prodlot_id is null
+                    and sale_line_id is null and tracking_id is null and prodlot_id is null and state='done'
         '''
         cursor.execute(sql)
         move_ids = cursor.fetchall()
