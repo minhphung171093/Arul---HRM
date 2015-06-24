@@ -23,6 +23,7 @@ from dateutil.relativedelta import relativedelta
 class tpt_raw_material_stock_statement(osv.osv):
     _name = "tpt.raw.material.stock.statement"
     _columns = {    
+                'name':fields.char('Raw Material Stock Statement'),
                 'date_from_title':fields.char('As Of Date'),
                 'date_from':fields.date('As Of Date'),
                 'statement_line':fields.one2many('tpt.stock.statement.line','statement_id','Stock Statement'),
