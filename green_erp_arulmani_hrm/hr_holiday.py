@@ -548,7 +548,22 @@ class arul_hr_audit_shift_time(osv.osv):
             a_min_start_time = datetime.timedelta(hours=a_min_start_time)
             a_max_start_time = datetime.timedelta(hours=a_max_start_time) 
             a_min_end_time = datetime.timedelta(hours=a_min_end_time) 
+            
+            ## G1 Shift            
+            g1_work_shift = work_shift_obj.search(cr, uid, [('code','=','G1')])
+            g1_work_shift1 = work_shift_obj.browse(cr,uid,g1_work_shift[0])
+            g1_shift_total_time = g1_work_shift1.time_total   
+            g1_shift_half_total_time = g1_work_shift1.time_total/2 
                 
+#             g1_min_start_time = datetime.timedelta(hours=g1_min_start_time)
+#             g1_max_start_time = datetime.timedelta(hours=g1_max_start_time) 
+#             g1_min_end_time = datetime.timedelta(hours=g1_min_end_time) 
+        
+            ## G2 Shift            
+            g2_work_shift = work_shift_obj.search(cr, uid, [('code','=','G2')])
+            g2_work_shift1 = work_shift_obj.browse(cr,uid,g2_work_shift[0])
+            g2_shift_total_time = g2_work_shift1.time_total   
+            g2_shift_half_total_time = g2_work_shift1.time_total/2     
             actual_out = datetime.timedelta(hours=line.out_time) 
             actual_in = datetime.timedelta(hours=line.in_time)
             
@@ -584,13 +599,25 @@ class arul_hr_audit_shift_time(osv.osv):
                 #    flag = 1
                 #    shift_hours = 0
                 #End:TPT
-	
+	   
 		#Start:TPT By BalamuruganPurushothaman on 21/02/2015
-		if line.total_hours >= 4 and line.planned_work_shift_id.code=='W':	
+        ### TPT START FOR 3rd Permission
+                half_shift_time = 0
+                if line.actual_work_shift_id.code=='A':
+                    half_shift_time = a_shift_half_total_time
+                if line.actual_work_shift_id.code=='G1':
+                    half_shift_time = g1_shift_half_total_time
+                if line.actual_work_shift_id.code=='G2':
+                    half_shift_time = g2_shift_half_total_time
+                if line.actual_work_shift_id.code=='B':
+                    half_shift_time = b_shift_half_total_time
+                if line.actual_work_shift_id.code=='C':
+                    half_shift_time = c_shift_half_total_time
+		if line.total_hours >= half_shift_time and line.planned_work_shift_id.code=='W':	
 		    flag = 1
                     shift_hours = 0
 		    
-		elif line.total_hours < 3.7 and line.planned_work_shift_id.code=='W':
+		elif line.total_hours < half_shift_time and line.planned_work_shift_id.code=='W':
 		    permission_ids = self.pool.get('arul.hr.permission.onduty').search(cr, uid, [('non_availability_type_id','=','permission'),('date','=',line.work_date),('employee_id','=',line.employee_id.id)])
                     on_duty_ids = self.pool.get('arul.hr.permission.onduty').search(cr, uid, [('non_availability_type_id','=','on_duty'),('from_date','<=',line.work_date),('to_date','>=',line.work_date),('employee_id','=',line.employee_id.id)])
                     leave_detail_ids = self.pool.get('arul.hr.employee.leave.details').search(cr, uid, [('date_from','<=',line.work_date),('date_to','>=',line.work_date),('employee_id','=',line.employee_id.id),('state','=','done')])
@@ -605,7 +632,7 @@ class arul_hr_audit_shift_time(osv.osv):
                                 'view_id': res[1],
                                 'res_model': 'alert.form',
                                 'domain': [],
-                                'context': {'default_message':'No Permission / On Duty Entry is made for Pending Hours. Do you want to reduce it from Leave Credits (CL/SL/C.Off/PL/LOP) ?','audit_id':line.id},
+                                'context': {'default_message':'Insufficient Hours, Please Create any one of the following type: Permission/OnDuty/Leave','audit_id':line.id},
                                 'type': 'ir.actions.act_window',
                                 'target': 'new',
                             }
@@ -616,10 +643,10 @@ class arul_hr_audit_shift_time(osv.osv):
                 cr.execute(sql)                
                 spl_date=cr.fetchall()
 		
-		if spl_date and line.total_hours >= 4:
+		if spl_date and line.total_hours >= half_shift_time:
 		    flag = 1
                     shift_hours = 0
-		if spl_date and line.total_hours < 3.7:
+		if spl_date and line.total_hours < half_shift_time:
 		    permission_ids = self.pool.get('arul.hr.permission.onduty').search(cr, uid, [('non_availability_type_id','=','permission'),('date','=',line.work_date),('employee_id','=',line.employee_id.id)])
                     on_duty_ids = self.pool.get('arul.hr.permission.onduty').search(cr, uid, [('non_availability_type_id','=','on_duty'),('from_date','<=',line.work_date),('to_date','>=',line.work_date),('employee_id','=',line.employee_id.id)])
                     leave_detail_ids = self.pool.get('arul.hr.employee.leave.details').search(cr, uid, [('date_from','<=',line.work_date),('date_to','>=',line.work_date),('employee_id','=',line.employee_id.id),('state','=','done')])
@@ -634,7 +661,7 @@ class arul_hr_audit_shift_time(osv.osv):
                                 'view_id': res[1],
                                 'res_model': 'alert.form',
                                 'domain': [],
-                                'context': {'default_message':'No Permission / On Duty Entry is made for Pending Hours. Do you want to reduce it from Leave Credits (CL/SL/C.Off/PL/LOP) ?','audit_id':line.id},
+                                'context': {'default_message':'Insufficient Hours, Please Create any one of the following type: Permission/OnDuty/Leave','audit_id':line.id},
                                 'type': 'ir.actions.act_window',
                                 'target': 'new',
                             }
@@ -646,10 +673,10 @@ class arul_hr_audit_shift_time(osv.osv):
                 cr.execute(sql)                
                 local_date=cr.fetchall()
 		
-		if local_date and line.total_hours >= 4:
+		if local_date and line.total_hours >= half_shift_time:
 		    flag = 1
                     shift_hours = 0
-		if local_date and line.total_hours < 3.7:
+		if local_date and line.total_hours < half_shift_time:
 		    permission_ids = self.pool.get('arul.hr.permission.onduty').search(cr, uid, [('non_availability_type_id','=','permission'),('date','=',line.work_date),('employee_id','=',line.employee_id.id)])
                     on_duty_ids = self.pool.get('arul.hr.permission.onduty').search(cr, uid, [('non_availability_type_id','=','on_duty'),('from_date','<=',line.work_date),('to_date','>=',line.work_date),('employee_id','=',line.employee_id.id)])
                     leave_detail_ids = self.pool.get('arul.hr.employee.leave.details').search(cr, uid, [('date_from','<=',line.work_date),('date_to','>=',line.work_date),('employee_id','=',line.employee_id.id),('state','=','done')])
@@ -664,7 +691,7 @@ class arul_hr_audit_shift_time(osv.osv):
                                 'view_id': res[1],
                                 'res_model': 'alert.form',
                                 'domain': [],
-                                'context': {'default_message':'No Permission / On Duty Entry is made for Pending Hours. Do you want to reduce it from Leave Credits (CL/SL/C.Off/PL/LOP) ?','audit_id':line.id},
+                                'context': {'default_message':'Insufficient Hours, Please Create any one of the following type: Permission/OnDuty/Leave','audit_id':line.id},
                                 'type': 'ir.actions.act_window',
                                 'target': 'new',
                             }
@@ -675,11 +702,11 @@ class arul_hr_audit_shift_time(osv.osv):
                 same_work_date=cr.fetchone()
 		
         
-		if same_work_date and line.total_hours >= 3.7:
+		if same_work_date and line.total_hours >= half_shift_time:
 		    flag = 1
                     shift_hours = 0
 		    
-		if same_work_date and line.total_hours < 3.7:
+		if same_work_date and line.total_hours < half_shift_time:
 		    permission_ids = self.pool.get('arul.hr.permission.onduty').search(cr, uid, [('non_availability_type_id','=','permission'),('date','=',line.work_date),('employee_id','=',line.employee_id.id)])
                     on_duty_ids = self.pool.get('arul.hr.permission.onduty').search(cr, uid, [('non_availability_type_id','=','on_duty'),('from_date','<=',line.work_date),('to_date','>=',line.work_date),('employee_id','=',line.employee_id.id)])
                     leave_detail_ids = self.pool.get('arul.hr.employee.leave.details').search(cr, uid, [('date_from','<=',line.work_date),('date_to','>=',line.work_date),('employee_id','=',line.employee_id.id),('state','=','done')])
@@ -694,7 +721,7 @@ class arul_hr_audit_shift_time(osv.osv):
                                 'view_id': res[1],
                                 'res_model': 'alert.form',
                                 'domain': [],
-                                'context': {'default_message':'No Permission / On Duty Entry is made for Pending Hours. Do you want to reduce it from Leave Credits (CL/SL/C.Off/PL/LOP) ?','audit_id':line.id},
+                                'context': {'default_message':'Insufficient Hours, Please Create any one of the following type: Permission/OnDuty/Leave','audit_id':line.id},
                                 'type': 'ir.actions.act_window',
                                 'target': 'new',
                             }
@@ -714,7 +741,7 @@ class arul_hr_audit_shift_time(osv.osv):
                                 'view_id': res[1],
                                 'res_model': 'alert.form',
                                 'domain': [],
-                                'context': {'default_message':'No Permission / On Duty Entry is made for Pending Hours. Do you want to reduce it from Leave Credits (CL/SL/C.Off/PL/LOP) ?','audit_id':line.id},
+                                'context': {'default_message':'Insufficient Hours, Please Create any one of the following type: Permission/OnDuty/Leave','audit_id':line.id},
                                 'type': 'ir.actions.act_window',
                                 'target': 'new',
                             }
@@ -1448,103 +1475,107 @@ class arul_hr_audit_shift_time(osv.osv):
         WHERE employee_id=%s AND month='%s' AND year='%s' 
         '''%(vals['employee_id'],int(a_month),a_year)
         cr.execute(sql)
-        for shift_for_day in cr.fetchall():
-            day_1 = shift_for_day[0]
-            day_2 = shift_for_day[1]
-            day_3 = shift_for_day[2]
-            day_4 = shift_for_day[3]
-            day_5 = shift_for_day[4]
-            day_6 = shift_for_day[5]
-            day_7 = shift_for_day[6]
-            day_8 = shift_for_day[7]
-            day_9 = shift_for_day[8]
-            day_10 = shift_for_day[9]
+        #print sql
+        planne_work_shift = ''
+        temp = cr.fetchall()      
+        if temp:
+            for shift_for_day in temp:
+                day_1 = shift_for_day[0]
+                day_2 = shift_for_day[1]
+                day_3 = shift_for_day[2]
+                day_4 = shift_for_day[3]
+                day_5 = shift_for_day[4]
+                day_6 = shift_for_day[5]
+                day_7 = shift_for_day[6]
+                day_8 = shift_for_day[7]
+                day_9 = shift_for_day[8]
+                day_10 = shift_for_day[9]
+                
+                day_11 = shift_for_day[10]
+                day_12 = shift_for_day[11]
+                day_13 = shift_for_day[12]
+                day_14 = shift_for_day[13]
+                day_15 = shift_for_day[14]
+                day_16 = shift_for_day[15]
+                day_17 = shift_for_day[16]
+                day_18 = shift_for_day[17]
+                day_19 = shift_for_day[18]
+                day_20 = shift_for_day[19]
+                
+                day_21 = shift_for_day[20]
+                day_22 = shift_for_day[21]
+                day_23 = shift_for_day[22]
+                day_24 = shift_for_day[23]
+                day_25 = shift_for_day[24]
+                day_26 = shift_for_day[25]
+                day_27 = shift_for_day[26]
+                day_28 = shift_for_day[27]
+                day_29 = shift_for_day[28]
+                day_30 = shift_for_day[29]
+                
+            a_day = int(a_day)
+            if a_day == 1:
+                 planne_work_shift = day_1
+            if a_day == 2:
+                 planne_work_shift = day_2
+            if a_day == 3:
+                 planne_work_shift = day_3
+            if a_day == 4:
+                 planne_work_shift = day_4
+            if a_day == 5:
+                 planne_work_shift = day_5
+            if a_day == 6:
+                 planne_work_shift = day_6
+            if a_day == 7:
+                 planne_work_shift = day_7
+            if a_day == 8:
+                 planne_work_shift = day_8
+            if a_day == 9:
+                 planne_work_shift = day_9
+            if a_day == 10:
+                 planne_work_shift = day_10
             
-            day_11 = shift_for_day[10]
-            day_12 = shift_for_day[11]
-            day_13 = shift_for_day[12]
-            day_14 = shift_for_day[13]
-            day_15 = shift_for_day[14]
-            day_16 = shift_for_day[15]
-            day_17 = shift_for_day[16]
-            day_18 = shift_for_day[17]
-            day_19 = shift_for_day[18]
-            day_20 = shift_for_day[19]
-            
-            day_21 = shift_for_day[20]
-            day_22 = shift_for_day[21]
-            day_23 = shift_for_day[22]
-            day_24 = shift_for_day[23]
-            day_25 = shift_for_day[24]
-            day_26 = shift_for_day[25]
-            day_27 = shift_for_day[26]
-            day_28 = shift_for_day[27]
-            day_29 = shift_for_day[28]
-            day_30 = shift_for_day[29]
-            
-        a_day = int(a_day)
-        if a_day == 1:
-             planne_work_shift = day_1
-        if a_day == 2:
-             planne_work_shift = day_2
-        if a_day == 3:
-             planne_work_shift = day_3
-        if a_day == 4:
-             planne_work_shift = day_4
-        if a_day == 5:
-             planne_work_shift = day_5
-        if a_day == 6:
-             planne_work_shift = day_6
-        if a_day == 7:
-             planne_work_shift = day_7
-        if a_day == 8:
-             planne_work_shift = day_8
-        if a_day == 9:
-             planne_work_shift = day_9
-        if a_day == 10:
-             planne_work_shift = day_10
-        
-        if a_day == 11:
-             planne_work_shift = day_11
-        if a_day == 12:
-             planne_work_shift = day_12
-        if a_day == 13:
-             planne_work_shift = day_13
-        if a_day == 14:
-             planne_work_shift = day_14
-        if a_day == 15:
-             planne_work_shift = day_15
-        if a_day == 16:
-             planne_work_shift = day_16
-        if a_day == 17:
-             planne_work_shift = day_17
-        if a_day == 18:
-             planne_work_shift = day_18
-        if a_day == 19:
-             planne_work_shift = day_19
-        if a_day == 20:
-             planne_work_shift = day_20
-             
-        if a_day == 21:
-             planne_work_shift = day_21
-        if a_day == 22:
-             planne_work_shift = day_22
-        if a_day == 23:
-             planne_work_shift = day_23
-        if a_day == 24:
-             planne_work_shift = day_24
-        if a_day == 25:
-             planne_work_shift = day_25
-        if a_day == 26:
-             planne_work_shift = day_26
-        if a_day == 27:
-             planne_work_shift = day_27
-        if a_day == 28:
-             planne_work_shift = day_28
-        if a_day == 29:
-             planne_work_shift = day_29
-        if a_day == 30:
-             planne_work_shift = day_30
+            if a_day == 11:
+                 planne_work_shift = day_11
+            if a_day == 12:
+                 planne_work_shift = day_12
+            if a_day == 13:
+                 planne_work_shift = day_13
+            if a_day == 14:
+                 planne_work_shift = day_14
+            if a_day == 15:
+                 planne_work_shift = day_15
+            if a_day == 16:
+                 planne_work_shift = day_16
+            if a_day == 17:
+                 planne_work_shift = day_17
+            if a_day == 18:
+                 planne_work_shift = day_18
+            if a_day == 19:
+                 planne_work_shift = day_19
+            if a_day == 20:
+                 planne_work_shift = day_20
+                 
+            if a_day == 21:
+                 planne_work_shift = day_21
+            if a_day == 22:
+                 planne_work_shift = day_22
+            if a_day == 23:
+                 planne_work_shift = day_23
+            if a_day == 24:
+                 planne_work_shift = day_24
+            if a_day == 25:
+                 planne_work_shift = day_25
+            if a_day == 26:
+                 planne_work_shift = day_26
+            if a_day == 27:
+                 planne_work_shift = day_27
+            if a_day == 28:
+                 planne_work_shift = day_28
+            if a_day == 29:
+                 planne_work_shift = day_29
+            if a_day == 30:
+                 planne_work_shift = day_30
                 
           
         vals.update(
@@ -1588,108 +1619,110 @@ class arul_hr_audit_shift_time(osv.osv):
                 WHERE employee_id=%s AND month='%s' AND year='%s' 
                 '''%(new.employee_id.id, int(month), year)
                 cr.execute(sql)
-                for shift_for_day in cr.fetchall():
-                    day_1 = shift_for_day[0]
-                    day_2 = shift_for_day[1]
-                    day_3 = shift_for_day[2]
-                    day_4 = shift_for_day[3]
-                    day_5 = shift_for_day[4]
-                    day_6 = shift_for_day[5]
-                    day_7 = shift_for_day[6]
-                    day_8 = shift_for_day[7]
-                    day_9 = shift_for_day[8]
-                    day_10 = shift_for_day[9]
+                temp = cr.fetchall()
+                if temp:
+                    for shift_for_day in temp:
+                        day_1 = shift_for_day[0]
+                        day_2 = shift_for_day[1]
+                        day_3 = shift_for_day[2]
+                        day_4 = shift_for_day[3]
+                        day_5 = shift_for_day[4]
+                        day_6 = shift_for_day[5]
+                        day_7 = shift_for_day[6]
+                        day_8 = shift_for_day[7]
+                        day_9 = shift_for_day[8]
+                        day_10 = shift_for_day[9]
+                        
+                        day_11 = shift_for_day[10]
+                        day_12 = shift_for_day[11]
+                        day_13 = shift_for_day[12]
+                        day_14 = shift_for_day[13]
+                        day_15 = shift_for_day[14]
+                        day_16 = shift_for_day[15]
+                        day_17 = shift_for_day[16]
+                        day_18 = shift_for_day[17]
+                        day_19 = shift_for_day[18]
+                        day_20 = shift_for_day[19]
+                        
+                        day_21 = shift_for_day[20]
+                        day_22 = shift_for_day[21]
+                        day_23 = shift_for_day[22]
+                        day_24 = shift_for_day[23]
+                        day_25 = shift_for_day[24]
+                        day_26 = shift_for_day[25]
+                        day_27 = shift_for_day[26]
+                        day_28 = shift_for_day[27]
+                        day_29 = shift_for_day[28]
+                        day_30 = shift_for_day[29]
+                        
+                    a_day = int(day)
+                    if a_day == 1:
+                         planne_work_shift = day_1
+                    if a_day == 2:
+                         planne_work_shift = day_2
+                    if a_day == 3:
+                         planne_work_shift = day_3
+                    if a_day == 4:
+                         planne_work_shift = day_4
+                    if a_day == 5:
+                         planne_work_shift = day_5
+                    if a_day == 6:
+                         planne_work_shift = day_6
+                    if a_day == 7:
+                         planne_work_shift = day_7
+                    if a_day == 8:
+                         planne_work_shift = day_8
+                    if a_day == 9:
+                         planne_work_shift = day_9
+                    if a_day == 10:
+                         planne_work_shift = day_10
                     
-                    day_11 = shift_for_day[10]
-                    day_12 = shift_for_day[11]
-                    day_13 = shift_for_day[12]
-                    day_14 = shift_for_day[13]
-                    day_15 = shift_for_day[14]
-                    day_16 = shift_for_day[15]
-                    day_17 = shift_for_day[16]
-                    day_18 = shift_for_day[17]
-                    day_19 = shift_for_day[18]
-                    day_20 = shift_for_day[19]
-                    
-                    day_21 = shift_for_day[20]
-                    day_22 = shift_for_day[21]
-                    day_23 = shift_for_day[22]
-                    day_24 = shift_for_day[23]
-                    day_25 = shift_for_day[24]
-                    day_26 = shift_for_day[25]
-                    day_27 = shift_for_day[26]
-                    day_28 = shift_for_day[27]
-                    day_29 = shift_for_day[28]
-                    day_30 = shift_for_day[29]
-                    
-                a_day = int(day)
-                if a_day == 1:
-                     planne_work_shift = day_1
-                if a_day == 2:
-                     planne_work_shift = day_2
-                if a_day == 3:
-                     planne_work_shift = day_3
-                if a_day == 4:
-                     planne_work_shift = day_4
-                if a_day == 5:
-                     planne_work_shift = day_5
-                if a_day == 6:
-                     planne_work_shift = day_6
-                if a_day == 7:
-                     planne_work_shift = day_7
-                if a_day == 8:
-                     planne_work_shift = day_8
-                if a_day == 9:
-                     planne_work_shift = day_9
-                if a_day == 10:
-                     planne_work_shift = day_10
-                
-                if a_day == 11:
-                     planne_work_shift = day_11
-                if a_day == 12:
-                     planne_work_shift = day_12
-                if a_day == 13:
-                     planne_work_shift = day_13
-                if a_day == 14:
-                     planne_work_shift = day_14
-                if a_day == 15:
-                     planne_work_shift = day_15
-                if a_day == 16:
-                     planne_work_shift = day_16
-                if a_day == 17:
-                     planne_work_shift = day_17
-                if a_day == 18:
-                     planne_work_shift = day_18
-                if a_day == 19:
-                     planne_work_shift = day_19
-                if a_day == 20:
-                     planne_work_shift = day_20
-                     
-                if a_day == 21:
-                     planne_work_shift = day_21
-                if a_day == 22:
-                     planne_work_shift = day_22
-                if a_day == 23:
-                     planne_work_shift = day_23
-                if a_day == 24:
-                     planne_work_shift = day_24
-                if a_day == 25:
-                     planne_work_shift = day_25
-                if a_day == 26:
-                     planne_work_shift = day_26
-                if a_day == 27:
-                     planne_work_shift = day_27
-                if a_day == 28:
-                     planne_work_shift = day_28
-                if a_day == 29:
-                     planne_work_shift = day_29
-                if a_day == 30:
-                     planne_work_shift = day_30
-                     
-                sql = '''
-                         update arul_hr_audit_shift_time set planned_work_shift_id=%s where id = %s
-                    '''%(planne_work_shift,new.id)
-                cr.execute(sql)
+                    if a_day == 11:
+                         planne_work_shift = day_11
+                    if a_day == 12:
+                         planne_work_shift = day_12
+                    if a_day == 13:
+                         planne_work_shift = day_13
+                    if a_day == 14:
+                         planne_work_shift = day_14
+                    if a_day == 15:
+                         planne_work_shift = day_15
+                    if a_day == 16:
+                         planne_work_shift = day_16
+                    if a_day == 17:
+                         planne_work_shift = day_17
+                    if a_day == 18:
+                         planne_work_shift = day_18
+                    if a_day == 19:
+                         planne_work_shift = day_19
+                    if a_day == 20:
+                         planne_work_shift = day_20
+                         
+                    if a_day == 21:
+                         planne_work_shift = day_21
+                    if a_day == 22:
+                         planne_work_shift = day_22
+                    if a_day == 23:
+                         planne_work_shift = day_23
+                    if a_day == 24:
+                         planne_work_shift = day_24
+                    if a_day == 25:
+                         planne_work_shift = day_25
+                    if a_day == 26:
+                         planne_work_shift = day_26
+                    if a_day == 27:
+                         planne_work_shift = day_27
+                    if a_day == 28:
+                         planne_work_shift = day_28
+                    if a_day == 29:
+                         planne_work_shift = day_29
+                    if a_day == 30:
+                         planne_work_shift = day_30
+                         
+                    sql = '''
+                             update arul_hr_audit_shift_time set planned_work_shift_id=%s where id = %s
+                        '''%(planne_work_shift,new.id)
+                    cr.execute(sql)
                 
                 ## TPT shift schedule End
                 
@@ -1844,10 +1877,14 @@ class arul_hr_audit_shift_time(osv.osv):
                 
             ## B Shift
             work_shift_obj = self.pool.get('arul.hr.capture.work.shift') 
-            work_shift = work_shift_obj.search(cr, uid, [('code','=','B')])
-            work_shift1 = work_shift_obj.browse(cr,uid,work_shift[0])
-            b_shift_total_time = work_shift1.time_total   
-            b_shift_half_total_time = work_shift1.time_total/2 
+            b_work_shift = work_shift_obj.search(cr, uid, [('code','=','B')])
+            b_work_shift1 = work_shift_obj.browse(cr,uid,b_work_shift[0])
+            b_shift_total_time = b_work_shift1.time_total   
+            b_shift_half_total_time = b_work_shift1.time_total/2 
+            
+            #total_hrs_split = str(b_shift_half_total_time).split(':')
+            #print total_hrs_split
+            #b_shift_half_total_time=datetime.timedelta(hours=int(total_hrs_split[0]), minutes=int(total_hrs_split[1]))
                 
             b_min_start_time = datetime.timedelta(hours=b_min_start_time)
             b_max_start_time = datetime.timedelta(hours=b_max_start_time) 
@@ -1855,9 +1892,9 @@ class arul_hr_audit_shift_time(osv.osv):
                 
             ## C Shift                
             c_work_shift = work_shift_obj.search(cr, uid, [('code','=','C')])
-            c_work_shift1 = work_shift_obj.browse(cr,uid,work_shift[0])
+            c_work_shift1 = work_shift_obj.browse(cr,uid,c_work_shift[0])
             c_shift_total_time = c_work_shift1.time_total   
-            c_shift_half_total_time = work_shift1.time_total/2 
+            c_shift_half_total_time = c_work_shift1.time_total/2 
                 
             c_min_start_time = datetime.timedelta(hours=c_min_start_time)
             c_max_start_time = datetime.timedelta(hours=c_max_start_time) 
@@ -1865,13 +1902,33 @@ class arul_hr_audit_shift_time(osv.osv):
                 
             ## A Shift                
             a_work_shift = work_shift_obj.search(cr, uid, [('code','=','A')])
-            a_work_shift1 = work_shift_obj.browse(cr,uid,work_shift[0])
+            a_work_shift1 = work_shift_obj.browse(cr,uid,a_work_shift[0])
             a_shift_total_time = a_work_shift1.time_total   
-            a_shift_half_total_time = work_shift1.time_total/2 
+            a_shift_half_total_time = a_work_shift1.time_total/2 
                 
             a_min_start_time = datetime.timedelta(hours=a_min_start_time)
             a_max_start_time = datetime.timedelta(hours=a_max_start_time) 
             a_min_end_time = datetime.timedelta(hours=a_min_end_time) 
+        
+            ## G1 Shift            
+            g1_work_shift = work_shift_obj.search(cr, uid, [('code','=','G1')])
+            g1_work_shift1 = work_shift_obj.browse(cr,uid,g1_work_shift[0])
+            g1_shift_total_time = g1_work_shift1.time_total   
+            g1_shift_half_total_time = g1_work_shift1.time_total/2 
+                
+#             g1_min_start_time = datetime.timedelta(hours=g1_min_start_time)
+#             g1_max_start_time = datetime.timedelta(hours=g1_max_start_time) 
+#             g1_min_end_time = datetime.timedelta(hours=g1_min_end_time) 
+        
+            ## G2 Shift            
+            g2_work_shift = work_shift_obj.search(cr, uid, [('code','=','G2')])
+            g2_work_shift1 = work_shift_obj.browse(cr,uid,g2_work_shift[0])
+            g2_shift_total_time = g2_work_shift1.time_total   
+            g2_shift_half_total_time = g2_work_shift1.time_total/2 
+                
+#             g2_min_start_time = datetime.timedelta(hours=g2_min_start_time)
+#             g2_max_start_time = datetime.timedelta(hours=g2_max_start_time) 
+#             g2_min_end_time = datetime.timedelta(hours=g2_min_end_time) 
                 
             actual_out = datetime.timedelta(hours=line.out_time) 
             actual_in = datetime.timedelta(hours=line.in_time)
@@ -1908,10 +1965,23 @@ class arul_hr_audit_shift_time(osv.osv):
                     #    flag = 1
                     #    shift_hours = 0                
     		#
-                if line.total_hours >= 3.7 and line.planned_work_shift_id.code=='W':	
+                ### TPT START FOR 3rd Permission
+                half_shift_time = 0
+                if line.actual_work_shift_id.code=='A':
+                    half_shift_time = a_shift_half_total_time
+                if line.actual_work_shift_id.code=='G1':
+                    half_shift_time = g1_shift_half_total_time
+                if line.actual_work_shift_id.code=='G2':
+                    half_shift_time = g2_shift_half_total_time
+                if line.actual_work_shift_id.code=='B':
+                    half_shift_time = b_shift_half_total_time
+                if line.actual_work_shift_id.code=='C':
+                    half_shift_time = c_shift_half_total_time
+                ### TPT END FOR 3rd Permission 
+                if line.total_hours >= half_shift_time and line.planned_work_shift_id.code=='W':	
                     flag = 1
                     shift_hours = 0
-                elif line.total_hours < 3.7 and line.planned_work_shift_id.code=='W':
+                elif line.total_hours < half_shift_time and line.planned_work_shift_id.code=='W':
                     permission_ids = self.pool.get('arul.hr.permission.onduty').search(cr, uid, [('non_availability_type_id','=','permission'),('date','=',line.work_date),('employee_id','=',line.employee_id.id)])
                     on_duty_ids = self.pool.get('arul.hr.permission.onduty').search(cr, uid, [('non_availability_type_id','=','on_duty'),('from_date','<=',line.work_date),('to_date','>=',line.work_date),('employee_id','=',line.employee_id.id)])
                     leave_detail_ids = self.pool.get('arul.hr.employee.leave.details').search(cr, uid, [('date_from','<=',line.work_date),('date_to','>=',line.work_date),('employee_id','=',line.employee_id.id),('state','=','done')])
@@ -1919,6 +1989,7 @@ class arul_hr_audit_shift_time(osv.osv):
                     if not permission_ids and not on_duty_ids and not leave_detail_ids:
                         res = self.pool.get('ir.model.data').get_object_reference(cr, uid, 
                                             'green_erp_arulmani_hrm', 'alert_permission_form_view')
+                        #raise osv.except_osv(_('Warning!'),_('Insufficient Hours, Please Create any one of the following type: Permission/OnDuty/Leave')) 
                         return {
                                     'name': 'Alert Permission',
                                     'view_type': 'form',
@@ -1926,7 +1997,7 @@ class arul_hr_audit_shift_time(osv.osv):
                                     'view_id': res[1],
                                     'res_model': 'alert.form',
                                     'domain': [],
-                                    'context': {'default_message':'No Permission / On Duty Entry is made for Pending Hours. Do you want to reduce it from Leave Credits (CL/SL/C.Off/PL/LOP) ?','audit_id':line.id},
+                                    'context': {'default_message':'Insufficient Hours, Please Create any one of the following type: Permission/OnDuty/Leave','audit_id':line.id},
                                     'type': 'ir.actions.act_window',
                                     'target': 'new',
                                 }
@@ -1937,16 +2008,17 @@ class arul_hr_audit_shift_time(osv.osv):
                 cr.execute(sql)                
                 spl_date=cr.fetchall()
     		
-                if spl_date and line.total_hours >= 3.7:
+                if spl_date and line.total_hours >= half_shift_time:
                     flag = 1
                     shift_hours = 0
-                if spl_date and line.total_hours < 3.7:
+                if spl_date and line.total_hours < half_shift_time:
                     permission_ids = self.pool.get('arul.hr.permission.onduty').search(cr, uid, [('non_availability_type_id','=','permission'),('date','=',line.work_date),('employee_id','=',line.employee_id.id)])
                     on_duty_ids = self.pool.get('arul.hr.permission.onduty').search(cr, uid, [('non_availability_type_id','=','on_duty'),('from_date','<=',line.work_date),('to_date','>=',line.work_date),('employee_id','=',line.employee_id.id)])
                     leave_detail_ids = self.pool.get('arul.hr.employee.leave.details').search(cr, uid, [('date_from','<=',line.work_date),('date_to','>=',line.work_date),('employee_id','=',line.employee_id.id),('state','=','done')])    		    	
                     if not permission_ids and not on_duty_ids and not leave_detail_ids:
                         res = self.pool.get('ir.model.data').get_object_reference(cr, uid, 
                                             'green_erp_arulmani_hrm', 'alert_permission_form_view')
+                        #raise osv.except_osv(_('Warning!'),_('Insufficient Hours, Please Create any one of the following type: Permission/OnDuty/Leave'))
                         return {
                                     'name': 'Alert Permission',
                                     'view_type': 'form',
@@ -1954,7 +2026,7 @@ class arul_hr_audit_shift_time(osv.osv):
                                     'view_id': res[1],
                                     'res_model': 'alert.form',
                                     'domain': [],
-                                    'context': {'default_message':'No Permission / On Duty Entry is made for Pending Hours. Do you want to reduce it from Leave Credits (CL/SL/C.Off/PL/LOP) ?','audit_id':line.id},
+                                    'context': {'default_message':'Insufficient Hours, Please Create any one of the following type: Permission/OnDuty/Leave','audit_id':line.id},
                                     'type': 'ir.actions.act_window',
                                     'target': 'new',
                                 }
@@ -1965,16 +2037,17 @@ class arul_hr_audit_shift_time(osv.osv):
                 cr.execute(sql)                
                 local_date=cr.fetchall()
     		
-                if local_date and line.total_hours >= 3.7: # MIN of SHIFT 7.45 / 2 = 3.7
+                if local_date and line.total_hours >= half_shift_time: # MIN of SHIFT 7.45 / 2 = 3.7
                     flag = 1
                     shift_hours = 0
-                if local_date and line.total_hours < 3.7:
+                if local_date and line.total_hours < half_shift_time:
                     permission_ids = self.pool.get('arul.hr.permission.onduty').search(cr, uid, [('non_availability_type_id','=','permission'),('date','=',line.work_date),('employee_id','=',line.employee_id.id)])
                     on_duty_ids = self.pool.get('arul.hr.permission.onduty').search(cr, uid, [('non_availability_type_id','=','on_duty'),('from_date','<=',line.work_date),('to_date','>=',line.work_date),('employee_id','=',line.employee_id.id)])
                     leave_detail_ids = self.pool.get('arul.hr.employee.leave.details').search(cr, uid, [('date_from','<=',line.work_date),('date_to','>=',line.work_date),('employee_id','=',line.employee_id.id),('state','=','done')])    		    	
                     if not permission_ids and not on_duty_ids and not leave_detail_ids:
                         res = self.pool.get('ir.model.data').get_object_reference(cr, uid, 
                                             'green_erp_arulmani_hrm', 'alert_permission_form_view')
+                        #raise osv.except_osv(_('Warning!'),_('Insufficient Hours, Please Create any one of the following type: Permission/OnDuty/Leave'))
                         return {
                                     'name': 'Alert Permission',
                                     'view_type': 'form',
@@ -1982,7 +2055,7 @@ class arul_hr_audit_shift_time(osv.osv):
                                     'view_id': res[1],
                                     'res_model': 'alert.form',
                                     'domain': [],
-                                    'context': {'default_message':'No Permission / On Duty Entry is made for Pending Hours. Do you want to reduce it from Leave Credits (CL/SL/C.Off/PL/LOP) ?','audit_id':line.id},
+                                    'context': {'default_message':'Insufficient Hours, Please Create any one of the following type: Permission/OnDuty/Leave','audit_id':line.id},
                                     'type': 'ir.actions.act_window',
                                     'target': 'new',
                                 }
@@ -1993,17 +2066,18 @@ class arul_hr_audit_shift_time(osv.osv):
                 cr.execute(sql)                
                 same_work_date=cr.fetchone()
     		
-                if same_work_date and line.total_hours >= 4:
+                if same_work_date and line.total_hours >= half_shift_time:
                     flag = 1
                     shift_hours = 0
     		    
-                if same_work_date and line.total_hours < 4:
+                if same_work_date and line.total_hours < half_shift_time:
                     permission_ids = self.pool.get('arul.hr.permission.onduty').search(cr, uid, [('non_availability_type_id','=','permission'),('date','=',line.work_date),('employee_id','=',line.employee_id.id)])
                     on_duty_ids = self.pool.get('arul.hr.permission.onduty').search(cr, uid, [('non_availability_type_id','=','on_duty'),('from_date','<=',line.work_date),('to_date','>=',line.work_date),('employee_id','=',line.employee_id.id)])
                     leave_detail_ids = self.pool.get('arul.hr.employee.leave.details').search(cr, uid, [('date_from','<=',line.work_date),('date_to','>=',line.work_date),('employee_id','=',line.employee_id.id),('state','=','done')])    		    	
                     if not permission_ids and not on_duty_ids and not leave_detail_ids:
                         res = self.pool.get('ir.model.data').get_object_reference(cr, uid, 
                                             'green_erp_arulmani_hrm', 'alert_permission_form_view')
+                        #raise osv.except_osv(_('Warning!'),_('Insufficient Hours, Please Create any one of the following type: Permission/OnDuty/Leave'))
                         return {
                                     'name': 'Alert Permission',
                                     'view_type': 'form',
@@ -2011,7 +2085,7 @@ class arul_hr_audit_shift_time(osv.osv):
                                     'view_id': res[1],
                                     'res_model': 'alert.form',
                                     'domain': [],
-                                    'context': {'default_message':'No Permission / On Duty Entry is made for Pending Hours. Do you want to reduce it from Leave Credits (CL/SL/C.Off/PL/LOP) ?','audit_id':line.id},
+                                    'context': {'default_message':'Insufficient Hours, Please Create any one of the following type: Permission/OnDuty/Leave','audit_id':line.id},
                                     'type': 'ir.actions.act_window',
                                     'target': 'new',
                                 }
@@ -2021,16 +2095,17 @@ class arul_hr_audit_shift_time(osv.osv):
                 sql=''' SELECT work_date FROM arul_hr_punch_in_out_time WHERE TO_CHAR(work_date,'YYYY-MM-DD') = ('%s') and employee_id=%s '''%(line.work_date,line.employee_id.id)
                 cr.execute(sql)                
                 same_work_date=cr.fetchone()
-                if same_work_date and line.total_hours >= 3.7:
+                if same_work_date and line.total_hours >= half_shift_time:
                     flag = 1
                     shift_hours = 0
-                if same_work_date and line.total_hours < 3.7:
+                if same_work_date and line.total_hours < half_shift_time:
                     permission_ids = self.pool.get('arul.hr.permission.onduty').search(cr, uid, [('non_availability_type_id','=','permission'),('date','=',line.work_date),('employee_id','=',line.employee_id.id)])
                     on_duty_ids = self.pool.get('arul.hr.permission.onduty').search(cr, uid, [('non_availability_type_id','=','on_duty'),('from_date','<=',line.work_date),('to_date','>=',line.work_date),('employee_id','=',line.employee_id.id)])
                     leave_detail_ids = self.pool.get('arul.hr.employee.leave.details').search(cr, uid, [('date_from','<=',line.work_date),('date_to','>=',line.work_date),('employee_id','=',line.employee_id.id),('state','=','done')])                    
                     if not permission_ids and not on_duty_ids and not leave_detail_ids:
                         res = self.pool.get('ir.model.data').get_object_reference(cr, uid, 
                                             'green_erp_arulmani_hrm', 'alert_permission_form_view')
+                        #raise osv.except_osv(_('Warning!'),_('Insufficient Hours, Please Create any one of the following type: Permission/OnDuty/Leave'))
                         return {
                                     'name': 'Alert Permission',
                                     'view_type': 'form',
@@ -2038,13 +2113,12 @@ class arul_hr_audit_shift_time(osv.osv):
                                     'view_id': res[1],
                                     'res_model': 'alert.form',
                                     'domain': [],
-                                    'context': {'default_message':'No Permission / On Duty Entry is made for Pending Hours. Do you want to reduce it from Leave Credits (CL/SL/C.Off/PL/LOP) ?','audit_id':line.id},
+                                    'context': {'default_message':'Insufficient Hours, Please Create any one of the following type: Permission/OnDuty/Leave','audit_id':line.id},
                                     'type': 'ir.actions.act_window',
                                     'target': 'new',
                                 }
-                    
-    
-                if line.total_hours<shift_hours and line.planned_work_shift_id.code!='W':
+                
+                if line.total_hours < shift_hours and line.planned_work_shift_id.code!='W':
                     permission_ids = self.pool.get('arul.hr.permission.onduty').search(cr, uid, [('non_availability_type_id','=','permission'),('date','=',line.work_date),('employee_id','=',line.employee_id.id)])
                     on_duty_ids = self.pool.get('arul.hr.permission.onduty').search(cr, uid, [('non_availability_type_id','=','on_duty'),('from_date','<=',line.work_date),('to_date','>=',line.work_date),('employee_id','=',line.employee_id.id)])
                     leave_detail_ids = self.pool.get('arul.hr.employee.leave.details').search(cr, uid, [('date_from','<=',line.work_date),('date_to','>=',line.work_date),('employee_id','=',line.employee_id.id),('state','=','done')])
@@ -2052,6 +2126,7 @@ class arul_hr_audit_shift_time(osv.osv):
                     if not permission_ids and not on_duty_ids and not leave_detail_ids:
                         res = self.pool.get('ir.model.data').get_object_reference(cr, uid, 
                                             'green_erp_arulmani_hrm', 'alert_permission_form_view')
+                        #raise osv.except_osv(_('Warning!'),_('Insufficient Hours, Please Create any one of the following : Permission/OnDuty/Leave'))
                         return {
                                     'name': 'Alert Permission',
                                     'view_type': 'form',
@@ -2059,7 +2134,7 @@ class arul_hr_audit_shift_time(osv.osv):
                                     'view_id': res[1],
                                     'res_model': 'alert.form',
                                     'domain': [],
-                                    'context': {'default_message':'No Permission / On Duty Entry is made for Pending Hours. Do you want to reduce it from Leave Credits (CL/SL/C.Off/PL/LOP) ?','audit_id':line.id},
+                                    'context': {'default_message':'Insufficient Hours, Please Create any one of the following : Permission/OnDuty/Leave','audit_id':line.id},
                                     'type': 'ir.actions.act_window',
                                     'target': 'new',
                                 }
@@ -2075,6 +2150,7 @@ class arul_hr_audit_shift_time(osv.osv):
                     if not permission_ids and not on_duty_ids and not leave_detail_ids:
                         res = self.pool.get('ir.model.data').get_object_reference(cr, uid, 
                                             'green_erp_arulmani_hrm', 'alert_permission_form_view')
+                        #raise osv.except_osv(_('Warning!'),_('Insufficient Hours, Please Create any one of the following type: Permission/OnDuty/Leave'))
                         return {
                                     'name': 'Alert Permission',
                                     'view_type': 'form',
@@ -2082,7 +2158,7 @@ class arul_hr_audit_shift_time(osv.osv):
                                     'view_id': res[1],
                                     'res_model': 'alert.form',
                                     'domain': [],
-                                    'context': {'default_message':'No Permission / On Duty Entry is made for Pending Hours. Do you want to reduce it from Leave Credits (CL/SL/C.Off/PL/LOP) ?','audit_id':line.id},
+                                    'context': {'default_message':'Insufficient Hours, Please Create any one of the following type: Permission/OnDuty/Leave','audit_id':line.id},
                                     'type': 'ir.actions.act_window',
                                     'target': 'new',
                                 }
@@ -3954,7 +4030,7 @@ class arul_hr_permission_onduty(osv.osv):
                 p = cr.fetchone()   
                 #raise osv.except_osv(_('Warning!%s'),_(p[0]))           
                 if p[0]-1>0:
-                    raise osv.except_osv(_('Warning!'),_('Permission Entry Already Exist for this Employee'))   
+                    raise osv.except_osv(_('Warning!'),_('Permission Entry Already Exist for this Date'))   
                 if time.end_time - time.start_time > 1:
                     raise osv.except_osv(_('Warning!'),_('Permission should not exceed an Hour for a day')) 
         return True

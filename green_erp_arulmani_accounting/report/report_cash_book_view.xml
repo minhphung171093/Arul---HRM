@@ -81,7 +81,7 @@
 		                		<tree create="false" edit="false" delete="false">
 		                			<field name="voucher_id"/>
 		                			<field name="date"/>
-		                			<field name="gl_code"/>
+		                			<field name="gl_code"/>                			
 		                			<field name="desc"/>
 		                			<field name="payee"/>
 		                			<field name="ref"/>

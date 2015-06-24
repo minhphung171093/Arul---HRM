@@ -443,21 +443,21 @@ class stock_picking_in(osv.osv):
     
 stock_picking_in() 
 
-class stock_move(osv.osv):
-    _inherit = "stock.move"
-    
-    def init(self, cr):
-        sql = '''
-            select id from stock_move where picking_id is null and inspec_id is null and issue_id is null and production_id is null and id not in (select move_id from mrp_production_move_ids)
-                and id not in (select child_id from stock_move_history_ids) and id not in (select move_id from stock_inventory_move_rel) and move_dest_id is null and purchase_line_id is null 
-                and sale_line_id is null and tracking_id is null and prodlot_id is null
-        '''
-        cr.execute(sql)
-        move_ids = [r[0] for r in cr.fetchall()]
-        self.pool.get('stock.move').unlink(cr, 1, move_ids)
-        
-        
-stock_move()
+# class stock_move(osv.osv):
+#     _inherit = "stock.move"
+#      
+#     def init(self, cr):
+#         sql = '''
+#             select id from stock_move where picking_id is null and inspec_id is null and issue_id is null and production_id is null and id not in (select move_id from mrp_production_move_ids)
+#                 and id not in (select child_id from stock_move_history_ids) and id not in (select move_id from stock_inventory_move_rel) and move_dest_id is null and purchase_line_id is null 
+#                 and sale_line_id is null and tracking_id is null and prodlot_id is null
+#         '''
+#         cr.execute(sql)
+#         move_ids = [r[0] for r in cr.fetchall()]
+#         self.pool.get('stock.move').unlink(cr, 1, move_ids)
+#          
+#          
+# stock_move()
 
 class stock_picking(osv.osv):
     _inherit = "stock.picking"
@@ -618,7 +618,8 @@ class stock_picking(osv.osv):
                                         cr.execute(sql)
                         
                         debit += p.sale_line_id and p.sale_line_id.price_unit * p.product_qty or 0
-                        product_name = p.product_id.name
+                        #product_name = p.product_id.name    # TPT - COMMENTED By BalamuruganPurushothaman ON 20/06/2015 
+                        product_name = p.product_id.default_code # TPT - Added By BalamuruganPurushothaman ON 20/06/2015 fto get GL code with respect to Product Code
                         product_id = p.product_id.id
                         account = self.get_pro_account_id(cr,uid,product_name,dis_channel)
                         if not account:
@@ -1467,7 +1468,8 @@ class account_invoice_line(osv.osv):
         cr.execute('SELECT * FROM account_invoice_line WHERE invoice_id=%s', (invoice_id,))
         for t in cr.dictfetchall():
             product_id = self.pool.get('product.product').browse(cr, uid, t['product_id'])
-            name = product_id.name or False
+            #name = product_id.name or False # TPT - COMMENTED By BalamuruganPurushothaman ON 20/06/2015
+            name = product_id.default_code or False # TPT - Added By BalamuruganPurushothaman ON 20/06/2015 fto get GL code with respect to Product Code
             account = self.get_pro_account_id(cr,uid,name,channel)
             if not account:
                 sql = '''
@@ -1925,7 +1927,7 @@ class account_invoice_line(osv.osv):
             if not cus_inv_insurance_id:
                 raise osv.except_osv(_('Warning!'),_('Account is not null, please configure it in GL Posting Configrution !'))
             if t['insurance']:
-                if round(t['insurance']):
+                if (t['insurance']): # By BalamuruganPurushothaman ON 20/06/2015 Removed roundoff to get the insurance value for all the decimals.
                     res.append({
                         'type':'tax',
                         'name':t['name'],
@@ -3314,6 +3316,37 @@ class tpt_material_issue(osv.osv):
                 
                 }
     
+    def _check_stock_qty(self, cr, uid, ids, context=None):
+        for issue in self.browse(cr, uid, ids, context=context):
+            for line in issue.material_issue_line:
+                sql = '''
+                    select case when sum(product_isu_qty)!=0 then sum(product_isu_qty) else 0 end product_isu_qty, product_id 
+                    from tpt_material_issue_line where material_issue_id in (select id from tpt_material_issue where name = %s) group by product_id
+                '''%(issue.name.id)
+                cr.execute(sql)
+                for sum in cr.dictfetchall():
+                    product_id = self.pool.get('product.product').browse(cr,uid,sum['product_id'])
+                    sql = '''
+                        select case when sum(foo.product_qty)>0 then sum(foo.product_qty) else 0 end ton_sl from 
+                            (select st.product_qty
+                                from stock_move st 
+                                where st.state='done' and st.product_id=%s and st.location_dest_id = %s 
+                            union all
+                            select st.product_qty*-1
+                                from stock_move st 
+                                where st.state='done' and st.product_id=%s and st.location_id = %s
+                            )foo
+                    '''%(sum['product_id'],issue.warehouse.id,sum['product_id'],issue.warehouse.id)
+                    cr.execute(sql)
+                    ton_sl = cr.dictfetchone()['ton_sl']
+                    if sum['product_isu_qty'] > ton_sl:
+                        raise osv.except_osv(_('Warning!'),_("You are confirm %s but only %s available for this product '%s' " %(sum['product_isu_qty'], ton_sl,product_id.default_code)))
+                        return False
+        return True
+    _constraints = [
+        (_check_stock_qty, 'Identical Data', []),
+    ]
+    
     def bt_approve(self, cr, uid, ids, context=None):
         price = 0.0
         product_price = 0.0
@@ -3467,7 +3500,7 @@ class tpt_material_issue(osv.osv):
                         unit = avg_cost_id.avg_cost or 0
                         price += unit * mater.product_isu_qty
                         product_price = unit * mater.product_isu_qty
-                
+                    
                     journal_line.append((0,0,{
                                             'name':line.doc_no + ' - ' + mater.product_id.name, 
                                             'account_id': acc_asset,
@@ -3531,11 +3564,20 @@ class tpt_material_issue(osv.osv):
                         acc_expense = mater.product_id and mater.product_id.property_account_expense and mater.product_id.property_account_expense.id or False
                         acc_asset = mater.product_id and mater.product_id.product_asset_acc_id and mater.product_id.product_asset_acc_id.id or False
                         if not acc_expense or not acc_asset:
-                            raise osv.except_osv(_('Warning!'),_('Please configure Expense Account and Product Asset Account for all materials!'))
+                            raise osv.except_osv(_('Warning!'),_('Please configure Expense Account and Product Asset Account for materials %s!'%(mater.product_id.default_code)))
                         avg_cost_ids = avg_cost_obj.search(cr, uid, [('product_id','=',mater.product_id.id),('warehouse_id','=',line.warehouse.id)])
                         if avg_cost_ids:
                             avg_cost_id = avg_cost_obj.browse(cr, uid, avg_cost_ids[0])
                             unit = avg_cost_id.avg_cost or 0
+                            sql = '''
+                                select price_unit from stock_move where product_id=%s and product_qty=%s and issue_id=%s
+                            '''%(mater.product_id.id,mater.product_isu_qty,mater.material_issue_id.id)
+                            cr.execute(sql)
+                            move_price = cr.fetchone()
+                            if move_price and move_price[0] and move_price[0]>0:
+                                unit=move_price[0]
+                            if not unit or unit<0:
+                                unit=1
                             price += unit * mater.product_isu_qty
                             product_price = unit * mater.product_isu_qty
                     
@@ -3564,6 +3606,9 @@ class tpt_material_issue(osv.osv):
                         'doc_type':'good'
                         }
                     new_jour_id = account_move_obj.create(cr,uid,value)
+                    print 'TPT Create Done', line.id,line.doc_no
+        return True
+    
 tpt_material_issue()    
 
 class tpt_hr_payroll_approve_reject(osv.osv):
