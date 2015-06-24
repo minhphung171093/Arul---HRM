@@ -173,6 +173,24 @@ access_vvti_accounting_152,arul.hr.punch.in.out.time,green_erp_arulmani_hrm.mode
 access_vvti_accounting_153,tpt.month,green_erp_arulmani_hrm.model_tpt_month,green_erp_arulmani_accounting.group_vvti_accounting_user,True,False,False,False
 access_vvti_accounting_154,shift.group,green_erp_arulmani_hrm.model_shift_group,green_erp_arulmani_accounting.group_vvti_accounting_user,True,False,False,False
 
+access_vvti_accounting_155,tpt.stock.on.hand,green_erp_arulmani_purchase.model_tpt_stock_on_hand,base.group_user,True,True,True,True
+access_vvti_accounting_156,tpt.stock.on.hand.line,green_erp_arulmani_purchase.model_tpt_stock_on_hand_line,base.group_user,True,True,True,True
+access_vvti_accounting_157,tpt.stock.inward.outward,green_erp_arulmani_purchase.model_tpt_stock_inward_outward,base.group_user,True,True,True,True
+access_vvti_accounting_158,tpt.stock.inward.outward.line,green_erp_arulmani_purchase.model_tpt_stock_inward_outward_line,base.group_user,True,True,True,True
+access_vvti_accounting_159,tpt.form.movement.analysis,green_erp_arulmani_purchase.model_tpt_form_movement_analysis,base.group_user,True,True,True,True
+access_vvti_accounting_160,tpt.movement.analysis.line,green_erp_arulmani_purchase.model_tpt_movement_analysis_line,base.group_user,True,True,True,True
+access_vvti_accounting_161,tpt.batch.wise.stock,green_erp_arulmani_accounting.model_tpt_batch_wise_stock,base.group_user,True,True,True,True
+access_vvti_accounting_162,tpt.batch.wise.stock.line,green_erp_arulmani_accounting.model_tpt_batch_wise_stock_line,base.group_user,True,True,True,True
+access_vvti_accounting_163,purchase.order.list,green_erp_arulmani_accounting.model_purchase_order_list,base.group_user,True,True,True,True
+
+
+
+
+
+
+
+
+
 
 
 

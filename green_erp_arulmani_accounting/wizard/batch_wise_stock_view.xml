@@ -32,7 +32,8 @@
 	    
         <menuitem action="action_batch_wise_stock_view"
             id="menu_action_batch_wise_stock_view"
-            parent="stock.menu_stock_warehouse_mgmt" sequence="105"/>
+            parent="stock.menu_stock_warehouse_mgmt" sequence="105"
+            groups="green_erp_arulmani_sale.group_vvti_sale_user,green_erp_arulmani_purchase.group_vvti_purchase_user,green_erp_arulmani_purchase.group_vvti_purchase_store_user"/>
 	 
 	 	<record id="view_tpt_batch_wise_stock_form" model="ir.ui.view">
 	        <field name="name">tpt.batch.wise.stock.form</field>

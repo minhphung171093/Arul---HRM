@@ -23,6 +23,7 @@
 			model="tpt.form.are.3" 
 			name="form_are_3_report"
 	        string="Print Form A.R.E - 3"
+	        groups="green_erp_arulmani_sale.group_vvti_sale_user"
 	        rml="green_erp_arulmani_sale/report/print_form_are_3.ods"/> 	
 	</data>
 </openerp>

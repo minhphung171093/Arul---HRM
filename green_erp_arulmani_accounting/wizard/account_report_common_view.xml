@@ -52,7 +52,14 @@
 	            </form>
 	        </field>
     	</record>
-        
+    	
+                <menuitem
+                icon="STOCK_PRINT"
+                name="Trial Balance"
+                parent="account.menu_finance_reporting"
+                action="account.action_account_balance_menu"
+                id="menu_general_Balance_report"
+               />
     </data>
 </openerp>
 

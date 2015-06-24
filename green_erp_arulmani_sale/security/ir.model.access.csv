@@ -1,5 +1,5 @@
 id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
-"base.access_res_partner_group_partner_manager","res_partner group_partner_manager","base.model_res_partner","base.group_partner_manager",1,1,1,0
+"base.access_res_partner_group_partner_manager","res_partner group_partner_manager","base.model_res_partner","base.group_partner_manager",1,0,0,0
 sale.access_sale_order_manager,sale.order.manager,sale.model_sale_order,base.group_sale_manager,1,1,1,0
 stock.access_stock_picking_out_user,stock.picking.out,stock.model_stock_picking_out,stock.group_stock_user,1,1,1,0
 stock.access_stock_picking_user,stock.picking user,stock.model_stock_picking,stock.group_stock_user,1,1,1,0
@@ -7,8 +7,8 @@ stock.access_stock_picking_in_user,stock.picking.in,stock.model_stock_picking_in
 sale_stock.access_stock_picking_sales,stock.picking.sales,stock.model_stock_picking,base.group_sale_manager,1,1,1,0
 sale_stock.access_stock_move_manager,stock_move manager,stock.model_stock_move,base.group_sale_manager,1,1,1,0
 stock.access_stock_move_manager,stock.move manager,model_stock_move,stock.group_stock_manager,1,1,1,0
-account.access_account_invoice_uinvoice,account.invoice,account.model_account_invoice,account.group_account_invoice,1,1,1,0
-account.access_account_invoice_group_invoice,account.invoice group invoice,account.model_account_invoice,account.group_account_invoice,1,1,1,0
+account.access_account_invoice_uinvoice,account.invoice,account.model_account_invoice,account.group_account_invoice,1,1,1,1
+account.access_account_invoice_group_invoice,account.invoice group invoice,account.model_account_invoice,account.group_account_invoice,1,1,1,1
 sale.access_account_invoice_manager,account_invoice manager,account.model_account_invoice,base.group_sale_manager,1,1,1,0
 stock.access_stock_production_lot_user,stock.production.lot user,stock.model_stock_production_lot,stock.group_stock_user,1,1,1,0
 stock.access_stock_inventory_user,stock.inventory user,stock.model_stock_inventory,stock.group_stock_user,1,0,0,0
@@ -18,7 +18,7 @@ stock.access_stock_inventory_manager,stock.inventory manager,stock.model_stock_i
 "access_vvti_sale_3","stock.production.lot","stock.model_stock_production_lot","group_vvti_sale_store_key_user",1,1,1,0
 "access_vvti_sale_4","stock.inventory","stock.model_stock_inventory","group_vvti_sale_admin",1,1,1,1
 "access_vvti_sale_5","stock.inventory","stock.model_stock_inventory","group_vvti_sale_store_key_user",1,1,1,0
-access_vvti_sale_6,"tpt.blanket.order","green_erp_arulmani_sale.model_tpt_blanket_order","green_erp_arulmani_sale.group_vvti_sale_user","True","True","True","False"
+access_vvti_sale_6,"tpt.blanket.order","green_erp_arulmani_sale.model_tpt_blanket_order","green_erp_arulmani_sale.group_vvti_sale_user","True","False","False","False"
 access_vvti_sale_7,"tpt.blank.order.line","green_erp_arulmani_sale.model_tpt_blank_order_line","green_erp_arulmani_sale.group_vvti_sale_user","True","True","True","False"
 access_vvti_sale_8,"crm.application","green_erp_arulmani_crm.model_crm_application","green_erp_arulmani_sale.group_vvti_sale_user","True","True","True","False"
 access_vvti_sale_9,"tpt.batch.request","green_erp_arulmani_sale.model_tpt_batch_request","green_erp_arulmani_sale.group_vvti_sale_user","True","True","True","False"
@@ -118,6 +118,20 @@ access_vvti_sale_97,arul.hr.punch.in.out.time,green_erp_arulmani_hrm.model_arul_
 
 access_vvti_sale_98,tpt.month,green_erp_arulmani_hrm.model_tpt_month,green_erp_arulmani_sale.group_vvti_marketing_user,True,False,False,False
 access_vvti_sale_99,shift.group,green_erp_arulmani_hrm.model_shift_group,green_erp_arulmani_sale.group_vvti_marketing_user,True,False,False,False
+
+sale.access_res_partner_sale_manager,res.partner.sale.manager,base.model_res_partner,base.group_sale_manager,1,0,0,0
+access_vvti_sale_100,tpt.form.403,green_erp_arulmani_sale.model_tpt_form_403,green_erp_arulmani_sale.group_vvti_sale_user,True,True,True,False
+access_vvti_sale_101,tpt.form.403.consignee,green_erp_arulmani_sale.model_tpt_form_403_consignee,green_erp_arulmani_sale.group_vvti_sale_user,True,True,True,True
+
+access_vvti_sale_102,stock.move,green_erp_arulmani_sale.model_stock_move,green_erp_arulmani_sale.group_vvti_marketing_user,True,False,False,False
+
+access_vvti_sale_103,tpt.test.report,green_erp_arulmani_sale.model_tpt_test_report,green_erp_arulmani_crm.group_qc_user,True,True,True,False
+
+
+
+
+
+
 
 
 

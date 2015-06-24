@@ -76,7 +76,7 @@
 	            <form string="Purchase Indent" version="7.0">   
 	             <header>
 	            		<button name="bt_approve" states='draft' string="Confirm" type="object" class="oe_highlight" groups="green_erp_arulmani_purchase.group_vvti_purchase_admin,green_erp_arulmani_purchase.group_vvti_hrm_plant_mm_user"/>
-	                    <button name="bt_cancel" states='draft, done' string="Cancel" type="object" class="oe_highlight" /> 
+	                    <button name="bt_cancel" states='draft, done' string="Cancel" type="object" class="oe_highlight" groups="green_erp_arulmani_purchase.group_vvti_purchase_admin,green_erp_arulmani_purchase.group_vvti_hrm_plant_mm_user"/> 
 	                    <field name="state" widget="statusbar" statusbar_visible="draft,cancel,done" statusbar_colors='{"draft":"blue","cancel":"blue"}'/>
 	            </header>    
 	            	<sheet>
@@ -155,7 +155,7 @@
         <menuitem action="action_view_tpt_purchase_indent_form"
             id="menu_action_view_tpt_purchase_indent_form"
             parent="purchase.menu_procurement_management" sequence="11"
-            groups="green_erp_arulmani_purchase.group_vvti_purchase_user,green_erp_arulmani_purchase.group_vvti_hrm_plant_mm_user,green_erp_arulmani_sale.group_vvti_marketing_user"/>
+            groups="green_erp_arulmani_purchase.group_vvti_purchase_user,green_erp_arulmani_purchase.group_vvti_hrm_plant_mm_user,green_erp_arulmani_sale.group_vvti_marketing_user,green_erp_arulmani_hrm.group_vvti_hrm_hr_user,green_erp_arulmani_hrm.group_vvti_hrm_time_user,green_erp_arulmani_crm.group_qc_user"/>
             
 	   	<record id="view_tpt_purchase_indent_line_tree" model="ir.ui.view">
 			<field name="name">tpt.purchase.indent.line.tree</field>
@@ -670,7 +670,7 @@
 	            </xpath> 
 	            <xpath expr="//form/header/button[@name='action_cancel_draft']" position="replace">
 	            	<button name="action_cancel_draft" states="cancel,sent,confirmed,head" string="Set to Draft" type="object" groups="green_erp_arulmani_purchase.group_vvti_purchase_mgr,green_erp_arulmani_purchase.group_vvti_purchase_gm"/>
-	            	<button name="action_cancel_draft" states="gm" string="Set to Draft" type="object" groups="green_erp_arulmani_purchase.group_vvti_purchase_gm"/>
+	            	<button name="action_cancel_draft" states="gm" string="Set to Draft" type="object" groups="green_erp_arulmani_purchase.group_vvti_purchase_gm,green_erp_arulmani_purchase.group_vvti_purchase_mgr"/>
 	            </xpath> 
             
 				<xpath expr="//form/header/button[@name='purchase_confirm']" position="replace">
@@ -680,12 +680,12 @@
 					<button name="purchase_draft_head" states="draft" string="Purchase Head Approval" class="oe_highlight" groups="green_erp_arulmani_purchase.group_vvti_purchase_admin,green_erp_arulmani_purchase.group_vvti_purchase_mgr"/>
 					<button name="purchase_head_gm" states="head" string="GM Approval" class="oe_highlight" groups="green_erp_arulmani_purchase.group_vvti_purchase_admin,green_erp_arulmani_purchase.group_vvti_purchase_gm"/>
 					<!--<button name="purchase_gm_amendement" states="gm" string="Amendement" class="oe_highlight"/>-->
-					<button name="purchase_md_amendement" states="md" string="Amendement" class="oe_highlight"/>
+					<button name="purchase_md_amendement" states="md" string="Amendement" class="oe_highlight" groups="green_erp_arulmani_purchase.group_vvti_purchase_user"/>
 					<!--<button name="purchase_head_amendement" states="head" string="Amendement" class="oe_highlight"/>-->
 					<button name="purchase_amendement_head" states="amendement" string="Purchase Head Approval" class="oe_highlight" groups="green_erp_arulmani_purchase.group_vvti_purchase_admin,green_erp_arulmani_purchase.group_vvti_purchase_mgr"/>
 					<button name="purchase_gm_confirmed" states="gm" string="MD Approval" class="oe_highlight" groups="green_erp_arulmani_purchase.group_vvti_purchase_admin"/>
 					<button name="purchase_md_confirmed" attrs="{'invisible':['|',('state','!=','md'),('po_document_type','=','service')]}" string="Create GRN" class="oe_highlight" groups="green_erp_arulmani_purchase.group_vvti_purchase_admin,green_erp_arulmani_purchase.group_vvti_purchase_store_mgr"/>
-					<button name="bt_purchase_done" attrs="{'invisible':['|',('state','!=','md'),('po_document_type','!=','service')]}" string="Service Confirm" type='object' class="oe_highlight" groups="green_erp_arulmani_purchase.group_vvti_purchase_admin,green_erp_arulmani_purchase.group_vvti_purchase_store_mgr,green_erp_arulmani_accounting.group_vvti_accounting_admin"/>
+					<button name="bt_purchase_done" attrs="{'invisible':['|',('state','!=','md'),('po_document_type','!=','service')]}" string="Service Confirm" type='object' class="oe_highlight" groups="green_erp_arulmani_purchase.group_vvti_purchase_admin,green_erp_arulmani_purchase.group_vvti_purchase_store_mgr,green_erp_arulmani_accounting.group_vvti_accounting_admin,green_erp_arulmani_purchase.group_vvti_purchase_user"/>
 				</xpath>  
 				<xpath expr="//form/header/button[@name='view_picking']" position="attributes">
 					<attribute name='string'>View GRN</attribute>
@@ -812,6 +812,10 @@
 				
 				<xpath expr="//field[@name='amount_total']" position="after">
 					<field name="amount_total_inr" readonly="1" class="oe_subtotal_footer_separator" widget="monetary" attrs="{'invisible': [('amount_total','=','amount_total_inr')]}"/>
+				</xpath>
+				
+				<xpath expr="//button[@name='purchase_cancel']" position="attributes">
+					<attribute name='groups'>green_erp_arulmani_purchase.group_vvti_purchase_mgr,green_erp_arulmani_purchase.group_vvti_purchase_user</attribute>
 				</xpath>
 				
 			</field>
@@ -1113,8 +1117,8 @@
             <field name="arch" type="xml">
 	            <form string="Purchase Quotation" version="7.0">
 	            <header>
-	            		<button name = "bt_tick_mark" attrs="{'invisible': ['|',('quotation_cate','=','multiple'),('state','!=','draft')]}" icon = "STOCK_APPLY" string="Approve" type="object" />
-						<button name = "bt_cross_mark" confirm = "Do you want to cancel the Quotation ?" icon = "STOCK_CANCEL" states = "draft" string="Cancel" type="object" /> 
+	            		<button name = "bt_tick_mark" attrs="{'invisible': ['|',('quotation_cate','=','multiple'),('state','!=','draft')]}" icon = "STOCK_APPLY" string="Approve" type="object" groups="green_erp_arulmani_purchase.group_vvti_purchase_admin,green_erp_arulmani_purchase.group_vvti_purchase_user"/>
+						<button name = "bt_cross_mark" confirm = "Do you want to cancel the Quotation ?" icon = "STOCK_CANCEL" states = "draft" string="Cancel" type="object" groups="green_erp_arulmani_purchase.group_vvti_purchase_admin,green_erp_arulmani_purchase.group_vvti_purchase_user"/> 
 	                    
 	                    <button name = "bt_copy_quote" states='done' string="Copy Quotation" type="object" />
 	                    <field name="state" widget="statusbar" statusbar_visible="draft,cancel,done" statusbar_colors='{"draft":"blue","cancel":"blue"}'/>
@@ -1479,7 +1483,7 @@
         <menuitem action="action_view_tpt_quanlity_inspection_spares_form"
             id="menu_action_view_tpt_quanlity_inspection_spares_form"
             parent="purchase.menu_procurement_management" sequence="29"
-            groups="green_erp_arulmani_purchase.group_vvti_purchase_store_user"/>
+            groups="green_erp_arulmani_purchase.group_vvti_purchase_store_user,green_erp_arulmani_purchase.group_vvti_purchase_user"/>
             
        <record id="view_tpt_quanlity_inspection_raw_form" model="ir.ui.view">
             <field name="name">tpt.quanlity.inspection.raw.form</field>
@@ -1546,7 +1550,7 @@
         <menuitem action="action_view_tpt_quanlity_inspection_raw_form"
             id="menu_action_view_tpt_quanlity_inspection_raw_form"
             parent="purchase.menu_procurement_management" sequence="29"
-            groups="green_erp_arulmani_crm.group_qc_user"/> 
+            groups="green_erp_arulmani_crm.group_qc_user,green_erp_arulmani_purchase.group_vvti_purchase_user"/> 
             
         <record id="view_tpt_gate_out_pass_tree" model="ir.ui.view">
 			<field name="name">tpt.gate.out.pass.tree</field>
@@ -1719,7 +1723,7 @@
         <menuitem action="action_view_tpt_vendor_group_form"
             id="menu_action_view_tpt_vendor_group_form"
             parent="purchase.menu_procurement_management" sequence="300"
-            groups="green_erp_arulmani_purchase.group_vvti_purchase_key_user"/>
+            groups="green_erp_arulmani_purchase.group_vvti_purchase_key_user,green_erp_arulmani_purchase.group_vvti_purchase_user"/>
 
 		<record id="view_tpt_vendor_sub_group_tree" model="ir.ui.view">
 			<field name="name">tpt.vendor.sub.group.tree</field>
@@ -1761,7 +1765,7 @@
         <menuitem action="action_view_tpt_vendor_sub_group_form"
             id="menu_action_view_tpt_vendor_sub_group_form"
             parent="purchase.menu_procurement_management" sequence="400"
-            groups="green_erp_arulmani_purchase.group_vvti_purchase_key_user"/>
+            groups="green_erp_arulmani_purchase.group_vvti_purchase_key_user,green_erp_arulmani_purchase.group_vvti_purchase_user"/>
             
         <record id="view_tpt_quality_parameters_tree" model="ir.ui.view">
 			<field name="name">tpt.quality.parameters.tree</field>
@@ -1802,7 +1806,8 @@
         
         <menuitem action="action_view_tpt_quality_parameters_form"
             id="menu_action_view_tpt_quality_parameters_form"
-            parent="purchase.menu_procurement_management" sequence="500"/>
+            parent="purchase.menu_procurement_management" sequence="500"
+            groups="green_erp_arulmani_crm.group_qc_user"/>
         
         <record id="view_tpt_request_for_quotation_tree" model="ir.ui.view">
 			<field name="name">tpt.request.for.quotation.tree</field>
