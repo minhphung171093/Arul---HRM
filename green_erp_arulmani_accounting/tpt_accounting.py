@@ -437,7 +437,7 @@ stock_picking_in()
 
 # class stock_move(osv.osv):
 #     _inherit = "stock.move"
-#     
+#      
 #     def init(self, cr):
 #         sql = '''
 #             select id from stock_move where picking_id is null and inspec_id is null and issue_id is null and production_id is null and id not in (select move_id from mrp_production_move_ids)
@@ -447,8 +447,8 @@ stock_picking_in()
 #         cr.execute(sql)
 #         move_ids = [r[0] for r in cr.fetchall()]
 #         self.pool.get('stock.move').unlink(cr, 1, move_ids)
-#         
-#         
+#          
+#          
 # stock_move()
 
 class stock_picking(osv.osv):
@@ -3309,6 +3309,37 @@ class tpt_material_issue(osv.osv):
                 
                 }
     
+    def _check_stock_qty(self, cr, uid, ids, context=None):
+        for issue in self.browse(cr, uid, ids, context=context):
+            for line in issue.material_issue_line:
+                sql = '''
+                    select case when sum(product_isu_qty)!=0 then sum(product_isu_qty) else 0 end product_isu_qty, product_id 
+                    from tpt_material_issue_line where material_issue_id in (select id from tpt_material_issue where name = %s) group by product_id
+                '''%(issue.name.id)
+                cr.execute(sql)
+                for sum in cr.dictfetchall():
+                    product_id = self.pool.get('product.product').browse(cr,uid,sum['product_id'])
+                    sql = '''
+                        select case when sum(foo.product_qty)>0 then sum(foo.product_qty) else 0 end ton_sl from 
+                            (select st.product_qty
+                                from stock_move st 
+                                where st.state='done' and st.product_id=%s and st.location_dest_id = %s 
+                            union all
+                            select st.product_qty*-1
+                                from stock_move st 
+                                where st.state='done' and st.product_id=%s and st.location_id = %s
+                            )foo
+                    '''%(sum['product_id'],issue.warehouse.id,sum['product_id'],issue.warehouse.id)
+                    cr.execute(sql)
+                    ton_sl = cr.dictfetchone()['ton_sl']
+                    if sum['product_isu_qty'] > ton_sl:
+                        raise osv.except_osv(_('Warning!'),_("You are confirm %s but only %s available for this product '%s' " %(sum['product_isu_qty'], ton_sl,product_id.default_code)))
+                        return False
+        return True
+    _constraints = [
+        (_check_stock_qty, 'Identical Data', []),
+    ]
+    
     def bt_approve(self, cr, uid, ids, context=None):
         price = 0.0
         product_price = 0.0
@@ -3462,7 +3493,7 @@ class tpt_material_issue(osv.osv):
                         unit = avg_cost_id.avg_cost or 0
                         price += unit * mater.product_isu_qty
                         product_price = unit * mater.product_isu_qty
-                
+                    
                     journal_line.append((0,0,{
                                             'name':line.doc_no + ' - ' + mater.product_id.name, 
                                             'account_id': acc_asset,
@@ -3526,11 +3557,20 @@ class tpt_material_issue(osv.osv):
                         acc_expense = mater.product_id and mater.product_id.property_account_expense and mater.product_id.property_account_expense.id or False
                         acc_asset = mater.product_id and mater.product_id.product_asset_acc_id and mater.product_id.product_asset_acc_id.id or False
                         if not acc_expense or not acc_asset:
-                            raise osv.except_osv(_('Warning!'),_('Please configure Expense Account and Product Asset Account for all materials!'))
+                            raise osv.except_osv(_('Warning!'),_('Please configure Expense Account and Product Asset Account for materials %s!'%(mater.product_id.default_code)))
                         avg_cost_ids = avg_cost_obj.search(cr, uid, [('product_id','=',mater.product_id.id),('warehouse_id','=',line.warehouse.id)])
                         if avg_cost_ids:
                             avg_cost_id = avg_cost_obj.browse(cr, uid, avg_cost_ids[0])
                             unit = avg_cost_id.avg_cost or 0
+                            sql = '''
+                                select price_unit from stock_move where product_id=%s and product_qty=%s and issue_id=%s
+                            '''%(mater.product_id.id,mater.product_isu_qty,mater.material_issue_id.id)
+                            cr.execute(sql)
+                            move_price = cr.fetchone()
+                            if move_price and move_price[0] and move_price[0]>0:
+                                unit=move_price[0]
+                            if not unit or unit<0:
+                                unit=1
                             price += unit * mater.product_isu_qty
                             product_price = unit * mater.product_isu_qty
                     
@@ -3559,6 +3599,9 @@ class tpt_material_issue(osv.osv):
                         'doc_type':'good'
                         }
                     new_jour_id = account_move_obj.create(cr,uid,value)
+                    print 'TPT Create Done', line.id,line.doc_no
+        return True
+    
 tpt_material_issue()    
 
 class tpt_hr_payroll_approve_reject(osv.osv):
