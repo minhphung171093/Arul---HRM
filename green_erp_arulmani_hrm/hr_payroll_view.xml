@@ -466,7 +466,7 @@
 	                <button name="generate_payroll" states='draft' string="Generate Payroll" type="object" class="oe_highlight" groups="green_erp_arulmani_hrm.group_vvti_hrm_payroll_controller"/>
 	                <button name="rollback_payroll" states='draft' string="Roll Back Payroll" type="object" class="oe_highlight" groups="green_erp_arulmani_hrm.group_vvti_hrm_payroll_controller"/>
 	               	<button name="confirm_payroll" states='draft' string="Confirm Payroll" type="object" class="oe_highlight" groups="green_erp_arulmani_hrm.group_vvti_hrm_payroll_controller"/>
-	               	<button name="print_payslip" string="Preview Payroll" type="object" class="oe_highlight" groups="green_erp_arulmani_hrm.group_vvti_hrm_payroll_controller"/>
+	               	<button name="print_payslip" string="Preview Payroll" type="object" class="oe_highlight" groups="green_erp_arulmani_hrm.group_vvti_hrm_payroll_controller,green_erp_arulmani_hrm.group_vvti_hrm_hr_key_user"/>
 	                <field name="state" widget="statusbar" statusbar_visible="draft,confirm,approve" statusbar_colors='{"draft":"blue","done":"blue"}'/>  
 	            </header>    
 	            	<sheet>
@@ -562,7 +562,7 @@
        <menuitem action="action_arul_hr_payroll_executions_form"
             id="menu_action_arul_hr_payroll_executions_form"
             parent="menu_hr_payroll_management" sequence="5"
-            groups="green_erp_arulmani_hrm.group_vvti_hrm_payroll_controller"/>
+            groups="green_erp_arulmani_hrm.group_vvti_hrm_payroll_controller,green_erp_arulmani_hrm.group_vvti_hrm_hr_key_user"/>
             
 		<record id="view_arul_hr_payroll_structure_configuration_tree_vew" model="ir.ui.view">
 			<field name="name">arul.hr.payroll.structure.configuration.tree</field>

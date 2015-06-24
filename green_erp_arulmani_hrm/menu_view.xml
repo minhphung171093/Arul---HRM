@@ -3,12 +3,13 @@
     <data>
 		<menuitem id="hr.menu_hr_configuration" name="Configuration" parent="hr.menu_hr_root" groups="base.group_hr_manager,group_vvti_hrm_time_user" sequence="50"/>
 		<menuitem id="menu_action_print_payslip_report" action="action_print_payslip_report" parent="menu_hr_payroll_management" sequence="20" groups="group_vvti_hrm_payroll_controller"/>
-		<menuitem id="menu_action_epf_statement_report" action="action_epf_statement_report" parent="menu_hr_payroll_management" sequence="30" groups="group_vvti_hrm_payroll_controller"/>
+		<menuitem id="menu_action_epf_statement_report" action="action_epf_statement_report" parent="menu_hr_payroll_management" sequence="30" groups="group_vvti_hrm_payroll_controller,group_vvti_hrm_hr_user"/>
 		
 		<menuitem id="menu_action_esi_statement"
 			action="action_esi_statement"
 			parent="menu_hr_payroll_management"
-			sequence="20"/>
+			sequence="20"
+			groups="group_vvti_hrm_hr_user,group_vvti_hrm_payroll_controller"/>
 		
 		<menuitem id="menu_employee_actions"
 			name="Employee Actions"
@@ -17,23 +18,23 @@
 			
 			<menuitem action="action_arul_hr_employee_transfer_action_form"
 	            id="menu_action_arul_hr_employee_transfer_action_form"
-	            parent="menu_employee_actions" sequence="28" groups="group_vvti_hrm_hr_key_user,group_vvti_hrm_hr_manager"/>
+	            parent="menu_employee_actions" sequence="28" groups="group_vvti_hrm_hr_key_user,group_vvti_hrm_hr_manager,group_vvti_hrm_hr_user"/>
 			
 			<menuitem action="action_arul_hr_employee_rehiring_history_form"
 	            id="menu_action_arul_hr_employee_rehiring_history_form"
-	            parent="menu_employee_actions" sequence="26" groups="group_vvti_hrm_hr_key_user,group_vvti_hrm_hr_manager"/> 
+	            parent="menu_employee_actions" sequence="26" groups="group_vvti_hrm_hr_key_user,group_vvti_hrm_hr_manager,group_vvti_hrm_hr_user,group_vvti_hrm_time_user,group_vvti_hrm_payroll_controller"/> 
             
             <menuitem action="action_arul_hr_employee_action_history_form"
 	            id="menu_action_arul_hr_employee_action_history_form"
-	            parent="menu_employee_actions" sequence="25" groups="group_vvti_hrm_hr_key_user,group_vvti_hrm_hr_manager"/> 
+	            parent="menu_employee_actions" sequence="25" groups="group_vvti_hrm_hr_key_user,group_vvti_hrm_hr_manager,group_vvti_hrm_hr_user"/> 
             
         	<menuitem action="action_arul_hr_employee_compensation_review_action_form"
 	            id="menu_action_arul_hr_employee_compensation_review_action_form"
-	            parent="menu_employee_actions" sequence="27" groups="group_vvti_hrm_hr_key_user,group_vvti_hrm_hr_manager"/>
+	            parent="menu_employee_actions" sequence="27" groups="group_vvti_hrm_hr_key_user,group_vvti_hrm_hr_manager,group_vvti_hrm_hr_user"/>
 
 	         <menuitem action="action_arul_hr_employee_contracts_action_form"
 	            id="menu_action_arul_hr_employee_contracts_action_form"
-	            parent="menu_employee_actions" sequence="28" groups="group_vvti_hrm_hr_key_user,group_vvti_hrm_hr_manager"/>
+	            parent="menu_employee_actions" sequence="28" groups="group_vvti_hrm_hr_key_user,group_vvti_hrm_hr_manager,group_vvti_hrm_hr_user"/>
  
 	         <menuitem action="action_arul_hr_employee_hiring_action_form"
 	            id="menu_action_arul_hr_employee_hiring_action_form"
@@ -41,11 +42,11 @@
 
 			<menuitem action="action_arul_hr_employee_leaving_action_form"
 	            id="menu_action_arul_hr_employee_leaving_action_form"
-	            parent="menu_employee_actions" sequence="29" groups="group_vvti_hrm_hr_key_user,group_vvti_hrm_hr_manager"/>
+	            parent="menu_employee_actions" sequence="29" groups="group_vvti_hrm_hr_key_user,group_vvti_hrm_hr_manager,group_vvti_hrm_hr_user"/>
 
 	        <menuitem action="action_arul_hr_employee_disciplinary_action_form"
 	            id="menu_action_arul_hr_employee_disciplinary_action_form"
-	            parent="menu_employee_actions" sequence="29" groups="group_vvti_hrm_hr_key_user,group_vvti_hrm_hr_manager"/>
+	            parent="menu_employee_actions" sequence="29" groups="group_vvti_hrm_hr_key_user,group_vvti_hrm_hr_manager,group_vvti_hrm_hr_user"/>
  
             
 		<menuitem id="menu_vvti_hr_master"
@@ -55,7 +56,7 @@
 			
 			<menuitem action="action_arul_employee_category_form"
 	            id="menu_action_arul_employee_category_form"
-	            parent="menu_vvti_hr_master" sequence="5" groups="group_vvti_hrm_admin,group_vvti_hrm_hr_user"/>
+	            parent="menu_vvti_hr_master" sequence="5" groups="group_vvti_hrm_admin,group_vvti_hrm_hr_user,group_vvti_hrm_time_user,group_vvti_hrm_plant_hr_user"/>
 	            
 	        <menuitem action="action_arul_hr_payroll_deduction_parameters_form"
 	            id="menu_action_arul_hr_payroll_deduction_parameters_form"
@@ -105,28 +106,28 @@
             	
         	<menuitem action="action_arul_hr_payroll_area_form"
 	            id="menu_action_arul_hr_payroll_area_form"
-	            parent="menu_vvti_hr_master" sequence="55" groups='group_vvti_hrm_admin,group_vvti_hrm_hr_user'/>
+	            parent="menu_vvti_hr_master" sequence="55" groups='group_vvti_hrm_admin,group_vvti_hrm_hr_user,group_vvti_hrm_time_user,group_vvti_hrm_plant_hr_user'/>
 	            
             <menuitem action="action_arul_hr_payroll_sub_area_form"
 	            id="menu_action_arul_hr_payroll_sub_area_form"
-	            parent="menu_vvti_hr_master" sequence="60" groups='group_vvti_hrm_admin,group_vvti_hrm_hr_user'/>
+	            parent="menu_vvti_hr_master" sequence="60" groups='group_vvti_hrm_admin,group_vvti_hrm_hr_user,group_vvti_hrm_time_user,group_vvti_hrm_plant_hr_user'/>
 	            
             <menuitem action="action_arul_employee_actions_form"
 	            id="menu_action_arul_employee_actions_form"
-	            parent="menu_vvti_hr_master" sequence="65" groups='group_vvti_hrm_admin,group_vvti_hrm_hr_user'/>
+	            parent="menu_vvti_hr_master" sequence="65" groups='group_vvti_hrm_admin,group_vvti_hrm_hr_user,group_vvti_hrm_time_user,group_vvti_hrm_plant_hr_user'/>
 	            
             <menuitem action="action_arul_employee_action_type_form"
 	            id="menu_action_arul_employee_action_type_form"
-	            parent="menu_vvti_hr_master" sequence="70" groups='group_vvti_hrm_admin,group_vvti_hrm_hr_user'/>
+	            parent="menu_vvti_hr_master" sequence="70" groups='group_vvti_hrm_admin,group_vvti_hrm_hr_user,group_vvti_hrm_time_user,group_vvti_hrm_plant_hr_user'/>
 	            
             <menuitem action="action_food_subsidy_form"
 	            id="menu_action_food_subsidy_form"
-	            parent="menu_vvti_hr_master" sequence="75" groups="group_vvti_hrm_time_user,group_vvti_hrm_hr_user"/>
+	            parent="menu_vvti_hr_master" sequence="75" groups="group_vvti_hrm_time_user,group_vvti_hrm_hr_user,group_vvti_hrm_payroll_controller"/>
 	            
             <menuitem action="hr.open_module_tree_department"
             	id="hr.menu_hr_department_tree"
             	parent="menu_vvti_hr_master" sequence="80"
-            	groups="group_vvti_hrm_admin,group_vvti_hrm_hr_user"/>
+            	groups="group_vvti_hrm_admin,group_vvti_hrm_hr_user,group_vvti_hrm_time_user,group_vvti_hrm_plant_hr_user"/>
             	
             <menuitem parent="menu_vvti_hr_master"
             	id="hr.menu_hr_job" action="hr.action_hr_job"
@@ -160,11 +161,12 @@
 	    	name="List Employee Report"
 	    	action="green_erp_arulmani_crm.action_list_employee_report"
 	    	parent="hr.menu_hr_main" sequence="22"
-	    	groups="group_vvti_hrm_hr_key_user,group_vvti_hrm_time_user,group_vvti_hrm_hr_manager,group_vvti_hrm_payroll_controller"/>
+	    	groups="group_vvti_hrm_hr_key_user,group_vvti_hrm_time_user,group_vvti_hrm_hr_manager,group_vvti_hrm_payroll_controller,group_vvti_hrm_hr_user"/>
 	    	
 	    <menuitem action="action_time_evaluation_report"
             id="menu_action_time_evaluation_report"
-            parent="menu_hr_leave_management" sequence="35"/>
+            parent="menu_hr_leave_management" sequence="35"
+            groups="group_vvti_hrm_hr_key_user,group_vvti_hrm_time_user,group_vvti_hrm_hr_manager,group_vvti_hrm_payroll_controller,group_vvti_hrm_hr_user"/>
             <!-- Add Employee Leave Balance Report to Menu List-->
         <menuitem action="action_leave_balance_report"
             id="menu_action_leave_balance_report"

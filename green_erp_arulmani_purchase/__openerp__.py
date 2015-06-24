@@ -36,13 +36,8 @@
         'report/purchase_order_report.xml',
         'report/report_stock_on_hand_view.xml',
         'report/grn_report_view.xml',
-<<<<<<< HEAD
         'report/report_stock_inward_outward_view.xml',
         'report/report_stock_movement_analysis_view.xml',
-=======
-        'report/report_stock_movement_analysis_view.xml',
-        'report/report_stock_inward_outward_view.xml',
->>>>>>> 697f72be7ebe56323ce4fdc7bead89460cf859b9
         'wizard/tick_purchase_chart_view.xml',
         'wizard/alert_form_purchase_view.xml',
         'wizard/alert_form_line_view.xml',
