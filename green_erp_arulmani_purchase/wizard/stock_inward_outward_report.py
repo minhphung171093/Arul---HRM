@@ -301,7 +301,12 @@ class stock_inward_outward_report(osv.osv_memory):
             
             move = self.pool.get('account.move').browse(cr,uid,move_id)
             if move_type == 'freight':
-                quantity = 0
+                sql = '''
+                   select name from account_invoice where move_id = %s and sup_inv_id is not null
+                '''%(move_id)
+                cr.execute(sql)
+                for invoice in cr.dictfetchall():
+                   name = invoice['name'] or 0
             if move_type == 'good':
                 sql = '''
                     select doc_no from tpt_material_issue where id = %s 
