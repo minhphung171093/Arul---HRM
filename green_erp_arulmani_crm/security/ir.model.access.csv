@@ -90,7 +90,7 @@ access_crm_user_76,crm.qc.test.detail for qc user,green_erp_arulmani_crm.model_c
 access_crm_user_77,crm.qc.test.line for qc user,green_erp_arulmani_crm.model_crm_qc_test_line,group_qc_user,True,True,True,True
 access_crm_user_78,crm.qc.test for qc user,green_erp_arulmani_crm.model_crm_qc_test,group_qc_user,True,True,True,True
 access_crm_user_81,crm.lead.history for qc user,green_erp_arulmani_crm.model_crm_lead_history,group_qc_user,True,True,True,False
-access_crm_user_82,crm.application for qc user,green_erp_arulmani_crm.model_crm_application,group_qc_user,True,True,True,False
+access_crm_user_82,crm.application for qc user,green_erp_arulmani_crm.model_crm_application,group_qc_user,True,False,False,False
 access_crm_user_83,crm.specification.line for qc user,green_erp_arulmani_crm.model_crm_specification_line,group_qc_user,True,False,False,False
 access_crm_user_84,crm.specification for qc user,green_erp_arulmani_crm.model_crm_specification,group_qc_user,True,False,False,False
 access_crm_user_85,Product Unit of Measure for qc user,product.model_product_uom,group_qc_user,True,True,False,False
@@ -106,7 +106,7 @@ access_crm_user_94,crm.qc.test.detail for qc user,green_erp_arulmani_crm.model_c
 access_crm_user_95,crm.qc.test.line for qc user,green_erp_arulmani_crm.model_crm_qc_test_line,group_qc_user,True,True,True,True
 access_crm_user_96,crm.qc.test for qc user,green_erp_arulmani_crm.model_crm_qc_test,group_qc_user,True,True,True,True
 access_crm_user_99,crm.lead.history for qc user,green_erp_arulmani_crm.model_crm_lead_history,group_qc_user,True,True,True,False
-access_crm_user_100,crm.application for qc user,green_erp_arulmani_crm.model_crm_application,group_qc_user,True,True,True,False
+access_crm_user_100,crm.application for qc user,green_erp_arulmani_crm.model_crm_application,group_qc_user,True,False,False,False
 access_crm_user_101,crm.specification.line for qc user,green_erp_arulmani_crm.model_crm_specification_line,group_qc_user,True,False,False,False
 access_crm_user_102,crm.specification for qc user,green_erp_arulmani_crm.model_crm_specification,group_qc_user,True,False,False,False
 access_crm_user_103,Product Unit of Measure for qc user,product.model_product_uom,group_qc_user,True,True,False,False

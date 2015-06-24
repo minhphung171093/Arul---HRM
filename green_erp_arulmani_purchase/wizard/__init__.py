@@ -9,4 +9,5 @@ import stock_inward_outward_report
 import load_line_from_norm
 import stock_movement_analysis
 import load_line_from_indent
+import raw_material_stock_statement_report
 # vim:expandtab:smartindent:tabstop=4:softtabstop=4:shiftwidth=4:

@@ -3316,6 +3316,37 @@ class tpt_material_issue(osv.osv):
                 
                 }
     
+    def _check_stock_qty(self, cr, uid, ids, context=None):
+        for issue in self.browse(cr, uid, ids, context=context):
+            for line in issue.material_issue_line:
+                sql = '''
+                    select case when sum(product_isu_qty)!=0 then sum(product_isu_qty) else 0 end product_isu_qty, product_id 
+                    from tpt_material_issue_line where material_issue_id in (select id from tpt_material_issue where name = %s) group by product_id
+                '''%(issue.name.id)
+                cr.execute(sql)
+                for sum in cr.dictfetchall():
+                    product_id = self.pool.get('product.product').browse(cr,uid,sum['product_id'])
+                    sql = '''
+                        select case when sum(foo.product_qty)>0 then sum(foo.product_qty) else 0 end ton_sl from 
+                            (select st.product_qty
+                                from stock_move st 
+                                where st.state='done' and st.product_id=%s and st.location_dest_id = %s 
+                            union all
+                            select st.product_qty*-1
+                                from stock_move st 
+                                where st.state='done' and st.product_id=%s and st.location_id = %s
+                            )foo
+                    '''%(sum['product_id'],issue.warehouse.id,sum['product_id'],issue.warehouse.id)
+                    cr.execute(sql)
+                    ton_sl = cr.dictfetchone()['ton_sl']
+                    if sum['product_isu_qty'] > ton_sl:
+                        raise osv.except_osv(_('Warning!'),_("You are confirm %s but only %s available for this product '%s' " %(sum['product_isu_qty'], ton_sl,product_id.default_code)))
+                        return False
+        return True
+    _constraints = [
+        (_check_stock_qty, 'Identical Data', []),
+    ]
+    
     def bt_approve(self, cr, uid, ids, context=None):
         price = 0.0
         product_price = 0.0
