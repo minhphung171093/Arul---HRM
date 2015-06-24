@@ -242,7 +242,7 @@ class bank_book_report(osv.osv_memory):
                                 aml.move_id in (select move_id from account_voucher where id in %s and type = 'payment' and state = 'posted') and aml.debit is not null and aml.debit !=0 and aa.id = aml.account_id
                                 union all
                                 select aa.name as acc_name, aml.account_id, aml.debit as debit, aml.credit as credit,av.name as voucher_name,
-                                av.date as voucher_date, aml.ref as ref, aml.name voucher_desc  
+                                av.date as voucher_date, aml.ref as ref, aml.name voucher_desc,av.cheque_no cheque_no, av.cheque_date cheque_date   
                                 from account_account aa, account_move_line aml,account_voucher av where av.move_id = aml.move_id and
                                 aml.move_id in (select move_id from account_voucher where id in %s and type = 'receipt' and state = 'posted') and aml.credit is not null and aml.credit !=0 and aa.id = aml.account_id
                                 )foo

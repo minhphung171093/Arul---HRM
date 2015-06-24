@@ -1490,6 +1490,10 @@ class tpt_update_stock_move_report(osv.osv):
         inventory_obj = self.pool.get('tpt.product.avg.cost')
         product_id = self.browse(cr, uid, ids[0]).product_id.id
         for id in [product_id]:
+            sql = '''
+                update stock_move set price_unit = 0 where product_id=%s and price_unit<0
+            '''%(id)
+            cr.execute(sql)
             sql = 'delete from tpt_product_avg_cost where product_id=%s'%(id)
             cr.execute(sql)
             sql = '''
