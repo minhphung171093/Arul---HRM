@@ -297,10 +297,26 @@ class stock_inward_outward_report(osv.osv_memory):
                     move_line.append(line)
             return move_line    
         
-        def get_account_move_line(move_id):
+        def get_account_move_line(move_id, material_issue_id, move_type):
+            
             move = self.pool.get('account.move').browse(cr,uid,move_id)
-            move_line = move.line_id[0]
-            return move_line and move_line.name or ''
+            if move_type == 'freight':
+                quantity = 0
+            if move_type == 'good':
+                sql = '''
+                    select doc_no from tpt_material_issue where id = %s 
+                '''%(material_issue_id)
+                cr.execute(sql)
+                for qty in cr.dictfetchall():
+                    name = qty['doc_no']
+            if move_type == 'grn':
+                sql = '''
+                   select name from stock_picking where name in (select LEFT(name,17) from account_move_line where move_id = %s) 
+                '''%(move_id)
+                cr.execute(sql)
+                for qty in cr.dictfetchall():
+                    name = qty['name']
+            return name
         
         def get_transaction_qty(o, move_id, material_issue_id, move_type):
             date_from = o.date_from
@@ -330,7 +346,7 @@ class stock_inward_outward_report(osv.osv_memory):
                     '''%(move_id, product_id.id)
                     cr.execute(sql)
                     moves = cr.dictfetchall()
-                    grn_name = get_account_move_line(move_id)
+                    grn_name = get_account_move_line(move_id, material_issue_id, move_type)
                     if self.num_call_grn['grn_name']==grn_name:
                         self.num_call_grn['num'] += 1
                     else:
@@ -613,7 +629,7 @@ class stock_inward_outward_report(osv.osv_memory):
             stock_in_out_line.append((0,0,{
                 'creation_date': line['date'],
                 'posting_date': line['date'],
-                'document_no': get_account_move_line(line['id']),
+                'document_no': get_account_move_line(line['id'], line['material_issue_id'], line['doc_type']),
                 'gl_document_no': line['name'],
                 'document_type': get_doc_type(line['doc_type']),
                 'transaction_quantity': trans_qty,
