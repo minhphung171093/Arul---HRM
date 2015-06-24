@@ -302,7 +302,7 @@ class tpt_raw_stock_statement(osv.osv_memory):
                         from stock_move st
                             join stock_location loc1 on st.location_id=loc1.id
                             join stock_location loc2 on st.location_dest_id=loc2.id
-                        where st.state='done' and st.location_dest_id=%s and st.product_id=%s and to_date(to_char(st.date, 'YYYY-MM-DD'), 'YYYY-MM-DD') <= '%s'
+                        where st.state='done' and st.location_dest_id=%s and st.product_id=%s and to_date(to_char(st.date, 'YYYY-MM-DD'), 'YYYY-MM-DD') < '%s'
                             and ( (picking_id in (select id from stock_picking where  state = 'done')) 
                             or  (inspec_id in (select id from tpt_quanlity_inspection where  state in ('done','remaining')))
                             or (st.id in (select move_id from stock_inventory_move_rel where inventory_id in (select id from stock_inventory where  state = 'done')))
@@ -313,8 +313,8 @@ class tpt_raw_stock_statement(osv.osv_memory):
             if inventory:
                 sql = '''
                         select case when sum(product_isu_qty)!=0 then sum(product_isu_qty) else 0 end product_isu_qty from tpt_material_issue_line  
-                        where product_id = %s and material_issue_id in (select id from tpt_material_issue where date_expec <= '%s' and warehouse = %s and state = 'done')
-                    '''%(product_id, date_from,locat_ids[0])
+                        where product_id = %s and material_issue_id in (select id from tpt_material_issue where date_expec < '%s' and warehouse = %s and state = 'done')
+                    '''%(product_id, retirement,locat_ids[0])
                 cr.execute(sql)
                 product_isu_qty = cr.dictfetchone()
                 if product_isu_qty:
@@ -361,7 +361,7 @@ class tpt_raw_stock_statement(osv.osv_memory):
                 sql = '''
                     select case when sum(product_isu_qty)!=0 then sum(product_isu_qty) else 0 end product_isu_qty
                         from tpt_material_issue_line where material_issue_id in (select id from tpt_material_issue where date_expec<'%s' and warehouse = %s and state='done') and product_id=%s
-                '''%(date_from,locat_ids[0],product_id)
+                '''%(retirement,locat_ids[0],product_id)
                 cr.execute(sql)
                 product_isu_qty = cr.fetchone()[0]
                 opening_stock_value = total_cost-(product_isu_qty*avg_cost)
@@ -474,80 +474,226 @@ class tpt_raw_stock_statement(osv.osv_memory):
                 product_isu_qty = cr.fetchone()[0]
                 consum_value = (product_isu_qty*avg_cost)
             return consum_value          
+        def get_year_opening_stock(o,product_id):
+            open_qty = 0
+            date_from = o.date_from
+            sql = '''
+                select * from account_fiscalyear where '%s' between date_start and date_stop
+            '''%(date_from)
+            cr.execute(sql)
+            fiscalyear = cr.dictfetchone()
+            if not fiscalyear:
+                raise osv.except_osv(_('Warning!'),_('Financial year has not been configured. !'))
+            else:
+                year = fiscalyear['date_start']
+            parent_ids = self.pool.get('stock.location').search(cr, uid, [('name','=','Store'),('usage','=','view')])
+            locat_ids = self.pool.get('stock.location').search(cr, uid, [('name','in',['Raw Material','Raw Materials','Raw material']),('location_id','=',parent_ids[0])])
+            sql = '''
+                      select case when sum(st.product_qty)!=0 then sum(st.product_qty) else 0 end ton_sl,case when sum(st.price_unit*st.product_qty)!=0 then sum(st.price_unit*st.product_qty) else 0 end total_cost
+                        from stock_move st
+                            join stock_location loc1 on st.location_id=loc1.id
+                            join stock_location loc2 on st.location_dest_id=loc2.id
+                        where st.state='done' and st.location_dest_id=%s and st.product_id=%s and to_date(to_char(st.date, 'YYYY-MM-DD'), 'YYYY-MM-DD') < '%s'
+                            and ( (picking_id in (select id from stock_picking where  state = 'done')) 
+                            or  (inspec_id in (select id from tpt_quanlity_inspection where  state in ('done','remaining')))
+                            or (st.id in (select move_id from stock_inventory_move_rel where inventory_id in (select id from stock_inventory where  state = 'done')))
+                                )
+                '''%(locat_ids[0],product_id,year)
+            cr.execute(sql)
+            inventory = cr.dictfetchone()
+            if inventory:
+                sql = '''
+                        select case when sum(product_isu_qty)!=0 then sum(product_isu_qty) else 0 end product_isu_qty from tpt_material_issue_line  
+                        where product_id = %s and material_issue_id in (select id from tpt_material_issue where date_expec < '%s' and warehouse = %s and state = 'done')
+                    '''%(product_id, year,locat_ids[0])
+                cr.execute(sql)
+                product_isu_qty = cr.dictfetchone()
+                if product_isu_qty:
+                    open_qty = inventory['ton_sl'] - product_isu_qty['product_isu_qty']
+            return open_qty     
         
+        def get_year_opening_stock_value(o, product_id):
+            opening_stock_value = 0
+            date_from = o.date_from
+            sql = '''
+                select * from account_fiscalyear where '%s' between date_start and date_stop
+            '''%(date_from)
+            cr.execute(sql)
+            fiscalyear = cr.dictfetchone()
+            if not fiscalyear:
+                raise osv.except_osv(_('Warning!'),_('Financial year has not been configured. !'))
+            else:
+                year = fiscalyear['date_start']
+            parent_ids = self.pool.get('stock.location').search(cr, uid, [('name','=','Store'),('usage','=','view')])
+            locat_ids = self.pool.get('stock.location').search(cr, uid, [('name','in',['Raw Material','Raw Materials','Raw material']),('location_id','=',parent_ids[0])])
+            sql = '''
+                      select case when sum(st.product_qty)!=0 then sum(st.product_qty) else 0 end ton_sl,case when sum(st.price_unit*st.product_qty)!=0 then sum(st.price_unit*st.product_qty) else 0 end total_cost
+                        from stock_move st
+                            join stock_location loc1 on st.location_id=loc1.id
+                            join stock_location loc2 on st.location_dest_id=loc2.id
+                        where st.state='done' and st.location_dest_id=%s and st.product_id=%s and to_date(to_char(st.date, 'YYYY-MM-DD'), 'YYYY-MM-DD') <= '%s'
+                            and ( (picking_id in (select id from stock_picking where  state = 'done')) 
+                            or  (inspec_id in (select id from tpt_quanlity_inspection where  state in ('done','remaining')))
+                            or (st.id in (select move_id from stock_inventory_move_rel where inventory_id in (select id from stock_inventory where  state = 'done')))
+                                )
+                '''%(locat_ids[0],product_id,year)
+            cr.execute(sql)
+            inventory = cr.dictfetchone()
+            if inventory:
+                hand_quantity = inventory['ton_sl'] or 0
+                total_cost = inventory['total_cost'] or 0
+                avg_cost = hand_quantity and total_cost/hand_quantity or 0
+                sql = '''
+                    select case when sum(product_isu_qty)!=0 then sum(product_isu_qty) else 0 end product_isu_qty
+                        from tpt_material_issue_line where material_issue_id in (select id from tpt_material_issue where date_expec<'%s' and warehouse = %s and state='done') and product_id=%s
+                '''%(year,locat_ids[0],product_id)
+                cr.execute(sql)
+                product_isu_qty = cr.fetchone()[0]
+                opening_stock_value = total_cost-(product_isu_qty*avg_cost)
+            return opening_stock_value
+        
+          
         def get_year_inward(o,product):
             date_from = o.date_from
-            retirement = ''
-            if date_from:
-                day = date_from[8:10]
-                month = date_from[5:7]
-                year = date_from[:4]
-                if month == "01":
-                    year = int(year)-1
-                    num_of_month = calendar.monthrange(year,12)[1]
-                    retirement = datetime(int(year),12,01)
-                elif month != "01":
-                    month = int(month)-1
-                    retirement = datetime(int(year),int(month),01)
-#                 else:
-#                     year = int(year)+60
-#                     day = int(day)-1
-#                     month = int(month)
-#                     retirement = datetime.datetime(year,month,day)
-            if retirement:
-                retirement=retirement.strftime('%Y-%m-%d')
-            ton = 0
-            inspec = 0
+            sql = '''
+                select * from account_fiscalyear where '%s' between date_start and date_stop
+            '''%(date_from)
+            cr.execute(sql)
+            fiscalyear = cr.dictfetchone()
+            if not fiscalyear:
+                raise osv.except_osv(_('Warning!'),_('Financial year has not been configured. !'))
+            else:
+                year = fiscalyear['date_start']
+                ton = 0
+                inspec = 0
+                parent_ids = self.pool.get('stock.location').search(cr, uid, [('name','=','Store'),('usage','=','view')])
+                locat_ids = self.pool.get('stock.location').search(cr, uid, [('name','in',['Raw Material','Raw Materials','Raw material']),('location_id','=',parent_ids[0])])
+                sql = '''
+                                select case when sum(foo.product_qty)>0 then sum(foo.product_qty) else 0 end ton from 
+                                    (select st.product_qty
+                                        from stock_move st 
+                                        where st.state='done' and st.product_id = %s and st.location_dest_id = %s and to_char(date, 'YYYY-MM-DD') between '%s' and '%s' 
+                                        and (picking_id is not null
+                                             or inspec_id is not null
+                                             or (id in (select move_id from stock_inventory_move_rel)))
+                                        and st.location_id != st.location_dest_id
+                                    )foo
+                            '''%(product,locat_ids[0],year,date_from)
+                cr.execute(sql)
+                ton_arr = cr.fetchone()
+                if ton_arr:
+                    ton = ton_arr[0] or 0
+                else:
+                    ton = 0
+                return ton
+            
+        def get_year_inward_value(o,product):
+            date_from = o.date_from
+            sql = '''
+                select * from account_fiscalyear where '%s' between date_start and date_stop
+            '''%(date_from)
+            cr.execute(sql)
+            fiscalyear = cr.dictfetchone()
+            if not fiscalyear:
+                raise osv.except_osv(_('Warning!'),_('Financial year has not been configured. !'))
+            else:
+                year = fiscalyear['date_start']
+            hand_quantity = 0
             parent_ids = self.pool.get('stock.location').search(cr, uid, [('name','=','Store'),('usage','=','view')])
             locat_ids = self.pool.get('stock.location').search(cr, uid, [('name','in',['Raw Material','Raw Materials','Raw material']),('location_id','=',parent_ids[0])])
             sql = '''
-                            select case when sum(foo.product_qty)>0 then sum(foo.product_qty) else 0 end ton from 
-                                (select st.product_qty
-                                    from stock_move st 
-                                    where st.state='done' and st.product_id = %s and st.location_dest_id = %s and to_char(date, 'YYYY-MM-DD') between '%s' and '%s' 
-                                    and (picking_id is not null
-                                         or inspec_id is not null
-                                         or (id in (select move_id from stock_inventory_move_rel)))
-                                    and st.location_id != st.location_dest_id
+                select case when sum(foo.product_qty)!=0 then sum(foo.product_qty) else 0 end ton_sl,case when sum(foo.price_unit)!=0 then sum(foo.price_unit) else 0 end total_cost from 
+                    (select st.product_qty as product_qty,st.price_unit*st.product_qty as price_unit
+                        from stock_move st
+                            join stock_location loc1 on st.location_id=loc1.id
+                            join stock_location loc2 on st.location_dest_id=loc2.id
+                        where st.state='done' and st.location_dest_id = %s and st.product_id=%s and to_date(to_char(date, 'YYYY-MM-DD'), 'YYYY-MM-DD') between '%s' and '%s' and loc1.usage != 'internal' and loc2.usage = 'internal' 
+                                and (picking_id in (select id from stock_picking where  state = 'done')
+                                    or (st.id in (select move_id from stock_inventory_move_rel where inventory_id in 
+                                          (select id from stock_inventory where  state = 'done'))))
                                 )foo
-                        '''%(product,locat_ids[0],retirement,date_from)
+                        '''%(locat_ids[0],product,year,date_from)
             cr.execute(sql)
-            ton_arr = cr.fetchone()
-            if ton_arr:
-                ton = ton_arr[0] or 0
-            else:
-                ton = 0
-            return ton
+            inventory = cr.dictfetchone()
+            if inventory:
+                hand_quantity = inventory['ton_sl'] or 0
+                total_cost = inventory['total_cost'] or 0
+            sql = '''
+                   select * from stock_move where product_id = %s and picking_id in (select id from stock_picking where to_date(to_char(date, 'YYYY-MM-DD'), 'YYYY-MM-DD') between '%s' and '%s' and state = 'done')
+               '''%(product,year,date_from) 
+            cr.execute(sql)
+            for line in cr.dictfetchall():
+               if line['action_taken'] == 'need':
+                   sql = '''
+                       select qty_approve from tpt_quanlity_inspection where need_inspec_id = %s and state in ('done','remaining')
+                   '''%(line['id'])
+                   cr.execute(sql)
+                   inspec = cr.dictfetchone()
+                   if inspec:
+                       hand_quantity += inspec['qty_approve'] or 0
+                       total_cost += line['price_unit'] * (inspec['qty_approve'] or 0)
+            return total_cost 
+            
         def get_year_outward(o, product):
             date_from = o.date_from
-            retirement = ''
-            if date_from:
-                day = date_from[8:10]
-                month = date_from[5:7]
-                year = date_from[:4]
-                if month == "01":
-                    year = int(year)-1
-                    num_of_month = calendar.monthrange(year,12)[1]
-                    retirement = datetime(int(year),12,01)
-                elif month != "01":
-                    month = int(month)-1
-                    retirement = datetime(int(year),int(month),01)
-#                 else:
-#                     year = int(year)+60
-#                     day = int(day)-1
-#                     month = int(month)
-#                     retirement = datetime.datetime(year,month,day)
-            if retirement:
-                retirement=retirement.strftime('%Y-%m-%d')
+            sql = '''
+                select * from account_fiscalyear where '%s' between date_start and date_stop
+            '''%(date_from)
+            cr.execute(sql)
+            fiscalyear = cr.dictfetchone()
+            if not fiscalyear:
+                raise osv.except_osv(_('Warning!'),_('Financial year has not been configured. !'))
+            else:
+                year = fiscalyear['date_start']
+                parent_ids = self.pool.get('stock.location').search(cr, uid, [('name','=','Store'),('usage','=','view')])
+                locat_ids = self.pool.get('stock.location').search(cr, uid, [('name','in',['Raw Material','Raw Materials','Raw material']),('location_id','=',parent_ids[0])])
+                sql = '''
+                    select case when sum(product_isu_qty)!=0 then sum(product_isu_qty) else 0 end product_isu_qty from tpt_material_issue_line  
+                    where product_id = %s and material_issue_id in (select id from tpt_material_issue where to_char(date_expec, 'YYYY-MM-DD') between '%s' and '%s' and warehouse = %s and state = 'done')
+                '''%(product,year, date_from,locat_ids[0])
+                cr.execute(sql)
+                product_isu_qty = cr.dictfetchone()
+                return product_isu_qty and product_isu_qty['product_isu_qty'] or 0 
+            
+        def get_year_outward_value(o, product_id):
+            date_from = o.date_from
+            sql = '''
+                select * from account_fiscalyear where '%s' between date_start and date_stop
+            '''%(date_from)
+            cr.execute(sql)
+            fiscalyear = cr.dictfetchone()
+            if not fiscalyear:
+                raise osv.except_osv(_('Warning!'),_('Financial year has not been configured. !'))
+            else:
+                year = fiscalyear['date_start']
+            consum_value = 0
             parent_ids = self.pool.get('stock.location').search(cr, uid, [('name','=','Store'),('usage','=','view')])
             locat_ids = self.pool.get('stock.location').search(cr, uid, [('name','in',['Raw Material','Raw Materials','Raw material']),('location_id','=',parent_ids[0])])
             sql = '''
-                select case when sum(product_isu_qty)!=0 then sum(product_isu_qty) else 0 end product_isu_qty from tpt_material_issue_line  
-                where product_id = %s and material_issue_id in (select id from tpt_material_issue where to_char(date_expec, 'YYYY-MM-DD') between '%s' and '%s' and warehouse = %s and state = 'done')
-            '''%(product,retirement, date_from,locat_ids[0])
+                      select case when sum(st.product_qty)!=0 then sum(st.product_qty) else 0 end ton_sl,case when sum(st.price_unit*st.product_qty)!=0 then sum(st.price_unit*st.product_qty) else 0 end total_cost
+                        from stock_move st
+                            join stock_location loc1 on st.location_id=loc1.id
+                            join stock_location loc2 on st.location_dest_id=loc2.id
+                        where st.state='done' and st.location_id=%s and st.product_id=%s and to_date(to_char(st.date, 'YYYY-MM-DD'), 'YYYY-MM-DD') between '%s' and '%s'
+
+                            and ( (issue_id in (select id from tpt_material_issue where state in ('done')))
+                                )
+                '''%(locat_ids[0],product_id,year,date_from)
             cr.execute(sql)
-            product_isu_qty = cr.dictfetchone()
-            return product_isu_qty and product_isu_qty['product_isu_qty'] or 0 
+            inventory = cr.dictfetchone()
+            if inventory:
+                hand_quantity = inventory['ton_sl'] or 0
+                total_cost = inventory['total_cost'] or 0
+                avg_cost = hand_quantity and total_cost/hand_quantity or 0
+                sql = '''
+                    select case when sum(product_isu_qty)!=0 then sum(product_isu_qty) else 0 end product_isu_qty from tpt_material_issue_line  
+                    where product_id = %s and material_issue_id in (select id from tpt_material_issue where date_expec between '%s' and '%s' and warehouse = %s and state = 'done')
+                '''%(product_id,year,date_from,locat_ids[0])
+                cr.execute(sql)
+                product_isu_qty = cr.fetchone()[0]
+                consum_value = (product_isu_qty*avg_cost)
+            return consum_value
+            
         def get_closing_stock(o, open,inward,outward):
             total_cost = 0
             total_cost = open + inward - outward
@@ -573,11 +719,11 @@ class tpt_raw_stock_statement(osv.osv_memory):
                 'month_outward': get_month_outward(statement,line.id),
                 'month_close_stock': get_closing_stock(statement,get_month_opening_stock(statement,line.id),get_month_inward(statement,line.id),get_month_outward(statement,line.id)),
                 'month_close_value': get_closing_stock(statement,get_month_opening_stock_value(statement,line.id),get_month_inward_value(statement,line.id),get_month_outward_value(statement,line.id)),   
-#                 'year_open_stock': fields.float('Year Opening Stock'),
+                'year_open_stock': get_year_opening_stock(statement,line.id),
                 'year_inward': get_year_inward(statement,line.id),
                 'year_outward': get_year_outward(statement,line.id),
-#                 'year_close_stock': get_closing_stock(),
-#                 'year_close_value': fields.float('Year Closing Value'),  
+                'year_close_stock': get_closing_stock(statement,get_year_opening_stock(statement,line.id),get_year_inward(statement,line.id),get_year_outward(statement,line.id)),
+                'year_close_value': get_closing_stock(statement,get_year_opening_stock_value(statement,line.id),get_year_inward_value(statement,line.id),get_year_outward_value(statement,line.id)),   
  
             }))
         vals = {
