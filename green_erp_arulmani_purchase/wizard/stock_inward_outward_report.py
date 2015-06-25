@@ -615,8 +615,10 @@ class stock_inward_outward_report(osv.osv_memory):
 #             cr.execute(sql)
             sql = '''
                 select case when sum(product_qty)!=0 then sum(product_qty) else 0 end product_qty from stock_move 
-                where id in (select move_id from stock_inventory_move_rel) and to_char(date, 'YYYY-MM-DD') between '%s' and '%s' and product_id = %s
-            '''%(date_from, date_to, product_id.id)
+                where location_dest_id in (%s, %s) and state = 'done' 
+                and id in (select move_id from stock_inventory_move_rel) and to_char(date, 'YYYY-MM-DD') between '%s' and '%s' and product_id = %s
+                and location_id != location_dest_id
+            '''%(locat_ids_raw[0], locat_ids_spares[0], date_from, date_to, product_id.id)
             cr.execute(sql)
             product_qty = cr.fetchone()[0]
             return product_qty
