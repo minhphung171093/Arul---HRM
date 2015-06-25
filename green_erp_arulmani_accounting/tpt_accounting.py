@@ -3376,8 +3376,8 @@ class tpt_material_issue(osv.osv):
                 cate_name = p.product_id.categ_id and p.product_id.categ_id.cate_name or False
                 sql = '''
                     select case when sum(product_isu_qty)!=0 then sum(product_isu_qty) else 0 end product_isu_qty, product_id 
-                    from tpt_material_issue_line where material_issue_id in (select id from tpt_material_issue where name = %s) group by product_id
-                '''%(line.name.id)
+                    from tpt_material_issue_line where product_id = %s and material_issue_id in (select id from tpt_material_issue where name = %s) group by product_id
+                '''%(p.product_id.id, line.name.id)
                 cr.execute(sql)
                 for sum in cr.dictfetchall():
                     product_id = self.pool.get('product.product').browse(cr,uid,sum['product_id'])
