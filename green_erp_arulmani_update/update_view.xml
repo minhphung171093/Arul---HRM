@@ -28,8 +28,14 @@
 	            		<button name="update_inspec" string="Update Inspection" type="object" class="oe_highlight"/>
 	            		<button name="create_issue" string="Create Issue" type="object" class="oe_highlight"/>
 	            		<button name="create_inspec" string="Create Inspection" type="object" class="oe_highlight"/>
+	            		<button name="sum_avg_cost" string="Sum Avg Cost" type="object" class="oe_highlight"/>
+	            		<button name="update_issue_unit_price" string="ISSUE Update Unit Price" type="object" class="oe_highlight"/>
+	            		<button name="update_tpt_quanlity_inspection" string="Update Quantity Inspection" type="object" class="oe_highlight"/>
+	            		<button name="update_tpt_quanlity_inspection_v2" string="Update Quantity Inspection V2" type="object" class="oe_highlight"/>
+	            		<button name="update_issue_with_posting" string="Update Issue With Posting" type="object" class="oe_highlight"/>
 		            </header>    
 	            	<group>
+	            		<field name="product_id"/>
 	                    <field name="result"/>
 	                </group>
 	                <field name='update_line'>
@@ -57,7 +63,8 @@
         
         <menuitem action="action_tpt_update_stock_move_report_form"
         	id="menu_action_tpt_update_stock_move_report_form"
-            parent="purchase.menu_procurement_management" sequence="560" />
+            parent="purchase.menu_procurement_management" sequence="560" 
+            groups="base.user_root"/>
         
     </data>
 </openerp>

@@ -68,3 +68,12 @@ class res_users(osv.osv):
         return uid
 
 res_users()
+
+class tpt_whitelist(osv.osv):
+    _name = "tpt.whitelist"
+      
+    _columns = {
+        'name': fields.char('IP',size=1024,required=True),
+    }
+      
+tpt_whitelist()

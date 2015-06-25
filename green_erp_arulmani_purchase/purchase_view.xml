@@ -286,7 +286,7 @@
 						<field name="doc_type_relate"/> 
 						<field name="department_id_relate"/> 
 						<field name="section_id_relate"/> 
-						<field name="create_uid_relate"/> 
+						<!-- <field name="create_uid_relate"/>   -->
 						<field name="requisitioner_relate"/>  
 						<field name="product_id" />
 						<field name="description"/>
@@ -313,7 +313,7 @@
 						<field name="doc_type_relate"/> 
 						<field name="department_id_relate"/> 
 						<field name="section_id_relate"/> 
-						<field name="create_uid_relate"/> 
+						<!-- <field name="create_uid_relate"/>   -->
 						<field name="requisitioner_relate"/>  
 						<field name="product_id" />
 						<field name="description"/>
@@ -335,7 +335,7 @@
 			<field name="model">tpt.purchase.product</field>
 			<field name="arch" type="xml">
 				<search string="Purchase Indent">
-					<field name="create_uid_relate"/>
+					<!-- <field name="create_uid_relate"/>  -->
 					<field name="pur_product_id"/>	
 					<field name="product_id"/>
 					<field name="doc_type_relate"/> 

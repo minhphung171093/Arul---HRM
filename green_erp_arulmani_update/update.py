@@ -141,6 +141,7 @@ class tpt_update_stock_move_report(osv.osv):
     
     _columns = {
         'result': fields.text('Result', readonly=True ),
+        'product_id': fields.many2one('product.product', 'Product'),
         'update_line': fields.one2many('tpt.update.inspection.line','update_id','Line'),
     }
     
@@ -1483,6 +1484,211 @@ class tpt_update_stock_move_report(osv.osv):
             move_obj.action_done(cr, uid, [move_id])
             cr.execute('update stock_move set date=%s,date_expected=%s where id=%s',(line.date,line.date,move_id,))
         return self.write(cr, uid, ids, {'result':result})
+    
+    def sum_avg_cost(self, cr, uid, ids, context=None):
+        result = 'Done create inspection \n'
+        inventory_obj = self.pool.get('tpt.product.avg.cost')
+        product_id = self.browse(cr, uid, ids[0]).product_id.id
+        for id in [product_id]:
+            sql = '''
+                update stock_move set price_unit = 0 where product_id=%s and price_unit<0
+            '''%(id)
+            cr.execute(sql)
+            sql = 'delete from tpt_product_avg_cost where product_id=%s'%(id)
+            cr.execute(sql)
+            sql = '''
+                select foo.loc as loc
+                    from
+                    (select st.location_id as loc from stock_move st
+                        inner join stock_location l on st.location_id= l.id
+                            where l.usage = 'internal'
+                    union all
+                    select st.location_dest_id as loc from stock_move st
+                        inner join stock_location l on st.location_dest_id= l.id
+                        where l.usage = 'internal'
+                        )foo
+                   group by foo.loc
+            '''
+            cr.execute(sql)
+            for loc in cr.dictfetchall():
+                sql = '''
+                    select case when sum(foo.product_qty)!=0 then sum(foo.product_qty) else 0 end ton_sl,case when sum(foo.price_unit)!=0 then sum(foo.price_unit) else 0 end total_cost from 
+                        (select st.product_qty,st.price_unit*st.product_qty as price_unit
+                            from stock_move st 
+                            where st.state='done' and st.product_id=%s and st.location_dest_id=%s and st.location_dest_id != st.location_id and production_id is null
+                        )foo
+                '''%(id,loc['loc'])
+                cr.execute(sql)
+                inventory = cr.dictfetchone()
+                if inventory:
+                    hand_quantity = float(inventory['ton_sl'])
+                    total_cost = float(inventory['total_cost'])
+                    avg_cost = hand_quantity and total_cost/hand_quantity or 0
+                    sql = '''
+                        select case when sum(foo.product_qty)!=0 then sum(foo.product_qty) else 0 end ton_sl 
+                            from 
+                                (
+                                select st.product_qty*-1 as product_qty
+                                    from stock_move st 
+                                    where st.state='done'
+                                        and st.product_id=%s
+                                        and location_id=%s
+                                        and location_dest_id != location_id
+                                        and production_id is null
+                                )foo
+                    '''%(id,loc['loc'])
+                    cr.execute(sql)
+                    out = cr.dictfetchone()
+                    if out:
+                        hand_quantity = hand_quantity+float(out['ton_sl'])
+                        total_cost = avg_cost*hand_quantity
+                    
+                    sql = '''
+                        select case when sum(foo.product_qty)!=0 then sum(foo.product_qty) else 0 end ton_sl from 
+                            (select st.product_qty as product_qty
+                                from stock_move st 
+                                where st.state='done' and st.product_id=%s and st.location_dest_id=%s and st.
+                                 location_dest_id != st.location_id
+                                 and production_id is not null
+                             union all
+                             select st.product_qty*-1 as product_qty
+                                from stock_move st 
+                                where st.state='done'
+                                        and st.product_id=%s
+                                            and location_id=%s
+                                            and location_dest_id != location_id
+                                             and production_id is not null
+                            )foo
+                    '''%(id,loc['loc'],id,loc['loc'])
+                    cr.execute(sql)
+                    hand_quantity += cr.fetchone()[0]
+                    sql = '''
+                        select case when sum(produce_cost)!=0 then sum(produce_cost) else 0 end produce_cost,
+                            case when sum(product_qty)!=0 then sum(product_qty) else 0 end product_qty
+                            from mrp_production where location_dest_id=%s and product_id=%s and state='done'
+                    '''%(loc['loc'],id)
+                    cr.execute(sql)
+                    produce = cr.dictfetchone()
+                    if produce:
+#                         hand_quantity += float(produce['product_qty'])
+                        total_cost += float(produce['produce_cost'])
+                        avg_cost = hand_quantity and total_cost/hand_quantity or 0
+                    inventory_obj.create(cr, uid, {'product_id':id,
+                                                   'warehouse_id':loc['loc'],
+                                                   'hand_quantity':hand_quantity,
+                                                   'avg_cost':avg_cost,
+                                                   'total_cost':total_cost})
+        return self.write(cr, uid, ids, {'result':result})
+    
+    def update_issue_unit_price(self, cr, uid, ids, context=None):
+        sql = '''
+            select id from stock_move where issue_id is not null and state = 'done' and picking_id is null and inspec_id is null
+        '''
+        cr.execute(sql)
+        for line in cr.fetchall():
+            move = self.pool.get('stock.move').browse(cr, 1, line[0])
+            sql = '''
+                    select case when sum(foo.product_qty)!=0 then sum(foo.product_qty) else 0 end ton_sl,case when sum(foo.price_unit)!=0 then sum(foo.price_unit) else 0 end total_cost from 
+                        (select st.product_qty,st.price_unit*st.product_qty as price_unit
+                            from stock_move st
+                                join stock_location loc1 on st.location_id=loc1.id
+                                join stock_location loc2 on st.location_dest_id=loc2.id
+                            where st.state='done' and st.location_dest_id = %s  and st.product_id=%s and date < '%s' 
+                        union all
+                            select -1*st.product_qty,st.price_unit*st.product_qty as price_unit
+                            from stock_move st
+                                join stock_location loc1 on st.location_id=loc1.id
+                                join stock_location loc2 on st.location_dest_id=loc2.id
+                            where st.state='done' and st.location_id=%s and st.product_id=%s and date < '%s' 
+                        )foo
+                '''%(move.location_id.id,move.product_id.id,move.issue_id.date_expec,move.location_id.id,move.product_id.id,move.issue_id.date_expec)
+            cr.execute(sql)
+            inventory = cr.dictfetchone()
+            if inventory:
+                hand_quantity = float(inventory['ton_sl'])
+                total_cost = float(inventory['total_cost'])
+                avg_cost = hand_quantity and total_cost/hand_quantity or 0
+                if avg_cost < 0:
+                    avg_cost = 0
+                sql = '''
+                    update stock_move set price_unit = %s where id = %s
+                '''%(avg_cost,move.id)
+                cr.execute(sql)
+                print 'TPT update ISSUE unit price for report', move.id
+         
+        return self.write(cr, uid, ids, {'result':'TPT update UNIT PRICE for report Done'})
+    
+    def update_tpt_quanlity_inspection(self, cr, uid, ids, context=None):
+        sql = '''
+            select id from tpt_quanlity_inspection where need_inspec_id is null
+        '''
+        cr.execute(sql)
+        inspection_obj = self.pool.get('tpt.quanlity.inspection')
+        inspection_ids = [r[0] for r in cr.fetchall()]
+        for line in inspection_obj.browse(cr, uid, inspection_ids):
+            sql = '''
+                select picking_id from stock_move where product_id=%s and product_qty=%s and picking_id is not null and action_taken='need'
+                   and (select count(id) from tpt_quanlity_inspection where name=%s)>1
+            '''%(line.product_id.id,line.qty,line.name.id)
+            cr.execute(sql)
+            picking_ids = [r[0] for r in cr.fetchall()]
+            if picking_ids:
+                inspection_obj.write(cr, uid, [line.id], {'name':picking_ids[0]})
+        cr.execute(''' update tpt_quanlity_inspection t set need_inspec_id=(select id from stock_move where picking_id=t.name and product_qty=t.qty and product_id=t.product_id limit 1) where need_inspec_id is null ''')
+        return self.write(cr, uid, ids, {'result':'TPT tpt_quanlity_inspection Done'})
+    
+    def update_tpt_quanlity_inspection_v2(self, cr, uid, ids, context=None):
+        sql = '''
+            select id from tpt_quanlity_inspection where name in (select name from tpt_quanlity_inspection group by name having count(name)>1) and need_inspec_id is not null
+        '''
+        cr.execute(sql)
+        inspection_obj = self.pool.get('tpt.quanlity.inspection')
+        move_obj = self.pool.get('stock.move')
+        inspection_ids = [r[0] for r in cr.fetchall()]
+        for line in inspection_obj.browse(cr, uid, inspection_ids):
+            move = move_obj.browse(cr, uid, line.need_inspec_id.id)
+            cr.execute(''' update tpt_quanlity_inspection set name=%s where id=%s ''',(move.picking_id.id,line.id,))
+#         cr.execute(''' update tpt_quanlity_inspection t set need_inspec_id=(select id from stock_move where picking_id=t.name and product_qty=t.qty and product_id=t.product_id limit 1) where id in %s ''',(tuple(inspection_ids),))
+        return self.write(cr, uid, ids, {'result':'TPT tpt_quanlity_inspection v2 Done'})
+    
+    def update_issue_with_posting(self, cr, uid, ids, context=None):
+        sql = '''
+            select id from tpt_material_issue where (select count(id) from account_move where doc_type in ( 'good') and material_issue_id=tpt_material_issue.id)>1
+        '''
+        cr.execute(sql)
+        move_obj = self.pool.get('account.move')
+        issue_obj = self.pool.get('tpt.material.issue')
+        for line in cr.fetchall():
+            sql = '''
+                select id,state from account_move where doc_type='good' and material_issue_id = %s order by state
+            '''%(line[0])
+            cr.execute(sql)
+            move = cr.fetchone()
+            if move:
+                if move[1]=='posted':
+                    move_obj.button_cancel(cr, uid, [move[0]])
+                cr.execute(''' delete from account_move where id=%s ''',(move[0],))
+                
+        sql = '''
+            select id from account_move where doc_type in ('good') and material_issue_id is null and state='posted'
+        '''
+        cr.execute(sql)    
+        move_ids = [r[0] for r in cr.fetchall()]
+        move_obj.button_cancel(cr, uid, move_ids)
+        sql = '''
+            delete from account_move where doc_type in ('good') and material_issue_id is null
+        '''
+        cr.execute(sql)
+        sql = '''
+            select id from tpt_material_issue where (select count(id) from account_move where doc_type in ( 'good') and material_issue_id=tpt_material_issue.id)=0  and state='done'
+                limit 10
+        '''
+        cr.execute(sql)
+        issue_ids = [r[0] for r in cr.fetchall()]
+        if not issue_ids:
+            return self.write(cr, uid, ids, {'result':'TPT update_issue_with_posting Done'})
+        issue_obj.bt_create_posting(cr, uid, issue_ids)
+        return self.write(cr, uid, ids, {'result':'TPT update_issue_with_posting Remaining'})
     
 tpt_update_stock_move_report()
 

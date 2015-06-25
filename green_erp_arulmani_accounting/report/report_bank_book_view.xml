@@ -74,23 +74,29 @@
             				<field name="date_from" nolabel="1" class = "oe_inline"/> - <field name="date_to" nolabel="1" class = "oe_inline"/>
             			</div>
             			<div class="oe_text_center oe_bold">
+            				<field name="type_trans" class="oe_text_center"/>
             				<field name="bank_acc_no" nolabel="1" class="oe_text_center"/>
             			</div>
-	                	<group>
+	                	
+	                	<div class='oe_green_erp_scroll'><group>
 		                	<field name="cb_line" nolabel='1'>
 		                		<tree create="false" edit="false" delete="false">
 		                			<field name="voucher_id"/>
 		                			<field name="date"/>
 		                			<field name="gl_code"/>
+		                			<field name="cheque_no"/>
+		                			<field name="cheque_date"/>
 		                			<field name="desc"/>
 		                			<field name="ref"/>
+		                			<field name="voucher_desc"/>
 		                			<field name="opening_balance"/>
 		                			<field name="debit"/>
 		                			<field name="crebit"/>
 		                			<field name="balance"/>
 		                		</tree>
 		                	</field>
-	                	</group>
+		                	</group></div>
+	                	
 	               	</sheet>
 	           </form>
 	        </field>
