@@ -257,7 +257,10 @@
 		</record>
 		
 		<record model="ir.ui.menu" id="green_erp_arulmani_accounting.menu_action_daily_sale_form_view">
-		    <field name="groups_id" eval="[(4, ref('group_vvti_accounting_user')),(4, ref('green_erp_arulmani_production.group_vvti_production_user')),(4, ref('green_erp_arulmani_sale.group_vvti_sale_user'))]" />
+		    <field name="groups_id" eval="[(4, ref('group_vvti_accounting_user')),
+		    								(4, ref('green_erp_arulmani_production.group_vvti_production_user')),
+		    								(4, ref('green_erp_arulmani_sale.group_vvti_sale_user')),
+		    								(4, ref('green_erp_arulmani_sale.group_vvti_marketing_user'))]" />
 		</record>
 		
 		<record model="ir.ui.menu" id="green_erp_arulmani_accounting.menu_action_w_form_view">

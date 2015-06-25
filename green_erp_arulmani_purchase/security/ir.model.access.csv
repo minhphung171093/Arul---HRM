@@ -163,9 +163,7 @@ access_vvti_purchase_140,res.partner,account.model_res_partner,green_erp_arulman
 access_vvti_purchase_141,stock.picking.in,stock.model_stock_picking_in,green_erp_arulmani_purchase.group_vvti_purchase_user,True,False,False,False
 access_vvti_purchase_142,tpt.quanlity.inspection,green_erp_arulmani_purchase.model_tpt_quanlity_inspection,green_erp_arulmani_purchase.group_vvti_purchase_user,True,False,False,False
 access_vvti_purchase_143,tpt.product.specification,green_erp_arulmani_purchase.model_tpt_product_specification,green_erp_arulmani_purchase.group_vvti_purchase_user,True,True,True,True
-
-
-
+access_vvti_purchase_144,tpt.product.inventory,green_erp_arulmani_purchase.model_tpt_product_inventory,green_erp_arulmani_purchase.group_vvti_purchase_store_user,True,True,True,True
 
 
 
