@@ -1608,6 +1608,8 @@ class tpt_update_stock_move_report(osv.osv):
                 hand_quantity = float(inventory['ton_sl'])
                 total_cost = float(inventory['total_cost'])
                 avg_cost = hand_quantity and total_cost/hand_quantity or 0
+                if avg_cost < 0:
+                    avg_cost = 0
                 sql = '''
                     update stock_move set price_unit = %s where id = %s
                 '''%(avg_cost,move.id)
