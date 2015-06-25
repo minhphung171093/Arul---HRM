@@ -391,7 +391,7 @@ class stock_inward_outward_report(osv.osv_memory):
                     '''%(move_id, product_id.id)
                     cr.execute(sql)
                     moves = cr.dictfetchall()
-                    grn_name = get_account_move_line(move_id)
+                    grn_name = get_account_move_line(move_id, material_issue_id, move_type)
                     if self.num_call_grn['grn_name']==grn_name:
                         self.num_call_grn['num'] += 1
                     else:
