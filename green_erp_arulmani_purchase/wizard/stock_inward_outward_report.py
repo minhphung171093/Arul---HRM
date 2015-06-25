@@ -608,10 +608,15 @@ class stock_inward_outward_report(osv.osv_memory):
             locat_ids_raw = self.pool.get('stock.location').search(cr, uid, [('name','in',['Raw Material','Raw Materials','Raw material']),('location_id','=',parent_ids_raw[0])])
             parent_ids_spares = self.pool.get('stock.location').search(cr, uid, [('name','=','Store'),('usage','=','view')])
             locat_ids_spares = self.pool.get('stock.location').search(cr, uid, [('name','in',['Spares','Spare','spares']),('location_id','=',parent_ids_spares[0])])
+#             sql = '''
+#                 select case when sum(product_qty)!=0 then sum(product_qty) else 0 end product_qty from stock_move 
+#                 where location_dest_id in (%s, %s) and id in (select move_id from stock_inventory_move_rel) and to_char(date, 'YYYY-MM-DD') between '%s' and '%s' and product_id = %s
+#             '''%(locat_ids_raw[0], locat_ids_spares[0], date_from, date_to, product_id.id)
+#             cr.execute(sql)
             sql = '''
                 select case when sum(product_qty)!=0 then sum(product_qty) else 0 end product_qty from stock_move 
-                where location_dest_id in (%s, %s) and id in (select move_id from stock_inventory_move_rel) and to_char(date, 'YYYY-MM-DD') between '%s' and '%s' and product_id = %s
-            '''%(locat_ids_raw[0], locat_ids_spares[0], date_from, date_to, product_id.id)
+                where id in (select move_id from stock_inventory_move_rel) and to_char(date, 'YYYY-MM-DD') between '%s' and '%s' and product_id = %s
+            '''%(date_from, date_to, product_id.id)
             cr.execute(sql)
             product_qty = cr.fetchone()[0]
             return product_qty
