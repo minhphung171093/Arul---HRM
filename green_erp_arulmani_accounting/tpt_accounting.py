@@ -3316,36 +3316,36 @@ class tpt_material_issue(osv.osv):
                 
                 }
     
-    def _check_stock_qty(self, cr, uid, ids, context=None):
-        for issue in self.browse(cr, uid, ids, context=context):
-            for line in issue.material_issue_line:
-                sql = '''
-                    select case when sum(product_isu_qty)!=0 then sum(product_isu_qty) else 0 end product_isu_qty, product_id 
-                    from tpt_material_issue_line where material_issue_id in (select id from tpt_material_issue where name = %s) group by product_id
-                '''%(issue.name.id)
-                cr.execute(sql)
-                for sum in cr.dictfetchall():
-                    product_id = self.pool.get('product.product').browse(cr,uid,sum['product_id'])
-                    sql = '''
-                        select case when sum(foo.product_qty)>0 then sum(foo.product_qty) else 0 end ton_sl from 
-                            (select st.product_qty
-                                from stock_move st 
-                                where st.state='done' and st.product_id=%s and st.location_dest_id = %s 
-                            union all
-                            select st.product_qty*-1
-                                from stock_move st 
-                                where st.state='done' and st.product_id=%s and st.location_id = %s
-                            )foo
-                    '''%(sum['product_id'],issue.warehouse.id,sum['product_id'],issue.warehouse.id)
-                    cr.execute(sql)
-                    ton_sl = cr.dictfetchone()['ton_sl']
-                    if sum['product_isu_qty'] > ton_sl:
-                        raise osv.except_osv(_('Warning!'),_("You are confirm %s but only %s available for this product '%s' " %(sum['product_isu_qty'], ton_sl,product_id.default_code)))
-                        return False
-        return True
-    _constraints = [
-        (_check_stock_qty, 'Identical Data', []),
-    ]
+#     def _check_stock_qty(self, cr, uid, ids, context=None):
+#         for issue in self.browse(cr, uid, ids, context=context):
+#             for line in issue.material_issue_line:
+#                 sql = '''
+#                     select case when sum(product_isu_qty)!=0 then sum(product_isu_qty) else 0 end product_isu_qty, product_id 
+#                     from tpt_material_issue_line where material_issue_id in (select id from tpt_material_issue where name = %s) group by product_id
+#                 '''%(issue.name.id)
+#                 cr.execute(sql)
+#                 for sum in cr.dictfetchall():
+#                     product_id = self.pool.get('product.product').browse(cr,uid,sum['product_id'])
+#                     sql = '''
+#                         select case when sum(foo.product_qty)>0 then sum(foo.product_qty) else 0 end ton_sl from 
+#                             (select st.product_qty
+#                                 from stock_move st 
+#                                 where st.state='done' and st.product_id=%s and st.location_dest_id = %s 
+#                             union all
+#                             select st.product_qty*-1
+#                                 from stock_move st 
+#                                 where st.state='done' and st.product_id=%s and st.location_id = %s
+#                             )foo
+#                     '''%(sum['product_id'],issue.warehouse.id,sum['product_id'],issue.warehouse.id)
+#                     cr.execute(sql)
+#                     ton_sl = cr.dictfetchone()['ton_sl']
+#                     if sum['product_isu_qty'] > ton_sl:
+#                         raise osv.except_osv(_('Warning!'),_("You are confirm %s but only %s available for this product '%s' " %(sum['product_isu_qty'], ton_sl,product_id.default_code)))
+#                         return False
+#         return True
+#     _constraints = [
+#         (_check_stock_qty, 'Identical Data', []),
+#     ]
     
     def bt_approve(self, cr, uid, ids, context=None):
         price = 0.0
@@ -3358,7 +3358,7 @@ class tpt_material_issue(osv.osv):
         journal_line = []
         dest_id = False
         move_obj = self.pool.get('stock.move')
-        
+                
         
         for line in self.browse(cr, uid, ids):
             if line.request_type == 'production':
@@ -3374,6 +3374,28 @@ class tpt_material_issue(osv.osv):
                 locat_ids = []
                 parent_ids = []
                 cate_name = p.product_id.categ_id and p.product_id.categ_id.cate_name or False
+                sql = '''
+                    select case when sum(product_isu_qty)!=0 then sum(product_isu_qty) else 0 end product_isu_qty, product_id 
+                    from tpt_material_issue_line where material_issue_id in (select id from tpt_material_issue where name = %s) group by product_id
+                '''%(line.name.id)
+                cr.execute(sql)
+                for sum in cr.dictfetchall():
+                    product_id = self.pool.get('product.product').browse(cr,uid,sum['product_id'])
+                    sql = '''
+                        select case when sum(foo.product_qty)>0 then sum(foo.product_qty) else 0 end ton_sl from 
+                            (select st.product_qty
+                                from stock_move st 
+                                where st.state='done' and st.product_id=%s and st.location_dest_id = %s 
+                            union all
+                            select st.product_qty*-1
+                                from stock_move st 
+                                where st.state='done' and st.product_id=%s and st.location_id = %s
+                            )foo
+                    '''%(sum['product_id'],line.warehouse.id,sum['product_id'],line.warehouse.id)
+                    cr.execute(sql)
+                    ton_sl = cr.dictfetchone()['ton_sl']
+                    if sum['product_isu_qty'] > ton_sl:
+                        raise osv.except_osv(_('Warning!'),_("You are confirm %s but only %s available for this product '%s' " %(sum['product_isu_qty'], ton_sl,product_id.default_code)))
                 if cate_name == 'finish':
                     parent_ids = self.pool.get('stock.location').search(cr, uid, [('name','=','Store'),('usage','=','view')])
                     if parent_ids:
@@ -3466,6 +3488,7 @@ class tpt_material_issue(osv.osv):
                       'date':line.date_expec or False,
                       'price_unit': tpt_cost or 0,
                       }
+                
                 move_id = move_obj.create(cr,uid,rs)
                 move_obj.action_done(cr, uid, [move_id])
                 cr.execute(''' update stock_move set date=%s,date_expected=%s where id=%s ''',(line.date_expec,line.date_expec,move_id,))
@@ -3498,6 +3521,15 @@ class tpt_material_issue(osv.osv):
                     if avg_cost_ids:
                         avg_cost_id = avg_cost_obj.browse(cr, uid, avg_cost_ids[0])
                         unit = avg_cost_id.avg_cost or 0
+                        sql = '''
+                            select price_unit from stock_move where product_id=%s and product_qty=%s and issue_id=%s
+                        '''%(mater.product_id.id,mater.product_isu_qty,mater.material_issue_id.id)
+                        cr.execute(sql)
+                        move_price = cr.fetchone()
+                        if move_price and move_price[0] and move_price[0]>0:
+                            unit=move_price[0]
+                        if not unit or unit<0:
+                            unit=1
                         price += unit * mater.product_isu_qty
                         product_price = unit * mater.product_isu_qty
                     
@@ -3540,8 +3572,15 @@ class tpt_material_issue(osv.osv):
         journal_line = []
         dest_id = False
         move_obj = self.pool.get('stock.move')
-        
+        acc_ids = []
         for line in self.browse(cr, uid, ids):
+            sql = '''
+                select id from account_move where material_issue_id = %s
+            '''%(line.id)
+            cr.execute(sql)
+            acc_ids = cr.dictfetchone()
+            if acc_ids:
+                raise osv.except_osv(_('Warning!'),_('This Material issue was created Posting!'))
             if line.state=='done':
                 date_period = line.date_expec
                 sql = '''
