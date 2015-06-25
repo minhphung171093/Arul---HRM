@@ -3533,8 +3533,15 @@ class tpt_material_issue(osv.osv):
         journal_line = []
         dest_id = False
         move_obj = self.pool.get('stock.move')
-        
+        acc_ids = []
         for line in self.browse(cr, uid, ids):
+            sql = '''
+                select id from account_move where material_issue_id = %s
+            '''%(line.id)
+            cr.execute(sql)
+            acc_ids = cr.dictfetchone()
+            if acc_ids:
+                raise osv.except_osv(_('Warning!'),_('This Material issue was created Posting!'))
             if line.state=='done':
                 date_period = line.date_expec
                 sql = '''
