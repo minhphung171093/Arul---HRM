@@ -16,6 +16,7 @@
     """,
     'update_xml': [
         'update_view.xml',
+        'update_stock_move_view.xml',
     ],
     'test': [
     ],
