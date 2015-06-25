@@ -1375,7 +1375,7 @@
         </record>
         
         <menuitem action="action_invoice_supplier_without_po" id="menu_action_invoice_supplier_without_po" parent="account.menu_finance_payables"
-        	groups="green_erp_arulmani_sale.group_vvti_unit_account,account.group_account_manager"/>
+        	groups="green_erp_arulmani_sale.group_vvti_unit_account,account.group_account_manager,green_erp_arulmani_purchase.group_vvti_purchase_store_user"/>
         
         <record id="tpt_account_supplier_voucher_pay_form" model="ir.ui.view">
             <field name="name">tpt.account.supplier.voucher.pay.form</field>
@@ -2414,6 +2414,10 @@
                 <data>
                 	<xpath expr="//page[@string='Consignee']" position="attributes">
 						<attribute name='groups'>green_erp_arulmani_accounting.group_vvti_accounting_user</attribute>
+					</xpath>
+					
+					<xpath expr="//button[@name='approve_customer']" position="attributes">
+						<attribute name='groups'>green_erp_arulmani_accounting.group_vvti_accounting_mgr,green_erp_arulmani_purchase.group_vvti_purchase_user,green_erp_arulmani_sale.group_vvti_sale_manager</attribute>
 					</xpath>
                 </data>
             </field>
