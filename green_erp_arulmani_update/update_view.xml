@@ -34,6 +34,7 @@
 	            		<button name="update_tpt_quanlity_inspection_v2" string="Update Quantity Inspection V2" type="object" class="oe_highlight"/>
 	            		<button name="update_issue_with_posting" string="Update Issue With Posting" type="object" class="oe_highlight"/>
 	            		<button name="fix_posting_issue" string="Fix Posting Issue" type="object" class="oe_highlight"/>
+	       <!--     		<button name="check_one_grn_one_posting" string="Update One GRN One Posting" type="object" class="oe_highlight"/> -->
 		            </header>    
 	            	<group>
 	            		<field name="product_id"/>
