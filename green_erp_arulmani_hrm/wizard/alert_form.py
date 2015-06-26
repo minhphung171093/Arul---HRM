@@ -167,9 +167,24 @@ class alert_form(osv.osv_memory):
                                     })
                     leave_detail_obj.process_leave_request(cr, uid, [leave_detail_id])
                     break
-       ###
+        ###
+        #line_id=perm_obj.id
+        #=======================================================================
+        # emp_attendence_obj = self.pool.get('arul.hr.employee.attendence.details')
+        # emp_attendence_ids = emp_attendence_obj.search(cr, uid, [('employee_id','=',perm_obj.employee_id.id)])
+        # 
+        # punch_obj = self.pool.get('arul.hr.punch.in.out.time')
+        # val2={'permission_onduty_id':perm_obj.id, 'approval':1,
+        # 
+        #                         }
+        # line_id = emp_attendence_ids[0]
+        # punch_obj.write(cr,uid,[line_id],val2)  
+        #=======================================================================
+        ###
         
-       ###
+        sql = ''' update arul_hr_permission_onduty set approval='t' where id=%s
+        '''%perm_obj.id
+        cr.execute(sql)
         
         self.pool.get('arul.hr.permission.onduty').write(cr, uid, [audit_id],{'approval': True, 'state':'done'})
         return {'type': 'ir.actions.act_window_close'}
