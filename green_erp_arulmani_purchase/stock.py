@@ -1101,7 +1101,7 @@ class account_invoice_line(osv.osv):
                     tax_credit_amount = base*(line.tax_credit and line.tax_credit.amount/100 or 0)
                     tax_tds_amount = base*(line.tds_id_2 and line.tds_id_2.amount/100 or 0)
                     
-                res[line.id]['line_net'] = base+tax_debit_amount-tax_credit_amount-tax_tds_amount
+                res[line.id]['line_net'] = base+tax_debit_amount-tax_credit_amount
 #                 res[line.id]['line_net'] = tax_tds_amount
         return res
      
