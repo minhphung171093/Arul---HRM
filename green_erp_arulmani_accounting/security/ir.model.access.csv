@@ -183,6 +183,9 @@ access_vvti_accounting_161,tpt.batch.wise.stock,green_erp_arulmani_accounting.mo
 access_vvti_accounting_162,tpt.batch.wise.stock.line,green_erp_arulmani_accounting.model_tpt_batch_wise_stock_line,base.group_user,True,True,True,True
 access_vvti_accounting_163,purchase.order.list,green_erp_arulmani_accounting.model_purchase_order_list,base.group_user,True,True,True,True
 
+access_vvti_accounting_164,crm.case.channel,green_erp_arulmani_crm.model_crm_case_channel,green_erp_arulmani_accounting.group_vvti_accounting_user,True,False,False,False
+
+
 
 
 

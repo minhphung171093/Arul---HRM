@@ -378,5 +378,17 @@
 		<record model="ir.ui.menu" id="product.menu_product_uom_form_action">
 		    <field name="groups_id" eval="[(4, ref('group_vvti_accounting_user'))]" />
 		</record>
+		
+		<record model="ir.ui.menu" id="green_erp_arulmani_hrm.menu_action_arul_hr_punch_in_out_form">
+	    	<field name="groups_id" eval="[(6,0, [ref('green_erp_arulmani_hrm.group_vvti_hrm_hr_key_user'),ref('green_erp_arulmani_hrm.group_vvti_hrm_hr_manager'),ref('green_erp_arulmani_hrm.group_vvti_hrm_payroll_controller')])]"/>
+		</record>
+		
+		<record model="ir.ui.menu" id="base.next_id_64">
+		    <field name="groups_id" eval="[(4, ref('green_erp_arulmani_sale.group_vvti_sale_user')),
+		    								(4, ref('green_erp_arulmani_sale.group_vvti_marketing_user')),
+		    								(4, ref('green_erp_arulmani_production.group_vvti_production_user')),
+		    								(4, ref('green_erp_arulmani_accounting.group_vvti_accounting_user'))]" />
+		</record>
+		
     </data>
 </openerp>

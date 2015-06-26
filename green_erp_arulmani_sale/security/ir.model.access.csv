@@ -73,7 +73,7 @@ access_vvti_sale_56,arul.hr.permission.onduty,green_erp_arulmani_hrm.model_arul_
 access_vvti_sale_57,tpt.cost.center,green_erp_arulmani_hrm.model_tpt_cost_center,green_erp_arulmani_sale.group_vvti_marketing_user,True,False,False,False
 access_vvti_sale_58,tpt.work.center,green_erp_arulmani_hrm.model_tpt_work_center,green_erp_arulmani_sale.group_vvti_marketing_user,True,False,False,False
 access_vvti_sale_59,res.partner,account.model_res_partner,green_erp_arulmani_sale.group_vvti_marketing_user,True,True,True,False
-access_vvti_sale_60,tpt.blank.order.line,green_erp_arulmani_sale.model_tpt_blank_order_line,green_erp_arulmani_sale.group_vvti_marketing_user,True,True,True,True
+access_vvti_sale_60,tpt.blank.order.line,green_erp_arulmani_sale.model_tpt_blank_order_line,green_erp_arulmani_sale.group_vvti_marketing_user,True,True,True,False
 access_vvti_sale_61,tpt.blanket.order,green_erp_arulmani_sale.model_tpt_blanket_order,green_erp_arulmani_sale.group_vvti_marketing_user,True,True,True,False
 access_vvti_sale_62,sale.order,green_erp_arulmani_sale.model_sale_order,green_erp_arulmani_sale.group_vvti_marketing_user,True,False,False,False
 access_vvti_sale_63,sale.order.line,green_erp_arulmani_sale.model_sale_order_line,green_erp_arulmani_sale.group_vvti_marketing_user,True,False,False,False
@@ -127,6 +127,9 @@ access_vvti_sale_102,stock.move,green_erp_arulmani_sale.model_stock_move,green_e
 
 access_vvti_sale_103,tpt.test.report,green_erp_arulmani_sale.model_tpt_test_report,green_erp_arulmani_crm.group_qc_user,True,True,True,False
 
+access_vvti_sale_104,crm.case.channel,green_erp_arulmani_crm.model_crm_case_channel,green_erp_arulmani_sale.group_vvti_marketing_user,True,False,False,False
+
+access_vvti_sale_105,crm.case.channel,green_erp_arulmani_crm.model_crm_case_channel,green_erp_arulmani_sale.group_vvti_sale_user,True,False,False,False
 
 
 

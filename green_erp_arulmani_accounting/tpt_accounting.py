@@ -1098,6 +1098,7 @@ class account_invoice(osv.osv):
                 iml = invoice_line_obj.move_line_fi_base(cr, uid, inv.id)
                 iml += invoice_line_obj.move_line_fi_debit(cr, uid, inv.id) 
                 iml += invoice_line_obj.move_line_fi_credit(cr, uid, inv.id)
+                iml += invoice_line_obj.move_line_tds_amount_freight(cr, uid, inv.id) 
                 name = inv['name'] or inv['supplier_invoice_number'] or '/'
 #             iml += invoice_line_obj.move_line_price_total(cr, uid, inv.id)  
             # check if taxes are all computed
@@ -1449,6 +1450,34 @@ class account_invoice_line(osv.osv):
                             'account_id': line.tds_id and line.tds_id.gl_account_id and line.tds_id.gl_account_id.id or False,
                             'account_analytic_id': line.account_analytic_id.id,
                         })
+        return res 
+    
+    def move_line_tds_amount_freight(self, cr, uid, invoice_id):
+        res = []
+        invoice = self.pool.get('account.invoice').browse(cr, uid, invoice_id)
+        if invoice.sup_inv_id:
+            for line in invoice.invoice_line:
+                tds_amount = 0
+                if line.tds_id_2:    
+                    if line.fright_fi_type == '2':
+                        base = line.fright
+                        tax_tds_amount = base*(line.tds_id_2 and line.tds_id_2.amount/100 or 0)
+                    else:
+                        base = line.fright*line.quantity
+                        tax_tds_amount = base*(line.tds_id_2 and line.tds_id_2.amount/100 or 0)
+                    if not line.tds_id_2.gl_account_id:
+                        raise osv.except_osv(_('Warning!'),_('Account is not null, please configure GL Account in Tax master for TDS %'))
+                    if tax_tds_amount:   
+                        if round(tax_tds_amount):
+                            res.append({
+                                'type':'tax',
+                                'name':line.name,
+                                'price_unit': line.price_unit,
+                                'quantity': 1,
+                                'price': round(-tax_tds_amount),
+                                'account_id': line.tds_id_2 and line.tds_id_2.gl_account_id and line.tds_id_2.gl_account_id.id or False,
+                                'account_analytic_id': line.account_analytic_id.id,
+                            })
         return res 
      
     def move_line_customer_product_price(self, cr, uid, invoice_id, context = None):
