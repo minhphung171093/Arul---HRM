@@ -71,13 +71,14 @@ class Parser(report_sxw.rml_parse):
         elif not partner.street3 and not partner.city and partner.zip:
             return partner.zip
     def get_state_country(self,partner):
-        
-        if (partner.state_id.name).replace(" ", ""):
-            return partner.state_id.name+", "+partner.country_id.name
-        else:
-            return partner.country_id.name
+        if partner.state_id.name:
+            if partner.state_id.name:
+                if (partner.state_id.name).replace(" ", ""):
+                    return partner.state_id.name+", "+partner.country_id.name
+                else:
+                    return partner.country_id.name
     def get_s3(self,partner):
-        if partner.street3:
+        if partner.street3 and partner.city:
             return partner.street3+", "+partner.city
         else:
             return partner.city
@@ -93,17 +94,17 @@ class Parser(report_sxw.rml_parse):
         date = datetime.strptime(date, DATETIME_FORMAT)
         return date.strftime('%d/%m/%Y %H:%M')
     
-    def get_total(self, invoice_line, insurance):
+    def get_total(self, invoice_line):
         val1 = 0.0
         for line in invoice_line:
-            val1 = val1 + line.price_unit + line.freight/line.quantity + insurance 
+            val1 = val1 + line.price_unit + line.freight/line.quantity + line.insurance/line.quantity 
         return round(val1, 2)
     
-    def get_total_amount(self, invoice_line, insurance):
+    def get_total_amount(self, invoice_line):
         val2 = 0.0
         for line in invoice_line:
-            val2 = val2 + line.price_subtotal + line.freight + insurance*line.quantity 
-        return round(val2, 0)
+            val2 = val2 + line.price_subtotal + line.quantity*line.freight + line.insurance*(line.quantity) 
+        return round(val2, 2)
     
     def amount_to_text(self, nbr, lang='en', currency=False):
         if lang == 'vn':
@@ -156,12 +157,9 @@ class Parser(report_sxw.rml_parse):
         kgs_qty = 0
         kgs_qty = qty * 1000
         #raise osv.except_osv(_('Warning! %s'),_(round(kgs_qty,10)))
-        return round(kgs_qty)
-    def get_rate_kgs(self, rate):        
-        kgs_rate = 0.00
-        kgs_rate = rate / 1000   
-        kgs_rate = format(kgs_rate, '.5f')     
-        return kgs_rate
+        #return round(kgs_qty)
+        return format(kgs_qty, '.2f') 
+    
     def get_freight(self, freight,qty):        
         mt_freight = 0.00
         kgs_freight = 0.00
@@ -179,13 +177,19 @@ class Parser(report_sxw.rml_parse):
         return kgs_freight
     def get_ins(self, ins):        
         ins_amt = 0.00      
-        ins_amt = format(ins, '.5f')           
+        ins_amt = format(ins/1000, '.5f')           
         return ins_amt
-    def get_total_kgs(self, invoice_line, insurance):
+    def get_rate_kgs(self, rate):        
+        kgs_rate = 0.00
+        kgs_rate = rate / 1000   
+        kgs_rate = format(kgs_rate, '.5f')     
+        return kgs_rate
+    def get_total_kgs(self, invoice_line):
         val1 = 0.0
         for line in invoice_line:
             #mt_freight = freight / qty 
-            val1 = val1 + (line.price_unit/1000) + (line.freight/line.quantity)/1000 + insurance
+            #raise osv.except_osv(_('Warning!'),_((line.freight)/1000) )
+            val1 = val1 + round((line.price_unit/1000),5) + round(line.freight/1000,5) +  round(line.insurance/1000,5)
         val1 = format(val1, '.5f')  
         return val1
     def get_buyer(self, obj):

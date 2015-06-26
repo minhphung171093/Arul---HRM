@@ -38,6 +38,7 @@
                 	 <field name="reason" />
                 	 <field name="flag_t" invisible="1" />
                 	 <field name="flag_p" invisible="1" />
+                	 <field name="tpt_currency_id" invisible="1" />
 				</xpath>
 				<xpath expr="//field[@name='client_order_ref']"  position="replace">
 					<field name="client_order_ref" invisible="1" />
@@ -58,7 +59,7 @@
 					<field name="order_type" />
 				</xpath>
 				<xpath expr="//field[@name='currency_id']"  position="replace">
-					<field name="currency_id" invisible="0" readonly = "0" 
+					<field name="currency_id" invisible="0" readonly = "0" on_change="onchange_currency(currency_id)"
 					attrs="{'readonly': [('state','in',('done','progress'))]}"
 					required = "0" options="{'create': false, 'create_edit': false}" />
 				</xpath>
@@ -91,7 +92,7 @@
 				<xpath expr="//form/sheet/notebook/page[@string='Order Lines']/field/tree/field[@name='price_subtotal']"  position="after">
 					<field name="freight" />
 					<field name="name_consignee_id" domain="[('consignee_parent_id','=',parent.partner_id)]" on_change = "onchange_consignee_id(name_consignee_id)" options="{'create': false, 'create_edit': false}"/>
-					<field name="location" />
+					<field name="location" invisible='1'/>
 					
 				</xpath>
 				
@@ -231,11 +232,11 @@
 										<field name="amount_basic"/>
 										<field name="amount_ed"/>
 										<field name="sub_total"/> 
-										<!-- 
+										
 										<field name="tpt_name_consignee_id" domain="[('tpt_consignee_header_id','=',parent.customer_id)]"  options="{'create': false, 'create_edit': false}"/>
-										 -->
-										<field name="name_consignee_id" domain="[('consignee_parent_id','=',parent.customer_id)]" on_change = "onchange_consignee_id(name_consignee_id)" options="{'create': false, 'create_edit': false}"/>
-										<field name="location" />  
+										 
+										<field name="name_consignee_id" invisible='1' domain="[('consignee_parent_id','=',parent.customer_id)]" on_change = "onchange_consignee_id(name_consignee_id)" options="{'create': false, 'create_edit': false}"/>
+										<field name="location" invisible='1'/>  
 										<field name="freight" />
 										<!-- 
 										<field name="expected_date" />
@@ -580,7 +581,17 @@
             id="menu_action_view_tpt_form_403_form"
             parent="menu_hr_sale_management" sequence="13"/>
 
-            
+        <record id="view_tpt_consignee_tree_vew" model="ir.ui.view">
+			<field name="name">tpt.cus.consignee.tree</field>
+			<field name="model">tpt.cus.consignee</field>
+			<field name="arch" type="xml">
+				<tree string="Consignee">
+						<field name="tpt_consignee_id" />
+						<field name="tpt_consignee_code" />
+						
+				</tree>
+			</field>
+		</record>    
         <record id="tpt_view_res_partner_form" model="ir.ui.view">
             <field name="name">tpt.res.partner.form</field>
             <field name="model">res.partner</field>
@@ -588,18 +599,18 @@
             <field name="arch" type="xml">
                 <xpath expr="//page[@string='Contacts']" position="before" >
                 <!-- TPT START -->
-                <!-- 
-					<page string = "Effective Consignee">
+                <!-- Effective Consignee -->
+					<page string = "Consignee">
 						<field name="tpt_consignee_line" nolabel='1'>
 							<tree editable='top'>		    
 								<field name="tpt_consignee_id" on_change = "onchange_tpt_consignee_id(tpt_consignee_id)" domain="[('customer_account_group_id','=','VVTI Ship to Party')]" options="{'create': false, 'create_edit': false}"/>
-								<field name="tpt_consignee_code" readonly='1'/>			
+								<field name="tpt_consignee_code" invisible='0' readonly='1'/>			
 								</tree>
 							</field>							
 					</page>
-					 -->
+					 
 				<!-- TPT END -->
-                	<page string = "Consignee">               	
+                	<page string = "Consignee" invisible='1'>               	
 						<field name="consignee_line" mode="kanban">
 							<kanban>
                                 <field name="color"/>
@@ -741,6 +752,7 @@
                     		<field name="sale_order_id" domain="[('state','=','progress')]" options="{'create': false, 'create_edit': false}" attrs="{'readonly':[('state','in',('cancel','confirm'))]}"/>
                     		<field name="customer_id" domain="[('customer','=',1),('is_company','=',1)]" options="{'create': false, 'create_edit': false}" attrs="{'readonly':[('state','in',('cancel','confirm'))]}"/>
                     		<field name="description" attrs="{'readonly':[('state','in',('cancel','confirm'))]}"/>
+                    		<field name="requested_qty"/>
 	                    </group>
 	                    <notebook>
 		                    <page string="Product Information" autofocus="autofocus">
@@ -749,9 +761,9 @@
 	                            		<field name="product_id" on_change="onchange_product_id(product_id,parent.batch_request_id)" domain="[('track_production','=','True'),('track_incoming','=','True'),('track_outgoing','=','True')]" context="{'search_batch_request':True,'batch_request_id':parent.batch_request_id}" options="{'create': false, 'create_edit': false}"/>
 										<field name="product_type" />
 										<field name="application_id" options="{'create': false, 'create_edit': false}"/>
-										<field name="product_uom_qty" on_change="onchange_sys_batch(sys_batch,product_uom_qty)"/>
+										<field name="product_uom_qty"/>
 										<field name="uom_po_id" edit='false' options="{'create': false, 'create_edit': false}"/>
-										<field name="sys_batch" domain="[('product_id','=',product_id),('application_id','=',application_id),('stock_available','!=',0.0)]" options="{'create': false, 'create_edit': false}" on_change="onchange_sys_batch(sys_batch,product_uom_qty,parent.batch_allotment_line)"/>
+										<field name="sys_batch" domain="[('product_id','=',product_id),('application_id','=',application_id),('stock_available','>',0.0)]" options="{'create': false, 'create_edit': false}" on_change="onchange_sys_batch(sys_batch,product_uom_qty,parent.batch_allotment_line)"/>
 										<field name="phy_batch"/>
 	                                </tree>
 	                            </field>
@@ -766,6 +778,7 @@
             <field name="arch" type="xml">
                 <tree string="Batch Allotment">
                     <field name="batch_request_id"/>
+                    <field name="sale_order_id"/>
                     <field name="name"/>
                     <field name="state"/>
                 </tree>

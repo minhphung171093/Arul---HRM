@@ -26,6 +26,8 @@ class stock_picking(osv.osv):
             ('direct','Direct Stock Update'),('move','Move to Consumption'),('need','Need Inspection')
             ], string='Action to be Taken'),
                 }
+    
+                
 
     def write(self, cr, uid, ids, vals, context=None):
         new_write = super(stock_picking, self).write(cr, uid,ids, vals, context)
@@ -156,6 +158,7 @@ class stock_picking(osv.osv):
             invoice_vals.update({
                                  'grn_no':picking.id,
                                  'purchase_id':picking.purchase_id and picking.purchase_id.id or False,
+                                 'currency_id':picking.purchase_id and picking.purchase_id.currency_id and picking.purchase_id.currency_id.id or False,
 #                                  'amount_untaxed': picking.purchase_id and picking.purchase_id.amount_untaxed or False,
 #                                  'p_f_charge': picking.purchase_id and picking.purchase_id.p_f_charge or False,
 #                                  'excise_duty': picking.purchase_id and picking.purchase_id.excise_duty or False,
@@ -208,6 +211,7 @@ class stock_picking(osv.osv):
 #         if tax_id:
                 
         if picking.type=='in':
+            qty = move_line.product_uos_qty or move_line.product_qty
             invoice_line_vals.update({
                 'name': name,
                 'origin': origin,
@@ -217,7 +221,7 @@ class stock_picking(osv.osv):
                 'account_id': account_id,
                 'price_unit': self._get_price_unit_invoice(cr, uid, move_line, invoice_vals['type']),
                 'discount': self._get_discount_invoice(cr, uid, move_line),
-                'quantity': move_line.product_uos_qty or move_line.product_qty,
+                'quantity':qty ,
                 
                 'disc': move_line.purchase_line_id and move_line.purchase_line_id.discount or False,
                 'p_f': move_line.purchase_line_id and move_line.purchase_line_id.p_f or False,
@@ -236,6 +240,25 @@ class stock_picking(osv.osv):
     #                 'application_id':move_line.application_id or False,
         #                 'freight':move_line.freight or False,
             })
+            if move_line.action_taken == 'need' :
+                inpec_obj = self.pool.get('tpt.quanlity.inspection')
+                inpec_ids = inpec_obj.search(cr, uid, [('need_inspec_id','=',move_line.id)])
+                if inpec_ids:
+                    qty = inpec_obj.browse(cr, uid, inpec_ids[0]).qty_approve
+                    if qty:
+                        invoice_line_vals.update({'quantity':qty})
+                    else:
+                        invoice_line_vals = {}
+                else:
+                    inpec_ids = inpec_obj.search(cr, uid, [('name','=',move_line.picking_id.id),('product_id','=',move_line.product_id.id),('qty','=',move_line.product_qty)])
+                    if inpec_ids:
+                        qty = inpec_obj.browse(cr, uid, inpec_ids[0]).qty_approve
+                        if qty:
+                            invoice_line_vals.update({'quantity':qty})
+                        else:
+                            invoice_line_vals = {}
+                            
+                    
 #         else:
 #             invoice_line_vals.update({
 #                 'name': name,
@@ -273,7 +296,14 @@ class stock_picking_in(osv.osv):
             ], string='Action to be Taken'),
                 }
 
-
+    def onchange_picking_date(self, cr, uid, ids, date=False, context=None):
+        for picking in self.browse(cr, uid, ids, context=context):
+            if date:
+                sql = '''
+                    update stock_move set date = '%s' where picking_id = %s
+                '''%(date, picking.id)
+                cr.execute(sql)
+        return True
     
     def onchange_purchase_id(self, cr, uid, ids,purchase_id=False, context=None):
         vals = {}
@@ -352,7 +382,25 @@ class stock_move(osv.osv):
         'bin_location':fields.text('Bin Location'),
         'si_no':fields.integer('SI.No',readonly = True),
         'description':fields.char('Description', size = 50, readonly = True),
+        'item_text':fields.text('Item Text'),
+        'inspec_id': fields.many2one('tpt.quanlity.inspection','Quanlity Inspection'),
+        'issue_id': fields.many2one('tpt.material.issue','Material Issue'),
+        'cost_center_id': fields.many2one('tpt.cost.center','Cost center'),
+        'grn_no': fields.related('picking_id', 'name', type='char', string='GRN No'),
+#         'grn_no_1': fields.related('picking_id', 'id',relation='stock.picking.in', type='many2one', string='GRN No'),
+        'grn_date': fields.related('picking_id', 'date', type='datetime', string='GRN Date'),
+        'supplier_id': fields.related('picking_id', 'partner_id',relation='res.partner', type='many2one', string='Supplier'),
+        'po_no': fields.related('picking_id', 'purchase_id',relation='purchase.order', type='many2one', string='PO Number'),
+        'doc_type': fields.related('picking_id', 'document_type', type='selection',selection=[
+            ('raw','VV Raw material PO'),('asset','VV Asset PO'),('standard','VV Standard PO'),('local','VV Local PO'),('return','VV Return PO'),('service','VV Service PO'),('out','VV Out Service PO')], string='PO Document Type'),
+        'invoice_state': fields.related('picking_id', 'invoice_state', type='selection',selection=[
+            ("invoiced", "Invoiced"),("2binvoiced", "To Be Invoiced"),("none", "Not Applicable")], string='Inovice State'),
+        'tpt_pick_type': fields.related('picking_id', 'type', type='selection',selection=[
+            ('out', 'Sending Goods'), ('in', 'Getting Goods'), ('internal', 'Internal')], string='Picking Type'),
+        'tpt_line_state': fields.related('picking_id', 'state', type='selection',selection=[
+            ('draft', 'Draft'),('cancel', 'Cancelled'),('auto', 'Waiting Another Operation'),('confirmed', 'Waiting Availability'),('assigned', 'Ready to Receive'),('done', 'Received')], string='State'),
                 }
+    
     def onchange_product_id(self, cr, uid, ids, prod_id=False, loc_id=False,
                             loc_dest_id=False, partner_id=False, action=False):
         """ On change of product id, if finds UoM, UoS, quantity and UoS quantity.
@@ -515,6 +563,8 @@ class account_invoice(osv.osv):
                 'amount_total': 0.0,
                 'amount_total_inr': 0.0,
                 'amount_total_tds': 0.0,
+                'amount_tax_debit': 0.0,
+                'amount_tax_credit': 0.0,
                 'aed': 0.0,
             }
             if line.type == 'out_invoice':
@@ -528,30 +578,74 @@ class account_invoice(osv.osv):
                 val2 = 0.0
                 val3 = 0.0
                 freight = 0.0
+                ins = 0.0
+                others = 0.0
                 voucher_rate = 1
                 if context is None:
                     context = {}
                 ctx = context.copy()
-                ctx.update({'date': time.strftime('%Y-%m-%d')})
+                ctx.update({'date': line.date_invoice})
+#                 ctx.update({'date': time.strftime('%Y-%m-%d')})
                 currency = line.currency_id.name or False
                 currency_id = line.currency_id.id or False
+                #line.invoice_type=='export'
                 if currency != 'INR':
                     voucher_rate = self.pool.get('res.currency').read(cr, uid, currency_id, ['rate'], context=ctx)['rate']
-                for invoiceline in line.invoice_line:
-                    freight += invoiceline.quantity * invoiceline.freight #TPT
-                    val1 += invoiceline.price_subtotal
-                    val2 += invoiceline.price_subtotal * (line.sale_tax_id.amount and line.sale_tax_id.amount / 100 or 0)
-                    val2 = round(val2,2)
-    #                 val3 = val1 + val2 + freight
-                res[line.id]['amount_untaxed'] = round(val1)
-                res[line.id]['amount_tax'] = round(val2)
-                res[line.id]['amount_total'] = round(val1+val2+freight)
-                res[line.id]['amount_total_inr'] = round((val1+val2+freight) * voucher_rate)
+                for invoiceline in line.invoice_line:           
+                    #raise osv.except_osv(_('Warning! Q'),_(invoiceline.freight))             
+                    freight_line = invoiceline.quantity * invoiceline.freight #TPT
+                    freight_line =freight_line
+                    freight += freight_line
+                    #freight = round(freight)
+                    
+                    ins_line = (invoiceline.quantity * invoiceline.insurance) #TPT
+                    ins_line = ins_line
+                    ins += ins_line
+                    #ins = round(ins)
+                    
+                    others_line = (invoiceline.quantity * invoiceline.others) #TPT
+                    others_line = others_line
+                    others += others_line
+                    #others = round(others)
+                    
+                    val1_line = invoiceline.price_subtotal
+                    val1_line = val1_line
+                    val1 += val1_line
+                    #val1 = round(val1)
+                    
+                    val2_line = invoiceline.price_subtotal * (line.sale_tax_id.amount and line.sale_tax_id.amount / 100 or 0)
+                    val2_line = val2_line
+                    val2 += val2_line
+                    #val2 = round(val2)
+   
+                ##FOR END
+                if line.invoice_type=='export':
+                   freight = round(freight,2)
+                   ins = round(ins,2)
+                   others = round(others,2)
+                   
+                   
+                   res[line.id]['amount_untaxed'] = round(val1,2)
+                   res[line.id]['amount_tax'] = round(val2,2)
+                   res[line.id]['amount_total'] = round(val1+val2+freight+ins+others,2)
+                   res[line.id]['amount_total_inr'] = round((val1+val2+freight+ins+others) / voucher_rate,2)
+                    
+                else:
+                   freight = round(freight)
+                   ins = round(ins)                 
+                   val1 = round(val1)
+                   val2 = round(val2)
+                    
+                   res[line.id]['amount_untaxed'] = round(val1)
+                   res[line.id]['amount_tax'] = round(val2)
+                   res[line.id]['amount_total'] = round(val1+val2+freight+ins)
+                   res[line.id]['amount_total_inr'] = round((val1+val2+freight+ins) / voucher_rate)
+                
                 for taxline in line.tax_line:
                     sql='''
                         update account_invoice_tax set amount=%s where id=%s
                     '''%(round(val2+freight),taxline.id)
-                    cr.execute(sql)
+                    cr.execute(sql)#                         amount_total_tax = round(amount_total_tax)
             else:
                 if line.purchase_id:
                     amount_untaxed = 0.0
@@ -562,59 +656,94 @@ class account_invoice(osv.osv):
                     total_fright=0.0
                     qty = 0.0
                     aed = 0.0
+                    tds_amount = 0.0
+                    voucher_rate = 1
+                    if context is None:
+                        context = {}
+                    ctx = context.copy()
+                    ctx.update({'date': line.date_invoice})
+#                     ctx.update({'date': time.strftime('%Y-%m-%d')})
+                    currency = line.currency_id.name or False
+                    currency_id = line.currency_id.id or False
+                    if currency != 'INR':
+                        voucher_rate = self.pool.get('res.currency').read(cr, uid, currency_id, ['rate'], context=ctx)['rate']
                     for po in line.invoice_line:
                         tax = 0
+                        p_f = 0
+                        ed = 0
+                        fright = 0
                         qty += po.quantity
                         basic = (po.quantity * po.price_unit) - ( (po.quantity * po.price_unit)*po.disc/100)
+                        basic = round(basic)
                         amount_untaxed += basic
-                        amount_untaxed = round(amount_untaxed,2)
+                        amount_untaxed = round(amount_untaxed)
                         if po.p_f_type == '1' :
                             p_f = basic * po.p_f/100
+                            p_f = round(p_f)
                         elif po.p_f_type == '2' :
                             p_f = po.p_f
+                            p_f = round(p_f)
                         elif po.p_f_type == '3' :
                             p_f = po.p_f * po.quantity
+                            p_f = round(p_f)
                         else:
                             p_f = po.p_f
+                            p_f = round(p_f)
                         p_f_charge += p_f
-                        p_f_charge = round(p_f_charge,2)
+                        p_f_charge = round(p_f_charge)
                         if po.ed_type == '1' :
                             ed = (basic + p_f) * po.ed/100
+                            ed = round(ed)
                         elif po.ed_type == '2' :
                             ed = po.ed
+                            ed = round(ed)
                         elif po.ed_type == '3' :
                             ed = po.ed *  po.quantity
+                            ed = round(ed)
                         else:
                             ed = po.ed
+                            ed = round(ed)
                         excise_duty += ed
-                        excise_duty = round(excise_duty,2)
+                        excise_duty = round(excise_duty)
                         tax_amounts = [r.amount for r in po.invoice_line_tax_id]
                         for tax_amount in tax_amounts:
                             tax += tax_amount/100
-                        amount_total_tax = (basic + p_f + ed)*(tax)
+                        amount_total_tax = (basic + p_f + ed + po.aed_id_1)*(tax)
+#                         amount_total_tax = round(amount_total_tax)
                         total_tax += amount_total_tax
-                        total_tax = round(total_tax,2)
+#                         total_tax = round(total_tax)
                         if po.fright_type == '1' :
                             fright = (basic + p_f + ed + amount_total_tax) * po.fright/100
+                            fright = round(fright)
                         elif po.fright_type == '2' :
                             fright = po.fright
+                            fright = round(fright)
                         elif po.fright_type == '3' :
                             fright = po.fright * po.quantity
+                            fright = round(fright)
                         else:
                             fright = po.fright
+                            fright = round(fright)
                         total_fright += fright
-                        total_fright = round(total_fright,2)
+                        total_fright = round(total_fright)
+                         
+#                         if po.aed_id:
+#                             aed += basic*po.aed_id.amount/100
+                        aed += po.aed_id_1
                         
-                        if po.aed_id:
-                            aed += basic*po.aed_id.amount/100
-                        
-                    res[line.id]['amount_untaxed'] = amount_untaxed
-                    res[line.id]['p_f_charge'] = p_f_charge
-                    res[line.id]['excise_duty'] = excise_duty
-                    res[line.id]['amount_tax'] = total_tax
-                    res[line.id]['fright'] = total_fright
-                    res[line.id]['aed'] = aed
-                    res[line.id]['amount_total'] = amount_untaxed+p_f_charge+excise_duty+total_tax+total_fright+aed
+                        if po.tds_id:    
+                            tds_amount += po.quantity * po.price_unit * po.tds_id.amount/100
+                            tds_amount = round(tds_amount,2)
+                            
+                    res[line.id]['amount_untaxed'] = round(amount_untaxed)
+                    res[line.id]['p_f_charge'] = round(p_f_charge)
+                    res[line.id]['excise_duty'] = round(excise_duty)
+                    res[line.id]['amount_tax'] = round(total_tax)
+                    res[line.id]['fright'] = round(total_fright)
+                    res[line.id]['aed'] = round(aed)
+                    res[line.id]['amount_total_tds'] = round(tds_amount)
+                    res[line.id]['amount_total'] = (round(amount_untaxed) + round(p_f_charge) + round(excise_duty) + round(total_tax) + round(total_fright) + round(aed)) - round(tds_amount)
+                    res[line.id]['amount_total_inr'] = round(((round(amount_untaxed) + round(p_f_charge) + round(excise_duty) + round(total_tax) + round(total_fright) + round(aed)) - round(tds_amount))/voucher_rate)
                 else:
                     amount_untaxed = 0.0
                     p_f_charge=0.0
@@ -624,59 +753,108 @@ class account_invoice(osv.osv):
                     total_fright=0.0
                     qty = 0.0
                     tds_amount = 0.0
+                    voucher_rate = 1
+                    if context is None:
+                        context = {}
+                    ctx = context.copy()
+                    ctx.update({'date': line.date_invoice})
+#                     ctx.update({'date': time.strftime('%Y-%m-%d')})
+                    currency = line.currency_id.name or False
+                    currency_id = line.currency_id.id or False
+                    if currency != 'INR':
+                        voucher_rate = self.pool.get('res.currency').read(cr, uid, currency_id, ['rate'], context=ctx)['rate']
                     for po in line.invoice_line:
                         tax = 0
+                        p_f = 0
+                        ed = 0
+                        fright = 0
                         qty += po.quantity
                         basic = (po.quantity * po.price_unit) - ( (po.quantity * po.price_unit)*po.disc/100)
+                        basic = round(basic)
                         amount_untaxed += basic
-                        amount_untaxed = round(amount_untaxed,2)
+                        amount_untaxed = round(amount_untaxed)
                         if po.p_f_type == '1' :
                             p_f = basic * po.p_f/100
+                            p_f = round(p_f)
                         elif po.p_f_type == '2' :
                             p_f = po.p_f
+                            p_f = round(p_f)
                         elif po.p_f_type == '3' :
                             p_f = po.p_f * po.quantity
+                            p_f = round(p_f)
                         else:
                             p_f = po.p_f
+                            p_f = round(p_f)
                         p_f_charge += p_f
-                        p_f_charge = round(p_f_charge,2)
+                        p_f_charge = round(p_f_charge)
                         if po.ed_type == '1' :
                             ed = (basic + p_f) * po.ed/100
+                            ed = round(ed)
                         elif po.ed_type == '2' :
                             ed = po.ed
+                            ed = round(ed)
                         elif po.ed_type == '3' :
                             ed = po.ed *  po.quantity
+                            ed = round(ed)
                         else:
                             ed = po.ed
+                            ed = round(ed)
                         excise_duty += ed
-                        excise_duty = round(excise_duty,2)
+                        excise_duty = round(excise_duty)
                         tax_amounts = [r.amount for r in po.invoice_line_tax_id]
                         for tax_amount in tax_amounts:
                             tax += tax_amount/100
                         amount_total_tax = (basic + p_f + ed)*(tax)
+#                         amount_total_tax = round(amount_total_tax)
                         total_tax += amount_total_tax
-                        total_tax = round(total_tax,2)
+#                         total_tax = round(total_tax)
                         if po.fright_type == '1' :
                             fright = (basic + p_f + ed + amount_total_tax) * po.fright/100
+                            fright = round(fright)
                         elif po.fright_type == '2' :
                             fright = po.fright
+                            fright = round(fright)
                         elif po.fright_type == '3' :
                             fright = po.fright * po.quantity
+                            fright = round(fright)
                         else:
                             fright = po.fright
+                            fright = round(fright)
                         total_fright += fright
-                        total_fright = round(total_fright,2)
+                        total_fright = round(total_fright)
                         if po.tds_id:    
                             tds_amount += po.quantity * po.price_unit * po.tds_id.amount/100
-                            tds_amount = round(tds_amount,2)
+                            tds_amount = round(tds_amount)
                     
-                    res[line.id]['amount_untaxed'] = amount_untaxed
-                    res[line.id]['p_f_charge'] = p_f_charge
-                    res[line.id]['excise_duty'] = excise_duty
-                    res[line.id]['amount_tax'] = total_tax
-                    res[line.id]['fright'] = total_fright
-                    res[line.id]['amount_total_tds'] = tds_amount
-                    res[line.id]['amount_total'] = amount_untaxed+p_f_charge+excise_duty+total_tax+total_fright-tds_amount
+                    res[line.id]['amount_untaxed'] = round(amount_untaxed)
+                    res[line.id]['p_f_charge'] = round(p_f_charge)
+                    res[line.id]['excise_duty'] = round(excise_duty)
+                    res[line.id]['amount_tax'] = round(total_tax)
+                    res[line.id]['fright'] = round(total_fright)
+                    res[line.id]['amount_total_tds'] = round(tds_amount)
+                    res[line.id]['amount_total'] = round(amount_untaxed) +round(p_f_charge) + round(excise_duty) + round(total_tax) + round(total_fright) - round(tds_amount)
+                    res[line.id]['amount_total_inr'] = round((round(amount_untaxed) +round(p_f_charge) + round(excise_duty) + round(total_tax) + round(total_fright) - round(tds_amount))/voucher_rate)
+            if line.sup_inv_id and line.type=='in_invoice':
+                base = 0
+                tax_debit_amount = 0
+                tax_credit_amount = 0
+                for inv_line in line.invoice_line:
+                    if inv_line.fright_fi_type == '2':
+                        base_amount = round(inv_line.fright)
+                        base+=base_amount
+                        tax_debit_amount += round(base_amount*(inv_line.tax_id and inv_line.tax_id.amount/100 or 0))
+                        tax_credit_amount += round(base_amount*(inv_line.tax_credit and inv_line.tax_credit.amount/100 or 0))
+                    else:
+                        base_amount = round(inv_line.fright*inv_line.quantity)
+                        base += base_amount
+                        tax_debit_amount += round(base_amount*(inv_line.tax_id and inv_line.tax_id.amount/100 or 0))
+                        tax_credit_amount += round(base_amount*(inv_line.tax_credit and inv_line.tax_credit.amount/100 or 0))
+                res[line.id]['amount_untaxed'] = round(base)
+                res[line.id]['amount_tax_debit'] = round(tax_debit_amount)
+                res[line.id]['amount_tax_credit'] = round(tax_credit_amount)
+                res[line.id]['amount_total'] = res[line.id]['amount_untaxed'] + res[line.id]['amount_tax_debit'] - res[line.id]['amount_tax_credit']
+                
+                
         return res
     
     def _get_invoice_line(self, cr, uid, ids, context=None):
@@ -694,54 +872,64 @@ class account_invoice(osv.osv):
         'is_tds_applicable': fields.boolean('IsTDSApplicable'),
         'tds_id': fields.many2one('account.tax', 'TDS %'),
         'tax_id': fields.many2one('account.tax', 'Taxes'),
-        
+        'sup_inv_id': fields.many2one('account.invoice', 'Supplier Invoice', required = True, readonly=True, states={'draft':[('readonly',False)]}),
         'amount_untaxed': fields.function(amount_all_supplier_invoice_line, multi='sums', string='Untaxed Amount',
             store={
                 'account.invoice': (lambda self, cr, uid, ids, c={}: ids, ['invoice_line'], 10),   
                 'account.invoice.line': (_get_invoice_line, ['quantity', 'uos_id', 'price_unit','discount','p_f','p_f_type',   
-                                                                'ed', 'ed_type','invoice_line_tax_id','fright','fright_type', 'tds_id','aed_id'], 10)}),
+                                                                'ed', 'ed_type','invoice_line_tax_id','fright','fright_type', 'tds_id','aed_id_1'], 10)}),
                 
         'p_f_charge': fields.function(amount_all_supplier_invoice_line, multi='sums',string='P & F charges',
             store={
                 'account.invoice': (lambda self, cr, uid, ids, c={}: ids, ['invoice_line'], 10),   
                 'account.invoice.line': (_get_invoice_line, ['quantity', 'uos_id', 'price_unit','discount','p_f','p_f_type',   
-                                                                'ed', 'ed_type','invoice_line_tax_id','fright','fright_type', 'tds_id','aed_id'], 10)}),
+                                                                'ed', 'ed_type','invoice_line_tax_id','fright','fright_type', 'tds_id','aed_id_1'], 10)}),
         'excise_duty': fields.function(amount_all_supplier_invoice_line, multi='sums',string='Excise Duty',
             store={
                'account.invoice': (lambda self, cr, uid, ids, c={}: ids, ['invoice_line'], 10),   
                'account.invoice.line': (_get_invoice_line, ['quantity', 'uos_id', 'price_unit','discount','p_f','p_f_type',   
-                                                               'ed', 'ed_type','invoice_line_tax_id','fright','fright_type', 'tds_id','aed_id'], 10)}),
+                                                               'ed', 'ed_type','invoice_line_tax_id','fright','fright_type', 'tds_id','aed_id_1'], 10)}),
         'aed': fields.function(amount_all_supplier_invoice_line, multi='sums',string='AED',
             store={
                'account.invoice': (lambda self, cr, uid, ids, c={}: ids, ['invoice_line'], 10),   
                'account.invoice.line': (_get_invoice_line, ['quantity', 'uos_id', 'price_unit','discount','p_f','p_f_type',   
-                                                               'ed', 'ed_type','invoice_line_tax_id','fright','fright_type', 'tds_id','aed_id'], 10)}),
+                                                               'ed', 'ed_type','invoice_line_tax_id','fright','fright_type', 'tds_id','aed_id_1'], 10)}),
         'fright': fields.function(amount_all_supplier_invoice_line, multi='sums',string='Freight',
               store={
                 'account.invoice': (lambda self, cr, uid, ids, c={}: ids, ['invoice_line'], 10),   
                 'account.invoice.line': (_get_invoice_line, ['quantity', 'uos_id', 'price_unit','discount','p_f','p_f_type',   
-                                                                'ed', 'ed_type','invoice_line_tax_id','fright','fright_type', 'tds_id','aed_id'], 10)}),
+                                                                'ed', 'ed_type','invoice_line_tax_id','fright','fright_type', 'tds_id','aed_id_1'], 10)}),
                  
         'amount_tax': fields.function(amount_all_supplier_invoice_line, multi='sums', string='Taxes',
             store={
                 'account.invoice': (lambda self, cr, uid, ids, c={}: ids, ['invoice_line'], 10),   
                 'account.invoice.line': (_get_invoice_line, ['quantity', 'uos_id', 'price_unit','discount','p_f','p_f_type',   
-                                                                'ed', 'ed_type','invoice_line_tax_id','fright','fright_type', 'tds_id','aed_id'], 10)}),
+                                                                'ed', 'ed_type','invoice_line_tax_id','fright','fright_type', 'tds_id','aed_id_1'], 10)}),
         'amount_total': fields.function(amount_all_supplier_invoice_line, multi='sums', string='Total',
              store={
                 'account.invoice': (lambda self, cr, uid, ids, c={}: ids, ['invoice_line'], 10),   
                 'account.invoice.line': (_get_invoice_line, ['quantity', 'uos_id', 'price_unit','discount','p_f','p_f_type',   
-                                                                'ed', 'ed_type','invoice_line_tax_id','fright','fright_type', 'tds_id','aed_id'], 10)}),
+                                                                'ed', 'ed_type','invoice_line_tax_id','fright','fright_type', 'tds_id','aed_id_1'], 10)}),
         'amount_total_inr': fields.function(amount_all_supplier_invoice_line, multi='sums', string='Total (INR)',
              store={
-                'account.invoice': (lambda self, cr, uid, ids, c={}: ids, ['invoice_line'], 10),   
+                'account.invoice': (lambda self, cr, uid, ids, c={}: ids, ['invoice_line','date_invoice'], 10),   
                 'account.invoice.line': (_get_invoice_line, ['quantity', 'uos_id', 'price_unit','discount','p_f','p_f_type',   
-                                                                'ed', 'ed_type','invoice_line_tax_id','fright','fright_type', 'tds_id','aed_id'], 10)}),
+                                                                'ed', 'ed_type','invoice_line_tax_id','fright','fright_type', 'tds_id','aed_id_1'], 10)}),
         'amount_total_tds': fields.function(amount_all_supplier_invoice_line, multi='sums', string='Total TDS',
              store={
                 'account.invoice': (lambda self, cr, uid, ids, c={}: ids, ['invoice_line'], 10),   
                 'account.invoice.line': (_get_invoice_line, ['quantity', 'uos_id', 'price_unit','discount','p_f','p_f_type',   
-                                                                'ed', 'ed_type','invoice_line_tax_id','fright','fright_type', 'tds_id','aed_id'], 10)}),
+                                                                'ed', 'ed_type','invoice_line_tax_id','fright','fright_type', 'tds_id','aed_id_1'], 10)}),
+        'amount_tax_debit': fields.function(amount_all_supplier_invoice_line, multi='sums', string='Tax (Debit)',
+             store={
+                'account.invoice': (lambda self, cr, uid, ids, c={}: ids, ['invoice_line'], 10),   
+                'account.invoice.line': (_get_invoice_line, ['quantity', 'uos_id', 'price_unit','discount','p_f','p_f_type',   
+                                                                'ed', 'ed_type','invoice_line_tax_id','fright','fright_type', 'tds_id','aed_id_1'], 10)}),
+        'amount_tax_credit': fields.function(amount_all_supplier_invoice_line, multi='sums', string='Tax (Credit)',
+             store={
+                'account.invoice': (lambda self, cr, uid, ids, c={}: ids, ['invoice_line'], 10),   
+                'account.invoice.line': (_get_invoice_line, ['quantity', 'uos_id', 'price_unit','discount','p_f','p_f_type',   
+                                                                'ed', 'ed_type','invoice_line_tax_id','fright','fright_type', 'tds_id','aed_id_1'], 10)}),
         }
     _defaults = {
         'created_on': time.strftime('%Y-%m-%d %H:%M:%S'),
@@ -817,12 +1005,12 @@ class account_invoice(osv.osv):
         return result
     
     def create(self, cr, uid, vals, context=None):
-        if vals.get('type','')=='in_invoice':
-            vals['name'] = self.pool.get('ir.sequence').get(cr, uid, 'tpt.supplier.invoice.sequence') or '/'
-        elif 'purchase_id' not in vals:
-            vals['name'] = self.pool.get('ir.sequence').get(cr, uid, 'tpt.supplier.invoice.sequence') or '/'
-        else:
-            vals['name'] = self.pool.get('ir.sequence').get(cr, uid, 'tpt.supplier.invoice.sequence') or '/'
+#         if vals.get('type','')=='in_invoice' and 'purchase_id' in vals:
+#             vals['name'] = self.pool.get('ir.sequence').get(cr, uid, 'tpt.supplier.invoice.sequence') or '/'
+#         elif vals.get('type','')=='in_invoice' and 'purchase_id' not in vals:
+#             vals['name'] = self.pool.get('ir.sequence').get(cr, uid, 'tpt.supplier.invoice.sequence') or '/'
+#         elif 'purchase_id' in vals:
+#             vals['name'] = self.pool.get('ir.sequence').get(cr, uid, 'tpt.supplier.invoice.sequence') or '/'
         new_id = super(account_invoice, self).create(cr, uid, vals, context)
         return new_id
     
@@ -831,6 +1019,22 @@ account_invoice()
 
 class account_invoice_line(osv.osv):
     _inherit = "account.invoice.line"
+    
+    def button_reset_taxes(self, cr, uid, ids, context=None):
+        if context is None:
+            context = {}
+        ctx = context.copy()
+        ait_obj = self.pool.get('account.invoice.tax')
+        for id in ids:
+            cr.execute("DELETE FROM account_invoice_tax WHERE invoice_id=%s AND manual is False", (id,))
+#             partner = self.browse(cr, uid, id, context=ctx).partner_id
+#             if partner.lang:
+#                 ctx.update({'lang': partner.lang})
+#             for taxe in ait_obj.compute(cr, uid, id, context=ctx).values():
+#                 ait_obj.create(cr, uid, taxe)
+#         # Update the stored value (fields.function), so we write to trigger recompute
+        self.pool.get('account.invoice').write(cr, uid, ids, {'invoice_line':[]}, context=ctx)
+        return True
     
     def line_net_line_supplier_invo(self, cr, uid, ids, field_name, args, context=None):
         res = {}
@@ -873,6 +1077,17 @@ class account_invoice_line(osv.osv):
             for tax in tax_amounts:
                 amount_total_tax += tax/100
             res[line.id]['line_net'] = amount_total_tax+amount_fright+amount_ed+amount_p_f+amount_basic
+            
+            if line.invoice_id.sup_inv_id and line.invoice_id.type=='in_invoice':
+                if line.fright_fi_type == '2':
+                    base = line.fright
+                    tax_debit_amount = base*(line.tax_id and line.tax_id.amount/100 or 0)
+                    tax_credit_amount = base*(line.tax_credit and line.tax_credit.amount/100 or 0)
+                else:
+                    base = line.fright*line.quantity
+                    tax_debit_amount = base*(line.tax_id and line.tax_id.amount/100 or 0)
+                    tax_credit_amount = base*(line.tax_credit and line.tax_credit.amount/100 or 0)
+                res[line.id]['line_net'] = base+tax_debit_amount-tax_credit_amount
         return res
      
     _columns = {
@@ -885,14 +1100,38 @@ class account_invoice_line(osv.osv):
         'ed_type':fields.selection([('1','%'),('2','Rs'),('3','Per Qty')],('ED Type')),
         'fright': fields.float('Freight'),
         'fright_type':fields.selection([('1','%'),('2','Rs'),('3','Per Qty')],('Freight Type')),
+        'fright_fi_type':fields.selection([('2','Rs'),('3','Qty')],('Freight Type')),
         'line_net': fields.function(line_net_line_supplier_invo, store = True, multi='deltas' ,string='Line Net'),
         'tax_id': fields.many2one('account.tax', 'Taxes'),
+        'tax_credit': fields.many2one('account.tax', 'Tax (Credit)'),
         'tds_id': fields.many2one('account.tax', 'TDS %'),
         'aed_id': fields.many2one('account.tax', 'AED'),
+        'aed_id_1': fields.float('AED'),
+        'po_line_id': fields.many2one('purchase.order.line', 'purchase order line'),
+#         'line_no': fields.integer('SI.No'),
     }
     _defaults = {
         'name': '/',
                  }
+    
+    def onchange_tax_credit(self, cr, uid, ids, tax_id,tax_credit, context=None):
+        vals = {}
+        warning = {}
+        if tax_id and tax_credit:
+            tax_obj = self.pool.get('account.tax')
+            temp = 0
+            tax_cr = tax_obj.browse(cr, uid, tax_credit)
+#             for line in tax_obj.browse(cr, uid, invoice_line_tax_id[0][2]):
+#                 if line.amount == tax_cr.amount:
+#                     temp+=1
+            tax = tax_obj.browse(cr, uid, tax_id)
+            if tax.amount!=tax_cr.amount:
+                warning = {  
+                    'title': _('Warning!'),  
+                    'message': _('% defined in Tax (Debit) and Tax (Credit) field should be the same.'),  
+                }
+                vals={'tax_credit':False}
+        return {'value': vals, 'warning':warning}
     
     def onchange_tax_id(self, cr, uid, ids, tax_id=False, context=None):
         vals = {}

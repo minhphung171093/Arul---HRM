@@ -903,6 +903,7 @@
                 <xpath expr="//field[@name='date_of_resignation']" position="after">
 					<field name ="bank_account"/>
                     <field name="time_record" required='1'/>
+                    <field name="rfid" />
                 </xpath>
                 <xpath expr="//field[@name='job_id']" position="replace">
                     <field name="job_id" string = "Designation" options="{'create': false, 'create_edit': false}"/>
@@ -914,7 +915,7 @@
                     <field name="employee_sub_category_id" domain="[('category_id','=',employee_category_id)]" context="{'check_employee_category_id':1,'employee_category_id':employee_category_id}" options="{'create': false, 'create_edit': false}"/>
                 </xpath>
                 <xpath expr="//field[@name='address_id']" position="replace">
-                    <field name="address_id" options="{'create': false, 'create_edit': false}"/>
+                    <field name="address_id" invisible="1" options="{'create': false, 'create_edit': false}"/>
                 </xpath>
                 <xpath expr="//field[@name='plant_id']" position="replace">
                     <field name="plant_id" options="{'create': false, 'create_edit': false}"/>
@@ -1254,6 +1255,27 @@
                 						<field name ="employee_amt"/>
                 					</tree>
                 				</field>
+                				
+                				<group class="oe_subtotal_footer oe_right" colspan="2" name="meals_total">
+                                	<field name="no_of_bf" widget="monetary" />
+                                	<field name="no_of_lunch" widget="monetary" />  
+                                	<field name="no_of_dinner" widget="monetary" />
+                                	<field name="no_of_mid_dinner" widget="monetary" /> 
+                                	<!-- 
+                                		<div class="oe_subtotal_footer_separator oe_inline">
+                                     		<label for="no_of_mid_dinner"/>  
+                                     		
+                                     		
+	                                    	<button name="button_dummy"
+	                                        string="(update)" type="object" class="oe_edit_only oe_link"/>
+	                               
+                                     		
+                                		</div>
+                                 	<field name="no_of_mid_dinner" nolabel="1" class="oe_subtotal_footer_separator" widget="monetary" />  
+                            	 -->
+                            	</group>  
+                            	<div class="oe_clear"/>  
+                            	
                 			</page>
                 		</notebook>
                 	</sheet>

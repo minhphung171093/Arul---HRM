@@ -159,12 +159,23 @@ class Parser(report_sxw.rml_parse):
                 birthday = date.strftime('%d-%m-%Y')
             
             date_of_resignation = ''
-            if emp.date_of_resignation:
-                date = datetime.strptime(emp.date_of_resignation, "%Y-%m-%d")
+            if emp.date_of_retirement:
+                date = datetime.strptime(emp.date_of_retirement, "%Y-%m-%d")
                 date_of_resignation = date.strftime('%d-%m-%Y')
+            
+            name_last_name =''
+            if emp.last_name:
+                name_last_name = str(emp.name) + ' ' + str(emp.last_name)
+            else:
+                name_last_name = emp.name
+                
+            bank_acct=''
+            if emp.bank_account:
+                bank_acct =emp.bank_account 
+                
             res.append({
                     'code': emp.employee_id,
-                    'name': emp.name,
+                    'name': name_last_name,
                     'birthday': birthday,
                     'date_of_wedding': date_of_wedding,
                     'date_of_joining': date_of_joining,
@@ -172,13 +183,15 @@ class Parser(report_sxw.rml_parse):
                     'designation': emp.job_id.name,
                     'category': emp.employee_category_id.code,
                     'department': emp.department_id.name,
+                    'section': emp.section_id.name,
                     'email': emp.work_email,
                     'mobile': emp.work_phone,
                     'communication_address': comu_add,
                     'permanent_address': permanent_add,
                     'blood_group': emp.blood_group,
                     'emergency_contact': mobile,
-                    'bank_acc': str(emp.bank_account_id.acc_number),
+                    #'bank_acc': str(emp.bank_account_id.acc_number),
+                    'bank_acc': bank_acct,
                     'grade': emp.employee_sub_category_id.code,
                     'fa': fa,
                     'disiciplinary_actions': disiciplinary_actions,

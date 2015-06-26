@@ -35,6 +35,9 @@
 									<tree editable='top'>
 										<field name="select"/>
 										<field name="product_id" options="{'create': false, 'create_edit': false}"/>
+										<field name="min_stock"/>
+										<field name="max_stock"/>
+										<field name="re_stock"/>
 										<field name="product_uom_qty"/>
 										<field name="uom_po_id" options="{'create': false, 'create_edit': false}"/>
 									</tree>
@@ -148,6 +151,8 @@
 		<menuitem action="action_view_tpt_project_section_form"
             id="menu_action_view_tpt_project_section_form"
             parent="purchase.menu_procurement_management" sequence="26"/>
+            
+
             
     </data>
 </openerp>

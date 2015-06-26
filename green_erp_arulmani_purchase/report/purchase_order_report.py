@@ -9,7 +9,7 @@ from openerp.report import report_sxw
 from openerp import pooler
 from openerp.osv import osv
 from openerp.tools.translate import _
-from amount_to_text_indian import Number2Words
+from green_erp_arulmani_purchase.report.amount_to_text_indian import Number2Words
 import random
 DATETIME_FORMAT = "%Y-%m-%d %H:%M:%S"
 DATE_FORMAT = "%Y-%m-%d"
@@ -27,6 +27,7 @@ class Parser(report_sxw.rml_parse):
         self.localcontext.update({
 		'get_date': self.get_date,		
 		'amount_to_text': self.amount_to_text,
+        'amount_to_text1': self.amount_to_text1,
 		'get_edu_cess':self.get_edu_cess,
 		'get_sec_cess':self.get_sec_cess,
         'get_item_txt':self.get_item_txt,
@@ -59,7 +60,19 @@ class Parser(report_sxw.rml_parse):
         if text and len(text)>3 and text[:3]=='AND':
             text = text[3:]
         return text
-
+    def amount_to_text1(self, nbr, currency):
+        lang='en'
+#         if currency.name=='GBP':
+#             return amount_to_text_en.amount_to_text(nbr, lang, 'gbp').upper() 
+#         if currency.name=='USD':
+#             return amount_to_text_en.amount_to_text(nbr, lang, 'usd').upper() 
+        if currency.name!='INR':
+            return amount_to_text_en.amount_to_text(nbr, lang, currency.name).upper() 
+        if currency.name=='INR':
+            text = Number2Words().convertNumberToWords(nbr).upper()
+            if text and len(text)>3 and text[:3]==' ':
+                text = text[3:]
+            return text
     def get_edu_cess(self, basic_excise_duty):
         ecess = 0.0
         ecess = (basic_excise_duty)*2/100

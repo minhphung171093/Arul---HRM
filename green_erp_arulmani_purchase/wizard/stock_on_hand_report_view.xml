@@ -20,7 +20,7 @@
 	        </field>
     	</record>
 
-	    <record model="ir.actions.act_window" id="action_bank_book_report_view">
+	    <record model="ir.actions.act_window" id="action_stock_on_hand_report_view">
 	        <field name="name">Stock On Hand Report</field>
 	        <field name="res_model">stock.on.hand.report</field>
 	        <field name="view_type">form</field>
@@ -30,7 +30,7 @@
 	    </record>
 	    
 	    
-       <menuitem action="action_bank_book_report_view" id="menu_action_bank_book_report_view" parent="stock.menu_stock_warehouse_mgmt" sequence="15"/>
+       <menuitem action="action_stock_on_hand_report_view" id="menu_action_stock_on_hand_report_view" parent="stock.menu_stock_warehouse_mgmt" sequence="15"/>
 
 	 
 	    

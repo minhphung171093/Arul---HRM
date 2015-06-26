@@ -33,6 +33,10 @@ class tpt_mrp_process(osv.osv):
     
     def bt_run_mrp(self, cr, uid, ids, context=None):
         mrp_process_line = []
+        no_ind_product_ids = []
+        ind_product_ids = []
+        mrp_product_ids = []
+        product_obj = self.pool.get('product.product')
         for mrp in self.browse(cr, uid, ids):
             sql = '''
                     delete from tpt_mrp_process_line
@@ -40,8 +44,8 @@ class tpt_mrp_process(osv.osv):
                 '''%(mrp.id)
             cr.execute(sql)
             sql = '''
-                    select product_product.id, uom_po_id, max_stock
-                    from product_product, product_template
+                    select id
+                    from product_product
                     where mrp_control = True and  (
                             select case when sum(foo.product_qty)!=0 then sum(foo.product_qty) else 0 end ton_sl from 
                                 (select st.product_qty
@@ -56,49 +60,163 @@ class tpt_mrp_process(osv.osv):
                                         inner join product_uom pu on st.product_uom = pu.id
                                     where st.state='done' and st.product_id=product_product.id and l1.usage = 'internal'
                                 )foo
-                            ) <= re_stock and product_product.product_tmpl_id = product_template.id
-                    and (product_product.id not in (select product_id from tpt_purchase_indent,tpt_purchase_product 
-                            where tpt_purchase_indent.id = tpt_purchase_product.pur_product_id 
-                            and tpt_purchase_indent.state != 'cancel')
-                        or product_product.id in (select product_id from tpt_purchase_indent,tpt_purchase_product 
-                            where tpt_purchase_indent.id = tpt_purchase_product.pur_product_id 
-                            and tpt_purchase_indent.state != 'cancel' 
-                            and tpt_purchase_indent.id in (select po_indent_id from stock_move
-                            where state = 'done')))
+                            ) <= re_stock
                 '''
             cr.execute(sql)
-            prod_ids = cr.dictfetchall()
+            prod_ids = cr.fetchall()
             if prod_ids:
-                for prod in prod_ids:
-                    quantity = 1.00
-                    hand_quantity = 0
+                product_ids = [r[0] for r in prod_ids]
+#                 # nhung product da tao indent
+#                 sql='''
+#                     select product_id from tpt_purchase_indent,tpt_purchase_product 
+#                     where tpt_purchase_indent.id = tpt_purchase_product.pur_product_id and tpt_purchase_indent.document_type = 'base'
+#                         and tpt_purchase_indent.state != 'cancel'
+#                 '''
+#                 cr.execute(sql)
+#                 product_ind_ids = cr.fetchall()
+#                 if product_ind_ids:
+#                     cr.execute('''
+#                             select id from product_product where id in %s and id not in %s
+#                         ''',(tuple(product_ids),tuple(product_ind_ids),))
+#                     no_ind_product_ids = [r[0] for r in cr.fetchall()]
+#                     # no_ind_product_ids danh sach cac san pham chua co indent
+#                 sql='''
+#                     select distinct(ind.id) from tpt_purchase_indent ind,tpt_purchase_product line
+#                     where ind.id = line.pur_product_id and ind.document_type = 'base'
+#                         and ind.state != 'cancel' and line.product_uom_qty = line.rfq_qty
+#                 '''
+#                 cr.execute(sql)
+#                 full_ind_ids = cr.fetchall()
+#                 #full_ind_ids danh sach indent da tao rfq toan phan
+#                 sql = '''
+#                      select distinct(po_indent_id) from stock_move sm, tpt_purchase_indent ind
+#                      where sm.state != 'done' and po_indent_id is not NULL and ind.id = sm.po_indent_id and ind.document_type = 'base'
+#                  '''
+#                 cr.execute(sql)
+#                 not_receive_ind_ids = cr.fetchall()
+#                 #not_receive_ind_ids nhung indent co GRN nhung chua done
+#                 if full_ind_ids and not_receive_ind_ids:
+#                     cr.execute('''
+#                             select distinct(id) from tpt_purchase_indent where id in %s and id not in %s
+#                         ''',(tuple(full_ind_ids),tuple(not_receive_ind_ids),))
+#                     indent_ids = [r[0] for r in cr.fetchall()] 
+#                     if indent_ids:
+#                         
+#                         sql = '''
+#                             select product_id from tpt_purchase_indent ind, tpt_purchase_product line
+#                             where ind.id = line.pur_product_id and ind.id in %s and line.product_uom_qty = line.rfq_qty and product_id in %s
+#                             and product_id in (select st.product_id from stock_move st, tpt_purchase_indent ind 
+#                                                where st.po_indent_id = ind.id and ind.document_type = 'base' and st.state = 'done')
+#                         '''%(tuple(indent_ids),tuple(product_ids))
+#                         print sql
+#                         cr.execute('''
+#                             select product_id from tpt_purchase_indent ind, tpt_purchase_product line
+#                             where ind.id = line.pur_product_id and ind.id in %s and line.product_uom_qty = line.rfq_qty and product_id in %s
+#                             and product_id in (select st.product_id from stock_move st, tpt_purchase_indent ind 
+#                                                 where st.po_indent_id = ind.id and ind.document_type = 'base' and st.state = 'done')
+#                         ''',(tuple(indent_ids),tuple(product_ids),))
+#                         ind_product_ids = [r[0] for r in cr.fetchall()] 
+#                 if ind_product_ids and no_ind_product_ids:
+#                     cr.execute('''
+#                         select distinct(id) from product_product
+#                         where id in %s or id in %s
+#                     ''',(tuple(ind_product_ids),tuple(no_ind_product_ids),))
+#                     mrp_product_ids = [r[0] for r in cr.fetchall()] 
+#                 if ind_product_ids and not no_ind_product_ids:
+#                     cr.execute('''
+#                         select distinct(id) from product_product
+#                         where id in %s
+#                     ''',(tuple(ind_product_ids),))
+#                     mrp_product_ids = [r[0] for r in cr.fetchall()] 
+#                 if not ind_product_ids and no_ind_product_ids:
+#                     cr.execute('''
+#                         select distinct(id) from product_product
+#                         where id in %s
+#                     ''',(tuple(no_ind_product_ids),))
+#                     mrp_product_ids = [r[0] for r in cr.fetchall()] 
+                
+                cr.execute('''
+                    select pur_product_id,product_id,id from tpt_purchase_product 
+                        where pur_product_id in (select id from tpt_purchase_indent where document_type = 'base' and state != 'cancel')
+                            and product_id in %s and product_uom_qty = rfq_qty and is_mrp!='t' 
+                ''',(tuple(product_ids),))
+                indent_line_ids = []
+                mrp_prod_ids=[]
+                for line in cr.fetchall():
                     sql = '''
-                        select case when sum(foo.product_qty)!=0 then sum(foo.product_qty) else 0 end ton_sl from 
-                                (select st.product_qty
-                                    from stock_move st 
-                                        inner join stock_location l2 on st.location_dest_id= l2.id
-                                        inner join product_uom pu on st.product_uom = pu.id
-                                    where st.state='done' and st.product_id = %s and l2.usage = 'internal'
-                                union all
-                                select st.product_qty*-1
-                                    from stock_move st 
-                                        inner join stock_location l1 on st.location_id= l1.id
-                                        inner join product_uom pu on st.product_uom = pu.id
-                                    where st.state='done' and st.product_id = %s and l1.usage = 'internal'
-                                )foo
-                    '''%(prod['id'],prod['id'])
+                        select id from stock_move where po_indent_id=%s and product_id=%s
+                    '''%(line[0],line[1])
                     cr.execute(sql)
-                    out = cr.dictfetchone()
-                    if out:
-                        hand_quantity = hand_quantity+float(out['ton_sl'])
-#                     maximum = line.product_id.max_stock or 0.0
-                    if prod['max_stock'] > 0:
-                        quantity =  prod['max_stock'] - hand_quantity
-                    mrp_process_line.append((0,0,{'product_id':prod['id'],
-                                                  'uom_po_id':prod['uom_po_id'],
-                                                  'product_uom_qty':quantity,
-                                                  }))
-        return self.write(cr,uid,ids,{'mrp_process_line':mrp_process_line, 'state':'approve'})
+                    move_ids = [r[0] for r in cr.fetchall()]
+                    if move_ids:
+                        cr.execute('''
+                             select id from stock_move where id in %s and state not in ('done','cancel')
+                        ''',(tuple(move_ids),))
+                        m_ids = [r[0] for r in cr.fetchall()]
+                        if not m_ids:
+                            mrp_product_ids.append({'product_id':line[1],'indent_line_id':line[2]})
+                            mrp_prod_ids.append(line[1])
+#                             indent_line_ids.append(line[3])
+                
+                sql='''
+                    select distinct(product_id) from tpt_purchase_indent,tpt_purchase_product 
+                    where tpt_purchase_indent.id = tpt_purchase_product.pur_product_id and tpt_purchase_indent.document_type = 'base'
+                        and tpt_purchase_indent.state != 'cancel'
+                '''
+                cr.execute(sql)
+                product_ind_ids = cr.fetchall()
+                if product_ind_ids:
+                    cr.execute('''
+                            select distinct(id) from product_product where id in %s and id not in %s
+                        ''',(tuple(product_ids),tuple(product_ind_ids),))
+                    for r in cr.fetchall():
+                        if r[0] not in mrp_prod_ids:
+                            mrp_product_ids.append({'product_id':r[0],'indent_line_id':False})
+                
+                if mrp_product_ids:
+#                     cr.execute('''
+#                         select id, max_stock, min_stock, re_stock from product_product
+#                         where id in %s
+#                     ''',(tuple(mrp_product_ids)),)
+#                     product_ids = [r[0] for r in cr.fetchall()] 
+                    
+                    
+                    for product in mrp_product_ids:
+                        prod = product_obj.browse(cr, uid, product['product_id'])
+                        quantity = 1.00
+                        hand_quantity = 0
+                        sql = '''
+                            select case when sum(foo.product_qty)!=0 then sum(foo.product_qty) else 0 end ton_sl from 
+                                    (select st.product_qty
+                                        from stock_move st 
+                                            inner join stock_location l2 on st.location_dest_id= l2.id
+                                            inner join product_uom pu on st.product_uom = pu.id
+                                        where st.state='done' and st.product_id = %s and l2.usage = 'internal'
+                                    union all
+                                    select st.product_qty*-1
+                                        from stock_move st 
+                                            inner join stock_location l1 on st.location_id= l1.id
+                                            inner join product_uom pu on st.product_uom = pu.id
+                                        where st.state='done' and st.product_id = %s and l1.usage = 'internal'
+                                    )foo
+                        '''%(prod.id,prod.id)
+                        cr.execute(sql)
+                        out = cr.dictfetchone()
+                        if out:
+                            hand_quantity = hand_quantity+float(out['ton_sl'])
+    #                     maximum = line.product_id.max_stock or 0.0
+                        if prod.max_stock > 0:
+                            quantity =  prod.max_stock - hand_quantity
+                        mrp_process_line.append((0,0,{'product_id':prod.id,
+                                                      'uom_po_id':prod.uom_po_id.id,
+                                                      'product_uom_qty':quantity,
+                                                      'min_stock': prod.min_stock,  
+                                                      'max_stock': prod.max_stock,  
+                                                      're_stock': prod.re_stock,
+                                                      'indent_line_id': product['indent_line_id'],
+                                                      }))
+        vals = {'mrp_process_line':mrp_process_line, 'state':'approve'}
+        return self.write(cr,uid,ids,vals)
     
     def bt_generate_indent(self, cr, uid, ids, context=None):
         purchase_product_line = []
@@ -109,7 +227,7 @@ class tpt_mrp_process(osv.osv):
         po_indent_obj = self.pool.get('tpt.purchase.indent')
         for mrp in self.browse(cr, uid, ids):
             sql = '''
-                select id from hr_department where name = 'PRODUCTION'
+                select id from hr_department where name in ('Stores','STORES')
                 '''
             cr.execute(sql)
             depa_ids = cr.fetchone()
@@ -117,7 +235,7 @@ class tpt_mrp_process(osv.osv):
                 depa_id = depa_ids[0] or False
                 
                 sql = '''
-                    select id from arul_hr_section where name = 'PRODUCTION' and department_id = %s
+                    select id from arul_hr_section where name in ('Stores','STORES') and department_id = %s
                     '''%(depa_id)
                 cr.execute(sql)
                 section_ids = cr.fetchone()
@@ -142,6 +260,8 @@ class tpt_mrp_process(osv.osv):
                                                             'pur_product_id': indent_id or False,
                                                             'doc_type_relate': 'base',
                                                            }))
+                        if line.indent_line_id:
+                            cr.execute(''' update tpt_purchase_product set is_mrp='t' where id = %s ''',(line.indent_line_id.id,))
             else: count = 0
             
             if count == 0:
@@ -163,9 +283,13 @@ class tpt_mrp_process_line(osv.osv):
     _columns = {
         'product_id': fields.many2one('product.product','Material',required = True),
         'select':fields.boolean('Select'),
-        'product_uom_qty': fields.float('Quantity'),   
+        'product_uom_qty': fields.float('Requested Qty',digits=(16,3)),   
+        'min_stock': fields.float('Min. Qty',digits=(16,3)),  
+        'max_stock': fields.float('Max. Qty',digits=(16,3)),  
+        're_stock': fields.float('Reorder Level',digits=(16,3)),  
         'uom_po_id': fields.many2one('product.uom', 'UOM', readonly = True),
         'mrp_process_id': fields.many2one('tpt.mrp.process', 'Material'),
+        'indent_line_id':fields.many2one('tpt.purchase.product','Indent Line'),
                 }
     _defaults={
                'product_uom_qty': 1.00,

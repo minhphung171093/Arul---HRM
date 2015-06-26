@@ -78,6 +78,12 @@ class sale_order(osv.osv):
     
     _order = "blanket_id"
     
+    def init(self, cr):
+        sql = '''
+            update sale_order set currency_id=tpt_currency_id
+        '''
+        cr.execute(sql)
+    
     def _amount_all(self, cr, uid, ids, field_name, arg, context=None):
         res = {}
         for line in self.browse(cr,uid,ids,context=context):
@@ -163,6 +169,7 @@ class sale_order(osv.osv):
         'flag_p':fields.boolean('Flag',readonly =True,states={'progress':[('readonly',True)],'done':[('readonly',True)]} ),
         'blanket_line_id':fields.many2one('tpt.blank.order.line','Blanket Order Line',states={'progress':[('readonly',True)],'done':[('readonly',True)]}),
         'currency_id': fields.many2one('res.currency', 'Currency', states={'cancel': [('readonly', True)], 'done':[('readonly', True)], 'approve':[('readonly', True)]}),#TPT
+        'tpt_currency_id': fields.many2one('res.currency', 'Currency'),#TPT
               
     }
     _defaults = {
@@ -174,6 +181,9 @@ class sale_order(osv.osv):
         'flag_t':False,
         'flag_p':False,
     }
+    
+    def onchange_currency(self, cr, uid, ids, currency_id=False, context=None):
+        return {'value':{'tpt_currency_id':currency_id}}
     
     def onchange_po_date(self, cr, uid, ids, po_date=False, context=None):
         vals = {}
@@ -279,8 +289,8 @@ class sale_order(osv.osv):
                   'freight': blanket_line.freight or False,
                   'state': 'draft',
                   'type': 'make_to_stock',
-                  'name_consignee_id' : blanket_line.name_consignee_id.id,
-                  #'name_consignee_id' : blanket_line.tpt_name_consignee_id.tpt_consignee_id.id,#TPT
+                  #'name_consignee_id' : blanket_line.name_consignee_id.id,
+                  'name_consignee_id' : blanket_line.tpt_name_consignee_id and blanket_line.tpt_name_consignee_id.tpt_consignee_id and blanket_line.tpt_name_consignee_id.tpt_consignee_id.id or False,#TPT Consignee Part blanket_line.tpt_name_consignee_id.tpt_consignee_id.id or False
                   'location':blanket_line.location,
                             }
             vals = {
@@ -502,6 +512,7 @@ class sale_order(osv.osv):
                     'po_number':blanket.po_number or False,
                     'payment_term_id':blanket.payment_term_id and blanket.payment_term_id.id or False,
                     'currency_id':blanket.currency_id and blanket.currency_id.id or False,
+                    'tpt_currency_id':blanket.currency_id and blanket.currency_id.id or False,
                     'quotaion_no':blanket.quotaion_no or False,
                     'incoterms_id':blanket.incoterm_id and blanket.incoterm_id.id or False,
                     'distribution_channel':blanket.channel and blanket.channel.id or False,
@@ -785,7 +796,7 @@ class sale_order_line(osv.osv):
         'price_subtotal': fields.function(_amount_line, string='Subtotal', digits_compute= dp.get_precision('Account')),
         'name_consignee_id': fields.many2one('res.partner', 'Consignee', required = False), #TPT - modified required true to false
         'location': fields.char('Location', size = 1024),   
-        'product_uom_qty': fields.float('Qty', digits=(16,2), required=True, readonly=True, states={'draft': [('readonly', False)]}),
+        'product_uom_qty': fields.float('Qty', digits=(16,3), required=True, readonly=True, states={'draft': [('readonly', False)]}),
         'amount_basic': fields.function(basic_amt_calc, store = True, multi='deltas3' ,string='Basic'),
         'amount_ed': fields.function(ed_amt_calc, store = True, multi='deltas4' ,string='ED'),
         
@@ -1017,18 +1028,18 @@ class tpt_blanket_order(osv.osv):
         'blank_order_line': fields.one2many('tpt.blank.order.line', 'blanket_order_id', 'Sale Order', states={'cancel': [('readonly', True)], 'done':[('readonly', True)], 'approve':[('readonly', True)]}),
         'amount_untaxed': fields.function(amount_all_blanket_orderline, multi='sums',string='Untaxed Amount',
                                          store={
-                'tpt.blanket.order': (lambda self, cr, uid, ids, c={}: ids, ['blank_order_line','sale_tax_id'], 10),
-                'tpt.blank.order.line': (_get_order, ['price_unit', 'sub_total', 'product_uom_qty'], 10),}, 
+                'tpt.blanket.order': (lambda self, cr, uid, ids, c={}: ids, ['blank_order_line','sale_tax_id','excise_duty_id'], 10),
+                'tpt.blank.order.line': (_get_order, ['price_unit', 'sub_total', 'product_uom_qty', 'freight'], 10),}, 
             states={'cancel': [('readonly', True)], 'done':[('readonly', True)], 'approve':[('readonly', True)]}),
         'amount_tax': fields.function(amount_all_blanket_orderline, multi='sums',string='Taxes',
                                       store={
-                'tpt.blanket.order': (lambda self, cr, uid, ids, c={}: ids, ['blank_order_line', 'sale_tax_id'], 10),
-                'tpt.blank.order.line': (_get_order, ['price_unit', 'sub_total', 'product_uom_qty'], 10), }, 
+                'tpt.blanket.order': (lambda self, cr, uid, ids, c={}: ids, ['blank_order_line', 'sale_tax_id','excise_duty_id'], 10),
+                'tpt.blank.order.line': (_get_order, ['price_unit', 'sub_total', 'product_uom_qty', 'freight'], 10), }, 
             states={'cancel': [('readonly', True)], 'done':[('readonly', True)], 'approve':[('readonly', True)]}),
         'amount_total': fields.function(amount_all_blanket_orderline, multi='sums',string='Total',
                                         store={
-                'tpt.blanket.order': (lambda self, cr, uid, ids, c={}: ids, ['blank_order_line', 'sale_tax_id'], 10),
-                'tpt.blank.order.line': (_get_order, ['price_unit', 'sub_total', 'product_uom_qty'], 10), },
+                'tpt.blanket.order': (lambda self, cr, uid, ids, c={}: ids, ['blank_order_line', 'sale_tax_id','excise_duty_id'], 10),
+                'tpt.blank.order.line': (_get_order, ['price_unit', 'sub_total', 'product_uom_qty', 'freight'], 10), },
              states={'cancel': [('readonly', True)], 'done':[('readonly', True)], 'approve':[('readonly', True)]}),
         
         'blank_consignee_line': fields.one2many('tpt.consignee', 'blanket_consignee_id', 'Consignee', states={'cancel': [('readonly', True)], 'done':[('readonly', True)], 'approve':[('readonly', True)]}), 
@@ -1207,26 +1218,27 @@ class tpt_blank_order_line(osv.osv):
             ed = (line.product_uom_qty * line.price_unit) * (line.blanket_order_id.excise_duty_id.amount/100)
             res[line.id]['amount_ed'] = ed
         return res
+    
     _columns = {
         'blanket_order_id': fields.many2one('tpt.blanket.order', 'Blank Order', ondelete = 'cascade'),
         'product_id': fields.many2one('product.product', 'Product', required = True),
         'description': fields.text('Description', required = True),
         'product_type': fields.selection([('rutile', 'Rutile'),('anatase', 'Anatase')],'Product Type'),
         'application_id': fields.many2one('crm.application', 'Application'),
-        'product_uom_qty': fields.float('Quantity'),
+        'product_uom_qty': fields.float('Quantity', digits=(16,3)),
         'uom_po_id': fields.many2one('product.uom', 'UOM', readonly = False),
         'price_unit': fields.float('Unit Price'),
-        'sub_total': fields.function(subtotal_blanket_orderline, store = True, multi='deltas' ,string='SubTotal'),
+        'sub_total': fields.function(subtotal_blanket_orderline, multi='deltas' ,string='SubTotal'),
         'freight': fields.float('Frt/Qty'),
-        
-        'tpt_name_consignee_id': fields.many2one('tpt.cus.consignee', 'Effective Consignee', required = False),
+        #Effective Consignee
+        'tpt_name_consignee_id': fields.many2one('tpt.cus.consignee', 'Consignee', required = False),
         
         'name_consignee_id': fields.many2one('res.partner', 'Consignee', required = False),
         'location': fields.char('Location', size = 1024,readonly = True),
         'expected_date':fields.date('Expected delivery Date'),
         
-        'amount_basic': fields.function(basic_amt_calc, store = True, multi='deltas1' ,string='Basic'),
-        'amount_ed': fields.function(ed_amt_calc, store = True, multi='deltas2' ,string='ED'),
+        'amount_basic': fields.function(basic_amt_calc, multi='deltas1' ,string='Basic'),
+        'amount_ed': fields.function(ed_amt_calc, multi='deltas2' ,string='ED'),
                 
         'is_fsh_tio2': fields.boolean('Is TiO2 or FSH'),
         'dispatch_date':fields.date('Scheduled Dispatch Date'),
@@ -1631,7 +1643,7 @@ class tpt_product_information(osv.osv):
         'product_id': fields.many2one('product.product', 'Product',required = True),     
         'product_type':fields.selection([('rutile','Rutile'),('anatase','Anatase')],'Product Type'),   
         'application_id': fields.many2one('crm.application', 'Application'),    
-        'product_uom_qty': fields.float('Quantity'),   
+        'product_uom_qty': fields.float('Quantity', digits=(16,3)),   
         'uom_po_id': fields.many2one('product.uom', 'UOM'),     
                 }
        
@@ -1667,6 +1679,32 @@ tpt_batch_number()
 class tpt_batch_allotment(osv.osv):
     _name = "tpt.batch.allotment"
      
+     
+    def init(self, cr):
+        batch_line_obj = self.pool.get('tpt.batch.allotment.line')
+        batch_line_ids = batch_line_obj.search(cr, 1, [])
+        if batch_line_ids:
+            for line in batch_line_obj.browse(cr,1,batch_line_ids):
+                sale_id = line.batch_allotment_id and line.batch_allotment_id.sale_order_id and line.batch_allotment_id.sale_order_id.id or False
+                lot_id = line.sys_batch.id or False
+                if sale_id and lot_id:
+                    sql = '''
+                        select case when sum(product_qty)!=0 then sum(product_qty) else 0 end qty from stock_move where state = 'done' and prodlot_id = %s 
+                            and sale_line_id in (select id from sale_order_line where order_id = %s)
+                    '''%(lot_id,sale_id)
+                    cr.execute(sql)
+                    qty = cr.dictfetchone()['qty']
+                    
+                    sql ='''
+                        update tpt_batch_allotment_line set used_qty = %s where id = %s
+                    '''%(qty,line.id)
+                    cr.execute(sql)
+                    if line.used_qty and line.used_qty==line.product_uom_qty:
+                        sql ='''
+                            update tpt_batch_allotment_line set is_deliver = 't' where id = %s
+                        '''%(line.id)
+                        cr.execute(sql)
+                    
     _columns = {
         'batch_request_id':fields.many2one('tpt.batch.request','Batch Request No.',required = True), 
         'name':fields.date('Date Requested',required = True), 
@@ -1675,6 +1713,7 @@ class tpt_batch_allotment(osv.osv):
         'description':fields.text('Description'),
         'state': fields.selection([('to_approve', 'To Approved'), ('refuse', 'Refused'),('confirm', 'Approve'), ('cancel', 'Cancelled')],'Status'),
         'batch_allotment_line': fields.one2many('tpt.batch.allotment.line', 'batch_allotment_id', 'Product Information'), 
+        'requested_qty': fields.float('Requested Quantity', digits=(16,3),readonly = True),   
                 }
     _defaults = {
               'state': 'to_approve',
@@ -1693,10 +1732,34 @@ class tpt_batch_allotment(osv.osv):
     def create(self, cr, uid, vals, context=None):
         new_id = super(tpt_batch_allotment, self).create(cr, uid, vals, context)
         batch = self.browse(cr, uid, new_id)
+        requested_qty = 0
+        for line in batch.batch_allotment_line:
+            allot_qty = 0
+            requested_qty += line.product_uom_qty
+            sql = '''
+                    select id from tpt_batch_allotment_line where sys_batch = %s and is_deliver is not True 
+                    and batch_allotment_id not in (select id from tpt_batch_allotment where state in ('cancel','refuse'))
+            '''%(line.sys_batch.id)
+            cr.execute(sql)
+            for ba_line in cr.dictfetchall():
+                line_id = self.pool.get('tpt.batch.allotment.line').browse(cr, uid, ba_line['id']) 
+                qty = line_id.product_uom_qty or 0
+                used =line_id.used_qty or 0
+                allot_qty += qty - used
+            lot_id = self.pool.get('stock.production.lot').browse(cr, uid, line.sys_batch.id) 
+            if allot_qty > lot_id.stock_available:
+                raise osv.except_osv(_('Warning!'),_('Batch number %s: Allotted quantity should not be greater than Available Quantity!'%line.sys_batch.name))
+        if requested_qty:
+            sql = '''
+                    update tpt_batch_allotment set requested_qty = %s where id = %s
+                '''%(requested_qty,new_id)
+            cr.execute(sql)
+            
         sql = '''
                     select product_id, sum(product_uom_qty) as allot_product_qty from tpt_batch_allotment_line where batch_allotment_id = %s group by product_id
                 '''%(batch.id)
         cr.execute(sql)
+        
         for allot_line in cr.dictfetchall():
             sql = '''
                     select product_id, sum(product_uom_qty) as request_product_qty from tpt_product_information where product_information_id = %s group by product_id
@@ -1710,7 +1773,30 @@ class tpt_batch_allotment(osv.osv):
     
     def write(self, cr, uid, ids, vals, context=None):
         new_write = super(tpt_batch_allotment, self).write(cr, uid, ids, vals, context)
+        requested_qty = 0
         for batch in self.browse(cr, uid, ids):
+            for line in batch.batch_allotment_line:
+                allot_qty = 0
+                requested_qty += line.product_uom_qty
+                sql = '''
+                    select id from tpt_batch_allotment_line where sys_batch = %s and is_deliver is not True
+                    and batch_allotment_id not in (select id from tpt_batch_allotment where state in ('cancel','refuse'))
+                '''%(line.sys_batch.id)
+                cr.execute(sql)
+                for ba_line in cr.dictfetchall():
+                    line_id = self.pool.get('tpt.batch.allotment.line').browse(cr, uid, ba_line['id']) 
+                    qty = line_id.product_uom_qty or 0
+                    used =line_id.used_qty or 0
+                    allot_qty += qty - used
+                lot_id = self.pool.get('stock.production.lot').browse(cr, uid, line.sys_batch.id) 
+                if allot_qty > lot_id.stock_available:
+                    raise osv.except_osv(_('Warning!'),_('Allotted quantity should not be greater than available stock Quantity in Batch no %s!'%line.sys_batch.name))
+                    
+            if requested_qty:
+                sql = '''
+                        update tpt_batch_allotment set requested_qty = %s where id = %s
+                    '''%(requested_qty,batch.id)
+                cr.execute(sql)
             sql = '''
                     select product_id, sum(product_uom_qty) as allot_product_qty from tpt_batch_allotment_line where batch_allotment_id = %s group by product_id
                 '''%(batch.id)
@@ -1724,6 +1810,8 @@ class tpt_batch_allotment(osv.osv):
                     if (allot_line['product_id']==request_line['product_id']):
                         if (allot_line['allot_product_qty'] != request_line['request_product_qty']):
                             raise osv.except_osv(_('Warning!'),_('The product quantity in batch allotment must be as same as the product quantity in batch request!'))
+                        
+                
         return new_write
     def confirm(self, cr, uid, ids, context=None):
         new_write =  self.write(cr, uid, ids, {'state': 'confirm'})
@@ -1830,8 +1918,10 @@ class tpt_batch_allotment(osv.osv):
                         'customer_id':False,
                         'description':False,
                         'batch_allotment_line':[],
+                        'requested_qty':False
                       }
                }
+        requested_qty = 0
         if batch_request_id:
             batch = self.pool.get('tpt.batch.request').browse(cr, uid, batch_request_id)
             batch_allotment_line = []
@@ -1843,12 +1933,14 @@ class tpt_batch_allotment(osv.osv):
                           'uom_po_id': line.uom_po_id.id,
                           'application_id':line.application_id.id,
                     })
+                requested_qty += line.product_uom_qty
         res['value'].update({
                     'name':batch.request_date or False,
                     'sale_order_id':batch.sale_order_id and batch.sale_order_id.id or False,
                     'customer_id':batch.customer_id and batch.customer_id.id or False,
                     'description':batch.description or False,
                     'batch_allotment_line': batch_allotment_line,
+                    'requested_qty': requested_qty,
         })
         return res
 tpt_batch_allotment()
@@ -2099,7 +2191,7 @@ class tpt_cus_consignee(osv.osv):
         'tpt_consignee_id': fields.many2one('res.partner', 'Consignee Name'),
         'tpt_consignee_code': fields.char('Consignee Code'),
     }
-    
+     
     def onchange_tpt_consignee_id(self, cr, uid, ids, name_consignee_id = False, context=None):
         vals = {}
         if name_consignee_id :
@@ -2107,7 +2199,7 @@ class tpt_cus_consignee(osv.osv):
             vals = {
                     'tpt_consignee_code': line.customer_code,    
                     }
-        return {'value': vals}
+        return {'value': vals} 
     
     def name_get(self, cr, uid, ids, context=None):
         res = []
@@ -2125,6 +2217,25 @@ class tpt_cus_consignee(osv.osv):
             
             res.append((record['id'], name))
         return res
+    ###
+    def create(self, cr, uid, vals, context=None):
+        if 'tpt_consignee_id' in vals:
+            partner = self.pool.get('res.partner').browse(cr, uid, vals['tpt_consignee_id'])
+            vals.update({'tpt_consignee_code':partner.customer_code,
+                         
+                         })
+        
+        return super(tpt_cus_consignee, self).create(cr, uid, vals, context)
+    
+    def write(self, cr, uid, ids, vals, context=None):
+        if 'tpt_consignee_id' in vals:
+            partner = self.pool.get('res.partner').browse(cr, uid, vals['tpt_consignee_id'])
+            vals.update({'tpt_consignee_code':partner.customer_code,
+                         
+                         })
+        new_write = super(tpt_cus_consignee, self).write(cr, uid,ids, vals, context)
+
+        return new_write
 tpt_cus_consignee()   
 
 class tpt_batch_allotment_line(osv.osv):
@@ -2144,23 +2255,33 @@ class tpt_batch_allotment_line(osv.osv):
         'product_id': fields.many2one('product.product','Product'),     
         'product_type':fields.selection([('rutile','Rutile'),('anatase','Anatase')],'Product Type'),   
         'application_id': fields.many2one('crm.application','Application'),    
-        'product_uom_qty': fields.float('Quantity'),   
+        'product_uom_qty': fields.float('Allotted Qty', digits=(16,3)),   
         'uom_po_id': fields.many2one('product.uom','UOM'),   
         'sys_batch':fields.many2one('stock.production.lot','System Batch Number',required=True), 
 #         'phy_batch':fields.char('Physical Batch No.', size = 1024)
         'phy_batch':fields.function(get_phy_batch,type='char', size = 1024,string='Physical Batch Number',multi='sum',store=True),
+        'used_qty': fields.float('Used Qty', digits=(16,3)), 
+        'is_deliver': fields.boolean('Is deliver'),
                 }
     
     def create(self, cr, uid, vals, context=None):
         if 'product_uom_qty' in vals:
             if (vals['product_uom_qty'] < 0):
                 raise osv.except_osv(_('Warning!'),_('Quantity is not allowed as negative values'))
+        if 'product_uom_qty' in vals and 'sys_batch' in vals:
+            batch = self.pool.get('stock.production.lot').browse(cr, uid, vals['sys_batch'])
+            if batch.stock_available < vals['product_uom_qty']:
+                raise osv.except_osv(_('Warning!'),_('Allotted Quantity must be less than available stock Quantity!'))
         return super(tpt_batch_allotment_line, self).create(cr, uid, vals, context)
     
     def write(self, cr, uid, ids, vals, context=None):
         if 'product_uom_qty' in vals:
             if (vals['product_uom_qty'] < 0):
                 raise osv.except_osv(_('Warning!'),_('Quantity is not allowed as negative values'))
+        if 'product_uom_qty' in vals and 'sys_batch' in vals:
+            batch = self.pool.get('stock.production.lot').browse(cr, uid, vals['sys_batch'])
+            if batch.stock_available < vals['product_uom_qty']:
+                raise osv.except_osv(_('Warning!'),_('Allotted quantity should not be greater than Available Quantity!'))
         return super(tpt_batch_allotment_line, self).write(cr, uid,ids, vals, context)
     
     def onchange_sys_batch(self, cr, uid, ids,sys_batch=False,qty=False,batch_allotment_line=False,context=None):
@@ -2191,7 +2312,12 @@ class tpt_batch_allotment_line(osv.osv):
                 return {'value': vals,'warning':warning}
             else:
                 vals['sys_batch']= sys_batch
-                vals['phy_batch']= batch.phy_batch_no
+                vals['phy_batch']= batch.phy_batch_no or 0
+                vals['product_uom_qty']= batch.stock_available
+        if sys_batch and not qty:
+            batch = self.pool.get('stock.production.lot').browse(cr, uid, sys_batch)
+            vals['phy_batch']= batch.phy_batch_no
+            vals['product_uom_qty']= batch.stock_available or 0
         return {'value': vals}
     
     def onchange_product_id(self, cr, uid, ids,product_id=False,request_id=False,context=None):

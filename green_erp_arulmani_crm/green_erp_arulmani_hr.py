@@ -4,7 +4,10 @@ from openerp import tools
 from openerp.osv import osv, fields
 from openerp.tools.translate import _
 import time
-from datetime import datetime
+from datetime import datetime, date, timedelta #TPT
+import parser #TPT
+
+
 
 class hr_employee(osv.osv):
     _inherit = "hr.employee"
@@ -51,12 +54,55 @@ class hr_employee(osv.osv):
             permanent_country_id = self.pool.get('res.country.state').browse(cr, uid, permanent_state_id, context).country_id.id
             return {'value':{'permanent_country_id':permanent_country_id}}
         return {}
+    #===========================================================================
+    # #TPT Starts
+    # def _age_yrs(self, cr, uid, ids, date_of_birth, args=None, context=None):                
+    #     
+    #     current_date=datetime.now()
+    #     current_year=current_date.year
+    #     #birth_date = parser.parse(age_in_years)
+    #     date = datetime(year=int(age_in_years[0:4]), month=int(age_in_years[4:6]), day=int(age_in_years[6:8]))        
+    #     current_age=current_year-age_in_years.year
+    #     age_in_yrs = {
+    #         'age_in_yrs':current_age
+    #     }
+    #     return {'value':{'age_in_yrs':age_in_yrs}}
+    # #TPT End
+    #===========================================================================
+
+        
+        
+        
+   #TPT     
+        
+    def _age(self, cr, uid, ids, field_name, arg, context=None):
+        res = {}        
+        
+        for emp in self.browse(cr, uid, ids, context=context):
+            res[emp.id] = {
+                'age_in_yrs': 0,
+            }           
+            
+            
+            dob = emp.birthday           
+            b_date = datetime.strptime(dob, '%Y-%m-%d')
+            datenew = str(datetime.today())            
+            current_date = datetime.strptime(str(datetime.today()), '%Y-%m-%d %H:%M:%S.%f')            
+            difference_in_days = ((current_date - b_date).days/365)
+            
+            res[emp.id]['age_in_yrs'] = difference_in_days 
+           
+        return res              
+      #TPT          
+                
+                
     
     _columns = {
                 'employee_id': fields.char('Employee ID',size=128,readonly=True,store=True),
                 'plant_id' : fields.many2one('hr.plant', 'Plant',ondelete='restrict'),
-                'date_of_joining' : fields.date('Date Of Joining'), 
+                'date_of_joining' : fields.date('Date Of Joining', required=True),  
                 'age_in_years': fields.integer('Age In Years'),
+                'age_in_yrs': fields.function(_age, string='Age in Yrs', multi='sums', help="Age."),
                 'place_of_birth': fields.many2one('res.country.state','State Of Birth',ondelete='restrict'),
                 'caste' : fields.char('Caste', size=128), 
                 'religion_id': fields.many2one('hr.religion', 'Religion',ondelete='restrict'),
@@ -184,7 +230,7 @@ class hr_family (osv.osv):
     _name = "hr.family"
     _description = "Family"
     _columns = {
-        'name' : fields.char('Name', size=128),
+        'name' : fields.char('Name', size=128   ),
         'relation_type': fields.selection([('father','Father'),('mother','Mother'),('spouse','Spouse'),('sibling','Sibling'),('child','Child'),('daughter','Daughter'),('son','Son'),('brother','Brother'),('sister','Sister'),('other','Other')],'Relation Type'),
         'date_of_birth' : fields.date('Date Of Birth'),
         'qualification' : fields.char('Qualification', size=128),

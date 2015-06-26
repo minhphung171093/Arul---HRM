@@ -382,6 +382,14 @@ class arul_hr_employee_action_history(osv.osv):
     def create(self, cr, uid, vals, context=None):
         new_id = super(arul_hr_employee_action_history, self).create(cr, uid, vals, context)
         if context.get('create_leaving_employee'):
+            #TPT System Date
+            DATETIME_FORMAT = "%Y-%m-%d"
+            now = time.strftime('%Y-%m-%d')
+            date_now = datetime.datetime.strptime(now, DATETIME_FORMAT)
+            leaving_date = datetime.datetime.strptime(vals['action_date'], DATETIME_FORMAT)
+            if leaving_date > date_now:
+                raise osv.except_osv(_('Warning!'),_('Not able to post Leaving Entry for Future Date!'))
+                return False
             action_history = self.browse(cr, uid, new_id)
             self.pool.get('hr.employee').write(cr, uid, [action_history.employee_id.id], {'active': False})
         if context.get('create_promotion_employee'):
@@ -395,6 +403,15 @@ class arul_hr_employee_action_history(osv.osv):
                                                                                           'job_id': action_history.designation_to_id.id and action_history.designation_to_id.id or action_history.designation_from_id.id,
                                                                                           'department_id': action_history.department_to_id.id and action_history.department_to_id.id or action_history.department_from_id.id},
                                                                                           )
+            emp_attendence_obj = self.pool.get('arul.hr.employee.attendence.details')
+            employee_ids = emp_attendence_obj.search(cr, uid, [('employee_id','=',action_history.employee_id.id)])
+            emp_attendence_obj.write(cr,uid,employee_ids, {
+                                                          'employee_category_id':action_history.employee_id.employee_category_id and action_history.employee_id.employee_category_id.id or False,
+                                                          'sub_category_id':action_history.employee_id.employee_sub_category_id and action_history.employee_id.employee_sub_category_id.id or False,
+                                                          'department_id':action_history.employee_id.department_id and action_history.employee_id.department_id.id or False,
+                                                          'designation_id':action_history.employee_id.job_id and action_history.employee_id.job_id.id or False,
+                                                          }) 
+            
         if context.get('create_transfer_employee'):
             action_history = self.browse(cr, uid, new_id)
             self.pool.get('hr.employee').write(cr, uid, [action_history.employee_id.id], {'employee_category_id': action_history.employee_category_id and action_history.employee_category_id.id or False,
@@ -503,7 +520,8 @@ class hr_employee(osv.osv):
         'section_id': fields.many2one('arul.hr.section','Section',ondelete='restrict'),
         'payroll_area_id': fields.many2one('arul.hr.payroll.area','Payroll Area',ondelete='restrict'),
         'payroll_sub_area_id': fields.many2one('arul.hr.payroll.sub.area','Payroll Sub Area',ondelete='restrict'),
-        'time_record': fields.char('Time Record ID', size=1024, required = False),
+        'time_record': fields.char('Time Record ID', size=1024),
+        'rfid': fields.char('RFID', size=1024, required = False),
         'employee_leave_id': fields.one2many('employee.leave','employee_id','Employee Leave',readonly=False),
         'country_stateofbirth_id': fields.many2one('res.country', 'Country',ondelete='restrict'),
         'date_of_retirement': fields.date('Date Of Retirement'),
@@ -921,7 +939,56 @@ food_subsidy()
 
 class meals_deduction(osv.osv):
     _name = "meals.deduction"
+    
+    def _no_of_meals(self, cr, uid, ids, field_name, args, context=None):
+        res = {}
+        for line in self.browse(cr,uid,ids,context=context):
+            #raise osv.except_osv(_('Warning!'),_(sql))
+            res[line.id] = {
+                'no_of_bf': 0.0,
+                'no_of_lunch': 0.0,
+                'no_of_dinner': 0.0,
+                'no_of_dinner': 0.0, 
+                'no_of_mid_dinner': 0.0,
+            }
 
+            sql = '''select count(*) from meals_details where meals_id=%s
+             and break_fast='t' '''%line.id
+            cr.execute(sql)
+            p = cr.fetchone()
+            bf = p[0]
+            
+            sql = '''select count(*) from meals_details where meals_id=%s
+             and lunch='t' '''%line.id
+            cr.execute(sql)
+            p = cr.fetchone()
+            lunch = p[0]
+            
+            sql = '''select count(*) from meals_details where meals_id=%s
+             and dinner='t' '''%line.id
+            cr.execute(sql)
+            p = cr.fetchone()
+            dinner = p[0]
+            
+            sql = '''select count(*) from meals_details where meals_id=%s
+             and midnight_tiffin='t' '''%line.id
+            cr.execute(sql)
+            p = cr.fetchone()
+            mid_dinner = p[0]
+            
+            res[line.id]['no_of_bf'] = bf
+            res[line.id]['no_of_lunch'] = lunch
+            res[line.id]['no_of_dinner'] = dinner
+            res[line.id]['no_of_mid_dinner'] = mid_dinner
+           
+        return res
+    
+    def _get_meals_details(self, cr, uid, ids, context=None):
+        result = {}
+        for line in self.pool.get('meals.details').browse(cr, uid, ids, context=context):
+            result[line.blanket_order_id.id] = True
+        return result.keys()
+    
     def onchange_date(self, cr, uid, ids, date, meals_for, context=None):
         vals = {}
         punch_obj = self.pool.get('arul.hr.punch.in.out.time')
@@ -935,7 +1002,9 @@ class meals_deduction(osv.osv):
                 emp_vals.append((0,0,{'emp_id':punch.employee_id.id}))
         vals = {'meals_details_emp_ids':emp_vals,'meals_details_order_ids':[]}
         return {'value': vals}
-   
+    
+    def button_dummy(self, cr, uid, ids, context=None):
+        return True
     _columns = {
         'create_date': fields.datetime('Created Date',readonly = True),
         'create_uid': fields.many2one('res.users','Created By',ondelete='restrict',readonly = True),
@@ -943,6 +1012,35 @@ class meals_deduction(osv.osv):
         'meals_for':fields.selection([('employees','Employees'),('others','Others')],'Meals Arrangement For',required=True),
         'meals_details_emp_ids': fields.one2many('meals.details','meals_id','Meals Deduction Details'),
         'meals_details_order_ids': fields.one2many('meals.details','meals_id','Meals Deduction Details'),
+        
+        'no_of_bf': fields.function(_no_of_meals, type='float',  string='No.of Break Fast', multi='no_of_meals'),
+        'no_of_lunch': fields.function(_no_of_meals, type='float',  string='No.of Lunch', multi='no_of_meals'),
+        'no_of_dinner': fields.function(_no_of_meals, type='float',  string='No.of Dinner', multi='no_of_meals'),
+        'no_of_mid_dinner': fields.function(_no_of_meals, type='float',  string='No.of Midnight Tiffin', multi='no_of_meals'),
+        
+#         'no_of_bf': fields.function(no_of_meals, multi='sums',string='No.of Break Fast',
+#                                          store={
+#                 'meals.deduction': (lambda self, cr, uid, ids, c={}: ids, ['meals_details_order_ids'], 10),
+#                 'meals.details': (_get_meals_details, ['break_fast', 'lunch', 'dinner','midnight_tiffin'], 10),}, 
+#             ),
+#         'no_of_lunch': fields.function(no_of_meals, multi='sums',string='No.of Lunch',
+#                                       store={
+#                 'meals.deduction': (lambda self, cr, uid, ids, c={}: ids, ['meals_details_order_ids'], 10),
+#                 'meals.details': (_get_meals_details, ['break_fast', 'lunch', 'dinner','midnight_tiffin'], 10), }, 
+#             ),
+#         'no_of_dinner': fields.function(no_of_meals, multi='sums',string='No.of Dinner',
+#                                         store={
+#                 'meals.deduction': (lambda self, cr, uid, ids, c={}: ids, ['meals_details_order_ids'], 10),
+#                 'meals.details': (_get_meals_details, ['break_fast', 'lunch', 'dinner','midnight_tiffin'], 10), },
+#             ),
+#         'no_of_mid_dinner': fields.function(no_of_meals, multi='sums',string='No.of Midnight Dinner',
+#                                         store={
+#                 'meals.deduction': (lambda self, cr, uid, ids, c={}: ids, ['meals_details_order_ids'], 10),
+#                 'meals.details': (_get_meals_details, ['break_fast', 'lunch', 'dinner','midnight_tiffin'], 10), },
+#              ),
+#         
+        
+        
     }
     def name_get(self, cr, uid, ids, context=None):
         res = []

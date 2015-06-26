@@ -154,6 +154,7 @@
             <field name="arch" type="xml">
             	<tree colors="blue:state == 'draft';black:state in ('proforma','proforma2','open');gray:state == 'cancel'" string="Invoice" position="replace" >
 	                <tree colors="blue:state == 'draft';black:state in ('proforma','proforma2','open');gray:state == 'cancel'" string="Invoice" create='false'><!--TPT: Create disabled by BalamuruganPurushothaman  -->
+	                    <field name="vvt_number"/>
 	                    <field name="partner_id" groups="base.group_user"/>
 	                    <field name="date_invoice"/>
 	                    <field name="number" invisible="1"/>
@@ -223,8 +224,8 @@
 					<field name="port_of_loading_id" options="{'create': false, 'create_edit': false}"/>
 					-->
 					<field name="mark_container_no" />
-					<field name="insurance" /> 
-					<field name="other_charges" /> 
+					<!-- <field name="insurance" />  -->
+					<!-- <field name="other_charges" />   -->
 					<field name="agency_comm" /> 
 					
 					<group attrs="{'invisible': [('invoice_type', '=', 'export') ] }" colspan="2" >
@@ -241,27 +242,34 @@
 				</xpath>
 				
 				<xpath expr="//field[@name='journal_id']" position="replace">
-					<field name="cons_loca" domain="[('consignee_parent_id','=',partner_id)]" options="{'create': false, 'create_edit': false,'always_reload': True}" context="{'show_address': 1}"/>
+					<!-- <field name="cons_loca" domain="[('consignee_parent_id','=',partner_id)]" options="{'create': false, 'create_edit': false,'always_reload': True}" context="{'show_address': 1}"/>
+					 -->
+					 <field name="cons_loca" domain="[('customer_account_group_id','=','VVTI Ship to Party')]" options="{'create': false, 'create_edit': false}" />
 				</xpath>
 				<xpath expr="//field[@name='date_invoice']" position="attributes">
 					<attribute name="on_change">onchange_date_invoice(date_invoice)</attribute>
 				</xpath>
+				
 				<xpath expr="//field[@name='currency_id']" position="attributes">
-					<attribute name="readonly">1</attribute>
-				</xpath>
+					<attribute name="readonly">0</attribute>
+				</xpath>  
 				<xpath expr="//field[@name='account_id']" position="replace">
 					<field name="account_id" required = "0" invisible = "1"/>
 					<field name="sale_id" readonly="1" options="{'create': false, 'create_edit': false}"/>
 					<field name="payment_term" options="{'create': false, 'create_edit': false}"/>
 					<field name="sale_tax_id" domain="[('type_tax_use','=','sale')]" options="{'create': false, 'create_edit': false}"/>
 					<field name="invoice_type" required ='1'/>
-					<field name="material_info" />
+					<field name="header_text" />
+					<field name="material_info" readonly="1"/>
 					<field name="other_info" />
 					<field name="vessel_flight_no" />	
+					<field name="country_dest" />
+					<field name="tod_place" />
 					<field name="lc_no" />									
 					<field name="port_of_discharge_id" options="{'create': false, 'create_edit': false}"/>	
 					<field name="final_desti" />				
 					<field name="disc_goods" />	
+					<field name="gross_weight" />
 					
 					
 				</xpath>
@@ -300,6 +308,8 @@
 					<field name="amount_ed"/>
 					<field name="price_subtotal" string ="SubTotal"/>
 					<field name="freight" />
+					<field name="insurance" />
+					<field name="others" />
 				</xpath>
 				
 				<xpath expr="//field[@name='amount_total']" position="after">
@@ -348,11 +358,11 @@
             		<button name="management_confirm" string="Management Confirm" attrs="{'invisible': ['|',('doc_status','!=','waiting'),('flag_confirm','=',True)]}" type="object" icon="gtk-apply" 
 		                confirm="This Delivery Order is reached the credit limit. Do you want to confirm this Delivery Order?"
 		                groups="green_erp_arulmani_sale.group_vvti_sale_gm"/>
-		                <!-- TPT ON 04/04/2015 - TO HIDE THIS REOPEN BUTTON
-	                <button name="action_revert_done" string="Reopen" states="done,cancel" type="object" icon="gtk-cancel" 
+		               
+	                <!--<button name="action_revert_done" string="Reopen" states="done,cancel" type="object" icon="gtk-cancel" 
 	                	confirm="Do you want to reopen this Delivery Order?"
-	                />
-	                -->
+	                />-->
+	                
 	            </button>
             	<xpath expr="//field[@name='stock_journal_id']"  position="replace">
             		<field name="stock_journal_id" invisible="1"/>
@@ -373,6 +383,11 @@
 				<xpath expr="//field[@name='backorder_id']" position="attributes">
 					<attribute name="invisible">1</attribute>
 				</xpath>
+				
+				<button name="action_assign" position="replace">
+					<button name="tpt_check_stock" states="confirmed" string="Check Availability" type="object" class="oe_highlight"/>
+				</button>
+				
             	<xpath expr="//field[@name='partner_id']"  position="replace">
                     <field name="partner_id" on_change="onchange_partner_in(partner_id)" string="Customer" domain="[('customer','=',1),('is_company','=',1)]" readonly = "1" options="{'create': false, 'create_edit': false}"/>
             		<field name="sale_id" readonly="1" domain="[('state','=','progress')]" options="{'create': false, 'create_edit': false}"/>

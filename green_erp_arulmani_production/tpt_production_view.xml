@@ -37,6 +37,7 @@
 								<field name="name"/>
 								<field name="location_id" domain="[('usage','=','internal'),('chained_location_type','&lt;&gt;','customer')]" options="{'create': false, 'create_edit': false}"/>
 								<field name="available"/>
+								<field name="batchable" on_change="onchange_batchable(available,batchable)"/>
 							</group>
 						</group>
 						<notebook>
@@ -231,8 +232,8 @@
                 <data>
                	 	<xpath expr="//form[@string='Bill of Material']/group" position="before">
                     	<header>
-		            		<button name="bt_approve_production" states='draft' string="Production Approval" type="object" class="oe_highlight" groups="green_erp_arulmani_purchase.group_vvti_purchase_admin,green_erp_arulmani_production.group_vvti_production_admin"/>
-		                    <button name="bt_approve_finance" states='product_manager' string="Finance Approval" type="object" class="oe_highlight" groups="green_erp_arulmani_accounting.group_vvti_accounting_admin"/>
+		            		<button name="bt_approve_production" states='draft' string="Production Approval" type="object" class="oe_highlight" groups="green_erp_arulmani_purchase.group_vvti_purchase_admin,green_erp_arulmani_production.group_vvti_production_admin,green_erp_arulmani_production.group_vvti_production_mgr"/>
+		                    <button name="bt_approve_finance" states='product_manager' string="Finance Approval" type="object" class="oe_highlight" groups="green_erp_arulmani_accounting.group_vvti_accounting_admin,green_erp_arulmani_accounting.group_vvti_accounting_gm"/>
 		                    <field name="state" widget="statusbar" statusbar_visible="draft,product_manager,finance_manager" statusbar_colors='{"finance_manager":"red","product_manager":"blue"}'/>
 	            		</header> 
                     </xpath> 
@@ -342,6 +343,10 @@
                     </xpath>
                     <xpath expr="//label[@for='product_qty']" position="replace">
                 		 <label string="Applied Quantity"/>
+                    </xpath>
+                    
+                    <xpath expr="//label[@for='prodlot_id']" position="attributes">
+                		<attribute name='string'>Batch Number</attribute>
                     </xpath>
                     
                 </data>

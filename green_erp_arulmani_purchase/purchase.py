@@ -27,7 +27,7 @@ class tpt_purchase_indent(osv.osv):
                                 ('service','VV Service PR'),
                                 ('normal','VV Normal PR'),
                                 ('raw','VV Raw Material PR'),
-                                ],'Document Type',required = True, states={'cancel': [('readonly', True)] }),
+                                ],'Document Type',required = True, states={'cancel': [('readonly', True)], 'done':[('readonly', True)] }),
         'intdent_cate':fields.selection([
                                 ('emergency','Emergency Indent'),
                                 ('normal','Normal Indent')],'Indent Category',required = True, states={'cancel': [('readonly', True)] }),
@@ -42,7 +42,7 @@ class tpt_purchase_indent(osv.osv):
         'reason':fields.text('Reason', states={'cancel': [('readonly', True)] }),
         'header_text':fields.text('Header Text',states={'cancel': [('readonly', True)] }), #TPT
         'requisitioner':fields.many2one('hr.employee','Requisitioner',states={'cancel': [('readonly', True)] }),
-        'purchase_product_line':fields.one2many('tpt.purchase.product','pur_product_id','Materials',states={'cancel': [('readonly', True)] }),
+        'purchase_product_line':fields.one2many('tpt.purchase.product','pur_product_id','Materials',states={'cancel': [('readonly', True)], 'done':[('readonly', True)] }),
         'state':fields.selection([('draft', 'Draft'),('cancel', 'Closed'),
                                   ('done', 'Approve'),('rfq_raised','RFQ Raised'),
                                   ('quotation_raised','Quotation Raised'),
@@ -50,7 +50,7 @@ class tpt_purchase_indent(osv.osv):
         'section_id': fields.many2one('arul.hr.section','Section',ondelete='restrict',states={'cancel': [('readonly', True)], 'done':[('readonly', True)]}),
         'project_id': fields.many2one('tpt.project','Project', states={'cancel': [('readonly', True)], 'done':[('readonly', True)]}),
         'project_section_id': fields.many2one('tpt.project.section','Project Section',ondelete='restrict',states={'cancel': [('readonly', True)], 'done':[('readonly', True)]}),
-    
+        'cost_center_id': fields.many2one('tpt.cost.center','Cost center',states={'cancel': [('readonly', True)], 'done':[('readonly', True)]}),
     }
     
     def _get_department_id(self,cr,uid,context=None):
@@ -81,7 +81,11 @@ class tpt_purchase_indent(osv.osv):
     def bt_approve(self, cr, uid, ids, context=None):
         for line in self.browse(cr, uid, ids):
             for indent_line in line.purchase_product_line:
-                self.pool.get('tpt.purchase.product').write(cr, uid,  [indent_line.id],{'state':'confirm'})
+                if line.document_type == 'service':
+                    self.pool.get('tpt.purchase.product').write(cr, uid,  [indent_line.id],{'state':'+'})
+                else:
+                    self.pool.get('tpt.purchase.product').write(cr, uid,  [indent_line.id],{'state':'confirm'})
+                self.pool.get('tpt.purchase.product').write(cr, uid,  [indent_line.id],{'intdent_cate':line.intdent_cate})
         return self.write(cr, uid, ids,{'state':'done'})
     
     def bt_cancel(self, cr, uid, ids, context=None):
@@ -276,45 +280,45 @@ class tpt_purchase_indent(osv.osv):
                 gate_ids = [row[0] for row in cr.fetchall()]
                 args += [('id','in',gate_ids)]
         if context.get('search_po_indent_line'):
-            if context.get('po_document_type'):
+            if context.get('po_document_type'): ### them trang thai rfq_raise de xet so luong cho tung line indent, 1 indent co the duoc tao nhieu rfq
                 if context.get('po_document_type')=='standard':
                     sql = '''
-                        select pur_product_id from tpt_purchase_product where state = '++' and (doc_type_relate = 'normal' or doc_type_relate = 'maintenance' or doc_type_relate = 'spare' or doc_type_relate = 'base' or doc_type_relate = 'consumable')
+                        select pur_product_id from tpt_purchase_product where state in ('++','rfq_raised','quotation_raised','po_raised') and (doc_type_relate = 'normal' or doc_type_relate = 'maintenance' or doc_type_relate = 'spare' or doc_type_relate = 'base' or doc_type_relate = 'consumable')
                     '''
                     cr.execute(sql)
                     pur_ids = [row[0] for row in cr.fetchall()]
                     args += [('id','in',pur_ids)]
                 if context.get('po_document_type')=='local':
                     sql = '''
-                        select pur_product_id from tpt_purchase_product where state = '++' and (doc_type_relate = 'local' or doc_type_relate = 'base')
+                        select pur_product_id from tpt_purchase_product where state in ('++','rfq_raised','quotation_raised','po_raised') and (doc_type_relate = 'local' or doc_type_relate = 'base')
                     '''
                     cr.execute(sql)
                     pur_ids = [row[0] for row in cr.fetchall()]
                     args += [('id','in',pur_ids)]
                 if context.get('po_document_type')=='asset':
                     sql = '''
-                        select pur_product_id from tpt_purchase_product where state = '++' and doc_type_relate = 'capital' 
+                        select pur_product_id from tpt_purchase_product where state in ('++','rfq_raised','quotation_raised','po_raised') and doc_type_relate = 'capital' 
                     '''
                     cr.execute(sql)
                     pur_ids = [row[0] for row in cr.fetchall()]
                     args += [('id','in',pur_ids)]
                 if context.get('po_document_type')=='raw':
                     sql = '''
-                        select pur_product_id from tpt_purchase_product where state = '++' and doc_type_relate = 'raw' 
+                        select pur_product_id from tpt_purchase_product where state in ('++','rfq_raised','quotation_raised','po_raised') and doc_type_relate = 'raw' 
                     '''
                     cr.execute(sql)
                     pur_ids = [row[0] for row in cr.fetchall()]
                     args += [('id','in',pur_ids)]
                 if context.get('po_document_type')=='service':
                     sql = '''
-                        select pur_product_id from tpt_purchase_product where state = '++' and doc_type_relate = 'service' 
+                        select pur_product_id from tpt_purchase_product where state in ('++','rfq_raised','quotation_raised','po_raised') and doc_type_relate = 'service' 
                     '''
                     cr.execute(sql)
                     pur_ids = [row[0] for row in cr.fetchall()]
                     args += [('id','in',pur_ids)]
                 if context.get('po_document_type')=='out':
                     sql = '''
-                        select pur_product_id from tpt_purchase_product where state = '++' and doc_type_relate = 'outside'
+                        select pur_product_id from tpt_purchase_product where state in ('++','rfq_raised','quotation_raised','po_raised') and doc_type_relate = 'outside'
                     '''
                     cr.execute(sql)
                     pur_ids = [row[0] for row in cr.fetchall()]
@@ -369,6 +373,12 @@ class tpt_purchase_product(osv.osv):
             res[line.id]['total_val'] = total
         return res
     
+    def _get_pending_qty(self, cr, uid, ids, field_name, arg, context=None):
+        res = {}
+        for line in self.browse(cr, uid, ids, context=context):
+            res[line.id]  =  line.product_uom_qty - line.rfq_qty
+        return res
+    
     _columns = {
         'pur_product_id':fields.many2one('tpt.purchase.indent','Purchase Indent',ondelete='cascade' ),
         'product_id': fields.many2one('product.product', 'Material Code'),
@@ -388,9 +398,9 @@ class tpt_purchase_product(osv.osv):
         #'dec_material':fields.text('Material Description'),
         'description':fields.char('Mat. Description', size = 50),
         'item_text':fields.text('Item Text' ),
-        'product_uom_qty': fields.float('Indent Qty' ),   
+        'product_uom_qty': fields.float('Indent Qty',digits=(16,3), states={'++': [('readonly', True)],'xx': [('readonly', True)]} ),   
         'uom_po_id': fields.many2one('product.uom', 'UOM', readonly = True),
-        'pending_qty': fields.float('Pending Qty' ), 
+        'pending_qty': fields.function(_get_pending_qty,digits=(16,3),type='float',string='Pending Qty'),
         #'recom_vendor_id': fields.many2one('res.partner', 'Recommended Vendor'),
         'recom_vendor': fields.char('Recommended Vendor', size = 30 ),
         'release_by':fields.selection([('1','Store Level'),('2','HOD Level')],'Released By'),
@@ -404,24 +414,33 @@ class tpt_purchase_product(osv.osv):
                                           ('quotation_cancel','Quotation Cancelled'),
                                           ],'Indent Status', readonly=True),
 #Hung moi them 2 Qty theo yeu casu bala
-        'mrs_qty': fields.float('Reserved Qty'),
+        'po_doc_no':fields.many2one('purchase.order','PO Document Number'),
+        'po_date':fields.date('PO Date'),
+        'mrs_qty': fields.float('Reserved Qty',digits=(16,3)),
         'inspection_qty': fields.float('Inspection Quantity' ), 
         'on_hand_qty':fields.function(_get_on_hand_qty,digits=(16,3),type='float',string='On Hand Qty',multi='sum',store=False),
         'department_id_relate':fields.related('pur_product_id', 'department_id',type = 'many2one', relation='hr.department', string='Department',store=True),
         'section_id_relate': fields.related('pur_product_id', 'section_id',type = 'many2one', relation='arul.hr.section', string='Section',store=True),
         'requisitioner_relate':fields.related('pur_product_id', 'requisitioner',type = 'many2one', relation='hr.employee', string='Requisitioner',store=True),
         'date_indent_relate':fields.related('pur_product_id', 'date_indent',type = 'date', string='Indent Date',store=True),
+        'create_uid_relate':fields.related('pur_product_id', 'create_uid',type = 'many2one', relation='res.users', string='Raised By',store=True),
         'flag': fields.boolean('Flag'),
         'store_date':fields.datetime('Store Approved Date',readonly = True),
         'hod_date':fields.datetime('HOD Approved Date',readonly = True),
-        'price_unit': fields.float('Unit Price',digits=(16,3) ), 
+        'price_unit': fields.float('Unit Price',digits=(16,3), states={'++': [('readonly', True)],'xx': [('readonly', True)]} ), 
         'total_val':fields.function(_get_total_val,digits=(16,3),type='float',string='Total Value',multi='avg',store=False),
+        'rfq_qty': fields.float('RFQ Qty',digits=(16,3)),
+        'is_mrp': fields.boolean('Is MRP'),
+        'intdent_cate':fields.selection([
+                                ('emergency','Emergency Indent'),
+                                ('normal','Normal Indent')],'Indent Category'),
         }  
 #     
     _defaults = {
         'state':'draft',
         'flag': False,
-        'price_unit':0.0
+        'price_unit':0.0,
+        'rfq_qty':0.0
     }
     
 #     def _check_product_id(self, cr, uid, ids, context=None):
@@ -559,8 +578,8 @@ class tpt_purchase_product(osv.osv):
                              })
         new_id = super(tpt_purchase_product, self).create(cr, uid, vals, context)
         if 'product_uom_qty' in vals:
-            if (vals['product_uom_qty'] < 0):
-                raise osv.except_osv(_('Warning!'),_('Quantity is not allowed as negative values'))
+            if (vals['product_uom_qty'] <= 0):
+                raise osv.except_osv(_('Warning!'),_('Quantity is not allowed as 0 or negative values'))
         if 'pending_qty' in vals:
             if (vals['pending_qty'] < 0):
                 raise osv.except_osv(_('Warning!'),_('Pending Quantity is not allowed as negative values'))
@@ -586,8 +605,8 @@ class tpt_purchase_product(osv.osv):
                              })
         new_write = super(tpt_purchase_product, self).write(cr, uid,ids, vals, context)
         for line in self.browse(cr,uid,ids):
-            if line.product_uom_qty < 0:
-                raise osv.except_osv(_('Warning!'),_('Quantity is not allowed as negative values'))
+            if line.product_uom_qty <= 0:
+                raise osv.except_osv(_('Warning!'),_('Quantity is not allowed as 0 or negative values'))
             if line.pending_qty < 0:
                 raise osv.except_osv(_('Warning!'),_('Pending Quantity is not allowed as negative values'))
         return new_write
@@ -623,7 +642,7 @@ class tpt_purchase_product(osv.osv):
             if context.get('po_indent_id'):
                 sql = '''
                     select id from tpt_purchase_product
-                    where pur_product_id = %s and state = '++'
+                    where pur_product_id = %s and state in ('++','rfq_raised','quotation_raised','po_raised') and product_uom_qty != rfq_qty
                 '''%(context.get('po_indent_id'))
                 cr.execute(sql)
                 indent_ids = [row[0] for row in cr.fetchall()]
@@ -843,9 +862,9 @@ class product_product(osv.osv):
         'inventory_line':fields.function(_inventory, method=True,type='one2many', relation='tpt.product.inventory', string='Inventory'),
         'spec_parameter_line':fields.one2many('tpt.spec.parameters.line', 'product_id', 'Spec Parameters'),
         'tpt_product_type':fields.selection([('rutile','Rutile'),('anatase','Anatase')],'Finished Product Type'),
-        'min_stock': fields.float('Min. Stock Level'),
-        'max_stock': fields.float('Max. Stock Level'),
-        're_stock': fields.float('Reorder Level'),
+        'min_stock': fields.float('Min. Stock Level',digits=(16,3)),
+        'max_stock': fields.float('Max. Stock Level',digits=(16,3)),
+        're_stock': fields.float('Reorder Level',digits=(16,3)),
         'po_text': fields.char('PO Text', size = 1024),
         'mrp_control':fields.boolean('MRP Control Type'),
         'tpt_description':fields.text('Description', size = 256),
@@ -1175,7 +1194,8 @@ class tpt_purchase_quotation(osv.osv):
                 'amount_fright': 0.0,
                 'amount_gross': 0.0,
                 'amount_net': 0.0,
-                'amount_unit_net': 0.0,
+                'amount_unit_net': 0.0, 
+                'amount_total_inr': 0.0,
             }
             amount_line = 0.0
             amount_basic = 0.0
@@ -1187,6 +1207,16 @@ class tpt_purchase_quotation(osv.osv):
             amount_net=0.0
             amount_unit_net=0.0
             qty = 0.0
+            amount_total_inr = 0.0
+            voucher_rate = 1
+            if context is None:
+                context = {}
+            ctx = context.copy()
+            ctx.update({'date': time.strftime('%Y-%m-%d')})
+            currency = line.currency_id.name or False
+            currency_id = line.currency_id.id or False
+            if currency and currency != 'INR':
+                voucher_rate = self.pool.get('res.currency').read(cr, uid, currency_id, ['rate'], context=ctx)['rate']
             for quotation in line.purchase_quotation_line:
                 qty += quotation.product_uom_qty
                 basic = (quotation.product_uom_qty * quotation.price_unit) - ( (quotation.product_uom_qty * quotation.price_unit)*quotation.disc/100)
@@ -1236,6 +1266,7 @@ class tpt_purchase_quotation(osv.osv):
             amount_gross = amount_line + amount_p_f + amount_ed + amount_total_tax + amount_fright
             amount_net = amount_net
             amount_unit_net = qty and amount_net/qty or 0
+            amount_total_inr = amount_gross/voucher_rate
             res[line.id]['amount_line'] = amount_line
             res[line.id]['amount_basic'] = amount_basic
             res[line.id]['amount_p_f'] = amount_p_f
@@ -1245,6 +1276,7 @@ class tpt_purchase_quotation(osv.osv):
             res[line.id]['amount_gross'] = amount_gross
             res[line.id]['amount_net'] = amount_net
             res[line.id]['amount_unit_net'] = amount_unit_net
+            res[line.id]['amount_total_inr'] = amount_total_inr
         return res
     
     def _get_supplier_name(self, cr, uid, ids, field_name, args, context=None):
@@ -1271,55 +1303,61 @@ class tpt_purchase_quotation(osv.osv):
         'quotation_ref':fields.char('Quotation Reference',size = 1024,required=True),
 #         'tax_id': fields.many2one('account.tax', 'Taxes',required=True ,states={'cancel': [('readonly', True)], 'done':[('readonly', True)]}),
         'purchase_quotation_line':fields.one2many('tpt.purchase.quotation.line','purchase_quotation_id','Quotation Line' ,states={'cancel': [('readonly', True)], 'done':[('readonly', True)]}),
-        'amount_line': fields.function(amount_all_quotation_line, multi='sums',string='Line Amount',
+        'amount_line': fields.function(amount_all_quotation_line, multi='sums',string='Line Amount',digits=(16,3),
                                          store={
                 'tpt.purchase.quotation': (lambda self, cr, uid, ids, c={}: ids, ['purchase_quotation_line'], 10),
                 'tpt.purchase.quotation.line': (_get_order, ['product_uom_qty', 'uom_id', 'price_unit','disc','p_f','p_f_type',   
                                                                 'e_d', 'e_d_type','tax_id','fright','fright_type'], 10),}, 
             states={'cancel': [('readonly', True)], 'done':[('readonly', True)]}),
-        'amount_basic': fields.function(amount_all_quotation_line, multi='sums',string='Basic Amounts',
+        'amount_basic': fields.function(amount_all_quotation_line, multi='sums',string='Basic Amounts',digits=(16,3),
                                       store={
                 'tpt.purchase.quotation': (lambda self, cr, uid, ids, c={}: ids, ['purchase_quotation_line'], 10),
                 'tpt.purchase.quotation.line': (_get_order, ['product_uom_qty', 'uom_id', 'price_unit','disc','p_f','p_f_type',   
                                                                 'e_d', 'e_d_type','tax_id','fright','fright_type'], 10), }, 
             states={'cancel': [('readonly', True)], 'done':[('readonly', True)]}),
-        'amount_p_f': fields.function(amount_all_quotation_line, multi='sums',string='P & F charges',
+        'amount_p_f': fields.function(amount_all_quotation_line, multi='sums',string='P & F charges',digits=(16,3),
                                         store={
                 'tpt.purchase.quotation': (lambda self, cr, uid, ids, c={}: ids, ['purchase_quotation_line'], 10),
                 'tpt.purchase.quotation.line': (_get_order, ['product_uom_qty', 'uom_id', 'price_unit','disc','p_f','p_f_type',   
                                                                 'e_d', 'e_d_type','tax_id','fright','fright_type'], 10), },
              states={'cancel': [('readonly', True)], 'done':[('readonly', True)]}),
-        'amount_ed': fields.function(amount_all_quotation_line, multi='sums',string='Excise Duty',
+        'amount_ed': fields.function(amount_all_quotation_line, multi='sums',string='Excise Duty',digits=(16,3),
                                          store={
                 'tpt.purchase.quotation': (lambda self, cr, uid, ids, c={}: ids, ['purchase_quotation_line'], 10),
                 'tpt.purchase.quotation.line': (_get_order, ['product_uom_qty', 'uom_id', 'price_unit','disc','p_f','p_f_type',   
                                                                 'e_d', 'e_d_type','tax_id','fright','fright_type'], 10),}, 
             states={'cancel': [('readonly', True)], 'done':[('readonly', True)]}),
-        'amount_total_tax': fields.function(amount_all_quotation_line, multi='sums',string='Total Tax(CST/VAT)',
+        'amount_total_tax': fields.function(amount_all_quotation_line, multi='sums',string='Total Tax(CST/VAT)',digits=(16,3),
                                       store={
                 'tpt.purchase.quotation': (lambda self, cr, uid, ids, c={}: ids, ['purchase_quotation_line'], 10),
                 'tpt.purchase.quotation.line': (_get_order, ['product_uom_qty', 'uom_id', 'price_unit','disc','p_f','p_f_type',   
                                                                 'e_d', 'e_d_type','tax_id','fright','fright_type'], 10), }, 
             states={'cancel': [('readonly', True)], 'done':[('readonly', True)]}),
-        'amount_fright': fields.function(amount_all_quotation_line, multi='sums',string='Freight',
+        'amount_fright': fields.function(amount_all_quotation_line, multi='sums',string='Freight',digits=(16,3),
                                         store={
                 'tpt.purchase.quotation': (lambda self, cr, uid, ids, c={}: ids, ['purchase_quotation_line'], 10),
                 'tpt.purchase.quotation.line': (_get_order, ['product_uom_qty', 'uom_id', 'price_unit','disc','p_f','p_f_type',   
                                                                 'e_d', 'e_d_type','tax_id','fright','fright_type'], 10), },
              states={'cancel': [('readonly', True)], 'done':[('readonly', True)]}),
-        'amount_gross': fields.function(amount_all_quotation_line, multi='sums',string='Gross Landed Cost',
+        'amount_gross': fields.function(amount_all_quotation_line, multi='sums',string='Gross Landed Cost',digits=(16,3),
                                          store={
                 'tpt.purchase.quotation': (lambda self, cr, uid, ids, c={}: ids, ['purchase_quotation_line'], 10),
                 'tpt.purchase.quotation.line': (_get_order, ['product_uom_qty', 'uom_id', 'price_unit','disc','p_f','p_f_type',   
                                                                 'e_d', 'e_d_type','tax_id','fright','fright_type'], 10),}, 
             states={'cancel': [('readonly', True)], 'done':[('readonly', True)]}),
-        'amount_net': fields.function(amount_all_quotation_line, multi='sums',string='Net Landed Cost',
+        'amount_net': fields.function(amount_all_quotation_line, multi='sums',string='Net Landed Cost',digits=(16,3),
                                       store={
                 'tpt.purchase.quotation': (lambda self, cr, uid, ids, c={}: ids, ['purchase_quotation_line'], 10),
                 'tpt.purchase.quotation.line': (_get_order, ['product_uom_qty', 'uom_id', 'price_unit','disc','p_f','p_f_type',   
                                                                 'e_d', 'e_d_type','tax_id','fright','fright_type'], 10), }, 
             states={'cancel': [('readonly', True)], 'done':[('readonly', True)]}),
-        'amount_unit_net': fields.function(amount_all_quotation_line, multi='sums',string='Unit Net Landed Cost',
+        'amount_unit_net': fields.function(amount_all_quotation_line, multi='sums',string='Unit Net Landed Cost',digits=(16,3),
+                                        store={
+                'tpt.purchase.quotation': (lambda self, cr, uid, ids, c={}: ids, ['purchase_quotation_line'], 10),
+                'tpt.purchase.quotation.line': (_get_order, ['product_uom_qty', 'uom_id', 'price_unit','disc','p_f','p_f_type',   
+                                                                'e_d', 'e_d_type','tax_id','fright','fright_type'], 10), },
+             states={'cancel': [('readonly', True)], 'done':[('readonly', True)]}),
+        'amount_total_inr': fields.function(amount_all_quotation_line, multi='sums',string='Gross Landed Cost (INR)',digits=(16,3),
                                         store={
                 'tpt.purchase.quotation': (lambda self, cr, uid, ids, c={}: ids, ['purchase_quotation_line'], 10),
                 'tpt.purchase.quotation.line': (_get_order, ['product_uom_qty', 'uom_id', 'price_unit','disc','p_f','p_f_type',   
@@ -1342,12 +1380,19 @@ class tpt_purchase_quotation(osv.osv):
 
         'mode_dis': fields.char('Mode Of Dispatch', size = 1024), 
         #TPT END
+        'currency_id': fields.many2one('res.currency', 'Currency', readonly=False, required=False,states={'cancel': [('readonly', True)], 'done':[('readonly', True)]}),
     }
+    
+    def _get_currency_id(self, cr, uid, context=None):
+        company = self.pool.get('res.users').browse(cr, uid, uid).company_id
+        return company.currency_id and company.currency_id.id or False
+    
     _defaults = {
         'state': 'draft',
         'name': '/',
         'date_quotation':fields.datetime.now,
         'quotation_cate':'multiple',
+        'currency_id': _get_currency_id,
         }  
     
     
@@ -1666,20 +1711,20 @@ class tpt_purchase_quotation_line(osv.osv):
         'purchase_quotation_id':fields.many2one('tpt.purchase.quotation','Purchase Quotitation', ondelete = 'cascade'),
         'po_indent_id':fields.many2one('tpt.purchase.indent','Indent No', readonly = True),
         'product_id': fields.many2one('product.product', 'Material Name',readonly = True),
-        'product_uom_qty': fields.float('Qty', readonly = True),   
+        'product_uom_qty': fields.float('Qty', readonly = True,digits=(16,3)),   
         'uom_id': fields.many2one('product.uom', 'UOM', readonly = True),
-        'price_unit': fields.float('Unit Price', required=True),
-        'disc': fields.float('Disc'),
-        'p_f': fields.float('P&F'),
+        'price_unit': fields.float('Unit Price', required=True,digits=(16,3)),
+        'disc': fields.float('Disc',digits=(16,3)),
+        'p_f': fields.float('P&F',digits=(16,3)),
         'p_f_type':fields.selection([('1','%'),('2','Rs'),('3','Per Qty')],('P&F Type')),
-        'e_d': fields.float('ED'),
+        'e_d': fields.float('ED',digits=(16,3)),
         'e_d_type':fields.selection([('1','%'),('2','Rs'),('3','Per Qty')],('ED Type')),
         'tax_id': fields.many2one('account.tax', 'Taxes',required = True),
-        'fright': fields.float('Frt'),
+        'fright': fields.float('Frt',digits=(16,3)),
         'fright_type':fields.selection([('1','%'),('2','Rs'),('3','Per Qty')],('Frt Type')),
-        'line_net': fields.function(line_net_line, store = True, multi='deltas' ,string='SubTotal'),
+        'line_net': fields.function(line_net_line, store = True, multi='deltas' ,digits=(16,3),string='SubTotal'),
         'line_no': fields.integer('SI.No', readonly = True),
-        'order_charge': fields.float('Other Charges'),
+        'order_charge': fields.float('Other Charges',digits=(16,3)),
         'description':fields.char('Mat.Desc', size = 50, readonly = True),
         #TPT
         'item_text': fields.char('Item Text'), 
@@ -1939,6 +1984,32 @@ tpt_spec_parameters_line()
 class purchase_order(osv.osv):
     _inherit = "purchase.order"
     
+    def init(self, cr):
+        sql = '''
+            update purchase_order set currency_id=tpt_currency_id
+        '''
+        cr.execute(sql) 
+#         sql ='''
+#             update stock_move set cost_center_id=(select cost_center_id from tpt_purchase_indent where id=stock_move.po_indent_id limit 1)
+#         '''
+#         cr.execute(sql)
+#         quotation_obj=self.pool.get('tpt.purchase.quotation.line')
+#         quotation_ids=self.pool.get('tpt.purchase.quotation.line').search(cr,1,[])
+# #         quotation = quotation_obj.browse(cr,1,quotation_ids)
+# #         for line in self.browse(cr,1,ids):
+#         for quotation in quotation_obj.browse(cr,1,quotation_ids):
+#         sql = '''
+#              update purchase_order_line set item_text=(select item_text from tpt_purchase_quotation_line
+#                  where po_indent_id = purchase_order_line.po_indent_no and product_id = purchase_order_line.product_id
+#                      and product_uom_qty=purchase_order_line.product_qty limit 1)
+#         '''
+#         cr.execute(sql)
+#         sql ='''
+#             update stock_move set item_text=(select item_text from purchase_order_line where id=stock_move.purchase_line_id limit 1)
+#         '''
+#         cr.execute(sql)
+#         %(quotation.item_text,quotation.po_indent_id.id,quotation.product_id.id)
+    
     def amount_all_po_line(self, cr, uid, ids, field_name, args, context=None):
         res = {}
         for line in self.browse(cr,uid,ids,context=context):
@@ -1948,6 +2019,7 @@ class purchase_order(osv.osv):
                 'excise_duty': 0.0,
                 'amount_tax': 0.0,
                 'fright': 0.0,
+                'amount_total_inr': 0.0,
             }
             amount_untaxed = 0.0
             p_f_charge=0.0
@@ -1956,6 +2028,15 @@ class purchase_order(osv.osv):
             total_tax = 0.0
             amount_fright=0.0
             qty = 0.0
+            voucher_rate = 1
+            if context is None:
+                context = {}
+            ctx = context.copy()
+            ctx.update({'date': time.strftime('%Y-%m-%d')})
+            currency = line.currency_id.name or False
+            currency_id = line.currency_id.id or False
+            if currency and currency != 'INR':
+                voucher_rate = self.pool.get('res.currency').read(cr, uid, currency_id, ['rate'], context=ctx)['rate']
             for po in line.order_line:
                 tax = 0
                 qty += po.product_qty
@@ -2003,6 +2084,7 @@ class purchase_order(osv.osv):
             res[line.id]['amount_tax'] = total_tax
             res[line.id]['fright'] = amount_fright
             res[line.id]['amount_total'] = amount_untaxed+p_f_charge+excise_duty+total_tax+amount_fright
+            res[line.id]['amount_total_inr'] = (amount_untaxed+p_f_charge+excise_duty+total_tax+amount_fright)/voucher_rate
         return res
     
     def _get_order(self, cr, uid, ids, context=None):
@@ -2065,6 +2147,12 @@ class purchase_order(osv.osv):
             'purchase.order.line': (_get_order, ['product_qty', 'product_uom', 'price_unit','discount','p_f','p_f_type',   
                                                                 'ed', 'ed_type','taxes_id','fright','fright_type'], 10) 
             }, multi="sums",help="The total amount"),
+        'amount_total_inr': fields.function(amount_all_po_line, string='Total (INR)',
+            store={
+               'purchase.order': (lambda self, cr, uid, ids, c={}: ids, ['order_line'], 10),   
+            'purchase.order.line': (_get_order, ['product_qty', 'product_uom', 'price_unit','discount','p_f','p_f_type',   
+                                                                'ed', 'ed_type','taxes_id','fright','fright_type'], 10) 
+            }, multi="sums",help="The total amount"),
         'state': fields.selection([
                                    ('draft', 'Draft PO'),
                                     ('sent', 'RFQ Sent'),
@@ -2082,16 +2170,25 @@ class purchase_order(osv.osv):
                                   ),
         'check_amendement':fields.boolean("Amended",readonly=True),
         'order_line': fields.one2many('purchase.order.line', 'order_id', 'Order Lines', states={'cancel':[('readonly',True)],'confirmed':[('readonly',True)],'head':[('readonly',True)],'gm':[('readonly',True)],'md':[('readonly',True)], 'approved':[('readonly',True)],'done':[('readonly',True)]}),
-        
+        'cost_center_id': fields.many2one('tpt.cost.center','Cost center', states={'cancel':[('readonly',True)],'confirmed':[('readonly',True)],'head':[('readonly',True)],'gm':[('readonly',True)],'md':[('readonly',True)], 'approved':[('readonly',True)],'done':[('readonly',True)]}),
+        'flag': fields.boolean('Flag'), 
+        'currency_id': fields.many2one('res.currency', 'Currency', states={'cancel':[('readonly',True)],'confirmed':[('readonly',True)],'head':[('readonly',True)],'gm':[('readonly',True)],'md':[('readonly',True)], 'approved':[('readonly',True)],'done':[('readonly',True)]}),
+#         'currency_id': fields.related('pricelist_id', 'currency_id', type="many2one", relation="res.currency", string="Currency",readonly=False, required=False),
         #TPT START By BalamuruganPurushothaman ON 01/04/2015 - FOR PO PRINT
         'freight_term':fields.selection([('To Pay','To Pay'),('Paid','Paid')],('Freight Term'),states={'cancel':[('readonly',True)],'confirmed':[('readonly',True)],'head':[('readonly',True)],'gm':[('readonly',True)],'md':[('readonly',True)], 'approved':[('readonly',True)],'done':[('readonly',True)]}),   
         #'quotation_ref':fields.char('Quotation Reference',size = 1024,required=True),
         #TPT END
+        'tpt_currency_id': fields.many2one('res.currency', 'Currency'),
         }
-    
+    def _get_currency_id(self, cr, uid, context=None):
+        company = self.pool.get('res.users').browse(cr, uid, uid).company_id
+        return company.currency_id and company.currency_id.id or False
     _default = {
         'name':'/',
         'check_amendement':False,
+        'flag': False,
+        'currency_id': _get_currency_id,
+        'tpt_currency_id': _get_currency_id,
                }
     
     def bt_purchase_done(self, cr, uid, ids, context=None):
@@ -2115,6 +2212,9 @@ class purchase_order(osv.osv):
     
     def action_md(self, cr, uid, ids, context=None):
         return self.write(cr, uid, ids,{'state':'md','md_approve_date':time.strftime('%Y-%m-%d')})
+    
+    def onchange_currency(self, cr, uid, ids, currency_id=False, context=None):
+        return {'value':{'tpt_currency_id':currency_id}}
     
     #TPT-PO PRINT ON 4/4/2015
     def print_quotation(self, cr, uid, ids, context=None):
@@ -2168,6 +2268,7 @@ class purchase_order(osv.osv):
    
     def onchange_quotation_no(self, cr, uid, ids,quotation_no=False, context=None):
         vals = {}
+        warning = {}
         if quotation_no:
             for line in self.browse(cr, uid, ids):
                 sql = '''
@@ -2177,47 +2278,57 @@ class purchase_order(osv.osv):
         po_line = []
         if quotation_no:
             quotation = self.pool.get('tpt.purchase.quotation').browse(cr, uid, quotation_no)
-            for line in quotation.purchase_quotation_line:
-                rs = {
-                      'po_indent_no': line.po_indent_id and line.po_indent_id.id or False,
-                      'product_id': line.product_id and line.product_id.id or False,
-                      'product_qty': line.product_uom_qty or False,
-                      'product_uom': line.uom_id and line.uom_id.id or False,
-                      'price_unit': line.price_unit or False,
-                      'discount': line.disc or False,
-                      'p_f': line.p_f or False,
-                      'p_f_type':line.p_f_type or False,
-                      'ed':line.e_d or False,
-                      'ed_type':line.e_d_type or False,
-                      'taxes_id': [(6,0,[line.tax_id and line.tax_id.id])],
-                      'fright':line.fright or False,
-                      'fright_type':line.fright_type or False,
-                
-#                       'price_subtotal': line.sub_total or False,
-#                       'date_planned':quotation.date_quotation or False,
-                      'name': line.product_id and line.product_id.name or False,
-                      'description':line.description or False,
-                      }
-                po_line.append((0,0,rs))
-            vals = {
-                    'po_document_type': quotation.rfq_no_id and quotation.rfq_no_id.po_document_type or '',
-                    'partner_id':quotation.supplier_id and quotation.supplier_id.id or '',
-                    'for_basis':quotation.for_basis or '',
-                    'state_id':quotation.supplier_location_id and quotation.supplier_location_id.id or '',
-                    'deli_sche': quotation.schedule or '',
-                    #TPT
+            if not quotation.currency_id:
+                vals = {'quotation_no': False}
+                warning = {
+                    'title': _('Warning!'),
+                    'message': _('Quotation does not have currency! Please select again!')
+                }
+            else:
+                for line in quotation.purchase_quotation_line:
+                    rs = {
+                          'po_indent_no': line.po_indent_id and line.po_indent_id.id or False,
+                          'product_id': line.product_id and line.product_id.id or False,
+                          'product_qty': line.product_uom_qty or False,
+                          'product_uom': line.uom_id and line.uom_id.id or False,
+                          'price_unit': line.price_unit or False,
+                          'discount': line.disc or False,
+                          'p_f': line.p_f or False,
+                          'p_f_type':line.p_f_type or False,
+                          'ed':line.e_d or False,
+                          'ed_type':line.e_d_type or False,
+                          'taxes_id': [(6,0,[line.tax_id and line.tax_id.id])],
+                          'fright':line.fright or False,
+                          'fright_type':line.fright_type or False,
                     
-                    'mode_dis': quotation.mode_dis or '',
-                    'freight_term': quotation.freight_term or '',
-                    #'quotation_ref': quotation.quotation_ref or '',
-                    
-                    'for_basis': quotation.for_basis or '',
-                    'deli_sche': quotation.schedule or '',
-                    'payment_term_id':quotation.payment_term_id and quotation.payment_term_id.id or '',
-#                     'po_indent_no': False,
-                    'order_line': po_line,
-                    }
-        return {'value': vals}
+    #                       'price_subtotal': line.sub_total or False,
+    #                       'date_planned':quotation.date_quotation or False,
+                          'name': line.product_id and line.product_id.name or False,
+                          'description':line.description or False,
+                          'item_text':line.item_text or False,
+                          }
+                    po_line.append((0,0,rs))
+                vals = {
+                        'po_document_type': quotation.rfq_no_id and quotation.rfq_no_id.po_document_type or '',
+                        'partner_id':quotation.supplier_id and quotation.supplier_id.id or '',
+                        'for_basis':quotation.for_basis or '',
+                        'state_id':quotation.supplier_location_id and quotation.supplier_location_id.id or '',
+                        'deli_sche': quotation.schedule or '',
+                        #TPT
+                        
+                        'mode_dis': quotation.mode_dis or '',
+                        'freight_term': quotation.freight_term or '',
+                        #'quotation_ref': quotation.quotation_ref or '',
+                        
+                        'for_basis': quotation.for_basis or '',
+                        'deli_sche': quotation.schedule or '',
+                        'payment_term_id':quotation.payment_term_id and quotation.payment_term_id.id or '',
+                        'currency_id':quotation.currency_id.id,
+                        'tpt_currency_id':quotation.currency_id.id,
+    #                     'po_indent_no': False,
+                        'order_line': po_line,
+                        }
+        return {'value': vals, 'warning': warning}
     
     def onchange_po_indent_no(self, cr, uid, ids,quotation_no=False, po_indent_no=False, context=None):
         vals = {}
@@ -2440,7 +2551,7 @@ class purchase_order(osv.osv):
                         cr.execute(sql)
                         indent_line_ids = [row[0] for row in cr.fetchall()]
                         if indent_line_ids:
-                                self.pool.get('tpt.purchase.product').write(cr, uid, indent_line_ids,{'state':'po_raised'})
+                                self.pool.get('tpt.purchase.product').write(cr, uid, indent_line_ids,{'state':'po_raised','po_doc_no':new.id,'po_date':new.date_order})
                         sql = '''
                                     select po_indent_no, product_id, sum(product_qty) as po_product_qty from purchase_order_line where order_id = %s group by po_indent_no, product_id
                                 '''%(new.id)
@@ -2636,20 +2747,64 @@ class purchase_order(osv.osv):
             po_ids = [row[0] for row in cr.fetchall()]
             args += [('id','in',po_ids)]
             
+#         if context.get('search_po_document'):
+#             purchase_id = context.get('purchase_id')
+#             purchase_master_full_ids = []
+#             sql = '''
+#                 select po_line_id,case when sum(quantity)!=0 then sum(quantity) else 0 end quantity
+#                     from account_invoice_line where invoice_id in (select id from account_invoice where purchase_id in (select id from purchase_order where po_document_type = 'service'))
+#                     group by po_line_id
+#             '''
+#             cr.execute(sql)
+#             purchase_line_ids = []
+#             temp = 0
+#             lines = cr.fetchall()
+#             for purchase_line in lines:
+#                 if purchase_line[0]:
+#                     sql = '''
+#                         select case when sum(product_qty)!=0 then sum(product_qty) else 0 end product_qty
+#                             from purchase_order_line where id = %s
+#                     '''%(purchase_line[0])
+#                     cr.execute(sql)
+#                     product_qty = cr.fetchone()[0]
+#                     if product_qty <= purchase_line[1]:
+#                         temp+=1
+#             if temp==len(lines):
+#                 purchase_line_ids.append(purchase_line[0])
+# # DS nay la nhung purchase order line da du so luong
+#             if purchase_line_ids:
+#                 cr.execute('''
+#                     select order_id from purchase_order_line where id in %s
+#                 ''',(tuple(purchase_line_ids),))
+#                 purchase_master_full_ids = [r[0] for r in cr.fetchall()]
+#             po_master_ids = self.pool.get('purchase.order').search(cr, uid, [('id','not in',purchase_master_full_ids)])
+#             args += [('id','in',po_master_ids)]
+            
         if context.get('search_po_document'):
+             
             sql = '''
                 select id from purchase_order 
-                where state != 'cancel' and po_document_type = 'service' and id not in (select purchase_id from account_invoice where state != 'cancel' and purchase_id is not null)
+                where state != 'cancel' and po_document_type = 'service' and flag = 'f'
             '''
             cr.execute(sql)
             po_ids = [row[0] for row in cr.fetchall()]
             args += [('id','in',po_ids)]
             
+        if context.get('search_po_with_name', False):
+            name = context.get('name')
+            po_ids = self.search(cr, uid, [('name','like',name)])
+            args += [('id','in',po_ids)]
+
+            
         return super(purchase_order, self).search(cr, uid, args, offset=offset, limit=limit, order=order, context=context, count=count)
     
     def name_search(self, cr, user, name, args=None, operator='ilike', context=None, limit=100):
-       ids = self.search(cr, user, args, context=context, limit=limit)
-       return self.name_get(cr, user, ids, context=context)
+        if context is None:
+            context = {}
+        if name:
+            context.update({'search_po_with_name':1,'name':name})
+        ids = self.search(cr, user, args, context=context, limit=limit)
+        return self.name_get(cr, user, ids, context=context)
    
     def _prepare_order_picking(self, cr, uid, order, context=None):
         return {
@@ -2703,6 +2858,8 @@ class purchase_order(osv.osv):
             'po_indent_id': order_line.po_indent_no and order_line.po_indent_no.id or False,
             'action_taken': act_taken,
             'description':order_line.description or False,
+            'item_text':order_line.item_text or False,
+            'cost_center_id': order_line.po_indent_no.cost_center_id and order_line.po_indent_no.cost_center_id.id or False,
         }
 purchase_order()
 
@@ -2817,14 +2974,36 @@ class purchase_order_line(osv.osv):
                                        \n* The \'Done\' status is set automatically when purchase order is set as done. \
                                        \n* The \'Cancelled\' status is set automatically when user cancel purchase order.'),
                 'description':fields.char('Description', size = 50, readonly = True),
+                'flag_line': fields.boolean('flag_line'),
                 #TPT
-                #'item_text': fields.char('Item Text'), 
+                'item_text': fields.char('Item Text'), 
+                'po_document_name_relate':fields.related('order_id', 'name',type = 'char', string='PO Document No'),
+                'date_order_relate':fields.related('order_id', 'date_order',type = 'date', string='Order Date'),
+                'po_document_type_relate':fields.related('order_id', 'po_document_type',type = 'selection',selection=[
+            ('raw','VV Raw material PO'),('asset','VV Capital PO'),('standard','VV Standard PO'),('local','VV Local PO'),('return','VV Return PO'),('service','VV Service PO'),('out','VV Out Service PO')], string='PO Document Type'),
+                'supplier_relate':fields.related('order_id', 'partner_id',type = 'many2one', relation='res.partner', string='Supplier'),
+                'state_relate':fields.related('order_id', 'state' ,type = 'selection',selection=[
+                                   ('draft', 'Draft PO'),
+                                    ('sent', 'RFQ Sent'),
+                                    ('amendement', 'Amendement'),
+                                    ('head', 'Purchase Head Approved'),
+                                    ('gm', 'GM Approval'),
+                                    ('md', 'Ready For GRN'),
+                                    ('confirmed', 'Waiting Approval'),
+                                    ('approved', 'Purchase Order'),
+                                    ('except_picking', 'Shipping Exception'),
+                                    ('except_invoice', 'Invoice Exception'),
+                                    ('done', 'Done'),
+                                    ('cancel', 'Cancelled'),
+                                   ], string='State'),
+#                 'po_document_type_relate':fields.selection([('raw','VV Raw material PO'),('asset','VV Capital PO'),('standard','VV Standard PO'),('local','VV Local PO'),('return','VV Return PO'),('service','VV Service PO'),('out','VV Out Service PO')],'PO Document Type'),
                 }   
     
 
     _defaults = {
                  'date_planned':time.strftime('%Y-%m-%d'),
                  'state': 'draft',
+                 'flag_line': False,
                  }
     
     def create(self, cr, uid, vals, context=None):
@@ -3001,6 +3180,34 @@ class purchase_order_line(osv.osv):
                             })
  
         return res
+    
+    def search(self, cr, uid, args, offset=0, limit=None, order=None, context=None, count=False):
+        if context is None:
+            context = {}
+        if context.get('search_po_line_detail'):
+            po_line_ids = []
+            sql = '''
+                select purchase_line_id,case when sum(product_qty)!=0 then sum(product_qty) else 0 end product_qty from stock_move
+                            where purchase_line_id is not null and picking_id in (select id from stock_picking where state='done' and type='in') group by purchase_line_id
+            '''
+            cr.execute(sql)
+            po_ids = cr.fetchall()
+            for line in po_ids:
+                if line[0]:
+                    sql = '''
+                        select case when sum(product_qty)!=0 then sum(product_qty) else 0 end product_qty from purchase_order_line
+                        where id = %s 
+                    '''%(line[0])
+                    cr.execute(sql)
+                    product_qty = cr.fetchone()[0]
+                    if product_qty > line[1]:
+                        po_line_ids.append(line[0])
+            args += [('id','in',po_line_ids)]
+        return super(purchase_order_line, self).search(cr, uid, args, offset=offset, limit=limit, order=order, context=context, count=count)    
+
+    def name_search(self, cr, user, name, args=None, operator='ilike', context=None, limit=100):
+       ids = self.search(cr, user, args, context=context, limit=limit)
+       return self.name_get(cr, user, ids, context=context)
  
       
 #     def onchange_product_id(self, cr, uid, ids, product_id=False, po_indent_no=False, context=None):
@@ -3031,11 +3238,20 @@ class stock_picking_in(osv.osv):
             cr.execute(sql)
             picking_ids = [row[0] for row in cr.fetchall()]
             args += [('id','in',picking_ids)]
+            
+        if context.get('search_grn_with_name', False):
+            name = context.get('name')
+            grn_ids = self.search(cr, uid, [('name','like',name)])
+            args += [('id','in',grn_ids)]
         return super(stock_picking_in, self).search(cr, uid, args, offset=offset, limit=limit, order=order, context=context, count=count)
     
     def name_search(self, cr, user, name, args=None, operator='ilike', context=None, limit=100):
-       ids = self.search(cr, user, args, context=context, limit=limit)
-       return self.name_get(cr, user, ids, context=context)
+        if context is None:
+            context = {}
+        if name:
+            context.update({'search_grn_with_name':1,'name':name})
+        ids = self.search(cr, user, args, context=context, limit=limit)
+        return self.name_get(cr, user, ids, context=context)
 
 
     
@@ -3068,8 +3284,8 @@ class tpt_good_return_request(osv.osv):
     
     def onchange_grn_no_id(self, cr, uid, ids,grn_no_id=False,context=None):
         vals = {}
+        details = []
         if grn_no_id :
-            details = []
             picking = self.pool.get('stock.picking.in').browse(cr, uid, grn_no_id)
             stock = self.pool.get('stock.move')
             stock_ids = stock.search(cr,uid,[('picking_id','=',grn_no_id), ('state', '=', 'cancel')])
@@ -3083,7 +3299,7 @@ class tpt_good_return_request(osv.osv):
                           'state': 'reject',
                           'reason': quality.reason,
                           }
-                details.append((0,0,rs))
+                    details.append((0,0,rs))
                      
         return {'value': {'product_detail_line': details}}
     
@@ -3116,6 +3332,13 @@ tpt_product_detail_line()
 
 class tpt_quanlity_inspection(osv.osv):
     _name = "tpt.quanlity.inspection"
+    
+#     def init(self, cr):
+#         sql = '''
+#             update tpt_quanlity_inspection t set need_inspec_id=(select id from stock_move where picking_id=t.name and product_qty=t.qty and product_id=t.product_id limit 1)
+#         '''
+#         cr.execute(sql)
+    
     _columns = {
         'name' : fields.many2one('stock.picking.in','GRN No',required = True,readonly = True,states={'cancel': [('readonly', True)], 'done':[('readonly', True)]}),
         'need_inspec_id':fields.many2one('stock.move','Need Inspec',states={'cancel': [('readonly', True)], 'done':[('readonly', True)]}),
@@ -3123,10 +3346,12 @@ class tpt_quanlity_inspection(osv.osv):
         'supplier_id':fields.many2one('res.partner','Supplier',required = True,readonly = True,states={'cancel': [('readonly', True)], 'done':[('readonly', True)]}),
         'product_id': fields.many2one('product.product', 'Product',required = True,readonly = True,states={'cancel': [('readonly', True)], 'done':[('readonly', True)]}),
         'reason':fields.text('Reason',states={'cancel': [('readonly', True)], 'done':[('readonly', True)]}),
-        'specification_line':fields.one2many('tpt.product.specification','specification_id','Product Specification'),
+        'specification_line':fields.one2many('tpt.product.specification','specifi_id','Product Specification'),
         'qty':fields.float('Qty',digits=(16,3),states={'cancel': [('readonly', True)], 'done':[('readonly', True)]}),
-        'remaining_qty':fields.float('Remaining Qty',digits=(16,3), readonly= True),
+        'qty_approve':fields.float('Qty Approve',digits=(16,3),states={'cancel': [('readonly', True)], 'done':[('readonly', True)]}),
+        'remaining_qty':fields.float('Inspection Quantity',digits=(16,3), readonly= True),
         'state':fields.selection([('draft', 'Draft'),('remaining', 'Remaining'),('done', 'Done')],'Status', readonly=True),
+        'price_unit':fields.float('Unit Price',digits=(16,2),states={'cancel': [('readonly', True)], 'done':[('readonly', True)]}),
                 }
     _defaults = {
         'state':'draft',
@@ -3237,10 +3462,11 @@ tpt_quanlity_inspection()
 class tpt_product_specification(osv.osv):
     _name = "tpt.product.specification"
     _columns = {
-        'name' : fields.char('Parameters',size = 1024,required = True),
+        'name' : fields.many2one('tpt.quality.parameters', 'Parameters', required = True),
         'value' : fields.float('Value',digits=(16,3),required = True),
         'exp_value' : fields.char('Experimental Value',size = 1024),
-        'specification_id':fields.many2one('res.partner','Supplier'),
+        'uom_id': fields.many2one('product.uom', 'UOM'),
+        'specifi_id':fields.many2one('tpt.quanlity.inspection','Quanlity Inspection',ondelete='cascade'),
  
                 }
 tpt_product_specification()
@@ -3497,16 +3723,38 @@ class tpt_request_for_quotation(osv.osv):
        ids = self.search(cr, user, args, context=context, limit=limit)
        return self.name_get(cr, user, ids, context=context)
       
+    def bt_load_indent(self, cr, uid, ids, context=None):
+        res = self.pool.get('ir.model.data').get_object_reference(cr, uid, 
+                                        'green_erp_arulmani_purchase', 'load_line_from_indent_form_view')
+        return {
+                    'name': 'Indent',
+                    'view_type': 'form',
+                    'view_mode': 'form',
+                    'view_id': res[1],
+                    'res_model': 'load.line.from.indent',
+                    'domain': [],
+                    'context': {'default_message':'Do you want to copy Service PR Lines?'},
+                    'type': 'ir.actions.act_window',
+                    'target': 'new',
+                }
+      
     def bt_approve(self, cr, uid, ids, context=None):
         for line in self.browse(cr,uid,ids):
             for po_indent in line.rfq_line:
+                qty = 0
                 sql = '''
                     select id from tpt_purchase_product where id = %s
                 '''%(po_indent.indent_line_id.id)
                 cr.execute(sql)
                 indent_line_ids = [row[0] for row in cr.fetchall()]
                 if indent_line_ids:
-                    self.pool.get('tpt.purchase.product').write(cr, uid, indent_line_ids,{'state':'rfq_raised'})
+#                     for line in self.browse(cr, uid, ids):
+                    for indent_line in self.pool.get('tpt.purchase.product').browse(cr, uid, indent_line_ids):
+                        if po_indent.product_uom_qty > indent_line.pending_qty:
+                            raise osv.except_osv(_('Warning!'),_('Pending quantity are %s. Can not request more than pending quantity!'%indent_line.pending_qty))
+                        qty = indent_line.rfq_qty + po_indent.product_uom_qty
+                        self.pool.get('tpt.purchase.product').write(cr, uid, indent_line_ids,{'state':'rfq_raised',
+                                                                                          'rfq_qty':qty,})
                     
             rfq_line_obj = self.pool.get('tpt.rfq.line')        
             sql = '''
@@ -3519,14 +3767,44 @@ class tpt_request_for_quotation(osv.osv):
     
     def bt_cancel(self, cr, uid, ids, context=None):
         for line in self.browse(cr, uid, ids):
+            for po_indent in line.rfq_line:
+                qty = 0
+                sql = '''
+                    select id from tpt_purchase_product where id = %s
+                '''%(po_indent.indent_line_id.id)
+                cr.execute(sql)
+                indent_line_ids = [row[0] for row in cr.fetchall()]
+                if indent_line_ids:
+                    for indent_line in self.pool.get('tpt.purchase.product').browse(cr, uid, indent_line_ids):
+                        qty = indent_line.rfq_qty - po_indent.product_uom_qty
+                        self.pool.get('tpt.purchase.product').write(cr, uid, indent_line_ids,{'state':'++',
+                                                                                          'rfq_qty':qty,})
             quotation_ids = self.pool.get('tpt.purchase.quotation').search(cr,uid,[('rfq_no_id','=',line.id)])
             chart_ids = self.pool.get('tpt.comparison.chart').search(cr,uid,[('name','=',line.id)])
             if quotation_ids:
                 raise osv.except_osv(_('Warning!'),_('RFQ was existed at the Quotation.!'))
             if chart_ids:
                 raise osv.except_osv(_('Warning!'),_('RFQ was existed at the Comparison Chart.!'))
+            rfq_line_obj = self.pool.get('tpt.rfq.line')        
+            sql = '''
+                select id from tpt_rfq_line where rfq_id = %s
+            '''%(line.id)
+            cr.execute(sql)
+            rfq_line_ids = [r[0] for r in cr.fetchall()]
+            rfq_line_obj.write(cr, uid, rfq_line_ids,{'state':'cancel'})
             self.write(cr, uid, ids,{'state':'cancel'})
         return True   
+    def bt_set_to_draft(self, cr, uid, ids, context=None):
+        for line in self.browse(cr, uid, ids):
+            rfq_line_obj = self.pool.get('tpt.rfq.line')        
+            sql = '''
+                select id from tpt_rfq_line where rfq_id = %s
+            '''%(line.id)
+            cr.execute(sql)
+            rfq_line_ids = [r[0] for r in cr.fetchall()]
+            rfq_line_obj.write(cr, uid, rfq_line_ids,{'state':'draft'})
+            self.write(cr, uid, ids,{'state':'draft'})
+        return True
     
     def create(self, cr, uid, vals, context=None):
         if vals.get('name','/')=='/':
@@ -3587,7 +3865,11 @@ class tpt_request_for_quotation(osv.osv):
                     if (len(rfq.rfq_supplier) > 1):
                         raise osv.except_osv(_('Warning!'),_('You must choose RFQ category is multiple if you want more than one vendors!'))
         return new_write
-    
+    def onchange_document_type(self, cr, uid, ids,po_document_type=False, context=None):
+        if po_document_type:
+            return {'value': {
+                                'rfq_line':False,
+                              }}
 tpt_request_for_quotation()
 
 class tpt_rfq_line(osv.osv):
@@ -3600,9 +3882,9 @@ class tpt_rfq_line(osv.osv):
         'description': fields.char('Mat.Desc'), 
         'recom_vendor': fields.char('Recom.Vendor'), 
         'item_text': fields.char('Item Text'), 
-        'product_uom_qty': fields.float('Quantity', readonly = True),   
+        'product_uom_qty': fields.float('Quantity', readonly = True,digits=(16,3)),   
         'uom_id': fields.many2one('product.uom', 'UOM', readonly = True),
-        'state':fields.selection([('draft', 'Draft'),('cancel', 'Cancel'),('done', 'Confirm'),('close', 'Closed')],'Status', readonly=True),
+        'state':fields.selection([('draft', 'Draft'),('cancel', 'RFQ Cancelled'),('done', 'Confirm'),('close', 'Closed'),('raised', 'RFQ Raised')],'Status', readonly=True),
         }  
     _defaults = {
         'state': 'draft',         
@@ -3621,22 +3903,31 @@ class tpt_rfq_line(osv.osv):
 #     ]   
     
     def create(self, cr, uid, vals, context=None):
+        if 'product_uom_qty' in vals and 'indent_line_id' in vals:
+            indent_line = self.pool.get('tpt.purchase.product').browse(cr, uid, vals['indent_line_id'])
+            if vals['product_uom_qty'] > indent_line.pending_qty:
+                raise osv.except_osv(_('Warning!'),_('Pending quantity are %s. Can not request more than pending quantity!'%indent_line.pending_qty)) 
         if 'po_indent_id' in vals:
             if 'indent_line_id' in vals:
                 line = self.pool.get('tpt.purchase.product').browse(cr, uid, vals['indent_line_id'])
                 vals.update({
                         'uom_id':line.uom_po_id.id,
-                        'product_uom_qty':line.product_uom_qty,
+#                         'product_uom_qty':line.pending_qty,
                         })
         return super(tpt_rfq_line, self).create(cr, uid, vals, context)    
   
     def write(self, cr, uid, ids, vals, context=None):
+        if 'product_uom_qty' in vals:
+            for line in self.browse(cr, uid, ids):
+                indent_line = self.pool.get('tpt.purchase.product').browse(cr, uid, line.indent_line_id.id)
+                if vals['product_uom_qty'] > indent_line.pending_qty:
+                    raise osv.except_osv(_('Warning!'),_('Pending quantity are %s. Can not request more than pending quantity!'%indent_line.pending_qty)) 
         if 'po_indent_id' in vals:
             if 'indent_line_id' in vals:
                 line = self.pool.get('tpt.purchase.product').browse(cr, uid, vals['indent_line_id'])
                 vals.update({
                         'uom_id':line.uom_po_id.id,
-                        'product_uom_qty':line.product_uom_qty,
+#                         'product_uom_qty':line.pending_qty,
                         })
         return super(tpt_rfq_line, self).write(cr, uid, ids, vals, context)    
     
@@ -3675,7 +3966,7 @@ class tpt_rfq_line(osv.osv):
                     'item_text':line.item_text and line.item_text or False,
                     'recom_vendor':line.recom_vendor and line.recom_vendor or False,
                     'uom_id':line.uom_po_id and line.uom_po_id.id or False,
-                    'product_uom_qty':line.product_uom_qty or False,
+                    'product_uom_qty':line.pending_qty or False,
                     'product_id':line.product_id.id,
                     }
         return {'value': vals}  
@@ -3706,6 +3997,8 @@ class tpt_rfq_supplier(osv.osv):
     def bt_print(self, cr, uid, ids, context=None):
         assert len(ids) == 1, 'This option should only be used for a single id at a time.'
         self.write(cr, uid, ids, {'sent': True}, context=context)
+        self_browse = self.browse(cr, uid, ids)
+
         datas = {
              'ids': ids,
              'model': 'tpt.rfq.supplier',
@@ -3714,6 +4007,7 @@ class tpt_rfq_supplier(osv.osv):
         return {
             'type': 'ir.actions.report.xml',
             'report_name': 'tpt_rfq_supplier',
+            'name': self_browse[0].rfq_id.name + '-' + self_browse[0].vendor_id.vendor_code 
 #                 'datas': datas,
 #                 'nodestroy' : True
         }
@@ -3808,13 +4102,14 @@ class tpt_material_request(osv.osv):
         'date_request':fields.date('Material Request Date',required = True,states={'done':[('readonly', True)]}),
         'date_expec':fields.date('Expected Date',states={'done':[('readonly', True)]}),
         'department_id':fields.many2one('hr.department','Department',required = True,  states={ 'done':[('readonly', True)]}),
-        'create_uid':fields.many2one('res.users','Request Raised By', states={'done':[('readonly', True)]}),
+        'create_uid':fields.many2one('res.users','Request Raised By', readonly = True),
         'section_id': fields.many2one('arul.hr.section','Section',ondelete='restrict', states={'done':[('readonly', True)]}),
         'requisitioner':fields.many2one('hr.employee','Requisitioner', states={'done':[('readonly', True)]}),
         'project_id': fields.many2one('tpt.project','Project', states={'done':[('readonly', True)]}),
         'project_section_id': fields.many2one('tpt.project.section','Project Section',ondelete='restrict',states={'done':[('readonly', True)]}),
         'material_request_line':fields.one2many('tpt.material.request.line','material_request_id','Vendor Group',states={'done':[('readonly', True)]}),
-        'state':fields.selection([('draft', 'Draft'),('done', 'Approve')],'Status', readonly=True),
+        'state':fields.selection([('draft', 'Draft'),('done', 'Approve'),('partially', 'Partially Issued'),('closed', 'Closed')],'Status', readonly=True),
+        'cost_center_id': fields.many2one('tpt.cost.center','Cost center',states={'done':[('readonly', True)]}),
         'request_type':fields.selection([('production', 'Production'),('normal', 'Normal'),('main', 'Maintenance')],'Request Type', states={'done':[('readonly', True)]}),
                 }
     _defaults = {
@@ -3824,11 +4119,26 @@ class tpt_material_request(osv.osv):
         'department_id': _get_department_id,
     }
     
+    def bt_load_norm(self, cr, uid, ids, context=None):
+        res = self.pool.get('ir.model.data').get_object_reference(cr, uid, 
+                                        'green_erp_arulmani_purchase', 'load_line_from_norm_form_view')
+        return {
+                    'name': 'Norm',
+                    'view_type': 'form',
+                    'view_mode': 'form',
+                    'view_id': res[1],
+                    'res_model': 'load.line.from.norm',
+                    'domain': [],
+                    'context': {'default_message':'Do you want to load Line from Norm?'},
+                    'type': 'ir.actions.act_window',
+                    'target': 'new',
+                }
     
     def create(self, cr, uid, vals, context=None):
         user = self.pool.get('res.users').browse(cr,uid,uid)
         product_obj = self.pool.get('product.product')
 #         vals['department_id'] = user.employee_id and user.employee_id.department_id and user.employee_id.department_id.id or False
+        vals['create_uid'] = user.id or False
         if vals.get('name','/')=='/':
             sql = '''
                 select code from account_fiscalyear where '%s' between date_start and date_stop
@@ -3862,44 +4172,40 @@ class tpt_material_request(osv.osv):
                     location_id = locat_ids[0]
                     if lot:
                         sql = '''
-                        SELECT sum(onhand_qty) onhand_qty
-                        From
-                        (SELECT
-                            case when loc1.usage != 'internal' and loc2.usage = 'internal' and loc2.id = %s and prodlot_id = %s
-                            then stm.primary_qty
-                            else
-                            case when loc1.usage = 'internal' and loc2.usage != 'internal' and loc1.id = %s and prodlot_id = %s
-                            then -1*stm.primary_qty 
-                            else 0.0 end
-                            end onhand_qty
-                                    
-                        FROM stock_move stm 
-                            join stock_location loc1 on stm.location_id=loc1.id
-                            join stock_location loc2 on stm.location_dest_id=loc2.id
-                        WHERE stm.state= 'done' and product_id=%s)foo
-                        '''%(location_id,lot,location_id,lot,order_line['product_id'])
+                            select case when sum(foo.product_qty)!=0 then sum(foo.product_qty) else 0 end onhand_qty from 
+                                (select st.product_qty as product_qty
+                                    from stock_move st 
+                                    where st.state='done' and st.product_id=%s and st.location_dest_id=%s and st.location_dest_id != st.location_id
+                                        and prodlot_id = %s
+                                 union all
+                                 select st.product_qty*-1 as product_qty
+                                    from stock_move st 
+                                    where st.state='done'
+                                        and st.product_id=%s
+                                                and location_id=%s
+                                                and location_dest_id != location_id
+                                                and prodlot_id = %s
+                                )foo
+                        '''%(order_line['product_id'],location_id,lot,order_line['product_id'],location_id,lot)
                     else:
                         sql = '''
-                        SELECT sum(onhand_qty) onhand_qty
-                        From
-                        (SELECT
-                            case when loc1.usage != 'internal' and loc2.usage = 'internal' and loc2.id = %s
-                            then stm.primary_qty
-                            else
-                            case when loc1.usage = 'internal' and loc2.usage != 'internal' and loc1.id = %s
-                            then -1*stm.primary_qty 
-                            else 0.0 end
-                            end onhand_qty
-                                    
-                        FROM stock_move stm 
-                            join stock_location loc1 on stm.location_id=loc1.id
-                            join stock_location loc2 on stm.location_dest_id=loc2.id
-                        WHERE stm.state= 'done' and product_id=%s)foo
-                        '''%(location_id,location_id,order_line['product_id'])
+                            select case when sum(foo.product_qty)!=0 then sum(foo.product_qty) else 0 end onhand_qty from 
+                                (select st.product_qty as product_qty
+                                    from stock_move st 
+                                    where st.state='done' and st.product_id=%s and st.location_dest_id=%s and st.location_dest_id != st.location_id
+                                 union all
+                                 select st.product_qty*-1 as product_qty
+                                    from stock_move st 
+                                    where st.state='done'
+                                        and st.product_id=%s
+                                                and location_id=%s
+                                                and location_dest_id != location_id
+                                )foo
+                        '''%(order_line['product_id'],location_id,order_line['product_id'],location_id)
                     cr.execute(sql)
                     onhand_qty = cr.dictfetchone()['onhand_qty']
                     if (order_line['product_qty'] > onhand_qty):
-                        raise osv.except_osv(_('Warning!'),_('You are confirm %s but only %s available for this product in stock.' %(order_line['product_qty'], onhand_qty)))
+                        raise osv.except_osv(_('Warning!'),_("You are confirm %s but only %s available for this product '%s' " %(order_line['product_qty'], onhand_qty,product_id.default_code)))
             if cate_name == 'raw':
                 parent_ids = self.pool.get('stock.location').search(cr, uid, [('name','=','Store'),('usage','=','view')])
                 if parent_ids:
@@ -3909,32 +4215,46 @@ class tpt_material_request(osv.osv):
             if cate_name == 'spares':
                 parent_ids = self.pool.get('stock.location').search(cr, uid, [('name','=','Store'),('usage','=','view')])
                 if parent_ids:
-                    locat_ids = self.pool.get('stock.location').search(cr, uid, [('name','=','Spare'),('location_id','=',parent_ids[0])])
+                    locat_ids = self.pool.get('stock.location').search(cr, uid, [('name','in',['Spare','Spares']),('location_id','=',parent_ids[0])])
                 if locat_ids:
                     location_id = locat_ids[0]
             if location_id and cate_name != 'finish':
+#                 sql = '''
+#                 SELECT sum(onhand_qty) onhand_qty
+#                 From
+#                 (SELECT
+#                        
+#                     case when loc1.usage != 'internal' and loc2.usage = 'internal' and loc2.id = %s
+#                     then stm.primary_qty
+#                     else
+#                     case when loc1.usage = 'internal' and loc2.usage != 'internal' and loc1.id = %s
+#                     then -1*stm.primary_qty 
+#                     else 0.0 end
+#                     end onhand_qty
+#                             
+#                 FROM stock_move stm 
+#                     join stock_location loc1 on stm.location_id=loc1.id
+#                     join stock_location loc2 on stm.location_dest_id=loc2.id
+#                 WHERE stm.state= 'done' and product_id=%s)foo
+#                 '''%(location_id,location_id,order_line['product_id'])
                 sql = '''
-                SELECT sum(onhand_qty) onhand_qty
-                From
-                (SELECT
-                       
-                    case when loc1.usage != 'internal' and loc2.usage = 'internal' and loc2.id = %s
-                    then stm.primary_qty
-                    else
-                    case when loc1.usage = 'internal' and loc2.usage != 'internal' and loc1.id = %s
-                    then -1*stm.primary_qty 
-                    else 0.0 end
-                    end onhand_qty
-                            
-                FROM stock_move stm 
-                    join stock_location loc1 on stm.location_id=loc1.id
-                    join stock_location loc2 on stm.location_dest_id=loc2.id
-                WHERE stm.state= 'done' and product_id=%s)foo
-                '''%(location_id,location_id,order_line['product_id'])
+                    select case when sum(foo.product_qty)!=0 then sum(foo.product_qty) else 0 end onhand_qty from 
+                        (select st.product_qty as product_qty
+                            from stock_move st 
+                            where st.state='done' and st.product_id=%s and st.location_dest_id=%s and st.location_dest_id != st.location_id
+                         union all
+                         select st.product_qty*-1 as product_qty
+                            from stock_move st 
+                            where st.state='done'
+                                        and st.product_id=%s
+                                        and location_id=%s
+                                        and location_dest_id != location_id
+                        )foo
+                '''%(order_line['product_id'],location_id,order_line['product_id'],location_id)
                 cr.execute(sql)
                 onhand_qty = cr.dictfetchone()['onhand_qty']
                 if (order_line['product_qty'] > onhand_qty):
-                    raise osv.except_osv(_('Warning!'),_('You are confirm %s but only %s available for this product in stock.' %(order_line['product_qty'], onhand_qty)))
+                    raise osv.except_osv(_('Warning!'),_("You are confirm %s but only %s available for this product '%s' " %(order_line['product_qty'], onhand_qty,product_id.default_code)))
         return new_id
 
     def onchange_create_uid(self, cr, uid, ids,create_uid=False, context=None):
@@ -3957,6 +4277,8 @@ class tpt_material_request(osv.osv):
 #             else:
 #                 sequence = self.pool.get('ir.sequence').get(cr, uid, 'tpt.material.request.import')
 #                 vals['name'] =  sequence and sequence+'/'+fiscalyear['code'] or '/'
+        user = self.pool.get('res.users').browse(cr,uid,uid)
+        vals['create_uid'] = user.id or False
         new_write = super(tpt_material_request, self).write(cr, uid,ids, vals, context)
         product_obj = self.pool.get('product.product')
         for material in self.browse(cr,uid,ids):
@@ -3979,44 +4301,40 @@ class tpt_material_request(osv.osv):
                         location_id = locat_ids[0]
                         if lot:
                             sql = '''
-                            SELECT sum(onhand_qty) onhand_qty
-                            From
-                            (SELECT
-                                case when loc1.usage != 'internal' and loc2.usage = 'internal' and loc2.id = %s and prodlot_id = %s
-                                then stm.primary_qty
-                                else
-                                case when loc1.usage = 'internal' and loc2.usage != 'internal' and loc1.id = %s and prodlot_id = %s
-                                then -1*stm.primary_qty 
-                                else 0.0 end
-                                end onhand_qty
-                                        
-                            FROM stock_move stm 
-                                join stock_location loc1 on stm.location_id=loc1.id
-                                join stock_location loc2 on stm.location_dest_id=loc2.id
-                            WHERE stm.state= 'done' and product_id=%s)foo
-                            '''%(location_id,lot,location_id,lot,order_line['product_id'])
+                                select case when sum(foo.product_qty)!=0 then sum(foo.product_qty) else 0 end onhand_qty from 
+                                    (select st.product_qty as product_qty
+                                        from stock_move st 
+                                        where st.state='done' and st.product_id=%s and st.location_dest_id=%s and st.location_dest_id != st.location_id
+                                            and prodlot_id = %s
+                                     union all
+                                     select st.product_qty*-1 as product_qty
+                                        from stock_move st 
+                                        where st.state='done'
+                                        and st.product_id=%s
+                                                    and location_id=%s
+                                                    and location_dest_id != location_id
+                                                    and prodlot_id = %s
+                                    )foo
+                            '''%(order_line['product_id'],location_id,lot,order_line['product_id'],location_id,lot)
                         else:
                             sql = '''
-                            SELECT sum(onhand_qty) onhand_qty
-                            From
-                            (SELECT
-                                case when loc1.usage != 'internal' and loc2.usage = 'internal' and loc2.id = %s
-                                then stm.primary_qty
-                                else
-                                case when loc1.usage = 'internal' and loc2.usage != 'internal' and loc1.id = %s
-                                then -1*stm.primary_qty 
-                                else 0.0 end
-                                end onhand_qty
-                                        
-                            FROM stock_move stm 
-                                join stock_location loc1 on stm.location_id=loc1.id
-                                join stock_location loc2 on stm.location_dest_id=loc2.id
-                            WHERE stm.state= 'done' and product_id=%s)foo
-                            '''%(location_id,location_id,order_line['product_id'])
+                                select case when sum(foo.product_qty)!=0 then sum(foo.product_qty) else 0 end onhand_qty from 
+                                    (select st.product_qty as product_qty
+                                        from stock_move st 
+                                        where st.state='done' and st.product_id=%s and st.location_dest_id=%s and st.location_dest_id != st.location_id
+                                     union all
+                                     select st.product_qty*-1 as product_qty
+                                        from stock_move st 
+                                        where st.state='done'
+                                        and st.product_id=%s
+                                                    and location_id=%s
+                                                    and location_dest_id != location_id
+                                    )foo
+                            '''%(order_line['product_id'],location_id,order_line['product_id'],location_id)
                         cr.execute(sql)
                         onhand_qty = cr.dictfetchone()['onhand_qty']
                         if (order_line['product_qty'] > onhand_qty):
-                            raise osv.except_osv(_('Warning!'),_('You are confirm %s but only %s available for this product in stock.' %(order_line['product_qty'], onhand_qty)))
+                            raise osv.except_osv(_('Warning!'),_("You are confirm %s but only %s available for this product '%s'." %(order_line['product_qty'], onhand_qty,product_id.default_code)))
                 if cate_name == 'raw':
                     parent_ids = self.pool.get('stock.location').search(cr, uid, [('name','=','Store'),('usage','=','view')])
                     if parent_ids:
@@ -4026,32 +4344,28 @@ class tpt_material_request(osv.osv):
                 if cate_name == 'spares':
                     parent_ids = self.pool.get('stock.location').search(cr, uid, [('name','=','Store'),('usage','=','view')])
                     if parent_ids:
-                        locat_ids = self.pool.get('stock.location').search(cr, uid, [('name','=','Spare'),('location_id','=',parent_ids[0])])
+                        locat_ids = self.pool.get('stock.location').search(cr, uid, [('name','in',['Spare','Spares']),('location_id','=',parent_ids[0])])
                     if locat_ids:
                         location_id = locat_ids[0]
                 if location_id and cate_name != 'finish':
                     sql = '''
-                    SELECT sum(onhand_qty) onhand_qty
-                    From
-                    (SELECT
-                           
-                        case when loc1.usage != 'internal' and loc2.usage = 'internal' and loc2.id = %s
-                        then stm.primary_qty
-                        else
-                        case when loc1.usage = 'internal' and loc2.usage != 'internal' and loc1.id = %s
-                        then -1*stm.primary_qty 
-                        else 0.0 end
-                        end onhand_qty
-                                
-                    FROM stock_move stm 
-                        join stock_location loc1 on stm.location_id=loc1.id
-                        join stock_location loc2 on stm.location_dest_id=loc2.id
-                    WHERE stm.state= 'done' and product_id=%s)foo
-                    '''%(location_id,location_id,order_line['product_id'])
+                        select case when sum(foo.product_qty)!=0 then sum(foo.product_qty) else 0 end onhand_qty from 
+                            (select st.product_qty as product_qty
+                                from stock_move st 
+                                where st.state='done' and st.product_id=%s and st.location_dest_id=%s and st.location_dest_id != st.location_id
+                             union all
+                             select st.product_qty*-1 as product_qty
+                                from stock_move st 
+                                where st.state='done'
+                                        and st.product_id=%s
+                                            and location_id=%s
+                                            and location_dest_id != location_id
+                            )foo
+                    '''%(order_line['product_id'],location_id,order_line['product_id'],location_id)
                     cr.execute(sql)
                     onhand_qty = cr.dictfetchone()['onhand_qty']
                     if (order_line['product_qty'] > onhand_qty):
-                        raise osv.except_osv(_('Warning!'),_('You are confirm %s but only %s available for this product in stock.' %(order_line['product_qty'], onhand_qty)))
+                        raise osv.except_osv(_('Warning!'),_("You are confirm %s but only %s available for this product '%s'." %(order_line['product_qty'], onhand_qty,product_id.default_code)))
         return new_write
 
     def bt_approve(self, cr, uid, ids, context=None):
@@ -4092,7 +4406,9 @@ class tpt_material_request(osv.osv):
             '''
             cr.execute(sql)
             request_line_ids = []
-            for request_line in cr.fetchall():
+            temp = 0
+            lines = cr.fetchall()
+            for request_line in lines:
                 if request_line[0]:
                     sql = '''
                         select case when sum(product_uom_qty)!=0 then sum(product_uom_qty) else 0 end product_uom_qty
@@ -4101,7 +4417,9 @@ class tpt_material_request(osv.osv):
                     cr.execute(sql)
                     product_uom_qty = cr.fetchone()[0]
                     if product_uom_qty <= request_line[1]:
-                        request_line_ids.append(request_line[0])
+                        temp+=1
+            if temp==len(lines):
+                request_line_ids.append(request_line[0])
             if request_line_ids:
                 cr.execute('''
                     select material_request_id from tpt_material_request_line where id in %s
@@ -4124,25 +4442,103 @@ class tpt_material_request_line(osv.osv):
     def _get_on_hand_qty(self, cr, uid, ids, name, arg, context=None):
         res = {}
         for line in self.browse(cr, uid, ids, context=context):
-            sql = '''
-                    select case when sum(foo.product_qty)>0 then sum(foo.product_qty) else 0 end ton_sl from 
-                            (select st.product_qty
-                                from stock_move st 
-                                where st.state='done' and st.product_id=%s and st.location_dest_id in (select id from stock_location
-                                                                                        where usage = 'internal')
-                            union all
-                            select st.product_qty*-1
-                                from stock_move st 
-                                where st.state='done' and st.product_id=%s and st.location_id in (select id from stock_location
-                                                                                        where usage = 'internal')
-                            )foo
-                '''%(line.product_id.id,line.product_id.id)
-            cr.execute(sql)
-            ton_sl = cr.dictfetchone()['ton_sl']
+#             sql = '''
+#                     select case when sum(foo.product_qty)>0 then sum(foo.product_qty) else 0 end ton_sl from 
+#                             (select st.product_qty
+#                                 from stock_move st 
+#                                 where st.state='done' and st.product_id=%s and st.location_dest_id in (select id from stock_location
+#                                                                                         where usage = 'internal')
+#                             union all
+#                             select st.product_qty*-1
+#                                 from stock_move st 
+#                                 where st.state='done' and st.product_id=%s and st.location_id in (select id from stock_location
+#                                                                                         where usage = 'internal')
+#                             )foo
+#                 '''%(line.product_id.id,line.product_id.id)
+#             cr.execute(sql)
+#             ton_sl = cr.dictfetchone()['ton_sl']
             
+            
+            onhand_qty = 0
+            location_id = False
+            locat_ids = []
+            parent_ids = []
+#             product_id = product_obj.browse(cr,uid,order_line['product_id'])
+            cate_name = line.product_id.categ_id and line.product_id.categ_id.cate_name or False
+            if cate_name == 'finish':
+                lot = line.prodlot_id and line.prodlot_id.id or False
+                parent_ids = self.pool.get('stock.location').search(cr, uid, [('name','=','Store'),('usage','=','view')])
+                if parent_ids:
+                    locat_ids = self.pool.get('stock.location').search(cr, uid, [('name','=','FSH'),('location_id','=',parent_ids[0])])
+                if locat_ids:
+                    location_id = locat_ids[0]
+                    if lot:
+                        sql = '''
+                            select case when sum(foo.product_qty)!=0 then sum(foo.product_qty) else 0 end onhand_qty from 
+                                (select st.product_qty as product_qty
+                                    from stock_move st 
+                                    where st.state='done' and st.product_id=%s and st.location_dest_id=%s and st.location_dest_id != st.location_id
+                                        and prodlot_id = %s
+                                 union all
+                                 select st.product_qty*-1 as product_qty
+                                    from stock_move st 
+                                    where st.state='done'
+                                    and st.product_id=%s
+                                                and location_id=%s
+                                                and location_dest_id != location_id
+                                                and prodlot_id = %s
+                                )foo
+                        '''%(line.product_id.id,location_id,lot,line.product_id.id,location_id,lot)
+                    else:
+                        sql = '''
+                            select case when sum(foo.product_qty)!=0 then sum(foo.product_qty) else 0 end onhand_qty from 
+                                (select st.product_qty as product_qty
+                                    from stock_move st 
+                                    where st.state='done' and st.product_id=%s and st.location_dest_id=%s and st.location_dest_id != st.location_id
+                                 union all
+                                 select st.product_qty*-1 as product_qty
+                                    from stock_move st 
+                                    where st.state='done'
+                                    and st.product_id=%s
+                                                and location_id=%s
+                                                and location_dest_id != location_id
+                                )foo
+                        '''%(line.product_id.id,location_id,line.product_id.id,location_id)
+                    cr.execute(sql)
+                    onhand_qty = cr.dictfetchone()['onhand_qty']
+            if cate_name == 'raw':
+                parent_ids = self.pool.get('stock.location').search(cr, uid, [('name','=','Store'),('usage','=','view')])
+                if parent_ids:
+                    locat_ids = self.pool.get('stock.location').search(cr, uid, [('name','in',['Raw material','Raw Material']),('location_id','=',parent_ids[0])])
+                if locat_ids:
+                    location_id = locat_ids[0]
+            if cate_name == 'spares':
+                parent_ids = self.pool.get('stock.location').search(cr, uid, [('name','=','Store'),('usage','=','view')])
+                if parent_ids:
+                    locat_ids = self.pool.get('stock.location').search(cr, uid, [('name','in',['Spare','Spares']),('location_id','=',parent_ids[0])])
+                if locat_ids:
+                    location_id = locat_ids[0]
+            if location_id and cate_name != 'finish':
+                sql = '''
+                    select case when sum(foo.product_qty)!=0 then sum(foo.product_qty) else 0 end onhand_qty from 
+                        (select st.product_qty as product_qty
+                            from stock_move st 
+                            where st.state='done' and st.product_id=%s and st.location_dest_id=%s and st.location_dest_id != st.location_id
+                         union all
+                         select st.product_qty*-1 as product_qty
+                            from stock_move st 
+                            where st.state='done'
+                                    and st.product_id=%s
+                                        and location_id=%s
+                                        and location_dest_id != location_id
+                        )foo
+                '''%(line.product_id.id,location_id,line.product_id.id,location_id)
+                cr.execute(sql)
+                onhand_qty = cr.dictfetchone()['onhand_qty']
+                
             res[line.id] = {
-                'on_hand_qty': ton_sl,
-            }
+                            'on_hand_qty': onhand_qty,
+                        }
         return res
     
     _columns = {
@@ -4195,14 +4591,17 @@ class tpt_material_issue(osv.osv):
     _columns = {
         'name': fields.many2one('tpt.material.request','Material Request No',required = True,states={'done':[('readonly', True)]}),
         'date_request':fields.date('Material Request Date',states={'done':[('readonly', True)]}),
-        'date_expec':fields.date('Material Issue Date',states={'done':[('readonly', True)]}),
+        'date_expec':fields.date('Material Issue Date'),
         'department_id':fields.many2one('hr.department','Department',readonly=True),
         'request_type':fields.selection([('production', 'Production'),('normal', 'Normal'),('main', 'Maintenance')],'Request Type', states={'done':[('readonly', True)]}),
         'material_issue_line':fields.one2many('tpt.material.issue.line','material_issue_id','Vendor Group',states={'done':[('readonly', True)]}),
         'state':fields.selection([('draft', 'Draft'),('done', 'Approve')],'Status', readonly=True),
         'doc_no': fields.char('Document Number', size = 1024,readonly = True),
+        'cost_center_id': fields.many2one('tpt.cost.center','Cost center',states={'done':[('readonly', True)]}),
+        'flag': fields.boolean('Flag'),
                 }
     _defaults = {
+        'flag': False,
         'state':'draft',    
         'doc_no': '/',  
         'date_expec': time.strftime('%Y-%m-%d'),
@@ -4270,7 +4669,6 @@ class tpt_material_issue(osv.osv):
                           }
                     product_information_line.append((0,0,rs))
             vals = {'date_request': request.date_request or False,
-                    'date_expec':request.date_expec or False,
                     'department_id':request.department_id and request.department_id.id or False,
                     'material_issue_line':product_information_line,
                     'request_type': request.request_type,
@@ -4282,6 +4680,64 @@ class tpt_material_issue(osv.osv):
         location_ids=self.pool.get('stock.location').search(cr, uid,[('name','=','Scrapped')])
         for line in self.browse(cr, uid, ids):
             for p in line.material_issue_line:
+                location_id = False
+                locat_ids = []
+                parent_ids = []
+                cate_name = p.product_id.categ_id and p.product_id.categ_id.cate_name or False
+                if cate_name == 'finish':
+                    parent_ids = self.pool.get('stock.location').search(cr, uid, [('name','=','Store'),('usage','=','view')])
+                    if parent_ids:
+                        locat_ids = self.pool.get('stock.location').search(cr, uid, [('name','=','FSH'),('location_id','=',parent_ids[0])])
+                    if locat_ids:
+                        location_id = locat_ids[0]
+                        sql = '''
+                            select case when sum(foo.product_qty)!=0 then sum(foo.product_qty) else 0 end onhand_qty from 
+                                (select st.product_qty as product_qty
+                                    from stock_move st 
+                                    where st.state='done' and st.product_id=%s and st.location_dest_id=%s and st.location_dest_id != st.location_id
+                                 union all
+                                 select st.product_qty*-1 as product_qty
+                                    from stock_move st 
+                                    where st.state='done'
+                                    and st.product_id=%s
+                                                and location_id=%s
+                                                and location_dest_id != location_id
+                                )foo
+                        '''%(p.product_id.id,location_id,p.product_id.id,location_id)
+                        cr.execute(sql)
+                        onhand_qty = cr.dictfetchone()['onhand_qty']
+                if cate_name == 'raw':
+                    parent_ids = self.pool.get('stock.location').search(cr, uid, [('name','=','Store'),('usage','=','view')])
+                    if parent_ids:
+                        locat_ids = self.pool.get('stock.location').search(cr, uid, [('name','in',['Raw material','Raw Material']),('location_id','=',parent_ids[0])])
+                    if locat_ids:
+                        location_id = locat_ids[0]
+                if cate_name == 'spares':
+                    parent_ids = self.pool.get('stock.location').search(cr, uid, [('name','=','Store'),('usage','=','view')])
+                    if parent_ids:
+                        locat_ids = self.pool.get('stock.location').search(cr, uid, [('name','in',['Spare','Spares']),('location_id','=',parent_ids[0])])
+                    if locat_ids:
+                        location_id = locat_ids[0]
+                if location_id and cate_name != 'finish':
+                    sql = '''
+                        select case when sum(foo.product_qty)!=0 then sum(foo.product_qty) else 0 end onhand_qty from 
+                            (select st.product_qty as product_qty
+                                from stock_move st 
+                                where st.state='done' and st.product_id=%s and st.location_dest_id=%s and st.location_dest_id != st.location_id
+                             union all
+                             select st.product_qty*-1 as product_qty
+                                from stock_move st 
+                                where st.state='done'
+                                        and st.product_id=%s
+                                            and location_id=%s
+                                            and location_dest_id != location_id
+                            )foo
+                    '''%(p.product_id.id,location_id,p.product_id.id,location_id)
+                    cr.execute(sql)
+                    onhand_qty = cr.dictfetchone()['onhand_qty']
+                if (p.product_isu_qty > onhand_qty):
+                    raise osv.except_osv(_('Warning!'),_('Issue quantity are %s but only %s available for this product in stock.' %(p.product_isu_qty, onhand_qty)))
+                
                 rs = {
                       'name': '/',
                       'product_id':p.product_id and p.product_id.id or False,
@@ -4296,14 +4752,15 @@ class tpt_material_issue(osv.osv):
         return self.write(cr, uid, ids,{'state':'done'})
 
     def onchange_date_expect(self, cr, uid, ids,date_request=False, context=None):
-        vals = {}
-        if date_request :
-            sql='''
-            select date(date('%s')+INTERVAL '1 month 1days') as date_request
-            '''%(date_request)
-            cr.execute(sql)
-            dates = cr.dictfetchone()['date_request']
-        return {'value': {'date_expec':dates}}    
+#         vals = {}
+#         if date_request :
+#             sql='''
+#             select date(date('%s')+INTERVAL '1 month 1days') as date_request
+#             '''%(date_request)
+#             cr.execute(sql)
+#             dates = cr.dictfetchone()['date_request']
+#         return {'value': {'date_expec':dates}}    
+        return True
     
     def create(self, cr, uid, vals, context=None):
         if vals.get('doc_no','/')=='/':
@@ -4342,6 +4799,21 @@ class tpt_material_issue(osv.osv):
             if department_id:
                 vals.update({'department_id':department_id.id})   
         new_write = super(tpt_material_issue, self).write(cr, uid,ids, vals, context)
+        if 'state' in vals and vals['state']=='done':
+            for line in self.browse(cr, uid, ids):
+                temp = 0
+                for request_line in line.name.material_request_line:
+                    sql = '''
+                        select sum(product_isu_qty) from tpt_material_issue_line where request_line_id=%s
+                    '''%(request_line.id)
+                    cr.execute(sql)
+                    product_isu_qty = cr.fetchone()[0]
+                    if request_line.product_uom_qty == product_isu_qty:
+                        temp+=1
+                if temp==len(line.name.material_request_line):
+                    cr.execute('''update tpt_material_request set state='closed' where id=%s ''',(line.name.id,))
+                else:
+                    cr.execute('''update tpt_material_request set state='partially' where id=%s ''',(line.name.id,))
         return new_write
     
 tpt_material_issue()

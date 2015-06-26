@@ -277,9 +277,11 @@ class stock_picking(osv.osv):
             'sale_tax_id': picking.sale_id.sale_tax_id and picking.sale_id.sale_tax_id.id or False,
             'invoice_type': picking.sale_id and picking.sale_id.order_type or False,
         })
-        cur_id = self.get_currency_id(cr, uid, picking)
-        if cur_id:
-            invoice_vals['currency_id'] = cur_id
+        if picking.type=='in':
+            invoice_vals.update({ 'currency_id': picking.purchase_id.currency_id and picking.purchase_id.currency_id.id or False, })
+#             cur_id = self.get_currency_id(cr, uid, picking)
+#             if cur_id:
+#                 invoice_vals['currency_id'] = cur_id
         if journal_id:
             invoice_vals['journal_id'] = journal_id
         sql = '''
@@ -291,10 +293,30 @@ class stock_picking(osv.osv):
         batch_no=''
         for p in cr.fetchall(): 
             batch_no = batch_no +',  '+ p[0]  
-        batch_no =  batch_no[1:]   
-        if len(batch_no) < 399:
-            space_count = 399-len(batch_no)
-            batch_no = batch_no.ljust(space_count)                     
+        if picking.sale_id:
+            sql = '''
+            select product_id from sale_order_line where order_id=%s
+            '''%picking.sale_id.id
+            cr.execute(sql)
+            prod_id = cr.fetchone()
+            
+            prd_obj = self.pool.get('product.product').browse(cr,uid, prod_id)
+            is_batch = prd_obj.batch_appli_ok
+            sql = ''' select batch_appli_ok from product_product where id=%s
+            '''%prod_id
+            cr.execute(sql)
+            temp = cr.fetchone()
+            is_batch = temp[0]
+            batch_nos = ''
+            if is_batch==True:
+                batch_nos =  batch_no 
+            #batch_no =  batch_no[1:]   
+            batch_no =  batch_nos[1:]   
+        #=======================================================================
+        # if len(batch_no) < 399:
+        #     space_count = 399-len(batch_no)
+        #     batch_no = batch_no.ljust(space_count)                     
+        #=======================================================================
         invoice_vals['material_info'] = batch_no
         
         invoice_vals['amount_untaxed'] = picking.sale_id and picking.sale_id.amount_untaxed or False
@@ -760,6 +782,55 @@ class stock_picking(osv.osv):
                 cr.execute(sql)
         return True
     
+    def tpt_check_stock(self, cr, uid, ids, context=None):
+        for picking in self.browse(cr, uid, ids, context=context):
+            if picking.warehouse:
+                for line in picking.move_lines:
+                    if not line.product_id.batch_appli_ok:
+                        sql = '''
+                            select case when sum(foo.product_qty)!=0 then sum(foo.product_qty) else 0 end onhand_qty from 
+                                (select st.product_qty as product_qty
+                                    from stock_move st 
+                                    where st.state='done' and st.product_id=%s and st.location_dest_id=%s and st.location_dest_id != st.location_id
+                                 union all
+                                 select st.product_qty*-1 as product_qty
+                                    from stock_move st 
+                                    where st.state='done'
+                                    and st.product_id=%s
+                                    and location_id=%s
+                                    and location_dest_id != location_id
+                                )foo
+                        '''%(line.product_id.id,picking.warehouse.id,line.product_id.id,picking.warehouse.id)
+                        cr.execute(sql)
+                        onhand_qty = cr.dictfetchone()['onhand_qty']
+                        if onhand_qty < line.product_qty:
+                            raise osv.except_osv(_('Warning!'),_('Do not have enough quantity for this product on stock!'))
+                    else:
+                        if not line.prodlot_id:
+                            raise osv.except_osv(_('Warning!'),_('Need to select batch number for batch applicable product!'))
+                        else:
+                            sql = '''
+                                select case when sum(foo.product_qty)!=0 then sum(foo.product_qty) else 0 end onhand_qty from 
+                                    (select st.product_qty as product_qty
+                                        from stock_move st 
+                                        where st.state='done' and st.product_id=%s and st.location_dest_id=%s and st.location_dest_id != st.location_id and prodlot_id = %s
+                                     union all
+                                     select st.product_qty*-1 as product_qty
+                                        from stock_move st 
+                                        where st.state='done'
+                                        and st.product_id=%s
+                                        and location_id=%s
+                                        and location_dest_id != location_id
+                                        and prodlot_id = %s
+                                    )foo
+                            '''%(line.product_id.id,picking.warehouse.id,line.prodlot_id.id,line.product_id.id,picking.warehouse.id,line.prodlot_id.id)
+                            cr.execute(sql)
+                            onhand_qty = cr.dictfetchone()['onhand_qty']
+                            if onhand_qty < line.product_qty:
+                                raise osv.except_osv(_('Warning!'),_('Do not have enough quantity for this product on stock!'))
+                picking.force_assign(cr, uid, [picking.id])
+        return True
+    
 stock_picking()
 
 class stock_picking_out(osv.osv):
@@ -860,6 +931,9 @@ class stock_picking_out(osv.osv):
     def management_confirm(self, cr, uid, ids, context=None):
         return self.pool.get('stock.picking').management_confirm(
             cr, uid, ids, context=context)
+    def tpt_check_stock(self, cr, uid, ids, context=None):
+        return self.pool.get('stock.picking').tpt_check_stock(
+            cr, uid, ids)
     
 stock_picking_out()
 
@@ -901,10 +975,12 @@ class stock_move(osv.osv):
                             }
             if line.product_id and line.product_uom:
                 if line.product_uom.id != line.product_id.uom_id.id:
-                    if line.product_id.__hasattr__('uom_ids'):
-                        res[line.id]['primary_qty'] = uom_obj._compute_qty(cr, uid, line.product_uom.id, line.product_qty, line.product_id.uom_id.id, product_id=line.product_id.id)
-                    else:
-                        res[line.id]['primary_qty'] = uom_obj._compute_qty(cr, uid, line.product_uom.id, line.product_qty, line.product_id.uom_id.id)
+                    cate = line.product_id.categ_id and line.product_id.categ_id.cate_name or False
+                    if cate != 'consum':
+                        if line.product_id.__hasattr__('uom_ids') and (line.product_id.categ_id.cate_name == 'consum'):
+                            res[line.id]['primary_qty'] = uom_obj._compute_qty(cr, uid, line.product_uom.id, line.product_qty, line.product_id.uom_id.id, product_id=line.product_id.id)
+                        else:
+                            res[line.id]['primary_qty'] = uom_obj._compute_qty(cr, uid, line.product_uom.id, line.product_qty, line.product_id.uom_id.id)
                 else:
                     res[line.id]['primary_qty'] = line.product_qty
         return res
@@ -977,24 +1053,26 @@ class account_invoice(osv.osv):
             val2 = 0.0
             val3 = 0.0
             freight = 0.0
+            ins = 0.0
             voucher_rate = 1
             if context is None:
                 context = {}
             ctx = context.copy()
             ctx.update({'date': time.strftime('%Y-%m-%d')})
             currency = line.currency_id.name or False
-            currency_id = line.currency_id.id or False
+            currency_id = line.currency_id.id or False           
             if currency != 'INR':
                 voucher_rate = self.pool.get('res.currency').read(cr, uid, currency_id, ['rate'], context=ctx)['rate']
             for invoiceline in line.invoice_line:
                 freight += (invoiceline.quantity * invoiceline.freight)
+                ins += (invoiceline.quantity * invoiceline.insurance)
                 val1 += invoiceline.price_subtotal
                 val2 += invoiceline.price_subtotal * (line.sale_tax_id.amount and line.sale_tax_id.amount / 100 or 0)
 #                 val3 = val1 + val2 + freight
             res[line.id]['amount_untaxed'] = round(val1)
-            res[line.id]['amount_tax'] = round(val2)
-            res[line.id]['amount_total'] = round(val1+val2+freight)
-            res[line.id]['amount_total_inr'] = round((val1+val2+freight)*voucher_rate)
+            res[line.id]['amount_tax'] = round(val2)        
+            res[line.id]['amount_total'] = round(val1+val2+freight+ins)
+            res[line.id]['amount_total_inr'] = round((val1+val2+freight+ins)/voucher_rate)
             for taxline in line.tax_line:
                 sql='''
                     update account_invoice_tax set amount=%s where id=%s
@@ -1024,8 +1102,8 @@ class account_invoice(osv.osv):
         #'port_of_discharge_id': fields.many2one('res.country','Port Of Discharge', readonly=True, states={'draft':[('readonly',False)]}),
         
         'mark_container_no': fields.char('Marks & No Container No.', size = 1024, readonly=True, states={'draft':[('readonly',False)]}),
-        'insurance': fields.float('Insurance in KGS', readonly=True, states={'draft':[('readonly',False)]}),
-        'other_charges': fields.float('Other Charges in KGS', readonly=True, states={'draft':[('readonly',False)]}),
+        'insurance': fields.float('Insurance / KGS', readonly=True, states={'draft':[('readonly',False)]}),
+        'other_charges': fields.float('Other Charges / KGS', readonly=True, states={'draft':[('readonly',False)]}),
         'pre_carriage_by': fields.selection([('sea','Sea')],'Pre Carriage By', readonly=True, states={'draft':[('readonly',False)]}),
         
         #TPT - By BalamuruganPurushothaman on 28/02/2015- The following are used for Domestic Invoice Print
@@ -1034,9 +1112,13 @@ class account_invoice(osv.osv):
         'rem_date':fields.datetime('Date & Time of Rem.Of Goods', readonly=True, states={'draft':[('readonly',False)]}),
         'inv_date_as_char':fields.char('Date & Time of Invoice',readonly=True, states={'draft':[('readonly',False)]}),
         'rem_date_as_char':fields.char('Date & Time of Rem.Of Goods',readonly=True, states={'draft':[('readonly',False)]}),
+        'header_text': fields.char('Header Text', readonly=True, states={'draft':[('readonly',False)]}),
         'material_info': fields.text('Material Additional Info',readonly=True, states={'draft':[('readonly',False)]}),
         'other_info': fields.text('Other Info', readonly=True, states={'draft':[('readonly',False)]}),
         'lc_no': fields.char('L.C Number.', size = 1024, readonly=True, states={'draft':[('readonly',False)]}),
+        'tod_place': fields.char('Terms Of Delivery Place', size = 1024, readonly=True, states={'draft':[('readonly',False)]}),
+        'country_dest': fields.char('Country of Final Destination', size = 1024, readonly=True, states={'draft':[('readonly',False)]}),
+        'gross_weight': fields.float('Gross Weight in KGS (For Packing List)', readonly=True, states={'draft':[('readonly',False)]}),
         'port_of_loading_id': fields.char('Port Of Loading', size = 1024, readonly=True, states={'draft':[('readonly',False)]}),
         'port_of_discharge_id': fields.char('Port Of Discharge', size = 1024, readonly=True, states={'draft':[('readonly',False)]}),
         'disc_goods': fields.text('Discription Of Goods', size = 1024, readonly=True, states={'draft':[('readonly',False)]}),
@@ -1211,7 +1293,7 @@ class account_invoice_line(osv.osv):
         subtotal = 0.0
         res = {}
         for line in self.browse(cr,uid,ids,context=context):
-            subtotal = (line.quantity * line.price_unit) + (line.quantity * line.price_unit) * (line.invoice_id.excise_duty_id.amount and line.invoice_id.excise_duty_id.amount/100 or 1)          
+            subtotal = (line.quantity * line.price_unit) + (line.quantity * line.price_unit) * (line.invoice_id.excise_duty_id and line.invoice_id.excise_duty_id.amount/100 or 0)          
             res[line.id] = subtotal
         return res
     def basic_amt_calc(self, cr, uid, ids, field_name, args, context=None):
@@ -1229,18 +1311,19 @@ class account_invoice_line(osv.osv):
             res[line.id] = {
                'amount_ed' : 0.0,
                }
-            subtotal = (line.quantity * line.price_unit) * (line.invoice_id.excise_duty_id.amount and line.invoice_id.excise_duty_id.amount/100 or 1)
+            subtotal = (line.quantity * line.price_unit) * (line.invoice_id.excise_duty_id and line.invoice_id.excise_duty_id.amount/100 or 0)
             res[line.id]['amount_ed'] = round(subtotal)
         return res
     _columns = {
         'product_type':fields.selection([('rutile','Rutile'),('anatase','Anatase')],'Product Type'),
         'application_id': fields.many2one('crm.application', 'Application'),
         'freight': fields.float('Frt/Qty'),
-        'price_subtotal': fields.function(_amount_line, string='Subtotal', digits_compute= dp.get_precision('Account')),
+        'insurance': fields.float('Ins./Qty'),
+        'others': fields.float('Others./Qty'),
+        'price_subtotal': fields.function(_amount_line, string='Subtotal',store = True, digits_compute= dp.get_precision('Account')),
         #TPT-ED AMT SPLIT
         'amount_basic': fields.function(basic_amt_calc, store = True, multi='deltas3' ,string='Basic'),
         'amount_ed': fields.function(ed_amt_calc, store = True, multi='deltas4' ,string='ED'),
-        
         
        } 
     

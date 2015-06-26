@@ -1,6 +1,27 @@
 <?xml version="1.0" encoding="utf-8"?>
 <openerp>
     <data>
+    	
+    	<record id="base.action_partner_supplier_form" model="ir.actions.act_window">
+            <field name="name">Suppliers</field>
+            <field name="type">ir.actions.act_window</field>
+            <field name="res_model">res.partner</field>
+            <field name="view_type">form</field>
+            <field name="domain">[('supplier','=',1)]</field>
+            <field name="view_mode">kanban,tree,form</field>
+            <field name="context">{'search_default_supplier': 1,'default_customer': 0,'default_supplier': 1}</field>
+            <field name="filter" eval="True"/>
+            <field name="help" type="html">
+              <p class="oe_view_nocontent_create">
+                Click to add a contact in your address book.
+              </p><p>
+                OpenERP helps you easily track all activities related to
+                a supplier: discussions, history of purchases,
+                documents, etc.
+              </p>
+            </field>
+        </record>
+    	
 	   	<record id="view_tpt_purchase_indent_tree" model="ir.ui.view">
 			<field name="name">tpt.purchase.indent.tree</field>
 			<field name="model">tpt.purchase.indent</field>
@@ -80,6 +101,7 @@
 							
 							
 							<field name="header_text" attrs="{'readonly': [('document_type', 'not in', ('service','consumable','capital')),('state', '=', 'done')]}"/>
+							<field name="cost_center_id" required='1' options="{'create': false, 'create_edit': false}" />
 						</group>
 						<group >
 							<field name="select_normal" invisible = '1' widget = "radio" attrs="{'invisible': [('intdent_cate', '!=', 'normal')]}" />
@@ -97,14 +119,14 @@
 										<!--<field name="description" required='1' attrs="{'readonly':[('doc_type_relate','in',['consumable','service']),('flag','=',False)]}"/>-->
 										<field name="item_text" />
 										<field name="flag" invisible = '1'/>
-										<field name="product_uom_qty" string = 'Indent Qty'/>
+										<field name="product_uom_qty" required='1' string = 'Indent Qty'/>
 										<field name="price_unit" />
 										<field name="recom_vendor" />
 										<field name="pending_qty" invisible = '1'/>
 										<field name="mrs_qty" readonly = '1'/>
 										<field name="inspection_qty" invisible = '1'/> 
 										<field name="on_hand_qty"/>
-										<field name="uom_po_id" attrs="{'readonly':[('flag','=',False)]}" options="{'create': false, 'create_edit': false}"/>
+										<field name="uom_po_id" attrs="{'readonly':[('flag','=',False)],'required':[('flag','=',True)]}" options="{'create': false, 'create_edit': false}"/>
 										<!--<field name="uom_po_id" required='1' attrs="{'readonly':[('doc_type_relate','in',['consumable','service']),('flag','=',False)]}" options="{'create': false, 'create_edit': false}"/>-->
 										<!-- <field name="release_by" required='1'/>  -->
 										<field name="total_val" />
@@ -133,7 +155,7 @@
         <menuitem action="action_view_tpt_purchase_indent_form"
             id="menu_action_view_tpt_purchase_indent_form"
             parent="purchase.menu_procurement_management" sequence="11"
-            groups="green_erp_arulmani_purchase.group_vvti_purchase_user,green_erp_arulmani_purchase.group_vvti_hrm_plant_mm_user"/>
+            groups="green_erp_arulmani_purchase.group_vvti_purchase_user,green_erp_arulmani_purchase.group_vvti_hrm_plant_mm_user,green_erp_arulmani_sale.group_vvti_marketing_user"/>
             
 	   	<record id="view_tpt_purchase_indent_line_tree" model="ir.ui.view">
 			<field name="name">tpt.purchase.indent.line.tree</field>
@@ -142,10 +164,12 @@
 				<tree string="Indent Release - By Store" edit = 'false' delete = 'false' create = 'false' >
 						<field name="doc_type_relate"/> 
 						<field name="pur_product_id"/> 
+						<field name="intdent_cate"/>
 						<field name="product_id"/>
 						<field name="description"/>
 						<field name="item_text" />
 						<field name="product_uom_qty" />
+						<!--<field name="pending_qty" />-->
 						<field name="price_unit" />
 						<field name="recom_vendor" />
 						<field name="mrs_qty" />
@@ -178,9 +202,11 @@
 						<field name="doc_type_relate" />
 						<field name="pur_product_id" readonly="1"  options="{'create': false, 'create_edit': false}"/> 
 						<field name="recom_vendor" />
+						<field name="intdent_cate"/>
 						<field name="product_id" readonly = "1" options="{'create': false, 'create_edit': false}" />
 						<field name="description"/>
-						<field name="product_uom_qty" />
+						<field name="product_uom_qty" required='1' />
+						<field name="pending_qty" />
 						<field name="price_unit" />
 						<field name="total_val" />
 						<field name="mrs_qty" />
@@ -192,7 +218,7 @@
 						<field name="date_indent_relate" />  
 						<field name="store_date" invisible = '1' />  
 						<field name="hod_date" invisible = '1' />  
-						<field name="state" required='1' />
+						<!--<field name="state" required='1' />-->
 						<field name="item_text" />
 				</group>
 				</sheet>  
@@ -249,6 +275,115 @@
             <field name="act_window_id" ref="action_view_tpt_purchase_indent_line_form"/>
         </record>
 
+	   	<record id="view_tpt_purchase_indent_line_details_tree" model="ir.ui.view">
+			<field name="name">tpt.purchase.indent.line.details.tree</field>
+			<field name="model">tpt.purchase.product</field>
+			<field name="arch" type="xml">
+				<tree string="Purchase Indent – Line Details" edit = 'false' delete = 'false' create = 'false' >
+						
+						<field name="pur_product_id" string=" Indent No"/> 
+						<field name="date_indent_relate"/> 
+						<field name="doc_type_relate"/> 
+						<field name="department_id_relate"/> 
+						<field name="section_id_relate"/> 
+						<!-- <field name="create_uid_relate"/>   -->
+						<field name="requisitioner_relate"/>  
+						<field name="product_id" />
+						<field name="description"/>
+						<field name="uom_po_id" />
+						<field name="price_unit" />
+						<field name="product_uom_qty" />
+						<field name="mrs_qty" />
+						<field name="on_hand_qty"/>
+						<field name="total_val" />
+						<field name="state"/>
+				</tree>
+			</field>
+		</record>            
+
+		<record id="view_tpt_purchase_indent_line_details_form" model="ir.ui.view">
+            <field name="name">tpt.purchase.indent.line.details.form</field>
+            <field name="model">tpt.purchase.product</field>
+            <field name="arch" type="xml">
+	            <form string="Purchase Indent – Line Details" version="7.0" edit = 'false' delete = 'false' create = 'false' >   
+	            <sheet> 
+	            	<group col="4" colspan="2"> 
+						<field name="pur_product_id" string=" Indent No"/> 
+						<field name="date_indent_relate"/> 
+						<field name="doc_type_relate"/> 
+						<field name="department_id_relate"/> 
+						<field name="section_id_relate"/> 
+						<!-- <field name="create_uid_relate"/>   -->
+						<field name="requisitioner_relate"/>  
+						<field name="product_id" />
+						<field name="description"/>
+						<field name="uom_po_id" />
+						<field name="price_unit" />
+						<field name="product_uom_qty" />
+						<field name="mrs_qty" />
+						<field name="on_hand_qty"/>
+						<field name="total_val" />
+						<field name="state"/>
+				</group>
+				</sheet>  
+		       </form>
+			</field>
+		</record>
+		
+		<record id="view_tpt_purchase_indent_line_details_search" model="ir.ui.view">
+			<field name="name">tpt.purchase.indent.line.details.search</field>
+			<field name="model">tpt.purchase.product</field>
+			<field name="arch" type="xml">
+				<search string="Purchase Indent">
+					<!-- <field name="create_uid_relate"/>  -->
+					<field name="pur_product_id"/>	
+					<field name="product_id"/>
+					<field name="doc_type_relate"/> 
+					<filter string="Draft" name="draft" icon="terp-personal" domain="[('state','=','draft')]" context="{}"/>
+        			<filter string="Confirmed" name="confirm" icon="terp-personal" domain="[('state','=','confirm')]" context="{}"/>
+        			<filter string="Closed" name="confirm" icon="terp-personal" domain="[('state','=','close')]" context="{}"/>
+        			<filter string="Store Approved" name="+" icon="terp-personal" domain="[('state','=','+')]" context="{}"/>
+        			<filter string="Store Rejected" name="x" icon="terp-personal" domain="[('state','=','x')]" context="{}"/>
+        			<filter string="Store - HOD Approved" name="++" icon="terp-personal" domain="[('state','=','++')]" context="{}"/>
+        			<filter string="Store - HOD Reject" name="xx" icon="terp-personal" domain="[('state','=','xx')]" context="{}"/>
+        			<filter string="RFQ Raised" name="rfq_raised" icon="terp-personal" domain="[('state','=','rfq_raised')]" context="{}"/>
+        			<filter string="PO Cancelled" name="cancel" icon="terp-personal" domain="[('state','=','cancel')]" context="{}"/>
+        			<filter string="Quotation Raised" name="quotation_raised" icon="terp-personal" domain="[('state','=','quotation_raised')]" context="{}"/>
+        			<filter string="PO Raised" name="po_raised" icon="terp-personal" domain="[('state','=','po_raised')]" context="{}"/>
+        			<group expand="0" string="Group By...">
+                        <filter string='Status' icon="terp-stock_symbol-selection" domain="[]" context="{'group_by' : 'state'}"/>
+                    </group>				
+				</search>
+			</field>
+		</record> 
+           
+        <record id="action_view_tpt_purchase_indent_line_details_form" model="ir.actions.act_window">
+            <field name="name">Purchase Indent – Line Details</field>
+            <field name="type">ir.actions.act_window</field>
+            <field name="res_model">tpt.purchase.product</field>
+            <field name="view_type">form</field>
+            <field name="view_mode">tree,form</field>
+            <field name="context">{'search_default_draft':1}</field>
+            <field name="domain">[]</field>
+            <field name="search_view_id" ref="view_tpt_purchase_indent_line_details_search"/> 
+            <field name="view_id" ref="view_tpt_purchase_indent_line_details_tree"/>
+        </record>
+       <record id="action_view_tpt_purchase_indent_line_details_form1" model="ir.actions.act_window.view">
+            <field eval="6" name="sequence"/>
+            <field name="view_mode">tree</field>
+            <field name="view_id" ref="view_tpt_purchase_indent_line_details_tree"/>
+            <field name="act_window_id" ref="action_view_tpt_purchase_indent_line_details_form"/>
+        </record>
+        <record id="action_view_tpt_purchase_indent_line_details_form2" model="ir.actions.act_window.view">
+            <field eval="7" name="sequence"/>
+            <field name="view_mode">form</field>
+            <field name="view_id" ref="view_tpt_purchase_indent_line_details_form"/>
+            <field name="act_window_id" ref="action_view_tpt_purchase_indent_line_details_form"/>
+        </record>
+         <menuitem action="action_view_tpt_purchase_indent_line_details_form"
+            id="menu_action_view_tpt_purchase_indent_line_details_form"
+            parent="purchase.menu_procurement_management" sequence="15"/>
+
 	   	<record id="view_tpt_purchase_indent_line_tree_hod" model="ir.ui.view">
 			<field name="name">tpt.purchase.indent.line.tree</field>
 			<field name="model">tpt.purchase.product</field>
@@ -256,10 +391,12 @@
 				<tree string="Indent Release - By HOD" edit = 'false' delete = 'false' create = 'false' >
 						<field name="doc_type_relate"/> 
 						<field name="pur_product_id"/> 
+						<field name="intdent_cate"/>
 						<field name="product_id"/>
 						<field name="description"/>
 						<field name="item_text" />
 						<field name="product_uom_qty" />
+						<field name="pending_qty" />
 						<field name="price_unit" />
 						<field name="recom_vendor" />
 						<field name="mrs_qty" />
@@ -291,10 +428,13 @@
 	            	<group col="4" colspan="2"> 
 						<field name="doc_type_relate" readonly="1" />
 						<field name="pur_product_id" readonly="1"  options="{'create': false, 'create_edit': false}"/> 
+					
 						<field name="recom_vendor" readonly="1"/>
+						<field name="intdent_cate"/>
 						<field name="product_id" readonly = "1" options="{'create': false, 'create_edit': false}" />
 						<field name="description" readonly="1" />
-						<field name="product_uom_qty" on_change="onchange_hod_qty(product_uom_qty)" />
+						<field name="product_uom_qty" required='1' on_change="onchange_hod_qty(product_uom_qty)" />
+						<field name="pending_qty" />
 						<field name="price_unit" />
 						<field name="total_val" />
 						<field name="mrs_qty" readonly="1" />
@@ -306,7 +446,7 @@
 						<field name="date_indent_relate" readonly="1" />  
 						<field name="store_date" readonly="1" />  
 						<field name="hod_date" invisible = '1' />  
-						<field name="state" required='1' />
+						<!--<field name="state" required='1' />-->
 						<field name="item_text" readonly="1" />
 				</group>
 				</sheet>  
@@ -366,6 +506,7 @@
          <menuitem action="action_view_tpt_purchase_indent_line_form"
             id="menu_action_view_tpt_purchase_indent_line_form"
             parent="purchase.menu_procurement_management" sequence="12"/>
+            
         <menuitem action="action_view_tpt_purchase_indent_line_form_hod"
             id="menu_action_view_tpt_purchase_indent_line_form_hod"
             parent="purchase.menu_procurement_management" sequence="13"/>
@@ -386,13 +527,13 @@
 				<tree string="Pending PR List" delete = 'false' create = 'false' >
 						<field name="doc_type_relate"/> 
 						<field name="pur_product_id"/> 
+						<field name="intdent_cate"/> 
 						<field name="product_id"/>
 						<field name="description"/>
 						<field name="item_text" />
 						<field name="product_uom_qty" />
 						<field name="price_unit" />
 						<field name="recom_vendor" />
-						<field name="pending_qty" invisible="1" />
 						<field name="mrs_qty" />
 						<field name="inspection_qty" invisible="1" /> 
 						<field name="uom_po_id" />
@@ -402,7 +543,9 @@
 						<field name="requisitioner_relate"/>  
 						<field name="store_date"/>  
 						<field name="hod_date"/>  
-						<field name="total_val" />
+						<field name="po_doc_no"/>  
+						<field name="po_date"/>
+						<field name="total_val"/>
 						<field name="state"/>
 				</tree>
 			</field>
@@ -417,13 +560,14 @@
 	            	<group col="4" colspan="2"> 
 	            		<field name="doc_type_relate" />
 						<field name="pur_product_id" readonly="1"  options="{'create': false, 'create_edit': false}"/> 
+						
 						<field name="recom_vendor" />
+						<field name="intdent_cate"/>
 						<field name="product_id" readonly = "1" options="{'create': false, 'create_edit': false}" />
 						<field name="description"/>
-						<field name="product_uom_qty" />
+						<field name="product_uom_qty" required="1" />
 						<field name="price_unit" />
 						<field name="total_val" />
-						<field name="pending_qty" invisible="1" />
 						<field name="mrs_qty" />
 						<field name="inspection_qty" invisible="1" />  
 						<field name="uom_po_id" edit='false' options="{'create': false, 'create_edit': false}" />
@@ -433,9 +577,11 @@
 						<field name="date_indent_relate" />  
 						<field name="store_date"/>  
 						<field name="hod_date"/>  
+						<field name="po_doc_no"/>  
+						<field name="po_date" />
 						<field name="state" required='1' />
 						<field name="item_text" />
-				</group>
+					</group>
 				</sheet>  
 		       </form>
 			</field>
@@ -539,7 +685,7 @@
 					<button name="purchase_amendement_head" states="amendement" string="Purchase Head Approval" class="oe_highlight" groups="green_erp_arulmani_purchase.group_vvti_purchase_admin,green_erp_arulmani_purchase.group_vvti_purchase_mgr"/>
 					<button name="purchase_gm_confirmed" states="gm" string="MD Approval" class="oe_highlight" groups="green_erp_arulmani_purchase.group_vvti_purchase_admin"/>
 					<button name="purchase_md_confirmed" attrs="{'invisible':['|',('state','!=','md'),('po_document_type','=','service')]}" string="Create GRN" class="oe_highlight" groups="green_erp_arulmani_purchase.group_vvti_purchase_admin,green_erp_arulmani_purchase.group_vvti_purchase_store_mgr"/>
-					<button name="bt_purchase_done" attrs="{'invisible':['|',('state','!=','md'),('po_document_type','!=','service')]}" string="Service Confirm" type='object' class="oe_highlight" groups="green_erp_arulmani_purchase.group_vvti_purchase_admin,green_erp_arulmani_purchase.group_vvti_purchase_store_mgr"/>
+					<button name="bt_purchase_done" attrs="{'invisible':['|',('state','!=','md'),('po_document_type','!=','service')]}" string="Service Confirm" type='object' class="oe_highlight" groups="green_erp_arulmani_purchase.group_vvti_purchase_admin,green_erp_arulmani_purchase.group_vvti_purchase_store_mgr,green_erp_arulmani_accounting.group_vvti_accounting_admin"/>
 				</xpath>  
 				<xpath expr="//form/header/button[@name='view_picking']" position="attributes">
 					<attribute name='string'>View GRN</attribute>
@@ -556,6 +702,7 @@
 					<!-- <field name="ecc_no" />  -->
 					<field name="payment_term_id" options="{'create': false, 'create_edit': false}" widget="selection"/>
 					<field name="deli_sche" />
+					<field name="cost_center_id" options="{'create': false, 'create_edit': false}" />
 		<!--			<field name="purchase_tax_id" options="{'create': false, 'create_edit': false}"/> -->
 				</xpath> 
 				<xpath expr="//field[@name='partner_ref']" position="after">
@@ -565,6 +712,7 @@
 					<!-- <field name="quotation_ref"/>  -->
 					<field name="reason" attrs="{'required':[('state','=','amendement')]}" />
 					<field name="check_amendement" />
+					<field name="tpt_currency_id" invisible='1'/>
 				</xpath>
 				<xpath expr="//page[@string='Incoming Shipments &amp; Invoices']/group/group/field[@name='payment_term_id']" position="replace">
 				</xpath> 
@@ -617,6 +765,7 @@
 				</xpath>
 				<xpath expr="//page[@string='PO Line']/field/tree/field[@name='product_qty']" position="replace">
 					<field name="description" />
+					<field name="item_text" invisible = '1' />
 					<field name="product_qty" />
 				</xpath>
 				<xpath expr="//page[@string='PO Line']/field/tree/field[@name='product_qty']" position="after">
@@ -630,6 +779,7 @@
 					<field name="fright" widget="monetary"/>
 				</xpath>
 				<xpath expr="//page[@string='PO Line']/field/tree/field[@name='price_unit']" position="after">
+					<field name="po_document_type_relate" invisible = '1'/>
 					<field name="discount"/>
 					<field name="p_f"/>
 					<field name="p_f_type"/>
@@ -650,6 +800,20 @@
 				<xpath expr="//button[@name='purchase_confirm']" position="attributes">
 					<attribute name='groups'>green_erp_arulmani_purchase.group_vvti_purchase_mgr</attribute>
 				</xpath>
+				<xpath expr="//page[@string='PO Line']/field/tree/field[@name='taxes_id']" position="attributes">
+					<attribute name='invisible'>0</attribute>
+				</xpath>
+				
+				<xpath expr="//field[@name='currency_id']" position="attributes">
+					<attribute name='invisible'>0</attribute>
+					<attribute name='required'>1</attribute>
+					<attribute name='on_change'>onchange_currency(currency_id)</attribute>
+				</xpath> 
+				
+				<xpath expr="//field[@name='amount_total']" position="after">
+					<field name="amount_total_inr" readonly="1" class="oe_subtotal_footer_separator" widget="monetary" attrs="{'invisible': [('amount_total','=','amount_total_inr')]}"/>
+				</xpath>
+				
 			</field>
 		</record>
 		
@@ -936,6 +1100,7 @@
 						<field name="supplier_location_id" />
 						<field name="quotation_cate" />
 						<field name="quotation_ref" />
+						<field name="currency_id"/>
 						<field name="state" />
 				</tree>
 			</field>
@@ -965,6 +1130,7 @@
 						<field name="supplier_location_id" options="{'create': false, 'create_edit': false}"  />
 						<field name="quotation_cate" readonly = "1" />
 						<field name="quotation_ref" />
+						<field name="currency_id" options="{'create': false, 'create_edit': false}"/>
                     </group >
 						<notebook>
 							<page string = "Quotation Lines">
@@ -1008,6 +1174,7 @@
 							<field name="amount_total_tax" />
 							<field name="amount_fright" />
 							<field name="amount_gross" />
+							<field name="amount_total_inr" attrs="{'invisible': [('amount_gross','=','amount_total_inr')]}"/>
 							<field name="amount_net" />
 							<field name="amount_unit_net" />
                     </group >
@@ -1263,14 +1430,17 @@
 						<field name="reason"/>
 						<field name="qty" invisible = "1" />
 						<field name="remaining_qty"/>
+						<!--<field name="qty_approve" invisible="1" />-->
+						<field name="qty_approve" groups="base.user_root" />
 					</group>
 						<notebook>
 							<page string = "Products Specification">
 								<field name="specification_line" nolabel='1'>
 									<tree editable='bottom'>
-										<field name="name" />
+										<field name="name" options="{'create': false, 'create_edit': false}"/>
 										<field name="value" />
 										<field name="exp_value" />
+										<field name="uom_id" options="{'create': false, 'create_edit': false}"/>
 									</tree>
 								</field>
 							</page>
@@ -1328,14 +1498,16 @@
 						<field name="reason"/>
 						<field name="qty" invisible = "1" />
 						<field name="remaining_qty"/>
+						<field name="qty_approve" invisible = "0" groups="base.user_root" />
 					</group>
 						<notebook>
 							<page string = "Products Specification">
 								<field name="specification_line" nolabel='1'>
 									<tree editable='bottom'>
-										<field name="name" />
+										<field name="name" options="{'create': false, 'create_edit': false}" />
 										<field name="value" />
 										<field name="exp_value" />
+										<field name="uom_id" options="{'create': false, 'create_edit': false}"/>
 									</tree>
 								</field>
 							</page>
@@ -1648,7 +1820,9 @@
 	            <form string="Request For Quotation" version="7.0"> 
 	            <header>
 	            		<button name="bt_approve" states='draft' string="Confirm" type="object" class="oe_highlight" groups="green_erp_arulmani_purchase.group_vvti_purchase_user"/>
+	                    <button name="bt_load_indent" attrs="{'invisible': ['|',('po_document_type', '!=', 'service'), ('state', '=', 'done')]}" string="Copy Service PR Lines" type="object" class="oe_highlight" groups="green_erp_arulmani_purchase.group_vvti_purchase_user" />
 	                    <button name="bt_cancel" states='draft,done' string="Cancel" type="object" class="oe_highlight" groups="green_erp_arulmani_purchase.group_vvti_purchase_user"/>
+	                    <button name="bt_set_to_draft" states='cancel' string="Set to Draft" type="object" class="oe_highlight" groups="green_erp_arulmani_purchase.group_vvti_purchase_user"/>
 	                    <field name="state" widget="statusbar" statusbar_visible="draft,cancel,done,close" statusbar_colors='{"draft":"blue","cancel":"blue"}'/>
 	            </header>   
 	            	<sheet>
@@ -1659,7 +1833,7 @@
 							<field name="create_on"/>
 							<field name="expect_quote_date"/>
 							<field name="create_uid" options="{'create': false, 'create_edit': false}" />
-							<field name="po_document_type"/>
+							<field name="po_document_type" on_change = "onchange_document_type(po_document_type)"/>
 	            		</group>
 	            		<notebook>
 							<page string = "RFQ Line">
@@ -1671,9 +1845,9 @@
 										<field name="description" attrs="{'readonly': [('state','not in',('draft'))]}"/>
 										<field name="item_text" attrs="{'readonly': [('state','not in',('draft', 'done'))]}"/>
 										<field name="recom_vendor" attrs="{'readonly': [('state','not in',('draft'))]}"/>
-										<field name="product_uom_qty" attrs="{'readonly': [('state','not in',('draft'))]}"/>
-										<field name="uom_id" attrs="{'readonly': [('state','not in',('draft'))]}" options="{'create': false, 'create_edit': false}"/>
-										<field name="state" invisible = '1'/>
+										<field name="product_uom_qty" required="1" attrs="{'readonly': [('state','not in',('draft'))]}"/>
+										<field name="uom_id" required="1" attrs="{'readonly': [('state','not in',('draft'))]}" options="{'create': false, 'create_edit': false}"/>
+										<field name="state" />
 									</tree>
 								</field>
 							</page>
@@ -1814,7 +1988,8 @@
 	            <form string="Material Request" version="7.0">   
 	             <header>
 	            		<button name="bt_approve" states='draft' string="Confirm" type="object" class="oe_highlight" />
-	                    <field name="state" widget="statusbar" statusbar_visible="draft,done" statusbar_colors='{"draft":"blue"}'/>
+	            		<button name="bt_load_norm" attrs="{'invisible': ['|',('request_type', '!=', 'production'), ('state', '=', 'done')]}" string="Load Lines from Norms" type="object" class="oe_highlight" />
+	                    <field name="state" widget="statusbar" statusbar_visible="draft,done,partially,closed" statusbar_colors='{"draft":"blue"}'/>
 	            </header>    
 	            	<sheet>
 		                <group col="4" colspan="2" >    
@@ -1828,6 +2003,7 @@
 							<field name="date_expec"/>
 							<field name="project_id" options="{'create': false, 'create_edit': false}"/>
 							<field name="project_section_id" domain="[('project_id','=',project_id)]" options="{'create': false, 'create_edit': false}"/>
+							<field name="cost_center_id" required='1' options="{'create': false, 'create_edit': false}" />
 						</group>
 						<notebook>
 							<page string = "Materials">
@@ -1910,16 +2086,18 @@
 	            <form string="Material Issue" version="7.0">   
 	             <header>
 	            		<button name="bt_approve" states='draft' string="Issue Goods" type="object" class="oe_highlight" groups="green_erp_arulmani_purchase.group_vvti_purchase_admin,green_erp_arulmani_purchase.group_vvti_purchase_store_user"/>
+	            		<button name="bt_create_posting" attrs="{'invisible': ['|',('flag', '=', True), ('state', '!=', 'done')]}" string="Create Posting" type="object" class="oe_highlight" groups="base.user_root" confirm="Are you sure you want to posting this record?"/>
 	                    <field name="state" widget="statusbar" statusbar_visible="draft,done" statusbar_colors='{"draft":"blue"}'/>
 	            </header>    
 	            	<sheet>
 		                <group col="4" colspan="2" >    
 							<field name="doc_no"/>
-							<field name="name" domain="[('state','=','done')]" on_change="onchange_material(name)" context="{'search_ma_request':1,'request_id':name}" options="{'create': false, 'create_edit': false}" />
+							<field name="name" domain="[('state','in',['done','partially'])]" on_change="onchange_material(name)" context="{'search_ma_request':1,'request_id':name}" options="{'create': false, 'create_edit': false}" />
 							<field name="date_request" on_change="onchange_date_expect(date_request)" />
 							<field name="date_expec"/>
 							<field name="request_type" />
 							<field name="department_id" options="{'create': false, 'create_edit': false}" />
+							<field name="flag" invisible = '1'/>
 						</group>
 						<notebook>
 							<page string = "Materials">
@@ -2000,6 +2178,114 @@
                 </tree>
             </field>
         </record>
+        
+        <record id="view_tpt_purchase_order_line_tree" model="ir.ui.view">
+			<field name="name">tpt.purchase.order.line.tree</field>
+			<field name="model">purchase.order.line</field>
+			<field name="arch" type="xml">
+				<tree string="Purchase Order Pending Details" edit = 'false' delete = 'false' create = 'false' >
+						<field name="order_id" string="Purchase Order Number"/>
+						<field name="po_document_type_relate"/> 
+						<field name="po_document_name_relate" invisible="1"/> 
+						<field name="date_order_relate"/> 
+						<field name="supplier_relate"/>
+						<field name="po_indent_no"/> 
+						<field name="product_id"/>
+						<field name="description"/>
+						<field name="product_qty" />
+						<field name="product_uom" />
+						<field name="price_unit" />
+						<field name="discount" />
+						<field name="p_f" />
+						<field name="p_f_type" />
+						<field name="ed"/>
+						<field name="ed_type"/> 
+						<field name="taxes_id"/> 
+						<field name="fright"/> 
+						<field name="fright_type"/>  
+						<field name="line_net"/>  
+						<field name="state" invisible = '1'/>
+						<field name="state_relate"/>
+				</tree>
+			</field>
+		</record>       
+        
+        <record id="view_tpt_purchase_order_line_form" model="ir.ui.view">
+            <field name="name">tpt.purchase.order.line.form</field>
+            <field name="model">purchase.order.line</field>
+            <field name="arch" type="xml">
+	            <form string="Purchase Order - Pending Details" version="7.0" edit = 'false' delete = 'false' create = 'false' >   
+	            <sheet> 
+	            	<group col="4" colspan="2"> 
+	            		<field name="order_id" string="Purchase Order Number"/>
+	            		<field name="po_document_name_relate" invisible="1"/> 
+	            		<field name="po_document_type_relate"/> 
+						<field name="date_order_relate"/> 
+						<field name="supplier_relate"/>
+						<field name="po_indent_no"/> 
+						<field name="product_id"/>
+						<field name="description"/>
+						<field name="product_qty" />
+						<field name="product_uom" />
+						<field name="price_unit" />
+						<field name="discount" />
+						<field name="p_f" />
+						<field name="p_f_type" />
+						<field name="ed"/>
+						<field name="ed_type"/> 
+						<field name="fright"/> 
+						<field name="fright_type"/>  
+						<field name="line_net"/>  
+						<field name="state" invisible = '1'/>
+						<field name="state_relate"/>
+						<field name="taxes_id" widget = 'many2many_tags'/> 
+					</group>
+				</sheet>  
+		       </form>
+			</field>
+		</record>
+		
+		<record id="view_tpt_purchase_order_search_vew" model="ir.ui.view">
+			<field name="name">tpt.purchase.indent.release.store.search</field>
+			<field name="model">purchase.order.line</field>
+			<field name="arch" type="xml">
+				<search string="Purchase Indent">
+					<field name="po_document_name_relate"/>	
+					<field name="po_document_type_relate"/>
+					<field name="supplier_relate"/>
+					<field name="product_id"/>
+				</search>
+			</field>
+		</record>
+		
+		<record id="action_view_tpt_purchase_order_line_form" model="ir.actions.act_window">
+            <field name="name">Purchase Order - Pending Details</field>
+            <field name="type">ir.actions.act_window</field>
+            <field name="res_model">purchase.order.line</field>
+            <field name="view_type">form</field>
+            <field name="view_mode">tree,form</field>
+            <field name="context">{'search_po_line_detail':1}</field>
+            <field name="domain">[]</field>
+            <field name="search_view_id" ref="view_tpt_purchase_order_search_vew"/>
+            <field name="view_id" ref="view_tpt_purchase_order_line_tree"/>
+        </record>
+       <record id="action_view_tpt_purchase_order_line_form1" model="ir.actions.act_window.view">
+            <field eval="0" name="sequence"/>
+            <field name="view_mode">tree</field>
+            <field name="view_id" ref="view_tpt_purchase_order_line_tree"/>
+            <field name="act_window_id" ref="action_view_tpt_purchase_order_line_form"/>
+        </record>
+        <record id="action_view_tpt_purchase_order_line_form2" model="ir.actions.act_window.view">
+            <field eval="1" name="sequence"/>
+            <field name="view_mode">form</field>
+            <field name="view_id" ref="view_tpt_purchase_order_line_form"/>
+            <field name="act_window_id" ref="action_view_tpt_purchase_order_line_form"/>
+        </record>
+        
+        <menuitem action="action_view_tpt_purchase_order_line_form"
+            id="menu_action_view_tpt_purchase_order_line_form"
+            parent="purchase.menu_procurement_management" sequence="11" 
+            groups="green_erp_arulmani_hrm.group_vvti_hrm_hr_user,green_erp_arulmani_sale.group_vvti_sale_user"/>
         
     </data>
 </openerp>

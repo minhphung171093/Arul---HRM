@@ -3,6 +3,7 @@
     <data>
 		<menuitem id="hr.menu_hr_configuration" name="Configuration" parent="hr.menu_hr_root" groups="base.group_hr_manager,group_vvti_hrm_time_user" sequence="50"/>
 		<menuitem id="menu_action_print_payslip_report" action="action_print_payslip_report" parent="menu_hr_payroll_management" sequence="20" groups="group_vvti_hrm_payroll_controller"/>
+		<menuitem id="menu_action_epf_statement_report" action="action_epf_statement_report" parent="menu_hr_payroll_management" sequence="30" groups="group_vvti_hrm_payroll_controller"/>
 		
 		<menuitem id="menu_action_esi_statement"
 			action="action_esi_statement"
@@ -54,7 +55,7 @@
 			
 			<menuitem action="action_arul_employee_category_form"
 	            id="menu_action_arul_employee_category_form"
-	            parent="menu_vvti_hr_master" sequence="5" groups='group_vvti_hrm_admin'/>
+	            parent="menu_vvti_hr_master" sequence="5" groups="group_vvti_hrm_admin"/>
 	            
 	        <menuitem action="action_arul_hr_payroll_deduction_parameters_form"
 	            id="menu_action_arul_hr_payroll_deduction_parameters_form"
@@ -70,7 +71,7 @@
 	            
             <menuitem action="action_arul_hr_holiday_special_form"
 	            id="menu_action_arul_hr_holiday_special_form"
-	            parent="menu_vvti_hr_master" sequence="25" 
+	            parent="menu_vvti_hr_master" sequence="25"
 	            groups="group_vvti_hrm_plant_hr_user,group_vvti_hrm_hr_key_user,group_vvti_hrm_time_user,group_vvti_hrm_hr_manager,group_vvti_hrm_payroll_controller"/>
 	            
             <menuitem action="action_arul_hr_leave_master_form"
@@ -134,8 +135,7 @@
             	
         	<menuitem action="action_view_arul_hr_section_form"
         		id="menu_action_view_arul_hr_section_form"
-        		parent="menu_vvti_hr_master" sequence="90"
-        		groups='group_vvti_hrm_admin'/>
+        		parent="menu_vvti_hr_master" sequence="90" groups="group_vvti_hrm_admin"/>
         		
 		<menuitem id="menu_vvti_hr_global_master"
 			name="Global Master"
@@ -165,5 +165,10 @@
 	    <menuitem action="action_time_evaluation_report"
             id="menu_action_time_evaluation_report"
             parent="menu_hr_leave_management" sequence="35"/>
+            <!-- Add Employee Leave Balance Report to Menu List-->
+        <menuitem action="action_leave_balance_report"
+            id="menu_action_leave_balance_report"
+            parent="menu_hr_leave_management" sequence="36"/>
+            
     </data>
 </openerp>

@@ -119,7 +119,23 @@
 	            <form string="Alert" version="7.0">
 	                <field name="message"  nolabel="1" />
 	                <footer>
-	                    <button name="permission_ok" type='object' string="OK" class="oe_highlight"/>
+	                    <button name="permission_alert" type='object' string="OK" class="oe_highlight"/>
+	                    or
+	                    <button string="Cancel" class="oe_highlight" special="cancel" />
+	                </footer>
+	            </form>
+	        </field>
+    	</record>
+    	
+    	<record id="alert_third_permission_form_view" model="ir.ui.view">
+	        <field name="name">alert.form</field>
+	        <field name="model">alert.form</field>
+	        <field eval="20" name="priority"/>
+	        <field name="arch" type="xml">
+	            <form string="Alert" version="7.0">
+	                <field name="message"  nolabel="1" />
+	                <footer>
+	                    <button name="third_permission_ok" type='object' string="OK" class="oe_highlight"/>
 	                    or
 	                    <button string="Cancel" class="oe_highlight" special="cancel" />
 	                </footer>
