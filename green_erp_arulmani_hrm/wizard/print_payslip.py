@@ -10,6 +10,13 @@ from openerp.tools import DEFAULT_SERVER_DATE_FORMAT, DEFAULT_SERVER_DATETIME_FO
 class print_payslip(osv.osv_memory):
     _name = "print.payslip"
     
+#     def default_get(self, cr, uid, fields, context=None):
+#         if context is None:
+#             context = {}
+#         context.update({'tpt_emp_in_active':True})
+#         res = super(print_payslip, self).default_get(cr, uid, fields, context=context)
+#         return res
+    
     _columns = {
             'employee_ids': fields.many2many('hr.employee','print_payslip_ref', 'print_payslip_id', 'employee_id', 'Employee', required=True),
             'year': fields.selection([(num, str(num)) for num in range(1951, 2026)], 'Year', required = True),
