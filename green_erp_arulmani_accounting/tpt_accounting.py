@@ -722,14 +722,16 @@ class account_invoice(osv.osv):
             if (inv.type == 'in_invoice'): 
                 iml = invoice_line_obj.move_line_pf(cr, uid, inv.id)
                 iml += invoice_line_obj.move_line_fright(cr, uid, inv.id) 
-                iml += invoice_line_obj.move_line_amount_tax(cr, uid, inv.id)
+#                 iml += invoice_line_obj.move_line_amount_tax(cr, uid, inv.id)
                 iml += invoice_line_obj.move_line_excise_duty(cr, uid, inv.id)
                 iml += invoice_line_obj.move_line_aed(cr, uid, inv.id)
                 if inv.purchase_id:
+                    iml += invoice_line_obj.move_line_amount_tax(cr, uid, inv.id)
                     iml += invoice_line_obj.move_line_amount_untaxed(cr, uid, inv.id) 
                 else:
                     iml += invoice_line_obj.move_line_amount_untaxed_without_po(cr, uid, inv.id) 
                     iml += invoice_line_obj.move_line_tds_amount_without_po(cr, uid, inv.id) 
+                    iml += invoice_line_obj.move_line_amount_tax_without_po(cr, uid, inv.id)
             if (inv.type == 'out_invoice'):
                 iml = invoice_line_obj.move_line_customer_fright(cr, uid, inv.id) 
                 iml += invoice_line_obj.move_line_customer_amount_tax(cr, uid, inv.id) 
