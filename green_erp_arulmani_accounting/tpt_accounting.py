@@ -3574,6 +3574,7 @@ class tpt_material_issue(osv.osv):
         move_obj = self.pool.get('stock.move')
         acc_ids = []
         for line in self.browse(cr, uid, ids):
+            journal_line = []
             sql = '''
                 select id from account_move where material_issue_id = %s
             '''%(line.id)
