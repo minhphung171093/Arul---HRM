@@ -1729,6 +1729,23 @@ class tpt_update_stock_move_report(osv.osv):
         issue_obj.bt_create_posting(cr, uid, issue_ids)
         return self.write(cr, uid, ids, {'result':'TPT fix_posting_issue Remaining'})
     
+#     def check_one_grn_one_posting(self, cr, uid, ids, context=None):
+#         sql = '''
+#             select id from account_move 
+#         '''
+#         cr.execute(sql)
+#         for account in cr.dictfetchall():
+#             # trung account move
+#             sql = '''
+#                 select id from stock_picking where state = 'done' and 
+#                 name in (select LEFT(name,17) from account_move_line where move_id = %s)
+#             '''(account['id'])
+#             cr.execute(sql)
+#             grns = cr.fetchall()
+#             if len(grns) > 1:
+#                 ........
+#         return self.write(cr, uid, ids, {'result':'TPT fix_posting_issue Remaining'})
+    
 tpt_update_stock_move_report()
 
 class tpt_update_inspection_line(osv.osv):
