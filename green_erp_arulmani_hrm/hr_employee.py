@@ -581,6 +581,14 @@ class hr_employee(osv.osv):
             if context.get('employee_id'):
                 employee_ids.append(context.get('employee_id'))
             args += [('id','in',employee_ids)]
+#         if context.get('tpt_emp_in_active'):
+#             sql = '''
+#                 select emp.id from hr_employee emp, resource_resource res 
+#                     where emp.resource_id = res.id and res.active = 'f' 
+#             '''
+#             cr.execute(sql)
+#             employee_ids = [row[0] for row in cr.fetchall()]
+#             args = [('id','in',employee_ids)]
 #         if context.get('search_promotion_employee'):
 #             sql = '''
 #                   
