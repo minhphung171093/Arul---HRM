@@ -290,9 +290,15 @@ class stock_inward_outward_report(osv.osv_memory):
                                 select id from tpt_quanlity_inspection where need_inspec_id = %s and state in ('done', 'remaining')
                             '''%(move['id'])
                             cr.execute(sql)
-                            move_sql = cr.fetchall()
-                            if move_sql:
-                                move_line.append(line)
+                            for move_sql in cr.dictfetchall():
+                                if move_sql:
+                                    sql = '''
+                                        select id from stock_move where inspec_id = %s and state = 'done' and to_char(date, 'YYYY-MM-DD') between '%s' and '%s'
+                                    '''%(move_sql['id'], date_from, date_to)
+                                    cr.execute(sql)
+                                    move_sql2 = cr.fetchall()
+                                    if move_sql2:
+                                        move_line.append(line)
                 else:
                     move_line.append(line)
             return move_line    
