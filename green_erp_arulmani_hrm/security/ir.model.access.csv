@@ -397,7 +397,7 @@ access_vvti_hrm_345,tpt.material.issue,green_erp_arulmani_accounting.model_tpt_m
 access_vvti_hrm_346,tpt.material.issue.line,green_erp_arulmani_purchase.model_tpt_material_issue_line,green_erp_arulmani_hrm.group_vvti_hrm_time_user,True,False,False,False
 
 access_vvti_hrm_347,hr.department,green_erp_arulmani_hrm.model_hr_department,green_erp_arulmani_hrm.group_vvti_hrm_time_user,True,False,False,False
-access_vvti_hrm_348,arul.hr.section,green_erp_arulmani_hrm.model_arul_hr_section,green_erp_arulmani_hrm.group_vvti_hrm_time_user,True,True,True,False
+access_vvti_hrm_348,arul.hr.section,green_erp_arulmani_hrm.model_arul_hr_section,green_erp_arulmani_hrm.group_vvti_hrm_time_user,True,False,False,False
 access_vvti_hrm_349,tpt.time.leave.evaluation,green_erp_arulmani_hrm.model_tpt_time_leave_evaluation,green_erp_arulmani_hrm.group_vvti_hrm_time_user,True,True,True,True
 access_vvti_hrm_350,tpt.non.availability,green_erp_arulmani_hrm.model_tpt_non_availability,green_erp_arulmani_hrm.group_vvti_hrm_time_user,True,True,True,True
 access_vvti_hrm_351,tpt.work.center,green_erp_arulmani_hrm.model_tpt_work_center,green_erp_arulmani_hrm.group_vvti_hrm_time_user,True,False,False,False
@@ -445,6 +445,8 @@ access_vvti_hrm_392,tpt.cost.center,green_erp_arulmani_hrm.model_tpt_cost_center
 access_vvti_hrm_393,res.company,account.model_res_company,green_erp_arulmani_hrm.group_vvti_hrm_plant_hr_user,True,False,False,False
 access_vvti_hrm_394,arul.hr.audit.shift.time,green_erp_arulmani_hrm.model_arul_hr_audit_shift_time,green_erp_arulmani_hrm.group_vvti_hrm_payroll_controller,True,False,False,False
 access_vvti_hrm_395,food.subsidy,green_erp_arulmani_hrm.model_food_subsidy,green_erp_arulmani_hrm.group_vvti_hrm_payroll_controller,True,False,False,False
+access_vvti_hrm_396,"arul.hr.section","green_erp_arulmani_hrm.model_arul_hr_section","green_erp_arulmani_hrm.group_vvti_hrm_hr_key_user","True","True","True","False"
+
 
 
 
