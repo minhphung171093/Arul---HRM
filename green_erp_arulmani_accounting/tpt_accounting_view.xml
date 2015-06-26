@@ -1077,7 +1077,7 @@
                         <field name="cheque_date"/>
                         <field name="cheque_no"/>
                         <field name="employee_id" options="{'create': false, 'create_edit': false}" />
-                        <field name="cost_center_id" options="{'create': false, 'create_edit': false}" />
+                        <field name="cost_center_id" required="1" options="{'create': false, 'create_edit': false}" />
                         <field name="payee"/>
                         <field name="payment_rate_currency_id" invisible="1"/>
                         <field name="partner_id" invisible = '1' on_change="onchange_journal_voucher(line_ids, tax_id, amount, partner_id, journal_id, type)"/>
@@ -1211,7 +1211,7 @@
                         <field name="cheque_date"/>
                         <field name="cheque_no"/>
                         <field name="employee_id" options="{'create': false, 'create_edit': false}" />
-                        <field name="cost_center_id" options="{'create': false, 'create_edit': false}" />
+                        <field name="cost_center_id" required="1" options="{'create': false, 'create_edit': false}" />
                         <field name="payee"/>
                         <field name="payment_rate_currency_id" invisible="1"/>
                         <field name="partner_id" invisible = '1' on_change="onchange_journal_voucher(line_ids, tax_id, amount, partner_id, journal_id, type)"/>
@@ -1400,7 +1400,7 @@
                     <xpath expr="//form[@string='Accounting Voucher']/sheet[@string='Accounting Voucher']/group/field[@name='name']" position="replace">
                        <field name="memo"  />
                        <field name="employee_id" options="{'create': false, 'create_edit': false}" />
-                       <field name="cost_center_id" options="{'create': false, 'create_edit': false}" />
+                       <field name="cost_center_id" required="1" options="{'create': false, 'create_edit': false}" />
                     </xpath>
               		<xpath expr="//form[@string='Accounting Voucher']/sheet[@string='Accounting Voucher']/group/field[@name='partner_id']" position="before">
                        <field name="name" readonly = "1" />
@@ -1495,7 +1495,7 @@
                     	<attribute name='on_change'>onchange_tpt_currency_amount(tpt_currency_id,tpt_currency_amount,type,date,context)</attribute>
                     </xpath>
                     <xpath expr="//field[@name='account_id']" position="after">
-                    	<field name="cost_center_id" options="{'create': false, 'create_edit': false}"/>
+                    	<field name="cost_center_id" required="1" options="{'create': false, 'create_edit': false}"/>
                     </xpath>
                 </data>
             </field>
@@ -1571,7 +1571,7 @@
                     	<attribute name='on_change'>onchange_tpt_currency_amount(tpt_currency_id,tpt_currency_amount,type,date,context)</attribute>
                     </xpath>
                     <xpath expr="//field[@name='account_id']" position="after">
-                    	<field name="cost_center_id" options="{'create': false, 'create_edit': false}"/>
+                    	<field name="cost_center_id" required="1" options="{'create': false, 'create_edit': false}"/>
                     </xpath>
                 </data>
             </field>
@@ -1602,7 +1602,7 @@
                     <xpath expr="//field[@name='department_id']" position="after">
                     	<field name="warehouse" required='1' domain="[('usage','=','internal'),('chained_location_type','&lt;&gt;','customer')]" options="{'create': false, 'create_edit': false}"/>
                     	<!--<field name="gl_account_id" options="{'create': false, 'create_edit': false}"/>   -->
-                    	<field name="cost_center_id" options="{'create': false, 'create_edit': false}" />
+                    	<field name="cost_center_id" required="1" options="{'create': false, 'create_edit': false}" />
                     	<field name="dest_warehouse_id" domain="[('usage','=','internal'),('chained_location_type','&lt;&gt;','customer')]" options="{'create': false, 'create_edit': false}" attrs="{'invisible':[('request_type','!=','production')], 'required':[('request_type','=','norm')]}"/>
                     </xpath>
                     

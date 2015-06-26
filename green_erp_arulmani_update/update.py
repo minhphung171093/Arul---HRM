@@ -1681,7 +1681,7 @@ class tpt_update_stock_move_report(osv.osv):
         cr.execute(sql)
         sql = '''
             select id from tpt_material_issue where (select count(id) from account_move where doc_type in ( 'good') and material_issue_id=tpt_material_issue.id)=0  and state='done'
-                limit 10
+                limit 150
         '''
         cr.execute(sql)
         issue_ids = [r[0] for r in cr.fetchall()]
@@ -1689,6 +1689,45 @@ class tpt_update_stock_move_report(osv.osv):
             return self.write(cr, uid, ids, {'result':'TPT update_issue_with_posting Done'})
         issue_obj.bt_create_posting(cr, uid, issue_ids)
         return self.write(cr, uid, ids, {'result':'TPT update_issue_with_posting Remaining'})
+    
+    def fix_posting_issue(self, cr, uid, ids, context=None):
+        sql = '''
+            select id from tpt_material_issue where (select count(id) from account_move where doc_type in ( 'good') and material_issue_id=tpt_material_issue.id)>1
+        '''
+        cr.execute(sql)
+        move_obj = self.pool.get('account.move')
+        issue_obj = self.pool.get('tpt.material.issue')
+        for line in cr.fetchall():
+            sql = '''
+                select id,state from account_move where doc_type='good' and material_issue_id = %s order by state
+            '''%(line[0])
+            cr.execute(sql)
+            move = cr.fetchone()
+            if move:
+                if move[1]=='posted':
+                    move_obj.button_cancel(cr, uid, [move[0]])
+                cr.execute(''' delete from account_move where id=%s ''',(move[0],))
+                
+        sql = '''
+            select id from account_move where doc_type in ('good') and state='posted'
+        '''
+        cr.execute(sql)    
+        move_ids = [r[0] for r in cr.fetchall()]
+        move_obj.button_cancel(cr, uid, move_ids)
+        sql = '''
+            delete from account_move where doc_type in ('good') and material_issue_id is null
+        '''
+        cr.execute(sql)
+        sql = '''
+            select id from tpt_material_issue where (select count(id) from account_move where doc_type in ( 'good') and material_issue_id=tpt_material_issue.id)=0  and state='done'
+                limit 150
+        '''
+        cr.execute(sql)
+        issue_ids = [r[0] for r in cr.fetchall()]
+        if not issue_ids:
+            return self.write(cr, uid, ids, {'result':'TPT fix_posting_issue Done'})
+        issue_obj.bt_create_posting(cr, uid, issue_ids)
+        return self.write(cr, uid, ids, {'result':'TPT fix_posting_issue Remaining'})
     
 tpt_update_stock_move_report()
 
