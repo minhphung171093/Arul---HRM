@@ -75,5 +75,14 @@
 		    <field name="groups_id" eval="[(4, ref('green_erp_arulmani_purchase.group_vvti_purchase_user'))]" />
 		</record>
 		
+		<report auto="False" id="purchase.report_purchase_quotation" model="purchase.order" 
+                name="purchase.quotation" rml="purchase/report/request_quotation.rml"
+                string="Request for Quotation"
+                groups="base.user_root"/>
+        <report auto="False" id="purchase.report_purchase_order" model="purchase.order"
+                name="purchase.order" rml="purchase/report/order.rml"
+                usage="default" string="Purchase Order"
+                groups="base.user_root"/>
+                
     </data>
 </openerp>

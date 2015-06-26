@@ -519,6 +519,7 @@
             <field name="value" eval="'ir.actions.act_window,' + str(ref('action_aprove_or_reject_pur_line_form'))" />
             <field name="key">action</field>
             <field name="model">tpt.purchase.product</field>
+            <field name="groups_id" eval="[(6,0, [ref('group_vvti_purchase_store_mgr'), ref('group_vvti_purchase_store_gm')])]"/>
         </record>
 
 	   	<record id="view_tpt_pr_list_tree" model="ir.ui.view">
@@ -690,6 +691,7 @@
 				</xpath>  
 				<xpath expr="//form/header/button[@name='view_picking']" position="attributes">
 					<attribute name='string'>View GRN</attribute>
+					<attribute name='groups'>green_erp_arulmani_purchase.group_vvti_purchase_store_user</attribute>
 				</xpath>
             	<xpath expr="//field[@name='partner_id']" position="before">
             		
@@ -817,6 +819,10 @@
 				
 				<xpath expr="//button[@name='purchase_cancel']" position="attributes">
 					<attribute name='groups'>green_erp_arulmani_purchase.group_vvti_purchase_mgr,green_erp_arulmani_purchase.group_vvti_purchase_user</attribute>
+				</xpath>
+				
+				<xpath expr="//button[@name='action_cancel']" position="attributes">
+					<attribute name='groups'>green_erp_arulmani_purchase.group_vvti_purchase_user</attribute>
 				</xpath>
 				
 			</field>

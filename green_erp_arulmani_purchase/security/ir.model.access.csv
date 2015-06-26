@@ -103,7 +103,7 @@ access_vvti_purchase_94,stock.location,stock.model_stock_location,green_erp_arul
 
 access_vvti_purchase_95,tpt.purchase.product,green_erp_arulmani_purchase.model_tpt_purchase_product,green_erp_arulmani_hrm.group_vvti_unit_user,True,True,True,False
 
-access_vvti_purchase_96,arul.hr.section,green_erp_arulmani_hrm.model_arul_hr_section,base.group_user,True,True,True,False
+access_vvti_purchase_96,arul.hr.section,green_erp_arulmani_hrm.model_arul_hr_section,base.group_user,True,False,False,False
 access_vvti_purchase_97,crm.application,green_erp_arulmani_crm.model_crm_application,green_erp_arulmani_purchase.group_vvti_purchase_store_mgr,True,False,False,False
 
 access_vvti_purchase_98,tpt.purchase.quotation.line,green_erp_arulmani_purchase.model_tpt_purchase_quotation_line,green_erp_arulmani_purchase.group_vvti_purchase_user,True,True,True,True
