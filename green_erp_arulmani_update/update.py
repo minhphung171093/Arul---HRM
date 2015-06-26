@@ -1681,7 +1681,7 @@ class tpt_update_stock_move_report(osv.osv):
         cr.execute(sql)
         sql = '''
             select id from tpt_material_issue where (select count(id) from account_move where doc_type in ( 'good') and material_issue_id=tpt_material_issue.id)=0  and state='done'
-                limit 200
+                limit 150
         '''
         cr.execute(sql)
         issue_ids = [r[0] for r in cr.fetchall()]
@@ -1720,7 +1720,7 @@ class tpt_update_stock_move_report(osv.osv):
         cr.execute(sql)
         sql = '''
             select id from tpt_material_issue where (select count(id) from account_move where doc_type in ( 'good') and material_issue_id=tpt_material_issue.id)=0  and state='done'
-                limit 200
+                limit 150
         '''
         cr.execute(sql)
         issue_ids = [r[0] for r in cr.fetchall()]
