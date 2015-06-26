@@ -141,6 +141,7 @@ class tpt_update_stock_move_report(osv.osv):
     
     _columns = {
         'result': fields.text('Result', readonly=True ),
+        'product_id': fields.many2one('product.product', 'Product'),
         'update_line': fields.one2many('tpt.update.inspection.line','update_id','Line'),
     }
     
@@ -1487,7 +1488,12 @@ class tpt_update_stock_move_report(osv.osv):
     def sum_avg_cost(self, cr, uid, ids, context=None):
         result = 'Done create inspection \n'
         inventory_obj = self.pool.get('tpt.product.avg.cost')
-        for id in [10718]:
+        product_id = self.browse(cr, uid, ids[0]).product_id.id
+        for id in [product_id]:
+            sql = '''
+                update stock_move set price_unit = 0 where product_id=%s and price_unit<0
+            '''%(id)
+            cr.execute(sql)
             sql = 'delete from tpt_product_avg_cost where product_id=%s'%(id)
             cr.execute(sql)
             sql = '''
@@ -1602,6 +1608,8 @@ class tpt_update_stock_move_report(osv.osv):
                 hand_quantity = float(inventory['ton_sl'])
                 total_cost = float(inventory['total_cost'])
                 avg_cost = hand_quantity and total_cost/hand_quantity or 0
+                if avg_cost < 0:
+                    avg_cost = 0
                 sql = '''
                     update stock_move set price_unit = %s where id = %s
                 '''%(avg_cost,move.id)
@@ -1673,7 +1681,7 @@ class tpt_update_stock_move_report(osv.osv):
         cr.execute(sql)
         sql = '''
             select id from tpt_material_issue where (select count(id) from account_move where doc_type in ( 'good') and material_issue_id=tpt_material_issue.id)=0  and state='done'
-                limit 10
+                limit 150
         '''
         cr.execute(sql)
         issue_ids = [r[0] for r in cr.fetchall()]
@@ -1681,6 +1689,45 @@ class tpt_update_stock_move_report(osv.osv):
             return self.write(cr, uid, ids, {'result':'TPT update_issue_with_posting Done'})
         issue_obj.bt_create_posting(cr, uid, issue_ids)
         return self.write(cr, uid, ids, {'result':'TPT update_issue_with_posting Remaining'})
+    
+    def fix_posting_issue(self, cr, uid, ids, context=None):
+        sql = '''
+            select id from tpt_material_issue where (select count(id) from account_move where doc_type in ( 'good') and material_issue_id=tpt_material_issue.id)>1
+        '''
+        cr.execute(sql)
+        move_obj = self.pool.get('account.move')
+        issue_obj = self.pool.get('tpt.material.issue')
+        for line in cr.fetchall():
+            sql = '''
+                select id,state from account_move where doc_type='good' and material_issue_id = %s order by state
+            '''%(line[0])
+            cr.execute(sql)
+            move = cr.fetchone()
+            if move:
+                if move[1]=='posted':
+                    move_obj.button_cancel(cr, uid, [move[0]])
+                cr.execute(''' delete from account_move where id=%s ''',(move[0],))
+                
+        sql = '''
+            select id from account_move where doc_type in ('good') and state='posted'
+        '''
+        cr.execute(sql)    
+        move_ids = [r[0] for r in cr.fetchall()]
+        move_obj.button_cancel(cr, uid, move_ids)
+        sql = '''
+            delete from account_move where doc_type in ('good') and material_issue_id is null
+        '''
+        cr.execute(sql)
+        sql = '''
+            select id from tpt_material_issue where (select count(id) from account_move where doc_type in ( 'good') and material_issue_id=tpt_material_issue.id)=0  and state='done'
+                limit 150
+        '''
+        cr.execute(sql)
+        issue_ids = [r[0] for r in cr.fetchall()]
+        if not issue_ids:
+            return self.write(cr, uid, ids, {'result':'TPT fix_posting_issue Done'})
+        issue_obj.bt_create_posting(cr, uid, issue_ids)
+        return self.write(cr, uid, ids, {'result':'TPT fix_posting_issue Remaining'})
     
 tpt_update_stock_move_report()
 
