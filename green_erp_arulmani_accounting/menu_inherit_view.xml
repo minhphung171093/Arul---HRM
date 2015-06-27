@@ -390,5 +390,18 @@
 		    								(4, ref('green_erp_arulmani_accounting.group_vvti_accounting_user'))]" />
 		</record>
 		
+		<record model="ir.ui.menu" id="base.menu_mrp_root">
+		    <field name="groups_id" eval="[(4, ref('green_erp_arulmani_purchase.group_vvti_purchase_store_key_user'))]"/>
+		</record>
+		
+		<record model="ir.ui.menu" id="mrp.menu_mrp_bom_form_action">
+		    <field name="groups_id" eval="[(4, ref('green_erp_arulmani_accounting.group_vvti_accounting_user')),
+		    								(4, ref('green_erp_arulmani_production.group_vvti_production_user'))]"/>
+		</record>
+		
+		<record model="ir.ui.menu" id="mrp.menu_mrp_production_action">
+		    <field name="groups_id" eval="[(4, ref('green_erp_arulmani_production.group_vvti_production_user'))]"/>
+		</record>
+		
     </data>
 </openerp>
