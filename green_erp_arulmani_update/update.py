@@ -1729,22 +1729,113 @@ class tpt_update_stock_move_report(osv.osv):
         issue_obj.bt_create_posting(cr, uid, issue_ids)
         return self.write(cr, uid, ids, {'result':'TPT fix_posting_issue Remaining'})
     
-#     def check_one_grn_one_posting(self, cr, uid, ids, context=None):
-#         sql = '''
-#             select id from account_move 
-#         '''
-#         cr.execute(sql)
-#         for account in cr.dictfetchall():
-#             # trung account move
-#             sql = '''
-#                 select id from stock_picking where state = 'done' and 
-#                 name in (select LEFT(name,17) from account_move_line where move_id = %s)
-#             '''(account['id'])
-#             cr.execute(sql)
-#             grns = cr.fetchall()
-#             if len(grns) > 1:
-#                 ........
-#         return self.write(cr, uid, ids, {'result':'TPT fix_posting_issue Remaining'})
+    def check_one_grn_one_posting(self, cr, uid, ids, context=None):
+        sql = '''
+            select id, name from stock_picking where type = 'in' and state = 'done'
+        '''
+        cr.execute(sql)
+        for picking in cr.dictfetchall():
+            sql = '''
+                select id from account_move where doc_type = 'grn' and 
+                id in (select move_id from account_move_line where LEFT(name,17) = '%s')
+            '''%(picking['name'])
+            cr.execute(sql)
+            accounts = cr.dictfetchall()
+            if len(accounts) > 1:
+                for num in range(1, len(accounts)):
+                    move_id = accounts[num]['id']
+                    sql = '''
+                        delete from account_move where id = %s
+                    '''%(move_id)
+                    cr.execute(sql)
+                    sql = '''
+                        delete from account_move_line where move_id = %s
+                    '''%(move_id)
+                    cr.execute(sql)
+            if len(accounts) < 1:
+                account_move_obj = self.pool.get('account.move')
+                period_obj = self.pool.get('account.period')
+                line = self.pool.get('stock.picking').browse(cr,uid,picking['id'])
+                if line.type == 'in' and line.state=='done':
+                    debit = 0.0
+                    credit = 0.0
+                    journal_line = []
+                    for move in line.move_lines:
+                        if move.purchase_line_id.price_unit:
+                            amount = move.purchase_line_id.price_unit * move.product_qty
+                        else:
+                            amount = 0
+                        if move.purchase_line_id.discount:
+                            debit += amount - (amount*move.purchase_line_id.discount)/100
+                        else:
+                            debit += amount - (amount*0)/100
+                    date_period = line.date,
+                    sql = '''
+                        select id from account_period where special = False and '%s' between date_start and date_stop
+                     
+                    '''%(date_period)
+                    cr.execute(sql)
+                    period_ids = [r[0] for r in cr.fetchall()]
+                    if not period_ids:
+                        raise osv.except_osv(_('Warning!'),_('Period is not null, please configure it in Period master !'))
+                     
+                    for period_id in period_obj.browse(cr,uid,period_ids):
+                        sql_journal = '''
+                        select id from account_journal
+                        '''
+                        cr.execute(sql_journal)
+                        journal_ids = [r[0] for r in cr.fetchall()]
+                        journal = self.pool.get('account.journal').browse(cr,uid,journal_ids[0])
+                        for p in line.move_lines:
+                            if p.purchase_line_id.price_unit:
+                                amount_cer = p.purchase_line_id.price_unit * p.product_qty
+                            else:
+                                amount_cer = 0 * p.product_qty
+                            if p.purchase_line_id.discount:
+                                credit = amount_cer - (amount_cer*p.purchase_line_id.discount)/100
+                                debit = amount_cer - (amount_cer*p.purchase_line_id.discount)/100
+                            else:
+                                credit = amount_cer - (amount_cer*0)/100
+                                debit = amount_cer - (amount_cer*0)/100
+                            if not p.product_id.product_asset_acc_id:
+                                print p.product_id.name
+                                raise osv.except_osv(_('Warning!'),_('You need to define Product Asset GL Account for this product'))
+                            journal_line.append((0,0,{
+                                'name':line.name + ' - ' + p.product_id.name, 
+                                'account_id': p.product_id.product_asset_acc_id and p.product_id.product_asset_acc_id.id,
+                                'partner_id': line.partner_id and line.partner_id.id or False,
+                                'credit':0,
+                                'debit':debit,
+                                'product_id':p.product_id.id,
+                            }))
+                            
+                            if not p.product_id.purchase_acc_id:
+                                raise osv.except_osv(_('Warning!'),_('You need to define Purchase GL Account for this product'))
+                            journal_line.append((0,0,{
+                                'name':line.name + ' - ' + p.product_id.name, 
+                                'account_id': p.product_id.purchase_acc_id and p.product_id.purchase_acc_id.id,
+                                'partner_id': line.partner_id and line.partner_id.id or False,
+                                'credit':credit,
+                                'debit':0,
+                                'product_id':p.product_id.id,
+                            }))
+                             
+                        vals={
+                            'journal_id':journal.id,
+                            'period_id':period_id.id ,
+                            'date': date_period,
+                            'line_id': journal_line,
+                            'doc_type':'grn'
+                            }
+                        account_move_obj.create(cr,uid,vals)       
+        return self.write(cr, uid, ids, {'result':'TPT Done'})
+    
+    def update_date_stock_move(self, cr, uid, ids, context=None):
+        sql = '''
+            update stock_move set date = (select date from stock_picking where id=stock_move.picking_id), date_expected = (select date from stock_picking where id=stock_move.picking_id) where picking_id is not null
+        '''
+        cr.execute(sql)
+        return self.write(cr, uid, ids, {'result':'Date Done'})
     
 tpt_update_stock_move_report()
 
