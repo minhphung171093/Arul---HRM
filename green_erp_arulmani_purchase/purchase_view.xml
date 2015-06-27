@@ -1698,7 +1698,7 @@
 	            			<field name="active"/>
 	            		</group>
 	            		<notebook>
-							<page string = "Vendor Sub Group">
+							<page string = "Vendor Sub Group" groups="base.user_root">
 								<field name="vendor_sub_line" nolabel='1'>
 									<tree editable='bottom'>
 										<field name="name"/>

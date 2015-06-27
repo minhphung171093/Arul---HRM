@@ -2002,7 +2002,7 @@
                     <button name="proforma_voucher" string="Reconcile" states="draft" class="oe_highlight"/>
             		<button name="%(action_review_posting_view)d" type="action" string="Review Posting" states="draft" context="{'tpt_voucher':True}"/>
                     <button name="cancel_voucher" string="Cancel" states="draft,proforma" invisible="1"/>
-                    <button name="cancel_voucher" string="Unreconcile" type="object" states="posted" confirm="Are you sure to unreconcile and cancel this record ?" invisible="1"/>
+                    <button name="cancel_voucher" string="Unreconcile" type="object" states="posted" confirm="Are you sure to unreconcile and cancel this record ?" groups="green_erp_arulmani_accounting.group_vvti_accounting_admin"/>
                     <button name="action_cancel_draft" type="object" states="cancel" string="Set to Draft" invisible="1"/>
                     <field name="state" widget="statusbar" statusbar_visible="draft,posted" statusbar_colors='{"proforma":"blue"}'/>
                 </header>
@@ -2173,7 +2173,7 @@
                     <button name="proforma_voucher" string="Reconcile" states="draft" invisible="context.get('line_type', False)" class="oe_highlight"/>
                     <button name="%(action_review_posting_view)d" type="action" string="Review Posting" states="draft" context="{'tpt_voucher':True}"/>
                     <button name="cancel_voucher" string="Cancel" states="draft,proforma"  invisible="context.get('line_type', False)"/>
-                    <button name="cancel_voucher" string="Unreconcile" type="object" states="posted" invisible="context.get('line_type', False)" confirm="Are you sure to unreconcile and cancel this record ?"/>
+                    <button name="cancel_voucher" string="Unreconcile" type="object" states="posted" invisible="context.get('line_type', False)" confirm="Are you sure to unreconcile and cancel this record ?" groups="green_erp_arulmani_accounting.group_vvti_accounting_admin"/>
                     <button name="action_cancel_draft" type="object" states="cancel" string="Set to Draft" invisible="context.get('line_type', False)"/>
                     <field name="state" widget="statusbar" statusbar_visible="draft,posted" statusbar_colors='{"proforma":"blue"}'/>
                 </header>
