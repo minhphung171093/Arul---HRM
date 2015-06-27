@@ -1830,6 +1830,13 @@ class tpt_update_stock_move_report(osv.osv):
                         account_move_obj.create(cr,uid,vals)       
         return self.write(cr, uid, ids, {'result':'TPT Done'})
     
+    def update_date_stock_move(self, cr, uid, ids, context=None):
+        sql = '''
+            update stock_move set date = (select date from stock_picking where id=stock_move.picking_id), date_expected = (select date from stock_picking where id=stock_move.picking_id) where picking_id is not null
+        '''
+        cr.execute(sql)
+        return self.write(cr, uid, ids, {'result':'Done'})
+    
 tpt_update_stock_move_report()
 
 class tpt_update_inspection_line(osv.osv):
