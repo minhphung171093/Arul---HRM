@@ -35,7 +35,7 @@ class tpt_stock_on_hand(osv.osv):
         datas['model'] = 'tpt.stock.on.hand'
         datas['form'] = self.read(cr, uid, ids)[0]
         datas['form'].update({'active_id':context.get('active_ids',False)})
-        return {'type': 'ir.actions.report.xml', 'report_name': 'report_stock_on_hand', 'datas': datas}
+        return {'type': 'ir.actions.report.xml', 'report_name': 'report_stock_on_hand_pdf', 'datas': datas}
     
 tpt_stock_on_hand()
 
