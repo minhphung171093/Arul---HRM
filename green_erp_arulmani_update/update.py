@@ -1835,7 +1835,7 @@ class tpt_update_stock_move_report(osv.osv):
             update stock_move set date = (select date from stock_picking where id=stock_move.picking_id), date_expected = (select date from stock_picking where id=stock_move.picking_id) where picking_id is not null
         '''
         cr.execute(sql)
-        return self.write(cr, uid, ids, {'result':'Done'})
+        return self.write(cr, uid, ids, {'result':'Date Done'})
     
 tpt_update_stock_move_report()
 
