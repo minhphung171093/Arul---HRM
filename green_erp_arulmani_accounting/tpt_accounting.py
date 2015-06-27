@@ -1465,7 +1465,7 @@ class account_invoice_line(osv.osv):
                     else:
                         base = line.fright*line.quantity
                         tax_tds_amount = base*(line.tds_id_2 and line.tds_id_2.amount/100 or 0)
-                    if not line.tds_id_2.gl_account_id:
+                    if line.tds_id_2 and not line.tds_id_2.gl_account_id:
                         raise osv.except_osv(_('Warning!'),_('Account is not null, please configure GL Account in Tax master for TDS %'))
                     if tax_tds_amount:   
                         if round(tax_tds_amount):
@@ -2157,11 +2157,10 @@ class account_invoice_line(osv.osv):
             else:
                 base_amount = round(line.fright*line.quantity)
                 tax_debit_amount = round(base_amount*(line.tax_id and line.tax_id.amount/100 or 0))
-            
+            if line.tax_id and not line.tax_id.gl_account_id:
+                raise osv.except_osv(_('Warning!'),_('GL Account is not null, please configure it in Tax Master!'))
             if tax_debit_amount:
                 if round(tax_debit_amount):
-                    if not line.tax_credit.gl_account_id:
-                        raise osv.except_osv(_('Warning!'),_('GL Account is not null, please configure it in Tax Master!'))
                     res.append({
                         'type':'tax',
                         'name':line.name,
@@ -2183,11 +2182,10 @@ class account_invoice_line(osv.osv):
             else:
                 base_amount = round(line.fright*line.quantity)
                 tax_credit_amount = round(base_amount*(line.tax_credit and line.tax_credit.amount/100 or 0))
-            
+            if line.tax_credit and not line.tax_credit.gl_account_id:
+                raise osv.except_osv(_('Warning!'),_('GL Account is not null, please configure it in Tax Master!'))
             if tax_credit_amount:
                 if round(tax_credit_amount):
-                    if not line.tax_credit.gl_account_id:
-                        raise osv.except_osv(_('Warning!'),_('GL Account is not null, please configure it in Tax Master!'))
                     res.append({
                         'type':'tax',
                         'name':line.name,
