@@ -2278,10 +2278,10 @@ class account_invoice_line(osv.osv):
         for line in invoice.invoice_line:
             if line.fright_fi_type == '2':
                 base_amount = round(line.fright)
-                tax_debit_amount = round(base_amount*(line.tax_id and line.tax_id.amount/100 or 0))
+                tax_debit_amount = base_amount*(line.tax_id and line.tax_id.amount/100 or 0)
             else:
                 base_amount = round(line.fright*line.quantity)
-                tax_debit_amount = round(base_amount*(line.tax_id and line.tax_id.amount/100 or 0))
+                tax_debit_amount = base_amount*(line.tax_id and line.tax_id.amount/100 or 0)
             
             if tax_debit_amount:
                 if not line.tax_credit.gl_account_id:
@@ -2291,7 +2291,7 @@ class account_invoice_line(osv.osv):
                     'name':line.name,
                     'price_unit': line.price_unit,
                     'quantity': 1,
-                    'price': round(tax_debit_amount),
+                    'price': tax_debit_amount,
                     'account_id': line.tax_id and line.tax_id.gl_account_id and line.tax_id.gl_account_id.id or False,
                     'account_analytic_id': line.account_analytic_id.id,
                 })
@@ -2347,10 +2347,10 @@ class account_invoice_line(osv.osv):
         for line in invoice.invoice_line:
             if line.fright_fi_type == '2':
                 base_amount = round(line.fright)
-                tax_credit_amount = round(base_amount*(line.tax_credit and line.tax_credit.amount/100 or 0))
+                tax_credit_amount = base_amount*(line.tax_credit and line.tax_credit.amount/100 or 0)
             else:
                 base_amount = round(line.fright*line.quantity)
-                tax_credit_amount = round(base_amount*(line.tax_credit and line.tax_credit.amount/100 or 0))
+                tax_credit_amount = base_amount*(line.tax_credit and line.tax_credit.amount/100 or 0)
             
             if tax_credit_amount:
                 if not line.tax_credit.gl_account_id:
@@ -2360,7 +2360,7 @@ class account_invoice_line(osv.osv):
                     'name':line.name,
                     'price_unit': line.price_unit,
                     'quantity': 1,
-                    'price': round(-tax_credit_amount),
+                    'price': -tax_credit_amount,
                     'account_id': line.tax_credit and line.tax_credit.gl_account_id and line.tax_credit.gl_account_id.id or False,
                     'account_analytic_id': line.account_analytic_id.id,
                 })
