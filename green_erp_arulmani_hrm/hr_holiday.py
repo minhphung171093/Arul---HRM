@@ -3857,7 +3857,7 @@ class arul_hr_permission_onduty(osv.osv):
                 if payroll_ids :
                     raise osv.except_osv(_('Warning!'),_('Payroll were already exists, not allowed to approve again!'))
                 time_evalv_ids = time_evalv_obj.search(cr,uid,[('month','=',int(month)),('year','=',year),('state','=','done'),
-                                                       ('payroll_area_id','=',line.employee_id.payroll_area_id.id)])
+                                                       ('payroll_area_id','=',permission.employee_id.payroll_area_id.id)])
                 if time_evalv_ids:
                     raise osv.except_osv(_('Warning!'),_('Time Leave Evaluation Confirmed!'))
             #
