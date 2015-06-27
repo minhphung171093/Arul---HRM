@@ -1729,22 +1729,32 @@ class tpt_update_stock_move_report(osv.osv):
         issue_obj.bt_create_posting(cr, uid, issue_ids)
         return self.write(cr, uid, ids, {'result':'TPT fix_posting_issue Remaining'})
     
-#     def check_one_grn_one_posting(self, cr, uid, ids, context=None):
-#         sql = '''
-#             select id from account_move 
-#         '''
-#         cr.execute(sql)
-#         for account in cr.dictfetchall():
-#             # trung account move
-#             sql = '''
-#                 select id from stock_picking where state = 'done' and 
-#                 name in (select LEFT(name,17) from account_move_line where move_id = %s)
-#             '''(account['id'])
-#             cr.execute(sql)
-#             grns = cr.fetchall()
-#             if len(grns) > 1:
-#                 ........
-#         return self.write(cr, uid, ids, {'result':'TPT fix_posting_issue Remaining'})
+    def check_one_grn_one_posting(self, cr, uid, ids, context=None):
+        sql = '''
+            select id, name from stock_picking where type = 'in' and state = 'done'
+        '''
+        cr.execute(sql)
+        for picking in cr.dictfetchall():
+            sql = '''
+                select id from account_move where doc_type = 'grn' and 
+                id in (select move_id from account_move_line where LEFT(name,17) = '%s')
+            '''%(picking['name'])
+            cr.execute(sql)
+            accounts = cr.dictfetchall()
+            if len(accounts) > 1:
+                for num in range(1, len(accounts)):
+                    move_id = accounts[num]['id']
+                    sql = '''
+                        delete from account_move where id = %s
+                    '''%(move_id)
+                    cr.execute(sql)
+                    sql = '''
+                        delete from account_move_line where move_id = %s
+                    '''%(move_id)
+                    cr.execute(sql)
+            if len(accounts) < 1:
+                print picking['name']
+        return self.write(cr, uid, ids, {'result':'TPT fix_posting_issue Remaining'})
     
 tpt_update_stock_move_report()
 
