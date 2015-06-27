@@ -3918,6 +3918,10 @@ class arul_hr_permission_onduty(osv.osv):
                     payroll_ids = self.pool.get('arul.hr.payroll.executions').search(cr,uid,[('month','=',month),('year','=',year),('state','=','approve'),('payroll_area_id','=',permission.employee_id.payroll_area_id.id)])
                     if payroll_ids :
                         raise osv.except_osv(_('Warning!'),_('Payroll were already exists, not allowed to approve again!'))
+                    time_evalv_ids = time_evalv_obj.search(cr,uid,[('month','=',int(month)),('year','=',year),('state','=','done'),
+                                                       ('payroll_area_id','=',permission.employee_id.payroll_area_id.id)])
+                    if time_evalv_ids:
+                        raise osv.except_osv(_('Warning!'),_('Time Leave Evaluation Confirmed!'))
             #
                 sql = '''
                     select count(id) as num_of_permission from arul_hr_permission_onduty where non_availability_type_id='permission' and employee_id=%s

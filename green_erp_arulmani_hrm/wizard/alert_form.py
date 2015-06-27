@@ -170,8 +170,8 @@ class alert_form(osv.osv_memory):
         ###
         #line_id=perm_obj.id
         #=======================================================================
-        # emp_attendence_obj = self.pool.get('arul.hr.employee.attendence.details')
-        # emp_attendence_ids = emp_attendence_obj.search(cr, uid, [('employee_id','=',perm_obj.employee_id.id)])
+        emp_attendence_obj = self.pool.get('arul.hr.employee.attendence.details')
+        emp_attendence_ids = emp_attendence_obj.search(cr, uid, [('employee_id','=',perm_obj.employee_id.id)])
         # 
         # punch_obj = self.pool.get('arul.hr.punch.in.out.time')
         # val2={'permission_onduty_id':perm_obj.id, 'approval':1,
@@ -182,8 +182,8 @@ class alert_form(osv.osv_memory):
         #=======================================================================
         ###
         
-        sql = ''' update arul_hr_permission_onduty set approval='t' where id=%s
-        '''%perm_obj.id
+        sql = ''' update arul_hr_permission_onduty set approval='t',permission_onduty_id=%s where id=%s  
+        '''%(emp_attendence_ids[0], perm_obj.id) 
         cr.execute(sql)
         
         self.pool.get('arul.hr.permission.onduty').write(cr, uid, [audit_id],{'approval': True, 'state':'done'})
