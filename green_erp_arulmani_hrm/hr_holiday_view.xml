@@ -1701,6 +1701,82 @@
             groups="group_vvti_hrm_hr_manager,group_vvti_hrm_payroll_controller,group_vvti_hrm_time_key_user"/>
          
          <!-- TPT END: LEAVE ADJUSTMENT -->
+         
+                 
+<!-- TPT Start on 22/06/15 : for Work shift new master  !-->
+
+            <record id="view_tpt_hr_new_work_shift_master_tree_veiw" model="ir.ui.view">
+			<field name="name">tpt.hr.new.work.shift.master.tree</field>
+			<field name="model">tpt.hr.new.work.shift.master</field>
+			<field name="arch" type="xml">
+				<tree string="Work Shift Master">
+					<field name="code"/>
+					<field name="name"/>
+					<field name="description"/>					
+					<field name="allowance"/>
+					<field name="start_time" widget="float_time"/>
+					<field name="end_time" widget="float_time"/>					
+					<field name ="create_date"/>
+                	<field name ="create_uid"/>
+				</tree>
+			</field>
+		</record>
+		
+
+		<record id="view_tpt_hr_new_work_shift_master_form_veiw" model="ir.ui.view">
+            <field name="name">tpt.hr.new.work.shift.master.form</field>
+            <field name="model">tpt.hr.new.work.shift.master</field>
+            <field name="arch" type="xml">
+	            <form string="Work Shift Master" version="7.0">   
+	            	<sheet>
+		                <group col='4' colspan='2'>
+		                    <field name="code"/>
+							<field name="name"/>
+							<field name="description"/>
+							<newline/>
+							<field name ="create_date"/>
+                			<field name ="create_uid"/>
+                			<field name="allowance"/>  
+			                
+						</group>
+						<group col='4' colspan='2' string="Shift">
+							<field name="min_start_time" widget="float_time"/>
+							<field name="min_end_time" widget="float_time"/>
+							<field name="start_time" widget="float_time"/>
+							<field name="end_time" widget="float_time"/>
+							<field name="max_start_time" widget="float_time"/>
+							<field name="max_end_time" widget="float_time"/>
+							</group>
+							
+							<group col='4' colspan='2' string="Shift Count">
+							<newline/>
+							<field name="a_shift" />
+							<field name="g1_shift" />
+							<field name="g2_shift" />
+							<field name="b_shift" />
+							<field name="c_shift" />
+							
+							<newline/>
+							<field name="shift_count" />
+		                	</group>						
+		            	
+		         	</sheet>
+		         </form>
+			</field>
+		</record>
+          
+		<record id="action_tpt_hr_new_work_shift_master_form" model="ir.actions.act_window">
+            <field name="name">Work Shift Master</field>
+            <field name="type">ir.actions.act_window</field>
+            <field name="res_model">tpt.hr.new.work.shift.master</field>
+            <field name="view_type">form</field>
+            <field name="view_mode">tree,form</field>
+            <field name="view_id" ref="view_tpt_hr_new_work_shift_master_tree_veiw"/>
+            </record>
+        <menuitem action="action_tpt_hr_new_work_shift_master_form"
+            id="menu_action_tpt_hr_new_work_shift_master_form"
+            parent="menu_hr_leave_management" sequence="35"
+            groups="group_vvti_hrm_hr_key_user,group_vvti_hrm_time_user,group_vvti_hrm_hr_manager,group_vvti_hrm_payroll_controller"/>  
 	</data>
 </openerp>
 

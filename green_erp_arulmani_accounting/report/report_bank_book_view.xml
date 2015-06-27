@@ -78,7 +78,7 @@
             				<field name="bank_acc_no" nolabel="1" class="oe_text_center"/>
             			</div>
 	                	
-	                	<div class='oe_green_erp_scroll'><group>
+	                	<group>
 		                	<field name="cb_line" nolabel='1'>
 		                		<tree create="false" edit="false" delete="false">
 		                			<field name="voucher_id"/>
@@ -95,7 +95,7 @@
 		                			<field name="balance"/>
 		                		</tree>
 		                	</field>
-		                	</group></div>
+		                	</group>
 	                	
 	               	</sheet>
 	           </form>
