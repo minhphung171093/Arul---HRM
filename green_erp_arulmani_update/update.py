@@ -1828,7 +1828,7 @@ class tpt_update_stock_move_report(osv.osv):
                             'doc_type':'grn'
                             }
                         account_move_obj.create(cr,uid,vals)       
-        return self.write(cr, uid, ids, {'result':'TPT fix_posting_issue Remaining'})
+        return self.write(cr, uid, ids, {'result':'TPT Done'})
     
 tpt_update_stock_move_report()
 
