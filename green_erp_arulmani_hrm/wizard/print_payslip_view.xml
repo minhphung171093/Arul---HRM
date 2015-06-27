@@ -14,7 +14,7 @@
                  	</group>
                  	<separator colspan="4" string="Employees"/>
                     <group colspan="4" col="4" >
-	                    <field name="employee_ids" nolabel='1' colspan='4' domain="['|',('active','=',False),('active','=',True)]">
+	                    <field name="employee_ids" nolabel='1' colspan='4' context="{'active_test': False}">
 	                     </field>
                     </group>
          		</sheet>          
