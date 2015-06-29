@@ -202,6 +202,8 @@ class cash_book_report(osv.osv_memory):
                                           (select id from account_account where code='0000110001')
                                 ) 
                             and av.id in %s
+                            and aml.id not in (select id from account_move_line where account_id in 
+                                      (select id from account_account where code='0000110001'))
                             and av.type = 'payment' 
                             and av.state in ('posted')
                             group by av.name,aa.name, aml.account_id,av.date, aml.ref, av.payee, aml.name order by av.date
@@ -243,6 +245,8 @@ class cash_book_report(osv.osv_memory):
                                           (select id from account_account where code='0000110001')
                                 ) 
                             and av.id in %s
+                            and aml.id not in (select id from account_move_line where account_id in 
+                                      (select id from account_account where code='0000110001'))
                             and av.type = 'receipt' 
                             and av.state in ('posted')
                             group by av.name,aa.name, aml.account_id,av.date, aml.ref, av.payee, aml.name order by av.date
@@ -294,6 +298,8 @@ class cash_book_report(osv.osv_memory):
                                       (select id from account_account where code='0000110001')
                             ) 
                         and av.id in %s
+                        and aml.id not in (select id from account_move_line where account_id in 
+                                      (select id from account_account where code='0000110001'))
                         and av.type = 'payment' 
                         and av.state in ('posted')
                 
@@ -313,6 +319,8 @@ class cash_book_report(osv.osv_memory):
                                       (select id from account_account where code='0000110001')
                             ) 
                         and av.id in %s
+                        and aml.id not in (select id from account_move_line where account_id in 
+                                      (select id from account_account where code='0000110001'))
                         and av.type = 'receipt' 
                         and av.state in ('posted')
                         )foo 
@@ -357,6 +365,8 @@ class cash_book_report(osv.osv_memory):
                                           (select id from account_account where code='0000110001')
                                 ) 
                             and av.id in %s
+                            and aml.id not in (select id from account_move_line where account_id in 
+                                      (select id from account_account where code='0000110001'))
                             and av.type = 'payment' 
                             and av.state in ('draft','posted')
                             group by av.name,aa.name, aml.account_id,av.date, aml.ref, av.payee, aml.name order by av.date
@@ -398,6 +408,8 @@ class cash_book_report(osv.osv_memory):
                                           (select id from account_account where code='0000110001')
                                 ) 
                             and av.id in %s
+                            and aml.id not in (select id from account_move_line where account_id in 
+                                      (select id from account_account where code='0000110001'))
                             and av.type = 'receipt' 
                             and av.state in ('draft','posted')
                             group by av.name,aa.name, aml.account_id,av.date, aml.ref, av.payee, aml.name order by av.date
@@ -449,6 +461,8 @@ class cash_book_report(osv.osv_memory):
                                       (select id from account_account where code='0000110001')
                             ) 
                         and av.id in %s
+                        and aml.id not in (select id from account_move_line where account_id in 
+                                      (select id from account_account where code='0000110001'))
                         and av.type = 'payment' 
                         and av.state in ('draft','posted')
                 
@@ -468,6 +482,8 @@ class cash_book_report(osv.osv_memory):
                                       (select id from account_account where code='0000110001')
                             ) 
                         and av.id in %s
+                        and aml.id not in (select id from account_move_line where account_id in 
+                                      (select id from account_account where code='0000110001'))
                         and av.type = 'receipt' 
                         and av.state in ('draft','posted')
                         )foo 
