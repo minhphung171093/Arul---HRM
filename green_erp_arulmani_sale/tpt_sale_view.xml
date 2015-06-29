@@ -749,9 +749,9 @@
             <field name="arch" type="xml">
                 <form string="Batch Allotment" version="7.0">
                    <header>
-                     <button string="Approve" name="confirm" states="to_approve,refuse" type="object" class="oe_highlight" groups="green_erp_arulmani_sale.group_vvti_sale_manager,green_erp_arulmani_crm.group_qc_user"/>
-                     <button string="Refuse" name="refuse" states="to_approve,confirm" type="object" class="oe_highlight" groups="green_erp_arulmani_sale.group_vvti_sale_manager,green_erp_arulmani_crm.group_qc_user"/>
-                     <button string="Cancel" name="cancelled" states="to_approve,confirm,refuse" type="object" class="oe_highlight" groups="green_erp_arulmani_sale.group_vvti_sale_manager,green_erp_arulmani_crm.group_qc_manager,green_erp_arulmani_crm.group_qc_user"/>
+                     <button string="Approve" name="confirm" states="to_approve,refuse" type="object" class="oe_highlight" groups="green_erp_arulmani_crm.group_qc_user"/>
+                     <button string="Refuse" name="refuse" states="to_approve,confirm" type="object" class="oe_highlight" groups="ggreen_erp_arulmani_crm.group_qc_user"/>
+                     <button string="Cancel" name="cancelled" states="to_approve,confirm,refuse" type="object" class="oe_highlight" groups="green_erp_arulmani_crm.group_qc_manager,green_erp_arulmani_crm.group_qc_user"/>
                      <field name="state" widget="statusbar" statusbar_colors='{"confirm":"blue","to_approve":"blue","refuse":"red"}'/>
                     </header>
                    <sheet>
