@@ -61,6 +61,11 @@
 		            				<field name="invoiced_date" />
 		            				<field name="rebate_claimed_amt" />
 		            				<field name="remarks" />
+		            				<field name="excise_duty_id" />
+		            				<field name="ed_amount" />
+		            				<field name="amount_usd" />
+		            				<field name="amount_inr" />
+		            				
 								</group>
 							</page>
 							<page string = "Duty Rate">
