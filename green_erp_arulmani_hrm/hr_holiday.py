@@ -6847,12 +6847,7 @@ class tpt_time_leave_evaluation(osv.osv):
                 year_now = int(time.strftime('%Y'))
                 if year_now == sub.year and month_now == int(sub.month):
                     day_now = int(time.strftime('%d'))
-                if year_now >= sub.year:
-                    a = '20120525'
-                    b = '20120627' 
-                    for dt in rrule(DAILY,dtstart=a, 
-                                          until=b):
-                        print dt.strftime('%Y%m%d') 
+                if year_now >= sub.year:                   
                     if shift.day_1 and shift.day_1.code != 'W' and day_now>=1 and 1.0 not in holiday_days:
                         sql = '''
                             select id from arul_hr_employee_leave_details
