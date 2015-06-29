@@ -1202,6 +1202,7 @@
 			<field name="model">tpt.good.return.request</field>
 			<field name="arch" type="xml">
 				<tree string="Goods Return Request">
+					<field name="name"/>
 					<field name="grn_no_id"/>
 					<field name="request_date"/>
 					<field name="state" widget="statusbar" statusbar_visible="draft,done" statusbar_colors='{"draft":"blue"}'/>
@@ -1217,22 +1218,25 @@
 	            <header>
 	                    <button name="bt_approve" states='draft' string="Approve Request" type="object" class="oe_highlight" groups="green_erp_arulmani_purchase.group_vvti_purchase_admin,green_erp_arulmani_purchase.group_vvti_hrm_plant_mm_user"/>
 	                    <button name="bt_cancel" states='draft' string="Cancel Request" type="object" class="oe_highlight" />
+	                    <button name="bt_set_to_draft" states='cancel' string="Set to Draft" type="object" class="oe_highlight" />
 	                    <field name="state" widget="statusbar" statusbar_visible="draft,cancel,done" statusbar_colors='{"draft":"blue"}'/>
 	            </header>
 	            	<sheet>
 		                <group > 
-			                <field name="grn_no_id" on_change = "onchange_grn_no_id(grn_no_id)" context="{'search_grn_no_id':True}" domain="[('type','=','in')]" options="{'create': false, 'create_edit': false}"/>
+		                	<field name="name"/>
+			                <field name="grn_no_id" on_change = "onchange_grn_no_id(grn_no_id)" context="{'search_grn_no_id':True}" options="{'create': false, 'create_edit': false}"/>
 							<field name="request_date"/>
 						</group>
 						<notebook>
 							<page string="Product Details">
-								<field name="product_detail_line" nolabel='1'>
-									<tree editable='top'>
+								<field name="product_detail_line" nolabel='1' >
+									<tree editable='top' create = 'false' >
 										<field name="product_id" options="{'create': false, 'create_edit': false}"/>
 										<field name="product_qty"/>
 										<field name="uom_po_id" options="{'create': false, 'create_edit': false}"/>
 										<field name="state"/>
 										<field name="reason"/>
+										<field name="st_move_id" invisible = '1'/>
 									</tree>
 								</field>
 							</page>
