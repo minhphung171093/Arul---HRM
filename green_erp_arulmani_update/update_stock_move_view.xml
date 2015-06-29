@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="utf-8"?>
+<openerp>
+    <data>
+    	<record id="view_tpt_update_stock_move_tree_view" model="ir.ui.view">
+			<field name="name">tpt.update.stock.move.tree</field>
+			<field name="model">tpt.update.stock.move</field>
+			<field name="arch" type="xml">
+				<tree string="Update Stock Move">
+					<field name="host" />
+					<field name="database" />
+					<field name="result" />
+				</tree>
+			</field>
+		</record>
+		
+		<record id="view_tpt_update_stock_move_form_view" model="ir.ui.view">
+            <field name="name">tpt.update.stock.move.form</field>
+            <field name="model">tpt.update.stock.move</field>
+            <field name="arch" type="xml">
+	            <form string="Update Stock Move" version="7.0">
+		            <header>
+	            		<button name="update_tm" string="Update Stock Move" type="object" class="oe_highlight"/>
+		            </header>    
+	            	<group>
+	                    <field name="host" />
+	                    <field name="database" />
+						<field name="db_port" />
+						<field name="db_username" />
+						<field name="db_password" password="True"/>
+						<field name="result" />
+	                </group>
+	        	</form>
+			</field>
+		</record>
+          
+		<record id="action_tpt_update_stock_move_form" model="ir.actions.act_window">
+            <field name="name">Update Stock Move</field>
+            <field name="type">ir.actions.act_window</field>
+            <field name="res_model">tpt.update.stock.move</field>
+            <field name="view_type">form</field>
+            <field name="view_mode">form,tree</field>
+            <field name="view_id" ref="view_tpt_update_stock_move_tree_view"/>
+        </record>
+        
+        <menuitem action="action_tpt_update_stock_move_form"
+        	id="menu_action_tpt_update_stock_move_form"
+            parent="purchase.menu_procurement_management" sequence="565" 
+            groups="base.user_root"/>
+        
+    </data>
+</openerp>

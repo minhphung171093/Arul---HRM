@@ -14,6 +14,7 @@ class customer_ledger_statement(osv.osv_memory):
                 'date_from': fields.date('Date From', required=True),
                 'date_to': fields.date('Date To', required=True),
                 'customer_id':fields.many2one('res.partner','Customer',required=True),
+                'is_posted': fields.boolean('Is Posted'),
                 }
     
     def _check_date(self, cr, uid, ids, context=None):
@@ -38,17 +39,50 @@ class customer_ledger_statement(osv.osv_memory):
             date_from = cls.date_from
             date_to = cls.date_to
             cus = cls.customer_id.id
+            is_posted = cls.is_posted
+            
             acount_move_line_obj = self.pool.get('account.move.line')
             acount_move_obj = self.pool.get('account.move')
             cus_ids = []
-            sql = '''
-                select aml.id from account_move_line aml inner join account_move am on aml.move_id = am.id
-                where am.date between '%s' and '%s' and am.doc_type in ('cus_inv') and am.partner_id = %s and am.state='posted' and aml.debit is not null and aml.debit !=0
-                or (am.date between '%s' and '%s' and am.doc_type in ('cus_pay') and am.partner_id = %s and am.state='posted' and aml.credit is not null and aml.credit !=0)
-                    order by am.date  
-                '''%(date_from, date_to,cus,date_from, date_to,cus)
-            cr.execute(sql)
-            cus_ids = [r[0] for r in cr.fetchall()]
+            if is_posted is True:
+                # The following is removed from where condition
+                #and am.doc_type in ('cus_inv') 
+                sql = '''
+                    select aml.id from account_move_line aml 
+                    inner join account_move am on aml.move_id = am.id
+                    inner join res_partner p on (p.id=am.partner_id)
+                    inner join account_account aa on (aa.id=aml.account_id)
+                    where am.date between '%s' and '%s' 
+                    and am.state='posted' 
+                    and aml.account_id = (
+                    select id from account_account where id in (
+                    select btrim(value_reference,'account.account,')::Integer
+                    from ir_property where res_id in ('res.partner,'|| %s) and name='property_account_receivable'
+                    )
+                    )
+                        order by am.date  
+                    '''%(date_from, date_to,cus)
+                cr.execute(sql)
+                cus_ids = [r[0] for r in cr.fetchall()]
+            else:
+                sql = '''
+                    select aml.id from account_move_line aml 
+                    inner join account_move am on aml.move_id = am.id
+                    inner join res_partner p on (p.id=am.partner_id)
+                    inner join account_account aa on (aa.id=aml.account_id)
+                    where am.date between '%s' and '%s' 
+                    and am.state in ('draft','posted') 
+                    and aml.account_id = (
+                    select id from account_account where id in (
+                    select btrim(value_reference,'account.account,')::Integer
+                    from ir_property where res_id in ('res.partner,'|| %s) and name='property_account_receivable'
+                    )
+                    )
+                    
+                        order by am.date  
+                    '''%(date_from, date_to,cus)
+                cr.execute(sql)
+                cus_ids = [r[0] for r in cr.fetchall()]
 #             sql = '''
 #                 select id from account_move_line 
 #                 where move_id in (
@@ -160,6 +194,7 @@ class customer_ledger_statement(osv.osv_memory):
                 'cus_code': cls.customer_id.customer_code,
                 'cus_name': cls.customer_id.name,
                 'customer_id': cls.customer_id.id,
+                'is_posted': cls.is_posted,
                 'cus_ledger_line': cls_line,
                 }
         cls_id = cls_obj.create(cr,uid,vals)
@@ -192,6 +227,7 @@ class tpt_customer_ledger(osv.osv_memory):
                 'cus_code': fields.char('Customer Code: ', size = 1024),
                 'cus_name': fields.char('Customer Name: ', size = 1024),
                 'customer_id':fields.many2one('res.partner','Customer'),
+                'is_posted': fields.boolean('Is Posted'),
                 'cus_ledger_line': fields.one2many('tpt.customer.ledger.line', 'ledger_id', 'Customer Ledger Statement Line'),
                 }
     

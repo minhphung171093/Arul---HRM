@@ -10,6 +10,7 @@
 	                <field name="date_from" />
 	                <field name="date_to" />
 	                <field name="supplier_id" domain="[('supplier','=',True),('is_company','=',True)]" options="{'create': false, 'create_edit': false}" />
+	                <field name="is_posted" />
 	                </group>
 	                <footer>
 	                    <button name="print_report" type='object' string="OK" class="oe_highlight"/>

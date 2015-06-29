@@ -100,17 +100,41 @@ class Parser(report_sxw.rml_parse):
         date_from = wizard_data['date_from']
         date_to = wizard_data['date_to']
         cus = wizard_data['customer_id']
+        is_posted = wizard_data['is_posted']
+        
         acount_move_line_obj = self.pool.get('account.move.line')
         acount_move_obj = self.pool.get('account.move')
         cus_ids = []
-        sql = '''
-            select aml.id from account_move_line aml inner join account_move am on aml.move_id = am.id
-                where am.date between '%s' and '%s' and am.doc_type in ('cus_inv') and am.partner_id = %s and am.state='posted' and aml.debit is not null and aml.debit !=0
-                or (am.date between '%s' and '%s' and am.doc_type in ('cus_pay') and am.partner_id = %s and am.state='posted' and aml.credit is not null and aml.credit !=0)
-                    order by am.date
-            '''%(date_from, date_to,cus[0],date_from, date_to,cus[0])
-        self.cr.execute(sql)
-        cus_ids = [r[0] for r in self.cr.fetchall()]
+        if is_posted is True:
+            sql = '''
+                select aml.id from account_move_line aml 
+                    inner join account_move am on aml.move_id = am.id
+                    inner join res_partner p on (p.id=am.partner_id)
+                    inner join account_account aa on (aa.id=aml.account_id)
+                    where am.date between '%s' and '%s' 
+                    and am.partner_id = %s and am.state='posted' and aml.debit is not null and aml.debit !=0
+                    or (am.date between '%s' and '%s' and am.doc_type in ('cus_pay') and am.partner_id = %s 
+                    and am.state='posted' and aml.credit is not null and aml.credit !=0)
+                    and p.vendor_code=aa.code
+                        order by am.date 
+                '''%(date_from, date_to,cus[0],date_from, date_to,cus[0])
+            self.cr.execute(sql)
+            cus_ids = [r[0] for r in self.cr.fetchall()]
+        else:
+            sql = '''
+                select aml.id from account_move_line aml 
+                    inner join account_move am on aml.move_id = am.id
+                    inner join res_partner p on (p.id=am.partner_id)
+                    inner join account_account aa on (aa.id=aml.account_id)
+                    where am.date between '%s' and '%s' 
+                    and am.partner_id = %s and am.state in ('draft','posted') and aml.debit is not null and aml.debit !=0 
+                    or (am.date between '%s' and '%s' and am.doc_type in ('cus_pay') and am.partner_id = %s 
+                    and am.state in ('draft','posted') and aml.credit is not null and aml.credit !=0)
+                    and p.vendor_code=aa.code
+                        order by am.date  
+                '''%(date_from, date_to,cus[0],date_from, date_to,cus[0])
+            self.cr.execute(sql)
+            cus_ids = [r[0] for r in self.cr.fetchall()]
 #         sql = '''
 #             select id from account_move_line 
 #             where move_id in (

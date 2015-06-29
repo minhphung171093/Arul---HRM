@@ -141,6 +141,7 @@ class tpt_update_stock_move_report(osv.osv):
     
     _columns = {
         'result': fields.text('Result', readonly=True ),
+        'product_id': fields.many2one('product.product', 'Product'),
         'update_line': fields.one2many('tpt.update.inspection.line','update_id','Line'),
     }
     
@@ -1487,7 +1488,12 @@ class tpt_update_stock_move_report(osv.osv):
     def sum_avg_cost(self, cr, uid, ids, context=None):
         result = 'Done create inspection \n'
         inventory_obj = self.pool.get('tpt.product.avg.cost')
-        for id in [10718]:
+        product_id = self.browse(cr, uid, ids[0]).product_id.id
+        for id in [product_id]:
+            sql = '''
+                update stock_move set price_unit = 0 where product_id=%s and price_unit<0
+            '''%(id)
+            cr.execute(sql)
             sql = 'delete from tpt_product_avg_cost where product_id=%s'%(id)
             cr.execute(sql)
             sql = '''
@@ -1602,6 +1608,8 @@ class tpt_update_stock_move_report(osv.osv):
                 hand_quantity = float(inventory['ton_sl'])
                 total_cost = float(inventory['total_cost'])
                 avg_cost = hand_quantity and total_cost/hand_quantity or 0
+                if avg_cost < 0:
+                    avg_cost = 0
                 sql = '''
                     update stock_move set price_unit = %s where id = %s
                 '''%(avg_cost,move.id)
@@ -1609,6 +1617,225 @@ class tpt_update_stock_move_report(osv.osv):
                 print 'TPT update ISSUE unit price for report', move.id
          
         return self.write(cr, uid, ids, {'result':'TPT update UNIT PRICE for report Done'})
+    
+    def update_tpt_quanlity_inspection(self, cr, uid, ids, context=None):
+        sql = '''
+            select id from tpt_quanlity_inspection where need_inspec_id is null
+        '''
+        cr.execute(sql)
+        inspection_obj = self.pool.get('tpt.quanlity.inspection')
+        inspection_ids = [r[0] for r in cr.fetchall()]
+        for line in inspection_obj.browse(cr, uid, inspection_ids):
+            sql = '''
+                select picking_id from stock_move where product_id=%s and product_qty=%s and picking_id is not null and action_taken='need'
+                   and (select count(id) from tpt_quanlity_inspection where name=%s)>1
+            '''%(line.product_id.id,line.qty,line.name.id)
+            cr.execute(sql)
+            picking_ids = [r[0] for r in cr.fetchall()]
+            if picking_ids:
+                inspection_obj.write(cr, uid, [line.id], {'name':picking_ids[0]})
+        cr.execute(''' update tpt_quanlity_inspection t set need_inspec_id=(select id from stock_move where picking_id=t.name and product_qty=t.qty and product_id=t.product_id limit 1) where need_inspec_id is null ''')
+        return self.write(cr, uid, ids, {'result':'TPT tpt_quanlity_inspection Done'})
+    
+    def update_tpt_quanlity_inspection_v2(self, cr, uid, ids, context=None):
+        sql = '''
+            select id from tpt_quanlity_inspection where name in (select name from tpt_quanlity_inspection group by name having count(name)>1) and need_inspec_id is not null
+        '''
+        cr.execute(sql)
+        inspection_obj = self.pool.get('tpt.quanlity.inspection')
+        move_obj = self.pool.get('stock.move')
+        inspection_ids = [r[0] for r in cr.fetchall()]
+        for line in inspection_obj.browse(cr, uid, inspection_ids):
+            move = move_obj.browse(cr, uid, line.need_inspec_id.id)
+            cr.execute(''' update tpt_quanlity_inspection set name=%s where id=%s ''',(move.picking_id.id,line.id,))
+#         cr.execute(''' update tpt_quanlity_inspection t set need_inspec_id=(select id from stock_move where picking_id=t.name and product_qty=t.qty and product_id=t.product_id limit 1) where id in %s ''',(tuple(inspection_ids),))
+        return self.write(cr, uid, ids, {'result':'TPT tpt_quanlity_inspection v2 Done'})
+    
+    def update_issue_with_posting(self, cr, uid, ids, context=None):
+        sql = '''
+            select id from tpt_material_issue where (select count(id) from account_move where doc_type in ( 'good') and material_issue_id=tpt_material_issue.id)>1
+        '''
+        cr.execute(sql)
+        move_obj = self.pool.get('account.move')
+        issue_obj = self.pool.get('tpt.material.issue')
+        for line in cr.fetchall():
+            sql = '''
+                select id,state from account_move where doc_type='good' and material_issue_id = %s order by state
+            '''%(line[0])
+            cr.execute(sql)
+            move = cr.fetchone()
+            if move:
+                if move[1]=='posted':
+                    move_obj.button_cancel(cr, uid, [move[0]])
+                cr.execute(''' delete from account_move where id=%s ''',(move[0],))
+                
+        sql = '''
+            select id from account_move where doc_type in ('good') and material_issue_id is null and state='posted'
+        '''
+        cr.execute(sql)    
+        move_ids = [r[0] for r in cr.fetchall()]
+        move_obj.button_cancel(cr, uid, move_ids)
+        sql = '''
+            delete from account_move where doc_type in ('good') and material_issue_id is null
+        '''
+        cr.execute(sql)
+        sql = '''
+            select id from tpt_material_issue where (select count(id) from account_move where doc_type in ( 'good') and material_issue_id=tpt_material_issue.id)=0  and state='done'
+                limit 150
+        '''
+        cr.execute(sql)
+        issue_ids = [r[0] for r in cr.fetchall()]
+        if not issue_ids:
+            return self.write(cr, uid, ids, {'result':'TPT update_issue_with_posting Done'})
+        issue_obj.bt_create_posting(cr, uid, issue_ids)
+        return self.write(cr, uid, ids, {'result':'TPT update_issue_with_posting Remaining'})
+    
+    def fix_posting_issue(self, cr, uid, ids, context=None):
+        sql = '''
+            select id from tpt_material_issue where (select count(id) from account_move where doc_type in ( 'good') and material_issue_id=tpt_material_issue.id)>1
+        '''
+        cr.execute(sql)
+        move_obj = self.pool.get('account.move')
+        issue_obj = self.pool.get('tpt.material.issue')
+        for line in cr.fetchall():
+            sql = '''
+                select id,state from account_move where doc_type='good' and material_issue_id = %s order by state
+            '''%(line[0])
+            cr.execute(sql)
+            move = cr.fetchone()
+            if move:
+                if move[1]=='posted':
+                    move_obj.button_cancel(cr, uid, [move[0]])
+                cr.execute(''' delete from account_move where id=%s ''',(move[0],))
+                
+        sql = '''
+            select id from account_move where doc_type in ('good') and state='posted'
+        '''
+        cr.execute(sql)    
+        move_ids = [r[0] for r in cr.fetchall()]
+        move_obj.button_cancel(cr, uid, move_ids)
+        sql = '''
+            delete from account_move where doc_type in ('good') and material_issue_id is null
+        '''
+        cr.execute(sql)
+        sql = '''
+            select id from tpt_material_issue where (select count(id) from account_move where doc_type in ( 'good') and material_issue_id=tpt_material_issue.id)=0  and state='done'
+                limit 150
+        '''
+        cr.execute(sql)
+        issue_ids = [r[0] for r in cr.fetchall()]
+        if not issue_ids:
+            return self.write(cr, uid, ids, {'result':'TPT fix_posting_issue Done'})
+        issue_obj.bt_create_posting(cr, uid, issue_ids)
+        return self.write(cr, uid, ids, {'result':'TPT fix_posting_issue Remaining'})
+    
+    def check_one_grn_one_posting(self, cr, uid, ids, context=None):
+        sql = '''
+            select id, name from stock_picking where type = 'in' and state = 'done'
+        '''
+        cr.execute(sql)
+        for picking in cr.dictfetchall():
+            sql = '''
+                select id from account_move where doc_type = 'grn' and 
+                id in (select move_id from account_move_line where LEFT(name,17) = '%s')
+            '''%(picking['name'])
+            cr.execute(sql)
+            accounts = cr.dictfetchall()
+            if len(accounts) > 1:
+                for num in range(1, len(accounts)):
+                    move_id = accounts[num]['id']
+                    sql = '''
+                        delete from account_move where id = %s
+                    '''%(move_id)
+                    cr.execute(sql)
+                    sql = '''
+                        delete from account_move_line where move_id = %s
+                    '''%(move_id)
+                    cr.execute(sql)
+            if len(accounts) < 1:
+                account_move_obj = self.pool.get('account.move')
+                period_obj = self.pool.get('account.period')
+                line = self.pool.get('stock.picking').browse(cr,uid,picking['id'])
+                if line.type == 'in' and line.state=='done':
+                    debit = 0.0
+                    credit = 0.0
+                    journal_line = []
+                    for move in line.move_lines:
+                        if move.purchase_line_id.price_unit:
+                            amount = move.purchase_line_id.price_unit * move.product_qty
+                        else:
+                            amount = 0
+                        if move.purchase_line_id.discount:
+                            debit += amount - (amount*move.purchase_line_id.discount)/100
+                        else:
+                            debit += amount - (amount*0)/100
+                    date_period = line.date,
+                    sql = '''
+                        select id from account_period where special = False and '%s' between date_start and date_stop
+                     
+                    '''%(date_period)
+                    cr.execute(sql)
+                    period_ids = [r[0] for r in cr.fetchall()]
+                    if not period_ids:
+                        raise osv.except_osv(_('Warning!'),_('Period is not null, please configure it in Period master !'))
+                     
+                    for period_id in period_obj.browse(cr,uid,period_ids):
+                        sql_journal = '''
+                        select id from account_journal
+                        '''
+                        cr.execute(sql_journal)
+                        journal_ids = [r[0] for r in cr.fetchall()]
+                        journal = self.pool.get('account.journal').browse(cr,uid,journal_ids[0])
+                        for p in line.move_lines:
+                            if p.purchase_line_id.price_unit:
+                                amount_cer = p.purchase_line_id.price_unit * p.product_qty
+                            else:
+                                amount_cer = 0 * p.product_qty
+                            if p.purchase_line_id.discount:
+                                credit = amount_cer - (amount_cer*p.purchase_line_id.discount)/100
+                                debit = amount_cer - (amount_cer*p.purchase_line_id.discount)/100
+                            else:
+                                credit = amount_cer - (amount_cer*0)/100
+                                debit = amount_cer - (amount_cer*0)/100
+                            if not p.product_id.product_asset_acc_id:
+                                print p.product_id.name
+                                raise osv.except_osv(_('Warning!'),_('You need to define Product Asset GL Account for this product'))
+                            journal_line.append((0,0,{
+                                'name':line.name + ' - ' + p.product_id.name, 
+                                'account_id': p.product_id.product_asset_acc_id and p.product_id.product_asset_acc_id.id,
+                                'partner_id': line.partner_id and line.partner_id.id or False,
+                                'credit':0,
+                                'debit':debit,
+                                'product_id':p.product_id.id,
+                            }))
+                            
+                            if not p.product_id.purchase_acc_id:
+                                raise osv.except_osv(_('Warning!'),_('You need to define Purchase GL Account for this product'))
+                            journal_line.append((0,0,{
+                                'name':line.name + ' - ' + p.product_id.name, 
+                                'account_id': p.product_id.purchase_acc_id and p.product_id.purchase_acc_id.id,
+                                'partner_id': line.partner_id and line.partner_id.id or False,
+                                'credit':credit,
+                                'debit':0,
+                                'product_id':p.product_id.id,
+                            }))
+                             
+                        vals={
+                            'journal_id':journal.id,
+                            'period_id':period_id.id ,
+                            'date': date_period,
+                            'line_id': journal_line,
+                            'doc_type':'grn'
+                            }
+                        account_move_obj.create(cr,uid,vals)       
+        return self.write(cr, uid, ids, {'result':'TPT Done'})
+    
+    def update_date_stock_move(self, cr, uid, ids, context=None):
+        sql = '''
+            update stock_move set date = (select date from stock_picking where id=stock_move.picking_id), date_expected = (select date from stock_picking where id=stock_move.picking_id) where picking_id is not null
+        '''
+        cr.execute(sql)
+        return self.write(cr, uid, ids, {'result':'Date Done'})
     
 tpt_update_stock_move_report()
 
