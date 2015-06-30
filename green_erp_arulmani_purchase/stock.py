@@ -520,7 +520,6 @@ class stock_move(osv.osv):
                                 cr.execute(sql)
         
                         
-                    elif 'action_taken' in vals:
                         if vals['action_taken'] == 'need':
                             location_id = False
                             parent_ids = self.pool.get('stock.location').search(cr, uid, [('name','=','Quality Inspection'),('usage','=','view')])
@@ -541,14 +540,8 @@ class stock_move(osv.osv):
                                 return {'value': vals,'warning':warning}
                             else:
                                 location_id = locat_ids[0]
-                            if ids:
-                                sql = '''
-                                    update stock_move set location_dest_id = %s where id=%s;
-                                    commit;
-                                '''%(location_id,ids[0])
-                                cr.execute(sql)
+                            vals['location_dest_id']=location_id
         
-                    elif 'action_taken' in vals:
                         if vals['action_taken'] == 'direct':   
                             for line in self.browse(cr, uid, ids, context=context):
                                 if line.picking_id and line.picking_id.warehouse:
