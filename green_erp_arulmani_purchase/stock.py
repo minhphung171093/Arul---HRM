@@ -412,6 +412,8 @@ class stock_move(osv.osv):
         'issue_id': fields.many2one('tpt.material.issue','Material Issue'),
         'cost_center_id': fields.many2one('tpt.cost.center','Cost center'),
         'grn_no': fields.related('picking_id', 'name', type='char', string='GRN No'),
+        'gate_out_sup_id':fields.many2one('tpt.gate.out.pass','Gate Out Pass'), # luu gate_out_pass kho khach hang
+        'gate_out_id':fields.many2one('tpt.gate.out.pass','Gate Out Pass'),
 #         'grn_no_1': fields.related('picking_id', 'id',relation='stock.picking.in', type='many2one', string='GRN No'),
         'grn_date': fields.related('picking_id', 'date', type='datetime', string='GRN Date'),
         'supplier_id': fields.related('picking_id', 'partner_id',relation='res.partner', type='many2one', string='Supplier'),
@@ -588,6 +590,7 @@ class account_invoice(osv.osv):
                 'amount_total': 0.0,
                 'amount_total_inr': 0.0,
                 'amount_total_tds': 0.0,
+                'amount_total_tds_2': 0.0,
                 'amount_tax_debit': 0.0,
                 'amount_tax_credit': 0.0,
                 'aed': 0.0,
@@ -863,21 +866,25 @@ class account_invoice(osv.osv):
                 base = 0
                 tax_debit_amount = 0
                 tax_credit_amount = 0
+                tax_tds_amount = 0
                 for inv_line in line.invoice_line:
                     if inv_line.fright_fi_type == '2':
                         base_amount = round(inv_line.fright)
                         base+=base_amount
                         tax_debit_amount += round(base_amount*(inv_line.tax_id and inv_line.tax_id.amount/100 or 0))
                         tax_credit_amount += round(base_amount*(inv_line.tax_credit and inv_line.tax_credit.amount/100 or 0))
+                        tax_tds_amount += round(base_amount*(inv_line.tds_id_2 and inv_line.tds_id_2.amount/100 or 0))
                     else:
                         base_amount = round(inv_line.fright*inv_line.quantity)
                         base += base_amount
                         tax_debit_amount += round(base_amount*(inv_line.tax_id and inv_line.tax_id.amount/100 or 0))
                         tax_credit_amount += round(base_amount*(inv_line.tax_credit and inv_line.tax_credit.amount/100 or 0))
+                        tax_tds_amount += round(base_amount*(inv_line.tds_id_2 and inv_line.tds_id_2.amount/100 or 0))
                 res[line.id]['amount_untaxed'] = round(base)
                 res[line.id]['amount_tax_debit'] = round(tax_debit_amount)
                 res[line.id]['amount_tax_credit'] = round(tax_credit_amount)
-                res[line.id]['amount_total'] = res[line.id]['amount_untaxed'] + res[line.id]['amount_tax_debit'] - res[line.id]['amount_tax_credit']
+                res[line.id]['amount_total_tds_2'] = round(tax_tds_amount)
+                res[line.id]['amount_total'] = res[line.id]['amount_untaxed'] + res[line.id]['amount_tax_debit'] - res[line.id]['amount_tax_credit'] - res[line.id]['amount_total_tds_2']
                 
                 
         return res
@@ -896,6 +903,7 @@ class account_invoice(osv.osv):
         'vendor_ref': fields.char('Vendor Reference', size = 1024, readonly=True, states={'draft':[('readonly',False)]}),
         'is_tds_applicable': fields.boolean('IsTDSApplicable'),
         'tds_id': fields.many2one('account.tax', 'TDS %'),
+        'tds_id_2': fields.many2one('account.tax', 'TDS %'),
         'tax_id': fields.many2one('account.tax', 'Taxes'),
         'sup_inv_id': fields.many2one('account.invoice', 'Supplier Invoice', required = True, readonly=True, states={'draft':[('readonly',False)]}),
         'amount_untaxed': fields.function(amount_all_supplier_invoice_line, multi='sums', string='Untaxed Amount',
@@ -941,6 +949,11 @@ class account_invoice(osv.osv):
                 'account.invoice.line': (_get_invoice_line, ['quantity', 'uos_id', 'price_unit','discount','p_f','p_f_type',   
                                                                 'ed', 'ed_type','invoice_line_tax_id','fright','fright_type', 'tds_id','aed_id_1'], 10)}),
         'amount_total_tds': fields.function(amount_all_supplier_invoice_line, multi='sums', string='Total TDS',
+             store={
+                'account.invoice': (lambda self, cr, uid, ids, c={}: ids, ['invoice_line'], 10),   
+                'account.invoice.line': (_get_invoice_line, ['quantity', 'uos_id', 'price_unit','discount','p_f','p_f_type',   
+                                                                'ed', 'ed_type','invoice_line_tax_id','fright','fright_type', 'tds_id','aed_id_1'], 10)}),
+        'amount_total_tds_2': fields.function(amount_all_supplier_invoice_line, multi='sums', string='Total TDS',
              store={
                 'account.invoice': (lambda self, cr, uid, ids, c={}: ids, ['invoice_line'], 10),   
                 'account.invoice.line': (_get_invoice_line, ['quantity', 'uos_id', 'price_unit','discount','p_f','p_f_type',   
@@ -1108,11 +1121,15 @@ class account_invoice_line(osv.osv):
                     base = line.fright
                     tax_debit_amount = base*(line.tax_id and line.tax_id.amount/100 or 0)
                     tax_credit_amount = base*(line.tax_credit and line.tax_credit.amount/100 or 0)
+                    tax_tds_amount = base*(line.tds_id_2 and line.tds_id_2.amount/100 or 0)
                 else:
                     base = line.fright*line.quantity
                     tax_debit_amount = base*(line.tax_id and line.tax_id.amount/100 or 0)
                     tax_credit_amount = base*(line.tax_credit and line.tax_credit.amount/100 or 0)
+                    tax_tds_amount = base*(line.tds_id_2 and line.tds_id_2.amount/100 or 0)
+                    
                 res[line.id]['line_net'] = base+tax_debit_amount-tax_credit_amount
+#                 res[line.id]['line_net'] = tax_tds_amount
         return res
      
     _columns = {
@@ -1130,6 +1147,7 @@ class account_invoice_line(osv.osv):
         'tax_id': fields.many2one('account.tax', 'Taxes'),
         'tax_credit': fields.many2one('account.tax', 'Tax (Credit)'),
         'tds_id': fields.many2one('account.tax', 'TDS %'),
+        'tds_id_2': fields.many2one('account.tax', 'TDS %'),
         'aed_id': fields.many2one('account.tax', 'AED'),
         'aed_id_1': fields.float('AED'),
         'po_line_id': fields.many2one('purchase.order.line', 'purchase order line'),

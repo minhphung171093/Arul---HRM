@@ -167,35 +167,24 @@ class alert_form(osv.osv_memory):
                                     })
                     leave_detail_obj.process_leave_request(cr, uid, [leave_detail_id])
                     break
-       ###
-        employee_ids = emp_attendence_obj.search(cr, uid, [('employee_id','=',audit.employee_id.id)])
-        ### TPT START
-        if audit.in_time > audit.out_time:
-                    time_total = 24-audit.in_time + audit.out_time
-        else:
-                    time_total = audit.out_time - audit.in_time
-        if audit.diff_day and (audit.in_time <= audit.out_time):
-                time_total += 24
-                    
+        ###
+        #line_id=perm_obj.id
+        #=======================================================================
+        emp_attendence_obj = self.pool.get('arul.hr.employee.attendence.details')
+        emp_attendence_ids = emp_attendence_obj.search(cr, uid, [('employee_id','=',perm_obj.employee_id.id)])
+        # 
+        # punch_obj = self.pool.get('arul.hr.punch.in.out.time')
+        # val2={'permission_onduty_id':perm_obj.id, 'approval':1,
+        # 
+        #                         }
+        # line_id = emp_attendence_ids[0]
+        # punch_obj.write(cr,uid,[line_id],val2)  
+        #=======================================================================
+        ###
         
-        
-        
-        val1={
-                  'employee_id':audit.employee_id.id,
-                  'work_date':audit.work_date,
-                  'planned_work_shift_id':audit.planned_work_shift_id.id,
-                  'actual_work_shift_id':audit.actual_work_shift_id.id,
-                  'in_time':audit.in_time,
-                  'out_time':audit.out_time,
-                  'approval':1
-                  }
-        emp_attendence_obj.create(cr,uid,{'employee_id':audit.employee_id.id,
-                                              'employee_category_id':audit.employee_id.employee_category_id and audit.employee_id.employee_category_id.id or False,
-                                              'sub_category_id':audit.employee_id.employee_sub_category_id and audit.employee_id.employee_sub_category_id.id or False,
-                                              'department_id':audit.employee_id.department_id and audit.employee_id.department_id.id or False,
-                                              'designation_id':audit.employee_id.job_id and audit.employee_id.job_id.id or False,
-                                              'punch_in_out_audit':[(0,0,val1)]})
-       ###
+        sql = ''' update arul_hr_permission_onduty set approval='t',permission_onduty_id=%s where id=%s  
+        '''%(emp_attendence_ids[0], perm_obj.id) 
+        cr.execute(sql)
         
         self.pool.get('arul.hr.permission.onduty').write(cr, uid, [audit_id],{'approval': True, 'state':'done'})
         return {'type': 'ir.actions.act_window_close'}

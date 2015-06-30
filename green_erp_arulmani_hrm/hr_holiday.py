@@ -10,6 +10,9 @@ import datetime
 import base64
 import calendar
 from twisted.internet._threadedselect import raiseException
+#from dateutil import rrule
+from dateutil.rrule import rrule, DAILY
+
 class arul_hr_holiday_special(osv.osv):
     _name = "arul.hr.holiday.special"
     _columns = {
@@ -398,8 +401,18 @@ class arul_hr_audit_shift_time(osv.osv):
         employee_leave_obj = self.pool.get('employee.leave')
         employee_leave_detail_obj = self.pool.get('employee.leave.detail')
         leave_type_obj = self.pool.get('arul.hr.leave.types')
+        time_evalv_obj = self.pool.get('tpt.time.leave.evaluation')
         for line in self.browse(cr, uid, ids):
-            t = 0
+            if line.work_date: 
+                month = line.work_date[5:7]
+                year = line.work_date[:4]
+                payroll_ids = self.pool.get('arul.hr.payroll.executions').search(cr,uid,[('month','=',int(month)),('year','=',year),('state','=','approve'),('payroll_area_id','=',line.employee_id.payroll_area_id.id)])
+                if payroll_ids :
+                    raise osv.except_osv(_('Warning!'),_('Payroll were already exists, not allowed to approve!'))
+                time_evalv_ids = time_evalv_obj.search(cr,uid,[('month','=',int(month)),('year','=',year),('state','=','done'),('payroll_area_id','=',line.employee_id.payroll_area_id.id)])
+                if time_evalv_ids:
+                    raise osv.except_osv(_('Warning!'),_('Time Leave Evaluation Confirmed!'))
+                
             sql = '''
                     select %s in (select uid from res_groups_users_rel where gid in (select id from res_groups where name='Time Manager' 
                     and category_id in (select id from ir_module_category where name='VVTI - HRM')))
@@ -1746,15 +1759,20 @@ class arul_hr_audit_shift_time(osv.osv):
         employee_leave_obj = self.pool.get('employee.leave')
         employee_leave_detail_obj = self.pool.get('employee.leave.detail')
         leave_type_obj = self.pool.get('arul.hr.leave.types')
+        time_evalv_obj = self.pool.get('tpt.time.leave.evaluation')
+        
 	    #raise osv.except_osv(_('Warning!%s'),leave_type_obj)	
         for line in self.browse(cr, uid, ids):
             #Trong them
             if line.work_date: 
                 month = line.work_date[5:7]
                 year = line.work_date[:4]
-                payroll_ids = self.pool.get('arul.hr.payroll.executions').search(cr,uid,[('month','=',month),('year','=',year),('state','=','approve'),('payroll_area_id','=',line.employee_id.payroll_area_id.id)])
+                payroll_ids = self.pool.get('arul.hr.payroll.executions').search(cr,uid,[('month','=',int(month)),('year','=',year),('state','=','approve'),('payroll_area_id','=',line.employee_id.payroll_area_id.id)])
                 if payroll_ids :
-                    raise osv.except_osv(_('Warning!'),_('Payroll were already exists, not allowed to approve again!'))
+                    raise osv.except_osv(_('Warning!'),_('Payroll were already exists, not allowed to approve!'))
+                time_evalv_ids = time_evalv_obj.search(cr,uid,[('month','=',int(month)),('year','=',year),('state','=','done'),('payroll_area_id','=',line.employee_id.payroll_area_id.id)])
+                if time_evalv_ids:
+                    raise osv.except_osv(_('Warning!'),_('Time Leave Evaluation Confirmed!'))
             #
             t = 0
             sql = '''
@@ -2599,7 +2617,7 @@ class arul_hr_audit_shift_time(osv.osv):
                     #ELSE On-Duty            
                     val2={'permission_onduty_id':emp_attendence_ids[0], 'approval':1,
                                 }
-                    punch_obj.write(cr,uid,[line_id.id],val2) 
+                    punch_obj.write(cr,uid,[line_id.id],val2)  
                 else:
                     detail_vals = {'employee_id':line_id.employee_id.id,
                                        'employee_category_id':line_id.employee_id.employee_category_id and line_id.employee_id.employee_category_id.id or False,
@@ -3391,14 +3409,18 @@ class arul_hr_employee_leave_details(osv.osv):
     
     def process_leave_request(self, cr, uid, ids, context=None):
         DATETIME_FORMAT = "%Y-%m-%d"
+        time_evalv_obj = self.pool.get('tpt.time.leave.evaluation')
         for line in self.browse(cr, uid, ids):
              #Trong them
             if line.date_from: 
                 month = line.date_from[5:7]
                 year = line.date_from[:4]
-                payroll_ids = self.pool.get('arul.hr.payroll.executions').search(cr,uid,[('month','=',month),('year','=',year),('state','=','approve'),('payroll_area_id','=',line.employee_id.payroll_area_id.id)])
+                payroll_ids = self.pool.get('arul.hr.payroll.executions').search(cr,uid,[('month','=',int(month)),('year','=',year),('state','=','approve'),('payroll_area_id','=',line.employee_id.payroll_area_id.id)])
                 if payroll_ids :
                     raise osv.except_osv(_('Warning!'),_('Payroll were already exists, not allowed to approve again!'))
+                time_evalv_ids = time_evalv_obj.search(cr,uid,[('month','=',int(month)),('year','=',year),('state','=','done'),('payroll_area_id','=',line.employee_id.payroll_area_id.id)])
+                if time_evalv_ids:
+                    raise osv.except_osv(_('Warning!'),_('Time Leave Evaluation Confirmed!'))
             #
             sql = '''
                 select %s in (select uid from res_groups_users_rel where gid in (select id from res_groups where name='Time Manager' 
@@ -3805,6 +3827,7 @@ class arul_hr_permission_onduty(osv.osv):
     
     def approve_permission_onduty(self, cr, uid, ids, context=None):
         permission = self.browse(cr, uid, ids[0])
+        
         t = 0
         sql = '''
                 select %s in (select uid from res_groups_users_rel where gid in (select id from res_groups where name='Time Manager' 
@@ -3826,14 +3849,20 @@ class arul_hr_permission_onduty(osv.osv):
         
         punch_obj = self.pool.get('arul.hr.punch.in.out')
         audit_obj = self.pool.get('arul.hr.audit.shift.time')
+        time_evalv_obj = self.pool.get('tpt.time.leave.evaluation')
+        
         if permission.non_availability_type_id == 'on_duty' and not permission.date:
             #Trong them
             if permission.from_date: 
                 month = permission.from_date[5:7]
                 year = permission.from_date[:4]
-                payroll_ids = self.pool.get('arul.hr.payroll.executions').search(cr,uid,[('month','=',month),('year','=',year),('state','=','approve'),('payroll_area_id','=',permission.employee_id.payroll_area_id.id)])
+                payroll_ids = self.pool.get('arul.hr.payroll.executions').search(cr,uid,[('month','=',int(month)),('year','=',year),('state','=','approve'),('payroll_area_id','=',permission.employee_id.payroll_area_id.id)])
                 if payroll_ids :
                     raise osv.except_osv(_('Warning!'),_('Payroll were already exists, not allowed to approve again!'))
+                time_evalv_ids = time_evalv_obj.search(cr,uid,[('month','=',int(month)),('year','=',year),('state','=','done'),
+                                                       ('payroll_area_id','=',permission.employee_id.payroll_area_id.id)])
+                if time_evalv_ids:
+                    raise osv.except_osv(_('Warning!'),_('Time Leave Evaluation Confirmed!'))
             #
             date_from = datetime.datetime.strptime(permission.from_date,'%Y-%m-%d')
             date_to = datetime.datetime.strptime(permission.to_date,'%Y-%m-%d')
@@ -3892,6 +3921,10 @@ class arul_hr_permission_onduty(osv.osv):
                     payroll_ids = self.pool.get('arul.hr.payroll.executions').search(cr,uid,[('month','=',month),('year','=',year),('state','=','approve'),('payroll_area_id','=',permission.employee_id.payroll_area_id.id)])
                     if payroll_ids :
                         raise osv.except_osv(_('Warning!'),_('Payroll were already exists, not allowed to approve again!'))
+                    time_evalv_ids = time_evalv_obj.search(cr,uid,[('month','=',int(month)),('year','=',year),('state','=','done'),
+                                                       ('payroll_area_id','=',permission.employee_id.payroll_area_id.id)])
+                    if time_evalv_ids:
+                        raise osv.except_osv(_('Warning!'),_('Time Leave Evaluation Confirmed!'))
             #
                 sql = '''
                     select count(id) as num_of_permission from arul_hr_permission_onduty where non_availability_type_id='permission' and employee_id=%s
@@ -3899,7 +3932,7 @@ class arul_hr_permission_onduty(osv.osv):
                 '''%(permission.employee_id.id,permission.id,year,month)
                 cr.execute(sql)
                 p = cr.dictfetchone()        
-                if p and p['num_of_permission']>=2:
+                if p and p['num_of_permission']>=2: 
                     #raise osv.except_osv(_('Warning!'),_('Employee %s have 2 permission for this month!')%(permission.employee_id.name+' '+(permission.employee_id.last_name or '')))
                     res = self.pool.get('ir.model.data').get_object_reference(cr, uid, 
                                             'green_erp_arulmani_hrm', 'alert_third_permission_form_view')
@@ -6814,7 +6847,7 @@ class tpt_time_leave_evaluation(osv.osv):
                 year_now = int(time.strftime('%Y'))
                 if year_now == sub.year and month_now == int(sub.month):
                     day_now = int(time.strftime('%d'))
-                if year_now >= sub.year:
+                if year_now >= sub.year:                   
                     if shift.day_1 and shift.day_1.code != 'W' and day_now>=1 and 1.0 not in holiday_days:
                         sql = '''
                             select id from arul_hr_employee_leave_details
@@ -8697,3 +8730,47 @@ class leave_adjustment(osv.osv):
     #===========================================================================
       
 leave_adjustment()
+
+class tpt_hr_new_work_shift_master(osv.osv):
+    _name='tpt.hr.new.work.shift.master'
+
+    _columns={
+
+              'code':fields.char('Code',size=1024, required = True),
+              'name':fields.char('Name',size=1024, required = True),
+              'description':fields.text('Description'),
+              'create_date': fields.datetime('Created Date',readonly = True), 
+              'create_uid': fields.many2one('res.users','Created By',ondelete='restrict',readonly = True),
+              'allowance': fields.float('Shift Allowance'), 
+              'start_time': fields.float('Actual Shift Start Time'),
+              'end_time': fields.float('Actual Shift End Time'),
+              'min_start_time': fields.float('Min. Shift Start Time'),
+              'max_start_time': fields.float('Max. Shift Start Time'),
+              'min_end_time': fields.float('Min. Shift End Time'),
+              'max_end_time': fields.float('Max. Shift End Time'),  
+              
+              'a_shift': fields.float('A'),    
+              'g1_shift': fields.float('G1'),
+              'g2_shift': fields.float('G2'),
+              'b_shift': fields.float('B'),
+              'c_shift': fields.float('C'),
+              'shift_count': fields.float('Total Shift Worked'), 
+                                                
+    
+              }
+
+    
+    def _check_code(self, cr, uid, ids, context=None):
+        for shift in self.browse(cr, uid, ids, context=context):
+            shift_ids = self.search(cr, uid, [('id','!=',shift.id),('code','=',shift.code)])
+            if shift_ids:  
+                raise osv.except_osv(_('Warning!'),_('The Code is unique!'))
+        return True
+    
+    _constraints = [
+  
+        (_check_code, _(''), ['code']),
+    ]      
+    
+tpt_hr_new_work_shift_master()
+
