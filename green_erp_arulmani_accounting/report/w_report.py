@@ -40,6 +40,7 @@ class Parser(report_sxw.rml_parse):
             'get_invoice':self.get_invoice,
             'get_tax': self.get_tax,
             'get_paid_tax': self.get_paid_tax,
+            'convert_date': self.convert_date,
 #             'get_sale_line': self.get_sale_line,
         })
         
@@ -55,7 +56,11 @@ class Parser(report_sxw.rml_parse):
         date_to = wizard_data['date_to']
         invoice_obj = self.pool.get('account.invoice.line')
         sql = '''
-            select id from account_invoice_line where invoice_id in (select id from account_invoice where date_invoice between '%s' and '%s' and type = 'in_invoice')
+            select ail.id from account_invoice_line ail
+            JOIN account_invoice_line_tax ailt on (ailt.invoice_line_id=ail.id)
+            Join account_tax at on (at.id=ailt.tax_id)
+            where invoice_id in (select id from account_invoice where date_invoice between '%s' and '%s' and type = 'in_invoice') 
+            and at.description ~'VAT' and at.amount>0
             '''%(date_from, date_to)
         self.cr.execute(sql)
         invoice_ids = [r[0] for r in self.cr.fetchall()]

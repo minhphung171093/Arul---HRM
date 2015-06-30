@@ -71,7 +71,7 @@
             				<field name="cus_name" class = "oe_right oe_inline"/>
             				<field name="cus_name_title" nolabel = '1' class="oe_right oe_inline"/> 
             			</div>
-                		<div class='oe_green_erp_scroll'>
+                		
 		                	<field name="cus_ledger_line" nolabel='1'>
 		                		<tree create="false" edit="false" delete="false">
 		                			<field name="date"/>
@@ -86,7 +86,7 @@
 		                			<field name="credit"/>
 		                		</tree>
 		                	</field>
-                		</div>
+                		
 	               	</sheet>
 	           </form>
 	        </field>

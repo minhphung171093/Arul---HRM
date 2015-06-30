@@ -290,9 +290,15 @@ class stock_inward_outward_report(osv.osv_memory):
                                 select id from tpt_quanlity_inspection where need_inspec_id = %s and state in ('done', 'remaining')
                             '''%(move['id'])
                             cr.execute(sql)
-                            move_sql = cr.fetchall()
-                            if move_sql:
-                                move_line.append(line)
+                            for move_sql in cr.dictfetchall():
+                                if move_sql:
+                                    sql = '''
+                                        select id from stock_move where inspec_id = %s and state = 'done' and to_char(date, 'YYYY-MM-DD') between '%s' and '%s'
+                                    '''%(move_sql['id'], date_from, date_to)
+                                    cr.execute(sql)
+                                    move_sql2 = cr.fetchall()
+                                    if move_sql2:
+                                        move_line.append(line)
                 else:
                     move_line.append(line)
             return move_line    
@@ -604,6 +610,7 @@ class stock_inward_outward_report(osv.osv_memory):
             date_from = o.date_from
             date_to = o.date_to
             product_id = o.product_id
+            categ = product_id.categ_id.cate_name
             parent_ids_raw = self.pool.get('stock.location').search(cr, uid, [('name','=','Store'),('usage','=','view')])
             locat_ids_raw = self.pool.get('stock.location').search(cr, uid, [('name','in',['Raw Material','Raw Materials','Raw material']),('location_id','=',parent_ids_raw[0])])
             parent_ids_spares = self.pool.get('stock.location').search(cr, uid, [('name','=','Store'),('usage','=','view')])
@@ -613,12 +620,24 @@ class stock_inward_outward_report(osv.osv_memory):
 #                 where location_dest_id in (%s, %s) and id in (select move_id from stock_inventory_move_rel) and to_char(date, 'YYYY-MM-DD') between '%s' and '%s' and product_id = %s
 #             '''%(locat_ids_raw[0], locat_ids_spares[0], date_from, date_to, product_id.id)
 #             cr.execute(sql)
-            sql = '''
-                select case when sum(product_qty)!=0 then sum(product_qty) else 0 end product_qty from stock_move 
-                where id in (select move_id from stock_inventory_move_rel) and to_char(date, 'YYYY-MM-DD') between '%s' and '%s' and product_id = %s
-            '''%(date_from, date_to, product_id.id)
-            cr.execute(sql)
-            product_qty = cr.fetchone()[0]
+            if categ == 'raw':
+                sql = '''
+                    select case when sum(product_qty)!=0 then sum(product_qty) else 0 end product_qty from stock_move 
+                    where location_dest_id = %s and state = 'done' 
+                    and id in (select move_id from stock_inventory_move_rel) and to_char(date, 'YYYY-MM-DD') between '%s' and '%s' and product_id = %s
+                    and location_id != location_dest_id
+                '''%(locat_ids_raw[0], date_from, date_to, product_id.id)
+                cr.execute(sql)
+                product_qty = cr.fetchone()[0]
+            if categ == 'spares':
+                sql = '''
+                    select case when sum(product_qty)!=0 then sum(product_qty) else 0 end product_qty from stock_move 
+                    where location_dest_id = %s and state = 'done' 
+                    and id in (select move_id from stock_inventory_move_rel) and to_char(date, 'YYYY-MM-DD') between '%s' and '%s' and product_id = %s
+                    and location_id != location_dest_id
+                '''%(locat_ids_spares[0], date_from, date_to, product_id.id)
+                cr.execute(sql)
+                product_qty = cr.fetchone()[0]
             return product_qty
         
         def get_line_current_material(o,stock_value):  
@@ -641,6 +660,8 @@ class stock_inward_outward_report(osv.osv_memory):
             else:
                 st_value = stock_value(get_line_stock_value(stock,line['id'], line['material_issue_id'], line['doc_type'], line['date']), line)
             self.st_sum_value += st_value
+            cur = get_opening_stock_value(stock)+st_value+self.current
+            self.current = cur
             stock_in_out_line.append((0,0,{
                 'creation_date': line['date'],
                 'posting_date': line['date'],
@@ -649,7 +670,7 @@ class stock_inward_outward_report(osv.osv_memory):
                 'document_type': get_doc_type(line['doc_type']),
                 'transaction_quantity': trans_qty,
                 'stock_value': st_value,
-                'current_material_value':get_line_current_material(stock,stock_value(get_line_stock_value(stock,line['id'], line['material_issue_id'], line['doc_type'], line['date']), line)),
+                'current_material_value':cur,
             }))
             
         vals = {
@@ -662,7 +683,7 @@ class stock_inward_outward_report(osv.osv_memory):
             'date_to':stock.date_to,
             'stock_in_out_line': stock_in_out_line,
             'opening_stock': get_opening_stock(stock),
-            'closing_stock': closing_stock + get_opening_stock(stock) + qty_physical_inve(stock),
+            'closing_stock': closing_stock + get_opening_stock(stock) + qty_physical_inve(stock, ),
             'opening_value': get_opening_stock_value(stock),
             'closing_value': self.st_sum_value + get_opening_stock_value(stock),
         }

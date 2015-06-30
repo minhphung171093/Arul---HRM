@@ -34,6 +34,11 @@ class tpt_form_are_1(osv.osv):
         'remarks': fields.char('Remarks',size = 1024, states={'cancel': [('readonly', True)], 'done':[('readonly', True)]}),
         'duty_rate_line':fields.one2many('tpt.form.are.1.duty.rate','form_are_1_id','Duty Rate'),   
         'state':fields.selection([('draft', 'Draft'),('cancel', 'Cancel'),('done', 'Approve')],'Status', readonly=True, states={'cancel': [('readonly', True)], 'done':[('readonly', True)]}),
+        
+        'excise_duty_id': fields.many2one('account.tax', 'Ex.Duty', domain="[('type_tax_use','=','excise_duty')]", ),
+        'ed_amount': fields.float('ED Amt', ),
+        'amount_usd': fields.float('Amt in USD', ),
+        'amount_inr': fields.float('Amt in INR', ),
                 }
     _defaults={
                'name':'/',

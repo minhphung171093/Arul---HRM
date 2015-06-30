@@ -1091,6 +1091,7 @@ class account_invoice(osv.osv):
                 iml = invoice_line_obj.move_line_fi_base(cr, uid, inv.id)
                 iml += invoice_line_obj.move_line_fi_debit(cr, uid, inv.id) 
                 iml += invoice_line_obj.move_line_fi_credit(cr, uid, inv.id)
+                iml += invoice_line_obj.move_line_tds_amount_freight(cr, uid, inv.id) 
                 name = inv['name'] or inv['supplier_invoice_number'] or '/'
 #             iml += invoice_line_obj.move_line_price_total(cr, uid, inv.id)  
             # check if taxes are all computed
@@ -1442,6 +1443,34 @@ class account_invoice_line(osv.osv):
                             'account_id': line.tds_id and line.tds_id.gl_account_id and line.tds_id.gl_account_id.id or False,
                             'account_analytic_id': line.account_analytic_id.id,
                         })
+        return res 
+    
+    def move_line_tds_amount_freight(self, cr, uid, invoice_id):
+        res = []
+        invoice = self.pool.get('account.invoice').browse(cr, uid, invoice_id)
+        if invoice.sup_inv_id:
+            for line in invoice.invoice_line:
+                tds_amount = 0
+                if line.tds_id_2:    
+                    if line.fright_fi_type == '2':
+                        base = line.fright
+                        tax_tds_amount = base*(line.tds_id_2 and line.tds_id_2.amount/100 or 0)
+                    else:
+                        base = line.fright*line.quantity
+                        tax_tds_amount = base*(line.tds_id_2 and line.tds_id_2.amount/100 or 0)
+                    if line.tds_id_2 and not line.tds_id_2.gl_account_id:
+                        raise osv.except_osv(_('Warning!'),_('Account is not null, please configure GL Account in Tax master for TDS %'))
+                    if tax_tds_amount:   
+                        if round(tax_tds_amount):
+                            res.append({
+                                'type':'tax',
+                                'name':line.name,
+                                'price_unit': line.price_unit,
+                                'quantity': 1,
+                                'price': round(-tax_tds_amount),
+                                'account_id': line.tds_id_2 and line.tds_id_2.gl_account_id and line.tds_id_2.gl_account_id.id or False,
+                                'account_analytic_id': line.account_analytic_id.id,
+                            })
         return res 
      
     def move_line_customer_product_price(self, cr, uid, invoice_id, context = None):
@@ -2121,11 +2150,10 @@ class account_invoice_line(osv.osv):
             else:
                 base_amount = round(line.fright*line.quantity)
                 tax_debit_amount = round(base_amount*(line.tax_id and line.tax_id.amount/100 or 0))
-            
+            if line.tax_id and not line.tax_id.gl_account_id:
+                raise osv.except_osv(_('Warning!'),_('GL Account is not null, please configure it in Tax Master!'))
             if tax_debit_amount:
                 if round(tax_debit_amount):
-                    if not line.tax_credit.gl_account_id:
-                        raise osv.except_osv(_('Warning!'),_('GL Account is not null, please configure it in Tax Master!'))
                     res.append({
                         'type':'tax',
                         'name':line.name,
@@ -2147,11 +2175,10 @@ class account_invoice_line(osv.osv):
             else:
                 base_amount = round(line.fright*line.quantity)
                 tax_credit_amount = round(base_amount*(line.tax_credit and line.tax_credit.amount/100 or 0))
-            
+            if line.tax_credit and not line.tax_credit.gl_account_id:
+                raise osv.except_osv(_('Warning!'),_('GL Account is not null, please configure it in Tax Master!'))
             if tax_credit_amount:
                 if round(tax_credit_amount):
-                    if not line.tax_credit.gl_account_id:
-                        raise osv.except_osv(_('Warning!'),_('GL Account is not null, please configure it in Tax Master!'))
                     res.append({
                         'type':'tax',
                         'name':line.name,
@@ -3369,8 +3396,8 @@ class tpt_material_issue(osv.osv):
                 cate_name = p.product_id.categ_id and p.product_id.categ_id.cate_name or False
                 sql = '''
                     select case when sum(product_isu_qty)!=0 then sum(product_isu_qty) else 0 end product_isu_qty, product_id 
-                    from tpt_material_issue_line where material_issue_id in (select id from tpt_material_issue where name = %s) group by product_id
-                '''%(line.name.id)
+                    from tpt_material_issue_line where product_id = %s and material_issue_id in (select id from tpt_material_issue where name = %s) group by product_id
+                '''%(p.product_id.id, line.name.id)
                 cr.execute(sql)
                 for sum in cr.dictfetchall():
                     product_id = self.pool.get('product.product').browse(cr,uid,sum['product_id'])
@@ -3514,6 +3541,15 @@ class tpt_material_issue(osv.osv):
                     if avg_cost_ids:
                         avg_cost_id = avg_cost_obj.browse(cr, uid, avg_cost_ids[0])
                         unit = avg_cost_id.avg_cost or 0
+                        sql = '''
+                            select price_unit from stock_move where product_id=%s and product_qty=%s and issue_id=%s
+                        '''%(mater.product_id.id,mater.product_isu_qty,mater.material_issue_id.id)
+                        cr.execute(sql)
+                        move_price = cr.fetchone()
+                        if move_price and move_price[0] and move_price[0]>0:
+                            unit=move_price[0]
+                        if not unit or unit<0:
+                            unit=1
                         price += unit * mater.product_isu_qty
                         product_price = unit * mater.product_isu_qty
                     
@@ -3556,8 +3592,16 @@ class tpt_material_issue(osv.osv):
         journal_line = []
         dest_id = False
         move_obj = self.pool.get('stock.move')
-        
+        acc_ids = []
         for line in self.browse(cr, uid, ids):
+            journal_line = []
+            sql = '''
+                select id from account_move where material_issue_id = %s
+            '''%(line.id)
+            cr.execute(sql)
+            acc_ids = cr.dictfetchone()
+            if acc_ids:
+                raise osv.except_osv(_('Warning!'),_('This Material issue was created Posting!'))
             if line.state=='done':
                 date_period = line.date_expec
                 sql = '''
