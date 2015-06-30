@@ -475,6 +475,87 @@ class stock_move(osv.osv):
                 result['action_taken'] = False
         return {'value': result}
     def write(self, cr, uid, ids, vals, context=None):
+        for line in self.browse(cr,uid,ids):
+            if line.picking_id and line.picking_id.type == 'in':        
+                if line.product_id :
+                    product = self.pool.get('product.product').browse(cr, uid, line.product_id.id)
+                    cate = product.categ_id and product.categ_id.cate_name or False
+                    if  'action_taken' in vals:
+                        if vals['action_taken'] == 'move' and (cate == 'raw' or cate == 'spares' or cate == 'finish'):
+                            warning = {  
+                                      'title': _('Warning!'),  
+                                      'message': _('The action "Move to Consumption" can not be taken for this product!'),  
+                                      }  
+                            vals['action_taken']=False
+                            return {'value': vals,'warning':warning}
+                        elif cate == 'consum':
+        #             elif action_taken != 'move' and cate == 'consum':
+                            vals['action_taken']='move'
+        #             elif action_taken == 'move' and cate == 'consum':
+        #                 vals['action_taken']='move'
+                            location_id = False
+                            parent_ids = self.pool.get('stock.location').search(cr, uid, [('name','=','Virtual Locations'),('usage','=','view')])
+                            if not parent_ids:
+                                warning = {  
+                                      'title': _('Warning!'),  
+                                      'message': _('System does not have Virtual Locations warehouse, please check it!'),  
+                                      }  
+                                vals['action_taken']=False
+                                return {'value': vals,'warning':warning}
+                            locat_ids = self.pool.get('stock.location').search(cr, uid, [('name','in',['Consumption']),('location_id','=',parent_ids[0])])
+                            if not locat_ids:
+                                warning = {  
+                                      'title': _('Warning!'),  
+                                      'message': _('System does not have Consumption location in Virtual Locations warehouse, please check it!'),  
+                                      }  
+                                vals['action_taken']=False
+                                return {'value': vals,'warning':warning}
+                            else:
+                                location_id = locat_ids[0]
+                            if ids:
+                                sql = '''
+                                    update stock_move set location_dest_id = %s where id=%s;
+                                    commit;
+                                '''%(location_id,ids[0])
+                                cr.execute(sql)
+        
+                        
+                    elif 'action_taken' in vals:
+                        if vals['action_taken'] == 'need':
+                            location_id = False
+                            parent_ids = self.pool.get('stock.location').search(cr, uid, [('name','=','Quality Inspection'),('usage','=','view')])
+                            if not parent_ids:
+                                warning = {  
+                                      'title': _('Warning!'),  
+                                      'message': _('System does not have Quality Inspection warehouse, please check it!'),  
+                                      }  
+                                vals['action_taken']=False
+                                return {'value': vals,'warning':warning}
+                            locat_ids = self.pool.get('stock.location').search(cr, uid, [('name','in',['Quality Inspection','Inspection']),('location_id','=',parent_ids[0])])
+                            if not locat_ids:
+                                warning = {  
+                                      'title': _('Warning!'),  
+                                      'message': _('System does not have Quality Inspection location in Quality Inspection warehouse, please check it!'),  
+                                      }  
+                                vals['action_taken']=False
+                                return {'value': vals,'warning':warning}
+                            else:
+                                location_id = locat_ids[0]
+                            if ids:
+                                sql = '''
+                                    update stock_move set location_dest_id = %s where id=%s;
+                                    commit;
+                                '''%(location_id,ids[0])
+                                cr.execute(sql)
+        
+                    elif 'action_taken' in vals:
+                        if vals['action_taken'] == 'direct':   
+                            for line in self.browse(cr, uid, ids, context=context):
+                                if line.picking_id and line.picking_id.warehouse:
+                                    vals['location_dest_id'] = line.picking_id and line.picking_id.warehouse and line.picking_id.warehouse.id or False
+#                     vals['action_taken']= 'action_taken'
+#             else:
+#                 vals['action_taken']= action_taken
         new_write = super(stock_move, self).write(cr, uid,ids, vals, context)
         for line in self.browse(cr,uid,ids):
             if line.po_indent_id.document_type == 'consumable':
