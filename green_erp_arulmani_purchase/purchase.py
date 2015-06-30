@@ -3620,13 +3620,8 @@ class tpt_gate_out_pass(osv.osv):
         return new_write
     
     def bt_approve(self, cr, uid, ids, context=None):
-        for line in self.browse(cr,uid,ids):
-            self.write(cr, uid, ids,{'state':'confirm'})
-        return True
-    
-    def bt_create_grn(self, cr, uid, ids, context=None):
         stock_picking_obj=self.pool.get('stock.picking')
-        stock_move_obj=self.pool.get('stock_move')
+        stock_move_obj=self.pool.get('stock.move')
         move_lines=[]
         new_picking_ids=[]
         location_id = False
@@ -3634,9 +3629,55 @@ class tpt_gate_out_pass(osv.osv):
         parent_ids = []
         parent_ids = self.pool.get('stock.location').search(cr, uid, [('name','in',['Block List','Block list']),('usage','=','view')])
         if parent_ids:
-            locat_ids = self.pool.get('stock.location').search(cr, uid, [('name','in',['Blocked','blocked']),('location_id','=',parent_ids[0])])
+            locat_ids = self.pool.get('stock.location').search(cr, uid, [('name','in',['Blocked','blocked','Block List']),('location_id','=',parent_ids[0])])
         if locat_ids:
             location_id = locat_ids[0]
+        location_model, location_dest_id = self.pool.get('ir.model.data').get_object_reference(cr, uid, 'stock', 'stock_location_suppliers')
+        self.pool.get('stock.location').check_access_rule(cr, uid, [location_dest_id], 'read', context=context)
+        for good in self.browse(cr, uid, ids, context=context):
+            for line in good.good_id.product_detail_line:
+                move_lines={
+                'name': line.st_move_id.name or '',
+                'product_id': line.product_id.id,
+                'bin_location': line.st_move_id.bin_location or False,
+                'product_qty': line.product_qty,
+                'product_uos_qty': line.product_qty,
+                'product_uom': line.st_move_id.product_uom.id or False,
+                'product_uos': line.st_move_id.product_uom.id or False,
+                'date': good.gate_date_time,
+                'date_expected': good.gate_date_time,
+                'location_id': location_id or False,
+                'location_dest_id':  location_dest_id or False,
+#                 'picking_id': good.good_id.grn_no_id.picking_id.id or False,
+                'partner_id': line.st_move_id.partner_id.id,
+                'move_dest_id': line.st_move_id.move_dest_id.id,
+                'state': 'draft',
+                'type':'in',
+                'purchase_line_id': line.st_move_id.purchase_line_id.id or False,
+                'company_id': line.st_move_id.company_id.id or False,
+                'price_unit': line.st_move_id.price_unit,
+                'po_indent_id': line.st_move_id.po_indent_id.id or False,
+                'action_taken': False,
+                'description':line.st_move_id.description or False,
+                'item_text':line.st_move_id.item_text or False,
+                'cost_center_id': line.st_move_id.cost_center_id.id or False,
+                'gate_out_sup_id':good.id,
+                                        }
+                
+            new_stock_move_id = stock_move_obj.create(cr,uid,move_lines)
+            stock_move_obj.action_done(cr, uid, [new_stock_move_id])
+        return self.write(cr, uid, ids,{'state':'confirm'})
+    
+    def bt_create_grn(self, cr, uid, ids, context=None):
+        stock_picking_obj=self.pool.get('stock.picking')
+        stock_move_obj=self.pool.get('stock.move')
+        move_lines=[]
+        new_picking_ids=[]
+        location_id = False
+        locat_ids = []
+        parent_ids = []
+        location_model, location_id = self.pool.get('ir.model.data').get_object_reference(cr, uid, 'stock', 'stock_location_suppliers')
+        self.pool.get('stock.location').check_access_rule(cr, uid, [location_id], 'read', context=context)
         for good in self.browse(cr, uid, ids, context=context):
             for line in good.good_id.product_detail_line:
                 move_lines.append((0,0,{
@@ -3664,7 +3705,7 @@ class tpt_gate_out_pass(osv.osv):
                 'description':line.st_move_id.description or False,
                 'item_text':line.st_move_id.item_text or False,
                 'cost_center_id': line.st_move_id.cost_center_id.id or False,
-                                        
+                'gate_out_id':good.id,                       
                                         
                                         }))
 #             for grn_old_line in good.grn_id.move_lines:
@@ -3775,7 +3816,8 @@ class tpt_gate_out_pass_line(osv.osv):
         'product_qty': fields.float('Quantity'),
         'uom_po_id': fields.many2one('product.uom', 'UOM'),
         'reason': fields.char('Reason for Rejection', size = 1024),
-        'good_line_return_id':fields.many2one('tpt.product.specification','Good line return')
+        'good_line_return_id':fields.many2one('tpt.product.specification','Good line return'),
+#         'stock_move_id':fields.many2one('stock.move','Link Stock Move')
                 }
     _defaults={
                'product_qty': 1,
