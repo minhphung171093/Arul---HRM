@@ -930,6 +930,7 @@
                                     <field name="invoice_line_tax_id" string = 'Tax (Debit)' widget="many2many_tags" context="{'type':parent.type}"
                                         domain="[('parent_id','=',False),('company_id', '=', parent.company_id)]" invisible='1'/>
                                     <field name="tax_credit" invisible = '0' on_change="onchange_tax_credit(tax_id,tax_credit)" options="{'create': false, 'create_edit': false}"/>
+                                    <field name="tds_id_2" invisible = '0' options="{'create': false, 'create_edit': false}" />
                                     <field name="fright" invisible = '0'/>
                                     <field name="fright_fi_type" invisible = '0' required='1'/>
                                     <field name="line_net"/>
@@ -950,7 +951,7 @@
                                 <field name="fright" widget="monetary" invisible = '1' options="{'currency_field': 'currency_id'}"/>
                                 <field name="amount_tax_debit" widget="monetary" invisible = '0' options="{'currency_field': 'currency_id'}"/>
                                 <field name="amount_tax_credit" widget="monetary" invisible = '0' options="{'currency_field': 'currency_id'}"/>
-                                <field name="amount_total_tds" widget="monetary" invisible = '1'/>
+                                <field name="amount_total_tds_2" widget="monetary" invisible = '0' options="{'currency_field': 'currency_id'}" />
                                 <field name="amount_total" class="oe_subtotal_footer_separator" widget="monetary" options="{'currency_field': 'currency_id'}"/>
 								<field name="residual" widget="monetary" options="{'currency_field': 'currency_id'}" invisible = '1'/>
                                 <field name="reconciled" invisible="1"/>

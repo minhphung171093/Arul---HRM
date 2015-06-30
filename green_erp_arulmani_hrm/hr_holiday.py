@@ -10,6 +10,9 @@ import datetime
 import base64
 import calendar
 from twisted.internet._threadedselect import raiseException
+#from dateutil import rrule
+from dateutil.rrule import rrule, DAILY
+
 class arul_hr_holiday_special(osv.osv):
     _name = "arul.hr.holiday.special"
     _columns = {
@@ -3857,7 +3860,7 @@ class arul_hr_permission_onduty(osv.osv):
                 if payroll_ids :
                     raise osv.except_osv(_('Warning!'),_('Payroll were already exists, not allowed to approve again!'))
                 time_evalv_ids = time_evalv_obj.search(cr,uid,[('month','=',int(month)),('year','=',year),('state','=','done'),
-                                                       ('payroll_area_id','=',line.employee_id.payroll_area_id.id)])
+                                                       ('payroll_area_id','=',permission.employee_id.payroll_area_id.id)])
                 if time_evalv_ids:
                     raise osv.except_osv(_('Warning!'),_('Time Leave Evaluation Confirmed!'))
             #
@@ -3918,6 +3921,10 @@ class arul_hr_permission_onduty(osv.osv):
                     payroll_ids = self.pool.get('arul.hr.payroll.executions').search(cr,uid,[('month','=',month),('year','=',year),('state','=','approve'),('payroll_area_id','=',permission.employee_id.payroll_area_id.id)])
                     if payroll_ids :
                         raise osv.except_osv(_('Warning!'),_('Payroll were already exists, not allowed to approve again!'))
+                    time_evalv_ids = time_evalv_obj.search(cr,uid,[('month','=',int(month)),('year','=',year),('state','=','done'),
+                                                       ('payroll_area_id','=',permission.employee_id.payroll_area_id.id)])
+                    if time_evalv_ids:
+                        raise osv.except_osv(_('Warning!'),_('Time Leave Evaluation Confirmed!'))
             #
                 sql = '''
                     select count(id) as num_of_permission from arul_hr_permission_onduty where non_availability_type_id='permission' and employee_id=%s
@@ -6840,7 +6847,7 @@ class tpt_time_leave_evaluation(osv.osv):
                 year_now = int(time.strftime('%Y'))
                 if year_now == sub.year and month_now == int(sub.month):
                     day_now = int(time.strftime('%d'))
-                if year_now >= sub.year:
+                if year_now >= sub.year:                   
                     if shift.day_1 and shift.day_1.code != 'W' and day_now>=1 and 1.0 not in holiday_days:
                         sql = '''
                             select id from arul_hr_employee_leave_details
