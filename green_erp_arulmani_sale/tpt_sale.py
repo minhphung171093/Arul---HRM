@@ -676,6 +676,14 @@ class sale_order(osv.osv):
                     doc_status = 'waiting'
                 first_picking_id = False
                 for i,consignee_id in enumerate(consignee_ids):
+#                     sql = '''
+#                         select product_id from sale_order_line where order_id = %s group by product_id
+#                     '''%(ids[0])
+#                     cr.execute(sql)
+#                     p = [row[0] for row in cr.fetchall()]
+                    for ware in sale.order_line:
+                        if ware.product_id and not ware.product_id.warehouse_id:
+                            raise osv.except_osv(_('Warning!'),_('Warehouse is not null, please configure it in Product Master!'))
                     if i==0:
                         first_picking_id = picking_id
                         picking = picking_out_obj.browse(cr, uid, picking_id)
