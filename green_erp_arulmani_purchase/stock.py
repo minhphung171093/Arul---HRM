@@ -549,8 +549,6 @@ class stock_move(osv.osv):
                         commit;
                     '''%(location_id,ids[0])
                     cr.execute(sql)
-#                 else:
-#                     vals['location_dest_id'] = location_id
                 
             elif action_taken == 'need':
                 location_id = False
@@ -578,8 +576,6 @@ class stock_move(osv.osv):
                         commit;
                     '''%(location_id,ids[0])
                     cr.execute(sql)
-#                 else:
-#                     vals['location_dest_id'] = location_id
             elif action_taken == 'direct':   
                 for line in self.browse(cr, uid, ids, context=context):
                     if line.picking_id and line.picking_id.warehouse:

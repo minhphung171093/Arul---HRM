@@ -2404,8 +2404,8 @@ class arul_hr_audit_shift_time(osv.osv):
                         if full_half_shift_hrs <= total_hrs:
                             if g2_max_end_time  < actual_out:
                                 g2_shift_count = 1  
-                                b_shift_count = 1 
-                                total_shift_worked = 2
+                                b_shift_count = 0.5 
+                                total_shift_worked = 1.5
                         
                 if line.actual_work_shift_id.code=='B':
                     half_shift_hrs = line.actual_work_shift_id.time_total / 2   
