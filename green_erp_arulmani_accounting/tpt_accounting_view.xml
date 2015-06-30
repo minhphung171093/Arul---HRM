@@ -1995,7 +1995,7 @@
                     <button name="proforma_voucher" string="Reconcile" states="draft" class="oe_highlight"/>
             		<button name="%(action_review_posting_view)d" type="action" string="Review Posting" states="draft" context="{'tpt_voucher':True}"/>
                     <button name="cancel_voucher" string="Cancel" states="draft,proforma" invisible="1"/>
-                    <button name="cancel_voucher" string="Unreconcile" type="object" states="posted" confirm="Are you sure to unreconcile and cancel this record ?" invisible="1"/>
+                    <button name="cancel_voucher" string="Unreconcile" type="object" states="posted" confirm="Are you sure to unreconcile and cancel this record ?" groups="green_erp_arulmani_accounting.group_vvti_accounting_admin"/>
                     <button name="action_cancel_draft" type="object" states="cancel" string="Set to Draft" invisible="1"/>
                     <field name="state" widget="statusbar" statusbar_visible="draft,posted" statusbar_colors='{"proforma":"blue"}'/>
                 </header>
@@ -2166,7 +2166,7 @@
                     <button name="proforma_voucher" string="Reconcile" states="draft" invisible="context.get('line_type', False)" class="oe_highlight"/>
                     <button name="%(action_review_posting_view)d" type="action" string="Review Posting" states="draft" context="{'tpt_voucher':True}"/>
                     <button name="cancel_voucher" string="Cancel" states="draft,proforma"  invisible="context.get('line_type', False)"/>
-                    <button name="cancel_voucher" string="Unreconcile" type="object" states="posted" invisible="context.get('line_type', False)" confirm="Are you sure to unreconcile and cancel this record ?"/>
+                    <button name="cancel_voucher" string="Unreconcile" type="object" states="posted" invisible="context.get('line_type', False)" confirm="Are you sure to unreconcile and cancel this record ?" groups="green_erp_arulmani_accounting.group_vvti_accounting_admin"/>
                     <button name="action_cancel_draft" type="object" states="cancel" string="Set to Draft" invisible="context.get('line_type', False)"/>
                     <field name="state" widget="statusbar" statusbar_visible="draft,posted" statusbar_colors='{"proforma":"blue"}'/>
                 </header>
@@ -2407,7 +2407,7 @@
             </field>
         </record>
         
-        <!--<record id="inher_tpt_view_res_partner_form" model="ir.ui.view">
+        <record id="inher_tpt_view_res_partner_form" model="ir.ui.view">
             <field name="name">tpt.partner.view.form.inherit.2</field>
             <field name="model">res.partner</field>
             <field name="inherit_id" ref="green_erp_arulmani_sale.tpt_view_res_partner_form"/>
@@ -2422,7 +2422,7 @@
 					</xpath>
                 </data>
             </field>
-        </record>-->
+        </record>
         
         <record id="tpt_view_account_fiscalyear_form" model="ir.ui.view">
             <field name="name">tpt.account.fiscalyear.form</field>
@@ -2456,16 +2456,16 @@
             </field>
         </record>
         
-        <!-- <record id="tpt_view_hr_department_customize" model="ir.ui.view">
+        <record id="tpt_view_hr_department_customize" model="ir.ui.view">
             <field name="name">tpt.hr.department.customize</field>
             <field name="model">hr.department</field>
             <field name="inherit_id" ref="green_erp_arulmani_hrm.view_hr_department_customize"/>
             <field name="arch" type="xml">
             	<xpath expr="//page[@string='Designation and Resource Budgets']" position="attributes">
-					<attribute name='groups'>green_erp_arulmani_accounting.group_vvti_accounting_gm</attribute>
+					<attribute name='groups'>green_erp_arulmani_accounting.group_vvti_accounting_gm,green_erp_arulmani_hrm.group_vvti_hrm_hr_key_user,green_erp_arulmani_hrm.group_vvti_hrm_payroll_controller</attribute>
 				</xpath>
             </field>
-        </record> -->
+        </record> 
         
         <record id="inh_view_tpt_hr_payroll_approve_reject_form_vew" model="ir.ui.view">
             <field name="name">inh.tpt.hr.payroll.approve.reject.form</field>
