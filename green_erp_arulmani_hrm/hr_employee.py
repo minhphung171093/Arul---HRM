@@ -520,7 +520,8 @@ class hr_employee(osv.osv):
         'section_id': fields.many2one('arul.hr.section','Section',ondelete='restrict'),
         'payroll_area_id': fields.many2one('arul.hr.payroll.area','Payroll Area',ondelete='restrict'),
         'payroll_sub_area_id': fields.many2one('arul.hr.payroll.sub.area','Payroll Sub Area',ondelete='restrict'),
-        'time_record': fields.char('Time Record ID', size=1024, required = False),
+        'time_record': fields.char('Time Record ID', size=1024),
+        'rfid': fields.char('RFID', size=1024, required = False),
         'employee_leave_id': fields.one2many('employee.leave','employee_id','Employee Leave',readonly=False),
         'country_stateofbirth_id': fields.many2one('res.country', 'Country',ondelete='restrict'),
         'date_of_retirement': fields.date('Date Of Retirement'),
@@ -580,6 +581,14 @@ class hr_employee(osv.osv):
             if context.get('employee_id'):
                 employee_ids.append(context.get('employee_id'))
             args += [('id','in',employee_ids)]
+#         if context.get('tpt_emp_in_active'):
+#             sql = '''
+#                 select emp.id from hr_employee emp, resource_resource res 
+#                     where emp.resource_id = res.id and res.active = 'f' 
+#             '''
+#             cr.execute(sql)
+#             employee_ids = [row[0] for row in cr.fetchall()]
+#             args = [('id','in',employee_ids)]
 #         if context.get('search_promotion_employee'):
 #             sql = '''
 #                   

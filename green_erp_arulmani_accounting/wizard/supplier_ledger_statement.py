@@ -14,6 +14,7 @@ class supplier_ledger_statement(osv.osv_memory):
                 'date_from': fields.date('Date From', required=True),
                 'date_to': fields.date('Date To', required=True),
                 'supplier_id':fields.many2one('res.partner','Supplier',required=True),
+                'is_posted': fields.boolean('Is Posted'),
                 }
     
     def _check_date(self, cr, uid, ids, context=None):
@@ -38,20 +39,34 @@ class supplier_ledger_statement(osv.osv_memory):
             date_from = sls.date_from
             date_to = sls.date_to
             sup = sls.supplier_id.id
+            is_posted = sls.is_posted
             acount_move_line_obj = self.pool.get('account.move.line')
             acount_move_obj = self.pool.get('account.move')
             sup_ids = []
-            sql = '''
-                select aml.id from account_move_line aml 
-                inner join account_move am on (aml.move_id = am.id)
-                inner join res_partner p on (p.id=am.partner_id)
-                inner join account_account aa on (aa.id=aml.account_id)
-                where am.date between '%s' and '%s' and am.doc_type in ('sup_inv_po','sup_inv','sup_pay','ser_inv') 
-                and am.partner_id = %s and am.state='posted' and p.vendor_code=aa.code
-                    order by am.date
-                '''%(date_from, date_to,sup)
-            cr.execute(sql)
-            sup_ids = [r[0] for r in cr.fetchall()]
+            if is_posted is True:
+                sql = '''
+                    select aml.id from account_move_line aml 
+                    inner join account_move am on (aml.move_id = am.id)
+                    inner join res_partner p on (p.id=am.partner_id)
+                    inner join account_account aa on (aa.id=aml.account_id)
+                    where am.date between '%s' and '%s' 
+                    and am.partner_id = %s and am.state='posted' and p.vendor_code=aa.code
+                        order by am.date
+                    '''%(date_from, date_to,sup)
+                cr.execute(sql)
+                sup_ids = [r[0] for r in cr.fetchall()]
+            else:
+                sql = '''
+                    select aml.id from account_move_line aml 
+                    inner join account_move am on (aml.move_id = am.id)
+                    inner join res_partner p on (p.id=am.partner_id)
+                    inner join account_account aa on (aa.id=aml.account_id)
+                    where am.date between '%s' and '%s' 
+                    and am.partner_id = %s and am.state in ('draft','posted') and p.vendor_code=aa.code
+                        order by am.date
+                    '''%(date_from, date_to,sup)
+                cr.execute(sql)
+                sup_ids = [r[0] for r in cr.fetchall()]
 #             sql = '''
 #                 select id from account_move_line 
 #                 where move_id in (
@@ -172,6 +187,7 @@ class supplier_ledger_statement(osv.osv_memory):
                 'sup_code': sls.supplier_id and sls.supplier_id.vendor_code or '',
                 'sup_name': sls.supplier_id.name,
                 'supplier_id': sls.supplier_id.id,
+                'is_posted': sls.is_posted,
                 'sup_ledger_line': sls_line,
                 }
         sls_id = sls_obj.create(cr,uid,vals)
@@ -204,6 +220,7 @@ class tpt_supplier_ledger(osv.osv_memory):
                 'sup_code': fields.char('Supplier Code: ', size = 1024),
                 'sup_name': fields.char('Supplier Name: ', size = 1024),
                 'supplier_id':fields.many2one('res.partner','Supplier'),
+                'is_posted': fields.boolean('Is Posted'),
                 'sup_ledger_line': fields.one2many('tpt.supplier.ledger.line', 'ledger_id', 'Supplier Ledger Statement Line'),
                 }
     
