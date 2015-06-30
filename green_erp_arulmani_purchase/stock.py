@@ -385,7 +385,8 @@ class stock_picking_in(osv.osv):
                               }
                         move_lines.append((1,line.id,rs))
                         sql = '''
-                            update stock_move set location_dest_id = %s where id=%s
+                            update stock_move set location_dest_id = %s where id=%s;
+                            commit;
                         '''%(dest_id,line.id)
                         cr.execute(sql)
             
@@ -542,7 +543,12 @@ class stock_move(osv.osv):
                     return {'value': vals,'warning':warning}
                 else:
                     location_id = locat_ids[0]
-                vals['location_dest_id'] = location_id
+                if ids:
+                    sql = '''
+                        update stock_move set location_dest_id = %s where id=%s;
+                        commit;
+                    '''%(location_id,ids[0])
+                    cr.execute(sql)
                 
             elif action_taken == 'need':
                 location_id = False
@@ -564,7 +570,12 @@ class stock_move(osv.osv):
                     return {'value': vals,'warning':warning}
                 else:
                     location_id = locat_ids[0]
-                vals['location_dest_id'] = location_id
+                if ids:
+                    sql = '''
+                        update stock_move set location_dest_id = %s where id=%s;
+                        commit;
+                    '''%(location_id,ids[0])
+                    cr.execute(sql)
             elif action_taken == 'direct':   
                 for line in self.browse(cr, uid, ids, context=context):
                     if line.picking_id and line.picking_id.warehouse:
