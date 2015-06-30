@@ -3180,6 +3180,7 @@ class arul_hr_employee_leave_details(osv.osv):
         emp_id = emp.search(cr, uid, [('employee_id','=',vals['employee_id'])])
         emp_attendance_io_ids = emp_attendance_io.search(cr, uid, [('employee_id','=',vals['employee_id']),('work_date','=',vals['date_from'])])
         if emp_attendance_io_ids:
+            if vals['haft_day_leave'] is False:
                 raise osv.except_osv(_('Warning!'),_('System Could not Post Leave Entry if Attendance Entry exists for this Day!'))
                 
         ## TPT END          
