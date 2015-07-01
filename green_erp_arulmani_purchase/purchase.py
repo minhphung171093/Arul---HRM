@@ -3281,6 +3281,7 @@ class tpt_good_return_request(osv.osv):
         'name': '/',
     }
     
+    
     def create(self, cr, uid, vals, context=None):
         if vals.get('name','/')=='/':
             vals['name'] = self.pool.get('ir.sequence').get(cr, uid, 'tpt.good.return.request.import') or '/'
@@ -3340,6 +3341,22 @@ class tpt_good_return_request(osv.osv):
 #             name = record['grn_no_id']
 #             res.append((record['id'], name))
 #         return res 
+ 
+    def search(self, cr, uid, args, offset=0, limit=None, order=None, context=None, count=False):
+        if context is None:
+            context = {}
+        if context.get('search_good_return_request'):
+            sql = '''
+                select id from tpt_good_return_request
+                where state = 'done' and id not in (select good_id from tpt_gate_out_pass where state not in ('draft','cancel') and good_id is not null)
+            '''
+            cr.execute(sql)
+            good_ids = [row[0] for row in cr.fetchall()]
+            args += [('id','in',good_ids)]
+        return super(tpt_good_return_request, self).search(cr, uid, args, offset=offset, limit=limit, order=order, context=context, count=count)
+    def name_search(self, cr, user, name, args=None, operator='ilike', context=None, limit=100):
+       ids = self.search(cr, user, args, context=context, limit=limit)
+       return self.name_get(cr, user, ids, context=context)
     
     def bt_set_to_draft(self, cr, uid, ids, context=None):
         self.write(cr, uid, ids,{'state':'draft'})
@@ -4403,6 +4420,23 @@ class tpt_material_request(osv.osv):
         'department_id': _get_department_id,
     }
     
+    def search(self, cr, uid, args, offset=0, limit=None, order=None, context=None, count=False):
+        if context is None:
+            context = {}
+        if context.get('search_material_request_with_name', False):
+            name = context.get('name')
+            material_requests = self.search(cr, uid, [('name','like',name)])
+            args += [('id','in',material_requests)]
+        return super(tpt_material_request, self).search(cr, uid, args, offset=offset, limit=limit, order=order, context=context, count=count)
+    
+    def name_search(self, cr, user, name, args=None, operator='ilike', context=None, limit=100):
+        if context is None:
+            context = {}
+        if name:
+            context.update({'search_material_request_with_name':1,'name':name})
+        ids = self.search(cr, user, args, context=context, limit=limit)
+        return self.name_get(cr, user, ids, context=context)
+    
     def bt_load_norm(self, cr, uid, ids, context=None):
         res = self.pool.get('ir.model.data').get_object_reference(cr, uid, 
                                         'green_erp_arulmani_purchase', 'load_line_from_norm_form_view')
@@ -4844,6 +4878,8 @@ class tpt_material_request_line(osv.osv):
         'state_relate':fields.related('material_request_id', 'state' ,type = 'selection',selection=[('draft', 'Draft'),('done', 'Approve'),('partially', 'Partially Issued'),('closed', 'Closed')], string='State'),
         'pending_qty': fields.float('Pending Qty'),       
                 }
+    
+    
     def onchange_product_id(self, cr, uid, ids,product_id=False, context=None):
         res = {'value':{
                     'dec_material': False,

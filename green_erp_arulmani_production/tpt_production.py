@@ -112,8 +112,8 @@ class tpt_tio2_batch_split(osv.osv):
             
 #             move_ids = move_obj.search(cr, uid, [('scrapped','=',False),('production_id','=',line.mrp_id.id),('product_id','=',line.product_id.id)])
             if move_ids:
-                cr.execute('update stock_move set location_dest_id=%s where id in %s',(line.location_id.id,tuple(move_ids),))
-#             move_obj.write(cr, uid, move_ids,{'location_dest_id':line.location_id.id})
+#                 cr.execute('update stock_move set location_dest_id=%s where id in %s',(line.location_id.id,tuple(move_ids),))
+                move_obj.write(cr, uid, move_ids,{'location_dest_id':line.location_id.id})
             context.update({'active_id': move_ids and move_ids[0] or False,'active_model': 'stock.move','tpt_copy_prodlot':True})
             line_exist_ids = []
             for split_line in line.batch_split_line:
@@ -158,11 +158,45 @@ class tpt_tio2_batch_split(osv.osv):
             cr.execute(sql)
             qty = cr.fetchone()
             batchable = mrp.product_qty - qty[0]
-            v = {'available': batchable,'location_id': mrp.location_dest_id.id,'batchable':batchable}
+#             v = {'available': batchable,'location_id': mrp.location_dest_id.id,'batchable':batchable}
+            v = {'available': batchable,'batchable':batchable}
             return {'value': v}
         return {}
+    def onchange_warehouse_prod_id(self, cr, uid, ids,product_id=False,context=None):
+        vals = {}
+        warning = {}
+        if product_id :
+            prod_ware = self.pool.get('product.product').browse(cr, uid, product_id)
+            if not prod_ware.warehouse_id.id:
+                warning = {  
+                  'title': _('Warning!'),  
+                  'message': _('Sale Warehouse is not null, please configure it in Product Master!'),  
+                  }
+                vals = {'product_id':False}
+            else:
+                vals = {'location_id':prod_ware.warehouse_id.id}
+        return {'value': vals,'warning':warning}   
     
+    def write(self, cr, uid, ids, vals, context=None):
+        if 'product_id' in vals:
+             prod_ware = self.pool.get('product.product').browse(cr, uid, vals['product_id'])
+             if not prod_ware.warehouse_id:
+                 raise osv.except_osv(_('Warning'), _('Sale Warehouse is not null, please configure it in Product Master!'))
+             else:
+                 vals.update({
+                        'location_id':prod_ware.warehouse_id.id,
+                        })
+        return super(tpt_tio2_batch_split, self).write(cr, uid, ids, vals, context)    
+
     def create(self, cr, uid, vals, context=None):
+        if 'product_id' in vals:
+             prod_ware = self.pool.get('product.product').browse(cr, uid, vals['product_id'])
+             if not prod_ware.warehouse_id:
+                 raise osv.except_osv(_('Warning'), _('Sale Warehouse is not null, please configure it in Product Master!'))
+             else:
+                 vals.update({
+                        'location_id':prod_ware.warehouse_id.id,
+                        })
         sql = '''
             select case when sum(qty)!=0 then sum(qty) else 0 end qty from tpt_batch_split_line
                 where tio2_id in (select id from tpt_tio2_batch_split where mrp_id=%s)
@@ -337,7 +371,7 @@ class tpt_fsh_batch_split(osv.osv):
                     raise osv.except_osv(_('Warning!'),_('Batchable Quantity is not more than Available Stock Quantity !'))
             move_ids = move_obj.search(cr, uid, [('scrapped','=',False),('production_id','=',line.mrp_id.id),('product_id','=',line.product_id.id),('prodlot_id','in',prodlot_ids)], order='product_qty desc')
 #             cr.execute('update stock_move set location_dest_id=%s where id in %s',(line.location_id.id,tuple(move_ids),))
-#             move_obj.write(cr, uid, move_ids,{'location_dest_id':line.location_id.id})
+            move_obj.write(cr, uid, move_ids,{'location_dest_id':line.location_id.id})
             context.update({'active_id': move_ids and move_ids[0] or False,'active_model': 'stock.move','tpt_copy_prodlot':True})
             line_exist_ids = []
             qty = 0
@@ -392,10 +426,26 @@ class tpt_fsh_batch_split(osv.osv):
 #                     update tpt_fsh_batch_split set line_qty = %s, available = %s where mrp_id = %s and id = %s
 #                 '''%(qty, available, new.mrp_id.id, new.id)
 #                 cr.execute(sql)
-            v = {'available': available,'batchable_qty': batchable,'line_qty': qty, 'location_id': mrp.location_dest_id.id}
+#             v = {'available': available,'batchable_qty': batchable,'line_qty': qty, 'location_id': mrp.location_dest_id.id}
+            v = {'available': available,'batchable_qty': batchable,'line_qty': qty}
             return {'value': v}
         return {}
-    
+
+    def onchange_ware_fsh_prod_id(self, cr, uid, ids,product_id=False,context=None):
+        vals = {}
+        warning = {}
+        if product_id :
+            prod_ware = self.pool.get('product.product').browse(cr, uid, product_id)
+            if not prod_ware.warehouse_id.id:
+                warning = {  
+                  'title': _('Warning!'),  
+                  'message': _('Sale Warehouse is not null, please configure it in Product Master!'),  
+                  }
+                vals = {'product_id':False}
+            else:
+                vals = {'location_id':prod_ware.warehouse_id.id}
+        return {'value': vals,'warning':warning}   
+   
     def unlink(self, cr, uid, ids, context=None):
         for unlink in self.browse(cr,uid,ids):
             sql = '''

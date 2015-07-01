@@ -16,21 +16,28 @@
 	        <field name="name">Sales User</field>
 	        <field name="category_id" ref="module_category_vvti_sale"/>
 	        <field name="users" eval="[(4, ref('base.user_root'))]"/>
-	        <field name="implied_ids" eval="[(4, ref('base.group_sale_manager')),(4, ref('stock.group_stock_manager')),(4, ref('green_erp_arulmani_hrm.group_vvti_hrm_plant_hr_user'))]"/>
+	        <field name="implied_ids" eval="[(6,0, [ref('base.group_sale_manager'),ref('green_erp_arulmani_hrm.group_vvti_hrm_plant_hr_user'),ref('stock.group_stock_manager')])]"/>
 	    </record>
 	    
 	    <record id="group_vvti_sale_manager" model="res.groups">
 	        <field name="name">Sales Manager</field>
 	        <field name="category_id" ref="module_category_vvti_sale"/>
 	        <field name="users" eval="[(4, ref('base.user_root'))]"/>
-	        <field name="implied_ids" eval="[(4, ref('group_vvti_sale_user')),(4, ref('green_erp_arulmani_hrm.group_vvti_unit_user'))]"/>
+	        <field name="implied_ids" eval="[(6,0, [ref('group_vvti_sale_user')])]"/>
 	    </record>
+	    
+	    <!--<record id="group_vvti_sale_manager" model="res.groups">
+	        <field name="name">Sales Manager</field>
+	        <field name="category_id" ref="module_category_vvti_sale"/>
+	        <field name="users" eval="[(4, ref('base.user_root'))]"/>
+	        <field name="implied_ids" eval="[(6,0, [ref('group_vvti_sale_user')])]"/>
+	    </record>-->
 	    
 	    <record id="group_vvti_sale_gm" model="res.groups">
 	        <field name="name">Sales GM</field>
 	        <field name="category_id" ref="module_category_vvti_sale"/>
 	        <field name="users" eval="[(4, ref('base.user_root'))]"/>
-	        <field name="implied_ids" eval="[(4, ref('group_vvti_sale_manager')),(4, ref('group_vvti_unit_account'))]"/>
+	        <field name="implied_ids" eval="[(6,0, [ref('group_vvti_sale_manager')])]"/>
 	    </record>
 	    
 	    <record id="group_vvti_sale_store_key_user" model="res.groups">

@@ -50,7 +50,6 @@ access_vvti_sale_34,"tpt.batch.allotment","green_erp_arulmani_sale.model_tpt_bat
 access_vvti_sale_35,"tpt.batch.allotment.line","green_erp_arulmani_sale.model_tpt_batch_allotment_line","green_erp_arulmani_crm.group_qc_user","True","True","True","True"
 access_vvti_sale_36,"tpt.blanket.order","green_erp_arulmani_sale.model_tpt_blanket_order","green_erp_arulmani_crm.group_sample_user","True","True","True","False"
 access_vvti_sale_37,"tpt.blank.order.line","green_erp_arulmani_sale.model_tpt_blank_order_line","green_erp_arulmani_crm.group_sample_user","True","True","True","False"
-access_vvti_sale_38,"tpt.batch.allotment","green_erp_arulmani_sale.model_tpt_batch_allotment","green_erp_arulmani_sale.group_vvti_sale_manager","True","True","True","False"
 access_vvti_sale_39,arul.hr.payroll.executions,green_erp_arulmani_hrm.model_arul_hr_payroll_executions,green_erp_arulmani_sale.group_vvti_sale_manager,True,False,False,False
 access_vvti_sale_40,tpt.cus.consignee,green_erp_arulmani_sale.model_tpt_cus_consignee,green_erp_arulmani_sale.group_vvti_sale_user,True,True,True,True
 
@@ -130,6 +129,14 @@ access_vvti_sale_103,tpt.test.report,green_erp_arulmani_sale.model_tpt_test_repo
 access_vvti_sale_104,crm.case.channel,green_erp_arulmani_crm.model_crm_case_channel,green_erp_arulmani_sale.group_vvti_marketing_user,True,False,False,False
 
 access_vvti_sale_105,crm.case.channel,green_erp_arulmani_crm.model_crm_case_channel,green_erp_arulmani_sale.group_vvti_sale_user,True,False,False,False
+
+stock.access_product_uom_stock_manager,product.uom stock_manager,product.model_product_uom,stock.group_stock_manager,1,0,0,0
+
+sale.access_product_uom_sale_manager,product.uom salemanager,product.model_product_uom,base.group_sale_manager,1,0,0,0
+
+access_vvti_sale_106,sale.order,green_erp_arulmani_sale.model_sale_order,green_erp_arulmani_crm.group_qc_user,True,False,False,False
+
+
 
 
 

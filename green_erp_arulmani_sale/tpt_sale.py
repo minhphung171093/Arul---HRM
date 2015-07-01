@@ -676,6 +676,14 @@ class sale_order(osv.osv):
                     doc_status = 'waiting'
                 first_picking_id = False
                 for i,consignee_id in enumerate(consignee_ids):
+#                     sql = '''
+#                         select product_id from sale_order_line where order_id = %s group by product_id
+#                     '''%(ids[0])
+#                     cr.execute(sql)
+#                     p = [row[0] for row in cr.fetchall()]
+                    for ware in sale.order_line:
+                        if ware.product_id and not ware.product_id.warehouse_id:
+                            raise osv.except_osv(_('Warning!'),_('Warehouse is not null, please configure it in Product Master!'))
                     if i==0:
                         first_picking_id = picking_id
                         picking = picking_out_obj.browse(cr, uid, picking_id)
@@ -718,6 +726,57 @@ class sale_order(osv.osv):
                         ###TPT END
                         #stock_move_obj.write(cr, uid, [line.id], {'product_type':line.sale_line_id.product_type,'application_id':line.sale_line_id.application_id and line.sale_line_id.application_id.id or False})
         return True
+
+    def _prepare_order_line_move(self, cr, uid, order, line, picking_id, date_planned, context=None):
+        location_id = order.shop_id.warehouse_id.lot_stock_id.id
+        output_id = order.shop_id.warehouse_id.lot_output_id.id
+        return {
+            'name': line.name,
+            'picking_id': picking_id,
+            'product_id': line.product_id.id,
+            'date': date_planned,
+            'date_expected': date_planned,
+            'product_qty': line.product_uom_qty,
+            'product_uom': line.product_uom.id,
+            'product_uos_qty': (line.product_uos and line.product_uos_qty) or line.product_uom_qty,
+            'product_uos': (line.product_uos and line.product_uos.id)\
+                    or line.product_uom.id,
+            'product_packaging': line.product_packaging.id,
+            'partner_id': line.address_allotment_id.id or order.partner_shipping_id.id,
+            'location_id': location_id,
+            'location_dest_id': output_id,
+            'sale_line_id': line.id,
+            'tracking_id': False,
+            'state': 'draft',
+            #'state': 'waiting',
+            'company_id': order.company_id.id,
+            'price_unit': line.product_id.standard_price or 0.0
+        }
+
+    def _prepare_order_picking(self, cr, uid, order, context=None):
+        pick_name = self.pool.get('ir.sequence').get(cr, uid, 'stock.picking.out')
+        product_obj = self.pool.get('product.product')
+        for line in order.order_line:
+            if line.product_id and not line.product_id.warehouse_id.id:
+#                 product = product_obj.search(cr,uid,line.product_id.id)
+#                 if product and not product.warehouse_id.id:
+                raise osv.except_osv(_('Warning!'),_('Sale Warehouse is not null, please configure it in Product Master!'))
+            else:
+                warehouse = line.product_id.warehouse_id.id
+        return {
+            'name': pick_name,
+            'origin': order.name,
+            'date': self.date_to_datetime(cr, uid, order.date_order, context),
+            'type': 'out',
+            'state': 'auto',
+            'move_type': order.picking_policy,
+            'sale_id': order.id,
+            'partner_id': order.partner_shipping_id.id,
+            'note': order.note,
+            'invoice_state': (order.order_policy=='picking' and '2binvoiced') or 'none',
+            'company_id': order.company_id.id,
+            'warehouse':warehouse,
+        }
     
 sale_order()
 
