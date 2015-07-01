@@ -1093,6 +1093,13 @@ class account_invoice(osv.osv):
                 iml += invoice_line_obj.move_line_fi_credit(cr, uid, inv.id)
                 iml += invoice_line_obj.move_line_tds_amount_freight(cr, uid, inv.id) 
                 name = inv['name'] or inv['supplier_invoice_number'] or '/'
+            
+            if (inv.type == 'in_invoice' and inv.purchase_id.po_document_type == 'service'): 
+                iml = invoice_line_obj.move_line_fi_base(cr, uid, inv.id)
+                iml += invoice_line_obj.move_line_fi_debit(cr, uid, inv.id) 
+                iml += invoice_line_obj.move_line_fi_credit(cr, uid, inv.id)
+                iml += invoice_line_obj.move_line_tds_amount_freight(cr, uid, inv.id) 
+                name = inv['name'] or inv['supplier_invoice_number'] or '/'
 #             iml += invoice_line_obj.move_line_price_total(cr, uid, inv.id)  
             # check if taxes are all computed
             compute_taxes = ait_obj.compute(cr, uid, inv.id, context=ctx)

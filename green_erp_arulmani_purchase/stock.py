@@ -1206,6 +1206,7 @@ class account_invoice_line(osv.osv):
         'line_net': fields.function(line_net_line_supplier_invo, store = True, multi='deltas' ,string='Line Net'),
         'tax_id': fields.many2one('account.tax', 'Taxes'),
         'tax_credit': fields.many2one('account.tax', 'Tax (Credit)'),
+        'tax_service_credit': fields.many2one('account.tax', 'Tax (Credit)'),
         'tds_id': fields.many2one('account.tax', 'TDS %'),
         'tds_id_2': fields.many2one('account.tax', 'TDS %'),
         'aed_id': fields.many2one('account.tax', 'AED'),
