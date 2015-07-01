@@ -287,11 +287,11 @@ class stock_inward_outward_report(osv.osv_memory):
                             move_line.append(line)
                         if move['action_taken'] == 'need':
                             sql = '''
-                                select id from tpt_quanlity_inspection where need_inspec_id = %s and state in ('done', 'remaining')
+                                select id, qty_approve from tpt_quanlity_inspection where need_inspec_id = %s and state in ('done', 'remaining')
                             '''%(move['id'])
                             cr.execute(sql)
                             for move_sql in cr.dictfetchall():
-                                if move_sql:
+                                if move_sql['qty_approve']:
                                     sql = '''
                                         select id from stock_move where inspec_id = %s and state = 'done' and to_char(date, 'YYYY-MM-DD') between '%s' and '%s'
                                     '''%(move_sql['id'], date_from, date_to)
@@ -646,7 +646,7 @@ class stock_inward_outward_report(osv.osv_memory):
             return cur
         
         closing_stock = 0
-        for line in get_detail_lines(stock):
+        for seq,line in enumerate(get_detail_lines(stock)):
             trans_qty = get_transaction_qty(stock,line['id'], line['material_issue_id'], line['doc_type'])
             closing_stock += trans_qty
             if line['doc_type']=='good':
@@ -660,7 +660,10 @@ class stock_inward_outward_report(osv.osv_memory):
             else:
                 st_value = stock_value(get_line_stock_value(stock,line['id'], line['material_issue_id'], line['doc_type'], line['date']), line)
             self.st_sum_value += st_value
-            cur = get_opening_stock_value(stock)+st_value+self.current
+            if seq == 0:
+                cur = get_opening_stock_value(stock)+st_value+self.current
+            else:
+                cur = st_value+self.current
             self.current = cur
             stock_in_out_line.append((0,0,{
                 'creation_date': line['date'],
