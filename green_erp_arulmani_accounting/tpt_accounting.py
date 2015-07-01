@@ -1087,6 +1087,7 @@ class account_invoice(osv.osv):
                     iml += invoice_line_obj.move_line_amount_tax_without_po_deducte(cr, uid, inv.id)
                     if inv.purchase_id.po_document_type == 'service':
                         iml += invoice_line_obj.move_line_amount_tax_credit(cr, uid, inv.id) 
+                        iml += invoice_line_obj.move_line_amount_tax_deducte_credit(cr, uid, inv.id) 
                 else:
                     iml += invoice_line_obj.move_line_amount_untaxed_without_po(cr, uid, inv.id) 
                     iml += invoice_line_obj.move_line_tds_amount_without_po(cr, uid, inv.id) 
@@ -1642,10 +1643,94 @@ class account_invoice_line(osv.osv):
                         'name':line.name,
                         'price_unit': line.price_unit,
                         'quantity': 1,
-                        'price': -round(tax),
+                        'price': -tax,
                         'account_id': account,
                         'account_analytic_id': line.account_analytic_id.id,
                         })
+        return res
+    
+    def move_line_amount_tax_deducte_credit(self, cr, uid, invoice_id, context = None):
+        res = []
+        sum_tax = 0
+        sum_tax_round = 0
+        voucher_rate = 1
+        if context is None:
+            context = {}
+        ctx = context.copy()
+        inv_id = self.pool.get('account.invoice').browse(cr, uid, invoice_id)
+        if inv_id:
+            currency = inv_id.currency_id.name or False
+            currency_id = inv_id.currency_id.id or False
+            ctx.update({'date': inv_id.date_invoice or time.strftime('%Y-%m-%d')})
+        if currency != 'INR':
+            voucher_rate = self.pool.get('res.currency').read(cr, uid, currency_id, ['rate'], context=ctx)['rate']
+        account_ids = self.pool.get('account.account').search(cr, uid, [('code','in',['0000484008'])])
+        if not account_ids:
+            raise osv.except_osv(_('Warning!'),_('Account is not null, please configure Account with code is 0000484008 and name is PRICE DIFF/ROUNDING in Account master !'))
+        for account in self.browse(cr,uid,account_ids):
+            for line in inv_id.invoice_line:
+                basic = 0.0
+                p_f = 0.0
+                ed = 0.0
+                tax_value = 0.0
+                if line.tax_service_credit:
+                    basic = (line.quantity * line.price_unit) - ( (line.quantity * line.price_unit)*line.disc/100)
+                    basic = round(basic)
+                    if line.p_f_type == '1' :
+                        p_f = basic * line.p_f/100
+                        p_f = round(p_f)
+                    elif line.p_f_type == '2' :
+                        p_f = line.p_f
+                        p_f = round(p_f)
+                    elif line.p_f_type == '3' :
+                        p_f = line.p_f * line.quantity
+                        p_f = round(p_f)
+                    else:
+                        p_f = line.p_f
+                        p_f = round(p_f)
+                    if line.ed_type == '1' :
+                        ed = (basic + p_f) * line.ed/100
+                        ed = round(ed)
+                    elif line.ed_type == '2' :
+                        ed = line.ed
+                        ed = round(ed)
+                    elif line.ed_type == '3' :
+                        ed = line.ed * line.quantity
+                        ed = round(ed)
+                    else:
+                        ed = line.ed
+                        ed = round(ed)                
+                    
+                    tax_value = line.tax_service_credit.amount/100
+    
+                    if line.aed_id_1:
+                        tax = (basic + p_f + ed + line.aed_id_1)*(tax_value) * voucher_rate
+                    else:
+                        tax = (basic + p_f + ed)*(tax_value) * voucher_rate
+                    sum_tax = tax
+                    sum_tax_round = round(sum_tax)
+                    deducte = sum_tax_round - sum_tax
+                    if deducte > 0:
+                        res.append({
+                            'type':'tax',
+                            'name':'',
+                            'price_unit': 0,
+                            'quantity': 1,
+                            'price': -deducte,
+                            'account_id': account.id,
+                            'account_analytic_id': False,
+                            })
+               
+                    if deducte < 0:
+                        res.append({
+                            'type':'tax',
+                            'name':'',
+                            'price_unit': 0,
+                            'quantity': 1,
+                            'price': -deducte,
+                            'account_id': account.id,
+                            'account_analytic_id': False,
+                            })
         return res
     
     def move_line_amount_tax(self, cr, uid, invoice_id, context = None):
@@ -1778,30 +1863,30 @@ class account_invoice_line(osv.osv):
                         tax = (basic + p_f + ed + line.aed_id_1)*(tax_value) * voucher_rate
                     else:
                         tax = (basic + p_f + ed)*(tax_value) * voucher_rate
-                    sum_tax += tax
-            sum_tax_round += round(sum_tax)
-            deducte = sum_tax_round - sum_tax
-            if deducte > 0:
-                res.append({
-                    'type':'tax',
-                    'name':'',
-                    'price_unit': 0,
-                    'quantity': 1,
-                    'price': deducte,
-                    'account_id': account.id,
-                    'account_analytic_id': False,
-                    })
-       
-            if deducte < 0:
-                res.append({
-                    'type':'tax',
-                    'name':'',
-                    'price_unit': 0,
-                    'quantity': 1,
-                    'price': deducte,
-                    'account_id': account.id,
-                    'account_analytic_id': False,
-                    })
+                    sum_tax = tax
+                    sum_tax_round = round(sum_tax)
+                    deducte = sum_tax_round - sum_tax
+                    if deducte > 0:
+                        res.append({
+                            'type':'tax',
+                            'name':'',
+                            'price_unit': 0,
+                            'quantity': 1,
+                            'price': deducte,
+                            'account_id': account.id,
+                            'account_analytic_id': False,
+                            })
+               
+                    if deducte < 0:
+                        res.append({
+                            'type':'tax',
+                            'name':'',
+                            'price_unit': 0,
+                            'quantity': 1,
+                            'price': deducte,
+                            'account_id': account.id,
+                            'account_analytic_id': False,
+                            })
         return res
     
     def move_line_amount_tax1(self, cr, uid, invoice_id, context = None):
