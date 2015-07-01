@@ -720,6 +720,7 @@
                                         type="object" help="Recompute taxes and total"/>
                                 </div>
                                 <field name="amount_tax" nolabel="1" widget="monetary" options="{'currency_field': 'currency_id'}"/>
+                                <field name="amount_tax_credit" widget="monetary"/>
                                 <field name="fright" widget="monetary"/>
                                 <field name="amount_total_tds" widget="monetary"/>
                                 <field name="amount_total" class="oe_subtotal_footer_separator" widget="monetary" options="{'currency_field': 'currency_id'}"/>

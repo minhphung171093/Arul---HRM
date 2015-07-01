@@ -1076,6 +1076,8 @@ class account_invoice(osv.osv):
                 if inv.purchase_id:
                     iml += invoice_line_obj.move_line_amount_untaxed(cr, uid, inv.id) 
                     iml += invoice_line_obj.move_line_tds_amount_without_po(cr, uid, inv.id) 
+                    if inv.purchase_id.po_document_type == 'service':
+                        iml += invoice_line_obj.move_line_amount_tax_credit(cr, uid, inv.id) 
                 else:
                     iml += invoice_line_obj.move_line_amount_untaxed_without_po(cr, uid, inv.id) 
                     iml += invoice_line_obj.move_line_tds_amount_without_po(cr, uid, inv.id) 
@@ -1094,12 +1096,12 @@ class account_invoice(osv.osv):
                 iml += invoice_line_obj.move_line_tds_amount_freight(cr, uid, inv.id) 
                 name = inv['name'] or inv['supplier_invoice_number'] or '/'
             
-            if (inv.type == 'in_invoice' and inv.purchase_id.po_document_type == 'service'): 
-                iml = invoice_line_obj.move_line_fi_base(cr, uid, inv.id)
-                iml += invoice_line_obj.move_line_fi_debit(cr, uid, inv.id) 
-                iml += invoice_line_obj.move_line_fi_credit(cr, uid, inv.id)
-                iml += invoice_line_obj.move_line_tds_amount_freight(cr, uid, inv.id) 
-                name = inv['name'] or inv['supplier_invoice_number'] or '/'
+#             if (inv.type == 'in_invoice' and inv.purchase_id.po_document_type == 'service'): 
+#                 iml = invoice_line_obj.move_line_fi_base(cr, uid, inv.id)
+#                 iml += invoice_line_obj.move_line_fi_debit(cr, uid, inv.id) 
+#                 iml += invoice_line_obj.move_line_fi_credit(cr, uid, inv.id)
+#                 iml += invoice_line_obj.move_line_tds_amount_freight(cr, uid, inv.id) 
+#                 name = inv['name'] or inv['supplier_invoice_number'] or '/'
 #             iml += invoice_line_obj.move_line_price_total(cr, uid, inv.id)  
             # check if taxes are all computed
             compute_taxes = ait_obj.compute(cr, uid, inv.id, context=ctx)
@@ -1564,6 +1566,73 @@ class account_invoice_line(osv.osv):
                         'account_analytic_id': line.account_analytic_id.id,
                     })
         return res  
+    def move_line_amount_tax_credit(self, cr, uid, invoice_id, context = None):
+        res = []
+        voucher_rate = 1
+        if context is None:
+            context = {}
+        ctx = context.copy()
+        inv_id = self.pool.get('account.invoice').browse(cr, uid, invoice_id)
+        if inv_id:
+            currency = inv_id.currency_id.name or False
+            currency_id = inv_id.currency_id.id or False
+            ctx.update({'date': inv_id.date_invoice or time.strftime('%Y-%m-%d')})
+        if currency != 'INR':
+            voucher_rate = self.pool.get('res.currency').read(cr, uid, currency_id, ['rate'], context=ctx)['rate']
+        for line in inv_id.invoice_line:
+            basic = 0.0
+            p_f = 0.0
+            ed = 0.0
+            tax_value = 0.0
+            if line.tax_service_credit:
+                if line.tax_service_credit.gl_account_id:
+                    account = line.tax_service_credit.gl_account_id.id
+                else:
+                    raise osv.except_osv(_('Warning!'),_('Account is not null, please configure GL Account in Tax master !'))
+                basic = (line.quantity * line.price_unit) - ( (line.quantity * line.price_unit)*line.disc/100)
+                basic = round(basic)
+                if line.p_f_type == '1' :
+                    p_f = basic * line.p_f/100
+                    p_f = round(p_f)
+                elif line.p_f_type == '2' :
+                    p_f = line.p_f
+                    p_f = round(p_f)
+                elif line.p_f_type == '3' :
+                    p_f = line.p_f * line.quantity
+                    p_f = round(p_f)
+                else:
+                    p_f = line.p_f
+                    p_f = round(p_f)
+                if line.ed_type == '1' :
+                    ed = (basic + p_f) * line.ed/100
+                    ed = round(ed)
+                elif line.ed_type == '2' :
+                    ed = line.ed
+                    ed = round(ed)
+                elif line.ed_type == '3' :
+                    ed = line.ed * line.quantity
+                    ed = round(ed)
+                else:
+                    ed = line.ed
+                    ed = round(ed)                
+                
+                tax_value = line.tax_service_credit.amount/100
+
+                if line.aed_id_1:
+                    tax = (basic + p_f + ed + line.aed_id_1)*(tax_value) * voucher_rate
+                else:
+                    tax = (basic + p_f + ed)*(tax_value) * voucher_rate
+                if tax:    
+                    res.append({
+                        'type':'tax',
+                        'name':line.name,
+                        'price_unit': line.price_unit,
+                        'quantity': 1,
+                        'price': -round(tax),
+                        'account_id': account,
+                        'account_analytic_id': line.account_analytic_id.id,
+                        })
+        return res
     def move_line_amount_tax(self, cr, uid, invoice_id, context = None):
         res = []
         voucher_rate = 1
@@ -1589,49 +1658,51 @@ class account_invoice_line(osv.osv):
                         account = tax_gl_account_id.id
                     else:
                         raise osv.except_osv(_('Warning!'),_('Account is not null, please configure GL Account in Tax master !'))
+                basic = (line.quantity * line.price_unit) - ( (line.quantity * line.price_unit)*line.disc/100)
+                basic = round(basic)
+                if line.p_f_type == '1' :
+                    p_f = basic * line.p_f/100
+                    p_f = round(p_f)
+                elif line.p_f_type == '2' :
+                    p_f = line.p_f
+                    p_f = round(p_f)
+                elif line.p_f_type == '3' :
+                    p_f = line.p_f * line.quantity
+                    p_f = round(p_f)
+                else:
+                    p_f = line.p_f
+                    p_f = round(p_f)
+                if line.ed_type == '1' :
+                    ed = (basic + p_f) * line.ed/100
+                    ed = round(ed)
+                elif line.ed_type == '2' :
+                    ed = line.ed
+                    ed = round(ed)
+                elif line.ed_type == '3' :
+                    ed = line.ed * line.quantity
+                    ed = round(ed)
+                else:
+                    ed = line.ed
+                    ed = round(ed)                
                 tax_amounts = [r.amount for r in line.invoice_line_tax_id]
+                
                 for tax_amount in tax_amounts:
                     tax_value += tax_amount/100
-                    basic = (line.quantity * line.price_unit) - ( (line.quantity * line.price_unit)*line.disc/100)
-#                     basic = round(basic)
-                    if line.p_f_type == '1' :
-                        p_f = basic * line.p_f/100
-#                         p_f = round(p_f)
-                    elif line.p_f_type == '2' :
-                        p_f = line.p_f
-#                         p_f = round(p_f)
-                    elif line.p_f_type == '3' :
-                        p_f = line.p_f * line.quantity
-#                         p_f = round(p_f)
-                    else:
-                        p_f = line.p_f
-#                         p_f = round(p_f)
-                    if line.ed_type == '1' :
-                        ed = (basic + p_f) * line.ed/100
-#                         ed = round(ed)
-                    elif line.ed_type == '2' :
-                        ed = line.ed
-#                         ed = round(ed)
-                    elif line.ed_type == '3' :
-                        ed = line.ed * line.quantity
-#                         ed = round(ed)
-                    else:
-                        ed = line.ed
-#                         ed = round(ed)
-                    if line.aed_id_1:
-                        tax = (basic + p_f + ed + line.aed_id_1)*(tax_value) * voucher_rate
-                    else:
-                        tax = (basic + p_f + ed)*(tax_value) * voucher_rate
-                    if tax:    
-                        res.append({
-                            'type':'tax',
-                            'name':line.name,
-                            'price_unit': line.price_unit,
-                            'quantity': 1,
-                            'price': round(tax),
-                            'account_id': account,
-                            'account_analytic_id': line.account_analytic_id.id,
-                            })
+
+                if line.aed_id_1:
+                    tax = (basic + p_f + ed + line.aed_id_1)*(tax_value) * voucher_rate
+                else:
+                    tax = (basic + p_f + ed)*(tax_value) * voucher_rate
+                if tax:    
+                    res.append({
+                        'type':'tax',
+                        'name':line.name,
+                        'price_unit': line.price_unit,
+                        'quantity': 1,
+                        'price': round(tax),
+                        'account_id': account,
+                        'account_analytic_id': line.account_analytic_id.id,
+                        })
                     
 #                     if 'CST' in tax_name:
 #                         tax_amounts = [r.amount for r in line.invoice_line_tax_id]
