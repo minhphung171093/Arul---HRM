@@ -1588,7 +1588,7 @@
 	            	<sheet>
 		                <group > 
 		                	<field name="name"/>
-		                	<field name="good_id" domain="[('state','=','done')]"  on_change = "onchange_good_id(good_id)" options="{'create': false, 'create_edit': false}"  />
+		                	<field name="good_id" context="{'search_good_return_request':True}"  on_change = "onchange_good_id(good_id)" options="{'create': false, 'create_edit': false}"  />
 		                	<field name="grn_id"  options="{'create': false, 'create_edit': false}"/>
 		                	<field name="gate_date_time"/>
 			                <field name="po_id" options="{'create': false, 'create_edit': false}"/>
