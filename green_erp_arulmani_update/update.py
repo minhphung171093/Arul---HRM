@@ -2114,29 +2114,29 @@ class tpt_update_stock_move_report(osv.osv):
                 '''%(quanlity_done['id'])
                 cr.execute(sql)
                 new_moves = cr.dictfetchall()
-                if new_moves:
-                    for seq, new_move in enumerate(new_moves):
-                        sql = '''
-                            select sum(product_qty) as product_qty, inspec_id from stock_move where inspec_id = %s and state = 'done' group by inspec_id
-                        '''%(quanlity_done['id'])
-                        cr.execute(sql)
-                        for inspec_move in cr.dictfetchall():
-                            if inspec_move:
-                                product_qty = inspec_move['product_qty']
-                        qty = quanlity_done['qty']
-                        remaining_qty = quanlity_done['remaining_qty']
-                        if (qty - remaining_qty) != product_qty:
-                            quanlity_inspec.append((0,0,{
-                                                'name': 'Co quanlity inspection va co stock move moi nhung khong khop so luong',
-                                                'seq': seq + 1,
-                                                'inspec_id': quanlity_done['id'],
-                                                'move_id': new_move['id'],
-                                                'inspec_qty': quanlity_done['qty'] - quanlity_done['remaining_qty'],
-                                                'move_qty': product_qty,
-                                                'inspection_id': quanlity_done['id'],
-                                                'stock_move_id': new_move['id'],
-                                                        }))
-                else:
+#                 if new_moves:
+#                     for seq, new_move in enumerate(new_moves):
+#                         sql = '''
+#                             select sum(product_qty) as product_qty, inspec_id from stock_move where inspec_id = %s and state = 'done' group by inspec_id
+#                         '''%(quanlity_done['id'])
+#                         cr.execute(sql)
+#                         for inspec_move in cr.dictfetchall():
+#                             if inspec_move:
+#                                 product_qty = inspec_move['product_qty']
+#                         qty = quanlity_done['qty']
+#                         remaining_qty = quanlity_done['remaining_qty']
+#                         if (qty - remaining_qty) != product_qty:
+#                             quanlity_inspec.append((0,0,{
+#                                                 'name': 'Co quanlity inspection va co stock move moi nhung khong khop so luong',
+#                                                 'seq': seq + 1,
+#                                                 'inspec_id': quanlity_done['id'],
+#                                                 'move_id': new_move['id'],
+#                                                 'inspec_qty': quanlity_done['qty'] - quanlity_done['remaining_qty'],
+#                                                 'move_qty': product_qty,
+#                                                 'inspection_id': quanlity_done['id'],
+#                                                 'stock_move_id': new_move['id'],
+#                                                         }))
+                if not new_moves:
                     quanlity_inspec.append((0,0,{
                                                 'name': 'Co quanlity inspection nhung chua tao ra stock move moi',
                                                 'seq': False,
