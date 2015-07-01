@@ -3281,6 +3281,7 @@ class tpt_good_return_request(osv.osv):
         'name': '/',
     }
     
+    
     def create(self, cr, uid, vals, context=None):
         if vals.get('name','/')=='/':
             vals['name'] = self.pool.get('ir.sequence').get(cr, uid, 'tpt.good.return.request.import') or '/'
@@ -3340,6 +3341,22 @@ class tpt_good_return_request(osv.osv):
 #             name = record['grn_no_id']
 #             res.append((record['id'], name))
 #         return res 
+ 
+    def search(self, cr, uid, args, offset=0, limit=None, order=None, context=None, count=False):
+        if context is None:
+            context = {}
+        if context.get('search_good_return_request'):
+            sql = '''
+                select id from tpt_good_return_request
+                where state = 'done' and id not in (select good_id from tpt_gate_out_pass where state not in ('draft','cancel') and good_id is not null)
+            '''
+            cr.execute(sql)
+            good_ids = [row[0] for row in cr.fetchall()]
+            args += [('id','in',good_ids)]
+        return super(tpt_good_return_request, self).search(cr, uid, args, offset=offset, limit=limit, order=order, context=context, count=count)
+    def name_search(self, cr, user, name, args=None, operator='ilike', context=None, limit=100):
+       ids = self.search(cr, user, args, context=context, limit=limit)
+       return self.name_get(cr, user, ids, context=context)
     
     def bt_set_to_draft(self, cr, uid, ids, context=None):
         self.write(cr, uid, ids,{'state':'draft'})
