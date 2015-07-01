@@ -29,13 +29,13 @@
 	            	<sheet>
 		            	<group>
 			                <group>    
-								<field name="product_id" options="{'create': false, 'create_edit': false}" domain="['|',('name','in',['TITANIUM DIOXIDE-ANATASE','TiO2','M0501010001','TITANIUM DIOXIDE-RUTILE','M0501010008']),('default_code','in',['TITANIUM DIOXIDE-ANATASE','TiO2','M0501010001','TITANIUM DIOXIDE-RUTILE','M0501010008'])]"/>
+								<field name="product_id" on_change="onchange_warehouse_prod_id(product_id)" options="{'create': false, 'create_edit': false}" domain="['|',('name','in',['TITANIUM DIOXIDE-ANATASE','TiO2','M0501010001','TITANIUM DIOXIDE-RUTILE','M0501010008']),('default_code','in',['TITANIUM DIOXIDE-ANATASE','TiO2','M0501010001','TITANIUM DIOXIDE-RUTILE','M0501010008'])]"/>
 								<field name="mrp_id" context="{'search_mrp_tio2_batch': True, 'mrp_id': mrp_id, 'product_id': product_id}" on_change="onchange_mrp_id(mrp_id)" domain="[('product_id','=',product_id),('state','=','done')]" options="{'create': false, 'create_edit': false}"/>
 								<field name="stating_batch_no"/>
 							</group>
 							<group >
 								<field name="name"/>
-								<field name="location_id" domain="[('usage','=','internal'),('chained_location_type','&lt;&gt;','customer')]" options="{'create': false, 'create_edit': false}"/>
+								<field name="location_id" readonly="1" domain="[('usage','=','internal'),('chained_location_type','&lt;&gt;','customer')]" options="{'create': false, 'create_edit': false}"/>
 								<field name="available"/>
 								<field name="batchable" on_change="onchange_batchable(available,batchable)"/>
 							</group>
@@ -98,7 +98,7 @@
 	            	<sheet>
 		            	<group>
 			                <group>    
-								<field name="product_id" options="{'create': false, 'create_edit': false}" domain="['|',('name','in',['FERROUS SULPHATE','FSH','M0501010002']),('default_code','in',['FERROUS SULPHATE','FSH','M0501010002'])]"/>
+								<field name="product_id" on_change="onchange_ware_fsh_prod_id(product_id)" options="{'create': false, 'create_edit': false}" domain="['|',('name','in',['FERROUS SULPHATE','FSH','M0501010002']),('default_code','in',['FERROUS SULPHATE','FSH','M0501010002'])]"/>
 								<field name="mrp_id" context="{'search_mrp_fsh_batch': True, 'mrp_id': mrp_id, 'product_id': product_id}" on_change="onchange_mrp_id(mrp_id)" domain="[('product_id','=',product_id),('state','=','done')]" options="{'create': false, 'create_edit': false}"/>
 								<field name="location_id" domain="[('usage','=','internal'),('chained_location_type','&lt;&gt;','customer')]" options="{'create': false, 'create_edit': false}"/>
 							</group>

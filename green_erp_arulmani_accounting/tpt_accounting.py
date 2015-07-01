@@ -2381,6 +2381,7 @@ class product_product(osv.osv):
                    }),
         'avg_cost_line':fields.one2many('tpt.product.avg.cost','product_id','Avg Cost Line'),
         'chapter': fields.char('Chapter ID', size = 1024),
+        'warehouse_id':fields.many2one('stock.location', 'Sale Warehouse'),
         }
     
     def search(self, cr, uid, args, offset=0, limit=None, order=None, context=None, count=False):
