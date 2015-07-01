@@ -2487,7 +2487,7 @@ class arul_hr_audit_shift_time(osv.osv):
                     val2={'punch_in_out_id':employee_ids[0], 
                               'employee_id': line.employee_id.id,
                               'work_date':line.work_date, 
-                              'planned_work_shift_id':line.planned_work_shift_id.id,
+                              'planned_work_shift_id':line.planned_work_shift_id.id or False,
                               'actual_work_shift_id':line.actual_work_shift_id.id,
                               'in_time':line.in_time,
                               'out_time':line.out_time,
@@ -2515,7 +2515,7 @@ class arul_hr_audit_shift_time(osv.osv):
                     val1={
                               'employee_id':line.employee_id.id,
                               'work_date':line.work_date,
-                              'planned_work_shift_id':line.planned_work_shift_id.id,
+                              'planned_work_shift_id':line.planned_work_shift_id.id or False,
                               'actual_work_shift_id':line.actual_work_shift_id.id,
                               'in_time':line.in_time,
                               'out_time':line.out_time,
