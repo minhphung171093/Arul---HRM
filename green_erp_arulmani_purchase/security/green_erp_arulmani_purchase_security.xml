@@ -26,11 +26,18 @@
 	        <field name="implied_ids" eval="[(4, ref('group_vvti_purchase_user'))]"/>
 	    </record>
 
-	    <record id="group_vvti_purchase_mgr" model="res.groups">
+	    <!--<record id="group_vvti_purchase_mgr" model="res.groups">
 	        <field name="name">Purchase Mgr</field>
 	        <field name="category_id" ref="module_category_vvti_purchase"/>
 	        <field name="users" eval="[(4, ref('base.user_root'))]"/>
 	        <field name="implied_ids" eval="[(4, ref('group_vvti_purchase_key_user')),(4, ref('green_erp_arulmani_hrm.group_vvti_unit_user')),(4, ref('group_vvti_purchase_key_user'))]"/>
+	    </record>-->
+	    
+	    <record id="group_vvti_purchase_mgr" model="res.groups">
+	        <field name="name">Purchase Mgr</field>
+	        <field name="category_id" ref="module_category_vvti_purchase"/>
+	        <field name="users" eval="[(4, ref('base.user_root'))]"/> 
+	        <field name="implied_ids" eval="[(6,0, [ref('group_vvti_purchase_key_user'),ref('purchase.group_purchase_manager')])]"/>
 	    </record>
 	    
 	    <record id="group_vvti_purchase_store_user" model="res.groups">
@@ -47,18 +54,32 @@
 	        <field name="implied_ids" eval="[(4, ref('group_vvti_purchase_store_user'))]"/>
 	    </record>
 	    
-	    <record id="group_vvti_purchase_store_mgr" model="res.groups">
+	    <!--<record id="group_vvti_purchase_store_mgr" model="res.groups">
 	        <field name="name">Purchase Store Mgr</field>
 	        <field name="category_id" ref="module_category_vvti_purchase"/>
 	        <field name="users" eval="[(4, ref('base.user_root'))]"/>
 	        <field name="implied_ids" eval="[(4, ref('group_vvti_purchase_store_user')),(4, ref('green_erp_arulmani_hrm.group_vvti_unit_user'))]"/>
+	    </record>-->
+	    
+	     <record id="group_vvti_purchase_store_mgr" model="res.groups">
+	        <field name="name">Purchase Store Mgr</field>
+	        <field name="category_id" ref="module_category_vvti_purchase"/>
+	        <field name="users" eval="[(4, ref('base.user_root'))]"/>
+	        <field name="implied_ids" eval="[(6,0, [ref('group_vvti_purchase_store_key_user')])]"/>
 	    </record>
+	    
+	    <!--<record id="group_vvti_purchase_gm" model="res.groups">
+	        <field name="name">Purchase GM</field>
+	        <field name="category_id" ref="module_category_vvti_purchase"/>
+	        <field name="users" eval="[(4, ref('base.user_root'))]"/>
+	        <field name="implied_ids" eval="[(4, ref('group_vvti_purchase_store_user')),(4, ref('group_vvti_purchase_user'))]"/>
+	    </record>-->
 	    
 	    <record id="group_vvti_purchase_gm" model="res.groups">
 	        <field name="name">Purchase GM</field>
 	        <field name="category_id" ref="module_category_vvti_purchase"/>
 	        <field name="users" eval="[(4, ref('base.user_root'))]"/>
-	        <field name="implied_ids" eval="[(4, ref('group_vvti_purchase_store_user')),(4, ref('group_vvti_purchase_user'))]"/>
+	        <field name="implied_ids" eval="[(6,0, [ref('group_vvti_purchase_mgr')])]"/>
 	    </record>
 	    
 	    <record id="group_vvti_hrm_plant_mm_user" model="res.groups">
@@ -75,11 +96,18 @@
 	        <field name="implied_ids" eval="[(4, ref('stock.group_stock_manager')),(4, ref('purchase.group_purchase_manager')),(4, ref('group_vvti_purchase_mgr')),(4, ref('group_vvti_purchase_gm')),(4, ref('group_vvti_purchase_store_mgr'))]"/>
 	    </record>
 	    
-	    <record id="group_vvti_purchase_store_gm" model="res.groups">
+	    <!--<record id="group_vvti_purchase_store_gm" model="res.groups">
 	        <field name="name">Purchase Store GM</field>
 	        <field name="category_id" ref="module_category_vvti_purchase"/>
 	        <field name="users" eval="[(4, ref('base.user_root'))]"/>
 	        <field name="implied_ids" eval="[(6,0, [ref('group_vvti_purchase_store_key_user')])]"/>
+	    </record>-->
+	    
+	    <record id="group_vvti_purchase_store_gm" model="res.groups">
+	        <field name="name">Purchase Store GM</field>
+	        <field name="category_id" ref="module_category_vvti_purchase"/>
+	        <field name="users" eval="[(4, ref('base.user_root'))]"/>
+	        <field name="implied_ids" eval="[(6,0, [ref('group_vvti_purchase_store_mgr')])]"/>
 	    </record>
 	    
 	    <record id="green_erp_arulmani_crm.group_qc_user" model="res.groups">

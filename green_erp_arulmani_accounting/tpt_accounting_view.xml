@@ -2488,5 +2488,53 @@
 				</xpath>
 		     </field>   
        </record>
+       
+       <record id="inher_tpt_customer_invoice_form" model="ir.ui.view">
+            <field name="name">inher.tpt.customer.invoice.form</field>
+            <field name="model">account.invoice</field>
+            <field name="inherit_id" ref="green_erp_arulmani_sale.tpt_customer_invoice_form"/>
+            <field name="arch" type="xml">
+            	<xpath expr="//button[@name='invoice_print' and @string='Print Invoice']" position="replace">
+            		<button name='invoice_print' string="Print Invoice" type="object" groups="green_erp_arulmani_sale.group_vvti_sale_user,green_erp_arulmani_accounting.group_vvti_accounting_user"/>
+            	</xpath>
+            	
+            	<xpath expr="//button[@name='invoice_open']" position="replace">
+            		<button name="invoice_open" states="draft" string="Validate" class="oe_highlight" groups="green_erp_arulmani_sale.group_vvti_sale_manager,green_erp_arulmani_accounting.group_vvti_accounting_user"/>
+            	</xpath>
+            	
+            </field>
+       </record>   
+       
+       <report 
+			auto="False" 
+			menu="True"
+			id="green_erp_arulmani_sale.form_are_1_report" 
+			model="tpt.form.are.1" 
+			name="form_are_1_report"
+	        string="Print Form A.R.E - 1"
+	        groups="green_erp_arulmani_sale.group_vvti_sale_user,green_erp_arulmani_accounting.group_vvti_accounting_user"
+	        rml="green_erp_arulmani_sale/report/print_form_are_1.odt"/> 	
+	        
+	  <report 
+			auto="False" 
+			menu="True"
+			id="green_erp_arulmani_sale.form_are_3_report" 
+			model="tpt.form.are.3" 
+			name="form_are_3_report"
+	        string="Print Form A.R.E - 3"
+	        groups="green_erp_arulmani_sale.group_vvti_sale_user,green_erp_arulmani_accounting.group_vvti_accounting_user"
+	        rml="green_erp_arulmani_sale/report/print_form_are_3.odt"/> 	
+	        
+	        
+	  <report 
+			auto="False" 
+			menu="True"
+			id="green_erp_arulmani_sale.form_403_report" 
+			model="tpt.form.403" 
+			name="form_403_report"
+	        string="Print Form 403"
+	        groups="green_erp_arulmani_sale.group_vvti_sale_user,green_erp_arulmani_accounting.group_vvti_accounting_user"
+	        rml="green_erp_arulmani_sale/report/print_form_403.odt"/> 	
+	        
     </data>
 </openerp>
