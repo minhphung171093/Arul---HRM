@@ -1837,6 +1837,13 @@ class tpt_update_stock_move_report(osv.osv):
         cr.execute(sql)
         return self.write(cr, uid, ids, {'result':'Date Done'})
     
+    def update_date_stock_move_from_inspection(self, cr, uid, ids, context=None):
+        sql = '''
+            update stock_move set date = (select date from tpt_quanlity_inspection where id=stock_move.inspec_id), date_expected = (select date from tpt_quanlity_inspection where id=stock_move.inspec_id) where inspec_id is not null
+        '''
+        cr.execute(sql)
+        return self.write(cr, uid, ids, {'result':'Date Done From Inspection'})
+    
     def create_quanlity_inspection(self, cr, uid, picking_id):
         quality_inspec = self.pool.get('tpt.quanlity.inspection')
         stock_picking = self.pool.get('stock.picking')
@@ -1864,7 +1871,7 @@ class tpt_update_stock_move_report(osv.osv):
                 quality_inspec.create(cr, SUPERUSER_ID, vals)
         return True
     
-    def check_one_stockmove_one_inspection(self, cr, uid, ids, context=None):
+    def update_one_stockmove_one_inspection(self, cr, uid, ids, context=None):
         quanlity_inspec = []
         product_qty = 0
         sql = '''
@@ -1883,12 +1890,22 @@ class tpt_update_stock_move_report(osv.osv):
                 self.create_quanlity_inspection(cr, uid, move['picking_id'])
                     
 # xoa nhung quanlity inspection ma co so luong sai so voi stock move
+#             sql = '''
+#                 select id from tpt_quanlity_inspection where need_inspec_id = %s and qty != %s
+#             '''%(move['id'], move['product_qty'])
+#             cr.execute(sql)
+#             for inspection_wrong in cr.dictfetchall():
+#                 if inspection_wrong:
+#                     sql = '''
+#                         delete from tpt_quanlity_inspection where id = %s
+#                     '''%(inspection_wrong['id'])
+#                     cr.execute(sql)
             sql = '''
                 select id from tpt_quanlity_inspection where need_inspec_id = %s and qty != %s
             '''%(move['id'], move['product_qty'])
             cr.execute(sql)
-            for inspection_wrong in cr.dictfetchall():
-                if inspection_wrong:
+            for inspection_wrong2 in cr.dictfetchall():
+                if inspection_wrong2:
                     sql = '''
                         delete from tpt_quanlity_inspection where id = %s
                     '''%(inspection_wrong['id'])
@@ -1978,20 +1995,167 @@ class tpt_update_stock_move_report(osv.osv):
                     '''%(need_inspec_id)
                     cr.execute(sql)
                     
-      # xoa quanlity inspection nao o trang thai draft khi ma da co chinh quanlity inspection o trang thai done                
-#             sql = '''
-#                 delete from tpt_quanlity_inspection where need_inspec_id = %s and state = 'draft'
-#             '''%(move['id'])
-#             cr.execute(sql)
-                        
         return self.write(cr, uid, ids, {'result':'check_one_stockmove_one_inspection Done'})
     
+    def check_one_stockmove_one_inspection(self, cr, uid, ids, context=None):
+        quanlity_inspec = []
+        product_qty = 0
+        for check in self.browse(cr,uid,ids):
+            sql = '''
+                    delete from tpt_update_inspection_line where update_id = %s
+                '''%(check.id)
+            cr.execute(sql)
+            
+            
+        # kiem tra xem cac quanlity inspection ko co need_inspec_id
+            sql = '''
+                select * from tpt_quanlity_inspection where need_inspec_id is null
+            '''
+            cr.execute(sql)
+            inspection_nulls = cr.dictfetchall()
+            if inspection_nulls:
+                for seq, inspection_null in enumerate(inspection_nulls):
+                    quanlity_inspec.append((0,0,{
+                                        'name': 'check khong co need_inspec_id',
+                                        'seq': seq + 1,
+                                        'inspec_id': inspection_null['id'],
+                                        'move_id': False,
+                                        'inspec_qty': int(inspection_null['qty']),
+                                        'move_qty': False,
+                                        'inspection_id': int(inspection_null['id']),
+                                        'stock_move_id': False,
+                                                }))
+        # end
+        
+        #kiem tra cac quanlity inspection nao co need_inspec_id nhung khong co stock move
+        
+            sql = '''
+                select * from tpt_quanlity_inspection where need_inspec_id is not null
+            '''
+            cr.execute(sql)
+            for inspection in cr.dictfetchall():
+                sql = '''
+                select * from stock_move where picking_id in (select id from stock_picking where state = 'done' and type = 'in') 
+                and action_taken = 'need' and id = %s
+                '''%(inspection['need_inspec_id'])
+                cr.execute(sql)
+                moves = cr.dictfetchall()
+                if moves:
+                    if len(moves) > 1:
+                        for seq, move in enumerate(moves):
+                            quanlity_inspec.append((0,0,{
+                                                'name': 'Co quanlity inspection(need_inspec_id) nhung co nhieu stock move',
+                                                'seq': seq + 1,
+                                                'inspec_id': inspection['id'],
+                                                'move_id': move['id'],
+                                                'inspec_qty': int(inspection['qty']),
+                                                'move_qty': int(move['product_qty']),
+                                                'inspection_id': int(inspection['id']),
+                                                'stock_move_id': int(move['id']),
+                                                        }))
+                else:
+                    quanlity_inspec.append((0,0,{
+                                                'name': 'Co quanlity inspection(need_inspec_id) nhung khong co stock move (stock move bi xoa)',
+                                                'seq': False,
+                                                'inspec_id': inspection['id'],
+                                                'move_id': False,
+                                                'inspec_qty': int(inspection['qty']),
+                                                'move_qty': False,
+                                                'inspection_id': int(inspection['id']),
+                                                'stock_move_id': False,
+                                                        }))
+        # end 
+        
+            sql = '''
+                select * from stock_move where picking_id in (select id from stock_picking where state = 'done' and type = 'in') 
+                and action_taken = 'need'
+            '''
+            cr.execute(sql)
+            for move in cr.dictfetchall():
+        # kiem tra xem trong cac quanlity inspection co quanlity inspection nao bi trung need_inspec_id hay khong
+                sql = '''
+                    select * from tpt_quanlity_inspection where need_inspec_id = %s
+                '''%(move['id'])
+                cr.execute(sql)
+                inspections = cr.dictfetchall()
+                if inspections:
+                    if len(inspections) > 1:
+                        for seq, inspection in enumerate(inspections):
+                            quanlity_inspec.append((0,0,{
+                                                'name': 'Co 1 stock move nhung co nhieu quanlity inspection(need_inspec_id)',
+                                                'seq': seq + 1,
+                                                'inspec_id': inspection['id'],
+                                                'move_id': move['id'],
+                                                'inspec_qty': int(inspection['qty']),
+                                                'move_qty': int(move['product_qty']),
+                                                'inspection_id': int(inspection['id']),
+                                                'stock_move_id': int(move['id']),
+                                                        }))
+                else:
+                    quanlity_inspec.append((0,0,{
+                                                'name': 'Co stock move nhung khong co quanlity inspection',
+                                                'seq': False,
+                                                'inspec_id': False,
+                                                'move_id': move['id'],
+                                                'inspec_qty': False,
+                                                'move_qty': int(move['product_qty']),
+                                                'inspection_id': False,
+                                                'stock_move_id': int(move['id']),
+                                                        }))
+            
+        # Kiem tra quanlity inspection voi trang thai done 
+            sql = '''
+                select * from tpt_quanlity_inspection where state in ('remaining', 'done')
+            '''
+            cr.execute(sql)
+            for quanlity_done in cr.dictfetchall():
+                sql = '''
+                    select * from stock_move where inspec_id = %s and state = 'done'
+                '''%(quanlity_done['id'])
+                cr.execute(sql)
+                new_moves = cr.dictfetchall()
+#                 if new_moves:
+#                     for seq, new_move in enumerate(new_moves):
+#                         sql = '''
+#                             select sum(product_qty) as product_qty, inspec_id from stock_move where inspec_id = %s and state = 'done' group by inspec_id
+#                         '''%(quanlity_done['id'])
+#                         cr.execute(sql)
+#                         for inspec_move in cr.dictfetchall():
+#                             if inspec_move:
+#                                 product_qty = inspec_move['product_qty']
+#                         qty = quanlity_done['qty']
+#                         remaining_qty = quanlity_done['remaining_qty']
+#                         if (qty - remaining_qty) != product_qty:
+#                             quanlity_inspec.append((0,0,{
+#                                                 'name': 'Co quanlity inspection va co stock move moi nhung khong khop so luong',
+#                                                 'seq': seq + 1,
+#                                                 'inspec_id': quanlity_done['id'],
+#                                                 'move_id': new_move['id'],
+#                                                 'inspec_qty': quanlity_done['qty'] - quanlity_done['remaining_qty'],
+#                                                 'move_qty': product_qty,
+#                                                 'inspection_id': quanlity_done['id'],
+#                                                 'stock_move_id': new_move['id'],
+#                                                         }))
+                if not new_moves:
+                    quanlity_inspec.append((0,0,{
+                                                'name': 'Co quanlity inspection nhung chua tao ra stock move moi',
+                                                'seq': False,
+                                                'inspec_id': quanlity_done['id'],
+                                                'move_id': False,
+                                                'inspec_qty': quanlity_done['qty'],
+                                                'move_qty': False,
+                                                'inspection_id': quanlity_done['id'],
+                                                'stock_move_id': False,
+                                                        }))
+        return self.write(cr, uid, ids, {'update_line':quanlity_inspec})
 tpt_update_stock_move_report()
 
 class tpt_update_inspection_line(osv.osv):
     _name = "tpt.update.inspection.line"
     
     _columns = {
+        'name': fields.char('Name'),
+        'seq': fields.integer('Sequence'),
         'inspec_id': fields.many2one('tpt.quanlity.inspection', 'Quanlity Inspection'),
         'inspection_id': fields.integer('Quanlity Inspection'),
         'inspec_qty': fields.related('inspec_id','qty', string='Inspection Qty', digits=(16,3)),

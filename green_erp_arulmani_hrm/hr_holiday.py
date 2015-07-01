@@ -2270,7 +2270,7 @@ class arul_hr_audit_shift_time(osv.osv):
                 ### TPT START
                 
                 sql = '''
-                SELECT CASE WHEN SUM(time_total)!=0 THEN SUM(time_total) ELSE 0 END time_total FROM arul_hr_permission_onduty WHERE 
+                SELECT CASE WHEN SUM(time_total+0.01)!=0 THEN SUM(time_total+0.01) ELSE 0 END time_total FROM arul_hr_permission_onduty WHERE 
                 non_availability_type_id='permission' 
                     AND TO_CHAR(date,'YYYY-MM-DD') = ('%s') and employee_id =%s and approval='t'
                     '''%(line.work_date,line.employee_id.id)
@@ -2280,7 +2280,7 @@ class arul_hr_audit_shift_time(osv.osv):
             
                 #OnDuty
                 sql = '''
-                    SELECT CASE WHEN SUM(time_total)!=0 THEN SUM(time_total) ELSE 0 END time_total FROM arul_hr_permission_onduty WHERE non_availability_type_id='on_duty' 
+                    SELECT CASE WHEN SUM(time_total+0.01)!=0 THEN SUM(time_total+0.01) ELSE 0 END time_total FROM arul_hr_permission_onduty WHERE non_availability_type_id='on_duty' 
                     AND TO_CHAR(date,'YYYY-MM-DD') = ('%s') and employee_id =%s and approval='t'
                     '''%(line.work_date,line.employee_id.id)
                 cr.execute(sql)
@@ -3179,7 +3179,8 @@ class arul_hr_employee_leave_details(osv.osv):
         emp = self.pool.get('hr.employee')
         emp_id = emp.search(cr, uid, [('employee_id','=',vals['employee_id'])])
         emp_attendance_io_ids = emp_attendance_io.search(cr, uid, [('employee_id','=',vals['employee_id']),('work_date','=',vals['date_from'])])
-        if emp_attendance_io_ids:
+        if emp_attendance_io_ids:             
+            if vals['haft_day_leave'] is False:
                 raise osv.except_osv(_('Warning!'),_('System Could not Post Leave Entry if Attendance Entry exists for this Day!'))
                 
         ## TPT END          
