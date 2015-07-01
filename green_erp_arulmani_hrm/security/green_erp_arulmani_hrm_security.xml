@@ -94,13 +94,22 @@
 	        <field name="implied_ids" eval="[(4, ref('group_vvti_unit_user'))]"/>
 	    </record>
 	     
-	    <record id="group_vvti_hrm_gm" model="res.groups">
+	    <!--<record id="group_vvti_hrm_gm" model="res.groups">
 	        <field name="name">HR-GM</field>
 	        <field name="category_id" ref="module_category_vvti_hrm"/>
 	        <field name="users" eval="[(4, ref('base.user_root'))]"/>
 	        <field name="implied_ids" eval="[(4, ref('group_vvti_hrm_hr_manager')),
 	        								(4, ref('group_vvti_hrm_payroll_controller')),
 	        								(4, ref('group_vvti_hrm_time_manager'))]"/>
+	    </record>-->
+	    
+	    <record id="group_vvti_hrm_gm" model="res.groups">
+	        <field name="name">HR-GM</field>
+	        <field name="category_id" ref="module_category_vvti_hrm"/>
+	        <field name="users" eval="[(4, ref('base.user_root'))]"/>
+	        <field name="implied_ids" eval="[(6,0, [ref('group_vvti_hrm_hr_user'),
+	        									ref('group_vvti_hrm_payroll_controller'),
+	        									ref('group_vvti_hrm_time_key_user')])]"/>
 	    </record>
     	
 	</data>

@@ -2481,10 +2481,10 @@
             <field name="inherit_id" ref="green_erp_arulmani_hrm.view_tpt_hr_payroll_approve_reject_form_vew"/>
             <field name="arch" type="xml">
             	<xpath expr="//button[@name='reject_payroll']" position="attributes">
-					<attribute name='groups'>green_erp_arulmani_accounting.group_vvti_accounting_gm</attribute>
+					<attribute name='groups'>green_erp_arulmani_accounting.group_vvti_accounting_gm,green_erp_arulmani_hrm.group_vvti_hrm_gm</attribute>
 				</xpath>
 				<xpath expr="//button[@name='approve_payroll']" position="attributes">
-					<attribute name='groups'>green_erp_arulmani_accounting.group_vvti_accounting_gm</attribute>
+					<attribute name='groups'>green_erp_arulmani_accounting.group_vvti_accounting_gm,green_erp_arulmani_hrm.group_vvti_hrm_gm</attribute>
 				</xpath>
 		     </field>   
        </record>
