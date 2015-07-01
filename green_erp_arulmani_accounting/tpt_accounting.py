@@ -4536,6 +4536,7 @@ class mrp_production(osv.osv):
         period_obj = self.pool.get('account.period')
         journal_obj = self.pool.get('account.journal')
         avg_cost_obj = self.pool.get('tpt.product.avg.cost')
+        stock_move_obj = self.pool.get('stock.move')
         journal_line = []
         credit = 0
         price = 0
@@ -4562,10 +4563,11 @@ class mrp_production(osv.osv):
                         if not prod_ware.prod_dest_id:
                             raise osv.except_osv(_('Warning'), _('Production Destination Location is not null, please configure it in Product Master of %s !'%prod_ware.default_code))
                         else:
-                            sql = '''
-                                update stock_move set location_dest_id = %s where id = %s
-                            '''%(prod_ware.prod_dest_id.id,p.id)
-                            cr.execute(sql)
+                            stock_move_obj.write(cr, uid, [p.id],{'location_dest_id':prod_ware.prod_dest_id.id})
+#                             sql = '''
+#                                 update stock_move set location_dest_id = %s where id = %s
+#                             '''%(prod_ware.prod_dest_id.id,p.id)
+#                             cr.execute(sql)
                     for mat in line.move_lines2:
                         avg_cost_ids = avg_cost_obj.search(cr, uid, [('product_id','=',mat.product_id.id),('warehouse_id','=',line.location_src_id.id)])
                         if avg_cost_ids:
