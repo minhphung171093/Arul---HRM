@@ -74,9 +74,16 @@ class Parser(report_sxw.rml_parse):
             'get_sub_l_sbt': self.get_sub_l_sbt, 
             'get_sub_l_others': self.get_sub_l_others, 
             'get_sub_it_deduction': self.get_sub_it_deduction,
+            'get_date_from': self.get_date_from,
                                            
         })
         
+    
+    def get_date_from(self, date=False):
+        if not date:
+            date = time.strftime(DATE_FORMAT)
+        date = datetime.strptime(date, DATE_FORMAT)
+        return date.strftime('%d/%m/%Y')  
     
     def get_vpf_amt(self,net_basic,net_da,vpf_in_percent):               
         #return round(net_basic+net_da*vpf_in_percent/100, 2)
