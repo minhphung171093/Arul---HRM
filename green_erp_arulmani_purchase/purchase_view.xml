@@ -2286,6 +2286,108 @@
             id="menu_action_view_tpt_purchase_order_line_form"
             parent="purchase.menu_procurement_management" sequence="11" 
             groups="green_erp_arulmani_hrm.group_vvti_hrm_hr_user,green_erp_arulmani_sale.group_vvti_sale_user"/>
+            
+          
+        <record id="view_tpt_material_request_line_tree" model="ir.ui.view">
+			<field name="name">tpt.material.request.line.tree</field>
+			<field name="model">tpt.material.request.line</field>
+			<field name="arch" type="xml">
+				<tree string="Material Request – Line Details" edit = 'false' delete = 'false' create = 'false' >
+						<field name="material_request_id" string="Material Request No"/>
+						<field name="date_request_relate"/> 
+						<field name="date_expect_relate"/> 
+						<field name="department_relate"/> 
+						<field name="section_relate"/> 
+						<field name="requisitioner_relate"/> 
+						<field name="raise_relate"/> 
+						<field name="product_id"/> 
+						<field name="dec_material"/> 
+						<field name="uom_po_id"/> 
+						<field name="product_uom_qty"/> 
+						<field name="on_hand_qty"/> 
+						<field name="pending_qty"/>
+						<field name="bin"/> 
+						<field name="state_relate"/> 
+				</tree>
+			</field>
+		</record>       
+        
+        <record id="view_tpt_material_request_line_form" model="ir.ui.view">
+            <field name="name">tpt.material.request.line.form</field>
+            <field name="model">tpt.material.request.line</field>
+            <field name="arch" type="xml">
+	            <form string="Material Request – Line Details" version="7.0" edit = 'false' delete = 'false' create = 'false' >   
+	            <sheet> 
+	            	<group col="4" colspan="2"> 
+	            		<field name="material_request_id" string="Material Request No"/>
+						<field name="date_request_relate"/> 
+						<field name="date_expect_relate"/> 
+						<field name="department_relate"/> 
+						<field name="section_relate"/> 
+						<field name="requisitioner_relate"/> 
+						<field name="raise_relate"/> 
+						<field name="product_id"/> 
+						<field name="dec_material"/> 
+						<field name="uom_po_id"/> 
+						<field name="product_uom_qty"/> 
+						<field name="on_hand_qty"/> 
+						<field name="pending_qty"/> 
+						<field name="bin"/> 
+						<field name="state_relate"/>  
+					</group>
+				</sheet>  
+		       </form>
+			</field>
+		</record>
+		
+		<record id="view_tpt_material_request_line_search_vew" model="ir.ui.view">
+			<field name="name">tpt.material.request.line.search</field>
+			<field name="model">tpt.material.request.line</field>
+			<field name="arch" type="xml">
+				<search string="Material Request – Line Details">
+					<field name="material_request_id"/>	
+					<field name="requisitioner_relate"/>
+					<field name="product_id"/>
+					<field name="dec_material"/>
+					<filter string="Draft" name="draft" icon="terp-personal" domain="[('state_relate','=','draft')]" context="{}"/>
+        			<filter string="Approve" name="done" icon="terp-personal" domain="[('state_relate','=','done')]" context="{}"/>
+        			<filter string="Closed" name="closed" icon="terp-personal" domain="[('state_relate','=','closed')]" context="{}"/>
+        			<filter string="Partially Issued" name="partially" icon="terp-personal" domain="[('state_relate','=','partially')]" context="{}"/>
+        			<group expand="0" string="Group By...">
+                        <filter string='Status' icon="terp-stock_symbol-selection" domain="[]" context="{'group_by' : 'state'}"/>
+                    </group>		
+				</search>
+			</field>
+		</record>
+		
+		<record id="action_view_tpt_material_request_line_form" model="ir.actions.act_window">
+            <field name="name">Material Request – Line Details</field>
+            <field name="type">ir.actions.act_window</field>
+            <field name="res_model">tpt.material.request.line</field>
+            <field name="view_type">form</field>
+            <field name="view_mode">tree,form</field>
+            <field name="context">{'search_default_draft':1, 'search_default_done':1, 'search_default_partially':1}</field>
+            <field name="domain">[]</field>
+            <field name="search_view_id" ref="view_tpt_material_request_line_search_vew"/>
+            <field name="view_id" ref="view_tpt_material_request_line_tree"/>
+        </record>
+       <record id="action_view_tpt_material_request_line_form1" model="ir.actions.act_window.view">
+            <field eval="0" name="sequence"/>
+            <field name="view_mode">tree</field>
+            <field name="view_id" ref="view_tpt_material_request_line_tree"/>
+            <field name="act_window_id" ref="action_view_tpt_material_request_line_form"/>
+        </record>
+        <record id="action_view_tpt_material_request_line_form2" model="ir.actions.act_window.view">
+            <field eval="1" name="sequence"/>
+            <field name="view_mode">form</field>
+            <field name="view_id" ref="view_tpt_material_request_line_form"/>
+            <field name="act_window_id" ref="action_view_tpt_material_request_line_form"/>
+        </record>  
+          
+            
+        <menuitem action="action_view_tpt_material_request_line_form"
+            id="menu_action_view_tpt_material_request_line_form"
+            parent="purchase.menu_procurement_management" sequence="21"/>
         
     </data>
 </openerp>
