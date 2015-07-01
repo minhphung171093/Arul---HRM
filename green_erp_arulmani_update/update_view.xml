@@ -36,7 +36,9 @@
 	            		<button name="fix_posting_issue" string="Fix Posting Issue" type="object" class="oe_highlight"/>
 	            		<button name="check_one_grn_one_posting" string="Update One GRN One Posting" type="object" class="oe_highlight"/> 
 	            		<button name="update_date_stock_move" string="Update Date Stock Move" type="object" class="oe_highlight"/> 
-	            		<button name="check_one_stockmove_one_inspection" string="Update One Stock Move One Inspection" type="object" class="oe_highlight"/> 
+	            		<button name="update_date_stock_move_from_inspection" string="Update Date Stock Move" type="object" class="oe_highlight"/> 
+	            		<button name="update_one_stockmove_one_inspection" string="Update One Stock Move One Inspection" type="object" class="oe_highlight"/> 
+		            	<button name="check_one_stockmove_one_inspection" string="Check One Stock Move One Inspection" type="object" class="oe_highlight"/> 
 		            </header>    
 	            	<group>
 	            		<field name="product_id"/>
@@ -44,6 +46,8 @@
 	                </group>
 	                <field name='update_line'>
 	                	<tree editable='top'>
+	                		<field name="name"/>
+	                		<field name="seq"/>
 	                		<field name="inspection_id"/>
 	                		<field name="inspec_qty"/>
 	                		<field name="stock_move_id"/>
