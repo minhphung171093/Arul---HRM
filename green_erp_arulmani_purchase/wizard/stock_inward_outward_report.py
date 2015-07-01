@@ -660,6 +660,8 @@ class stock_inward_outward_report(osv.osv_memory):
             else:
                 st_value = stock_value(get_line_stock_value(stock,line['id'], line['material_issue_id'], line['doc_type'], line['date']), line)
             self.st_sum_value += st_value
+            cur = get_opening_stock_value(stock)+st_value+self.current
+            self.current = cur
             stock_in_out_line.append((0,0,{
                 'creation_date': line['date'],
                 'posting_date': line['date'],
@@ -668,7 +670,7 @@ class stock_inward_outward_report(osv.osv_memory):
                 'document_type': get_doc_type(line['doc_type']),
                 'transaction_quantity': trans_qty,
                 'stock_value': st_value,
-                'current_material_value':get_line_current_material(stock,stock_value(get_line_stock_value(stock,line['id'], line['material_issue_id'], line['doc_type'], line['date']), line)),
+                'current_material_value':cur,
             }))
             
         vals = {
