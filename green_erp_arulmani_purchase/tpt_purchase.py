@@ -160,6 +160,19 @@ class tpt_mrp_process(osv.osv):
                 mrp_prod_ids=[]
                 for line in cr.fetchall():
                     sql = '''
+                        select id from purchase_order_line where product_id = %s and po_indent_no = %s 
+                    '''%(line[1],line[0])
+                    cr.execute(sql)
+                    po_line_ids = [r[0] for r in cr.fetchall()]
+                    if po_line_ids:
+                        cr.execute('''
+                            select id from purchase_order_line where product_id = %s and po_indent_no = %s 
+                            and order_id in (select id from purchase_order where state = 'cancel' ) and id in %s
+                        ''',(line[1],line[0],tuple(po_line_ids),))
+                        line_ids = [r[0] for r in cr.fetchall()]
+                        if line_ids:
+                            mrp_product_ids.append({'product_id':line[1],'indent_line_id':line[2]})
+                    sql = '''
                         select id from stock_move where po_indent_id=%s and product_id=%s
                     '''%(line[0],line[1])
                     cr.execute(sql)
