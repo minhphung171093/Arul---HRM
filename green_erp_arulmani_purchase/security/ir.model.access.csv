@@ -168,6 +168,8 @@ access_vvti_purchase_144,tpt.product.inventory,green_erp_arulmani_purchase.model
 access_vvti_purchase_145,tpt.material.request,green_erp_arulmani_purchase.model_tpt_material_request,green_erp_arulmani_purchase.group_vvti_purchase_store_user,True,True,True,False
 access_vvti_purchase_146,tpt.material.request.line,green_erp_arulmani_purchase.model_tpt_material_request_line,green_erp_arulmani_purchase.group_vvti_purchase_store_user,True,True,True,True
 
+mrp.access_purchase_order_stock_user,purchase.order stock user,purchase.model_purchase_order,stock.group_stock_user,1,0,0,0
+
 
 
 
