@@ -323,7 +323,8 @@
 				</xpath>
 				<xpath expr="//page[@string='Information']/group/group/field[@name='default_code']" position="after">
 					<field name="chapter" />
-					<field name="warehouse_id" options="{'create': false, 'create_edit': false}" />
+					<field name="warehouse_id" options="{'create': false, 'create_edit': false}" groups="base.user_root"/>
+					<field name="prod_dest_id" options="{'create': false, 'create_edit': false}" groups="base.user_root"/>
 				</xpath>
 					
 			</field>
