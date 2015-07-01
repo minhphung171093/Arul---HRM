@@ -2382,6 +2382,7 @@ class product_product(osv.osv):
         'avg_cost_line':fields.one2many('tpt.product.avg.cost','product_id','Avg Cost Line'),
         'chapter': fields.char('Chapter ID', size = 1024),
         'warehouse_id':fields.many2one('stock.location', 'Sale Warehouse'),
+        'prod_dest_id':fields.many2one('stock.location', 'Production Destination Location'),
         }
     
     def search(self, cr, uid, args, offset=0, limit=None, order=None, context=None, count=False):
@@ -4556,6 +4557,15 @@ class mrp_production(osv.osv):
             for period_id in period_obj.browse(cr,uid,period_ids):
         
                 if 'state' in vals and line.state=='done':
+                    for p in line.move_created_ids2:
+                        prod_ware = self.pool.get('product.product').browse(cr, uid, p.product_id.id)
+                        if not prod_ware.prod_dest_id:
+                            raise osv.except_osv(_('Warning'), _('Production Destination Location is not null, please configure it in Product Master of %s !'%prod_ware.default_code))
+                        else:
+                            sql = '''
+                                update stock_move set location_dest_id = %s where id = %s
+                            '''%(prod_ware.prod_dest_id.id,p.id)
+                            cr.execute(sql)
                     for mat in line.move_lines2:
                         avg_cost_ids = avg_cost_obj.search(cr, uid, [('product_id','=',mat.product_id.id),('warehouse_id','=',line.location_src_id.id)])
                         if avg_cost_ids:
