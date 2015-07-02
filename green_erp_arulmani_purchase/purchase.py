@@ -283,42 +283,42 @@ class tpt_purchase_indent(osv.osv):
             if context.get('po_document_type'): ### them trang thai rfq_raise de xet so luong cho tung line indent, 1 indent co the duoc tao nhieu rfq
                 if context.get('po_document_type')=='standard':
                     sql = '''
-                        select pur_product_id from tpt_purchase_product where state in ('++','rfq_raised','quotation_raised','po_raised') and (doc_type_relate = 'normal' or doc_type_relate = 'maintenance' or doc_type_relate = 'spare' or doc_type_relate = 'base' or doc_type_relate = 'consumable')
+                        select pur_product_id from tpt_purchase_product where state in ('++','rfq_raised','quotation_raised','po_raised','close') and (doc_type_relate = 'normal' or doc_type_relate = 'maintenance' or doc_type_relate = 'spare' or doc_type_relate = 'base' or doc_type_relate = 'consumable')
                     '''
                     cr.execute(sql)
                     pur_ids = [row[0] for row in cr.fetchall()]
                     args += [('id','in',pur_ids)]
                 if context.get('po_document_type')=='local':
                     sql = '''
-                        select pur_product_id from tpt_purchase_product where state in ('++','rfq_raised','quotation_raised','po_raised') and (doc_type_relate = 'local' or doc_type_relate = 'base')
+                        select pur_product_id from tpt_purchase_product where state in ('++','rfq_raised','quotation_raised','po_raised','close') and (doc_type_relate = 'local' or doc_type_relate = 'base')
                     '''
                     cr.execute(sql)
                     pur_ids = [row[0] for row in cr.fetchall()]
                     args += [('id','in',pur_ids)]
                 if context.get('po_document_type')=='asset':
                     sql = '''
-                        select pur_product_id from tpt_purchase_product where state in ('++','rfq_raised','quotation_raised','po_raised') and doc_type_relate = 'capital' 
+                        select pur_product_id from tpt_purchase_product where state in ('++','rfq_raised','quotation_raised','po_raised','close') and doc_type_relate = 'capital' 
                     '''
                     cr.execute(sql)
                     pur_ids = [row[0] for row in cr.fetchall()]
                     args += [('id','in',pur_ids)]
                 if context.get('po_document_type')=='raw':
                     sql = '''
-                        select pur_product_id from tpt_purchase_product where state in ('++','rfq_raised','quotation_raised','po_raised') and doc_type_relate = 'raw' 
+                        select pur_product_id from tpt_purchase_product where state in ('++','rfq_raised','quotation_raised','po_raised','close') and doc_type_relate = 'raw' 
                     '''
                     cr.execute(sql)
                     pur_ids = [row[0] for row in cr.fetchall()]
                     args += [('id','in',pur_ids)]
                 if context.get('po_document_type')=='service':
                     sql = '''
-                        select pur_product_id from tpt_purchase_product where state in ('++','rfq_raised','quotation_raised','po_raised') and doc_type_relate = 'service' 
+                        select pur_product_id from tpt_purchase_product where state in ('++','rfq_raised','quotation_raised','po_raised','close') and doc_type_relate = 'service' 
                     '''
                     cr.execute(sql)
                     pur_ids = [row[0] for row in cr.fetchall()]
                     args += [('id','in',pur_ids)]
                 if context.get('po_document_type')=='out':
                     sql = '''
-                        select pur_product_id from tpt_purchase_product where state in ('++','rfq_raised','quotation_raised','po_raised') and doc_type_relate = 'outside'
+                        select pur_product_id from tpt_purchase_product where state in ('++','rfq_raised','quotation_raised','po_raised','close') and doc_type_relate = 'outside'
                     '''
                     cr.execute(sql)
                     pur_ids = [row[0] for row in cr.fetchall()]
@@ -642,7 +642,7 @@ class tpt_purchase_product(osv.osv):
             if context.get('po_indent_id'):
                 sql = '''
                     select id from tpt_purchase_product
-                    where pur_product_id = %s and state in ('++','rfq_raised','quotation_raised','po_raised') and product_uom_qty != rfq_qty
+                    where pur_product_id = %s and state in ('++','rfq_raised','quotation_raised','po_raised','close') and product_uom_qty != rfq_qty
                 '''%(context.get('po_indent_id'))
                 cr.execute(sql)
                 indent_ids = [row[0] for row in cr.fetchall()]
