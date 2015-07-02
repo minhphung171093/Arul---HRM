@@ -177,11 +177,11 @@ class tpt_mrp_process(osv.osv):
 #                             and product_id in %s and product_uom_qty = rfq_qty and is_mrp!='t' 
 #                 ''',(tuple(product_ids),))
 
-#                 bo di dk trong cau query product_uom_qty = rfq_qty
+#                 bo di dk trong cau query product_uom_qty = rfq_qty va thay bang is not True
                 cr.execute('''
                     select pur_product_id,product_id,id from tpt_purchase_product 
                         where pur_product_id in (select id from tpt_purchase_indent where document_type = 'base' and state != 'cancel')
-                            and product_id in %s and is_mrp!='t' 
+                            and product_id in %s and is_mrp is not True
                 ''',(tuple(product_ids),))
                 indent_line_ids = []
                 
