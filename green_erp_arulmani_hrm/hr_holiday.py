@@ -4421,7 +4421,7 @@ class arul_hr_punch_in_out_time(osv.osv):
                     res[time.id]['total_shift_worked'] = 3                     
             
         return res
-    _order = "work_date asc"
+    _order = "work_date desc"
     _columns = {
         'employee_id':fields.many2one('hr.employee','Employee ID', required = True, states={'done': [('readonly', True)], 'cancel': [('readonly', True)]}),
         'work_date':fields.date('Work Date', required = True, states={'done': [('readonly', True)], 'cancel': [('readonly', True)]}),
