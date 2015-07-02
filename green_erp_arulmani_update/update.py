@@ -1844,6 +1844,13 @@ class tpt_update_stock_move_report(osv.osv):
         cr.execute(sql)
         return self.write(cr, uid, ids, {'result':'Date Done From Inspection'})
     
+    def update_date_inspection(self, cr, uid, ids, context=None):
+        sql = '''
+            update tpt_quanlity_inspection set date = (select date from stock_move where id=tpt_quanlity_inspection.need_inspec_id) where need_inspec_id is not null
+        '''
+        cr.execute(sql)
+        return self.write(cr, uid, ids, {'result':'Date Inspection'})
+    
     def create_quanlity_inspection(self, cr, uid, picking_id):
         quality_inspec = self.pool.get('tpt.quanlity.inspection')
         stock_picking = self.pool.get('stock.picking')
@@ -1874,6 +1881,8 @@ class tpt_update_stock_move_report(osv.osv):
     def update_one_stockmove_one_inspection(self, cr, uid, ids, context=None):
         quanlity_inspec = []
         product_qty = 0
+        dem = 0
+        delete = 0
         sql = '''
             select * from stock_move where picking_id in (select id from stock_picking where state = 'done' and type = 'in') 
             and action_taken = 'need'
@@ -1888,27 +1897,32 @@ class tpt_update_stock_move_report(osv.osv):
             inspections = cr.dictfetchall()
             if inspections:
                 if len(inspections) > 1:
-                    for num in range(0,len(inspections)):
-                        if picking.date != inspections[num]['date']:
-                            sql = '''
-                                delete from stock_move where inspec_id = %s
-                            '''%(inspections[num]['id'])
-                            cr.execute(sql)
-                            sql = '''
-                                delete from tpt_quanlity_inspection where id = %s
-                            '''%(inspections[num]['id'])
-                            cr.execute(sql)
-#             else:
-#                 quanlity_inspec.append((0,0,{
-#                                             'name': 'Co quanlity inspection(need_inspec_id) nhung khong co stock move (stock move bi xoa)',
-#                                             'seq': False,
-#                                             'inspec_id': inspection['id'],
-#                                             'move_id': False,
-#                                             'inspec_qty': int(inspection['qty']),
-#                                             'move_qty': False,
-#                                             'inspection_id': int(inspection['id']),
-#                                             'stock_move_id': False,
-#                                                     }))
+                    for num in range(1,len(inspections)):
+                        sql = '''
+                            delete from stock_move where inspec_id = %s
+                        '''%(inspections[num]['id'])
+                        cr.execute(sql)
+                        sql = '''
+                            delete from tpt_quanlity_inspection where id = %s
+                        '''%(inspections[num]['id'])
+                        cr.execute(sql)
+                        
+    # xoa nhung quanlity_inspection khong co need_inspec_id
+#         sql = '''
+#             select * from tpt_quanlity_inspection where need_inspec_id is null and state in ('remaining', 'done')
+#         '''
+#         cr.execute(sql)
+#         for inspection in cr.dictfetchall():
+#             sql = '''
+#                 delete from stock_move where inspec_id = %s
+#             '''%(inspection['id'])
+#             cr.execute(sql)
+#             sql = '''
+#                 delete from tpt_quanlity_inspection where id = %s
+#             '''%(inspection['id'])
+#             cr.execute(sql)
+    # end             
+                        
                     
         return self.write(cr, uid, ids, {'result':'update_one_stockmove_one_inspection Done'})
     
@@ -1924,7 +1938,7 @@ class tpt_update_stock_move_report(osv.osv):
             
         # kiem tra xem cac quanlity inspection ko co need_inspec_id
             sql = '''
-                select * from tpt_quanlity_inspection where need_inspec_id is null
+                select * from tpt_quanlity_inspection where need_inspec_id is null and state in ('remaining', 'done')
             '''
             cr.execute(sql)
             inspection_nulls = cr.dictfetchall()
@@ -1945,7 +1959,7 @@ class tpt_update_stock_move_report(osv.osv):
         #kiem tra cac quanlity inspection nao co need_inspec_id nhung khong co stock move
         
             sql = '''
-                select * from tpt_quanlity_inspection where need_inspec_id is not null
+                select * from tpt_quanlity_inspection where need_inspec_id is not null and state in ('remaining', 'done')
             '''
             cr.execute(sql)
             for inspection in cr.dictfetchall():
