@@ -2020,17 +2020,17 @@ class tpt_update_stock_move_report(osv.osv):
                                                 'inspection_id': int(inspection['id']),
                                                 'stock_move_id': int(move['id']),
                                                         }))
-                else:
-                    quanlity_inspec.append((0,0,{
-                                                'name': 'Co stock move nhung khong co quanlity inspection',
-                                                'seq': False,
-                                                'inspec_id': False,
-                                                'move_id': move['id'],
-                                                'inspec_qty': False,
-                                                'move_qty': int(move['product_qty']),
-                                                'inspection_id': False,
-                                                'stock_move_id': int(move['id']),
-                                                        }))
+#                 else:
+#                     quanlity_inspec.append((0,0,{
+#                                                 'name': 'Co stock move nhung khong co quanlity inspection',
+#                                                 'seq': False,
+#                                                 'inspec_id': False,
+#                                                 'move_id': move['id'],
+#                                                 'inspec_qty': False,
+#                                                 'move_qty': int(move['product_qty']),
+#                                                 'inspection_id': False,
+#                                                 'stock_move_id': int(move['id']),
+#                                                         }))
             
         # Kiem tra quanlity inspection voi trang thai done 
             sql = '''
