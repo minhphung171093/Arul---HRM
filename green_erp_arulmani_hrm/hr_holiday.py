@@ -306,7 +306,7 @@ class arul_hr_audit_shift_time(osv.osv):
             for audit_id in audit_ids:
                 result[audit_id] = True
         return result.keys()
-        
+    #_order = "work_date desc"    
     _columns={
               'employee_id':fields.many2one('hr.employee','Employee ID', required = True, states={'done': [('readonly', True)], 'cancel': [('readonly', True)]}),
 ## Tien che lai de test
@@ -3789,7 +3789,7 @@ class arul_hr_permission_onduty(osv.osv):
                 res[time.id]['total_shift_worked'] = 1
         return res
     #TPT
-    _order = "date asc"
+    _order = "date desc"
     _columns={
         'employee_id':fields.many2one('hr.employee','Employee',required=True, states={'done': [('readonly', True)], 'cancel': [('readonly', True)]}),
         'non_availability_type_id':fields.selection([('permission','Permission'),('on_duty','On duty')],'Non Availability Type',required = True, states={'done': [('readonly', True)], 'cancel': [('readonly', True)]}),
