@@ -151,27 +151,41 @@ class tpt_mrp_process(osv.osv):
 #                     ''',(tuple(no_ind_product_ids),))
 #                     mrp_product_ids = [r[0] for r in cr.fetchall()] 
                 
+                mrp_prod_ids=[]
+                cr.execute('''
+                    select distinct(product_id) from tpt_purchase_product where product_id in %s and 
+                        pur_product_id in (select id from tpt_purchase_indent where document_type = 'base' and state != 'cancel') 
+                            and state in ('x','xx','close') and date_indent_relate = (select max(date_indent_relate) from tpt_purchase_product
+                                            where pur_product_id in (select id from tpt_purchase_indent where document_type = 'base' and state != 'cancel'))
+                ''',(tuple(product_ids),))
+                for line in cr.fetchall():
+#                     sql = '''
+#                         select distinct(product_id) from tpt_purchase_product 
+#                         where pur_product_id in (select id from tpt_purchase_indent where document_type = 'base' and state != 'cancel') 
+#                         and date_indent_relate = (select max(date_indent_relate) from tpt_purchase_product
+#                                             where pur_product_id in (select id from tpt_purchase_indent where document_type = 'base' and state != 'cancel') ) 
+#                     '''
+#                     cr.execute(sql)
+#                     max_prod_ids = [r[0] for r in cr.fetchall()]
+#                     if line in max_prod_ids:
+                    mrp_product_ids.append({'product_id':line[0],'indent_line_id':False})
+                    mrp_prod_ids.append(line[0])
+                        
                 cr.execute('''
                     select pur_product_id,product_id,id from tpt_purchase_product 
                         where pur_product_id in (select id from tpt_purchase_indent where document_type = 'base' and state != 'cancel')
                             and product_id in %s and product_uom_qty = rfq_qty and is_mrp!='t' 
                 ''',(tuple(product_ids),))
                 indent_line_ids = []
-                mrp_prod_ids=[]
+                
                 for line in cr.fetchall():
-                    sql = '''
-                        select id from purchase_order_line where product_id = %s and po_indent_no = %s 
-                    '''%(line[1],line[0])
-                    cr.execute(sql)
-                    po_line_ids = [r[0] for r in cr.fetchall()]
-                    if po_line_ids:
-                        cr.execute('''
-                            select id from purchase_order_line where product_id = %s and po_indent_no = %s 
-                            and order_id in (select id from purchase_order where state = 'cancel' ) and id in %s
-                        ''',(line[1],line[0],tuple(po_line_ids),))
-                        line_ids = [r[0] for r in cr.fetchall()]
-                        if line_ids:
-                            mrp_product_ids.append({'product_id':line[1],'indent_line_id':line[2]})
+#                     sql = '''
+#                         select id from tpt_purchase_product where product_id = %s and pur_product_id = %s and state in ('x','xx','close')
+#                     '''%(line[1],line[0])
+#                     cr.execute(sql)
+#                     po_line_ids = [r[0] for r in cr.fetchall()]
+#                     if po_line_ids:
+#                         mrp_product_ids.append({'product_id':line[1],'indent_line_id':False})
                     sql = '''
                         select id from stock_move where po_indent_id=%s and product_id=%s
                     '''%(line[0],line[1])
