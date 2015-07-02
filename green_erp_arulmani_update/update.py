@@ -1989,7 +1989,7 @@ class tpt_update_stock_move_report(osv.osv):
             for move in cr.dictfetchall():
         # kiem tra xem trong cac quanlity inspection co quanlity inspection nao bi trung need_inspec_id hay khong
                 sql = '''
-                    select * from tpt_quanlity_inspection where need_inspec_id = %s
+                    select * from tpt_quanlity_inspection where need_inspec_id = %s and state in ('remaining', 'done')
                 '''%(move['id'])
                 cr.execute(sql)
                 inspections = cr.dictfetchall()
