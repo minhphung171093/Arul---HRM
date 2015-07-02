@@ -1880,122 +1880,37 @@ class tpt_update_stock_move_report(osv.osv):
         '''
         cr.execute(sql)
         for move in cr.dictfetchall():
-# tao ra quanlity inspection neu thieu:
+            picking = self.pool.get('stock.picking').browse(cr,uid,move['picking_id'])
             sql = '''
-                select id from tpt_quanlity_inspection where need_inspec_id = %s
+                select * from tpt_quanlity_inspection where need_inspec_id = %s and state in ('remaining', 'done')
             '''%(move['id'])
             cr.execute(sql)
-            inspection_creates = cr.dictfetchall()
-            if not inspection_creates:
-                self.create_quanlity_inspection(cr, uid, move['picking_id'])
-                    
-# xoa nhung quanlity inspection ma co so luong sai so voi stock move
-#             sql = '''
-#                 select id from tpt_quanlity_inspection where need_inspec_id = %s and qty != %s
-#             '''%(move['id'], move['product_qty'])
-#             cr.execute(sql)
-#             for inspection_wrong in cr.dictfetchall():
-#                 if inspection_wrong:
-#                     sql = '''
-#                         delete from tpt_quanlity_inspection where id = %s
-#                     '''%(inspection_wrong['id'])
-#                     cr.execute(sql)
-            sql = '''
-                select id from tpt_quanlity_inspection where need_inspec_id = %s and qty != %s
-            '''%(move['id'], move['product_qty'])
-            cr.execute(sql)
-            for inspection_wrong2 in cr.dictfetchall():
-                if inspection_wrong2:
-                    sql = '''
-                        delete from tpt_quanlity_inspection where id = %s
-                    '''%(inspection_wrong['id'])
-                    cr.execute(sql)
-# check nhung tpt_quanlity_inspection o trang thai draft    
-            sql = '''
-                select id from tpt_quanlity_inspection where need_inspec_id = %s and state = 'draft' and qty = %s
-            '''%(move['id'], move['product_qty'])
-            cr.execute(sql)
-            inspection_drafts = cr.dictfetchall()
-            if len(inspection_drafts) > 1:
-                for num_draft in range(1, len(inspection_drafts)):
-                    inspection_draft_id = inspection_drafts[num_draft]['id']
-                    sql = '''
-                        delete from tpt_quanlity_inspection where id = %s
-                    '''%(inspection_draft_id)
-                    cr.execute(sql) 
-# check nhung tpt_quanlity_inspection o trang thai remaining , done                  
-            sql = '''
-                select * from tpt_quanlity_inspection where need_inspec_id = %s and state in ('remaining','done') and qty = %s
-            '''%(move['id'], move['product_qty'])
-            cr.execute(sql)
             inspections = cr.dictfetchall()
-            if len(inspections) > 1:
-                for num in range(0, len(inspections)):
-                    inspection_id = inspections[num]['id']
-                    need_inspec_id = inspections[num]['need_inspec_id']
-                    sql = '''
-                        select sum(product_qty) as product_qty, inspec_id from stock_move where inspec_id = %s and state = 'done' group by inspec_id
-                    '''%(inspection_id)
-                    cr.execute(sql)
-                    for inspec_move in cr.dictfetchall():
-                        if inspec_move:
-                            product_qty = inspec_move['product_qty']
-                    qty = inspections[num]['qty']
-                    remaining_qty = inspections[num]['remaining_qty']
-                    if (qty - remaining_qty) != product_qty:
-                        sql = '''
-                            delete from stock_move where inspec_id = %s
-                        '''%(inspection_id)
-                        cr.execute(sql)
-                        sql = '''
-                            delete from tpt_quanlity_inspection where id = %s
-                        '''%(inspection_id)
-                        cr.execute(sql)
-                    else:
-                        quanlity_inspec.append(inspection_id)
-                        if len(quanlity_inspec) > 1:
-                            for num_done in range(1, len(quanlity_inspec)):
-                                sql = '''
-                                    delete from stock_move where inspec_id = %s
-                                '''%(quanlity_inspec[num_done])
-                                cr.execute(sql)
-                                sql = '''
-                                    delete from tpt_quanlity_inspection where id = %s
-                                '''%(quanlity_inspec[num_done])
-                                cr.execute(sql) 
-                        if quanlity_inspec:
+            if inspections:
+                if len(inspections) > 1:
+                    for num in range(0,len(inspections)):
+                        if picking.date != inspections[num]['date']:
                             sql = '''
-                                delete from tpt_quanlity_inspection where need_inspec_id = %s and state = 'draft'
-                            '''%(need_inspec_id)
+                                delete from stock_move where inspec_id = %s
+                            '''%(inspections[num]['id'])
                             cr.execute(sql)
-            elif len(inspections) == 1:
-                for num in range(0, len(inspections)):
-                    inspection_id = inspections[num]['id']
-                    need_inspec_id = inspections[num]['need_inspec_id']
-                    sql = '''
-                        select sum(product_qty) as product_qty, inspec_id from stock_move where inspec_id = %s and state = 'done' group by inspec_id
-                    '''%(inspection_id)
-                    cr.execute(sql)
-                    for inspec_move in cr.dictfetchall():
-                        if inspec_move:
-                            product_qty = inspec_move['product_qty']
-                    qty = inspections[num]['qty']
-                    remaining_qty = inspections[num]['remaining_qty']
-                    if (qty - remaining_qty) != product_qty:
-                        sql = '''
-                            delete from stock_move where inspec_id = %s
-                        '''%(inspection_id)
-                        cr.execute(sql)
-                        sql = '''
-                            delete from tpt_quanlity_inspection where id = %s
-                        '''%(inspection_id)
-                        cr.execute(sql)
-                    sql = '''
-                        delete from tpt_quanlity_inspection where need_inspec_id = %s and state = 'draft'
-                    '''%(need_inspec_id)
-                    cr.execute(sql)
+                            sql = '''
+                                delete from tpt_quanlity_inspection where id = %s
+                            '''%(inspections[num]['id'])
+                            cr.execute(sql)
+#             else:
+#                 quanlity_inspec.append((0,0,{
+#                                             'name': 'Co quanlity inspection(need_inspec_id) nhung khong co stock move (stock move bi xoa)',
+#                                             'seq': False,
+#                                             'inspec_id': inspection['id'],
+#                                             'move_id': False,
+#                                             'inspec_qty': int(inspection['qty']),
+#                                             'move_qty': False,
+#                                             'inspection_id': int(inspection['id']),
+#                                             'stock_move_id': False,
+#                                                     }))
                     
-        return self.write(cr, uid, ids, {'result':'check_one_stockmove_one_inspection Done'})
+        return self.write(cr, uid, ids, {'result':'update_one_stockmove_one_inspection Done'})
     
     def check_one_stockmove_one_inspection(self, cr, uid, ids, context=None):
         quanlity_inspec = []
