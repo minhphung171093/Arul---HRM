@@ -155,7 +155,7 @@ class tpt_mrp_process(osv.osv):
                 cr.execute('''
                     select distinct(product_id) from tpt_purchase_product where product_id in %s and 
                         pur_product_id in (select id from tpt_purchase_indent where document_type = 'base' and state != 'cancel') 
-                            and state in ('x','xx','close') and date_indent_relate = (select max(date_indent_relate) from tpt_purchase_product
+                            and state in ('x','xx') and date_indent_relate = (select max(date_indent_relate) from tpt_purchase_product
                                             where pur_product_id in (select id from tpt_purchase_indent where document_type = 'base' and state != 'cancel'))
                 ''',(tuple(product_ids),))
                 for line in cr.fetchall():
@@ -171,10 +171,17 @@ class tpt_mrp_process(osv.osv):
                     mrp_product_ids.append({'product_id':line[0],'indent_line_id':False})
                     mrp_prod_ids.append(line[0])
                         
+#                 cr.execute('''
+#                     select pur_product_id,product_id,id from tpt_purchase_product 
+#                         where pur_product_id in (select id from tpt_purchase_indent where document_type = 'base' and state != 'cancel')
+#                             and product_id in %s and product_uom_qty = rfq_qty and is_mrp!='t' 
+#                 ''',(tuple(product_ids),))
+
+#                 bo di dk trong cau query product_uom_qty = rfq_qty
                 cr.execute('''
                     select pur_product_id,product_id,id from tpt_purchase_product 
                         where pur_product_id in (select id from tpt_purchase_indent where document_type = 'base' and state != 'cancel')
-                            and product_id in %s and product_uom_qty = rfq_qty and is_mrp!='t' 
+                            and product_id in %s and is_mrp!='t' 
                 ''',(tuple(product_ids),))
                 indent_line_ids = []
                 
