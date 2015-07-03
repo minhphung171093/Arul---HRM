@@ -22,6 +22,7 @@ import time
 from openerp.report import report_sxw
 from openerp import pooler
 from openerp.osv import osv
+import openerp.addons.decimal_precision as dp
 from openerp.tools.translate import _
 import random
 DATETIME_FORMAT = "%Y-%m-%d %H:%M:%S"
@@ -39,6 +40,8 @@ class Parser(report_sxw.rml_parse):
         self.localcontext.update({
             'get_date_from':self.get_date_from,
             'get_date_to':self.get_date_to,
+            'convert_date_format':self.convert_date_format,
+            'decimal_convert':self.decimal_convert,
              #'get_ven_name':self.get_ven_name,
              #'get_inv_type':self.get_inv_type,
             'get_move_ids':self.get_move_ids,
@@ -61,6 +64,17 @@ class Parser(report_sxw.rml_parse):
         wizard_data = self.localcontext['data']['form']
         date = datetime.strptime(wizard_data['date_to'], DATE_FORMAT)
         return date.strftime('%d/%m/%Y') 
+    
+    def convert_date_format(self, date):
+        if date:
+            date = datetime.strptime(date, DATE_FORMAT)
+            return date.strftime('%d/%m/%Y')
+        
+    def decimal_convert(self, amount):
+        #decamount = 0.00
+        decamount = format(amount, '.2f')        
+        #decamount = dp.get_precision('amount')
+        return decamount
     
     def get_doc_type(self):
         wizard_data = self.localcontext['data']['form']
@@ -114,7 +128,9 @@ class Parser(report_sxw.rml_parse):
         vendor = wizard_data['employee']
         tds = wizard_data['taxes_id']
         date_from = wizard_data['date_from']
-        date_to = wizard_data['date_to']        
+        date_to = wizard_data['date_to'] 
+        base_amnt = 0.0
+        tdsamount = 0.0       
                 
         if invoicetype == 'ser_inv':
               if vendor and tds:
@@ -128,7 +144,7 @@ class Parser(report_sxw.rml_parse):
                             ai.name as invoicedocno, ai.date_invoice as postingdate,
                             ai.bill_number as bill_no,ai.bill_date as bill_date,
                             sum(ail.amount_basic) as base_amnt,round(at.amount,0) as tax_deduction,
-                            round(sum(ail.amount_basic)*at.amount/100,0) as tdsamount, ai.vendor_ref as ven_ref
+                            cast(round(sum(ail.amount_basic)*at.amount/100,0) As decimal(8, 2)) as tdsamount, ai.vendor_ref as ven_ref
                             from account_invoice_line ail
                             join account_invoice ai on (ai.id=ail.invoice_id)
                             join account_move am on (am.name=ai.number)
@@ -153,7 +169,7 @@ class Parser(report_sxw.rml_parse):
                         ai.name as invoicedocno, ai.date_invoice as postingdate,
                         ai.bill_number as bill_no,ai.bill_date as bill_date,
                         sum(ail.amount_basic) as base_amnt,round(at.amount,0) as tax_deduction,
-                        round(sum(ail.amount_basic)*at.amount/100,0) as tdsamount, ai.vendor_ref as ven_ref
+                        cast(round(sum(ail.amount_basic)*at.amount/100,0) As decimal(8, 2)) as tdsamount, ai.vendor_ref as ven_ref
                         from account_invoice_line ail
                         join account_invoice ai on (ai.id=ail.invoice_id)
                         join account_move am on (am.name=ai.number)
@@ -179,7 +195,7 @@ class Parser(report_sxw.rml_parse):
                         ai.name as invoicedocno, ai.date_invoice as postingdate,
                         ai.bill_number as bill_no,ai.bill_date as bill_date,
                         sum(ail.amount_basic) as base_amnt,round(at.amount,0) as tax_deduction,
-                        round(sum(ail.amount_basic)*at.amount/100,0) as tdsamount, ai.vendor_ref as ven_ref
+                        cast(round(sum(ail.amount_basic)*at.amount/100,0) As decimal(8, 2)) as tdsamount, ai.vendor_ref as ven_ref
                         from account_invoice_line ail
                         join account_invoice ai on (ai.id=ail.invoice_id)
                         join account_move am on (am.name=ai.number)
@@ -205,7 +221,7 @@ class Parser(report_sxw.rml_parse):
                             ai.name as invoicedocno, ai.date_invoice as postingdate,
                             ai.bill_number as bill_no,ai.bill_date as bill_date,
                             sum(ail.amount_basic) as base_amnt,round(at.amount,0) as tax_deduction,
-                            round(sum(ail.amount_basic)*at.amount/100,0) as tdsamount, ai.vendor_ref as ven_ref
+                            cast(round(sum(ail.amount_basic)*at.amount/100,0) As decimal(8, 2)) as tdsamount, ai.vendor_ref as ven_ref
                             from account_invoice_line ail
                             join account_invoice ai on (ai.id=ail.invoice_id)
                             join account_move am on (am.name=ai.number)
@@ -218,6 +234,7 @@ class Parser(report_sxw.rml_parse):
                             order by vendor_code
                         '''%(date_from,date_to)
                 self.cr.execute(sql)
+                #print sql
                 return self.cr.dictfetchall()
                         
             
@@ -234,7 +251,7 @@ class Parser(report_sxw.rml_parse):
                             ai.name as invoicedocno, ai.date_invoice as postingdate,
                             ai.bill_number as bill_no,ai.bill_date as bill_date,
                             sum(ail.amount_basic) as base_amnt,round(at.amount,0) as tax_deduction,
-                            round(sum(ail.amount_basic)*at.amount/100,0) as tdsamount, ai.vendor_ref as ven_ref
+                            cast(round(sum(ail.amount_basic)*at.amount/100,0) As decimal(8, 2)) as tdsamount, ai.vendor_ref as ven_ref
                             from account_invoice_line ail
                             join account_invoice ai on (ai.id=ail.invoice_id)
                             join account_move am on (am.name=ai.number)
@@ -259,7 +276,7 @@ class Parser(report_sxw.rml_parse):
                         ai.name as invoicedocno, ai.date_invoice as postingdate,
                         ai.bill_number as bill_no,ai.bill_date as bill_date,
                         sum(ail.amount_basic) as base_amnt,round(at.amount,0) as tax_deduction,
-                        round(sum(ail.amount_basic)*at.amount/100,0) as tdsamount, ai.vendor_ref as ven_ref
+                        cast(round(sum(ail.amount_basic)*at.amount/100,0) As decimal(8, 2)) as tdsamount, ai.vendor_ref as ven_ref
                         from account_invoice_line ail
                         join account_invoice ai on (ai.id=ail.invoice_id)
                         join account_move am on (am.name=ai.number)
@@ -285,7 +302,7 @@ class Parser(report_sxw.rml_parse):
                         ai.name as invoicedocno, ai.date_invoice as postingdate,
                         ai.bill_number as bill_no,ai.bill_date as bill_date,
                         sum(ail.amount_basic) as base_amnt,round(at.amount,0) as tax_deduction,
-                        round(sum(ail.amount_basic)*at.amount/100,0) as tdsamount, ai.vendor_ref as ven_ref
+                        cast(round(sum(ail.amount_basic)*at.amount/100,0) As decimal(8, 2)) as tdsamount, ai.vendor_ref as ven_ref
                         from account_invoice_line ail
                         join account_invoice ai on (ai.id=ail.invoice_id)
                         join account_move am on (am.name=ai.number)
@@ -312,7 +329,7 @@ class Parser(report_sxw.rml_parse):
                             ai.name as invoicedocno, ai.date_invoice as postingdate,
                             ai.bill_number as bill_no,ai.bill_date as bill_date,
                             sum(ail.amount_basic) as base_amnt,round(at.amount,0) as tax_deduction,
-                            round(sum(ail.amount_basic)*at.amount/100,0) as tdsamount, ai.vendor_ref as ven_ref
+                            cast(round(sum(ail.amount_basic)*at.amount/100,0) As decimal(8, 2)) as tdsamount, ai.vendor_ref as ven_ref
                             from account_invoice_line ail
                             join account_invoice ai on (ai.id=ail.invoice_id)
                             join account_move am on (am.name=ai.number)
@@ -339,7 +356,7 @@ class Parser(report_sxw.rml_parse):
                             ai.name as invoicedocno, ai.date_invoice as postingdate,
                             ai.bill_number as bill_no,ai.bill_date as bill_date,
                             sum(ail.amount_basic) as base_amnt,round(at.amount,0) as tax_deduction,
-                            round(sum(ail.amount_basic)*at.amount/100,0) as tdsamount, ai.vendor_ref as ven_ref
+                            cast(round(sum(ail.amount_basic)*at.amount/100,0) As decimal(8, 2)) as tdsamount, ai.vendor_ref as ven_ref
                             from account_invoice_line ail
                             join account_invoice ai on (ai.id=ail.invoice_id)
                             join account_move am on (am.name=ai.number)
@@ -364,7 +381,7 @@ class Parser(report_sxw.rml_parse):
                         ai.name as invoicedocno, ai.date_invoice as postingdate,
                         ai.bill_number as bill_no,ai.bill_date as bill_date,
                         sum(ail.amount_basic) as base_amnt,round(at.amount,0) as tax_deduction,
-                        round(sum(ail.amount_basic)*at.amount/100,0) as tdsamount, ai.vendor_ref as ven_ref
+                        cast(round(sum(ail.amount_basic)*at.amount/100,0) As decimal(8, 2)) as tdsamount, ai.vendor_ref as ven_ref
                         from account_invoice_line ail
                         join account_invoice ai on (ai.id=ail.invoice_id)
                         join account_move am on (am.name=ai.number)
@@ -390,7 +407,7 @@ class Parser(report_sxw.rml_parse):
                         ai.name as invoicedocno, ai.date_invoice as postingdate,
                         ai.bill_number as bill_no,ai.bill_date as bill_date,
                         sum(ail.amount_basic) as base_amnt,round(at.amount,0) as tax_deduction,
-                        round(sum(ail.amount_basic)*at.amount/100,0) as tdsamount, ai.vendor_ref as ven_ref
+                        cast(round(sum(ail.amount_basic)*at.amount/100,0) As decimal(8, 2)) as tdsamount, ai.vendor_ref as ven_ref
                         from account_invoice_line ail
                         join account_invoice ai on (ai.id=ail.invoice_id)
                         join account_move am on (am.name=ai.number)
@@ -416,7 +433,7 @@ class Parser(report_sxw.rml_parse):
                             ai.name as invoicedocno, ai.date_invoice as postingdate,
                             ai.bill_number as bill_no,ai.bill_date as bill_date,
                             sum(ail.amount_basic) as base_amnt,round(at.amount,0) as tax_deduction,
-                            round(sum(ail.amount_basic)*at.amount/100,0) as tdsamount, ai.vendor_ref as ven_ref
+                            cast(round(sum(ail.amount_basic)*at.amount/100,0) As decimal(8, 2)) as tdsamount, ai.vendor_ref as ven_ref
                             from account_invoice_line ail
                             join account_invoice ai on (ai.id=ail.invoice_id)
                             join account_move am on (am.name=ai.number)
@@ -442,7 +459,7 @@ class Parser(report_sxw.rml_parse):
                     ai.name as invoicedocno, ai.date_invoice as postingdate,
                     ai.bill_number as bill_no,ai.bill_date as bill_date,
                     sum(ail.amount_basic) as base_amnt, round(at.amount,0) as tax_deduction, 
-                    round(sum(ail.amount_basic)*at.amount/100,0) as tdsamount, ai.vendor_ref as ven_ref
+                    cast(round(sum(ail.amount_basic)*at.amount/100,0) As decimal(8, 2)) as tdsamount, ai.vendor_ref as ven_ref
                     from account_invoice_line ail
                     join account_invoice ai on (ai.id=ail.invoice_id)
                     join account_move am on (am.name=ai.number)

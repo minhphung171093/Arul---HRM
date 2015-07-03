@@ -102,6 +102,11 @@ class Parser(report_sxw.rml_parse):
         total_no_of_leave = tpt_lop_esi
         no_of_day_work = calendar_days - total_no_of_leave
         
+        #added on 03/07/2015
+        no_of_day_work = calendar_days
+        if employee.employee_category_id.code == 'S3':
+            no_of_day_work = 26
+        
         return no_of_day_work
     
     def get_no_of_shift_work(self, employee):
