@@ -4971,6 +4971,7 @@ class tpt_material_issue(osv.osv):
                     product_information_line.append((0,0,rs))
             vals = {'date_request': request.date_request or False,
                     'department_id':request.department_id and request.department_id.id or False,
+                    'cost_center_id':request.cost_center_id and request.cost_center_id.id or False, # Addded by TPT for loading the Request cost center to material issue 
                     'material_issue_line':product_information_line,
                     'request_type': request.request_type,
                     }
