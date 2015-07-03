@@ -3564,6 +3564,7 @@ class arul_hr_audit_shift_time(osv.osv):
                             (%s between min_end_time and max_end_time)
                             '''%(start_time,end_time)
                 cr.execute(sql)
+                print sql
                 for k in cr.fetchall():
                         id=k[0]
                         a_shift=k[1]
@@ -4030,7 +4031,31 @@ class arul_hr_audit_shift_time(osv.osv):
                     ## 
             self.write(cr, uid, [line.id],{'approval': True, 'state':'done', 'time_evaluate_id':False})
         return True
-    
+    def reject_shift_time(self, cr, uid, ids, context=None):
+        for line in self.browse(cr, uid, ids):
+            #Trong them
+            if line.work_date: 
+                month = line.work_date[5:7]
+                year = line.work_date[:4]
+                payroll_ids = self.pool.get('arul.hr.payroll.executions').search(cr,uid,[('month','=',month),('year','=',year),('state','=','approve'),('payroll_area_id','=',line.employee_id.payroll_area_id.id)])
+                if payroll_ids :
+                    raise osv.except_osv(_('Warning!'),_('Payroll were already exists, not allowed to reject again!'))
+            #
+            t = 0
+            sql = '''
+                    select %s in (select uid from res_groups_users_rel where gid in (select id from res_groups where name='Time Manager' 
+                    and category_id in (select id from ir_module_category where name='VVTI - HRM')))
+                    '''%(uid)
+            cr.execute(sql)
+            p = cr.fetchone()
+            if line.employee_id.department_id and line.employee_id.department_id.primary_auditor_id and line.employee_id.department_id.primary_auditor_id.id==uid \
+            or p[0]:
+                t=1
+            else:
+                raise osv.except_osv(_('Warning!'),_('User does not have permission to approve for this employee department!'))
+            self.write(cr, uid, [line.id],{'approval': False, 'state':'cancel', 'time_evaluate_id':False})
+        return True
+    #TPT
     def reject_shift_time(self, cr, uid, ids, context=None):
         for line in self.browse(cr, uid, ids):
             #Trong them
