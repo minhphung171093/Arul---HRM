@@ -3558,13 +3558,13 @@ class arul_hr_audit_shift_time(osv.osv):
                 ###
                      
                 sql = '''
-                             select id,a_shift,g1_shift,g2_shift,b_shift,c_shift,shift_count from tpt_hr_new_work_shift_master where 
+                             select id,a_shift,g1_shift,g2_shift,b_shift,c_shift,shift_count from tpt_work_shift where 
                             (%s between min_start_time and max_start_time)
                             and
                             (%s between min_end_time and max_end_time)
                             '''%(start_time,end_time)
                 cr.execute(sql)
-                raise osv.except_osv(_('Warning!%s'),_(sql)) 
+                #raise osv.except_osv(_('Warning!%s'),_(sql)) 
                 for k in cr.fetchall():
                         id=k[0]
                         a_shift=k[1]
