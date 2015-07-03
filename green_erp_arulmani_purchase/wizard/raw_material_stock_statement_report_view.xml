@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="utf-8"?>
+<openerp>
+    <data>
+		<record id="tpt_raw_stock_statement_view" model="ir.ui.view">
+	        <field name="name">tpt.raw.stock.statement.view</field>
+	        <field name="model">tpt.raw.stock.statement</field>
+	        <field name="arch" type="xml">
+	            <form string="Raw Material Stock Statement Report" version="7.0">
+	            	<group>
+	               	<field name="date_from" />
+	                </group>
+	                <footer>
+	                    <button name="print_report" type='object' string="OK" class="oe_highlight"/>
+	                    or
+	                    <button string="Cancel" class="oe_highlight" special="cancel" />
+	                </footer>
+	            </form>
+	        </field>
+    	</record>
+
+	    <record model="ir.actions.act_window" id="action_tpt_raw_stock_statement_view">
+	        <field name="name">Raw Material Stock Statement Report</field>
+	        <field name="res_model">tpt.raw.stock.statement</field>
+	        <field name="view_type">form</field>
+	        <field name="view_mode">form</field>
+	        <field name="view_id" ref="tpt_raw_stock_statement_view" />
+	        <field name="target">new</field>
+	    </record>
+	    
+	    
+       <menuitem action="action_tpt_raw_stock_statement_view" id="menu_action_tpt_raw_stock_statement_view" parent="stock.menu_stock_warehouse_mgmt" sequence="53"/>
+
+	 
+	    
+    </data>
+</openerp>
+

@@ -161,7 +161,7 @@ class tpt_tio2_batch_split(osv.osv):
             v = {'available': batchable,'location_id': mrp.location_dest_id.id,'batchable':batchable}
             return {'value': v}
         return {}
-    
+
     def create(self, cr, uid, vals, context=None):
         sql = '''
             select case when sum(qty)!=0 then sum(qty) else 0 end qty from tpt_batch_split_line
@@ -395,7 +395,7 @@ class tpt_fsh_batch_split(osv.osv):
             v = {'available': available,'batchable_qty': batchable,'line_qty': qty, 'location_id': mrp.location_dest_id.id}
             return {'value': v}
         return {}
-    
+
     def unlink(self, cr, uid, ids, context=None):
         for unlink in self.browse(cr,uid,ids):
             sql = '''
