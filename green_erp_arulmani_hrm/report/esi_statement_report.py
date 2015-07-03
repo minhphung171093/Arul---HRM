@@ -96,7 +96,7 @@ class Parser(report_sxw.rml_parse):
                 AND EXTRACT(month FROM date_from) = %s AND employee_id =%s AND
                 leave_type_id in (select id from arul_hr_leave_types where code in ('LOP','ESI'))
                 and state='done'
-        '''%(int(month), int(year),employee.id)
+        '''%(int(year), int(month),employee.id)
         self.cr.execute(sql)
         lop_esi =  self.cr.fetchone()
         tpt_lop_esi = lop_esi[0]
