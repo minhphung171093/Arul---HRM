@@ -84,13 +84,14 @@ class hr_employee(osv.osv):
             }           
             
             
-            dob = emp.birthday           
-            b_date = datetime.strptime(dob, '%Y-%m-%d')
-            datenew = str(datetime.today())            
-            current_date = datetime.strptime(str(datetime.today()), '%Y-%m-%d %H:%M:%S.%f')            
-            difference_in_days = ((current_date - b_date).days/365)
-            
-            res[emp.id]['age_in_yrs'] = difference_in_days 
+            dob = emp.birthday      
+            if dob:     
+                b_date = datetime.strptime(dob, '%Y-%m-%d')
+                datenew = str(datetime.today())            
+                current_date = datetime.strptime(str(datetime.today()), '%Y-%m-%d %H:%M:%S.%f')            
+                difference_in_days = ((current_date - b_date).days/365)
+                
+                res[emp.id]['age_in_yrs'] = difference_in_days 
            
         return res              
       #TPT          
