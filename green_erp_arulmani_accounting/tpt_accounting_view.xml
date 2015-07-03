@@ -327,6 +327,7 @@
 				</xpath>
 				<xpath expr="//page[@string='Information']/group/group/field[@name='default_code']" position="after">
 					<field name="chapter" />
+					<field name="warehouse_id" domain="[('usage','=','internal'),('chained_location_type','&lt;&gt;','customer')]" options="{'create': false, 'create_edit': false}" />
 				</xpath>
 					
 			</field>
