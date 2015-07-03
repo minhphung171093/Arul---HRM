@@ -3564,7 +3564,7 @@ class arul_hr_audit_shift_time(osv.osv):
                             (%s between min_end_time and max_end_time)
                             '''%(start_time,end_time)
                 cr.execute(sql)
-                print sql
+                raise osv.except_osv(_('Warning!%s'),_(sql)) 
                 for k in cr.fetchall():
                         id=k[0]
                         a_shift=k[1]
