@@ -11,7 +11,8 @@
 	                <field name="date_to" />
 	                <field name='employee' domain="[('supplier','=',True)]" options="{'create': false, 'create_edit': false}" /> 
 	                <field name='taxes_id' options="{'create': false, 'create_edit': false}"/>
-	                <field name="invoice_type" />                       
+	                <field name='code' options="{'create': false, 'create_edit': false}"/>
+	                <field name="invoice_type" />                      
                  	</group>
                     <footer>
                         <button name="print_report" string="Print" type="object" class="oe_highlight" context="{'type':'appointments'}"/>

@@ -15,6 +15,7 @@ class tds_form_report(osv.osv_memory):
                 'date_to': fields.date('Date To', required=True),
                 'employee': fields.many2one('res.partner', 'Vendor',ondelete='restrict'),                
                 'taxes_id':fields.many2one('account.tax','TDS %'),                 
+                'code':fields.many2one('account.account', 'GL Account'),
                 'invoice_type':fields.selection([('ser_inv','Service Invoice'),('sup_inv','Supplier Invoice (Without PO)'),('freight','Freight Invoice')],'Invoice Type'),
                  #'invoice_type':fields.selection([('ServiceInvoice','Service Invoice'),('SupplierInvoice(Without PO)','Supplier Invoice (Without PO)'),('Freight Invoice','Freight Invoice')],'Invoice Type'),            
                }
