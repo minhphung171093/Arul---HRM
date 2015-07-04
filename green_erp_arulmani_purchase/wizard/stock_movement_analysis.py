@@ -475,7 +475,17 @@ class stock_movement_analysis(osv.osv_memory):
                     '''%(product_id, date_from,locat_ids[0])
                 cr.execute(sql)
                 product_isu_qty = cr.fetchone()[0]
-                open_qty = (inventory and inventory['ton_sl'] or 0) - product_isu_qty
+                
+                sql = '''
+                    select case when sum(product_qty)!=0 then sum(product_qty) else 0 end product_qty 
+                    from stock_move where product_id = %s and state = 'done' and issue_id is null 
+                    and picking_id is null and inspec_id is null and location_id = %s 
+                    and to_date(to_char(date, 'YYYY-MM-DD'), 'YYYY-MM-DD') < '%s' and location_id != location_dest_id
+                '''%(product_id, locat_ids[0], date_from)
+                cr.execute(sql)
+                product_qty = cr.dictfetchone()['product_qty']
+                
+                open_qty = (inventory and inventory['ton_sl'] or 0) - product_isu_qty - product_qty
             if categ =='spares':
                 parent_ids = self.pool.get('stock.location').search(cr, uid, [('name','=','Store'),('usage','=','view')])
                 locat_ids = self.pool.get('stock.location').search(cr, uid, [('name','in',['Spares','Spare','spares']),('location_id','=',parent_ids[0])])            
@@ -498,7 +508,17 @@ class stock_movement_analysis(osv.osv_memory):
                     '''%(product_id, date_from,locat_ids[0])
                 cr.execute(sql)
                 product_isu_qty = cr.fetchone()[0]
-                open_qty = (inventory and inventory['ton_sl'] or 0) - product_isu_qty
+                
+                sql = '''
+                    select case when sum(product_qty)!=0 then sum(product_qty) else 0 end product_qty 
+                    from stock_move where product_id = %s and state = 'done' and issue_id is null 
+                    and picking_id is null and inspec_id is null and location_id = %s 
+                    and to_date(to_char(date, 'YYYY-MM-DD'), 'YYYY-MM-DD') < '%s' and location_id != location_dest_id
+                '''%(product_id, locat_ids[0], date_from)
+                cr.execute(sql)
+                product_qty = cr.dictfetchone()['product_qty']
+                
+                open_qty = (inventory and inventory['ton_sl'] or 0) - product_isu_qty - product_qty
             return open_qty 
         
         def get_opening_stock_value(o, product_id):
