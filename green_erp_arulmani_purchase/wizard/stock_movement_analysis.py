@@ -383,29 +383,29 @@ class stock_movement_analysis(osv.osv_memory):
             if categ=='raw':
                 parent_ids = self.pool.get('stock.location').search(cr, uid, [('name','=','Store'),('usage','=','view')])
                 locat_ids = self.pool.get('stock.location').search(cr, uid, [('name','in',['Raw Material','Raw Materials','Raw material']),('location_id','=',parent_ids[0])])
+#                 sql = '''
+#                           select case when sum(st.product_qty)!=0 then sum(st.product_qty) else 0 end ton_sl,case when sum(st.price_unit*st.product_qty)!=0 then sum(st.price_unit*st.product_qty) else 0 end total_cost
+#                             from stock_move st
+#                                 join stock_location loc1 on st.location_id=loc1.id
+#                                 join stock_location loc2 on st.location_dest_id=loc2.id
+#                             where st.state='done' and st.location_id=%s and st.product_id=%s and to_date(to_char(date, 'YYYY-MM-DD'), 'YYYY-MM-DD') between '%s' and '%s'
+#  
+#                                 and ( (issue_id in (select id from tpt_material_issue where date_expec between '%s' and '%s' and state in ('done')))
+#                                     )
+#                     '''%(locat_ids[0],product_id,date_from,date_to)
+#                 cr.execute(sql)
+#                 inventory = cr.dictfetchone()
+#                 if inventory:
+#                     hand_quantity = inventory['ton_sl'] or 0
+#                     total_cost = inventory['total_cost'] or 0
+#                     avg_cost = hand_quantity and total_cost/hand_quantity or 0
                 sql = '''
-                          select case when sum(st.product_qty)!=0 then sum(st.product_qty) else 0 end ton_sl,case when sum(st.price_unit*st.product_qty)!=0 then sum(st.price_unit*st.product_qty) else 0 end total_cost
-                            from stock_move st
-                                join stock_location loc1 on st.location_id=loc1.id
-                                join stock_location loc2 on st.location_dest_id=loc2.id
-                            where st.state='done' and st.location_id=%s and st.product_id=%s
-
-                                and ( (issue_id in (select id from tpt_material_issue where date_expec between '%s' and '%s' and state in ('done')))
-                                    )
-                    '''%(locat_ids[0],product_id,date_from,date_to)
+                    select case when sum(product_isu_qty)!=0 then sum(product_isu_qty) else 0 end product_isu_qty from tpt_material_issue_line  
+                    where product_id = %s and material_issue_id in (select id from tpt_material_issue where date_expec between '%s' and '%s' and warehouse = %s and state = 'done')
+                '''%(product_id, date_from,date_to,locat_ids[0])
                 cr.execute(sql)
-                inventory = cr.dictfetchone()
-                if inventory:
-                    hand_quantity = inventory['ton_sl'] or 0
-                    total_cost = inventory['total_cost'] or 0
-                    avg_cost = hand_quantity and total_cost/hand_quantity or 0
-                    sql = '''
-                        select case when sum(product_isu_qty)!=0 then sum(product_isu_qty) else 0 end product_isu_qty from tpt_material_issue_line  
-                        where product_id = %s and material_issue_id in (select id from tpt_material_issue where date_expec between '%s' and '%s' and warehouse = %s and state = 'done')
-                    '''%(product_id, date_from,date_to,locat_ids[0])
-                    cr.execute(sql)
-                    product_isu_qty = cr.fetchone()[0]
-                    consum_value = (product_isu_qty*avg_cost)
+                product_isu_qty = cr.dictfetchone()['product_isu_qty']
+                consum_value = product_isu_qty
 #                 sql = '''
 #                     select case when sum(foo.product_qty)!=0 then sum(foo.product_qty) else 0 end ton_sl,case when sum(foo.price_unit)!=0 then sum(foo.price_unit) else 0 end total_cost from 
 #                         (select st.product_qty,st.price_unit*st.product_qty as price_unit
@@ -426,28 +426,28 @@ class stock_movement_analysis(osv.osv_memory):
             if categ and categ =='spares':
                 parent_ids = self.pool.get('stock.location').search(cr, uid, [('name','=','Store'),('usage','=','view')])
                 locat_ids = self.pool.get('stock.location').search(cr, uid, [('name','in',['Spares','Spare','spares']),('location_id','=',parent_ids[0])])            
+#                 sql = '''
+#                           select case when sum(st.product_qty)!=0 then sum(st.product_qty) else 0 end ton_sl,case when sum(st.price_unit*st.product_qty)!=0 then sum(st.price_unit*st.product_qty) else 0 end total_cost
+#                             from stock_move st
+#                                 join stock_location loc1 on st.location_id=loc1.id
+#                                 join stock_location loc2 on st.location_dest_id=loc2.id
+#                             where st.state='done' and st.location_id=%s and st.product_id=%s
+#                                 and ( (issue_id in (select id from tpt_material_issue where date_expec between '%s' and '%s' and state in ('done')))
+#                                     )
+#                     '''%(locat_ids[0],product_id,date_from,date_to)
+#                 cr.execute(sql)
+#                 inventory = cr.dictfetchone()
+#                 if inventory:
+#                     hand_quantity = inventory['ton_sl'] or 0
+#                     total_cost = inventory['total_cost'] or 0
+#                     avg_cost = hand_quantity and total_cost/hand_quantity or 0
                 sql = '''
-                          select case when sum(st.product_qty)!=0 then sum(st.product_qty) else 0 end ton_sl,case when sum(st.price_unit*st.product_qty)!=0 then sum(st.price_unit*st.product_qty) else 0 end total_cost
-                            from stock_move st
-                                join stock_location loc1 on st.location_id=loc1.id
-                                join stock_location loc2 on st.location_dest_id=loc2.id
-                            where st.state='done' and st.location_id=%s and st.product_id=%s
-                                and ( (issue_id in (select id from tpt_material_issue where date_expec between '%s' and '%s' and state in ('done')))
-                                    )
-                    '''%(locat_ids[0],product_id,date_from,date_to)
+                    select case when sum(product_isu_qty)!=0 then sum(product_isu_qty) else 0 end product_isu_qty from tpt_material_issue_line  
+                    where product_id = %s and material_issue_id in (select id from tpt_material_issue where date_expec between '%s' and '%s' and warehouse = %s and state = 'done')
+                '''%(product_id, date_from,date_to,locat_ids[0])
                 cr.execute(sql)
-                inventory = cr.dictfetchone()
-                if inventory:
-                    hand_quantity = inventory['ton_sl'] or 0
-                    total_cost = inventory['total_cost'] or 0
-                    avg_cost = hand_quantity and total_cost/hand_quantity or 0
-                    sql = '''
-                        select case when sum(product_isu_qty)!=0 then sum(product_isu_qty) else 0 end product_isu_qty from tpt_material_issue_line  
-                        where product_id = %s and material_issue_id in (select id from tpt_material_issue where date_expec between '%s' and '%s' and warehouse = %s and state = 'done')
-                    '''%(product_id, date_from,date_to,locat_ids[0])
-                    cr.execute(sql)
-                    product_isu_qty = cr.fetchone()[0]
-                    consum_value = (product_isu_qty*avg_cost)
+                product_isu_qty = cr.dictfetchone()['product_isu_qty']
+                consum_value = product_isu_qty
             return consum_value        
         
         def get_opening_stock(o,product_id):
@@ -620,7 +620,7 @@ class stock_movement_analysis(osv.osv_memory):
                 'receipt_qty':get_qty(stock,line.id),
                 'receipt_value':get_receipt_value(stock,line.id),
                 'consum_qty':get_qty_out(stock,line.id),
-                'consum_value':get_consumption_value(stock,line.id),     
+                'consum_value':(get_opening_stock(stock,line.id)+get_qty(stock,line.id)) and (get_opening_stock_value(stock,line.id)+get_receipt_value(stock,line.id))/(get_opening_stock(stock,line.id)+get_qty(stock,line.id))*get_consumption_value(stock,line.id) or 0,     
                 'close_stock':get_closing_stock(stock,get_qty(stock,line.id),get_qty_out(stock,line.id),get_opening_stock(stock,line.id)) ,
                 'close_value':get_closing_stock(stock,get_receipt_value(stock,line.id),get_consumption_value(stock,line.id),get_opening_stock_value(stock,line.id)) ,   
 
