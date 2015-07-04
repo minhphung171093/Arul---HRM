@@ -5177,7 +5177,7 @@ class arul_hr_permission_onduty(osv.osv):
                 sql = '''
                     SELECT COUNT(*) FROM arul_hr_permission_onduty WHERE 
                     employee_id=%s 
-                    AND to_char(date,'YYYY-MM-DD')=('%s')        
+                    AND to_char(date,'YYYY-MM-DD')=('%s') and non_availability_type_id='permission'      
                     ''' %(time.employee_id.id,time.date)
                 cr.execute(sql)
                 p = cr.fetchone()   
