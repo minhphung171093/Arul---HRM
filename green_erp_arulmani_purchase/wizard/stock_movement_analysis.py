@@ -306,6 +306,7 @@ class stock_movement_analysis(osv.osv_memory):
             date_from = o.date_from
             date_to = o.date_to
             categ = o.categ_id.cate_name
+            total = 0
     #         categ_ids = self.pool.get('product.category').search(self.cr, self.uid, [('id','=',categ[0])])
             if categ=='raw':
                 parent_ids = self.pool.get('stock.location').search(cr, uid, [('name','=','Store'),('usage','=','view')])
@@ -329,6 +330,17 @@ class stock_movement_analysis(osv.osv_memory):
                 cr.execute(sql)
                 product_isu_qty = cr.dictfetchone()
                 
+                # cong them nhung so luong bi xuat ra ko ro tu dau (can phai xem lai)
+                
+                sql = '''
+                    select case when sum(product_qty)!=0 then sum(product_qty) else 0 end product_qty 
+                    from stock_move where product_id = %s and state = 'done' and issue_id is null 
+                    and picking_id is null and inspec_id is null and location_id = %s 
+                    and to_date(to_char(date, 'YYYY-MM-DD'), 'YYYY-MM-DD') between '%s' and '%s' and location_id != location_dest_id
+                '''%(line, locat_ids[0], date_from,date_to)
+                cr.execute(sql)
+                product_qty = cr.dictfetchone()
+                
             if categ=='spares':
                 parent_ids = self.pool.get('stock.location').search(cr, uid, [('name','=','Store'),('usage','=','view')])
                 locat_ids = self.pool.get('stock.location').search(cr, uid, [('name','in',['Spares','Spare','spares']),('location_id','=',parent_ids[0])])
@@ -350,7 +362,18 @@ class stock_movement_analysis(osv.osv_memory):
                 '''%(line, date_from,date_to,locat_ids[0])
                 cr.execute(sql)
                 product_isu_qty = cr.dictfetchone()
-            return product_isu_qty and product_isu_qty['product_isu_qty'] or 0 
+                # cong them nhung so luong bi xuat ra ko ro tu dau (can phai xem lai)
+                sql = '''
+                    select case when sum(product_qty)!=0 then sum(product_qty) else 0 end product_qty 
+                    from stock_move where product_id = %s and state = 'done' and issue_id is null 
+                    and picking_id is null and inspec_id is null and location_id = %s 
+                    and to_date(to_char(date, 'YYYY-MM-DD'), 'YYYY-MM-DD') between '%s' and '%s' and location_id != location_dest_id
+                '''%(line, locat_ids[0], date_from,date_to)
+                cr.execute(sql)
+                product_qty = cr.dictfetchone()
+                
+            total = product_isu_qty['product_isu_qty'] + product_qty['product_qty']
+            return total
 
         def get_consumption_value(o, product_id):
             date_from = o.date_from
