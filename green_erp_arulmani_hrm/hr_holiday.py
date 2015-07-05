@@ -3596,17 +3596,17 @@ class arul_hr_audit_shift_time(osv.osv):
                 if line.diff_day and (start_time <= end_time):
                     time_total += 24
                 
-                if recording_hrs <= time_total:
+                if recording_hrs < time_total:
                     res = self.pool.get('ir.model.data').get_object_reference(cr, uid, 
                                             'green_erp_arulmani_hrm', 'alert_permission_form_view')
                     return {
                                     'name': 'Alert Message',
                                     'view_type': 'form',
-                                    'view_mode': 'form',
+                                    'view_mode': 'form', 
                                     'view_id': res[1],
                                     'res_model': 'alert.form',
                                     'domain': [],
-                                    'context': {'default_message':'Total Hours is not matching','audit_id':line.id},
+                                    'context': {'default_message':'Total Hours is not matching %s'%time_total,'audit_id':line.id},
                                     'type': 'ir.actions.act_window',
                                     'target': 'new',
                                 }
