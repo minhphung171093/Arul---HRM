@@ -3665,7 +3665,7 @@ class arul_hr_audit_shift_time(osv.osv):
                               
                               'approval':1,
                               'diff_day': line.diff_day,
-                              }
+                              } 
                     if a_shift>0 and g1_shift>0 and g2_shift>0 and b_shift>0 and c_shift>0 and shift_count>0:
                         emp_attendence_obj.create(cr,uid,{'employee_id':line.employee_id.id,
                                                           'employee_category_id':line.employee_id.employee_category_id and line.employee_id.employee_category_id.id or False,
