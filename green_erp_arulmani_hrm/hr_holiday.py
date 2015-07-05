@@ -3574,8 +3574,41 @@ class arul_hr_audit_shift_time(osv.osv):
                         c_shift=k[5]
                         shift_count=k[6]
                 
+                if a_shift==0 and g1_shift==0 and g2_shift==0 and b_shift==0 and c_shift==0 and shift_count==0:
+                    res = self.pool.get('ir.model.data').get_object_reference(cr, uid, 
+                                            'green_erp_arulmani_hrm', 'alert_permission_form_view')
+                    return {
+                                    'name': 'Alert Message',
+                                    'view_type': 'form',
+                                    'view_mode': 'form',
+                                    'view_id': res[1],
+                                    'res_model': 'alert.form',
+                                    'domain': [],
+                                    'context': {'default_message':'Time is not matching with actual shift','audit_id':line.id},
+                                    'type': 'ir.actions.act_window',
+                                    'target': 'new',
+                                }
+                if start_time > end_time:
+                    time_total = 24-start_time + end_time
+                else:
+                    time_total = end_time - start_time
+                if line.diff_day and (start_time <= end_time):
+                    time_total += 24
                 
-                
+                if recording_hrs <= time_total:
+                    res = self.pool.get('ir.model.data').get_object_reference(cr, uid, 
+                                            'green_erp_arulmani_hrm', 'alert_permission_form_view')
+                    return {
+                                    'name': 'Alert Message',
+                                    'view_type': 'form',
+                                    'view_mode': 'form',
+                                    'view_id': res[1],
+                                    'res_model': 'alert.form',
+                                    'domain': [],
+                                    'context': {'default_message':'Total Hours is not matching','audit_id':line.id},
+                                    'type': 'ir.actions.act_window',
+                                    'target': 'new',
+                                }
                     
                 employee_ids = emp_attendence_obj.search(cr, uid, [('employee_id','=',line.employee_id.id)])
                 if employee_ids:                        
@@ -3632,8 +3665,9 @@ class arul_hr_audit_shift_time(osv.osv):
                               
                               'approval':1,
                               'diff_day': line.diff_day,
-                              }
-                    emp_attendence_obj.create(cr,uid,{'employee_id':line.employee_id.id,
+                              } 
+                    if a_shift>0 and g1_shift>0 and g2_shift>0 and b_shift>0 and c_shift>0 and shift_count>0:
+                        emp_attendence_obj.create(cr,uid,{'employee_id':line.employee_id.id,
                                                           'employee_category_id':line.employee_id.employee_category_id and line.employee_id.employee_category_id.id or False,
                                                           'sub_category_id':line.employee_id.employee_sub_category_id and line.employee_id.employee_sub_category_id.id or False,
                                                           'department_id':line.employee_id.department_id and line.employee_id.department_id.id or False,

@@ -171,7 +171,8 @@ class cash_book_report(osv.osv_memory):
             if is_posted is True:
                 if type == 'payment':
                     sql = '''
-                            select id from account_voucher where date between '%s' and '%s' and type = 'payment' and journal_id in (select id from account_journal where type in ('cash','general')) and state in ('draft','posted')
+                            select id from account_voucher where date between '%s' and '%s' and type = 'payment' and journal_id in 
+                            (select id from account_journal where type in ('cash','general')) and state in ('draft','posted')
                         '''%(date_from, date_to)
                     cr.execute(sql)
                     account_ids = [row[0] for row in cr.fetchall()]
@@ -213,7 +214,9 @@ class cash_book_report(osv.osv_memory):
                         return []
                 elif type == 'receipt':
                     sql = '''
-                            select id from account_voucher where date between '%s' and '%s' and type = 'receipt' and journal_id in (select id from account_journal where type in ('cash','general')) and state in ('draft','posted')
+                            select id from account_voucher where date between '%s' and '%s' and type = 'receipt' 
+                            and journal_id in (select id from account_journal where type in ('cash','general')) 
+                            and state in ('draft','posted')
                         '''%(date_from, date_to)
                     cr.execute(sql)
                     account_ids = [row[0] for row in cr.fetchall()]
@@ -256,7 +259,8 @@ class cash_book_report(osv.osv_memory):
                         return []
                 else:
                     sql = '''
-                            select id from account_voucher where date between '%s' and '%s' and journal_id in (select id from account_journal where type in ('cash','general')) and state in ('draft','posted')
+                            select id from account_voucher where date between '%s' and '%s' and journal_id in 
+                            (select id from account_journal where type in ('cash','general')) and state in ('draft','posted')
                         '''%(date_from, date_to)
                     cr.execute(sql)
                     account_ids = [row[0] for row in cr.fetchall()]
@@ -334,7 +338,8 @@ class cash_book_report(osv.osv_memory):
             else: # POSTED ELSE PART
                 if type == 'payment':
                     sql = '''
-                            select id from account_voucher where date between '%s' and '%s' and type = 'payment' and journal_id in (select id from account_journal where type in ('cash','general')) and state in ('draft','posted')
+                            select id from account_voucher where date between '%s' and '%s' and type = 'payment' 
+                            and journal_id in (select id from account_journal where type in ('cash','general')) and state in ('draft','posted')
                         '''%(date_from, date_to)
                     cr.execute(sql)
                     account_ids = [row[0] for row in cr.fetchall()]
