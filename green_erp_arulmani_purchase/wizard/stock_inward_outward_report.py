@@ -118,9 +118,10 @@ class stock_inward_outward_report(osv.osv_memory):
                     select case when sum(st.product_qty)!=0 then sum(st.product_qty) else 0 end product_qty
                             from stock_move st
                             where st.state='done' and st.location_dest_id=%s and st.product_id=%s and to_char(date, 'YYYY-MM-DD') < '%s'
+                                and st.location_dest_id != st.location_id
                                 and ( picking_id is not null 
                                 or  inspec_id is not null
-                                or (st.id in (select move_id from stock_inventory_move_rel where inventory_id in (select id from stock_inventory where date <'%s' and state = 'done')))
+                                or (st.id in (select move_id from stock_inventory_move_rel where inventory_id in (select id from stock_inventory where to_char(date, 'YYYY-MM-DD') <'%s' and state = 'done')))
                             )
                     '''%(locat_ids[0], product_id.id,date_from, date_from)
                 cr.execute(sql)
@@ -150,9 +151,10 @@ class stock_inward_outward_report(osv.osv_memory):
                     select case when sum(st.product_qty)!=0 then sum(st.product_qty) else 0 end product_qty
                             from stock_move st
                             where st.state='done' and st.location_dest_id=%s and st.product_id=%s 
+                                and st.location_dest_id != st.location_id
                                 and ( (picking_id is not null and picking_id in (select id from stock_picking where to_char(date, 'YYYY-MM-DD') < '%s'))
                                 or  inspec_id is not null
-                                or (st.id in (select move_id from stock_inventory_move_rel where inventory_id in (select id from stock_inventory where date <'%s' and state = 'done')))
+                                or (st.id in (select move_id from stock_inventory_move_rel where inventory_id in (select id from stock_inventory where to_char(date, 'YYYY-MM-DD') <'%s' and state = 'done')))
                             )
                     '''%(locat_ids[0], product_id.id,date_from, date_from)
                 cr.execute(sql)
@@ -208,6 +210,7 @@ class stock_inward_outward_report(osv.osv_memory):
                        select case when sum(st.product_qty)!=0 then sum(st.product_qty) else 0 end ton_sl,case when sum(st.price_unit*st.product_qty)!=0 then sum(st.price_unit*st.product_qty) else 0 end total_cost
                         from stock_move st
                         where st.state='done' and st.location_dest_id=%s and st.product_id=%s and to_char(date, 'YYYY-MM-DD')<'%s'
+                            and st.location_dest_id != st.location_id
                             and ( picking_id is not null 
                             or inspec_id is not null 
                             or (st.id in (select move_id from stock_inventory_move_rel))
@@ -241,6 +244,7 @@ class stock_inward_outward_report(osv.osv_memory):
                        select case when sum(st.product_qty)!=0 then sum(st.product_qty) else 0 end ton_sl,case when sum(st.price_unit*st.product_qty)!=0 then sum(st.price_unit*st.product_qty) else 0 end total_cost
                         from stock_move st
                         where st.state='done' and st.location_dest_id=%s and st.product_id=%s and to_char(date, 'YYYY-MM-DD')<'%s'
+                            and st.location_dest_id != st.location_id
                             and ( picking_id is not null 
                             or inspec_id is not null 
                             or (st.id in (select move_id from stock_inventory_move_rel))
@@ -281,7 +285,7 @@ class stock_inward_outward_report(osv.osv_memory):
                 select * from account_move where doc_type in ('freight', 'good', 'grn') 
                     and ( id in (select move_id from account_move_line where (move_id in (select move_id from account_invoice where to_char(date_invoice, 'YYYY-MM-DD') between '%(date_from)s' and '%(date_to)s' and id in (select invoice_id from account_invoice_line where product_id=%(product_id)s)))
                         or (LEFT(name,17) in (select name from stock_picking where id in (select picking_id from stock_move where to_char(date, 'YYYY-MM-DD') between '%(date_from)s' and '%(date_to)s' and product_id=%(product_id)s)))
-                    ) or material_issue_id in (select id from tpt_material_issue where to_char(date_expec, 'YYYY-MM-DD') between '%(date_from)s' and '%(date_to)s' and warehouse in (%(location_row_id)s,%(location_spare_id)s) and id in (select material_issue_id from tpt_material_issue_line where product_id=%(product_id)s)) 
+                    ) or material_issue_id in (select id from tpt_material_issue where date_expec between '%(date_from)s' and '%(date_to)s' and warehouse in (%(location_row_id)s,%(location_spare_id)s) and id in (select material_issue_id from tpt_material_issue_line where product_id=%(product_id)s)) 
                         ) order by date, id
             '''%{'date_from':date_from,
                  'date_to':date_to,
@@ -485,7 +489,8 @@ class stock_inward_outward_report(osv.osv_memory):
                             from stock_move st
                                 join stock_location loc1 on st.location_id=loc1.id
                                 join stock_location loc2 on st.location_dest_id=loc2.id
-                            where st.state='done' and st.product_id=%s and loc1.usage != 'internal' and loc2.usage = 'internal' and st.location_id!=st.location_dest_id
+                            where st.state='done' and st.location_dest_id != st.location_id
+                            and st.product_id=%s and loc1.usage != 'internal' and loc2.usage = 'internal' and st.location_id!=st.location_dest_id
                             and st.location_dest_id = %s and picking_id in (select id from stock_picking where to_date(to_char(date, 'YYYY-MM-DD'), 'YYYY-MM-DD') = '%s')
                             
                     '''%(product_id.id, locat_ids[0], date)
@@ -517,7 +522,8 @@ class stock_inward_outward_report(osv.osv_memory):
                          from stock_move st
                              join stock_location loc1 on st.location_id=loc1.id
                              join stock_location loc2 on st.location_dest_id=loc2.id
-                         where st.state='done' and st.product_id=%s and loc1.usage = 'internal' and loc2.usage != 'internal' and st.location_id!=st.location_dest_id
+                         where st.state='done' and st.location_dest_id != st.location_id
+                         and st.product_id=%s and loc1.usage = 'internal' and loc2.usage != 'internal' and st.location_id!=st.location_dest_id
                          and st.location_id = %s and to_date(to_char(date, 'YYYY-MM-DD'), 'YYYY-MM-DD') = '%s'
                             
                     '''%(product_id.id, locat_ids[0], good.date_expec)
@@ -548,7 +554,8 @@ class stock_inward_outward_report(osv.osv_memory):
                             from stock_move st
                                 join stock_location loc1 on st.location_id=loc1.id
                                 join stock_location loc2 on st.location_dest_id=loc2.id
-                            where st.state='done' and st.product_id=%s and loc1.usage != 'internal' and loc2.usage = 'internal' and st.location_id!=st.location_dest_id
+                            where st.state='done' and st.location_dest_id != st.location_id
+                            and st.product_id=%s and loc1.usage != 'internal' and loc2.usage = 'internal' and st.location_id!=st.location_dest_id
                             and st.location_dest_id = %s and picking_id in (select id from stock_picking where to_date(to_char(date, 'YYYY-MM-DD'), 'YYYY-MM-DD') = '%s')
                             
                     '''%(product_id.id, locat_ids[0], date)
@@ -580,7 +587,8 @@ class stock_inward_outward_report(osv.osv_memory):
                          from stock_move st
                              join stock_location loc1 on st.location_id=loc1.id
                              join stock_location loc2 on st.location_dest_id=loc2.id
-                         where st.state='done' and st.product_id=%s and loc1.usage = 'internal' and loc2.usage != 'internal' and st.location_id!=st.location_dest_id
+                         where st.state='done' and st.location_dest_id != st.location_id
+                         and st.product_id=%s and loc1.usage = 'internal' and loc2.usage != 'internal' and st.location_id!=st.location_dest_id
                          and st.location_id = %s and to_date(to_char(date, 'YYYY-MM-DD'), 'YYYY-MM-DD') = '%s'
                             
                     '''%(product_id.id, locat_ids[0], date)
@@ -640,7 +648,7 @@ class stock_inward_outward_report(osv.osv_memory):
             if categ == 'raw':
                 sql = '''
                     select case when sum(product_qty)!=0 then sum(product_qty) else 0 end product_qty from stock_move 
-                    where location_dest_id = %s and state = 'done' 
+                    where location_dest_id = %s and state = 'done' and location_dest_id != location_id
                     and id in (select move_id from stock_inventory_move_rel) and to_char(date, 'YYYY-MM-DD') between '%s' and '%s' and product_id = %s
                     and location_id != location_dest_id
                 '''%(locat_ids_raw[0], date_from, date_to, product_id.id)
@@ -649,7 +657,7 @@ class stock_inward_outward_report(osv.osv_memory):
             if categ == 'spares':
                 sql = '''
                     select case when sum(product_qty)!=0 then sum(product_qty) else 0 end product_qty from stock_move 
-                    where location_dest_id = %s and state = 'done' 
+                    where location_dest_id = %s and state = 'done' and location_dest_id != location_id
                     and id in (select move_id from stock_inventory_move_rel) and to_char(date, 'YYYY-MM-DD') between '%s' and '%s' and product_id = %s
                     and location_id != location_dest_id
                 '''%(locat_ids_spares[0], date_from, date_to, product_id.id)

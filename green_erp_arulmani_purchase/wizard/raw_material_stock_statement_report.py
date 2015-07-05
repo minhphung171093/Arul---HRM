@@ -125,6 +125,7 @@ class tpt_raw_stock_statement(osv.osv_memory):
                             join stock_location loc1 on st.location_id=loc1.id
                             join stock_location loc2 on st.location_dest_id=loc2.id
                         where st.state='done' and st.location_dest_id=%s and st.product_id=%s and to_date(to_char(st.date, 'YYYY-MM-DD'), 'YYYY-MM-DD') < '%s'
+                            and st.location_dest_id != st.location_id
                             and ( (picking_id in (select id from stock_picking where  state = 'done')) 
                             or  (inspec_id in (select id from tpt_quanlity_inspection where  state in ('done','remaining')))
                             or (st.id in (select move_id from stock_inventory_move_rel where inventory_id in (select id from stock_inventory where  state = 'done')))
@@ -132,15 +133,21 @@ class tpt_raw_stock_statement(osv.osv_memory):
                 '''%(locat_ids[0],product_id,date_from)
             cr.execute(sql)
             inventory = cr.dictfetchone()
-            if inventory:
-                sql = '''
-                        select case when sum(product_isu_qty)!=0 then sum(product_isu_qty) else 0 end product_isu_qty from tpt_material_issue_line  
-                        where product_id = %s and material_issue_id in (select id from tpt_material_issue where date_expec < '%s' and warehouse = %s and state = 'done')
-                    '''%(product_id, date_from,locat_ids[0])
-                cr.execute(sql)
-                product_isu_qty = cr.dictfetchone()
-                if product_isu_qty:
-                    open_qty = inventory['ton_sl'] - product_isu_qty['product_isu_qty']
+            sql = '''
+                    select case when sum(product_isu_qty)!=0 then sum(product_isu_qty) else 0 end product_isu_qty from tpt_material_issue_line  
+                    where product_id = %s and material_issue_id in (select id from tpt_material_issue where date_expec < '%s' and warehouse = %s and state = 'done')
+                '''%(product_id, date_from,locat_ids[0])
+            cr.execute(sql)
+            product_isu_qty = cr.dictfetchone()
+            sql = '''
+                select case when sum(product_qty)!=0 then sum(product_qty) else 0 end product_qty 
+                from stock_move where product_id = %s and state = 'done' and issue_id is null 
+                and picking_id is null and inspec_id is null and location_id = %s 
+                and to_date(to_char(date, 'YYYY-MM-DD'), 'YYYY-MM-DD') < '%s' and location_id != location_dest_id
+            '''%(product_id, locat_ids[0], date_from)
+            cr.execute(sql)
+            product_qty = cr.dictfetchone()['product_qty']
+            open_qty = inventory['ton_sl'] - product_isu_qty['product_isu_qty'] - product_qty
             return open_qty
         def get_day_opening_stock_value(o, product_id):
             opening_stock_value = 0
@@ -153,6 +160,7 @@ class tpt_raw_stock_statement(osv.osv_memory):
                             join stock_location loc1 on st.location_id=loc1.id
                             join stock_location loc2 on st.location_dest_id=loc2.id
                         where st.state='done' and st.location_dest_id=%s and st.product_id=%s and to_date(to_char(st.date, 'YYYY-MM-DD'), 'YYYY-MM-DD') < '%s'
+                            and st.location_dest_id != st.location_id
                             and ( (picking_id in (select id from stock_picking where to_date(to_char(st.date, 'YYYY-MM-DD'), 'YYYY-MM-DD') < '%s' and state = 'done')) 
                             or  (inspec_id in (select id from tpt_quanlity_inspection where to_date(to_char(st.date, 'YYYY-MM-DD'), 'YYYY-MM-DD') < '%s' and state in ('done','remaining')))
                             or (st.id in (select move_id from stock_inventory_move_rel where inventory_id in (select id from stock_inventory where to_date(to_char(st.date, 'YYYY-MM-DD'), 'YYYY-MM-DD') < '%s' and  state = 'done')))
@@ -184,6 +192,7 @@ class tpt_raw_stock_statement(osv.osv_memory):
                                 (select st.product_qty
                                     from stock_move st 
                                     where st.state='done' and st.product_id = %s and st.location_dest_id = %s and to_char(date, 'YYYY-MM-DD') = '%s' 
+                                    and st.location_dest_id != st.location_id
                                     and (picking_id is not null
                                          or inspec_id is not null
                                          or (id in (select move_id from stock_inventory_move_rel)))
@@ -210,6 +219,7 @@ class tpt_raw_stock_statement(osv.osv_memory):
                             join stock_location loc1 on st.location_id=loc1.id
                             join stock_location loc2 on st.location_dest_id=loc2.id
                         where st.state='done' and st.location_dest_id = %s and st.product_id=%s and to_date(to_char(date, 'YYYY-MM-DD'), 'YYYY-MM-DD') = '%s' and loc1.usage != 'internal' and loc2.usage = 'internal' 
+                                and st.location_dest_id != st.location_id
                                 and (picking_id in (select id from stock_picking where  to_date(to_char(date, 'YYYY-MM-DD'), 'YYYY-MM-DD') = '%s' and state = 'done')
                                     or (st.id in (select move_id from stock_inventory_move_rel where inventory_id in 
                                           (select id from stock_inventory where to_date(to_char(date, 'YYYY-MM-DD'), 'YYYY-MM-DD') = '%s' and state = 'done'))))
@@ -258,7 +268,7 @@ class tpt_raw_stock_statement(osv.osv_memory):
                             join stock_location loc1 on st.location_id=loc1.id
                             join stock_location loc2 on st.location_dest_id=loc2.id
                         where st.state='done' and st.location_id=%s and st.product_id=%s and  to_date(to_char(date, 'YYYY-MM-DD'), 'YYYY-MM-DD') = '%s'
-
+                            and st.location_dest_id != st.location_id
                             and ( (issue_id in (select id from tpt_material_issue where date_expec = '%s' and state in ('done')))
                                 )
                 '''%(locat_ids[0],product_id,date_from,date_from)
@@ -300,26 +310,33 @@ class tpt_raw_stock_statement(osv.osv_memory):
             locat_ids = self.pool.get('stock.location').search(cr, uid, [('name','in',['Raw Material','Raw Materials','Raw material']),('location_id','=',parent_ids[0])])
             sql = '''
                       select case when sum(st.product_qty)!=0 then sum(st.product_qty) else 0 end ton_sl,case when sum(st.price_unit*st.product_qty)!=0 then sum(st.price_unit*st.product_qty) else 0 end total_cost
-                        from stock_move st
-                            join stock_location loc1 on st.location_id=loc1.id
-                            join stock_location loc2 on st.location_dest_id=loc2.id
-                        where st.state='done' and st.location_dest_id=%s and st.product_id=%s and to_date(to_char(st.date, 'YYYY-MM-DD'), 'YYYY-MM-DD') < '%s'
-                            and ( (picking_id in (select id from stock_picking where  state = 'done')) 
-                            or  (inspec_id in (select id from tpt_quanlity_inspection where  state in ('done','remaining')))
-                            or (st.id in (select move_id from stock_inventory_move_rel where inventory_id in (select id from stock_inventory where  state = 'done')))
-                                )
-                '''%(locat_ids[0],product_id,retirement)
+                            from stock_move st
+                                join stock_location loc1 on st.location_id=loc1.id
+                                join stock_location loc2 on st.location_dest_id=loc2.id
+                            where st.state='done' and st.location_dest_id=%s and st.product_id=%s and to_date(to_char(date, 'YYYY-MM-DD'), 'YYYY-MM-DD') <= '%s'
+                                and st.location_dest_id != st.location_id
+                                and ( (picking_id is not null) 
+                                or  (inspec_id is not null)
+                                or (st.id in (select move_id from stock_inventory_move_rel where inventory_id in (select id from stock_inventory where to_date(to_char(date, 'YYYY-MM-DD'), 'YYYY-MM-DD') <= '%s' and state = 'done')))
+                                    )
+                '''%(locat_ids[0],product_id,retirement,retirement)
             cr.execute(sql)
             inventory = cr.dictfetchone()
-            if inventory:
-                sql = '''
-                        select case when sum(product_isu_qty)!=0 then sum(product_isu_qty) else 0 end product_isu_qty from tpt_material_issue_line  
-                        where product_id = %s and material_issue_id in (select id from tpt_material_issue where date_expec < '%s' and warehouse = %s and state = 'done')
-                    '''%(product_id, retirement,locat_ids[0])
-                cr.execute(sql)
-                product_isu_qty = cr.dictfetchone()
-                if product_isu_qty:
-                    open_qty = inventory['ton_sl'] - product_isu_qty['product_isu_qty']
+            sql = '''
+                    select case when sum(product_isu_qty)!=0 then sum(product_isu_qty) else 0 end product_isu_qty from tpt_material_issue_line  
+                        where product_id = %s and material_issue_id in (select id from tpt_material_issue where date_expec <= '%s' and warehouse = %s and state = 'done')
+                '''%(product_id, retirement,locat_ids[0])
+            cr.execute(sql)
+            product_isu_qty = cr.dictfetchone()
+            sql = '''
+                    select case when sum(product_qty)!=0 then sum(product_qty) else 0 end product_qty 
+                        from stock_move where product_id = %s and state = 'done' and issue_id is null 
+                        and picking_id is null and inspec_id is null and location_id = %s 
+                        and to_date(to_char(date, 'YYYY-MM-DD'), 'YYYY-MM-DD') <= '%s' and location_id != location_dest_id
+            '''%(product_id, locat_ids[0], retirement)
+            cr.execute(sql)
+            product_qty = cr.dictfetchone()['product_qty']
+            open_qty = inventory['ton_sl'] - product_isu_qty['product_isu_qty'] - product_qty
             return open_qty        
         
         def get_month_opening_stock_value(o, product_id):
@@ -348,6 +365,7 @@ class tpt_raw_stock_statement(osv.osv_memory):
                             join stock_location loc1 on st.location_id=loc1.id
                             join stock_location loc2 on st.location_dest_id=loc2.id
                         where st.state='done' and st.location_dest_id=%s and st.product_id=%s and to_date(to_char(st.date, 'YYYY-MM-DD'), 'YYYY-MM-DD') <= '%s'
+                            and st.location_dest_id != st.location_id
                             and ( (picking_id in (select id from stock_picking where  state = 'done')) 
                             or  (inspec_id in (select id from tpt_quanlity_inspection where  state in ('done','remaining')))
                             or (st.id in (select move_id from stock_inventory_move_rel where inventory_id in (select id from stock_inventory where  state = 'done')))
@@ -361,7 +379,7 @@ class tpt_raw_stock_statement(osv.osv_memory):
                 avg_cost = hand_quantity and total_cost/hand_quantity or 0
                 sql = '''
                     select case when sum(product_isu_qty)!=0 then sum(product_isu_qty) else 0 end product_isu_qty
-                        from tpt_material_issue_line where material_issue_id in (select id from tpt_material_issue where date_expec<'%s' and warehouse = %s and state='done') and product_id=%s
+                        from tpt_material_issue_line where material_issue_id in (select id from tpt_material_issue where date_expec<='%s' and warehouse = %s and state='done') and product_id=%s
                 '''%(retirement,locat_ids[0],product_id)
                 cr.execute(sql)
                 product_isu_qty = cr.fetchone()[0]
@@ -379,6 +397,7 @@ class tpt_raw_stock_statement(osv.osv_memory):
                                 (select st.product_qty
                                     from stock_move st 
                                     where st.state='done' and st.product_id = %s and st.location_dest_id = %s and to_char(date, 'YYYY-MM-DD') between '%s' and '%s' 
+                                    and st.location_dest_id != st.location_id
                                     and (picking_id is not null
                                          or inspec_id is not null
                                          or (id in (select move_id from stock_inventory_move_rel)))
@@ -406,6 +425,7 @@ class tpt_raw_stock_statement(osv.osv_memory):
                             join stock_location loc1 on st.location_id=loc1.id
                             join stock_location loc2 on st.location_dest_id=loc2.id
                         where st.state='done' and st.location_dest_id = %s and st.product_id=%s and to_date(to_char(date, 'YYYY-MM-DD'), 'YYYY-MM-DD') between '%s' and '%s' and loc1.usage != 'internal' and loc2.usage = 'internal' 
+                                and st.location_dest_id != st.location_id
                                 and (picking_id in (select id from stock_picking where  state = 'done')
                                     or (st.id in (select move_id from stock_inventory_move_rel where inventory_id in 
                                           (select id from stock_inventory where  state = 'done'))))
@@ -439,7 +459,7 @@ class tpt_raw_stock_statement(osv.osv_memory):
             locat_ids = self.pool.get('stock.location').search(cr, uid, [('name','in',['Raw Material','Raw Materials','Raw material']),('location_id','=',parent_ids[0])])
             sql = '''
                 select case when sum(product_isu_qty)!=0 then sum(product_isu_qty) else 0 end product_isu_qty from tpt_material_issue_line  
-                where product_id = %s and material_issue_id in (select id from tpt_material_issue where to_char(date_expec, 'YYYY-MM-DD') between '%s' and '%s' and warehouse = %s and state = 'done')
+                where product_id = %s and material_issue_id in (select id from tpt_material_issue where date_expec between '%s' and '%s' and warehouse = %s and state = 'done')
             '''%(product,month_head, date_from,locat_ids[0])
             cr.execute(sql)
             product_isu_qty = cr.dictfetchone()
@@ -457,7 +477,7 @@ class tpt_raw_stock_statement(osv.osv_memory):
                             join stock_location loc1 on st.location_id=loc1.id
                             join stock_location loc2 on st.location_dest_id=loc2.id
                         where st.state='done' and st.location_id=%s and st.product_id=%s and to_date(to_char(st.date, 'YYYY-MM-DD'), 'YYYY-MM-DD') between '%s' and '%s'
-
+                            and st.location_dest_id != st.location_id
                             and ( (issue_id in (select id from tpt_material_issue where state in ('done')))
                                 )
                 '''%(locat_ids[0],product_id,month_head,date_from)
@@ -495,6 +515,7 @@ class tpt_raw_stock_statement(osv.osv_memory):
                             join stock_location loc1 on st.location_id=loc1.id
                             join stock_location loc2 on st.location_dest_id=loc2.id
                         where st.state='done' and st.location_dest_id=%s and st.product_id=%s and to_date(to_char(st.date, 'YYYY-MM-DD'), 'YYYY-MM-DD') < '%s'
+                            and st.location_dest_id != st.location_id
                             and ( (picking_id in (select id from stock_picking where  state = 'done')) 
                             or  (inspec_id in (select id from tpt_quanlity_inspection where  state in ('done','remaining')))
                             or (st.id in (select move_id from stock_inventory_move_rel where inventory_id in (select id from stock_inventory where  state = 'done')))
@@ -533,6 +554,7 @@ class tpt_raw_stock_statement(osv.osv_memory):
                             join stock_location loc1 on st.location_id=loc1.id
                             join stock_location loc2 on st.location_dest_id=loc2.id
                         where st.state='done' and st.location_dest_id=%s and st.product_id=%s and to_date(to_char(st.date, 'YYYY-MM-DD'), 'YYYY-MM-DD') <= '%s'
+                            and st.location_dest_id != st.location_id
                             and ( (picking_id in (select id from stock_picking where  state = 'done')) 
                             or  (inspec_id in (select id from tpt_quanlity_inspection where  state in ('done','remaining')))
                             or (st.id in (select move_id from stock_inventory_move_rel where inventory_id in (select id from stock_inventory where  state = 'done')))
@@ -574,6 +596,7 @@ class tpt_raw_stock_statement(osv.osv_memory):
                                     (select st.product_qty
                                         from stock_move st 
                                         where st.state='done' and st.product_id = %s and st.location_dest_id = %s and to_char(date, 'YYYY-MM-DD') between '%s' and '%s' 
+                                        and st.location_dest_id != st.location_id
                                         and (picking_id is not null
                                              or inspec_id is not null
                                              or (id in (select move_id from stock_inventory_move_rel)))
@@ -609,6 +632,7 @@ class tpt_raw_stock_statement(osv.osv_memory):
                             join stock_location loc1 on st.location_id=loc1.id
                             join stock_location loc2 on st.location_dest_id=loc2.id
                         where st.state='done' and st.location_dest_id = %s and st.product_id=%s and to_date(to_char(date, 'YYYY-MM-DD'), 'YYYY-MM-DD') between '%s' and '%s' and loc1.usage != 'internal' and loc2.usage = 'internal' 
+                                and st.location_dest_id != st.location_id
                                 and (picking_id in (select id from stock_picking where  state = 'done')
                                     or (st.id in (select move_id from stock_inventory_move_rel where inventory_id in 
                                           (select id from stock_inventory where  state = 'done'))))
@@ -676,7 +700,7 @@ class tpt_raw_stock_statement(osv.osv_memory):
                             join stock_location loc1 on st.location_id=loc1.id
                             join stock_location loc2 on st.location_dest_id=loc2.id
                         where st.state='done' and st.location_id=%s and st.product_id=%s and to_date(to_char(st.date, 'YYYY-MM-DD'), 'YYYY-MM-DD') between '%s' and '%s'
-
+                            and st.location_dest_id != st.location_id
                             and ( (issue_id in (select id from tpt_material_issue where state in ('done')))
                                 )
                 '''%(locat_ids[0],product_id,year,date_from)
