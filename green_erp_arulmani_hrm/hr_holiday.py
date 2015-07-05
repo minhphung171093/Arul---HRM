@@ -3602,7 +3602,7 @@ class arul_hr_audit_shift_time(osv.osv):
                     return {
                                     'name': 'Alert Message',
                                     'view_type': 'form',
-                                    'view_mode': 'form',
+                                    'view_mode': 'form', 
                                     'view_id': res[1],
                                     'res_model': 'alert.form',
                                     'domain': [],
