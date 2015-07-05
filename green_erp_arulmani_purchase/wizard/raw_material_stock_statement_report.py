@@ -35,7 +35,8 @@ class tpt_raw_material_stock_statement(osv.osv):
     def print_xls(self, cr, uid, ids, context=None):
         if context is None:
             context = {}
-        datas = {'ids': context.get('active_ids', [])}
+#         datas = {'ids': context.get('active_ids', [])}
+        datas = {'ids': ids}
         datas['model'] = 'tpt.raw.material.stock.statement'
         datas['form'] = self.read(cr, uid, ids)[0]
         datas['form'].update({'active_id':context.get('active_ids',False)})
@@ -44,7 +45,8 @@ class tpt_raw_material_stock_statement(osv.osv):
     def print_pdf(self, cr, uid, ids, context=None):
         if context is None:
             context = {}
-        datas = {'ids': context.get('active_ids', [])}
+#         datas = {'ids': context.get('active_ids', [])}
+        datas = {'ids': ids}
         datas['model'] = 'tpt.raw.material.stock.statement'
         datas['form'] = self.read(cr, uid, ids)[0]
         datas['form'].update({'active_id':context.get('active_ids',False)})
@@ -397,7 +399,6 @@ class tpt_raw_stock_statement(osv.osv_memory):
                                 (select st.product_qty
                                     from stock_move st 
                                     where st.state='done' and st.product_id = %s and st.location_dest_id = %s and to_char(date, 'YYYY-MM-DD') between '%s' and '%s' 
-                                    and st.location_dest_id != st.location_id
                                     and (picking_id is not null
                                          or inspec_id is not null
                                          or (id in (select move_id from stock_inventory_move_rel)))

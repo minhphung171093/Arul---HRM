@@ -35,9 +35,9 @@ class tpt_stock_inward_outward(osv.osv):
         if context is None:
             context = {}
 #         datas = {'ids': context.get('active_ids', [])}
-        for line in self.browse(cr, uid, ids, context=context):
-            context.update({'active_ids': [line.id]})
-        datas = {'ids': context.get('active_ids', [])}
+#         for line in self.browse(cr, uid, ids, context=context):
+#             context.update({'active_ids': [line.id]})
+        datas = {'ids': ids}
         datas['model'] = 'tpt.stock.inward.outward'
         datas['form'] = self.read(cr, uid, ids)[0]
         datas['form'].update({'active_id':context.get('active_ids',False)})
@@ -47,9 +47,9 @@ class tpt_stock_inward_outward(osv.osv):
         if context is None:
             context = {}
 #         datas = {'ids': context.get('active_ids', [])}
-        for line in self.browse(cr, uid, ids, context=context):
-            context.update({'active_ids': [line.id]})
-        datas = {'ids': context.get('active_ids', [])}
+#         for line in self.browse(cr, uid, ids, context=context):
+#             context.update({'active_ids': [line.id]})
+        datas = {'ids': ids}
         datas['model'] = 'tpt.stock.inward.outward'
         datas['form'] = self.read(cr, uid, ids)[0]
         datas['form'].update({'active_id':context.get('active_ids',False)})
@@ -69,6 +69,7 @@ class tpt_stock_inward_outward_line(osv.osv):
         'transaction_quantity': fields.float('Transaction Quantity'),
         'stock_value': fields.float('Stock Value'),
         'current_material_value': fields.float('Current Material Value'),
+#         'sl_chuaro': fields.float('SL Chua Ro'),
     }
     
 tpt_stock_inward_outward_line()
@@ -699,18 +700,49 @@ class stock_inward_outward_report(osv.osv_memory):
                 product_qty = cr.dictfetchone()
             return product_qty and product_qty['product_qty'] or 0
         
+        def get_line_qty_chuaro(o, date):
+            product_id = o.product_id
+            categ = product_id.categ_id.cate_name
+            if categ == 'raw':
+                parent_ids = self.pool.get('stock.location').search(cr, uid, [('name','=','Store'),('usage','=','view')])
+                locat_ids = self.pool.get('stock.location').search(cr, uid, [('name','in',['Raw Material','Raw Materials','Raw material']),('location_id','=',parent_ids[0])])
+                sql = '''
+                    select case when sum(product_qty)!=0 then sum(product_qty) else 0 end product_qty 
+                    from stock_move where product_id = %s and state = 'done' and issue_id is null 
+                    and picking_id is null and inspec_id is null and location_id = %s 
+                    and to_date(to_char(date, 'YYYY-MM-DD'), 'YYYY-MM-DD') = '%s' and location_id != location_dest_id
+                '''%(product_id.id, locat_ids[0], date)
+                cr.execute(sql)
+                product_qty = cr.dictfetchone()
+            if categ == 'spares':
+                parent_ids = self.pool.get('stock.location').search(cr, uid, [('name','=','Store'),('usage','=','view')])
+                locat_ids = self.pool.get('stock.location').search(cr, uid, [('name','in',['Spares','Spare','spares']),('location_id','=',parent_ids[0])])
+                sql = '''
+                    select case when sum(product_qty)!=0 then sum(product_qty) else 0 end product_qty 
+                    from stock_move where product_id = %s and state = 'done' and issue_id is null 
+                    and picking_id is null and inspec_id is null and location_id = %s 
+                    and to_date(to_char(date, 'YYYY-MM-DD'), 'YYYY-MM-DD') = '%s' and location_id != location_dest_id
+                '''%(product_id.id, locat_ids[0], date)
+                cr.execute(sql)
+                product_qty = cr.dictfetchone()
+            return product_qty and product_qty['product_qty'] or 0
+        
         closing_stock = 0
+        sl_chuaro = 0
+        qty_chuaro = 0
         for seq,line in enumerate(get_detail_lines(stock)):
+            sl_chuaro = get_line_qty_chuaro(stock,line['date'])
             trans_qty = get_transaction_qty(stock,line['id'], line['material_issue_id'], line['doc_type'])
             closing_stock += trans_qty
             if line['doc_type']=='good':
                 qty = 0
                 value = 0
                 for l in stock_in_out_line:
-                    qty += l[2]['transaction_quantity']
+                    qty += l[2]['transaction_quantity'] 
+#                     qty_chuaro += l[2]['sl_chuaro']
                     value += l[2]['stock_value']
-                st = qty and value/qty or 0
-                st_value = st*trans_qty
+                st = (qty) and value/(qty) or 0
+                st_value = st*(trans_qty)
             else:
                 st_value = stock_value(get_line_stock_value(stock,line['id'], line['material_issue_id'], line['doc_type'], line['date']), line)
             self.st_sum_value += st_value
@@ -728,6 +760,7 @@ class stock_inward_outward_report(osv.osv_memory):
                 'transaction_quantity': trans_qty,
                 'stock_value': st_value,
                 'current_material_value':cur,
+#                 'sl_chuaro': sl_chuaro,
             }))
             
         vals = {
