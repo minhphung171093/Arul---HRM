@@ -5060,7 +5060,7 @@ class arul_hr_permission_onduty(osv.osv):
                     'permission_id':line.id,
                     'create_uid':line.create_uid,
                 })
-                audit_obj.new_approve_shift_time(cr, SUPERUSER_ID,[audit_id])
+                audit_obj.new_approve_shift_time(cr, SUPERUSER_ID,[audit_id]) # new shift master
                # date_from += datetime.timedelta(days=1)
         else:
             day = permission.date[8:10]
@@ -6127,7 +6127,7 @@ class arul_hr_punch_in_out(osv.osv):
                                         else:
                                             detail_obj2.write(cr, uid, [audit_shift.id],{'out_time':out_time,'punch_out_date':out_date,
                                                                                 'actual_work_shift_id':shift_id,})
-                                        detail_obj2.new_approve_shift_time(cr, uid, [audit_shift.id]) #new shift master
+                                        detail_obj2.approve_shift_time(cr, uid, [audit_shift.id]) #new shift master
                                     else:
                                         if audit_shift.work_date!=date:
                                             detail_obj2.write(cr, uid, [audit_shift.id],{'type':'punch',
