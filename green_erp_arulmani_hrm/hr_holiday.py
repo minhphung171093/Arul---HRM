@@ -3556,9 +3556,9 @@ class arul_hr_audit_shift_time(osv.osv):
                     end_time = shift_out
                 
                 ###
-                     
+                recording_hrs = 0     
                 sql = '''
-                             select id,a_shift,g1_shift,g2_shift,b_shift,c_shift,shift_count from tpt_work_shift where 
+                             select id,a_shift,g1_shift,g2_shift,b_shift,c_shift,shift_count,time_total from tpt_work_shift where 
                             (%s between min_start_time and max_start_time)
                             and
                             (%s between min_end_time and max_end_time)
@@ -3573,6 +3573,7 @@ class arul_hr_audit_shift_time(osv.osv):
                         b_shift=k[4]
                         c_shift=k[5]
                         shift_count=k[6]
+                        recording_hrs=k[7]
                 
                 if a_shift==0 and g1_shift==0 and g2_shift==0 and b_shift==0 and c_shift==0 and shift_count==0:
                     res = self.pool.get('ir.model.data').get_object_reference(cr, uid, 
