@@ -2162,6 +2162,120 @@ class tpt_update_stock_move_report(osv.osv):
                                                 'state_inspec': quanlity.state,
                                                         }))
         return self.write(cr, uid, ids, {'update_line':quanlity_inspec})
+    
+    def sync_stock_move_and_quanlity_inspection_v1(self, cr, uid, ids, context=None):
+        def select_quanlity_inspection_map_stock_move(cr, uid):
+            num = 0
+            sql = '''
+                select id from tpt_quanlity_inspection where need_inspec_id is null
+            '''
+            cr.execute(sql)
+            inspec_ids = [r[0] for r in cr.fetchall()]
+            print 'Co inspection Khong co stock move nguon: ',len(inspec_ids),' dong ',inspec_ids
+            return inspec_ids
+
+        quanlity_inspec_obj = self.pool.get('tpt.quanlity.inspection')
+        move_obj = self.pool.get('stock.move')
+
+        quanlity_inspec_ids = True
+        while (quanlity_inspec_ids):
+            #Co inspection Khong co stock move nguon
+            quanlity_inspec_ids = select_quanlity_inspection_map_stock_move(cr, uid)
+            for inspec in quanlity_inspec_obj.browse(cr, uid, quanlity_inspec_ids):
+                sql = '''
+                    select id from stock_move where picking_id=%s and product_id=%s and state='done' and action_taken='need' and
+                        id not in (select need_inspec_id from tpt_quanlity_inspection where need_inspec_id is not null)
+                '''%(inspec.name.id,inspec.product_id.id)
+                cr.execute(sql)
+                move_ids = [r[0] for r in cr.fetchall()]
+#                 move_ids = move_obj.search(cr, uid, [('picking_id','=',inspec.name.id),('product_id','=',inspec.product_id.id),('state','=','done'),('action_taken','=','need')])
+                if len(move_ids)>=1:
+                    move = move_obj.browse(cr, uid, move_ids[0])
+                    sql = '''
+                        delete from stock_move where inspec_id=%s
+                    '''%(inspec.id)
+                    cr.execute(sql)
+                    sql = '''
+                        update tpt_quanlity_inspection set qty=%s,remaining_qty=%s,qty_approve=%s,state='draft',need_inspec_id=%s where id = %s
+                    '''%(move.product_qty,move.product_qty,move.product_qty,move.id,inspec.id)
+                    cr.execute(sql)
+                if not move_ids:
+                    sql = '''
+                        delete from stock_move where inspec_id=%s
+                    '''%(inspec.id)
+                    cr.execute(sql)
+                    sql = '''
+                        delete from tpt_quanlity_inspection where id=%s
+                    '''%(inspec.id)
+                    cr.execute(sql)
+                
+        return self.write(cr, uid, ids, {'result':'sync_stock_move_and_quanlity_inspection V1 Done'})   
+    
+    def sync_stock_move_and_quanlity_inspection_v2(self, cr, uid, ids, context=None):
+        
+        def select_stock_move_map_quanlity_inspection(cr, uid):
+            move_miss = 0
+            move_more = 0
+            sql = '''
+                select id from stock_move where state='done' and action_taken='need'
+            '''
+            cr.execute(sql)
+            move_ids = [r[0] for r in cr.fetchall()]
+            move_miss_ids = []
+            move_more_ids = []
+            for move in self.pool.get('stock.move').browse(cr, uid,move_ids):
+                sql = '''
+                    select id from tpt_quanlity_inspection where need_inspec_id=%s
+                '''%(move.id)
+                cr.execute(sql)
+                inspec_ids = [r[0] for r in cr.fetchall()]
+                if len(inspec_ids)==0:
+                    move_miss_ids.append(move.id)
+                    move_miss+=1
+#                 if len(inspec_ids)>1:
+#                     move_more_ids.append(move.id)
+#                     move_more+=1
+#                     print 'stock move nguon co nhieu quanlity inspection: ',move['id'],move_more,' voi ',inspec_ids
+            print 'stock move nguon khong co quanlity inspection: ',move_miss,' dong ',move_miss_ids
+            return move_miss_ids
+        
+        quanlity_inspec_obj = self.pool.get('tpt.quanlity.inspection')
+        move_obj = self.pool.get('stock.move')
+        #stock move nguon khong co quanlity inspection
+        move_miss_ids = select_stock_move_map_quanlity_inspection(cr, uid)
+        for move in move_obj.browse(cr, uid, move_miss_ids):
+            product_line = []
+            if move.product_id.categ_id.cate_name=='raw':
+                for para in move.product_id.spec_parameter_line: 
+                    product_line.append((0,0,{
+                                        'name':para.name and para.name.id or False,
+                                       'value':para.required_spec,
+                                       'uom_id':para.uom_po_id and para.uom_po_id.id or False,
+                                       }))
+            vals={
+                    'product_id':move.product_id.id,
+                    'qty':move.product_qty,
+                    'remaining_qty':move.product_qty,
+                    'name':move.picking_id.id,
+                    'supplier_id':move.picking_id.partner_id.id,
+                    'date':move.picking_id.date,
+                    'specification_line':product_line,
+                    'need_inspec_id':move.id,
+                    'price_unit':move.price_unit or 0,
+                    }
+            quanlity_inspec_obj.create(cr, SUPERUSER_ID, vals)
+        
+        sql = '''
+            delete from stock_move where inspec_id in(select id from tpt_quanlity_inspection where need_inspec_id not in (select id from stock_move where state='done' and action_taken='need'))
+        '''
+        cr.execute(sql)
+        sql = '''
+            delete from tpt_quanlity_inspection where need_inspec_id not in (select id from stock_move where state='done' and action_taken='need')
+        '''
+        cr.execute(sql)
+        
+        return self.write(cr, uid, ids, {'result':'sync_stock_move_and_quanlity_inspection V2 Done'})   
+    
 tpt_update_stock_move_report()
 
 class tpt_update_inspection_line(osv.osv):
