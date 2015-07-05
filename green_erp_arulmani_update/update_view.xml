@@ -38,8 +38,10 @@
 	            		<button name="update_date_stock_move" string="Update Date Stock Move (1)" type="object" class="oe_highlight"/> 
 	            		<button name="update_date_stock_move_from_inspection" string="Update Date Stock Move From Inspection (2)" type="object" class="oe_highlight"/> 
 	            		<button name="update_date_inspection" string="Update Date Inspection Match Date Stock Picking (3)" type="object" class="oe_highlight"/> 
-	            		<button name="update_one_stockmove_one_inspection" string="Update One Stock Move One Inspection (5)" type="object" class="oe_highlight"/> 
-		            	<button name="update_one_stockmove_one_inspection_v2" string="Update One Stock Move One Inspection_V2 (6)" type="object" class="oe_highlight"/>
+	            		<button name="update_date_between_issue_and_account" string="Update Date Between Good Issue and Account Move (4)" type="object" class="oe_highlight"/> 
+	            		<button name="update_date_between_issue_and_stockmove" string="Update Date Between Good Issue and Stock Move (5)" type="object" class="oe_highlight"/> 
+	            		<button name="update_one_stockmove_one_inspection" string="Update One Stock Move One Inspection (6)" type="object" class="oe_highlight"/> 
+		            	<button name="update_one_stockmove_one_inspection_v2" string="Update One Stock Move One Inspection_V2 (7)" type="object" class="oe_highlight"/>
 		            	<button name="update_data_104" string="Update Inspection id 104" type="object" class="oe_highlight"/> 
 		            	<button name="update_for_lg" string="Update For LG" type="object" class="oe_highlight"/> 
 		            	<button name="check_one_stockmove_one_inspection" string="Check One Stock Move One Inspection" type="object" class="oe_highlight"/>
