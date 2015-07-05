@@ -3596,20 +3596,22 @@ class arul_hr_audit_shift_time(osv.osv):
                 if line.diff_day and (start_time <= end_time):
                     time_total += 24
                 
-                if recording_hrs <= time_total:
-                    res = self.pool.get('ir.model.data').get_object_reference(cr, uid, 
-                                            'green_erp_arulmani_hrm', 'alert_permission_form_view')
-                    return {
-                                    'name': 'Alert Message',
-                                    'view_type': 'form',
-                                    'view_mode': 'form',
-                                    'view_id': res[1],
-                                    'res_model': 'alert.form',
-                                    'domain': [],
-                                    'context': {'default_message':'Total Hours is not matching','audit_id':line.id},
-                                    'type': 'ir.actions.act_window',
-                                    'target': 'new',
-                                }
+                #===============================================================
+                # if recording_hrs < time_total:
+                #     res = self.pool.get('ir.model.data').get_object_reference(cr, uid, 
+                #                             'green_erp_arulmani_hrm', 'alert_permission_form_view')
+                #     return {
+                #                     'name': 'Alert Message',
+                #                     'view_type': 'form',
+                #                     'view_mode': 'form', 
+                #                     'view_id': res[1],
+                #                     'res_model': 'alert.form',
+                #                     'domain': [],
+                #                     'context': {'default_message':'Total Hours is not matching %s'%time_total,'audit_id':line.id},
+                #                     'type': 'ir.actions.act_window',
+                #                     'target': 'new',
+                #                 }
+                #===============================================================
                     
                 employee_ids = emp_attendence_obj.search(cr, uid, [('employee_id','=',line.employee_id.id)])
                 if employee_ids:                        
@@ -5060,7 +5062,7 @@ class arul_hr_permission_onduty(osv.osv):
                     'permission_id':line.id,
                     'create_uid':line.create_uid,
                 })
-                audit_obj.new_approve_shift_time(cr, SUPERUSER_ID,[audit_id])
+                audit_obj.new_approve_shift_time(cr, SUPERUSER_ID,[audit_id]) # new shift master
                # date_from += datetime.timedelta(days=1)
         else:
             day = permission.date[8:10]
