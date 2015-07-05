@@ -6127,7 +6127,7 @@ class arul_hr_punch_in_out(osv.osv):
                                         else:
                                             detail_obj2.write(cr, uid, [audit_shift.id],{'out_time':out_time,'punch_out_date':out_date,
                                                                                 'actual_work_shift_id':shift_id,})
-                                        detail_obj2.approve_shift_time(cr, uid, [audit_shift.id]) #new shift master
+                                        detail_obj2.new_approve_shift_time(cr, uid, [audit_shift.id]) #new shift master
                                     else:
                                         if audit_shift.work_date!=date:
                                             detail_obj2.write(cr, uid, [audit_shift.id],{'type':'punch',
