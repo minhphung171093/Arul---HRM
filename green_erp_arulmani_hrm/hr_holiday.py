@@ -3606,7 +3606,7 @@ class arul_hr_audit_shift_time(osv.osv):
                                     'view_id': res[1],
                                     'res_model': 'alert.form',
                                     'domain': [],
-                                    'context': {'default_message':'Total Hours is not matching','audit_id':line.id},
+                                    'context': {'default_message':'Total Hours is not matching %s'%time_total,'audit_id':line.id},
                                     'type': 'ir.actions.act_window',
                                     'target': 'new',
                                 }
