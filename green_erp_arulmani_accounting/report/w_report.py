@@ -79,8 +79,9 @@ class Parser(report_sxw.rml_parse):
             Join account_tax at on (at.id=ailt.tax_id)
             join product_product p on (p.id=ail.product_id)
             join product_uom pu on (pu.id=ail.uos_id)
+            join account_move am on (am.id=i.move_id)
             where date_invoice between '%s' and '%s' and 
-            at.description ~'VAT' and at.amount>0 and i.journal_id>0 
+            at.description ~'VAT' and at.amount>0 and i.move_id>0 and am.state='posted'
             )a 
             )b where b.productrank=1
             '''%(date_from, date_to)
