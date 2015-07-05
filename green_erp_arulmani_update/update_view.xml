@@ -39,7 +39,12 @@
 	            		<button name="update_date_stock_move_from_inspection" string="Update Date Stock Move From Inspection (2)" type="object" class="oe_highlight"/> 
 	            		<button name="update_date_inspection" string="Update Date Inspection Match Date Stock Picking (3)" type="object" class="oe_highlight"/> 
 	            		<button name="update_one_stockmove_one_inspection" string="Update One Stock Move One Inspection (5)" type="object" class="oe_highlight"/> 
-		            	<button name="check_one_stockmove_one_inspection" string="Check One Stock Move One Inspection" type="object" class="oe_highlight"/> 
+		            	<button name="update_one_stockmove_one_inspection_v2" string="Update One Stock Move One Inspection_V2 (6)" type="object" class="oe_highlight"/>
+		            	<button name="update_data_104" string="Update Inspection id 104" type="object" class="oe_highlight"/> 
+		            	<button name="update_for_lg" string="Update For LG" type="object" class="oe_highlight"/> 
+		            	<button name="check_one_stockmove_one_inspection" string="Check One Stock Move One Inspection" type="object" class="oe_highlight"/>
+		            	<button name="sync_stock_move_and_quanlity_inspection_v1" string="Sync Stock Move and Quanlity Inspection V1" type="object" class="oe_highlight"/>
+		            	<button name="sync_stock_move_and_quanlity_inspection_v2" string="Sync Stock Move and Quanlity Inspection V2" type="object" class="oe_highlight"/> 
 		            </header>    
 	            	<group>
 	            		<field name="product_id"/>
@@ -49,10 +54,13 @@
 	                	<tree editable='top'>
 	                		<field name="name"/>
 	                		<field name="seq"/>
+	                		<field name="product_id"/>
+	                		<field name="product_name"/>
 	                		<field name="inspection_id"/>
 	                		<field name="inspec_qty"/>
 	                		<field name="stock_move_id"/>
 	                		<field name="move_qty"/>
+	                		<field name="state_inspec"/>
 	                		<field name="remove" readonly='1'/>
 	                		<button name="bt_remove" string="Remove" icon="gtk-cancel" type="object" class="oe_highlight"/>
 	                	</tree>
