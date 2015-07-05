@@ -1851,7 +1851,21 @@ class tpt_update_stock_move_report(osv.osv):
             update tpt_quanlity_inspection set date = (select date from stock_move where id=tpt_quanlity_inspection.need_inspec_id) where need_inspec_id is not null
         '''
         cr.execute(sql)
-        return self.write(cr, uid, ids, {'result':'Date Inspection'})
+        return self.write(cr, uid, ids, {'result':'update_date_inspection Done'})
+    
+    def update_date_between_issue_and_account(self, cr, uid, ids, context=None):
+        sql = '''
+            update account_move set date = (select date_expec from tpt_material_issue where id = account_move.material_issue_id) where material_issue_id is not null
+        '''
+        cr.execute(sql)
+        return self.write(cr, uid, ids, {'result':'update_date_between_issue_and_account Done'})
+    
+    def update_date_between_issue_and_stockmove(self, cr, uid, ids, context=None):
+        sql = '''
+            update stock_move set date = (select date_expec from tpt_material_issue where id = stock_move.issue_id) where issue_id is not null
+        '''
+        cr.execute(sql)
+        return self.write(cr, uid, ids, {'result':'update_date_between_issue_and_stockmove Done'})
     
     def create_quanlity_inspection(self, cr, uid, picking_id):
         quality_inspec = self.pool.get('tpt.quanlity.inspection')
