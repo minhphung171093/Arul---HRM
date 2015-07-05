@@ -3596,7 +3596,7 @@ class arul_hr_audit_shift_time(osv.osv):
                 if line.diff_day and (start_time <= end_time):
                     time_total += 24
                 
-                if recording_hrs <= time_total:
+                if recording_hrs < time_total:
                     res = self.pool.get('ir.model.data').get_object_reference(cr, uid, 
                                             'green_erp_arulmani_hrm', 'alert_permission_form_view')
                     return {
