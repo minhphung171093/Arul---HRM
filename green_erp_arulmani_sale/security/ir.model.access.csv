@@ -136,6 +136,14 @@ sale.access_product_uom_sale_manager,product.uom salemanager,product.model_produ
 
 access_vvti_sale_106,sale.order,green_erp_arulmani_sale.model_sale_order,green_erp_arulmani_crm.group_qc_user,True,False,False,False
 
+sale.access_sale_order_line,sale.order.line,model_sale_order_line,base.group_sale_salesman,1,1,1,0
+
+access_vvti_sale_107,crm.sale.order,green_erp_arulmani_crm.model_crm_sale_order,green_erp_arulmani_sale.group_vvti_sale_user,True,False,False,False
+access_vvti_sale_108,crm.sale.order.line,green_erp_arulmani_crm.model_crm_sale_order_line,green_erp_arulmani_sale.group_vvti_sale_user,True,False,False,False
+
+crm.access_crm_payment_mode,crm.payment.mode,crm.model_crm_payment_mode,base.group_sale_manager,1,0,0,0
+
+
 
 
 
