@@ -2539,7 +2539,18 @@
             	</xpath>
             	
             </field>
-       </record>   
+       </record>
+       
+       <record id="inherit_view_tpt_test_report_form_vew" model="ir.ui.view">
+            <field name="name">inherit.tpt.test.report.form</field>
+            <field name="model">tpt.test.report</field>
+            <field name="inherit_id" ref="green_erp_arulmani_sale.view_tpt_test_report_form_vew"/>
+            <field name="arch" type="xml">
+            	<xpath expr="//button[@name='test_report_print']" position="attributes">
+					<attribute name='groups'>green_erp_arulmani_sale.group_vvti_sale_user,green_erp_arulmani_sale.group_vvti_marketing_user,green_erp_arulmani_crm.group_qc_user</attribute>
+				</xpath>
+            </field>
+       </record>    
        
        <report 
 			auto="False" 

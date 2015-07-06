@@ -457,7 +457,7 @@
             	
             	<xpath expr="/form/header//button[@name='%(stock.report_picking_list_out)d']" position="replace">
             		 <button name="print_dispatch_slip" string="Print Dispatch Slip" type="object" states="done" class="oe_highlight" groups="green_erp_arulmani_sale.group_vvti_sale_user"/>
-            		 <button name="print_packing_list" string="Print Packing List" attrs="{'invisible':[('order_type', '=', 'domestic')]}" type="object" class="oe_highlight" groups="green_erp_arulmani_sale.group_vvti_sale_user"/>
+            		 <button name="print_packing_list" string="Print Packing List" attrs="{'invisible':[('order_type', '=', 'domestic')]}" type="object" class="oe_highlight" groups="green_erp_arulmani_sale.group_vvti_sale_user,green_erp_arulmani_sale.group_vvti_marketing_user"/>
             	</xpath>
             	
             	<xpath expr="//page[@string='Products']" position="after">
