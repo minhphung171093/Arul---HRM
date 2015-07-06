@@ -388,6 +388,8 @@ class stock_move(osv.osv):
         'issue_id': fields.many2one('tpt.material.issue','Material Issue'),
         'cost_center_id': fields.many2one('tpt.cost.center','Cost center'),
         'grn_no': fields.related('picking_id', 'name', type='char', string='GRN No'),
+        'gate_out_sup_id':fields.many2one('tpt.gate.out.pass','Gate Out Pass'), # luu gate_out_pass kho khach hang
+        'gate_out_id':fields.many2one('tpt.gate.out.pass','Gate Out Pass'),
 #         'grn_no_1': fields.related('picking_id', 'id',relation='stock.picking.in', type='many2one', string='GRN No'),
         'grn_date': fields.related('picking_id', 'date', type='datetime', string='GRN Date'),
         'supplier_id': fields.related('picking_id', 'partner_id',relation='res.partner', type='many2one', string='Supplier'),
@@ -596,7 +598,6 @@ class stock_move(osv.osv):
                         commit;
                     '''%(location_id,ids[0])
                     cr.execute(sql)
-
                 
             elif action_taken == 'need':
                 location_id = False
@@ -624,7 +625,6 @@ class stock_move(osv.osv):
                         commit;
                     '''%(location_id,ids[0])
                     cr.execute(sql)
-
             elif action_taken == 'direct':   
                 for line in self.browse(cr, uid, ids, context=context):
                     if line.picking_id and line.picking_id.warehouse:
@@ -745,6 +745,7 @@ class account_invoice(osv.osv):
                     qty = 0.0
                     aed = 0.0
                     tds_amount = 0.0
+                    total_tax_credit_service = 0.0
                     voucher_rate = 1
                     if context is None:
                         context = {}
@@ -800,6 +801,11 @@ class account_invoice(osv.osv):
 #                         amount_total_tax = round(amount_total_tax)
                         total_tax += amount_total_tax
 #                         total_tax = round(total_tax)
+                        if po.tax_service_credit:
+                            tax_credit_service = po.tax_service_credit.amount/100
+                            amount_total_tax_credit_service = (basic + p_f + ed + po.aed_id_1)*(tax_credit_service)
+                            total_tax_credit_service += amount_total_tax_credit_service
+                            
                         if po.fright_type == '1' :
                             fright = (basic + p_f + ed + amount_total_tax) * po.fright/100
                             fright = round(fright)
@@ -827,11 +833,12 @@ class account_invoice(osv.osv):
                     res[line.id]['p_f_charge'] = round(p_f_charge)
                     res[line.id]['excise_duty'] = round(excise_duty)
                     res[line.id]['amount_tax'] = round(total_tax)
+                    res[line.id]['amount_tax_credit'] = round(total_tax_credit_service)
                     res[line.id]['fright'] = round(total_fright)
                     res[line.id]['aed'] = round(aed)
                     res[line.id]['amount_total_tds'] = round(tds_amount)
-                    res[line.id]['amount_total'] = (round(amount_untaxed) + round(p_f_charge) + round(excise_duty) + round(total_tax) + round(total_fright) + round(aed)) - round(tds_amount)
-                    res[line.id]['amount_total_inr'] = round(((round(amount_untaxed) + round(p_f_charge) + round(excise_duty) + round(total_tax) + round(total_fright) + round(aed)) - round(tds_amount))/voucher_rate)
+                    res[line.id]['amount_total'] = (round(amount_untaxed) + round(p_f_charge) + round(excise_duty) + round(total_tax) + round(total_fright) + round(aed)) - round(tds_amount) - round(total_tax_credit_service)
+                    res[line.id]['amount_total_inr'] = round(((round(amount_untaxed) + round(p_f_charge) + round(excise_duty) + round(total_tax) + round(total_fright) + round(aed)) - round(tds_amount) - round(total_tax_credit_service))/voucher_rate)
                 else:
                     amount_untaxed = 0.0
                     p_f_charge=0.0
@@ -1206,6 +1213,7 @@ class account_invoice_line(osv.osv):
         'line_net': fields.function(line_net_line_supplier_invo, store = True, multi='deltas' ,string='Line Net'),
         'tax_id': fields.many2one('account.tax', 'Taxes'),
         'tax_credit': fields.many2one('account.tax', 'Tax (Credit)'),
+        'tax_service_credit': fields.many2one('account.tax', 'Tax (Credit)'),
         'tds_id': fields.many2one('account.tax', 'TDS %'),
         'tds_id_2': fields.many2one('account.tax', 'TDS %'),
         'aed_id': fields.many2one('account.tax', 'AED'),

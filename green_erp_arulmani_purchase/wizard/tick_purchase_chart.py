@@ -29,7 +29,8 @@ class tick_purchase_chart(osv.osv_memory):
         
         tick = self.browse(cr, uid, ids[0])
         new_po_ids = []
-
+        if not chart.currency_id:
+            raise osv.except_osv(_('Warning!'),_('Currency is not null, please configure it in Quotation master !'))
         for line in chart.purchase_quotation_line:
             if line.po_indent_id.document_type == 'local':
                 if tick.po_document_type != 'local':

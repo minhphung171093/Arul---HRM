@@ -1213,6 +1213,7 @@
 			<field name="model">tpt.good.return.request</field>
 			<field name="arch" type="xml">
 				<tree string="Goods Return Request">
+					<field name="name"/>
 					<field name="grn_no_id"/>
 					<field name="request_date"/>
 					<field name="state" widget="statusbar" statusbar_visible="draft,done" statusbar_colors='{"draft":"blue"}'/>
@@ -1228,22 +1229,25 @@
 	            <header>
 	                    <button name="bt_approve" states='draft' string="Approve Request" type="object" class="oe_highlight" groups="green_erp_arulmani_purchase.group_vvti_purchase_admin,green_erp_arulmani_purchase.group_vvti_hrm_plant_mm_user"/>
 	                    <button name="bt_cancel" states='draft' string="Cancel Request" type="object" class="oe_highlight" />
+	                    <button name="bt_set_to_draft" states='cancel' string="Set to Draft" type="object" class="oe_highlight" />
 	                    <field name="state" widget="statusbar" statusbar_visible="draft,cancel,done" statusbar_colors='{"draft":"blue"}'/>
 	            </header>
 	            	<sheet>
 		                <group > 
-			                <field name="grn_no_id" on_change = "onchange_grn_no_id(grn_no_id)" context="{'search_grn_no_id':True}" domain="[('type','=','in')]" options="{'create': false, 'create_edit': false}"/>
+		                	<field name="name"/>
+			                <field name="grn_no_id" on_change = "onchange_grn_no_id(grn_no_id)" context="{'search_grn_no_id':True}" options="{'create': false, 'create_edit': false}"/>
 							<field name="request_date"/>
 						</group>
 						<notebook>
 							<page string="Product Details">
-								<field name="product_detail_line" nolabel='1'>
-									<tree editable='top'>
+								<field name="product_detail_line" nolabel='1' >
+									<tree editable='top' create = 'false' >
 										<field name="product_id" options="{'create': false, 'create_edit': false}"/>
 										<field name="product_qty"/>
 										<field name="uom_po_id" options="{'create': false, 'create_edit': false}"/>
 										<field name="state"/>
 										<field name="reason"/>
+										<field name="st_move_id" invisible = '1'/>
 									</tree>
 								</field>
 							</page>
@@ -1561,6 +1565,7 @@
 			<field name="arch" type="xml">
 				<tree string="Gate Out Pass">
 					<field name="name"/>
+					<field name="good_id"/>
                 	<field name="grn_id"/>
                 	<field name="gate_date_time"/>
 	                <field name="po_id"/>
@@ -1576,13 +1581,15 @@
 	            <form string="Gate Out Pass" version="7.0">   
 	            	<header>
 			            	<button name="bt_approve" states='draft' string="Approve" type="object" class="oe_highlight" groups="green_erp_arulmani_purchase.group_vvti_purchase_user,green_erp_arulmani_purchase.group_vvti_purchase_gm"/>
-		                    <button name="bt_cancel" string="Cancel" type="object" class="oe_highlight" />
-		                    <field name="state" widget="statusbar" statusbar_visible="draft,cancel,done" statusbar_colors='{"draft":"blue","cancel":"blue"}'/>
+		                    <button name="bt_create_grn" states='confirm' string="Create GRN" type="object" class="oe_highlight" groups="green_erp_arulmani_purchase.group_vvti_purchase_user,green_erp_arulmani_purchase.group_vvti_purchase_gm"/>
+		                    <button name="bt_cancel" states='draft,confirm' string="Cancel" type="object" class="oe_highlight" />
+		                    <field name="state" widget="statusbar" statusbar_visible="draft,cancel,confirm,done" statusbar_colors='{"draft":"blue","cancel":"blue"}'/>
 		            </header>
 	            	<sheet>
 		                <group > 
 		                	<field name="name"/>
-		                	<field name="grn_id" context="{'search_default_grn_by_return_req':1}" on_change="onchange_grn_id(grn_id)" options="{'create': false, 'create_edit': false}"/>
+		                	<field name="good_id" context="{'search_good_return_request':True}"  on_change = "onchange_good_id(good_id)" options="{'create': false, 'create_edit': false}"  />
+		                	<field name="grn_id"  options="{'create': false, 'create_edit': false}"/>
 		                	<field name="gate_date_time"/>
 			                <field name="po_id" options="{'create': false, 'create_edit': false}"/>
 			                <field name="supplier_id" domain="[('supplier','=',1)]" options="{'create': false, 'create_edit': false}"/>

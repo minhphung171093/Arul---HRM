@@ -698,10 +698,11 @@
 	                                    <field name="p_f_type"/>
 	                                    <field name="ed"/>
 	                                    <field name="ed_type"/>
-	                                    <field name="tax_id" invisible = '1' on_change = "onchange_tax_id(tax_id)" context="{'type':parent.type}"
+	                                    <field name="tax_id" on_change = "onchange_tax_id(tax_id)" context="{'type':parent.type}"
                                         domain="[('parent_id','=',False),('company_id', '=', parent.company_id)]" options="{'create': false, 'create_edit': false}"/>
                                     <field name="invoice_line_tax_id" string = 'Taxes' widget="many2many_tags" context="{'type':parent.type}"
-                                        domain="[('parent_id','=',False),('company_id', '=', parent.company_id)]"/>
+                                        domain="[('parent_id','=',False),('company_id', '=', parent.company_id)]" invisible = '1'/>
+                                    <field name="tax_service_credit" on_change = "onchange_tax_credit(tax_id, tax_service_credit)" options="{'create': false, 'create_edit': false}"/>
                                     <field name="fright"/>
                                     <field name="fright_type"/>
                                     <field name="line_net"/>
@@ -719,6 +720,7 @@
                                         type="object" help="Recompute taxes and total"/>
                                 </div>
                                 <field name="amount_tax" nolabel="1" widget="monetary" options="{'currency_field': 'currency_id'}"/>
+                                <field name="amount_tax_credit" widget="monetary"/>
                                 <field name="fright" widget="monetary"/>
                                 <field name="amount_total_tds" widget="monetary"/>
                                 <field name="amount_total" class="oe_subtotal_footer_separator" widget="monetary" options="{'currency_field': 'currency_id'}"/>
