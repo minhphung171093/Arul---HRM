@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<openerp>
+    <data>   
+        <record id="view_time_data_check_process" model="ir.ui.view">
+            <field name="name">time.data.check</field>
+            <field name="model">time.data.check</field>
+            <field name="arch" type="xml">
+                <form string="Time Data Check" version="7.0">
+                	
+                    <footer>
+                        <button name="check_time_data" string="Process" type="object" class="oe_highlight" context="{'type':'appointments'}"/>
+                        <button string="Cancel" class="oe_link" special="cancel"/>
+                    </footer>
+                </form>
+            </field>
+        </record>        
+        <record id="action_time_data_report" model="ir.actions.act_window">
+            <field name="name">Check Time Data</field>
+            <field name="type">ir.actions.act_window</field>
+            <field name="res_model">time.data.check</field>
+            <field name="view_type">form</field>
+            <field name="view_mode">form</field>
+            <field name="target">new</field>
+        </record>
+        
+        
+    </data>
+</openerp>
+

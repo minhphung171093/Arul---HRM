@@ -25,10 +25,10 @@ class tpt_stock_inward_outward(osv.osv):
         'date_from':fields.date('Date From'),
         'date_to':fields.date('Date To'),
         'stock_in_out_line': fields.one2many('tpt.stock.inward.outward.line','stock_in_out_id','Line'),
-        'opening_stock': fields.float('Opening Stock'),
-        'closing_stock': fields.float('Closing Stock'),
-        'opening_value': fields.float('Opening Value'),
-        'closing_value': fields.float('Closing Value'),
+        'opening_stock': fields.float('Opening Stock',digits=(16,3)),
+        'closing_stock': fields.float('Closing Stock',digits=(16,3)),
+        'opening_value': fields.float('Opening Value',digits=(16,3)),
+        'closing_value': fields.float('Closing Value',digits=(16,3)),
     }
     
     def print_xls(self, cr, uid, ids, context=None):
@@ -66,9 +66,9 @@ class tpt_stock_inward_outward_line(osv.osv):
         'document_no': fields.char('Document No', size=1024),
         'gl_document_no': fields.char('GL Document No', size=1024),
         'document_type': fields.char('Document Type', size=1024),
-        'transaction_quantity': fields.float('Transaction Quantity'),
-        'stock_value': fields.float('Stock Value'),
-        'current_material_value': fields.float('Current Material Value'),
+        'transaction_quantity': fields.float('Transaction Quantity',digits=(16,3)),
+        'stock_value': fields.float('Stock Value',digits=(16,3)),
+        'current_material_value': fields.float('Current Material Value',digits=(16,3)),
 #         'sl_chuaro': fields.float('SL Chua Ro'),
     }
     
