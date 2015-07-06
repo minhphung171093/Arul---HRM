@@ -3556,9 +3556,9 @@ class arul_hr_audit_shift_time(osv.osv):
                     end_time = shift_out
                 
                 ###
-                     
+                recording_hrs = 0     
                 sql = '''
-                             select id,a_shift,g1_shift,g2_shift,b_shift,c_shift,shift_count from tpt_work_shift where 
+                             select id,a_shift,g1_shift,g2_shift,b_shift,c_shift,shift_count,time_total from tpt_work_shift where 
                             (%s between min_start_time and max_start_time)
                             and
                             (%s between min_end_time and max_end_time)
@@ -3573,9 +3573,45 @@ class arul_hr_audit_shift_time(osv.osv):
                         b_shift=k[4]
                         c_shift=k[5]
                         shift_count=k[6]
+                        recording_hrs=k[7]
                 
+                if a_shift==0 and g1_shift==0 and g2_shift==0 and b_shift==0 and c_shift==0 and shift_count==0:
+                    res = self.pool.get('ir.model.data').get_object_reference(cr, uid, 
+                                            'green_erp_arulmani_hrm', 'alert_permission_form_view')
+                    return {
+                                    'name': 'Alert Message',
+                                    'view_type': 'form',
+                                    'view_mode': 'form',
+                                    'view_id': res[1],
+                                    'res_model': 'alert.form',
+                                    'domain': [],
+                                    'context': {'default_message':'Time is not matching with actual shift','audit_id':line.id},
+                                    'type': 'ir.actions.act_window',
+                                    'target': 'new',
+                                }
+                if start_time > end_time:
+                    time_total = 24-start_time + end_time
+                else:
+                    time_total = end_time - start_time
+                if line.diff_day and (start_time <= end_time):
+                    time_total += 24
                 
-                
+                #===============================================================
+                # if recording_hrs < time_total:
+                #     res = self.pool.get('ir.model.data').get_object_reference(cr, uid, 
+                #                             'green_erp_arulmani_hrm', 'alert_permission_form_view')
+                #     return {
+                #                     'name': 'Alert Message',
+                #                     'view_type': 'form',
+                #                     'view_mode': 'form', 
+                #                     'view_id': res[1],
+                #                     'res_model': 'alert.form',
+                #                     'domain': [],
+                #                     'context': {'default_message':'Total Hours is not matching %s'%time_total,'audit_id':line.id},
+                #                     'type': 'ir.actions.act_window',
+                #                     'target': 'new',
+                #                 }
+                #===============================================================
                     
                 employee_ids = emp_attendence_obj.search(cr, uid, [('employee_id','=',line.employee_id.id)])
                 if employee_ids:                        
@@ -3632,8 +3668,9 @@ class arul_hr_audit_shift_time(osv.osv):
                               
                               'approval':1,
                               'diff_day': line.diff_day,
-                              }
-                    emp_attendence_obj.create(cr,uid,{'employee_id':line.employee_id.id,
+                              } 
+                    if a_shift>0 and g1_shift>0 and g2_shift>0 and b_shift>0 and c_shift>0 and shift_count>0:
+                        emp_attendence_obj.create(cr,uid,{'employee_id':line.employee_id.id,
                                                           'employee_category_id':line.employee_id.employee_category_id and line.employee_id.employee_category_id.id or False,
                                                           'sub_category_id':line.employee_id.employee_sub_category_id and line.employee_id.employee_sub_category_id.id or False,
                                                           'department_id':line.employee_id.department_id and line.employee_id.department_id.id or False,
@@ -5025,7 +5062,7 @@ class arul_hr_permission_onduty(osv.osv):
                     'permission_id':line.id,
                     'create_uid':line.create_uid,
                 })
-                audit_obj.approve_shift_time(cr, SUPERUSER_ID,[audit_id])
+                audit_obj.new_approve_shift_time(cr, SUPERUSER_ID,[audit_id]) # new shift master
                # date_from += datetime.timedelta(days=1)
         else:
             day = permission.date[8:10]
@@ -5090,7 +5127,7 @@ class arul_hr_permission_onduty(osv.osv):
                  'type': permission.non_availability_type_id,#TPT Changes - By BalamuruganPurushothaman on 21/02/2015 - To Update NonAvailability Status in Audit Shift Screen.
                  'permission_id':ids[0],
              })
-                audit_obj.approve_shift_time(cr, SUPERUSER_ID,[audit_id])
+                audit_obj.new_approve_shift_time(cr, SUPERUSER_ID,[audit_id]) # new shift master is changed here
         return self.write(cr,uid,ids,{'state': 'done'}) 
     
     def reject_permission_onduty(self, cr, uid, ids, context=None):
@@ -6092,7 +6129,7 @@ class arul_hr_punch_in_out(osv.osv):
                                         else:
                                             detail_obj2.write(cr, uid, [audit_shift.id],{'out_time':out_time,'punch_out_date':out_date,
                                                                                 'actual_work_shift_id':shift_id,})
-                                        detail_obj2.approve_shift_time(cr, uid, [audit_shift.id])
+                                        detail_obj2.new_approve_shift_time(cr, uid, [audit_shift.id]) #new shift master
                                     else:
                                         if audit_shift.work_date!=date:
                                             detail_obj2.write(cr, uid, [audit_shift.id],{'type':'punch',

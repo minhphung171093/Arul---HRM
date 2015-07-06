@@ -81,11 +81,10 @@ class hr_employee(osv.osv):
         for emp in self.browse(cr, uid, ids, context=context):
             res[emp.id] = {
                 'age_in_yrs': 0,
-            }           
-            
-            
-            dob = emp.birthday      
-            if dob:     
+            }  
+      
+            if emp.birthday:
+                dob = emp.birthday    
                 b_date = datetime.strptime(dob, '%Y-%m-%d')
                 datenew = str(datetime.today())            
                 current_date = datetime.strptime(str(datetime.today()), '%Y-%m-%d %H:%M:%S.%f')            
