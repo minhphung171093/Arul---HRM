@@ -3556,6 +3556,19 @@ class arul_hr_audit_shift_time(osv.osv):
                     end_time = shift_out
                 
                 ###
+                if line.punch_in_date!=line.punch_out_date:
+                    if perm_in>0:
+                        shifts_in_time = [shift_in,perm_in]
+                        shifts_out_time = [shift_out,perm_out]
+                        start_time = max(shifts_in_time)
+                        end_time = max(shifts_out_time)
+                    elif od_in>0:
+                        shifts_in_time = [shift_in,od_in]
+                        shifts_out_time = [shift_out,od_out]
+                        start_time = max(shifts_in_time)
+                        end_time = max(shifts_out_time)
+                    
+                ###
                 recording_hrs = 0     
                 sql = '''
                              select id,a_shift,g1_shift,g2_shift,b_shift,c_shift,shift_count,time_total from tpt_work_shift where 
