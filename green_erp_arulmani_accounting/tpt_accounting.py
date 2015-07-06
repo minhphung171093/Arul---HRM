@@ -5029,4 +5029,9 @@ class stock_move(osv.osv):
     
 stock_move()
 
+class purchase_order(osv.osv):
+    _inherit = "purchase.order"
+    def write(self, cr, uid,ids, vals, context=None):
+        return super(purchase_order, self).write(cr,1,ids,vals,context) 
+purchase_order()
     

@@ -32,7 +32,7 @@
 		    <field name="groups_id" eval="[(6, 0, [ref('group_vvti_sale_user')])]" />
 		</record>
 		<record model="ir.ui.menu" id="stock.menu_action_move_form2">
-		    <field name="groups_id" eval="[(6, 0, [ref('group_vvti_sale_user')])]" />
+		    <field name="groups_id" eval="[(6, 0, [ref('base.user_root')])]" />
 		</record>
 		<record model="ir.ui.menu" id="stock.menu_action_location_tree">
 		    <field name="groups_id" eval="[(6, 0, [ref('group_vvti_sale_user')])]" />

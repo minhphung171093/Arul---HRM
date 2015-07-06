@@ -2508,7 +2508,7 @@
        </record>
        
        <record id="inherit_view_tpt_test_report_form_vew" model="ir.ui.view">
-            <field name="name">tpt.test.report.form</field>
+            <field name="name">inherit.tpt.test.report.form</field>
             <field name="model">tpt.test.report</field>
             <field name="inherit_id" ref="green_erp_arulmani_sale.view_tpt_test_report_form_vew"/>
             <field name="arch" type="xml">
