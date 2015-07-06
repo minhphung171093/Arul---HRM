@@ -201,7 +201,7 @@
 		</record>
 		
 		<record model="ir.ui.menu" id="green_erp_arulmani_accounting.menu_action_invoice_supplier_without_po">
-		    <field name="groups_id" eval="[(4, ref('group_vvti_accounting_user'))]" />
+		    <field name="groups_id" eval="[(6,0, [ref('group_vvti_accounting_user')])]" />
 		</record>
 		
 		<record model="ir.ui.menu" id="green_erp_arulmani_accounting.menu_action_invoice_service">
@@ -380,7 +380,7 @@
 		</record>
 		
 		<record model="ir.ui.menu" id="green_erp_arulmani_hrm.menu_action_arul_hr_punch_in_out_form">
-	    	<field name="groups_id" eval="[(6,0, [ref('green_erp_arulmani_hrm.group_vvti_hrm_hr_key_user'),ref('green_erp_arulmani_hrm.group_vvti_hrm_hr_manager'),ref('green_erp_arulmani_hrm.group_vvti_hrm_payroll_controller')])]"/>
+	    	<field name="groups_id" eval="[(6,0, [ref('green_erp_arulmani_hrm.group_vvti_hrm_hr_key_user'),ref('green_erp_arulmani_hrm.group_vvti_hrm_hr_manager'),ref('green_erp_arulmani_hrm.group_vvti_hrm_payroll_controller'),ref('green_erp_arulmani_hrm.group_vvti_hrm_time_key_user')])]"/>
 		</record>
 		
 		<record model="ir.ui.menu" id="base.next_id_64">
@@ -429,6 +429,15 @@
 		
 		<record model="ir.ui.menu" id="menu_action_supplier_reconcile">
 	    	<field name="groups_id" eval="[(6,0,[ref('group_vvti_accounting_admin')])]"/>
+		</record>
+		
+		<record model="ir.ui.menu" id="purchase.menu_procurement_partner_contact_form"> 
+	    	<field name="groups_id" eval="[(4, ref('group_vvti_accounting_user')),
+	    									(4, ref('green_erp_arulmani_production.group_vvti_production_user'))]"/>
+		</record>
+		
+		<record model="ir.ui.menu" id="stock.menu_action_picking_tree6">
+	    	<field name="groups_id" eval="[(6, 0,[ref('base.user_root')])]"/>
 		</record>
 		
     </data>

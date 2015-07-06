@@ -266,7 +266,7 @@ class tpt_mrp_process(osv.osv):
                                                       'indent_line_id': product['indent_line_id'],
                                                       }))
         vals = {'mrp_process_line':mrp_process_line, 'state':'approve'}
-        return self.write(cr,uid,ids,vals)
+        return self.write(cr,1,ids,vals)
     
     def bt_generate_indent(self, cr, uid, ids, context=None):
         purchase_product_line = []
@@ -292,7 +292,7 @@ class tpt_mrp_process(osv.osv):
                 if section_ids:
                     section_id = section_ids[0] or False
                 
-            indent_id = po_indent_obj.create(cr, uid,{'document_type': 'base',
+            indent_id = po_indent_obj.create(cr, 1,{'document_type': 'base',
                                             'department_id': depa_id,
                                             'section_id': section_id,
                                             'intdent_cate': 'normal',
@@ -316,7 +316,7 @@ class tpt_mrp_process(osv.osv):
             
             if count == 0:
                 raise osv.except_osv(_('Warning!'),_('Can not be generate indent without selected product'))
-            po_indent_obj.write(cr, uid,indent_id,{
+            po_indent_obj.write(cr, 1,indent_id,{
                                             'purchase_product_line':purchase_product_line,
                                             })
             sql = '''

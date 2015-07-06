@@ -1165,7 +1165,7 @@ class tpt_gate_in_pass(osv.osv):
             gate_in_pass_line = []
             for line in po.order_line:
                 gate_in_pass_line.append({
-                            'po_indent_no': po.po_indent_no and po.po_indent_no.id or False,
+                            'po_indent_no': line.po_indent_no and line.po_indent_no.id or False,
                           'product_id': line.product_id and line.product_id.id or False,
                           'product_qty':line.product_qty or False,
                           'uom_po_id': line.product_uom and line.product_uom.id or False,
