@@ -63,14 +63,14 @@ class tpt_movement_analysis_line(osv.osv):
         'item_code': fields.char('Item Code', size = 1024),
         'item_name': fields.char('Item Name', size = 1024),
         'uom': fields.char('UOM', size = 1024),
-        'open_stock': fields.float('Opening Stock'),
-        'open_value': fields.float('Opening Stock Value'),
-        'receipt_qty': fields.float('Qty (Receipts)'),
-        'receipt_value':fields.float('Stock Value (Receipts)'),
-        'consum_qty': fields.float('Qty (Consumption)'),
-        'consum_value':fields.float('Stock Value (Consumption)'),     
-        'close_stock': fields.float('Closing Stock'),
-        'close_value': fields.float('Closing Stock Value'),   
+        'open_stock': fields.float('Opening Stock',digits=(16,3)),
+        'open_value': fields.float('Opening Stock Value',digits=(16,3)),
+        'receipt_qty': fields.float('Qty (Receipts)',digits=(16,3)),
+        'receipt_value':fields.float('Stock Value (Receipts)',digits=(16,3)),
+        'consum_qty': fields.float('Qty (Consumption)',digits=(16,3)),
+        'consum_value':fields.float('Stock Value (Consumption)',digits=(16,3)),     
+        'close_stock': fields.float('Closing Stock',digits=(16,3)),
+        'close_value': fields.float('Closing Stock Value',digits=(16,3)),   
                 }
     
 
