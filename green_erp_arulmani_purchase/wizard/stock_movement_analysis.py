@@ -706,7 +706,9 @@ class stock_movement_analysis(osv.osv_memory):
         cr.execute('delete from tpt_form_movement_analysis')
         stock = self.browse(cr, uid, ids[0])
         move_analysis_line = []
-        for line in get_categ(stock):
+        for seq, line in enumerate(get_categ(stock)):
+            opening_stock = 0
+            opening_stock_value = 0
             move_analysis_line.append((0,0,{
                 'item_code': line.default_code,
                 'item_name': line.name,
@@ -716,11 +718,11 @@ class stock_movement_analysis(osv.osv_memory):
                 'receipt_qty':get_qty(stock,line.id),
                 'receipt_value':get_receipt_value(stock,line.id),
                 'consum_qty':get_qty_out(stock,line.id) + get_qty_chuaro(stock,line.id),
-                'consum_value': (get_qty(stock,line.id)*get_qty_out(stock,line.id)) and (get_receipt_value(stock,line.id)/get_qty(stock,line.id)*get_qty_out(stock,line.id)) or 0,
-#                 'consum_value':(get_opening_stock(stock,line.id)+get_qty(stock,line.id)) and (get_opening_stock_value(stock,line.id)+get_receipt_value(stock,line.id))/(get_opening_stock(stock,line.id)+get_qty(stock,line.id))*get_consumption_value(stock,line.id) or 0,     
+#phuoc grn                'consum_value': (get_qty(stock,line.id)*get_qty_out(stock,line.id)) and (get_receipt_value(stock,line.id)/get_qty(stock,line.id)*get_qty_out(stock,line.id)) or 0,
+                'consum_value':(get_opening_stock(stock,line.id)+get_qty(stock,line.id)) and ((get_receipt_value(stock,line.id)+get_opening_stock_value(stock,line.id))/(get_opening_stock(stock,line.id)+get_qty(stock,line.id))*get_qty_out(stock,line.id)) or 0 ,    
                 'close_stock':get_closing_stock(stock,get_qty(stock,line.id),(get_qty_out(stock,line.id) + get_qty_chuaro(stock,line.id)),get_opening_stock(stock,line.id)),
-                'close_value': get_opening_stock_value(stock,line.id)+get_receipt_value(stock,line.id)-(get_qty(stock,line.id) and (get_receipt_value(stock,line.id)/get_qty(stock,line.id)*get_qty_out(stock,line.id)) or 0)
-#                 'close_value':get_closing_stock(stock,get_receipt_value(stock,line.id),get_consumption_value(stock,line.id),get_opening_stock_value(stock,line.id)) ,   
+#phuoc grn                'close_value': get_opening_stock_value(stock,line.id)+get_receipt_value(stock,line.id)-(get_qty(stock,line.id) and (get_receipt_value(stock,line.id)/get_qty(stock,line.id)*get_qty_out(stock,line.id)) or 0)
+                'close_value': get_opening_stock_value(stock,line.id)+get_receipt_value(stock,line.id)-((get_opening_stock(stock,line.id)+get_qty(stock,line.id)) and ((get_receipt_value(stock,line.id)+get_opening_stock_value(stock,line.id))/(get_opening_stock(stock,line.id)+get_qty(stock,line.id))*get_qty_out(stock,line.id)) or 0),   
 
             }))
         vals = {

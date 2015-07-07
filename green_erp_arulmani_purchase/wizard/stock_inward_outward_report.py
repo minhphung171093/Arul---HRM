@@ -737,12 +737,17 @@ class stock_inward_outward_report(osv.osv_memory):
             if line['doc_type']=='good':
                 qty = 0
                 value = 0
+                opening_stock = get_opening_stock(stock)
+                opening_stock_value = get_opening_stock_value(stock)
                 for l in stock_in_out_line:
                     qty += l[2]['transaction_quantity'] 
 #                     qty_chuaro += l[2]['sl_chuaro']
                     value += l[2]['stock_value']
-                st = (qty) and value/(qty) or 0
-                st_value = st*(trans_qty)
+                if seq == 0:
+                    st = (qty+opening_stock) and (value+opening_stock_value)/(qty+opening_stock) or 0
+                else:
+                    st = (qty+opening_stock) and cur/(qty+opening_stock) or 0
+                st_value = (st)*(trans_qty)
             else:
                 st_value = stock_value(get_line_stock_value(stock,line['id'], line['material_issue_id'], line['doc_type'], line['date']), line)
             self.st_sum_value += st_value
