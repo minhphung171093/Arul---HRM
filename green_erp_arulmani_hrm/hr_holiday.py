@@ -3488,6 +3488,10 @@ class arul_hr_audit_shift_time(osv.osv):
                 od_out = 0
                 start_time = 0
                 end_time = 0
+                
+                perm_total = 0
+                od_total = 0
+                
                 shift_in = line.in_time
                 shift_out = line.out_time
                 
@@ -3509,7 +3513,7 @@ class arul_hr_audit_shift_time(osv.osv):
                     shift_count=k[6]
                     
                 sql = '''
-                    SELECT start_time, end_time FROM arul_hr_permission_onduty WHERE 
+                    SELECT start_time, end_time,time_total FROM arul_hr_permission_onduty WHERE 
                     non_availability_type_id='permission' 
                         AND TO_CHAR(date,'YYYY-MM-DD') = ('%s') and employee_id =%s and approval='t'
                         '''%(line.work_date,line.employee_id.id)
@@ -3520,12 +3524,15 @@ class arul_hr_audit_shift_time(osv.osv):
                 for perm in cr.fetchall():
                     perm_in=perm[0]
                     perm_out=perm[1]
+                    perm_total=perm[2]
+                    
+                    
                         ##end for loop
                 ##END PERMISSIOn    
                 #raise osv.except_osv(_('Warning! LEN1:'),_('test'))         
                 
                 sql = '''
-                        SELECT min(start_time), max(end_time) FROM arul_hr_permission_onduty WHERE non_availability_type_id='on_duty' 
+                        SELECT min(start_time), max(end_time),case when sum(time_total)!=0 then sum(time_total) else 0 end time_total FROM arul_hr_permission_onduty WHERE non_availability_type_id='on_duty' 
                         AND TO_CHAR(from_date,'YYYY-MM-DD') = ('%s') and employee_id =%s and state='done'
                         '''%(line.work_date,line.employee_id.id)
                 od = cr.execute(sql)
@@ -3534,6 +3541,7 @@ class arul_hr_audit_shift_time(osv.osv):
                 for od in cr.fetchall():
                     od_in=od[0]
                     od_out=od[1] 
+                    od_total=od[2] 
 
                 ###
                 if perm_in>0 and od_in>0:
@@ -3602,29 +3610,34 @@ class arul_hr_audit_shift_time(osv.osv):
                                     'type': 'ir.actions.act_window',
                                     'target': 'new',
                                 }
-                if start_time > end_time:
-                    time_total = 24-start_time + end_time
+                if shift_in > shift_out:
+                    time_total = 24-shift_in + shift_out
                 else:
-                    time_total = end_time - start_time
-                if line.diff_day and (start_time <= end_time):
+                    time_total = shift_out - shift_in
+                if line.diff_day and (shift_in <= shift_out):
                     time_total += 24
                 
-                #===============================================================
-                # if recording_hrs < time_total:
-                #     res = self.pool.get('ir.model.data').get_object_reference(cr, uid, 
-                #                             'green_erp_arulmani_hrm', 'alert_permission_form_view')
-                #     return {
-                #                     'name': 'Alert Message',
-                #                     'view_type': 'form',
-                #                     'view_mode': 'form', 
-                #                     'view_id': res[1],
-                #                     'res_model': 'alert.form',
-                #                     'domain': [],
-                #                     'context': {'default_message':'Total Hours is not matching %s'%time_total,'audit_id':line.id},
-                #                     'type': 'ir.actions.act_window',
-                #                     'target': 'new',
-                #                 }
-                #===============================================================
+                time_total = time_total + float(str(perm_total)) + float(str(od_total))
+                
+                
+                
+                if time_total < recording_hrs:
+                    shift_total = datetime.timedelta(hours=time_total) 
+                    recording_hrs = datetime.timedelta(hours=recording_hrs) 
+                    missing_hrs = recording_hrs - shift_total
+                    res = self.pool.get('ir.model.data').get_object_reference(cr, uid, 
+                                            'green_erp_arulmani_hrm', 'alert_permission_form_view')
+                    return {
+                                    'name': 'Alert Message',
+                                    'view_type': 'form',
+                                    'view_mode': 'form', 
+                                    'view_id': res[1],
+                                    'res_model': 'alert.form',
+                                    'domain': [],
+                                    'context': {'default_message':'Recording Hours is not matching. Recording Hrs:%s, Shift Hrs: %s, Missing Hrs: %s'%(recording_hrs,shift_total,missing_hrs),'audit_id':line.id},
+                                    'type': 'ir.actions.act_window',
+                                    'target': 'new',
+                                }
                     
                 employee_ids = emp_attendence_obj.search(cr, uid, [('employee_id','=',line.employee_id.id)])
                 if employee_ids:                        
