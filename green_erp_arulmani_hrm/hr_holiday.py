@@ -3524,6 +3524,7 @@ class arul_hr_audit_shift_time(osv.osv):
                 for perm in cr.fetchall():
                     perm_in=perm[0]
                     perm_out=perm[1]
+                    perm_total=perm[2]
                     
                     
                         ##end for loop
@@ -3618,7 +3619,7 @@ class arul_hr_audit_shift_time(osv.osv):
                 
                 time_total = time_total + float(str(perm_total)) + float(str(od_total))
                 
-                if recording_hrs > time_total:
+                if time_total < recording_hrs:
                     res = self.pool.get('ir.model.data').get_object_reference(cr, uid, 
                                             'green_erp_arulmani_hrm', 'alert_permission_form_view')
                     return {
@@ -3628,7 +3629,7 @@ class arul_hr_audit_shift_time(osv.osv):
                                     'view_id': res[1],
                                     'res_model': 'alert.form',
                                     'domain': [],
-                                    'context': {'default_message':'Total Hours is not matching %s'%time_total,'audit_id':line.id},
+                                    'context': {'default_message':'Total Hours is not matching','audit_id':line.id},
                                     'type': 'ir.actions.act_window',
                                     'target': 'new',
                                 }
