@@ -3046,14 +3046,19 @@ class account_voucher(osv.osv):
             context = {}
         new_write = super(account_voucher, self).write(cr, uid, ids, vals, context)
         for voucher in self.browse(cr, uid, ids):
-            if voucher.type_trans:
+            if voucher.type_trans and voucher.type_cash_bank != 'journal':
                 total = 0
                 for line in voucher.line_ids:
                     total += line.amount 
                 if voucher.sum_amount != total:
                     raise osv.except_osv(_('Warning!'),
                         _('Total amount in Voucher Entry must equal Amount!'))
-            elif context.get('journal_entry_create',False):
+            if voucher.type_trans and voucher.type_cash_bank == 'journal':
+                sql = '''
+                    update account_voucher set type_trans = '' where id = %s
+                '''%(voucher.id)
+                cr.execute(sql)
+            if context.get('journal_entry_create',False):
                 sql = '''
                     update account_voucher set type_cash_bank = 'journal' where id = %s
                 '''%(voucher.id)
