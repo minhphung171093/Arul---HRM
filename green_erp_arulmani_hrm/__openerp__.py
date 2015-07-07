@@ -36,6 +36,7 @@
         'wizard/leave_balance_for_view.xml', ##
         'wizard/epf_statement_form_view.xml',
         'wizard/esi_statement_view.xml',
+        'wizard/time_data_check.xml',##
         'hr_employee_view.xml',
         'hr_department_view.xml',
         'hr_payroll_view.xml',
