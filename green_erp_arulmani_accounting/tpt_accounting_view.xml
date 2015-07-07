@@ -2583,5 +2583,33 @@
 	        groups="green_erp_arulmani_sale.group_vvti_sale_user,green_erp_arulmani_accounting.group_vvti_accounting_user"
 	        rml="green_erp_arulmani_sale/report/print_form_403.odt"/> 	
 	        
+	  <record id="inher_tpt_stock_picking_in_form" model="ir.ui.view">
+	       <field name="name">inher.stock.picking.in.form</field>
+	       <field name="model">stock.picking.in</field>
+	       <field name="inherit_id" ref="green_erp_arulmani_purchase.tpt_stock_picking_in_form"/>
+	       <field name="arch" type="xml">
+		    	<xpath expr="//button[@name='%(stock.action_stock_invoice_onshipping)d']" position="attributes">
+					<attribute name='groups'>green_erp_arulmani_purchase.group_vvti_purchase_store_user,green_erp_arulmani_accounting.group_vvti_accounting_user</attribute>
+				</xpath>
+				
+				<xpath expr="//button[@name='%(stock.act_stock_return_picking)d']" position="attributes">
+					<attribute name='groups'>base.user_root</attribute>
+				</xpath>
+				
+				<xpath expr="//button[@name='button_cancel']" position="attributes">
+					<attribute name='groups'>base.user_root</attribute>
+				</xpath>
+				
+				<xpath expr="//button[@name='action_revert_done']" position="attributes">
+					<attribute name='groups'>base.user_root</attribute>
+				</xpath>
+				
+				<xpath expr="//button[@name='action_process']" position="attributes">
+					<attribute name='groups'>green_erp_arulmani_purchase.group_vvti_purchase_store_user</attribute>
+				</xpath>
+				
+	       </field>
+	  </record>
+	        
     </data>
 </openerp>
