@@ -192,6 +192,33 @@ access_vvti_accounting_166,arul.hr.payroll.sub.area,green_erp_arulmani_hrm.model
 access_vvti_accounting_167,vsis.hr.employee.category,green_erp_arulmani_crm.model_vsis_hr_employee_category,green_erp_arulmani_accounting.group_vvti_accounting_gm,True,False,False,True
 access_vvti_accounting_168,hr.employee.sub.category,green_erp_arulmani_crm.model_hr_employee_sub_category,green_erp_arulmani_accounting.group_vvti_accounting_gm,True,False,False,True
 
+access_vvti_accounting_169,"tpt.blanket.order","green_erp_arulmani_sale.model_tpt_blanket_order","green_erp_arulmani_accounting.group_vvti_mag_direct","True","False","False","False"
+access_vvti_accounting_170,"tpt.blank.order.line","green_erp_arulmani_sale.model_tpt_blank_order_line","green_erp_arulmani_accounting.group_vvti_mag_direct","True","True","True","False"
+access_vvti_accounting_171,"crm.application","green_erp_arulmani_crm.model_crm_application","green_erp_arulmani_accounting.group_vvti_mag_direct","True","False","False","False"
+access_vvti_accounting_172,"tpt.batch.request","green_erp_arulmani_sale.model_tpt_batch_request","green_erp_arulmani_accounting.group_vvti_mag_direct","True","True","True","False"
+access_vvti_accounting_173,"tpt.product.information","green_erp_arulmani_sale.model_tpt_product_information","green_erp_arulmani_accounting.group_vvti_mag_direct","True","True","True","True"
+access_vvti_accounting_174,"tpt.batch.allotment.line","green_erp_arulmani_sale.model_tpt_batch_allotment_line","green_erp_arulmani_accounting.group_vvti_mag_direct","True","True","True","True"
+access_vvti_accounting_175,"tpt.batch.allotment","green_erp_arulmani_sale.model_tpt_batch_allotment","green_erp_arulmani_accounting.group_vvti_mag_direct","True","False","False","False"
+access_vvti_accounting_176,"stock.production.lot","green_erp_arulmani_sale.model_stock_production_lot","green_erp_arulmani_accounting.group_vvti_mag_direct","True","True","True","False"
+access_vvti_accounting_177,"stock.production.lot.revision","stock.model_stock_production_lot_revision","green_erp_arulmani_accounting.group_vvti_mag_direct","True","True","True","False"
+access_vvti_accounting_178,"tpt.pgi","green_erp_arulmani_sale.model_tpt_pgi","green_erp_arulmani_accounting.group_vvti_mag_direct","True","True","True","False"
+access_vvti_accounting_179,"tpt.form.are.1","green_erp_arulmani_sale.model_tpt_form_are_1","green_erp_arulmani_accounting.group_vvti_mag_direct","True","True","True","False"
+access_vvti_accounting_180,"tpt.commisionarate","green_erp_arulmani_sale.model_tpt_commisionarate","green_erp_arulmani_accounting.group_vvti_mag_direct","True","True","True","False"
+access_vvti_accounting_181,"tpt.form.are.1.duty.rate","green_erp_arulmani_sale.model_tpt_form_are_1_duty_rate","green_erp_arulmani_accounting.group_vvti_mag_direct","True","True","True","True"
+access_vvti_accounting_182,"tpt.organisation","green_erp_arulmani_sale.model_tpt_organisation","green_erp_arulmani_accounting.group_vvti_mag_direct","True","True","True","False"
+access_vvti_accounting_183,"tpt.form.are.3.duty.rate","green_erp_arulmani_sale.model_tpt_form_are_3_duty_rate","green_erp_arulmani_accounting.group_vvti_mag_direct","True","True","True","False"
+access_vvti_accounting_184,"tpt.form.are.3","green_erp_arulmani_sale.model_tpt_form_are_3","green_erp_arulmani_accounting.group_vvti_mag_direct","True","True","True","False"
+access_vvti_accounting_185,"tpt.test.report","green_erp_arulmani_sale.model_tpt_test_report","green_erp_arulmani_accounting.group_vvti_mag_direct","True","False","False","False"
+access_vvti_accounting_186,tpt.cus.consignee,green_erp_arulmani_sale.model_tpt_cus_consignee,green_erp_arulmani_accounting.group_vvti_mag_direct,True,True,True,True
+access_vvti_accounting_187,tpt.form.403,green_erp_arulmani_sale.model_tpt_form_403,green_erp_arulmani_accounting.group_vvti_mag_direct,True,True,True,False
+access_vvti_accounting_188,tpt.form.403.consignee,green_erp_arulmani_sale.model_tpt_form_403_consignee,green_erp_arulmani_accounting.group_vvti_mag_direct,True,True,True,True
+access_vvti_accounting_189,crm.case.channel,green_erp_arulmani_crm.model_crm_case_channel,green_erp_arulmani_accounting.group_vvti_mag_direct,True,False,False,False
+access_vvti_accounting_190,crm.sale.order,green_erp_arulmani_crm.model_crm_sale_order,green_erp_arulmani_accounting.group_vvti_mag_direct,True,False,False,False
+access_vvti_accounting_191,crm.sale.order.line,green_erp_arulmani_crm.model_crm_sale_order_line,green_erp_arulmani_accounting.group_vvti_mag_direct,True,False,False,False
+access_vvti_accounting_192,account.invoice,account.model_account_invoice,green_erp_arulmani_accounting.group_vvti_mag_direct,1,1,1,1
+
+
+
 
 
 

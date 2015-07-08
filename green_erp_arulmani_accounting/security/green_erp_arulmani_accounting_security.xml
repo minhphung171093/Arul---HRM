@@ -44,13 +44,8 @@
 	        <field name="name">Managing Director</field>
 	        <field name="category_id" ref="module_category_vvti_director"/>
 	        <field name="users" eval="[(4, ref('base.user_root'))]"/>
-	        <field name="implied_ids" eval="[(4, ref('group_vvti_accounting_gm')),
-									        (4, ref('green_erp_arulmani_sale.group_vvti_marketing_gm')),
-									        (4, ref('green_erp_arulmani_sale.group_vvti_sale_gm')),
-									        (4, ref('green_erp_arulmani_production.group_vvti_production_gm')),
-									        (4, ref('green_erp_arulmani_hrm.group_vvti_hrm_gm')),
-									        (4, ref('green_erp_arulmani_purchase.group_vvti_purchase_gm')),
-									        (4, ref('green_erp_arulmani_purchase.group_vvti_purchase_store_gm'))]"/>
+	        <field name="implied_ids" eval="[(6,0, [ref('green_erp_arulmani_hrm.group_vvti_hrm_gm'),
+									        ref('green_erp_arulmani_purchase.group_vvti_purchase_gm')])]"/>
 	    </record>
 	
 	</data>
