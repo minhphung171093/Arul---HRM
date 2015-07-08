@@ -28,10 +28,6 @@ class tpt_raw_material_stock_statement(osv.osv):
                 'date_from':fields.date('As Of Date'),
                 'statement_line':fields.one2many('tpt.stock.statement.line','statement_id','Stock Statement'),
                 }
-
-
-
-    
     def print_xls(self, cr, uid, ids, context=None):
         if context is None:
             context = {}
@@ -279,6 +275,7 @@ class tpt_raw_stock_statement(osv.osv_memory):
                        total_cost += line['price_unit'] * (inspec['qty_approve'] or 0)
             return total_cost                          
         def get_day_outward(o, product):
+            sum = 0
             date_from = o.date_from
             parent_ids = self.pool.get('stock.location').search(cr, uid, [('name','=','Store'),('usage','=','view')])
             locat_ids = self.pool.get('stock.location').search(cr, uid, [('name','in',['Raw Material','Raw Materials','Raw material']),('location_id','=',parent_ids[0])])
@@ -288,7 +285,16 @@ class tpt_raw_stock_statement(osv.osv_memory):
             '''%(product, date_from,locat_ids[0])
             cr.execute(sql)
             product_isu_qty = cr.dictfetchone()
-            return product_isu_qty and product_isu_qty['product_isu_qty'] or 0 
+            sql = '''
+                select case when sum(product_qty)!=0 then sum(product_qty) else 0 end product_qty 
+                from stock_move where product_id = %s and state = 'done' and issue_id is null 
+                and picking_id is null and inspec_id is null and location_id = %s 
+                and to_date(to_char(date, 'YYYY-MM-DD'), 'YYYY-MM-DD') = '%s' and location_id != location_dest_id
+            '''%(product, locat_ids[0], date_from)
+            cr.execute(sql)
+            product_qty = cr.dictfetchone()
+            sum = product_isu_qty['product_isu_qty'] + product_qty['product_qty']
+            return sum
 
         def get_day_outward_value(o, product_id):
             date_from = o.date_from
@@ -485,6 +491,7 @@ class tpt_raw_stock_statement(osv.osv_memory):
             return total_cost  
         
         def get_month_outward(o, product):
+            sum = 0
             date_from = o.date_from
             month_head = date(get_date(date_from)['year'], get_date(date_from)['month'], 01)
             parent_ids = self.pool.get('stock.location').search(cr, uid, [('name','=','Store'),('usage','=','view')])
@@ -495,7 +502,16 @@ class tpt_raw_stock_statement(osv.osv_memory):
             '''%(product,month_head, date_from,locat_ids[0])
             cr.execute(sql)
             product_isu_qty = cr.dictfetchone()
-            return product_isu_qty and product_isu_qty['product_isu_qty'] or 0 
+            sql = '''
+                select case when sum(product_qty)!=0 then sum(product_qty) else 0 end product_qty 
+                from stock_move where product_id = %s and state = 'done' and issue_id is null 
+                and picking_id is null and inspec_id is null and location_id = %s 
+                and to_date(to_char(date, 'YYYY-MM-DD'), 'YYYY-MM-DD') between '%s' and '%s' and location_id != location_dest_id
+            '''%(product, locat_ids[0], month_head, date_from)
+            cr.execute(sql)
+            product_qty = cr.dictfetchone()
+            sum = product_isu_qty['product_isu_qty'] + product_qty['product_qty']
+            return sum
         
         def get_month_outward_value(o, product_id):
             date_from = o.date_from
@@ -710,7 +726,16 @@ class tpt_raw_stock_statement(osv.osv_memory):
                 '''%(product,year, date_from,locat_ids[0])
                 cr.execute(sql)
                 product_isu_qty = cr.dictfetchone()
-                return product_isu_qty and product_isu_qty['product_isu_qty'] or 0 
+                sql = '''
+                    select case when sum(product_qty)!=0 then sum(product_qty) else 0 end product_qty 
+                    from stock_move where product_id = %s and state = 'done' and issue_id is null 
+                    and picking_id is null and inspec_id is null and location_id = %s 
+                    and to_date(to_char(date, 'YYYY-MM-DD'), 'YYYY-MM-DD') between '%s' and '%s' and location_id != location_dest_id
+                '''%(product, locat_ids[0], year, date_from)
+                cr.execute(sql)
+                product_qty = cr.dictfetchone()
+                sum = product_isu_qty['product_isu_qty'] + product_qty['product_qty']
+                return sum
             
         def get_year_outward_value(o, product_id):
             date_from = o.date_from
@@ -781,7 +806,7 @@ class tpt_raw_stock_statement(osv.osv_memory):
                 'year_inward': get_year_inward(statement,line.id),
                 'year_outward': get_year_outward(statement,line.id),
                 'year_close_stock': get_closing_stock(statement,get_year_opening_stock(statement,line.id),get_year_inward(statement,line.id),get_year_outward(statement,line.id)),
-                'year_close_value': get_closing_stock(statement,get_year_opening_stock_value(statement,line.id),get_year_inward_value(statement,line.id),get_year_outward_value(statement,line.id)),   
+                'year_close_value': get_day_closing_stock_value(statement,line.id),
  
             }))
         vals = {

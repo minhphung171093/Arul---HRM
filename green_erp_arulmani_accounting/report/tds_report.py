@@ -74,21 +74,19 @@ class Parser(report_sxw.rml_parse):
         decamount = format(amount, '.2f')
         return decamount
     
-    #===========================================================================
-    # def get_doc_type(self):
-    #     wizard_data = self.localcontext['data']['form']
-    #     type = (wizard_data['invoice_type'])
-    #     type_obj = self.pool.get('account.move')
-    #     #vendor = ven_obj.browse(self.cr,self.uid,ven[0])
-    #     actmove = type_obj.browse(self.cr,self.uid,type[0])
-    #     print actmove.doc_type        
-    #     if actmove.doc_type == 'ser_inv':
-    #         return "Service Invoice"
-    #     if actmove.doc_type == 'sup_inv':
-    #         return "Supplier Invoice (Without PO)"
-    #     if actmove.doc_type == 'freight':
-    #         return "Freight Invoice"
-    #===========================================================================
+    def get_doc_type(self):
+        wizard_data = self.localcontext['data']['form']
+        type = (wizard_data['invoice_type'])
+        type_obj = self.pool.get('account.move')
+        #vendor = ven_obj.browse(self.cr,self.uid,ven[0])
+        actmove = type_obj.browse(self.cr,self.uid,type[0])
+        print actmove.doc_type        
+        if actmove.doc_type == 'ser_inv':
+            return "Service Invoice"
+        if actmove.doc_type == 'sup_inv':
+            return "Supplier Invoice (Without PO)"
+        if actmove.doc_type == 'freight':
+            return "Freight Invoice"
         #account.move
         
 #         if doc_type == 'ser_inv':
@@ -139,19 +137,19 @@ class Parser(report_sxw.rml_parse):
                             else '' end as officialwitholdingtax,null as witholdingtaxsectioon, ail.tds_id, 
                             ai.name as invoicedocno, ai.date_invoice as postingdate,
                             ai.bill_number as bill_no,ai.bill_date as bill_date,
-                            sum(ail.amount_basic) as base_amnt,at.name as tax_deduction,
+                            sum(ail.amount_basic) as base_amnt,round(at.amount,0) as tax_deduction,
                             cast(round(sum(ail.amount_basic)*at.amount/100,0) As decimal(8, 2)) as tdsamount, 
-                            ai.vendor_ref as ven_ref, ai.number as gl_doc,at.section as sec
+                            ai.vendor_ref as ven_ref, ai.number as gl_doc
                             from account_invoice_line ail
                             join account_invoice ai on (ai.id=ail.invoice_id)
                             join account_move am on (am.name=ai.number)
                             join res_partner bp on (bp.id=ai.partner_id)
                             join account_tax at on (at.id=ail.tds_id)
-                            where am.state = 'posted' and ai.type='in_invoice' and ail.tds_id is not null and am.doc_type in ('ser_inv')
+                            where ai.type='in_invoice' and ail.tds_id is not null and am.doc_type in ('ser_inv')
                             and ai.date_invoice between '%s' and '%s' and bp.id = '%s' 
                             and at.id = '%s' and at.gl_account_id = '%s'
                             group by bp.vendor_code, bp.name, pan_tin, am.doc_type, ai.date_invoice,ail.tds_id, 
-                            ai.name, ai.name, at.name, ai.bill_number, ai.bill_date, ai.vendor_ref, ai.number,at.section,at.amount
+                            ai.name, ai.name, at.amount, ai.bill_number, ai.bill_date, ai.vendor_ref, ai.number
                             order by vendor_code
                         '''%(date_from,date_to,vendor[0],tds[0],gl_accnt[0])
                     self.cr.execute(sql)                    
@@ -167,19 +165,19 @@ class Parser(report_sxw.rml_parse):
                             else '' end as officialwitholdingtax,null as witholdingtaxsectioon, ail.tds_id, 
                             ai.name as invoicedocno, ai.date_invoice as postingdate,
                             ai.bill_number as bill_no,ai.bill_date as bill_date,
-                            sum(ail.amount_basic) as base_amnt,at.name as tax_deduction,
+                            sum(ail.amount_basic) as base_amnt,round(at.amount,0) as tax_deduction,
                             cast(round(sum(ail.amount_basic)*at.amount/100,0) As decimal(8, 2)) as tdsamount, 
-                            ai.vendor_ref as ven_ref, ai.number as gl_doc,at.section as sec
+                            ai.vendor_ref as ven_ref, ai.number as gl_doc
                             from account_invoice_line ail
                             join account_invoice ai on (ai.id=ail.invoice_id)
                             join account_move am on (am.name=ai.number)
                             join res_partner bp on (bp.id=ai.partner_id)
                             join account_tax at on (at.id=ail.tds_id)
-                            where am.state = 'posted' and ai.type='in_invoice' and ail.tds_id is not null and am.doc_type in ('ser_inv')
+                            where ai.type='in_invoice' and ail.tds_id is not null and am.doc_type in ('ser_inv')
                             and ai.date_invoice between '%s' and '%s' 
                             and bp.id = '%s' and at.id = '%s'
                             group by bp.vendor_code, bp.name, pan_tin, am.doc_type, ai.date_invoice,ail.tds_id, 
-                            ai.name, ai.name, at.name, ai.bill_number, ai.bill_date, ai.vendor_ref, ai.number,at.section,at.amount
+                            ai.name, ai.name, at.amount, ai.bill_number, ai.bill_date, ai.vendor_ref, ai.number
                             order by vendor_code
                         '''%(date_from,date_to,vendor[0],tds[0])
                     self.cr.execute(sql)                    
@@ -195,19 +193,19 @@ class Parser(report_sxw.rml_parse):
                             else '' end as officialwitholdingtax,null as witholdingtaxsectioon, ail.tds_id, 
                             ai.name as invoicedocno, ai.date_invoice as postingdate,
                             ai.bill_number as bill_no,ai.bill_date as bill_date,
-                            sum(ail.amount_basic) as base_amnt,at.name as tax_deduction,
+                            sum(ail.amount_basic) as base_amnt,round(at.amount,0) as tax_deduction,
                             cast(round(sum(ail.amount_basic)*at.amount/100,0) As decimal(8, 2)) as tdsamount, 
-                            ai.vendor_ref as ven_ref, ai.number as gl_doc,at.section as sec
+                            ai.vendor_ref as ven_ref, ai.number as gl_doc
                             from account_invoice_line ail
                             join account_invoice ai on (ai.id=ail.invoice_id)
                             join account_move am on (am.name=ai.number)
                             join res_partner bp on (bp.id=ai.partner_id)
                             join account_tax at on (at.id=ail.tds_id)
-                            where am.state = 'posted' and ai.type='in_invoice' and ail.tds_id is not null and am.doc_type in ('ser_inv')
+                            where ai.type='in_invoice' and ail.tds_id is not null and am.doc_type in ('ser_inv')
                             and ai.date_invoice between '%s' and '%s' 
                             and bp.id = '%s' and at.gl_account_id = '%s'
                             group by bp.vendor_code, bp.name, pan_tin, am.doc_type, ai.date_invoice,ail.tds_id, 
-                            ai.name, ai.name, at.name, ai.bill_number, ai.bill_date, ai.vendor_ref, ai.number,at.section,at.amount
+                            ai.name, ai.name, at.amount, ai.bill_number, ai.bill_date, ai.vendor_ref, ai.number
                             order by vendor_code
                         '''%(date_from,date_to,vendor[0],gl_accnt[0])
                     self.cr.execute(sql)                    
@@ -223,18 +221,18 @@ class Parser(report_sxw.rml_parse):
                             else '' end as officialwitholdingtax,null as witholdingtaxsectioon, ail.tds_id, 
                             ai.name as invoicedocno, ai.date_invoice as postingdate,
                             ai.bill_number as bill_no,ai.bill_date as bill_date,
-                            sum(ail.amount_basic) as base_amnt,at.name as tax_deduction,
+                            sum(ail.amount_basic) as base_amnt,round(at.amount,0) as tax_deduction,
                             cast(round(sum(ail.amount_basic)*at.amount/100,0) As decimal(8, 2)) as tdsamount, 
-                            ai.vendor_ref as ven_ref, ai.number as gl_doc,at.section as sec
+                            ai.vendor_ref as ven_ref, ai.number as gl_doc
                             from account_invoice_line ail
                             join account_invoice ai on (ai.id=ail.invoice_id)
                             join account_move am on (am.name=ai.number)
                             join res_partner bp on (bp.id=ai.partner_id)
                             join account_tax at on (at.id=ail.tds_id)
-                            where am.state = 'posted' and ai.type='in_invoice' and ail.tds_id is not null and am.doc_type in ('ser_inv')
+                            where ai.type='in_invoice' and ail.tds_id is not null and am.doc_type in ('ser_inv')
                             and ai.date_invoice between '%s' and '%s' and at.id = '%s' and at.gl_account_id = '%s'
                             group by bp.vendor_code, bp.name, pan_tin, am.doc_type, ai.date_invoice,ail.tds_id, 
-                            ai.name, ai.name, at.name, ai.bill_number, ai.bill_date, ai.vendor_ref, ai.number,at.section,at.amount
+                            ai.name, ai.name, at.amount, ai.bill_number, ai.bill_date, ai.vendor_ref, ai.number
                             order by vendor_code
                         '''%(date_from,date_to,tds[0],gl_accnt[0])
                     self.cr.execute(sql)                    
@@ -250,18 +248,18 @@ class Parser(report_sxw.rml_parse):
                         else '' end as officialwitholdingtax,null as witholdingtaxsectioon, ail.tds_id, 
                         ai.name as invoicedocno, ai.date_invoice as postingdate,
                         ai.bill_number as bill_no,ai.bill_date as bill_date,
-                        sum(ail.amount_basic) as base_amnt,at.name as tax_deduction,
+                        sum(ail.amount_basic) as base_amnt,round(at.amount,0) as tax_deduction,
                         cast(round(sum(ail.amount_basic)*at.amount/100,0) As decimal(8, 2)) as tdsamount, 
-                        ai.vendor_ref as ven_ref, ai.number as gl_doc,at.section as sec
+                        ai.vendor_ref as ven_ref, ai.number as gl_doc
                         from account_invoice_line ail
                         join account_invoice ai on (ai.id=ail.invoice_id)
                         join account_move am on (am.name=ai.number)
                         join res_partner bp on (bp.id=ai.partner_id)
                         join account_tax at on (at.id=ail.tds_id)
-                        where am.state = 'posted' and ai.type='in_invoice' and ail.tds_id is not null and am.doc_type in ('ser_inv')
+                        where ai.type='in_invoice' and ail.tds_id is not null and am.doc_type in ('ser_inv')
                         and ai.date_invoice between '%s' and '%s' and bp.id = '%s'
                         group by bp.vendor_code, bp.name, pan_tin, am.doc_type, ai.date_invoice,ail.tds_id, 
-                        ai.name, ai.name, at.name, ai.bill_number, ai.bill_date, ai.vendor_ref, ai.number,at.section,at.amount
+                        ai.name, ai.name, at.amount, ai.bill_number, ai.bill_date, ai.vendor_ref, ai.number
                         order by vendor_code
                     '''%(date_from,date_to,vendor[0])
                 self.cr.execute(sql)                
@@ -277,18 +275,18 @@ class Parser(report_sxw.rml_parse):
                         else '' end as officialwitholdingtax,null as witholdingtaxsectioon, ail.tds_id, 
                         ai.name as invoicedocno, ai.date_invoice as postingdate,
                         ai.bill_number as bill_no,ai.bill_date as bill_date,
-                        sum(ail.amount_basic) as base_amnt,at.name as tax_deduction,
+                        sum(ail.amount_basic) as base_amnt,round(at.amount,0) as tax_deduction,
                         cast(round(sum(ail.amount_basic)*at.amount/100,0) As decimal(8, 2)) as tdsamount, 
-                        ai.vendor_ref as ven_ref, ai.number as gl_doc,at.section as sec
+                        ai.vendor_ref as ven_ref, ai.number as gl_doc
                         from account_invoice_line ail
                         join account_invoice ai on (ai.id=ail.invoice_id)
                         join account_move am on (am.name=ai.number)
                         join res_partner bp on (bp.id=ai.partner_id)
                         join account_tax at on (at.id=ail.tds_id)
-                        where am.state = 'posted' and ai.type='in_invoice' and ail.tds_id is not null and am.doc_type in ('ser_inv')
+                        where ai.type='in_invoice' and ail.tds_id is not null and am.doc_type in ('ser_inv')
                         and ai.date_invoice between '%s' and '%s' and at.id = '%s'
                         group by bp.vendor_code, bp.name, pan_tin, am.doc_type, ai.date_invoice,ail.tds_id, 
-                        ai.name, ai.name, at.name, ai.bill_number, ai.bill_date, ai.vendor_ref, ai.number,at.section,at.amount
+                        ai.name, ai.name, at.amount, ai.bill_number, ai.bill_date, ai.vendor_ref, ai.number
                         order by vendor_code
                     '''%(date_from,date_to,tds[0])
                 self.cr.execute(sql)                
@@ -304,18 +302,18 @@ class Parser(report_sxw.rml_parse):
                         else '' end as officialwitholdingtax,null as witholdingtaxsectioon, ail.tds_id, 
                         ai.name as invoicedocno, ai.date_invoice as postingdate,
                         ai.bill_number as bill_no,ai.bill_date as bill_date,
-                        sum(ail.amount_basic) as base_amnt,at.name as tax_deduction,
+                        sum(ail.amount_basic) as base_amnt,round(at.amount,0) as tax_deduction,
                         cast(round(sum(ail.amount_basic)*at.amount/100,0) As decimal(8, 2)) as tdsamount, 
-                        ai.vendor_ref as ven_ref, ai.number as gl_doc,at.section as sec
+                        ai.vendor_ref as ven_ref, ai.number as gl_doc
                         from account_invoice_line ail
                         join account_invoice ai on (ai.id=ail.invoice_id)
                         join account_move am on (am.name=ai.number)
                         join res_partner bp on (bp.id=ai.partner_id)
                         join account_tax at on (at.id=ail.tds_id)
-                        where am.state = 'posted' and ai.type='in_invoice' and ail.tds_id is not null and am.doc_type in ('ser_inv')
+                        where ai.type='in_invoice' and ail.tds_id is not null and am.doc_type in ('ser_inv')
                         and ai.date_invoice between '%s' and '%s' and at.gl_account_id = '%s'
                         group by bp.vendor_code, bp.name, pan_tin, am.doc_type, ai.date_invoice,ail.tds_id, 
-                        ai.name, ai.name, at.name, ai.bill_number, ai.bill_date, ai.vendor_ref, ai.number,at.section,at.amount
+                        ai.name, ai.name, at.amount, ai.bill_number, ai.bill_date, ai.vendor_ref, ai.number
                         order by vendor_code
                     '''%(date_from,date_to,gl_accnt[0])
                 self.cr.execute(sql)                
@@ -331,18 +329,18 @@ class Parser(report_sxw.rml_parse):
                             else '' end as officialwitholdingtax,null as witholdingtaxsectioon, ail.tds_id, 
                             ai.name as invoicedocno, ai.date_invoice as postingdate,
                             ai.bill_number as bill_no,ai.bill_date as bill_date,
-                            sum(ail.amount_basic) as base_amnt,at.name as tax_deduction,
+                            sum(ail.amount_basic) as base_amnt,round(at.amount,0) as tax_deduction,
                             cast(round(sum(ail.amount_basic)*at.amount/100,0) As decimal(8, 2)) as tdsamount, 
-                            ai.vendor_ref as ven_ref, ai.number as gl_doc,at.section as sec
+                            ai.vendor_ref as ven_ref, ai.number as gl_doc
                             from account_invoice_line ail
                             join account_invoice ai on (ai.id=ail.invoice_id)
                             join account_move am on (am.name=ai.number)
                             join res_partner bp on (bp.id=ai.partner_id)
                             join account_tax at on (at.id=ail.tds_id)
-                            where am.state = 'posted' and ai.type='in_invoice' and ail.tds_id is not null and am.doc_type in ('ser_inv')
+                            where ai.type='in_invoice' and ail.tds_id is not null and am.doc_type in ('ser_inv')
                             and ai.date_invoice between '%s' and '%s'
                             group by bp.vendor_code, bp.name, pan_tin, am.doc_type, ai.date_invoice,ail.tds_id, 
-                            ai.name, ai.name, at.name, ai.bill_number, ai.bill_date, ai.vendor_ref, ai.number,at.section,at.amount
+                            ai.name, ai.name, at.amount, ai.bill_number, ai.bill_date, ai.vendor_ref, ai.number
                             order by vendor_code
                         '''%(date_from,date_to)
                 self.cr.execute(sql)                
@@ -350,7 +348,7 @@ class Parser(report_sxw.rml_parse):
         ##ser_invend
             
         ##sup_inv
-        elif invoicetype == 'sup_inv':
+        if invoicetype == 'sup_inv':
               if vendor and tds and gl_accnt:
                     sql = '''
                             select bp.vendor_code as ven_code, bp.name as ven_name,bp.pan_tin as vendor_pan_no,
@@ -361,19 +359,19 @@ class Parser(report_sxw.rml_parse):
                             else '' end as officialwitholdingtax,null as witholdingtaxsectioon, ail.tds_id, 
                             ai.name as invoicedocno, ai.date_invoice as postingdate,
                             ai.bill_number as bill_no,ai.bill_date as bill_date,
-                            sum(ail.amount_basic) as base_amnt,at.name as tax_deduction,
+                            sum(ail.amount_basic) as base_amnt,round(at.amount,0) as tax_deduction,
                             cast(round(sum(ail.amount_basic)*at.amount/100,0) As decimal(8, 2)) as tdsamount, 
-                            ai.vendor_ref as ven_ref, ai.number as gl_doc,at.section as sec
+                            ai.vendor_ref as ven_ref, ai.number as gl_doc
                             from account_invoice_line ail
                             join account_invoice ai on (ai.id=ail.invoice_id)
                             join account_move am on (am.name=ai.number)
                             join res_partner bp on (bp.id=ai.partner_id)
                             join account_tax at on (at.id=ail.tds_id)
-                            where am.state = 'posted' and ai.type='in_invoice' and ail.tds_id is not null and am.doc_type in ('sup_inv')
+                            where ai.type='in_invoice' and ail.tds_id is not null and am.doc_type in ('sup_inv')
                             and ai.date_invoice between '%s' and '%s' and bp.id = '%s' 
                             and at.id = '%s' and at.gl_account_id = '%s'
                             group by bp.vendor_code, bp.name, pan_tin, am.doc_type, ai.date_invoice,ail.tds_id, 
-                            ai.name, ai.name, at.name, ai.bill_number, ai.bill_date, ai.vendor_ref, ai.number,at.section,at.amount
+                            ai.name, ai.name, at.amount, ai.bill_number, ai.bill_date, ai.vendor_ref, ai.number
                             order by vendor_code
                         '''%(date_from,date_to,vendor[0],tds[0],gl_accnt[0])
                     self.cr.execute(sql)                    
@@ -389,19 +387,19 @@ class Parser(report_sxw.rml_parse):
                             else '' end as officialwitholdingtax,null as witholdingtaxsectioon, ail.tds_id, 
                             ai.name as invoicedocno, ai.date_invoice as postingdate,
                             ai.bill_number as bill_no,ai.bill_date as bill_date,
-                            sum(ail.amount_basic) as base_amnt,at.name as tax_deduction,
+                            sum(ail.amount_basic) as base_amnt,round(at.amount,0) as tax_deduction,
                             cast(round(sum(ail.amount_basic)*at.amount/100,0) As decimal(8, 2)) as tdsamount, 
-                            ai.vendor_ref as ven_ref, ai.number as gl_doc,at.section as sec
+                            ai.vendor_ref as ven_ref, ai.number as gl_doc
                             from account_invoice_line ail
                             join account_invoice ai on (ai.id=ail.invoice_id)
                             join account_move am on (am.name=ai.number)
                             join res_partner bp on (bp.id=ai.partner_id)
                             join account_tax at on (at.id=ail.tds_id)
-                            where am.state = 'posted' and ai.type='in_invoice' and ail.tds_id is not null and am.doc_type in ('sup_inv')
+                            where ai.type='in_invoice' and ail.tds_id is not null and am.doc_type in ('sup_inv')
                             and ai.date_invoice between '%s' and '%s' 
                             and bp.id = '%s' and at.id = '%s'
                             group by bp.vendor_code, bp.name, pan_tin, am.doc_type, ai.date_invoice,ail.tds_id, 
-                            ai.name, ai.name, at.name, ai.bill_number, ai.bill_date, ai.vendor_ref, ai.number,at.section,at.amount
+                            ai.name, ai.name, at.amount, ai.bill_number, ai.bill_date, ai.vendor_ref, ai.number
                             order by vendor_code
                         '''%(date_from,date_to,vendor[0],tds[0])
                     self.cr.execute(sql)                    
@@ -417,18 +415,18 @@ class Parser(report_sxw.rml_parse):
                             else '' end as officialwitholdingtax,null as witholdingtaxsectioon, ail.tds_id, 
                             ai.name as invoicedocno, ai.date_invoice as postingdate,
                             ai.bill_number as bill_no,ai.bill_date as bill_date,
-                            sum(ail.amount_basic) as base_amnt,at.name as tax_deduction,
+                            sum(ail.amount_basic) as base_amnt,round(at.amount,0) as tax_deduction,
                             cast(round(sum(ail.amount_basic)*at.amount/100,0) As decimal(8, 2)) as tdsamount, 
-                            ai.vendor_ref as ven_ref, ai.number as gl_doc,at.section as sec
+                            ai.vendor_ref as ven_ref, ai.number as gl_doc
                             from account_invoice_line ail
                             join account_invoice ai on (ai.id=ail.invoice_id)
                             join account_move am on (am.name=ai.number)
                             join res_partner bp on (bp.id=ai.partner_id)
                             join account_tax at on (at.id=ail.tds_id)
-                            where am.state = 'posted' and ai.type='in_invoice' and ail.tds_id is not null and am.doc_type in ('sup_inv')
+                            where ai.type='in_invoice' and ail.tds_id is not null and am.doc_type in ('sup_inv')
                             and ai.date_invoice between '%s' and '%s' and bp.id = '%s' and at.gl_account_id = '%s'
                             group by bp.vendor_code, bp.name, pan_tin, am.doc_type, ai.date_invoice,ail.tds_id, 
-                            ai.name, ai.name, at.name, ai.bill_number, ai.bill_date, ai.vendor_ref, ai.number,at.section,at.amount
+                            ai.name, ai.name, at.amount, ai.bill_number, ai.bill_date, ai.vendor_ref, ai.number
                             order by vendor_code
                         '''%(date_from,date_to,vendor[0],gl_accnt[0])
                     self.cr.execute(sql)                    
@@ -444,18 +442,18 @@ class Parser(report_sxw.rml_parse):
                             else '' end as officialwitholdingtax,null as witholdingtaxsectioon, ail.tds_id, 
                             ai.name as invoicedocno, ai.date_invoice as postingdate,
                             ai.bill_number as bill_no,ai.bill_date as bill_date,
-                            sum(ail.amount_basic) as base_amnt,at.name as tax_deduction,
+                            sum(ail.amount_basic) as base_amnt,round(at.amount,0) as tax_deduction,
                             cast(round(sum(ail.amount_basic)*at.amount/100,0) As decimal(8, 2)) as tdsamount, 
-                            ai.vendor_ref as ven_ref, ai.number as gl_doc,at.section as sec
+                            ai.vendor_ref as ven_ref, ai.number as gl_doc
                             from account_invoice_line ail
                             join account_invoice ai on (ai.id=ail.invoice_id)
                             join account_move am on (am.name=ai.number)
                             join res_partner bp on (bp.id=ai.partner_id)
                             join account_tax at on (at.id=ail.tds_id)
-                            where am.state = 'posted' and ai.type='in_invoice' and ail.tds_id is not null and am.doc_type in ('sup_inv')
+                            where ai.type='in_invoice' and ail.tds_id is not null and am.doc_type in ('sup_inv')
                             and ai.date_invoice between '%s' and '%s' and at.id = '%s' and at.gl_account_id = '%s'
                             group by bp.vendor_code, bp.name, pan_tin, am.doc_type, ai.date_invoice,ail.tds_id, 
-                            ai.name, ai.name, at.name, ai.bill_number, ai.bill_date, ai.vendor_ref, ai.number,at.section,at.amount
+                            ai.name, ai.name, at.amount, ai.bill_number, ai.bill_date, ai.vendor_ref, ai.number
                             order by vendor_code
                         '''%(date_from,date_to,tds[0],gl_accnt[0])
                     self.cr.execute(sql)                    
@@ -471,18 +469,18 @@ class Parser(report_sxw.rml_parse):
                         else '' end as officialwitholdingtax,null as witholdingtaxsectioon, ail.tds_id, 
                         ai.name as invoicedocno, ai.date_invoice as postingdate,
                         ai.bill_number as bill_no,ai.bill_date as bill_date,
-                        sum(ail.amount_basic) as base_amnt,at.name as tax_deduction,
+                        sum(ail.amount_basic) as base_amnt,round(at.amount,0) as tax_deduction,
                         cast(round(sum(ail.amount_basic)*at.amount/100,0) As decimal(8, 2)) as tdsamount, 
-                        ai.vendor_ref as ven_ref, ai.number as gl_doc,at.section as sec
+                        ai.vendor_ref as ven_ref, ai.number as gl_doc
                         from account_invoice_line ail
                         join account_invoice ai on (ai.id=ail.invoice_id)
                         join account_move am on (am.name=ai.number)
                         join res_partner bp on (bp.id=ai.partner_id)
                         join account_tax at on (at.id=ail.tds_id)
-                        where am.state = 'posted' and ai.type='in_invoice' and ail.tds_id is not null and am.doc_type in ('sup_inv')
+                        where ai.type='in_invoice' and ail.tds_id is not null and am.doc_type in ('sup_inv')
                         and ai.date_invoice between '%s' and '%s' and bp.id = '%s'
                         group by bp.vendor_code, bp.name, pan_tin, am.doc_type, ai.date_invoice,ail.tds_id, 
-                        ai.name, ai.name, at.name, ai.bill_number, ai.bill_date, ai.vendor_ref, ai.number,at.section,at.amount
+                        ai.name, ai.name, at.amount, ai.bill_number, ai.bill_date, ai.vendor_ref, ai.number
                         order by vendor_code
                     '''%(date_from,date_to,vendor[0])
                 self.cr.execute(sql)                
@@ -498,18 +496,18 @@ class Parser(report_sxw.rml_parse):
                         else '' end as officialwitholdingtax,null as witholdingtaxsectioon, ail.tds_id, 
                         ai.name as invoicedocno, ai.date_invoice as postingdate,
                         ai.bill_number as bill_no,ai.bill_date as bill_date,
-                        sum(ail.amount_basic) as base_amnt,at.name as tax_deduction,
+                        sum(ail.amount_basic) as base_amnt,round(at.amount,0) as tax_deduction,
                         cast(round(sum(ail.amount_basic)*at.amount/100,0) As decimal(8, 2)) as tdsamount, 
-                        ai.vendor_ref as ven_ref, ai.number as gl_doc,at.section as sec
+                        ai.vendor_ref as ven_ref, ai.number as gl_doc
                         from account_invoice_line ail
                         join account_invoice ai on (ai.id=ail.invoice_id)
                         join account_move am on (am.name=ai.number)
                         join res_partner bp on (bp.id=ai.partner_id)
                         join account_tax at on (at.id=ail.tds_id)
-                        where am.state = 'posted' and ai.type='in_invoice' and ail.tds_id is not null and am.doc_type in ('sup_inv')
+                        where ai.type='in_invoice' and ail.tds_id is not null and am.doc_type in ('sup_inv')
                         and ai.date_invoice between '%s' and '%s' and at.id = '%s'
                         group by bp.vendor_code, bp.name, pan_tin, am.doc_type, ai.date_invoice,ail.tds_id, 
-                        ai.name, ai.name, at.name, ai.bill_number, ai.bill_date, ai.vendor_ref, ai.number,at.section,at.amount
+                        ai.name, ai.name, at.amount, ai.bill_number, ai.bill_date, ai.vendor_ref, ai.number
                         order by vendor_code
                     '''%(date_from,date_to,tds[0])
                 self.cr.execute(sql)                
@@ -525,18 +523,18 @@ class Parser(report_sxw.rml_parse):
                         else '' end as officialwitholdingtax,null as witholdingtaxsectioon, ail.tds_id, 
                         ai.name as invoicedocno, ai.date_invoice as postingdate,
                         ai.bill_number as bill_no,ai.bill_date as bill_date,
-                        sum(ail.amount_basic) as base_amnt,at.name as tax_deduction,
+                        sum(ail.amount_basic) as base_amnt,round(at.amount,0) as tax_deduction,
                         cast(round(sum(ail.amount_basic)*at.amount/100,0) As decimal(8, 2)) as tdsamount, 
-                        ai.vendor_ref as ven_ref, ai.number as gl_doc,at.section as sec
+                        ai.vendor_ref as ven_ref, ai.number as gl_doc
                         from account_invoice_line ail
                         join account_invoice ai on (ai.id=ail.invoice_id)
                         join account_move am on (am.name=ai.number)
                         join res_partner bp on (bp.id=ai.partner_id)
                         join account_tax at on (at.id=ail.tds_id)
-                        where am.state = 'posted' and ai.type='in_invoice' and ail.tds_id is not null and am.doc_type in ('sup_inv')
+                        where ai.type='in_invoice' and ail.tds_id is not null and am.doc_type in ('sup_inv')
                         and ai.date_invoice between '%s' and '%s' and at.gl_account_id = '%s'
                         group by bp.vendor_code, bp.name, pan_tin, am.doc_type, ai.date_invoice,ail.tds_id, 
-                        ai.name, ai.name, at.name, ai.bill_number, ai.bill_date, ai.vendor_ref, ai.number,at.section,at.amount
+                        ai.name, ai.name, at.amount, ai.bill_number, ai.bill_date, ai.vendor_ref, ai.number
                         order by vendor_code
                     '''%(date_from,date_to,gl_accnt[0])
                 self.cr.execute(sql)                
@@ -552,18 +550,18 @@ class Parser(report_sxw.rml_parse):
                             else '' end as officialwitholdingtax,null as witholdingtaxsectioon, ail.tds_id, 
                             ai.name as invoicedocno, ai.date_invoice as postingdate,
                             ai.bill_number as bill_no,ai.bill_date as bill_date,
-                            sum(ail.amount_basic) as base_amnt,at.name as tax_deduction,
+                            sum(ail.amount_basic) as base_amnt,round(at.amount,0) as tax_deduction,
                             cast(round(sum(ail.amount_basic)*at.amount/100,0) As decimal(8, 2)) as tdsamount, 
-                            ai.vendor_ref as ven_ref, ai.number as gl_doc,at.section as sec
+                            ai.vendor_ref as ven_ref, ai.number as gl_doc
                             from account_invoice_line ail
                             join account_invoice ai on (ai.id=ail.invoice_id)
                             join account_move am on (am.name=ai.number)
                             join res_partner bp on (bp.id=ai.partner_id)
                             join account_tax at on (at.id=ail.tds_id)
-                            where am.state = 'posted' and ai.type='in_invoice' and ail.tds_id is not null and am.doc_type in ('sup_inv')
+                            where ai.type='in_invoice' and ail.tds_id is not null and am.doc_type in ('sup_inv')
                             and ai.date_invoice between '%s' and '%s'
                             group by bp.vendor_code, bp.name, pan_tin, am.doc_type, ai.date_invoice,ail.tds_id, 
-                            ai.name, ai.name, at.name, ai.bill_number, ai.bill_date, ai.vendor_ref, ai.number,at.section,at.amount
+                            ai.name, ai.name, at.amount, ai.bill_number, ai.bill_date, ai.vendor_ref, ai.number
                             order by vendor_code
                         '''%(date_from,date_to)
                 self.cr.execute(sql)                
@@ -572,7 +570,7 @@ class Parser(report_sxw.rml_parse):
         ##sup_invend
         
         ##freight
-        elif invoicetype == 'freight':
+        if invoicetype == 'freight':
               if vendor and tds and gl_accnt:
                     sql = '''
                             select bp.vendor_code as ven_code, bp.name as ven_name,bp.pan_tin as vendor_pan_no,
@@ -583,19 +581,19 @@ class Parser(report_sxw.rml_parse):
                             else '' end as officialwitholdingtax,null as witholdingtaxsectioon, ail.tds_id, 
                             ai.name as invoicedocno, ai.date_invoice as postingdate,
                             ai.bill_number as bill_no,ai.bill_date as bill_date,
-                            sum(ail.amount_basic) as base_amnt,at.name as tax_deduction,
+                            sum(ail.amount_basic) as base_amnt,round(at.amount,0) as tax_deduction,
                             cast(round(sum(ail.amount_basic)*at.amount/100,0) As decimal(8, 2)) as tdsamount, 
-                            ai.vendor_ref as ven_ref, ai.number as gl_doc,at.section as sec
+                            ai.vendor_ref as ven_ref, ai.number as gl_doc
                             from account_invoice_line ail
                             join account_invoice ai on (ai.id=ail.invoice_id)
                             join account_move am on (am.name=ai.number)
                             join res_partner bp on (bp.id=ai.partner_id)
                             join account_tax at on (at.id=ail.tds_id)
-                            where am.state = 'posted' and ai.type='in_invoice' and ail.tds_id is not null and am.doc_type in ('freight')
+                            where ai.type='in_invoice' and ail.tds_id is not null and am.doc_type in ('freight')
                             and ai.date_invoice between '%s' and '%s' and bp.id = '%s' 
                             and at.id = '%s' and at.gl_account_id = '%s'
                             group by bp.vendor_code, bp.name, pan_tin, am.doc_type, ai.date_invoice,ail.tds_id, 
-                            ai.name, ai.name, at.name, ai.bill_number, ai.bill_date, ai.vendor_ref, ai.number,at.section,at.amount
+                            ai.name, ai.name, at.amount, ai.bill_number, ai.bill_date, ai.vendor_ref, ai.number
                             order by vendor_code
                         '''%(date_from,date_to,vendor[0],tds[0],gl_accnt[0])
                     self.cr.execute(sql)                    
@@ -611,19 +609,19 @@ class Parser(report_sxw.rml_parse):
                             else '' end as officialwitholdingtax,null as witholdingtaxsectioon, ail.tds_id, 
                             ai.name as invoicedocno, ai.date_invoice as postingdate,
                             ai.bill_number as bill_no,ai.bill_date as bill_date,
-                            sum(ail.amount_basic) as base_amnt,at.name as tax_deduction,
+                            sum(ail.amount_basic) as base_amnt,round(at.amount,0) as tax_deduction,
                             cast(round(sum(ail.amount_basic)*at.amount/100,0) As decimal(8, 2)) as tdsamount, 
-                            ai.vendor_ref as ven_ref, ai.number as gl_doc,at.section as sec
+                            ai.vendor_ref as ven_ref, ai.number as gl_doc
                             from account_invoice_line ail
                             join account_invoice ai on (ai.id=ail.invoice_id)
                             join account_move am on (am.name=ai.number)
                             join res_partner bp on (bp.id=ai.partner_id)
                             join account_tax at on (at.id=ail.tds_id)
-                            where am.state = 'posted' and ai.type='in_invoice' and ail.tds_id is not null and am.doc_type in ('freight')
+                            where ai.type='in_invoice' and ail.tds_id is not null and am.doc_type in ('freight')
                             and ai.date_invoice between '%s' and '%s' 
                             and bp.id = '%s' and at.id = '%s'
                             group by bp.vendor_code, bp.name, pan_tin, am.doc_type, ai.date_invoice,ail.tds_id, 
-                            ai.name, ai.name, at.name, ai.bill_number, ai.bill_date, ai.vendor_ref, ai.number, at.section,at.amount
+                            ai.name, ai.name, at.amount, ai.bill_number, ai.bill_date, ai.vendor_ref, ai.number
                             order by vendor_code
                         '''%(date_from,date_to,vendor[0],tds[0])
                     self.cr.execute(sql)                    
@@ -639,19 +637,19 @@ class Parser(report_sxw.rml_parse):
                             else '' end as officialwitholdingtax,null as witholdingtaxsectioon, ail.tds_id, 
                             ai.name as invoicedocno, ai.date_invoice as postingdate,
                             ai.bill_number as bill_no,ai.bill_date as bill_date,
-                            sum(ail.amount_basic) as base_amnt,at.name as tax_deduction,
+                            sum(ail.amount_basic) as base_amnt,round(at.amount,0) as tax_deduction,
                             cast(round(sum(ail.amount_basic)*at.amount/100,0) As decimal(8, 2)) as tdsamount, 
-                            ai.vendor_ref as ven_ref, ai.number as gl_doc,at.section as sec
+                            ai.vendor_ref as ven_ref, ai.number as gl_doc
                             from account_invoice_line ail
                             join account_invoice ai on (ai.id=ail.invoice_id)
                             join account_move am on (am.name=ai.number)
                             join res_partner bp on (bp.id=ai.partner_id)
                             join account_tax at on (at.id=ail.tds_id)
-                            where am.state = 'posted' and ai.type='in_invoice' and ail.tds_id is not null and am.doc_type in ('freight')
+                            where ai.type='in_invoice' and ail.tds_id is not null and am.doc_type in ('freight')
                             and ai.date_invoice between '%s' and '%s' 
                             and bp.id = '%s' and at.gl_account_id = '%s'
                             group by bp.vendor_code, bp.name, pan_tin, am.doc_type, ai.date_invoice,ail.tds_id, 
-                            ai.name, ai.name, at.name, ai.bill_number, ai.bill_date, ai.vendor_ref, ai.number,at.section,at.amount
+                            ai.name, ai.name, at.amount, ai.bill_number, ai.bill_date, ai.vendor_ref, ai.number
                             order by vendor_code
                         '''%(date_from,date_to,vendor[0],gl_accnt[0])
                     self.cr.execute(sql)                    
@@ -667,18 +665,18 @@ class Parser(report_sxw.rml_parse):
                             else '' end as officialwitholdingtax,null as witholdingtaxsectioon, ail.tds_id, 
                             ai.name as invoicedocno, ai.date_invoice as postingdate,
                             ai.bill_number as bill_no,ai.bill_date as bill_date,
-                            sum(ail.amount_basic) as base_amnt,at.name as tax_deduction,
+                            sum(ail.amount_basic) as base_amnt,round(at.amount,0) as tax_deduction,
                             cast(round(sum(ail.amount_basic)*at.amount/100,0) As decimal(8, 2)) as tdsamount, 
-                            ai.vendor_ref as ven_ref, ai.number as gl_doc,at.section as sec
+                            ai.vendor_ref as ven_ref, ai.number as gl_doc
                             from account_invoice_line ail
                             join account_invoice ai on (ai.id=ail.invoice_id)
                             join account_move am on (am.name=ai.number)
                             join res_partner bp on (bp.id=ai.partner_id)
                             join account_tax at on (at.id=ail.tds_id)
-                            where am.state = 'posted' and ai.type='in_invoice' and ail.tds_id is not null and am.doc_type in ('freight')
+                            where ai.type='in_invoice' and ail.tds_id is not null and am.doc_type in ('freight')
                             and ai.date_invoice between '%s' and '%s' and at.id = '%s' and at.gl_account_id = '%s'
                             group by bp.vendor_code, bp.name, pan_tin, am.doc_type, ai.date_invoice,ail.tds_id, 
-                            ai.name, ai.name, at.name, ai.bill_number, ai.bill_date, ai.vendor_ref, ai.number,at.section,at.amount
+                            ai.name, ai.name, at.amount, ai.bill_number, ai.bill_date, ai.vendor_ref, ai.number
                             order by vendor_code
                         '''%(date_from,date_to,tds[0],gl_accnt[0])
                     self.cr.execute(sql)                    
@@ -694,18 +692,18 @@ class Parser(report_sxw.rml_parse):
                         else '' end as officialwitholdingtax,null as witholdingtaxsectioon, ail.tds_id, 
                         ai.name as invoicedocno, ai.date_invoice as postingdate,
                         ai.bill_number as bill_no,ai.bill_date as bill_date,
-                        sum(ail.amount_basic) as base_amnt,at.name as tax_deduction,
+                        sum(ail.amount_basic) as base_amnt,round(at.amount,0) as tax_deduction,
                         cast(round(sum(ail.amount_basic)*at.amount/100,0) As decimal(8, 2)) as tdsamount, 
-                        ai.vendor_ref as ven_ref, ai.number as gl_doc,at.section as sec
+                        ai.vendor_ref as ven_ref, ai.number as gl_doc
                         from account_invoice_line ail
                         join account_invoice ai on (ai.id=ail.invoice_id)
                         join account_move am on (am.name=ai.number)
                         join res_partner bp on (bp.id=ai.partner_id)
                         join account_tax at on (at.id=ail.tds_id)
-                        where am.state = 'posted' and ai.type='in_invoice' and ail.tds_id is not null and am.doc_type in ('freight')
+                        where ai.type='in_invoice' and ail.tds_id is not null and am.doc_type in ('freight')
                         and ai.date_invoice between '%s' and '%s' and bp.id = '%s'
                         group by bp.vendor_code, bp.name, pan_tin, am.doc_type, ai.date_invoice,ail.tds_id, 
-                        ai.name, ai.name, at.name, ai.bill_number, ai.bill_date, ai.vendor_ref, ai.number,at.section,at.amount
+                        ai.name, ai.name, at.amount, ai.bill_number, ai.bill_date, ai.vendor_ref, ai.number
                         order by vendor_code
                     '''%(date_from,date_to,vendor[0])
                 self.cr.execute(sql)                
@@ -721,18 +719,18 @@ class Parser(report_sxw.rml_parse):
                         else '' end as officialwitholdingtax,null as witholdingtaxsectioon, ail.tds_id, 
                         ai.name as invoicedocno, ai.date_invoice as postingdate,
                         ai.bill_number as bill_no,ai.bill_date as bill_date,
-                        sum(ail.amount_basic) as base_amnt,at.name as tax_deduction,
+                        sum(ail.amount_basic) as base_amnt,round(at.amount,0) as tax_deduction,
                         cast(round(sum(ail.amount_basic)*at.amount/100,0) As decimal(8, 2)) as tdsamount, 
-                        ai.vendor_ref as ven_ref, ai.number as gl_doc,at.section as sec
+                        ai.vendor_ref as ven_ref, ai.number as gl_doc
                         from account_invoice_line ail
                         join account_invoice ai on (ai.id=ail.invoice_id)
                         join account_move am on (am.name=ai.number)
                         join res_partner bp on (bp.id=ai.partner_id)
                         join account_tax at on (at.id=ail.tds_id)
-                        where am.state = 'posted' and ai.type='in_invoice' and ail.tds_id is not null and am.doc_type in ('freight')
+                        where ai.type='in_invoice' and ail.tds_id is not null and am.doc_type in ('freight')
                         and ai.date_invoice between '%s' and '%s' and at.id = '%s'
                         group by bp.vendor_code, bp.name, pan_tin, am.doc_type, ai.date_invoice,ail.tds_id, 
-                        ai.name, ai.name, at.name, ai.bill_number, ai.bill_date, ai.vendor_ref, ai.number,at.section,at.amount
+                        ai.name, ai.name, at.amount, ai.bill_number, ai.bill_date, ai.vendor_ref, ai.number
                         order by vendor_code
                     '''%(date_from,date_to,tds[0])
                 self.cr.execute(sql)                
@@ -748,19 +746,18 @@ class Parser(report_sxw.rml_parse):
                         else '' end as officialwitholdingtax,null as witholdingtaxsectioon, ail.tds_id, 
                         ai.name as invoicedocno, ai.date_invoice as postingdate,
                         ai.bill_number as bill_no,ai.bill_date as bill_date,
-                        sum(ail.amount_basic) as base_amnt,at.name as tax_deduction,
+                        sum(ail.amount_basic) as base_amnt,round(at.amount,0) as tax_deduction,
                         cast(round(sum(ail.amount_basic)*at.amount/100,0) As decimal(8, 2)) as tdsamount, 
-                        ai.vendor_ref as ven_ref, ai.number as gl_doc,at.section as sec
+                        ai.vendor_ref as ven_ref, ai.number as gl_doc
                         from account_invoice_line ail
                         join account_invoice ai on (ai.id=ail.invoice_id)
                         join account_move am on (am.name=ai.number)
                         join res_partner bp on (bp.id=ai.partner_id)
                         join account_tax at on (at.id=ail.tds_id)
-                        where am.state = 'posted' and ai.type='in_invoice' 
-                        and ail.tds_id is not null and am.doc_type in ('freight')
+                        where ai.type='in_invoice' and ail.tds_id is not null and am.doc_type in ('freight')
                         and ai.date_invoice between '%s' and '%s' and at.gl_account_id = '%s'
                         group by bp.vendor_code, bp.name, pan_tin, am.doc_type, ai.date_invoice,ail.tds_id, 
-                        ai.name, ai.name, at.name, ai.bill_number, ai.bill_date, ai.vendor_ref, ai.number,at.section,at.amount
+                        ai.name, ai.name, at.amount, ai.bill_number, ai.bill_date, ai.vendor_ref, ai.number
                         order by vendor_code
                     '''%(date_from,date_to,gl_accnt[0])
                 self.cr.execute(sql)                
@@ -776,19 +773,18 @@ class Parser(report_sxw.rml_parse):
                             else '' end as officialwitholdingtax,null as witholdingtaxsectioon, ail.tds_id, 
                             ai.name as invoicedocno, ai.date_invoice as postingdate,
                             ai.bill_number as bill_no,ai.bill_date as bill_date,
-                            sum(ail.amount_basic) as base_amnt,at.name as tax_deduction,
+                            sum(ail.amount_basic) as base_amnt,round(at.amount,0) as tax_deduction,
                             cast(round(sum(ail.amount_basic)*at.amount/100,0) As decimal(8, 2)) as tdsamount, 
-                            ai.vendor_ref as ven_ref, ai.number as gl_doc,at.section as sec
+                            ai.vendor_ref as ven_ref, ai.number as gl_doc
                             from account_invoice_line ail
                             join account_invoice ai on (ai.id=ail.invoice_id)
                             join account_move am on (am.name=ai.number)
                             join res_partner bp on (bp.id=ai.partner_id)
                             join account_tax at on (at.id=ail.tds_id)
-                            where am.state = 'posted' and ai.type='in_invoice' 
-                            and ail.tds_id is not null and am.doc_type in ('freight')
+                            where ai.type='in_invoice' and ail.tds_id is not null and am.doc_type in ('freight')
                             and ai.date_invoice between '%s' and '%s'
                             group by bp.vendor_code, bp.name, pan_tin, am.doc_type, ai.date_invoice,ail.tds_id, 
-                            ai.name, ai.name, at.name, ai.bill_number, ai.bill_date, ai.vendor_ref, ai.number,at.section,at.amount
+                            ai.name, ai.name, at.amount, ai.bill_number, ai.bill_date, ai.vendor_ref, ai.number
                             order by vendor_code
                         '''%(date_from,date_to)
                 self.cr.execute(sql)                
@@ -806,20 +802,19 @@ class Parser(report_sxw.rml_parse):
                     else '' end as officialwitholdingtax,null as witholdingtaxsectioon, ail.tds_id, 
                     ai.name as invoicedocno, ai.date_invoice as postingdate,
                     ai.bill_number as bill_no,ai.bill_date as bill_date,
-                    sum(ail.amount_basic) as base_amnt, at.name as tax_deduction, 
+                    sum(ail.amount_basic) as base_amnt, round(at.amount,0) as tax_deduction, 
                     cast(round(sum(ail.amount_basic)*at.amount/100,0) As decimal(8, 2)) as tdsamount, 
-                    ai.vendor_ref as ven_ref, ai.number as gl_doc,at.section as sec
+                    ai.vendor_ref as ven_ref, ai.number as gl_doc
                     from account_invoice_line ail
                     join account_invoice ai on (ai.id=ail.invoice_id)
                     join account_move am on (am.name=ai.number)
                     join res_partner bp on (bp.id=ai.partner_id)
                     join account_tax at on (at.id=ail.tds_id)
-                    where am.state = 'posted' and ai.type='in_invoice' 
-                    and ail.tds_id is not null and am.doc_type in ('sup_inv', 'ser_inv', 'freight')
+                    where ai.type='in_invoice' and ail.tds_id is not null and am.doc_type in ('sup_pay', 'ser_inv', 'freight')
                     and ai.date_invoice between '%s' and '%s' and bp.id = '%s' 
                     and at.id = '%s' and at.gl_account_id = '%s'
                     group by bp.vendor_code, bp.name, pan_tin, am.doc_type, ai.date_invoice,ail.tds_id,
-                    ai.name, ai.name, at.name, ai.bill_number, ai.bill_date, ai.vendor_ref, ai.number,at.section,at.amount
+                    ai.name, ai.name, at.amount, ai.bill_number, ai.bill_date, ai.vendor_ref, ai.number
                     order by vendor_code
                 '''%(date_from,date_to,vendor[0],tds[0],gl_accnt[0])
             self.cr.execute(sql)
@@ -835,19 +830,18 @@ class Parser(report_sxw.rml_parse):
                     else '' end as officialwitholdingtax,null as witholdingtaxsectioon, ail.tds_id, 
                     ai.name as invoicedocno, ai.date_invoice as postingdate,
                     ai.bill_number as bill_no,ai.bill_date as bill_date,
-                    sum(ail.amount_basic) as base_amnt, at.name as tax_deduction, 
+                    sum(ail.amount_basic) as base_amnt, round(at.amount,0) as tax_deduction, 
                     cast(round(sum(ail.amount_basic)*at.amount/100,0) As decimal(8, 2)) as tdsamount, 
-                    ai.vendor_ref as ven_ref, ai.number as gl_doc, at.section as sec
+                    ai.vendor_ref as ven_ref, ai.number as gl_doc
                     from account_invoice_line ail
                     join account_invoice ai on (ai.id=ail.invoice_id)
                     join account_move am on (am.name=ai.number)
                     join res_partner bp on (bp.id=ai.partner_id)
                     join account_tax at on (at.id=ail.tds_id)
-                    where am.state = 'posted' and ai.type='in_invoice' 
-                    and ail.tds_id is not null and am.doc_type in ('sup_inv', 'ser_inv', 'freight')
+                    where ai.type='in_invoice' and ail.tds_id is not null and am.doc_type in ('sup_pay', 'ser_inv', 'freight')
                     and ai.date_invoice between '%s' and '%s' and bp.id = '%s' and at.gl_account_id = '%s'
                     group by bp.vendor_code, bp.name, pan_tin, am.doc_type, ai.date_invoice,ail.tds_id,
-                    ai.name, ai.name, at.name, ai.bill_number, ai.bill_date, ai.vendor_ref, ai.number,at.section,at.amount
+                    ai.name, ai.name, at.amount, ai.bill_number, ai.bill_date, ai.vendor_ref, ai.number
                     order by vendor_code
                 '''%(date_from,date_to,vendor[0],gl_accnt[0])
             self.cr.execute(sql)
@@ -863,19 +857,18 @@ class Parser(report_sxw.rml_parse):
                     else '' end as officialwitholdingtax,null as witholdingtaxsectioon, ail.tds_id, 
                     ai.name as invoicedocno, ai.date_invoice as postingdate,
                     ai.bill_number as bill_no,ai.bill_date as bill_date,
-                    sum(ail.amount_basic) as base_amnt, at.name as tax_deduction, 
+                    sum(ail.amount_basic) as base_amnt, round(at.amount,0) as tax_deduction, 
                     cast(round(sum(ail.amount_basic)*at.amount/100,0) As decimal(8, 2)) as tdsamount, 
-                    ai.vendor_ref as ven_ref, ai.number as gl_doc,at.section as sec
+                    ai.vendor_ref as ven_ref, ai.number as gl_doc
                     from account_invoice_line ail
                     join account_invoice ai on (ai.id=ail.invoice_id)
                     join account_move am on (am.name=ai.number)
                     join res_partner bp on (bp.id=ai.partner_id)
                     join account_tax at on (at.id=ail.tds_id)
-                    where am.state = 'posted' and ai.type='in_invoice' 
-                    and ail.tds_id is not null and am.doc_type in ('sup_inv', 'ser_inv', 'freight')
+                    where ai.type='in_invoice' and ail.tds_id is not null and am.doc_type in ('sup_pay', 'ser_inv', 'freight')
                     and ai.date_invoice between '%s' and '%s' and bp.id = '%s' and at.id = '%s'
                     group by bp.vendor_code, bp.name, pan_tin, am.doc_type, ai.date_invoice,ail.tds_id,
-                    ai.name, ai.name, at.name, ai.bill_number, ai.bill_date, ai.vendor_ref, ai.number,at.section,at.amount
+                    ai.name, ai.name, at.amount, ai.bill_number, ai.bill_date, ai.vendor_ref, ai.number
                     order by vendor_code
                 '''%(date_from,date_to,vendor[0],tds[0])
             self.cr.execute(sql)
@@ -891,19 +884,18 @@ class Parser(report_sxw.rml_parse):
                     else '' end as officialwitholdingtax,null as witholdingtaxsectioon, ail.tds_id, 
                     ai.name as invoicedocno, ai.date_invoice as postingdate,
                     ai.bill_number as bill_no,ai.bill_date as bill_date,
-                    sum(ail.amount_basic) as base_amnt, at.name as tax_deduction, 
+                    sum(ail.amount_basic) as base_amnt, round(at.amount,0) as tax_deduction, 
                     cast(round(sum(ail.amount_basic)*at.amount/100,0) As decimal(8, 2)) as tdsamount, 
-                    ai.vendor_ref as ven_ref, ai.number as gl_doc,at.section as sec
+                    ai.vendor_ref as ven_ref, ai.number as gl_doc
                     from account_invoice_line ail
                     join account_invoice ai on (ai.id=ail.invoice_id)
                     join account_move am on (am.name=ai.number)
                     join res_partner bp on (bp.id=ai.partner_id)
                     join account_tax at on (at.id=ail.tds_id)
-                    where am.state = 'posted' and ai.type='in_invoice' 
-                    and ail.tds_id is not null and am.doc_type in ('sup_inv', 'ser_inv', 'freight')
+                    where ai.type='in_invoice' and ail.tds_id is not null and am.doc_type in ('sup_pay', 'ser_inv', 'freight')
                     and ai.date_invoice between '%s' and '%s' and at.id = '%s' and at.gl_account_id = '%s'
                     group by bp.vendor_code, bp.name, pan_tin, am.doc_type, ai.date_invoice,ail.tds_id,
-                    ai.name, ai.name, at.name, ai.bill_number, ai.bill_date, ai.vendor_ref, ai.number,at.section,at.amount
+                    ai.name, ai.name, at.amount, ai.bill_number, ai.bill_date, ai.vendor_ref, ai.number
                     order by vendor_code
                 '''%(date_from,date_to,tds[0],gl_accnt[0])
             self.cr.execute(sql)
@@ -919,19 +911,18 @@ class Parser(report_sxw.rml_parse):
                     else '' end as officialwitholdingtax,null as witholdingtaxsectioon, ail.tds_id, 
                     ai.name as invoicedocno, ai.date_invoice as postingdate,
                     ai.bill_number as bill_no,ai.bill_date as bill_date,
-                    sum(ail.amount_basic) as base_amnt, at.name as tax_deduction, 
+                    sum(ail.amount_basic) as base_amnt, round(at.amount,0) as tax_deduction, 
                     cast(round(sum(ail.amount_basic)*at.amount/100,0) As decimal(8, 2)) as tdsamount, 
-                    ai.vendor_ref as ven_ref, ai.number as gl_doc,at.section as sec
+                    ai.vendor_ref as ven_ref, ai.number as gl_doc
                     from account_invoice_line ail
                     join account_invoice ai on (ai.id=ail.invoice_id)
                     join account_move am on (am.name=ai.number)
                     join res_partner bp on (bp.id=ai.partner_id)
                     join account_tax at on (at.id=ail.tds_id)
-                    where am.state = 'posted' and ai.type='in_invoice' 
-                    and ail.tds_id is not null and am.doc_type in ('sup_inv', 'ser_inv', 'freight')
+                    where ai.type='in_invoice' and ail.tds_id is not null and am.doc_type in ('sup_pay', 'ser_inv', 'freight')
                     and ai.date_invoice between '%s' and '%s' and bp.id = '%s'
                     group by bp.vendor_code, bp.name, pan_tin, am.doc_type, ai.date_invoice,ail.tds_id,
-                    ai.name, ai.name, at.name, ai.bill_number, ai.bill_date, ai.vendor_ref, ai.number,at.section,at.amount
+                    ai.name, ai.name, at.amount, ai.bill_number, ai.bill_date, ai.vendor_ref, ai.number
                     order by vendor_code
                 '''%(date_from,date_to,vendor[0])
             self.cr.execute(sql)
@@ -947,19 +938,18 @@ class Parser(report_sxw.rml_parse):
                     else '' end as officialwitholdingtax,null as witholdingtaxsectioon, ail.tds_id, 
                     ai.name as invoicedocno, ai.date_invoice as postingdate,
                     ai.bill_number as bill_no,ai.bill_date as bill_date,
-                    sum(ail.amount_basic) as base_amnt, at.name as tax_deduction, 
+                    sum(ail.amount_basic) as base_amnt, round(at.amount,0) as tax_deduction, 
                     cast(round(sum(ail.amount_basic)*at.amount/100,0) As decimal(8, 2)) as tdsamount, 
-                    ai.vendor_ref as ven_ref, ai.number as gl_doc,at.section as sec
+                    ai.vendor_ref as ven_ref, ai.number as gl_doc
                     from account_invoice_line ail
                     join account_invoice ai on (ai.id=ail.invoice_id)
                     join account_move am on (am.name=ai.number)
                     join res_partner bp on (bp.id=ai.partner_id)
                     join account_tax at on (at.id=ail.tds_id)
-                    where am.state = 'posted' and ai.type='in_invoice' 
-                    and ail.tds_id is not null and am.doc_type in ('sup_inv', 'ser_inv', 'freight')
+                    where ai.type='in_invoice' and ail.tds_id is not null and am.doc_type in ('sup_pay', 'ser_inv', 'freight')
                     and ai.date_invoice between '%s' and '%s' and at.id = '%s'
                     group by bp.vendor_code, bp.name, pan_tin, am.doc_type, ai.date_invoice,ail.tds_id,
-                    ai.name, ai.name, at.name, ai.bill_number, ai.bill_date, ai.vendor_ref, ai.number,at.section,at.amount
+                    ai.name, ai.name, at.amount, ai.bill_number, ai.bill_date, ai.vendor_ref, ai.number
                     order by vendor_code
                 '''%(date_from,date_to,tds[0])
             self.cr.execute(sql)
@@ -975,19 +965,18 @@ class Parser(report_sxw.rml_parse):
                     else '' end as officialwitholdingtax,null as witholdingtaxsectioon, ail.tds_id, 
                     ai.name as invoicedocno, ai.date_invoice as postingdate,
                     ai.bill_number as bill_no,ai.bill_date as bill_date,
-                    sum(ail.amount_basic) as base_amnt, at.name as tax_deduction, 
+                    sum(ail.amount_basic) as base_amnt, round(at.amount,0) as tax_deduction, 
                     cast(round(sum(ail.amount_basic)*at.amount/100,0) As decimal(8, 2)) as tdsamount, 
-                    ai.vendor_ref as ven_ref, ai.number as gl_doc,at.section as sec
+                    ai.vendor_ref as ven_ref, ai.number as gl_doc
                     from account_invoice_line ail
                     join account_invoice ai on (ai.id=ail.invoice_id)
                     join account_move am on (am.name=ai.number)
                     join res_partner bp on (bp.id=ai.partner_id)
                     join account_tax at on (at.id=ail.tds_id)
-                    where am.state = 'posted' and ai.type='in_invoice' 
-                    and ail.tds_id is not null and am.doc_type in ('sup_inv', 'ser_inv', 'freight')
+                    where ai.type='in_invoice' and ail.tds_id is not null and am.doc_type in ('sup_pay', 'ser_inv', 'freight')
                     and ai.date_invoice between '%s' and '%s' and at.gl_account_id = '%s'
                     group by bp.vendor_code, bp.name, pan_tin, am.doc_type, ai.date_invoice,ail.tds_id,
-                    ai.name, ai.name, at.name, ai.bill_number, ai.bill_date, ai.vendor_ref, ai.number,at.section,at.amount
+                    ai.name, ai.name, at.amount, ai.bill_number, ai.bill_date, ai.vendor_ref, ai.number
                     order by vendor_code
                 '''%(date_from,date_to,gl_accnt[0])
             self.cr.execute(sql)
@@ -1003,23 +992,21 @@ class Parser(report_sxw.rml_parse):
                     else '' end as officialwitholdingtax,null as witholdingtaxsectioon, ail.tds_id, 
                     ai.name as invoicedocno, ai.date_invoice as postingdate,
                     ai.bill_number as bill_no,ai.bill_date as bill_date,
-                    sum(ail.amount_basic) as base_amnt, at.name as tax_deduction, 
+                    sum(ail.amount_basic) as base_amnt, round(at.amount,0) as tax_deduction, 
                     cast(round(sum(ail.amount_basic)*at.amount/100,0) As decimal(8, 2)) as tdsamount, 
-                    ai.vendor_ref as ven_ref, ai.number as gl_doc,at.section as sec
+                    ai.vendor_ref as ven_ref, ai.number as gl_doc
                     from account_invoice_line ail
                     join account_invoice ai on (ai.id=ail.invoice_id)
                     join account_move am on (am.name=ai.number)
                     join res_partner bp on (bp.id=ai.partner_id)
                     join account_tax at on (at.id=ail.tds_id)
-                    where am.state = 'posted' and ai.type='in_invoice' 
-                    and ail.tds_id is not null and am.doc_type in ('sup_inv', 'ser_inv', 'freight')
+                    where ai.type='in_invoice' and ail.tds_id is not null and am.doc_type in ('sup_pay', 'ser_inv', 'freight')
                     and ai.date_invoice between '%s' and '%s'
                     group by bp.vendor_code, bp.name, pan_tin, am.doc_type, ai.date_invoice,ail.tds_id,
-                    ai.name, ai.name, at.name, ai.bill_number, ai.bill_date, ai.vendor_ref, ai.number,at.section,at.amount
+                    ai.name, ai.name, at.amount, ai.bill_number, ai.bill_date, ai.vendor_ref, ai.number
                     order by vendor_code
                 '''%(date_from,date_to)
             self.cr.execute(sql)
-            print sql
             return self.cr.dictfetchall()            
                            
        

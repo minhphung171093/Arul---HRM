@@ -112,7 +112,6 @@
             <field name="arch" type="xml">
             	<xpath expr="//page[@string='Tax Definition']/group/group[@string='Invoices']/field[@name='tax_sign']" position="after">
 					<field name="gl_account_id" options="{'create': false, 'create_edit': false}"/>
-					<field name="section"/>
 				</xpath>
 			</field>
 		</record>
@@ -693,10 +692,11 @@
 	                                    <field name="p_f_type"/>
 	                                    <field name="ed"/>
 	                                    <field name="ed_type"/>
-	                                    <field name="tax_id" invisible = '1' on_change = "onchange_tax_id(tax_id)" context="{'type':parent.type}"
+	                                    <field name="tax_id" on_change = "onchange_tax_id(tax_id)" context="{'type':parent.type}"
                                         domain="[('parent_id','=',False),('company_id', '=', parent.company_id)]" options="{'create': false, 'create_edit': false}"/>
                                     <field name="invoice_line_tax_id" string = 'Taxes' widget="many2many_tags" context="{'type':parent.type}"
-                                        domain="[('parent_id','=',False),('company_id', '=', parent.company_id)]"/>
+                                        domain="[('parent_id','=',False),('company_id', '=', parent.company_id)]" invisible = '1'/>
+                                    <field name="tax_service_credit" on_change = "onchange_tax_credit(tax_id, tax_service_credit)" options="{'create': false, 'create_edit': false}"/>
                                     <field name="fright"/>
                                     <field name="fright_type"/>
                                     <field name="line_net"/>
@@ -714,6 +714,7 @@
                                         type="object" help="Recompute taxes and total"/>
                                 </div>
                                 <field name="amount_tax" nolabel="1" widget="monetary" options="{'currency_field': 'currency_id'}"/>
+                                <field name="amount_tax_credit" widget="monetary"/>
                                 <field name="fright" widget="monetary"/>
                                 <field name="amount_total_tds" widget="monetary"/>
                                 <field name="amount_total" class="oe_subtotal_footer_separator" widget="monetary" options="{'currency_field': 'currency_id'}"/>
@@ -923,6 +924,7 @@
                                     <field name="invoice_line_tax_id" string = 'Tax (Debit)' widget="many2many_tags" context="{'type':parent.type}"
                                         domain="[('parent_id','=',False),('company_id', '=', parent.company_id)]" invisible='1'/>
                                     <field name="tax_credit" invisible = '0' on_change="onchange_tax_credit(tax_id,tax_credit)" options="{'create': false, 'create_edit': false}"/>
+                                    <field name="tds_id_2" invisible = '0' options="{'create': false, 'create_edit': false}" />
                                     <field name="fright" invisible = '0'/>
                                     <field name="fright_fi_type" invisible = '0' required='1'/>
                                     <field name="line_net"/>
@@ -943,7 +945,7 @@
                                 <field name="fright" widget="monetary" invisible = '1' options="{'currency_field': 'currency_id'}"/>
                                 <field name="amount_tax_debit" widget="monetary" invisible = '0' options="{'currency_field': 'currency_id'}"/>
                                 <field name="amount_tax_credit" widget="monetary" invisible = '0' options="{'currency_field': 'currency_id'}"/>
-                                <field name="amount_total_tds" widget="monetary" invisible = '1'/>
+                                <field name="amount_total_tds_2" widget="monetary" invisible = '0' options="{'currency_field': 'currency_id'}" />
                                 <field name="amount_total" class="oe_subtotal_footer_separator" widget="monetary" options="{'currency_field': 'currency_id'}"/>
 								<field name="residual" widget="monetary" options="{'currency_field': 'currency_id'}" invisible = '1'/>
                                 <field name="reconciled" invisible="1"/>
@@ -1080,7 +1082,7 @@
                         <field name="cheque_date"/>
                         <field name="cheque_no"/>
                         <field name="employee_id" options="{'create': false, 'create_edit': false}" />
-                        <field name="cost_center_id" options="{'create': false, 'create_edit': false}" />
+                        <field name="cost_center_id" required="1" options="{'create': false, 'create_edit': false}" />
                         <field name="payee"/>
                         <field name="payment_rate_currency_id" invisible="1"/>
                         <field name="partner_id" invisible = '1' on_change="onchange_journal_voucher(line_ids, tax_id, amount, partner_id, journal_id, type)"/>
@@ -1214,7 +1216,7 @@
                         <field name="cheque_date"/>
                         <field name="cheque_no"/>
                         <field name="employee_id" options="{'create': false, 'create_edit': false}" />
-                        <field name="cost_center_id" options="{'create': false, 'create_edit': false}" />
+                        <field name="cost_center_id" required="1" options="{'create': false, 'create_edit': false}" />
                         <field name="payee"/>
                         <field name="payment_rate_currency_id" invisible="1"/>
                         <field name="partner_id" invisible = '1' on_change="onchange_journal_voucher(line_ids, tax_id, amount, partner_id, journal_id, type)"/>
@@ -1403,7 +1405,7 @@
                     <xpath expr="//form[@string='Accounting Voucher']/sheet[@string='Accounting Voucher']/group/field[@name='name']" position="replace">
                        <field name="memo"  />
                        <field name="employee_id" options="{'create': false, 'create_edit': false}" />
-                       <field name="cost_center_id" options="{'create': false, 'create_edit': false}" />
+                       <field name="cost_center_id" required="1" options="{'create': false, 'create_edit': false}" />
                     </xpath>
               		<xpath expr="//form[@string='Accounting Voucher']/sheet[@string='Accounting Voucher']/group/field[@name='partner_id']" position="before">
                        <field name="name" readonly = "1" />
@@ -1498,7 +1500,7 @@
                     	<attribute name='on_change'>onchange_tpt_currency_amount(tpt_currency_id,tpt_currency_amount,type,date,context)</attribute>
                     </xpath>
                     <xpath expr="//field[@name='account_id']" position="after">
-                    	<field name="cost_center_id" options="{'create': false, 'create_edit': false}"/>
+                    	<field name="cost_center_id" required="1" options="{'create': false, 'create_edit': false}"/>
                     </xpath>
                 </data>
             </field>
@@ -1574,7 +1576,7 @@
                     	<attribute name='on_change'>onchange_tpt_currency_amount(tpt_currency_id,tpt_currency_amount,type,date,context)</attribute>
                     </xpath>
                     <xpath expr="//field[@name='account_id']" position="after">
-                    	<field name="cost_center_id" options="{'create': false, 'create_edit': false}"/>
+                    	<field name="cost_center_id" required="1" options="{'create': false, 'create_edit': false}"/>
                     </xpath>
                 </data>
             </field>
@@ -1605,7 +1607,7 @@
                     <xpath expr="//field[@name='department_id']" position="after">
                     	<field name="warehouse" required='1' domain="[('usage','=','internal'),('chained_location_type','&lt;&gt;','customer')]" options="{'create': false, 'create_edit': false}"/>
                     	<!--<field name="gl_account_id" options="{'create': false, 'create_edit': false}"/>   -->
-                    	<field name="cost_center_id" options="{'create': false, 'create_edit': false}" />
+                    	<field name="cost_center_id" required="1" options="{'create': false, 'create_edit': false}" />
                     	<field name="dest_warehouse_id" domain="[('usage','=','internal'),('chained_location_type','&lt;&gt;','customer')]" options="{'create': false, 'create_edit': false}" attrs="{'invisible':[('request_type','!=','production')], 'required':[('request_type','=','norm')]}"/>
                     </xpath>
                     
