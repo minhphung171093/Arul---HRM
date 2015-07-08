@@ -112,13 +112,12 @@ class Parser(report_sxw.rml_parse):
                     inner join res_partner p on (p.id=am.partner_id)
                     inner join account_account aa on (aa.id=aml.account_id)
                     where am.date between '%s' and '%s' 
-                    and am.state='posted' 
-                    and aml.account_id = (
-                    select id from account_account where id in (
-                    select btrim(value_reference,'account.account,')::Integer
-                    from ir_property where res_id in ('res.partner,'|| %s) and name='property_account_receivable'
-                    )) order by am.date 
-                '''%(date_from, date_to,cus[0])
+                    and am.partner_id = %s and am.state='posted' and aml.debit is not null and aml.debit !=0
+                    or (am.date between '%s' and '%s' and am.doc_type in ('cus_pay') and am.partner_id = %s 
+                    and am.state='posted' and aml.credit is not null and aml.credit !=0)
+                    and p.vendor_code=aa.code
+                        order by am.date 
+                '''%(date_from, date_to,cus[0],date_from, date_to,cus[0])
             self.cr.execute(sql)
             cus_ids = [r[0] for r in self.cr.fetchall()]
         else:
@@ -128,13 +127,12 @@ class Parser(report_sxw.rml_parse):
                     inner join res_partner p on (p.id=am.partner_id)
                     inner join account_account aa on (aa.id=aml.account_id)
                     where am.date between '%s' and '%s' 
-                    and am.state in ('draft','posted') 
-                    and aml.account_id = (
-                    select id from account_account where id in (
-                    select btrim(value_reference,'account.account,')::Integer
-                    from ir_property where res_id in ('res.partner,'|| %s) and name='property_account_receivable'
-                    )) order by am.date  
-                '''%(date_from, date_to,cus[0])
+                    and am.partner_id = %s and am.state in ('draft','posted') and aml.debit is not null and aml.debit !=0 
+                    or (am.date between '%s' and '%s' and am.doc_type in ('cus_pay') and am.partner_id = %s 
+                    and am.state in ('draft','posted') and aml.credit is not null and aml.credit !=0)
+                    and p.vendor_code=aa.code
+                        order by am.date  
+                '''%(date_from, date_to,cus[0],date_from, date_to,cus[0])
             self.cr.execute(sql)
             cus_ids = [r[0] for r in self.cr.fetchall()]
 #         sql = '''
@@ -151,7 +149,7 @@ class Parser(report_sxw.rml_parse):
         if doc_type == 'cus_inv':
             self.cr.execute('''select vvt_number from account_invoice where move_id =%s''', (move_id,))
         else:
-             return ''
+            self.cr.execute('''select number from account_voucher where move_id =%s''', (move_id,))
         number = self.cr.fetchone()
         return number and number[0] or ''
     
