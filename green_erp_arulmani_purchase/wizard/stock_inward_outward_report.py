@@ -25,10 +25,10 @@ class tpt_stock_inward_outward(osv.osv):
         'date_from':fields.date('Date From'),
         'date_to':fields.date('Date To'),
         'stock_in_out_line': fields.one2many('tpt.stock.inward.outward.line','stock_in_out_id','Line'),
-        'opening_stock': fields.float('Opening Stock'),
-        'closing_stock': fields.float('Closing Stock'),
-        'opening_value': fields.float('Opening Value'),
-        'closing_value': fields.float('Closing Value'),
+        'opening_stock': fields.float('Opening Stock',digits=(16,3)),
+        'closing_stock': fields.float('Closing Stock',digits=(16,3)),
+        'opening_value': fields.float('Opening Value',digits=(16,3)),
+        'closing_value': fields.float('Closing Value',digits=(16,3)),
     }
     
     def print_xls(self, cr, uid, ids, context=None):
@@ -66,9 +66,9 @@ class tpt_stock_inward_outward_line(osv.osv):
         'document_no': fields.char('Document No', size=1024),
         'gl_document_no': fields.char('GL Document No', size=1024),
         'document_type': fields.char('Document Type', size=1024),
-        'transaction_quantity': fields.float('Transaction Quantity'),
-        'stock_value': fields.float('Stock Value'),
-        'current_material_value': fields.float('Current Material Value'),
+        'transaction_quantity': fields.float('Transaction Quantity',digits=(16,3)),
+        'stock_value': fields.float('Stock Value',digits=(16,3)),
+        'current_material_value': fields.float('Current Material Value',digits=(16,3)),
 #         'sl_chuaro': fields.float('SL Chua Ro'),
     }
     
@@ -151,9 +151,9 @@ class stock_inward_outward_report(osv.osv_memory):
                 sql = '''
                     select case when sum(st.product_qty)!=0 then sum(st.product_qty) else 0 end product_qty
                             from stock_move st
-                            where st.state='done' and st.location_dest_id=%s and st.product_id=%s 
+                            where st.state='done' and st.location_dest_id=%s and st.product_id=%s and to_char(date, 'YYYY-MM-DD') < '%s'
                                 and st.location_dest_id != st.location_id
-                                and ( (picking_id is not null and picking_id in (select id from stock_picking where to_char(date, 'YYYY-MM-DD') < '%s'))
+                                and ( picking_id is not null 
                                 or  inspec_id is not null
                                 or (st.id in (select move_id from stock_inventory_move_rel where inventory_id in (select id from stock_inventory where to_char(date, 'YYYY-MM-DD') <'%s' and state = 'done')))
                             )
@@ -737,12 +737,17 @@ class stock_inward_outward_report(osv.osv_memory):
             if line['doc_type']=='good':
                 qty = 0
                 value = 0
+                opening_stock = get_opening_stock(stock)
+                opening_stock_value = get_opening_stock_value(stock)
                 for l in stock_in_out_line:
                     qty += l[2]['transaction_quantity'] 
 #                     qty_chuaro += l[2]['sl_chuaro']
                     value += l[2]['stock_value']
-                st = (qty) and value/(qty) or 0
-                st_value = st*(trans_qty)
+                if seq == 0:
+                    st = (qty+opening_stock) and (value+opening_stock_value)/(qty+opening_stock) or 0
+                else:
+                    st = (qty+opening_stock) and cur/(qty+opening_stock) or 0
+                st_value = (st)*(trans_qty)
             else:
                 st_value = stock_value(get_line_stock_value(stock,line['id'], line['material_issue_id'], line['doc_type'], line['date']), line)
             self.st_sum_value += st_value

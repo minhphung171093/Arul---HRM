@@ -47,9 +47,9 @@ class tpt_stock_on_hand_line(osv.osv_memory):
         'description': fields.char('Mat.Description', size = 1024),
         'uom': fields.char('UOM'),
         'bin_loc': fields.char('Bin Loc.'),
-        'onhand_qty': fields.float('On hand Qty'),
-        'ins_qty': fields.float('Ins.Qty'),
-        'bl_qty': fields.float('Bl.Qty'),
+        'onhand_qty': fields.float('On hand Qty',digits=(16,3)),
+        'ins_qty': fields.float('Ins.Qty',digits=(16,3)),
+        'bl_qty': fields.float('Bl.Qty',digits=(16,3)),
     }
 
 tpt_stock_on_hand_line()

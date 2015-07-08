@@ -171,6 +171,9 @@
         <menuitem action="action_leave_balance_report"
             id="menu_action_leave_balance_report"
             parent="menu_hr_leave_management" sequence="36"/>
+        <menuitem action="action_time_data_report"
+            id="menu_action_time_data_check"
+            parent="menu_hr_leave_management" sequence="37"/>  
             
     </data>
 </openerp>
