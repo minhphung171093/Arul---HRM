@@ -50,21 +50,21 @@
 	        <field name="name">Time Manager</field>
 	        <field name="category_id" ref="module_category_vvti_hrm"/>
 	        <field name="users" eval="[(4, ref('base.user_root'))]"/>
-	        <field name="implied_ids" eval="[(4, ref('group_vvti_hrm_time_key_user')),(4, ref('group_vvti_hrm_hr_user'))]"/>
+	        <field name="implied_ids" eval="[(4, ref('group_vvti_hrm_time_key_user'))]"/>
 	    </record>
+	    
+	    <!--<record id="group_vvti_hrm_hr_manager" model="res.groups">
+	        <field name="name">HR - Manager</field>
+	        <field name="category_id" ref="module_category_vvti_hrm"/>
+	        <field name="users" eval="[(4, ref('base.user_root'))]"/>
+	        <field name="implied_ids" eval="[(4, ref('base.group_user')),(4, ref('group_vvti_unit_user')),(4, ref('group_vvti_hrm_hr_key_user'))]"/>
+	    </record>-->
 	    
 	    <record id="group_vvti_hrm_hr_manager" model="res.groups">
 	        <field name="name">HR - Manager</field>
 	        <field name="category_id" ref="module_category_vvti_hrm"/>
 	        <field name="users" eval="[(4, ref('base.user_root'))]"/>
-	        <field name="implied_ids" eval="[(4, ref('base.group_user')),(4, ref('group_vvti_unit_user'))]"/>
-	    </record>
-	    
-	    <record id="group_vvti_hrm_payroll_controller" model="res.groups">
-	        <field name="name">Payroll Controller</field>
-	        <field name="category_id" ref="module_category_vvti_hrm"/>
-	        <field name="users" eval="[(4, ref('base.user_root'))]"/>
-	        <field name="implied_ids" eval="[(4, ref('base.group_user'))]"/>
+	        <field name="implied_ids" eval="[(6,0, [ref('group_vvti_hrm_hr_key_user')])]"/>
 	    </record>
 	    
 	    <record id="group_vvti_hrm_plant_hr_user" model="res.groups">
@@ -72,6 +72,13 @@
 	        <field name="category_id" ref="module_category_vvti_hrm"/>
 	        <field name="users" eval="[(4, ref('base.user_root'))]"/>
 	        <field name="implied_ids" eval="[(4, ref('base.group_user'))]"/>
+	    </record>
+	    
+	    <record id="group_vvti_hrm_payroll_controller" model="res.groups">
+	        <field name="name">Payroll Controller</field>
+	        <field name="category_id" ref="module_category_vvti_hrm"/>
+	        <field name="users" eval="[(4, ref('base.user_root'))]"/>
+	        <field name="implied_ids" eval="[(4, ref('base.group_user')),(4, ref('group_vvti_hrm_plant_hr_user'))]"/>
 	    </record>
 	    
 	    <record id="group_vvti_hrm_admin" model="res.groups">
@@ -94,14 +101,23 @@
 	        <field name="implied_ids" eval="[(4, ref('group_vvti_unit_user'))]"/>
 	    </record>
 	     
-	    <record id="group_vvti_hrm_gm" model="res.groups">
+	    <!--<record id="group_vvti_hrm_gm" model="res.groups">
 	        <field name="name">HR-GM</field>
 	        <field name="category_id" ref="module_category_vvti_hrm"/>
 	        <field name="users" eval="[(4, ref('base.user_root'))]"/>
 	        <field name="implied_ids" eval="[(4, ref('group_vvti_hrm_hr_manager')),
 	        								(4, ref('group_vvti_hrm_payroll_controller')),
 	        								(4, ref('group_vvti_hrm_time_manager'))]"/>
+	    </record>-->
+	    
+	    <record id="group_vvti_hrm_gm" model="res.groups">
+	        <field name="name">HR-GM</field>
+	        <field name="category_id" ref="module_category_vvti_hrm"/>
+	        <field name="users" eval="[(4, ref('base.user_root'))]"/>
+	        <field name="implied_ids" eval="[(6,0, [ref('group_vvti_hrm_hr_user'),
+	        									ref('group_vvti_hrm_payroll_controller'),
+	        									ref('group_vvti_hrm_time_key_user')])]"/>
 	    </record>
-    
+    	
 	</data>
 </openerp>

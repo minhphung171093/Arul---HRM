@@ -198,7 +198,7 @@
             		<button name="invoice_open" states="draft" string="Validate" class="oe_highlight" groups="green_erp_arulmani_sale.group_vvti_sale_manager"/>
             	</xpath>
             	<xpath expr="//button[@name='invoice_print' and @string='Print Invoice']" position="replace">
-            		<button name='invoice_print' string="Print Invoice" type="object"/>
+            		<button name='invoice_print' string="Print Invoice" type="object" groups="green_erp_arulmani_sale.group_vvti_sale_user"/>
             	</xpath>
             	<xpath expr="//page[@string='Other Info']/group[@col='4']/group/field[@name='name']" position="replace">
 				</xpath>  
@@ -350,6 +350,10 @@
             <field name="inherit_id" ref="stock.view_picking_out_form"/>
             <field name="arch" type="xml">
             
+            	<xpath expr="//button[@name='button_cancel']"  position="replace">
+            		<button name="button_cancel" states="assigned,confirmed,draft" string="Cancel Transfer" groups="base.user_root"/>
+            	</xpath>
+            	
             	<xpath expr="//field[@name='invoice_state']" position="replace">
 					<field name="invoice_state" invisible="1"/>
 				</xpath> 
@@ -371,6 +375,9 @@
 	                />
 	                
 	            </button>
+	            
+	           
+	            
             	<xpath expr="//field[@name='stock_journal_id']"  position="replace">
             		<field name="stock_journal_id" invisible="1"/>
             		<field name="flag_confirm" invisible="1"/>
@@ -392,8 +399,12 @@
 				</xpath>
 				
 				<button name="action_assign" position="replace">
-					<button name="tpt_check_stock" states="confirmed" string="Check Availability" type="object" class="oe_highlight"/>
+					<button name="tpt_check_stock" states="confirmed" string="Check Availability" type="object" class="oe_highlight" groups="green_erp_arulmani_sale.group_vvti_sale_user"/>
 				</button>
+				
+				<xpath expr="//button[@name='action_process']" position="attributes">
+					<attribute name='groups'>green_erp_arulmani_sale.group_vvti_sale_user</attribute>
+				</xpath>
 				
             	<xpath expr="//field[@name='partner_id']"  position="replace">
                     <field name="partner_id" on_change="onchange_partner_in(partner_id)" string="Customer" domain="[('customer','=',1),('is_company','=',1)]" readonly = "1" options="{'create': false, 'create_edit': false}"/>
@@ -453,8 +464,8 @@
             	</xpath>
             	
             	<xpath expr="/form/header//button[@name='%(stock.report_picking_list_out)d']" position="replace">
-            		 <button name="print_dispatch_slip" string="Print Dispatch Slip" type="object" states="done" class="oe_highlight"/>
-            		 <button name="print_packing_list" string="Print Packing List" attrs="{'invisible':[('order_type', '=', 'domestic')]}" type="object" class="oe_highlight"/>
+            		 <button name="print_dispatch_slip" string="Print Dispatch Slip" type="object" states="done" class="oe_highlight" groups="green_erp_arulmani_sale.group_vvti_sale_user"/>
+            		 <button name="print_packing_list" string="Print Packing List" attrs="{'invisible':[('order_type', '=', 'domestic')]}" type="object" class="oe_highlight" groups="green_erp_arulmani_sale.group_vvti_sale_user,green_erp_arulmani_sale.group_vvti_marketing_user"/>
             	</xpath>
             	
             	<xpath expr="//page[@string='Products']" position="after">

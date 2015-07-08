@@ -44,8 +44,17 @@
 					<field name="client_order_ref" invisible="1" />
 				</xpath>
 				<xpath expr="//button[@name='cancel']"  position="replace">
-					<button name="cancel" states="draft,sent" string="Cancel Sale Order" groups="base.group_user"/>
+					<button name="cancel" states="draft,sent" string="Cancel Sale Order" groups="green_erp_arulmani_sale.group_vvti_sale_manager"/>
 				</xpath>
+				
+				<xpath expr="//button[@name='action_cancel']"  position="attributes">
+					<attribute name="groups">green_erp_arulmani_sale.group_vvti_sale_manager</attribute>
+				</xpath>
+				
+				<xpath expr="//button[@name='invoice_cancel']"  position="attributes">
+					<attribute name="groups">green_erp_arulmani_sale.group_vvti_sale_manager</attribute>
+				</xpath>
+				
 				<xpath expr="//field[@name='partner_shipping_id']"  position="replace">
 					<field name="partner_shipping_id" required="0" invisible="1" />
 				</xpath>
@@ -173,8 +182,8 @@
             <field name="arch" type="xml">
 	            <form string="Blanket Order" version="7.0">
 	            <header>
-	            		<button name="bt_approve" states='draft' string="Confirm" type="object" class="oe_highlight" />
-	                    <button name="bt_cancel" states='draft,approve' string="Cancel" type="object" class="oe_highlight" />
+	            		<button name="bt_approve" states='draft' string="Confirm" type="object" class="oe_highlight" groups="green_erp_arulmani_sale.group_vvti_marketing_user"/>
+	                    <button name="bt_cancel" states='draft,approve' string="Cancel" type="object" class="oe_highlight" groups="green_erp_arulmani_sale.group_vvti_marketing_user"/>
 	                    <field name="state" widget="statusbar" statusbar_visible="draft,cancel,approve,done" statusbar_colors='{"draft":"blue","cancel":"blue","done":"red"}'/>
 	            </header>    
 	            	<sheet>
@@ -740,9 +749,9 @@
             <field name="arch" type="xml">
                 <form string="Batch Allotment" version="7.0">
                    <header>
-                     <button string="Approve" name="confirm" states="to_approve,refuse" type="object" class="oe_highlight" groups="green_erp_arulmani_sale.group_vvti_sale_manager,green_erp_arulmani_crm.group_qc_user"/>
-                     <button string="Refuse" name="refuse" states="to_approve,confirm" type="object" class="oe_highlight" groups="green_erp_arulmani_sale.group_vvti_sale_manager,green_erp_arulmani_crm.group_qc_user"/>
-                     <button string="Cancel" name="cancelled" states="to_approve,confirm,refuse" type="object" class="oe_highlight" groups="green_erp_arulmani_sale.group_vvti_sale_manager,green_erp_arulmani_crm.group_qc_manager"/>
+                     <button string="Approve" name="confirm" states="to_approve,refuse" type="object" class="oe_highlight" groups="green_erp_arulmani_crm.group_qc_user"/>
+                     <button string="Refuse" name="refuse" states="to_approve,confirm" type="object" class="oe_highlight" groups="ggreen_erp_arulmani_crm.group_qc_user"/>
+                     <button string="Cancel" name="cancelled" states="to_approve,confirm,refuse" type="object" class="oe_highlight" groups="green_erp_arulmani_crm.group_qc_manager,green_erp_arulmani_crm.group_qc_user"/>
                      <field name="state" widget="statusbar" statusbar_colors='{"confirm":"blue","to_approve":"blue","refuse":"red"}'/>
                     </header>
                    <sheet>
