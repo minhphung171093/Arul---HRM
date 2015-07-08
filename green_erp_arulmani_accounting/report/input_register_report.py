@@ -42,10 +42,6 @@ class Parser(report_sxw.rml_parse):
             'get_date_from': self.get_date_from,
             'get_date_to': self.get_date_to,
             'get_document_type': self.get_document_type,
-            'get_cate_type':self.get_cate_type, # YuVi
-            'get_grn_date':self.get_grn_date, # YuVi
-             #'convert_datetime':self.convert_datetime, #YuVi
-            'get_total':self.get_total, #YuVi
         })
         
     def convert_date(self,date):
@@ -118,60 +114,6 @@ class Parser(report_sxw.rml_parse):
             return "VV Service PO"
         if document_type == 'out':
             return "VV Out Service PO"
-        
-    #YuVi
-    def get_cate_type(self):
-        wizard_data = self.localcontext['data']['form']
-        type = wizard_data['product_cate_id']
-        pro_cat_obj = self.pool.get('product.category')
-        category = pro_cat_obj.browse(self.cr,self.uid,type[0])
-                
-        if category.id == 3:
-            return "Monthly Return Cenvat on Input"
-        if category.id == 5:
-            return "Monthly Return Cenvat on Capital Goods"
-        
-        
-    def get_grn_date(self, inv_id):
-        self.cr.execute('''select date from stock_picking where id in (select grn_no from account_invoice where id = %s)''', (inv_id.id,))
-        grndate = self.cr.fetchone()         
-        date = datetime.strptime(str(grndate[0]), DATETIME_FORMAT)
-        temp=date.strftime('%d/%m/%Y')
-        #return grndate and grndate[0] or ''
-        return temp
-    
-#     def convert_datetime(self,date):
-#         #datercvd = '%Y%m%d'
-#         if date:
-#             #date = datetime.strptime(date, DATETIME_FORMAT)
-#             date = datetime.strptime(date, DATETIME_FORMAT)
-#             year = new.date_from[5:7]
-#             month = new.date_from[3:4]
-#             day = new.date_from[:2]
-#             
-#             #chop = len(date.split()[-1]) - 4
-#             #date = date[:-chop]
-#             
-#             #===================================================================
-#             # datercvd = datetime(
-#             #                   year=date.year, 
-#             #                   month=date.month,
-#             #                   day=date.day,
-#             #                   )
-#             #===================================================================
-#             datercvd = date.strptime(date.strftime('%d/%m/%Y'))
-#             #datetime.strptime(date.strftime('%Y%m%d'), '%Y%m%d')
-#             return datercvd
-        
-    def get_total(self, value):
-        print value
-        sum = 0.0
-        for line in value:
-            sum += line.quantity*line.price_unit   
-        return sum
-    
-     
-       
     
         
         

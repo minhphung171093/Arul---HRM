@@ -17,6 +17,7 @@ class stock_picking(osv.osv):
         'cons_loca':fields.many2one('res.partner','Consignee Location',readonly = True),
         'warehouse':fields.many2one('stock.location','Warehouse'),
         'transporter':fields.char('Transporter Name', size = 64),
+        'reason_mgnt_confirm':fields.char('Reason For Management Confirmation', size = 64),
         'truck':fields.char('Truck Number', size = 64),
         'remarks':fields.text('Remarks'),
         'doc_status':fields.selection([('draft','Drafted'),
@@ -775,6 +776,19 @@ class stock_picking(osv.osv):
     
     def management_confirm(self, cr, uid, ids, context=None):
         for picking in self.browse(cr, uid, ids, context=context):
+            res = self.pool.get('ir.model.data').get_object_reference(cr, uid, 
+                                            'green_erp_arulmani_sale', 'alert_mgnt_warning_form_view')
+            return {
+                                    'name': 'Management Confirmation',
+                                    'view_type': 'form',
+                                    'view_mode': 'form',
+                                    'view_id': res[1],
+                                    'res_model': 'do.mgnt.confirm',
+                                    'domain': [],
+                                    'context': {'default_message':'Are you sure want to confirm this DO?','audit_id':picking.id},
+                                    'type': 'ir.actions.act_window',
+                                    'target': 'new',
+                                }
             if picking.doc_status == 'waiting':
                 sql = '''
                     update stock_picking set flag_confirm = True, doc_status='approved' where id = %s
@@ -839,6 +853,7 @@ class stock_picking_out(osv.osv):
         'cons_loca':fields.many2one('res.partner','Consignee Location',readonly = True),
         'warehouse':fields.many2one('stock.location','Warehouse'),
         'transporter':fields.char('Transporter Name', size = 64),
+        'reason_mgnt_confirm':fields.char('Reason For Management Confirmation', size = 64),
         'truck':fields.char('Truck Number', size = 64),
         'remarks':fields.text('Remarks'),
         'doc_status':fields.selection([('draft','Drafted'),

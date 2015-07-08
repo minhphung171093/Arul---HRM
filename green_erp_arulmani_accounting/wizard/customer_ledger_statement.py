@@ -58,7 +58,9 @@ class customer_ledger_statement(osv.osv_memory):
                     select id from account_account where id in (
                     select btrim(value_reference,'account.account,')::Integer
                     from ir_property where res_id in ('res.partner,'|| %s) and name='property_account_receivable'
-                    )) order by am.date  
+                    )
+                    )
+                        order by am.date  
                     '''%(date_from, date_to,cus)
                 cr.execute(sql)
                 cus_ids = [r[0] for r in cr.fetchall()]
@@ -74,7 +76,10 @@ class customer_ledger_statement(osv.osv_memory):
                     select id from account_account where id in (
                     select btrim(value_reference,'account.account,')::Integer
                     from ir_property where res_id in ('res.partner,'|| %s) and name='property_account_receivable'
-                    )) order by am.date  
+                    )
+                    )
+                    
+                        order by am.date  
                     '''%(date_from, date_to,cus)
                 cr.execute(sql)
                 cus_ids = [r[0] for r in cr.fetchall()]
@@ -92,7 +97,7 @@ class customer_ledger_statement(osv.osv_memory):
             if doc_type == 'cus_inv':
                 cr.execute('''select vvt_number from account_invoice where move_id =%s''', (move_id,))
             else:
-                return ''
+                cr.execute('''select number from account_voucher where move_id =%s''', (move_id,))
             number = cr.fetchone()
             return number and number[0] or ''
         
