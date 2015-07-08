@@ -3,6 +3,7 @@
 import daily_sale_report
 import report_bank_book
 import report_cash_book
+import tds_report
 import w_report
 import customer_ledger_statement_report
 import supplier_ledger_statement_report

@@ -141,6 +141,7 @@ class tpt_update_stock_move_report(osv.osv):
     
     _columns = {
         'result': fields.text('Result', readonly=True ),
+        'product_id': fields.many2one('product.product', 'Product'),
         'update_line': fields.one2many('tpt.update.inspection.line','update_id','Line'),
     }
     
@@ -1484,12 +1485,805 @@ class tpt_update_stock_move_report(osv.osv):
             cr.execute('update stock_move set date=%s,date_expected=%s where id=%s',(line.date,line.date,move_id,))
         return self.write(cr, uid, ids, {'result':result})
     
+    def sum_avg_cost(self, cr, uid, ids, context=None):
+        result = 'Done create inspection \n'
+        inventory_obj = self.pool.get('tpt.product.avg.cost')
+        product_id = self.browse(cr, uid, ids[0]).product_id.id
+        for id in [product_id]:
+            sql = '''
+                update stock_move set price_unit = 0 where product_id=%s and price_unit<0
+            '''%(id)
+            cr.execute(sql)
+            sql = 'delete from tpt_product_avg_cost where product_id=%s'%(id)
+            cr.execute(sql)
+            sql = '''
+                select foo.loc as loc
+                    from
+                    (select st.location_id as loc from stock_move st
+                        inner join stock_location l on st.location_id= l.id
+                            where l.usage = 'internal'
+                    union all
+                    select st.location_dest_id as loc from stock_move st
+                        inner join stock_location l on st.location_dest_id= l.id
+                        where l.usage = 'internal'
+                        )foo
+                   group by foo.loc
+            '''
+            cr.execute(sql)
+            for loc in cr.dictfetchall():
+                sql = '''
+                    select case when sum(foo.product_qty)!=0 then sum(foo.product_qty) else 0 end ton_sl,case when sum(foo.price_unit)!=0 then sum(foo.price_unit) else 0 end total_cost from 
+                        (select st.product_qty,st.price_unit*st.product_qty as price_unit
+                            from stock_move st 
+                            where st.state='done' and st.product_id=%s and st.location_dest_id=%s and st.location_dest_id != st.location_id and production_id is null
+                        )foo
+                '''%(id,loc['loc'])
+                cr.execute(sql)
+                inventory = cr.dictfetchone()
+                if inventory:
+                    hand_quantity = float(inventory['ton_sl'])
+                    total_cost = float(inventory['total_cost'])
+                    avg_cost = hand_quantity and total_cost/hand_quantity or 0
+                    sql = '''
+                        select case when sum(foo.product_qty)!=0 then sum(foo.product_qty) else 0 end ton_sl 
+                            from 
+                                (
+                                select st.product_qty*-1 as product_qty
+                                    from stock_move st 
+                                    where st.state='done'
+                                        and st.product_id=%s
+                                        and location_id=%s
+                                        and location_dest_id != location_id
+                                        and production_id is null
+                                )foo
+                    '''%(id,loc['loc'])
+                    cr.execute(sql)
+                    out = cr.dictfetchone()
+                    if out:
+                        hand_quantity = hand_quantity+float(out['ton_sl'])
+                        total_cost = avg_cost*hand_quantity
+                    
+                    sql = '''
+                        select case when sum(foo.product_qty)!=0 then sum(foo.product_qty) else 0 end ton_sl from 
+                            (select st.product_qty as product_qty
+                                from stock_move st 
+                                where st.state='done' and st.product_id=%s and st.location_dest_id=%s and st.
+                                 location_dest_id != st.location_id
+                                 and production_id is not null
+                             union all
+                             select st.product_qty*-1 as product_qty
+                                from stock_move st 
+                                where st.state='done'
+                                        and st.product_id=%s
+                                            and location_id=%s
+                                            and location_dest_id != location_id
+                                             and production_id is not null
+                            )foo
+                    '''%(id,loc['loc'],id,loc['loc'])
+                    cr.execute(sql)
+                    hand_quantity += cr.fetchone()[0]
+                    sql = '''
+                        select case when sum(produce_cost)!=0 then sum(produce_cost) else 0 end produce_cost,
+                            case when sum(product_qty)!=0 then sum(product_qty) else 0 end product_qty
+                            from mrp_production where location_dest_id=%s and product_id=%s and state='done'
+                    '''%(loc['loc'],id)
+                    cr.execute(sql)
+                    produce = cr.dictfetchone()
+                    if produce:
+#                         hand_quantity += float(produce['product_qty'])
+                        total_cost += float(produce['produce_cost'])
+                        avg_cost = hand_quantity and total_cost/hand_quantity or 0
+                    inventory_obj.create(cr, uid, {'product_id':id,
+                                                   'warehouse_id':loc['loc'],
+                                                   'hand_quantity':hand_quantity,
+                                                   'avg_cost':avg_cost,
+                                                   'total_cost':total_cost})
+        return self.write(cr, uid, ids, {'result':result})
+    
+    def update_issue_unit_price(self, cr, uid, ids, context=None):
+        sql = '''
+            select id from stock_move where issue_id is not null and state = 'done' and picking_id is null and inspec_id is null
+        '''
+        cr.execute(sql)
+        for line in cr.fetchall():
+            move = self.pool.get('stock.move').browse(cr, 1, line[0])
+            sql = '''
+                    select case when sum(foo.product_qty)!=0 then sum(foo.product_qty) else 0 end ton_sl,case when sum(foo.price_unit)!=0 then sum(foo.price_unit) else 0 end total_cost from 
+                        (select st.product_qty,st.price_unit*st.product_qty as price_unit
+                            from stock_move st
+                                join stock_location loc1 on st.location_id=loc1.id
+                                join stock_location loc2 on st.location_dest_id=loc2.id
+                            where st.state='done' and st.location_dest_id = %s  and st.product_id=%s and date < '%s' 
+                        union all
+                            select -1*st.product_qty,st.price_unit*st.product_qty as price_unit
+                            from stock_move st
+                                join stock_location loc1 on st.location_id=loc1.id
+                                join stock_location loc2 on st.location_dest_id=loc2.id
+                            where st.state='done' and st.location_id=%s and st.product_id=%s and date < '%s' 
+                        )foo
+                '''%(move.location_id.id,move.product_id.id,move.issue_id.date_expec,move.location_id.id,move.product_id.id,move.issue_id.date_expec)
+            cr.execute(sql)
+            inventory = cr.dictfetchone()
+            if inventory:
+                hand_quantity = float(inventory['ton_sl'])
+                total_cost = float(inventory['total_cost'])
+                avg_cost = hand_quantity and total_cost/hand_quantity or 0
+                if avg_cost < 0:
+                    avg_cost = 0
+                sql = '''
+                    update stock_move set price_unit = %s where id = %s
+                '''%(avg_cost,move.id)
+                cr.execute(sql)
+                print 'TPT update ISSUE unit price for report', move.id
+         
+        return self.write(cr, uid, ids, {'result':'TPT update UNIT PRICE for report Done'})
+    
+    def update_tpt_quanlity_inspection(self, cr, uid, ids, context=None):
+        sql = '''
+            select id from tpt_quanlity_inspection where need_inspec_id is null
+        '''
+        cr.execute(sql)
+        inspection_obj = self.pool.get('tpt.quanlity.inspection')
+        inspection_ids = [r[0] for r in cr.fetchall()]
+        for line in inspection_obj.browse(cr, uid, inspection_ids):
+            sql = '''
+                select picking_id from stock_move where product_id=%s and product_qty=%s and picking_id is not null and action_taken='need'
+                   and (select count(id) from tpt_quanlity_inspection where name=%s and name not in (select name from tpt_quanlity_inspection 
+                   where name in (select picking_id from stock_move where action_taken = 'direct' and state = 'done' )
+                   and need_inspec_id is null))>1
+            '''%(line.product_id.id,line.qty,line.name.id)
+            cr.execute(sql)
+            picking_ids = [r[0] for r in cr.fetchall()]
+            if picking_ids:
+                inspection_obj.write(cr, uid, [line.id], {'name':picking_ids[0]})
+        cr.execute(''' update tpt_quanlity_inspection t set need_inspec_id=(select id from stock_move where action_taken = 'need' and picking_id=t.name and product_qty=t.qty and product_id=t.product_id limit 1) where need_inspec_id is null ''')
+        return self.write(cr, uid, ids, {'result':'TPT tpt_quanlity_inspection Done'})
+    
+    def update_tpt_quanlity_inspection_v2(self, cr, uid, ids, context=None):
+        sql = '''
+            select id from tpt_quanlity_inspection where name in (select name from tpt_quanlity_inspection group by name having count(name)>1) and need_inspec_id is not null
+        '''
+        cr.execute(sql)
+        inspection_obj = self.pool.get('tpt.quanlity.inspection')
+        move_obj = self.pool.get('stock.move')
+        inspection_ids = [r[0] for r in cr.fetchall()]
+        for line in inspection_obj.browse(cr, uid, inspection_ids):
+            move = move_obj.browse(cr, uid, line.need_inspec_id.id)
+            cr.execute(''' update tpt_quanlity_inspection set name=%s where id=%s ''',(move.picking_id.id,line.id,))
+#         cr.execute(''' update tpt_quanlity_inspection t set need_inspec_id=(select id from stock_move where picking_id=t.name and product_qty=t.qty and product_id=t.product_id limit 1) where id in %s ''',(tuple(inspection_ids),))
+        return self.write(cr, uid, ids, {'result':'TPT tpt_quanlity_inspection v2 Done'})
+    
+    def update_issue_with_posting(self, cr, uid, ids, context=None):
+        sql = '''
+            select id from tpt_material_issue where (select count(id) from account_move where doc_type in ( 'good') and material_issue_id=tpt_material_issue.id)>1
+        '''
+        cr.execute(sql)
+        move_obj = self.pool.get('account.move')
+        issue_obj = self.pool.get('tpt.material.issue')
+        for line in cr.fetchall():
+            sql = '''
+                select id,state from account_move where doc_type='good' and material_issue_id = %s order by state
+            '''%(line[0])
+            cr.execute(sql)
+            move = cr.fetchone()
+            if move:
+                if move[1]=='posted':
+                    move_obj.button_cancel(cr, uid, [move[0]])
+                cr.execute(''' delete from account_move where id=%s ''',(move[0],))
+                
+        sql = '''
+            select id from account_move where doc_type in ('good') and material_issue_id is null and state='posted'
+        '''
+        cr.execute(sql)    
+        move_ids = [r[0] for r in cr.fetchall()]
+        move_obj.button_cancel(cr, uid, move_ids)
+        sql = '''
+            delete from account_move where doc_type in ('good') and material_issue_id is null
+        '''
+        cr.execute(sql)
+        sql = '''
+            select id from tpt_material_issue where (select count(id) from account_move where doc_type in ( 'good') and material_issue_id=tpt_material_issue.id)=0  and state='done'
+                limit 150
+        '''
+        cr.execute(sql)
+        issue_ids = [r[0] for r in cr.fetchall()]
+        if not issue_ids:
+            return self.write(cr, uid, ids, {'result':'TPT update_issue_with_posting Done'})
+        issue_obj.bt_create_posting(cr, uid, issue_ids)
+        return self.write(cr, uid, ids, {'result':'TPT update_issue_with_posting Remaining'})
+    
+    def fix_posting_issue(self, cr, uid, ids, context=None):
+        sql = '''
+            select id from tpt_material_issue where (select count(id) from account_move where doc_type in ( 'good') and material_issue_id=tpt_material_issue.id)>1
+        '''
+        cr.execute(sql)
+        move_obj = self.pool.get('account.move')
+        issue_obj = self.pool.get('tpt.material.issue')
+        for line in cr.fetchall():
+            sql = '''
+                select id,state from account_move where doc_type='good' and material_issue_id = %s order by state
+            '''%(line[0])
+            cr.execute(sql)
+            move = cr.fetchone()
+            if move:
+                if move[1]=='posted':
+                    move_obj.button_cancel(cr, uid, [move[0]])
+                cr.execute(''' delete from account_move where id=%s ''',(move[0],))
+                
+        sql = '''
+            select id from account_move where doc_type in ('good') and state='posted'
+        '''
+        cr.execute(sql)    
+        move_ids = [r[0] for r in cr.fetchall()]
+        move_obj.button_cancel(cr, uid, move_ids)
+        sql = '''
+            delete from account_move where doc_type in ('good') and material_issue_id is null
+        '''
+        cr.execute(sql)
+        sql = '''
+            select id from tpt_material_issue where (select count(id) from account_move where doc_type in ( 'good') and material_issue_id=tpt_material_issue.id)=0  and state='done'
+                limit 150
+        '''
+        cr.execute(sql)
+        issue_ids = [r[0] for r in cr.fetchall()]
+        if not issue_ids:
+            return self.write(cr, uid, ids, {'result':'TPT fix_posting_issue Done'})
+        issue_obj.bt_create_posting(cr, uid, issue_ids)
+        return self.write(cr, uid, ids, {'result':'TPT fix_posting_issue Remaining'})
+    
+    def check_one_grn_one_posting(self, cr, uid, ids, context=None):
+        sql = '''
+            select id, name from stock_picking where type = 'in' and state = 'done'
+        '''
+        cr.execute(sql)
+        for picking in cr.dictfetchall():
+            sql = '''
+                select id from account_move where doc_type = 'grn' and 
+                id in (select move_id from account_move_line where LEFT(name,17) = '%s')
+            '''%(picking['name'])
+            cr.execute(sql)
+            accounts = cr.dictfetchall()
+            if len(accounts) > 1:
+                for num in range(1, len(accounts)):
+                    move_id = accounts[num]['id']
+                    sql = '''
+                        delete from account_move where id = %s
+                    '''%(move_id)
+                    cr.execute(sql)
+                    sql = '''
+                        delete from account_move_line where move_id = %s
+                    '''%(move_id)
+                    cr.execute(sql)
+            if len(accounts) < 1:
+                account_move_obj = self.pool.get('account.move')
+                period_obj = self.pool.get('account.period')
+                line = self.pool.get('stock.picking').browse(cr,uid,picking['id'])
+                if line.type == 'in' and line.state=='done':
+                    debit = 0.0
+                    credit = 0.0
+                    journal_line = []
+                    for move in line.move_lines:
+                        if move.purchase_line_id.price_unit:
+                            amount = move.purchase_line_id.price_unit * move.product_qty
+                        else:
+                            amount = 0
+                        if move.purchase_line_id.discount:
+                            debit += amount - (amount*move.purchase_line_id.discount)/100
+                        else:
+                            debit += amount - (amount*0)/100
+                    date_period = line.date,
+                    sql = '''
+                        select id from account_period where special = False and '%s' between date_start and date_stop
+                     
+                    '''%(date_period)
+                    cr.execute(sql)
+                    period_ids = [r[0] for r in cr.fetchall()]
+                    if not period_ids:
+                        raise osv.except_osv(_('Warning!'),_('Period is not null, please configure it in Period master !'))
+                     
+                    for period_id in period_obj.browse(cr,uid,period_ids):
+                        sql_journal = '''
+                        select id from account_journal
+                        '''
+                        cr.execute(sql_journal)
+                        journal_ids = [r[0] for r in cr.fetchall()]
+                        journal = self.pool.get('account.journal').browse(cr,uid,journal_ids[0])
+                        for p in line.move_lines:
+                            if p.purchase_line_id.price_unit:
+                                amount_cer = p.purchase_line_id.price_unit * p.product_qty
+                            else:
+                                amount_cer = 0 * p.product_qty
+                            if p.purchase_line_id.discount:
+                                credit = amount_cer - (amount_cer*p.purchase_line_id.discount)/100
+                                debit = amount_cer - (amount_cer*p.purchase_line_id.discount)/100
+                            else:
+                                credit = amount_cer - (amount_cer*0)/100
+                                debit = amount_cer - (amount_cer*0)/100
+                            if not p.product_id.product_asset_acc_id:
+                                print p.product_id.name
+                                raise osv.except_osv(_('Warning!'),_('You need to define Product Asset GL Account for this product'))
+                            journal_line.append((0,0,{
+                                'name':line.name + ' - ' + p.product_id.name, 
+                                'account_id': p.product_id.product_asset_acc_id and p.product_id.product_asset_acc_id.id,
+                                'partner_id': line.partner_id and line.partner_id.id or False,
+                                'credit':0,
+                                'debit':debit,
+                                'product_id':p.product_id.id,
+                            }))
+                            
+                            if not p.product_id.purchase_acc_id:
+                                raise osv.except_osv(_('Warning!'),_('You need to define Purchase GL Account for this product'))
+                            journal_line.append((0,0,{
+                                'name':line.name + ' - ' + p.product_id.name, 
+                                'account_id': p.product_id.purchase_acc_id and p.product_id.purchase_acc_id.id,
+                                'partner_id': line.partner_id and line.partner_id.id or False,
+                                'credit':credit,
+                                'debit':0,
+                                'product_id':p.product_id.id,
+                            }))
+                             
+                        vals={
+                            'journal_id':journal.id,
+                            'period_id':period_id.id ,
+                            'date': date_period,
+                            'line_id': journal_line,
+                            'doc_type':'grn'
+                            }
+                        account_move_obj.create(cr,uid,vals)       
+        return self.write(cr, uid, ids, {'result':'TPT Done'})
+    
+    def update_date_stock_move(self, cr, uid, ids, context=None):
+        sql = '''
+            update stock_move set date = (select date from stock_picking where id=stock_move.picking_id), date_expected = (select date from stock_picking where id=stock_move.picking_id) where picking_id is not null
+        '''
+        cr.execute(sql)
+        return self.write(cr, uid, ids, {'result':'Date Done'})
+    
+    def update_date_stock_move_from_inspection(self, cr, uid, ids, context=None):
+        sql = '''
+            update stock_move set date = (select date from tpt_quanlity_inspection where id=stock_move.inspec_id), date_expected = (select date from tpt_quanlity_inspection where id=stock_move.inspec_id) where inspec_id is not null
+        '''
+        cr.execute(sql)
+        return self.write(cr, uid, ids, {'result':'Date Done From Inspection'})
+    
+    def update_date_inspection(self, cr, uid, ids, context=None):
+        sql = '''
+            update tpt_quanlity_inspection set date = (select date from stock_move where id=tpt_quanlity_inspection.need_inspec_id) where need_inspec_id is not null
+        '''
+        cr.execute(sql)
+        return self.write(cr, uid, ids, {'result':'update_date_inspection Done'})
+    
+    def update_date_between_issue_and_account(self, cr, uid, ids, context=None):
+        sql = '''
+            update account_move set date = (select date_expec from tpt_material_issue where id = account_move.material_issue_id) where material_issue_id is not null
+        '''
+        cr.execute(sql)
+        return self.write(cr, uid, ids, {'result':'update_date_between_issue_and_account Done'})
+    
+    def update_date_between_issue_and_stockmove(self, cr, uid, ids, context=None):
+        sql = '''
+            update stock_move set date = (select date_expec from tpt_material_issue where id = stock_move.issue_id) where issue_id is not null
+        '''
+        cr.execute(sql)
+        return self.write(cr, uid, ids, {'result':'update_date_between_issue_and_stockmove Done'})
+    
+    def create_quanlity_inspection(self, cr, uid, picking_id):
+        quality_inspec = self.pool.get('tpt.quanlity.inspection')
+        stock_picking = self.pool.get('stock.picking')
+        for move in stock_picking.browse(cr, SUPERUSER_ID, picking_id).move_lines:
+            if move.action_taken=='need':
+                product_line = []
+                if move.product_id.categ_id.cate_name=='raw':
+                    for para in move.product_id.spec_parameter_line: 
+                        product_line.append((0,0,{
+                                            'name':para.name and para.name.id or False,
+                                           'value':para.required_spec,
+                                           'uom_id':para.uom_po_id and para.uom_po_id.id or False,
+                                           }))
+                vals={
+                        'product_id':move.product_id.id,
+                        'qty':move.product_qty,
+                        'remaining_qty':move.product_qty,
+                        'name':picking_id,
+                        'supplier_id':move.picking_id.partner_id.id,
+                        'date':move.picking_id.date,
+                        'specification_line':product_line,
+                        'need_inspec_id':move.id,
+                        'price_unit':move.price_unit or 0,
+                        }
+                quality_inspec.create(cr, SUPERUSER_ID, vals)
+        return True
+    
+    def update_one_stockmove_one_inspection(self, cr, uid, ids, context=None):
+        quanlity_inspec = []
+        product_qty = 0
+        dem = 0
+        delete = 0
+        sql = '''
+            select * from stock_move where picking_id in (select id from stock_picking where state = 'done' and type = 'in') 
+            and action_taken = 'need'
+        '''
+        cr.execute(sql)
+        for move in cr.dictfetchall():
+            picking = self.pool.get('stock.picking').browse(cr,uid,move['picking_id'])
+            sql = '''
+                select * from tpt_quanlity_inspection where need_inspec_id = %s and state in ('remaining', 'done')
+            '''%(move['id'])
+            cr.execute(sql)
+            inspections = cr.dictfetchall()
+            if inspections:
+                if len(inspections) > 1:
+                    for num in range(1,len(inspections)):
+                        sql = '''
+                            delete from stock_move where inspec_id = %s
+                        '''%(inspections[num]['id'])
+                        cr.execute(sql)
+                        sql = '''
+                            delete from tpt_quanlity_inspection where id = %s
+                        '''%(inspections[num]['id'])
+                        cr.execute(sql)
+#             else:
+#                 print move['id']
+#                 self.create_quanlity_inspection(move['picking_id'])
+                    
+        return self.write(cr, uid, ids, {'result':'update_one_stockmove_one_inspection Done'})
+    
+    def update_one_stockmove_one_inspection_v2(self, cr, uid, ids, context=None):
+        quanlity_inspec = []
+        product_qty = 0
+        dem = 0
+        delete = 0
+        sql = '''
+            select * from stock_move where picking_id in (select id from stock_picking where state = 'done' and type = 'in') 
+            and action_taken = 'need'
+        '''
+        cr.execute(sql)
+        for move in cr.dictfetchall():
+            picking = self.pool.get('stock.picking').browse(cr,uid,move['picking_id'])
+            sql = '''
+                select * from tpt_quanlity_inspection where need_inspec_id = %s 
+            '''%(move['id'])
+            cr.execute(sql)
+            inspections = cr.dictfetchall()
+            if inspections:
+                if len(inspections) > 1:
+                    for num in range(0,len(inspections)):
+                        if inspections[num]['state'] == 'draft': 
+                            sql = '''
+                                delete from tpt_quanlity_inspection where id = %s
+                            '''%(inspections[num]['id'])
+                            cr.execute(sql)
+                    
+        return self.write(cr, uid, ids, {'result':'update_one_stockmove_one_inspection_v2 Done'})
+    
+    def update_data_104(self, cr, uid, ids, context=None):
+        sql = '''
+            select picking_id from stock_move where product_id = 12850 and state = 'done' and action_taken = 'need' and product_qty = 24.0
+        '''
+        cr.execute(sql)
+        move = cr.dictfetchone()['picking_id']
+        sql = '''
+            update tpt_quanlity_inspection set name = %s where id = 104
+        '''%(move)
+        cr.execute(sql)
+        return self.write(cr, uid, ids, {'result':'update_data_104 Done'})
+    
+    def update_for_lg(self, cr, uid, ids, context=None):
+        quanlity_inspec = []
+        product_qty = 0
+        dem = 0
+        delete = 0
+        sql = '''
+            select * from stock_move where picking_id in (select id from stock_picking where state = 'done' and type = 'in') 
+            and action_taken = 'need' and product_id = 10718
+        '''
+        cr.execute(sql)
+        for move in cr.dictfetchall():
+            picking = self.pool.get('stock.picking').browse(cr,uid,move['picking_id'])
+            sql = '''
+                select * from tpt_quanlity_inspection where need_inspec_id = %s 
+            '''%(move['id'])
+            cr.execute(sql)
+            inspections = cr.dictfetchall()
+            if not inspections:
+                self.create_quanlity_inspection(cr,uid,move['picking_id'])
+        return self.write(cr, uid, ids, {'result':'update_for_lg Done'})        
+    
+    def check_one_stockmove_one_inspection(self, cr, uid, ids, context=None):
+        quanlity_inspec = []
+        product_qty = 0
+        for check in self.browse(cr,uid,ids):
+            sql = '''
+                    delete from tpt_update_inspection_line where update_id = %s
+                '''%(check.id)
+            cr.execute(sql)
+            
+            
+        # kiem tra xem cac quanlity inspection ko co need_inspec_id
+#             sql = '''
+#                 select * from tpt_quanlity_inspection where need_inspec_id is null and state in ('remaining', 'done')
+#             '''
+#             cr.execute(sql)
+#             inspection_nulls = cr.dictfetchall()
+#             if inspection_nulls:
+#                 for seq, inspection_null in enumerate(inspection_nulls):
+#                     quanlity = self.pool.get('tpt.quanlity.inspection').browse(cr,uid,inspection_null['id'])
+#                     quanlity_inspec.append((0,0,{
+#                                         'name': 'check khong co need_inspec_id',
+#                                         'seq': seq + 1,
+#                                         'inspec_id': inspection_null['id'],
+#                                         'move_id': False,
+#                                         'inspec_qty': int(inspection_null['qty']),
+#                                         'move_qty': False,
+#                                         'inspection_id': int(inspection_null['id']),
+#                                         'stock_move_id': False,
+#                                         'product_id': quanlity.product_id.id,
+#                                         'product_name': quanlity.product_id.name,
+#                                         'state_inspec': quanlity.state,
+#                                                 }))
+        # end
+        
+        #kiem tra cac quanlity inspection nao co need_inspec_id nhung khong co stock move
+        
+            sql = '''
+                select * from tpt_quanlity_inspection where need_inspec_id is not null and state in ('remaining', 'done')
+            '''
+            cr.execute(sql)
+            for inspection in cr.dictfetchall():
+                quanlity = self.pool.get('tpt.quanlity.inspection').browse(cr,uid,inspection['id'])
+                sql = '''
+                select * from stock_move where picking_id in (select id from stock_picking where state = 'done' and type = 'in') 
+                and action_taken = 'need' and id = %s
+                '''%(inspection['need_inspec_id'])
+                cr.execute(sql)
+                moves = cr.dictfetchall()
+                if moves:
+                    if len(moves) > 1:
+                        for seq, move in enumerate(moves):
+                            quanlity_inspec.append((0,0,{
+                                                'name': 'Co quanlity inspection(need_inspec_id) nhung co nhieu stock move',
+                                                'seq': seq + 1,
+                                                'inspec_id': inspection['id'],
+                                                'move_id': move['id'],
+                                                'inspec_qty': int(inspection['qty']),
+                                                'move_qty': int(move['product_qty']),
+                                                'inspection_id': int(inspection['id']),
+                                                'stock_move_id': int(move['id']),
+                                                'product_id': quanlity.product_id.id,
+                                                'product_name': quanlity.product_id.name,
+                                                'state_inspec': quanlity.state,
+                                                        }))
+                else:
+                    quanlity_inspec.append((0,0,{
+                                                'name': 'Co quanlity inspection(need_inspec_id) nhung khong co stock move (stock move bi xoa)',
+                                                'seq': False,
+                                                'inspec_id': inspection['id'],
+                                                'move_id': False,
+                                                'inspec_qty': int(inspection['qty']),
+                                                'move_qty': False,
+                                                'inspection_id': int(inspection['id']),
+                                                'stock_move_id': False,
+                                                'product_id': quanlity.product_id.id,
+                                                'product_name': quanlity.product_id.name,
+                                                'state_inspec': quanlity.state,
+                                                        }))
+        # end 
+        
+            sql = '''
+                select * from stock_move where picking_id in (select id from stock_picking where state = 'done' and type = 'in') 
+                and action_taken = 'need'
+            '''
+            cr.execute(sql)
+            for move in cr.dictfetchall():
+                stock = self.pool.get('stock.move').browse(cr,uid,move['id'])
+        # kiem tra xem trong cac quanlity inspection co quanlity inspection nao bi trung need_inspec_id hay khong
+                sql = '''
+                    select * from tpt_quanlity_inspection where need_inspec_id = %s 
+                '''%(move['id'])
+                cr.execute(sql)
+                inspections = cr.dictfetchall()
+                if inspections:
+                    if len(inspections) > 1:
+                        for seq, inspection in enumerate(inspections):
+                            quanlity = self.pool.get('tpt.quanlity.inspection').browse(cr,uid,inspection['id'])
+                            quanlity_inspec.append((0,0,{
+                                                'name': 'Co 1 stock move nhung co nhieu quanlity inspection(need_inspec_id)',
+                                                'seq': seq + 1,
+                                                'inspec_id': inspection['id'],
+                                                'move_id': move['id'],
+                                                'inspec_qty': int(inspection['qty']),
+                                                'move_qty': int(move['product_qty']),
+                                                'inspection_id': int(inspection['id']),
+                                                'stock_move_id': int(move['id']),
+                                                'product_id': quanlity.product_id.id,
+                                                'product_name': quanlity.product_id.name,
+                                                'state_inspec': quanlity.state,
+                                                        }))
+                else:
+                    quanlity_inspec.append((0,0,{
+                                                'name': 'Co stock move nhung khong co quanlity inspection',
+                                                'seq': False,
+                                                'inspec_id': False,
+                                                'move_id': move['id'],
+                                                'inspec_qty': False,
+                                                'move_qty': int(move['product_qty']),
+                                                'inspection_id': False,
+                                                'stock_move_id': int(move['id']),
+                                                'product_id': stock.product_id.id,
+                                                'product_name': stock.product_id.name,
+                                                        }))
+            
+        # Kiem tra quanlity inspection voi trang thai done 
+            sql = '''
+                select * from tpt_quanlity_inspection where state in ('remaining', 'done')
+            '''
+            cr.execute(sql)
+            for quanlity_done in cr.dictfetchall():
+                quanlity = self.pool.get('tpt.quanlity.inspection').browse(cr,uid,quanlity_done['id'])
+                sql = '''
+                    select * from stock_move where inspec_id = %s and state = 'done'
+                '''%(quanlity_done['id'])
+                cr.execute(sql)
+                new_moves = cr.dictfetchall()
+#                 if new_moves:
+#                     for seq, new_move in enumerate(new_moves):
+#                         sql = '''
+#                             select sum(product_qty) as product_qty, inspec_id from stock_move where inspec_id = %s and state = 'done' group by inspec_id
+#                         '''%(quanlity_done['id'])
+#                         cr.execute(sql)
+#                         for inspec_move in cr.dictfetchall():
+#                             if inspec_move:
+#                                 product_qty = inspec_move['product_qty']
+#                         qty = quanlity_done['qty']
+#                         remaining_qty = quanlity_done['remaining_qty']
+#                         if (qty - remaining_qty) != product_qty:
+#                             quanlity_inspec.append((0,0,{
+#                                                 'name': 'Co quanlity inspection va co stock move moi nhung khong khop so luong',
+#                                                 'seq': seq + 1,
+#                                                 'inspec_id': quanlity_done['id'],
+#                                                 'move_id': new_move['id'],
+#                                                 'inspec_qty': quanlity_done['qty'] - quanlity_done['remaining_qty'],
+#                                                 'move_qty': product_qty,
+#                                                 'inspection_id': quanlity_done['id'],
+#                                                 'stock_move_id': new_move['id'],
+#                                                         }))
+                if not new_moves:
+                    quanlity_inspec.append((0,0,{
+                                                'name': 'Co quanlity inspection nhung chua tao ra stock move moi',
+                                                'seq': False,
+                                                'inspec_id': quanlity_done['id'],
+                                                'move_id': False,
+                                                'inspec_qty': quanlity_done['qty'],
+                                                'move_qty': False,
+                                                'inspection_id': quanlity_done['id'],
+                                                'stock_move_id': False,
+                                                'product_id': quanlity.product_id.id,
+                                                'product_name': quanlity.product_id.name,
+                                                'state_inspec': quanlity.state,
+                                                        }))
+        return self.write(cr, uid, ids, {'update_line':quanlity_inspec})
+    
+    def sync_stock_move_and_quanlity_inspection_v1(self, cr, uid, ids, context=None):
+        def select_quanlity_inspection_map_stock_move(cr, uid):
+            num = 0
+            sql = '''
+                select id from tpt_quanlity_inspection where need_inspec_id is null
+            '''
+            cr.execute(sql)
+            inspec_ids = [r[0] for r in cr.fetchall()]
+            print 'Co inspection Khong co stock move nguon: ',len(inspec_ids),' dong ',inspec_ids
+            return inspec_ids
+
+        quanlity_inspec_obj = self.pool.get('tpt.quanlity.inspection')
+        move_obj = self.pool.get('stock.move')
+
+        quanlity_inspec_ids = True
+        while (quanlity_inspec_ids):
+            #Co inspection Khong co stock move nguon
+            quanlity_inspec_ids = select_quanlity_inspection_map_stock_move(cr, uid)
+            for inspec in quanlity_inspec_obj.browse(cr, uid, quanlity_inspec_ids):
+                sql = '''
+                    select id from stock_move where picking_id=%s and product_id=%s and state='done' and action_taken='need' and
+                        id not in (select need_inspec_id from tpt_quanlity_inspection where need_inspec_id is not null)
+                '''%(inspec.name.id,inspec.product_id.id)
+                cr.execute(sql)
+                move_ids = [r[0] for r in cr.fetchall()]
+#                 move_ids = move_obj.search(cr, uid, [('picking_id','=',inspec.name.id),('product_id','=',inspec.product_id.id),('state','=','done'),('action_taken','=','need')])
+                if len(move_ids)>=1:
+                    move = move_obj.browse(cr, uid, move_ids[0])
+                    sql = '''
+                        delete from stock_move where inspec_id=%s
+                    '''%(inspec.id)
+                    cr.execute(sql)
+                    sql = '''
+                        update tpt_quanlity_inspection set qty=%s,remaining_qty=%s,qty_approve=%s,state='draft',need_inspec_id=%s where id = %s
+                    '''%(move.product_qty,move.product_qty,move.product_qty,move.id,inspec.id)
+                    cr.execute(sql)
+                if not move_ids:
+                    sql = '''
+                        delete from stock_move where inspec_id=%s
+                    '''%(inspec.id)
+                    cr.execute(sql)
+                    sql = '''
+                        delete from tpt_quanlity_inspection where id=%s
+                    '''%(inspec.id)
+                    cr.execute(sql)
+                
+        return self.write(cr, uid, ids, {'result':'sync_stock_move_and_quanlity_inspection V1 Done'})   
+    
+    def sync_stock_move_and_quanlity_inspection_v2(self, cr, uid, ids, context=None):
+        
+        def select_stock_move_map_quanlity_inspection(cr, uid):
+            move_miss = 0
+            move_more = 0
+            sql = '''
+                select id from stock_move where state='done' and action_taken='need'
+            '''
+            cr.execute(sql)
+            move_ids = [r[0] for r in cr.fetchall()]
+            move_miss_ids = []
+            move_more_ids = []
+            for move in self.pool.get('stock.move').browse(cr, uid,move_ids):
+                sql = '''
+                    select id from tpt_quanlity_inspection where need_inspec_id=%s
+                '''%(move.id)
+                cr.execute(sql)
+                inspec_ids = [r[0] for r in cr.fetchall()]
+                if len(inspec_ids)==0:
+                    move_miss_ids.append(move.id)
+                    move_miss+=1
+#                 if len(inspec_ids)>1:
+#                     move_more_ids.append(move.id)
+#                     move_more+=1
+#                     print 'stock move nguon co nhieu quanlity inspection: ',move['id'],move_more,' voi ',inspec_ids
+            print 'stock move nguon khong co quanlity inspection: ',move_miss,' dong ',move_miss_ids
+            return move_miss_ids
+        
+        quanlity_inspec_obj = self.pool.get('tpt.quanlity.inspection')
+        move_obj = self.pool.get('stock.move')
+        #stock move nguon khong co quanlity inspection
+        move_miss_ids = select_stock_move_map_quanlity_inspection(cr, uid)
+        for move in move_obj.browse(cr, uid, move_miss_ids):
+            product_line = []
+            if move.product_id.categ_id.cate_name=='raw':
+                for para in move.product_id.spec_parameter_line: 
+                    product_line.append((0,0,{
+                                        'name':para.name and para.name.id or False,
+                                       'value':para.required_spec,
+                                       'uom_id':para.uom_po_id and para.uom_po_id.id or False,
+                                       }))
+            vals={
+                    'product_id':move.product_id.id,
+                    'qty':move.product_qty,
+                    'remaining_qty':move.product_qty,
+                    'name':move.picking_id.id,
+                    'supplier_id':move.picking_id.partner_id.id,
+                    'date':move.picking_id.date,
+                    'specification_line':product_line,
+                    'need_inspec_id':move.id,
+                    'price_unit':move.price_unit or 0,
+                    }
+            quanlity_inspec_obj.create(cr, SUPERUSER_ID, vals)
+        
+        sql = '''
+            delete from stock_move where inspec_id in(select id from tpt_quanlity_inspection where need_inspec_id not in (select id from stock_move where state='done' and action_taken='need'))
+        '''
+        cr.execute(sql)
+        sql = '''
+            delete from tpt_quanlity_inspection where need_inspec_id not in (select id from stock_move where state='done' and action_taken='need')
+        '''
+        cr.execute(sql)
+        
+        return self.write(cr, uid, ids, {'result':'sync_stock_move_and_quanlity_inspection V2 Done'})   
+    
 tpt_update_stock_move_report()
 
 class tpt_update_inspection_line(osv.osv):
     _name = "tpt.update.inspection.line"
     
     _columns = {
+        'name': fields.char('Name'),
+        'seq': fields.integer('Sequence'),
         'inspec_id': fields.many2one('tpt.quanlity.inspection', 'Quanlity Inspection'),
         'inspection_id': fields.integer('Quanlity Inspection'),
         'inspec_qty': fields.related('inspec_id','qty', string='Inspection Qty', digits=(16,3)),
@@ -1497,6 +2291,11 @@ class tpt_update_inspection_line(osv.osv):
         'stock_move_id': fields.integer('Stock Move'),
         'move_qty': fields.related('move_id','product_qty', string='Move Qty', digits=(16,3)),
         'remove': fields.boolean('Remove'),
+        'product_id': fields.many2one('product.product', 'Product'),
+        'product_name': fields.char('Product Name'),
+        'state_inspec': fields.related('inspec_id', 'state', type='selection',selection=[
+            ('draft', 'Draft'),('remaining', 'Remaining'),('done', 'Done')
+            ], string='State Inspec'),
         'update_id': fields.many2one('tpt.update.stock.move.report', 'Update', ondelete='cascade'),
     }
     

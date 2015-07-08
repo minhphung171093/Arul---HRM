@@ -7,10 +7,10 @@
 	        <field name="model">tpt.form.are.1</field>
 	        <field name="report_name">Print Form A.R.E - 1</field>
 	        <field name="report_type">aeroo</field>
-	        <field name="in_format">oo-ods</field>
-	        <field name="out_format" model="report.mimetypes" search="[('code','=','oo-xls'),('compatible_types','=','oo-ods')]"/>
+	        <field name="in_format">oo-odt</field>
+	        <field name="out_format" model="report.mimetypes" search="[('code','=','oo-pdf'),('compatible_types','=','oo-odt')]"/>
 	        <field name="parser_loc">green_erp_arulmani_sale/report/print_form_are_1.py</field>
-	        <field name="report_rml">green_erp_arulmani_sale/report/print_form_are_1.ods</field>
+	        <field name="report_rml">green_erp_arulmani_sale/report/print_form_are_1.odt</field>
 	        <field name="parser_state">loc</field>
 	        <field name="tml_source">file</field>
 	        <field name="attachment_use" eval="0"/>
@@ -23,6 +23,6 @@
 			model="tpt.form.are.1" 
 			name="form_are_1_report"
 	        string="Print Form A.R.E - 1"
-	        rml="green_erp_arulmani_sale/report/print_form_are_1.ods"/> 	
+	        rml="green_erp_arulmani_sale/report/print_form_are_1.odt"/> 	
 	</data>
 </openerp>

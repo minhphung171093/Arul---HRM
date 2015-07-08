@@ -385,7 +385,8 @@ class stock_picking_in(osv.osv):
                               }
                         move_lines.append((1,line.id,rs))
                         sql = '''
-                            update stock_move set location_dest_id = %s where id=%s
+                            update stock_move set location_dest_id = %s where id=%s;
+                            commit;
                         '''%(dest_id,line.id)
                         cr.execute(sql)
             
@@ -412,6 +413,8 @@ class stock_move(osv.osv):
         'issue_id': fields.many2one('tpt.material.issue','Material Issue'),
         'cost_center_id': fields.many2one('tpt.cost.center','Cost center'),
         'grn_no': fields.related('picking_id', 'name', type='char', string='GRN No'),
+        'gate_out_sup_id':fields.many2one('tpt.gate.out.pass','Gate Out Pass'), # luu gate_out_pass kho khach hang
+        'gate_out_id':fields.many2one('tpt.gate.out.pass','Gate Out Pass'),
 #         'grn_no_1': fields.related('picking_id', 'id',relation='stock.picking.in', type='many2one', string='GRN No'),
         'grn_date': fields.related('picking_id', 'date', type='datetime', string='GRN Date'),
         'supplier_id': fields.related('picking_id', 'partner_id',relation='res.partner', type='many2one', string='Supplier'),
@@ -472,6 +475,80 @@ class stock_move(osv.osv):
                 result['action_taken'] = False
         return {'value': result}
     def write(self, cr, uid, ids, vals, context=None):
+        for line in self.browse(cr,uid,ids):
+            if line.picking_id and line.picking_id.type == 'in':        
+                if line.product_id :
+                    product = self.pool.get('product.product').browse(cr, uid, line.product_id.id)
+                    cate = product.categ_id and product.categ_id.cate_name or False
+                    if  'action_taken' in vals:
+                        if vals['action_taken'] == 'move' and (cate == 'raw' or cate == 'spares' or cate == 'finish'):
+                            warning = {  
+                                      'title': _('Warning!'),  
+                                      'message': _('The action "Move to Consumption" can not be taken for this product!'),  
+                                      }  
+                            vals['action_taken']=False
+                            return {'value': vals,'warning':warning}
+                        elif cate == 'consum':
+        #             elif action_taken != 'move' and cate == 'consum':
+                            vals['action_taken']='move'
+        #             elif action_taken == 'move' and cate == 'consum':
+        #                 vals['action_taken']='move'
+                            location_id = False
+                            parent_ids = self.pool.get('stock.location').search(cr, uid, [('name','=','Virtual Locations'),('usage','=','view')])
+                            if not parent_ids:
+                                warning = {  
+                                      'title': _('Warning!'),  
+                                      'message': _('System does not have Virtual Locations warehouse, please check it!'),  
+                                      }  
+                                vals['action_taken']=False
+                                return {'value': vals,'warning':warning}
+                            locat_ids = self.pool.get('stock.location').search(cr, uid, [('name','in',['Consumption']),('location_id','=',parent_ids[0])])
+                            if not locat_ids:
+                                warning = {  
+                                      'title': _('Warning!'),  
+                                      'message': _('System does not have Consumption location in Virtual Locations warehouse, please check it!'),  
+                                      }  
+                                vals['action_taken']=False
+                                return {'value': vals,'warning':warning}
+                            else:
+                                location_id = locat_ids[0]
+                            if ids:
+                                sql = '''
+                                    update stock_move set location_dest_id = %s where id=%s;
+                                    commit;
+                                '''%(location_id,ids[0])
+                                cr.execute(sql)
+        
+                        
+                        if vals['action_taken'] == 'need':
+                            location_id = False
+                            parent_ids = self.pool.get('stock.location').search(cr, uid, [('name','=','Quality Inspection'),('usage','=','view')])
+                            if not parent_ids:
+                                warning = {  
+                                      'title': _('Warning!'),  
+                                      'message': _('System does not have Quality Inspection warehouse, please check it!'),  
+                                      }  
+                                vals['action_taken']=False
+                                return {'value': vals,'warning':warning}
+                            locat_ids = self.pool.get('stock.location').search(cr, uid, [('name','in',['Quality Inspection','Inspection']),('location_id','=',parent_ids[0])])
+                            if not locat_ids:
+                                warning = {  
+                                      'title': _('Warning!'),  
+                                      'message': _('System does not have Quality Inspection location in Quality Inspection warehouse, please check it!'),  
+                                      }  
+                                vals['action_taken']=False
+                                return {'value': vals,'warning':warning}
+                            else:
+                                location_id = locat_ids[0]
+                            vals['location_dest_id']=location_id
+        
+                        if vals['action_taken'] == 'direct':   
+                            for line in self.browse(cr, uid, ids, context=context):
+                                if line.picking_id and line.picking_id.warehouse:
+                                    vals['location_dest_id'] = line.picking_id and line.picking_id.warehouse and line.picking_id.warehouse.id or False
+#                     vals['action_taken']= 'action_taken'
+#             else:
+#                 vals['action_taken']= action_taken
         new_write = super(stock_move, self).write(cr, uid,ids, vals, context)
         for line in self.browse(cr,uid,ids):
             if line.po_indent_id.document_type == 'consumable':
@@ -540,7 +617,12 @@ class stock_move(osv.osv):
                     return {'value': vals,'warning':warning}
                 else:
                     location_id = locat_ids[0]
-                vals['location_dest_id'] = location_id
+                if ids:
+                    sql = '''
+                        update stock_move set location_dest_id = %s where id=%s;
+                        commit;
+                    '''%(location_id,ids[0])
+                    cr.execute(sql)
                 
             elif action_taken == 'need':
                 location_id = False
@@ -562,7 +644,12 @@ class stock_move(osv.osv):
                     return {'value': vals,'warning':warning}
                 else:
                     location_id = locat_ids[0]
-                vals['location_dest_id'] = location_id
+                if ids:
+                    sql = '''
+                        update stock_move set location_dest_id = %s where id=%s;
+                        commit;
+                    '''%(location_id,ids[0])
+                    cr.execute(sql)
             elif action_taken == 'direct':   
                 for line in self.browse(cr, uid, ids, context=context):
                     if line.picking_id and line.picking_id.warehouse:
@@ -588,6 +675,7 @@ class account_invoice(osv.osv):
                 'amount_total': 0.0,
                 'amount_total_inr': 0.0,
                 'amount_total_tds': 0.0,
+                'amount_total_tds_2': 0.0,
                 'amount_tax_debit': 0.0,
                 'amount_tax_credit': 0.0,
                 'aed': 0.0,
@@ -682,6 +770,7 @@ class account_invoice(osv.osv):
                     qty = 0.0
                     aed = 0.0
                     tds_amount = 0.0
+                    total_tax_credit_service = 0.0
                     voucher_rate = 1
                     if context is None:
                         context = {}
@@ -737,6 +826,11 @@ class account_invoice(osv.osv):
 #                         amount_total_tax = round(amount_total_tax)
                         total_tax += amount_total_tax
 #                         total_tax = round(total_tax)
+                        if po.tax_service_credit:
+                            tax_credit_service = po.tax_service_credit.amount/100
+                            amount_total_tax_credit_service = (basic + p_f + ed + po.aed_id_1)*(tax_credit_service)
+                            total_tax_credit_service += amount_total_tax_credit_service
+                            
                         if po.fright_type == '1' :
                             fright = (basic + p_f + ed + amount_total_tax) * po.fright/100
                             fright = round(fright)
@@ -764,11 +858,12 @@ class account_invoice(osv.osv):
                     res[line.id]['p_f_charge'] = round(p_f_charge)
                     res[line.id]['excise_duty'] = round(excise_duty)
                     res[line.id]['amount_tax'] = round(total_tax)
+                    res[line.id]['amount_tax_credit'] = round(total_tax_credit_service)
                     res[line.id]['fright'] = round(total_fright)
                     res[line.id]['aed'] = round(aed)
                     res[line.id]['amount_total_tds'] = round(tds_amount)
-                    res[line.id]['amount_total'] = (round(amount_untaxed) + round(p_f_charge) + round(excise_duty) + round(total_tax) + round(total_fright) + round(aed)) - round(tds_amount)
-                    res[line.id]['amount_total_inr'] = round(((round(amount_untaxed) + round(p_f_charge) + round(excise_duty) + round(total_tax) + round(total_fright) + round(aed)) - round(tds_amount))/voucher_rate)
+                    res[line.id]['amount_total'] = (round(amount_untaxed) + round(p_f_charge) + round(excise_duty) + round(total_tax) + round(total_fright) + round(aed)) - round(tds_amount) - round(total_tax_credit_service)
+                    res[line.id]['amount_total_inr'] = round(((round(amount_untaxed) + round(p_f_charge) + round(excise_duty) + round(total_tax) + round(total_fright) + round(aed)) - round(tds_amount) - round(total_tax_credit_service))/voucher_rate)
                 else:
                     amount_untaxed = 0.0
                     p_f_charge=0.0
@@ -863,21 +958,25 @@ class account_invoice(osv.osv):
                 base = 0
                 tax_debit_amount = 0
                 tax_credit_amount = 0
+                tax_tds_amount = 0
                 for inv_line in line.invoice_line:
                     if inv_line.fright_fi_type == '2':
                         base_amount = round(inv_line.fright)
                         base+=base_amount
                         tax_debit_amount += round(base_amount*(inv_line.tax_id and inv_line.tax_id.amount/100 or 0))
                         tax_credit_amount += round(base_amount*(inv_line.tax_credit and inv_line.tax_credit.amount/100 or 0))
+                        tax_tds_amount += round(base_amount*(inv_line.tds_id_2 and inv_line.tds_id_2.amount/100 or 0))
                     else:
                         base_amount = round(inv_line.fright*inv_line.quantity)
                         base += base_amount
                         tax_debit_amount += round(base_amount*(inv_line.tax_id and inv_line.tax_id.amount/100 or 0))
                         tax_credit_amount += round(base_amount*(inv_line.tax_credit and inv_line.tax_credit.amount/100 or 0))
+                        tax_tds_amount += round(base_amount*(inv_line.tds_id_2 and inv_line.tds_id_2.amount/100 or 0))
                 res[line.id]['amount_untaxed'] = round(base)
                 res[line.id]['amount_tax_debit'] = round(tax_debit_amount)
                 res[line.id]['amount_tax_credit'] = round(tax_credit_amount)
-                res[line.id]['amount_total'] = res[line.id]['amount_untaxed'] + res[line.id]['amount_tax_debit'] - res[line.id]['amount_tax_credit']
+                res[line.id]['amount_total_tds_2'] = round(tax_tds_amount)
+                res[line.id]['amount_total'] = res[line.id]['amount_untaxed'] + res[line.id]['amount_tax_debit'] - res[line.id]['amount_tax_credit'] - res[line.id]['amount_total_tds_2']
                 
                 
         return res
@@ -896,6 +995,7 @@ class account_invoice(osv.osv):
         'vendor_ref': fields.char('Vendor Reference', size = 1024, readonly=True, states={'draft':[('readonly',False)]}),
         'is_tds_applicable': fields.boolean('IsTDSApplicable'),
         'tds_id': fields.many2one('account.tax', 'TDS %'),
+        'tds_id_2': fields.many2one('account.tax', 'TDS %'),
         'tax_id': fields.many2one('account.tax', 'Taxes'),
         'sup_inv_id': fields.many2one('account.invoice', 'Supplier Invoice', required = True, readonly=True, states={'draft':[('readonly',False)]}),
         'amount_untaxed': fields.function(amount_all_supplier_invoice_line, multi='sums', string='Untaxed Amount',
@@ -941,6 +1041,11 @@ class account_invoice(osv.osv):
                 'account.invoice.line': (_get_invoice_line, ['quantity', 'uos_id', 'price_unit','discount','p_f','p_f_type',   
                                                                 'ed', 'ed_type','invoice_line_tax_id','fright','fright_type', 'tds_id','aed_id_1'], 10)}),
         'amount_total_tds': fields.function(amount_all_supplier_invoice_line, multi='sums', string='Total TDS',
+             store={
+                'account.invoice': (lambda self, cr, uid, ids, c={}: ids, ['invoice_line'], 10),   
+                'account.invoice.line': (_get_invoice_line, ['quantity', 'uos_id', 'price_unit','discount','p_f','p_f_type',   
+                                                                'ed', 'ed_type','invoice_line_tax_id','fright','fright_type', 'tds_id','aed_id_1'], 10)}),
+        'amount_total_tds_2': fields.function(amount_all_supplier_invoice_line, multi='sums', string='Total TDS',
              store={
                 'account.invoice': (lambda self, cr, uid, ids, c={}: ids, ['invoice_line'], 10),   
                 'account.invoice.line': (_get_invoice_line, ['quantity', 'uos_id', 'price_unit','discount','p_f','p_f_type',   
@@ -1108,11 +1213,15 @@ class account_invoice_line(osv.osv):
                     base = line.fright
                     tax_debit_amount = base*(line.tax_id and line.tax_id.amount/100 or 0)
                     tax_credit_amount = base*(line.tax_credit and line.tax_credit.amount/100 or 0)
+                    tax_tds_amount = base*(line.tds_id_2 and line.tds_id_2.amount/100 or 0)
                 else:
                     base = line.fright*line.quantity
                     tax_debit_amount = base*(line.tax_id and line.tax_id.amount/100 or 0)
                     tax_credit_amount = base*(line.tax_credit and line.tax_credit.amount/100 or 0)
+                    tax_tds_amount = base*(line.tds_id_2 and line.tds_id_2.amount/100 or 0)
+                    
                 res[line.id]['line_net'] = base+tax_debit_amount-tax_credit_amount
+#                 res[line.id]['line_net'] = tax_tds_amount
         return res
      
     _columns = {
@@ -1129,7 +1238,9 @@ class account_invoice_line(osv.osv):
         'line_net': fields.function(line_net_line_supplier_invo, store = True, multi='deltas' ,string='Line Net'),
         'tax_id': fields.many2one('account.tax', 'Taxes'),
         'tax_credit': fields.many2one('account.tax', 'Tax (Credit)'),
+        'tax_service_credit': fields.many2one('account.tax', 'Tax (Credit)'),
         'tds_id': fields.many2one('account.tax', 'TDS %'),
+        'tds_id_2': fields.many2one('account.tax', 'TDS %'),
         'aed_id': fields.many2one('account.tax', 'AED'),
         'aed_id_1': fields.float('AED'),
         'po_line_id': fields.many2one('purchase.order.line', 'purchase order line'),

@@ -72,23 +72,23 @@
             				<field name="sup_name_title" nolabel = '1' class="oe_right oe_inline"/> 
             			</div>
             			
-	                	<div class='oe_green_erp_scroll'>
+	                	
 		                	<field name="sup_ledger_line" nolabel='1'>
 		                		<tree create="false" edit="false" delete="false">
 		                			<field name="date"/>
 		                			<field name="document_no"/>
-		                			<field name="narration"/>
-		                			<field name="sale_order_no"/>
 		                			<field name="reference"/>
+		                	       	<field name="invoice_no"/>
 		                			<field name="bill_no"/>
 		                			<field name="bill_date"/>
+		                			<field name="narration"/>
 		                			<field name="cheque_no"/>
 		                			<field name="cheque_date"/>
 		                			<field name="debit"/>
 		                			<field name="credit"/>
 		                		</tree>
 		                	</field>
-		                </div>
+		               
 		                	
 	               	</sheet>
 	           </form>

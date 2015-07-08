@@ -33,8 +33,10 @@
         'wizard/alert_form_view.xml',
         'wizard/print_payslip_view.xml',
         'wizard/time_evaluation_report_view.xml',
+        'wizard/leave_balance_for_view.xml', ##
         'wizard/epf_statement_form_view.xml',
         'wizard/esi_statement_view.xml',
+        'wizard/time_data_check.xml',##
         'hr_employee_view.xml',
         'hr_department_view.xml',
         'hr_payroll_view.xml',
@@ -52,6 +54,7 @@
         'report/tpt_time_evaluation_report.xml',
         'report/epf_statement_report_view.xml',
         'report/esi_statement_report.xml',
+        'report/leave_balance_for_view.xml', ##
 #         'data_category.xml', 
         'import_view.xml',
         'green_erp_arulmani_sequence.xml',

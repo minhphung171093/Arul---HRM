@@ -165,5 +165,13 @@
 	    <menuitem action="action_time_evaluation_report"
             id="menu_action_time_evaluation_report"
             parent="menu_hr_leave_management" sequence="35"/>
+            <!-- Add Employee Leave Balance Report to Menu List-->
+        <menuitem action="action_leave_balance_report"
+            id="menu_action_leave_balance_report"
+            parent="menu_hr_leave_management" sequence="36"/>
+        <menuitem action="action_time_data_report"
+            id="menu_action_time_data_check"
+            parent="menu_hr_leave_management" sequence="37"/>  
+            
     </data>
 </openerp>
