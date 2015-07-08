@@ -63,14 +63,14 @@ class tpt_movement_analysis_line(osv.osv):
         'item_code': fields.char('Item Code', size = 1024),
         'item_name': fields.char('Item Name', size = 1024),
         'uom': fields.char('UOM', size = 1024),
-        'open_stock': fields.float('Opening Stock'),
-        'open_value': fields.float('Opening Stock Value'),
-        'receipt_qty': fields.float('Qty (Receipts)'),
-        'receipt_value':fields.float('Stock Value (Receipts)'),
-        'consum_qty': fields.float('Qty (Consumption)'),
-        'consum_value':fields.float('Stock Value (Consumption)'),     
-        'close_stock': fields.float('Closing Stock'),
-        'close_value': fields.float('Closing Stock Value'),   
+        'open_stock': fields.float('Opening Stock',digits=(16,3)),
+        'open_value': fields.float('Opening Stock Value',digits=(16,3)),
+        'receipt_qty': fields.float('Qty (Receipts)',digits=(16,3)),
+        'receipt_value':fields.float('Stock Value (Receipts)',digits=(16,3)),
+        'consum_qty': fields.float('Qty (Consumption)',digits=(16,3)),
+        'consum_value':fields.float('Stock Value (Consumption)',digits=(16,3)),     
+        'close_stock': fields.float('Closing Stock',digits=(16,3)),
+        'close_value': fields.float('Closing Stock Value',digits=(16,3)),   
                 }
     
 
@@ -649,15 +649,13 @@ class stock_movement_analysis(osv.osv_memory):
                 sql = '''
                           select case when sum(st.product_qty)!=0 then sum(st.product_qty) else 0 end ton_sl,case when sum(st.price_unit*st.product_qty)!=0 then sum(st.price_unit*st.product_qty) else 0 end total_cost
                             from stock_move st
-                                join stock_location loc1 on st.location_id=loc1.id
-                                join stock_location loc2 on st.location_dest_id=loc2.id
-                            where st.state='done' and st.location_dest_id=%s and st.product_id=%s
+                            where st.state='done' and st.location_dest_id=%s and st.product_id=%s and to_char(date, 'YYYY-MM-DD')<'%s'
                                 and st.location_dest_id != st.location_id
-                                and ( (picking_id in (select id from stock_picking where to_date(to_char(date, 'YYYY-MM-DD'), 'YYYY-MM-DD') < '%s' and state = 'done')) 
-                                or  (inspec_id in (select id from tpt_quanlity_inspection where date < '%s' and state in ('done','remaining')))
-                                or (st.id in (select move_id from stock_inventory_move_rel where inventory_id in (select id from stock_inventory where to_date(to_char(date, 'YYYY-MM-DD'), 'YYYY-MM-DD') <'%s' and state = 'done')))
-                                    )
-                    '''%(locat_ids[0],product_id,date_from,date_from,date_from)
+                                and ( picking_id is not null 
+                                or inspec_id is not null 
+                                or (st.id in (select move_id from stock_inventory_move_rel))
+                        )
+                    '''%(locat_ids[0],product_id,date_from)
                 cr.execute(sql)
                 inventory = cr.dictfetchone()
                 if inventory:
@@ -666,7 +664,7 @@ class stock_movement_analysis(osv.osv_memory):
                     avg_cost = hand_quantity and total_cost/hand_quantity or 0
                     sql = '''
                         select case when sum(product_isu_qty)!=0 then sum(product_isu_qty) else 0 end product_isu_qty
-                            from tpt_material_issue_line where material_issue_id in (select id from tpt_material_issue where date_expec<'%s' and warehouse = %s and state='done') and product_id=%s
+                        from tpt_material_issue_line where material_issue_id in (select id from tpt_material_issue where date_expec<'%s' and warehouse = %s and state='done') and product_id=%s
                     '''%(date_from,locat_ids[0],product_id)
                     cr.execute(sql)
                     product_isu_qty = cr.fetchone()[0]
@@ -677,15 +675,13 @@ class stock_movement_analysis(osv.osv_memory):
                 sql = '''
                           select case when sum(st.product_qty)!=0 then sum(st.product_qty) else 0 end ton_sl,case when sum(st.price_unit*st.product_qty)!=0 then sum(st.price_unit*st.product_qty) else 0 end total_cost
                             from stock_move st
-                                join stock_location loc1 on st.location_id=loc1.id
-                                join stock_location loc2 on st.location_dest_id=loc2.id
-                            where st.state='done' and st.location_dest_id=%s and st.product_id=%s
+                            where st.state='done' and st.location_dest_id=%s and st.product_id=%s and to_char(date, 'YYYY-MM-DD')<'%s'
                                 and st.location_dest_id != st.location_id
-                                and ( (picking_id in (select id from stock_picking where to_date(to_char(date, 'YYYY-MM-DD'), 'YYYY-MM-DD') < '%s' and state = 'done')) 
-                                or  (inspec_id in (select id from tpt_quanlity_inspection where date < '%s' and state in ('done','remaining')))
-                                 or (st.id in (select move_id from stock_inventory_move_rel where inventory_id in (select id from stock_inventory where to_date(to_char(date, 'YYYY-MM-DD'), 'YYYY-MM-DD') <'%s' and state = 'done')))
-                                    )
-                    '''%(locat_ids[0],product_id,date_from,date_from,date_from)
+                                and ( picking_id is not null 
+                                or inspec_id is not null 
+                                or (st.id in (select move_id from stock_inventory_move_rel))
+                        )
+                    '''%(locat_ids[0],product_id,date_from)
                 cr.execute(sql)
                 inventory = cr.dictfetchone()
                 if inventory:
@@ -710,7 +706,9 @@ class stock_movement_analysis(osv.osv_memory):
         cr.execute('delete from tpt_form_movement_analysis')
         stock = self.browse(cr, uid, ids[0])
         move_analysis_line = []
-        for line in get_categ(stock):
+        for seq, line in enumerate(get_categ(stock)):
+            opening_stock = 0
+            opening_stock_value = 0
             move_analysis_line.append((0,0,{
                 'item_code': line.default_code,
                 'item_name': line.name,
@@ -720,11 +718,11 @@ class stock_movement_analysis(osv.osv_memory):
                 'receipt_qty':get_qty(stock,line.id),
                 'receipt_value':get_receipt_value(stock,line.id),
                 'consum_qty':get_qty_out(stock,line.id) + get_qty_chuaro(stock,line.id),
-                'consum_value': (get_qty(stock,line.id)*get_qty_out(stock,line.id)) and (get_receipt_value(stock,line.id)/get_qty(stock,line.id)*get_qty_out(stock,line.id)) or 0,
-#                 'consum_value':(get_opening_stock(stock,line.id)+get_qty(stock,line.id)) and (get_opening_stock_value(stock,line.id)+get_receipt_value(stock,line.id))/(get_opening_stock(stock,line.id)+get_qty(stock,line.id))*get_consumption_value(stock,line.id) or 0,     
+#phuoc grn                'consum_value': (get_qty(stock,line.id)*get_qty_out(stock,line.id)) and (get_receipt_value(stock,line.id)/get_qty(stock,line.id)*get_qty_out(stock,line.id)) or 0,
+                'consum_value':(get_opening_stock(stock,line.id)+get_qty(stock,line.id)) and ((get_receipt_value(stock,line.id)+get_opening_stock_value(stock,line.id))/(get_opening_stock(stock,line.id)+get_qty(stock,line.id))*get_qty_out(stock,line.id)) or 0 ,    
                 'close_stock':get_closing_stock(stock,get_qty(stock,line.id),(get_qty_out(stock,line.id) + get_qty_chuaro(stock,line.id)),get_opening_stock(stock,line.id)),
-                'close_value': get_opening_stock_value(stock,line.id)+get_receipt_value(stock,line.id)-(get_qty(stock,line.id) and (get_receipt_value(stock,line.id)/get_qty(stock,line.id)*get_qty_out(stock,line.id)) or 0)
-#                 'close_value':get_closing_stock(stock,get_receipt_value(stock,line.id),get_consumption_value(stock,line.id),get_opening_stock_value(stock,line.id)) ,   
+#phuoc grn                'close_value': get_opening_stock_value(stock,line.id)+get_receipt_value(stock,line.id)-(get_qty(stock,line.id) and (get_receipt_value(stock,line.id)/get_qty(stock,line.id)*get_qty_out(stock,line.id)) or 0)
+                'close_value': get_opening_stock_value(stock,line.id)+get_receipt_value(stock,line.id)-((get_opening_stock(stock,line.id)+get_qty(stock,line.id)) and ((get_receipt_value(stock,line.id)+get_opening_stock_value(stock,line.id))/(get_opening_stock(stock,line.id)+get_qty(stock,line.id))*get_qty_out(stock,line.id)) or 0),   
 
             }))
         vals = {

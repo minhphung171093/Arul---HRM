@@ -13,7 +13,7 @@ class input_register_form(osv.osv_memory):
     _columns = {    
                 'date_from': fields.date('Date From', required=True),
                 'date_to': fields.date('Date To', required=True),
-                'product_cate_id':fields.many2one('product.category', 'Product Category'),
+                'product_cate_id':fields.many2one('product.category', 'Product Category', required=True),
                 }
     
     def _check_date(self, cr, uid, ids, context=None):
