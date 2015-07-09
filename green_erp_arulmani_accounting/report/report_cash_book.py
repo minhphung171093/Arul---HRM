@@ -384,7 +384,10 @@ class Parser(report_sxw.rml_parse):
                                       (select id from account_account where code='0000110001')
                             ) 
                         and av.id in %s
-                        and aml.id not in (select id from account_move_line where account_id in 
+                        and aml.id in (select aml.id from account_move_line aml
+                                      inner join account_voucher av on av.move_id = aml.move_id 
+                                      where av.id in %s
+                                      and aml.account_id in 
                                       (select id from account_account where code='0000110001'))
                         and av.type = 'payment' 
                         and av.state in ('posted')
@@ -405,14 +408,17 @@ class Parser(report_sxw.rml_parse):
                                       (select id from account_account where code='0000110001')
                             ) 
                         and av.id in %s
-                        and aml.id not in (select id from account_move_line where account_id in 
+                        and aml.id in (select aml.id from account_move_line aml
+                                      inner join account_voucher av on av.move_id = aml.move_id 
+                                      where av.id in %s
+                                      and aml.account_id in 
                                       (select id from account_account where code='0000110001'))
                         and av.type = 'receipt' 
                         and av.state in ('posted')
                         )foo 
                         group by foo.acc_name, foo.account_id, foo.voucher_name,foo.voucher_date, 
                         foo.ref, foo.payee, foo.voucher_desc, foo.reference order by foo.voucher_date
-                        ''',(tuple(account_ids),tuple(account_ids),tuple(account_ids),tuple(account_ids),))
+                        ''',(tuple(account_ids),tuple(account_ids),tuple(account_ids),tuple(account_ids),tuple(account_ids),tuple(account_ids),))
                     return self.cr.dictfetchall()
                 else:
                     return []
@@ -545,7 +551,10 @@ class Parser(report_sxw.rml_parse):
                                       (select id from account_account where code='0000110001')
                             ) 
                         and av.id in %s
-                        and aml.id not in (select id from account_move_line where account_id in 
+                        and aml.id in (select aml.id from account_move_line aml
+                                      inner join account_voucher av on av.move_id = aml.move_id 
+                                      where av.id in %s
+                                      and aml.account_id in 
                                       (select id from account_account where code='0000110001'))
                         and av.type = 'payment' 
                         and av.state in ('draft','posted')
@@ -566,14 +575,17 @@ class Parser(report_sxw.rml_parse):
                                       (select id from account_account where code='0000110001')
                             ) 
                         and av.id in %s
-                        and aml.id not in (select id from account_move_line where account_id in 
+                        and aml.id in (select aml.id from account_move_line aml
+                                      inner join account_voucher av on av.move_id = aml.move_id 
+                                      where av.id in %s
+                                      and aml.account_id in 
                                       (select id from account_account where code='0000110001'))
                         and av.type = 'receipt' 
                         and av.state in ('draft','posted')
                         )foo 
                         group by foo.acc_name, foo.account_id, foo.voucher_name,foo.voucher_date, 
                         foo.ref, foo.payee, foo.voucher_desc, foo.reference order by foo.voucher_date
-                        ''',(tuple(account_ids),tuple(account_ids),tuple(account_ids),tuple(account_ids),))
+                        ''',(tuple(account_ids),tuple(account_ids),tuple(account_ids),tuple(account_ids),tuple(account_ids),tuple(account_ids),))
                     return self.cr.dictfetchall()
                 else:
                     return []
