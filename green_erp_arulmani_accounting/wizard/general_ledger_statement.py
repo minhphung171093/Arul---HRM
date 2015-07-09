@@ -15,6 +15,10 @@ class tpt_general_ledger_from(osv.osv):
     _columns = {
         'name': fields.char('', readonly=True),
         'account_id':fields.many2one('account.account','GL Account'),
+        'date_from_title': fields.char('', size = 1024), #YuVi
+        'date_to_title': fields.char('', size = 1024), #YuVi
+        'gl_code_desc': fields.char('', size = 1024), #YuVi
+        'gl_desc': fields.char('', size = 1024), #YuVi
         'doc_type': fields.selection([('cus_inv', 'Customer Invoice'),('cus_pay', 'Customer Payment'),
                                   ('sup_inv_po', 'Supplier Invoice(With PO)'),('sup_inv', 'Supplier Invoice(Without PO)'),('sup_pay', 'Supplier Payment'),
                                   ('payroll', 'Executives Payroll'),
@@ -34,9 +38,12 @@ class tpt_general_ledger_from(osv.osv):
         'doc_no':fields.char('Document No',size=1024),
         'narration':fields.char('Narration',size=1024),
         'general_ledger_line': fields.one2many('tpt.general.ledger.line', 'ledger_id', 'General Line'),
-        'date_from': fields.date('Posting ate From', required=True),
-        'date_to': fields.date('To', required=True),
-        'is_posted': fields.boolean('Is Posted'),
+        #'date_from': fields.date('Posting ate From', required=True),
+        #'date_to': fields.date('To', required=True),
+        #'is_posted': fields.boolean('Is Posted'),
+        'date_from': fields.date('Posting Date From', required=True), #YuVi
+        'date_to': fields.date('To', required=True), #YuVi
+        'is_posted': fields.boolean('Is Posted'),  #YuVi
     }
     
     def print_report_pdf(self, cr, uid, ids, context=None):
@@ -65,6 +72,7 @@ class tpt_general_ledger_line(osv.osv):
         'ledger_id': fields.many2one('tpt.general.ledger.from','General Ledger', ondelete='cascade'),
         'posting_date': fields.date('Posting Date'),
         'order_date': fields.date('Order/work Order Date'),
+        'order_no': fields.char('Order/work Order No', size = 1024), #YuVi
         'doc_type': fields.char('Document Type', size = 1024),
         'gl_acc': fields.char('GL Code With Description', size = 1024),
         'narration': fields.char('Narration', size = 1024),
@@ -72,6 +80,7 @@ class tpt_general_ledger_line(osv.osv):
         'debit': fields.float('Debit',digits=(16,2)),
         'credit': fields.float('Credit',digits=(16,2)),
         'total':fields.float('Total',digits=(16,2)),
+        'doc_no_line':fields.char('Document No',size=1024), #YuVi
         
                                                         
     }
@@ -110,7 +119,8 @@ class general_ledger_statement(osv.osv_memory):
 #                                             ('pay','Payroll'),('jour','Journal Vouchers' )],'Document Type'),
                 'doc_no':fields.char('Document No',size=1024),
                 'narration':fields.char('Narration',size=1024),
-                'is_posted': fields.boolean('Is Posted'),
+                #'is_posted': fields.boolean('Is Posted'),
+                'is_posted': fields.boolean('Is Posted'),  #YuVi
                 
                 
                 }
@@ -181,153 +191,170 @@ class general_ledger_statement(osv.osv_memory):
             narration = cb.narration
             date_from = cb.date_from
             date_to = cb.date_to
-            is_posted = cb.is_posted
+            #is_posted = cb.is_posted
+            is_posted = cb.is_posted #YuVi
             acount_move_line_obj = self.pool.get('account.move.line')
             acount_move_obj = self.pool.get('account.move')
             cus_ids = []
             if is_posted is True: #MAJOR IF
                 if doc_no :
                     sql = '''
-                        select id from account_move_line 
-                        where move_id in (
-                                            select id from account_move 
-                                            where date between '%s' and '%s' and name ~'%s' and state ='posted') and account_id = %s   
+                        select ml.id from account_move_line ml
+                    join account_move m on (m.id=ml.move_id) 
+                    where m.state = 'posted' and m.date between '%s' and '%s' 
+                    and m.name ~'%s' and m.state = 'posted' and ml.account_id = %s
+                    order by m.date,m.name  
                     '''%(date_from, date_to,doc_no,acc.id)
                     cr.execute(sql)
                     cus_ids = [r[0] for r in cr.fetchall()]
                 elif narration :
                     sql = '''
-                        select id from account_move_line 
-                        where move_id in (
-                                            select id from account_move 
-                                            where date between '%s' and '%s'  and state ='posted') and account_id = %s and ref ~'%s'
+                         select ml.id from account_move_line ml
+                    join account_move m on (m.id=ml.move_id) 
+                    where m.state = 'posted' and m.date between '%s' and '%s' 
+                    and m.state = 'posted' and ml.account_id = %s and ml.ref ~'%s'
+                    order by m.date,m.name
                     '''%(date_from, date_to,acc.id,narration)
                     cr.execute(sql)
                     cus_ids = [r[0] for r in cr.fetchall()]
                 elif doc_no and narration:
                     sql = '''
-                        select id from account_move_line 
-                        where move_id in (
-                                            select id from account_move 
-                                            where date between '%s' and '%s' and name ~'%s'  and state ='posted') and account_id = %s and ref ~'%s'
+                        select ml.id from account_move_line ml
+                    join account_move m on (m.id=ml.move_id)
+                    where m.state = 'posted' and m.date between '%s' and '%s' 
+                    and m.name ~'%s' and m.state = 'posted' and ml.account_id = %s and ml.ref ~'%s'
+                    order by m.date,m.name
                     '''%(date_from, date_to,doc_no,acc.id,narration)
                     cr.execute(sql)
                     cus_ids = [r[0] for r in cr.fetchall()]
                 elif doc_type :
                     sql = '''
-                        select id from account_move_line 
-                        where move_id in (
-                                            select id from account_move 
-                                            where date between '%s' and '%s' and doc_type in('%s') and state ='posted') and account_id = %s   
+                        select ml.id from account_move_line ml
+                    join account_move m on (m.id=ml.move_id) 
+                    where m.state = 'posted' and m.date between '%s' and '%s' 
+                    and m.doc_type in('%s') and m.state = 'posted' and ml.account_id = %s
+                    order by m.date,m.name   
                     '''%(date_from, date_to,doc_type,acc.id)
                     cr.execute(sql)
                     cus_ids = [r[0] for r in cr.fetchall()]
                 elif narration and doc_type :
                     sql = '''
-                        select id from account_move_line 
-                        where move_id in (
-                                            select id from account_move 
-                                            where date between '%s' and '%s' and doc_type in('%s') and state ='posted') and account_id = %s and ref ~'%s'
+                        select ml.id from account_move_line ml
+                    join account_move m on (m.id=ml.move_id) 
+                    where m.state = 'posted' and m.date between '%s' and '%s' 
+                    and m.doc_type in('%s') and m.state = 'posted' and ml.account_id = %s and ml.ref ~'%s'
+                    order by m.date,m.name
                     '''%(date_from, date_to,doc_type,acc.id,doc_no)
                     cr.execute(sql)
                     cus_ids = [r[0] for r in cr.fetchall()]
                 elif doc_no and doc_type :
                     sql = '''
-                        select id from account_move_line 
-                        where move_id in (
-                                            select id from account_move 
-                                            where date between '%s' and '%s' and doc_type in('%s') and name ~'%s' and state ='posted') and account_id = %s 
+                        select ml.id from account_move_line ml
+                    join account_move m on (m.id=ml.move_id) 
+                    where m.state = 'posted' and m.date between '%s' and '%s' and m.doc_type in('%s') 
+                    and m.name ~'%s' and m.state = 'posted' and ml.account_id = %s
+                    order by m.date,m.name 
                     '''%(date_from, date_to,doc_type,doc_no,acc.id)
                     cr.execute(sql)
                     cus_ids = [r[0] for r in cr.fetchall()]
                 elif doc_no and doc_type and narration:
                     sql = '''
-                        select id from account_move_line 
-                        where move_id in (
-                                            select id from account_move 
-                                            where date between '%s' and '%s' and doc_type in('%s') and name ~'%s' and state ='posted') and account_id = %s and ref ~'%s'
+                        select ml.id from account_move_line ml
+                    join account_move m on (m.id=ml.move_id)
+                    where state = 'posted' and date between '%s' and '%s' 
+                    and doc_type in('%s') and name ~'%s' and state = 'posted'
+                    and account_id = %s and ref ~'%s'
+                    order by m.date,m.name
                     '''%(date_from, date_to,doc_type,doc_no,acc.id)
                     cr.execute(sql)
                     cus_ids = [r[0] for r in cr.fetchall()]
                 else:
                     sql = '''
-                        select id from account_move_line 
-                        where move_id in (
-                                            select id from account_move 
-                                            where date between '%s' and '%s' and state ='posted') and account_id = %s
+                        select ml.id from account_move_line ml
+                    join account_move m on (m.id=ml.move_id)
+                    where m.state = 'posted' and m.date between '%s' and '%s' 
+                    and m.state = 'posted' and ml.account_id = %s
+                    order by m.date,m.name
                     '''%(date_from, date_to,acc.id)
                     cr.execute(sql)
                     cus_ids = [r[0] for r in cr.fetchall()]
             else: # MAJOR ELSE
                 if doc_no :
                     sql = '''
-                        select id from account_move_line 
-                        where move_id in (
-                                            select id from account_move 
-                                            where date between '%s' and '%s' and name ~'%s'  ) and account_id = %s   
+                        select ml.id from account_move_line ml
+                    join account_move m on (m.id=ml.move_id)
+                    where m.date between '%s' and '%s' and m.name ~'%s' 
+                    and ml.account_id = %s
+                    order by m.date,m.name  
                     '''%(date_from, date_to,doc_no,acc.id)
                     cr.execute(sql)
                     cus_ids = [r[0] for r in cr.fetchall()]
                 elif narration :
                     sql = '''
-                        select id from account_move_line 
-                        where move_id in (
-                                            select id from account_move 
-                                            where date between '%s' and '%s'  ) and account_id = %s and ref ~'%s'
+                        select ml.id from account_move_line ml
+                    join account_move m on (m.id=ml.move_id)
+                    where m.date between '%s' and '%s' and ml.account_id = %s 
+                    and ml.ref ~'%s'
+                    order by m.date,m.name
                     '''%(date_from, date_to,acc.id,narration)
                     cr.execute(sql)
                     cus_ids = [r[0] for r in cr.fetchall()]
                 elif doc_no and narration:
                     sql = '''
-                        select id from account_move_line 
-                        where move_id in (
-                                            select id from account_move 
-                                            where date between '%s' and '%s' and name ~'%s'  ) and account_id = %s and ref ~'%s'
+                        select ml.id from account_move_line ml
+                    join account_move m on (m.id=ml.move_id)  
+                    where m.date between '%s' and '%s' and m.name ~'%s' 
+                    and ml.account_id = %s and ml.ref ~'%s'
+                    order by m.date,m.name
                     '''%(date_from, date_to,doc_no,acc.id,narration)
                     cr.execute(sql)
                     cus_ids = [r[0] for r in cr.fetchall()]
                 elif doc_type :
                     sql = '''
-                        select id from account_move_line 
-                        where move_id in (
-                                            select id from account_move 
-                                            where date between '%s' and '%s' and doc_type in('%s') ) and account_id = %s   
+                       select ml.id from account_move_line ml
+                    join account_move m on (m.id=ml.move_id)  
+                    where m.date between '%s' and '%s' and m.doc_type in('%s') 
+                    and ml.account_id = %s
+                    order by m.date,m.name    
                     '''%(date_from, date_to,doc_type,acc.id)
                     cr.execute(sql)
                     cus_ids = [r[0] for r in cr.fetchall()]
                 elif narration and doc_type :
                     sql = '''
-                        select id from account_move_line 
-                        where move_id in (
-                                            select id from account_move 
-                                            where date between '%s' and '%s' and doc_type in('%s') ) and account_id = %s and ref ~'%s'
+                        select ml.id from account_move_line ml
+                    join account_move m on (m.id=ml.move_id)  
+                    where m.date between '%s' and '%s' and m.doc_type in('%s') 
+                    and ml.account_id = %s and ml.ref ~'%s'
+                    order by m.date,m.name
                     '''%(date_from, date_to,doc_type,acc.id,doc_no)
                     cr.execute(sql)
                     cus_ids = [r[0] for r in cr.fetchall()]
                 elif doc_no and doc_type :
                     sql = '''
-                        select id from account_move_line 
-                        where move_id in (
-                                            select id from account_move 
-                                            where date between '%s' and '%s' and doc_type in('%s') and name ~'%s' ) and account_id = %s 
+                         select ml.id from account_move_line ml
+                    join account_move m on (m.id=ml.move_id) 
+                    where m.date between '%s' and '%s' and m.doc_type in('%s') 
+                    and m.name ~'%s' and ml.account_id = %s
+                    order by m.date,m.name  
                     '''%(date_from, date_to,doc_type,doc_no,acc.id)
                     cr.execute(sql)
                     cus_ids = [r[0] for r in cr.fetchall()]
                 elif doc_no and doc_type and narration:
                     sql = '''
-                        select id from account_move_line 
-                        where move_id in (
-                                            select id from account_move 
-                                            where date between '%s' and '%s' and doc_type in('%s') and name ~'%s' ) and account_id = %s and ref ~'%s'
+                         select ml.id from account_move_line ml
+                    join account_move m on (m.id=ml.move_id)  
+                    where m.date between '%s' and '%s' and m.doc_type in('%s') 
+                    and m.name ~'%s' and ml.account_id = %s and ml.ref ~'%s'
+                    order by m.date,m.name
                     '''%(date_from, date_to,doc_type,doc_no,acc.id)
                     cr.execute(sql)
                     cus_ids = [r[0] for r in cr.fetchall()]
                 else:
                     sql = '''
-                        select id from account_move_line 
-                        where move_id in (
-                                            select id from account_move 
-                                            where date between '%s' and '%s') and account_id = %s
+                        select ml.id from account_move_line ml
+                    join account_move m on (m.id=ml.move_id)  
+                    where m.date between '%s' and '%s' and ml.account_id = %s
+                    order by m.date,m.name
                     '''%(date_from, date_to,acc.id)
                     cr.execute(sql)
                     cus_ids = [r[0] for r in cr.fetchall()]
@@ -351,17 +378,45 @@ class general_ledger_statement(osv.osv_memory):
                     sum += line.credit
                 if type == 'debit':
                     sum += line.debit
-            return sum    
+            return sum 
+        
+         #YuVi
+        def get_balance(get_invoice):
+            credit = 0.0
+            debit = 0.0
+            for line in get_invoice:
+                debit += line.debit
+                credit += line.credit
+            balance = float(debit) - float(credit)
+            balance = float(balance)
+            return balance
+        
+        def get_pur_doc_no(move_id):
+            sql = '''select name from purchase_order where id in (select purchase_id from account_invoice where move_id = %s)
+            '''%(move_id)
+            cr.execute(sql)
+            pur_doc_no = cr.fetchone()
+            return pur_doc_no and pur_doc_no[0] or ''     
+            
+        def get_gl_acct(o):            
+            gl_account = o.account_id
+            gl_act = gl_account.code +''+gl_account.name
+            return gl_act
+        #YuVi
+        
+           
         cr.execute('delete from tpt_general_ledger_from')
         cb_obj = self.pool.get('tpt.general.ledger.from')
         cb = self.browse(cr, uid, ids[0])
         cb_line = []
         for line in get_invoice(cb):
             cb_line.append((0,0,{
+                    'doc_no_line': line.move_id and line.move_id.name, #YuVi             
                     'posting_date': line.move_id and line.move_id.date or False,
                     'order_date': line.move_id and line.move_id.date or False,
+                    'order_no': get_pur_doc_no(line.move_id.id), #YuVi
                     'doc_type': get_doc_type(line.move_id.doc_type),
-                    'gl_acc': line.account_id.code +' '+ line.account_id.name ,
+                    #'gl_acc': line.account_id.code +' '+ line.account_id.name , #Comment by YuVi
                     'narration': line.move_id.ref,
                     'cost_center': get_voucher(cb, line.move_id.id),
                     'debit': line.debit,
@@ -372,14 +427,22 @@ class general_ledger_statement(osv.osv_memory):
             'debit': get_total(get_invoice(cb),'debit'),
             'credit': get_total(get_invoice(cb),'credit'),
         }))
+        cb_line.append((0,0,{   
+            'narration': 'Balance', 
+            'credit': get_balance(get_invoice(cb)),  #YuVi 
+        }))
         vals = {
             'name': 'General Ledger Statement',
+            'date_from_title': 'Date From: ', #YuVi
+            'date_to_title': 'Date To: ', #YuVi
+            'gl_code_desc': 'GL Code With Description  : ', #YuVi
             'account_id': cb.account_id and cb.account_id.id or False,
             'doc_type': cb.doc_type and cb.doc_type or False,
             'doc_no':cb.doc_no and cb.doc_no or False,
             'narration':cb.narration and cb.narration or False,
             'date_from': cb.date_from,
             'date_to': cb.date_to,
+            'gl_desc': get_gl_acct(cb), #YuVi
             'is_posted': cb.is_posted,
             'general_ledger_line': cb_line,
         }
