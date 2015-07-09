@@ -317,6 +317,8 @@ class arul_hr_audit_shift_time(osv.osv):
               'actual_work_shift_id':fields.many2one('arul.hr.capture.work.shift','Actual Work Shift', states={'done': [('readonly', True)], 'cancel': [('readonly', True)]}),
               'in_time': fields.float('In Time', states={'done': [('readonly', True)], 'cancel': [('readonly', True)]}),
               'out_time': fields.float('Out Time', states={'done': [('readonly', True)], 'cancel': [('readonly', True)]}),
+              'ref_in_time': fields.float('Ref In Time', ),
+              'ref_out_time': fields.float('Ref Out Time', ),
               'total_hours': fields.function(_time_total, string='Total Hours', multi='sums', help="The total amount.", states={'done': [('readonly', True)], 'cancel': [('readonly', True)]}),
               'additional_shifts': fields.function(_check_additional_shift, string='Additional Shifts', type='boolean', store={
                    'arul.hr.audit.shift.time': (lambda self, cr, uid, ids, c={}: ids, ['employee_id','work_date'], 10),
@@ -5938,7 +5940,9 @@ class arul_hr_punch_in_out(osv.osv):
                         if data1[:3]=='P10':
                             in_time = float(data1[15:17])+float(data1[17:19])/60+float(data1[19:21])/3600
 #                             if date_old == date:
-                            val1={'employee_id':employee_ids[0],'planned_work_shift_id':shift_id,'actual_work_shift_id':False,'work_date':date,'punch_in_date':date,'in_time':in_time,'out_time':0,'approval':1}
+                            val1={'employee_id':employee_ids[0],'planned_work_shift_id':shift_id,'actual_work_shift_id':False,'work_date':date,
+                                  'punch_in_date':date,'in_time':in_time,'out_time':0,'ref_in_time':in_time,'ref_out_time':0,
+                                  'approval':1}
                             for j,data2 in enumerate(L2):
                                 #bat dau vi tri tiep theo cua for 1
                                 in_out = data2[:3]
@@ -6017,7 +6021,10 @@ class arul_hr_punch_in_out(osv.osv):
                                             val1['actual_work_shift_id']=shift_id
                                             details_ids=detail_obj.search(cr, uid, [('employee_id','=',employee_ids[0])])
                                             if details_ids:
-                                                val4={'punch_in_out_id':details_ids[0],'planned_work_shift_id':shift_id,'actual_work_shift_id':shift_id,'employee_id':employee_ids[0],'work_date':date,'in_time':in_time,'out_time':out_time,'approval':1}
+                                                val4={'punch_in_out_id':details_ids[0],'planned_work_shift_id':shift_id,'actual_work_shift_id':shift_id,'employee_id':employee_ids[0],'work_date':date,
+                                                      'in_time':in_time,'out_time':out_time,
+                                                      'ref_in_time':in_time,'ref_out_time':out_time,
+                                                      'approval':1}
                                                 if date_2!=date:
                                                     val4.update({'diff_day':True})
                                                     val1.update({'diff_day':True})
@@ -6069,6 +6076,8 @@ class arul_hr_punch_in_out(osv.osv):
                                      'punch_in_date':date,
                                      'in_time':in_time,
                                      'out_time':0,
+                                     'ref_in_time':in_time,
+                                     'ref_out_time':0,
                                      'employee_category_id':employee.employee_category_id.id,
                                      'type':'shift',}
                                 detail_obj2.create(cr, uid,val)
@@ -6148,24 +6157,24 @@ class arul_hr_punch_in_out(osv.osv):
                                                                                        })
                                         
                                         if audit_shift.work_date!=date:
-                                            detail_obj2.write(cr, uid, [audit_shift.id],{'out_time':out_time,
+                                            detail_obj2.write(cr, uid, [audit_shift.id],{'out_time':out_time,'ref_out_time':out_time,
                                                                                 'punch_out_date':out_date,
                                                                                 'actual_work_shift_id':shift_id,
                                                                                 'diff_day':True})
                                         else:
-                                            detail_obj2.write(cr, uid, [audit_shift.id],{'out_time':out_time,'punch_out_date':out_date,
+                                            detail_obj2.write(cr, uid, [audit_shift.id],{'out_time':out_time,'ref_out_time':out_time,'punch_out_date':out_date,
                                                                                 'actual_work_shift_id':shift_id,})
                                         detail_obj2.new_approve_shift_time(cr, uid, [audit_shift.id]) #new shift master
                                     else:
                                         if audit_shift.work_date!=date:
                                             detail_obj2.write(cr, uid, [audit_shift.id],{'type':'punch',
-                                                                        'out_time':out_time,'punch_out_date':out_date,
+                                                                        'out_time':out_time,'ref_out_time':out_time,'punch_out_date':out_date,
                                                                         'actual_work_shift_id':audit_work_shift_ids[0],
                                                                                 'diff_day':True})
                                         else:
                                             detail_obj2.write(cr, uid,[audit_shift.id],{
                                             'type':'punch',
-                                            'out_time':out_time,'punch_out_date':out_date,
+                                            'out_time':out_time,'ref_out_time':out_time,'punch_out_date':out_date,
                                             'actual_work_shift_id':audit_work_shift_ids[0],
                                     })
                                     
@@ -6175,17 +6184,20 @@ class arul_hr_punch_in_out(osv.osv):
 #                                     detail_obj2.approve_shift_time(cr, uid, [audit_shift.id])
                                 else:
                                     if audit_shift.work_date!=date:
-                                        detail_obj2.write(cr, uid, [audit_shift.id],{'out_time':out_time,
+                                        detail_obj2.write(cr, uid, [audit_shift.id],{'out_time':out_time,'ref_out_time':out_time,
                                                                                     'type':'punch','punch_out_date':out_date,
                                                                                     'diff_day':True})
                                     else:
                                         detail_obj2.write(cr, uid,[audit_shift.id],{
-                                                                                'out_time':out_time,'punch_out_date':out_date,
+                                                                                'out_time':out_time,'ref_out_time':out_time,'punch_out_date':out_date,
                                                                                 'type':'punch',
                                                                                 })
                                  
                             else :
-                                val2={'type':'punch','employee_id':employee_ids[0],'planned_work_shift_id':shift_id,'work_date':date,'punch_in_date':date,'punch_out_date':out_date,'in_time':0,'out_time':out_time,'employee_category_id':employee.employee_category_id.id}
+                                val2={'type':'punch','employee_id':employee_ids[0],'planned_work_shift_id':shift_id,'work_date':date,
+                                      'punch_in_date':date,'punch_out_date':out_date,'in_time':0,'out_time':out_time,
+                                      'ref_in_time':0,'ref_out_time':out_time,
+                                      'employee_category_id':employee.employee_category_id.id}
                                 detail_obj2.create(cr, uid,val2)
                             
                 self.write(cr, uid, [line.id], {'state':'done'})

@@ -228,7 +228,7 @@ class bank_book_report(osv.osv_memory):
                     else:
                         sql = '''
                                 select id from account_voucher where date between '%s' and '%s' 
-                                and journal_id in (select id from account_journal where type in  ('bank','general')) and state = 'posted'
+                                and journal_id in (select id from account_journal where type in  ('bank','general')) and  state in ('draft','posted')
                                 and account_id=%s
                             '''%(date_from, date_to, account_id.id)
                         cr.execute(sql)
@@ -239,12 +239,12 @@ class bank_book_report(osv.osv_memory):
                                 (select aa.name as acc_name, aml.account_id, aml.debit as debit, aml.credit as credit,av.name as voucher_name,
                                 av.date as voucher_date , aml.ref as ref, aml.name voucher_desc,av.cheque_no cheque_no, av.cheque_date cheque_date  
                                 from account_account aa, account_move_line aml,account_voucher av where av.move_id = aml.move_id and
-                                aml.move_id in (select move_id from account_voucher where id in %s and type = 'payment' and state = 'posted') and aml.debit is not null and aml.debit !=0 and aa.id = aml.account_id
+                                aml.move_id in (select move_id from account_voucher where id in %s and type = 'payment' and state in ('draft','posted')) and aml.debit is not null and aml.debit !=0 and aa.id = aml.account_id
                                 union all
                                 select aa.name as acc_name, aml.account_id, aml.debit as debit, aml.credit as credit,av.name as voucher_name,
                                 av.date as voucher_date, aml.ref as ref, aml.name voucher_desc,av.cheque_no cheque_no, av.cheque_date cheque_date   
                                 from account_account aa, account_move_line aml,account_voucher av where av.move_id = aml.move_id and
-                                aml.move_id in (select move_id from account_voucher where id in %s and type = 'receipt' and state = 'posted') and aml.credit is not null and aml.credit !=0 and aa.id = aml.account_id
+                                aml.move_id in (select move_id from account_voucher where id in %s and type = 'receipt' and state in ('draft','posted')) and aml.credit is not null and aml.credit !=0 and aa.id = aml.account_id
                                 )foo
                                 group by foo.acc_name, foo.account_id, foo.voucher_name,foo.voucher_date, foo.ref, foo.voucher_desc, foo.cheque_no, foo.cheque_date order by foo.voucher_date
                             ''',(tuple(account_ids),tuple(account_ids),))
