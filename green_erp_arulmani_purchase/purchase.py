@@ -3535,6 +3535,12 @@ class tpt_quanlity_inspection(osv.osv):
             move_id = move_obj.create(cr,uid,rs)
             move_obj.action_done(cr, uid, [move_id])
         return self.write(cr, uid, ids, {'state':'cancel'})
+    
+    def create(self, cr, uid, vals, context=None):
+        return super(tpt_quanlity_inspection, self).create(cr,1, vals, context)
+    
+    def write(self, cr, uid,ids, vals, context=None):
+        return super(tpt_quanlity_inspection, self).write(cr,1,ids,vals,context) 
 
 #     def onchange_grn_no(self, cr, uid, ids,name=False, context=None):
 #         vals = {}
