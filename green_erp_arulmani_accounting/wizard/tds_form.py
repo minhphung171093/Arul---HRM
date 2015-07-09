@@ -40,4 +40,3 @@ class tds_form_report(osv.osv_memory):
         return {'type': 'ir.actions.report.xml', 'report_name': 'tds_form_report', 'datas': datas}
         
 tds_form_report()
-
