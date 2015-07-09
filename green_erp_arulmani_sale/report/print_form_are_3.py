@@ -25,7 +25,21 @@ class Parser(report_sxw.rml_parse):
         self.localcontext.update({
             'get_date': self.get_date,
             'get_amount': self.get_amount,
+            'get_copy':self.get_copy,
         })
+    def get_copy(self,is_original,is_duplicate,is_triplicate,is_quadruplicate):
+        type = ''
+        if is_original is True:
+            type =  'ORIGINAL COPY'+'\n'+'DUPLICATE COPY'+'\n'+'TRIPLICATE COPY'+'\n'+'QUADRUPLICATE COPY'
+        if is_duplicate is True:
+            type = 'ORIGINAL COPY'+'\n'+'DUPLICATE COPY'+'\n'+'TRIPLICATE COPY'+'\n'+'QUADRUPLICATE COPY'
+        if is_triplicate is True:
+            type = 'ORIGINAL COPY'+'\n'+'DUPLICATE COPY'+'\n'+'TRIPLICATE COPY'+'\n'+'QUADRUPLICATE COPY'
+        if is_quadruplicate is True:
+            type = 'ORIGINAL COPY'+'\n'+'DUPLICATE COPY'+'\n'+'TRIPLICATE COPY'+'\n'+'QUADRUPLICATE COPY'
+        
+            
+        return type
     
     def get_date(self, date=False):
         if not date:
