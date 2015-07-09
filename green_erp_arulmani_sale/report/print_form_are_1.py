@@ -26,8 +26,22 @@ class Parser(report_sxw.rml_parse):
             'get_date': self.get_date,
             'get_total': self.get_total,
             'get_amount':self.get_amount,
+            'get_copy':self.get_copy,
         })
-    
+    def get_copy(self,is_original,is_duplicate,is_triplicate,is_quadruplicate,is_extra):
+        type = ''
+        if is_original is True:
+            type = 'ORIGINAL COPY'
+        if is_duplicate is True:
+            type = 'DUPLICATE COPY'
+        if is_triplicate is True:
+            type = 'TRIPLICATE COPY'
+        if is_quadruplicate is True:
+            type = 'QUADRUPLICATE COPY'
+        if is_extra is True:
+            type = 'EXTRA COPY'
+            
+        return type
     def get_amount(self,value=False):
         value = float(value)
         if not value:
