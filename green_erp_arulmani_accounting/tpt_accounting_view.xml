@@ -2576,6 +2576,39 @@
 				
 	       </field>
 	  </record>
+	  
+	  <record id="inher_view_arul_hr_employee_action_history" model="ir.ui.view">
+            <field name="name">inher.view.arul.hr.employee.action.history</field>
+            <field name="model">hr.employee</field>
+            <field name="inherit_id" ref="green_erp_arulmani_hrm.view_arul_hr_employee_action_history"/>
+            <field name="arch" type="xml">
+            	<xpath expr="//page[@string='Employee Action History']" position="attributes">
+            		<attribute name="groups">green_erp_arulmani_hrm.group_vvti_hrm_hr_user,green_erp_arulmani_hrm.group_vvti_hrm_payroll_controller,green_erp_arulmani_hrm.group_vvti_hrm_gm,green_erp_arulmani_accounting.group_vvti_accounting_gm</attribute>
+            	</xpath>
+            </field>
+	  </record>
+	  
+	  <record id="inher_tpt_purchase_order_form" model="ir.ui.view">
+            <field name="name">inher.tpt.purchase.order.form</field>
+            <field name="model">purchase.order</field>
+            <field name="inherit_id" ref="green_erp_arulmani_purchase.tpt_purchase_order_form"/>
+            <field name="arch" type="xml">
+            	<xpath expr="//button[@name='purchase_gm_confirmed']" position="attributes">
+					<attribute name='groups'>green_erp_arulmani_purchase.group_vvti_purchase_admin,green_erp_arulmani_accounting.group_vvti_mag_direct</attribute>
+				</xpath>
+            </field>
+	  </record>
 	        
+	  <record id="inher_view_tpt_quanlity_inspection_spares_form" model="ir.ui.view">
+            <field name="name">inher.tpt.quanlity.inspection.spares.form</field>
+            <field name="model">tpt.quanlity.inspection</field>
+            <field name="inherit_id" ref="green_erp_arulmani_purchase.view_tpt_quanlity_inspection_spares_form"/>
+            <field name="arch" type="xml">
+            	<xpath expr="//button[@name='%(green_erp_arulmani_purchase.action_approve_reject_quanlity_inspection)d']" position="attributes">
+					<attribute name='groups'>green_erp_arulmani_purchase.group_vvti_purchase_store_user,green_erp_arulmani_accounting.group_vvti_mag_direct</attribute>
+				</xpath>
+            </field>
+	  </record>
+	  
     </data>
 </openerp>
