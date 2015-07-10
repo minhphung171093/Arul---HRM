@@ -116,8 +116,12 @@ class Parser(report_sxw.rml_parse):
                 inner join res_partner p on (p.id=am.partner_id)
                 inner join account_account aa on (aa.id=aml.account_id)
                     where am.date between '%s' and '%s' 
-                    and am.partner_id = %s and am.state='posted' and p.vendor_code=aa.code
-                        order by am.date
+                    and am.state='posted' 
+                    and aml.account_id =(
+                    select id from account_account where id in (
+                    select btrim(value_reference,'account.account,')::Integer
+                    from ir_property where res_id in ('res.partner,'|| %s ) 
+                    )) order by am.date
             
                 '''%(date_from, date_to,sup[0])
             self.cr.execute(sql)
@@ -132,8 +136,12 @@ class Parser(report_sxw.rml_parse):
                 inner join res_partner p on (p.id=am.partner_id)
                 inner join account_account aa on (aa.id=aml.account_id)
                     where am.date between '%s' and '%s' 
-                    and am.partner_id = %s and am.state in ('draft','posted') and p.vendor_code=aa.code
-                        order by am.date
+                    and am.state in ('draft','posted') 
+                    and aml.account_id =(
+                    select id from account_account where id in (
+                    select btrim(value_reference,'account.account,')::Integer
+                    from ir_property where res_id in ('res.partner,'|| %s ) 
+                    )) order by am.date
             
                 '''%(date_from, date_to,sup[0])
             self.cr.execute(sql)
@@ -152,7 +160,7 @@ class Parser(report_sxw.rml_parse):
         if doc_type == 'sup_inv_po' or doc_type == 'sup_inv' or doc_type == 'ser_inv' :
             self.cr.execute('''select bill_number from account_invoice where move_id =%s''', (move_id,))
         else:
-            self.cr.execute('''select number from account_voucher where move_id =%s''', (move_id,))
+             return ''
         number = self.cr.fetchone()
         return number and number[0] or ''
     
@@ -160,7 +168,7 @@ class Parser(report_sxw.rml_parse):
         if doc_type == 'sup_inv_po' or doc_type == 'sup_inv' or doc_type == 'ser_inv':
             self.cr.execute('''select Name from account_invoice where move_id =%s''', (move_id,))
         else:
-            self.cr.execute('''select number from account_voucher where move_id =%s''', (move_id,))
+             return ''
         number = self.cr.fetchone()
         return number and number[0] or ''
     

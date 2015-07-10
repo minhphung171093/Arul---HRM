@@ -7,14 +7,18 @@ from openerp.tools.translate import _
 import openerp.tools
 from openerp.tools import DEFAULT_SERVER_DATE_FORMAT, DEFAULT_SERVER_DATETIME_FORMAT, float_compare
 
-
-class input_register_form(osv.osv_memory):
-    _name = "input.register.form"
-    _columns = {    
+class tds_form_report(osv.osv_memory):
+    _name = "tds.form.report"
+    
+    _columns = {
                 'date_from': fields.date('Date From', required=True),
                 'date_to': fields.date('Date To', required=True),
-                'product_cate_id':fields.many2one('product.category', 'Product Category', required=True),
-                }
+                'employee': fields.many2one('res.partner', 'Vendor',ondelete='restrict'),                
+                'taxes_id':fields.many2one('account.tax','TDS %'),                 
+                'code':fields.many2one('account.account', 'GL Account'),
+                'invoice_type':fields.selection([('ser_inv','Service Invoice'),('sup_inv','Supplier Invoice (Without PO)'),('freight','Freight Invoice')],'Invoice Type'),
+                 #'invoice_type':fields.selection([('ServiceInvoice','Service Invoice'),('SupplierInvoice(Without PO)','Supplier Invoice (Without PO)'),('Freight Invoice','Freight Invoice')],'Invoice Type'),            
+               }
     
     def _check_date(self, cr, uid, ids, context=None):
         for date in self.browse(cr, uid, ids, context=context):
@@ -30,9 +34,9 @@ class input_register_form(osv.osv_memory):
         if context is None:
             context = {}
         datas = {'ids': context.get('active_ids', [])}
-        datas['model'] = 'input.register.form'
+        datas['model'] = 'tds.form.report'
         datas['form'] = self.read(cr, uid, ids)[0]
         datas['form'].update({'active_id':context.get('active_ids',False)})
-        return {'type': 'ir.actions.report.xml', 'report_name': 'input_register_report', 'datas': datas}
+        return {'type': 'ir.actions.report.xml', 'report_name': 'tds_form_report', 'datas': datas}
         
-input_register_form()
+tds_form_report()

@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="utf-8"?>
+<openerp>
+    <data>   
+        <record id="view_tds_form_report" model="ir.ui.view">
+            <field name="name">tds.form.report</field>
+            <field name="model">tds.form.report</field>
+            <field name="arch" type="xml">
+                <form string="TDS Report" version="7.0">
+                	<group>
+	                <field name="date_from" />
+	                <field name="date_to" />
+	                <field name='employee' domain="[('supplier','=',True)]" options="{'create': false, 'create_edit': false}" /> 
+	                <field name='taxes_id' options="{'create': false, 'create_edit': false}"/>
+	                <field name='code' options="{'create': false, 'create_edit': false}"/>
+	                <field name="invoice_type" />                      
+                 	</group>
+                    <footer>
+                        <button name="print_report" string="Print" type="object" class="oe_highlight" context="{'type':'appointments'}"/>
+                        <button string="Cancel" class="oe_link" special="cancel"/>
+                    </footer>
+                </form>
+            </field>
+        </record>        
+        <record id="action_tds_form_report" model="ir.actions.act_window">
+            <!-- <field name="name">TDS Report</field>  -->
+            <field name="name">TDS Form Report</field>            
+            <field name="type">ir.actions.act_window</field>
+            <field name="res_model">tds.form.report</field>
+            <field name="view_type">form</field>
+            <field name="view_mode">form</field>
+            <field name="target">new</field>
+        </record>
+        
+        <menuitem id="menu_tpt_accounting" name="Accounting" parent="account.menu_finance" sequence="0" groups="green_erp_arulmani_sale.group_vvti_unit_account"/>
+        <menuitem action="action_tds_form_report"
+            id="menu_action_tds_for_view"
+            parent="menu_tpt_accounting" sequence="21"/>
+        
+        
+    </data>
+</openerp>

@@ -30,9 +30,16 @@
 	            		<group col="4" colspan="2">
 	            			<field name="name"/>
 							<field name="date"/>
-							<field name="commisionarate_id" options="{'create': false, 'create_edit': false}"/>
+							<field name="is_original"/>
+							<field name="is_duplicate"/>
+							<field name="is_triplicate"/>
+							<field name="is_quadruplicate"/>
+							<field name="is_extra"/>
+							<newline/>
+							<field name="invoice_no_id"  domain="[('sale_id','!=',False)]" options="{'create': false, 'create_edit': false}" />
 							<field name="consignment_to" options="{'create': false, 'create_edit': false}"/>
-							<field name="invoice_no_id"  options="{'create': false, 'create_edit': false}" />
+							<field name="commisionarate_id" options="{'create': false, 'create_edit': false}"/>
+							
 	            		</group>
 	            		<notebook>
 							<page string = "Export Details">
@@ -169,12 +176,18 @@
 	            		<group col="4" colspan="2">
 	            			<group>
 	            				<field name="name" />
+	            				<field name="is_original"/>
+							<field name="is_duplicate"/>
+							<field name="is_triplicate"/>
+							<field name="is_quadruplicate"/>
+							
+							<newline/>
 	            				<field name="range_from" />
 	            				<field name="reg_no_from" />
 	            				<field name="division_from" />
 	            				<field name="warehouse_from_id" options="{'create': false, 'create_edit': false}" />
 	            				<field name="to_mr_mess" />
-	            				<field name="invoice_no_id" options="{'create': false, 'create_edit': false}" on_change = "onchange_so_date(invoice_no_id)" />
+	            				<field name="invoice_no_id" domain="[('sale_id','!=',False)]" options="{'create': false, 'create_edit': false}" on_change = "onchange_so_date(invoice_no_id)" />
 	            			</group>
 	            			<group>
 	            				<field name="date" />

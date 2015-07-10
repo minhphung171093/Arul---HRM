@@ -46,8 +46,8 @@ class tpt_mrp_process(osv.osv):
             sql = '''
                     select id
                     from product_product
-                    where mrp_control = True and  (
-                            select case when sum(foo.product_qty)!=0 then sum(foo.product_qty) else 0 end ton_sl from 
+                    where mrp_control = True and 
+                            ((re_stock is not null and (select case when sum(foo.product_qty)!=0 then sum(foo.product_qty) else 0 end ton_sl from 
                                 (select st.product_qty
                                     from stock_move st 
                                         inner join stock_location l2 on st.location_dest_id= l2.id
@@ -60,7 +60,23 @@ class tpt_mrp_process(osv.osv):
                                         inner join product_uom pu on st.product_uom = pu.id
                                     where st.state='done' and st.product_id=product_product.id and l1.usage = 'internal'
                                 )foo
-                            ) <= re_stock
+                            ) <= re_stock)
+                            or
+                            (re_stock is null and (select case when sum(foo.product_qty)!=0 then sum(foo.product_qty) else 0 end ton_sl from 
+                                (select st.product_qty
+                                    from stock_move st 
+                                        inner join stock_location l2 on st.location_dest_id= l2.id
+                                        inner join product_uom pu on st.product_uom = pu.id
+                                    where st.state='done' and st.product_id=product_product.id and l2.usage = 'internal'
+                                union all
+                                select st.product_qty*-1
+                                    from stock_move st 
+                                        inner join stock_location l1 on st.location_id= l1.id
+                                        inner join product_uom pu on st.product_uom = pu.id
+                                    where st.state='done' and st.product_id=product_product.id and l1.usage = 'internal'
+                                )foo
+                            ) <= 0)
+                            )
                 '''
             cr.execute(sql)
             prod_ids = cr.fetchall()
@@ -135,14 +151,48 @@ class tpt_mrp_process(osv.osv):
 #                     ''',(tuple(no_ind_product_ids),))
 #                     mrp_product_ids = [r[0] for r in cr.fetchall()] 
                 
+                mrp_prod_ids=[]
+                cr.execute('''
+                    select distinct(product_id) from tpt_purchase_product where product_id in %s and 
+                        pur_product_id in (select id from tpt_purchase_indent where document_type = 'base' and state != 'cancel') 
+                            and state in ('x','xx') and date_indent_relate = (select max(date_indent_relate) from tpt_purchase_product
+                                            where pur_product_id in (select id from tpt_purchase_indent where document_type = 'base' and state != 'cancel'))
+                ''',(tuple(product_ids),))
+                for line in cr.fetchall():
+#                     sql = '''
+#                         select distinct(product_id) from tpt_purchase_product 
+#                         where pur_product_id in (select id from tpt_purchase_indent where document_type = 'base' and state != 'cancel') 
+#                         and date_indent_relate = (select max(date_indent_relate) from tpt_purchase_product
+#                                             where pur_product_id in (select id from tpt_purchase_indent where document_type = 'base' and state != 'cancel') ) 
+#                     '''
+#                     cr.execute(sql)
+#                     max_prod_ids = [r[0] for r in cr.fetchall()]
+#                     if line in max_prod_ids:
+                    mrp_product_ids.append({'product_id':line[0],'indent_line_id':False})
+                    mrp_prod_ids.append(line[0])
+                        
+#                 cr.execute('''
+#                     select pur_product_id,product_id,id from tpt_purchase_product 
+#                         where pur_product_id in (select id from tpt_purchase_indent where document_type = 'base' and state != 'cancel')
+#                             and product_id in %s and product_uom_qty = rfq_qty and is_mrp!='t' 
+#                 ''',(tuple(product_ids),))
+
+#                 bo di dk trong cau query product_uom_qty = rfq_qty va thay bang is not True
                 cr.execute('''
                     select pur_product_id,product_id,id from tpt_purchase_product 
                         where pur_product_id in (select id from tpt_purchase_indent where document_type = 'base' and state != 'cancel')
-                            and product_id in %s and product_uom_qty = rfq_qty and is_mrp!='t' 
+                            and product_id in %s and is_mrp is not True
                 ''',(tuple(product_ids),))
                 indent_line_ids = []
-                mrp_prod_ids=[]
+                
                 for line in cr.fetchall():
+#                     sql = '''
+#                         select id from tpt_purchase_product where product_id = %s and pur_product_id = %s and state in ('x','xx','close')
+#                     '''%(line[1],line[0])
+#                     cr.execute(sql)
+#                     po_line_ids = [r[0] for r in cr.fetchall()]
+#                     if po_line_ids:
+#                         mrp_product_ids.append({'product_id':line[1],'indent_line_id':False})
                     sql = '''
                         select id from stock_move where po_indent_id=%s and product_id=%s
                     '''%(line[0],line[1])

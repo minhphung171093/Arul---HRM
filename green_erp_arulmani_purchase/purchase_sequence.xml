@@ -356,6 +356,20 @@
             <field name="implementation">no_gap</field>
         </record>
         
+        <!-- Good Return Request -->
+		<record id="sequence_tpt_good_return_request_code" model="ir.sequence.type">
+            <field name="name">Good Return Request</field>
+            <field name="code">tpt.good.return.request.import</field>
+        </record>
+        
+        <record id="sequence_tpt_good_return_request_item" model="ir.sequence">
+            <field name="name">Good Return Request</field>
+            <field name="code">tpt.good.return.request.import</field>
+            <field name="prefix">VVTI/GRR/</field>
+            <field name="padding">6</field>
+            <field name="number_next_actual">000001</field>
+            <field name="implementation">no_gap</field>
+        </record>
         
 	</data>
 </openerp>
