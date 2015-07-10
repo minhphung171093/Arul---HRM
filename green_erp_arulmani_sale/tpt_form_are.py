@@ -39,6 +39,12 @@ class tpt_form_are_1(osv.osv):
         'ed_amount': fields.float('ED Amt', ),
         'amount_usd': fields.float('Amt in USD', ),
         'amount_inr': fields.float('Amt in INR', ),
+ 
+        'is_original': fields.boolean('Original Copy'),
+        'is_duplicate': fields.boolean('Duplicate Copy'),
+        'is_triplicate': fields.boolean('Triplicate Copy'),
+        'is_quadruplicate': fields.boolean('Quadruplicate Copy'),
+        'is_extra': fields.boolean('Extra Copy'),
                 }
     _defaults={
                'name':'/',
@@ -117,7 +123,12 @@ class tpt_form_are_3(osv.osv):
         'warehouse_date': fields.date('Warehouse Date of Entry', required = True),
         'invoiced_date': fields.date('Invoiced Date', required = True),
         'warehousing_date': fields.date('1st Warehousing Date', required = True),
-        'duty_rate_line':fields.one2many('tpt.form.are.3.duty.rate','form_are_3_id','Duty Rate'),       
+        'duty_rate_line':fields.one2many('tpt.form.are.3.duty.rate','form_are_3_id','Duty Rate'),   
+        
+        'is_original': fields.boolean('Original Copy'),
+        'is_duplicate': fields.boolean('Duplicate Copy'),
+        'is_triplicate': fields.boolean('Triplicate Copy'),
+        'is_quadruplicate': fields.boolean('Quadruplicate Copy'),    
                 }
     _defaults={
                'name':'/',

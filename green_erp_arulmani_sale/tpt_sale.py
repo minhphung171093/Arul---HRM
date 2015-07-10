@@ -1928,7 +1928,8 @@ class tpt_batch_allotment(osv.osv):
             for line in batch.product_information_line:
                 batch_allotment_line.append({
                           'product_id': line.product_id.id,
-                          'product_uom_qty':line.product_uom_qty,
+                          #'product_uom_qty':line.product_uom_qty,
+                          'product_uom_qty':0.00,
                           'product_type':line.product_type,
                           'uom_po_id': line.uom_po_id.id,
                           'application_id':line.application_id.id,
