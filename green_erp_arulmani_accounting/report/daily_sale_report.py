@@ -72,10 +72,40 @@ class Parser(report_sxw.rml_parse):
         wizard_data = self.localcontext['data']['form']
         date_from = wizard_data['date_from']
         date_to = wizard_data['date_to']
+        product_id = wizard_data['product_id']
+        application_id = wizard_data['application_id']
+        state_id = wizard_data['state_id']
+        customer_id = wizard_data['customer_id']
+        city = wizard_data['city']
+        name_consignee_id = wizard_data['name_consignee_id']
+        
         invoice_obj = self.pool.get('account.invoice.line')
         sql = '''
-            select id from account_invoice_line where invoice_id in (select id from account_invoice where date_invoice between '%s' and '%s' and type = 'out_invoice')
+            select il.id from account_invoice_line il
+            join account_invoice i on (i.id=il.invoice_id)
+            join res_partner p on (p.id=i.partner_id)
+            where i.date_invoice between '%s' and '%s' and i.type = 'out_invoice'          
             '''%(date_from, date_to)
+        if product_id:
+           str = " and il.product_id=%s"%(product_id[0])
+           sql = sql+str
+        if application_id:
+           str = " and il.application_id=%s"%(application_id[0])
+           sql = sql+str 
+        if state_id:
+           str = " and p.state_id=%s"%(state_id[0])
+           sql = sql+str
+        if customer_id:
+           str = " and il.partner_id=%s"%(customer_id[0])
+           sql = sql+str
+        if name_consignee_id:
+           str = " and i.cons_loca=%s"%(name_consignee_id[0])
+           sql = sql+str
+        if city:
+           str = " and UPPER(btrim(p.city))=UPPER(btrim('%s'))"%(city)
+           sql = sql+str
+        sql=sql+" order by i.vvt_number"
+        
         self.cr.execute(sql)
         invoice_ids = [r[0] for r in self.cr.fetchall()]
         return invoice_obj.browse(self.cr,self.uid,invoice_ids)
