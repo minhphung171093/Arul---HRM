@@ -1268,7 +1268,8 @@
         
         <menuitem action="action_view_tpt_good_return_request"
             id="menu_action_view_tpt_good_return_request"
-            parent="purchase.menu_procurement_management" sequence="30"/>
+            parent="purchase.menu_procurement_management" sequence="30"
+            groups="green_erp_arulmani_purchase.group_vvti_purchase_user"/>
        
 		<record id="view_tpt_purchase_chart_tree" model="ir.ui.view">
 			<field name="name">tpt.comparison.chart.tree</field>
@@ -1623,7 +1624,7 @@
         <menuitem action="action_view_tpt_gate_out_pass_tree"
             id="menu_action_view_tpt_gate_out_pass_tree"
             parent="purchase.menu_procurement_management" sequence="32"
-            groups="base.user_root"/>
+            groups="base.user_root,green_erp_arulmani_purchase.group_vvti_purchase_store_user"/>
 		
 		<record id="purchase.purchase_form_action" model="ir.actions.act_window">
             <field name="name">Purchase Orders</field>
