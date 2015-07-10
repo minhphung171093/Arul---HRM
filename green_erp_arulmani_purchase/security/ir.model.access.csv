@@ -183,6 +183,9 @@ access_vvti_purchase_150,account.analytic.line,account.model_account_analytic_li
 access_vvti_purchase_151,tpt.material.request,green_erp_arulmani_purchase.model_tpt_material_request,green_erp_arulmani_crm.group_qc_user,True,True,True,False
 access_vvti_purchase_152,tpt.material.request.line,green_erp_arulmani_purchase.model_tpt_material_request_line,green_erp_arulmani_crm.group_qc_user,True,True,True,True
 
+purchase.access_product_category_purchase_manager,product.category purchase_manager,product.model_product_category,purchase.group_purchase_manager,1,0,0,0
+
+
 
 
 
