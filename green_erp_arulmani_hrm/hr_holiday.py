@@ -3599,6 +3599,17 @@ class arul_hr_audit_shift_time(osv.osv):
                             shifts_out_time = [shift_out,od_out]
                             start_time = min(shifts_in_time)
                             end_time = min(shifts_out_time)
+                    if line.actual_work_shift_id.code=='G2':                       
+                        if perm_in>0 and perm_in>=9:
+                            shifts_in_time = [shift_in,perm_in]
+                            shifts_out_time = [shift_out,perm_out]
+                            start_time = min(shifts_in_time)
+                            end_time = min(shifts_out_time)
+                        elif od_in>0 and od_in >=9:
+                            shifts_in_time = [shift_in,od_in]
+                            shifts_out_time = [shift_out,od_out]
+                            start_time = min(shifts_in_time)
+                            end_time = min(shifts_out_time)
                     
                 ###
                 recording_hrs = 0     
