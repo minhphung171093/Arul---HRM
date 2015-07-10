@@ -721,26 +721,28 @@ class arul_hr_audit_shift_time(osv.osv):
 		    flag = 1
                     shift_hours = 0
 		    
-		if same_work_date and line.total_hours < half_shift_time:
-		    permission_ids = self.pool.get('arul.hr.permission.onduty').search(cr, uid, [('non_availability_type_id','=','permission'),('date','=',line.work_date),('employee_id','=',line.employee_id.id)])
-                    on_duty_ids = self.pool.get('arul.hr.permission.onduty').search(cr, uid, [('non_availability_type_id','=','on_duty'),('from_date','<=',line.work_date),('to_date','>=',line.work_date),('employee_id','=',line.employee_id.id)])
-                    leave_detail_ids = self.pool.get('arul.hr.employee.leave.details').search(cr, uid, [('date_from','<=',line.work_date),('date_to','>=',line.work_date),('employee_id','=',line.employee_id.id),('state','=','done')])
-		    	
-                    if not permission_ids and not on_duty_ids and not leave_detail_ids:
-                        res = self.pool.get('ir.model.data').get_object_reference(cr, uid, 
-                                        'green_erp_arulmani_hrm', 'alert_permission_form_view')
-                        return {
-                                'name': 'Alert Permission',
-                                'view_type': 'form',
-                                'view_mode': 'form',
-                                'view_id': res[1],
-                                'res_model': 'alert.form',
-                                'domain': [],
-                                'context': {'default_message':'Insufficient Hours, Please Create any one of the following type: Permission/OnDuty/Leave','audit_id':line.id},
-                                'type': 'ir.actions.act_window',
-                                'target': 'new',
-                            }
-		
+		#=======================================================================
+		# if same_work_date and line.total_hours < half_shift_time:
+		#     permission_ids = self.pool.get('arul.hr.permission.onduty').search(cr, uid, [('non_availability_type_id','=','permission'),('date','=',line.work_date),('employee_id','=',line.employee_id.id)])
+  #                   on_duty_ids = self.pool.get('arul.hr.permission.onduty').search(cr, uid, [('non_availability_type_id','=','on_duty'),('from_date','<=',line.work_date),('to_date','>=',line.work_date),('employee_id','=',line.employee_id.id)])
+  #                   leave_detail_ids = self.pool.get('arul.hr.employee.leave.details').search(cr, uid, [('date_from','<=',line.work_date),('date_to','>=',line.work_date),('employee_id','=',line.employee_id.id),('state','=','done')])
+		#     	
+  #                   if not permission_ids and not on_duty_ids and not leave_detail_ids:
+  #                       res = self.pool.get('ir.model.data').get_object_reference(cr, uid, 
+  #                                       'green_erp_arulmani_hrm', 'alert_permission_form_view')
+  #                       return {
+  #                               'name': 'Alert Permission',
+  #                               'view_type': 'form',
+  #                               'view_mode': 'form',
+  #                               'view_id': res[1],
+  #                               'res_model': 'alert.form',
+  #                               'domain': [],
+  #                               'context': {'default_message':'Insufficient Hours, Please Create any one of the following type: Permission/OnDuty/Leave','audit_id':line.id},
+  #                               'type': 'ir.actions.act_window',
+  #                               'target': 'new',
+  #                           }
+		# 
+		#=======================================================================
 		if line.total_hours<shift_hours and line.planned_work_shift_id.code!='W':
                     permission_ids = self.pool.get('arul.hr.permission.onduty').search(cr, uid, [('non_availability_type_id','=','permission'),('date','=',line.work_date),('employee_id','=',line.employee_id.id)])
                     on_duty_ids = self.pool.get('arul.hr.permission.onduty').search(cr, uid, [('non_availability_type_id','=','on_duty'),('from_date','<=',line.work_date),('to_date','>=',line.work_date),('employee_id','=',line.employee_id.id)])
