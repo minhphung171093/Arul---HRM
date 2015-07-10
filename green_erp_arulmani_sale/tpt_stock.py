@@ -34,6 +34,8 @@ class stock_picking(osv.osv):
 #         'location_sour_id': fields.many2one('stock.location', 'Source Location'),
         'street3':fields.char('Street3',size=128),
         'order_type':fields.selection([('domestic','Domestic'),('export','Export')],'Order Type' ),
+        'description':fields.char('Description', size = 50, readonly = True),
+        'item_text':fields.text('Item Text'),
                 }
     
     _defaults = {
@@ -1392,4 +1394,12 @@ class product_product(osv.osv):
        return self.name_get(cr, user, ids, context=context)
    
 product_product()
-
+class stock_partial_picking_line(osv.osv_memory):
+    _inherit = "stock.partial.picking.line"
+    _columns = {
+        'description':fields.char('Description', size = 50,readonly=True),
+        'item_text':fields.text('Item Text'),
+#         'description':fields.related('move_id', 'description',type = 'char', string='Description'),
+#         'item_text':fields.related('move_id', 'item_text',type = 'text', string='Item Text'),
+     } 
+stock_partial_picking_line()

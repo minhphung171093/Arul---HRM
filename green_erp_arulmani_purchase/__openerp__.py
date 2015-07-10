@@ -48,6 +48,7 @@
         'wizard/load_line_from_indent_form_view.xml',
         'wizard/stock_inward_outward_report_view.xml',
         'wizard/raw_material_stock_statement_report_view.xml',
+
         'purchase_view.xml',
         'stock_view.xml',
         'tpt_purchase_view.xml',
@@ -56,6 +57,7 @@
         'menu_inherit_view.xml',
         'import_view.xml',
         'purchase_stock_data.xml',
+        'wizard/stock_pur_view.xml',
     ],
     'css' : [
     ],
