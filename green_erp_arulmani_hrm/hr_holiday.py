@@ -3340,26 +3340,28 @@ class arul_hr_audit_shift_time(osv.osv):
             #End:TPT
             # TPT: The system should block approval if total working time is not match with shit time - For Emp Categ S1
                        #if extra_hours<shift_hours and line.employee_id.employee_category_id and line.employee_id.employee_category_id.code!='S1':
-                if extra_hours<shift_hours and line.employee_id.employee_category_id :
-                    permission_ids = self.pool.get('arul.hr.permission.onduty').search(cr, uid, [('non_availability_type_id','=','permission'),('date','=',line.work_date),('employee_id','=',line.employee_id.id)])
-                    on_duty_ids = self.pool.get('arul.hr.permission.onduty').search(cr, uid, [('non_availability_type_id','=','on_duty'),('from_date','<=',line.work_date),('to_date','>=',line.work_date),('employee_id','=',line.employee_id.id)])
-                    leave_detail_ids = self.pool.get('arul.hr.employee.leave.details').search(cr, uid, [('date_from','<=',line.work_date),('date_to','>=',line.work_date),('employee_id','=',line.employee_id.id),('state','=','done')])
-                
-                    if not permission_ids and not on_duty_ids and not leave_detail_ids:
-                        res = self.pool.get('ir.model.data').get_object_reference(cr, uid, 
-                                            'green_erp_arulmani_hrm', 'alert_permission_form_view')
-                        #raise osv.except_osv(_('Warning!'),_('Insufficient Hours, Please Create any one of the following type: Permission/OnDuty/Leave'))
-                        return {
-                                    'name': 'Alert Permission',
-                                    'view_type': 'form',
-                                    'view_mode': 'form',
-                                    'view_id': res[1],
-                                    'res_model': 'alert.form',
-                                    'domain': [],
-                                    'context': {'default_message':'Insufficient Hours, Please Create any one of the following type: Permission/OnDuty/Leave','audit_id':line.id},
-                                    'type': 'ir.actions.act_window',
-                                    'target': 'new',
-                                }
+                #===============================================================
+                # if extra_hours<shift_hours and line.employee_id.employee_category_id :
+                #     permission_ids = self.pool.get('arul.hr.permission.onduty').search(cr, uid, [('non_availability_type_id','=','permission'),('date','=',line.work_date),('employee_id','=',line.employee_id.id)])
+                #     on_duty_ids = self.pool.get('arul.hr.permission.onduty').search(cr, uid, [('non_availability_type_id','=','on_duty'),('from_date','<=',line.work_date),('to_date','>=',line.work_date),('employee_id','=',line.employee_id.id)])
+                #     leave_detail_ids = self.pool.get('arul.hr.employee.leave.details').search(cr, uid, [('date_from','<=',line.work_date),('date_to','>=',line.work_date),('employee_id','=',line.employee_id.id),('state','=','done')])
+                # 
+                #     if not permission_ids and not on_duty_ids and not leave_detail_ids:
+                #         res = self.pool.get('ir.model.data').get_object_reference(cr, uid, 
+                #                             'green_erp_arulmani_hrm', 'alert_permission_form_view')
+                #         #raise osv.except_osv(_('Warning!'),_('Insufficient Hours, Please Create any one of the following type: Permission/OnDuty/Leave'))
+                #         return {
+                #                     'name': 'Alert Permission',
+                #                     'view_type': 'form',
+                #                     'view_mode': 'form',
+                #                     'view_id': res[1],
+                #                     'res_model': 'alert.form',
+                #                     'domain': [],
+                #                     'context': {'default_message':'Insufficient Hours, Please Create any one of the following type: Permission/OnDuty/Leave','audit_id':line.id},
+                #                     'type': 'ir.actions.act_window',
+                #                     'target': 'new',
+                #                 }
+                #===============================================================
                     
                     #if flag==1 or line.additional_shifts or (extra_hours>8 and line.employee_id.employee_category_id and line.employee_id.employee_category_id.code!='S1'): # Commented By BalamuruganPurushothaman - TO do not calculate COFF for S1 categ
                 if flag==1 or line.additional_shifts or (line.employee_id.employee_category_id and line.employee_id.employee_category_id.code!='S1'):
