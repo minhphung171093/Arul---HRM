@@ -120,7 +120,7 @@ class sale_order(osv.osv):
         'po_date':fields.date('PO Date',states={'progress':[('readonly',True)],'done':[('readonly',True)]}),
         'payment_term_id': fields.many2one('account.payment.term', 'Payment Term',required = True,states={'progress':[('readonly',True)],'done':[('readonly',True)]}),
         'document_type':fields.selection([('saleorder','Sale Order'),('return','Return Sales Order'),('scrap','Scrap Sales')],'Document Type' ,required=True,states={'progress':[('readonly',True)],'done':[('readonly',True)]}),
-        'po_number':fields.char('PO Number', size = 20,states={'progress':[('readonly',True)],'done':[('readonly',True)]}),
+        'po_number':fields.char('PO Number', size = 50,states={'progress':[('readonly',True)],'done':[('readonly',True)]}),
         'reason':fields.text('Reason',states={'progress':[('readonly',True)],'done':[('readonly',True)]}),
         'quotaion_no':fields.char('Quotaion No', size = 40,states={'progress':[('readonly',True)],'done':[('readonly',True)]}),
         'expected_date':fields.date('Expected delivery Date',states={'progress':[('readonly',True)],'done':[('readonly',True)]}),
