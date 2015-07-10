@@ -3567,16 +3567,38 @@ class arul_hr_audit_shift_time(osv.osv):
                 
                 ###
                 if line.punch_in_date!=line.punch_out_date:
-                    if perm_in>0:
-                        shifts_in_time = [shift_in,perm_in]
-                        shifts_out_time = [shift_out,perm_out]
-                        start_time = max(shifts_in_time)
-                        end_time = max(shifts_out_time)
-                    elif od_in>0:
-                        shifts_in_time = [shift_in,od_in]
-                        shifts_out_time = [shift_out,od_out]
-                        start_time = max(shifts_in_time)
-                        end_time = max(shifts_out_time)
+                    if line.actual_work_shift_id.code=='C':
+                        if perm_in>0 and perm_in<20:
+                            shifts_in_time = [shift_in,perm_in]
+                            shifts_out_time = [shift_out,perm_out]
+                            start_time = max(shifts_in_time)
+                            end_time = max(shifts_out_time)
+                        elif od_in>0 and od_in <20:
+                            shifts_in_time = [shift_in,od_in]
+                            shifts_out_time = [shift_out,od_out]
+                            start_time = max(shifts_in_time)
+                            end_time = max(shifts_out_time)
+                        elif perm_in>0 and perm_in>20:
+                            shifts_in_time = [shift_in,perm_in]
+                            shifts_out_time = [shift_out,perm_out]
+                            start_time = min(shifts_in_time)
+                            end_time = min(shifts_out_time)
+                        elif od_in>0 and od_in > 20:
+                            shifts_in_time = [shift_in,od_in]
+                            shifts_out_time = [shift_out,od_out]
+                            start_time = min(shifts_in_time)
+                            end_time = min(shifts_out_time)
+                    if line.actual_work_shift_id.code=='G1':                       
+                        if perm_in>0 and perm_in>=8:
+                            shifts_in_time = [shift_in,perm_in]
+                            shifts_out_time = [shift_out,perm_out]
+                            start_time = min(shifts_in_time)
+                            end_time = min(shifts_out_time)
+                        elif od_in>0 and od_in >=8:
+                            shifts_in_time = [shift_in,od_in]
+                            shifts_out_time = [shift_out,od_out]
+                            start_time = min(shifts_in_time)
+                            end_time = min(shifts_out_time)
                     
                 ###
                 recording_hrs = 0     
