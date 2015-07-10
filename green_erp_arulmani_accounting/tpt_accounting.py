@@ -3629,20 +3629,21 @@ class tpt_material_issue(osv.osv):
                     if not acc_expense or not acc_asset:
                         raise osv.except_osv(_('Warning!'),_('Please configure Expense Account and Product Asset Account for all materials!'))
                     avg_cost_ids = avg_cost_obj.search(cr, uid, [('product_id','=',mater.product_id.id),('warehouse_id','=',line.warehouse.id)])
+                    unit = 1
                     if avg_cost_ids:
                         avg_cost_id = avg_cost_obj.browse(cr, uid, avg_cost_ids[0])
                         unit = avg_cost_id.avg_cost or 0
-                        sql = '''
-                            select price_unit from stock_move where product_id=%s and product_qty=%s and issue_id=%s
-                        '''%(mater.product_id.id,mater.product_isu_qty,mater.material_issue_id.id)
-                        cr.execute(sql)
-                        move_price = cr.fetchone()
-                        if move_price and move_price[0] and move_price[0]>0:
-                            unit=move_price[0]
-                        if not unit or unit<0:
-                            unit=1
-                        price += unit * mater.product_isu_qty
-                        product_price = unit * mater.product_isu_qty
+                    sql = '''
+                        select price_unit from stock_move where product_id=%s and product_qty=%s and issue_id=%s
+                    '''%(mater.product_id.id,mater.product_isu_qty,mater.material_issue_id.id)
+                    cr.execute(sql)
+                    move_price = cr.fetchone()
+                    if move_price and move_price[0] and move_price[0]>0:
+                        unit=move_price[0]
+                    if not unit or unit<0:
+                        unit=1
+                    price += unit * mater.product_isu_qty
+                    product_price = unit * mater.product_isu_qty
                     
                     journal_line.append((0,0,{
                                             'name':line.doc_no + ' - ' + mater.product_id.name, 
@@ -3717,20 +3718,21 @@ class tpt_material_issue(osv.osv):
                         if not acc_expense or not acc_asset:
                             raise osv.except_osv(_('Warning!'),_('Please configure Expense Account and Product Asset Account for materials %s!'%(mater.product_id.default_code)))
                         avg_cost_ids = avg_cost_obj.search(cr, uid, [('product_id','=',mater.product_id.id),('warehouse_id','=',line.warehouse.id)])
+                        unit = 1
                         if avg_cost_ids:
                             avg_cost_id = avg_cost_obj.browse(cr, uid, avg_cost_ids[0])
                             unit = avg_cost_id.avg_cost or 0
-                            sql = '''
-                                select price_unit from stock_move where product_id=%s and product_qty=%s and issue_id=%s
-                            '''%(mater.product_id.id,mater.product_isu_qty,mater.material_issue_id.id)
-                            cr.execute(sql)
-                            move_price = cr.fetchone()
-                            if move_price and move_price[0] and move_price[0]>0:
-                                unit=move_price[0]
-                            if not unit or unit<0:
-                                unit=1
-                            price += unit * mater.product_isu_qty
-                            product_price = unit * mater.product_isu_qty
+                        sql = '''
+                            select price_unit from stock_move where product_id=%s and product_qty=%s and issue_id=%s
+                        '''%(mater.product_id.id,mater.product_isu_qty,mater.material_issue_id.id)
+                        cr.execute(sql)
+                        move_price = cr.fetchone()
+                        if move_price and move_price[0] and move_price[0]>0:
+                            unit=move_price[0]
+                        if not unit or unit<0:
+                            unit=1
+                        price += unit * mater.product_isu_qty
+                        product_price = unit * mater.product_isu_qty
                     
                         journal_line.append((0,0,{
                                                 'name':line.doc_no + ' - ' + mater.product_id.name, 
