@@ -279,11 +279,13 @@
 		<record model="ir.ui.menu" id="green_erp_arulmani_accounting.menu_action_customer_ledger_statement_view">
 		    <field name="groups_id" eval="[(4, ref('group_vvti_accounting_user')),
 		    								(4, ref('green_erp_arulmani_sale.group_vvti_sale_user')),
+		    								(4, ref('green_erp_arulmani_sale.group_vvti_marketing_user')),
 		    								(4, ref('green_erp_arulmani_accounting.group_vvti_mag_direct'))]" />
 		</record>
 		
 		<record model="ir.ui.menu" id="green_erp_arulmani_accounting.menu_action_supplier_ledger_statement_view">
-		    <field name="groups_id" eval="[(4, ref('group_vvti_accounting_user'))]" />
+		    <field name="groups_id" eval="[(4, ref('group_vvti_accounting_user')),
+		    								(4, ref('green_erp_arulmani_purchase.group_vvti_purchase_user'))]" />
 		</record>
 		
 		<record model="ir.ui.menu" id="green_erp_arulmani_accounting.menu_action_general_ledger_statement_view">
@@ -454,6 +456,59 @@
 		
 		<record model="ir.ui.menu" id="green_erp_arulmani_crm.menu_vvti_master">
 	    	<field name="groups_id" eval="[(6, 0,[])]"/>
+		</record>
+		
+		<record model="ir.ui.menu" id="green_erp_arulmani_accounting.menu_action_tds_for_view">
+	    	<field name="groups_id" eval="[(6, 0,[ref('group_vvti_accounting_user')])]"/>
+		</record>
+		
+		<record model="ir.ui.menu" id="green_erp_arulmani_accounting.menu_general_Balance_report">
+		    <field name="groups_id" eval="[(4, ref('group_vvti_accounting_user'))]" />
+		</record>
+		
+		<record model="ir.ui.menu" id="green_erp_arulmani_purchase.menu_action_stock_inward_outward_report_view">
+		    <field name="groups_id" eval="[(4, ref('green_erp_arulmani_purchase.group_vvti_purchase_user')),
+		    								(4, ref('green_erp_arulmani_purchase.group_vvti_purchase_store_user')),
+		    								(4, ref('green_erp_arulmani_production.group_vvti_production_user')),
+		    								(4, ref('group_vvti_accounting_user'))]" />
+		</record>
+		
+		<record model="ir.ui.menu" id="green_erp_arulmani_purchase.menu_action_stock_movement_analysis_view">
+		    <field name="groups_id" eval="[(4, ref('green_erp_arulmani_purchase.group_vvti_purchase_user')),
+		    								(4, ref('green_erp_arulmani_purchase.group_vvti_purchase_store_user')),
+		    								(4, ref('green_erp_arulmani_production.group_vvti_production_user')),
+		    								(4, ref('group_vvti_accounting_user'))]" />
+		</record>
+		
+		<record model="ir.ui.menu" id="green_erp_arulmani_purchase.menu_action_tpt_raw_stock_statement_view">
+		    <field name="groups_id" eval="[(4, ref('green_erp_arulmani_purchase.group_vvti_purchase_user')),
+		    								(4, ref('green_erp_arulmani_purchase.group_vvti_purchase_store_user')),
+		    								(4, ref('green_erp_arulmani_production.group_vvti_production_user')),
+		    								(4, ref('group_vvti_accounting_user'))]" />
+		</record>
+		
+		<record model="ir.ui.menu" id="green_erp_arulmani_purchase.menu_action_stock_on_hand_report_view">
+		    <field name="groups_id" eval="[(6, 0, [ref('green_erp_arulmani_hrm.group_vvti_hrm_hr_key_user'),
+		    									ref('green_erp_arulmani_hrm.group_vvti_hrm_time_user'),
+		    									ref('green_erp_arulmani_hrm.group_vvti_hrm_plant_hr_user'),
+		    									ref('green_erp_arulmani_sale.group_vvti_marketing_user')])]" />
+		</record>
+		
+		<record model="ir.ui.menu" id="green_erp_arulmani_accounting.menu_action_batch_wise_stock_view">
+		    <field name="groups_id" eval="[(6, 0, [ref('group_vvti_accounting_user'),
+		    									ref('green_erp_arulmani_sale.group_vvti_sale_user'),
+		    									ref('green_erp_arulmani_sale.group_vvti_marketing_user')])]" />
+		</record>
+		
+		<record model="ir.ui.menu" id="green_erp_arulmani_crm.menu_list_employee_report">
+		    <field name="groups_id" eval="[(6, 0, [ref('green_erp_arulmani_hrm.group_vvti_hrm_hr_user'),
+		    									ref('green_erp_arulmani_hrm.group_vvti_hrm_payroll_controller')])]" />
+		</record>
+		
+		<record model="ir.ui.menu" id="green_erp_arulmani_hrm.menu_action_leave_balance_report">
+		    <field name="groups_id" eval="[(6, 0, [ref('green_erp_arulmani_hrm.group_vvti_hrm_hr_user'),
+		    									ref('green_erp_arulmani_hrm.group_vvti_hrm_time_user'),
+		    									ref('green_erp_arulmani_hrm.group_vvti_hrm_payroll_controller')])]" />
 		</record>
 		
     </data>
