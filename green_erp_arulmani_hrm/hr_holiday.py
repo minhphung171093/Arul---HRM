@@ -5995,6 +5995,7 @@ class arul_hr_punch_in_out(osv.osv):
                                     out_time=float(data2[15:17])+float(data2[17:19])/60+float(data2[19:21])/3600
                                     out_date = data2[7:11]+'-'+data2[11:13]+'-'+data2[13:15]
                                     val1['out_time']=out_time
+                                    val1['ref_out_time']=out_time
                                     val1['punch_out_date']=out_date
                                 # cho phep di lam som nua tieng hoac di tre 15 phut va ve som 15 phut
 				# TPT Changes - BalamuruganPurushothaman on 18/02/2015 - SQL Query is modified to check Grace Time for shift
