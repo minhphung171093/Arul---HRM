@@ -77,7 +77,9 @@
             				<field name="type_trans" class="oe_text_center"/>
             				<field name="bank_acc_no" nolabel="1" class="oe_text_center"/>
             			</div>
-	                	
+	                	<div class="oe_text_center oe_bold">
+            				<field name="account_id" nolabel="1" class="oe_text_center"/>
+            			</div>
 	                	<group>
 		                	<field name="cb_line" nolabel='1'>
 		                		<tree create="false" edit="false" delete="false">
