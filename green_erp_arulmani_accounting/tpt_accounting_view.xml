@@ -112,6 +112,7 @@
             <field name="arch" type="xml">
             	<xpath expr="//page[@string='Tax Definition']/group/group[@string='Invoices']/field[@name='tax_sign']" position="after">
 					<field name="gl_account_id" options="{'create': false, 'create_edit': false}"/>
+					<field name="section"/>
 				</xpath>
 			</field>
 		</record>
