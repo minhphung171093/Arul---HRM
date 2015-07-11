@@ -38,6 +38,32 @@ class time_data_check(osv.osv_memory):
         '''
         cr.execute(sql)
         
+        sql = '''
+                update arul_hr_punch_in_out_time set g1_shift_count1=1,total_shift_worked1=1 where id in (
+                select io.id
+                from arul_hr_punch_in_out_time io
+                inner join hr_employee emp on io.employee_id=emp.id
+                 where  
+                io.a_shift_count1=0 and io.g1_shift_count1 =0 
+                and io.g2_shift_count1 =0  and io.b_shift_count1 =0  and io.c_shift_count1 =0  and 
+                io.total_shift_worked1 =0 and io.total_hours<10 and  io.total_hours>7.75  and actual_work_shift_id=
+                (select id from arul_hr_capture_work_shift where code='G1')  )
+        '''
+        cr.execute(sql)
+        
+        sql = '''
+                update arul_hr_punch_in_out_time set g2_shift_count1=1,total_shift_worked1=1 where id in (
+                select io.id
+                from arul_hr_punch_in_out_time io
+                inner join hr_employee emp on io.employee_id=emp.id
+                 where  
+                io.a_shift_count1=0 and io.g1_shift_count1 =0 
+                and io.g2_shift_count1 =0  and io.b_shift_count1 =0  and io.c_shift_count1 =0  and 
+                io.total_shift_worked1 =0 and io.total_hours<10 and  io.total_hours>7.30  and actual_work_shift_id=
+                (select id from arul_hr_capture_work_shift where code='G2')  )
+        '''
+        cr.execute(sql)
+        
         return {'type': 'ir.actions.act_window_close'}  
         
 time_data_check()

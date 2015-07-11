@@ -4926,6 +4926,7 @@ class account_tax(osv.osv):
     
     _columns = {
         'gl_account_id': fields.many2one('account.account', 'GL Account'),
+        'section': fields.char('Section', size = 20),
         }
     
 account_tax()
