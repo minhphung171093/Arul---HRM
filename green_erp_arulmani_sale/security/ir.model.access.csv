@@ -143,7 +143,7 @@ access_vvti_sale_108,crm.sale.order.line,green_erp_arulmani_crm.model_crm_sale_o
 
 crm.access_crm_payment_mode,crm.payment.mode,crm.model_crm_payment_mode,base.group_sale_manager,1,0,0,0
 
-access_vvti_sale_108,account.invoice,account.model_account_invoice,green_erp_arulmani_sale.group_vvti_sale_user,1,1,1,1
+access_vvti_sale_108,account.invoice,account.model_account_invoice,green_erp_arulmani_sale.group_vvti_sale_user,1,1,1,0
 
 product.access_product_category_sale_manager,product.category salemanager,product.model_product_category,base.group_sale_manager,1,0,0,0
 

@@ -203,6 +203,9 @@ purchase.access_product_template_purchase_manager,product.template purchase_mana
 
 access_vvti_purchase_157,product.template,product.model_product_template,green_erp_arulmani_purchase.group_vvti_purchase_store_user,1,1,1,0
 
+purchase.access_purchase_order,purchase.order,purchase.model_purchase_order,purchase.group_purchase_user,1,1,1,0
+purchase.access_purchase_order_manager,purchase.order,purchase.model_purchase_order,purchase.group_purchase_manager,1,1,1,0
+
 
 
 
