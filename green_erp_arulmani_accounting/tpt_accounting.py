@@ -3507,34 +3507,32 @@ class tpt_material_issue(osv.osv):
                     ton_sl = cr.dictfetchone()['ton_sl']
                     if sum['product_isu_qty'] > ton_sl:
                         raise osv.except_osv(_('Warning!'),_("You are confirm %s but only %s available for this product '%s' " %(sum['product_isu_qty'], ton_sl,product_id.default_code)))
-                if cate_name == 'finish':
-                    parent_ids = self.pool.get('stock.location').search(cr, uid, [('name','=','Store'),('usage','=','view')])
-                    if parent_ids:
-                        locat_ids = self.pool.get('stock.location').search(cr, uid, [('name','=','FSH'),('location_id','=',parent_ids[0])])
-                    if locat_ids:
-                        location_id = locat_ids[0]
-                        sql = '''
-                            select case when sum(foo.product_qty)!=0 then sum(foo.product_qty) else 0 end onhand_qty from 
-                                (select st.product_qty as product_qty
-                                    from stock_move st 
-                                    where st.state='done' and st.product_id=%s and st.location_dest_id=%s and st.location_dest_id != st.location_id
-                                 union all
-                                 select st.product_qty*-1 as product_qty
-                                    from stock_move st 
-                                    where st.state='done'
-                                    and st.product_id=%s
-                                                and location_id=%s
-                                                and location_dest_id != location_id
-                                )foo
-                        '''%(p.product_id.id,location_id,p.product_id.id,location_id)
-                        cr.execute(sql)
-                        onhand_qty = cr.dictfetchone()['onhand_qty']
+#                 if cate_name == 'finish':
+#                     parent_ids = self.pool.get('stock.location').search(cr, uid, [('name','=','Store'),('usage','=','view')])
+#                     if parent_ids:
+#                         locat_ids = self.pool.get('stock.location').search(cr, uid, [('name','=','FSH'),('location_id','=',parent_ids[0])])
+#                     if locat_ids:
+#                         location_id = locat_ids[0]
+#                         sql = '''
+#                             select case when sum(foo.product_qty)!=0 then sum(foo.product_qty) else 0 end onhand_qty from 
+#                                 (select st.product_qty as product_qty
+#                                     from stock_move st 
+#                                     where st.state='done' and st.product_id=%s and st.location_dest_id=%s and st.location_dest_id != st.location_id
+#                                  union all
+#                                  select st.product_qty*-1 as product_qty
+#                                     from stock_move st 
+#                                     where st.state='done'
+#                                     and st.product_id=%s
+#                                                 and location_id=%s
+#                                                 and location_dest_id != location_id
+#                                 )foo
+#                         '''%(p.product_id.id,location_id,p.product_id.id,location_id)
+#                         cr.execute(sql)
+#                         onhand_qty = cr.dictfetchone()['onhand_qty']
                 if cate_name == 'raw':
                     parent_ids = self.pool.get('stock.location').search(cr, uid, [('name','=','Store'),('usage','=','view')])
-                    if parent_ids:
-                        locat_ids = self.pool.get('stock.location').search(cr, uid, [('name','in',['Raw material','Raw Material']),('location_id','=',parent_ids[0])])
-                    if locat_ids:
-                        location_id = locat_ids[0]
+                    locat_ids = self.pool.get('stock.location').search(cr, uid, [('name','in',['Raw material','Raw Material']),('location_id','=',parent_ids[0])])
+                    location_id = locat_ids[0]
                 if cate_name == 'spares':
                     parent_ids = self.pool.get('stock.location').search(cr, uid, [('name','=','Store'),('usage','=','view')])
                     if parent_ids:

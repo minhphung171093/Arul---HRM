@@ -2274,7 +2274,14 @@ class tpt_update_stock_move_report(osv.osv):
         '''
         cr.execute(sql)
         
-        return self.write(cr, uid, ids, {'result':'sync_stock_move_and_quanlity_inspection V2 Done'})   
+        return self.write(cr, uid, ids, {'result':'sync_stock_move_and_quanlity_inspection V2 Done'}) 
+    
+    def update_price_unit_for_good_issue(self, cr, uid, ids, context=None):
+        sql = '''
+            
+        '''
+        
+        return self.write(cr, uid, ids, {'result':'update_price_unit_for_good_issue Done'})  
     
 tpt_update_stock_move_report()
 
