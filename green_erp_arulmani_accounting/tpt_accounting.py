@@ -1716,30 +1716,30 @@ class account_invoice_line(osv.osv):
                         tax = (basic + p_f + ed + line.aed_id_1)*(tax_value) * voucher_rate
                     else:
                         tax = (basic + p_f + ed)*(tax_value) * voucher_rate
-                    sum_tax = tax
-                    sum_tax_round = round(sum_tax)
-                    deducte = sum_tax_round - sum_tax
-                    if deducte > 0:
-                        res.append({
-                            'type':'tax',
-                            'name':'',
-                            'price_unit': 0,
-                            'quantity': 1,
-                            'price': -deducte,
-                            'account_id': account.id,
-                            'account_analytic_id': False,
-                            })
-               
-                    if deducte < 0:
-                        res.append({
-                            'type':'tax',
-                            'name':'',
-                            'price_unit': 0,
-                            'quantity': 1,
-                            'price': -deducte,
-                            'account_id': account.id,
-                            'account_analytic_id': False,
-                            })
+                    sum_tax += tax
+            sum_tax_round = round(sum_tax)
+            deducte = sum_tax_round - sum_tax
+            if deducte > 0:
+                res.append({
+                    'type':'tax',
+                    'name':'',
+                    'price_unit': 0,
+                    'quantity': 1,
+                    'price': -deducte,
+                    'account_id': account.id,
+                    'account_analytic_id': False,
+                    })
+       
+            if deducte < 0:
+                res.append({
+                    'type':'tax',
+                    'name':'',
+                    'price_unit': 0,
+                    'quantity': 1,
+                    'price': -deducte,
+                    'account_id': account.id,
+                    'account_analytic_id': False,
+                    })
         return res
     
     def move_line_amount_tax(self, cr, uid, invoice_id, context = None):
@@ -1872,30 +1872,30 @@ class account_invoice_line(osv.osv):
                         tax = (basic + p_f + ed + line.aed_id_1)*(tax_value) * voucher_rate
                     else:
                         tax = (basic + p_f + ed)*(tax_value) * voucher_rate
-                    sum_tax = tax
-                    sum_tax_round = round(sum_tax)
-                    deducte = sum_tax_round - sum_tax
-                    if deducte > 0:
-                        res.append({
-                            'type':'tax',
-                            'name':'',
-                            'price_unit': 0,
-                            'quantity': 1,
-                            'price': deducte,
-                            'account_id': account.id,
-                            'account_analytic_id': False,
-                            })
-               
-                    if deducte < 0:
-                        res.append({
-                            'type':'tax',
-                            'name':'',
-                            'price_unit': 0,
-                            'quantity': 1,
-                            'price': deducte,
-                            'account_id': account.id,
-                            'account_analytic_id': False,
-                            })
+                    sum_tax += tax
+            sum_tax_round = round(sum_tax)
+            deducte = sum_tax_round - sum_tax
+            if deducte > 0:
+                res.append({
+                    'type':'tax',
+                    'name':'',
+                    'price_unit': 0,
+                    'quantity': 1,
+                    'price': deducte,
+                    'account_id': account.id,
+                    'account_analytic_id': False,
+                    })
+       
+            if deducte < 0:
+                res.append({
+                    'type':'tax',
+                    'name':'',
+                    'price_unit': 0,
+                    'quantity': 1,
+                    'price': deducte,
+                    'account_id': account.id,
+                    'account_analytic_id': False,
+                    })
         return res
     
     def move_line_amount_tax1(self, cr, uid, invoice_id, context = None):
