@@ -95,12 +95,18 @@ class Parser(report_sxw.rml_parse):
                 arul_hr_employee_leave_details WHERE EXTRACT(year FROM date_from) = %s 
                 AND EXTRACT(month FROM date_from) = %s AND employee_id =%s AND
                 leave_type_id in (select id from arul_hr_leave_types where code in ('LOP','ESI'))
-        '''%(int(month), int(year),employee.id)
+                and state='done'
+        '''%(int(year), int(month),employee.id)
         self.cr.execute(sql)
         lop_esi =  self.cr.fetchone()
         tpt_lop_esi = lop_esi[0]
         total_no_of_leave = tpt_lop_esi
         no_of_day_work = calendar_days - total_no_of_leave
+        
+        #added on 03/07/2015
+        #no_of_day_work = calendar_days 
+        if employee.employee_category_id.code == 'S3':
+            no_of_day_work = 26 - total_no_of_leave
         
         return no_of_day_work
     

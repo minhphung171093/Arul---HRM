@@ -16,9 +16,11 @@
 	            			<newline/>
 	            		    <field name="narration" />
 	            		    <newline/>	
+	            		    <field name="is_posted" />
+	            		    <newline/>	
 			                <field name="date_from" />
 			                <field name="date_to" />
-			                <field name="is_posted" />
+			               <!-- <field name="is_posted" /> -->
 	                	</group>
 	                </group>
 	                <footer>

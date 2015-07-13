@@ -104,7 +104,7 @@
                     </xpath>
                     <xpath expr="//field[@name='phone']" position="before">
                     <!-- <field name="customer_code" required='1' attrs="{'invisible': [('customer', '=',False)]}" />-->
-                    	<field name="customer_code" attrs="{'invisible': [('customer', '=',False)]}" />
+                    	<field name="customer_code" readonly='1'  attrs="{'invisible': [('customer', '=',False)]}" />
                     </xpath>
                     
                     <xpath expr="//field[@name='website']" position="after">                       

@@ -44,6 +44,9 @@ class Parser(report_sxw.rml_parse):
             'get_invoice':self.get_invoice,
             'get_doc_type':self.get_doc_type,
             'get_total':self.get_total,
+            'get_gl_acct':self.get_gl_acct, #YuVi
+            'get_balance':self.get_balance, #YuVi
+            'get_pur_doc_no':self.get_pur_doc_no, #YuVi
         })
         
     def get_voucher(self,move_id):
@@ -70,6 +73,32 @@ class Parser(report_sxw.rml_parse):
         wizard_data = self.localcontext['data']['form']
         date = datetime.strptime(wizard_data['date_to'], DATE_FORMAT)
         return date.strftime('%d/%m/%Y')
+    
+    #YuVi
+    def get_gl_acct(self):
+        wizard_data = self.localcontext['data']['form']
+        gl_account = wizard_data['account_id']
+        print gl_account
+        acc_obj = self.pool.get('account.account')
+        acc = acc_obj.browse(self.cr,self.uid,gl_account[0])
+        print acc.code
+        print acc.name
+        gl_act = acc.code +''+acc.name
+        return gl_act
+    #YuVi
+    
+    #YuVi
+    def get_pur_doc_no(self,move_id):       
+        sql = '''
+            select name from purchase_order where id
+              in (select purchase_id from account_invoice where move_id = %s)
+        '''%(move_id)
+        self.cr.execute(sql)
+        pur_doc_no = self.cr.fetchone()
+        return pur_doc_no       
+        
+    #YuVi
+    
             
     def convert_date_cash(self, date):
         if date:
@@ -141,6 +170,18 @@ class Parser(report_sxw.rml_parse):
             if type == 'debit':
                 sum += line.debit
         return sum
+    
+    #YuVi
+    def get_balance(self, get_invoice):
+            credit = 0.0
+            debit = 0.0
+            for line in get_invoice:
+                debit += line.debit
+                credit += line.credit
+            balance = float(debit) - float(credit)
+            balance = float(balance)
+            return balance
+    #YuVi
         
     def get_invoice(self):
         res = {}
@@ -153,6 +194,7 @@ class Parser(report_sxw.rml_parse):
         narration = wizard_data['narration'] or ''
         date_from = wizard_data['date_from']
         date_to = wizard_data['date_to']
+        #is_posted = wizard_data['is_posted']
         is_posted = wizard_data['is_posted']
         acount_move_line_obj = self.pool.get('account.move.line')
         acount_move_obj = self.pool.get('account.move')
@@ -161,146 +203,162 @@ class Parser(report_sxw.rml_parse):
         if is_posted is True:
             if doc_no :
                 sql = '''
-                    select id from account_move_line 
-                    where move_id in (
-                                        select id from account_move 
-                                        where date between '%s' and '%s' and name ~'%s' and state = 'posted' ) and account_id = %s   
+                    select ml.id from account_move_line ml
+                    join account_move m on (m.id=ml.move_id) 
+                    where m.state = 'posted' and m.date between '%s' and '%s' 
+                    and m.name ~'%s' and m.state = 'posted' and ml.account_id = %s
+                    order by m.date,m.name    
                 '''%(date_from, date_to,doc_no,acc.id)
                 self.cr.execute(sql)
                 cus_ids = [r[0] for r in self.cr.fetchall()]
             elif narration :
                 sql = '''
-                    select id from account_move_line 
-                    where move_id in (
-                                        select id from account_move 
-                                        where date between '%s' and '%s' and state = 'posted'  ) and account_id = %s and ref ~'%s'
+                    select ml.id from account_move_line ml
+                    join account_move m on (m.id=ml.move_id) 
+                    where m.state = 'posted' and m.date between '%s' and '%s' 
+                    and m.state = 'posted' and ml.account_id = %s and ml.ref ~'%s'
+                    order by m.date,m.name
                 '''%(date_from, date_to,acc.id,narration)
                 self.cr.execute(sql)
                 cus_ids = [r[0] for r in self.cr.fetchall()]
             elif doc_no and narration:
                 sql = '''
-                    select id from account_move_line 
-                    where move_id in (
-                                        select id from account_move 
-                                        where date between '%s' and '%s' and name ~'%s' and state = 'posted'  ) and account_id = %s and ref ~'%s'
+                    select ml.id from account_move_line ml
+                    join account_move m on (m.id=ml.move_id)
+                    where m.state = 'posted' and m.date between '%s' and '%s' 
+                    and m.name ~'%s' and m.state = 'posted' and ml.account_id = %s and ml.ref ~'%s'
+                    order by m.date,m.name
                 '''%(date_from, date_to,doc_no,acc.id,narration)
                 self.cr.execute(sql)
                 cus_ids = [r[0] for r in self.cr.fetchall()]
             elif doc_type :
                 sql = '''
-                    select id from account_move_line 
-                    where move_id in (
-                                        select id from account_move 
-                                        where date between '%s' and '%s' and doc_type in('%s') and state = 'posted' ) and account_id = %s   
+                    select ml.id from account_move_line ml
+                    join account_move m on (m.id=ml.move_id) 
+                    where m.state = 'posted' and m.date between '%s' and '%s' 
+                    and m.doc_type in('%s') and m.state = 'posted' and ml.account_id = %s
+                    order by m.date,m.name   
                 '''%(date_from, date_to,doc_type,acc.id)
                 self.cr.execute(sql)
                 cus_ids = [r[0] for r in self.cr.fetchall()]
             elif narration and doc_type :
                 sql = '''
-                    select id from account_move_line 
-                    where move_id in (
-                                        select id from account_move 
-                                        where date between '%s' and '%s' and doc_type in('%s') and state = 'posted' ) and account_id = %s and ref ~'%s'
+                    select ml.id from account_move_line ml
+                    join account_move m on (m.id=ml.move_id) 
+                    where m.state = 'posted' and m.date between '%s' and '%s' 
+                    and m.doc_type in('%s') and m.state = 'posted' and ml.account_id = %s and ml.ref ~'%s'
+                    order by m.date,m.name
                 '''%(date_from, date_to,doc_type,acc.id,doc_no)
                 self.cr.execute(sql)
                 cus_ids = [r[0] for r in self.cr.fetchall()]
             elif doc_no and doc_type :
                 sql = '''
-                    select id from account_move_line 
-                    where move_id in (
-                                        select id from account_move 
-                                        where date between '%s' and '%s' and doc_type in('%s') and name ~'%s' and state = 'posted' ) and account_id = %s 
+                    select ml.id from account_move_line ml
+                    join account_move m on (m.id=ml.move_id) 
+                    where m.state = 'posted' and m.date between '%s' and '%s' and m.doc_type in('%s') 
+                    and m.name ~'%s' and m.state = 'posted' and ml.account_id = %s
+                    order by m.date,m.name 
                 '''%(date_from, date_to,doc_type,doc_no,acc.id)
                 self.cr.execute(sql)
                 cus_ids = [r[0] for r in self.cr.fetchall()]
             elif doc_no and doc_type and narration:
                 sql = '''
-                    select id from account_move_line 
-                    where move_id in (
-                                        select id from account_move 
-                                        where date between '%s' and '%s' and doc_type in('%s') and name ~'%s' and state = 'posted' ) and account_id = %s and ref ~'%s'
+                    select ml.id from account_move_line ml
+                    join account_move m on (m.id=ml.move_id)
+                    where state = 'posted' and date between '%s' and '%s' 
+                    and doc_type in('%s') and name ~'%s' and state = 'posted'
+                    and account_id = %s and ref ~'%s'
+                    order by m.date,m.name
                 '''%(date_from, date_to,doc_type,doc_no,acc.id)
                 self.cr.execute(sql)
                 cus_ids = [r[0] for r in self.cr.fetchall()]
             else:
                 sql = '''
-                    select id from account_move_line 
-                    where move_id in (
-                                        select id from account_move 
-                                        where date between '%s' and '%s' and state = 'posted' ) and account_id = %s
+                    select ml.id from account_move_line ml
+                    join account_move m on (m.id=ml.move_id)
+                    where m.state = 'posted' and m.date between '%s' and '%s' 
+                    and m.state = 'posted' and ml.account_id = %s
+                    order by m.date,m.name
                 '''%(date_from, date_to,acc.id)
                 self.cr.execute(sql)
                 cus_ids = [r[0] for r in self.cr.fetchall()]
         else: #MAJOR ELSE
             if doc_no :
                 sql = '''
-                    select id from account_move_line 
-                    where move_id in (
-                                        select id from account_move 
-                                        where date between '%s' and '%s' and name ~'%s' ) and account_id = %s   
+                    select ml.id from account_move_line ml
+                    join account_move m on (m.id=ml.move_id)
+                    where m.date between '%s' and '%s' and m.name ~'%s' 
+                    and ml.account_id = %s
+                    order by m.date,m.name  
                 '''%(date_from, date_to,doc_no,acc.id)
                 self.cr.execute(sql)
                 cus_ids = [r[0] for r in self.cr.fetchall()]
             elif narration :
                 sql = '''
-                    select id from account_move_line 
-                    where move_id in (
-                                        select id from account_move 
-                                        where date between '%s' and '%s'  ) and account_id = %s and ref ~'%s'
+                    select ml.id from account_move_line ml
+                    join account_move m on (m.id=ml.move_id)
+                    where m.date between '%s' and '%s' and ml.account_id = %s 
+                    and ml.ref ~'%s'
+                    order by m.date,m.name
                 '''%(date_from, date_to,acc.id,narration)
                 self.cr.execute(sql)
                 cus_ids = [r[0] for r in self.cr.fetchall()]
             elif doc_no and narration:
                 sql = '''
-                    select id from account_move_line 
-                    where move_id in (
-                                        select id from account_move 
-                                        where date between '%s' and '%s' and name ~'%s'  ) and account_id = %s and ref ~'%s'
+                    select ml.id from account_move_line ml
+                    join account_move m on (m.id=ml.move_id)  
+                    where m.date between '%s' and '%s' and m.name ~'%s' 
+                    and ml.account_id = %s and ml.ref ~'%s'
+                    order by m.date,m.name
                 '''%(date_from, date_to,doc_no,acc.id,narration)
                 self.cr.execute(sql)
                 cus_ids = [r[0] for r in self.cr.fetchall()]
             elif doc_type :
                 sql = '''
-                    select id from account_move_line 
-                    where move_id in (
-                                        select id from account_move 
-                                        where date between '%s' and '%s' and doc_type in('%s') ) and account_id = %s   
+                    select ml.id from account_move_line ml
+                    join account_move m on (m.id=ml.move_id)  
+                    where m.date between '%s' and '%s' and m.doc_type in('%s') 
+                    and ml.account_id = %s
+                    order by m.date,m.name   
                 '''%(date_from, date_to,doc_type,acc.id)
                 self.cr.execute(sql)
                 cus_ids = [r[0] for r in self.cr.fetchall()]
             elif narration and doc_type :
                 sql = '''
-                    select id from account_move_line 
-                    where move_id in (
-                                        select id from account_move 
-                                        where date between '%s' and '%s' and doc_type in('%s') ) and account_id = %s and ref ~'%s'
+                    select ml.id from account_move_line ml
+                    join account_move m on (m.id=ml.move_id)  
+                    where m.date between '%s' and '%s' and m.doc_type in('%s') 
+                    and ml.account_id = %s and ml.ref ~'%s'
+                    order by m.date,m.name
                 '''%(date_from, date_to,doc_type,acc.id,doc_no)
                 self.cr.execute(sql)
                 cus_ids = [r[0] for r in self.cr.fetchall()]
             elif doc_no and doc_type :
                 sql = '''
-                    select id from account_move_line 
-                    where move_id in (
-                                        select id from account_move 
-                                        where date between '%s' and '%s' and doc_type in('%s') and name ~'%s' ) and account_id = %s 
+                    select ml.id from account_move_line ml
+                    join account_move m on (m.id=ml.move_id) 
+                    where m.date between '%s' and '%s' and m.doc_type in('%s') 
+                    and m.name ~'%s' and ml.account_id = %s
+                    order by m.date,m.name 
                 '''%(date_from, date_to,doc_type,doc_no,acc.id)
                 self.cr.execute(sql)
                 cus_ids = [r[0] for r in self.cr.fetchall()]
             elif doc_no and doc_type and narration:
                 sql = '''
-                    select id from account_move_line 
-                    where move_id in (
-                                        select id from account_move 
-                                        where date between '%s' and '%s' and doc_type in('%s') and name ~'%s' ) and account_id = %s and ref ~'%s'
+                    select ml.id from account_move_line ml
+                    join account_move m on (m.id=ml.move_id)  
+                    where m.date between '%s' and '%s' and m.doc_type in('%s') 
+                    and m.name ~'%s' and ml.account_id = %s and ml.ref ~'%s'
+                    order by m.date,m.name
                 '''%(date_from, date_to,doc_type,doc_no,acc.id)
                 self.cr.execute(sql)
                 cus_ids = [r[0] for r in self.cr.fetchall()]
             else:
                 sql = '''
-                    select id from account_move_line 
-                    where move_id in (
-                                        select id from account_move 
-                                        where date between '%s' and '%s') and account_id = %s
+                    select ml.id from account_move_line ml
+                    join account_move m on (m.id=ml.move_id)  
+                    where m.date between '%s' and '%s' and ml.account_id = %s
+                    order by m.date,m.name
                 '''%(date_from, date_to,acc.id)
                 self.cr.execute(sql)
                 cus_ids = [r[0] for r in self.cr.fetchall()]    

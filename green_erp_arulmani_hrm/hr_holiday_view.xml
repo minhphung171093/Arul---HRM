@@ -469,7 +469,7 @@
             <field name="arch" type="xml">
 	            <form string="Audit Shift Time" version="7.0" create='true'> <!-- TPT Changes - by BalamuruganPurushothaman - on 14/02/2015 - To enable create option to Audit Shift Time screen in Form mode -->
 	            	<header>
-	                    <button name="approve_shift_time" states='draft' string="Approve" type="object" class="oe_highlight" groups="green_erp_arulmani_hrm.group_vvti_hrm_hr_manager,green_erp_arulmani_hrm.group_vvti_unit_user,green_erp_arulmani_hrm.group_vvti_hrm_time_user"/>
+	                    <button name="new_approve_shift_time" states='draft' string="Approve" type="object" class="oe_highlight" groups="green_erp_arulmani_hrm.group_vvti_hrm_hr_manager,green_erp_arulmani_hrm.group_vvti_unit_user,green_erp_arulmani_hrm.group_vvti_hrm_time_user"/>
 	                    <button name="%(action_reject_audit_form)d" states='draft' string="Reject" type="action" class="oe_highlight" groups="green_erp_arulmani_hrm.group_vvti_hrm_hr_manager,green_erp_arulmani_hrm.group_vvti_unit_user,green_erp_arulmani_hrm.group_vvti_hrm_time_user"/>
 	                    <button name="rollback_shift_time" states='cancel' string="Rollback" type="object" class="oe_highlight" groups="green_erp_arulmani_hrm.group_vvti_hrm_hr_manager,green_erp_arulmani_hrm.group_vvti_hrm_time_user"/>
 	                	<field name="state" widget="statusbar" statusbar_visible="draft,done" statusbar_colors='{"draft":"blue","done":"blue"}'/>
@@ -482,6 +482,8 @@
 							<field name="actual_work_shift_id" options="{'create': false, 'create_edit': false}"/>
 							<field name="punch_in_date"/>
 							<field name="punch_out_date"/>
+							<field name="ref_in_time" widget="float_time" readonly='1'/>
+							<field name="ref_out_time" widget="float_time" readonly='1'/>
 							<field name="in_time" widget="float_time" on_change="onchange_in_time(in_time,type)"/>
 							<field name="out_time" widget="float_time" on_change="onchange_in_time(out_time)"/>
 							<field name="work_date"/>
@@ -1706,26 +1708,32 @@
 <!-- TPT Start on 22/06/15 : for Work shift new master  !-->
 
             <record id="view_tpt_hr_new_work_shift_master_tree_veiw" model="ir.ui.view">
-			<field name="name">tpt.hr.new.work.shift.master.tree</field>
-			<field name="model">tpt.hr.new.work.shift.master</field>
+			<field name="name">tpt.work.shift.tree</field>
+			<field name="model">tpt.work.shift</field>
 			<field name="arch" type="xml">
 				<tree string="Work Shift Master">
 					<field name="code"/>
-					<field name="name"/>
-					<field name="description"/>					
-					<field name="allowance"/>
-					<field name="start_time" widget="float_time"/>
-					<field name="end_time" widget="float_time"/>					
-					<field name ="create_date"/>
-                	<field name ="create_uid"/>
+							
+							<field name="min_start_time" widget="float_time"/>
+							<field name="start_time" widget="float_time"/>
+							<field name="max_start_time" widget="float_time"/>
+							<field name="min_end_time" widget="float_time"/>
+							<field name="end_time" widget="float_time"/>
+							<field name="max_end_time" widget="float_time"/>
+							<field name="a_shift" />
+							<field name="g1_shift" />
+							<field name="g2_shift" />
+							<field name="b_shift" />
+							<field name="c_shift" />		
+							<field name="shift_count" />
 				</tree>
 			</field>
 		</record>
 		
 
 		<record id="view_tpt_hr_new_work_shift_master_form_veiw" model="ir.ui.view">
-            <field name="name">tpt.hr.new.work.shift.master.form</field>
-            <field name="model">tpt.hr.new.work.shift.master</field>
+            <field name="name">tpt.work.shift.form</field>
+            <field name="model">tpt.work.shift</field>
             <field name="arch" type="xml">
 	            <form string="Work Shift Master" version="7.0">   
 	            	<sheet>
@@ -1736,7 +1744,8 @@
 							<newline/>
 							<field name ="create_date"/>
                 			<field name ="create_uid"/>
-                			<field name="allowance"/>  
+                			<!-- 
+                			<field name="allowance"/>   -->
 			                
 						</group>
 						<group col='4' colspan='2' string="Shift">
@@ -1746,6 +1755,7 @@
 							<field name="end_time" widget="float_time"/>
 							<field name="max_start_time" widget="float_time"/>
 							<field name="max_end_time" widget="float_time"/>
+							<field name="time_total" widget="float_time"/>
 							</group>
 							
 							<group col='4' colspan='2' string="Shift Count">
@@ -1768,7 +1778,7 @@
 		<record id="action_tpt_hr_new_work_shift_master_form" model="ir.actions.act_window">
             <field name="name">Work Shift Master</field>
             <field name="type">ir.actions.act_window</field>
-            <field name="res_model">tpt.hr.new.work.shift.master</field>
+            <field name="res_model">tpt.work.shift</field>
             <field name="view_type">form</field>
             <field name="view_mode">tree,form</field>
             <field name="view_id" ref="view_tpt_hr_new_work_shift_master_tree_veiw"/>

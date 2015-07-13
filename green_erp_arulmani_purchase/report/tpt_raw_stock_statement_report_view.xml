@@ -1,0 +1,104 @@
+<?xml version="1.0" encoding="utf-8"?>
+<openerp>
+    <data>
+    	<record id="report_stock_statement_xls" model="ir.actions.report.xml">
+	        <field name="name">report_stock_statement_xls</field>
+	        <field name="type">ir.actions.report.xml</field>
+	        <field name="model">tpt.raw.material.stock.statement</field>
+	        <field name="report_name">report_stock_statement_xls</field>
+	        <field name="report_type">aeroo</field>
+	        <field name="in_format">oo-ods</field>
+	        <field name="out_format" model="report.mimetypes" search="[('code','=','oo-xls'),('compatible_types','=','oo-ods')]"/>
+	        <field name="parser_loc">green_erp_arulmani_purchase/report/tpt_raw_stock_statement_report.py</field>
+	        <field name="report_rml">green_erp_arulmani_purchase/report/tpt_raw_stock_statement_report.ods</field>
+	        <field name="parser_state">loc</field>
+	        <field name="tml_source">file</field>
+	        <field name="attachment_use" eval="0"/>
+    	</record>		    
+		
+		<report 
+			auto="True" 
+			menu="False"
+			id="report_stock_statement_xls" 
+			model="tpt.raw.material.stock.statement" 
+			name="report_stock_statement_xls"
+	        string="Raw Material Stock Statement Report"
+	        rml="green_erp_arulmani_purchase/report/tpt_raw_stock_statement_report.ods"/>	
+	        
+	      
+    	<record id="report_stock_statement_pdf" model="ir.actions.report.xml">
+	        <field name="name">report_stock_statement_pdf</field>
+	        <field name="type">ir.actions.report.xml</field>
+	        <field name="model">tpt.raw.material.stock.statement</field>
+	        <field name="report_name">report_stock_statement_pdf</field>
+	        <field name="report_type">aeroo</field>
+	        <field name="in_format">oo-ods</field>
+	        <field name="out_format" model="report.mimetypes" search="[('code','=','oo-pdf'),('compatible_types','=','oo-ods')]"/>
+	        <field name="parser_loc">green_erp_arulmani_purchase/report/tpt_raw_stock_statement_report.py</field>
+	        <field name="report_rml">green_erp_arulmani_purchase/report/tpt_raw_stock_statement_report.ods</field>
+	        <field name="parser_state">loc</field>
+	        <field name="tml_source">file</field>
+	        <field name="attachment_use" eval="0"/>
+    	</record>		    
+		
+		<report 
+			auto="True" 
+			menu="False"
+			id="report_stock_statement_pdf" 
+			model="tpt.raw.material.stock.statement" 
+			name="report_stock_statement_pdf"
+	        string="Raw Material Stock Statement Report"
+	        rml="green_erp_arulmani_purchase/report/tpt_raw_stock_statement_report.ods"/>	
+	        
+	        
+	    <record id="view_tpt_raw_material_stock_statement" model="ir.ui.view">
+	        <field name="name">view.tpt.raw.material.stock.statement</field>
+	        <field name="model">tpt.raw.material.stock.statement</field>
+	        <field name="arch" type="xml">
+	            <form version='7.0' string="Raw Material Stock Statement Report" create="false" edit="false" delete="false">
+	            	<header>
+	            		<button name="print_xls" string="Print (.xls)" type="object" class="oe_highlight" />
+	            		<button name="print_pdf" string="Print (.pdf)" type="object" class="oe_highlight" />
+	            	</header>
+	            	<sheet>
+	            		<div class="oe_text_center">
+            				<b>Raw Material Stock Statement Report</b>
+            			</div>
+            			<div class="oe_bold oe_text_left">
+            				<field name="date_from_title" nolabel = '1' class="oe_text_left oe_inline"/> 
+            				<field name="date_from" class="oe_text_left oe_inline"/> 
+
+            			</div>
+	                	<div class='oe_green_erp_scroll'>
+	                	<group>
+		                	<field name="statement_line" nolabel='1'>
+		                		<tree create="false" edit="false" delete="false">          
+		                			<field name="item_code"/>
+		                			<field name="item_name"/>
+		                			<field name="uom"/>
+		                			<field name="day_open_stock"/>
+		                			<field name="day_inward"/>
+		                			<field name="day_outward"/>
+		                			<field name="day_close_stock"/>
+		                			<field name="day_close_value"/>
+		                			<field name="month_open_stock"/>
+		                			<field name="month_inward"/>
+		                			<field name="month_outward"/>
+		                			<field name="month_close_stock"/>
+		                			<field name="month_close_value"/>
+		                			<field name="year_open_stock"/>
+		                			<field name="year_inward"/>
+		                			<field name="year_outward"/>
+		                			<field name="year_close_stock"/>
+		                			<field name="year_close_value"/>
+		                		</tree>
+		                	</field>
+		                	</group>
+		                </div>
+	               	</sheet>
+	           </form>
+	        </field>
+	    </record>
+	        
+    </data>
+</openerp>
