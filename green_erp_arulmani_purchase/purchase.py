@@ -3589,7 +3589,7 @@ class tpt_gate_out_pass(osv.osv):
         'grn_id': fields.many2one('stock.picking.in','Old GRN No', readonly = True), 
         'good_id': fields.many2one('tpt.good.return.request','Goods Return Request No', required = True), 
         'header_text':fields.text('Header Text',readonly=True),
-        'gate_date_time': fields.datetime('Gate Out Pass Date & Time', readonly = True),
+        'gate_date_time': fields.datetime('Gate Out Pass Date & Time'),
         'gate_out_pass_line': fields.one2many('tpt.gate.out.pass.line', 'gate_out_pass_id', 'Product Details', readonly = True),
         'state':fields.selection([('draft', 'Draft'),('cancel', 'Cancel'),('confirm', 'Confirm'),('done', 'Done')],'Status', readonly=True, states={'cancel': [('readonly', True)], 'done':[('readonly', True)]}),
                 }
