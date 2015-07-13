@@ -1181,7 +1181,7 @@ class account_invoice_line(osv.osv):
             tax_amounts = [r.amount for r in line.invoice_line_tax_id]
             for tax in tax_amounts:
                 amount_total_tax += tax/100
-            res[line.id]['line_net'] = amount_total_tax+amount_fright+amount_ed+amount_p_f+amount_basic
+            res[line.id]['line_net'] = amount_total_tax+amount_fright+amount_ed+amount_p_f+amount_basic+line.aed_id_1
             
             if line.invoice_id.sup_inv_id and line.invoice_id.type=='in_invoice':
                 if line.fright_fi_type == '2':
