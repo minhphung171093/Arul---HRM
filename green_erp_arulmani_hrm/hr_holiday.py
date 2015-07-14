@@ -8706,7 +8706,7 @@ class shift_change(osv.osv):
             #today = fields.date.today()
             now = datetime.datetime.now()
             current_day = now.day          
-            if current_day-3 > dat_from: # Shift Change Request is Relaxed for 3 days Tolerance
+            if current_day-3 > date_from: # Shift Change Request is Relaxed for 3 days Tolerance
                 raise osv.except_osv(_('Warning!'),_('System could not allow Back Dated Shift Change Request')) 
         return super(shift_change, self).create(cr, uid, vals, context)
     #TPT END
