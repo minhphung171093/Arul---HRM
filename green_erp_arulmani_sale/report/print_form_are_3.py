@@ -26,7 +26,18 @@ class Parser(report_sxw.rml_parse):
             'get_date': self.get_date,
             'get_amount': self.get_amount,
             'get_copy':self.get_copy,
+            'get_arename':self.get_arename,
+            'get_hy':self.get_hy,
         })
+    def get_arename(self,name):
+        name = name[13:16]    
+        #raise osv.except_osv(_('Warning!%s'),_(name))        
+        return name
+    def get_hy(self,no):
+        if no>0:
+            return no
+        else:    
+            return '-'
     def get_copy(self,is_original,is_duplicate,is_triplicate,is_quadruplicate):
         type = ''
         if is_original is True:

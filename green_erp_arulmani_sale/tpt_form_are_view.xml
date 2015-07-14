@@ -24,6 +24,7 @@
 	            <header>
 	            	<button name="bt_approve" states='draft' string="Approve" type="object" class="oe_highlight" groups="green_erp_arulmani_sale.group_vvti_sale_user"/>
                     <button name="bt_cancel" states='draft' string="Cancel" type="object" class="oe_highlight" groups="green_erp_arulmani_sale.group_vvti_sale_user"/>
+	            	<button name='print_are1' string="Print ARE-1" type="object" class="oe_highlight" />
                     <field name="state" widget="statusbar" statusbar_visible="draft,cancel,done" statusbar_colors='{"draft":"blue","cancel":"blue"}'/>
 	            </header> 
 	            	<sheet>
@@ -172,6 +173,9 @@
             <field name="model">tpt.form.are.3</field>
             <field name="arch" type="xml">
 	            <form string="Form A.R.E - 3" version="7.0">   
+	            <header> 
+	            <button name='print_are3' string="Print ARE-3" type="object" class="oe_highlight" />
+	            </header> 
 	            	<sheet>
 	            		<group col="4" colspan="2">
 	            			<group>

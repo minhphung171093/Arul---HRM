@@ -76,7 +76,7 @@ class Parser(report_sxw.rml_parse):
             JOIN account_invoice_line_tax ailt on (ailt.invoice_line_id=ail.id)
             join account_invoice i on (i.id=ail.invoice_id and type = 'in_invoice')
             join res_partner rp on (rp.id=i.partner_id)
-            Join account_tax at on (at.id=ailt.tax_id)
+            Join account_tax at on (at.id=ail.tax_id)
             join product_product p on (p.id=ail.product_id)
             join product_uom pu on (pu.id=ail.uos_id)
             join account_move am on (am.id=i.move_id)
