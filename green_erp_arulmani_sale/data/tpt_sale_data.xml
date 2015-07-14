@@ -108,9 +108,9 @@
         <record id="sequence_tpt_form_are_1_import_item" model="ir.sequence">
             <field name="name">From ARE - 1</field>
             <field name="code">tpt.form.area.1.import</field>
-            <field name="prefix"></field> <!-- VVTi/ARE1 -->
-            <field name="padding">3</field> <!-- 6 -->
-            <field name="number_next_actual">001</field> <!-- 100001 -->
+            <field name="prefix">VVTi/ARE1/</field> <!-- VVTi/ARE1/ -->
+            <field name="padding">6</field> <!-- 6 -->
+            <field name="number_next_actual">100001</field> <!-- 100001 -->
             <field name="implementation">no_gap</field>
 	
         </record>
@@ -125,9 +125,9 @@
         <record id="sequence_tpt_form_are_3_import_item" model="ir.sequence">
             <field name="name">From ARE - 3</field>
             <field name="code">tpt.form.area.3.import</field>
-            <field name="prefix"></field> <!-- VVTi/ARE3/ -->
-            <field name="padding">3</field> <!-- 6 -->
-            <field name="number_next_actual">001</field> <!-- 000001 -->
+            <field name="prefix">VVTi/ARE3/</field> <!-- VVTi/ARE3/ -->
+            <field name="padding">6</field> <!-- 6 -->
+            <field name="number_next_actual">000001</field> <!-- 000001 -->
             <field name="implementation">no_gap</field>
 	
         </record>
