@@ -17,7 +17,7 @@ class stock_picking(osv.osv):
         'cons_loca':fields.many2one('res.partner','Consignee Location',readonly = True),
         'warehouse':fields.many2one('stock.location','Warehouse'),
         'transporter':fields.char('Transporter Name', size = 64),
-        'reason_mgnt_confirm':fields.char('Reason For Management Confirmation', size = 64),
+        'reason_mgnt_confirm':fields.char('Reason For Management Confirmation', size = 1024),
         'truck':fields.char('Truck Number', size = 64),
         'remarks':fields.text('Remarks'),
         'doc_status':fields.selection([('draft','Drafted'),
