@@ -3616,7 +3616,27 @@ class arul_hr_audit_shift_time(osv.osv):
                             shifts_out_time = [shift_out,od_out]
                             start_time = min(shifts_in_time)
                             end_time = min(shifts_out_time)
-                    
+                    if line.actual_work_shift_id.code=='B':                       
+                        if perm_in>0 and perm_in>=14:
+                            shifts_in_time = [shift_in,perm_in]
+                            shifts_out_time = [shift_out,perm_out]
+                            start_time = min(shifts_in_time)
+                            end_time = min(shifts_out_time)
+                        elif od_in>0 and od_in >=14:
+                            shifts_in_time = [shift_in,od_in]
+                            shifts_out_time = [shift_out,od_out]
+                            start_time = min(shifts_in_time)
+                            end_time = min(shifts_out_time)
+                        elif perm_in>0 and perm_in < 6.50:
+                            shifts_in_time = [shift_in,perm_in]
+                            shifts_out_time = [shift_out,perm_out]
+                            start_time = max(shifts_in_time)
+                            end_time = max(shifts_out_time)
+                        elif od_in>0 and od_in < 6.50:
+                            shifts_in_time = [shift_in,od_in]
+                            shifts_out_time = [shift_out,od_out]
+                            start_time = max(shifts_in_time)
+                            end_time = max(shifts_out_time)
                 ###
                 recording_hrs = 0     
                 sql = '''
@@ -5990,11 +6010,12 @@ class arul_hr_punch_in_out(osv.osv):
                                 out_date = data2[7:11]+'-'+data2[11:13]+'-'+data2[13:15]
                                 if employee_code_2==employee_code and in_out=='P10':
                                     in_time2 = float(data2[15:17])+float(data2[17:19])/60+float(data2[19:21])/3600
-                                    val1={'employee_id':employee_ids[0],'planned_work_shift_id':shift_id,'actual_work_shift_id':False,'work_date':date,'punch_in_date':date,'in_time':in_time2,'out_time':0,'approval':1}
+                                    val1={'employee_id':employee_ids[0],'planned_work_shift_id':shift_id,'actual_work_shift_id':False,'work_date':date,'punch_in_date':date,'in_time':in_time2,'out_time':0,'ref_in_time':in_time2,'ref_out_time':0,'approval':1}
                                 if employee_code_2==employee_code and in_out=='P20':
                                     out_time=float(data2[15:17])+float(data2[17:19])/60+float(data2[19:21])/3600
                                     out_date = data2[7:11]+'-'+data2[11:13]+'-'+data2[13:15]
                                     val1['out_time']=out_time
+                                    val1['ref_out_time']=out_time
                                     val1['punch_out_date']=out_date
                                 # cho phep di lam som nua tieng hoac di tre 15 phut va ve som 15 phut
 				# TPT Changes - BalamuruganPurushothaman on 18/02/2015 - SQL Query is modified to check Grace Time for shift
@@ -8685,7 +8706,7 @@ class shift_change(osv.osv):
             #today = fields.date.today()
             now = datetime.datetime.now()
             current_day = now.day          
-            if current_day > date_from:
+            if current_day-3 > dat_from: # Shift Change Request is Relaxed for 3 days Tolerance
                 raise osv.except_osv(_('Warning!'),_('System could not allow Back Dated Shift Change Request')) 
         return super(shift_change, self).create(cr, uid, vals, context)
     #TPT END

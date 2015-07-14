@@ -2276,6 +2276,79 @@ class tpt_update_stock_move_report(osv.osv):
         
         return self.write(cr, uid, ids, {'result':'sync_stock_move_and_quanlity_inspection V2 Done'})   
     
+    def update_invoice_do_sale_blanket(self, cr, uid, ids, context=None):
+        sql = '''
+            update account_invoice set partner_id=4968,commercial_partner_id=4968 where id=1200;
+            update account_invoice_line set partner_id=4968 where invoice_id=1200;
+            
+            update account_move set partner_id=4968  where id in (select move_id from account_invoice where id=1200);
+            update account_move_line set partner_id=4968 where move_id in (select move_id from account_invoice where id=1200);
+            
+            update stock_picking set partner_id=4968 where id in (select delivery_order_id from account_invoice where id=1200);
+            update stock_move set partner_id=4968 where picking_id in (select delivery_order_id from account_invoice where id=1200);
+            
+            update account_move set partner_id=4968 where id in (select move_id from account_move_line where name=(select name from stock_picking where id in (select delivery_order_id from account_invoice where id=1200)));
+            update account_move_line set partner_id=4968 where name=(select name from stock_picking where id in (select delivery_order_id from account_invoice where id=1200));
+            
+            update sale_order set partner_id=4968,partner_invoice_id=4968,partner_shipping_id=4968 where id in (select sale_id from stock_picking where id in (select delivery_order_id from account_invoice where id=1200));
+            update sale_order_line set order_partner_id=4968 where order_id in (select id from sale_order where id in (select sale_id from stock_picking where id in (select delivery_order_id from account_invoice where id=1200)));
+            update tpt_blanket_order set customer_id=4968 where id in (select blanket_id from sale_order where id in (select sale_id from stock_picking where id in (select delivery_order_id from account_invoice where id=1200)));
+        '''
+        cr.execute(sql)
+        return self.write(cr, uid, ids, {'result':'update_invoice_do_sale_blanket Done'})
+
+    def config_GRN_2183(self, cr, uid, ids, context=None):
+        invoice_obj = self.pool.get('account.invoice')
+        inspec_obj = self.pool.get('tpt.quanlity.inspection')
+        picking_obj = self.pool.get('stock.picking')
+        move_obj = self.pool.get('account.move')
+        sql = '''
+            select id from stock_picking where name = 'VVTi/GRN/00002183'
+        '''
+        cr.execute(sql)
+        num = cr.fetchone()[0]
+        if num:
+            sql='''
+                select id from account_invoice where grn_no = %s
+            '''%(num)
+            cr.execute(sql)
+            inv_id = cr.fetchone()[0]
+            invoice_id = invoice_obj.browse(cr, uid, inv_id)
+            move_obj.button_cancel(cr, uid, [invoice_id.move_id.id])
+            cr.execute(''' delete from account_move_line where move_id = %s''',(invoice_id.move_id.id,))
+            cr.execute(''' delete from account_invoice_line where invoice_id = %s''',(invoice_id.id,))
+            cr.execute(''' delete from account_invoice where id = %s''',(invoice_id.id,))
+            cr.execute(''' delete from account_move where id = %s''',(invoice_id.move_id.id,))
+            
+            sql = '''
+                delete from account_move_line where left(name,17)=(select name from stock_picking where id = %s)
+            '''%(num)
+            cr.execute(sql)
+            sql = '''
+                delete from account_move where id in (select move_id from account_move_line where left(name,17)=(select name from stock_picking where id =%s))
+            '''%(num)
+            cr.execute(sql)
+            sql='''
+                select id from tpt_quanlity_inspection where need_inspec_id in (select id from stock_move where picking_id = %s)
+            '''%(num)
+            cr.execute(sql)
+            inspec_ids = [row[0] for row in cr.fetchall()]
+            if inspec_ids:
+                for move in inspec_ids:
+                    sql='''
+                        select id from stock_move where inspec_id = %s
+                    '''%(move)
+                    cr.execute(sql)
+                    move_ids = [row[0] for row in cr.fetchall()]
+                    if move_ids:
+                        cr.execute('delete from stock_move where id in %s',(tuple(move_ids),))
+                cr.execute('delete from tpt_quanlity_inspection where id in %s',(tuple(inspec_ids),))
+            cr.execute(''' update stock_picking set invoice_state ='2binvoiced' where id = %s''',(num,))
+            picking_obj.action_revert_done(cr, uid, [num], context)
+
+        
+        return self.write(cr, uid, ids, {'result':'config_GRN_2183 Done'})    
+    
 tpt_update_stock_move_report()
 
 class tpt_update_inspection_line(osv.osv):

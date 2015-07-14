@@ -16,7 +16,7 @@ access_crm_user_4,crm.lead.history for user,green_erp_arulmani_crm.model_crm_lea
 access_crm_user_5,crm.lead.line for user,green_erp_arulmani_crm.model_crm_lead_line,group_sample_user,True,True,True,True
 access_crm_user_6,Sales Order for user,green_erp_arulmani_crm.model_crm_sale_order,group_sample_user,True,True,True,False
 access_crm_user_108,Sales Order line for user,green_erp_arulmani_crm.model_crm_sale_order_line,group_sample_user,True,True,True,False
-access_crm_user_7,crm.application for user,green_erp_arulmani_crm.model_crm_application,group_sample_user,True,True,True,True
+access_crm_user_7,crm.application for user,green_erp_arulmani_crm.model_crm_application,group_sample_user,True,False,False,False
 access_crm_user_8,Currency for user,account.model_res_currency,group_sample_user,True,True,True,False
 access_crm_user_9,Product Unit of Measure for user,product.model_product_uom,group_sample_user,True,True,True,False
 access_crm_user_10,Country for user,base.model_res_country,group_sample_user,True,True,True,False
@@ -57,7 +57,7 @@ access_crm_user_44,crm.lead.history for user,green_erp_arulmani_crm.model_crm_le
 access_crm_user_45,crm.lead.line for user,green_erp_arulmani_crm.model_crm_lead_line,group_sample_user,True,True,True,True
 access_crm_user_46,Sales Order for user,green_erp_arulmani_crm.model_crm_sale_order,group_sample_user,True,True,True,False
 access_crm_user_110,Sales Order for user,green_erp_arulmani_crm.model_crm_sale_order_line,group_sample_user,True,True,True,False
-access_crm_user_47,crm.application for user,green_erp_arulmani_crm.model_crm_application,group_sample_user,True,True,True,True
+access_crm_user_47,crm.application for user,green_erp_arulmani_crm.model_crm_application,group_sample_user,True,False,False,False
 access_crm_user_48,Currency for user,account.model_res_currency,group_sample_user,True,True,True,False
 access_crm_user_49,Product Unit of Measure for user,product.model_product_uom,group_sample_user,True,True,True,False
 access_crm_user_50,Country for user,base.model_res_country,group_sample_user,True,True,True,False
@@ -115,3 +115,4 @@ access_crm_user_105,Lead/Opportunity for qc user,crm.model_crm_lead,group_qc_use
 access_crm_user_106,crm.lead.line for qc user,green_erp_arulmani_crm.model_crm_lead_line,group_qc_user,True,True,False,False
 access_crm_user_107,Report Mime-Types for qc user,report_aeroo.model_report_mimetypes,group_qc_user,True,True,True,True
 access_crm_user_108,customer.account.group,model_customer_account_group,base.group_user,True,True,True,True
+
