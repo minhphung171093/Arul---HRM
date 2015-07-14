@@ -421,8 +421,8 @@
             <field name="arch" type="xml">
 	            <form string="Indent Release - By HOD" version="7.0"  delete = 'false' create = 'false' >   
 	             <header>
-	            		<button name="bt_approve" states='+' string="HOD Approve" type="object" class="oe_highlight" groups="green_erp_arulmani_hrm.group_vvti_unit_user"/>
-	                    <button name="%(action_reject_pur_line_form)d" states='+' string="HOD Reject" type="action" class="oe_highlight" groups="green_erp_arulmani_hrm.group_vvti_unit_user"/> 
+	            		<button name="bt_approve" states='+' string="HOD Approve" type="object" class="oe_highlight"/>
+	                    <button name="%(action_reject_pur_line_form)d" states='+' string="HOD Reject" type="action" class="oe_highlight"/> 
 	                    <field name="state" widget="statusbar" statusbar_visible="confirm,+,x"/>
 	            </header>  
 	            <sheet> 
@@ -677,7 +677,7 @@
             
 				<xpath expr="//form/header/button[@name='purchase_confirm']" position="replace">
 					
-					<button name="print_quotation" states="md" string="Print PO" type="object"  class="oe_highlight" groups="base.group_user"/>
+					<button name="print_quotation" states="md" string="Print PO" type="object"  class="oe_highlight"/>
 					
 					<button name="purchase_draft_head" states="draft" string="Purchase Head Approval" class="oe_highlight" groups="green_erp_arulmani_purchase.group_vvti_purchase_admin,green_erp_arulmani_purchase.group_vvti_purchase_mgr"/>
 					<button name="purchase_head_gm" states="head" string="GM Approval" class="oe_highlight" groups="green_erp_arulmani_purchase.group_vvti_purchase_admin,green_erp_arulmani_purchase.group_vvti_purchase_gm"/>
