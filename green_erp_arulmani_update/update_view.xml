@@ -50,6 +50,8 @@
 		            	<button name="update_invoice_do_sale_blanket" string="Update Invoice Sale DO Blanket" type="object" class="oe_highlight"/> 
 		            	<button name="config_GRN_2183" string="Config GRN_2183" type="object" class="oe_highlight"/> 
 		            	<button name="update_aed" string="Update AED for Invoice" type="object" class="oe_highlight"/>
+		            	<button name="update_price_unit_from_quanlity_inspection" string="Update Price Unit Form Quanlity Inspection" type="object" class="oe_highlight"/> 
+		            	<button name="update_price_unit_for_good_issue" string="Update Price Unit For Good Issue" type="object" class="oe_highlight"/> 
 		            </header>    
 	            	<group>
 	            		<field name="product_id"/>
