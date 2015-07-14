@@ -113,23 +113,21 @@ class Parser(report_sxw.rml_parse):
      
         
     def get_move_ids(self):
+        res = {}
         wizard_data = self.localcontext['data']['form']
-        tdsperc_obj = self.pool.get('account.invoice.line')       
-        move_lines = []
-        date_arr = []        
-        invoicetype = wizard_data['invoice_type']
-        vendor = wizard_data['employee']
-        tds = wizard_data['taxes_id']
-        gl_accnt = wizard_data['code']
-        #print gl_accnt  
+        tdsperc_obj = self.pool.get('account.invoice.line')      
+        invoice_type = wizard_data['invoice_type']
+        employee = wizard_data['employee']
+        taxes_id = wizard_data['taxes_id']
+        code = wizard_data['code']
         date_from = wizard_data['date_from']
         date_to = wizard_data['date_to'] 
         base_amnt = 0.0
         tdsamount = 0.0       
         
         ##ser_inv      
-        if invoicetype == 'ser_inv':
-              if vendor and tds and gl_accnt:
+        if invoice_type == 'ser_inv':
+              if employee and taxes_id and code:
                     sql = '''
                             select bp.vendor_code as ven_code, bp.name as ven_name,bp.pan_tin as vendor_pan_no,
                             case when am.doc_type ='sup_inv_po' then 'Supplier Invoice with PO' 
@@ -153,11 +151,11 @@ class Parser(report_sxw.rml_parse):
                             group by bp.vendor_code, bp.name, pan_tin, am.doc_type, ai.date_invoice,ail.tds_id, 
                             ai.name, ai.name, at.name, ai.bill_number, ai.bill_date, ai.vendor_ref, ai.number,at.section,at.amount
                             order by vendor_code
-                        '''%(date_from,date_to,vendor[0],tds[0],gl_accnt[0])
+                        '''%(date_from,date_to,employee[0],taxes_id[0],code[0])
                     self.cr.execute(sql)                    
                     return self.cr.dictfetchall()
             
-              elif vendor and tds:
+              elif employee and taxes_id:
                     sql = '''
                             select bp.vendor_code as ven_code, bp.name as ven_name,bp.pan_tin as vendor_pan_no,
                             case when am.doc_type ='sup_inv_po' then 'Supplier Invoice with PO' 
@@ -181,11 +179,11 @@ class Parser(report_sxw.rml_parse):
                             group by bp.vendor_code, bp.name, pan_tin, am.doc_type, ai.date_invoice,ail.tds_id, 
                             ai.name, ai.name, at.name, ai.bill_number, ai.bill_date, ai.vendor_ref, ai.number,at.section,at.amount
                             order by vendor_code
-                        '''%(date_from,date_to,vendor[0],tds[0])
+                        '''%(date_from,date_to,employee[0],taxes_id[0])
                     self.cr.execute(sql)                    
                     return self.cr.dictfetchall()       
        
-              elif vendor and gl_accnt:
+              elif employee and code:
                     sql = '''
                             select bp.vendor_code as ven_code, bp.name as ven_name,bp.pan_tin as vendor_pan_no,
                             case when am.doc_type ='sup_inv_po' then 'Supplier Invoice with PO' 
@@ -209,11 +207,11 @@ class Parser(report_sxw.rml_parse):
                             group by bp.vendor_code, bp.name, pan_tin, am.doc_type, ai.date_invoice,ail.tds_id, 
                             ai.name, ai.name, at.name, ai.bill_number, ai.bill_date, ai.vendor_ref, ai.number,at.section,at.amount
                             order by vendor_code
-                        '''%(date_from,date_to,vendor[0],gl_accnt[0])
+                        '''%(date_from,date_to,employee[0],taxes_id[0])
                     self.cr.execute(sql)                    
                     return self.cr.dictfetchall()            
           
-              elif tds and gl_accnt:
+              elif taxes_id and code:
                     sql = '''
                             select bp.vendor_code as ven_code, bp.name as ven_name,bp.pan_tin as vendor_pan_no,
                             case when am.doc_type ='sup_inv_po' then 'Supplier Invoice with PO' 
@@ -236,11 +234,11 @@ class Parser(report_sxw.rml_parse):
                             group by bp.vendor_code, bp.name, pan_tin, am.doc_type, ai.date_invoice,ail.tds_id, 
                             ai.name, ai.name, at.name, ai.bill_number, ai.bill_date, ai.vendor_ref, ai.number,at.section,at.amount
                             order by vendor_code
-                        '''%(date_from,date_to,tds[0],gl_accnt[0])
+                        '''%(date_from,date_to,taxes_id[0],code[0])
                     self.cr.execute(sql)                    
                     return self.cr.dictfetchall()           
                      
-              elif vendor:
+              elif employee:
                 sql = '''
                         select bp.vendor_code as ven_code, bp.name as ven_name,bp.pan_tin as vendor_pan_no,
                         case when am.doc_type ='sup_inv_po' then 'Supplier Invoice with PO' 
@@ -263,11 +261,11 @@ class Parser(report_sxw.rml_parse):
                         group by bp.vendor_code, bp.name, pan_tin, am.doc_type, ai.date_invoice,ail.tds_id, 
                         ai.name, ai.name, at.name, ai.bill_number, ai.bill_date, ai.vendor_ref, ai.number,at.section,at.amount
                         order by vendor_code
-                    '''%(date_from,date_to,vendor[0])
+                    '''%(date_from,date_to,employee[0])
                 self.cr.execute(sql)                
                 return self.cr.dictfetchall()
             
-              elif tds:
+              elif taxes_id:
                 sql = '''
                         select bp.vendor_code as ven_code, bp.name as ven_name,bp.pan_tin as vendor_pan_no,
                         case when am.doc_type ='sup_inv_po' then 'Supplier Invoice with PO' 
@@ -290,11 +288,11 @@ class Parser(report_sxw.rml_parse):
                         group by bp.vendor_code, bp.name, pan_tin, am.doc_type, ai.date_invoice,ail.tds_id, 
                         ai.name, ai.name, at.name, ai.bill_number, ai.bill_date, ai.vendor_ref, ai.number,at.section,at.amount
                         order by vendor_code
-                    '''%(date_from,date_to,tds[0])
+                    '''%(date_from,date_to,taxes_id[0])
                 self.cr.execute(sql)                
                 return self.cr.dictfetchall() 
             
-              elif gl_accnt:
+              elif code:
                 sql = '''
                         select bp.vendor_code as ven_code, bp.name as ven_name,bp.pan_tin as vendor_pan_no,
                         case when am.doc_type ='sup_inv_po' then 'Supplier Invoice with PO' 
@@ -317,7 +315,7 @@ class Parser(report_sxw.rml_parse):
                         group by bp.vendor_code, bp.name, pan_tin, am.doc_type, ai.date_invoice,ail.tds_id, 
                         ai.name, ai.name, at.name, ai.bill_number, ai.bill_date, ai.vendor_ref, ai.number,at.section,at.amount
                         order by vendor_code
-                    '''%(date_from,date_to,gl_accnt[0])
+                    '''%(date_from,date_to,code[0])
                 self.cr.execute(sql)                
                 return self.cr.dictfetchall()          
             
@@ -350,8 +348,8 @@ class Parser(report_sxw.rml_parse):
         ##ser_invend
             
         ##sup_inv
-        elif invoicetype == 'sup_inv':
-              if vendor and tds and gl_accnt:
+        elif invoice_type == 'sup_inv':
+              if employee and taxes_id and code:
                     sql = '''
                             select bp.vendor_code as ven_code, bp.name as ven_name,bp.pan_tin as vendor_pan_no,
                             case when am.doc_type ='sup_inv_po' then 'Supplier Invoice with PO' 
@@ -375,11 +373,11 @@ class Parser(report_sxw.rml_parse):
                             group by bp.vendor_code, bp.name, pan_tin, am.doc_type, ai.date_invoice,ail.tds_id, 
                             ai.name, ai.name, at.name, ai.bill_number, ai.bill_date, ai.vendor_ref, ai.number,at.section,at.amount
                             order by vendor_code
-                        '''%(date_from,date_to,vendor[0],tds[0],gl_accnt[0])
+                        '''%(date_from,date_to,employee[0],taxes_id[0],code[0])
                     self.cr.execute(sql)                    
                     return self.cr.dictfetchall()
             
-              elif vendor and tds:
+              elif employee and taxes_id:
                     sql = '''
                             select bp.vendor_code as ven_code, bp.name as ven_name,bp.pan_tin as vendor_pan_no,
                             case when am.doc_type ='sup_inv_po' then 'Supplier Invoice with PO' 
@@ -403,11 +401,11 @@ class Parser(report_sxw.rml_parse):
                             group by bp.vendor_code, bp.name, pan_tin, am.doc_type, ai.date_invoice,ail.tds_id, 
                             ai.name, ai.name, at.name, ai.bill_number, ai.bill_date, ai.vendor_ref, ai.number,at.section,at.amount
                             order by vendor_code
-                        '''%(date_from,date_to,vendor[0],tds[0])
+                        '''%(date_from,date_to,employee[0],taxes_id[0])
                     self.cr.execute(sql)                    
                     return self.cr.dictfetchall()       
        
-              elif vendor and gl_accnt:
+              elif employee and code:
                     sql = '''
                             select bp.vendor_code as ven_code, bp.name as ven_name,bp.pan_tin as vendor_pan_no,
                             case when am.doc_type ='sup_inv_po' then 'Supplier Invoice with PO' 
@@ -430,11 +428,11 @@ class Parser(report_sxw.rml_parse):
                             group by bp.vendor_code, bp.name, pan_tin, am.doc_type, ai.date_invoice,ail.tds_id, 
                             ai.name, ai.name, at.name, ai.bill_number, ai.bill_date, ai.vendor_ref, ai.number,at.section,at.amount
                             order by vendor_code
-                        '''%(date_from,date_to,vendor[0],gl_accnt[0])
+                        '''%(date_from,date_to,employee[0],code[0])
                     self.cr.execute(sql)                    
                     return self.cr.dictfetchall()            
           
-              elif tds and gl_accnt:
+              elif taxes_id and code:
                     sql = '''
                             select bp.vendor_code as ven_code, bp.name as ven_name,bp.pan_tin as vendor_pan_no,
                             case when am.doc_type ='sup_inv_po' then 'Supplier Invoice with PO' 
@@ -457,11 +455,11 @@ class Parser(report_sxw.rml_parse):
                             group by bp.vendor_code, bp.name, pan_tin, am.doc_type, ai.date_invoice,ail.tds_id, 
                             ai.name, ai.name, at.name, ai.bill_number, ai.bill_date, ai.vendor_ref, ai.number,at.section,at.amount
                             order by vendor_code
-                        '''%(date_from,date_to,tds[0],gl_accnt[0])
+                        '''%(date_from,date_to,taxes_id[0],code[0])
                     self.cr.execute(sql)                    
                     return self.cr.dictfetchall()           
                      
-              elif vendor:
+              elif employee:
                 sql = '''
                         select bp.vendor_code as ven_code, bp.name as ven_name,bp.pan_tin as vendor_pan_no,
                         case when am.doc_type ='sup_inv_po' then 'Supplier Invoice with PO' 
@@ -484,11 +482,11 @@ class Parser(report_sxw.rml_parse):
                         group by bp.vendor_code, bp.name, pan_tin, am.doc_type, ai.date_invoice,ail.tds_id, 
                         ai.name, ai.name, at.name, ai.bill_number, ai.bill_date, ai.vendor_ref, ai.number,at.section,at.amount
                         order by vendor_code
-                    '''%(date_from,date_to,vendor[0])
+                    '''%(date_from,date_to,employee[0])
                 self.cr.execute(sql)                
                 return self.cr.dictfetchall()
             
-              elif tds:
+              elif taxes_id:
                 sql = '''
                         select bp.vendor_code as ven_code, bp.name as ven_name,bp.pan_tin as vendor_pan_no,
                         case when am.doc_type ='sup_inv_po' then 'Supplier Invoice with PO' 
@@ -511,11 +509,11 @@ class Parser(report_sxw.rml_parse):
                         group by bp.vendor_code, bp.name, pan_tin, am.doc_type, ai.date_invoice,ail.tds_id, 
                         ai.name, ai.name, at.name, ai.bill_number, ai.bill_date, ai.vendor_ref, ai.number,at.section,at.amount
                         order by vendor_code
-                    '''%(date_from,date_to,tds[0])
+                    '''%(date_from,date_to,taxes_id[0])
                 self.cr.execute(sql)                
                 return self.cr.dictfetchall() 
             
-              elif gl_accnt:
+              elif code:
                 sql = '''
                         select bp.vendor_code as ven_code, bp.name as ven_name,bp.pan_tin as vendor_pan_no,
                         case when am.doc_type ='sup_inv_po' then 'Supplier Invoice with PO' 
@@ -538,7 +536,7 @@ class Parser(report_sxw.rml_parse):
                         group by bp.vendor_code, bp.name, pan_tin, am.doc_type, ai.date_invoice,ail.tds_id, 
                         ai.name, ai.name, at.name, ai.bill_number, ai.bill_date, ai.vendor_ref, ai.number,at.section,at.amount
                         order by vendor_code
-                    '''%(date_from,date_to,gl_accnt[0])
+                    '''%(date_from,date_to,code[0])
                 self.cr.execute(sql)                
                 return self.cr.dictfetchall()          
             
@@ -572,8 +570,8 @@ class Parser(report_sxw.rml_parse):
         ##sup_invend
         
         ##freight
-        elif invoicetype == 'freight':
-              if vendor and tds and gl_accnt:
+        elif invoice_type == 'freight':
+              if employee and taxes_id and code:
                     sql = '''
                             select bp.vendor_code as ven_code, bp.name as ven_name,bp.pan_tin as vendor_pan_no,
                             case when am.doc_type ='sup_inv_po' then 'Supplier Invoice with PO' 
@@ -597,11 +595,11 @@ class Parser(report_sxw.rml_parse):
                             group by bp.vendor_code, bp.name, pan_tin, am.doc_type, ai.date_invoice,ail.tds_id, 
                             ai.name, ai.name, at.name, ai.bill_number, ai.bill_date, ai.vendor_ref, ai.number,at.section,at.amount
                             order by vendor_code
-                        '''%(date_from,date_to,vendor[0],tds[0],gl_accnt[0])
+                        '''%(date_from,date_to,employee[0],taxes_id[0],code[0])
                     self.cr.execute(sql)                    
                     return self.cr.dictfetchall()
             
-              elif vendor and tds:
+              elif employee and taxes_id:
                     sql = '''
                             select bp.vendor_code as ven_code, bp.name as ven_name,bp.pan_tin as vendor_pan_no,
                             case when am.doc_type ='sup_inv_po' then 'Supplier Invoice with PO' 
@@ -625,11 +623,11 @@ class Parser(report_sxw.rml_parse):
                             group by bp.vendor_code, bp.name, pan_tin, am.doc_type, ai.date_invoice,ail.tds_id, 
                             ai.name, ai.name, at.name, ai.bill_number, ai.bill_date, ai.vendor_ref, ai.number, at.section,at.amount
                             order by vendor_code
-                        '''%(date_from,date_to,vendor[0],tds[0])
+                        '''%(date_from,date_to,employee[0],taxes_id[0])
                     self.cr.execute(sql)                    
                     return self.cr.dictfetchall()       
        
-              elif vendor and gl_accnt:
+              elif employee and code:
                     sql = '''
                             select bp.vendor_code as ven_code, bp.name as ven_name,bp.pan_tin as vendor_pan_no,
                             case when am.doc_type ='sup_inv_po' then 'Supplier Invoice with PO' 
@@ -653,11 +651,11 @@ class Parser(report_sxw.rml_parse):
                             group by bp.vendor_code, bp.name, pan_tin, am.doc_type, ai.date_invoice,ail.tds_id, 
                             ai.name, ai.name, at.name, ai.bill_number, ai.bill_date, ai.vendor_ref, ai.number,at.section,at.amount
                             order by vendor_code
-                        '''%(date_from,date_to,vendor[0],gl_accnt[0])
+                        '''%(date_from,date_to,employee[0],code[0])
                     self.cr.execute(sql)                    
                     return self.cr.dictfetchall()            
           
-              elif tds and gl_accnt:
+              elif taxes_id and code:
                     sql = '''
                             select bp.vendor_code as ven_code, bp.name as ven_name,bp.pan_tin as vendor_pan_no,
                             case when am.doc_type ='sup_inv_po' then 'Supplier Invoice with PO' 
@@ -680,11 +678,11 @@ class Parser(report_sxw.rml_parse):
                             group by bp.vendor_code, bp.name, pan_tin, am.doc_type, ai.date_invoice,ail.tds_id, 
                             ai.name, ai.name, at.name, ai.bill_number, ai.bill_date, ai.vendor_ref, ai.number,at.section,at.amount
                             order by vendor_code
-                        '''%(date_from,date_to,tds[0],gl_accnt[0])
+                        '''%(date_from,date_to,taxes_id[0],code[0])
                     self.cr.execute(sql)                    
                     return self.cr.dictfetchall()           
                      
-              elif vendor:
+              elif employee:
                 sql = '''
                         select bp.vendor_code as ven_code, bp.name as ven_name,bp.pan_tin as vendor_pan_no,
                         case when am.doc_type ='sup_inv_po' then 'Supplier Invoice with PO' 
@@ -707,11 +705,11 @@ class Parser(report_sxw.rml_parse):
                         group by bp.vendor_code, bp.name, pan_tin, am.doc_type, ai.date_invoice,ail.tds_id, 
                         ai.name, ai.name, at.name, ai.bill_number, ai.bill_date, ai.vendor_ref, ai.number,at.section,at.amount
                         order by vendor_code
-                    '''%(date_from,date_to,vendor[0])
+                    '''%(date_from,date_to,employee[0])
                 self.cr.execute(sql)                
                 return self.cr.dictfetchall()
             
-              elif tds:
+              elif taxes_id:
                 sql = '''
                         select bp.vendor_code as ven_code, bp.name as ven_name,bp.pan_tin as vendor_pan_no,
                         case when am.doc_type ='sup_inv_po' then 'Supplier Invoice with PO' 
@@ -734,11 +732,11 @@ class Parser(report_sxw.rml_parse):
                         group by bp.vendor_code, bp.name, pan_tin, am.doc_type, ai.date_invoice,ail.tds_id, 
                         ai.name, ai.name, at.name, ai.bill_number, ai.bill_date, ai.vendor_ref, ai.number,at.section,at.amount
                         order by vendor_code
-                    '''%(date_from,date_to,tds[0])
+                    '''%(date_from,date_to,taxes_id[0])
                 self.cr.execute(sql)                
                 return self.cr.dictfetchall() 
             
-              elif gl_accnt:
+              elif code:
                 sql = '''
                         select bp.vendor_code as ven_code, bp.name as ven_name,bp.pan_tin as vendor_pan_no,
                         case when am.doc_type ='sup_inv_po' then 'Supplier Invoice with PO' 
@@ -762,7 +760,7 @@ class Parser(report_sxw.rml_parse):
                         group by bp.vendor_code, bp.name, pan_tin, am.doc_type, ai.date_invoice,ail.tds_id, 
                         ai.name, ai.name, at.name, ai.bill_number, ai.bill_date, ai.vendor_ref, ai.number,at.section,at.amount
                         order by vendor_code
-                    '''%(date_from,date_to,gl_accnt[0])
+                    '''%(date_from,date_to,code[0])
                 self.cr.execute(sql)                
                 return self.cr.dictfetchall()          
               
@@ -796,7 +794,7 @@ class Parser(report_sxw.rml_parse):
         
         ##freightend
         
-        elif vendor and tds and gl_accnt:            
+        elif employee and taxes_id and code:            
             sql = '''
                     select bp.vendor_code as ven_code, bp.name as ven_name,bp.pan_tin as vendor_pan_no,
                     case when am.doc_type ='sup_inv_po' then 'Supplier Invoice with PO' 
@@ -821,11 +819,11 @@ class Parser(report_sxw.rml_parse):
                     group by bp.vendor_code, bp.name, pan_tin, am.doc_type, ai.date_invoice,ail.tds_id,
                     ai.name, ai.name, at.name, ai.bill_number, ai.bill_date, ai.vendor_ref, ai.number,at.section,at.amount
                     order by vendor_code
-                '''%(date_from,date_to,vendor[0],tds[0],gl_accnt[0])
+                '''%(date_from,date_to,employee[0],taxes_id[0],code[0])
             self.cr.execute(sql)
             return self.cr.dictfetchall()
         
-        elif vendor and gl_accnt:            
+        elif employee and code:            
             sql = '''
                     select bp.vendor_code as ven_code, bp.name as ven_name,bp.pan_tin as vendor_pan_no,
                     case when am.doc_type ='sup_inv_po' then 'Supplier Invoice with PO' 
@@ -849,11 +847,11 @@ class Parser(report_sxw.rml_parse):
                     group by bp.vendor_code, bp.name, pan_tin, am.doc_type, ai.date_invoice,ail.tds_id,
                     ai.name, ai.name, at.name, ai.bill_number, ai.bill_date, ai.vendor_ref, ai.number,at.section,at.amount
                     order by vendor_code
-                '''%(date_from,date_to,vendor[0],gl_accnt[0])
+                '''%(date_from,date_to,employee[0],code[0])
             self.cr.execute(sql)
             return self.cr.dictfetchall()
         
-        elif vendor and tds:            
+        elif employee and taxes_id:            
             sql = '''
                     select bp.vendor_code as ven_code, bp.name as ven_name,bp.pan_tin as vendor_pan_no,
                     case when am.doc_type ='sup_inv_po' then 'Supplier Invoice with PO' 
@@ -877,11 +875,11 @@ class Parser(report_sxw.rml_parse):
                     group by bp.vendor_code, bp.name, pan_tin, am.doc_type, ai.date_invoice,ail.tds_id,
                     ai.name, ai.name, at.name, ai.bill_number, ai.bill_date, ai.vendor_ref, ai.number,at.section,at.amount
                     order by vendor_code
-                '''%(date_from,date_to,vendor[0],tds[0])
+                '''%(date_from,date_to,employee[0],taxes_id[0])
             self.cr.execute(sql)
             return self.cr.dictfetchall()
         
-        elif tds and gl_accnt:            
+        elif taxes_id and code:            
             sql = '''
                     select bp.vendor_code as ven_code, bp.name as ven_name,bp.pan_tin as vendor_pan_no,
                     case when am.doc_type ='sup_inv_po' then 'Supplier Invoice with PO' 
@@ -905,11 +903,11 @@ class Parser(report_sxw.rml_parse):
                     group by bp.vendor_code, bp.name, pan_tin, am.doc_type, ai.date_invoice,ail.tds_id,
                     ai.name, ai.name, at.name, ai.bill_number, ai.bill_date, ai.vendor_ref, ai.number,at.section,at.amount
                     order by vendor_code
-                '''%(date_from,date_to,tds[0],gl_accnt[0])
+                '''%(date_from,date_to,taxes_id[0],code[0])
             self.cr.execute(sql)
             return self.cr.dictfetchall()
         
-        elif vendor:            
+        elif employee:            
             sql = '''
                     select bp.vendor_code as ven_code, bp.name as ven_name,bp.pan_tin as vendor_pan_no,
                     case when am.doc_type ='sup_inv_po' then 'Supplier Invoice with PO' 
@@ -933,11 +931,11 @@ class Parser(report_sxw.rml_parse):
                     group by bp.vendor_code, bp.name, pan_tin, am.doc_type, ai.date_invoice,ail.tds_id,
                     ai.name, ai.name, at.name, ai.bill_number, ai.bill_date, ai.vendor_ref, ai.number,at.section,at.amount
                     order by vendor_code
-                '''%(date_from,date_to,vendor[0])
+                '''%(date_from,date_to,employee[0])
             self.cr.execute(sql)
             return self.cr.dictfetchall()
         
-        elif tds:            
+        elif taxes_id:            
             sql = '''
                     select bp.vendor_code as ven_code, bp.name as ven_name,bp.pan_tin as vendor_pan_no,
                     case when am.doc_type ='sup_inv_po' then 'Supplier Invoice with PO' 
@@ -961,11 +959,11 @@ class Parser(report_sxw.rml_parse):
                     group by bp.vendor_code, bp.name, pan_tin, am.doc_type, ai.date_invoice,ail.tds_id,
                     ai.name, ai.name, at.name, ai.bill_number, ai.bill_date, ai.vendor_ref, ai.number,at.section,at.amount
                     order by vendor_code
-                '''%(date_from,date_to,tds[0])
+                '''%(date_from,date_to,taxes_id[0])
             self.cr.execute(sql)
             return self.cr.dictfetchall()
         
-        elif gl_accnt:            
+        elif code:            
             sql = '''
                     select bp.vendor_code as ven_code, bp.name as ven_name,bp.pan_tin as vendor_pan_no,
                     case when am.doc_type ='sup_inv_po' then 'Supplier Invoice with PO' 
@@ -989,7 +987,7 @@ class Parser(report_sxw.rml_parse):
                     group by bp.vendor_code, bp.name, pan_tin, am.doc_type, ai.date_invoice,ail.tds_id,
                     ai.name, ai.name, at.name, ai.bill_number, ai.bill_date, ai.vendor_ref, ai.number,at.section,at.amount
                     order by vendor_code
-                '''%(date_from,date_to,gl_accnt[0])
+                '''%(date_from,date_to,code[0])
             self.cr.execute(sql)
             return self.cr.dictfetchall()
         
@@ -1019,10 +1017,9 @@ class Parser(report_sxw.rml_parse):
                     order by vendor_code
                 '''%(date_from,date_to)
             self.cr.execute(sql)
-            print sql
+            #print sql
             return self.cr.dictfetchall()            
                            
        
               
 # vim:expandtab:smartindent:tabstop=4:softtabstop=4:shiftwidth=4:
-
