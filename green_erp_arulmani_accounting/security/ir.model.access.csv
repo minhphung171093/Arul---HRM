@@ -194,6 +194,17 @@ access_vvti_accounting_168,hr.employee.sub.category,green_erp_arulmani_crm.model
 
 access_vvti_accounting_169,tpt.gate.in.pass,green_erp_arulmani_purchase.model_tpt_gate_in_pass,green_erp_arulmani_accounting.group_vvti_mag_direct,True,True,True,False
 
+account.access_account_account_invoice,account.account invoice,account.model_account_account,account.group_account_invoice,1,1,1,0
+
+access_vvti_accounting_170,arul.hr.payroll.executions.details,green_erp_arulmani_hrm.model_arul_hr_payroll_executions_details,green_erp_arulmani_hrm.group_vvti_hrm_hr_user,True,True,True,False
+
+access_vvti_accounting_171,tpt.raw.material.stock.statement,green_erp_arulmani_purchase.model_tpt_raw_material_stock_statement,base.group_user,True,True,True,True
+access_vvti_accounting_172,tpt.stock.statement.line,green_erp_arulmani_purchase.model_tpt_stock_statement_line,base.group_user,True,True,True,True
+access_vvti_accounting_173,tpt.account.balance.report,green_erp_arulmani_accounting.model_tpt_account_balance_report,base.group_user,True,True,True,True
+access_vvti_accounting_174,tpt.account.balance.report.line,green_erp_arulmani_accounting.model_tpt_account_balance_report_line,base.group_user,True,True,True,True
+
+
+
 
 
 

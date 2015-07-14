@@ -120,7 +120,7 @@ access_vvti_purchase_106,tpt.product.specification,green_erp_arulmani_purchase.m
 access_vvti_purchase_107,tpt.product.specification,green_erp_arulmani_purchase.model_tpt_product_specification,green_erp_arulmani_crm.group_qc_user,True,True,True,False
 access_vvti_purchase_108,tpt.cus.consignee,green_erp_arulmani_sale.model_tpt_cus_consignee,green_erp_arulmani_purchase.group_vvti_purchase_user,True,True,True,True
 access_vvti_purchase_109,account.account.type,account.model_account_account_type,green_erp_arulmani_purchase.group_vvti_purchase_user,True,True,True,True
-access_vvti_purchase_110,account.account,account.model_account_account,green_erp_arulmani_purchase.group_vvti_purchase_user,True,True,True,True
+access_vvti_purchase_110,account.account,account.model_account_account,green_erp_arulmani_purchase.group_vvti_purchase_user,True,True,True,False
 access_vvti_purchase_111,account.payment.term,account.model_account_payment_term,green_erp_arulmani_purchase.group_vvti_purchase_user,True,False,False,False
 access_vvti_purchase_112,account.fiscal.position,account.model_account_fiscal_position,green_erp_arulmani_purchase.group_vvti_purchase_user,True,True,True,True
 
@@ -176,7 +176,7 @@ purchase.access_stock_picking_purchase_user_manager,stock.picking,stock.model_st
 
 
 access_vvti_purchase_147,account.move,account.model_account_move,green_erp_arulmani_purchase.group_vvti_purchase_store_user,True,True,True,False
-access_vvti_purchase_148,account.move.line,account.model_account_move_line,green_erp_arulmani_purchase.group_vvti_purchase_store_user,True,True,True,False
+access_vvti_purchase_148,account.move.line,account.model_account_move_line,green_erp_arulmani_purchase.group_vvti_purchase_store_user,True,False,False,False
 access_vvti_purchase_149,account.period,account.model_account_period,green_erp_arulmani_purchase.group_vvti_purchase_store_user,True,False,False,False
 access_vvti_purchase_150,account.analytic.line,account.model_account_analytic_line,green_erp_arulmani_purchase.group_vvti_purchase_store_user,True,True,True,False
 
@@ -205,6 +205,9 @@ access_vvti_purchase_157,product.template,product.model_product_template,green_e
 
 purchase.access_purchase_order,purchase.order,purchase.model_purchase_order,purchase.group_purchase_user,1,1,1,0
 purchase.access_purchase_order_manager,purchase.order,purchase.model_purchase_order,purchase.group_purchase_manager,1,1,1,0
+
+purchase.access_account_invoice_purchase,account_invoice purchase,account.model_account_invoice,purchase.group_purchase_user,1,1,1,0
+
 
 
 
