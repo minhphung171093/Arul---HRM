@@ -47,6 +47,7 @@
 		            	<button name="check_one_stockmove_one_inspection" string="Check One Stock Move One Inspection" type="object" class="oe_highlight"/>
 		            	<button name="sync_stock_move_and_quanlity_inspection_v1" string="Sync Stock Move and Quanlity Inspection V1" type="object" class="oe_highlight"/>
 		            	<button name="sync_stock_move_and_quanlity_inspection_v2" string="Sync Stock Move and Quanlity Inspection V2" type="object" class="oe_highlight"/> 
+		            	<button name="update_aed" string="Update AED for Invoice" type="object" class="oe_highlight"/>
 		            </header>    
 	            	<group>
 	            		<field name="product_id"/>

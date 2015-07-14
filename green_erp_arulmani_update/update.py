@@ -1968,6 +1968,13 @@ class tpt_update_stock_move_report(osv.osv):
         cr.execute(sql)
         return self.write(cr, uid, ids, {'result':'update_data_104 Done'})
     
+    def update_aed(self, cr, uid, ids, context=None):
+        sql = '''
+            update account_invoice_line set line_net = line_net + aed_id_1
+        '''
+        cr.execute(sql)
+        return self.write(cr, uid, ids, {'result':'update_aed Done'})
+    
     def update_for_lg(self, cr, uid, ids, context=None):
         quanlity_inspec = []
         product_qty = 0
