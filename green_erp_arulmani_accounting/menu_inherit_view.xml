@@ -23,7 +23,7 @@
 		</record>
 		
 		<record model="ir.ui.menu" id="account.menu_finance_reports">
-	    	<field name="groups_id" eval="[(6,0, [ref('green_erp_arulmani_sale.group_vvti_unit_account')]),(4, ref('account.group_account_manager'))]"/>
+	    	<field name="groups_id" eval="[(6,0, [ref('green_erp_arulmani_sale.group_vvti_unit_account')]),(4, ref('account.group_account_manager')),(4, ref('green_erp_arulmani_accounting.group_vvti_accounting_user'))]"/>
 		</record>
 		
 		<record model="ir.ui.menu" id="account.menu_finance_periodical_processing">
@@ -470,7 +470,8 @@
 		    <field name="groups_id" eval="[(4, ref('green_erp_arulmani_purchase.group_vvti_purchase_user')),
 		    								(4, ref('green_erp_arulmani_purchase.group_vvti_purchase_store_user')),
 		    								(4, ref('green_erp_arulmani_production.group_vvti_production_user')),
-		    								(4, ref('group_vvti_accounting_user'))]" />
+		    								(4, ref('group_vvti_accounting_user')),
+		    								(4, ref('green_erp_arulmani_purchase.group_vvti_hrm_plant_mm_user'))]" />
 		</record>
 		
 		<record model="ir.ui.menu" id="green_erp_arulmani_purchase.menu_action_stock_movement_analysis_view">

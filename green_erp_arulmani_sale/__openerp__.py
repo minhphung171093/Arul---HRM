@@ -43,6 +43,12 @@
         'report/export_cfr_invoice_report_view.xml',
         'report/export_cif_invoice_report_view.xml',
         
+        'report/print_form_are_3_view_original.xml',
+        'report/print_form_are_3_view_duplicate.xml',
+        'report/print_form_are_3_view_triplicate.xml',
+        'report/print_form_are_3_view_quadruplicate.xml',
+        
+        
         'report/domestic_invoice_report_view.xml',
         'report/packing_list_report_view.xml',
         'report/proforma_invoice_report_view.xml',
