@@ -1969,10 +1969,54 @@ class tpt_update_stock_move_report(osv.osv):
         return self.write(cr, uid, ids, {'result':'update_data_104 Done'})
     
     def update_aed(self, cr, uid, ids, context=None):
-        sql = '''
-            update account_invoice_line set line_net = line_net + aed_id_1
+        amount_basic = 0.0
+        amount_p_f=0.0
+        amount_ed=0.0
+        amount_fright=0.0
+        line_net = 0.0
+        account_inv_obj = self.pool.get('account.invoice.line')
+        sql='''
+            select id from account_invoice_line
         '''
         cr.execute(sql)
+        inv_line_ids = [row[0] for row in cr.fetchall()]
+        if inv_line_ids:
+            for line in account_inv_obj.browse(cr,uid,inv_line_ids,context=context):
+                amount_total_tax=0.0
+                amount_basic = (line.quantity * line.price_unit)-((line.quantity * line.price_unit)*line.disc/100)
+                if line.p_f_type == '1':
+                   amount_p_f = amount_basic * (line.p_f/100)
+                elif line.p_f_type == '2':
+                    amount_p_f = line.p_f
+                elif line.p_f_type == '3':
+                    amount_p_f = line.p_f * line.quantity
+                else:
+                    amount_p_f = line.p_f
+                if line.ed_type == '1':
+                   amount_ed = (amount_basic + amount_p_f) * (line.ed/100)
+                elif line.ed_type == '2':
+                    amount_ed = line.ed
+                elif line.ed_type == '3':
+                    amount_ed = line.ed * line.quantity
+                else:
+                    amount_ed = line.ed
+                if line.fright_type == '1':
+                   amount_fright = (amount_basic + amount_p_f + amount_ed) * (line.fright/100)
+                elif line.fright_type == '2':
+                    amount_fright = line.fright
+                elif line.fright_type == '3':
+                    amount_fright = line.fright * line.quantity
+                else:
+                    amount_fright = line.fright
+                tax_amounts = [r.amount for r in line.invoice_line_tax_id]
+                for tax in tax_amounts:
+                    amount_total_tax += tax/100
+                line_net = amount_total_tax+amount_fright+amount_ed+amount_p_f+amount_basic+line.aed_id_1
+                
+                sql = '''
+                    update account_invoice_line set line_net = %s where id = %s
+                '''%(line_net,line.id)
+                cr.execute(sql)
         return self.write(cr, uid, ids, {'result':'update_aed Done'})
     
     def update_for_lg(self, cr, uid, ids, context=None):
@@ -2283,6 +2327,32 @@ class tpt_update_stock_move_report(osv.osv):
         
         return self.write(cr, uid, ids, {'result':'sync_stock_move_and_quanlity_inspection V2 Done'}) 
     
+    def delete_2_issue_2406_2407(self, cr, uid, ids, context=None):
+        sql = '''
+            delete from account_move_line where move_id in (select id from account_move 
+            where material_issue_id in (select id from tpt_material_issue where doc_no in ('1002356/2015','1002357/2015'))) 
+        '''
+        cr.execute(sql)
+        sql = '''
+            delete from account_move 
+            where material_issue_id in (select id from tpt_material_issue where doc_no in ('1002356/2015','1002357/2015'))
+        '''
+        cr.execute(sql)
+        sql = '''
+            delete from stock_move where issue_id in (select id from tpt_material_issue where doc_no in ('1002356/2015','1002357/2015'))
+        '''
+        cr.execute(sql)
+        sql = '''
+            delete from tpt_material_issue_line 
+            where material_issue_id in (select id from tpt_material_issue where doc_no in ('1002356/2015','1002357/2015'))
+        '''
+        cr.execute(sql)
+        sql = '''
+            delete from tpt_material_issue where doc_no in ('1002356/2015','1002357/2015')
+        '''
+        cr.execute(sql)
+        return self.write(cr, uid, ids, {'result':'delete_2_issue_2406_2407 Done'})        
+    
     def update_invoice_do_sale_blanket(self, cr, uid, ids, context=None):
         sql = '''
             update account_invoice set partner_id=4968,commercial_partner_id=4968 where id=1200;
@@ -2550,6 +2620,7 @@ class tpt_update_stock_move_report(osv.osv):
         return self.write(cr, uid, ids, {'result':'update_price_unit_for_good_issue Done'})  
  
 tpt_update_stock_move_report()
+
 
 class tpt_update_inspection_line(osv.osv):
     _name = "tpt.update.inspection.line"

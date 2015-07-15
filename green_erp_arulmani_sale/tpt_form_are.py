@@ -141,6 +141,7 @@ class tpt_form_are_3(osv.osv):
         'warehousing_date': fields.date('1st Warehousing Date', required = True),
         'duty_rate_line':fields.one2many('tpt.form.are.3.duty.rate','form_are_3_id','Duty Rate'),   
         
+        'excise_duty_id': fields.many2one('account.tax', 'Ex.Duty', domain="[('type_tax_use','=','excise_duty')]", ),
         'is_original': fields.boolean('Original Copy'),
         'is_duplicate': fields.boolean('Duplicate Copy'),
         'is_triplicate': fields.boolean('Triplicate Copy'),
