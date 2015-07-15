@@ -17,7 +17,8 @@
             parent="base.menu_base_partner"
             sequence="2"/>
         
-        <menuitem action="base.action_res_company_form" id="base.menu_action_res_company_form" parent="menu_vvti_master" sequence="0" groups="base.group_erp_manager,group_readonly"/>        
+        <!--<menuitem action="base.action_res_company_form" id="base.menu_action_res_company_form" parent="menu_vvti_master" sequence="0" groups="base.group_erp_manager,group_readonly"/>-->
+        <menuitem action="base.action_res_company_form" id="base.menu_action_res_company_form" parent="menu_vvti_master" sequence="0"/>        
         <menuitem action="action_crm_leadsource_tree_view" id="menu_action_crm_leadsource_tree_view" name="Lead Source" sequence="1" parent="menu_vvti_master" groups="base.group_erp_manager,group_readonly"/>        
         <menuitem action="base.action_res_bank_form" id="base.menu_action_res_bank_form" parent="menu_vvti_master" sequence="2" groups="base.group_no_one"/>       
         <menuitem action="base.action_res_partner_bank_account_form" id="base.menu_action_res_partner_bank_form" parent="menu_vvti_master" groups="base.group_no_one" sequence="3"/>

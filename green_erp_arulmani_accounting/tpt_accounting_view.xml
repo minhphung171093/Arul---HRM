@@ -1389,7 +1389,7 @@
         </record>
         
         <menuitem action="action_invoice_supplier_without_po" id="menu_action_invoice_supplier_without_po" parent="account.menu_finance_payables"
-        	groups="green_erp_arulmani_sale.group_vvti_unit_account,account.group_account_manager"/>
+        	groups="green_erp_arulmani_sale.group_vvti_unit_account,account.group_account_manager,green_erp_arulmani_purchase.group_vvti_purchase_store_user"/>
         
         <record id="tpt_account_supplier_voucher_pay_form" model="ir.ui.view">
             <field name="name">tpt.account.supplier.voucher.pay.form</field>
@@ -1511,6 +1511,10 @@
                     <xpath expr="//field[@name='account_id']" position="after">
                     	<field name="cost_center_id" required="1" options="{'create': false, 'create_edit': false}"/>
                     </xpath>
+                    
+                    <xpath expr="//button[@string='Unreconcile']" position="attributes">
+                    	<attribute name='groups'>base.user_root</attribute>
+                    </xpath>
                 </data>
             </field>
         </record>
@@ -1586,6 +1590,10 @@
                     </xpath>
                     <xpath expr="//field[@name='account_id']" position="after">
                     	<field name="cost_center_id" required="1" options="{'create': false, 'create_edit': false}"/>
+                    </xpath>
+                    
+                    <xpath expr="//button[@string='Unreconcile']" position="attributes">
+                    	<attribute name='groups'>base.user_root</attribute>
                     </xpath>
                 </data>
             </field>
@@ -2006,7 +2014,7 @@
                     <button name="proforma_voucher" string="Reconcile" states="draft" class="oe_highlight"/>
             		<button name="%(action_review_posting_view)d" type="action" string="Review Posting" states="draft" context="{'tpt_voucher':True}"/>
                     <button name="cancel_voucher" string="Cancel" states="draft,proforma" invisible="1"/>
-                    <button name="cancel_voucher" string="Unreconcile" type="object" states="posted" confirm="Are you sure to unreconcile and cancel this record ?" invisible="1"/>
+                    <button name="cancel_voucher" string="Unreconcile" type="object" states="posted" confirm="Are you sure to unreconcile and cancel this record ?" groups="green_erp_arulmani_accounting.group_vvti_accounting_admin"/>
                     <button name="action_cancel_draft" type="object" states="cancel" string="Set to Draft" invisible="1"/>
                     <field name="state" widget="statusbar" statusbar_visible="draft,posted" statusbar_colors='{"proforma":"blue"}'/>
                 </header>
@@ -2177,7 +2185,7 @@
                     <button name="proforma_voucher" string="Reconcile" states="draft" invisible="context.get('line_type', False)" class="oe_highlight"/>
                     <button name="%(action_review_posting_view)d" type="action" string="Review Posting" states="draft" context="{'tpt_voucher':True}"/>
                     <button name="cancel_voucher" string="Cancel" states="draft,proforma"  invisible="context.get('line_type', False)"/>
-                    <button name="cancel_voucher" string="Unreconcile" type="object" states="posted" invisible="context.get('line_type', False)" confirm="Are you sure to unreconcile and cancel this record ?"/>
+                    <button name="cancel_voucher" string="Unreconcile" type="object" states="posted" invisible="context.get('line_type', False)" confirm="Are you sure to unreconcile and cancel this record ?" groups="green_erp_arulmani_accounting.group_vvti_accounting_admin"/>
                     <button name="action_cancel_draft" type="object" states="cancel" string="Set to Draft" invisible="context.get('line_type', False)"/>
                     <field name="state" widget="statusbar" statusbar_visible="draft,posted" statusbar_colors='{"proforma":"blue"}'/>
                 </header>
@@ -2418,7 +2426,7 @@
             </field>
         </record>
         
-        <!--<record id="inher_tpt_view_res_partner_form" model="ir.ui.view">
+        <record id="inher_tpt_view_res_partner_form" model="ir.ui.view">
             <field name="name">tpt.partner.view.form.inherit.2</field>
             <field name="model">res.partner</field>
             <field name="inherit_id" ref="green_erp_arulmani_sale.tpt_view_res_partner_form"/>
@@ -2427,9 +2435,13 @@
                 	<xpath expr="//page[@string='Consignee']" position="attributes">
 						<attribute name='groups'>green_erp_arulmani_accounting.group_vvti_accounting_user</attribute>
 					</xpath>
+					
+					<xpath expr="//button[@name='approve_customer']" position="attributes">
+						<attribute name='groups'>green_erp_arulmani_accounting.group_vvti_accounting_mgr,green_erp_arulmani_purchase.group_vvti_purchase_user,green_erp_arulmani_sale.group_vvti_sale_manager</attribute>
+					</xpath>
                 </data>
             </field>
-        </record>-->
+        </record>
         
         <record id="tpt_view_account_fiscalyear_form" model="ir.ui.view">
             <field name="name">tpt.account.fiscalyear.form</field>
@@ -2463,16 +2475,16 @@
             </field>
         </record>
         
-        <!-- <record id="tpt_view_hr_department_customize" model="ir.ui.view">
+        <record id="tpt_view_hr_department_customize" model="ir.ui.view">
             <field name="name">tpt.hr.department.customize</field>
             <field name="model">hr.department</field>
             <field name="inherit_id" ref="green_erp_arulmani_hrm.view_hr_department_customize"/>
             <field name="arch" type="xml">
             	<xpath expr="//page[@string='Designation and Resource Budgets']" position="attributes">
-					<attribute name='groups'>green_erp_arulmani_accounting.group_vvti_accounting_gm</attribute>
+					<attribute name='groups'>green_erp_arulmani_accounting.group_vvti_accounting_gm,green_erp_arulmani_hrm.group_vvti_hrm_hr_key_user,green_erp_arulmani_hrm.group_vvti_hrm_payroll_controller</attribute>
 				</xpath>
             </field>
-        </record> -->
+        </record> 
         
         <record id="inh_view_tpt_hr_payroll_approve_reject_form_vew" model="ir.ui.view">
             <field name="name">inh.tpt.hr.payroll.approve.reject.form</field>
@@ -2480,12 +2492,147 @@
             <field name="inherit_id" ref="green_erp_arulmani_hrm.view_tpt_hr_payroll_approve_reject_form_vew"/>
             <field name="arch" type="xml">
             	<xpath expr="//button[@name='reject_payroll']" position="attributes">
-					<attribute name='groups'>green_erp_arulmani_accounting.group_vvti_accounting_gm</attribute>
+					<attribute name='groups'>green_erp_arulmani_accounting.group_vvti_accounting_gm,green_erp_arulmani_hrm.group_vvti_hrm_gm</attribute>
 				</xpath>
 				<xpath expr="//button[@name='approve_payroll']" position="attributes">
-					<attribute name='groups'>green_erp_arulmani_accounting.group_vvti_accounting_gm</attribute>
+					<attribute name='groups'>green_erp_arulmani_accounting.group_vvti_accounting_gm,green_erp_arulmani_hrm.group_vvti_hrm_gm</attribute>
 				</xpath>
 		     </field>   
        </record>
+       
+       <record id="inher_tpt_customer_invoice_form" model="ir.ui.view">
+            <field name="name">inher.tpt.customer.invoice.form</field>
+            <field name="model">account.invoice</field>
+            <field name="inherit_id" ref="green_erp_arulmani_sale.tpt_customer_invoice_form"/>
+            <field name="arch" type="xml">
+            	<xpath expr="//button[@name='invoice_print' and @string='Print Invoice']" position="replace">
+            		<button name='invoice_print' string="Print Invoice" type="object" groups="green_erp_arulmani_sale.group_vvti_sale_user,green_erp_arulmani_accounting.group_vvti_accounting_user"/>
+            	</xpath>
+            	
+            	<xpath expr="//button[@name='invoice_open']" position="replace">
+            		<button name="invoice_open" states="draft" string="Validate" class="oe_highlight" groups="green_erp_arulmani_sale.group_vvti_sale_manager,green_erp_arulmani_accounting.group_vvti_accounting_user"/>
+            	</xpath>
+            	
+            </field>
+       </record>
+       
+       <record id="inherit_view_tpt_test_report_form_vew" model="ir.ui.view">
+            <field name="name">inherit.tpt.test.report.form</field>
+            <field name="model">tpt.test.report</field>
+            <field name="inherit_id" ref="green_erp_arulmani_sale.view_tpt_test_report_form_vew"/>
+            <field name="arch" type="xml">
+            	<xpath expr="//button[@name='test_report_print']" position="attributes">
+					<attribute name='groups'>green_erp_arulmani_sale.group_vvti_sale_user,green_erp_arulmani_sale.group_vvti_marketing_user,green_erp_arulmani_crm.group_qc_user</attribute>
+				</xpath>
+            </field>
+       </record>    
+       
+       <report 
+			auto="False" 
+			menu="True"
+			id="green_erp_arulmani_sale.form_are_1_report" 
+			model="tpt.form.are.1" 
+			name="form_are_1_report"
+	        string="Print Form A.R.E - 1"
+	        groups="green_erp_arulmani_sale.group_vvti_sale_user,green_erp_arulmani_accounting.group_vvti_accounting_user"
+	        rml="green_erp_arulmani_sale/report/print_form_are_1.odt"/> 	
+	        
+	  <report 
+			auto="False" 
+			menu="True"
+			id="green_erp_arulmani_sale.form_are_3_report" 
+			model="tpt.form.are.3" 
+			name="form_are_3_report"
+	        string="Print Form A.R.E - 3"
+	        groups="green_erp_arulmani_sale.group_vvti_sale_user,green_erp_arulmani_accounting.group_vvti_accounting_user"
+	        rml="green_erp_arulmani_sale/report/print_form_are_3.odt"/> 	
+	        
+	        
+	  <report 
+			auto="False" 
+			menu="True"
+			id="green_erp_arulmani_sale.form_403_report" 
+			model="tpt.form.403" 
+			name="form_403_report"
+	        string="Print Form 403"
+	        groups="green_erp_arulmani_sale.group_vvti_sale_user,green_erp_arulmani_accounting.group_vvti_accounting_user"
+	        rml="green_erp_arulmani_sale/report/print_form_403.odt"/> 	
+	        
+	  <record id="inher_tpt_stock_picking_in_form" model="ir.ui.view">
+	       <field name="name">inher.stock.picking.in.form</field>
+	       <field name="model">stock.picking.in</field>
+	       <field name="inherit_id" ref="green_erp_arulmani_purchase.tpt_stock_picking_in_form"/>
+	       <field name="arch" type="xml">
+		    	<xpath expr="//button[@name='%(stock.action_stock_invoice_onshipping)d']" position="attributes">
+					<attribute name='groups'>green_erp_arulmani_purchase.group_vvti_purchase_store_user,green_erp_arulmani_accounting.group_vvti_accounting_user</attribute>
+				</xpath>
+				
+				<xpath expr="//button[@name='%(stock.act_stock_return_picking)d']" position="attributes">
+					<attribute name='groups'>base.user_root</attribute>
+				</xpath>
+				
+				<xpath expr="//button[@name='button_cancel']" position="attributes">
+					<attribute name='groups'>base.user_root</attribute>
+				</xpath>
+				
+				<xpath expr="//button[@name='action_revert_done']" position="attributes">
+					<attribute name='groups'>base.user_root</attribute>
+				</xpath>
+				
+				<xpath expr="//button[@name='action_process']" position="attributes">
+					<attribute name='groups'>green_erp_arulmani_purchase.group_vvti_purchase_store_user</attribute>
+				</xpath>
+				
+	       </field>
+	  </record>
+	  
+	  <record id="inher_view_arul_hr_employee_action_history" model="ir.ui.view">
+            <field name="name">inher.view.arul.hr.employee.action.history</field>
+            <field name="model">hr.employee</field>
+            <field name="inherit_id" ref="green_erp_arulmani_hrm.view_arul_hr_employee_action_history"/>
+            <field name="arch" type="xml">
+            	<xpath expr="//page[@string='Employee Action History']" position="attributes">
+            		<attribute name="groups">green_erp_arulmani_hrm.group_vvti_hrm_hr_user,green_erp_arulmani_hrm.group_vvti_hrm_payroll_controller,green_erp_arulmani_hrm.group_vvti_hrm_gm,green_erp_arulmani_accounting.group_vvti_accounting_gm</attribute>
+            	</xpath>
+            </field>
+	  </record>
+	  
+	  <record id="inher_tpt_purchase_order_form" model="ir.ui.view">
+            <field name="name">inher.tpt.purchase.order.form</field>
+            <field name="model">purchase.order</field>
+            <field name="inherit_id" ref="green_erp_arulmani_purchase.tpt_purchase_order_form"/>
+            <field name="arch" type="xml">
+            	<xpath expr="//button[@name='purchase_gm_confirmed']" position="attributes">
+					<attribute name='groups'>green_erp_arulmani_purchase.group_vvti_purchase_admin,green_erp_arulmani_accounting.group_vvti_mag_direct</attribute>
+				</xpath>
+				
+				<xpath expr="//button[@string='Print']" position="attributes">
+					<attribute name='groups'>green_erp_arulmani_purchase.group_vvti_purchase_user,green_erp_arulmani_accounting.group_vvti_accounting_user</attribute>
+				</xpath>
+				
+				<xpath expr="//button[@string='Print PO']" position="attributes">
+					<attribute name='groups'>green_erp_arulmani_purchase.group_vvti_purchase_user,green_erp_arulmani_accounting.group_vvti_accounting_user</attribute>
+				</xpath>
+            </field>
+	  </record>
+	        
+	  <record id="inher_view_tpt_quanlity_inspection_spares_form" model="ir.ui.view">
+            <field name="name">inher.tpt.quanlity.inspection.spares.form</field>
+            <field name="model">tpt.quanlity.inspection</field>
+            <field name="inherit_id" ref="green_erp_arulmani_purchase.view_tpt_quanlity_inspection_spares_form"/>
+            <field name="arch" type="xml">
+            	<!--<xpath expr="//button[@name='%(green_erp_arulmani_purchase.action_approve_reject_quanlity_inspection)d']" position="attributes">
+					<attribute name='groups'>green_erp_arulmani_purchase.group_vvti_purchase_store_user,green_erp_arulmani_accounting.group_vvti_mag_direct</attribute>
+				</xpath>-->
+				
+				<xpath expr="//button[@string='Approve']" position="attributes">
+					<attribute name='groups'>green_erp_arulmani_purchase.group_vvti_purchase_store_user,green_erp_arulmani_accounting.group_vvti_mag_direct</attribute>
+				</xpath>
+				<xpath expr="//button[@string='Reject']" position="attributes">
+					<attribute name='groups'>green_erp_arulmani_purchase.group_vvti_purchase_store_user,green_erp_arulmani_accounting.group_vvti_mag_direct</attribute>
+				</xpath>
+            </field>
+	  </record>
+	  
     </data>
 </openerp>

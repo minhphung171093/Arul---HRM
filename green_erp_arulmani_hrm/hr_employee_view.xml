@@ -296,7 +296,7 @@
                     <field name="section_id" domain="[('department_id','=',department_id)]" options="{'create': false, 'create_edit': false}"/>
                 </xpath>
           		<xpath expr="//page[@string='HR Settings']" position="after">
-                    <page string = 'Employee Action History'>
+                    <page string = 'Employee Action History' groups="green_erp_arulmani_hrm.group_vvti_hrm_hr_user,green_erp_arulmani_hrm.group_vvti_hrm_payroll_controller,green_erp_arulmani_hrm.group_vvti_hrm_gm">
                     	<div col='4' colspan='4' class='oe_green_erp_scroll'>
 	                    	<field name="action_history_line" nolabel='1'>
 		                    	<tree editable='top' delete = 'false'>
@@ -338,7 +338,7 @@
 	                    	</field>
                     	</div>
                     </page>
-            		<page string = 'Employee Leave Status'>
+            		<page string = 'Employee Leave Status' groups="green_erp_arulmani_hrm.group_vvti_hrm_hr_key_user">
             			<field name ="employee_leave_id">
             				<form string="Employee Leave Detail" version="7.0">
             					<group>
@@ -807,9 +807,9 @@
             <field name="arch" type="xml">
                 <form string="Employee Hiring Action" version="7.0">    
                 	<header>
-	                    <button name="create_hiring_employee" attrs="{'invisible':['|',('employee_id','!=',False),('block_list','=',True)]}" string="Create Employee" type="object" class="oe_highlight"/>
-	                    <button name="add_block_list" attrs="{'invisible':['|',('employee_id','!=',False),('block_list','=',True)]}" string="Block list" type="object" class="oe_highlight"/>
-	                    <button name="unblock_list" attrs="{'invisible':['|',('employee_id','!=',False),('block_list','=',False)]}" string="Unblock" type="object" class="oe_highlight"/>
+	                    <button name="create_hiring_employee" attrs="{'invisible':['|',('employee_id','!=',False),('block_list','=',True)]}" string="Create Employee" type="object" class="oe_highlight" groups="green_erp_arulmani_hrm.group_vvti_hrm_hr_user,green_erp_arulmani_hrm.group_vvti_hrm_gm"/>
+	                    <button name="add_block_list" attrs="{'invisible':['|',('employee_id','!=',False),('block_list','=',True)]}" string="Block list" type="object" class="oe_highlight" groups="green_erp_arulmani_hrm.group_vvti_hrm_hr_key_user,green_erp_arulmani_hrm.group_vvti_hrm_gm"/>
+	                    <button name="unblock_list" attrs="{'invisible':['|',('employee_id','!=',False),('block_list','=',False)]}" string="Unblock" type="object" class="oe_highlight" groups="green_erp_arulmani_hrm.group_vvti_hrm_hr_key_user,green_erp_arulmani_hrm.group_vvti_hrm_gm"/>
 	                </header>
                 	<sheet>
 		                 <group col='4' colspan='2'>
