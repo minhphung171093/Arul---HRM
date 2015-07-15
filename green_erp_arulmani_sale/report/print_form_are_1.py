@@ -27,7 +27,11 @@ class Parser(report_sxw.rml_parse):
             'get_total': self.get_total,
             'get_amount':self.get_amount,
             'get_copy':self.get_copy,
+            'get_arename':self.get_arename,
         })
+    def get_arename(self,name):
+        name = name[13:16]          
+        return name
     def get_copy(self,is_original,is_duplicate,is_triplicate,is_quadruplicate,is_extra):
         type = ''
         if is_original is True:
