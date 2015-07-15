@@ -1,14 +1,14 @@
 <?xml version="1.0" encoding="utf-8"?>
 <openerp>
     <data>
-    	<record id="report_stock_on_hand" model="ir.actions.report.xml">
-	        <field name="name">report_stock_on_hand</field>
+    	<record id="report_stock_on_hand_pdf" model="ir.actions.report.xml">
+	        <field name="name">report_stock_on_hand_pdf</field>
 	        <field name="type">ir.actions.report.xml</field>
 	        <field name="model">stock.on.hand.report</field>
 	        <field name="report_name">report_stock_on_hand</field>
 	        <field name="report_type">aeroo</field>
 	        <field name="in_format">oo-odt</field>
-	        <field name="out_format" model="report.mimetypes" search="[('code','=','oo-pdf')]"/>
+	        <field name="out_format" model="report.mimetypes" search="[('code','=','oo-pdf'),('compatible_types','=','oo-odt')]"/>
 	        <field name="parser_loc">green_erp_arulmani_purchase/report/report_stock_on_hand.py</field>
 	        <field name="report_rml">green_erp_arulmani_purchase/report/report_stock_on_hand.odt</field>
 	        <field name="parser_state">loc</field>
@@ -19,13 +19,13 @@
 		<report 
 			auto="True" 
 			menu="False"
-			id="report_stock_on_hand" 
+			id="report_stock_on_hand_pdf" 
 			model="tpt.stock.on.hand" 
-			name="report_stock_on_hand"
+			name="report_stock_on_hand_pdf"
 	        string="Stock On Hand Report"
 	        rml="green_erp_arulmani_purchase/report/report_stock_on_hand.odt"/>	
 	        
-	    <record id="report_stock_on_hand" model="ir.actions.report.xml">
+	    <record id="report_stock_on_hand_xls" model="ir.actions.report.xml">
 	        <field name="name">report_stock_on_hand_xls</field>
 	        <field name="type">ir.actions.report.xml</field>
 	        <field name="model">stock.on.hand.report</field>

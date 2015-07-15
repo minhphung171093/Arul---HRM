@@ -395,6 +395,12 @@ class account_move_line(osv.osv):
                                   ('freight', 'Freight Invoice'),
                                   ('worker_payroll', 'Workers Payroll')], string="Document Type", readonly=True, select=True),
     }
+    
+    def create(self, cr, uid, vals, context=None):
+        return super(account_move_line, self).create(cr,1, vals, context)
+    
+    def write(self, cr, uid,ids, vals, context=None, check=False):
+        return super(account_move_line, self).write(cr,1,ids,vals,context,check) 
 account_move_line()
 
 class stock_location(osv.osv):
@@ -438,6 +444,9 @@ class stock_picking_in(osv.osv):
             context.update({'search_grn_with_name':1,'name':name})
         ids = self.search(cr, user, args, context=context, limit=limit)
         return self.name_get(cr, user, ids, context=context)
+    
+    def write(self, cr, uid,ids, vals, context=None):
+        return super(stock_picking_in, self).write(cr,1,ids,vals,context) 
 
 
     
@@ -490,7 +499,7 @@ class stock_picking(osv.osv):
         return account
     
     def write(self, cr, uid, ids, vals, context=None):
-        new_write = super(stock_picking, self).write(cr, uid,ids, vals, context)
+        new_write = super(stock_picking, self).write(cr, 1,ids, vals, context)
         account_move_obj = self.pool.get('account.move')
         period_obj = self.pool.get('account.period')
 #         stock_picking_in = self.pool.get('stock.picking.in').browse(cr,uid,vals['backorder_id'])
@@ -5037,4 +5046,24 @@ class stock_move(osv.osv):
     
 stock_move()
 
+class purchase_order(osv.osv):
+    _inherit = "purchase.order"
+    def write(self, cr, uid,ids, vals, context=None):
+        return super(purchase_order, self).write(cr,1,ids,vals,context) 
+purchase_order()
+
+class stock_picking_out(osv.osv):
+    _inherit = "stock.picking.out"
+    def write(self, cr, uid,ids, vals, context=None):
+        return super(stock_picking_out, self).write(cr,1,ids,vals,context) 
+stock_picking_out()
+
+class account_move(osv.osv):
+    _inherit = "account.move"
     
+    def create(self, cr, uid, vals, context=None):
+        return super(account_move, self).create(cr,1, vals, context)
+    
+    def write(self, cr, uid,ids, vals, context=None):
+        return super(account_move, self).write(cr,1,ids,vals,context) 
+account_move()

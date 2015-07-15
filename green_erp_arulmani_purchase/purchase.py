@@ -1165,7 +1165,7 @@ class tpt_gate_in_pass(osv.osv):
             gate_in_pass_line = []
             for line in po.order_line:
                 gate_in_pass_line.append({
-                            'po_indent_no': po.po_indent_no and po.po_indent_no.id or False,
+                            'po_indent_no': line.po_indent_no and line.po_indent_no.id or False,
                           'product_id': line.product_id and line.product_id.id or False,
                           'product_qty':line.product_qty or False,
                           'uom_po_id': line.product_uom and line.product_uom.id or False,
@@ -3535,6 +3535,12 @@ class tpt_quanlity_inspection(osv.osv):
             move_id = move_obj.create(cr,uid,rs)
             move_obj.action_done(cr, uid, [move_id])
         return self.write(cr, uid, ids, {'state':'cancel'})
+    
+    def create(self, cr, uid, vals, context=None):
+        return super(tpt_quanlity_inspection, self).create(cr,1, vals, context)
+    
+    def write(self, cr, uid,ids, vals, context=None):
+        return super(tpt_quanlity_inspection, self).write(cr,1,ids,vals,context) 
 
 #     def onchange_grn_no(self, cr, uid, ids,name=False, context=None):
 #         vals = {}
