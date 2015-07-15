@@ -1,28 +1,122 @@
 <?xml version="1.0" encoding="utf-8"?>
 <openerp>
     <data>
-    	<record id="tds_form_report" model="ir.actions.report.xml">
-	        <field name="name">tds_form_report</field>
+    
+        <record id="tds_form_report_xls" model="ir.actions.report.xml">
+	        <field name="name">tds_form_report_xls</field>
 	        <field name="type">ir.actions.report.xml</field>
-	        <field name="model">tds.form.report</field>
-	        <field name="report_name">tds_form_report</field>
+	        <field name="model">tpt.tds.header.from</field>
+	        <field name="report_name">tds_form_report_xls</field>
 	        <field name="report_type">aeroo</field>
 	        <field name="in_format">oo-ods</field>
-	        <field name="out_format" model="report.mimetypes" search="[('code','=','oo-xls'),('compatible_types','=','oo-ods')]"/>
+	        <field name="out_format" model="report.mimetypes" search="[('code','=','oo-xls')]"/>	        
 	        <field name="parser_loc">green_erp_arulmani_accounting/report/tds_report.py</field>
 	        <field name="report_rml">green_erp_arulmani_accounting/report/tds_report.ods</field>
 	        <field name="parser_state">loc</field>
 	        <field name="tml_source">file</field>
 	        <field name="attachment_use" eval="0"/>
-    	</record>		    
-		
-		<report 
-			auto="True"
+    	</record>
+    	
+    	<report 
+			auto="True" 
 			menu="False"
-			id="tds_form_report"
-			model="tds.form.report"
-			name="tds_form_report"
+			id="tds_form_report_xls" 
+			model="tpt.tds.header.from" 
+			name="tds_form_report_xls"
 	        string="TDS Report"
-	        rml="green_erp_arulmani_accounting/report/tds_report.ods"/>
+	        rml="green_erp_arulmani_accounting/report/tds_report.ods"/>	
+         
+    	<record id="tds_form_report_pdf" model="ir.actions.report.xml">
+	    	<field name="name">tds_form_report_pdf</field>
+		    <field name="type">ir.actions.report.xml</field>
+		    <field name="model">tpt.tds.header.from</field>
+	        <field name="report_name">tds_form_report_pdf</field>
+	        <field name="report_type">aeroo</field>
+	        <field name="in_format">oo-ods</field>
+	        <field name="out_format" model="report.mimetypes" search="[('code','=','oo-pdf')]"/>	        
+	        <field name="parser_loc">green_erp_arulmani_accounting/report/tds_report.py</field>
+	        <field name="report_rml">green_erp_arulmani_accounting/report/tds_report.ods</field>
+	        <field name="parser_state">loc</field>
+	        <field name="tml_source">file</field>
+	        <field name="attachment_use" eval="0"/>
+    	</record>
+    	
+    	<report 
+			auto="True" 
+			menu="False"
+			id="tds_form_report_pdf" 
+			model="tpt.tds.header.from" 
+			name="tds_form_report_pdf"
+	        string="TDS Report"
+	        rml="green_erp_arulmani_accounting/report/tds_report.ods"/>        
+	        
+	    
+    	 
+	     <record id="view_tpt_tds_header" model="ir.ui.view">
+	        <field name="name">tpt.tds.header.from</field>
+	        <field name="model">tpt.tds.header.from</field>
+	        <field name="arch" type="xml">
+	            <form version='7.0' string="TDS Report" create="false" edit="false" delete="false">
+	            	<sheet>
+                       <header>
+	            		   <button name="print_report_xls" string="Print (.xls)" type="object" class="oe_highlight" />
+	            		   <button name="print_report_pdf" string="Print (.pdf)" type="object" class="oe_highlight" />
+	            	   </header>	            	
+	             	
+	            		<div class="oe_text_center">
+            				<b><field name="name" nolabel="1" class="oe_text_center oe_inline"/></b>
+            			</div>
+            			<div class="oe_bold oe_text_left">
+            			    <field name="date_from_title" nolabel = '1' class="oe_text_left oe_inline"/> 
+            				<field name="date_from" class="oe_text_left oe_inline"/>            				 
+            			</div>
+            			<div class="oe_bold oe_text_left">
+            			    <field name="date_to_title" nolabel = '1' class=" oe_text_left oe_inline"/> 
+            				<field name="date_to" class = "oe_text_left oe_inline"/>            				
+            			</div>  
+            			<div class="oe_bold oe_text_left">            			     
+            				<field name="invoice_type" class = "oe_text_left oe_inline"/>            				
+            			</div> 
+            			<div class="oe_bold oe_text_left">            			    
+            				<field name="employee" class = "oe_text_left oe_inline"/>            				
+            			</div> 
+            			<div class="oe_bold oe_text_left">            			    
+            				<field name="taxes_id" class = "oe_text_left oe_inline"/>            				
+            			</div>  
+            			<div class="oe_bold oe_text_left">            			    
+            				<field name="code" class = "oe_text_left oe_inline"/>            				
+            			</div>        			
+	                	<group>
+		                	<field name="tpt_tds_line" nolabel='1'>
+		                		<tree create="false" edit="false" delete="false">
+		                		    <field name="ven_code"/>
+		                			<field name="ven_name"/>		                			
+		                			<field name="vendor_pan_no"/>
+		                			<field name="officialwitholdingtax"/>		                			
+		                			<field name="gl_doc"/>		                			
+		                			<field name="sec"/>
+		                			<field name="posting_date"/>
+		                			<field name="invoicedocno"/>
+		                			<field name="doc_date"/>
+		                			<field name="bill_no"/>
+		                			<field name="bill_date"/>
+		                			<field name="base_amnt"/>
+		                			<field name="tax_deduction"/>
+		                			<field name="tdsamount"/>
+		                			<field name="ven_ref"/>
+		                			                			
+		                			
+		                		</tree>
+		                	</field>
+	                	</group>
+	               	</sheet>
+	           </form>
+	        </field>
+	    </record>
+	        
+	        
+	        
+	          
+	        
     </data>
 </openerp>

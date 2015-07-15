@@ -1968,6 +1968,57 @@ class tpt_update_stock_move_report(osv.osv):
         cr.execute(sql)
         return self.write(cr, uid, ids, {'result':'update_data_104 Done'})
     
+    def update_aed(self, cr, uid, ids, context=None):
+        amount_basic = 0.0
+        amount_p_f=0.0
+        amount_ed=0.0
+        amount_fright=0.0
+        line_net = 0.0
+        account_inv_obj = self.pool.get('account.invoice.line')
+        sql='''
+            select id from account_invoice_line
+        '''
+        cr.execute(sql)
+        inv_line_ids = [row[0] for row in cr.fetchall()]
+        if inv_line_ids:
+            for line in account_inv_obj.browse(cr,uid,inv_line_ids,context=context):
+                amount_total_tax=0.0
+                amount_basic = (line.quantity * line.price_unit)-((line.quantity * line.price_unit)*line.disc/100)
+                if line.p_f_type == '1':
+                   amount_p_f = amount_basic * (line.p_f/100)
+                elif line.p_f_type == '2':
+                    amount_p_f = line.p_f
+                elif line.p_f_type == '3':
+                    amount_p_f = line.p_f * line.quantity
+                else:
+                    amount_p_f = line.p_f
+                if line.ed_type == '1':
+                   amount_ed = (amount_basic + amount_p_f) * (line.ed/100)
+                elif line.ed_type == '2':
+                    amount_ed = line.ed
+                elif line.ed_type == '3':
+                    amount_ed = line.ed * line.quantity
+                else:
+                    amount_ed = line.ed
+                if line.fright_type == '1':
+                   amount_fright = (amount_basic + amount_p_f + amount_ed) * (line.fright/100)
+                elif line.fright_type == '2':
+                    amount_fright = line.fright
+                elif line.fright_type == '3':
+                    amount_fright = line.fright * line.quantity
+                else:
+                    amount_fright = line.fright
+                tax_amounts = [r.amount for r in line.invoice_line_tax_id]
+                for tax in tax_amounts:
+                    amount_total_tax += tax/100
+                line_net = amount_total_tax+amount_fright+amount_ed+amount_p_f+amount_basic+line.aed_id_1
+                
+                sql = '''
+                    update account_invoice_line set line_net = %s where id = %s
+                '''%(line_net,line.id)
+                cr.execute(sql)
+        return self.write(cr, uid, ids, {'result':'update_aed Done'})
+    
     def update_for_lg(self, cr, uid, ids, context=None):
         quanlity_inspec = []
         product_qty = 0
@@ -2274,7 +2325,33 @@ class tpt_update_stock_move_report(osv.osv):
         '''
         cr.execute(sql)
         
-        return self.write(cr, uid, ids, {'result':'sync_stock_move_and_quanlity_inspection V2 Done'}) 
+        return self.write(cr, uid, ids, {'result':'sync_stock_move_and_quanlity_inspection V2 Done'})  
+    
+    def delete_2_issue_2406_2407(self, cr, uid, ids, context=None):
+        sql = '''
+            delete from account_move_line where move_id in (select id from account_move 
+            where material_issue_id in (select id from tpt_material_issue where doc_no in ('1002356/2015','1002357/2015'))) 
+        '''
+        cr.execute(sql)
+        sql = '''
+            delete from account_move 
+            where material_issue_id in (select id from tpt_material_issue where doc_no in ('1002356/2015','1002357/2015'))
+        '''
+        cr.execute(sql)
+        sql = '''
+            delete from stock_move where issue_id in (select id from tpt_material_issue where doc_no in ('1002356/2015','1002357/2015'))
+        '''
+        cr.execute(sql)
+        sql = '''
+            delete from tpt_material_issue_line 
+            where material_issue_id in (select id from tpt_material_issue where doc_no in ('1002356/2015','1002357/2015'))
+        '''
+        cr.execute(sql)
+        sql = '''
+            delete from tpt_material_issue where doc_no in ('1002356/2015','1002357/2015')
+        '''
+        cr.execute(sql)
+        return self.write(cr, uid, ids, {'result':'delete_2_issue_2406_2407 Done'})        
     
     def update_price_unit_from_quanlity_inspection(self, cr, uid, ids, context=None):
         sql = '''
@@ -2302,109 +2379,6 @@ class tpt_update_stock_move_report(osv.osv):
                         cr.execute(sql)
         return self.write(cr, uid, ids, {'result':'update_price_unit_from_quanlity_inspection Done'})
     
-#     def update_price_unit_for_good_issue(self, cr, uid, ids, context=None):
-#         sql = '''
-#             select product_product.id as product_id
-#             from product_product,product_template 
-#             where product_template.categ_id in(select product_category.id from product_category where cate_name in('spares','raw') )
-#             and product_product.product_tmpl_id = product_template.id and product_product.id = 10718;
-#         '''
-#         cr.execute(sql)
-#         product_ids = cr.dictfetchall()
-#         for product in product_ids:
-#             stock_in_out_line = []
-#             good = 0
-#             current = 0
-#             opening_stock = 0
-#             opening_stock_value = 0
-#             issue_unit = 0
-#             product_id = self.pool.get('product.product').browse(cr,uid,product['product_id'])
-#             sql = '''
-#                 select id, date, product_qty from stock_move where issue_id is not null 
-#                 and state = 'done' and product_id = %s
-#                 order by date
-#             '''%(product_id.id)
-#             cr.execute(sql)
-#             for move in cr.dictfetchall():
-#                 if product_id.categ_id.cate_name == 'raw':
-#                     parent_ids = self.pool.get('stock.location').search(cr, uid, [('name','=','Store'),('usage','=','view')])
-#                     locat_ids = self.pool.get('stock.location').search(cr, uid, [('name','in',['Raw Material','Raw Materials','Raw material']),('location_id','=',parent_ids[0])])
-#                     sql = '''
-#                       select case when sum(st.product_qty)!=0 then sum(st.product_qty) else 0 end ton_sl,case when sum(st.price_unit*st.product_qty)!=0 then sum(st.price_unit*st.product_qty) else 0 end total_cost
-#                         from stock_move st
-#                         where st.state='done' and st.location_dest_id=%s and st.product_id=%s and date<'%s'
-#                             and st.location_dest_id != st.location_id
-#                             and ( picking_id is not null 
-#                             or inspec_id is not null 
-#                             or (st.id in (select move_id from stock_inventory_move_rel))
-#                     )
-#                     '''%(locat_ids[0],product_id.id,move['date'])
-#                     cr.execute(sql)
-#                     inventory = cr.dictfetchone()
-#                     if inventory:
-#                         hand_quantity = inventory['ton_sl'] or 0
-#                         total_cost = inventory['total_cost'] or 0
-#                         avg_cost = hand_quantity and total_cost/hand_quantity or 0
-#                         issue_unit = avg_cost
-#                         
-#                     sql = '''
-#                         select case when sum(st.product_qty)!=0 then sum(st.product_qty) else 0 end ton_sl,case when sum(st.price_unit*st.product_qty)!=0 then sum(st.price_unit*st.product_qty) else 0 end total_cost
-#                         from stock_move st
-#                         where st.state='done' and st.location_id=%s and st.product_id=%s and date<'%s'
-#                         and issue_id is not null
-#                     
-#                     '''%(locat_ids[0],product_id.id,move['date'])
-#                     cr.execute(sql)
-#                     inventory_xuat = cr.dictfetchone()
-#                     if inventory_xuat:
-#                         hand_quantity_xuat = inventory_xuat['ton_sl'] or 0
-#                         total_cost_xuat = inventory_xuat['total_cost'] or 0
-#                         issue_unit = (hand_quantity-hand_quantity_xuat) and (total_cost-total_cost_xuat)/(hand_quantity-hand_quantity_xuat) or 0
-#                     sql = '''
-#                         update stock_move set price_unit = %s where id = %s
-#                     '''%(issue_unit, move['id'])
-#                     cr.execute(sql)
-#                     
-#                 if product_id.categ_id.cate_name == 'spares':
-#                     parent_ids = self.pool.get('stock.location').search(cr, uid, [('name','=','Store'),('usage','=','view')])
-#                     locat_ids = self.pool.get('stock.location').search(cr, uid, [('name','in',['Spares','Spare','spares']),('location_id','=',parent_ids[0])])            
-#                     sql = '''
-#                       select case when sum(st.product_qty)!=0 then sum(st.product_qty) else 0 end ton_sl,case when sum(st.price_unit*st.product_qty)!=0 then sum(st.price_unit*st.product_qty) else 0 end total_cost
-#                         from stock_move st
-#                         where st.state='done' and st.location_dest_id=%s and st.product_id=%s and to_char(date, 'YYYY-MM-DD')<'%s'
-#                             and st.location_dest_id != st.location_id
-#                             and ( picking_id is not null 
-#                             or inspec_id is not null 
-#                             or (st.id in (select move_id from stock_inventory_move_rel))
-#                     )
-#                     '''%(locat_ids[0],product_id.id,move['date'])
-#                     cr.execute(sql)
-#                     inventory = cr.dictfetchone()
-#                     if inventory:
-#                         hand_quantity = inventory['ton_sl'] or 0
-#                         total_cost = inventory['total_cost'] or 0
-#                         avg_cost = hand_quantity and total_cost/hand_quantity or 0
-#                         issue_unit = avg_cost
-#                         
-#                     sql = '''
-#                         select case when sum(st.product_qty)!=0 then sum(st.product_qty) else 0 end ton_sl,case when sum(st.price_unit*st.product_qty)!=0 then sum(st.price_unit*st.product_qty) else 0 end total_cost
-#                         from stock_move st
-#                         where st.state='done' and st.location_id=%s and st.product_id=%s and to_char(date, 'YYYY-MM-DD')<'%s'
-#                         and issue_id is not null
-#                     )
-#                     '''%(locat_ids[0],product_id.id,move['date'])
-#                     cr.execute(sql)
-#                     inventory_xuat = cr.dictfetchone()
-#                     if inventory_xuat:
-#                         hand_quantity_xuat = inventory_xuat['ton_sl'] or 0
-#                         total_cost_xuat = inventory_xuat['total_cost'] or 0
-#                         issue_unit = (hand_quantity+hand_quantity_xuat) and (total_cost_xuat+total_cost)/(hand_quantity+hand_quantity_xuat) or 0
-#                     sql = '''
-#                         update stock_move where price_unit = %s where id = %s
-#                     '''%(issue_unit, move['id'])
-#                     cr.execute(sql)
-#                         
-#         return self.write(cr, uid, ids, {'result':'update_price_unit_for_good_issue Done'})  
 
     def update_price_unit_for_good_issue(self, cr, uid, ids, context=None):
         sql = '''
@@ -2470,6 +2444,7 @@ class tpt_update_stock_move_report(osv.osv):
         return self.write(cr, uid, ids, {'result':'update_price_unit_for_good_issue Done'})  
  
 tpt_update_stock_move_report()
+
 
 class tpt_update_inspection_line(osv.osv):
     _name = "tpt.update.inspection.line"

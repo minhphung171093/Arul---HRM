@@ -3616,7 +3616,27 @@ class arul_hr_audit_shift_time(osv.osv):
                             shifts_out_time = [shift_out,od_out]
                             start_time = min(shifts_in_time)
                             end_time = min(shifts_out_time)
-                    
+                    if line.actual_work_shift_id.code=='B':                       
+                        if perm_in>0 and perm_in>=14:
+                            shifts_in_time = [shift_in,perm_in]
+                            shifts_out_time = [shift_out,perm_out]
+                            start_time = min(shifts_in_time)
+                            end_time = min(shifts_out_time)
+                        elif od_in>0 and od_in >=14:
+                            shifts_in_time = [shift_in,od_in]
+                            shifts_out_time = [shift_out,od_out]
+                            start_time = min(shifts_in_time)
+                            end_time = min(shifts_out_time)
+                        elif perm_in>0 and perm_in < 6.50:
+                            shifts_in_time = [shift_in,perm_in]
+                            shifts_out_time = [shift_out,perm_out]
+                            start_time = max(shifts_in_time)
+                            end_time = max(shifts_out_time)
+                        elif od_in>0 and od_in < 6.50:
+                            shifts_in_time = [shift_in,od_in]
+                            shifts_out_time = [shift_out,od_out]
+                            start_time = max(shifts_in_time)
+                            end_time = max(shifts_out_time)
                 ###
                 recording_hrs = 0     
                 sql = '''
@@ -3718,13 +3738,13 @@ class arul_hr_audit_shift_time(osv.osv):
                               'in_time':line.in_time,
                               'out_time':line.out_time,
                               
-                              'total_hours':total_hrs,
-                              'a_shift_count':a_shift_count,
-                              'g1_shift_count':g1_shift_count,
-                              'g2_shift_count':g2_shift_count,
-                              'b_shift_count':b_shift_count,
-                              'c_shift_count':c_shift_count,
-                              'total_shift_worked':total_shift_worked,
+#                               'total_hours':total_hrs,
+#                               'a_shift_count':a_shift_count,
+#                               'g1_shift_count':g1_shift_count,
+#                               'g2_shift_count':g2_shift_count,
+#                               'b_shift_count':b_shift_count,
+#                               'c_shift_count':c_shift_count,
+#                               'total_shift_worked':total_shift_worked,
                               
                               'a_shift_count1':a_shift,
                               'g1_shift_count1':g1_shift,
@@ -3736,8 +3756,8 @@ class arul_hr_audit_shift_time(osv.osv):
                               'approval':1,
                               'diff_day': line.diff_day,
                               } 
-                    if a_shift>0 and g1_shift>0 and g2_shift>0 and b_shift>0 and c_shift>0 and shift_count>0:
-                        emp_attendence_obj.create(cr,uid,{'employee_id':line.employee_id.id,
+                    #if a_shift>0 and g1_shift>0 and g2_shift>0 and b_shift>0 and c_shift>0 and shift_count>0:
+                    emp_attendence_obj.create(cr,uid,{'employee_id':line.employee_id.id,
                                                           'employee_category_id':line.employee_id.employee_category_id and line.employee_id.employee_category_id.id or False,
                                                           'sub_category_id':line.employee_id.employee_sub_category_id and line.employee_id.employee_sub_category_id.id or False,
                                                           'department_id':line.employee_id.department_id and line.employee_id.department_id.id or False,
@@ -5990,7 +6010,7 @@ class arul_hr_punch_in_out(osv.osv):
                                 out_date = data2[7:11]+'-'+data2[11:13]+'-'+data2[13:15]
                                 if employee_code_2==employee_code and in_out=='P10':
                                     in_time2 = float(data2[15:17])+float(data2[17:19])/60+float(data2[19:21])/3600
-                                    val1={'employee_id':employee_ids[0],'planned_work_shift_id':shift_id,'actual_work_shift_id':False,'work_date':date,'punch_in_date':date,'in_time':in_time2,'out_time':0,'approval':1}
+                                    val1={'employee_id':employee_ids[0],'planned_work_shift_id':shift_id,'actual_work_shift_id':False,'work_date':date,'punch_in_date':date,'in_time':in_time2,'out_time':0,'ref_in_time':in_time2,'ref_out_time':0,'approval':1}
                                 if employee_code_2==employee_code and in_out=='P20':
                                     out_time=float(data2[15:17])+float(data2[17:19])/60+float(data2[19:21])/3600
                                     out_date = data2[7:11]+'-'+data2[11:13]+'-'+data2[13:15]
@@ -8686,7 +8706,7 @@ class shift_change(osv.osv):
             #today = fields.date.today()
             now = datetime.datetime.now()
             current_day = now.day          
-            if current_day-3 > date_from:
+            if current_day-3 > date_from: # Shift Change Request is Relaxed for 3 days Tolerance
                 raise osv.except_osv(_('Warning!'),_('System could not allow Back Dated Shift Change Request')) 
         return super(shift_change, self).create(cr, uid, vals, context)
     #TPT END

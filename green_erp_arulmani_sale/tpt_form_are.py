@@ -61,6 +61,22 @@ class tpt_form_are_1(osv.osv):
         if vals.get('name','/')=='/':
             vals['name'] = self.pool.get('ir.sequence').get(cr, uid, 'tpt.form.area.1.import') or '/'
         return super(tpt_form_are_1, self).create(cr, uid, vals, context=context)
+    def print_are1(self, cr, uid, ids, context=None):
+        '''
+        This function prints the invoice and mark it as sent, so that we can see more easily the next step of the workflow
+        '''
+        assert len(ids) == 1, 'This option should only be used for a single id at a time.'
+        self.write(cr, uid, ids, {'sent': True}, context=context)
+        datas = {
+             'ids': ids,
+             'model': 'tpt.form.are.1',
+             'form': self.read(cr, uid, ids[0], context=context)
+        }
+        
+        return {
+                'type': 'ir.actions.report.xml',
+                'report_name': 'form_are_1_report',
+            } 
     
 tpt_form_are_1()
 
@@ -146,6 +162,45 @@ class tpt_form_are_3(osv.osv):
         if vals.get('name','/')=='/':
             vals['name'] = self.pool.get('ir.sequence').get(cr, uid, 'tpt.form.area.3.import') or '/'
         return super(tpt_form_are_3, self).create(cr, uid, vals, context=context)
+    
+    def print_are3(self, cr, uid, ids, context=None):
+        '''
+        This function prints the invoice and mark it as sent, so that we can see more easily the next step of the workflow
+        '''
+        assert len(ids) == 1, 'This option should only be used for a single id at a time.'
+        self.write(cr, uid, ids, {'sent': True}, context=context)
+        datas = {
+             'ids': ids,
+             'model': 'tpt.form.are.3',
+             'form': self.read(cr, uid, ids[0], context=context)
+        }
+        are3_ids = self.browse(cr, uid, ids[0])
+        if are3_ids.is_original is True:
+            return {
+                    'type': 'ir.actions.report.xml',
+                    'report_name': 'form_are_3_report_original',
+                } 
+        elif are3_ids.is_duplicate is True:
+            return {
+                    'type': 'ir.actions.report.xml',
+                    'report_name': 'form_are_3_report_duplicate',
+                } 
+        elif are3_ids.is_triplicate is True:
+            return {
+                    'type': 'ir.actions.report.xml',
+                    'report_name': 'form_are_3_report_triplicate',
+                } 
+        elif are3_ids.is_quadruplicate is True:
+            return {
+                    'type': 'ir.actions.report.xml',
+                    'report_name': 'form_are_3_report_quadruplicate',
+                } 
+        else:
+            return {
+                    'type': 'ir.actions.report.xml',
+                    'report_name': 'form_are_3_report',
+                } 
+    
 tpt_form_are_3()
 
 class tpt_form_are_3_duty_rate(osv.osv):
