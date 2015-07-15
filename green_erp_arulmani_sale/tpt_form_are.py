@@ -126,7 +126,7 @@ class tpt_form_are_3(osv.osv):
         'warehouse_to_id': fields.many2one('stock.location','To Warehouse',  ),
         'to_mr_mess': fields.char('To Mr./Messrs.',size = 1024),
         'invoice_no_id': fields.many2one('account.invoice','Invoice No'),
-        'date': fields.date('Date', required = True),
+        'date': fields.date('Date',),
         'warehouse_register':fields.char('No. in Warehouse Register',size = 1024),
         'good_description':fields.char('Good Description',size = 1024),
         'remarks':fields.char('Remarks',size = 1024),
