@@ -45,7 +45,7 @@
 	            		<notebook>
 							<page string = "Export Details">
 								<group col="4" colspan="2">
-									<field name="manufacturer_id" />
+									<!-- <field name="manufacturer_id" />  -->
 		            				<field name="ce_reg_no" />
 		            				<field name="package_description" />
 		            				<field name="marks_package" />
