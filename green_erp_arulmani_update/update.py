@@ -2437,7 +2437,7 @@ class tpt_update_stock_move_report(osv.osv):
                                 from stock_move where product_id = %s and state = 'done' and issue_id is null 
                                 and picking_id is null and inspec_id is null and location_id = %s 
                                 and location_id != location_dest_id)
-                    )order by to_date(to_char(date, 'YYYY-MM-DD'), 'YYYY-MM-DD'), inspec_id, picking_id
+                    )order by to_date(to_char(date, 'YYYY-MM-DD'), 'YYYY-MM-DD'), inspec_id, picking_id, issue_id
             '''%(product_id.id, product_id.id, locat_ids[0])
             cr.execute(sql)
             for move in cr.dictfetchall():
