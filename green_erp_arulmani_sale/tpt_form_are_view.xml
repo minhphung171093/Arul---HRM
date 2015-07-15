@@ -30,7 +30,7 @@
 	            	<sheet>
 	            		<group col="4" colspan="2">
 	            			<field name="name"/>
-							<field name="date"/>
+							<!-- <field name="date"/>  -->
 							<field name="is_original"/>
 							<field name="is_duplicate"/>
 							<field name="is_triplicate"/>
