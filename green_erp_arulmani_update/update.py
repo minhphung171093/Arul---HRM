@@ -2325,9 +2325,36 @@ class tpt_update_stock_move_report(osv.osv):
         '''
         cr.execute(sql)
         
-        return self.write(cr, uid, ids, {'result':'sync_stock_move_and_quanlity_inspection V2 Done'})   
+        return self.write(cr, uid, ids, {'result':'sync_stock_move_and_quanlity_inspection V2 Done'})  
+    
+    def delete_2_issue_2406_2407(self, cr, uid, ids, context=None):
+        sql = '''
+            delete from account_move_line where move_id in (select id from account_move 
+            where material_issue_id in (select id from tpt_material_issue where doc_no in ('1002356/2015','1002357/2015'))) 
+        '''
+        cr.execute(sql)
+        sql = '''
+            delete from account_move 
+            where material_issue_id in (select id from tpt_material_issue where doc_no in ('1002356/2015','1002357/2015'))
+        '''
+        cr.execute(sql)
+        sql = '''
+            delete from stock_move where issue_id in (select id from tpt_material_issue where doc_no in ('1002356/2015','1002357/2015'))
+        '''
+        cr.execute(sql)
+        sql = '''
+            delete from tpt_material_issue_line 
+            where material_issue_id in (select id from tpt_material_issue where doc_no in ('1002356/2015','1002357/2015'))
+        '''
+        cr.execute(sql)
+        sql = '''
+            delete from tpt_material_issue where doc_no in ('1002356/2015','1002357/2015')
+        '''
+        cr.execute(sql)
+        return self.write(cr, uid, ids, {'result':'delete_2_issue_2406_2407 Done'})        
     
 tpt_update_stock_move_report()
+
 
 class tpt_update_inspection_line(osv.osv):
     _name = "tpt.update.inspection.line"
