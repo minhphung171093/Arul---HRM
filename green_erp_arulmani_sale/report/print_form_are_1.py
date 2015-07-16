@@ -34,9 +34,9 @@ class Parser(report_sxw.rml_parse):
             'get_dec':self.get_dec,
         })
     def get_dec(self,number=False):
-        a = round(number - int(number), 2)
-        a = format(a, '.2f') 
-        return a[2:]
+        dec_no = round(number - int(number), 2)
+        dec_no = format(dec_no, '.2f') 
+        return dec_no[2:]
     def get_amt(self,value=False):
         locale.setlocale(locale.LC_NUMERIC, "en_IN")
         inr_comma_format = locale.format("%.0f", value, grouping=True)
