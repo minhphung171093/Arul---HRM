@@ -59,13 +59,14 @@ class Parser(report_sxw.rml_parse):
         wizard_data = self.localcontext['data']['form']
         active_selection = wizard_data['active_selection']
         res=[]
+        resource_obj = self.pool.get('resource.resource')
         emp_obj = self.pool.get('hr.employee')
         if active_selection=='active':
-            emp_ids = emp_obj.search(self.cr, self.uid, [('active','=', True)])
+            emp_ids = resource_obj.search(self.cr, self.uid, [('active','=', True)])
         elif active_selection=='inactive':
-            emp_ids = emp_obj.search(self.cr, self.uid, [('active','=',False)])
+            emp_ids = resource_obj.search(self.cr, self.uid, [('active','=',False)])
         else:
-            emp_ids = emp_obj.search(self.cr, self.uid, [])
+            emp_ids = resource_obj.search(self.cr, self.uid, [])
             
         for emp in emp_obj.browse(self.cr, self.uid, emp_ids):
             fa = ''
