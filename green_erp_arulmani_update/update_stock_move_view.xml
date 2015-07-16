@@ -24,6 +24,9 @@
 	            		<button name="map_issue_sm" string="Map Issue Stock Move" type="object" class="oe_highlight"/>
 	            		<button name="check_update_map_issue" string="Check and Update map Issue" type="object" class="oe_highlight"/>
 	            		<button name="update_sm_inv_iss" string="Update Stock Move and Invent and Issue" type="object" class="oe_highlight"/>
+	            		<button name="update_iss_12_14_15" string="Update iss_12_14_15" type="object" class="oe_highlight"/>
+	            		<button name="map_iss_12_14_15_sm" string="Update map_iss_12_14_15_sm" type="object" class="oe_highlight"/>
+	            		<button name="update_sm_inv_iss_12_14_15" string="Update sm_inv_iss_12_14_15" type="object" class="oe_highlight"/>
 		            </header>    
 	            	<group>
 	                    <field name="host" />
