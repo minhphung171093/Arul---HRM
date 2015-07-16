@@ -2367,11 +2367,15 @@ class tpt_update_stock_move_report(osv.osv):
     
     def create_one_issue_one_posting(self, cr, uid, ids, context=None):
         sql = '''
-            select id from tpt_material_issue where state = 'done'
+            select id from tpt_material_issue where state = 'done' and id not in (select material_issue_id from account_move where doc_type='good' and material_issue_id is not null) limit 500
         '''
         cr.execute(sql)
         issue_ids = [r[0] for r in cr.fetchall()]
+        dem = 1
+        if not issue_ids:
+            return self.write(cr, uid, ids, {'result':'create_one_issue_one_posting Done'}) 
         for line in self.pool.get('tpt.material.issue').browse(cr,uid,issue_ids):
+            journal_line = []
             date_period = line.date_expec
             sql = '''
                 select id from account_journal
@@ -2394,10 +2398,10 @@ class tpt_update_stock_move_report(osv.osv):
                     acc_asset = mater.product_id and mater.product_id.product_asset_acc_id and mater.product_id.product_asset_acc_id.id or False
                     if not acc_expense or not acc_asset:
                         raise osv.except_osv(_('Warning!'),_('Please configure Expense Account and Product Asset Account for all materials!'))
-                    avg_cost_ids = avg_cost_obj.search(cr, uid, [('product_id','=',mater.product_id.id),('warehouse_id','=',line.warehouse.id)])
+                    avg_cost_ids = self.pool.get('tpt.product.avg.cost').search(cr, uid, [('product_id','=',mater.product_id.id),('warehouse_id','=',line.warehouse.id)])
                     unit = 1
                     if avg_cost_ids:
-                        avg_cost_id = avg_cost_obj.browse(cr, uid, avg_cost_ids[0])
+                        avg_cost_id = self.pool.get('tpt.product.avg.cost').browse(cr, uid, avg_cost_ids[0])
                         unit = avg_cost_id.avg_cost or 0
                     sql = '''
                         select price_unit from stock_move where product_id=%s and product_qty=%s and issue_id=%s
@@ -2408,7 +2412,7 @@ class tpt_update_stock_move_report(osv.osv):
                         unit=move_price[0]
                     if not unit or unit<0:
                         unit=1
-                    price += unit * mater.product_isu_qty
+#                     price += unit * mater.product_isu_qty
                     product_price = unit * mater.product_isu_qty
                     
                     journal_line.append((0,0,{
@@ -2436,7 +2440,9 @@ class tpt_update_stock_move_report(osv.osv):
                     'doc_type':'good'
                     }
             new_jour_id = self.pool.get('account.move').create(cr,uid,value)
-        return self.write(cr, uid, ids, {'result':'create_one_issue_one_posting Done'})               
+            print 'Phuoc: ',dem, new_jour_id
+            dem+=1
+        return self.write(cr, uid, ids, {'result':'create_one_issue_one_posting Remaining'})               
     
     def update_price_unit_from_quanlity_inspection(self, cr, uid, ids, context=None):
         sql = '''
