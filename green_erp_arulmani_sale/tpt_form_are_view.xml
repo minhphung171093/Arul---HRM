@@ -30,7 +30,7 @@
 	            	<sheet>
 	            		<group col="4" colspan="2">
 	            			<field name="name"/>
-							<field name="date"/>
+							<!-- <field name="date"/>  -->
 							<field name="is_original"/>
 							<field name="is_duplicate"/>
 							<field name="is_triplicate"/>
@@ -38,15 +38,17 @@
 							<field name="is_extra"/>
 							<newline/>
 							<field name="invoice_no_id"  domain="[('sale_id','!=',False)]" options="{'create': false, 'create_edit': false}" />
-							<field name="consignment_to" options="{'create': false, 'create_edit': false}"/>
-							<field name="commisionarate_id" options="{'create': false, 'create_edit': false}"/>
+							<field name="excise_duty_id" />
+							<!-- <field name="consignment_to" options="{'create': false, 'create_edit': false}"/> 
+							<field name="commisionarate_id" options="{'create': false, 'create_edit': false}"/>-->
 							
 	            		</group>
+	            		<!-- 
 	            		<notebook>
 							<page string = "Export Details">
-								<group col="4" colspan="2">
-									<field name="manufacturer_id" />
-		            				<field name="ce_reg_no" />
+								<group col="4" colspan="2"> -->
+									<!-- <field name="manufacturer_id" />  -->
+		            				<!--<field name="ce_reg_no" />
 		            				<field name="package_description" />
 		            				<field name="marks_package" />
 		            				<label for="gross_weight"/>
@@ -69,7 +71,7 @@
 		            				<field name="invoiced_date" />
 		            				<field name="rebate_claimed_amt" />
 		            				<field name="remarks" />
-		            				<field name="excise_duty_id" />
+		            				
 		            				<field name="ed_amount" />
 		            				<field name="amount_usd" />
 		            				<field name="amount_inr" />
@@ -85,7 +87,7 @@
 									</tree>
 								</field>
 							</page>
-						</notebook>
+						</notebook>-->
 	            	</sheet>
 		         </form>
 			</field>
@@ -195,10 +197,10 @@
 	            				 <field name="to_mr_mess" />  -->
 	            				<field name="invoice_no_id" domain="[('sale_id','!=',False)]" options="{'create': false, 'create_edit': false}" on_change = "onchange_so_date(invoice_no_id)" />
 	            				<field name="excise_duty_id" required='1' options="{'create': false, 'create_edit': false}" />
-	            				
+	            				<field name="package_description" />
 	            			</group>
 	            			<group>
-	            				<field name="date" /><!-- 
+	            				<!-- <field name="date" />--><!-- 
 	            				<field name="range_to" />
 	            				<field name="reg_no_to" />
 	            				<field name="division_to" />-->
