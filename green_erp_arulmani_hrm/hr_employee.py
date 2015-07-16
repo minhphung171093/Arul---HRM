@@ -1168,7 +1168,7 @@ class meals_details(osv.osv):
         'employee_amt' : fields.function(evaluate_amt,digits=(16,2),type='float',string='Employee Amt',multi='sum',store=True), 
         'free_cost_1' : fields.many2one('food.subsidy', 'Free Cost 1',ondelete='restrict'),
         'free_cost_2' : fields.many2one('food.subsidy', 'Free Cost 2',ondelete='restrict'),
-        'meals_id': fields.many2one('meals.deduction','Meal Deduction',ondelete='restrict'),
+        'meals_id': fields.many2one('meals.deduction','Meal Deduction',ondelete='cascade'),
     }
     
 meals_details()

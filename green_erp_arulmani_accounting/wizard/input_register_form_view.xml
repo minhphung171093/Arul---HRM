@@ -32,7 +32,7 @@
 	    <menuitem id="menu_tpt_accounting" name="Accounting" parent="account.menu_finance" sequence="0" groups="green_erp_arulmani_sale.group_vvti_unit_account"/>
         <menuitem action="action_input_register_form_view"
             id="menu_action_input_register_form_view"
-            parent="menu_tpt_accounting" sequence="100"/>
+            parent="account.menu_finance_reporting" sequence="100"/>
 	 
 	    
     </data>

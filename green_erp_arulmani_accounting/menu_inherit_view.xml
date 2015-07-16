@@ -23,7 +23,7 @@
 		</record>
 		
 		<record model="ir.ui.menu" id="account.menu_finance_reports">
-	    	<field name="groups_id" eval="[(6,0, [ref('green_erp_arulmani_sale.group_vvti_unit_account')]),(4, ref('account.group_account_manager'))]"/>
+	    	<field name="groups_id" eval="[(6,0, [ref('green_erp_arulmani_sale.group_vvti_unit_account')]),(4, ref('account.group_account_manager')),(4, ref('green_erp_arulmani_accounting.group_vvti_accounting_user'))]"/>
 		</record>
 		
 		<record model="ir.ui.menu" id="account.menu_finance_periodical_processing">
@@ -46,10 +46,6 @@
 	    	<field name="groups_id" eval="[(6,0, [ref('green_erp_arulmani_sale.group_vvti_unit_account')]),(4, ref('account.group_account_manager'))]"/>
 		</record>
 		
-		<record model="ir.ui.menu" id="account.menu_account_supplier">
-	    	<field name="groups_id" eval="[(6,0, [ref('green_erp_arulmani_sale.group_vvti_unit_account')]),(4, ref('account.group_account_manager'))]"/>
-		</record>
-		
 		<record model="ir.ui.menu" id="account_voucher.menu_action_vendor_payment">
 	    	<field name="groups_id" eval="[(6,0, [ref('green_erp_arulmani_sale.group_vvti_unit_account')]),(4, ref('account.group_account_manager'))]"/>
 		</record>
@@ -59,11 +55,11 @@
 		</record>
 		
 		<record model="ir.ui.menu" id="account.menu_action_invoice_tree4">
-	    	<field name="groups_id" eval="[(6,0, [ref('green_erp_arulmani_sale.group_vvti_unit_account')]),(4, ref('account.group_account_manager'))]"/>
+	    	<field name="groups_id" eval="[(6,0, [ref('green_erp_arulmani_accounting.group_vvti_accounting_admin')])]"/>
 		</record>
 		
 		<record model="ir.ui.menu" id="account.menu_action_invoice_tree2"> 
-	    	<field name="groups_id" eval="[(6,0, [ref('green_erp_arulmani_sale.group_vvti_unit_account')]),(4, ref('account.group_account_manager')),(4, ref('green_erp_arulmani_purchase.group_vvti_purchase_store_mgr'))]"/>
+	    	<field name="groups_id" eval="[(6,0, [ref('green_erp_arulmani_sale.group_vvti_unit_account')]),(4, ref('account.group_account_manager')),(4, ref('green_erp_arulmani_purchase.group_vvti_purchase_store_mgr')),(4, ref('green_erp_arulmani_purchase.group_vvti_purchase_store_user'))]"/>
 		</record>
 		
 		<record model="ir.ui.menu" id="account.menu_account_customer">
@@ -79,11 +75,11 @@
 		</record> 
 		
 		<record model="ir.ui.menu" id="account.menu_action_invoice_tree3">
-	    	<field name="groups_id" eval="[(6,0, [ref('green_erp_arulmani_sale.group_vvti_unit_account')]),(4, ref('account.group_account_manager'))]"/>
+	    	<field name="groups_id" eval="[(6,0, [ref('green_erp_arulmani_accounting.group_vvti_accounting_admin')])]"/>
 		</record>
 		
 		<record model="ir.ui.menu" id="account.menu_action_invoice_tree1">
-	    	<field name="groups_id" eval="[(6,0, [ref('green_erp_arulmani_sale.group_vvti_unit_account')]),(4, ref('account.group_account_manager')),(4, ref('green_erp_arulmani_sale.group_vvti_sale_user')),(4, ref('green_erp_arulmani_sale.group_vvti_marketing_user'))]"/>
+	    	<field name="groups_id" eval="[(6,0, [ref('green_erp_arulmani_sale.group_vvti_unit_account')]),(4, ref('account.group_account_manager')),(4, ref('green_erp_arulmani_sale.group_vvti_sale_user')),(4, ref('green_erp_arulmani_sale.group_vvti_marketing_user')),(4, ref('green_erp_arulmani_accounting.group_vvti_mag_direct'))]"/>
 		</record>
 		
 		<!--<record model="ir.ui.menu" id="account_voucher.menu_encode_entries_by_voucher">
@@ -91,11 +87,11 @@
 		</record>-->
 		
 		<record model="ir.ui.menu" id="account_voucher.menu_encode_entries_by_voucher">
-	    	<field name="groups_id" eval="[(6,0, [ref('green_erp_arulmani_sale.group_vvti_unit_account'),ref('account.group_account_manager'),ref('green_erp_arulmani_sale.group_vvti_sale_user')])]"/>
+	    	<field name="groups_id" eval="[(6,0, [ref('green_erp_arulmani_sale.group_vvti_unit_account'),ref('account.group_account_manager'),ref('green_erp_arulmani_sale.group_vvti_sale_user'),ref('green_erp_arulmani_accounting.group_vvti_mag_direct')])]"/>
 		</record>
 		
 		<record model="ir.ui.menu" id="hr.menu_open_view_employee_list_my">
-	    	<field name="groups_id" eval="[(6,0, [ref('green_erp_arulmani_hrm.group_vvti_hrm_hr_manager'),ref('green_erp_arulmani_hrm.group_vvti_hrm_hr_user'),ref('green_erp_arulmani_hrm.group_vvti_hrm_time_user')])]"/>
+	    	<field name="groups_id" eval="[(6,0, [ref('green_erp_arulmani_hrm.group_vvti_hrm_hr_manager'),ref('green_erp_arulmani_hrm.group_vvti_hrm_hr_user'),ref('green_erp_arulmani_hrm.group_vvti_hrm_time_user'),ref('green_erp_arulmani_hrm.group_vvti_hrm_payroll_controller')])]"/>
 		</record>
 		
 		<menuitem action="base.action_currency_form" id="base.menu_action_currency_form" parent="account.menu_finance_configuration" sequence="123" groups="base.group_multi_currency,green_erp_arulmani_sale.group_vvti_unit_account"/>
@@ -141,15 +137,15 @@
 		</record>
 		
 		<record model="ir.ui.menu" id="purchase.menu_product_in_config_purchase">
-		    <field name="groups_id" eval="[(4, ref('group_vvti_accounting_user'))]" />
+		    <field name="groups_id" eval="[(4, ref('group_vvti_accounting_user')),(4, ref('green_erp_arulmani_purchase.group_vvti_hrm_plant_mm_user')),(4, ref('green_erp_arulmani_purchase.group_vvti_purchase_user')),(4, ref('green_erp_arulmani_purchase.group_vvti_purchase_store_user'))]" />
 		</record>
 		
 		<record model="ir.ui.menu" id="purchase.menu_purchase_config_purchase">
-		    <field name="groups_id" eval="[(4, ref('group_vvti_accounting_user'))]" />
+		    <field name="groups_id" eval="[(4, ref('group_vvti_accounting_user')),(4, ref('green_erp_arulmani_purchase.group_vvti_hrm_plant_mm_user')),(4, ref('green_erp_arulmani_purchase.group_vvti_purchase_user')),(4, ref('green_erp_arulmani_purchase.group_vvti_purchase_store_user'))]" />
 		</record>
 		
 		<record model="ir.ui.menu" id="green_erp_arulmani_purchase.menu_action_view_tpt_gate_in_pass_tree">
-		    <field name="groups_id" eval="[(4, ref('group_vvti_accounting_user'))]" />
+		    <field name="groups_id" eval="[(6,0, [ref('group_vvti_accounting_user'),ref('green_erp_arulmani_purchase.group_vvti_purchase_store_user')])]" />
 		</record>
 		
 		<record model="ir.ui.menu" id="stock.menu_stock_root">
@@ -157,7 +153,7 @@
 		</record>
 		
 		<record model="ir.ui.menu" id="stock.menu_action_picking_tree4">
-		    <field name="groups_id" eval="[(4, ref('group_vvti_accounting_user'))]" />
+		    <field name="groups_id" eval="[(4, ref('group_vvti_accounting_user')),(4, ref('green_erp_arulmani_purchase.group_vvti_purchase_user'))]" />
 		</record>
 		
 		<record model="ir.ui.menu" id="green_erp_arulmani_purchase.menu_action_view_tpt_quanlity_inspection_spares_form">
@@ -165,7 +161,7 @@
 		</record>
 		
 		<record model="ir.ui.menu" id="green_erp_arulmani_purchase.menu_action_view_tpt_quanlity_inspection_raw_form">
-		    <field name="groups_id" eval="[(4, ref('group_vvti_accounting_user'))]" />
+		    <field name="groups_id" eval="[(4, ref('group_vvti_accounting_user')),(4, ref('green_erp_arulmani_purchase.group_vvti_purchase_store_user'))]" />
 		</record>
 		
 		<record model="ir.ui.menu" id="base.menu_mrp_root">
@@ -201,7 +197,7 @@
 		</record>
 		
 		<record model="ir.ui.menu" id="green_erp_arulmani_accounting.menu_action_invoice_supplier_without_po">
-		    <field name="groups_id" eval="[(4, ref('group_vvti_accounting_user'))]" />
+		    <field name="groups_id" eval="[(6,0, [ref('group_vvti_accounting_user')])]" />
 		</record>
 		
 		<record model="ir.ui.menu" id="green_erp_arulmani_accounting.menu_action_invoice_service">
@@ -213,7 +209,7 @@
 		</record>
 		
 		<record model="ir.ui.menu" id="account.menu_account_supplier">
-		    <field name="groups_id" eval="[(4, ref('group_vvti_accounting_user'))]" />
+		    <field name="groups_id" eval="[(4, ref('group_vvti_accounting_user')),(4, ref('green_erp_arulmani_purchase.group_vvti_purchase_user'))]" />
 		</record>
 		
 		<record model="ir.ui.menu" id="account.menu_action_account_moves_all">
@@ -249,7 +245,7 @@
 		</record>
 		
 		<record model="ir.ui.menu" id="account.menu_action_bank_tree">
-		    <field name="groups_id" eval="[(4, ref('group_vvti_accounting_mgr'))]" />
+		    <field name="groups_id" eval="[(4, ref('group_vvti_accounting_mgr')),(4, ref('group_vvti_accounting_gm'))]" />
 		</record>
 		
 		<record model="ir.ui.menu" id="account.account_account_menu">
@@ -257,7 +253,11 @@
 		</record>
 		
 		<record model="ir.ui.menu" id="green_erp_arulmani_accounting.menu_action_daily_sale_form_view">
-		    <field name="groups_id" eval="[(4, ref('group_vvti_accounting_user')),(4, ref('green_erp_arulmani_production.group_vvti_production_user'))]" />
+		    <field name="groups_id" eval="[(4, ref('group_vvti_accounting_user')),
+		    								(4, ref('green_erp_arulmani_production.group_vvti_production_user')),
+		    								(4, ref('green_erp_arulmani_sale.group_vvti_sale_user')),
+		    								(4, ref('green_erp_arulmani_sale.group_vvti_marketing_user')),
+		    								(4, ref('green_erp_arulmani_accounting.group_vvti_mag_direct'))]" />
 		</record>
 		
 		<record model="ir.ui.menu" id="green_erp_arulmani_accounting.menu_action_w_form_view">
@@ -277,11 +277,15 @@
 		</record>
 		
 		<record model="ir.ui.menu" id="green_erp_arulmani_accounting.menu_action_customer_ledger_statement_view">
-		    <field name="groups_id" eval="[(4, ref('group_vvti_accounting_user'))]" />
+		    <field name="groups_id" eval="[(4, ref('group_vvti_accounting_user')),
+		    								(4, ref('green_erp_arulmani_sale.group_vvti_sale_user')),
+		    								(4, ref('green_erp_arulmani_sale.group_vvti_marketing_user')),
+		    								(4, ref('green_erp_arulmani_accounting.group_vvti_mag_direct'))]" />
 		</record>
 		
 		<record model="ir.ui.menu" id="green_erp_arulmani_accounting.menu_action_supplier_ledger_statement_view">
-		    <field name="groups_id" eval="[(4, ref('group_vvti_accounting_user'))]" />
+		    <field name="groups_id" eval="[(4, ref('group_vvti_accounting_user')),
+		    								(4, ref('green_erp_arulmani_purchase.group_vvti_purchase_user'))]" />
 		</record>
 		
 		<record model="ir.ui.menu" id="green_erp_arulmani_accounting.menu_action_general_ledger_statement_view">
@@ -361,7 +365,7 @@
 		</record>
 		
 		<record model="ir.ui.menu" id="green_erp_arulmani_purchase.menu_action_view_tpt_purchase_indent_form">
-		    <field name="groups_id" eval="[(4, ref('group_vvti_accounting_user'))]" />
+		    <field name="groups_id" eval="[(4, ref('group_vvti_accounting_user')),(4, ref('green_erp_arulmani_purchase.group_vvti_purchase_store_user')),(4, ref('green_erp_arulmani_sale.group_vvti_sale_user')),(4, ref('green_erp_arulmani_accounting.group_vvti_mag_direct'))]" />
 		</record>
 		
 		<record model="ir.ui.menu" id="purchase.menu_purchase_form_action">
@@ -375,5 +379,138 @@
 		<record model="ir.ui.menu" id="product.menu_product_uom_form_action">
 		    <field name="groups_id" eval="[(4, ref('group_vvti_accounting_user'))]" />
 		</record>
+		
+		<record model="ir.ui.menu" id="green_erp_arulmani_hrm.menu_action_arul_hr_punch_in_out_form">
+	    	<field name="groups_id" eval="[(6,0, [ref('green_erp_arulmani_hrm.group_vvti_hrm_hr_key_user'),ref('green_erp_arulmani_hrm.group_vvti_hrm_hr_manager'),ref('green_erp_arulmani_hrm.group_vvti_hrm_payroll_controller'),ref('green_erp_arulmani_hrm.group_vvti_hrm_time_key_user')])]"/>
+		</record>
+		
+		<record model="ir.ui.menu" id="base.next_id_64">
+		    <field name="groups_id" eval="[(4, ref('green_erp_arulmani_sale.group_vvti_sale_user')),
+		    								(4, ref('green_erp_arulmani_sale.group_vvti_marketing_user')),
+		    								(4, ref('green_erp_arulmani_production.group_vvti_production_user')),
+		    								(4, ref('green_erp_arulmani_accounting.group_vvti_accounting_user')),
+		    								(4, ref('green_erp_arulmani_accounting.group_vvti_mag_direct'))]" />
+		</record>
+		
+		<record model="ir.ui.menu" id="base.menu_mrp_root">
+		    <field name="groups_id" eval="[(4, ref('green_erp_arulmani_purchase.group_vvti_purchase_store_key_user'))]"/>
+		</record>
+		
+		<record model="ir.ui.menu" id="mrp.menu_mrp_bom_form_action">
+		    <field name="groups_id" eval="[(4, ref('green_erp_arulmani_accounting.group_vvti_accounting_user')),
+		    								(4, ref('green_erp_arulmani_production.group_vvti_production_user'))]"/>
+		</record>
+		
+		<record model="ir.ui.menu" id="mrp.menu_mrp_production_action">
+		    <field name="groups_id" eval="[(4, ref('green_erp_arulmani_production.group_vvti_production_user'))]"/>
+		</record>
+		
+		<record model="ir.ui.menu" id="account.menu_action_payment_term_form">
+		    <field name="groups_id" eval="[(4, ref('group_vvti_accounting_user'))]" />
+		</record>
+		
+		<record model="ir.ui.menu" id="crm.menu_crm_payment_mode_act">
+		    <field name="groups_id" eval="[(4, ref('group_vvti_accounting_user'))]" />
+		</record>
+		
+		<record model="ir.ui.menu" id="base.menu_crm_config_lead">
+		    <field name="groups_id" eval="[(4, ref('group_vvti_accounting_user'))]" />
+		</record>
+		
+		<record model="ir.ui.menu" id="base.menu_base_config">
+		    <field name="groups_id" eval="[(4, ref('group_vvti_accounting_user'))]" />
+		</record>
+		
+		<record model="ir.ui.menu" id="menu_action_view_tpt_vendor_sub_group_form">
+	    	<field name="groups_id" eval="[(6,0,[ref('base.user_root')])]"/>
+		</record>
+		
+		<record model="ir.ui.menu" id="menu_action_vendor_reconcile">
+	    	<field name="groups_id" eval="[(6,0,[ref('group_vvti_accounting_admin')])]"/>
+		</record>
+		
+		<record model="ir.ui.menu" id="menu_action_supplier_reconcile">
+	    	<field name="groups_id" eval="[(6,0,[ref('group_vvti_accounting_admin')])]"/>
+		</record>
+		
+		<record model="ir.ui.menu" id="purchase.menu_procurement_partner_contact_form"> 
+	    	<field name="groups_id" eval="[(4, ref('group_vvti_accounting_user')),
+	    									(4, ref('green_erp_arulmani_production.group_vvti_production_user'))]"/>
+		</record>
+		
+		<record model="ir.ui.menu" id="stock.menu_action_picking_tree6">
+	    	<field name="groups_id" eval="[(6, 0,[ref('base.user_root')])]"/>
+		</record>
+		
+		<record model="ir.ui.menu" id="stock.menu_stock_products_moves">
+		    <field name="groups_id" eval="[(6, 0, [ref('green_erp_arulmani_sale.group_vvti_sale_user'),ref('green_erp_arulmani_accounting.group_vvti_mag_direct')])]" />
+		</record>
+		
+		<record model="ir.ui.menu" id="stock.menu_action_location_tree">
+		    <field name="groups_id" eval="[(6, 0, [ref('green_erp_arulmani_sale.group_vvti_sale_user'),ref('green_erp_arulmani_accounting.group_vvti_mag_direct')])]" />
+		</record>
+		
+		<record model="ir.ui.menu" id="stock.menu_stock_product">
+		    <field name="groups_id" eval="[(6, 0, [ref('green_erp_arulmani_sale.group_vvti_sale_user'),ref('green_erp_arulmani_accounting.group_vvti_mag_direct')])]" />
+		</record>
+		
+		<record model="ir.ui.menu" id="green_erp_arulmani_crm.menu_vvti_master">
+	    	<field name="groups_id" eval="[(6, 0,[])]"/>
+		</record>
+		
+		<record model="ir.ui.menu" id="green_erp_arulmani_accounting.menu_action_tds_for_view">
+	    	<field name="groups_id" eval="[(6, 0,[ref('group_vvti_accounting_user')])]"/>
+		</record>
+		
+		<record model="ir.ui.menu" id="green_erp_arulmani_accounting.menu_general_Balance_report">
+		    <field name="groups_id" eval="[(4, ref('group_vvti_accounting_user'))]" />
+		</record>
+		
+		<record model="ir.ui.menu" id="green_erp_arulmani_purchase.menu_action_stock_inward_outward_report_view">
+		    <field name="groups_id" eval="[(4, ref('green_erp_arulmani_purchase.group_vvti_purchase_user')),
+		    								(4, ref('green_erp_arulmani_purchase.group_vvti_purchase_store_user')),
+		    								(4, ref('green_erp_arulmani_production.group_vvti_production_user')),
+		    								(4, ref('group_vvti_accounting_user')),
+		    								(4, ref('green_erp_arulmani_purchase.group_vvti_hrm_plant_mm_user'))]" />
+		</record>
+		
+		<record model="ir.ui.menu" id="green_erp_arulmani_purchase.menu_action_stock_movement_analysis_view">
+		    <field name="groups_id" eval="[(4, ref('green_erp_arulmani_purchase.group_vvti_purchase_user')),
+		    								(4, ref('green_erp_arulmani_purchase.group_vvti_purchase_store_user')),
+		    								(4, ref('green_erp_arulmani_production.group_vvti_production_user')),
+		    								(4, ref('group_vvti_accounting_user'))]" />
+		</record>
+		
+		<record model="ir.ui.menu" id="green_erp_arulmani_purchase.menu_action_tpt_raw_stock_statement_view">
+		    <field name="groups_id" eval="[(4, ref('green_erp_arulmani_purchase.group_vvti_purchase_user')),
+		    								(4, ref('green_erp_arulmani_purchase.group_vvti_purchase_store_user')),
+		    								(4, ref('green_erp_arulmani_production.group_vvti_production_user')),
+		    								(4, ref('group_vvti_accounting_user'))]" />
+		</record>
+		
+		<record model="ir.ui.menu" id="green_erp_arulmani_purchase.menu_action_stock_on_hand_report_view">
+		    <field name="groups_id" eval="[(6, 0, [ref('green_erp_arulmani_hrm.group_vvti_hrm_hr_key_user'),
+		    									ref('green_erp_arulmani_hrm.group_vvti_hrm_time_user'),
+		    									ref('green_erp_arulmani_hrm.group_vvti_hrm_plant_hr_user'),
+		    									ref('green_erp_arulmani_sale.group_vvti_marketing_user')])]" />
+		</record>
+		
+		<record model="ir.ui.menu" id="green_erp_arulmani_accounting.menu_action_batch_wise_stock_view">
+		    <field name="groups_id" eval="[(6, 0, [ref('group_vvti_accounting_user'),
+		    									ref('green_erp_arulmani_sale.group_vvti_sale_user'),
+		    									ref('green_erp_arulmani_sale.group_vvti_marketing_user')])]" />
+		</record>
+		
+		<record model="ir.ui.menu" id="green_erp_arulmani_crm.menu_list_employee_report">
+		    <field name="groups_id" eval="[(6, 0, [ref('green_erp_arulmani_hrm.group_vvti_hrm_hr_user'),
+		    									ref('green_erp_arulmani_hrm.group_vvti_hrm_payroll_controller')])]" />
+		</record>
+		
+		<record model="ir.ui.menu" id="green_erp_arulmani_hrm.menu_action_leave_balance_report">
+		    <field name="groups_id" eval="[(6, 0, [ref('green_erp_arulmani_hrm.group_vvti_hrm_hr_user'),
+		    									ref('green_erp_arulmani_hrm.group_vvti_hrm_time_user'),
+		    									ref('green_erp_arulmani_hrm.group_vvti_hrm_payroll_controller')])]" />
+		</record>
+		
     </data>
 </openerp>

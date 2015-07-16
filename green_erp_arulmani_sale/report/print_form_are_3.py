@@ -33,8 +33,6 @@ class Parser(report_sxw.rml_parse):
             'get_edamt':self.get_edamt,
         })
     def get_amt(self,value=False):
-        #value = float(value)
-        
         locale.setlocale(locale.LC_NUMERIC, "en_IN")
         inr_comma_format = locale.format("%.0f", value, grouping=True)
         return inr_comma_format

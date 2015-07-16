@@ -1165,7 +1165,7 @@ class tpt_gate_in_pass(osv.osv):
             gate_in_pass_line = []
             for line in po.order_line:
                 gate_in_pass_line.append({
-                            'po_indent_no': po.po_indent_no and po.po_indent_no.id or False,
+                            'po_indent_no': line.po_indent_no and line.po_indent_no.id or False,
                           'product_id': line.product_id and line.product_id.id or False,
                           'product_qty':line.product_qty or False,
                           'uom_po_id': line.product_uom and line.product_uom.id or False,
@@ -3535,6 +3535,12 @@ class tpt_quanlity_inspection(osv.osv):
             move_id = move_obj.create(cr,uid,rs)
             move_obj.action_done(cr, uid, [move_id])
         return self.write(cr, uid, ids, {'state':'cancel'})
+    
+    def create(self, cr, uid, vals, context=None):
+        return super(tpt_quanlity_inspection, self).create(cr,1, vals, context)
+    
+    def write(self, cr, uid,ids, vals, context=None):
+        return super(tpt_quanlity_inspection, self).write(cr,1,ids,vals,context) 
 
 #     def onchange_grn_no(self, cr, uid, ids,name=False, context=None):
 #         vals = {}
@@ -4892,7 +4898,7 @@ class tpt_material_issue(osv.osv):
     _columns = {
         'name': fields.many2one('tpt.material.request','Material Request No',required = True,states={'done':[('readonly', True)]}),
         'date_request':fields.date('Material Request Date',states={'done':[('readonly', True)]}),
-        'date_expec':fields.date('Material Issue Date'),
+        'date_expec':fields.date('Material Issue Date',states={'done':[('readonly', True)]}),
         'department_id':fields.many2one('hr.department','Department',readonly=True),
         'request_type':fields.selection([('production', 'Production'),('normal', 'Normal'),('main', 'Maintenance')],'Request Type', states={'done':[('readonly', True)]}),
         'material_issue_line':fields.one2many('tpt.material.issue.line','material_issue_id','Vendor Group',states={'done':[('readonly', True)]}),
@@ -4900,6 +4906,7 @@ class tpt_material_issue(osv.osv):
         'doc_no': fields.char('Document Number', size = 1024,readonly = True),
         'cost_center_id': fields.many2one('tpt.cost.center','Cost center',states={'done':[('readonly', True)]}),
         'flag': fields.boolean('Flag'),
+        'again': fields.boolean('Create again'),
                 }
     _defaults = {
         'flag': False,
@@ -5142,7 +5149,7 @@ class tpt_material_issue_line(osv.osv):
             '''%(vals['request_line_id'])
             cr.execute(sql)
             kq = cr.fetchone()[0]
-            if 'request_line_id' in vals and (vals['product_uom_qty']-kq) < vals['product_isu_qty']:
+            if 'request_line_id' in vals and (vals['product_uom_qty']-kq) < vals['product_isu_qty'] and not context.get('create_issue_again',False):
                 raise osv.except_osv(_('Warning!'),_('Quantity must be less than Material Request quantity!'))
         new_id = super(tpt_material_issue_line, self).create(cr, uid, vals, context)
         if 'product_isu_qty' in vals:
