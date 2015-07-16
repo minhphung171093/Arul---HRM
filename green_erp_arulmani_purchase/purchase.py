@@ -4934,6 +4934,7 @@ class tpt_material_issue(osv.osv):
         'cost_center_id': fields.many2one('tpt.cost.center','Cost center',states={'done':[('readonly', True)]}),
         'flag': fields.boolean('Flag'),
         'again': fields.boolean('Create again'),
+        'april': fields.boolean('Create again'), # 3 issue 12, 14, 15
                 }
     _defaults = {
         'flag': False,

@@ -831,7 +831,7 @@ class stock_inward_outward_report(osv.osv_memory):
             'date_to':stock.date_to,
             'stock_in_out_line': stock_in_out_line,
             'opening_stock': get_opening_stock(stock) - get_qty_opening_chuaro(stock),
-            'closing_stock': closing_stock + get_opening_stock(stock) + qty_physical_inve(stock) - get_qty_chuaro(stock),
+            'closing_stock': closing_stock + (get_opening_stock(stock) - get_qty_opening_chuaro(stock)) + qty_physical_inve(stock) - get_qty_chuaro(stock),
             'opening_value': get_opening_stock_value(stock),
             'closing_value': self.st_sum_value + get_opening_stock_value(stock),
         }
