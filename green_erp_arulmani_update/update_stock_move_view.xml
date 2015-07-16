@@ -20,6 +20,10 @@
 	            <form string="Update Stock Move" version="7.0">
 		            <header>
 	            		<button name="update_tm" string="Update Stock Move" type="object" class="oe_highlight"/>
+	            		<button name="update_issue" string="Update Issue" type="object" class="oe_highlight"/>
+	            		<button name="map_issue_sm" string="Map Issue Stock Move" type="object" class="oe_highlight"/>
+	            		<button name="check_update_map_issue" string="Check and Update map Issue" type="object" class="oe_highlight"/>
+	            		<button name="update_sm_inv_iss" string="Update Stock Move and Invent and Issue" type="object" class="oe_highlight"/>
 		            </header>    
 	            	<group>
 	                    <field name="host" />

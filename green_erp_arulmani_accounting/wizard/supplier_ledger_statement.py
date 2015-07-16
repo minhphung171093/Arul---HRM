@@ -165,7 +165,7 @@ class supplier_ledger_statement(osv.osv_memory):
                 'date': line.move_id and line.move_id.date or '',
                 'document_no': line.move_id and line.move_id.name or '',
                 'narration': line.move_id and line.move_id.narration or '',
-                'sale_order_no': get_so_no(line.move_id.id, line.move_id.doc_type) + ' - ' + get_so_date(line.move_id.id, line.move_id.doc_type),
+                'sale_order_no': get_so_no(line.move_id.id, line.move_id.doc_type) + ' ' + get_so_date(line.move_id.id, line.move_id.doc_type), #YuVi
                 'reference': line.move_id and line.move_id.ref or '',
                 'invoice_no': get_inv_no(line.move_id.id, line.move_id.doc_type),
                 'bill_no': get_bill_no(line.move_id.id, line.move_id.doc_type),
@@ -258,7 +258,7 @@ class tpt_supplier_ledger_line(osv.osv):
         'ledger_id': fields.many2one('tpt.supplier.ledger', 'Supplier Ledger', ondelete='cascade'),
         'date': fields.date('Posting Date'),
         'document_no': fields.char('Posting Doc.No.', size = 1024),
-        'reference': fields.char('Reference', size = 1024),
+        'reference': fields.char('Reference', size = 1024),        
         'narration': fields.char('Narration', size = 1024),
         'sale_order_no': fields.char('Purchase Order No. & Date', size = 1024),
         'invoice_no': fields.char('Invoice No', size = 1024),
