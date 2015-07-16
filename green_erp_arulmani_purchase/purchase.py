@@ -4906,6 +4906,7 @@ class tpt_material_issue(osv.osv):
         'doc_no': fields.char('Document Number', size = 1024,readonly = True),
         'cost_center_id': fields.many2one('tpt.cost.center','Cost center',states={'done':[('readonly', True)]}),
         'flag': fields.boolean('Flag'),
+        'again': fields.boolean('Create again'),
                 }
     _defaults = {
         'flag': False,
