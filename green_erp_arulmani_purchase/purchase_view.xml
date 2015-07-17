@@ -1592,6 +1592,8 @@
 		                	<field name="good_id" context="{'search_good_return_request':True}"  on_change = "onchange_good_id(good_id)" options="{'create': false, 'create_edit': false}"  />
 		                	<field name="grn_id"  options="{'create': false, 'create_edit': false}"/>
 		                	<field name="gate_date_time"/>
+		                	<field name="header_text"/>
+		                	<field name="invoice_no"/>
 			                <field name="po_id" options="{'create': false, 'create_edit': false}"/>
 			                <field name="supplier_id" domain="[('supplier','=',1)]" options="{'create': false, 'create_edit': false}"/>
 						</group>
