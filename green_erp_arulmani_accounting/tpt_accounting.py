@@ -4724,7 +4724,7 @@ class account_move(osv.osv):
                                   ('staff_payroll', 'Staff Payroll'),
                                   ('freight', 'Freight Invoice'),
                                   ('worker_payroll', 'Workers Payroll')],'Document Type'),  
-        'material_issue_id': fields.many2one('tpt.material.issue','Material Issue'), 
+        'material_issue_id': fields.many2one('tpt.material.issue','Material Issue',ondelete='restrict'), 
                                   
                 }
 account_move()
