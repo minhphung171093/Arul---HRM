@@ -793,11 +793,11 @@ class stock_movement_analysis(osv.osv_memory):
             else:
                 return self.current_transaction_qty*self.current_price_unit
             
-        def get_qty_opening_chuaro(o):
+        def get_qty_opening_chuaro(o, product_id):
             date_from = o.date_from
             date_to = o.date_to
-            product_id = o.product_id
-            categ = product_id.categ_id.cate_name
+#             product_id = o.product_id
+            categ = o.categ_id.cate_name
             if categ == 'raw':
                 parent_ids = self.pool.get('stock.location').search(cr, uid, [('name','=','Store'),('usage','=','view')])
                 locat_ids = self.pool.get('stock.location').search(cr, uid, [('name','in',['Raw Material','Raw Materials','Raw material']),('location_id','=',parent_ids[0])])
@@ -806,7 +806,7 @@ class stock_movement_analysis(osv.osv_memory):
                     from stock_move where product_id = %s and state = 'done' and issue_id is null 
                     and picking_id is null and inspec_id is null and location_id = %s 
                     and to_date(to_char(date, 'YYYY-MM-DD'), 'YYYY-MM-DD') < '%s' and location_id != location_dest_id
-                '''%(product_id.id, locat_ids[0], date_from)
+                '''%(product_id, locat_ids[0], date_from)
                 cr.execute(sql)
                 product_qty_chuaro = cr.dictfetchone()['product_qty_chuaro']
             if categ == 'spares':
@@ -817,7 +817,7 @@ class stock_movement_analysis(osv.osv_memory):
                     from stock_move where product_id = %s and state = 'done' and issue_id is null 
                     and picking_id is null and inspec_id is null and location_id = %s 
                     and to_date(to_char(date, 'YYYY-MM-DD'), 'YYYY-MM-DD') < '%s' and location_id != location_dest_id
-                '''%(product_id.id, locat_ids[0], date_from)
+                '''%(product_id, locat_ids[0], date_from)
                 cr.execute(sql)
                 product_qty_chuaro = cr.dictfetchone()['product_qty_chuaro']
             return product_qty_chuaro
@@ -1004,7 +1004,7 @@ class stock_movement_analysis(osv.osv_memory):
                 'item_code': line.default_code,
                 'item_name': line.name,
                 'uom':line.uom_id and line.uom_id.name or 0,
-                'open_stock': get_opening_stock(stock,line.id)-get_qty_opening_chuaro(stock),
+                'open_stock': get_opening_stock(stock,line.id)-get_qty_opening_chuaro(stock, line.id),
                 'open_value': get_opening_stock_value(stock,line.id),
                 'receipt_qty':get_qty(stock,line.id),
                 'receipt_value':get_receipt_value(stock,line.id),
@@ -1012,7 +1012,7 @@ class stock_movement_analysis(osv.osv_memory):
 #phuoc grn                'consum_value': (get_qty(stock,line.id)*get_qty_out(stock,line.id)) and (get_receipt_value(stock,line.id)/get_qty(stock,line.id)*get_qty_out(stock,line.id)) or 0,
 #                 'consum_value':(get_opening_stock(stock,line.id)+get_qty(stock,line.id)) and ((get_receipt_value(stock,line.id)+get_opening_stock_value(stock,line.id))/(get_opening_stock(stock,line.id)+get_qty(stock,line.id))*get_qty_out(stock,line.id)) or 0 ,    
                 'consum_value': good , 
-                'close_stock':get_qty(stock,line.id) - get_qty_out(stock,line.id) + (get_opening_stock(stock,line.id)-get_qty_opening_chuaro(stock)) - get_qty_chuaro(stock,line.id),
+                'close_stock':get_qty(stock,line.id) - get_qty_out(stock,line.id) + (get_opening_stock(stock,line.id)-get_qty_opening_chuaro(stock, line.id)) - get_qty_chuaro(stock,line.id),
 #phuoc grn                'close_value': get_opening_stock_value(stock,line.id)+get_receipt_value(stock,line.id)-(get_qty(stock,line.id) and (get_receipt_value(stock,line.id)/get_qty(stock,line.id)*get_qty_out(stock,line.id)) or 0)
                 'close_value': get_opening_stock_value(stock,line.id)+get_receipt_value(stock,line.id)-(good),   
             

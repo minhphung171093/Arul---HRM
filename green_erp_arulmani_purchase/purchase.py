@@ -3443,7 +3443,7 @@ class tpt_quanlity_inspection(osv.osv):
     
     _columns = {
         'name' : fields.many2one('stock.picking.in','GRN No',required = True,readonly = True,states={'cancel': [('readonly', True)], 'done':[('readonly', True)]}),
-        'need_inspec_id':fields.many2one('stock.move','Need Inspec',states={'cancel': [('readonly', True)], 'done':[('readonly', True)]}),
+        'need_inspec_id':fields.many2one('stock.move','Need Inspec',ondelete='restrict',states={'cancel': [('readonly', True)], 'done':[('readonly', True)]}),
         'date':fields.datetime('Create Date',readonly = True,states={'cancel': [('readonly', True)], 'done':[('readonly', True)]}),
         'supplier_id':fields.many2one('res.partner','Supplier',required = True,readonly = True,states={'cancel': [('readonly', True)], 'done':[('readonly', True)]}),
         'product_id': fields.many2one('product.product', 'Product',required = True,readonly = True,states={'cancel': [('readonly', True)], 'done':[('readonly', True)]}),
@@ -3589,6 +3589,7 @@ class tpt_gate_out_pass(osv.osv):
         'grn_id': fields.many2one('stock.picking.in','Old GRN No', readonly = True), 
         'good_id': fields.many2one('tpt.good.return.request','Goods Return Request No', required = True), 
         'header_text':fields.text('Header Text',readonly=True),
+        'invoice_no':fields.char('DC/Invoice No',size = 64, readonly=True),
         'gate_date_time': fields.datetime('Gate Out Pass Date & Time'),
         'gate_out_pass_line': fields.one2many('tpt.gate.out.pass.line', 'gate_out_pass_id', 'Product Details', readonly = True),
         'state':fields.selection([('draft', 'Draft'),('cancel', 'Cancel'),('confirm', 'Confirm'),('done', 'Done')],'Status', readonly=True, states={'cancel': [('readonly', True)], 'done':[('readonly', True)]}),
@@ -3612,6 +3613,8 @@ class tpt_gate_out_pass(osv.osv):
                     }))
                 vals.update({
                     'grn_id':good_req_id.grn_no_id.id or False,
+                    'header_text': good_req_id.grn_no_id.header_text or '',
+                    'invoice_no': good_req_id.grn_no_id.invoice_no or '',
                     'supplier_id': good_req_id.grn_no_id and good_req_id.grn_no_id.partner_id and good_req_id.grn_no_id.partner_id.id or False,
                     'po_id': good_req_id.grn_no_id and good_req_id.grn_no_id.purchase_id and good_req_id.grn_no_id.purchase_id.id or False,
                     'gate_out_pass_line': gate_out_pass_line,
@@ -3635,6 +3638,8 @@ class tpt_gate_out_pass(osv.osv):
                     }))
                 vals.update({
                     'grn_id':good_req_id.grn_no_id.id or False,
+                    'header_text': good_req_id.grn_no_id.header_text or '',
+                    'invoice_no': good_req_id.grn_no_id.invoice_no or '',
                     'supplier_id': good_req_id.grn_no_id and good_req_id.grn_no_id.partner_id and good_req_id.grn_no_id.partner_id.id or False,
                     'po_id': good_req_id.grn_no_id and good_req_id.grn_no_id.purchase_id and good_req_id.grn_no_id.purchase_id.id or False,
                     'gate_out_pass_line': gate_out_pass_line,
@@ -3796,11 +3801,14 @@ class tpt_gate_out_pass(osv.osv):
     
     def bt_cancel(self, cr, uid, ids, context=None):
         return self.write(cr, uid, ids,{'state':'cancel'})
+    
     def onchange_good_id(self, cr, uid, ids,good_id=False):
         res = {'value':{
                         'supplier_id':False,
                         'po_id':False,
                         'grn_id':False,
+                        'header_text':False,
+                        'invoice_no':False,
                         'gate_out_pass_line':[],
                       }
                }
@@ -3809,24 +3817,26 @@ class tpt_gate_out_pass(osv.osv):
                 delete from tpt_gate_out_pass_line where gate_out_pass_id = %s
             '''%(good.id)
             cr.execute(sql)
-            if good_id:
-    
-                gate_out_pass_line = []
-    #             good_req_ids = self.pool.get('tpt.good.return.request').search(cr, uid,[('grn_no_id','=',good_id)])
-                good_req_id = self.pool.get('tpt.good.return.request').browse(cr,uid,good_id)
-                for line in good_req_id.product_detail_line:
-                    gate_out_pass_line.append((0,0,{
-                              'product_id': line.product_id and line.product_id.id or False,
-                              'product_qty':line.product_qty or False,
-                              'uom_po_id': line.uom_po_id and line.uom_po_id.id or False,
-                              'reason': line.reason or False,
-                        }))
-            res['value'].update({
-                        'grn_id':good_req_id.grn_no_id.id or False,
-                        'supplier_id': good_req_id.grn_no_id and good_req_id.grn_no_id.partner_id and good_req_id.grn_no_id.partner_id.id or False,
-                        'po_id': good_req_id.grn_no_id and good_req_id.grn_no_id.purchase_id and good_req_id.grn_no_id.purchase_id.id or False,
-                        'gate_out_pass_line': gate_out_pass_line,
-            })
+        if good_id:
+
+            gate_out_pass_line = []
+#             good_req_ids = self.pool.get('tpt.good.return.request').search(cr, uid,[('grn_no_id','=',good_id)])
+            good_req_id = self.pool.get('tpt.good.return.request').browse(cr,uid,good_id)
+            for line in good_req_id.product_detail_line:
+                gate_out_pass_line.append((0,0,{
+                          'product_id': line.product_id and line.product_id.id or False,
+                          'product_qty':line.product_qty or False,
+                          'uom_po_id': line.uom_po_id and line.uom_po_id.id or False,
+                          'reason': line.reason or False,
+                    }))
+        res['value'].update({
+                    'grn_id':good_req_id.grn_no_id.id or False,
+                    'header_text': good_req_id.grn_no_id.header_text or '',
+                    'invoice_no': good_req_id.grn_no_id.invoice_no or '',
+                    'supplier_id': good_req_id.grn_no_id and good_req_id.grn_no_id.partner_id and good_req_id.grn_no_id.partner_id.id or False,
+                    'po_id': good_req_id.grn_no_id and good_req_id.grn_no_id.purchase_id and good_req_id.grn_no_id.purchase_id.id or False,
+                    'gate_out_pass_line': gate_out_pass_line,
+        })
         return res
      
 tpt_gate_out_pass()
