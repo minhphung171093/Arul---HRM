@@ -2607,6 +2607,56 @@ class tpt_update_stock_move_report(osv.osv):
                         
         return self.write(cr, uid, ids, {'result':'update_price_unit_for_good_issue Done'})  
  
+    def uom_change_list16th(self, cr, uid, ids, context=None):
+        sql = '''
+            update purchase_order_line set product_uom=16 where order_id=729 and line_no in (16,17,18,19,20,21,22);
+            update purchase_order_line set product_uom=21 where order_id=729 and line_no in (28,29,30,31);
+            
+            update tpt_purchase_product set uom_po_id=16 where pur_product_id=833
+                and description in ('SHUTTERING UPTO 5M HEIGHT',
+                                    '-SHUTTERING FROM 5M TO 10M HEIGHT',
+                                    'SHUTTERING FROM 10M TO15 M HEIGHT',
+                                    'SHUTTERING FROM 15M TO 20M HEIGHT',
+                                    'SHUTTERING FROM 20M TO 25M HEIGHT',
+                                    'CIRCULAR SHUTTERING UPTO 5M HEIGHT',
+                                    'CIRCUL SHUTTERING FROM 5M TO 10M HEIGHT');
+            update tpt_purchase_product set uom_po_id=21 where pur_product_id=833
+                and description in ('BRICK WORK FROM 5M TO 10M HEIGHT',
+                                    'BRICK WORK FROM 10M TO 15M HEIGHT',
+                                    'BRICK WORK FROM 15M TO 20M HEIGHT',
+                                    'BRICK WORK FROM 20M TO 25M HEIGHT');
+                                    
+            update tpt_rfq_line set uom_id=16 where rfq_id=725
+                and description in ('SHUTTERING UPTO 5M HEIGHT',
+                                    '-SHUTTERING FROM 5M TO 10M HEIGHT',
+                                    'SHUTTERING FROM 10M TO15 M HEIGHT',
+                                    'SHUTTERING FROM 15M TO 20M HEIGHT',
+                                    'SHUTTERING FROM 20M TO 25M HEIGHT',
+                                    'CIRCULAR SHUTTERING UPTO 5M HEIGHT',
+                                    'CIRCUL SHUTTERING FROM 5M TO 10M HEIGHT');
+            update tpt_rfq_line set uom_id=21 where rfq_id=725
+                and description in ('BRICK WORK FROM 5M TO 10M HEIGHT',
+                                    'BRICK WORK FROM 10M TO 15M HEIGHT',
+                                    'BRICK WORK FROM 15M TO 20M HEIGHT',
+                                    'BRICK WORK FROM 20M TO 25M HEIGHT');
+                                    
+            update tpt_purchase_quotation_line set uom_id=16 where purchase_quotation_id=930
+                and description in ('SHUTTERING UPTO 5M HEIGHT',
+                                    '-SHUTTERING FROM 5M TO 10M HEIGHT',
+                                    'SHUTTERING FROM 10M TO15 M HEIGHT',
+                                    'SHUTTERING FROM 15M TO 20M HEIGHT',
+                                    'SHUTTERING FROM 20M TO 25M HEIGHT',
+                                    'CIRCULAR SHUTTERING UPTO 5M HEIGHT',
+                                    'CIRCUL SHUTTERING FROM 5M TO 10M HEIGHT');
+            update tpt_purchase_quotation_line set uom_id=21 where purchase_quotation_id=930
+                and description in ('BRICK WORK FROM 5M TO 10M HEIGHT',
+                                    'BRICK WORK FROM 10M TO 15M HEIGHT',
+                                    'BRICK WORK FROM 15M TO 20M HEIGHT',
+                                    'BRICK WORK FROM 20M TO 25M HEIGHT');
+        '''
+        cr.execute(sql)
+        return self.write(cr, uid, ids, {'result':'uom_change_list16th Done'})   
+    
 tpt_update_stock_move_report()
 
 
