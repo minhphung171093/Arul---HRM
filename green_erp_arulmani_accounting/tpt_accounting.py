@@ -2518,6 +2518,7 @@ class account_voucher(osv.osv):
         'name': fields.char( 'Journal no.',size = 256),
         'memo':fields.char('Memo', size=256, readonly=True, states={'draft':[('readonly',False)]}),
         'cheque_date': fields.date('Cheque Date'),
+        'reconciliation_date': fields.date('Reconciliation Date'),
         'cheque_no': fields.char('Cheque No'),
         'sum_amount': fields.float('Amount'),
         'type_trans':fields.selection([
@@ -5067,3 +5068,77 @@ class account_move(osv.osv):
     def write(self, cr, uid,ids, vals, context=None):
         return super(account_move, self).write(cr,1,ids,vals,context) 
 account_move()
+
+class tpt_bank_reconciliation(osv.osv):
+    _name = 'tpt.bank.reconciliation'
+    _columns = {
+        'name': fields.many2one('account.account', 'Bank GL Account', required=True, states={ 'done':[('readonly', True)]}),
+        'reconciliation_line': fields.one2many('tpt.bank.reconciliation.line', 'bank_reconciliation_id', 'Line', states={ 'done':[('readonly', True)]}),
+        'state':fields.selection([('draft', 'Draft'),('done', 'Done')],'Status', readonly=True),
+    }
+    _defaults = {
+        'state': 'draft',
+    }
+
+    def onchange_account(self, cr, uid, ids, account_id=False, context=None):
+        if context is None:
+            context={}
+        vals = {}
+        if ids:
+            cr.execute(''' delete from tpt_bank_reconciliation_line where bank_reconciliation_id in %s ''',(tuple(ids),))
+        if account_id:
+            voucher_obj = self.pool.get('account.voucher')
+            voucher_ids = voucher_obj.search(cr, uid, [('account_id','=',account_id),('reconciliation_date','=',False)])
+            reconciliation_line = []
+            for voucher in voucher_obj.browse(cr, uid, voucher_ids):
+                doc_type = ''
+                if voucher.journal_id.type=='bank':
+                    if not voucher.tpt_sup_reconcile and voucher.type == 'payment':
+                        doc_type='Supplier Payments'
+                    if not voucher.tpt_sup_reconcile and voucher.type == 'receipt':
+                        doc_type='Customer Payments'
+                    if voucher.type_trans:
+                        doc_type='Bank Transaction'
+                reconciliation_line.append((0,0,{
+                    'partner_id': voucher.partner_id and voucher.partner_id.id or False,
+                    'name': voucher.name,
+                    'doc_type': doc_type,
+                    'reference': voucher.reference,
+                    'date': voucher.date,
+                    'cheque_no': voucher.cheque_no,
+                    'cheque_date': voucher.cheque_date,
+                    'account_id': voucher.account_id and voucher.account_id.id or False,
+                    'amount': voucher.amount,
+                    'voucher_id': voucher.id,
+                }))
+            vals = {'reconciliation_line':reconciliation_line}
+        return {'value': vals}
+
+    def bt_confirm(self, cr, uid, ids, context=None):
+        for bank_reconciliation in self.browse(cr, uid, ids):
+            for line in bank_reconciliation.reconciliation_line:
+                if line.reconciliation_date:
+                    cr.execute(''' update account_voucher set reconciliation_date=%s where id=%s ''',(line.reconciliation_date,line.voucher_id.id,))
+        return self.write(cr, uid, ids,{'state':'done'})
+    
+tpt_bank_reconciliation()
+
+class tpt_bank_reconciliation_line(osv.osv):
+    _name = 'tpt.bank.reconciliation.line'
+    _columns = {
+        'partner_id': fields.many2one('res.partner', 'Customer/Verdor'),
+        'name': fields.char('Voucher No', size=1024),
+        'doc_type': fields.char('Document Type', size=1024),
+        'reference': fields.char('Payment Ref', size=1024),
+        'date': fields.date('Payment Date'),
+        'cheque_no': fields.char('Cheque No', size=1024),
+        'cheque_date': fields.date('Cheque Date'),
+        'reconciliation_date': fields.date('Reconciliation Date'),
+        'account_id': fields.many2one('account.account', 'Bank GL Account'),
+        'voucher_id': fields.many2one('account.voucher', 'Voucher'),
+        'amount': fields.float('Payment Amount'),
+        'bank_reconciliation_id': fields.many2one('tpt.bank.reconciliation', 'Bank Reconciliation', ondelete='cascade'),
+    }
+    
+tpt_bank_reconciliation_line()
+
