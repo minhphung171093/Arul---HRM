@@ -297,13 +297,32 @@ class stock_picking_in(osv.osv):
                 }
 
     def onchange_picking_date(self, cr, uid, ids, date=False, context=None):
+        vals = {}
+        warning = {}
+        current = time.strftime("%Y-%m-%d %H:%M:%S")
+        if date and date > current:
+            vals = {'date':current}
+            warning = {
+                'title': _('Warning!'),
+                'message': _('GRN Date: Not allow future date!')
+            }
         for picking in self.browse(cr, uid, ids, context=context):
-            if date:
+            if date and date > current:
+                vals = {'date':current}
+                warning = {
+                    'title': _('Warning!'),
+                    'message': _('GRN Date: Not allow future date!')
+                }
+                sql = '''
+                    update stock_move set date = '%s' where picking_id = %s
+                '''%(current, picking.id)
+                cr.execute(sql)
+            if date and date <= current:
                 sql = '''
                     update stock_move set date = '%s' where picking_id = %s
                 '''%(date, picking.id)
                 cr.execute(sql)
-        return True
+        return {'value':vals,'warning':warning}
     
     def onchange_purchase_id(self, cr, uid, ids,purchase_id=False, context=None):
         vals = {}

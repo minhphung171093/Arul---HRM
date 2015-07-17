@@ -207,19 +207,19 @@ class sale_order(osv.osv):
 #         return {'value':vals}
 
   
-    def onchange_so_date(self, cr, uid, ids, date_order=False, blanket_id=False, context=None):
-        vals = {}
-        current = time.strftime('%Y-%m-%d')
-        warning = {}
-        if blanket_id:
-            blanket = self.pool.get('tpt.blanket.order').browse(cr,uid,blanket_id)
-            if date_order < blanket.bo_date:
-                vals = {'date_order':current}
-                warning = {
-                    'title': _('Warning!'),
-                    'message': _('PO Date: Allow back date, not allow future date')
-                }
-        return {'value':vals,'warning':warning}    
+#     def onchange_so_date(self, cr, uid, ids, date_order=False, blanket_id=False, context=None):
+#         vals = {}
+#         current = time.strftime('%Y-%m-%d')
+#         warning = {}
+#         if blanket_id:
+#             blanket = self.pool.get('tpt.blanket.order').browse(cr,uid,blanket_id)
+#             if date_order < blanket.bo_date:
+#                 vals = {'date_order':current}
+#                 warning = {
+#                     'title': _('Warning!'),
+#                     'message': _('PO Date: Allow back date, not allow future date')
+#                 }
+#         return {'value':vals,'warning':warning}    
     
     def onchange_partner_id(self, cr, uid, ids, part=False, blanket_id=False, context=None):
         if not part:
@@ -719,6 +719,18 @@ class sale_order(osv.osv):
                         #stock_move_obj.write(cr, uid, [line.id], {'product_type':line.sale_line_id.product_type,'application_id':line.sale_line_id.application_id and line.sale_line_id.application_id.id or False})
         return True
     
+    def onchange_date_order(self, cr, uid, ids, date_order=False, context=None):
+        vals = {}
+        current = time.strftime('%Y-%m-%d')
+        warning = {}
+        if date_order and date_order > current:
+            vals = {'date_order':current}
+            warning = {
+                'title': _('Warning!'),
+                'message': _('SO Date: Not allow future date!')
+            }
+        return {'value':vals,'warning':warning}
+    
 sale_order()
 
 class tpt_log(osv.osv):
@@ -1185,6 +1197,30 @@ class tpt_blanket_order(osv.osv):
                     'currency_id':customer.currency_id and customer.currency_id.id or False,
                     }
         return {'value': vals}
+    
+    def onchange_bo_date(self, cr, uid, ids, bo_date=False, context=None):
+        vals = {}
+        current = time.strftime('%Y-%m-%d')
+        warning = {}
+        if bo_date and bo_date > current:
+            vals = {'bo_date':current}
+            warning = {
+                'title': _('Warning!'),
+                'message': _('BO Date: Not allow future date!')
+            }
+        return {'value':vals,'warning':warning}
+    
+    def onchange_po_date(self, cr, uid, ids, po_date=False, context=None):
+        vals = {}
+        current = time.strftime('%Y-%m-%d')
+        warning = {}
+        if po_date and po_date > current:
+            vals = {'po_date':current}
+            warning = {
+                'title': _('Warning!'),
+                'message': _('PO Date: Not allow future date!')
+            }
+        return {'value':vals,'warning':warning}
     
 tpt_blanket_order()
 

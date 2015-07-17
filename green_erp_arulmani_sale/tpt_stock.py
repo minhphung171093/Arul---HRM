@@ -1175,19 +1175,38 @@ class account_invoice(osv.osv):
     def onchange_date_invoice(self, cr, uid, ids, date_invoice=False, context=None):
         vals = {}
         warning = {}
+        current = time.strftime('%Y-%m-%d')
         if date_invoice:
-            sql = '''
-                select date_invoice from account_invoice where type='out_invoice' order by date_invoice desc
-            ''' 
-            cr.execute(sql)
-            date_invoices = [row[0] for row in cr.fetchall()]
-            if date_invoices and date_invoice < date_invoices[0]:
+#             sql = '''
+#                 select date_invoice from account_invoice where type='out_invoice' order by date_invoice desc
+#             ''' 
+#             cr.execute(sql)
+#             date_invoices = [row[0] for row in cr.fetchall()]
+#             if date_invoices and date_invoice < date_invoices[0]:
+#                 warning = {
+#                     'title': _('Warning!'),
+#                     'message': _('Not allow to create back date invoices')
+#                 }
+#                 vals = {'date_invoice':False}
+            if date_invoice > current:
+                vals = {'date_invoice':current}
                 warning = {
                     'title': _('Warning!'),
-                    'message': _('Not allow to create back date invoices')
+                    'message': _('Posting Date: Not allow future date!')
                 }
-                vals = {'date_invoice':False}
         return {'value': vals,'warning':warning}
+    
+    def onchange_bill_date(self, cr, uid, ids, bill_date=False, context=None):
+        vals = {}
+        current = time.strftime('%Y-%m-%d')
+        warning = {}
+        if bill_date and bill_date > current:
+            vals = {'bill_date':current}
+            warning = {
+                'title': _('Warning!'),
+                'message': _('Bill Date: Not allow future date!')
+            }
+        return {'value':vals,'warning':warning}
     
     def onchange_delivery_order_id(self, cr, uid, ids, delivery_order_id=False, context=None):
         vals = {}

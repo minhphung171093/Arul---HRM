@@ -25,7 +25,8 @@
                 		<field name="excise_duty_id" options="{'create': false, 'create_edit': false}"/>
 	        	</xpath>
 				<xpath expr="//field[@name='date_order']"  position="replace">
-					<field name="date_order" string = "SO Date" on_change = "onchange_so_date(date_order, blanket_id)"/>
+					<!--<field name="date_order" string = "SO Date" on_change = "onchange_so_date(date_order, blanket_id)"/>-->
+					<field name="date_order" string = "SO Date" on_change = "onchange_date_order(date_order)"/>
                 	<field name="po_date" on_change="onchange_po_date(po_date)" />
                 	<field name="po_number" />
                 	<!-- 
@@ -212,8 +213,8 @@
                     	</group>
                       
 						<group>
-						<field name="bo_date" />
-						<field name="po_date" />
+						<field name="bo_date" on_change="onchange_bo_date(bo_date)"/>
+						<field name="po_date" on_change="onchange_po_date(po_date)"/>
 						<field name="po_number" />
 						<!-- <field name="exp_delivery_date" on_change = "onchange_exp_delivery_date(exp_delivery_date)"/>  -->
 						<!--<field name="dispatch_date" on_change = "onchange_sche_dispatch_date(dispatch_date)"/>-->
