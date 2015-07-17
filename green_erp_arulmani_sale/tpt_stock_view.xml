@@ -227,6 +227,7 @@
 					<!-- <field name="insurance" />  -->
 					<!-- <field name="other_charges" />   -->
 					<field name="agency_comm" /> 
+					<field name="epcg_no" /> 
 					
 					<group attrs="{'invisible': [('invoice_type', '=', 'export') ] }" colspan="2" >
 					
