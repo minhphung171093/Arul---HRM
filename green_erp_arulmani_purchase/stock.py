@@ -409,8 +409,8 @@ class stock_move(osv.osv):
         'si_no':fields.integer('SI.No',readonly = True),
         'description':fields.char('Description', size = 50, readonly = True),
         'item_text':fields.text('Item Text'),
-        'inspec_id': fields.many2one('tpt.quanlity.inspection','Quanlity Inspection'),
-        'issue_id': fields.many2one('tpt.material.issue','Material Issue'),
+        'inspec_id': fields.many2one('tpt.quanlity.inspection','Quanlity Inspection',ondelete='restrict'),
+        'issue_id': fields.many2one('tpt.material.issue','Material Issue',ondelete='restrict'),
         'cost_center_id': fields.many2one('tpt.cost.center','Cost center'),
         'grn_no': fields.related('picking_id', 'name', type='char', string='GRN No'),
         'gate_out_sup_id':fields.many2one('tpt.gate.out.pass','Gate Out Pass'), # luu gate_out_pass kho khach hang
