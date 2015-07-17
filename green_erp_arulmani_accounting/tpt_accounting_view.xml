@@ -164,7 +164,7 @@
 				</xpath>
 				<xpath expr="//field[@name='date_invoice']" position="after">
 					<field name='bill_number'/>
-					<field name='bill_date' on_change="onchange_bill_date(bill_date)"/>
+					<field name='bill_date'/>
 				</xpath>
 				<xpath expr="//field[@name='partner_id']" position="attributes">
 					<attribute name='string'>Vendor</attribute>
@@ -308,7 +308,7 @@
 				</xpath>
 				<xpath expr="//field[@name='date_invoice']" position="after">
 					<field name='bill_number'/>
-					<field name='bill_date' on_change="onchange_bill_date(bill_date)"/>
+					<field name='bill_date'/>
 				</xpath>
 			</field>
 		</record>
@@ -442,7 +442,7 @@
                         <group>
                             <field name="date_invoice" string="Posting Date" on_change="onchange_date_invoice(date_invoice)"/>
                             <field name='bill_number'/>
-							<field name='bill_date' on_change="onchange_bill_date(bill_date)"/>
+							<field name='bill_date'/>
                             <field name="date_due"/>
                             <field name="created_on"/>
                             <field domain="[('company_id', '=', company_id), ('type', '=', 'payable')]"
@@ -665,7 +665,7 @@
                         <group>
                             <field name="date_invoice" string="Posting Date" on_change="onchange_date_invoice(date_invoice)"/>
                             <field name='bill_number'/>
-							<field name='bill_date' on_change="onchange_bill_date(bill_date)"/>
+							<field name='bill_date'/>
                             <field name="date_due"/>
                             <field name="created_on"/>
                             <field domain="[('company_id', '=', company_id), ('type', '=', 'payable')]"
@@ -894,7 +894,7 @@
                         <group>
                             <field name="date_invoice" string="Posting Date" on_change="onchange_date_invoice(date_invoice)"/>
                             <field name='bill_number'/>
-							<field name='bill_date' on_change="onchange_bill_date(bill_date)"/>
+							<field name='bill_date'/>
                             <field name="date_due"/>
                             <field name="created_on"/>
                             <field domain="[('company_id', '=', company_id), ('type', '=', 'payable')]"

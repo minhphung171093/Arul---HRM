@@ -1196,17 +1196,17 @@ class account_invoice(osv.osv):
                 }
         return {'value': vals,'warning':warning}
     
-    def onchange_bill_date(self, cr, uid, ids, bill_date=False, context=None):
-        vals = {}
-        current = time.strftime('%Y-%m-%d')
-        warning = {}
-        if bill_date and bill_date > current:
-            vals = {'bill_date':current}
-            warning = {
-                'title': _('Warning!'),
-                'message': _('Bill Date: Not allow future date!')
-            }
-        return {'value':vals,'warning':warning}
+#     def onchange_bill_date(self, cr, uid, ids, bill_date=False, context=None):
+#         vals = {}
+#         current = time.strftime('%Y-%m-%d')
+#         warning = {}
+#         if bill_date and bill_date > current:
+#             vals = {'bill_date':current}
+#             warning = {
+#                 'title': _('Warning!'),
+#                 'message': _('Bill Date: Not allow future date!')
+#             }
+#         return {'value':vals,'warning':warning}
     
     def onchange_delivery_order_id(self, cr, uid, ids, delivery_order_id=False, context=None):
         vals = {}
