@@ -4703,7 +4703,8 @@ class arul_hr_employee_leave_details(osv.osv):
                 raise osv.except_osv(_('Warning!'),_('User does not have permission to approve for this employee department!'))
         return True  
     #TPT:START 
-    def reject_leave_request(self, cr, uid, ids, context=None):  
+    def reject_leave_request(self, cr, uid, ids, context=None): 
+        time_evalv_obj = self.pool.get('tpt.time.leave.evaluation') 
         for line in self.browse(cr, uid, ids): 
             #vals = {}
             #vals.update({'check_reject_flag':True})
@@ -4712,12 +4713,17 @@ class arul_hr_employee_leave_details(osv.osv):
             if line.date_from: 
                 month = line.date_from[5:7]
                 year = line.date_from[:4]
-                payroll_ids = self.pool.get('arul.hr.payroll.executions').search(cr,uid,[('month','=',month),('year','=',year),('state','=','approve'),('payroll_area_id','=',line.employee_id.payroll_area_id.id)])
+                payroll_ids = self.pool.get('arul.hr.payroll.executions').search(cr,uid,[('month','=',int(month)),('year','=',year),('state','=','approve'),('payroll_area_id','=',line.employee_id.payroll_area_id.id)])
                 if payroll_ids :
                     raise osv.except_osv(_('Warning!'),_('Payroll were already exists, not allowed to reject again!'))
+                time_evalv_ids = time_evalv_obj.search(cr,uid,[('month','=',int(month)),('year','=',year),('state','=','done'),
+                                                           ('payroll_area_id','=',line.employee_id.payroll_area_id.id)])
+                if time_evalv_ids:
+                        raise osv.except_osv(_('Warning!'),_('Time Leave Evaluation Confirmed!'))
             #
             
-            if line.reason_for_reject:    
+            #if line.reason_for_reject:    
+            if line.reason:   
                 self.write(cr, uid, [line.id],{'state':'reject','leave_evaluate_id':False,'check_reject_flag':True})
             else:
                 raise osv.except_osv(_('Warning!'),_('Please Edit & Provide Reason for Rejection!'))
