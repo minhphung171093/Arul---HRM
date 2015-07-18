@@ -1085,6 +1085,7 @@
                         <field name="employee_id" options="{'create': false, 'create_edit': false}" />
                         <field name="cost_center_id" required="1" options="{'create': false, 'create_edit': false}" />
                         <field name="payee"/>
+                        <field name="reconciliation_date"/>
                         <field name="payment_rate_currency_id" invisible="1"/>
                         <field name="partner_id" invisible = '1' on_change="onchange_journal_voucher(line_ids, tax_id, amount, partner_id, journal_id, type)"/>
                     	<field name="type" required="0" invisible = '1'/>
@@ -1468,6 +1469,7 @@
                     
                     <xpath expr="//field[@name='company_id']" position="after">
                     	<field name="cheque_number" attrs="{'invisible': [('tpt_journal','&lt;&gt;','bank')]}"/>
+                    	<field name="reconciliation_date"/>
                     	<field name="tpt_journal" invisible = "1"/>
                     </xpath>
                     
@@ -1550,6 +1552,7 @@
                     
                     <xpath expr="//field[@name='company_id']" position="after">
                     	<field name="cheque_number" attrs="{'invisible': [('tpt_journal','&lt;&gt;','bank')]}"/>
+                    	<field name="reconciliation_date"/>
                     	<field name="tpt_journal" invisible = "1"/>
                     </xpath>
                     
@@ -2671,6 +2674,63 @@
 				</xpath>
             </field>
 	  </record>
+	  
+	  <record id="tpt_bank_reconciliation_tree" model="ir.ui.view">
+            <field name="name">tpt.bank.reconciliation.tree</field>
+            <field name="model">tpt.bank.reconciliation</field>
+            <field name="arch" type="xml">
+                <tree string="Bank Reconciliation">
+                    <field name="name"/>
+                    <field name="state"/>
+                </tree>
+            </field>
+        </record>
+        
+        <record id="tpt_bank_reconciliation_form" model="ir.ui.view">
+            <field name="name">tpt.bank.reconciliation.form</field>
+            <field name="model">tpt.bank.reconciliation</field>
+            <field name="arch" type="xml">
+                <form string="Bank Reconciliation" version="7.0">
+                  <header>
+                      <button name="bt_confirm" string="Reconcile" states="draft" type='object' class="oe_highlight"/>
+                      <field name="state" widget="statusbar" statusbar_visible="draft,done"/>
+                  </header>
+                  <sheet>
+                    <group col="4" colspan="4">
+                        <field name="name" on_change="onchange_account(name)" domain="[('user_type.code','=','bank')]" options="{'create': false, 'create_edit': false}"/>
+                    </group>
+                    <notebook colspan="4">
+                        <page>
+                        	<div col='4' colspan='4' class='oe_green_erp_scroll'>
+	                            <field name="reconciliation_line" nolabel='1'>
+	                                <tree string="Voucher Items" create='false' delete='false' editable="bottom">
+	                                    <field name="doc_type" readonly='1'/>
+	                                    <field name="partner_id" readonly='1'/>
+	                                    <field name="name" string="Voucher No" readonly='1'/>
+	                                    <field name="date" string="Payment Date" readonly='1'/>
+	                                    <field name="reference" string="Payment Ref"  readonly='1'/>
+	                                    <field name="cheque_date" readonly='1'/>
+	                                    <field name="cheque_no" readonly='1'/>
+	                                    <field name="account_id" readonly='1'/>
+	                                    <field name="amount" readonly='1'/>
+	                                    <field name="reconciliation_date"/>
+	                                </tree>
+	                            </field>
+                            </div>
+                        </page>
+                    </notebook>
+                  </sheet>
+                </form>
+            </field>
+        </record>
+          
+       <record id="action_tpt_bank_reconciliation" model="ir.actions.act_window">
+            <field name="name">Bank Reconciliation</field>
+            <field name="res_model">tpt.bank.reconciliation</field>
+            <field name="view_type">form</field>
+            <field name="view_mode">tree,form,graph</field>
+            <field name="view_id" eval="tpt_bank_reconciliation_tree"/>
+        </record>
 	  
     </data>
 </openerp>
