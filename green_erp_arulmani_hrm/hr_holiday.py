@@ -4703,7 +4703,8 @@ class arul_hr_employee_leave_details(osv.osv):
                 raise osv.except_osv(_('Warning!'),_('User does not have permission to approve for this employee department!'))
         return True  
     #TPT:START 
-    def reject_leave_request(self, cr, uid, ids, context=None):  
+    def reject_leave_request(self, cr, uid, ids, context=None): 
+        time_evalv_obj = self.pool.get('tpt.time.leave.evaluation') 
         for line in self.browse(cr, uid, ids): 
             #vals = {}
             #vals.update({'check_reject_flag':True})
@@ -4712,12 +4713,17 @@ class arul_hr_employee_leave_details(osv.osv):
             if line.date_from: 
                 month = line.date_from[5:7]
                 year = line.date_from[:4]
-                payroll_ids = self.pool.get('arul.hr.payroll.executions').search(cr,uid,[('month','=',month),('year','=',year),('state','=','approve'),('payroll_area_id','=',line.employee_id.payroll_area_id.id)])
+                payroll_ids = self.pool.get('arul.hr.payroll.executions').search(cr,uid,[('month','=',int(month)),('year','=',year),('state','=','approve'),('payroll_area_id','=',line.employee_id.payroll_area_id.id)])
                 if payroll_ids :
                     raise osv.except_osv(_('Warning!'),_('Payroll were already exists, not allowed to reject again!'))
+                time_evalv_ids = time_evalv_obj.search(cr,uid,[('month','=',int(month)),('year','=',year),('state','=','done'),
+                                                           ('payroll_area_id','=',line.employee_id.payroll_area_id.id)])
+                if time_evalv_ids:
+                        raise osv.except_osv(_('Warning!'),_('Time Leave Evaluation Confirmed!'))
             #
             
-            if line.reason_for_reject:    
+            #if line.reason_for_reject:    
+            if line.reason:   
                 self.write(cr, uid, [line.id],{'state':'reject','leave_evaluate_id':False,'check_reject_flag':True})
             else:
                 raise osv.except_osv(_('Warning!'),_('Please Edit & Provide Reason for Rejection!'))
@@ -4735,6 +4741,34 @@ class arul_hr_employee_leave_details(osv.osv):
                 raise osv.except_osv(_('Warning!'),_('User does not have permission to reject for this employee department!'))
         return True  
     #TPT:E
+    def rollback_leave_request(self, cr, uid, ids, context=None):
+        date_now = time.strftime('%Y-%m-%d')
+        time_evalv_obj = self.pool.get('tpt.time.leave.evaluation')
+        for line in self.browse(cr, uid, ids):            
+            sql = '''
+                select %s in (select uid from res_groups_users_rel where gid in (select id from res_groups where name='Time Manager' 
+                and category_id in (select id from ir_module_category where name='VVTI - HRM')))
+                '''%(uid)
+            cr.execute(sql)
+            p = cr.fetchone()
+                
+            if line.employee_id.department_id and line.employee_id.department_id.primary_auditor_id and line.employee_id.department_id.primary_auditor_id.id==uid \
+            or p:
+                if line.date_from: 
+                    month = line.date_from[5:7]
+                    year = line.date_from[:4]
+                    payroll_ids = self.pool.get('arul.hr.payroll.executions').search(cr,uid,[('month','=',int(month)),('year','=',year),('state','=','approve'),('payroll_area_id','=',line.employee_id.payroll_area_id.id)])
+                    if payroll_ids :
+                        raise osv.except_osv(_('Warning!'),_('Payroll were already exists, not allowed to Rollback!'))
+                    time_evalv_ids = time_evalv_obj.search(cr,uid,[('month','=',int(month)),('year','=',year),('state','=','done'),
+                                                           ('payroll_area_id','=',line.employee_id.payroll_area_id.id)])
+                    if time_evalv_ids:
+                        raise osv.except_osv(_('Warning!'),_('Time Leave Evaluation Confirmed!'))
+                #continue
+                    self.write(cr, uid, [line.id],{'state':'draft','leave_evaluate_id':False})
+            else:
+                raise osv.except_osv(_('Warning!'),_('User does not have permission to cancel for this employee department!'))
+        return True  
     def cancel_leave_request(self, cr, uid, ids, context=None):
         date_now = time.strftime('%Y-%m-%d')
         for line in self.browse(cr, uid, ids):
@@ -4751,6 +4785,16 @@ class arul_hr_employee_leave_details(osv.osv):
             if line.employee_id.department_id and line.employee_id.department_id.primary_auditor_id and line.employee_id.department_id.primary_auditor_id.id==uid \
             or p:
                 #continue
+                if line.date_from: 
+                    month = line.date_from[5:7]
+                    year = line.date_from[:4]
+                    payroll_ids = self.pool.get('arul.hr.payroll.executions').search(cr,uid,[('month','=',int(month)),('year','=',year),('state','=','approve'),('payroll_area_id','=',line.employee_id.payroll_area_id.id)])
+                    if payroll_ids :
+                        raise osv.except_osv(_('Warning!'),_('Payroll were already exists, not allowed to Rollback!'))
+                    time_evalv_ids = time_evalv_obj.search(cr,uid,[('month','=',int(month)),('year','=',year),('state','=','done'),
+                                                           ('payroll_area_id','=',line.employee_id.payroll_area_id.id)])
+                    if time_evalv_ids:
+                        raise osv.except_osv(_('Warning!'),_('Time Leave Evaluation Confirmed!'))
                 self.write(cr, uid, [line.id],{'state':'cancel','leave_evaluate_id':False})
             else:
                 raise osv.except_osv(_('Warning!'),_('User does not have permission to cancel for this employee department!'))
