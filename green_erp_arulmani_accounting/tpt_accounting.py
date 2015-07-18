@@ -3040,20 +3040,31 @@ class account_voucher(osv.osv):
         if context is None:
             context = {}
         vals = {}
+        current = time.strftime('%Y-%m-%d')
+        warning = {}
+        if date and date > current:
+            vals.update({'date':current})
+            warning = {
+                'title': _('Warning!'),
+                'message': _('Date: Not allow future date!')
+            }
         if type in ['receipt','payment']:
-            vals = {
+            vals.update({
                 'amount': 0,
                 'tpt_amount': 0,
-            }
+            })
             if tpt_currency_id and tpt_currency_amount and date:
-                context.update({'date': date})
+                if date > current:
+                    context.update({'date': current})
+                else:
+                    context.update({'date': date})
 #                 context.update({'date': time.strftime('%Y-%m-%d')})
                 voucher_rate = self.pool.get('res.currency').read(cr, uid, tpt_currency_id, ['rate'], context=context)['rate']
-                vals = {
+                vals.update({
                     'amount': tpt_currency_amount/voucher_rate,
                     'tpt_amount': tpt_currency_amount/voucher_rate,
-                }
-        return {'value': vals}
+                })
+        return {'value': vals,'warning':warning}
     
     def create(self, cr, uid, vals, context=None):
         if vals.get('name','/')=='/':
@@ -3801,6 +3812,49 @@ class account_voucher(osv.osv):
         if context.get('tpt_remove_dr_cr',False):
             res['value']['line_dr_ids']=False
             res['value']['line_cr_ids']=False
+        return res
+    
+    def onchange_date(self, cr, uid, ids, date, currency_id, payment_rate_currency_id, amount, company_id, context=None):
+        """
+        @param date: latest value from user input for field date
+        @param args: other arguments
+        @param context: context arguments, like lang, time zone
+        @return: Returns a dict which contains new values, and context
+        """
+        if context is None:
+            context ={}
+        res = {'value': {},'warning':{}}
+        vals = {}
+        current = time.strftime('%Y-%m-%d')
+        warning = {}
+        if date and date > current:
+            vals.update({'date':current})
+            warning = {
+                'title': _('Warning!'),
+                'message': _('Date: Not allow future date!')
+            }
+            res.update({'value':vals,'warning':warning})
+        
+        
+        #set the period of the voucher
+        period_pool = self.pool.get('account.period')
+        currency_obj = self.pool.get('res.currency')
+        ctx = context.copy()
+        ctx.update({'company_id': company_id, 'account_period_prefer_normal': True})
+        voucher_currency_id = currency_id or self.pool.get('res.company').browse(cr, uid, company_id, context=ctx).currency_id.id
+        pids = period_pool.find(cr, uid, date, context=ctx)
+        if pids:
+            res['value'].update({'period_id':pids[0]})
+        if payment_rate_currency_id:
+            ctx.update({'date': date})
+            payment_rate = 1.0
+            if payment_rate_currency_id != currency_id:
+                tmp = currency_obj.browse(cr, uid, payment_rate_currency_id, context=ctx).rate
+                payment_rate = tmp / currency_obj.browse(cr, uid, voucher_currency_id, context=ctx).rate
+            vals = self.onchange_payment_rate_currency(cr, uid, ids, voucher_currency_id, payment_rate, payment_rate_currency_id, date, amount, company_id, context=context)
+            vals['value'].update({'payment_rate': payment_rate})
+            for key in vals.keys():
+                res[key].update(vals[key])
         return res
     
 #          
@@ -5133,6 +5187,18 @@ class account_move(osv.osv):
         'material_issue_id': fields.many2one('tpt.material.issue','Material Issue',ondelete='restrict'), 
                                   
                 }
+    
+    def onchange_tpt_date(self, cr, uid, ids, date=False, context=None):
+        vals = {}
+        current = time.strftime('%Y-%m-%d')
+        warning = {}
+        if date and date > current:
+            vals = {'date':current}
+            warning = {
+                'title': _('Warning!'),
+                'message': _('Date: Not allow future date!')
+            }
+        return {'value':vals,'warning':warning}
 account_move()
 
 class tpt_activities(osv.osv):

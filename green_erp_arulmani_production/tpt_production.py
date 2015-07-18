@@ -1577,6 +1577,18 @@ class mrp_production(osv.osv):
             move_obj.action_cancel(cr, uid, [x.id for x in production.move_lines])
         self.write(cr, uid, ids, {'state': 'cancel'})
         return True
+    
+    def onchange_date_planned(self, cr, uid, ids, date_planned=False, context=None):
+        vals = {}
+        current = time.strftime('%Y-%m-%d')
+        warning = {}
+        if date_planned and date_planned > current:
+            vals = {'date_planned':current}
+            warning = {
+                'title': _('Warning!'),
+                'message': _('Scheduled Date: Not allow future date!')
+            }
+        return {'value':vals,'warning':warning}
 
 mrp_production()
 

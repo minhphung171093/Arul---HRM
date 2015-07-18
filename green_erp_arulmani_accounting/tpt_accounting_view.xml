@@ -436,7 +436,7 @@
                             </div>
                         </group>
                         <group>
-                            <field name="date_invoice" string="Posting Date"/>
+                            <field name="date_invoice" string="Posting Date" on_change="onchange_date_invoice(date_invoice)"/>
                             <field name='bill_number'/>
 							<field name='bill_date'/>
                             <field name="date_due"/>
@@ -657,7 +657,7 @@
                             </div>
                         </group>
                         <group>
-                            <field name="date_invoice" string="Posting Date"/>
+                            <field name="date_invoice" string="Posting Date" on_change="onchange_date_invoice(date_invoice)"/>
                             <field name='bill_number'/>
 							<field name='bill_date'/>
                             <field name="date_due"/>
@@ -884,7 +884,7 @@
                             </div>
                         </group>
                         <group>
-                            <field name="date_invoice" string="Posting Date"/>
+                            <field name="date_invoice" string="Posting Date" on_change="onchange_date_invoice(date_invoice)"/>
                             <field name='bill_number'/>
 							<field name='bill_date'/>
                             <field name="date_due"/>
@@ -1648,6 +1648,10 @@
 					
 					<xpath expr="//page[@string='Journal Items']/field/tree/field[@name='reconcile_partial_id']" position="attributes">
 						<attribute name='invisible'>1</attribute>
+					</xpath>
+					
+					<xpath expr="//field[@name='date']" position="attributes">
+						<attribute name='on_change'>onchange_tpt_date(date)</attribute>
 					</xpath>
 					
                 </data>
