@@ -502,6 +502,8 @@
 							<field name ="department_to_id" options="{'create': false, 'create_edit': false}" on_change="onchange_department_to_id(department_to_id,designation_from_id) "/>
 							 -->
 							<field name ="department_to_id" options="{'create': false, 'create_edit': false}"/> 
+							<field name ="section_from_id" options="{'create': false, 'create_edit': false}"/>
+							<field name ="section_to_id" options="{'create': false, 'create_edit': false}" />
 							<field name ="designation_from_id" options="{'create': false, 'create_edit': false}"/>
 							<field name ="designation_to_id" options="{'create': false, 'create_edit': false}" domain="[('id','!=',designation_from_id)]"/>
 							<field name ="action_date" string="Date Of Promotion Order"/>
