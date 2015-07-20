@@ -319,7 +319,11 @@ class arul_hr_payroll_employee_structure(osv.osv):
 	return new_id
     
     def bt_approve(self, cr, uid, ids, context=None):
-        return self.write(cr, uid, ids,{'state':'approved'})
+        sql = '''
+        update arul_hr_payroll_employee_structure set state='approved' where id=%s
+        '''%ids[0]
+        cr.execute(sql)
+        return True
     
     #To  Add update L.D & I.D values from Loan & Insurance tab respectively, while editing Employee Payroll Strcuture
     def write(self, cr, uid, ids, vals, context=None):
@@ -342,7 +346,9 @@ class arul_hr_payroll_employee_structure(osv.osv):
 	    if 'insurance_line' in vals:
                     default ={'history_id': emp_struct.id,'history_line':[]}
                     self.copy(cr, uid, emp_struct.id,default)
-
+        ###
+        vals.update({'state':'draft'})
+        ###
         new_write = super(arul_hr_payroll_employee_structure, self).write(cr, uid,ids, vals, context)
 	for emp_struct in self.browse(cr,uid,ids):
 		other_deduction_obj = self.pool.get('arul.hr.payroll.other.deductions')
