@@ -2454,7 +2454,9 @@ class tpt_update_stock_move_report(osv.osv):
             new_jour_id = self.pool.get('account.move').create(cr,uid,value)
             print 'Phuoc: ',dem, new_jour_id
             dem+=1
-        return self.write(cr, uid, ids, {'result':'create_one_issue_one_posting Remaining'})               
+        return self.write(cr, uid, ids, {'result':'create_one_issue_one_posting Remaining'})    
+    
+               
     
     def update_price_unit_from_quanlity_inspection(self, cr, uid, ids, context=None):
         sql = '''
@@ -2549,23 +2551,131 @@ class tpt_update_stock_move_report(osv.osv):
     
     def update_issue_line_for_request_6000028 (self, cr, uid, ids, context=None):
         sql = '''
-            select * from tpt_material_issue_line where material_issue_id in (select id from tpt_material_issue where state = 'done' 
+            select material_issue_id from tpt_material_issue_line where material_issue_id in (select id from tpt_material_issue where state = 'done' 
             and name in (select id from tpt_material_request where name = '6000028/2015'))
         '''
         cr.execute(sql)
-        issue_line_ids = cr.dictfetchall()
-        if issue_line_ids:
-            for line in issue_line_ids:
-                trung_ids = self.pool.get('tpt.material.issue.line').search(cr,uid,[('id','!=',line['id']), ('product_id', '=', line['product_id']),('product_uom_qty', '=', line['product_uom_qty']), ('material_issue_id', '=', line['material_issue_id']) ])
-                if trung_ids:
-                    trung = self.pool.get('tpt.material.issue.line').browse(cr,uid,trung_ids[0])
-                    sql = '''
+        material_issue_id = cr.dictfetchone()['material_issue_id']
+        if material_issue_id:
+            for product_id in [10730, 10733, 10734,10746,10748,10749,10750,10754,10756,10759,10760,10796,10799]:
+                
+                sql = '''
+                        select id from tpt_material_issue_line 
+                        where product_id = %s and material_issue_id = %s
+                    '''%(product_id, material_issue_id)
+                cr.execute(sql)
+                line_ids = cr.fetchall()[0]
+                sql = '''
                         delete from tpt_material_issue_line 
                         where id = %s
-                    '''%(trung.id)
-                    cr.execute(sql)
+                    '''%(line_ids)
+                cr.execute(sql)
+                ###################### delete stock move
+                sql = '''
+                        select id from stock_move 
+                        where product_id = %s and issue_id = %s
+                    '''%(product_id, material_issue_id)
+                cr.execute(sql)
+                move_ids = cr.fetchall()[0]
+                sql = '''
+                        delete from stock_move 
+                        where id = %s
+                    '''%(move_ids)
+                cr.execute(sql)
                 
         return self.write(cr, uid, ids, {'result':'update_issue_line_for_request_6000028 Done'})
+    
+    def delete_account_move_6000028(self, cr, uid, ids, context=None):
+        sql = '''
+            delete from account_move_line 
+            where move_id in (select id from account_move where doc_type = 'good' 
+            and material_issue_id in (select id from tpt_material_issue where state = 'done' 
+            and name in (select id from tpt_material_request where name = '6000028/2015') ) )
+        '''
+        cr.execute(sql)
+        sql = '''
+            delete from account_move where doc_type = 'good' and material_issue_id in (select id from tpt_material_issue where state = 'done' 
+            and name in (select id from tpt_material_request where name = '6000028/2015') )
+        '''
+        cr.execute(sql)
+        return self.write(cr, uid, ids, {'result':'delete_account_move_6000028 Done'}) 
+    
+    def create_posting_6000028(self, cr, uid, ids, context=None):
+        sql = '''
+            select id from tpt_material_issue where state = 'done' and name in (select id from tpt_material_request where name = '6000028/2015')
+        '''
+        cr.execute(sql)
+        issue_ids = [r[0] for r in cr.fetchall()]
+        dem = 1
+        for line in self.pool.get('tpt.material.issue').browse(cr,uid,issue_ids):
+            journal_line = []
+            date_period = line.date_expec
+            sql = '''
+                select id from account_journal
+            '''
+            cr.execute(sql)
+            journal_ids = [r[0] for r in cr.fetchall()]
+            sql = '''
+                select id from account_period where '%s' between date_start and date_stop
+            '''%(date_period)
+            cr.execute(sql)
+            period_ids = [r[0] for r in cr.fetchall()]
+             
+            if not period_ids:
+                raise osv.except_osv(_('Warning!'),_('Period is not null, please configure it in Period master !'))
+            for period_id in self.pool.get('account.period').browse(cr,uid,period_ids):
+                
+                for mater in line.material_issue_line:
+    #                 price += mater.product_id.standard_price * mater.product_isu_qty
+                    acc_expense = mater.product_id and mater.product_id.property_account_expense and mater.product_id.property_account_expense.id or False
+                    acc_asset = mater.product_id and mater.product_id.product_asset_acc_id and mater.product_id.product_asset_acc_id.id or False
+                    if not acc_expense or not acc_asset:
+                        raise osv.except_osv(_('Warning!'),_('Please configure Expense Account and Product Asset Account for all materials!'))
+                    avg_cost_ids = self.pool.get('tpt.product.avg.cost').search(cr, uid, [('product_id','=',mater.product_id.id),('warehouse_id','=',line.warehouse.id)])
+                    unit = 1
+                    if avg_cost_ids:
+                        avg_cost_id = self.pool.get('tpt.product.avg.cost').browse(cr, uid, avg_cost_ids[0])
+                        unit = avg_cost_id.avg_cost or 0
+                    sql = '''
+                        select price_unit from stock_move where product_id=%s and product_qty=%s and issue_id=%s
+                    '''%(mater.product_id.id,mater.product_isu_qty,mater.material_issue_id.id)
+                    cr.execute(sql)
+                    move_price = cr.fetchone()
+                    if move_price and move_price[0] and move_price[0]>0:
+                        unit=move_price[0]
+                    if not unit or unit<0:
+                        unit=1
+#                     price += unit * mater.product_isu_qty
+                    product_price = unit * mater.product_isu_qty
+                    
+                    journal_line.append((0,0,{
+                                            'name':line.doc_no + ' - ' + mater.product_id.name, 
+                                            'account_id': acc_asset,
+                                            'debit':0,
+                                            'credit':product_price,
+                                            'product_id':mater.product_id.id,
+                                             
+                                           }))
+                    journal_line.append((0,0,{
+                                'name':line.doc_no + ' - ' + mater.product_id.name, 
+                                'account_id': acc_expense,
+                                'credit':0,
+                                'debit':product_price,
+                                'product_id':mater.product_id.id,
+                            }))
+            value={
+                    'journal_id':journal_ids[0],
+                    'period_id':period_id.id ,
+                    'ref': line.doc_no,
+                    'date': date_period,
+                    'material_issue_id': line.id,
+                    'line_id': journal_line,
+                    'doc_type':'good'
+                    }
+            new_jour_id = self.pool.get('account.move').create(cr,uid,value)
+            print 'Phuoc: ',dem, new_jour_id
+            dem+=1
+        return self.write(cr, uid, ids, {'result':'create_posting_6000028 Done'})   
 tpt_update_stock_move_report()
 
 
