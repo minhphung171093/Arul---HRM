@@ -1870,7 +1870,7 @@ class tpt_update_stock_move_report(osv.osv):
                 update account_move set date = '%s', ref = '%s' where id in (select move_id from account_move_line where LEFT(name,17) = '%s')
             '''%(picking['date'], picking['name'], picking['name'])
             cr.execute(sql)
-        return self.write(cr, uid, ids, {'result':'update_date_between_issue_and_account Done'})
+        return self.write(cr, uid, ids, {'result':'update_date_between_grn_and_account Done'})
     
     def update_date_between_issue_and_stockmove(self, cr, uid, ids, context=None):
         sql = '''
@@ -2482,6 +2482,7 @@ class tpt_update_stock_move_report(osv.osv):
                         cr.execute(sql)
         return self.write(cr, uid, ids, {'result':'update_price_unit_from_quanlity_inspection Done'})
     
+    
 
     def update_price_unit_for_good_issue(self, cr, uid, ids, context=None):
         sql = '''
@@ -2545,7 +2546,26 @@ class tpt_update_stock_move_report(osv.osv):
                     
                         
         return self.write(cr, uid, ids, {'result':'update_price_unit_for_good_issue Done'})  
- 
+    
+    def update_issue_line_for_request_6000028 (self, cr, uid, ids, context=None):
+        sql = '''
+            select * from tpt_material_issue_line where material_issue_id in (select id from tpt_material_issue where state = 'done' 
+            and name in (select id from tpt_material_request where name = '6000028/2015'))
+        '''
+        cr.execute(sql)
+        issue_line_ids = cr.dictfetchall()
+        if issue_line_ids:
+            for line in issue_line_ids:
+                trung_ids = self.pool.get('tpt.material.issue.line').search(cr,uid,[('id','!=',line['id']), ('product_id', '=', line['product_id']),('product_uom_qty', '=', line['product_uom_qty']), ('material_issue_id', '=', line['material_issue_id']) ])
+                if trung_ids:
+                    trung = self.pool.get('tpt.material.issue.line').browse(cr,uid,trung_ids[0])
+                    sql = '''
+                        delete from tpt_material_issue_line 
+                        where id = %s
+                    '''%(trung.id)
+                    cr.execute(sql)
+                
+        return self.write(cr, uid, ids, {'result':'update_issue_line_for_request_6000028 Done'})
 tpt_update_stock_move_report()
 
 
