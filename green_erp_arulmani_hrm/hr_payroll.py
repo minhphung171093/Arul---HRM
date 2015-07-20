@@ -289,6 +289,10 @@ class arul_hr_payroll_employee_structure(osv.osv):
                 'arul.hr.payroll.employee.structure': (lambda self, cr, uid, ids, c={}: ids, ['insurance_line'], 20),
                 'arul.hr.payroll.insurance.deduction.parameters': (_get_insurance, ['insurance_amount'], 20),
 		},multi='sums', help="The total amount."),
+     ##
+     'state':fields.selection([('draft', 'Draft'),('approved', 'Approved')],'Status', 
+                             readonly=True, states={'done':[('readonly', True)]}),
+     ##
     }
     #Start:TPT By BalamuruganPurushothaman on 23/02/2015 - To  Add update L.D & I.D values from Loan & Insurance tab respectively,while creating the Employee Payroll Strcuture
     def create(self, cr, uid, vals, context=None):
@@ -313,7 +317,14 @@ class arul_hr_payroll_employee_structure(osv.osv):
 		    
         #return super(arul_hr_payroll_employee_structure, self).create(cr, uid, vals, context)	
 	return new_id
-
+    
+    def bt_approve(self, cr, uid, ids, context=None):
+        sql = '''
+        update arul_hr_payroll_employee_structure set state='approved' where id=%s
+        '''%ids[0]
+        cr.execute(sql)
+        return True
+    
     #To  Add update L.D & I.D values from Loan & Insurance tab respectively, while editing Employee Payroll Strcuture
     def write(self, cr, uid, ids, vals, context=None):
 	for emp_struct in self.browse(cr,uid,ids): # TO MAINTAIN EMPLOYEE PAYROLL STRUCTURE - 26/02/2015
@@ -335,7 +346,9 @@ class arul_hr_payroll_employee_structure(osv.osv):
 	    if 'insurance_line' in vals:
                     default ={'history_id': emp_struct.id,'history_line':[]}
                     self.copy(cr, uid, emp_struct.id,default)
-
+        ###
+        vals.update({'state':'draft'})
+        ###
         new_write = super(arul_hr_payroll_employee_structure, self).write(cr, uid,ids, vals, context)
 	for emp_struct in self.browse(cr,uid,ids):
 		other_deduction_obj = self.pool.get('arul.hr.payroll.other.deductions')
@@ -437,6 +450,7 @@ class arul_hr_payroll_employee_structure(osv.osv):
     _defaults = {      
        #'create_date':time.strftime('%Y-%m-%d'),
        #'write_date':time.strftime('%Y-%m-%d'),
+       'state':'draft',
     }
     _constraints = [
         #(_check_employee_id, 'Identical Data', ['employee_id']),
@@ -1301,7 +1315,7 @@ class arul_hr_payroll_executions(osv.osv):
                     executions_details_obj.unlink(cr, uid, payroll_executions_details_ids, context=context) 
                 vals_earning_struc = []
                 vals_other_deductions = []
-                emp_struc_ids = payroll_emp_struc_obj.search(cr,uid,[('employee_id','=',p.id)]) 
+                emp_struc_ids = payroll_emp_struc_obj.search(cr,uid,[('employee_id','=',p.id),('state','=','approved')]) 
                 emp_esi_limit = 0
                 emp_esi_con = 0
                 emp_pf_con = 0

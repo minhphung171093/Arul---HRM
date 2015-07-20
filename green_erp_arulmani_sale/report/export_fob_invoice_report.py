@@ -109,12 +109,23 @@ class Parser(report_sxw.rml_parse):
             val2 = val2 + line.price_subtotal + line.quantity*line.freight + insurance*(line.quantity*1000)
         return round(val2, 2)
     
-    def amount_to_text(self, nbr, lang='en', currency=False):
-        if lang == 'vn':
-            return  amount_to_text_en.amount_to_text(nbr, lang)
-        else:
-            a= currency
-            return amount_to_text_en.amount_to_text(nbr, lang, 'usd') 
+    #===========================================================================
+    # def amount_to_text(self, nbr, lang='en', currency=False):
+    #     if lang == 'vn':
+    #         return  amount_to_text_en.amount_to_text(nbr, lang)
+    #     else:
+    #         a= currency
+    #         return amount_to_text_en.amount_to_text(nbr, lang, 'usd') 
+    #===========================================================================
+    def amount_to_text(self, nbr, currency):
+        lang='en'
+        if currency.name!='INR':
+            return amount_to_text_en.amount_to_text(nbr, lang, currency.name).upper() 
+        if currency.name=='INR':
+            text = Number2Words().convertNumberToWords(nbr).upper()
+            if text and len(text)>3 and text[:3]==' ':
+                text = text[3:]
+            return text
         
     def get_pre(self, pre_carriage_by):
         pre = ''
