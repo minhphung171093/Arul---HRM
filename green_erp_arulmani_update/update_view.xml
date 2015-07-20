@@ -34,7 +34,7 @@
 	            		<button name="update_tpt_quanlity_inspection_v2" string="Update Quantity Inspection V2" type="object" class="oe_highlight"/>
 	            		<button name="update_issue_with_posting" string="Update Issue With Posting" type="object" class="oe_highlight"/>
 	            		<button name="fix_posting_issue" string="Fix Posting Issue" type="object" class="oe_highlight"/>
-	            		<button name="check_one_grn_one_posting" string="Update One GRN One Posting (4)" type="object" class="oe_highlight"/> 
+	            		<button name="check_one_grn_one_posting" string="Update One GRN One Posting" type="object" class="oe_highlight"/> 
 	            		<button name="update_date_stock_move" string="Update Date Stock Move (1)" type="object" class="oe_highlight"/> 
 	            		<button name="update_date_stock_move_from_inspection" string="Update Date Stock Move From Inspection (2)" type="object" class="oe_highlight"/> 
 	            		<button name="update_date_inspection" string="Update Date Inspection Match Date Stock Picking (3)" type="object" class="oe_highlight"/> 
@@ -57,6 +57,9 @@
 		            	<button name="delete_account_move_old_data_for_issue" string="Delete Account Move Old Data For Issue" type="object" class="oe_highlight"/>
 		            	<button name="create_one_issue_one_posting" string="Create One Issue One Posting" type="object" class="oe_highlight"/>
 		            	<button name="uom_change_list16th" string="UOM Change List 16th" type="object" class="oe_highlight"/>
+		            	<button name="update_issue_line_for_request_6000028" string="update issue line for request 6000028" type="object" class="oe_highlight"/>
+		            	<button name="delete_account_move_6000028" string="delete account move 6000028" type="object" class="oe_highlight"/>
+		            	<button name="create_posting_6000028" string="create posting 6000028" type="object" class="oe_highlight"/>
 		            </header>    
 	            	<group>
 	            		<field name="product_id"/>
