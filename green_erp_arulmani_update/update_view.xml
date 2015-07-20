@@ -55,6 +55,8 @@
 		            	<button name="delete_account_move_old_data_for_issue" string="Delete Account Move Old Data For Issue" type="object" class="oe_highlight"/>
 		            	<button name="create_one_issue_one_posting" string="Create One Issue One Posting" type="object" class="oe_highlight"/>
 		            	<button name="update_issue_line_for_request_6000028" string="update issue line for request 6000028" type="object" class="oe_highlight"/>
+		            	<button name="delete_account_move_6000028" string="delete account move 6000028" type="object" class="oe_highlight"/>
+		            	<button name="create_posting_6000028" string="create posting 6000028" type="object" class="oe_highlight"/>
 		            </header>    
 	            	<group>
 	            		<field name="product_id"/>
