@@ -1860,6 +1860,18 @@ class tpt_update_stock_move_report(osv.osv):
         cr.execute(sql)
         return self.write(cr, uid, ids, {'result':'update_date_between_issue_and_account Done'})
     
+    def update_date_between_grn_and_account(self, cr, uid, ids, context=None):
+        sql = '''
+            select * from stock_picking where state = 'done'
+        '''
+        cr.execute(sql)
+        for picking in cr.dictfetchall():
+            sql = '''
+                update account_move set date = '%s', ref = '%s' where id in (select move_id from account_move_line where LEFT(name,17) = '%s')
+            '''%(picking['date'], picking['name'], picking['name'])
+            cr.execute(sql)
+        return self.write(cr, uid, ids, {'result':'update_date_between_issue_and_account Done'})
+    
     def update_date_between_issue_and_stockmove(self, cr, uid, ids, context=None):
         sql = '''
             update stock_move set date = (select date_expec from tpt_material_issue where id = stock_move.issue_id) where issue_id is not null
