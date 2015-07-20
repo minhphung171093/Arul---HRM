@@ -4836,7 +4836,7 @@ class arul_hr_employee_leave_details(osv.osv):
             else:
                 if date_from == date_to:
                     sql2 = '''
-                        select id from arul_hr_employee_leave_details where id != %s and employee_id = %s and date_to = '%s' and haft_day_leave = True and type_half='%s'
+                        select id from arul_hr_employee_leave_details where id != %s and employee_id = %s and date_to = '%s' and haft_day_leave = True and type_half='%s' and state != 'cancel'
                     '''%(day.id,day.employee_id.id,date_to.strftime('%Y-%m-%d'),day.type_half)
                     cr.execute(sql2)
                     leave_t_ids = [row[0] for row in cr.fetchall()]

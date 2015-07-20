@@ -83,7 +83,7 @@
                 </xpath>
                 <xpath expr="//form/sheet/notebook/page[@string='Personal Information']/group/group[@string='Birth']" position="after">
                   	<group >
-	                    <field name="age_in_years" />
+	                    <!-- <field name="age_in_years" />  -->
 	                    <field name="age_in_yrs" />
 	                    <field name="caste" />
 	                    <field name="religion_id" options="{'create': false, 'create_edit': false}"/>
