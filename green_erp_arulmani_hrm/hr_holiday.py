@@ -341,7 +341,7 @@ class arul_hr_audit_shift_time(osv.osv):
               'reason_for_edit': fields.text('Reason',states={'done': [('readonly', True)], 'cancel': [('readonly', True)]}),
               'time_change_flag': fields.boolean('If In/Out Changed'), 
               #TPT - Audit Shift Times
-              'total_shift_worked': fields.function(_shift_total, string='No.Of Shift Worked', multi='shiftsums', states={'done': [('readonly', True)], 'cancel': [('readonly', True)]}),
+              'total_shift_worked': fields.function(_shift_total, store=True, string='No.Of Shift Worked', multi='shiftsums', states={'done': [('readonly', True)], 'cancel': [('readonly', True)]}),
               #'total_shift_worked': fields.float('No.Of Shift Worked', states={'done': [('readonly', True)], 'cancel': [('readonly', True)]}),
               'a_shift_count': fields.float('A', states={'done': [('readonly', True)], 'cancel': [('readonly', True)]}),
               'g1_shift_count': fields.float('G1', states={'done': [('readonly', True)], 'cancel': [('readonly', True)]}),
